@@ -152,7 +152,7 @@ API 0.7 introduces a clear and standardized set of errors and behaviors. Whether
 
 One of the key features of this project is the commitment to preventing map vandalism. The approach is divided into several stages to ensure effective organization and prioritization of short-term wins when they matter most.
 
-<img src="https://files.monicz.dev/osm/anti-vandalism-hardening.webp" alt="Anti-Vandalism Procedure Visualized" width="70%">
+<img src="https://files.monicz.dev/osm/anti-vandalism-hardening.webp?cachebuster" alt="Anti-Vandalism Procedure Visualized" width="70%">
 
 ### Stage 1, Ready on Release
 
@@ -317,7 +317,7 @@ You can compare the [Ruby version](https://files.monicz.dev/osm/old_11152535.gif
 
 Also, here's a quick comparison of the icon images:
 
-![Ruby version GPX trace icon. Contains hard edges due to non-functional anti-aliasing.](https://files.monicz.dev/osm/old_11152535_icon.gif) vs. ![Python version GPX trace icon. Path edges are smoothed out. Aside of that, it's identical to the Ruby version.](https://files.monicz.dev/osm/new_11152535_icon.webp)
+![Ruby version GPX trace icon. Contains hard edges due to non-functional anti-aliasing.](https://files.monicz.dev/osm/old_11152535_icon.gif) vs. ![Python version GPX trace icon. Path edges are smoothed out. Aside of that, it's identical to the Ruby version.](https://files.monicz.dev/osm/new_11152535_icon.webp?cachebuster)
 
 Visualization was performed on trace [#11152535](https://www.openstreetmap.org/user/vjyblauw/traces/11152535).
 
