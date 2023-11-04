@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="top https://github.com/ct921/openpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-10-04T01:42:05.995490</name>
+<trkseg>
+<trkpt lat="24.821545399999998" lon="121.0296053">
+<time>2023-10-04T01:42:07.899000</time>
+<ele>76.637</ele>
+</trkpt>
+
+<trkpt lat="24.8215455" lon="121.02960549999999">
+<time>2023-10-04T01:42:07.999000</time>
+<ele>76.57900000000001</ele>
+</trkpt>
+
+<trkpt lat="24.8215436" lon="121.02960909999999">
+<time>2023-10-04T01:42:11.399000</time>
+<ele>77.084</ele>
+</trkpt>
+
+<trkpt lat="24.8215441" lon="121.02960949999999">
+<time>2023-10-04T01:42:11.499000</time>
+<ele>77.08200000000001</ele>
+</trkpt>
+
+<trkpt lat="24.8215449" lon="121.02960979999999">
+<time>2023-10-04T01:42:11.599000</time>
+<ele>77.178</ele>
+</trkpt>
+
+<trkpt lat="24.821545" lon="121.0296099">
+<time>2023-10-04T01:42:11.699000</time>
+<ele>77.119</ele>
+</trkpt>
+
+<trkpt lat="24.8215452" lon="121.02960979999999">
+<time>2023-10-04T01:42:11.799000</time>
+<ele>77.139</ele>
+</trkpt>
+
+<trkpt lat="24.8215453" lon="121.02960999999999">
+<time>2023-10-04T01:42:11.899000</time>
+<ele>77.179</ele>
+</trkpt>
+
+<trkpt lat="24.8215453" lon="121.0296101">
+<time>2023-10-04T01:42:11.999000</time>
+<ele>77.289</ele>
+</trkpt>
+
+<trkpt lat="24.821545" lon="121.0296101">
+<time>2023-10-04T01:42:12.099000</time>
+<ele>77.177</ele>
+</trkpt>
+
+<trkpt lat="24.8215453" lon="121.02961069999999">
+<time>2023-10-04T01:42:12.199000</time>
+<ele>77.343</ele>
+</trkpt>
+
+<trkpt lat="24.8215452" lon="121.02961069999999">
+<time>2023-10-04T01:42:12.299000</time>
+<ele>77.365</ele>
+</trkpt>
+
+<trkpt lat="24.821544799999998" lon="121.02961069999999">
+<time>2023-10-04T01:42:12.399000</time>
+<ele>77.365</ele>
+</trkpt>
+
+<trkpt lat="24.821544499999998" lon="121.02961069999999">
+<time>2023-10-04T01:42:12.499000</time>
+<ele>77.481</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

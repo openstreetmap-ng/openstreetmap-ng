@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="top https://github.com/ct921/openpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-22T15:53:25.992854</name>
+<trkseg>
+<trkpt lat="24.293963299999998" lon="120.5524952">
+<time>2023-09-22T15:53:29.800000</time>
+<ele>35.894</ele>
+</trkpt>
+
+<trkpt lat="24.293963299999998" lon="120.5524951">
+<time>2023-09-22T15:53:29.900000</time>
+<ele>35.874</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

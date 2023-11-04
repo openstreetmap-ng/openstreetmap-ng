@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  db:
+    image: mongo
+    command: ["mongod", "--bind_ip_all", "--replSet", "rs0"]
+
+    ports:
+      - 127.0.0.1:27017:27017
+
+    volumes:
+      - ./data/db:/data/db
+
+  db-setup:
+    image: mongo
+    entrypoint: ["/bin/sh", "/mongo-init-replica.sh"]
+    command: ["127.0.0.1:27017"]
+
+    depends_on:
+      - db
+
+    volumes:
+      - ./scripts/mongo-init-replica.sh:/mongo-init-replica.sh:ro

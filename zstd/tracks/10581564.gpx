@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="dragonpilot https://github.com/dragonpilot-community/dragonpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-28T01:28:28.299449</name>
+<trkseg>
+<trkpt lat="24.7732487" lon="121.02314229999999">
+<time>2023-09-28T01:28:30.600000</time>
+<ele>157.684</ele>
+</trkpt>
+
+<trkpt lat="24.7732484" lon="121.0231422">
+<time>2023-09-28T01:28:30.700000</time>
+<ele>157.671</ele>
+</trkpt>
+
+<trkpt lat="24.7732483" lon="121.0231422">
+<time>2023-09-28T01:28:30.800000</time>
+<ele>157.701</ele>
+</trkpt>
+
+<trkpt lat="24.773248" lon="121.02314199999999">
+<time>2023-09-28T01:28:30.900000</time>
+<ele>157.696</ele>
+</trkpt>
+
+<trkpt lat="24.773244299999998" lon="121.02314179999999">
+<time>2023-09-28T01:28:32.900000</time>
+<ele>157.68800000000002</ele>
+</trkpt>
+
+<trkpt lat="24.7732441" lon="121.0231417">
+<time>2023-09-28T01:28:33</time>
+<ele>157.699</ele>
+</trkpt>
+
+<trkpt lat="24.773239999999998" lon="121.0231445">
+<time>2023-09-28T01:28:36.400000</time>
+<ele>158.553</ele>
+</trkpt>
+
+<trkpt lat="24.7732399" lon="121.02314489999999">
+<time>2023-09-28T01:28:36.500000</time>
+<ele>158.55</ele>
+</trkpt>
+
+<trkpt lat="24.7732365" lon="121.02314919999999">
+<time>2023-09-28T01:28:38.600000</time>
+<ele>158.517</ele>
+</trkpt>
+
+<trkpt lat="24.7732362" lon="121.02314919999999">
+<time>2023-09-28T01:28:38.700000</time>
+<ele>158.523</ele>
+</trkpt>
+
+<trkpt lat="24.7732358" lon="121.0231496">
+<time>2023-09-28T01:28:38.900000</time>
+<ele>158.476</ele>
+</trkpt>
+
+<trkpt lat="24.773235699999997" lon="121.0231496">
+<time>2023-09-28T01:28:39</time>
+<ele>158.454</ele>
+</trkpt>
+
+<trkpt lat="24.7732302" lon="121.02315809999999">
+<time>2023-09-28T01:28:43.100000</time>
+<ele>157.778</ele>
+</trkpt>
+
+<trkpt lat="24.7732304" lon="121.0231584">
+<time>2023-09-28T01:28:43.200000</time>
+<ele>157.743</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="dragonpilot https://github.com/dragonpilot-community/dragonpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-12T23:09:42.127694</name>
+<trkseg>
+<trkpt lat="51.6327058" lon="-0.7541656999999999">
+<time>2023-09-12T23:09:52.099000</time>
+<ele>126.781</ele>
+</trkpt>
+
+<trkpt lat="51.632706" lon="-0.7541656999999999">
+<time>2023-09-12T23:09:52.199000</time>
+<ele>126.779</ele>
+</trkpt>
+
+<trkpt lat="51.632709999999996" lon="-0.754165">
+<time>2023-09-12T23:09:57.199000</time>
+<ele>127.057</ele>
+</trkpt>
+
+<trkpt lat="51.6327101" lon="-0.7541650999999999">
+<time>2023-09-12T23:09:57.299000</time>
+<ele>127.057</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

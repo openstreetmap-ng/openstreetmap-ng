@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="sunnypilot https://github.com/sunnypilot/openpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+  <name>2023-10-13T00:24:18.223729</name>  <trkseg>
+    <trkpt lat="37.367321669848195" lon="-121.82255267218355">
+      <ele>13.756</ele>
+      <time>2023-10-13T00:37:53.199000</time>
+    </trkpt>
+    <trkpt lat="37.36732167716301" lon="-121.82255266030462">
+      <ele>13.777000000000001</ele>
+      <time>2023-10-13T00:37:53.299000</time>
+    </trkpt>
+    <trkpt lat="37.367321672685556" lon="-121.82255265366915">
+      <ele>13.807</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+    <trkpt lat="37.36732165249055" lon="-121.8225526637297">
+      <ele>13.792</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+    <trkpt lat="37.36732165249055" lon="-121.8225526637297">
+      <ele>13.806000000000001</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+    <trkpt lat="37.36732165249055" lon="-121.8225526637297">
+      <ele>13.772</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+    <trkpt lat="37.36732165249055" lon="-121.8225526637297">
+      <ele>13.772</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+    <trkpt lat="37.36732165249055" lon="-121.8225526637297">
+      <ele>13.772</ele>
+      <time>2023-10-13T00:37:53.399000</time>
+    </trkpt>
+  </trkseg>
+</trk>
+</gpx>

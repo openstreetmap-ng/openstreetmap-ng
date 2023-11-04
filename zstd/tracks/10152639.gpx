@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="dragonpilot https://github.com/dragonpilot-community/dragonpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-13T00:51:48.484027</name>
+<trkseg>
+<trkpt lat="37.318436399999996" lon="-122.0699174">
+<time>2023-09-13T00:52:05.100000</time>
+<ele>88.408</ele>
+</trkpt>
+
+<trkpt lat="37.3184365" lon="-122.0699173">
+<time>2023-09-13T00:52:05.200000</time>
+<ele>88.419</ele>
+</trkpt>
+
+<trkpt lat="37.3184365" lon="-122.0699173">
+<time>2023-09-13T00:52:05.300000</time>
+<ele>88.429</ele>
+</trkpt>
+
+<trkpt lat="37.3184367" lon="-122.0699171">
+<time>2023-09-13T00:52:05.400000</time>
+<ele>88.459</ele>
+</trkpt>
+
+<trkpt lat="37.3184368" lon="-122.06991699999999">
+<time>2023-09-13T00:52:05.500000</time>
+<ele>88.467</ele>
+</trkpt>
+
+<trkpt lat="37.3184367" lon="-122.06991699999999">
+<time>2023-09-13T00:52:05.600000</time>
+<ele>88.46600000000001</ele>
+</trkpt>
+
+<trkpt lat="37.3184366" lon="-122.06991699999999">
+<time>2023-09-13T00:52:05.700000</time>
+<ele>88.441</ele>
+</trkpt>
+
+<trkpt lat="37.318436999999996" lon="-122.0699168">
+<time>2023-09-13T00:52:05.800000</time>
+<ele>88.44500000000001</ele>
+</trkpt>
+
+<trkpt lat="37.318436999999996" lon="-122.06991699999999">
+<time>2023-09-13T00:52:05.900000</time>
+<ele>88.435</ele>
+</trkpt>
+
+<trkpt lat="37.318436999999996" lon="-122.0699169">
+<time>2023-09-13T00:52:06</time>
+<ele>88.421</ele>
+</trkpt>
+
+<trkpt lat="37.3184368" lon="-122.0699171">
+<time>2023-09-13T00:52:06.100000</time>
+<ele>88.432</ele>
+</trkpt>
+
+<trkpt lat="37.3184349" lon="-122.0699164">
+<time>2023-09-13T00:52:10.800000</time>
+<ele>88.548</ele>
+</trkpt>
+
+<trkpt lat="37.318435" lon="-122.0699161">
+<time>2023-09-13T00:52:10.900000</time>
+<ele>88.607</ele>
+</trkpt>
+
+<trkpt lat="37.318435" lon="-122.0699161">
+<time>2023-09-13T00:52:11</time>
+<ele>88.618</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

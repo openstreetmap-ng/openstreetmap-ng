@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="dragonpilot https://github.com/dragonpilot-community/dragonpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-10-01T08:53:29.884233</name>
+<trkseg>
+<trkpt lat="23.6916877" lon="120.5626078">
+<time>2023-10-01T08:53:30.700000</time>
+<ele>60.062000000000005</ele>
+</trkpt>
+
+<trkpt lat="23.691687599999998" lon="120.562608">
+<time>2023-10-01T08:53:30.800000</time>
+<ele>60.095</ele>
+</trkpt>
+
+<trkpt lat="23.691687599999998" lon="120.562608">
+<time>2023-10-01T08:53:30.900000</time>
+<ele>60.115</ele>
+</trkpt>
+
+<trkpt lat="23.6916875" lon="120.56260289999999">
+<time>2023-10-01T08:53:34.900000</time>
+<ele>60.550000000000004</ele>
+</trkpt>
+
+<trkpt lat="23.6916875" lon="120.56260289999999">
+<time>2023-10-01T08:53:35</time>
+<ele>60.572</ele>
+</trkpt>
+
+<trkpt lat="23.691687599999998" lon="120.5626028">
+<time>2023-10-01T08:53:35.100000</time>
+<ele>60.595</ele>
+</trkpt>
+
+<trkpt lat="23.691687599999998" lon="120.56260289999999">
+<time>2023-10-01T08:53:35.200000</time>
+<ele>60.594</ele>
+</trkpt>
+
+<trkpt lat="23.6916898" lon="120.56259969999999">
+<time>2023-10-01T08:53:39.500000</time>
+<ele>61.539</ele>
+</trkpt>
+
+<trkpt lat="23.691689699999998" lon="120.56259949999999">
+<time>2023-10-01T08:53:39.600000</time>
+<ele>61.552</ele>
+</trkpt>
+
+<trkpt lat="23.691689699999998" lon="120.56259519999999">
+<time>2023-10-01T08:53:43.100000</time>
+<ele>62.416000000000004</ele>
+</trkpt>
+
+<trkpt lat="23.6916896" lon="120.5625948">
+<time>2023-10-01T08:53:43.200000</time>
+<ele>62.443</ele>
+</trkpt>
+
+<trkpt lat="23.691689699999998" lon="120.5625946">
+<time>2023-10-01T08:53:43.300000</time>
+<ele>62.465</ele>
+</trkpt>
+
+<trkpt lat="23.691689699999998" lon="120.5625948">
+<time>2023-10-01T08:53:43.400000</time>
+<ele>62.508</ele>
+</trkpt>
+
+<trkpt lat="23.6916886" lon="120.56259379999999">
+<time>2023-10-01T08:53:44.100000</time>
+<ele>62.72</ele>
+</trkpt>
+
+<trkpt lat="23.6916883" lon="120.5625934">
+<time>2023-10-01T08:53:44.200000</time>
+<ele>62.747</ele>
+</trkpt>
+
+<trkpt lat="23.691688" lon="120.5625931">
+<time>2023-10-01T08:53:44.300000</time>
+<ele>62.777</ele>
+</trkpt>
+
+<trkpt lat="23.6916881" lon="120.5625927">
+<time>2023-10-01T08:53:44.400000</time>
+<ele>62.778</ele>
+</trkpt>
+
+<trkpt lat="23.691688" lon="120.562592">
+<time>2023-10-01T08:53:44.500000</time>
+<ele>62.815000000000005</ele>
+</trkpt>
+
+<trkpt lat="23.6916881" lon="120.5625924">
+<time>2023-10-01T08:53:44.600000</time>
+<ele>62.848</ele>
+</trkpt>
+
+<trkpt lat="23.691687899999998" lon="120.5625929">
+<time>2023-10-01T08:53:44.700000</time>
+<ele>62.88</ele>
+</trkpt>
+
+<trkpt lat="23.691687899999998" lon="120.56259259999999">
+<time>2023-10-01T08:53:44.800000</time>
+<ele>62.918</ele>
+</trkpt>
+
+<trkpt lat="23.691688" lon="120.5625925">
+<time>2023-10-01T08:53:44.900000</time>
+<ele>62.915</ele>
+</trkpt>
+
+<trkpt lat="23.691688" lon="120.56259279999999">
+<time>2023-10-01T08:53:45</time>
+<ele>62.956</ele>
+</trkpt>
+
+<trkpt lat="23.6916881" lon="120.56259329999999">
+<time>2023-10-01T08:53:45.100000</time>
+<ele>62.987</ele>
+</trkpt>
+
+<trkpt lat="23.691688499999998" lon="120.56259499999999">
+<time>2023-10-01T08:53:45.300000</time>
+<ele>63.108000000000004</ele>
+</trkpt>
+
+<trkpt lat="23.6916886" lon="120.5625955">
+<time>2023-10-01T08:53:45.400000</time>
+<ele>63.183</ele>
+</trkpt>
+
+<trkpt lat="23.6916886" lon="120.5625951">
+<time>2023-10-01T08:53:45.500000</time>
+<ele>63.215</ele>
+</trkpt>
+
+<trkpt lat="23.691688799999998" lon="120.5625979">
+<time>2023-10-01T08:53:46.100000</time>
+<ele>63.578</ele>
+</trkpt>
+
+<trkpt lat="23.6916889" lon="120.5625982">
+<time>2023-10-01T08:53:46.200000</time>
+<ele>63.628</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

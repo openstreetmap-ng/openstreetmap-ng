@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="dragonpilot https://github.com/dragonpilot-community/dragonpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-23T22:29:27.091440</name>
+<trkseg>
+<trkpt lat="47.8247913" lon="-122.3119735">
+<time>2023-09-23T22:29:36.800000</time>
+<ele>91.86200000000001</ele>
+</trkpt>
+
+<trkpt lat="47.8247913" lon="-122.3119737">
+<time>2023-09-23T22:29:36.900000</time>
+<ele>91.852</ele>
+</trkpt>
+
+<trkpt lat="47.8247912" lon="-122.3119734">
+<time>2023-09-23T22:29:38.600000</time>
+<ele>91.749</ele>
+</trkpt>
+
+<trkpt lat="47.8247912" lon="-122.3119732">
+<time>2023-09-23T22:29:38.700000</time>
+<ele>91.738</ele>
+</trkpt>
+
+<trkpt lat="47.824791999999995" lon="-122.3119722">
+<time>2023-09-23T22:29:39.700000</time>
+<ele>91.60000000000001</ele>
+</trkpt>
+
+<trkpt lat="47.824791999999995" lon="-122.31197189999999">
+<time>2023-09-23T22:29:39.800000</time>
+<ele>91.581</ele>
+</trkpt>
+
+<trkpt lat="47.824791999999995" lon="-122.3119717">
+<time>2023-09-23T22:29:40</time>
+<ele>91.589</ele>
+</trkpt>
+
+<trkpt lat="47.824791999999995" lon="-122.31197159999999">
+<time>2023-09-23T22:29:40.100000</time>
+<ele>91.559</ele>
+</trkpt>
+
+<trkpt lat="47.8247922" lon="-122.3119675">
+<time>2023-09-23T22:29:44</time>
+<ele>91.276</ele>
+</trkpt>
+
+<trkpt lat="47.8247923" lon="-122.3119674">
+<time>2023-09-23T22:29:44.100000</time>
+<ele>91.259</ele>
+</trkpt>
+
+<trkpt lat="47.8247918" lon="-122.3119655">
+<time>2023-09-23T22:29:46.300000</time>
+<ele>91.171</ele>
+</trkpt>
+
+<trkpt lat="47.8247916" lon="-122.3119655">
+<time>2023-09-23T22:29:46.400000</time>
+<ele>91.179</ele>
+</trkpt>
+
+<trkpt lat="47.824791499999996" lon="-122.3119655">
+<time>2023-09-23T22:29:46.500000</time>
+<ele>91.184</ele>
+</trkpt>
+
+<trkpt lat="47.8247917" lon="-122.3119638">
+<time>2023-09-23T22:29:47.600000</time>
+<ele>91.061</ele>
+</trkpt>
+
+<trkpt lat="47.8247918" lon="-122.3119636">
+<time>2023-09-23T22:29:47.700000</time>
+<ele>91.037</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>

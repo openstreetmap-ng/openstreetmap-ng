@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="top https://github.com/ct921/openpilot" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<trk>
+<name>2023-09-30T06:56:19.607114</name>
+<trkseg>
+<trkpt lat="23.1321154" lon="120.29363599999999">
+<time>2023-09-30T06:56:28.500000</time>
+<ele>77.367</ele>
+</trkpt>
+
+<trkpt lat="23.1321153" lon="120.29363599999999">
+<time>2023-09-30T06:56:28.600000</time>
+<ele>77.313</ele>
+</trkpt>
+
+<trkpt lat="23.1321147" lon="120.2936361">
+<time>2023-09-30T06:56:30.300000</time>
+<ele>77.226</ele>
+</trkpt>
+
+<trkpt lat="23.1321145" lon="120.29363649999999">
+<time>2023-09-30T06:56:30.400000</time>
+<ele>77.223</ele>
+</trkpt>
+
+<trkpt lat="23.132114299999998" lon="120.2936369">
+<time>2023-09-30T06:56:30.500000</time>
+<ele>77.232</ele>
+</trkpt>
+
+<trkpt lat="23.132113699999998" lon="120.2936373">
+<time>2023-09-30T06:56:30.600000</time>
+<ele>77.243</ele>
+</trkpt>
+
+<trkpt lat="23.132113099999998" lon="120.29363749999999">
+<time>2023-09-30T06:56:30.700000</time>
+<ele>77.25</ele>
+</trkpt>
+
+<trkpt lat="23.1321124" lon="120.2936379">
+<time>2023-09-30T06:56:30.800000</time>
+<ele>77.256</ele>
+</trkpt>
+
+<trkpt lat="23.132111899999998" lon="120.2936385">
+<time>2023-09-30T06:56:30.900000</time>
+<ele>77.262</ele>
+</trkpt>
+
+<trkpt lat="23.132111" lon="120.2936385">
+<time>2023-09-30T06:56:31</time>
+<ele>77.277</ele>
+</trkpt>
+
+<trkpt lat="23.1321107" lon="120.2936379">
+<time>2023-09-30T06:56:31.100000</time>
+<ele>77.276</ele>
+</trkpt>
+
+<trkpt lat="23.132110299999997" lon="120.293638">
+<time>2023-09-30T06:56:31.200000</time>
+<ele>77.272</ele>
+</trkpt>
+
+<trkpt lat="23.1321102" lon="120.2936378">
+<time>2023-09-30T06:56:31.300000</time>
+<ele>77.264</ele>
+</trkpt>
+
+<trkpt lat="23.1321099" lon="120.29363819999999">
+<time>2023-09-30T06:56:31.400000</time>
+<ele>77.256</ele>
+</trkpt>
+
+<trkpt lat="23.132109999999997" lon="120.293638">
+<time>2023-09-30T06:56:31.500000</time>
+<ele>77.247</ele>
+</trkpt>
+
+<trkpt lat="23.1321096" lon="120.2936383">
+<time>2023-09-30T06:56:31.600000</time>
+<ele>77.241</ele>
+</trkpt>
+
+<trkpt lat="23.1321092" lon="120.2936385">
+<time>2023-09-30T06:56:31.700000</time>
+<ele>77.235</ele>
+</trkpt>
+
+<trkpt lat="23.1321089" lon="120.29363819999999">
+<time>2023-09-30T06:56:31.800000</time>
+<ele>77.237</ele>
+</trkpt>
+
+<trkpt lat="23.1321089" lon="120.293638">
+<time>2023-09-30T06:56:31.900000</time>
+<ele>77.233</ele>
+</trkpt>
+
+<trkpt lat="23.1321092" lon="120.2936379">
+<time>2023-09-30T06:56:32</time>
+<ele>77.237</ele>
+</trkpt>
+
+<trkpt lat="23.132109399999997" lon="120.2936379">
+<time>2023-09-30T06:56:32.100000</time>
+<ele>77.237</ele>
+</trkpt>
+
+<trkpt lat="23.132110599999997" lon="120.29363869999999">
+<time>2023-09-30T06:56:32.200000</time>
+<ele>77.235</ele>
+</trkpt>
+
+<trkpt lat="23.132109099999997" lon="120.2936376">
+<time>2023-09-30T06:56:32.300000</time>
+<ele>77.274</ele>
+</trkpt>
+
+<trkpt lat="23.1321084" lon="120.29363719999999">
+<time>2023-09-30T06:56:32.400000</time>
+<ele>77.267</ele>
+</trkpt>
+
+<trkpt lat="23.132107899999998" lon="120.2936368">
+<time>2023-09-30T06:56:32.500000</time>
+<ele>77.292</ele>
+</trkpt>
+
+<trkpt lat="23.132108" lon="120.29363649999999">
+<time>2023-09-30T06:56:32.600000</time>
+<ele>77.279</ele>
+</trkpt>
+
+<trkpt lat="23.132107899999998" lon="120.2936367">
+<time>2023-09-30T06:56:32.700000</time>
+<ele>77.254</ele>
+</trkpt>
+
+<trkpt lat="23.1321087" lon="120.29363699999999">
+<time>2023-09-30T06:56:32.800000</time>
+<ele>77.233</ele>
+</trkpt>
+
+<trkpt lat="23.1321083" lon="120.2936369">
+<time>2023-09-30T06:56:32.900000</time>
+<ele>77.275</ele>
+</trkpt>
+
+<trkpt lat="23.132109999999997" lon="120.2936378">
+<time>2023-09-30T06:56:33</time>
+<ele>77.299</ele>
+</trkpt>
+
+<trkpt lat="23.132110299999997" lon="120.2936379">
+<time>2023-09-30T06:56:33.100000</time>
+<ele>77.319</ele>
+</trkpt>
+
+<trkpt lat="23.132111599999998" lon="120.29363839999999">
+<time>2023-09-30T06:56:33.200000</time>
+<ele>77.342</ele>
+</trkpt>
+
+<trkpt lat="23.132112499999998" lon="120.29363869999999">
+<time>2023-09-30T06:56:33.300000</time>
+<ele>77.345</ele>
+</trkpt>
+
+<trkpt lat="23.132116399999997" lon="120.29364029999999">
+<time>2023-09-30T06:56:33.700000</time>
+<ele>77.413</ele>
+</trkpt>
+
+<trkpt lat="23.1321175" lon="120.2936407">
+<time>2023-09-30T06:56:33.800000</time>
+<ele>77.419</ele>
+</trkpt>
+
+</trkseg>
+</trk>
+</gpx>
