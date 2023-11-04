@@ -411,11 +411,13 @@ A big shoutout to everyone who has supported, motivated, and believed in me thro
 
 **[OpenStreetMap moderators "DWG"](https://osmfoundation.org/wiki/Data_Working_Group)** - A heartfelt thank you to the entire team for dedicating countless hours to ensuring a safe and respectable environment for all of us. Stay strong, and don't let those vandals win. I deeply appreciate your work. Special thanks to **[Graeme Fitzpatrick "Fizzie41"](https://wiki.openstreetmap.org/wiki/User:Fizzie41)** for being an awesome person, and it's always a pleasure to chat with you.
 
-**[Włodzimierz Bartczak "Cristoffs"](https://www.openstreetmap.org/user/Cristoffs)** - Thank you for supporting me throughout the entire journey. It's wonderful to have someone with whom you can share enthusiasm. It was great to discuss various crazy ideas with you.
+**[Włodzimierz Bartczak "Cristoffs"](https://www.openstreetmap.org/user/Cristoffs)** - Thank you for supporting me throughout the entire journey. Having someone like you to share enthusiasm with has been truly wonderful. I'm grateful for the countless times we've engaged in discussions, exploring even the craziest of ideas together.
 
 **[Mateusz Konieczny](https://mapsaregreat.com/)** - You provided the spark that lit the fire for this initiative. Thanks for pushing me to bring this project to life.
 
-**[Guillaume Rischard "Stereo"](https://www.openstreetmap.org/user/Stereo)** - Your kind words about my concept were really encouraging. I appreciate your professionalism and support.
+**[Grant Slater "firefishy1"](https://firefishy.com/)** - Your commitment to maintaining the OSM infrastructure is nothing short of inspiring. Your dedication is the backbone of our project, and your open-hearted welcome has meant the world to me.
+
+**[Guillaume Rischard "Stereo"](https://www.openstreetmap.org/user/Stereo)** - Your positive support and respectful approach is truly uplifting. You are the shining example, and I deeply appreciate your kindness.
 
 **[Michał Brzozowski "RicoElectrico"](https://www.openstreetmap.org/user/RicoElectrico)** - A big thank you for your insightful contributions. "OpenStreetMap-NG" is, without a doubt, the perfect name for this project.
 
