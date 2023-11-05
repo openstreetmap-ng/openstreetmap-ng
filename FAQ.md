@@ -32,6 +32,10 @@ With SQL, you have to know various abstract concepts like normalization and migr
 
 To answer the second part of the question, the project is designed from the ground up with an easy migration process in mind. Database migration is the easy part in all of this! I value the time of others, and I will make sure that the transition is as smooth as possible.
 
+#### Still not convinced?
+
+How often have you encountered a mysterious chunk of SQL code? SQL code tends to become monolithic and challenging to modify. Analyzing SQL code blocks properly demands significant focus and often leads to extended debugging sessions. In contrast, MongoDB syntax is sequential, easy to follow, and straightforward to understand, even when reading it for the first time.
+
 ### What are written considerations about the chosen tech stack? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/3))
 
 In this answer, I will skip talk about Python as it's obvious, and MongoDB as it has been answered in another question. Instead, I'll focus on the fundamental packages used by the project: FastAPI (web server) and Pydantic (data models).
@@ -90,6 +94,6 @@ I'm open to feedback and considerations on this matter. If you have suggestions 
 
 ### MongoDB is not open-source. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/4))
 
-The MongoDB Community Edition is source-open and published under the Server-Side Public License (SSPL). This license is derived from the GPL but includes additional terms that mainly impact projects offering MongoDB as a service. However, these additional terms are beyond the scope of OSM operations.
+The MongoDB Community Edition, a source-open database, is licensed under the Server-Side Public License (SSPL). While SSPL is a derivative of GPL and introduces some additional terms, these are mainly relevant for projects offering MongoDB as a service. For the vast majority of users, especially those focused on OSM operations, these additional terms won't impact their usage.
 
-For our purposes, MongoDB can be treated as a GPL-licensed database. This does not affect any of the free and open aspects of the OpenStreetMap-NG project, which continues to remain free and open-source.
+When you host your own OpenStreetMap instance and aren't offering MongoDB services externally, it's much like running a GPL-licensed database. Only when you decide to provide MongoDB services to others do the SSPL terms come into play.
