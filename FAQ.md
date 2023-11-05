@@ -90,6 +90,6 @@ I'm open to feedback and considerations on this matter. If you have suggestions 
 
 ### MongoDB is not open-source. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/4))
 
-The MongoDB Community Edition is open-source and published under the Server-Side Public License (SSPL). This license is derived from the GPL but includes additional terms that mainly impact projects offering MongoDB as a service. However, these additional terms are beyond the scope of OSM operations.
+The MongoDB Community Edition is source-open and published under the Server-Side Public License (SSPL). This license is derived from the GPL but includes additional terms that mainly impact projects offering MongoDB as a service. However, these additional terms are beyond the scope of OSM operations.
 
 For our purposes, MongoDB can be treated as a GPL-licensed database. This does not affect any of the free and open aspects of the OpenStreetMap-NG project, which continues to remain free and open-source.
