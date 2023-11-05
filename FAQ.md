@@ -22,25 +22,9 @@ This project is and has been my full-time commitment. I am all in.
 
 ## Technical
 
-### What is the technical reason for mowing away from PostgreSQL/PostGIS? I do not see an objective benefit that does outweight the work involved in migrating the database engine. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
-
-**Notice**: I am considering a switch to PostgreSQL having received the community feedback, I will post more updates soon!
-
-I'll start with a short talk about my development style. I have always loved developing software, but for the majority of the time, I never really understood what exactly I loved so much about it. As I slowly transitioned to Python, something finally clicked. I don't care about micromanagement, I don't care about micro-optimizations; what I care about is having fun, exploring new ideas, and being flexible. I treat a piece of code like a fun puzzle to play with. Just as I fell in love with Python, I also fell in love with schema-less databases. Schema-less databases are fun to work on, making it easy to explore new ideas, innovate, and remain super flexible. I've finally found the perfect combination for creating fun software: Python + NoSQL.
-
-The reason I don't find joy in SQL is the same reason I don't find joy in low-level languages like C++ or Rust. They all focus on matters that are not developer-centric but rather computer-centric. I fully understand and accept that there are valid reasons for using SQL (and C++/Rust) and that without them, we wouldn't be here. However, for the software I create, I don't find enough justification to force myself to use a schema-based design when it can run just as well without it, reducing many complexities in the code and being more friendly to newcomers.
-
-With SQL, you have to know various abstract concepts like normalization and migration, but with NoSQL, you don't! With document databases, you simply work on a collection of JSON-like files. For these reasons, I want OSM-NG to move away from SQL to make it easy for anybody to contribute to the project.
-
-To answer the second part of the question, the project is designed from the ground up with an easy migration process in mind. Database migration is the easy part in all of this! I value the time of others, and I will make sure that the transition is as smooth as possible.
-
-#### Still not convinced?
-
-How often have you encountered a mysterious chunk of SQL code? SQL code tends to become monolithic and challenging to modify. Analyzing SQL code blocks properly demands significant focus and often leads to extended debugging sessions. In contrast, MongoDB syntax is sequential, easy to follow, and straightforward to understand, even when reading it for the first time.
-
 ### What are written considerations about the chosen tech stack? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/3))
 
-In this answer, I will skip talk about Python as it's obvious, and MongoDB as it has been answered in another question. Instead, I'll focus on the fundamental packages used by the project: FastAPI (web server) and Pydantic (data models).
+In this answer, I will skip talk about Python as it's obvious. Instead, I'll focus on the fundamental packages used by the project: FastAPI (web server) and Pydantic (data models).
 
 When choosing the web server, I considered FastAPI, Flask, and Django. Django's async support is preliminary and, for that reason, it's immediately ruled out. Now, when deciding between FastAPI and Flask, FastAPI emerged as the preferred choice for several reasons:
 
@@ -59,10 +43,6 @@ These considerations make FastAPI and Pydantic a perfect combination for this pr
 ### Will there initially be backwards compability with API 0.6 clients? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
 
 Yes, /api/0.6/ will work without any notable changes. When /api/0.7/ is released, both versions will be able to operate concurrently, and changes made in one version are compatible with the other.
-
-### Have you stress tested and compared performance of existing SQL setup with your MongoDB idea? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/4))
-
-I will the moment when the application is operational. It still requires a few weeks of work to reach that stage (see roadmap). I do not expect any surprises; I anticipate the application to run as fast, if not faster, compared to the current release.
 
 ### Does your code include an OAuth2 server, or will that be using an off-the-shelf solution liky Keycloak or Ory? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
 
@@ -94,8 +74,41 @@ The retrieval logic is stored alongside models to create a central location for 
 
 I'm open to feedback and considerations on this matter. If you have suggestions on how things should be improved, please feel free to share them, and I'll be happy to discuss and consider them in detail.
 
+### Have you done any performance benchmarks yet? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/13))
+
+I plan to run performance benchmarks once the project completes its rapid development phase. Any performance benchmarks conducted at this stage would quickly become outdated and wouldn't accurately reflect the final product. I'm also eagerly looking forward to seeing the performance numbers!
+
+## Unrelated
+
+**This section contains some now-unrelated questions.** MongoDB is no longer used by the OpenStreetMap-NG project; PostgreSQL is the database being utilized instead.
+
+<details>
+  <summary>Show me</summary>
+
+### What is the technical reason for mowing away from PostgreSQL/PostGIS? I do not see an objective benefit that does outweight the work involved in migrating the database engine. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
+
+**Notice**: I am considering a switch to PostgreSQL having received the community feedback, I will post more updates soon!
+
+I'll start with a short talk about my development style. I have always loved developing software, but for the majority of the time, I never really understood what exactly I loved so much about it. As I slowly transitioned to Python, something finally clicked. I don't care about micromanagement, I don't care about micro-optimizations; what I care about is having fun, exploring new ideas, and being flexible. I treat a piece of code like a fun puzzle to play with. Just as I fell in love with Python, I also fell in love with schema-less databases. Schema-less databases are fun to work on, making it easy to explore new ideas, innovate, and remain super flexible. I've finally found the perfect combination for creating fun software: Python + NoSQL.
+
+The reason I don't find joy in SQL is the same reason I don't find joy in low-level languages like C++ or Rust. They all focus on matters that are not developer-centric but rather computer-centric. I fully understand and accept that there are valid reasons for using SQL (and C++/Rust) and that without them, we wouldn't be here. However, for the software I create, I don't find enough justification to force myself to use a schema-based design when it can run just as well without it, reducing many complexities in the code and being more friendly to newcomers.
+
+With SQL, you have to know various abstract concepts like normalization and migration, but with NoSQL, you don't! With document databases, you simply work on a collection of JSON-like files. For these reasons, I want OSM-NG to move away from SQL to make it easy for anybody to contribute to the project.
+
+To answer the second part of the question, the project is designed from the ground up with an easy migration process in mind. Database migration is the easy part in all of this! I value the time of others, and I will make sure that the transition is as smooth as possible.
+
+#### Still not convinced?
+
+How often have you encountered a mysterious chunk of SQL code? SQL code tends to become monolithic and challenging to modify. Analyzing SQL code blocks properly demands significant focus and often leads to extended debugging sessions. In contrast, MongoDB syntax is sequential, easy to follow, and straightforward to understand, even when reading it for the first time.
+
+### Have you stress tested and compared performance of existing SQL setup with your MongoDB idea? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/4))
+
+I will the moment when the application is operational. It still requires a few weeks of work to reach that stage (see roadmap). I do not expect any surprises; I anticipate the application to run as fast, if not faster, compared to the current release.
+
 ### MongoDB is not open-source. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/4))
 
 The MongoDB Community Edition, a source-open database, is licensed under the Server-Side Public License (SSPL). While SSPL is a derivative of GPL and introduces some additional terms, these are mainly relevant for projects offering MongoDB as a service. For the vast majority of users, especially those focused on OSM operations, these additional terms won't impact their usage.
 
 When you host your own OpenStreetMap instance and aren't offering MongoDB services externally, it's much like running a GPL-licensed database. Only when you decide to provide MongoDB services to others do the SSPL terms come into play.
+
+</details>
