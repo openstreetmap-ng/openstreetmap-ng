@@ -28,7 +28,7 @@ Let's begin by establishing the core principles that lead the changes introduced
 
 The OpenStreetMap project has undergone a significant architecture overhaul to make it more accessible for community contributions. Previously, the Ruby-based setup presented various obstacles for new contributors:
 
-- Required understanding of multiple languages (Ruby, SQL and C++).
+- Required understanding of Ruby and C++.
 - Involved convoluted and poorly-documented code.
 - Forced duplication of effort—API 0.6 code had to be written twice, once in Ruby and another time in C++.
 
@@ -38,17 +38,10 @@ The OpenStreetMap project has undergone a significant architecture overhaul to m
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg" height="16"> Ruby            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="16"> Python |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="16"> C++   |                                                                                                              |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" height="16"> SQL |                                                                                                              |
 
-### Database: MongoDB
+Python is [8x more popular](https://survey.stackoverflow.co/2023/#programming-scripting-and-markup-languages) than Ruby, which further expands the potential user base of contributors.
 
-OpenStreetMap-NG leverages MongoDB as its NoSQL database engine. Compared to the old SQL-based approach, MongoDB offers:
-
-- **Simple syntax**: It feels like working with a JSON file, making it easier to understand.
-- **Operational flexibility**: Supports all key operations and allows efficient spatial data filtering.
-- **Clean and readable code**: The database structure is intuitive, making the codebase more maintainable.
-
-This architecture transformation not only simplifies the code but also makes it easier for more people to contribute, thereby ensuring that OpenStreetMap remains an open community-driven project.
+Similarly to the current OSM release, OpenStreetMap-NG relies on <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" height="16"> PostgreSQL for its database.
 
 ### What Does It Mean? (less-technical)
 
@@ -59,8 +52,6 @@ The new architecture brings a lot of advantages that make it easier for more peo
 - **Less Complexity**: Previously, if you wanted to contribute, you had to understand and write code in multiple languages—Ruby and C++. Now, you only need to focus on Python, significantly simplifying the learning curve.
 
 - **New Opportunities for Rapid Innovation**: The shift to Python opens up a wide array of new opportunities for quick and effective solutions. Python's extensive libraries and frameworks make it easier to introduce new features and capabilities into the project at a much faster pace.
-
-- **Simpler and More Flexible Database**: OpenStreetMap-NG transitions from a traditional SQL database to MongoDB. For those contributing to the project, MongoDB is simpler to understand and work with. The models also are designed to be easily extended or modified, adapting more readily to the project's changing needs.
 
 - **Extensible and Flexible**: The new system is designed from the ground up to be easily extensible. As technology evolves or new features are needed, it will be much simpler to integrate those updates.
 
@@ -339,14 +330,15 @@ User profiles will now feature a section where all the communities they belong t
 
 OpenStreetMap-NG is designed with a smooth migration process from the ground up. To ensure a seamless transition, I recommend initially deploying the new system on OpenStreetMap's development server. This allows for thorough testing and validation of all migration procedures before they're executed on the production environmen
 
-The primary task for migration involves the database. Backend structures in OpenStreetMap-NG closely resemble those in the original system, often requiring only field renaming for compatibility. Data is transferred from PostgreSQL using simple SQL SELECT statements, processed minimally within a migration script, and then uploaded to MongoDB. Given the similarity in database structures, this data migration step is easy to execute.
+The primary task for migration involves the database. Backend structures in OpenStreetMap-NG closely resemble those in the original system, often requiring only field renaming for compatibility. Data is fetched from the original database using simple SQL SELECT statements, processed minimally within a migration script, and then uploaded to the new database. Given the similarity in database structures, this data migration step is easy to execute.
 
 No migration is required for the file store (local and S3), further easing the transition process.
 
 ## Roadmap
 
 - [x] Architecture design
-- [x] Migration of the database models
+- [x] ~~Migration of the database models (document-db)~~
+- [10%] Migration of the database models (sql-db)
 - [x] Migration of translations
 - [x] Migration of various utilities and "lib" folder
 - [x] Cache for markdown generated content (faster page loading)
@@ -373,9 +365,9 @@ No migration is required for the file store (local and S3), further easing the t
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
 
-**📅 Expected feature parity by:** 2023-12-01
+**📅 Expected feature parity by:** 2023-12-07
 
-**📅 Expected roadmap finish by:** 2024-02-01
+**📅 Expected roadmap finish by:** 2024-02-07
 
 ## The Future
 
@@ -412,10 +404,6 @@ A big shoutout to everyone who has supported, motivated, and believed in me thro
 **[OpenStreetMap moderators "DWG"](https://osmfoundation.org/wiki/Data_Working_Group)** - A heartfelt thank you to the entire team for dedicating countless hours to ensuring a safe and respectable environment for all of us. Stay strong, and don't let those vandals win. I deeply appreciate your work. Special thanks to **[Graeme Fitzpatrick "Fizzie41"](https://wiki.openstreetmap.org/wiki/User:Fizzie41)** for being an awesome person, and it's always a pleasure to chat with you.
 
 **[Włodzimierz Bartczak "Cristoffs"](https://www.openstreetmap.org/user/Cristoffs)** - Thank you for supporting me throughout the entire journey. Having someone like you to share enthusiasm with has been truly wonderful. I'm grateful for the countless times we've engaged in discussions, exploring even the craziest of ideas together.
-
-**[Mateusz Konieczny](https://mapsaregreat.com/)** - You provided the spark that lit the fire for this initiative. Thanks for pushing me to bring this project to life.
-
-**[Grant Slater "firefishy1"](https://firefishy.com/)** - Your commitment to maintaining the OSM infrastructure is nothing short of inspiring. Your dedication is the backbone of our project, and your open-hearted welcome has meant the world to me.
 
 **[Guillaume Rischard "Stereo"](https://www.openstreetmap.org/user/Stereo)** - Your positive support and respectful approach is truly uplifting. You are the shining example, and I deeply appreciate your kindness.
 
