@@ -40,6 +40,8 @@ The OpenStreetMap project has undergone a significant architecture overhaul to m
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="16"> C++   |                                                                                                              |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" height="16"> SQL |                                                                                                              |
 
+**Notice**: I am considering a switch to PostgreSQL having received the community feedback, I will post more updates soon!
+
 ### Database: MongoDB
 
 OpenStreetMap-NG leverages MongoDB as its NoSQL database engine. Compared to the old SQL-based approach, MongoDB offers:
