@@ -24,7 +24,7 @@ This project is and has been my full-time commitment. I am all in.
 
 ### What are written considerations about the chosen tech stack? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/3))
 
-In this answer, I will skip talk about Python as it's obvious. Instead, I'll focus on the fundamental packages used by the project: FastAPI (web server) and Pydantic (data models).
+In this answer, I will skip talk about Python as it's obvious. Instead, I'll focus on the fundamental packages used by the project: FastAPI (web server), Pydantic (data models), and SQLAlchemy (database).
 
 When choosing the web server, I considered FastAPI, Flask, and Django. Django's async support is preliminary and, for that reason, it's immediately ruled out. Now, when deciding between FastAPI and Flask, FastAPI emerged as the preferred choice for several reasons:
 
@@ -39,6 +39,12 @@ Speaking of Pydantic, when compared to dataclasses and attrs, it seems like an o
 3. Pydantic provides a way to construct models without validation logic for efficient mass-data retrievals.
 
 These considerations make FastAPI and Pydantic a perfect combination for this project.
+
+SQLAlchemy has been chosen for interacting with PostgreSQL for the following reasons:
+
+1. It has excellent migration support through Alembic.
+2. It is battle-tested, well-known, and highly flexible.
+3. It also offers good support for asynchronous operations.
 
 ### Will there initially be backwards compability with API 0.6 clients? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
 
