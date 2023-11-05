@@ -415,8 +415,6 @@ A big shoutout to everyone who has supported, motivated, and believed in me thro
 
 **[Mateusz Konieczny](https://mapsaregreat.com/)** - You provided the spark that lit the fire for this initiative. Thanks for pushing me to bring this project to life.
 
-**[Grant Slater "firefishy1"](https://firefishy.com/)** - Your commitment to maintaining the OSM infrastructure is nothing short of inspiring. Your dedication is the backbone of our project, and your open-hearted welcome has meant the world to me.
-
 **[Guillaume Rischard "Stereo"](https://www.openstreetmap.org/user/Stereo)** - Your positive support and respectful approach is truly uplifting. You are the shining example, and I deeply appreciate your kindness.
 
 **[Michał Brzozowski "RicoElectrico"](https://www.openstreetmap.org/user/RicoElectrico)** - A big thank you for your insightful contributions. "OpenStreetMap-NG" is, without a doubt, the perfect name for this project.
