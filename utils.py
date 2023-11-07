@@ -4,7 +4,7 @@ import math
 import random
 import time
 import unicodedata
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any, Callable, Self
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -17,12 +17,39 @@ from config import USER_AGENT
 
 _EARTH_RADIUS_METERS = 6371000
 
+
+def _log_http_request(r: httpx.Request) -> None:
+    logging.debug(
+        'Client HTTP request: %s %s',
+        r.method,
+        r.url)
+
+
+def _log_http_response(r: httpx.Response) -> None:
+    if r.is_success:
+        logging.debug(
+            'Client HTTP response: %s %s %s',
+            r.status_code,
+            r.reason_phrase,
+            r.url)
+    else:
+        logging.info(
+            'Client HTTP response: %s %s %s',
+            r.status_code,
+            r.reason_phrase,
+            r.url)
+
+
 HTTP = httpx.AsyncClient(
     headers={'User-Agent': USER_AGENT},
     timeout=httpx.Timeout(15),
     follow_redirects=True,
     http1=True,
     http2=True,
+    event_hooks={
+        'request': [_log_http_request],
+        'response': [_log_http_response],
+    }
 )
 
 # TODO: reporting of deleted accounts
@@ -148,10 +175,9 @@ def extend_query_params(uri: str, params: dict) -> str:
 def utcnow() -> datetime:
     '''
     Return a datetime object representing the current time in UTC.
-
-    Microseconds are set to 0 for consistency with the BSON specification.
     '''
-    return datetime.utcnow().replace(microsecond=0, tzinfo=UTC)
+
+    return datetime.utcnow()
 
 
 def parse_date(s: str) -> datetime:

@@ -1,13 +1,11 @@
 from abc import ABC
-from typing import Annotated
+from typing import Sequence
 
-from pydantic import Field
+from sqlalchemy import ARRAY, Unicode
+from sqlalchemy.orm import Mapped, mapped_column
 
 from models.collections.base import Base
-from models.str import NonEmptyStr
 
 
-class ACL(Base, ABC):
-    restrictions: list[NonEmptyStr]
-
-    _collection_name_: Annotated[str, Field(exclude=True, frozen=True)] = 'ACL'
+class ACL(Base.UUID, ABC):
+    restrictions: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode))

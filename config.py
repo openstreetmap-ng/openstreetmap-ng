@@ -29,8 +29,9 @@ FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
 FILE_DATA_DIR = Path(os.getenv('FILE_DATA_DIR', 'data/file'))
 HTTPS_ONLY = os.getenv('HTTPS_ONLY', '1').strip().lower() in ('1', 'true', 'yes')
-MONGO_HOST = os.getenv('MONGO_HOST', '127.0.0.1:27017')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
+# see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'localhost/openstreetmap')
 SMTP_HOST = os.getenv('SMTP_HOST', '127.0.0.1')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 25))
 SMTP_USER = os.getenv('SMTP_USER', None)

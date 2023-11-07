@@ -3,14 +3,12 @@ from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime, timedelta
 from typing import Self
 
-from bson import ObjectId
-
 from lib.exceptions import Exceptions
 from utils import utcnow
 
 
 class Cursor:
-    def __init__(self, id: ObjectId | int | None, time: datetime | None):
+    def __init__(self, id: int | None, time: datetime | None):
         if id is None:
             id = 0
         self.id = id
@@ -19,8 +17,6 @@ class Cursor:
     def to_str(self) -> str:
         if isinstance(self.id, int):
             id_data = struct.pack('>Q', self.last_seen_id)
-        elif isinstance(self.id, ObjectId):
-            id_data = self.last_seen_id.binary
         else:
             raise NotImplementedError(f'Unsupported id type {type(self.id)!r}')
 
@@ -46,18 +42,9 @@ class Cursor:
                 id_data = packed
                 id, = struct.unpack('>Q', id_data)
                 time = None
-            elif len(packed) == 12:
-                id_data = packed
-                id = ObjectId(id_data)
-                time = None
             elif len(packed) == 16:
                 id_data, time_data = packed[:8], packed[8:]
                 id, = struct.unpack('>Q', id_data)
-                timestamp, = struct.unpack('>d', time_data)
-                time = datetime.utcfromtimestamp(timestamp)
-            elif len(packed) == 20:
-                id_data, time_data = packed[:12], packed[12:]
-                id = ObjectId(id_data)
                 timestamp, = struct.unpack('>d', time_data)
                 time = datetime.utcfromtimestamp(timestamp)
             else:

@@ -24,7 +24,7 @@ from lib.rich_text import RichText
 from limits import (FAST_PASSWORD_CACHE_EXPIRE, NEARBY_USERS_LIMIT,
                     NEARBY_USERS_RADIUS_METERS, USER_DESCRIPTION_MAX_LENGTH)
 from models.collections.base_sequential import BaseSequential
-from models.collections.cache import Cache
+from models.collections.cache_entry import Cache
 from models.collections.oauth_nonce import OAuthNonce
 from models.collections.user_token_session import UserTokenSession
 from models.geometry import PointGeometry

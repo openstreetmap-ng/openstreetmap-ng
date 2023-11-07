@@ -1,6 +1,10 @@
+from sqlalchemy import Unicode
+from sqlalchemy.orm import Mapped, mapped_column
+
 from models.collections.acl import ACL
-from models.str import NonEmptyStr
 
 
 class ACLDomain(ACL):
-    domain: NonEmptyStr
+    __tablename__ = 'acl_domain'
+
+    domain: Mapped[str] = mapped_column(Unicode)

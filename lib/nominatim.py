@@ -1,13 +1,12 @@
 import logging
 from abc import ABC
-from urllib.parse import quote_plus
+from urllib.parse import urlencode
 
 from httpx import HTTPError
 from shapely.geometry import Point
 
 from config import NOMINATIM_URL
-from limits import NOMINATIM_CACHE_EXPIRE
-from models.collections.cache import Cache
+from lib.cache import Cache
 from utils import HTTP
 
 
@@ -18,23 +17,28 @@ class Nominatim(ABC):
         Reverse geocode a point into a human-readable name.
         '''
 
-        path = f'/reverse?format=jsonv2&lon={point.x}&lat={point.y}&zoom={zoom}&accept-language={quote_plus(locales)}'
-        cache_id = Cache.hash_key(path)
-        if cached := await Cache.find_one_by_id(cache_id):
-            return cached.value
+        path = '/reverse?' + urlencode({
+            'format': 'jsonv2',
+            'lon': point.x,
+            'lat': point.y,
+            'zoom': zoom,
+            'accept-language': locales,
+        })
 
-        try:
+        async def factory() -> str:
             r = await HTTP.get(NOMINATIM_URL + path, timeout=4)
             r.raise_for_status()
             data = await r.json()
-            display_name = data['display_name']
+            return data['display_name']
+
+        try:
+            display_name = await Cache.get_one_by_key(path, factory)
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None
 
         if display_name:
-            await Cache.create_from_key_id(cache_id, display_name, NOMINATIM_CACHE_EXPIRE)
+            return display_name
         else:
-            display_name = f'{point.y:.3f}, {point.x:.3f}'
-
-        return display_name
+            # always succeed, return coordinates as a fallback
+            return f'{point.y:.3f}, {point.x:.3f}'

@@ -1,6 +1,10 @@
+from sqlalchemy import Unicode
+from sqlalchemy.orm import Mapped, mapped_column
+
 from models.collections.acl import ACL
-from models.str import NonEmptyStr
 
 
 class ACLMX(ACL):
-    mx: NonEmptyStr
+    __tablename__ = 'acl_mx'
+
+    mx: Mapped[str] = mapped_column(Unicode)

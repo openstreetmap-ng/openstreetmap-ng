@@ -18,6 +18,10 @@ def _hash(s: str | bytes, *, context: str | None):
         return HMAC(context.encode(), s, sha256)
 
 
+def hash_b(s: str | bytes, *, context: str | None) -> bytes:
+    return _hash(s, context=context).digest()
+
+
 def hash_hex(s: str | bytes, *, context: str | None) -> str:
     return _hash(s, context=context).hexdigest()
 

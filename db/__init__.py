@@ -1,10 +1,17 @@
-from motor.core import AgnosticDatabase
-from motor.motor_asyncio import AsyncIOMotorClient
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from config import MONGO_HOST, NAME
+from config import POSTGRES_URL
 
-# TODO: https://www.mongodb.com/developer/products/mongodb/mongodb-network-compression/
-MONGO_CLIENT = AsyncIOMotorClient(f'mongodb://{MONGO_HOST}/?replicaSet=rs0')
-MONGO_DB: AgnosticDatabase = MONGO_CLIENT[NAME]
+DB_ENGINE = create_async_engine(
+    POSTGRES_URL,
+    echo=True,  # TODO: echo testing only
+    echo_pool=True
+)
+
+# see for options: https://docs.sqlalchemy.org/en/20/orm/session_api.html#sqlalchemy.orm.Session
+DB = async_sessionmaker(
+    DB_ENGINE,
+    # TODO: ? expire_on_commit=False,
+)
 
 # TODO: test unicode normalization comparison
