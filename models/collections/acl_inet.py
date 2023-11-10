@@ -9,4 +9,5 @@ from models.collections.acl import ACL
 class ACLINet(ACL):
     __tablename__ = 'acl_inet'
 
-    inet: Mapped[IPv4Network | IPv6Network] = mapped_column(INET)
+    # TODO: check return type without /mask
+    inet: Mapped[IPv4Network | IPv6Network] = mapped_column(INET, nullable=False)

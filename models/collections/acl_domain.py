@@ -7,4 +7,4 @@ from models.collections.acl import ACL
 class ACLDomain(ACL):
     __tablename__ = 'acl_domain'
 
-    domain: Mapped[str] = mapped_column(Unicode)
+    domain: Mapped[str] = mapped_column(Unicode, nullable=False)

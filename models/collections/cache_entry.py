@@ -9,6 +9,6 @@ from models.collections.base import Base
 class CacheEntry(Base.NoID):
     __tablename__ = 'cache'
 
-    id: Mapped[bytes] = mapped_column(LargeBinary, primary_key=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime)  # TODO: prune
-    value: Mapped[str] = mapped_column(Unicode)
+    id: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, primary_key=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # TODO: prune
+    value: Mapped[str] = mapped_column(Unicode, nullable=False)

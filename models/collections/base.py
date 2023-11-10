@@ -20,10 +20,10 @@ class Base(ABC):
         pass
 
     class Sequential(NoID, ABC):
-        id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+        id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
     class UUID(NoID, ABC):
-        id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default_factory=uuid4)
+        id: Mapped[UUID] = mapped_column(Uuid, nullable=False, primary_key=True, default_factory=uuid4)
 
     class Validating(BaseModel, Generic[T], ABC):
         # use_enum_values=True is unpredictable

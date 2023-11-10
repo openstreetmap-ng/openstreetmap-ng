@@ -1,28 +1,35 @@
-from datetime import datetime
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
 from asyncache import cached
-from pydantic import Field
+from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.rich_text import RichText
 from limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from models.collections.base import _DEFAULT_FIND_LIMIT, Base
-from models.collections.base_sequential import SequentialId
+from models.collections.changeset import Changeset
+from models.collections.created_at import CreatedAt
 from models.collections.user import User
-from models.str import HexStr, NonEmptyStr
 from models.text_format import TextFormat
-from utils import utcnow
 
 
-class ChangesetComment(Base):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    changeset_id: Annotated[SequentialId, Field(frozen=True)]
-    body: Annotated[NonEmptyStr, Field(frozen=True, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)]
-    body_rich_hash: HexStr | None = None
+class ChangesetComment(Base.UUID, CreatedAt):
+    __tablename__ = 'changeset_comment'
 
-    # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    user: Mapped[User] = relationship(back_populates='changeset_comments', lazy='raise')
+    changeset_id: Mapped[int] = mapped_column(ForeignKey('changeset.id'), nullable=False)
+    changeset: Mapped[Changeset] = relationship(back_populates='changeset_comments', lazy='raise')
+    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
 
+    @validates('body')
+    def validate_body(cls, key: str, value: str) -> str:
+        if len(value) > CHANGESET_COMMENT_BODY_MAX_LENGTH:
+            raise ValueError('Comment is too long')
+        return value
+
+    # TODO: SQL
     @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.plain)

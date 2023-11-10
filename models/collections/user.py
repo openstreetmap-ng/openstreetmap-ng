@@ -1,18 +1,21 @@
 import logging
 from datetime import datetime
 from hmac import compare_digest
-from typing import Annotated, Self, Sequence
+from ipaddress import IPv4Address, IPv6Address
+from typing import Self, Sequence
 
-from annotated_types import MaxLen
 from argon2 import PasswordHasher
 from asyncache import cached
-from bson import ObjectId
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
-from pydantic import Field
+from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Point
+from sqlalchemy import (ARRAY, Boolean, DateTime, Enum, LargeBinary,
+                        SmallInteger, Unicode, UnicodeText)
+from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import DEFAULT_LANGUAGE, SECRET
+from config import DEFAULT_LANGUAGE, SECRET, SRID
 from lib.avatar import Avatar
 from lib.crypto import hash_hex
 from lib.exceptions import Exceptions
@@ -22,48 +25,70 @@ from lib.oauth2 import OAuth2
 from lib.password_hash import PasswordHash
 from lib.rich_text import RichText
 from limits import (FAST_PASSWORD_CACHE_EXPIRE, NEARBY_USERS_LIMIT,
-                    NEARBY_USERS_RADIUS_METERS, USER_DESCRIPTION_MAX_LENGTH)
-from models.collections.base_sequential import BaseSequential
+                    NEARBY_USERS_RADIUS_METERS, USER_DESCRIPTION_MAX_LENGTH,
+                    USER_LANGUAGE_MAX_LENGTH, USER_LANGUAGES_LIMIT)
+from models.collections.base import Base
 from models.collections.cache_entry import Cache
+from models.collections.created_at import CreatedAt
 from models.collections.oauth_nonce import OAuthNonce
 from models.collections.user_token_session import UserTokenSession
-from models.geometry import PointGeometry
 from models.scope import Scope
-from models.str import EmailStr, HexStr, NonEmptyStr, Str255, UserNameStr
 from models.text_format import TextFormat
 from models.user_avatar_type import UserAvatarType
 from models.user_role import UserRole
 from models.user_status import UserStatus
-from utils import haversine_distance, utcnow
+from utils import haversine_distance
 
 
-class User(BaseSequential):
-    email: EmailStr
-    display_name: UserNameStr
-    password_hashed: NonEmptyStr
-    created_ip: NonEmptyStr
-    consider_public_domain: bool
-    languages: tuple[Str255, ...]  # TODO: list limit
-    auth_provider: NonEmptyStr | None
-    auth_uid: NonEmptyStr | None
+class User(Base.Sequential, CreatedAt):
+    __tablename__ = 'user'
+
+    email: Mapped[str] = mapped_column(Unicode, nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(Unicode, nullable=False, unique=True)
+    password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
+    created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
+
+    consider_public_domain: Mapped[bool] = mapped_column(Unicode, nullable=False)
+    languages: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False)
+
+    auth_provider: Mapped[str | None] = mapped_column(Unicode, nullable=True)
+    auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    status: UserStatus = UserStatus.pending
-    email_confirmed: bool = False
-    password_salt: NonEmptyStr | None = None
-    terms_seen: bool = False
-    terms_accepted_at: datetime | None = None
-    roles: Annotated[tuple[UserRole, ...], Field()] = ()
-    description: Annotated[str, MaxLen(USER_DESCRIPTION_MAX_LENGTH)] = ''
-    description_rich_hash: HexStr | None = None
-    home_point: PointGeometry | None = None
-    home_zoom: int | None = None
-    avatar_type: UserAvatarType = UserAvatarType.default
-    avatar_id: NonEmptyStr | None = None
-    preferences: Annotated[dict[Str255, Str255], Field(default_factory=dict)]
+    status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False, default=UserStatus.pending)
+    email_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
+    terms_seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    roles: Mapped[Sequence[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
+    description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
+    description_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+    home_point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True, default=None)
+    home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
+    avatar_type: Mapped[UserAvatarType] = mapped_column(Enum(UserAvatarType), nullable=False, default=UserAvatarType.default)
+    avatar_id: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
+    # TODO: user preferences
 
-    # TODO: tuples
+    # relationships (nested imports to avoid circular imports)
+    from changeset import Changeset
+    from changeset_comment import ChangesetComment
+    changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', lazy='raise')
+    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', lazy='raise')
+
+    @validates('languages')
+    def validate_languages(self, key, value):
+        if len(value) > USER_LANGUAGES_LIMIT:
+            raise ValueError('Too many languages provided')
+        if any(len(lang) > USER_LANGUAGE_MAX_LENGTH for lang in value):
+            raise ValueError('Language string is too long')
+        return value
+
+    @validates('description')
+    def validate_description(self, key, value):
+        if len(value) > USER_DESCRIPTION_MAX_LENGTH:
+            raise ValueError('Description is too long')
+        return value
+
     @property
     def is_administrator(self) -> bool:
         return UserRole.administrator in self.roles
@@ -89,7 +114,6 @@ class User(BaseSequential):
         for code in self.languages:
             if lang := get_language(code):
                 return lang
-
         return get_language(DEFAULT_LANGUAGE)
 
     @property
@@ -104,6 +128,7 @@ class User(BaseSequential):
     def avatar_url(self) -> str:
         return Avatar.get_url(self.avatar_type, self.avatar_id)
 
+    # TODO: SQL
     @cached({})
     async def description_rich(self) -> str:
         cache = await RichText.get_cache(self.description, self.description_rich_hash, TextFormat.markdown)

@@ -24,6 +24,7 @@ SECRET = os.environ['SECRET']
 BASE_URL = os.environ['BASE_URL']
 
 # Configuration (optional)
+SRID = int(os.getenv('SRID', 4326))
 FILE_CACHE_DIR = Path(os.getenv('FILE_CACHE_DIR', 'tmp/file'))
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week

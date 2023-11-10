@@ -14,6 +14,7 @@ import httpx
 from shapely.geometry import Point
 
 from config import USER_AGENT
+from limits import NG_MIGRATION_DATE
 
 _EARTH_RADIUS_METERS = 6371000
 
@@ -115,13 +116,16 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
 
 def retry(timeout: timedelta | None, *, start: float = 1, limit: float = 300):
+    '''
+    A decorator to retry a function on exception.
+    '''
+
     if timeout is None:
         timeout_seconds = math.inf
     else:
         timeout_seconds = timeout.total_seconds()
 
     def decorator(func):
-        @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             ts = time.perf_counter()
             sleep = start
@@ -141,15 +145,24 @@ def retry(timeout: timedelta | None, *, start: float = 1, limit: float = 300):
 
 
 def updating_cached_property(compare: Callable[[Self], Any]) -> property:
+    '''
+    A decorator to cache the result of a property with an auto-update condition.
+
+    If compare returns a modified value, the property is re-evaluated.
+    '''
+
     def decorator(func):
         cache = None
+        compare_val = None
 
         @property
         @functools.wraps(func)
         def wrapper(self: Self):
-            nonlocal cache
-            if cache is None or cache != compare(self):
+            nonlocal cache, compare_val
+            new_compare_val = compare(self)
+            if cache is None or compare_val != new_compare_val:
                 cache = func(self)
+                compare_val = new_compare_val
             return cache
         return wrapper
     return decorator
@@ -192,3 +205,15 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
+
+
+def is_migrated(date: datetime | None = None) -> bool:
+    '''
+    Check if a date is after the migration to NextGen.
+
+    This method is used to determine whether to enforce new validation limits.
+    '''
+
+    if not date:
+        date = utcnow()
+    return date > NG_MIGRATION_DATE

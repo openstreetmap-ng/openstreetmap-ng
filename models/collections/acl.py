@@ -8,4 +8,4 @@ from models.collections.base import Base
 
 
 class ACL(Base.UUID, ABC):
-    restrictions: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode))
+    restrictions: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False)

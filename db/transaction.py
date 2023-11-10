@@ -42,7 +42,6 @@ def retry_transaction(timeout: timedelta | float = _DEFAULT_RETRY_TIMEOUT):
         timeout_seconds = timeout
 
     def decorator(func):
-        @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             ts = time.perf_counter()
 

@@ -1,52 +1,46 @@
 from datetime import datetime
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
 import anyio
-from pydantic import Field, NonNegativeInt, model_validator
-from pymongo import UpdateOne
+from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
+from sqlalchemy import DateTime, ForeignKey, Integer
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from config import SRID
 from geoutils import mapping_mongo
 from lib.auth import Auth
-from models.collections.base import _DEFAULT_FIND_LIMIT
-from models.collections.base_sequential import BaseSequential, SequentialId
+from models.collections.base import _DEFAULT_FIND_LIMIT, Base
 from models.collections.changeset_comment import ChangesetComment
+from models.collections.created_at import CreatedAt
 from models.collections.element import Element
-from models.geometry import PolygonGeometry
-from models.str import EmptyStr255
-from models.user_role import UserRole
+from models.collections.updated_at import UpdatedAt
+from models.collections.user import User
 from utils import utcnow
 
+# TODO: 0.7 180th meridian ?
 
-class Changeset(BaseSequential):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    tags: dict[EmptyStr255, EmptyStr255]
+
+class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
+    __tablename__ = 'changeset'
+
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    user: Mapped[User] = relationship(back_populates='changesets', lazy='raise')
+    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)  # TODO: normalize unicode
 
     # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    updated_at: Annotated[datetime, Field(default_factory=utcnow)]  # TODO: automate
-    closed_at: datetime | None = None
-    size: NonNegativeInt = 0
-    boundary: PolygonGeometry | None = None
-    # TODO: 0.7 180th meridian
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    boundary: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POLYGON', srid=SRID), nullable=True, default=None)
 
-    comments_count_: Annotated[NonNegativeInt | None, Field(exclude=True)] = None
-    comments_: Annotated[tuple[ChangesetComment, ...] | None, Field(exclude=True)] = None
-    elements_: Annotated[tuple[Element, ...] | None, Field(exclude=True)] = None
+    # relationships (nested imports to avoid circular imports)
+    from changeset_comment import ChangesetComment
+    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', lazy='raise')
+    # TODO: elements
 
-    @model_validator(mode='after')
-    def validate_closed_at(self) -> Self:
-        if self.closed_at and self.closed_at < self.created_at:
-            raise ValueError(f'{self.__class__.__qualname__} cannot be closed before it was opened')
-        return self
-
-    @model_validator(mode='after')
-    def validate_boundary(self) -> Self:
-        if bool(self.boundary) == bool(self.size):
-            raise ValueError(f'{self.__class__.__qualname__} must have a boundary if and only if it has a size')
-        return self
-
+    # TODO: SQL
     @classmethod
     async def find_many_by_query_with_(
             cls,
