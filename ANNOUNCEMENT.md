@@ -39,7 +39,7 @@ The OpenStreetMap project has undergone a significant architecture overhaul to m
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg" height="16"> Ruby            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="16"> Python |
 | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="16"> C++   |                                                                                                              |
 
-Python is [8x more popular](https://survey.stackoverflow.co/2023/#programming-scripting-and-markup-languages) than Ruby, which further expands the potential user base of contributors.
+Python is [8x more popular](https://survey.stackoverflow.co/2023/#most-popular-technologies-language) than Ruby, which further expands the potential user base of contributors.
 
 Similarly to the current OSM release, OpenStreetMap-NG relies on <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" height="16"> PostgreSQL for its database.
 
