@@ -16,12 +16,12 @@ from models.text_format import TextFormat
 class ChangesetComment(Base.UUID, CreatedAt):
     __tablename__ = 'changeset_comment'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(back_populates='changeset_comments', lazy='raise')
-    changeset_id: Mapped[int] = mapped_column(ForeignKey('changeset.id'), nullable=False)
+    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(back_populates='changeset_comments', lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
 
     @validates('body')
     def validate_body(cls, key: str, value: str) -> str:

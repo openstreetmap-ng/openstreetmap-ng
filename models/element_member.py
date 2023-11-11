@@ -1,11 +1,9 @@
-from typing import Annotated
+from typing import NamedTuple
 
-from pydantic import BaseModel, Field
-
-from models.str import EmptyStr255
-from models.typed_element_ref import TypedElementRef
+from models.element_type import ElementType
 
 
-class ElementMember(BaseModel):
-    ref: Annotated[TypedElementRef, Field(frozen=True)]
-    role: Annotated[EmptyStr255, Field(frozen=True)]
+class ElementMember(NamedTuple):
+    type: ElementType
+    typed_id: int
+    role: str

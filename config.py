@@ -32,7 +32,7 @@ FILE_DATA_DIR = Path(os.getenv('FILE_DATA_DIR', 'data/file'))
 HTTPS_ONLY = os.getenv('HTTPS_ONLY', '1').strip().lower() in ('1', 'true', 'yes')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'localhost/openstreetmap')
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@localhost/openstreetmap')
 SMTP_HOST = os.getenv('SMTP_HOST', '127.0.0.1')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 25))
 SMTP_USER = os.getenv('SMTP_USER', None)

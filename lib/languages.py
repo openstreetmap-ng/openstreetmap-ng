@@ -5,6 +5,7 @@ from typing import NamedTuple
 import yaml
 
 from config import DEFAULT_LANGUAGE
+from limits import LANGUAGE_CODE_MAX_LENGTH
 
 
 class Language(NamedTuple):
@@ -36,13 +37,16 @@ logging.info('Loaded %d languages', len(_languages))
 if DEFAULT_LANGUAGE not in _languages:
     raise RuntimeError(f'{DEFAULT_LANGUAGE=!r} not found in languages')
 
+for code in _languages:
+    if len(code) > LANGUAGE_CODE_MAX_LENGTH:
+        raise RuntimeError(f'Language code {code=!r} is too long ({len(code)=} > {LANGUAGE_CODE_MAX_LENGTH=})')
+
 del _languages_  # cleanup
 
 
 def fix_language_case(code: str) -> str:
     if code in _languages:
         return code
-
     return _languages_lower_map.get(code.lower(), code)
 
 

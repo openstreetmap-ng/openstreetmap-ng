@@ -24,9 +24,10 @@ from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
 from lib.password_hash import PasswordHash
 from lib.rich_text import RichText
-from limits import (FAST_PASSWORD_CACHE_EXPIRE, NEARBY_USERS_LIMIT,
-                    NEARBY_USERS_RADIUS_METERS, USER_DESCRIPTION_MAX_LENGTH,
-                    USER_LANGUAGE_MAX_LENGTH, USER_LANGUAGES_LIMIT)
+from limits import (FAST_PASSWORD_CACHE_EXPIRE, LANGUAGE_CODE_MAX_LENGTH,
+                    NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS,
+                    USER_DESCRIPTION_MAX_LENGTH, USER_LANGUAGE_MAX_LENGTH,
+                    USER_LANGUAGES_LIMIT)
 from models.collections.base import Base
 from models.collections.cache_entry import Cache
 from models.collections.created_at import CreatedAt
@@ -48,8 +49,8 @@ class User(Base.Sequential, CreatedAt):
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
-    consider_public_domain: Mapped[bool] = mapped_column(Unicode, nullable=False)
-    languages: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False)
+    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    languages: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     auth_provider: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
@@ -72,19 +73,19 @@ class User(Base.Sequential, CreatedAt):
     # relationships (nested imports to avoid circular imports)
     from changeset import Changeset
     from changeset_comment import ChangesetComment
+    from diary_comment import DiaryComment
     changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', lazy='raise')
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', lazy='raise')
+    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='user', lazy='raise')
 
     @validates('languages')
-    def validate_languages(self, key, value):
+    def validate_languages(self, key: str, value: Sequence[str]):
         if len(value) > USER_LANGUAGES_LIMIT:
             raise ValueError('Too many languages provided')
-        if any(len(lang) > USER_LANGUAGE_MAX_LENGTH for lang in value):
-            raise ValueError('Language string is too long')
         return value
 
     @validates('description')
-    def validate_description(self, key, value):
+    def validate_description(self, key: str, value: str):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
             raise ValueError('Description is too long')
         return value
@@ -104,10 +105,10 @@ class User(Base.Sequential, CreatedAt):
     @language_str.setter
     def language_str(self, s: str) -> None:
         languages = s.split()
-        languages = (t.strip() for t in languages)
+        languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
         languages = (fix_language_case(t) for t in languages)
         languages = (t for t in languages if t)
-        self.languages = tuple(languages)
+        self.languages = tuple(set(languages))
 
     @property
     def preferred_diary_language(self) -> Language:

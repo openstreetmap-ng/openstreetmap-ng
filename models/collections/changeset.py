@@ -26,9 +26,9 @@ from utils import utcnow
 class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'changeset'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(back_populates='changesets', lazy='raise')
-    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)  # TODO: normalize unicode
+    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)  # TODO: normalize unicode, check unicode
 
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
@@ -37,8 +37,9 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from changeset_comment import ChangesetComment
+    from element import Element
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', lazy='raise')
-    # TODO: elements
+    elements: Mapped[Sequence[Element]] = relationship(back_populates='changeset', lazy='raise')
 
     # TODO: SQL
     @classmethod

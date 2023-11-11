@@ -1,44 +1,65 @@
 from abc import ABC
 from datetime import datetime
 from itertools import chain
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
-from motor.core import AgnosticClientSession
-from pydantic import Field, PositiveInt, model_validator
-from pymongo import DESCENDING
+from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon
+from sqlalchemy import (BigInteger, Boolean, DateTime, Enum, ForeignKey,
+                        Sequence)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db.counter import get_next_sequence
-from geoutils import mapping_mongo
+from config import SRID
 from lib.exceptions import Exceptions
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
-from models.collections.base import _DEFAULT_FIND_LIMIT
-from models.collections.base_sequential import BaseSequential, SequentialId
+from models.collections.base import _DEFAULT_FIND_LIMIT, Base
+from models.collections.changeset import Changeset
+from models.collections.created_at import CreatedAt
+from models.collections.user import User
 from models.element_member import ElementMember
 from models.element_type import ElementType
-from models.str import EmptyStr255
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
 from utils import updating_cached_property, utcnow
-from validators.eq import Ne
 
 
-class Element(BaseSequential, ABC):
-    user_id: SequentialId
-    type: Annotated[ElementType, Field(frozen=True)]
-    typed_id: Annotated[int, Ne(0)]
-    changeset_id: Annotated[SequentialId, Field(frozen=True)]
-    version: Annotated[PositiveInt, Field(frozen=True)]
-    visible: Annotated[bool, Field(frozen=True)]
-    tags: Annotated[dict[EmptyStr255, EmptyStr255], Field(frozen=True)]
-    members: tuple[ElementMember, ...]
+class Element(Base.Sequential, CreatedAt, ABC):
+    __tablename__ = 'element'
+    # node_id_seq = Sequence('node_id_seq', metadata=Base.Sequential.metadata)
+    # way_id_seq = Sequence('way_id_seq', metadata=Base.Sequential.metadata)
+    # relation_id_seq = Sequence('relation_id_seq', metadata=Base.Sequential.metadata)
+
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(lazy='raise')
+    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
+    changeset: Mapped[Changeset] = relationship(back_populates='elements', lazy='raise')
+    type: Mapped[ElementType] = mapped_column(Enum(ElementType), nullable=False)
+    typed_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    version: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
+    point: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=True)
+    members: Mapped[Sequence[ElementMember]] = mapped_column(JSONB, nullable=False)
+
+    # BAD IDEA: sequences are not affected by transactions, just check latest id in table lock
+    # https://docs.sqlalchemy.org/en/20/core/defaults.html#client-invoked-sql-expressions
+    # typed_id: Mapped[int] = mapped_column(BigInteger, nullable=False, default=select(case({
+    #     ElementType.node.value: node_id_seq.next_value(),
+    #     ElementType.way.value: way_id_seq.next_value(),
+    #     ElementType.relation.value: relation_id_seq.next_value(),
+    # }, value=type)))
 
     # defaults
-    created_at: datetime | None = None
-    # TODO: superseded_at: datetime | None = None
+    superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
-    _collection_name_: Annotated[str, Field(exclude=True, frozen=True)] = 'Element'
+    @validates('typed_id')
+    def validate_typed_id(self, key: str, value: int) -> int:
+        if value <= 0:
+            raise ValueError('Typed id must be positive')
+        return value
 
+    # TODO: SQL
     @updating_cached_property(lambda self: self.typed_id)
     def typed_ref(self) -> TypedElementRef:
         return TypedElementRef(type=self.type, id=self.typed_id)
