@@ -6,7 +6,7 @@ from typing import NoReturn, Sequence, Type
 
 from fastapi import HTTPException
 
-from models.collections.base_sequential import SequentialId
+from models.db.base_sequential import SequentialId
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef

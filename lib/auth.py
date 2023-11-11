@@ -11,7 +11,7 @@ from fastapi.security import SecurityScopes
 from fastapi.security.utils import get_authorization_scheme_param
 
 from lib.exceptions import Exceptions
-from models.collections.user import User
+from models.db.user import User
 from models.scope import ExtendedScope, Scope
 
 # TODO: ACL

@@ -17,9 +17,9 @@ from config import (SMTP_HOST, SMTP_MESSAGES_FROM, SMTP_NOREPLY_FROM,
                     SMTP_USER)
 from lib.translation import get_translation
 from limits import MAIL_PROCESSING_TIMEOUT
-from models.collections.mail import Mail
-from models.collections.user import User
-from models.collections.user_token_email_reply import UserTokenEmailReply
+from models.db.mail import Mail
+from models.db.user import User
+from models.db.user_token_email_reply import UserTokenEmailReply
 from models.mail_from import MailSource
 from utils import utcnow
 

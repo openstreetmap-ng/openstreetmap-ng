@@ -4,7 +4,7 @@ from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 
 from lib.exceptions import Exceptions
-from models.collections.oauth2_token import OAuth2Token
+from models.db.oauth2_token import OAuth2Token
 
 
 class OAuth2(ABC):

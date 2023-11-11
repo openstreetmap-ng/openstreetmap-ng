@@ -8,10 +8,10 @@ from shapely.geometry import Point
 
 from lib.format.format06 import Format06
 from lib.xmltodict import XMLToDict
-from models.collections.element import Element
-from models.collections.element_node import ElementNode
-from models.collections.element_relation import ElementRelation
-from models.collections.element_way import ElementWay
+from models.db.element import Element
+from models.db.element_node import ElementNode
+from models.db.element_relation import ElementRelation
+from models.db.element_way import ElementWay
 from models.element_member import ElementMember
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef

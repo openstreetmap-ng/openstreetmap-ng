@@ -7,7 +7,7 @@ from sqlalchemy.orm import load_only
 
 from db import DB
 from lib.crypto import hash_b
-from models.collections.cache_entry import CacheEntry
+from models.db.cache_entry import CacheEntry
 from utils import utcnow
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough

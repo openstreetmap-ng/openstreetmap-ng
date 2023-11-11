@@ -8,7 +8,7 @@ from humanize import naturalsize
 from lib.exceptions import Exceptions, ExceptionsBase
 from limits import (MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT,
                     NOTE_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE)
-from models.collections.base_sequential import SequentialId
+from models.db.base_sequential import SequentialId
 from models.element_type import ElementType
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.typed_element_ref import TypedElementRef

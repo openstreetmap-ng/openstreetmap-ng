@@ -5,7 +5,7 @@ from html import escape
 import bleach
 from markdown_it import MarkdownIt
 
-from models.collections.cache_entry import Cache
+from models.db.cache_entry import Cache
 from models.text_format import TextFormat
 
 _md = MarkdownIt(options_update={

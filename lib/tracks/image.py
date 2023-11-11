@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 from PIL.Image import Resampling
 
 from lib.mercator import Mercator
-from models.collections.trace_point import TracePoint
+from models.db.trace_point import TracePoint
 
 _SAMPLE_POINTS_PER_FRAME = 20
 

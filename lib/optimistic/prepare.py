@@ -10,12 +10,12 @@ from shapely.ops import unary_union
 
 from lib.auth import Auth
 from lib.exceptions import Exceptions
-from models.collections.base_sequential import SequentialId
-from models.collections.changeset import Changeset
-from models.collections.element import Element
-from models.collections.element_node import ElementNode
-from models.collections.element_relation import ElementRelation
-from models.collections.element_way import ElementWay
+from models.db.base_sequential import SequentialId
+from models.db.changeset import Changeset
+from models.db.element import Element
+from models.db.element_node import ElementNode
+from models.db.element_relation import ElementRelation
+from models.db.element_way import ElementWay
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 from utils import utcnow

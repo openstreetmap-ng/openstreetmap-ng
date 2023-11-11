@@ -14,10 +14,10 @@ from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from limits import (NOTE_QUERY_AREA_MAX_SIZE, NOTE_QUERY_DEFAULT_CLOSED,
                     NOTE_QUERY_DEFAULT_LIMIT, NOTE_QUERY_LEGACY_MAX_LIMIT)
-from models.collections.base_sequential import SequentialId
-from models.collections.note import Note
-from models.collections.note_comment import NoteComment
-from models.collections.user import User
+from models.db.base_sequential import SequentialId
+from models.db.note import Note
+from models.db.note_comment import NoteComment
+from models.db.user import User
 from models.geometry import Latitude, Longitude
 from models.note_event import NoteEvent
 from models.scope import ExtendedScope, Scope

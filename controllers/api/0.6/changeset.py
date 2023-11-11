@@ -12,9 +12,9 @@ from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
 from lib.xmltodict import XMLToDict
 from limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
-from models.collections.base_sequential import SequentialId
-from models.collections.changeset import Changeset
-from models.collections.user import User
+from models.db.base_sequential import SequentialId
+from models.db.changeset import Changeset
+from models.db.user import User
 from models.element_type import ElementType
 from models.scope import Scope
 from models.str import NonEmptyStr, UserNameStr

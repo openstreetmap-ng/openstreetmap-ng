@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from lib.auth import api_user
 from lib.format.format06 import Format06
-from models.collections.base_sequential import SequentialId
-from models.collections.trace import Trace
-from models.collections.user import User
+from models.db.base_sequential import SequentialId
+from models.db.trace import Trace
+from models.db.user import User
 from models.scope import Scope
 from models.str import NonEmptyStr
 

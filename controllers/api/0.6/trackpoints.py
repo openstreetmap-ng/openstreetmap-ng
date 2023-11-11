@@ -8,7 +8,7 @@ from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from limits import (TRACE_POINT_QUERY_AREA_MAX_SIZE,
                     TRACE_POINT_QUERY_DEFAULT_LIMIT)
-from models.collections.trace_point import TracePoint
+from models.db.trace_point import TracePoint
 from models.str import NonEmptyStr
 from responses.osm_response import GPXResponse
 

@@ -6,7 +6,7 @@ from authlib.oauth1.rfc5849.wrapper import OAuth1Request
 from fastapi import Request
 
 from lib.exceptions import Exceptions
-from models.collections.oauth1_token import OAuth1Token
+from models.db.oauth1_token import OAuth1Token
 
 
 class OAuth1(ABC):

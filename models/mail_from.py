@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
-from models.collections.base_sequential import SequentialId
+from models.db.base_sequential import SequentialId
 from models.mail_from_type import MailSourceType
 
 

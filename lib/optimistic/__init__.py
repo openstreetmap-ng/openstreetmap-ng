@@ -6,7 +6,7 @@ from typing import Sequence
 from lib.optimistic.apply import OptimisticApply
 from lib.optimistic.exceptions import OptimisticException
 from lib.optimistic.prepare import OptimisticPrepare
-from models.collections.element import Element
+from models.db.element import Element
 from models.typed_element_ref import TypedElementRef
 
 _RETRY_TIMEOUT = 30

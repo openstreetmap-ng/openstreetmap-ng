@@ -7,7 +7,7 @@ from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from lib.xmltodict import XAttr
 from limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
-from models.collections.element import Element
+from models.db.element import Element
 from models.str import NonEmptyStr
 
 router = APIRouter()
