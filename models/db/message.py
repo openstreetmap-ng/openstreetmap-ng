@@ -7,10 +7,10 @@ from typing import Self
 from asyncache import cached
 from bs4 import BeautifulSoup
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.rich_text import RichText
-from limits import MESSAGE_FROM_MAIL_DATE_VALIDITY
+from limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_FROM_MAIL_DATE_VALIDITY
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.user import User
@@ -18,18 +18,26 @@ from models.text_format import TextFormat
 
 
 class Message(Base.Sequential, CreatedAt):
+    __tablename__ = 'message'
+
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(lazy='raise')
+    from_user: Mapped[User] = relationship(back_populates='from_messages', lazy='raise')
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(lazy='raise')
+    to_user: Mapped[User] = relationship(back_populates='to_messages', lazy='raise')
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
 
     # defaults
-    read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     from_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     to_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    @validates('body')
+    def validate_body(cls, key: str, value: str) -> str:
+        if len(value) > MESSAGE_BODY_MAX_LENGTH:
+            raise ValueError('Message is too long')
+        return value
 
     # TODO: test text/plain; charset=utf-8
     # TODO: SQL
@@ -83,6 +91,6 @@ class Message(Base.Sequential, CreatedAt):
             body=body)
 
     async def mark_read(self) -> None:
-        if not self.read:
-            self.read = True
+        if not self.is_read:
+            self.is_read = True
             await self.update()

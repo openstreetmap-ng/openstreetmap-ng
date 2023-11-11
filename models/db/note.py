@@ -1,33 +1,38 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
-from pydantic import Field
-from pymongo import ASCENDING, DESCENDING
+from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon
+from sqlalchemy import DateTime, Sequence
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from config import SRID
 from db.cursor import Cursor
 from db.transaction import Transaction, retry_transaction
 from geoutils import mapping_mongo
 from lib.auth import Auth
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
-from models.db.base import _DEFAULT_FIND_LIMIT
-from models.db.base_sequential import BaseSequential, SequentialId
-from models.db.note_comment import NoteComment
+from models.db.base import _DEFAULT_FIND_LIMIT, Base
+from models.db.created_at import CreatedAt
+from models.db.updated_at import UpdatedAt
 from models.db.user import User
-from models.geometry import PointGeometry
 from utils import utcnow
 
 
-# TODO: notes updated_at
-class Note(BaseSequential):
-    point: Annotated[PointGeometry, Field(frozen=True)]
+class Note(Base.Sequential, CreatedAt, UpdatedAt):
+    __tablename__ = 'note'
+
+    point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=False)
 
     # defaults
-    closed_at: datetime | None = None
-    hidden_at: datetime | None = None  # TODO: auto cleanup
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    hidden_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
-    comments_: Annotated[tuple[NoteComment, ...] | None, Field(exclude=True)] = None
+    # relationships (nested imports to avoid circular imports)
+    from note_comment import NoteComment
+    note_comments: Mapped[Sequence[NoteComment]] = relationship(back_populates='note', order_by='asc(NoteComment.created_at)', lazy='raise')
 
+    # TODO: SQL
     @property
     def freshly_closed_duration(self) -> timedelta | None:
         if self.closed_at is None:

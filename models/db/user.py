@@ -74,9 +74,18 @@ class User(Base.Sequential, CreatedAt):
     from changeset import Changeset
     from changeset_comment import ChangesetComment
     from diary_comment import DiaryComment
-    changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', lazy='raise')
-    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', lazy='raise')
-    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='user', lazy='raise')
+    from message import Message
+    from note_comment import NoteComment
+    from oauth1_application import OAuth1Application
+    from oauth2_application import OAuth2Application
+    changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', order_by='desc(Changeset.id)', lazy='raise')
+    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', order_by='desc(ChangesetComment.created_at)', lazy='raise')
+    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='user', order_by='desc(DiaryComment.created_at)', lazy='raise')
+    from_messages: Mapped[Sequence[Message]] = relationship(back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise')
+    to_messages: Mapped[Sequence[Message]] = relationship(back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise')
+    note_comments: Mapped[Sequence[NoteComment]] = relationship(back_populates='user', order_by='desc(NoteComment.created_at)', lazy='raise')
+    oauth1_applications: Mapped[Sequence[OAuth1Application]] = relationship(back_populates='user', order_by='asc(OAuth1Application.id)', lazy='raise')
+    oauth2_applications: Mapped[Sequence[OAuth2Application]] = relationship(back_populates='user', order_by='asc(OAuth2Application.id)', lazy='raise')
 
     @validates('languages')
     def validate_languages(self, key: str, value: Sequence[str]):

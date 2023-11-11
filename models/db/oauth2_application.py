@@ -1,12 +1,32 @@
-from typing import Annotated
+from typing import Self
 
-from pydantic import Field
+from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Sequence, Unicode
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.db.oauth_application import OAuthApplication
-from models.str import NonEmptyStr, URIStr
-from validators.eq import Eq
+from lib.crypto import decrypt_b
+from models.db.base import Base
+from models.db.created_at import CreatedAt
+from models.db.updated_at import UpdatedAt
+from models.db.user import User
+from models.oauth2_application_type import OAuth2ApplicationType
+from models.scope import Scope
+from utils import updating_cached_property
 
+# TODO: cascading delete
+# TODO: move validation logic
 
-class OAuth2Application(OAuthApplication):
-    type: NonEmptyStr  # TODO: public, confidential
-    redirect_uris: list[URIStr]
+class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
+    __tablename__ = 'oauth2_application'
+
+    user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
+    user: Mapped[User | None] = relationship(back_populates='oauth2_applications', lazy='raise')
+    name: Mapped[str] = mapped_column(Unicode, nullable=False)
+    client_id: Mapped[str] = mapped_column(Unicode(50), nullable=False)
+    client_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    type: Mapped[OAuth2ApplicationType] = mapped_column(Enum(OAuth2ApplicationType), nullable=False)
+    redirect_uris: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False)
+
+    @updating_cached_property(lambda self: self.client_secret_encrypted)
+    def client_secret(self) -> str:
+        return decrypt_b(self.client_secret_encrypted)

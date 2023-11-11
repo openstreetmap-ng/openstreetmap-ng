@@ -29,5 +29,5 @@ class Issue(Base.Sequential, CreatedAt, UpdatedAt):
     # relationships (nested imports to avoid circular imports)
     from issue_comment import IssueComment
     from report import Report
-    issue_comments: Mapped[Sequence[IssueComment]] = relationship(back_populates='issue', lazy='raise')
-    reports: Mapped[Sequence[Report]] = relationship(back_populates='issue', lazy='raise')
+    issue_comments: Mapped[Sequence[IssueComment]] = relationship(back_populates='issue', order_by='asc(IssueComment.created_at)', lazy='raise')
+    reports: Mapped[Sequence[Report]] = relationship(back_populates='issue', order_by='asc(Report.created_at)', lazy='raise')

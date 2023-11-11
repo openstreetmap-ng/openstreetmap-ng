@@ -5,4 +5,4 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class UpdatedAt:
-    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, onupdate=func.now())

@@ -13,9 +13,7 @@ from config import SRID
 from geoutils import mapping_mongo
 from lib.auth import Auth
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
-from models.db.changeset_comment import ChangesetComment
 from models.db.created_at import CreatedAt
-from models.db.element import Element
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
 from utils import utcnow
@@ -38,8 +36,8 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     # relationships (nested imports to avoid circular imports)
     from changeset_comment import ChangesetComment
     from element import Element
-    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', lazy='raise')
-    elements: Mapped[Sequence[Element]] = relationship(back_populates='changeset', lazy='raise')
+    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', order_by='asc(ChangesetComment.created_at)', lazy='raise')
+    elements: Mapped[Sequence[Element]] = relationship(back_populates='changeset', order_by='asc(Element.id)', lazy='raise')
 
     # TODO: SQL
     @classmethod

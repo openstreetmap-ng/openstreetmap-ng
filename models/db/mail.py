@@ -12,6 +12,8 @@ from models.mail_source_type import MailSourceType
 
 
 class Mail(Base.UUID, CreatedAt):
+    __tablename__ = 'mail'
+
     source_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     source_user: Mapped[User] = relationship(lazy='raise')
     source_type: Mapped[MailSourceType] = mapped_column(Enum(MailSourceType), nullable=False)

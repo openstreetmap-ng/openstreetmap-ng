@@ -1,11 +1,11 @@
 from asyncache import cached
 from geoalchemy2 import Geometry, WKBElement
 from sqlalchemy import ForeignKey, LargeBinary, Sequence, Unicode, UnicodeText
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
 from lib.rich_text import RichText
-from limits import LANGUAGE_CODE_MAX_LENGTH
+from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
@@ -26,7 +26,13 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from diary_comment import DiaryComment
-    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='diary', lazy='raise')
+    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='diary', order_by='asc(DiaryComment.created_at)', lazy='raise')
+
+    @validates('body')
+    def validate_body(cls, key: str, value: str) -> str:
+        if len(value) > DIARY_BODY_MAX_LENGTH:
+            raise ValueError('Diary is too long')
+        return value
 
     # TODO: SQL
     @cached({})
