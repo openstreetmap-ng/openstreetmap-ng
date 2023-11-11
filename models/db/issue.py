@@ -1,27 +1,33 @@
-from datetime import datetime
-from typing import Annotated, Any
+from typing import Sequence
 
-from pydantic import Field
+from sqlalchemy import Enum, ForeignKey, Unicode
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.db.base_sequential import BaseSequential, SequentialId
-from models.db.issue_comment import IssueComment
-from models.db.report import Report
+from models.db.base import Base
+from models.db.created_at import CreatedAt
+from models.db.updated_at import UpdatedAt
+from models.db.user import User
 from models.issue_status import IssueStatus
 from models.report_type import ReportType
 from models.user_role import UserRole
-from utils import utcnow
+
+# TODO: https://docs.sqlalchemy.org/en/14/orm/loading_relationships.html#sqlalchemy.orm.joinedload
 
 
-class Issue(BaseSequential):
-    reportable_type: Annotated[ReportType, Field(frozen=True)]
-    reportable_id: Annotated[Any, Field(frozen=True)]
-    status: IssueStatus
-    assigned_role: UserRole
+class Issue(Base.Sequential, CreatedAt, UpdatedAt):
+    __tablename__ = 'issue'
+
+    report_type: Mapped[ReportType] = mapped_column(Enum(ReportType), nullable=False)
+    report_id: Mapped[str] = mapped_column(Unicode(32), nullable=False)  # max(len(int), len(uuid)) = 32
+    assigned_role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
 
     # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    updated_at: datetime | None = None
-    updated_user_id: SequentialId | None = None
+    status: Mapped[IssueStatus] = mapped_column(Enum(IssueStatus), nullable=False, default=IssueStatus.open)
+    updated_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True, default=None)
+    updated_user: Mapped[User | None] = relationship(lazy='raise')
 
-    reports_: Annotated[tuple[Report, ...] | None, Field(exclude=True)] = None
-    comments_: Annotated[tuple[IssueComment, ...] | None, Field(exclude=True)] = None
+    # relationships (nested imports to avoid circular imports)
+    from issue_comment import IssueComment
+    from report import Report
+    issue_comments: Mapped[Sequence[IssueComment]] = relationship(back_populates='issue', lazy='raise')
+    reports: Mapped[Sequence[Report]] = relationship(back_populates='issue', lazy='raise')

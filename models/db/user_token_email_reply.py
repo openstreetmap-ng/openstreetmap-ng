@@ -13,8 +13,8 @@ from config import SMTP_MESSAGES_FROM_HOST
 from lib.crypto import hash_hex
 from models.db.base_sequential import SequentialId
 from models.db.user_token import UserToken
-from models.mail_from import MailSource
-from models.mail_from_type import MailSourceType
+from models.mail_source import MailSource
+from models.mail_source_type import MailSourceType
 from utils import utcnow
 
 _EXPIRE = timedelta(days=365 * 2)  # 2 years

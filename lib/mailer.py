@@ -20,7 +20,7 @@ from limits import MAIL_PROCESSING_TIMEOUT
 from models.db.mail import Mail
 from models.db.user import User
 from models.db.user_token_email_reply import UserTokenEmailReply
-from models.mail_from import MailSource
+from models.mail_source import MailSource
 from utils import utcnow
 
 

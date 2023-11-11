@@ -1,37 +1,38 @@
 import logging
-from datetime import datetime
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 from itertools import chain
-from time import time
-from typing import Annotated, Self
+from typing import Self
 
-from annotated_types import MaxLen
 from asyncache import cached
 from bs4 import BeautifulSoup
-from pydantic import Field
+from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.rich_text import RichText
-from limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_FROM_MAIL_DATE_VALIDITY
-from models.db.base_sequential import BaseSequential, SequentialId
-from models.str import HexStr, NonEmptyStr, Str255
+from limits import MESSAGE_FROM_MAIL_DATE_VALIDITY
+from models.db.base import Base
+from models.db.created_at import CreatedAt
+from models.db.user import User
 from models.text_format import TextFormat
-from utils import utcnow
 
 
-class Message(BaseSequential):
-    created_at: Annotated[datetime, Field(frozen=True)]
-    from_user_id: Annotated[SequentialId, Field(frozen=True)]
-    from_hidden: Annotated[bool, Field(frozen=True)]
-    to_user_id: Annotated[SequentialId, Field(frozen=True)]
-    to_hidden: Annotated[bool, Field(frozen=True)]
-    read: bool
-    title: Annotated[Str255, Field(frozen=True)]
-    body: Annotated[NonEmptyStr, Field(frozen=True, max_length=MESSAGE_BODY_MAX_LENGTH)]
-    body_rich_hash: HexStr | None = None
+class Message(Base.Sequential, CreatedAt):
+    from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    from_user: Mapped[User] = relationship(lazy='raise')
+    to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    to_user: Mapped[User] = relationship(lazy='raise')
+    subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
+    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+
+    # defaults
+    read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    from_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    to_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # TODO: test text/plain; charset=utf-8
-
+    # TODO: SQL
     @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)

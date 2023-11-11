@@ -1,28 +1,33 @@
-from datetime import datetime
-from typing import Annotated
-
-from annotated_types import MaxLen
 from asyncache import cached
-from pydantic import Field
+from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.rich_text import RichText
 from limits import ISSUE_COMMENT_BODY_MAX_LENGTH
 from models.db.base import Base
-from models.db.base_sequential import SequentialId
-from models.str import HexStr, NonEmptyStr
+from models.db.created_at import CreatedAt
+from models.db.issue import Issue
+from models.db.user import User
 from models.text_format import TextFormat
-from utils import utcnow
 
 
-class IssueComment(Base):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    issue_id: Annotated[SequentialId, Field(frozen=True)]
-    body: Annotated[NonEmptyStr, MaxLen(ISSUE_COMMENT_BODY_MAX_LENGTH)]
-    body_rich_hash: HexStr | None = None
+class IssueComment(Base.UUID, CreatedAt):
+    __tablename__ = 'issue_comment'
 
-    # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(lazy='raise')
+    issue_id: Mapped[int] = mapped_column(ForeignKey(Issue.id), nullable=False)
+    issue: Mapped[Issue] = relationship(back_populates='issue_comments', lazy='raise')
+    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
 
+    @validates('body')
+    def validate_body(cls, key: str, value: str) -> str:
+        if len(value) > ISSUE_COMMENT_BODY_MAX_LENGTH:
+            raise ValueError('Comment is too long')
+        return value
+
+    # TODO: SQL
     @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)

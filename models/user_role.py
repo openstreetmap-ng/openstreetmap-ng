@@ -15,14 +15,12 @@ class UserRole(BaseEnum):
     def get_changeset_max_size(roles: Sequence[Self]) -> int:
         if not roles:
             roles = [None]
-
         return max(_changeset_max_size[r] for r in roles)
 
     @staticmethod
     def get_password_hasher(roles: Sequence[Self]) -> PasswordHasher:
         if not roles:
             roles = [None]
-
         return max((_password_hasher[r] for r in roles), key=itemgetter(0))[1]
 
 

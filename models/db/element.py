@@ -38,7 +38,7 @@ class Element(Base.Sequential, CreatedAt, ABC):
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
-    point: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=True)
+    point: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=True)  # TODO: indexes, spatial_index
     members: Mapped[Sequence[ElementMember]] = mapped_column(JSONB, nullable=False)
 
     # BAD IDEA: sequences are not affected by transactions, just check latest id in table lock
