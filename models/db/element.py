@@ -5,8 +5,7 @@ from typing import Self, Sequence
 
 from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon
-from sqlalchemy import (BigInteger, Boolean, DateTime, Enum, ForeignKey,
-                        Sequence)
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -54,9 +53,15 @@ class Element(Base.Sequential, CreatedAt, ABC):
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
     @validates('typed_id')
-    def validate_typed_id(self, key: str, value: int) -> int:
+    def validate_typed_id(self, key: str, value: int):
         if value <= 0:
-            raise ValueError('Typed id must be positive')
+            raise RuntimeError('Element must have a positive id on creation')
+        return value
+
+    @validates('members')
+    def validate_members(self, key: str, value: Sequence[ElementMember]):
+        if any(member.typed_id <= 0 for member in value):
+            raise RuntimeError('Element member must have a positive id on creation')
         return value
 
     # TODO: SQL
@@ -71,26 +76,6 @@ class Element(Base.Sequential, CreatedAt, ABC):
     @updating_cached_property(lambda self: self.members)
     def references(self) -> frozenset[TypedElementRef]:
         return frozenset(member.ref for member in self.members)
-
-    @model_validator(mode='after')
-    def validate_not_visible(self) -> Self:
-        if not self.visible:
-            if self.version == 1:
-                raise ValueError(f'{self.__class__.__qualname__} cannot be hidden if version is 1')
-            if self.tags:
-                self.tags = {}  # TODO: test this
-            if self.members:
-                self.members = ()
-        return self
-
-    def model_dump(self) -> dict:
-        if self.typed_id <= 0:
-            raise ValueError(f'{self.__class__.__qualname__} must have a positive id to be dumped')
-        if any(member.ref.id <= 0 for member in self.members):
-            raise ValueError(f'{self.__class__.__qualname__} members must have a positive id to be dumped')
-        if not self.created_at:
-            raise ValueError(f'{self.__class__.__qualname__} must have a creation date set to be dumped')
-        return super().model_dump()
 
     @classmethod
     async def get_next_typed_sequence(cls, n: int, session: AgnosticClientSession | None) -> Sequence[SequentialId]:
