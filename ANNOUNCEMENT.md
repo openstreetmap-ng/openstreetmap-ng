@@ -34,10 +34,10 @@ The OpenStreetMap project has undergone a significant architecture overhaul to m
 
 ### Programming Languages: Before and After
 
-| Old Stack                                                                                                         | New Stack                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg" height="16"> Ruby            | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="16"> Python |
-| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="16"> C++   |                                                                                                              |
+| Old Stack                                                                                                       | New Stack                                                                                                    |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg" height="16"> Ruby          | <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" height="16"> Python |
+| <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" height="16"> C++ |                                                                                                              |
 
 Python is [8x more popular](https://survey.stackoverflow.co/2023/#most-popular-technologies-language) than Ruby, which further expands the potential user base of contributors.
 
@@ -338,7 +338,7 @@ No migration is required for the file store (local and S3), further easing the t
 
 - [x] Architecture design
 - [x] ~~Migration of the database models (document-db)~~
-- [10%] Migration of the database models (sql-db)
+- [30%] Migration of the database models (sql-db)
 - [x] Migration of translations
 - [x] Migration of various utilities and "lib" folder
 - [x] Cache for markdown generated content (faster page loading)
