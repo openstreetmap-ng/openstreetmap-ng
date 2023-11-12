@@ -10,6 +10,7 @@ with pkgs; let
     busybox
     file.out
     expat.out
+    libxml2.bin
     zstd.bin
   ];
 

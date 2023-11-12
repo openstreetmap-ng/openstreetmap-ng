@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from lib.auth import Auth
-from lib.xmltodict import XAttr
+from cython_pkg.xmltodict import XAttr
 from limits import (CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT,
                     ELEMENT_RELATION_MAX_MEMBERS, ELEMENT_WAY_MAX_NODES,
                     MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE,

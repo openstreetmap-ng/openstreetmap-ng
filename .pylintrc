@@ -25,8 +25,11 @@ clear-cache-post-run=no
 # A comma-separated list of package or module names from where C extensions may
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code.
-extension-pkg-allow-list=cython_pkg.mercator,
-                         cython_pkg.short_link,
+extension-pkg-allow-list=
+      lxml,
+      cython_pkg.mercator,
+      cython_pkg.short_link,
+      cython_pkg.xmltodict,
 
 # A comma-separated list of package or module names from where C extensions may
 # be loaded. Extensions are loading into the active Python interpreter and may
@@ -427,6 +430,7 @@ disable=raw-checker-failed,
         missing-class-docstring,
         missing-function-docstring,
         broad-exception-caught,
+        unspecified-encoding,
         no-else-return,
         fixme,
 

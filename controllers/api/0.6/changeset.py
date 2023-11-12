@@ -10,7 +10,7 @@ from lib.auth import api_user
 from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
-from lib.xmltodict import XMLToDict
+from cython_pkg.xmltodict import XMLToDict
 from limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset

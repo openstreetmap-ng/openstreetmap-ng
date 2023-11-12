@@ -7,7 +7,7 @@ import xmltodict
 from shapely.geometry import Point
 
 from lib.format.format06 import Format06
-from lib.xmltodict import XMLToDict
+from cython_pkg.xmltodict import XMLToDict
 from models.db.element import Element
 from models.db.element_node import ElementNode
 from models.db.element_relation import ElementRelation

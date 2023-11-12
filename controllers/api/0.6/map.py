@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 from geoutils import parse_bbox
 from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
-from lib.xmltodict import XAttr
+from cython_pkg.xmltodict import XAttr
 from limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.element import Element
 from models.str import NonEmptyStr

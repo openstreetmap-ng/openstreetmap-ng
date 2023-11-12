@@ -11,7 +11,7 @@ from lib.auth import Auth, api_user
 from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from lib.tracks import Tracks
-from lib.xmltodict import XMLToDict
+from cython_pkg.xmltodict import XMLToDict
 from models.db.base_sequential import SequentialId
 from models.db.trace import Trace
 from models.db.user import User

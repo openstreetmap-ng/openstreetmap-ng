@@ -6,7 +6,7 @@ from fastapi import Response
 
 from config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from lib.format import Format
-from lib.xmltodict import XMLToDict
+from cython_pkg.xmltodict import XMLToDict
 from models.format_style import FormatStyle
 
 

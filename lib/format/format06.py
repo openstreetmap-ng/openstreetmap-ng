@@ -10,7 +10,7 @@ from config import BASE_URL, GENERATOR
 from lib.auth import Auth
 from lib.exceptions import Exceptions
 from lib.format import Format
-from lib.xmltodict import XAttr
+from cython_pkg.xmltodict import XAttr
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment

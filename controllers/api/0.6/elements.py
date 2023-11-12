@@ -9,7 +9,7 @@ from lib.auth import api_user
 from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
-from lib.xmltodict import XMLToDict
+from cython_pkg.xmltodict import XMLToDict
 from models.db.base_sequential import SequentialId
 from models.db.element import Element
 from models.db.element_node import ElementNode

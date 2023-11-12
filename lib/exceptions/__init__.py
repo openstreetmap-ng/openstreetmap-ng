@@ -6,7 +6,6 @@ from typing import NoReturn, Sequence, Type
 
 from fastapi import HTTPException
 
-from models.db.base_sequential import SequentialId
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
@@ -94,11 +93,11 @@ class ExceptionsBase(ABC):
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_user_not_found(cls, name_or_id: str | SequentialId) -> NoReturn:
+    def raise_for_user_not_found(cls, name_or_id: str | int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_not_found(cls, changeset_id: SequentialId) -> NoReturn:
+    def raise_for_changeset_not_found(cls, changeset_id: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
@@ -106,19 +105,19 @@ class ExceptionsBase(ABC):
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_not_closed(cls, changeset_id: SequentialId) -> NoReturn:
+    def raise_for_changeset_not_closed(cls, changeset_id: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_already_closed(cls, changeset_id: SequentialId, closed_at: datetime) -> NoReturn:
+    def raise_for_changeset_already_closed(cls, changeset_id: int, closed_at: datetime) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_not_subscribed(cls, changeset_id: SequentialId) -> NoReturn:
+    def raise_for_changeset_not_subscribed(cls, changeset_id: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_already_subscribed(cls, changeset_id: SequentialId) -> NoReturn:
+    def raise_for_changeset_already_subscribed(cls, changeset_id: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
@@ -126,7 +125,7 @@ class ExceptionsBase(ABC):
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_changeset_comment_not_found(cls, comment_id: SequentialId) -> NoReturn:
+    def raise_for_changeset_comment_not_found(cls, comment_id: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
@@ -266,9 +265,9 @@ class ExceptionsBase(ABC):
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_note_closed(cls, note_id: SequentialId, closed_at: datetime) -> NoReturn:
+    def raise_for_note_closed(cls, note_id: int, closed_at: datetime) -> NoReturn:
         raise NotImplementedError
 
     @abstractclassmethod
-    def raise_for_note_open(cls, note_id: SequentialId) -> NoReturn:
+    def raise_for_note_open(cls, note_id: int) -> NoReturn:
         raise NotImplementedError

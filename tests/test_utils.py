@@ -74,5 +74,5 @@ def test_extend_query_params(uri, params, expected):
     ('Aug 31', datetime.utcnow().replace(month=8, day=31, hour=0, minute=0, second=0, microsecond=0)),
     ('Aug 2000', datetime.utcnow().replace(month=8, year=2000, hour=0, minute=0, second=0, microsecond=0)),
 ])
-def test_parse_date(input, output):
-    assert parse_date(input) == output
+def test_parse_date(date, output):
+    assert parse_date(date) == output

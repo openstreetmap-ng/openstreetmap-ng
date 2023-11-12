@@ -28,6 +28,7 @@ h2 = "*"
 httpx = "*"
 humanize = "*"
 jinja2 = "*"
+lxml = "*"
 markdown-it-py = {extras = ["plugins"], version = "*"}
 networkx = "*"
 numba = "*"
