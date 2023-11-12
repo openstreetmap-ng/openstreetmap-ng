@@ -2,11 +2,8 @@ import base64
 import logging
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
-from typing import Sequence
 
 from argon2 import PasswordHasher
-
-from models.user_role import UserRole
 
 
 class PasswordHash:
@@ -15,7 +12,7 @@ class PasswordHash:
     def __init__(self, hasher: PasswordHasher):
         self._hasher = hasher
 
-    def verify(self, hash: str, salt: str | None, password: str) -> bool:
+    def verify(self, password_hashed: str, salt: str | None, password: str) -> bool:
         '''
         Verify a password against a hash and optional salt.
 
@@ -28,12 +25,12 @@ class PasswordHash:
             logging.warning('%r was called repeatedly', self.verify.__qualname__)
 
         # argon2
-        if hash.startswith('$argon2'):
+        if password_hashed.startswith('$argon2'):
             if salt is not None:
                 logging.warning('Unexpected salt for Argon2 hash')
 
-            if self._hasher.verify(hash, password):
-                self.rehash_needed = self._hasher.check_needs_rehash(hash)
+            if self._hasher.verify(password_hashed, password):
+                self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
                 return True
             else:
                 self.rehash_needed = False
@@ -43,17 +40,19 @@ class PasswordHash:
         self.rehash_needed = True
 
         # md5 (deprecated)
-        if len(hash) == 32:
-            return compare_digest(hash, md5(((salt or '') + password).encode()).hexdigest())
+        if len(password_hashed) == 32:
+            valid_hash = md5(((salt or '') + password).encode()).hexdigest()
+            return compare_digest(password_hashed, valid_hash)
 
         # pbkdf2 (deprecated)
         if salt and '!' in salt:
+            password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = salt.split('!')
             iterations = int(iterations_)
-            hash_buffer = base64.b64decode(hash)
-            return compare_digest(hash_buffer, pbkdf2_hmac(algorithm, password.encode(), salt.encode(), iterations, len(hash_buffer)))
+            valid_hash = pbkdf2_hmac(algorithm, password.encode(), salt.encode(), iterations, len(password_hashed_b))
+            return compare_digest(password_hashed_b, valid_hash)
 
-        hash_len = len(hash)
+        hash_len = len(password_hashed)
         salt_len = len(salt or '')
         raise ValueError(f'Unknown password hash format: {hash_len=}, {salt_len=}')
 

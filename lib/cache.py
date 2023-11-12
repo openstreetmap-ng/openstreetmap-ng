@@ -47,10 +47,10 @@ class Cache(ABC):
                 await session.execute(stmt)
             return entry.value
 
-    @ staticmethod
+    @staticmethod
     async def get_one_by_key(key: str, factory: Callable[[], Awaitable[str]]) -> str:
         return await Cache._get_one_by_id(_hash_key(key), factory)
 
-    @ staticmethod
+    @staticmethod
     async def get_one_by_value(value: str, factory: Callable[[], Awaitable[str]]) -> str:
         return await Cache._get_one_by_id(_hash_value(value), factory)

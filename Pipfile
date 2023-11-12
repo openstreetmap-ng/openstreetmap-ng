@@ -18,6 +18,7 @@ boto3 = "*"
 brotlipy = "*"
 cachetools = "*"
 cryptography = "*"
+cython = "*"
 email-validator = "*"
 fastapi = "*"
 feedgen = "*"
@@ -45,6 +46,7 @@ pyyaml = "*"
 requests = "*"
 rfc3986 = "*"
 scikit-learn = "*"
+setuptools = "*"
 shapely = "*"
 six = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
@@ -52,11 +54,10 @@ starlette = "*"
 timezonefinder = "*"
 tqdm = "*"
 uvicorn = "*"
+wheel = "*"
 xmltodict = "*"
-cython = "*"
 
 [dev-packages]
-autopep8 = "*"
 pytest = "*"
 
 [requires]

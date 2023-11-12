@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from math import inf
 
-_kb = 1024
-_mb = 1024 * _kb
+_KB = 1024
+_MB = 1024 * _KB
 
 # TODO: update on migration, enforces new limits
 NG_MIGRATION_DATE = datetime(2023, 1, 1)
@@ -71,14 +71,14 @@ REPORT_BODY_MAX_LENGTH = 50_000  # NOTE: value TBD
 TRACE_TAG_MAX_LENGTH = 40
 TRACE_TAGS_LIMIT = 10
 
-TRACE_FILE_MAX_SIZE = 50 * _mb
-TRACE_FILE_UNCOMPRESSED_MAX_SIZE = 80 * _mb
+TRACE_FILE_MAX_SIZE = 50 * _MB
+TRACE_FILE_UNCOMPRESSED_MAX_SIZE = 80 * _MB
 TRACE_FILE_ARCHIVE_MAX_FILES = 10
 TRACE_FILE_COMPRESS_ZSTD_THREADS = 1
 TRACE_FILE_COMPRESS_ZSTD_LEVEL = (
     # useful: zstd -f -b11 -e19 test_trace.gpx
-    (0.25 * _mb, 19),
-    (1.00 * _mb, 15),
+    (0.25 * _MB, 19),
+    (1.00 * _MB, 15),
     (inf, 13)
 )
 
@@ -88,12 +88,12 @@ TRACE_POINT_QUERY_MAX_LIMIT = 5_000
 TRACE_POINT_QUERY_LEGACY_MAX_SKIP = 45_000
 TRACE_POINT_QUERY_CURSOR_EXPIRE = timedelta(hours=1)
 
-URL_MAX_LENGTH = 2 * _kb  # TODO:
+URL_MAX_LENGTH = 2 * _KB  # TODO:
 
 USER_BLOCK_BODY_MAX_LENGTH = 50_000  # NOTE: value TBD
 USER_LANGUAGES_LIMIT = 10
 USER_DESCRIPTION_MAX_LENGTH = 100_000  # NOTE: value TBD
 
-XML_PARSE_MAX_SIZE = 50 * _mb  # the same as CGImap
+XML_PARSE_MAX_SIZE = 50 * _MB  # the same as CGImap
 
-HTTP_BODY_MAX_SIZE = max(TRACE_FILE_MAX_SIZE, XML_PARSE_MAX_SIZE) + 5 * _mb  # MAX + 5 MB
+HTTP_BODY_MAX_SIZE = max(TRACE_FILE_MAX_SIZE, XML_PARSE_MAX_SIZE) + 5 * _MB  # MAX + 5 MB

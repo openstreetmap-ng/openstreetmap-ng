@@ -6,6 +6,7 @@ with pkgs; let
   commonBuildInputs = [
     stdenv.cc.cc.lib
     python311
+    gcc
     busybox
     file.out
     expat.out
@@ -15,6 +16,7 @@ with pkgs; let
   devBuildInputs = [
     gnumake
     pipenv
+    pylint
     gettext
     nodejs_18
   ];

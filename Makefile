@@ -1,4 +1,10 @@
-.PHONY: update version load-osm locale-compile dev-start dev-stop dev-logs zstd-tracks-download zstd-tracks
+.PHONY: setup clean update version load-osm locale-compile dev-start dev-stop dev-logs zstd-tracks-download zstd-tracks
+
+setup:
+	pipenv run python setup.py build_ext --build-lib cython_pkg
+
+clean:
+	rm -rf build/ cython_pkg/*{.c,.so,.html}
 
 update:
 	docker push $$(docker load < $$(nix-build --no-out-link) | sed -En 's/Loaded image: (\S+)/\1/p')

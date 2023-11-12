@@ -185,7 +185,7 @@ class XMLToDict(ABC):
             return result.decode()
 
     @staticmethod
-    def postprocessor(path, key: str, value):
+    def postprocessor(_, key: str, value):
         if call := XMLToDict.postprocessor_d.get(key):
             return key, call(value)
         else:

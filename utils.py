@@ -134,7 +134,7 @@ def retry(timeout: timedelta | None, *, start: float = 1, limit: float = 300):
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    logging.info(f'Function {func.__qualname__} failed, retrying...', exc_info=True)
+                    logging.info('Function %s failed, retrying...', func.__qualname__, exc_info=True)
                     if (time.perf_counter() + sleep) - ts > timeout_seconds:
                         raise e
                     await anyio.sleep(sleep)
