@@ -30,8 +30,9 @@ with pkgs; let
     export PIPENV_VERBOSITY=-1
     export PYTHONPATH="$(pwd)"
     [ ! -f .venv/bin/activate ] && pipenv sync --dev
+    npm install --silent
+    make setup
     case $- in *i*) exec pipenv shell --fancy;; esac
-    npm install
   '';
 
   dockerShellHook = ''
