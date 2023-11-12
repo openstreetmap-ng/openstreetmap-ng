@@ -4,6 +4,7 @@ from asyncache import cached
 from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from lib.cache import CACHE_HASH_SIZE
 from lib.rich_text import RichText
 from limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
@@ -21,7 +22,7 @@ class ChangesetComment(Base.UUID, CreatedAt):
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(back_populates='changeset_comments', lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
 
     @validates('body')
     def validate_body(cls, key: str, value: str) -> str:

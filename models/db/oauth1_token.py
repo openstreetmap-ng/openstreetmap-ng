@@ -1,28 +1,49 @@
 import logging
 import secrets
-from typing import Annotated, Self
+from datetime import datetime
+from typing import Self
 from urllib.parse import urlencode
 
-from pydantic import Field
+from sqlalchemy import (ARRAY, DateTime, Enum, ForeignKey, LargeBinary,
+                        Sequence, Unicode)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.crypto import hash_hex
+from lib.crypto import HASH_SIZE
 from lib.exceptions import Exceptions
-from models.db.base_sequential import SequentialId
+from models.db.base import Base
+from models.db.created_at import CreatedAt
 from models.db.oauth1_application import OAuth1Application
-from models.db.oauth_token import OAuthToken
+from models.db.user import User
 from models.scope import Scope
-from models.str import NonEmptyStr, OOB_URIStr, Str255
 from utils import extend_query_params, utcnow
 
 # TODO: smooth reauthorize
 
+class OAuth1Token(Base.UUID, CreatedAt):
+    __tablename__ = 'oauth1_token'
 
-class OAuth1Token(OAuthToken):
-    key_secret: NonEmptyStr  # encryption here is redundant, key is already hashed
-    callback_url: Annotated[OOB_URIStr | None, Field(frozen=True)]
-    verifier: Str255 | None
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(back_populates='oauth1_tokens', lazy='raise')
+    application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id), nullable=False)
+    application: Mapped[OAuth1Application] = relationship(back_populates='oauth1_tokens', lazy='raise')
+    key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
+    key_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)  # encryption here is redundant, key is already hashed
+    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
+    verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    app_: Annotated[OAuth1Application | None, Field(exclude=True)] = None
+    # defaults
+    authorized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+
+    @property
+    def scopes_str(self) -> str:
+        return ' '.join(sorted(self.scopes))
+
+    # TODO: SQL
+    @classmethod
+    async def find_one_by_key(cls, key: str) -> Self | None:
+        return await cls.find_one({'key_hashed': hash_hex(key, context=None)})
 
     @classmethod
     async def find_one_by_key_with_(cls, key: str) -> Self | None:

@@ -7,6 +7,8 @@ from Crypto.Cipher import ChaCha20
 
 from config import SECRET_32b
 
+HASH_SIZE = 32
+
 
 def _hash(s: str | bytes, *, context: str | None):
     if isinstance(s, str):

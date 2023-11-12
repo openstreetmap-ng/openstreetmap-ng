@@ -8,15 +8,15 @@ from limits import MAIL_UNPROCESSED_EXPIRE
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.user import User
-from models.mail_source_type import MailSourceType
+from models.mail_from_type import MailFromType
 
 
 class Mail(Base.UUID, CreatedAt):
     __tablename__ = 'mail'
 
-    source_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    source_user: Mapped[User] = relationship(lazy='raise')
-    source_type: Mapped[MailSourceType] = mapped_column(Enum(MailSourceType), nullable=False)
+    from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    from_user: Mapped[User] = relationship(lazy='raise')
+    from_type: Mapped[MailFromType] = mapped_column(Enum(MailFromType), nullable=False)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     to_user: Mapped[User] = relationship(lazy='raise')
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)

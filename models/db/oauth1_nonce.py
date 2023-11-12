@@ -1,22 +1,29 @@
 import logging
 from datetime import datetime
-from typing import Annotated
 
-from pydantic import Field, ValidationError
+from sqlalchemy import DateTime, Unicode, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lib.exceptions import Exceptions
-from limits import OAUTH1_TIMESTAMP_VALIDITY
+from limits import OAUTH1_NONCE_MAX_LENGTH, OAUTH1_TIMESTAMP_VALIDITY
 from models.db.base import Base
-from models.str import Str255
 from utils import utcnow
 
 # TODO: timestamp expire
 
 
-class OAuthNonce(Base):
-    nonce: Annotated[Str255, Field(frozen=True)]
-    created_at: Annotated[datetime, Field(frozen=True)]
+class OAuth1Nonce(Base.NoID):
+    __tablename__ = 'oauth1_nonce'
 
+    nonce: Mapped[str] = mapped_column(Unicode, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint(nonce, created_at),
+    )
+
+    # TODO: SQL
+    # TODO: OAUTH1_NONCE_MAX_LENGTH
     @classmethod
     async def spend(cls, nonce: str | None, timestamp: int | float | str | None) -> None:
         if not nonce or not timestamp:

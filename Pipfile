@@ -53,6 +53,7 @@ timezonefinder = "*"
 tqdm = "*"
 uvicorn = "*"
 xmltodict = "*"
+cython = "*"
 
 [dev-packages]
 autopep8 = "*"

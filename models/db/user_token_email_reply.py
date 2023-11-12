@@ -1,29 +1,30 @@
 import logging
 import secrets
-from abc import ABC
 from base64 import urlsafe_b64encode
 from datetime import timedelta
 from hmac import compare_digest
-from typing import Annotated, Self
+from typing import Self
 
-from bson import ObjectId
-from pydantic import Field
+from sqlalchemy import Enum, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import SMTP_MESSAGES_FROM_HOST
-from lib.crypto import hash_hex
-from models.db.base_sequential import SequentialId
+from models.db.user import User
 from models.db.user_token import UserToken
-from models.mail_source import MailSource
-from models.mail_source_type import MailSourceType
+from models.mail_from_type import MailFromType
 from utils import utcnow
 
 _EXPIRE = timedelta(days=365 * 2)  # 2 years
 
 
-class UserTokenEmailReply(UserToken, ABC):
-    source_type: MailSourceType
-    to_user_id: Annotated[SequentialId, Field(frozen=True)]
+class UserTokenEmailReply(UserToken):
+    __tablename__ = 'user_token_email_reply'
 
+    from_type: Mapped[MailFromType] = mapped_column(Enum(MailFromType), nullable=False)
+    to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    to_user: Mapped[User] = relationship(lazy='raise')
+
+    # TODO: SQL
     @classmethod
     async def create_from_addr(cls, from_user_id: SequentialId, to_user_id: SequentialId, source_type: MailSourceType) -> str:
         # NOTE: atm, if the key is leaked, there is no way to revoke it (possible targeted spam)

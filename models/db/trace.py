@@ -1,37 +1,47 @@
-from datetime import datetime
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
 import anyio
-from pydantic import Field, PositiveInt
+from geoalchemy2 import Geometry, WKBElement
+from sqlalchemy import ARRAY, Enum, ForeignKey, Sequence, Unicode
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from config import SRID
 from db.transaction import Transaction, retry_transaction
 from lib.tracks import Tracks
-from models.db.base_sequential import BaseSequential, SequentialId
-from models.db.trace_point import TracePoint
+from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
+from models.db.base import Base
+from models.db.created_at import CreatedAt
 from models.db.user import User
-from models.file_name import FileName
-from models.geometry import PointGeometry
 from models.scope import ExtendedScope
-from models.str import NonEmptyStr, Str255
 from models.trace_visibility import TraceVisibility
-from utils import utcnow
-from validators.url import URLSafeValidator
 
 
-class Trace(BaseSequential):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    name: FileName
-    description: Str255
-    size: Annotated[PositiveInt, Field(frozen=True)]
-    start_point: Annotated[PointGeometry, Field(frozen=True)]
-    visibility: TraceVisibility
+class Trace(Base.Sequential, CreatedAt):
+    __tablename__ = 'trace'
+
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(back_populates='traces', lazy='raise')
+    name: Mapped[str] = mapped_column(Unicode, nullable=False)
+    description: Mapped[str] = mapped_column(Unicode, nullable=False)
+    visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)
+
+    size: Mapped[int] = mapped_column(int, nullable=False)
+    start_point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=False)
+    file_id: Mapped[str] = mapped_column(Unicode, nullable=False)
+    image_id: Mapped[str] = mapped_column(Unicode, nullable=False)
+    icon_id: Mapped[str] = mapped_column(Unicode, nullable=False)
 
     # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    tags: tuple[Annotated[Str255, URLSafeValidator], ...] = ()
-    file_id: NonEmptyStr | None = None
-    image_id: NonEmptyStr | None = None
-    icon_id: NonEmptyStr | None = None
+    tags: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
+
+    from trace_point import TracePoint
+    trace_points: Mapped[Sequence[TracePoint]] = relationship(back_populates='trace', order_by='asc(TracePoint.captured_at)', lazy='raise')
+
+    @validates('tags')
+    def validate_tags(cls, key: str, value: Sequence[str]):
+        if len(value) > TRACE_TAGS_LIMIT:
+            raise ValueError('Too many tags')
+        return value
 
     @property
     def tag_string(self) -> str:
@@ -46,9 +56,9 @@ class Trace(BaseSequential):
             # BUG: this produces weird behavior: 'a b, c' -> ['a b', 'c']; 'a b' -> ['a', 'b']
             tags = s.split()
 
-        tags = (t.strip() for t in tags)
-        tags = tuple(filter(None, tags))
-        self.tags = tags
+        tags = (t.strip()[:TRACE_TAG_MAX_LENGTH].strip() for t in tags)
+        tags = (t for t in tags if t)
+        self.tags = tuple(set(tags))
 
     @property
     def linked_to_user_in_api(self) -> bool:
@@ -62,6 +72,7 @@ class Trace(BaseSequential):
     def timestamps_via_api(self) -> bool:
         return self.visibility in (TraceVisibility.identifiable, TraceVisibility.trackable)
 
+    # TODO: SQL
     @classmethod
     async def find_many_by_user_id(cls, user_id: SequentialId) -> tuple[Self, ...]:
         return await cls.find_many({'user_id': user_id})

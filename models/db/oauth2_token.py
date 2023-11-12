@@ -1,29 +1,47 @@
 import logging
 import secrets
 from base64 import urlsafe_b64encode
+from datetime import datetime
 from hashlib import sha256
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
-from pydantic import Field
+from sqlalchemy import (ARRAY, DateTime, Enum, ForeignKey, LargeBinary,
+                        Sequence, Unicode)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.crypto import hash_hex
+from lib.crypto import HASH_SIZE, hash_hex
 from lib.exceptions import Exceptions
-from models.db.base_sequential import SequentialId
+from models.db.base import Base
+from models.db.created_at import CreatedAt
 from models.db.oauth2_application import OAuth2Application
-from models.db.oauth_token import OAuthToken
+from models.db.user import User
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.scope import Scope
-from models.str import Str255, URIStr
 from utils import extend_query_params, utcnow
 
 
-class OAuth2Token(OAuthToken):
-    redirect_uri: Annotated[URIStr, Field(frozen=True)]
-    code_challenge: Str255 | None
-    code_challenge_method: OAuth2CodeChallengeMethod | None
+class OAuth2Token(Base.UUID, CreatedAt):
+    __tablename__ = 'oauth2_token'
 
-    app_: Annotated[OAuth2Application | None, Field(exclude=True)] = None
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(back_populates='oauth2_tokens', lazy='raise')
+    application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
+    application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='raise')
+    key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
+    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)
+    code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(Enum(OAuth2CodeChallengeMethod), nullable=True)
+    code_challenge: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
+    # defaults
+    authorized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+
+    @property
+    def scopes_str(self) -> str:
+        return ' '.join(sorted(self.scopes))
+
+    # TODO: SQL
     @classmethod
     async def find_one_by_key_with_(cls, key: str) -> Self | None:
         pipeline = [

@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey, LargeBinary, Sequence, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
+from lib.cache import CACHE_HASH_SIZE
 from lib.rich_text import RichText
 from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base
@@ -20,7 +21,7 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
     user: Mapped[User] = relationship(back_populates='diaries', lazy='raise')
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True)
 

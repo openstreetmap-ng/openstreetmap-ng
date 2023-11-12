@@ -1,37 +1,29 @@
 from datetime import datetime
 from trace import Trace
-from typing import Annotated, Self, Sequence
+from typing import Self, Sequence
 
-from pydantic import Field, NonNegativeInt
-from pymongo import ASCENDING, DESCENDING
+from geoalchemy2 import Geometry, WKBElement
+from sqlalchemy import DateTime, ForeignKey, Sequence, SmallInteger
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.cursor import Cursor
 from geoutils import mapping_mongo
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
-from models.db.base_sequential import SequentialId
 from models.db.trace import Trace
-from models.geometry import PointGeometry, PolygonGeometry
 from models.trace_visibility import TraceVisibility
-from utils import utcnow
 
 
-# TODO: optimize?
-class TracePoint(Base):
-    track_idx: Annotated[NonNegativeInt, Field(frozen=True)]
-    captured_at: Annotated[datetime, Field(frozen=True)]  # TODO: ensure not in future too much
-    point: Annotated[PointGeometry, Field(frozen=True)]
-    elevation: Annotated[float | None, Field(frozen=True)]
+class TracePoint(Base.NoID):
+    __tablename__ = 'trace_point'
 
-    # defaults
-    trace_id: SequentialId | None = None
+    trace_id: Mapped[int] = mapped_column(ForeignKey(Trace.id), nullable=False)
+    trace: Mapped[Trace] = relationship(back_populates='trace_points', lazy='raise')
+    track_idx: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=Trace.SRID), nullable=False)
+    elevation: Mapped[float | None] = mapped_column(float, nullable=True)
 
-    trace_: Annotated[Trace | None, Field(exclude=True)] = None
-
-    def model_dump(self) -> dict:
-        if not self.trace_id:
-            raise ValueError(f'{self.__class__.__qualname__} must have a trace id to be dumped')
-        return super().model_dump()
-
+    # TODO: SQL
     # TODO: limit offset for safety
     @classmethod
     async def find_many_by_geometry_with_(

@@ -1,40 +1,63 @@
 from datetime import datetime
-from typing import Annotated
 
-from annotated_types import MaxLen
 from asyncache import cached
-from pydantic import Field
+from sqlalchemy import (Boolean, ColumnElement, DateTime, ForeignKey,
+                        LargeBinary, UnicodeText, and_, func)
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from lib.cache import CACHE_HASH_SIZE
 from lib.rich_text import RichText
 from limits import USER_BLOCK_BODY_MAX_LENGTH
-from models.db.base_sequential import BaseSequential, SequentialId
-from models.str import HexStr, NonEmptyStr
+from models.db.base import Base
+from models.db.created_at import CreatedAt
+from models.db.updated_at import UpdatedAt
+from models.db.user import User
 from models.text_format import TextFormat
 from utils import utcnow
 
 
-class UserBlock(BaseSequential):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    created_user_id: Annotated[SequentialId, Field(frozen=True)]
-    expires_at: datetime | None
-    awaits_acknowledgement: bool
-    body: Annotated[NonEmptyStr, MaxLen(USER_BLOCK_BODY_MAX_LENGTH)]
-    body_rich_hash: HexStr | None = None
+class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
+    __tablename__ = 'user_block'
+
+    from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    from_user: Mapped[User] = relationship(back_populates='user_blocks_given', foreign_keys=[from_user_id], lazy='raise')
+    to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    to_user: Mapped[User] = relationship(back_populates='user_blocks_received', foreign_keys=[to_user_id], lazy='raise')
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
 
     # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    updated_at: Annotated[datetime, Field(default_factory=utcnow)]
-    revoked_at: datetime | None = None
-    revoked_user_id: SequentialId | None = None
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    revoked_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True, default=None)
+    revoked_user: Mapped[User | None] = relationship(foreign_keys=[revoked_user_id], lazy='raise')
 
-    @property
+    @validates('body')
+    def validate_body(cls, key: str, value: str) -> str:
+        if len(value) > USER_BLOCK_BODY_MAX_LENGTH:
+            raise ValueError('Comment is too long')
+        return value
+
+    @hybrid_property
     def expired(self) -> bool:
         return (
             self.expires_at and
             self.expires_at < utcnow() and
-            not self.awaits_acknowledgement
+            self.acknowledged
         )
 
+    @expired.inplace.expression
+    @classmethod
+    def _expired_expression(cls) -> ColumnElement[bool]:
+        return and_(
+            cls.expires_at != None,
+            cls.expires_at < func.now(),
+            cls.acknowledged == True,
+        )
+
+    # TODO: SQL
     @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)

@@ -1,20 +1,17 @@
 from abc import ABC
 from datetime import datetime
-from typing import Annotated
 
-from pydantic import Field
+from sqlalchemy import DateTime, ForeignKey, LargeBinary
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from lib.crypto import HASH_SIZE
 from models.db.base import Base
-from models.db.base_sequential import SequentialId
-from models.str import HexStr
-from utils import utcnow
+from models.db.created_at import CreatedAt
+from models.db.user import User
 
 
-class UserToken(Base, ABC):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    expires_at: datetime
-    key_hashed: Annotated[HexStr, Field(frozen=True)]
-
-    # defaults
-    created_at: Annotated[datetime, Field(frozen=True, default_factory=utcnow)]
-    referrer: Annotated[str | None, Field(frozen=True)] = None
+class UserToken(Base.UUID, CreatedAt, ABC):
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    user: Mapped[User] = relationship(lazy='raise')
+    key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)

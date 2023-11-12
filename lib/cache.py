@@ -6,26 +6,27 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
 
 from db import DB
-from lib.crypto import hash_b
+from lib.crypto import HASH_SIZE, hash_b
 from models.db.cache_entry import CacheEntry
 from utils import utcnow
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough
 
+CACHE_HASH_SIZE = HASH_SIZE + 1
+
 _DEFAULT_CACHE_EXPIRE = timedelta(days=3)
 
-# we use a prefix to avoid key/value hash collisions
-# which could be crafted easily by an attacker
-_HASH_KEY_PREFIX = b'\x00'
-_HASH_VALUE_PREFIX = b'\x01'
+# we use a suffix to avoid key/value type hash collisions
+_HASH_KEY_SUFFIX = b'\x00'
+_HASH_VALUE_SUFFIX = b'\x01'
 
 
 def _hash_key(key: str) -> bytes:
-    return _HASH_KEY_PREFIX + hash_b(key, context=None)
+    return hash_b(key, context=None) + _HASH_KEY_SUFFIX
 
 
 def _hash_value(value: str) -> bytes:
-    return _HASH_VALUE_PREFIX + hash_b(value, context=None)
+    return hash_b(value, context=None) + _HASH_VALUE_SUFFIX
 
 
 class Cache(ABC):

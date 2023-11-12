@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from lib.cache import CACHE_HASH_SIZE
 from lib.rich_text import RichText
 from limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_FROM_MAIL_DATE_VALIDITY
 from models.db.base import Base
@@ -21,12 +22,12 @@ class Message(Base.Sequential, CreatedAt):
     __tablename__ = 'message'
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(back_populates='from_messages', lazy='raise')
+    from_user: Mapped[User] = relationship(back_populates='messages_sent', foreign_keys=[from_user_id], lazy='raise')
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(back_populates='to_messages', lazy='raise')
+    to_user: Mapped[User] = relationship(back_populates='messages_received', foreign_keys=[to_user_id], lazy='raise')
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
 
     # defaults
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

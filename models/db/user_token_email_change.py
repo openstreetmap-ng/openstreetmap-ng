@@ -1,16 +1,17 @@
-from typing import Annotated
-
-from pydantic import Field, model_validator
+from pydantic import model_validator
+from sqlalchemy import Unicode
+from sqlalchemy.orm import Mapped, mapped_column
 
 from models.db.user_token import UserToken
-from models.str import EmailStr
 
 
-# TODO: both classes necessary?
 class UserTokenEmailChange(UserToken):
-    from_email: Annotated[EmailStr, Field(frozen=True)]
-    to_email: Annotated[EmailStr, Field(frozen=True)]
+    __tablename__ = 'user_token_email_change'
 
+    from_email: Mapped[str] = mapped_column(Unicode, nullable=False)
+    to_email: Mapped[str] = mapped_column(Unicode, nullable=False)
+
+    # TODO: SQL
     @model_validator(mode='after')
     def validate_email_change(self) -> None:
         if self.from_email == self.to_email:

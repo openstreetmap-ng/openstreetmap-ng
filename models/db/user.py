@@ -11,12 +11,13 @@ from fastapi.security.utils import get_authorization_scheme_param
 from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Point
 from sqlalchemy import (ARRAY, Boolean, DateTime, Enum, LargeBinary,
-                        SmallInteger, Unicode, UnicodeText)
+                        SmallInteger, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import DEFAULT_LANGUAGE, SECRET, SRID
 from lib.avatar import Avatar
+from lib.cache import CACHE_HASH_SIZE
 from lib.crypto import hash_hex
 from lib.exceptions import Exceptions
 from lib.languages import Language, fix_language_case, get_language
@@ -31,7 +32,7 @@ from limits import (FAST_PASSWORD_CACHE_EXPIRE, LANGUAGE_CODE_MAX_LENGTH,
 from models.db.base import Base
 from models.db.cache_entry import Cache
 from models.db.created_at import CreatedAt
-from models.db.oauth_nonce import OAuthNonce
+from models.db.oauth1_nonce import OAuth1Nonce
 from models.db.user_token_session import UserTokenSession
 from models.scope import Scope
 from models.text_format import TextFormat
@@ -44,8 +45,8 @@ from utils import haversine_distance
 class User(Base.Sequential, CreatedAt):
     __tablename__ = 'user'
 
-    email: Mapped[str] = mapped_column(Unicode, nullable=False, unique=True)
-    display_name: Mapped[str] = mapped_column(Unicode, nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(Unicode, nullable=False)
+    display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
@@ -63,7 +64,7 @@ class User(Base.Sequential, CreatedAt):
     terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     roles: Mapped[Sequence[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
-    description_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, default=None)
+    description_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
     home_point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True, default=None)
     home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
     avatar_type: Mapped[UserAvatarType] = mapped_column(Enum(UserAvatarType), nullable=False, default=UserAvatarType.default)
@@ -77,20 +78,35 @@ class User(Base.Sequential, CreatedAt):
     from message import Message
     from note_comment import NoteComment
     from oauth1_application import OAuth1Application
+    from oauth1_token import OAuth1Token
     from oauth2_application import OAuth2Application
+    from oauth2_token import OAuth2Token
+    from user_block import UserBlock
+
+    from .trace import Trace
     changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', order_by='desc(Changeset.id)', lazy='raise')
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', order_by='desc(ChangesetComment.created_at)', lazy='raise')
     diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='user', order_by='desc(DiaryComment.created_at)', lazy='raise')
-    from_messages: Mapped[Sequence[Message]] = relationship(back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise')
-    to_messages: Mapped[Sequence[Message]] = relationship(back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise')
+    messages_sent: Mapped[Sequence[Message]] = relationship(back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise')
+    messages_received: Mapped[Sequence[Message]] = relationship(back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise')
     note_comments: Mapped[Sequence[NoteComment]] = relationship(back_populates='user', order_by='desc(NoteComment.created_at)', lazy='raise')
     oauth1_applications: Mapped[Sequence[OAuth1Application]] = relationship(back_populates='user', order_by='asc(OAuth1Application.id)', lazy='raise')
+    oauth1_tokens: Mapped[Sequence[OAuth1Token]] = relationship(back_populates='user', order_by='asc(OAuth1Token.application_id)', lazy='raise')
     oauth2_applications: Mapped[Sequence[OAuth2Application]] = relationship(back_populates='user', order_by='asc(OAuth2Application.id)', lazy='raise')
+    oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(back_populates='user', order_by='asc(OAuth2Token.application_id)', lazy='raise')
+    traces: Mapped[Sequence[Trace]] = relationship(back_populates='user', order_by='desc(Trace.id)', lazy='raise')
+    user_blocks_given: Mapped[Sequence[UserBlock]] = relationship(back_populates='from_user', order_by='desc(UserBlock.id)', lazy='raise')
+    user_blocks_received: Mapped[Sequence[UserBlock]] = relationship(back_populates='to_user', order_by='desc(UserBlock.id)', lazy='raise')
+
+    __table_args__ = (
+        UniqueConstraint(email),
+        UniqueConstraint(display_name),
+    )
 
     @validates('languages')
     def validate_languages(self, key: str, value: Sequence[str]):
         if len(value) > USER_LANGUAGES_LIMIT:
-            raise ValueError('Too many languages provided')
+            raise ValueError('Too many languages')
         return value
 
     @validates('description')
@@ -282,7 +298,7 @@ class User(Base.Sequential, CreatedAt):
                 # not an OAuth request
                 return None
 
-            OAuthNonce.spend(request_.oauth_params.get('oauth_nonce'), request_.timestamp)
+            OAuth1Nonce.spend(request_.oauth_params.get('oauth_nonce'), request_.timestamp)
 
             token = await OAuth1.parse_and_validate(request_)
         elif oauth_version == 2:
