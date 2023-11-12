@@ -15,7 +15,7 @@ from limits import XML_PARSE_MAX_SIZE
 
 class XAttr(UserString):
     '''
-    Custom str implementation for XML attributes.
+    Custom str implementation for XML attributes (used by `XMLToDict.unparse`).
     '''
 
     def __init__(self, seq: str, custom_xml: str | None = None) -> None:
