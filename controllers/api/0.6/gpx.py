@@ -7,13 +7,13 @@ from fastapi import (APIRouter, File, Form, HTTPException, Request, UploadFile,
 from fastapi.responses import PlainTextResponse
 from httpx import Response
 
+from cython_pkg.xmltodict import XMLToDict
 from lib.auth import Auth, api_user
 from lib.exceptions import Exceptions
 from lib.format.format06 import Format06
 from lib.tracks import Tracks
-from cython_pkg.xmltodict import XMLToDict
 from models.db.base_sequential import SequentialId
-from models.db.trace import Trace
+from models.db.trace_ import Trace
 from models.db.user import User
 from models.scope import Scope
 from models.str import Str255

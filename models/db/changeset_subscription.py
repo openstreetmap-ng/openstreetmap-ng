@@ -1,13 +1,17 @@
-from typing import Annotated
-
-from pydantic import Field
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.orm import Mapped, mapped_column
 
 from models.db.base import Base
-from models.db.base_sequential import SequentialId
+from models.db.changeset import Changeset
+from models.db.user import User
 
-# TODO: unique index
 
+class ChangesetSubscription(Base.NoID):
+    __tablename__ = 'changeset_subscription'
 
-class ChangesetSubscription(Base):
-    user_id: Annotated[SequentialId, Field(frozen=True)]
-    changeset_id: Annotated[SequentialId, Field(frozen=True)]
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
+    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint(changeset_id, user_id),
+    )

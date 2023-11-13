@@ -17,7 +17,7 @@ from lib.tracks.image import TracksImage
 from lib.tracks.processors import TRACKS_PROCESSORS, ZstdTracksProcessor
 from limits import TRACE_FILE_MAX_SIZE
 from models.db.lock import lock
-from models.db.trace import Trace
+from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
 from models.trace_visibility import TraceVisibility
 

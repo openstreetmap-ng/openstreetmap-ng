@@ -30,6 +30,7 @@ with pkgs; let
     export PIPENV_VENV_IN_PROJECT=1
     export PIPENV_VERBOSITY=-1
     export PYTHONPATH="$(pwd)"
+    [ ! -e .venv/bin/python ] && [ -h .venv/bin/python ] && rm -r .venv
     [ ! -f .venv/bin/activate ] && pipenv sync --dev
     npm install --silent
     make setup

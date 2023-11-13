@@ -7,10 +7,10 @@ from typing import Sequence
 from shapely.geometry import Point, mapping
 
 from config import BASE_URL, GENERATOR
+from cython_pkg.xmltodict import XAttr
 from lib.auth import Auth
 from lib.exceptions import Exceptions
 from lib.format import Format
-from cython_pkg.xmltodict import XAttr
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
@@ -20,7 +20,7 @@ from models.db.element_relation import ElementRelation
 from models.db.element_way import ElementWay
 from models.db.note import Note
 from models.db.note_comment import NoteComment
-from models.db.trace import Trace
+from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
 from models.db.user import User
 from models.element_member import ElementMember

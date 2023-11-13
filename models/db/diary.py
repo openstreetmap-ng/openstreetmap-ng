@@ -27,7 +27,9 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from diary_comment import DiaryComment
+    from diary_subscription import DiarySubscription
     diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='diary', order_by='asc(DiaryComment.created_at)', lazy='raise')
+    diary_subscription_users: Mapped[Sequence[User]] = relationship(secondary=DiarySubscription, lazy='raise')
 
     @validates('body')
     def validate_body(cls, key: str, value: str) -> str:

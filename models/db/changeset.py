@@ -35,8 +35,10 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from changeset_comment import ChangesetComment
+    from changeset_subscription import ChangesetSubscription
     from element import Element
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', order_by='asc(ChangesetComment.created_at)', lazy='raise')
+    changeset_subscription_users: Mapped[Sequence[User]] = relationship(secondary=ChangesetSubscription, lazy='raise')
     elements: Mapped[Sequence[Element]] = relationship(back_populates='changeset', order_by='asc(Element.id)', lazy='raise')
 
     # TODO: SQL

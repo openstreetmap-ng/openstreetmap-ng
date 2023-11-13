@@ -10,15 +10,15 @@ from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Point
-from sqlalchemy import (ARRAY, Boolean, DateTime, Enum, LargeBinary,
-                        SmallInteger, Unicode, UnicodeText, UniqueConstraint)
+from sqlalchemy import (ARRAY, BigInteger, Boolean, DateTime, Enum,
+                        LargeBinary, SmallInteger, Unicode, UnicodeText,
+                        UniqueConstraint)
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import DEFAULT_LANGUAGE, SECRET, SRID
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
-from lib.crypto import hash_hex
 from lib.exceptions import Exceptions
 from lib.languages import Language, fix_language_case, get_language
 from lib.oauth1 import OAuth1
@@ -27,10 +27,8 @@ from lib.password_hash import PasswordHash
 from lib.rich_text import RichText
 from limits import (FAST_PASSWORD_CACHE_EXPIRE, LANGUAGE_CODE_MAX_LENGTH,
                     NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS,
-                    USER_DESCRIPTION_MAX_LENGTH, USER_LANGUAGE_MAX_LENGTH,
-                    USER_LANGUAGES_LIMIT)
+                    USER_DESCRIPTION_MAX_LENGTH, USER_LANGUAGES_LIMIT)
 from models.db.base import Base
-from models.db.cache_entry import Cache
 from models.db.created_at import CreatedAt
 from models.db.oauth1_nonce import OAuth1Nonce
 from models.db.user_token_session import UserTokenSession
@@ -42,8 +40,10 @@ from models.user_status import UserStatus
 from utils import haversine_distance
 
 
-class User(Base.Sequential, CreatedAt):
+class User(Base.NoID, CreatedAt):
     __tablename__ = 'user'
+
+    id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
     email: Mapped[str] = mapped_column(Unicode, nullable=False)
     display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
@@ -75,18 +75,20 @@ class User(Base.Sequential, CreatedAt):
     from changeset import Changeset
     from changeset_comment import ChangesetComment
     from diary_comment import DiaryComment
+    from friendship import Friendship
     from message import Message
     from note_comment import NoteComment
     from oauth1_application import OAuth1Application
     from oauth1_token import OAuth1Token
     from oauth2_application import OAuth2Application
     from oauth2_token import OAuth2Token
+    from trace_ import Trace
     from user_block import UserBlock
-
-    from .trace import Trace
     changesets: Mapped[Sequence[Changeset]] = relationship(back_populates='user', order_by='desc(Changeset.id)', lazy='raise')
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='user', order_by='desc(ChangesetComment.created_at)', lazy='raise')
     diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='user', order_by='desc(DiaryComment.created_at)', lazy='raise')
+    friendship_sent: Mapped[Sequence['User']] = relationship(back_populates='friendship_received', secondary=Friendship, primaryjoin=id == Friendship.from_user_id, secondaryjoin=id == Friendship.to_user_id, lazy='raise')
+    friendship_received: Mapped[Sequence['User']] = relationship(back_populates='friendship_sent', secondary=Friendship, primaryjoin=id == Friendship.to_user_id, secondaryjoin=id == Friendship.from_user_id, lazy='raise')
     messages_sent: Mapped[Sequence[Message]] = relationship(back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise')
     messages_received: Mapped[Sequence[Message]] = relationship(back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise')
     note_comments: Mapped[Sequence[NoteComment]] = relationship(back_populates='user', order_by='desc(NoteComment.created_at)', lazy='raise')

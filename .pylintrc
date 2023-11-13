@@ -76,7 +76,7 @@ ignored-modules=
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use, and will cap the count on Windows to
 # avoid hangs.
-jobs=0
+jobs=1
 
 # Control the amount of potential inferred values when inferring a single
 # object. This can help the performance when dealing with large functions or
@@ -92,7 +92,7 @@ persistent=yes
 
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint.
-py-version=3.10
+py-version=3.11
 
 # Discover python modules and packages in the file system subtree.
 recursive=no
@@ -432,6 +432,8 @@ disable=raw-checker-failed,
         broad-exception-caught,
         unspecified-encoding,
         no-else-return,
+        too-few-public-methods,
+        import-outside-toplevel,
         fixme,
 
 # Enable the message, report, category or checker with the given id(s). You can

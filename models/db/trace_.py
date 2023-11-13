@@ -2,7 +2,7 @@ from typing import Self, Sequence
 
 import anyio
 from geoalchemy2 import Geometry, WKBElement
-from sqlalchemy import ARRAY, Enum, ForeignKey, Sequence, Unicode
+from sqlalchemy import ARRAY, Enum, ForeignKey, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID

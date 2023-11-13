@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.cursor import Cursor
 from geoutils import mapping_mongo
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
-from models.db.trace import Trace
+from models.db.trace_ import Trace
 from models.trace_visibility import TraceVisibility
 
 
