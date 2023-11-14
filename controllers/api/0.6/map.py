@@ -1,4 +1,5 @@
-from typing import Annotated, Sequence
+from collections.abc import Sequence
+from typing import Annotated
 
 from fastapi import APIRouter, Query
 
@@ -16,7 +17,9 @@ router = APIRouter()
 @router.get('/map')
 @router.get('/map.xml')
 @router.get('/map.json')
-async def map_read(bbox: Annotated[NonEmptyStr, Query()]) -> Sequence[dict]:
+async def map_read(
+    bbox: Annotated[NonEmptyStr, Query()],
+) -> Sequence[dict]:
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         exceptions().raise_for_map_query_area_too_big()

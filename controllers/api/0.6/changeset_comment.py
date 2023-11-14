@@ -1,11 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Form
+from pydantic import PositiveInt
 
 from lib.auth import api_user
 from lib.exceptions import exceptions
 from lib.format.format06 import Format06
-from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
 from models.db.changeset_subscription import ChangesetSubscription
@@ -19,7 +19,10 @@ router = APIRouter()
 
 
 @router.post('/changeset/{changeset_id}/subscribe')
-async def changeset_subscribe(changeset_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]) -> dict:
+async def changeset_subscribe(
+    changeset_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_api)],
+) -> dict:
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
@@ -34,7 +37,10 @@ async def changeset_subscribe(changeset_id: SequentialId, user: Annotated[User, 
 
 
 @router.post('/changeset/{changeset_id}/unsubscribe')
-async def changeset_subscribe(changeset_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]) -> dict:
+async def changeset_unsubscribe(
+    changeset_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_api)],
+) -> dict:
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
@@ -50,7 +56,9 @@ async def changeset_subscribe(changeset_id: SequentialId, user: Annotated[User, 
 
 @router.post('/changeset/{changeset_id}/comment')
 async def changeset_comment(
-    changeset_id: SequentialId, text: Annotated[NonEmptyStr, Form()], user: Annotated[User, api_user(Scope.write_api)]
+    changeset_id: PositiveInt,
+    text: Annotated[NonEmptyStr, Form()],
+    user: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     changeset = await Changeset.find_one_by_id(changeset_id)
 
@@ -66,7 +74,8 @@ async def changeset_comment(
 
 @router.post('/changeset/comment/{comment_id}/hide')
 async def changeset_comment_hide(
-    comment_id: SequentialId, user: Annotated[User, api_user(Scope.write_api, ExtendedScope.role_moderator)]
+    comment_id: PositiveInt,
+    _: Annotated[User, api_user(Scope.write_api, ExtendedScope.role_moderator)],
 ) -> dict:
     comment = await ChangesetComment.find_one_by_id(comment_id)
     if not comment:

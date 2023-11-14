@@ -1,4 +1,5 @@
-from typing import Annotated, Sequence
+from collections.abc import Sequence
+from typing import Annotated
 
 import anyio
 from fastapi import APIRouter, HTTPException, Query, Request, status
@@ -10,11 +11,7 @@ from lib.auth import api_user
 from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
-from models.db.base_sequential import SequentialId
 from models.db.element import Element
-from models.db.element_node import ElementNode
-from models.db.element_relation import ElementRelation
-from models.db.element_way import ElementWay
 from models.db.user import User
 from models.element_type import ElementType
 from models.scope import Scope
@@ -31,8 +28,10 @@ router = APIRouter()
 
 @router.put('/{type}/create', response_class=PlainTextResponse)
 async def element_create(
-    request: Request, type: ElementType, user: Annotated[User, api_user(Scope.write_api)]
-) -> SequentialId:
+    request: Request,
+    type: ElementType,
+    _: Annotated[User, api_user(Scope.write_api)],
+) -> PositiveInt:
     xml = (await request.body()).decode()
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
 
@@ -54,7 +53,10 @@ async def element_create(
 @router.get('/{type}/{typed_id}')
 @router.get('/{type}/{typed_id}.xml')
 @router.get('/{type}/{typed_id}.json')
-async def element_read(type: ElementType, typed_id: SequentialId) -> dict:
+async def element_read(
+    type: ElementType,
+    typed_id: PositiveInt,
+) -> dict:
     element = await Element.find_one_by_typed_ref(TypedElementRef(type=type, typed_id=typed_id))
 
     if not element:
@@ -67,7 +69,10 @@ async def element_read(type: ElementType, typed_id: SequentialId) -> dict:
 
 @router.put('/{type}/{typed_id}', response_class=PlainTextResponse)
 async def element_update(
-    request: Request, type: ElementType, typed_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]
+    request: Request,
+    type: ElementType,
+    typed_id: PositiveInt,
+    _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
     xml = (await request.body()).decode()
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
@@ -88,7 +93,10 @@ async def element_update(
 
 @router.delete('/{type}/{typed_id}', response_class=PlainTextResponse)
 async def element_delete(
-    request: Request, type: ElementType, typed_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]
+    request: Request,
+    type: ElementType,
+    typed_id: PositiveInt,
+    _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
     xml = (await request.body()).decode()
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
@@ -111,7 +119,11 @@ async def element_delete(
 @router.get('/{type}/{typed_id}/{version}')
 @router.get('/{type}/{typed_id}/{version}.xml')
 @router.get('/{type}/{typed_id}/{version}.json')
-async def element_read_version(type: ElementType, typed_id: SequentialId, version: PositiveInt) -> dict:
+async def element_read_version(
+    type: ElementType,
+    typed_id: PositiveInt,
+    version: PositiveInt,
+) -> dict:
     element = await Element.find_one_by_versioned_ref(
         VersionedElementRef(type=type, typed_id=typed_id, version=version)
     )
@@ -125,7 +137,10 @@ async def element_read_version(type: ElementType, typed_id: SequentialId, versio
 @router.get('/{type}/{typed_id}/history')
 @router.get('/{type}/{typed_id}/history.xml')
 @router.get('/{type}/{typed_id}/history.json')
-async def element_history(type: ElementType, typed_id: SequentialId) -> Sequence[dict]:
+async def element_history(
+    type: ElementType,
+    typed_id: PositiveInt,
+) -> Sequence[dict]:
     elements = await Element.find_many_by_typed_ref(TypedElementRef(type=type, typed_id=typed_id), limit=None)
 
     if not elements:
@@ -191,7 +206,10 @@ async def elements_read_many(
 @router.get('/{type}/{typed_id}/relations')
 @router.get('/{type}/{typed_id}/relations.xml')
 @router.get('/{type}/{typed_id}/relations.json')
-async def element_relations(type: ElementType, typed_id: SequentialId) -> Sequence[dict]:
+async def element_relations(
+    type: ElementType,
+    typed_id: PositiveInt,
+) -> Sequence[dict]:
     element = await Element.find_one_by_typed_ref(TypedElementRef(type=type, typed_id=typed_id))
     elements = await element.get_referenced_by(ElementType.relation, limit=None) if element else ()
     return Format06.encode_elements(elements)
@@ -200,7 +218,9 @@ async def element_relations(type: ElementType, typed_id: SequentialId) -> Sequen
 @router.get('/node/{typed_id}/ways')
 @router.get('/node/{typed_id}/ways.xml')
 @router.get('/node/{typed_id}/ways.json')
-async def node_ways(typed_id: SequentialId) -> Sequence[dict]:
+async def node_ways(
+    typed_id: PositiveInt,
+) -> Sequence[dict]:
     type = ElementType.node
     element = await Element.find_one_by_typed_ref(TypedElementRef(type=type, typed_id=typed_id))
     elements = await element.get_referenced_by(ElementType.way, limit=None) if element else ()
@@ -210,7 +230,10 @@ async def node_ways(typed_id: SequentialId) -> Sequence[dict]:
 @router.get('/{type}/{typed_id}/full')
 @router.get('/{type}/{typed_id}/full.xml')
 @router.get('/{type}/{typed_id}/full.json')
-async def element_full(type: ElementType.way | ElementType.relation, typed_id: SequentialId) -> Sequence[dict]:
+async def element_full(
+    type: ElementType.way | ElementType.relation,
+    typed_id: PositiveInt,
+) -> Sequence[dict]:
     element = await Element.find_one_by_typed_ref(TypedElementRef(type=type, typed_id=typed_id))
 
     if not element:

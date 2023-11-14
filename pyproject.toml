@@ -92,7 +92,7 @@ skip-magic-trailing-comma = false
 line-ending = "lf"
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "type"]
+builtins-ignorelist = ["id", "open", "type"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["pgettext", "npgettext"]

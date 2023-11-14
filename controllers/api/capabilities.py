@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from cython_lib.xmltodict import XAttr
-from lib.auth import Auth
+from lib.auth import auth_user
 from limits import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
     CHANGESET_QUERY_MAX_LIMIT,
@@ -27,7 +27,7 @@ router = APIRouter()
 @router.get('/0.6/capabilities.xml')
 @router.get('/0.6/capabilities.json')
 async def legacy_capabilities() -> dict:
-    user = Auth.user()
+    user = auth_user()
     return {
         'api': {
             'version': {
@@ -70,5 +70,9 @@ async def legacy_capabilities() -> dict:
                 XAttr('maximum'): ELEMENT_WAY_MAX_NODES,
             },
         },
-        'policy': {'imagery': {'blacklist': [{XAttr('regex'): entry} for entry in POLICY_LEGACY_IMAGERY_BLACKLISTS]}},
+        'policy': {
+            'imagery': {
+                'blacklist': [{XAttr('regex'): entry} for entry in POLICY_LEGACY_IMAGERY_BLACKLISTS],
+            },
+        },
     }

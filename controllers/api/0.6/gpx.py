@@ -5,13 +5,13 @@ import magic
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import PlainTextResponse
 from httpx import Response
+from pydantic import PositiveInt
 
 from cython_lib.xmltodict import XMLToDict
 from lib.auth import Auth, api_user
 from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.tracks import Tracks
-from models.db.base_sequential import SequentialId
 from models.db.trace_ import Trace
 from models.db.user import User
 from models.scope import Scope
@@ -28,8 +28,8 @@ async def gpx_create(
     tags: Annotated[str, Form('')],
     visibility: Annotated[TraceVisibility | None, Form(None)],
     public: Annotated[int, Form(0, deprecated=True)],
-    user: Annotated[User, api_user(Scope.write_gpx)],
-) -> SequentialId:
+    _: Annotated[User, api_user(Scope.write_gpx)],
+) -> PositiveInt:
     if not visibility:
         visibility = TraceVisibility.public if public else TraceVisibility.private
 
@@ -41,7 +41,9 @@ async def gpx_create(
 @router.get('/gpx/{trace_id}.xml')
 @router.get('/gpx/{trace_id}/details')
 @router.get('/gpx/{trace_id}/details.xml')
-async def gpx_read(trace_id: SequentialId) -> dict:
+async def gpx_read(
+    trace_id: PositiveInt,
+) -> dict:
     trace = await Trace.get_one_by_id(trace_id)
 
     if not trace:
@@ -54,7 +56,9 @@ async def gpx_read(trace_id: SequentialId) -> dict:
 
 @router.put('/gpx/{trace_id}', response_class=PlainTextResponse)
 async def gpx_update(
-    request: Request, trace_id: SequentialId, user: Annotated[User, api_user(Scope.write_gpx)]
+    request: Request,
+    trace_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_gpx)],
 ) -> None:
     trace = await Trace.get_one_by_id(trace_id)
 
@@ -82,7 +86,10 @@ async def gpx_update(
 
 
 @router.delete('/gpx/{trace_id}', response_class=PlainTextResponse)
-async def gpx_delete(trace_id: SequentialId, user: Annotated[User, api_user(Scope.write_gpx)]) -> None:
+async def gpx_delete(
+    trace_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_gpx)],
+) -> None:
     trace = await Trace.get_one_by_id(trace_id)
 
     if not trace:
@@ -95,7 +102,9 @@ async def gpx_delete(trace_id: SequentialId, user: Annotated[User, api_user(Scop
 
 # TODO: handle .xml ?
 @router.get('/gpx/{trace_id}/data')
-async def gpx_read_data(trace_id: SequentialId) -> Response:
+async def gpx_read_data(
+    trace_id: PositiveInt,
+) -> Response:
     trace = await Trace.get_one_by_id(trace_id)
 
     if not trace:

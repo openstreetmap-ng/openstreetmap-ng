@@ -1,18 +1,17 @@
-from typing import Annotated, Sequence
+from collections.abc import Sequence
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
-from pymongo import ASCENDING
+from pydantic import PositiveInt
 
 from cython_lib.xmltodict import XMLToDict
-from db.transaction import Transaction
 from geoutils import parse_bbox
 from lib.auth import api_user
 from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
 from limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
-from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.user import User
 from models.element_type import ElementType
@@ -28,13 +27,15 @@ router = APIRouter()
 
 @router.put('/changeset/create', response_class=PlainTextResponse)
 async def element_create(
-    request: Request, type: ElementType, user: Annotated[User, api_user(Scope.write_api)]
-) -> SequentialId:
+    request: Request,
+    type: ElementType,
+    user: Annotated[User, api_user(Scope.write_api)],
+) -> PositiveInt:
     xml = (await request.body()).decode()
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an osm/changeset element.")
+        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
         changeset = Changeset(user_id=user.id, tags=Format06.decode_tags(data.get('tag', [])))
@@ -50,7 +51,10 @@ async def element_create(
 @router.get('/changeset/{changeset_id}')
 @router.get('/changeset/{changeset_id}.xml')
 @router.get('/changeset/{changeset_id}.json')
-async def changeset_read(changeset_id: SequentialId, include_discussion: Annotated[str | None, Query(None)]) -> dict:
+async def changeset_read(
+    changeset_id: PositiveInt,
+    include_discussion: Annotated[str | None, Query(None)],
+) -> dict:
     # TODO: sort by _id instead of created_date if sequential
     changeset = await Changeset.find_one_by_id_with_(
         changeset_id, comment_sort={'_id': ASCENDING}, comment_limit=None if include_discussion else 0
@@ -64,13 +68,15 @@ async def changeset_read(changeset_id: SequentialId, include_discussion: Annotat
 
 @router.put('/changeset/{changeset_id}')
 async def changeset_update(
-    request: Request, changeset_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]
+    request: Request,
+    changeset_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     xml = (await request.body()).decode()
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an osm/changeset element.")
+        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
         new_tags = Format06.decode_tags(data.get('tag', []))
@@ -92,7 +98,10 @@ async def changeset_update(
 
 
 @router.put('/changeset/{changeset_id}/close', response_class=PlainTextResponse)
-async def changeset_close(changeset_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]) -> None:
+async def changeset_close(
+    changeset_id: PositiveInt,
+    user: Annotated[User, api_user(Scope.write_api)],
+) -> None:
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
@@ -108,7 +117,9 @@ async def changeset_close(changeset_id: SequentialId, user: Annotated[User, api_
 
 @router.get('/changeset/{changeset_id}/download', response_class=OSMChangeResponse)
 @router.get('/changeset/{changeset_id}/download.xml', response_class=OSMChangeResponse)
-async def changeset_download(changeset_id: SequentialId) -> Sequence:
+async def changeset_download(
+    changeset_id: PositiveInt,
+) -> Sequence:
     changeset = await Changeset.find_one_by_id_with_(changeset_id, element_sort={'_id': ASCENDING}, element_limit=None)
 
     if not changeset:
@@ -122,7 +133,7 @@ async def changeset_download(changeset_id: SequentialId) -> Sequence:
 @router.get('/changesets.json')
 async def changesets_read(
     bbox: Annotated[NonEmptyStr | None, Query(None)],
-    user: Annotated[SequentialId | None, Query(None)],
+    user: Annotated[PositiveInt | None, Query(None)],
     display_name: Annotated[UserNameStr | None, Query(None)],
     time: Annotated[NonEmptyStr | None, Query(None)],
     open: Annotated[str | None, Query(None)],
@@ -190,13 +201,15 @@ async def changesets_read(
 
 @router.post('/changeset/{changeset_id}/upload', response_class=DiffResultResponse)
 async def changeset_upload(
-    request: Request, changeset_id: SequentialId, user: Annotated[User, api_user(Scope.write_api)]
+    request: Request,
+    changeset_id: PositiveInt,
+    _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     xml = (await request.body()).decode()
     data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', [])
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an /osmChange element.")
+        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
 
     try:
         elements = await Format06.decode_osmchange(data, changeset_id)
