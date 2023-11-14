@@ -1,4 +1,5 @@
-from typing import Self, Sequence
+from collections.abc import Sequence
+from typing import Self
 
 from pydantic import PositiveInt, model_validator
 
@@ -43,9 +44,9 @@ class ElementValidating(Base.Validating):
         if len(self.members) > ELEMENT_WAY_MAX_NODES:
             raise ValueError(f'Way cannot have more than {ELEMENT_WAY_MAX_NODES} members')
         if any(member.role for member in self.members):
-            raise ValueError(f'Way cannot have members with roles')
+            raise ValueError('Way cannot have members with roles')
         if any(member.type != ElementType.node for member in self.members):
-            raise ValueError(f'Way cannot have non-node members')
+            raise ValueError('Way cannot have non-node members')
 
         return self
 

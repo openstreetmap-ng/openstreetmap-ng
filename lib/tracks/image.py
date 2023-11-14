@@ -9,7 +9,7 @@ import anyio
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
 
-from cython_pkg.mercator import Mercator
+from cython_lib.mercator import Mercator
 from models.db.trace_point import TracePoint
 
 _SAMPLE_POINTS_PER_FRAME = 20
@@ -49,7 +49,7 @@ class TracksImage(ABC):
             indices = tuple(range(0, len(points), step))
             if len(indices) > max_points:
                 # make sure we always include the last point (nice visually)
-                indices = chain(indices[:max_points - 1], (len(points) - 1,))
+                indices = chain(indices[: max_points - 1], (len(points) - 1,))
             points = tuple(points[i] for i in indices)
 
         logging.debug('Generating %d frames animation for %d points', _ANIM_FRAMES, len(points))
@@ -75,7 +75,7 @@ class TracksImage(ABC):
 
             frame = base_frame.copy()
             draw = ImageDraw.Draw(frame)
-            draw.line(points_proj[start_idx:end_idx + 1], fill=_PRIMARY_COLOR, width=_PRIMARY_WIDTH, joint='curve')
+            draw.line(points_proj[start_idx : end_idx + 1], fill=_PRIMARY_COLOR, width=_PRIMARY_WIDTH, joint='curve')
 
             frame = frame.resize(_ANIM_SAVE_SIZE_T, Resampling.BOX)
             frames[n] = frame
@@ -88,7 +88,8 @@ class TracksImage(ABC):
             duration=_ANIM_DELAY,
             loop=0,
             format='WEBP',
-            lossless=True)
+            lossless=True,
+        )
 
         # icon generation
         base_frame = Image.new('L', _ANIM_GEN_SIZE_T, color=_BACKGROUND_COLOR)
@@ -97,8 +98,6 @@ class TracksImage(ABC):
         base_frame = base_frame.resize(_ICON_SAVE_SIZE_T, Resampling.BOX)
 
         icon = BytesIO()
-        base_frame.save(icon,
-                        format='WEBP',
-                        lossless=True)
+        base_frame.save(icon, format='WEBP', lossless=True)
 
         return animation.getvalue(), icon.getvalue()

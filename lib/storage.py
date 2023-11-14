@@ -3,7 +3,6 @@ from abc import ABC
 from hashlib import md5
 
 import aioboto3
-from anyio import Path
 from fastapi import status
 
 from config import FILE_DATA_DIR
@@ -15,6 +14,12 @@ _S3 = aioboto3.Session()
 
 
 def _get_key(data: bytes, suffix: str, random: bool) -> str:
+    """
+    Generate a key for a file.
+
+    If random is `False`, the generated key is deterministic.
+    """
+
     if random:
         return secrets.token_urlsafe(32) + suffix
     else:
@@ -29,84 +34,113 @@ class Storage(ABC):
 
     @staticmethod
     async def load(key: str) -> bytes:
-        raise NotImplementedError()
+        """
+        Load a file from storage by key string.
+        """
+
+        raise NotImplementedError
 
     @staticmethod
     async def save(data: bytes, suffix: str, *, random: bool = True) -> str:
-        raise NotImplementedError()
+        """
+        Save a file to storage by key string.
+        """
+
+        raise NotImplementedError
 
     @staticmethod
     async def delete(key: str) -> None:
-        raise NotImplementedError()
+        """
+        Delete a key from storage.
+        """
+
+        raise NotImplementedError
 
 
 class LocalStorage(Storage):
-    async def _get_path(self, key: str) -> Path:
-        d1 = key[:1]
-        d2 = key[1:3]
-        dir = FILE_DATA_DIR / self._context / d1 / d2
-        await dir.mkdir(parents=True, exist_ok=True)
-        return dir / key
+    """
+    File storage based on FileCache.
+    """
+
+    def __init__(self, context: str):
+        super().__init__(context)
+        self._fc = FileCache(context, cache_dir=FILE_DATA_DIR)
 
     async def load(self, key: str) -> bytes:
-        path = await self._get_path(key)
-        return await path.read_bytes()
+        result = await self._fc.get(key)
+        if result is None:
+            raise FileNotFoundError(key)
+        return result
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
         key = _get_key(data, suffix, random)
-        path = await self._get_path(key)
-        async with await path.open('xb') as f:
-            await f.write(data)
-        return key
+        await self._fc.set(key, data)
 
     async def delete(self, key: str) -> None:
-        path = await self._get_path(key)
-        await path.unlink(missing_ok=True)
+        await self._fc.delete(key)
 
 
 class S3Storage(Storage):
+    """
+    File storage based on AWS S3.
+
+    Uses FileCache for local caching.
+    """
+
     def __init__(self, context: str):
         super().__init__(context)
-        self._cache = FileCache(context)
+        self._fc = FileCache(context)
 
     async def load(self, key: str) -> bytes:
-        if not (data := await self._cache.get(key)):
-            async with _S3.client('s3') as s3:
-                data = await (await s3.get_object(Bucket=self._context, Key=key))['Body'].read()
-            await self._cache.set(key, data)
+        if data := await self._fc.get(key):
+            return data
+
+        async with _S3.client('s3') as s3:
+            data = await (await s3.get_object(Bucket=self._context, Key=key))['Body'].read()
+
+        await self._fc.set(key, data)
         return data
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
         key = _get_key(data, suffix, random)
+
         async with _S3.client('s3') as s3:
             await s3.put_object(Bucket=self._context, Key=key, Body=data)
+
         return key
 
     async def delete(self, key: str) -> None:
         async with _S3.client('s3') as s3:
             await s3.delete_object(Bucket=self._context, Key=key)
-        await self._cache.pop(key)
+
+        await self._fc.delete(key)
 
 
 class GravatarStorage(Storage):
+    """
+    File storage based on Gravatar (read-only).
+
+    Uses FileCache for local caching.
+    """
+
     def __init__(self, context: str = 'gravatar'):
         super().__init__(context)
-        self._cache = FileCache(context)
+        self._fc = FileCache(context)
 
-    async def load(self, key: str) -> bytes:
-        key = md5(key.lower()).hexdigest()
-        if not (data := await self._cache.get(key)):
-            r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
-            if r.status_code == status.HTTP_404_NOT_FOUND:
-                # TODO: return default image
-                raise NotImplementedError()
-            r.raise_for_status()
-            data = r.content
-            await self._cache.set(key, data)
+    async def load(self, email: str) -> bytes:
+        key = md5(email.lower()).hexdigest()  # noqa: S324
+
+        if data := await self._fc.get(key):
+            return data
+
+        r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
+
+        if r.status_code == status.HTTP_404_NOT_FOUND:
+            # TODO: return default image
+            raise NotImplementedError
+
+        r.raise_for_status()
+        data = r.content
+
+        await self._fc.set(key, data)
         return data
-
-    async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
-        raise NotImplementedError('%r is read-only', GravatarStorage.__qualname__)
-
-    async def delete(self, key: str) -> None:
-        raise NotImplementedError('%r is read-only', GravatarStorage.__qualname__)

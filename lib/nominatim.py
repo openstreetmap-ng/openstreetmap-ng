@@ -1,5 +1,4 @@
 import logging
-from abc import ABC
 from urllib.parse import urlencode
 
 from httpx import HTTPError
@@ -9,21 +8,25 @@ from config import NOMINATIM_URL
 from lib.cache import Cache
 from utils import HTTP
 
+_CACHE_CONTEXT = 'Nominatim'
 
-class Nominatim(ABC):
+
+class Nominatim:
     @staticmethod
     async def reverse_name(point: Point, zoom: int, locales: str) -> str:
-        '''
+        """
         Reverse geocode a point into a human-readable name.
-        '''
+        """
 
-        path = '/reverse?' + urlencode({
-            'format': 'jsonv2',
-            'lon': point.x,
-            'lat': point.y,
-            'zoom': zoom,
-            'accept-language': locales,
-        })
+        path = '/reverse?' + urlencode(
+            {
+                'format': 'jsonv2',
+                'lon': point.x,
+                'lat': point.y,
+                'zoom': zoom,
+                'accept-language': locales,
+            }
+        )
 
         async def factory() -> str:
             r = await HTTP.get(NOMINATIM_URL + path, timeout=4)
@@ -32,7 +35,7 @@ class Nominatim(ABC):
             return data['display_name']
 
         try:
-            display_name = await Cache.get_one_by_key(path, factory)
+            display_name = await Cache.get_one_by_key(path, _CACHE_CONTEXT, factory)
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None

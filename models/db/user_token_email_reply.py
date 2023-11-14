@@ -25,8 +25,11 @@ class UserTokenEmailReply(UserToken):
     to_user: Mapped[User] = relationship(lazy='raise')
 
     # TODO: SQL
+    # TODO: refactor
     @classmethod
-    async def create_from_addr(cls, from_user_id: SequentialId, to_user_id: SequentialId, source_type: MailSourceType) -> str:
+    async def create_from_addr(
+        cls, from_user_id: SequentialId, to_user_id: SequentialId, source_type: MailSourceType
+    ) -> str:
         # NOTE: atm, if the key is leaked, there is no way to revoke it (possible targeted spam)
         key_b = secrets.token_bytes(32)
         token = cls(

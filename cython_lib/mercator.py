@@ -1,26 +1,26 @@
 import cython
-
-# pylint: disable=import-error,no-name-in-module
-from cython.cimports.libc.math import log, tan
+from cython.cimports.libc.math import log, pi, tan
 
 
 @cython.cfunc
 def degrees(x: cython.double) -> cython.double:
-    return x * 57.29577951308232  # 180 / pi
+    return x * (180 / pi)
+
 
 @cython.cfunc
 def radians(x: cython.double) -> cython.double:
-    return x * 0.017453292519943295  # pi / 180
+    return x * (pi / 180)
+
 
 @cython.cfunc
 def x_sheet(lon: cython.double) -> cython.double:
     return lon
 
+
 @cython.cfunc
 def y_sheet(lat: cython.double) -> cython.double:
-    return degrees(log(tan(
-        (radians(lat) / 2) + 0.7853981633974483  # pi / 4
-    )))
+    return degrees(log(tan((radians(lat) / 2) + (pi / 4))))
+
 
 # having a C-only class allows for better self. optimizations
 @cython.final
@@ -33,10 +33,15 @@ class CMercator:
     _bx: cython.double
     _by: cython.double
 
-    def __init__(self,
-            min_lon: cython.double, min_lat: cython.double,
-            max_lon: cython.double, max_lat: cython.double,
-            width: cython.int, height: cython.int):
+    def __init__(
+        self,
+        min_lon: cython.double,
+        min_lat: cython.double,
+        max_lon: cython.double,
+        max_lat: cython.double,
+        width: cython.int,
+        height: cython.int,
+    ):
         min_lon_sheet = x_sheet(min_lon)
         max_lon_sheet = x_sheet(max_lon)
         min_lat_sheet = y_sheet(min_lat)
@@ -59,21 +64,26 @@ class CMercator:
         self._by = max_lat_sheet + half_y_pad
 
     def x(self, lon: cython.double) -> cython.double:
-        if self._bx - self._tx == 0:
+        if self._bx - self._tx <= 0:
             return self._width / 2
         return (x_sheet(lon) - self._tx) / (self._bx - self._tx) * self._width
 
     def y(self, lat: cython.double) -> cython.double:
-        if self._by - self._ty == 0:
+        if self._by - self._ty <= 0:
             return self._height / 2
         return self._height - ((y_sheet(lat) - self._ty) / (self._by - self._ty) * self._height)
 
 
 class Mercator:
-    def __init__(self,
-            min_lon: cython.double, min_lat: cython.double,
-            max_lon: cython.double, max_lat: cython.double,
-            width: cython.int, height: cython.int):
+    def __init__(
+        self,
+        min_lon: cython.double,
+        min_lat: cython.double,
+        max_lon: cython.double,
+        max_lat: cython.double,
+        width: cython.int,
+        height: cython.int,
+    ):
         self._impl = CMercator(min_lon, min_lat, max_lon, max_lat, width, height)
 
     def x(self, lon: cython.double) -> cython.double:

@@ -1,17 +1,18 @@
+from collections.abc import Sequence
 from datetime import datetime, timedelta
-from typing import Self, Sequence
+from typing import Self
 
 from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon
-from sqlalchemy import DateTime, Sequence
+from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import SRID
-from db.cursor import Cursor
 from db.transaction import Transaction, retry_transaction
 from geoutils import mapping_mongo
 from lib.auth import Auth
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
+from models.cursor import Cursor
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
@@ -30,7 +31,12 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from note_comment import NoteComment
-    note_comments: Mapped[Sequence[NoteComment]] = relationship(back_populates='note', order_by='asc(NoteComment.created_at)', lazy='raise')
+
+    note_comments: Mapped[Sequence[NoteComment]] = relationship(
+        back_populates='note',
+        order_by='asc(NoteComment.created_at)',
+        lazy='raise',
+    )
 
     # TODO: SQL
     @property
@@ -42,37 +48,40 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
 
     @classmethod
     async def find_many_by_geometry_with_(
-            cls,
-            cursor: Cursor | None,
-            geometry: Polygon,
-            max_closed_for: timedelta | None = None,
-            *,
-            limit: int | None = _DEFAULT_FIND_LIMIT) -> tuple[Sequence[Self], Cursor]:
+        cls,
+        cursor: Cursor | None,
+        geometry: Polygon,
+        max_closed_for: timedelta | None = None,
+        *,
+        limit: int | None = _DEFAULT_FIND_LIMIT,
+    ) -> tuple[Sequence[Self], Cursor]:
         # intentionally not using cursor.time as it may lead to confusing results (working on 2 collections)
         user = Auth.user()
         min_closed_at = utcnow() - max_closed_for if max_closed_for else None
         pipeline = [
             # filter notes
-            {'$match': {
-                **({'_id': {'$lt': cursor.id}} if cursor else {}),
-                'point': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}},
-                **({'closed_at': {'$gte': min_closed_at}} if min_closed_at else {}),
-                **({'hidden_at': None} if not (user and user.is_moderator) else {})
-            }},
-
+            {
+                '$match': {
+                    **({'_id': {'$lt': cursor.id}} if cursor else {}),
+                    'point': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}},
+                    **({'closed_at': {'$gte': min_closed_at}} if min_closed_at else {}),
+                    **({'hidden_at': None} if not (user and user.is_moderator) else {}),
+                }
+            },
             {'$sort': {'_id': DESCENDING}},
             {'$limit': limit} if limit is not None else {},
-
             # join comments
-            {'$lookup': {
-                'from': NoteComment._collection_name(),
-                'localField': '_id',
-                'foreignField': 'note_id',
-                'pipeline': [
-                    {'$sort': {'created_at': ASCENDING}},
-                ],
-                'as': 'comments_',
-            }},
+            {
+                '$lookup': {
+                    'from': NoteComment._collection_name(),
+                    'localField': '_id',
+                    'foreignField': 'note_id',
+                    'pipeline': [
+                        {'$sort': {'created_at': ASCENDING}},
+                    ],
+                    'as': 'comments_',
+                }
+            },
         ]
 
         doc_cursor = await cls._collection().aggregate(pipeline)
@@ -83,16 +92,17 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
 
     @classmethod
     async def find_many_by_search_with_(
-            cls,
-            *,
-            geometry: Polygon | None = None,
-            max_closed_for: timedelta | None = None,
-            q: str | None = None,
-            user_id: SequentialId | None = None,
-            from_: datetime | None = None,
-            to: datetime | None = None,
-            sort: dict | None = None,
-            limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence[Self]:
+        cls,
+        *,
+        geometry: Polygon | None = None,
+        max_closed_for: timedelta | None = None,
+        q: str | None = None,
+        user_id: SequentialId | None = None,
+        from_: datetime | None = None,
+        to: datetime | None = None,
+        sort: dict | None = None,
+        limit: int | None = _DEFAULT_FIND_LIMIT,
+    ) -> Sequence[Self]:
         if len(sort) != 1:
             raise ValueError('Sort must specify exactly one field')
 
@@ -111,21 +121,23 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
             pipeline_target = NoteComment
             pre_pipeline = [
                 # filter comments
-                {'$match': {
-                    **({'$text': {'$search': q}} if q else {}),
-                    **({'user_id': user_id} if user_id else {}),
-                }},
-
+                {
+                    '$match': {
+                        **({'$text': {'$search': q}} if q else {}),
+                        **({'user_id': user_id} if user_id else {}),
+                    }
+                },
                 # join notes and discard comment data
-                {'$lookup': {
-                    'from': cls._collection_name(),
-                    'localField': 'note_id',
-                    'foreignField': '_id',
-                    'as': 'note_',
-                }},
+                {
+                    '$lookup': {
+                        'from': cls._collection_name(),
+                        'localField': 'note_id',
+                        'foreignField': '_id',
+                        'as': 'note_',
+                    }
+                },
                 {'$unwind': '$note_'},
                 {'$replaceRoot': {'newRoot': '$note_'}},
-
                 # deduplicate
                 {'$group': {'_id': '$_id', 'first': {'$first': '$$ROOT'}}},
                 {'$replaceRoot': {'newRoot': '$first'}},
@@ -137,29 +149,31 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
 
         pipeline = pre_pipeline + [
             # filter notes
-            {'$match': {
-                **({'point': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}}} if geometry else {}),
-                **({'closed_at': {'$gte': min_closed_at}} if min_closed_at else {}),
-                **({'hidden_at': None} if not (user and user.is_moderator) else {}),
-                sort_key: {
-                    **({'$gte': from_} if from_ else {}),
-                    **({'$lt': to} if to else {}),
+            {
+                '$match': {
+                    **({'point': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}}} if geometry else {}),
+                    **({'closed_at': {'$gte': min_closed_at}} if min_closed_at else {}),
+                    **({'hidden_at': None} if not (user and user.is_moderator) else {}),
+                    sort_key: {
+                        **({'$gte': from_} if from_ else {}),
+                        **({'$lt': to} if to else {}),
+                    },
                 }
-            }},
-
+            },
             {'$sort': sort},
             {'$limit': limit} if limit is not None else {},
-
             # join comments
-            {'$lookup': {
-                'from': NoteComment._collection_name(),
-                'localField': '_id',
-                'foreignField': 'note_id',
-                'pipeline': [
-                    {'$sort': {'created_at': ASCENDING}},
-                ],
-                'as': 'comments_',
-            }},
+            {
+                '$lookup': {
+                    'from': NoteComment._collection_name(),
+                    'localField': '_id',
+                    'foreignField': 'note_id',
+                    'pipeline': [
+                        {'$sort': {'created_at': ASCENDING}},
+                    ],
+                    'as': 'comments_',
+                }
+            },
         ]
 
         doc_cursor = await pipeline_target._collection().aggregate(pipeline)

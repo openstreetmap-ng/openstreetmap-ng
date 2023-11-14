@@ -1,10 +1,14 @@
 .PHONY: setup clean update version load-osm locale-compile dev-start dev-stop dev-logs zstd-tracks-download zstd-tracks
 
 setup:
-	pipenv run python setup.py build_ext --build-lib cython_pkg
+	# compile protobuf
+	protoc --proto_path=proto --python_betterproto_out=proto proto/*.proto
+	# compile cython
+	pipenv run python setup.py build_ext --build-lib cython_lib
 
 clean:
-	rm -rf build/ cython_pkg/*{.c,.so,.html}
+	rm -rf proto/*_pb2.py
+	rm -rf build/ cython_lib/*{.c,.so,.html}
 
 update:
 	docker push $$(docker load < $$(nix-build --no-out-link) | sed -En 's/Loaded image: (\S+)/\1/p')

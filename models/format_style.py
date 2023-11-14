@@ -9,6 +9,13 @@ class FormatStyle(StrEnum):
 
     @classmethod
     def media_type(cls, style: Self) -> str:
+        """
+        Get the media type for the given format style.
+
+        >>> FormatStyle.media_type(FormatStyle.json)
+        'application/json; charset=utf-8'
+        """
+
         if style == cls.json:
             return 'application/json; charset=utf-8'
         elif style == cls.xml:

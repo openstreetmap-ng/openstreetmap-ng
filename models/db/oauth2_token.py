@@ -5,12 +5,11 @@ from datetime import datetime
 from hashlib import sha256
 from typing import Self, Sequence
 
-from sqlalchemy import (ARRAY, DateTime, Enum, ForeignKey, LargeBinary,
-                        Sequence, Unicode)
+from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE, hash_hex
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth2_application import OAuth2Application
@@ -30,7 +29,9 @@ class OAuth2Token(Base.UUID, CreatedAt):
     key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)
-    code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(Enum(OAuth2CodeChallengeMethod), nullable=True)
+    code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
+        Enum(OAuth2CodeChallengeMethod), nullable=True
+    )
     code_challenge: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
@@ -46,12 +47,14 @@ class OAuth2Token(Base.UUID, CreatedAt):
     async def find_one_by_key_with_(cls, key: str) -> Self | None:
         pipeline = [
             {'$match': {'key_hashed': hash_hex(key)}},
-            {'$lookup': {  # this lookup ensures the oauth application exists
-                'from': OAuth2Application._collection_name(),
-                'localField': 'application_id',
-                'foreignField': '_id',
-                'as': 'application'
-            }},
+            {
+                '$lookup': {  # this lookup ensures the oauth application exists
+                    'from': OAuth2Application._collection_name(),
+                    'localField': 'application_id',
+                    'foreignField': '_id',
+                    'as': 'application',
+                }
+            },
             {'$unwind': '$application'},
         ]
 
@@ -69,15 +72,24 @@ class OAuth2Token(Base.UUID, CreatedAt):
         return token
 
     @classmethod
-    async def authorize(cls, user_id: SequentialId, app_token: str, redirect_uri: str, scopes: Sequence[Scope], code_challenge: str | None, code_challenge_method: OAuth2CodeChallengeMethod | None, state: str | None) -> str:
+    async def authorize(
+        cls,
+        user_id: SequentialId,
+        app_token: str,
+        redirect_uri: str,
+        scopes: Sequence[Scope],
+        code_challenge: str | None,
+        code_challenge_method: OAuth2CodeChallengeMethod | None,
+        state: str | None,
+    ) -> str:
         app = await OAuth2Application.find_one_by_key(app_token)
 
         if not app:
-            Exceptions.get().raise_for_oauth_bad_app_token()
+            exceptions().raise_for_oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
-            Exceptions.get().raise_for_oauth_bad_redirect_uri()
+            exceptions().raise_for_oauth_bad_redirect_uri()
         if not set(scopes).issubset(app.scopes):
-            Exceptions.get().raise_for_oauth_bad_scopes()
+            exceptions().raise_for_oauth_bad_scopes()
 
         authorization_code = secrets.token_urlsafe(32)
 
@@ -103,24 +115,26 @@ class OAuth2Token(Base.UUID, CreatedAt):
 
     @classmethod
     async def token(cls, authorization_code: str, verifier: str | None) -> dict:
-        token_ = await cls.find_one({
-            'key_hashed': hash_hex(authorization_code, context=None),
-            'authorized_at': None,
-        })
+        token_ = await cls.find_one(
+            {
+                'key_hashed': hash_hex(authorization_code, context=None),
+                'authorized_at': None,
+            }
+        )
 
         if not token_:
-            Exceptions.get().raise_for_oauth_bad_user_token()
+            exceptions().raise_for_oauth_bad_user_token()
 
         try:
             if token_.code_challenge_method is None:
                 if verifier:
-                    Exceptions.get().raise_for_oauth2_challenge_method_not_set()
+                    exceptions().raise_for_oauth2_challenge_method_not_set()
             elif token_.code_challenge_method == OAuth2CodeChallengeMethod.plain:
                 if token_.code_challenge != verifier:
-                    Exceptions.get().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
+                    exceptions().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
             elif token_.code_challenge_method == OAuth2CodeChallengeMethod.S256:
                 if token_.code_challenge != urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('='):
-                    Exceptions.get().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
+                    exceptions().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
             else:
                 raise NotImplementedError(f'Unsupported OAuth2 code challenge method {token_.code_challenge_method!r}')
         except Exception as e:

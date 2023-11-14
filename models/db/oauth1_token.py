@@ -4,12 +4,11 @@ from datetime import datetime
 from typing import Self
 from urllib.parse import urlencode
 
-from sqlalchemy import (ARRAY, DateTime, Enum, ForeignKey, LargeBinary,
-                        Sequence, Unicode)
+from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth1_application import OAuth1Application
@@ -19,6 +18,7 @@ from utils import extend_query_params, utcnow
 
 # TODO: smooth reauthorize
 
+
 class OAuth1Token(Base.UUID, CreatedAt):
     __tablename__ = 'oauth1_token'
 
@@ -27,7 +27,9 @@ class OAuth1Token(Base.UUID, CreatedAt):
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id), nullable=False)
     application: Mapped[OAuth1Application] = relationship(back_populates='oauth1_tokens', lazy='raise')
     key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
-    key_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)  # encryption here is redundant, key is already hashed
+    key_secret: Mapped[bytes] = mapped_column(
+        LargeBinary(40), nullable=False
+    )  # encryption here is redundant, key is already hashed
     scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)
@@ -49,12 +51,14 @@ class OAuth1Token(Base.UUID, CreatedAt):
     async def find_one_by_key_with_(cls, key: str) -> Self | None:
         pipeline = [
             {'$match': {'key_hashed': hash_hex(key)}},
-            {'$lookup': {  # this lookup ensures the oauth application exists
-                'from': OAuth1Application._collection_name(),
-                'localField': 'application_id',
-                'foreignField': '_id',
-                'as': 'application'
-            }},
+            {
+                '$lookup': {  # this lookup ensures the oauth application exists
+                    'from': OAuth1Application._collection_name(),
+                    'localField': 'application_id',
+                    'foreignField': '_id',
+                    'as': 'application',
+                }
+            },
             {'$unwind': '$application'},
         ]
 
@@ -76,7 +80,7 @@ class OAuth1Token(Base.UUID, CreatedAt):
         app = await OAuth1Application.find_one_by_key(app_token)
 
         if not app:
-            Exceptions.get().raise_for_oauth_bad_app_token()
+            exceptions().raise_for_oauth_bad_app_token()
 
         token = secrets.token_urlsafe(32)
         token_secret = secrets.token_urlsafe(32)
@@ -103,21 +107,23 @@ class OAuth1Token(Base.UUID, CreatedAt):
 
     @classmethod
     async def authorize(cls, token: str, user_id: SequentialId, scopes: list[Scope]) -> str:
-        token_ = await cls.find_one({
-            'key_hashed': hash_hex(token, context=None),
-            'user_id': None,
-            'authorized_at': None,
-        })
+        token_ = await cls.find_one(
+            {
+                'key_hashed': hash_hex(token, context=None),
+                'user_id': None,
+                'authorized_at': None,
+            }
+        )
 
         if not token_:
-            Exceptions.get().raise_for_oauth_bad_user_token()
+            exceptions().raise_for_oauth_bad_user_token()
 
         app = OAuth1Application.find_one_by_id(token_.application_id)
 
         if not app:
-            Exceptions.get().raise_for_oauth_bad_user_token()
+            exceptions().raise_for_oauth_bad_user_token()
         if not set(scopes).issubset(app.scopes):
-            Exceptions.get().raise_for_oauth_bad_scopes()
+            exceptions().raise_for_oauth_bad_scopes()
 
         verifier = secrets.token_urlsafe(32)
 
@@ -142,18 +148,20 @@ class OAuth1Token(Base.UUID, CreatedAt):
 
     @classmethod
     async def access_token(cls, token: str, verifier: str) -> dict:
-        token_ = await cls.find_one({
-            'key_hashed': hash_hex(token, context=None),
-            'user_id': {'$ne': None},
-            'authorized_at': None,
-        })
+        token_ = await cls.find_one(
+            {
+                'key_hashed': hash_hex(token, context=None),
+                'user_id': {'$ne': None},
+                'authorized_at': None,
+            }
+        )
 
         if not token_:
-            Exceptions.get().raise_for_oauth_bad_user_token()
+            exceptions().raise_for_oauth_bad_user_token()
 
         try:
             if token_.verifier != verifier:
-                Exceptions.get().raise_for_oauth1_bad_verifier()
+                exceptions().raise_for_oauth1_bad_verifier()
         except Exception as e:
             # for safety, delete the token if the verification fails
             await token_.delete()

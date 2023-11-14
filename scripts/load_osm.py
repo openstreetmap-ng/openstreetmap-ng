@@ -6,8 +6,8 @@ import anyio
 import xmltodict
 from shapely.geometry import Point
 
+from cython_lib.xmltodict import XMLToDict
 from lib.format.format06 import Format06
-from cython_pkg.xmltodict import XMLToDict
 from models.db.element import Element
 from models.db.element_node import ElementNode
 from models.db.element_relation import ElementRelation
@@ -60,36 +60,33 @@ async def main():
                     lon = float(element['lon'])
                     lat = float(element['lat'])
 
-                batch.append(ElementNode(
-                    **base,
-                    point=Point(lon, lat)
-                ).create_batch())
+                batch.append(ElementNode(**base, point=Point(lon, lat)).create_batch())
 
             elif element_type == 'way':
                 if 'nd' not in body:
                     body['nd'] = []
 
-                batch.append(ElementWay(
-                    **base,
-                    nodes=tuple(n['@ref'] for n in body['nd'])
-                ).create_batch())
+                batch.append(ElementWay(**base, nodes=tuple(n['@ref'] for n in body['nd'])).create_batch())
 
             elif element_type == 'relation':
                 if 'member' not in body:
                     body['member'] = []
 
-                batch.append(ElementRelation(
-                    **base,
-                    members=tuple(
-                        ElementMember(
-                            ref=TypedElementRef(
-                                type=ElementType(m['@type']),
-                                id=m['@ref'],
-                            ),
-                            role=m['@role'],
-                        ) for m in body['member']
-                    )
-                ).create_batch())
+                batch.append(
+                    ElementRelation(
+                        **base,
+                        members=tuple(
+                            ElementMember(
+                                ref=TypedElementRef(
+                                    type=ElementType(m['@type']),
+                                    typed_id=m['@ref'],
+                                ),
+                                role=m['@role'],
+                            )
+                            for m in body['member']
+                        ),
+                    ).create_batch()
+                )
 
             else:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
@@ -99,11 +96,13 @@ async def main():
 
             return True
 
-        xmltodict.parse(load_path.open('rb'),
-                        force_list=XMLToDict.force_list,
-                        postprocessor=XMLToDict.postprocessor,
-                        item_depth=2,
-                        item_callback=item_callback)
+        xmltodict.parse(
+            load_path.open('rb'),
+            force_list=XMLToDict.force_list,
+            postprocessor=XMLToDict.postprocessor,
+            item_depth=2,
+            item_callback=item_callback,
+        )
 
         if batch:
             anyio.from_thread.run(process_batch)

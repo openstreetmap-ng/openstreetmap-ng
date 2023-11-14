@@ -1,26 +1,30 @@
 import logging
-from abc import ABC
+from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
-from smtplib import SMTP
-from typing import Sequence
 
 import anyio
 from aiosmtplib import SMTP
-from cachetools import TTLCache, cached
-from jinja2 import Environment, FileSystemLoader
-from motor.core import AgnosticClientSession
-from pymongo import ASCENDING, DESCENDING
+from sqlalchemy import null, or_, select
+from sqlalchemy.orm import joinedload
 
-from config import (SMTP_HOST, SMTP_MESSAGES_FROM, SMTP_NOREPLY_FROM,
-                    SMTP_NOREPLY_FROM_HOST, SMTP_PASS, SMTP_PORT, SMTP_SECURE,
-                    SMTP_USER)
-from lib.translation import get_translation
-from limits import MAIL_PROCESSING_TIMEOUT
+from config import (
+    SMTP_HOST,
+    SMTP_MESSAGES_FROM,
+    SMTP_NOREPLY_FROM,
+    SMTP_NOREPLY_FROM_HOST,
+    SMTP_PASS,
+    SMTP_PORT,
+    SMTP_SECURE,
+    SMTP_USER,
+)
+from db import DB
+from lib.translation import render, translation_context
+from limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from models.db.mail import Mail
 from models.db.user import User
 from models.db.user_token_email_reply import UserTokenEmailReply
-from models.mail_source import MailSource
+from models.mail_from_type import MailFromType
 from utils import utcnow
 
 
@@ -36,7 +40,7 @@ def _validate_secure_port(port):
 def _create_smtp_client(host, port, user, password, secure):
     if secure:
         _validate_secure_port(port)
-        use_tls = (port == 465)
+        use_tls = port == 465
         start_tls = True if port == 587 else None
         return SMTP(host, port, user, password, use_tls=use_tls, start_tls=start_tls)
     else:
@@ -50,108 +54,134 @@ else:
     _SMTP = None
 
 
-_J2 = Environment(
-    loader=FileSystemLoader('templates'),
-    autoescape=True,
-    auto_reload=False,
-    extensions=['jinja2.ext.i18n'])  # TODO: extension in overlay? test!
-
-
-@cached(TTLCache(128, ttl=3600))
-def _j2(languages: Sequence[str]) -> Environment:
-    '''
-    Get a Jinja2 environment with translations for the preferred languages.
-    '''
-
-    j2 = _J2.overlay()
-    j2.install_gettext_translations(get_translation(languages), newstyle=True)
-    return j2
-
-
-async def _send_smtp(mail: 'Mail') -> None:
-    message = EmailMessage()
-
-    if not (to_user := await User.find_one_by_id(mail.to_user_id)):
-        logging.info('Skipping mail to user %d (not found)', mail.to_user_id)
+async def _send_smtp(mail: Mail) -> None:
+    if not mail.to_user:
+        logging.info('Discarding mail %r to user %d (not found)', mail.id, mail.to_user_id)
         return
 
-    if mail.source and (source_user := await User.find_one_by_id(mail.source.user_id)):
+    if mail.from_type != MailFromType.system and not mail.from_user:
+        logging.info('Discarding mail %r from user %d (not found)', mail.id, mail.from_user_id)
+        return
+
+    message = EmailMessage()
+
+    if mail.from_type == MailFromType.system:
+        message['From'] = SMTP_NOREPLY_FROM
+    else:
         # reverse mail from/to users because this is a reply token
         from_addr = await UserTokenEmailReply.create_from_addr(mail.to_user_id, mail.source.user_id, mail.source.type)
-        message['From'] = formataddr((source_user.display_name, from_addr))
-    else:
-        message['From'] = SMTP_NOREPLY_FROM
+        message['From'] = formataddr((mail.from_user.display_name, from_addr))
 
-    message['To'] = formataddr((to_user.display_name, to_user.email))
-    message['Date'] = formatdate()  # TODO: test format UTC
+    message['To'] = formataddr((mail.to_user.display_name, mail.to_user.email))
+    message['Date'] = formatdate()
     message['Subject'] = mail.subject
     message.set_content(mail.body, subtype='html')
 
     if mail.ref:
         full_ref = f'<osm-{mail.ref}@{SMTP_NOREPLY_FROM_HOST}>'
-        logging.debug('Setting mail reference to %r', full_ref)
+        logging.debug('Setting mail %r reference to %r', mail.id, full_ref)
         message['In-Reply-To'] = full_ref
         message['References'] = full_ref
         message['X-Entity-Ref-ID'] = full_ref
 
     if not _SMTP:
-        logging.info('Skipping mail to %r with subject %r (SMTP is not configured)', mail.recipient, mail.subject)
+        logging.info('Discarding mail %r (SMTP is not configured)', mail.id)
         return
 
-    logging.info('Sending mail to %r with subject %r', mail.recipient, mail.subject)
+    logging.debug('Sending mail %r', mail.id)
     await _SMTP.send_message(message)
 
 
-class Mailer(ABC):
+class Mailer:
     @staticmethod
     async def schedule(
-            cls,
-            source: MailSource | None,
-            to_user: User,
-            subject: str,
-            template_name: str,
-            template_data: dict,
-            ref: str | None,
-            priority: int,
-            session: AgnosticClientSession | None) -> Mail:
-        j2 = _j2(to_user.languages)
-        template = j2.get_template(template_name)
-        body = template.render(**template_data)
-        mail = cls(
-            source=source,
+        from_user: User | None,
+        from_type: MailFromType,
+        to_user: User,
+        subject: str,
+        template_name: str,
+        template_data: dict,
+        ref: str | None,
+        priority: int,
+    ) -> None:
+        """
+        Schedule a mail for later processing.
+        """
+
+        # use destination user's preferred language
+        with translation_context(to_user.languages):
+            body = render(template_name, **template_data)
+
+        mail = Mail(
+            from_user_id=from_user.id if from_user else None,
+            from_type=from_type,
             to_user_id=to_user.id,
             subject=subject,
             body=body,
             ref=ref,
-            priority=priority)
-        await mail.create(session=session)
-        return mail
+            priority=priority,
+        )
+
+        async with DB() as session:
+            logging.debug('Scheduling mail %r to %d with subject %r', mail.id, to_user.id, subject)
+            session.add(mail)
 
     @staticmethod
-    async def process_scheduled() -> Mail | None:
-        now = utcnow()
-        mail = await Mail.find_and_update(
-            {
-                '$or': [
-                    {'processing_at': None},
-                    {'processing_at': {'$lt': now - MAIL_PROCESSING_TIMEOUT}}
-                ]
-            }, {
-                '$set': {'processing_at': now},
-                '$inc': {'processing_counter': 1},
-            },
-            sort={
-                'processing_counter': ASCENDING,
-                'priority': DESCENDING,
-                'created_at': ASCENDING,
-            },
-            return_after=True)
+    async def process_scheduled() -> None:
+        """
+        Process next scheduled mail.
+        """
 
-        if not mail:
-            return None
+        async with DB() as session:
+            now = utcnow()
+            stmt = (
+                select(Mail)
+                .options(
+                    joinedload(Mail.from_user),
+                    joinedload(Mail.to_user),
+                )
+                .where(
+                    or_(
+                        Mail.processing_at == null(),
+                        Mail.processing_at <= now,
+                    )
+                )
+                .order_by(
+                    Mail.processing_counter,
+                    Mail.priority.desc(),
+                    Mail.created_at,
+                )
+                .with_for_update(skip_locked=True)
+                .limit(1)
+            )
 
-        with anyio.fail_after((mail.processing_at + MAIL_PROCESSING_TIMEOUT - utcnow()).total_seconds() - 5):
-            await _send_smtp(mail)
+            mail = (await session.execute(stmt)).scalar_one_or_none()
 
-        await mail.delete()
-        return mail
+            # nothing to do
+            if not mail:
+                return
+
+            try:
+                logging.info('Processing mail %r to %d with subject %r', mail.id, mail.to_user.id, mail.subject)
+                with anyio.fail_after(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
+                    await _send_smtp(mail)
+                await session.delete(mail)
+
+            except Exception:
+                expires_at = mail.created_at + MAIL_UNPROCESSED_EXPIRE
+                processing_at = now + timedelta(minutes=mail.processing_counter**MAIL_UNPROCESSED_EXPONENT)
+
+                if expires_at < processing_at:
+                    logging.warning(
+                        'Expiring unprocessed mail %r, created at: %r',
+                        mail.id,
+                        mail.created_at,
+                        exc_info=True,
+                    )
+                    await session.delete(mail)
+                    return
+
+                logging.info('Requeuing unprocessed mail %r', mail.id, exc_info=True)
+                mail.processing_counter += 1
+                mail.processing_at = processing_at
+                await session.commit()

@@ -5,8 +5,8 @@ import orjson
 from fastapi import Response
 
 from config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
-from lib.format import Format
-from cython_pkg.xmltodict import XMLToDict
+from cython_lib.xmltodict import XMLToDict
+from lib.format import format_style
 from models.format_style import FormatStyle
 
 
@@ -14,10 +14,10 @@ class OSMResponse(Response):
     xml_root = 'osm'
 
     def render(self, content: typing.Any) -> bytes:
-        format_style = Format.style()
-        self.media_type = FormatStyle.media_type(format_style)
+        style = format_style()
+        self.media_type = FormatStyle.media_type(style)
 
-        if format_style == Format.json:
+        if style == FormatStyle.json:
             attributes = {
                 'version': '0.6',  # TODO: 0.7 json generator
                 'generator': GENERATOR,
@@ -33,7 +33,7 @@ class OSMResponse(Response):
 
             return orjson.dumps(content, option=orjson.OPT_NAIVE_UTC | orjson.OPT_UTC_Z)
 
-        elif format_style == Format.xml:
+        elif style == FormatStyle.xml:
             attributes = {
                 '@version': '0.6',  # TODO: 0.7 xml generator
                 '@generator': GENERATOR,
@@ -44,7 +44,7 @@ class OSMResponse(Response):
 
             if isinstance(content, dict):
                 content = {self.xml_root: attributes | content}
-            elif isinstance(content, (list, tuple)):
+            elif isinstance(content, list | tuple):
                 content = {self.xml_root: tuple(chain(attributes.items(), content))}
             else:
                 raise ValueError(f'Invalid content type {type(content)}')
@@ -53,7 +53,7 @@ class OSMResponse(Response):
 
         else:
             # TODO: rss
-            raise NotImplementedError(f'Unsupported format style {format_style!r}')
+            raise NotImplementedError(f'Unsupported format style {style!r}')
 
 
 class OSMChangeResponse(OSMResponse):

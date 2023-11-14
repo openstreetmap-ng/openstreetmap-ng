@@ -30,6 +30,7 @@ ISSUE_COMMENT_BODY_MAX_LENGTH = 5_000  # NOTE: value TBD
 LANGUAGE_CODE_MAX_LENGTH = 10
 
 MAIL_PROCESSING_TIMEOUT = timedelta(minutes=1)
+MAIL_UNPROCESSED_EXPONENT = 2  # 1 min, 2 mins, 4 mins, etc.
 MAIL_UNPROCESSED_EXPIRE = timedelta(days=3)  # TODO: expire index
 
 MAP_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees
@@ -63,7 +64,7 @@ POLICY_LEGACY_IMAGERY_BLACKLISTS = [
     '.*\\.google(apis)?\\..*/.*',
     'http://xdworld\\.vworld\\.kr:8080/.*',
     '.*\\.here\\.com[/:].*',
-    '.*\\.mapy\\.cz.*'
+    '.*\\.mapy\\.cz.*',
 ]
 
 REPORT_BODY_MAX_LENGTH = 50_000  # NOTE: value TBD
@@ -79,7 +80,7 @@ TRACE_FILE_COMPRESS_ZSTD_LEVEL = (
     # useful: zstd -f -b11 -e19 test_trace.gpx
     (0.25 * _MB, 19),
     (1.00 * _MB, 15),
-    (inf, 13)
+    (inf, 13),
 )
 
 TRACE_POINT_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees

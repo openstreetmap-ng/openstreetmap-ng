@@ -10,7 +10,7 @@ from fastapi import UploadFile
 
 from db.transaction import Transaction, retry_transaction
 from lib.auth import Auth
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.storage import LocalStorage, Storage
 from lib.tracks.image import TracksImage
@@ -30,7 +30,7 @@ class Tracks(ABC):
     @staticmethod
     async def process_upload(file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
         if len(file.size) > TRACE_FILE_MAX_SIZE:
-            Exceptions.get().raise_for_input_too_big(len(file.size))
+            exceptions().raise_for_input_too_big(len(file.size))
 
         buffer = await anyio.to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
@@ -47,10 +47,10 @@ class Tracks(ABC):
                 try:
                     points.extend(Format06.decode_gpx(file))
                 except Exception as e:
-                    Exceptions.get().raise_for_bad_trace_file(str(e))
+                    exceptions().raise_for_bad_trace_file(str(e))
 
             if len(points) < 2:
-                Exceptions.get().raise_for_bad_trace_file('not enough points')
+                exceptions().raise_for_bad_trace_file('not enough points')
 
             points = _sort_and_deduplicate(points)
 
@@ -61,7 +61,8 @@ class Tracks(ABC):
                 description=description,
                 size=len(points),
                 start_point=points[0].point,
-                visibility=visibility)
+                visibility=visibility,
+            )
             trace.tag_string = tags
 
             image, icon = await TracksImage.generate_async(points)
@@ -110,22 +111,22 @@ class Tracks(ABC):
 
 
 async def _extract(buffer: bytes) -> Sequence[bytes]:
-    '''
+    """
     Extracts the trace files from the buffer.
 
     The buffer may be compressed, in which case it will be decompressed first.
-    '''
+    """
 
     # multiple layers handle combinations such as tar+gzip
     for layer in count(1):
         if layer > 2:
-            Exceptions.get().raise_for_trace_file_archive_too_deep()
+            exceptions().raise_for_trace_file_archive_too_deep()
 
         content_type = magic.from_buffer(buffer[:2048], mime=True)
         logging.debug('Trace file layer %d is %r', layer, content_type)
 
         if not (processor := TRACKS_PROCESSORS.get(content_type)):
-            Exceptions.get().raise_for_trace_file_unsupported_format(content_type)
+            exceptions().raise_for_trace_file_unsupported_format(content_type)
 
         result = await processor.decompress(buffer)
 
@@ -138,19 +139,21 @@ async def _extract(buffer: bytes) -> Sequence[bytes]:
 
 
 def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
-    '''
+    """
     Sorts and deduplicates the points.
 
     The points are sorted by captured_at, then by longitude, then by latitude.
-    '''
+    """
 
     sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
     deduped_points = [sorted_points[0]]
 
     for last, point in zip(sorted_points, sorted_points[1:]):
-        if last.captured_at == point.captured_at and \
-                isclose(last.point.x, point.point.x, abs_tol=9.999e-8) and \
-                isclose(last.point.y, point.point.y, abs_tol=9.999e-8):  # different up to 7 decimal places
+        if (
+            last.captured_at == point.captured_at
+            and isclose(last.point.x, point.point.x, abs_tol=9.999e-8)
+            and isclose(last.point.y, point.point.y, abs_tol=9.999e-8)
+        ):  # different up to 7 decimal places
             continue
         deduped_points.append(point)
 
@@ -158,17 +161,17 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
 
 
 async def _compress(buffer: bytes) -> tuple[bytes, str]:
-    '''
+    """
     Compresses the buffer with zstd.
-    '''
+    """
 
     return await ZstdTracksProcessor.compress(buffer), ZstdTracksProcessor.suffix
 
 
 async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
-    '''
+    """
     Decompresses the buffer if needed.
-    '''
+    """
 
     if file_id.endswith(ZstdTracksProcessor.suffix):
         return await ZstdTracksProcessor.decompress(buffer)
@@ -181,9 +184,7 @@ async def _create(trace: Trace, points: Sequence[TracePoint]) -> None:
     trace.id = None
 
     # use lock since points size can be very large (create batch may be slow)
-    async with (
-            lock(Trace.__class__.__qualname__, ttl=_LOCK_TTL),
-            Transaction() as session):
+    async with lock(Trace.__class__.__qualname__, ttl=_LOCK_TTL), Transaction() as session:
         await trace.create(session)
 
         bulk = []

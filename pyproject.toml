@@ -1,0 +1,109 @@
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+
+indent-width = 4
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = []
+select = [
+  # see https://docs.astral.sh/ruff/rules/ for rules documentation
+  "A", # flake8-builtins
+  "ARG", # flake8-unused-arguments
+  "ASYNC", # flake8-async
+  "B", # flake8-bugbear
+  # "COM", # flake8-commas
+  "C4", # flake8-comprehensions
+  "E4", # pycodestyle
+  "E7",
+  "E9",
+  "F", # pyflakes
+  # "FBT", # flake8-boolean-trap
+  "FLY", # flynt
+  # "FURB", # refurb (preview)
+  "G", # flake8-logging-format
+  "I", # isort
+  "INT", # flake8-gettext
+  # "LOG", # flake8-logging (preview)
+  "N", # pep8-naming
+  "NPY", # numpy
+  "UP", # pyupgrade
+  "Q", # flake8-quotes
+  "PERF", # perflint
+  "PGH", # pygrep-hooks
+  "PIE", # flake8-pie
+  # "PL", # pylint
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "PYI", # flake8-pyi
+  "RSE", # flake8-raise
+  "RUF", # ruff
+  "S", # flake8-bandit
+  "SIM", # flake8-simplify
+  "SLF", # flake8-self
+  "SLOT", # flake8-slots
+  "T10", # flake8-debugger
+  "T20", # flake8-print
+  # "TRY", # tryceratops
+  "YTT", # flake8-2020
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "lf"
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["id", "type"]
+
+[tool.ruff.lint.flake8-gettext]
+extend-function-names = ["pgettext", "npgettext"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+multiline-quotes = "double"
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["ET"]
+
+[tool.ruff.lint.pylint]
+max-args = 10

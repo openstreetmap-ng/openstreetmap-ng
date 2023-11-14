@@ -1,5 +1,3 @@
-from abc import ABC
-
 import cython
 
 # 64 chars to encode 6 bits
@@ -8,12 +6,12 @@ _ARRAY_MAP = {c: i for i, c in enumerate(_ARRAY)}
 _ARRAY_MAP['@'] = _ARRAY_MAP['~']  # backwards compatibility
 
 
-class ShortLink(ABC):
+class ShortLink:
     @staticmethod
     def encode(lon: cython.double, lat: cython.double, z: cython.int) -> str:
-        '''
+        """
         Encode a coordinate pair and zoom level into a short link string.
-        '''
+        """
 
         x: cython.int = int((lon + 180) * 11930464.711111112)  # (2 ** 32) / 360
         y: cython.int = int((lat + 90) * 23860929.422222223)  # (2 ** 32) / 180
@@ -39,9 +37,9 @@ class ShortLink(ABC):
 
     @staticmethod
     def decode(s: str) -> tuple[cython.double, cython.double, cython.int]:
-        '''
+        """
         Decode a short link string into a coordinate pair and zoom level.
-        '''
+        """
 
         x: cython.int = 0
         y: cython.int = 0
@@ -60,15 +58,17 @@ class ShortLink(ABC):
                 y = (y << 1) | ((t >> 4) & 1)
                 t <<= 2
 
-        x <<= (32 - z)
-        y <<= (32 - z)
+        x <<= 32 - z
+        y <<= 32 - z
 
         return (
             (
                 x * 8.381903171539307e-08  # 360 / (2 ** 32)
-            ) - 180,
+            )
+            - 180,
             (
                 y * 4.190951585769653e-08  # 180 / (2 ** 32)
-            ) - 90,
-            z - 8 - (z_offset % 3)
+            )
+            - 90,
+            z - 8 - (z_offset % 3),
         )

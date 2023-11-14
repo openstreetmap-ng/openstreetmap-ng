@@ -7,7 +7,7 @@ import anyio
 from motor.core import AgnosticClientSession
 
 from db.transaction import Transaction, retry_transaction
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from lib.optimistic.exceptions import OptimisticException
 from lib.optimistic.prepare import OptimisticPrepare
 from models.db.base_sequential import SequentialId
@@ -37,11 +37,12 @@ class OptimisticApply(ABC):
         old_ref_elements_map: dict[TypedElementRef, Sequence[Element]] = None
 
         async with (
-                anyio.create_task_group() as tg,
-                lock(OptimisticApply.__class__.__qualname__, ttl=_LOCK_TTL),
-                Transaction() as session):
+            anyio.create_task_group() as tg,
+            lock(OptimisticApply.__class__.__qualname__, ttl=_LOCK_TTL),
+            Transaction() as session,
+        ):
             for typed_ref, elements in prepare.state.items():
-                if typed_ref.id > 0:
+                if typed_ref.typed_id > 0:
                     tg.start_soon(_check_element_latest, elements[0])  # check the oldest element
 
             for typed_ref, (element, after) in prepare.reference_checks.items():
@@ -62,11 +63,11 @@ class OptimisticApply(ABC):
 
 
 async def _update_changesets(changesets_next: dict[SequentialId, Changeset], session: AgnosticClientSession) -> None:
-    '''
+    """
     Update the changeset collection.
 
     Raises `OptimisticException` if any of the changesets changed.
-    '''
+    """
 
     batch = []
     for changeset in changesets_next.values():
@@ -77,14 +78,16 @@ async def _update_changesets(changesets_next: dict[SequentialId, Changeset], ses
         raise OptimisticException('Changeset was modified')
 
 
-async def _update_elements(self, elements: Sequence[Element], session: AgnosticClientSession) -> dict[TypedElementRef, Sequence[Element]]:
-    '''
+async def _update_elements(
+    self, elements: Sequence[Element], session: AgnosticClientSession
+) -> dict[TypedElementRef, Sequence[Element]]:
+    """
     Update the element collection by creating new revisions.
 
     Returns a dict mapping original typed refs to the new elements.
 
     Raises `OptimisticException` if any of the elements failed to create.
-    '''
+    """
 
     _set_elements_created_at(elements)
 
@@ -108,38 +111,40 @@ async def _update_elements(self, elements: Sequence[Element], session: AgnosticC
 
 
 async def _check_element_latest(element: Element) -> None:
-    '''
+    """
     Check if the element is the latest version.
 
     Raises `OptimisticException` if not.
-    '''
+    """
 
     latest = await Element.find_one_by_typed_ref(element.typed_ref)
     if not latest:
         raise RuntimeError(f'Element {element.typed_ref} does not exist')
     if latest.version != element.version:
-        raise OptimisticException(f'Element {element.typed_ref} is not the latest version '
-                                  f'{latest.version} != {element.version}')
+        raise OptimisticException(
+            f'Element {element.typed_ref} is not the latest version ' f'{latest.version} != {element.version}'
+        )
 
 
 async def _check_element_not_referenced(element: Element, after: SequentialId | None) -> None:
-    '''
+    """
     Check if the element is not referenced by any other element.
 
     Raises `OptimisticException` if it is.
-    '''
+    """
 
     if referenced_by_elements := await element.get_referenced_by(after=after, limit=1):
-        raise OptimisticException(f'Element {element.typed_ref} is referenced by '
-                                  f'{referenced_by_elements[0].typed_ref}')
+        raise OptimisticException(
+            f'Element {element.typed_ref} is referenced by ' f'{referenced_by_elements[0].typed_ref}'
+        )
 
 
 async def _check_time_integrity() -> None:
-    '''
+    """
     Check the time integrity of the database.
 
     This function may sleep if the latest element was created shortly in the future.
-    '''
+    """
 
     latest_element = await Element.find_latest()
     if latest_element:
@@ -150,13 +155,13 @@ async def _check_time_integrity() -> None:
                 await anyio.sleep(in_future)
             else:
                 logging.error('Latest element was created %d seconds in the future', in_future)
-                Exceptions.get().raise_for_time_integrity()
+                exceptions().raise_for_time_integrity()
 
 
 def _set_elements_created_at(elements: Sequence[Element]) -> None:
-    '''
+    """
     Set the creation date of the elements.
-    '''
+    """
 
     created_at = utcnow()
     for element in elements:
@@ -166,11 +171,12 @@ def _set_elements_created_at(elements: Sequence[Element]) -> None:
 
 
 async def _set_elements_id(elements: Sequence[Element], session: AgnosticClientSession) -> None:
-    '''
+    """
     Set the ids and typed ids of the elements.
 
     This function also updates the members of the elements if needed.
-    '''
+    """
+
     async def assign_ids() -> None:
         # allocate ids
         assign_ids = list(reversed(await Element.get_next_sequence(len(elements), session)))
@@ -219,12 +225,11 @@ async def _set_elements_id(elements: Sequence[Element], session: AgnosticClientS
         # update element members
         for element in elements:
             element.members = tuple(
-                member.model_copy(update={
-                    'ref': member.ref.model_copy(update={
-                        'id': assigned_typed_ids[member.ref]
-                    })
-                }) if member.ref.id < 0 else member
-                for member in element.members)
+                member.model_copy(update={'ref': member.ref.model_copy(update={'id': assigned_typed_ids[member.ref]})})
+                if member.ref.id < 0
+                else member
+                for member in element.members
+            )
 
         # sanity check
         if any(assign_typed_ids.values()):

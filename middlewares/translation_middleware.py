@@ -7,7 +7,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import DEFAULT_LANGUAGE
-from lib.locales import resolve_locale_case
+from lib.locales import normalize_locale_case
 from lib.translation import get_translation
 
 _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{1,8}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?', re.X)
@@ -27,7 +27,7 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
         if lang == '*':
             lang = DEFAULT_LANGUAGE
         else:
-            lang = resolve_locale_case(lang)
+            lang = normalize_locale_case(lang)
             if lang is None:
                 logging.debug('Unknown accept language %r', lang)
                 continue

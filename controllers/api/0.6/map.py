@@ -2,10 +2,10 @@ from typing import Annotated, Sequence
 
 from fastapi import APIRouter, Query
 
+from cython_lib.xmltodict import XAttr
 from geoutils import parse_bbox
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from lib.format.format06 import Format06
-from cython_pkg.xmltodict import XAttr
 from limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.element import Element
 from models.str import NonEmptyStr
@@ -19,12 +19,11 @@ router = APIRouter()
 async def map_read(bbox: Annotated[NonEmptyStr, Query()]) -> Sequence[dict]:
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
-        Exceptions.get().raise_for_map_query_area_too_big()
+        exceptions().raise_for_map_query_area_too_big()
 
     elements = await Element.find_many_by_query(
-        geometry,
-        nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
-        legacy_nodes_limit=True)
+        geometry, nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT, legacy_nodes_limit=True
+    )
 
     minx, miny, maxx, maxy = geometry
     return {

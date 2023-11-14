@@ -1,10 +1,13 @@
-from abc import ABC
-
 from models.user_avatar_type import UserAvatarType
 
 
-class Avatar(ABC):
+class Avatar:
+    @staticmethod
     def get_url(avatar_type: UserAvatarType, avatar_id: str | None) -> str:
+        """
+        Get the URL for a user's avatar.
+        """
+
         if avatar_type == UserAvatarType.default:
             return 'TODO'  # TODO: default avatar image
         elif avatar_type == UserAvatarType.gravatar:

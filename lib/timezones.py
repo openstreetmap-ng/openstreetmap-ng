@@ -20,5 +20,5 @@ for tz in pytz.all_timezones:
         now = datetime.now(tz)
         abbrev = now.strftime('%Z')
         TZINFOS[abbrev] = tz
-    except Exception as e:
+    except Exception:  # noqa: S110
         pass

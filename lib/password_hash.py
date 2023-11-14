@@ -13,16 +13,16 @@ class PasswordHash:
         self._hasher = hasher
 
     def verify(self, password_hashed: str, salt: str | None, password: str) -> bool:
-        '''
+        """
         Verify a password against a hash and optional salt.
 
         Returns `True` if the password matches, `False` otherwise.
 
         If the password matches but the hash needs to be rehashed, `rehash_needed` will be set to `True`.
-        '''
+        """
 
         if self.rehash_needed is not None:
-            logging.warning('%r was called repeatedly', self.verify.__qualname__)
+            raise RuntimeError(f'{self.verify.__qualname__} was called repeatedly')
 
         # argon2
         if password_hashed.startswith('$argon2'):
@@ -41,7 +41,7 @@ class PasswordHash:
 
         # md5 (deprecated)
         if len(password_hashed) == 32:
-            valid_hash = md5(((salt or '') + password).encode()).hexdigest()
+            valid_hash = md5(((salt or '') + password).encode()).hexdigest()  # noqa: S324
             return compare_digest(password_hashed, valid_hash)
 
         # pbkdf2 (deprecated)
@@ -56,5 +56,9 @@ class PasswordHash:
         salt_len = len(salt or '')
         raise ValueError(f'Unknown password hash format: {hash_len=}, {salt_len=}')
 
-    def hash(self, password: str) -> str:
+    def hash(self, password: str) -> str:  # noqa: A003
+        """
+        Hash a password using latest recommended algorithm.
+        """
+
         return self._hasher.hash(password)

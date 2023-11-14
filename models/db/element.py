@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset
@@ -38,7 +38,9 @@ class Element(Base.Sequential, CreatedAt, ABC):
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
-    point: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=True)  # TODO: indexes, spatial_index
+    point: Mapped[WKBElement | None] = mapped_column(
+        Geometry(geometry_type='POINT', srid=SRID), nullable=True
+    )  # TODO: indexes, spatial_index
     members: Mapped[Sequence[ElementMember]] = mapped_column(JSONB, nullable=False)
 
     # BAD IDEA: sequences are not affected by transactions, just check latest id in table lock
@@ -67,11 +69,11 @@ class Element(Base.Sequential, CreatedAt, ABC):
     # TODO: SQL
     @updating_cached_property(lambda self: self.typed_id)
     def typed_ref(self) -> TypedElementRef:
-        return TypedElementRef(type=self.type, id=self.typed_id)
+        return TypedElementRef(type=self.type, typed_id=self.typed_id)
 
     @updating_cached_property(lambda self: self.typed_id)
     def versioned_ref(self) -> VersionedElementRef:
-        return VersionedElementRef(type=self.type, id=self.typed_id, version=self.version)
+        return VersionedElementRef(type=self.type, typed_id=self.typed_id, version=self.version)
 
     @updating_cached_property(lambda self: self.members)
     def references(self) -> frozenset[TypedElementRef]:
@@ -82,17 +84,18 @@ class Element(Base.Sequential, CreatedAt, ABC):
         return await get_next_sequence(f'{cls._collection_name()}_{cls.type.value}', n, session)
 
     @classmethod
-    async def find_many_by_changeset_id(cls, changeset_id: SequentialId, *, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence[Self]:
+    async def find_many_by_changeset_id(
+        cls, changeset_id: SequentialId, *, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT
+    ) -> Sequence[Self]:
         return await cls.find_many({'changeset_id': changeset_id}, sort=sort, limit=limit)
 
     @classmethod
-    async def find_many_by_typed_ref(cls, typed_ref: TypedElementRef, *, limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence[Self]:
-        return await cls.find_many({
-            'type': typed_ref.type.value,
-            'typed_id': typed_ref.id
-        }, sort={
-            'version': DESCENDING
-        }, limit=limit)
+    async def find_many_by_typed_ref(
+        cls, typed_ref: TypedElementRef, *, limit: int | None = _DEFAULT_FIND_LIMIT
+    ) -> Sequence[Self]:
+        return await cls.find_many(
+            {'type': typed_ref.type.value, 'typed_id': typed_ref.typed_id}, sort={'version': DESCENDING}, limit=limit
+        )
 
     # TODO: write tests for missing pipeline matches
 
@@ -105,21 +108,19 @@ class Element(Base.Sequential, CreatedAt, ABC):
 
     @classmethod
     async def find_one_by_versioned_ref(cls, versioned_ref: VersionedElementRef) -> Self | None:
-        return await cls.find_one({
-            'type': versioned_ref.type.value,
-            'typed_id': versioned_ref.id,
-            'version': versioned_ref.version
-        })
+        return await cls.find_one(
+            {'type': versioned_ref.type.value, 'typed_id': versioned_ref.typed_id, 'version': versioned_ref.version}
+        )
 
     @classmethod
     async def find_latest(cls) -> Self | None:
-        return await cls.find_one({}, sort={
-            'id': DESCENDING
-        })
+        return await cls.find_one({}, sort={'id': DESCENDING})
 
     # TODO: sort in cursor vs pipeline
     @classmethod
-    async def find_many_by_query(cls, geometry: Polygon, *, nodes_limit: int | None = _DEFAULT_FIND_LIMIT, legacy_nodes_limit: bool = False) -> Sequence[Self]:
+    async def find_many_by_query(
+        cls, geometry: Polygon, *, nodes_limit: int | None = _DEFAULT_FIND_LIMIT, legacy_nodes_limit: bool = False
+    ) -> Sequence[Self]:
         # TODO: point in time
         point_in_time = utcnow()
 
@@ -131,73 +132,119 @@ class Element(Base.Sequential, CreatedAt, ABC):
         geometry_mapping = mapping_mongo(geometry)
         pipeline = [
             # find all the nodes that match all the filters
-            {'$match': {
-                'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
-                'created_at': {'$lt': point_in_time},
-                'point': {'$geoIntersects': {'$geometry': geometry_mapping}},
-            }},
+            {
+                '$match': {
+                    'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
+                    'created_at': {'$lt': point_in_time},
+                    'point': {'$geoIntersects': {'$geometry': geometry_mapping}},
+                }
+            },
             {'$sort': {'id', DESCENDING}},  # TODO: cursor
             {'$limit': nodes_limit} if nodes_limit is not None else {},
-
-            {'$facet': {
-                # output all the nodes
-                'nodes': [],
-
-                'parent': [
-                    # find all the parent ways and relations
-                    {'$lookup': {
-                        'from': cls._collection_name(),
-                        'let': {'typed_id': '$typed_id'},
-                        'pipeline': [
-                            {'$match': {'$expr': {'$and': [
-                                {'$eq': ['$superseded_at', {'$or': [None, {'$gt': point_in_time}]}]},
-                                {'$eq': ['$created_at', {'$lt': point_in_time}]},  # TODO: filter also by type?
-                                {'$eq': ['$members.ref.type', ElementType.node.value]},
-                                {'$eq': ['$members.ref.id', '$$typed_id']},
-                            ]}}},
-                        ],
-                        'as': 'parent'
-                    }},
-                    {'$unwind': '$parent'},
-                    {'$replaceRoot': {'newRoot': '$parent'}},
-
-                    {'$facet': {
-                        # output all the parent ways and relations
-                        'ways_and_relations': [],
-
-                        'way': [
-                            {'$match': {'type': ElementType.way.value}},
-                            {'$facet': {
-                                # output all the way nodes
-                                'nodes': [
-                                    {'$unwind': '$members'},
-                                    {'$match': {'members.ref.type': ElementType.node.value}},
-                                    {'$replaceRoot': {'newRoot': '$members'}},
+            {
+                '$facet': {
+                    # output all the nodes
+                    'nodes': [],
+                    'parent': [
+                        # find all the parent ways and relations
+                        {
+                            '$lookup': {
+                                'from': cls._collection_name(),
+                                'let': {'typed_id': '$typed_id'},
+                                'pipeline': [
+                                    {
+                                        '$match': {
+                                            '$expr': {
+                                                '$and': [
+                                                    {
+                                                        '$eq': [
+                                                            '$superseded_at',
+                                                            {'$or': [None, {'$gt': point_in_time}]},
+                                                        ]
+                                                    },
+                                                    {
+                                                        '$eq': ['$created_at', {'$lt': point_in_time}]
+                                                    },  # TODO: filter also by type?
+                                                    {'$eq': ['$members.ref.type', ElementType.node.value]},
+                                                    {'$eq': ['$members.ref.id', '$$typed_id']},
+                                                ]
+                                            }
+                                        }
+                                    },
                                 ],
-
-                                # output all the parent relations
-                                'parents': [
-                                    {'$lookup': {
-                                        'from': cls._collection_name(),
-                                        'let': {'typed_id': '$typed_id'},
-                                        'pipeline': [
-                                            {'$match': {'$expr': {'$and': [
-                                                {'$eq': ['$superseded_at', {'$or': [None, {'$gt': point_in_time}]}]},
-                                                {'$eq': ['$created_at', {'$lt': point_in_time}]},
-                                                {'$eq': ['$members.ref.type', ElementType.way.value]},
-                                                {'$eq': ['$members.ref.id', '$$typed_id']},
-                                            ]}}},
-                                        ],
-                                        'as': 'parent'
-                                    }},
-                                    {'$unwind': '$parent'},
-                                    {'$replaceRoot': {'newRoot': '$parent'}},
+                                'as': 'parent',
+                            }
+                        },
+                        {'$unwind': '$parent'},
+                        {'$replaceRoot': {'newRoot': '$parent'}},
+                        {
+                            '$facet': {
+                                # output all the parent ways and relations
+                                'ways_and_relations': [],
+                                'way': [
+                                    {'$match': {'type': ElementType.way.value}},
+                                    {
+                                        '$facet': {
+                                            # output all the way nodes
+                                            'nodes': [
+                                                {'$unwind': '$members'},
+                                                {'$match': {'members.ref.type': ElementType.node.value}},
+                                                {'$replaceRoot': {'newRoot': '$members'}},
+                                            ],
+                                            # output all the parent relations
+                                            'parents': [
+                                                {
+                                                    '$lookup': {
+                                                        'from': cls._collection_name(),
+                                                        'let': {'typed_id': '$typed_id'},
+                                                        'pipeline': [
+                                                            {
+                                                                '$match': {
+                                                                    '$expr': {
+                                                                        '$and': [
+                                                                            {
+                                                                                '$eq': [
+                                                                                    '$superseded_at',
+                                                                                    {
+                                                                                        '$or': [
+                                                                                            None,
+                                                                                            {'$gt': point_in_time},
+                                                                                        ]
+                                                                                    },
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                '$eq': [
+                                                                                    '$created_at',
+                                                                                    {'$lt': point_in_time},
+                                                                                ]
+                                                                            },
+                                                                            {
+                                                                                '$eq': [
+                                                                                    '$members.ref.type',
+                                                                                    ElementType.way.value,
+                                                                                ]
+                                                                            },
+                                                                            {'$eq': ['$members.ref.id', '$$typed_id']},
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                        ],
+                                                        'as': 'parent',
+                                                    }
+                                                },
+                                                {'$unwind': '$parent'},
+                                                {'$replaceRoot': {'newRoot': '$parent'}},
+                                            ],
+                                        }
+                                    },
                                 ],
-                            }}
-                        ],
-                    }}
-                ],
-            }}
+                            }
+                        },
+                    ],
+                }
+            },
         ]
 
         cursor = cls._collection().aggregate(pipeline)
@@ -209,7 +256,7 @@ class Element(Base.Sequential, CreatedAt, ABC):
         parent_way_relations = result_map['parent']['way']['parents']
 
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
-            Exceptions.get().raise_for_map_query_nodes_limit_exceeded()
+            exceptions().raise_for_map_query_nodes_limit_exceeded()
 
         result_ids = set()
         result = []
@@ -219,22 +266,40 @@ class Element(Base.Sequential, CreatedAt, ABC):
                 result.append(cls.model_validate(doc))
         return result
 
-    async def get_referenced_by(self, type: ElementType | None = None, *, after: SequentialId | None = None, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence['Element']:
+    async def get_referenced_by(
+        self,
+        type: ElementType | None = None,
+        *,
+        after: SequentialId | None = None,
+        sort: dict | None = None,
+        limit: int | None = _DEFAULT_FIND_LIMIT,
+    ) -> Sequence['Element']:
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
 
         # TODO: construct for performance after development
-        return await self.find_many({
-            'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
-            'created_at': {'$lt': point_in_time},
-            'members.ref.type': self.type.value,
-            'members.ref.id': self.typed_id,
-            **({'type': type.value} if type else {}),
-            **({'_id': {'$gt': after}} if after else {})
-        }, sort=sort, limit=limit)
+        return await self.find_many(
+            {
+                'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
+                'created_at': {'$lt': point_in_time},
+                'members.ref.type': self.type.value,
+                'members.ref.id': self.typed_id,
+                **({'type': type.value} if type else {}),
+                **({'_id': {'$gt': after}} if after else {}),
+            },
+            sort=sort,
+            limit=limit,
+        )
 
-    async def get_references(self, type: ElementType | None = None, *, recurse_ways: bool = False, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence['Element']:
+    async def get_references(
+        self,
+        type: ElementType | None = None,
+        *,
+        recurse_ways: bool = False,
+        sort: dict | None = None,
+        limit: int | None = _DEFAULT_FIND_LIMIT,
+    ) -> Sequence['Element']:
         # TODO: point in time
         point_in_time = utcnow()
 
@@ -249,46 +314,45 @@ class Element(Base.Sequential, CreatedAt, ABC):
 
         if recurse_ways and self.members:
             recurse_way_typed_ids = tuple(
-                member.ref.id
-                for member in self.members
-                if member.ref.type == ElementType.way)
+                member.ref.id for member in self.members if member.ref.type == ElementType.way
+            )
             recurse_way_skip_node_typed_ids = tuple(
-                member.ref.id
-                for member in self.members
-                if member.ref.type == ElementType.node)
+                member.ref.id for member in self.members if member.ref.type == ElementType.node
+            )
         else:
             recurse_way_typed_ids = ()
             recurse_way_skip_node_typed_ids = ()
 
         pipeline = [
-            {'$match': {
-                'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
-                'created_at': {'$lt': point_in_time},
-                '$or': [
-                    {
-                        'type': member.ref.type.value,
-                        'typed_id': member.ref.id
-                    } for member in members
-                ]
-            }},
-
+            {
+                '$match': {
+                    'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
+                    'created_at': {'$lt': point_in_time},
+                    '$or': [{'type': member.ref.type.value, 'typed_id': member.ref.id} for member in members],
+                }
+            },
             # optionally recurse ways
-            {'$unionWith': {
-                'coll': self._collection_name(),
-                'pipeline': [
-                    {'$match': {
-                        'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
-                        'created_at': {'$lt': point_in_time},
-                        'type': ElementType.way.value,
-                        'typed_id': {'$in': recurse_way_typed_ids}
-                    }},
-
-                    # unwind the member nodes and skip the ones that are already in the result set
-                    {'$unwind': '$members'},
-                    {'$match': {'members.ref.id': {'$nin': recurse_way_skip_node_typed_ids}}},
-                    {'$replaceRoot': {'newRoot': '$members'}}
-                ]
-            }} if recurse_way_typed_ids else {}
+            {
+                '$unionWith': {
+                    'coll': self._collection_name(),
+                    'pipeline': [
+                        {
+                            '$match': {
+                                'superseded_at': {'$or': [None, {'$gt': point_in_time}]},
+                                'created_at': {'$lt': point_in_time},
+                                'type': ElementType.way.value,
+                                'typed_id': {'$in': recurse_way_typed_ids},
+                            }
+                        },
+                        # unwind the member nodes and skip the ones that are already in the result set
+                        {'$unwind': '$members'},
+                        {'$match': {'members.ref.id': {'$nin': recurse_way_skip_node_typed_ids}}},
+                        {'$replaceRoot': {'newRoot': '$members'}},
+                    ],
+                }
+            }
+            if recurse_way_typed_ids
+            else {},
         ]
 
         cursor = self._collection().aggregate(pipeline)

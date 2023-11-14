@@ -1,104 +1,105 @@
 import logging
 import xml.etree.ElementTree as stdET
-from abc import ABC
 from collections import UserString
 from datetime import datetime
 from itertools import chain
+from types import MappingProxyType
 
 import cython
 import lxml.etree as ET
 from humanize import naturalsize
 
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from limits import XML_PARSE_MAX_SIZE
 
 
 class XAttr(UserString):
-    '''
+    """
     Custom str implementation for XML attributes (used by `XMLToDict.unparse`).
-    '''
+    """
 
     def __init__(self, seq: str, custom_xml: str | None = None) -> None:
         super().__init__(seq)
         self._custom_xml = custom_xml
 
-
     @property
     def xml(self) -> str:
-        '''
+        """
         Return the XML attribute name.
 
         If `custom_xml` is set, then it is returned instead of the default.
-        '''
+        """
 
         return self._custom_xml or self.data
 
 
-class XMLToDict(ABC):
-    '''
+class XMLToDict:
+    """
     Uses standard library `xml.etree.ElementTree` for XML parsing, and `lxml.etree` for XML unparsing.
+    """
 
-    The reason for this mix is performance.
-    '''
+    force_list = frozenset(
+        (
+            'create',
+            'modify',
+            'delete',
+            'node',
+            'way',
+            'relation',
+            'member',
+            'tag',
+            'nd',
+            'trk',
+            'trkseg',
+            'trkpt',
+        )
+    )
 
-    force_list = frozenset((
-        'create',
-        'modify',
-        'delete',
-        'node',
-        'way',
-        'relation',
-        'member',
-        'tag',
-        'nd',
-        'trk',
-        'trkseg',
-        'trkpt',
-    ))
-
-    postprocessor_d = {
-        '@changeset': int,
-        '@closed_at': datetime.fromisoformat,
-        '@comments_count': int,
-        '@created_at': datetime.fromisoformat,
-        '@id': int,
-        '@lat': float,
-        '@lon': float,
-        '@max_lat': float,
-        '@max_lon': float,
-        '@min_lat': float,
-        '@min_lon': float,
-        '@num_changes': int,
-        '@open': lambda x: x == 'true',
-        '@ref': int,
-        '@timestamp': datetime.fromisoformat,
-        '@uid': int,
-        '@version': lambda x: int(x) if x.isdigit() else float(x),
-        '@visible': lambda x: x == 'true',
-    }
+    postprocessor_d = MappingProxyType(
+        {
+            '@changeset': int,
+            '@closed_at': datetime.fromisoformat,
+            '@comments_count': int,
+            '@created_at': datetime.fromisoformat,
+            '@id': int,
+            '@lat': float,
+            '@lon': float,
+            '@max_lat': float,
+            '@max_lon': float,
+            '@min_lat': float,
+            '@min_lon': float,
+            '@num_changes': int,
+            '@open': lambda x: x == 'true',
+            '@ref': int,
+            '@timestamp': datetime.fromisoformat,
+            '@uid': int,
+            '@version': lambda x: int(x) if x.isdigit() else float(x),
+            '@visible': lambda x: x == 'true',
+        }
+    )
 
     @staticmethod
     def parse(xml_b: bytes, *, sequence: cython.char = False) -> dict:
-        '''
+        """
         Parse XML string to dict.
 
         If `sequence` is `True`, then the root element is parsed as a sequence.
-        '''
+        """
 
         if len(xml_b) > XML_PARSE_MAX_SIZE:
-            Exceptions.get().raise_for_input_too_big(len(xml_b))
+            exceptions().raise_for_input_too_big(len(xml_b))
 
         logging.debug('Parsing %s XML string', naturalsize(len(xml_b), True))
-        root = stdET.fromstring(xml_b)
+        root = stdET.fromstring(xml_b)  # noqa: S314
         return {_strip_namespace(root.tag): _parse_element(sequence, root, is_root=True)}
 
     @staticmethod
     def unparse(d: dict, *, raw: cython.char = False) -> str | bytes:
-        '''
+        """
         Unparse dict to XML string.
 
         If `raw` is `True`, then the result is returned as raw bytes.
-        '''
+        """
 
         # TODO: ensure valid XML charset (encode if necessary) /user/小智智/traces/10908782
 
@@ -199,12 +200,12 @@ def _unparse_element(key, value) -> tuple[ET.Element, ...]:
                 element.extend(_unparse_element(k, v))
         return (element,)
 
-    elif isinstance(value, (list, tuple)):
+    elif isinstance(value, list | tuple):
         if value:
             first = value[0]
             if isinstance(first, dict):
                 return tuple(chain.from_iterable(_unparse_element(key, v) for v in value))
-            elif isinstance(first, (list, tuple)):
+            elif isinstance(first, list | tuple):
                 element = ET.Element(key)
                 for k, v in value:
                     if k and k[0] == '@':

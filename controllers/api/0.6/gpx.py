@@ -2,14 +2,13 @@ import logging
 from typing import Annotated
 
 import magic
-from fastapi import (APIRouter, File, Form, HTTPException, Request, UploadFile,
-                     status)
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import PlainTextResponse
 from httpx import Response
 
-from cython_pkg.xmltodict import XMLToDict
+from cython_lib.xmltodict import XMLToDict
 from lib.auth import Auth, api_user
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.tracks import Tracks
 from models.db.base_sequential import SequentialId
@@ -24,12 +23,13 @@ router = APIRouter()
 
 @router.post('/gpx/create', response_class=PlainTextResponse)
 async def gpx_create(
-        file: Annotated[UploadFile, File()],
-        description: Annotated[Str255, Form()],
-        tags: Annotated[str, Form('')],
-        visibility: Annotated[TraceVisibility | None, Form(None)],
-        public: Annotated[int, Form(0, deprecated=True)],
-        user: Annotated[User, api_user(Scope.write_gpx)]) -> SequentialId:
+    file: Annotated[UploadFile, File()],
+    description: Annotated[Str255, Form()],
+    tags: Annotated[str, Form('')],
+    visibility: Annotated[TraceVisibility | None, Form(None)],
+    public: Annotated[int, Form(0, deprecated=True)],
+    user: Annotated[User, api_user(Scope.write_gpx)],
+) -> SequentialId:
     if not visibility:
         visibility = TraceVisibility.public if public else TraceVisibility.private
 
@@ -54,9 +54,8 @@ async def gpx_read(trace_id: SequentialId) -> dict:
 
 @router.put('/gpx/{trace_id}', response_class=PlainTextResponse)
 async def gpx_update(
-        request: Request,
-        trace_id: SequentialId,
-        user: Annotated[User, api_user(Scope.write_gpx)]) -> None:
+    request: Request, trace_id: SequentialId, user: Annotated[User, api_user(Scope.write_gpx)]
+) -> None:
     trace = await Trace.get_one_by_id(trace_id)
 
     if not trace:
@@ -68,12 +67,12 @@ async def gpx_update(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('gpx_file', {})
 
     if not data:
-        Exceptions.get().raise_for_bad_xml('trace', xml, 'XML doesn\'t contain an osm/gpx_file element.')
+        exceptions().raise_for_bad_xml('trace', xml, "XML doesn't contain an osm/gpx_file element.")
 
     try:
         new_trace = Format06.decode_gpx_file(data)
     except Exception as e:
-        Exceptions.get().raise_for_bad_xml('trace', xml, str(e))
+        exceptions().raise_for_bad_xml('trace', xml, str(e))
 
     trace.name = new_trace.name
     trace.description = new_trace.description
@@ -83,9 +82,7 @@ async def gpx_update(
 
 
 @router.delete('/gpx/{trace_id}', response_class=PlainTextResponse)
-async def gpx_delete(
-        trace_id: SequentialId,
-        user: Annotated[User, api_user(Scope.write_gpx)]) -> None:
+async def gpx_delete(trace_id: SequentialId, user: Annotated[User, api_user(Scope.write_gpx)]) -> None:
     trace = await Trace.get_one_by_id(trace_id)
 
     if not trace:
@@ -114,4 +111,5 @@ async def gpx_read_data(trace_id: SequentialId) -> Response:
         status.HTTP_200_OK,
         headers={'Content-Disposition': f'attachment; filename="{trace.name}"'},
         content=file,
-        media_type=content_type)
+        media_type=content_type,
+    )

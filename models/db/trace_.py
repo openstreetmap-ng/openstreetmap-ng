@@ -1,4 +1,5 @@
-from typing import Self, Sequence
+from collections.abc import Sequence
+from typing import Self
 
 import anyio
 from geoalchemy2 import Geometry, WKBElement
@@ -6,7 +7,6 @@ from sqlalchemy import ARRAY, Enum, ForeignKey, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
-from db.transaction import Transaction, retry_transaction
 from lib.tracks import Tracks
 from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from models.db.base import Base
@@ -35,7 +35,12 @@ class Trace(Base.Sequential, CreatedAt):
     tags: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
 
     from trace_point import TracePoint
-    trace_points: Mapped[Sequence[TracePoint]] = relationship(back_populates='trace', order_by='asc(TracePoint.captured_at)', lazy='raise')
+
+    trace_points: Mapped[Sequence[TracePoint]] = relationship(
+        back_populates='trace',
+        order_by='asc(TracePoint.captured_at)',
+        lazy='raise',
+    )
 
     @validates('tags')
     def validate_tags(cls, key: str, value: Sequence[str]):
@@ -87,7 +92,7 @@ class Trace(Base.Sequential, CreatedAt):
 
     @retry_transaction()
     async def delete(self) -> None:
-        async with (anyio.create_task_group() as tg, Transaction() as session):
+        async with anyio.create_task_group() as tg, Transaction() as session:
             tg.start_soon(TracePoint.delete_by, {'trace_id': self.id}, session=session)
             tg.start_soon(super().delete, session=session)
 

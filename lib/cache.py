@@ -1,6 +1,5 @@
-from abc import ABC
+from collections.abc import Awaitable, Callable
 from datetime import timedelta
-from typing import Awaitable, Callable
 
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
@@ -12,26 +11,24 @@ from utils import utcnow
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough
 
-CACHE_HASH_SIZE = HASH_SIZE + 1
+CACHE_HASH_SIZE = HASH_SIZE
 
 _DEFAULT_CACHE_EXPIRE = timedelta(days=3)
 
-# we use a suffix to avoid key/value type hash collisions
-_HASH_KEY_SUFFIX = b'\x00'
-_HASH_VALUE_SUFFIX = b'\x01'
+
+def _hash_key(key: str, context: str) -> bytes:
+    return hash_b(key, context=context)
 
 
-def _hash_key(key: str) -> bytes:
-    return hash_b(key, context=None) + _HASH_KEY_SUFFIX
-
-
-def _hash_value(value: str) -> bytes:
-    return hash_b(value, context=None) + _HASH_VALUE_SUFFIX
-
-
-class Cache(ABC):
+class Cache:
     @staticmethod
-    async def _get_one_by_id(cache_id: bytes, factory: Callable[[], Awaitable[str]]) -> str:
+    async def get_one_by_id(cache_id: bytes, factory: Callable[[], Awaitable[str]]) -> str:
+        """
+        Get a value from the cache by ID.
+
+        If the value is not in the cache, call the async factory to generate it.
+        """
+
         async with DB() as session:
             entry = await session.get(CacheEntry, cache_id, options=[load_only(CacheEntry.value)])
             if not entry:
@@ -39,18 +36,20 @@ class Cache(ABC):
                 entry = CacheEntry(
                     id=cache_id,
                     value=value,
-                    expires_at=utcnow() + _DEFAULT_CACHE_EXPIRE)
-                stmt = insert(CacheEntry) \
-                    .values(entry)\
-                    .on_conflict_do_nothing(
-                        index_elements=[CacheEntry.id])
+                    expires_at=utcnow() + _DEFAULT_CACHE_EXPIRE,
+                )
+                stmt = insert(CacheEntry).values(entry).on_conflict_do_nothing(index_elements=[CacheEntry.id])
                 await session.execute(stmt)
             return entry.value
 
     @staticmethod
-    async def get_one_by_key(key: str, factory: Callable[[], Awaitable[str]]) -> str:
-        return await Cache._get_one_by_id(_hash_key(key), factory)
+    async def get_one_by_key(key: str, context: str, factory: Callable[[], Awaitable[str]]) -> str:
+        """
+        Get a value from the cache by key string.
 
-    @staticmethod
-    async def get_one_by_value(value: str, factory: Callable[[], Awaitable[str]]) -> str:
-        return await Cache._get_one_by_id(_hash_value(value), factory)
+        Context is used to namespace the cache and prevent collisions.
+
+        If the value is not in the cache, call the async factory to generate it.
+        """
+
+        return await Cache.get_one_by_id(_hash_key(key, context), factory)

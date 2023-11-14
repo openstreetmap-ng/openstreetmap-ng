@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from lib.auth import Auth
-from lib.exceptions import Exceptions
+from lib.exceptions import exceptions
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.element import Element
@@ -56,20 +56,25 @@ class OptimisticPrepare:
                 prev = None
 
                 if element.typed_id >= 0:
-                    Exceptions.get().raise_for_diff_create_bad_id(element.versioned_ref)
+                    exceptions().raise_for_diff_create_bad_id(element.versioned_ref)
             else:
                 # action: modify, delete
                 prev = await self._get_latest_element(element.typed_ref)
 
                 if prev.version + 1 != element.version:
-                    Exceptions.get().raise_for_element_version_conflict(element.versioned_ref, prev.version)
+                    exceptions().raise_for_element_version_conflict(element.versioned_ref, prev.version)
                 if not prev.visible and not element.visible:
-                    Exceptions.get().raise_for_element_already_deleted(element.versioned_ref)
+                    exceptions().raise_for_element_already_deleted(element.versioned_ref)
 
                 if prev.created_at and prev.created_at > now:
-                    logging.error('Element %r/%r was created in the future: %r > %r',
-                                  prev.type, prev.typed_id, prev.created_at, now)
-                    Exceptions.get().raise_for_time_integrity()
+                    logging.error(
+                        'Element %r/%r was created in the future: %r > %r',
+                        prev.type,
+                        prev.typed_id,
+                        prev.created_at,
+                        now,
+                    )
+                    exceptions().raise_for_time_integrity()
 
             # update references before performing checks
             # note that elements can self-reference themselves
@@ -91,57 +96,57 @@ class OptimisticPrepare:
             self._set_latest_element(element)
 
     async def _get_changeset(self, changeset_id: SequentialId) -> Changeset:
-        '''
+        """
         Get the changeset from the local state or the database if not found.
-        '''
+        """
 
         if not (changeset := self.changesets_next.get(changeset_id)):
             changeset = await Changeset.find_one_by_id(changeset_id)
             if not changeset:
-                Exceptions.get().raise_for_changeset_not_found(changeset_id)
+                exceptions().raise_for_changeset_not_found(changeset_id)
             if changeset.user_id != Auth.user().id:
-                Exceptions.get().raise_for_changeset_access_denied()
+                exceptions().raise_for_changeset_access_denied()
             if changeset.closed_at:
-                Exceptions.get().raise_for_changeset_already_closed(changeset_id, changeset.closed_at)
+                exceptions().raise_for_changeset_already_closed(changeset_id, changeset.closed_at)
             self.changesets_next[changeset_id] = changeset
         return changeset
 
     async def _update_changeset_size(self, changeset_id: SequentialId, elements: Sequence[Element]) -> None:
-        '''
+        """
         Update the changeset size and check if it is not too big.
-        '''
+        """
 
         changeset = await self._get_changeset(changeset_id)
         increase_size = len(elements)
         if not changeset.update_size_without_save(increase_size):
-            Exceptions.get().raise_for_changeset_too_big(changeset.size + increase_size)
+            exceptions().raise_for_changeset_too_big(changeset.size + increase_size)
 
     async def _update_changeset_boundary(self, prev: Element | None, element: Element) -> None:
-        '''
+        """
         Update the changeset boundary.
-        '''
+        """
 
         if boundary := await self._get_boundary(prev, element):
             changeset = await self._get_changeset(element.changeset_id)
             changeset.update_boundary_without_save(boundary)
 
     async def _get_latest_element(self, typed_ref: TypedElementRef) -> Element:
-        '''
+        """
         Get the latest element from the local state or the database if not found.
-        '''
+        """
 
         if not (elements := self.state.get(typed_ref)):
-            if typed_ref.id < 0:
-                Exceptions.get().raise_for_element_not_found(typed_ref)
+            if typed_ref.typed_id < 0:
+                exceptions().raise_for_element_not_found(typed_ref)
             if not (element := await Element.find_one_by_typed_ref(typed_ref)):
-                Exceptions.get().raise_for_element_not_found(typed_ref)
+                exceptions().raise_for_element_not_found(typed_ref)
             self.state[typed_ref] = elements = [element]
         return elements[-1]
 
     def _set_latest_element(self, element: Element) -> None:
-        '''
+        """
         Update the local element state with the new element.
-        '''
+        """
 
         if elements := self.state.get(element.typed_ref):
             elements.append(element)
@@ -149,9 +154,9 @@ class OptimisticPrepare:
             self.state[element.typed_ref] = [element]
 
     def _update_references(self, prev: Element | None, element: Element) -> None:
-        '''
+        """
         Update the local references state.
-        '''
+        """
 
         prev_refs = prev.references if prev else frozenset()
         next_refs = element.references
@@ -167,43 +172,45 @@ class OptimisticPrepare:
             self._references[(ref, False)].discard(typed_ref)
 
     async def _check_element_visible(self, initiator: Element, typed_ref: TypedElementRef) -> None:
-        '''
+        """
         Check if the element exists and is visible.
-        '''
+        """
 
         try:
             if not (await self._get_latest_element(typed_ref)).visible:
                 raise Exception()
         except Exception:
-            Exceptions.get().raise_for_element_member_not_found(initiator.versioned_ref, typed_ref)
+            exceptions().raise_for_element_member_not_found(initiator.versioned_ref, typed_ref)
 
     async def _check_element_not_referenced(self, element: Element) -> None:
-        '''
+        """
         Check if the element is not referenced by other elements.
-        '''
+        """
 
         # check if not referenced by local elements
         if refs := self._references[(element.typed_ref, True)]:
-            Exceptions.get().raise_for_element_in_use(element.versioned_ref, refs)
+            exceptions().raise_for_element_in_use(element.versioned_ref, refs)
 
         # check if not referenced by database elements (only existing elements)
         if element.typed_id > 0:
             negative_refs = self._references[(element.typed_ref, False)]
-            referenced_by_elements = await element.get_referenced_by(sort={'_id': ASCENDING}, limit=len(negative_refs) + 1)
+            referenced_by_elements = await element.get_referenced_by(
+                sort={'_id': ASCENDING}, limit=len(negative_refs) + 1
+            )
             referenced_by = set(r.typed_ref for r in referenced_by_elements)
             if refs := (referenced_by - negative_refs):
-                Exceptions.get().raise_for_element_in_use(element.versioned_ref, refs)
+                exceptions().raise_for_element_in_use(element.versioned_ref, refs)
 
             # remember the last referenced element for the successful reference check
             self.reference_checks.setdefault(
-                element.typed_ref,
-                (element, referenced_by_elements[-1].id if referenced_by_elements else None))
+                element.typed_ref, (element, referenced_by_elements[-1].id if referenced_by_elements else None)
+            )
 
     # TODO: optimize geometry fetch, reduce database calls
     async def _get_boundary(self, prev: Element | None, element: Element) -> BaseGeometry | None:
-        '''
+        """
         Calculate the boundary (if any) of the element.
-        '''
+        """
 
         if element.type == ElementType.node:
             return self._get_node_boundary(prev, element)
@@ -241,7 +248,9 @@ class OptimisticPrepare:
 
         return box(*unary_union(geoms).bounds) if geoms else None
 
-    async def _get_relation_boundary(self, prev: ElementRelation | None, element: ElementRelation) -> BaseGeometry | None:
+    async def _get_relation_boundary(
+        self, prev: ElementRelation | None, element: ElementRelation
+    ) -> BaseGeometry | None:
         prev_refs = prev.references if prev else frozenset()
         next_refs = element.references
         changed_refs = prev_refs ^ next_refs

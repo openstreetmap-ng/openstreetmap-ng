@@ -9,11 +9,13 @@ from typing import Sequence
 import anyio
 from humanize import naturalsize
 
-from lib.exceptions import Exceptions
-from limits import (TRACE_FILE_ARCHIVE_MAX_FILES,
-                    TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-                    TRACE_FILE_COMPRESS_ZSTD_THREADS,
-                    TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+from lib.exceptions import exceptions
+from limits import (
+    TRACE_FILE_ARCHIVE_MAX_FILES,
+    TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+    TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
+)
 
 
 class TracksProcessor(ABC):
@@ -44,7 +46,7 @@ class TarTracksProcessor(TracksProcessor, ABC):
             logging.debug('Trace %r archive contains %d files', cls.format, len(members))
 
             if len(members) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                Exceptions.get().raise_for_trace_file_archive_too_many_files()
+                exceptions().raise_for_trace_file_archive_too_many_files()
 
             result = [None] * len(members)
 
@@ -68,7 +70,7 @@ class ZipTracksProcessor(TracksProcessor, ABC):
             logging.debug('Trace %r archive contains %d files', cls.format, len(filenames))
 
         if len(filenames) > TRACE_FILE_ARCHIVE_MAX_FILES:
-            Exceptions.get().raise_for_trace_file_archive_too_many_files()
+            exceptions().raise_for_trace_file_archive_too_many_files()
 
         result = [None] * len(filenames)
         result_size = 0
@@ -76,18 +78,20 @@ class ZipTracksProcessor(TracksProcessor, ABC):
         async def read_file(i: int, filename: bytes) -> None:
             nonlocal result_size
 
-            async with await anyio.open_process(['unzip', '-p', '-', filename], stdin=subprocess.PIPE, stdout=subprocess.PIPE) as process:
+            async with await anyio.open_process(
+                ['unzip', '-p', '-', filename], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            ) as process:
                 await process.stdin.send(buffer)
                 file_result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 
             if process.returncode != 0:
-                Exceptions.get().raise_for_trace_file_archive_corrupted(cls.format)
+                exceptions().raise_for_trace_file_archive_corrupted(cls.format)
 
             result[i] = file_result
             result_size += len(file_result)
 
             if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-                Exceptions.get().raise_for_input_too_big(result_size)
+                exceptions().raise_for_input_too_big(result_size)
 
         async with anyio.create_task_group() as tg:
             for i, filename in enumerate(filenames):
@@ -108,9 +112,9 @@ class CompressionTracksProcessor(TracksProcessor, ABC):
             result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 
         if process.returncode != 0:
-            Exceptions.get().raise_for_trace_file_archive_corrupted(cls.format)
+            exceptions().raise_for_trace_file_archive_corrupted(cls.format)
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-            Exceptions.get().raise_for_input_too_big(len(result))
+            exceptions().raise_for_input_too_big(len(result))
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.format, naturalsize(len(result), True))
         return result
@@ -139,12 +143,7 @@ class ZstdTracksProcessor(CompressionTracksProcessor, ABC):
             if buffer_size <= level_max_size:
                 break
 
-        command = [
-            'zstd', '-c',
-            f'-{level}',
-            f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}',
-            '--stream-size', len(buffer)
-        ]
+        command = ['zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', len(buffer)]
 
         async with await anyio.open_process(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as process:
             await process.stdin.send(buffer)
