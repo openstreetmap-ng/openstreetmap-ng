@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from datetime import datetime
 from typing import Annotated
 
 from pydantic import PositiveInt
@@ -20,11 +19,9 @@ class TraceValidating(Base.Validating):
 
     size: PositiveInt
     start_point: PointGeometry
-    file_id: NonEmptyStr | None
-    image_id: NonEmptyStr | None
-    icon_id: NonEmptyStr | None
 
     # defaults
+    file_id: NonEmptyStr | None = None
+    image_id: NonEmptyStr | None = None
+    icon_id: NonEmptyStr | None = None
     tags: Sequence[Annotated[Str255, URLSafeValidator]] = ()
-
-    created_at: datetime

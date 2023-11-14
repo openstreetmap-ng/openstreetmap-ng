@@ -12,8 +12,12 @@ setup(
                 '*',
                 ['cython_lib/*.py'],
                 extra_compile_args=[
+                    '-fopenmp',
                     '-march=native',  # TODO: figure out what to do on deployment
                     '-ffast-math',
+                ],
+                extra_link_args=[
+                    '-fopenmp',
                 ],
             )
         ],

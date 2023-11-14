@@ -1,9 +1,9 @@
 import logging
 from abc import ABC
+from collections.abc import Sequence
 from io import BytesIO
 from itertools import chain
 from math import ceil
-from typing import Sequence
 
 import anyio
 from PIL import Image, ImageDraw

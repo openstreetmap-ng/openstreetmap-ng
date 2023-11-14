@@ -43,7 +43,7 @@ class Trace(Base.Sequential, CreatedAt):
     )
 
     @validates('tags')
-    def validate_tags(cls, key: str, value: Sequence[str]):
+    def validate_tags(self, _: str, value: Sequence[str]):
         if len(value) > TRACE_TAGS_LIMIT:
             raise ValueError('Too many tags')
         return value
@@ -54,7 +54,7 @@ class Trace(Base.Sequential, CreatedAt):
 
     @tag_string.setter
     def tag_string(self, s: str) -> None:
-        if ',' in s:
+        if ',' in s:  # noqa: SIM108
             tags = s.split(',')
         else:
             # do as before for backwards compatibility

@@ -562,11 +562,7 @@ class Format06:
                 visibility=TraceVisibility(gpx_file.get('@visibility')),
                 size=1,
                 start_point=Point(0, 0),
-                file_id=None,
-                image_id=None,
-                icon_id=None,
                 tags=gpx_file.get('tag', ()),
-                created_at=datetime.fromisoformat(timestamp) if (timestamp := gpx_file.get('@timestamp')) else utcnow(),
             ).to_orm_dict()
         )
 

@@ -1,34 +1,32 @@
 import logging
 from abc import ABC
-from itertools import count
+from collections.abc import Sequence
+from itertools import count, pairwise
 from math import isclose
-from typing import Sequence
 
 import anyio
 import magic
 from fastapi import UploadFile
 
-from db.transaction import Transaction, retry_transaction
-from lib.auth import Auth
+from db import DB
+from lib.auth import auth_user
 from lib.exceptions import exceptions
 from lib.format.format06 import Format06
 from lib.storage import LocalStorage, Storage
 from lib.tracks.image import TracksImage
 from lib.tracks.processors import TRACKS_PROCESSORS, ZstdTracksProcessor
 from limits import TRACE_FILE_MAX_SIZE
-from models.db.lock import lock
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
 from models.trace_visibility import TraceVisibility
-
-_LOCK_TTL = 30
+from models.validating.trace_ import TraceValidating
 
 
 class Tracks(ABC):
     storage: Storage = LocalStorage('tracks')
 
-    @staticmethod
-    async def process_upload(file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
+    @classmethod
+    async def process_upload(cls, file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
         if len(file.size) > TRACE_FILE_MAX_SIZE:
             exceptions().raise_for_input_too_big(len(file.size))
 
@@ -54,15 +52,19 @@ class Tracks(ABC):
 
             points = _sort_and_deduplicate(points)
 
-            # construct trace model first, to validate the fields
             trace = Trace(
-                user_id=Auth.user().id,
-                name=file.filename,
-                description=description,
-                size=len(points),
-                start_point=points[0].point,
-                visibility=visibility,
+                **TraceValidating(
+                    user_id=auth_user().id,
+                    name=file.filename,
+                    description=description,
+                    visibility=visibility,
+                    size=len(points),
+                    start_point=points[0].point,
+                    tags=(),  # set with .tag_string
+                ).to_orm_dict()
             )
+
+            trace.trace_points = points
             trace.tag_string = tags
 
             image, icon = await TracksImage.generate_async(points)
@@ -81,15 +83,15 @@ class Tracks(ABC):
 
         async def save_file() -> None:
             nonlocal file_id
-            file_id = await Tracks.storage.save(compressed, compressed_suffix)
+            file_id = await cls.storage.save(compressed, compressed_suffix)
 
         async def save_image() -> None:
             nonlocal image_id
-            image_id = await Tracks.storage.save(image, TracksImage.image_suffix)
+            image_id = await cls.storage.save(image, TracksImage.image_suffix)
 
         async def save_icon() -> None:
             nonlocal icon_id
-            icon_id = await Tracks.storage.save(icon, TracksImage.icon_suffix)
+            icon_id = await cls.storage.save(icon, TracksImage.icon_suffix)
 
         # when all validation is done, save the files
         async with anyio.create_task_group() as tg:
@@ -101,12 +103,14 @@ class Tracks(ABC):
         trace.image_id = image_id
         trace.icon_id = icon_id
 
-        await _create(trace, points)
+        async with DB() as session, session.begin():
+            session.add(trace)
+
         return trace
 
-    @staticmethod
-    async def get_file(file_id: str) -> bytes:
-        buffer = await Tracks.storage.load(file_id)
+    @classmethod
+    async def get_file(cls, file_id: str) -> bytes:
+        buffer = await cls.storage.load(file_id)
         return await _decompress_if_needed(buffer, file_id)
 
 
@@ -148,7 +152,7 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
     sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
     deduped_points = [sorted_points[0]]
 
-    for last, point in zip(sorted_points, sorted_points[1:]):
+    for last, point in pairwise(sorted_points):
         if (
             last.captured_at == point.captured_at
             and isclose(last.point.x, point.point.x, abs_tol=9.999e-8)
@@ -177,19 +181,3 @@ async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
         return await ZstdTracksProcessor.decompress(buffer)
 
     return buffer
-
-
-@retry_transaction()
-async def _create(trace: Trace, points: Sequence[TracePoint]) -> None:
-    trace.id = None
-
-    # use lock since points size can be very large (create batch may be slow)
-    async with lock(Trace.__class__.__qualname__, ttl=_LOCK_TTL), Transaction() as session:
-        await trace.create(session)
-
-        bulk = []
-        for point in points:
-            point.trace_id = trace.id
-            bulk.append(point.create_batch())
-
-        await TracePoint._collection().bulk_write(bulk, ordered=False, session=session)

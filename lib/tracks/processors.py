@@ -3,8 +3,9 @@ import subprocess
 import tarfile
 import zipfile
 from abc import ABC
+from collections.abc import Sequence
 from io import BytesIO
-from typing import Sequence
+from types import MappingProxyType
 
 import anyio
 from humanize import naturalsize
@@ -19,31 +20,36 @@ from limits import (
 
 
 class TracksProcessor(ABC):
-    format: str
+    media_type: str
 
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes] | bytes:
-        raise NotImplementedError()
+        """
+        Decompress the buffer and return files data or a subsequent buffer.
+        """
+
+        raise NotImplementedError
 
 
 class XmlTracksProcessor(TracksProcessor, ABC):
-    format = 'text/xml'
+    media_type = 'text/xml'
 
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
-        logging.debug('Trace %r uncompressed size is %s', cls.format, naturalsize(len(buffer), True))
+        logging.debug('Trace %r uncompressed size is %s', cls.media_type, naturalsize(len(buffer), True))
         return [buffer]
 
 
 class TarTracksProcessor(TracksProcessor, ABC):
-    format = 'application/x-tar'
+    media_type = 'application/x-tar'
 
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
-        # tar uses no compression, so it's efficient to read files from the memory buffer
-        with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as tar:
-            members = tar.getmembers()
-            logging.debug('Trace %r archive contains %d files', cls.format, len(members))
+        # pure tar uses no compression, so it's efficient to read files from the memory buffer
+        # r: opens for reading exclusively without compression (safety check)
+        with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
+            members = archive.getmembers()
+            logging.debug('Trace %r archive contains %d files', cls.media_type, len(members))
 
             if len(members) > TRACE_FILE_ARCHIVE_MAX_FILES:
                 exceptions().raise_for_trace_file_archive_too_many_files()
@@ -51,7 +57,7 @@ class TarTracksProcessor(TracksProcessor, ABC):
             result = [None] * len(members)
 
             for i, member in enumerate(members):
-                file = tar.extractfile(member)
+                file = archive.extractfile(member)
                 if not file:
                     # skip directories
                     continue
@@ -61,13 +67,13 @@ class TarTracksProcessor(TracksProcessor, ABC):
 
 
 class ZipTracksProcessor(TracksProcessor, ABC):
-    format = 'application/zip'
+    media_type = 'application/zip'
 
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
-        with zipfile.ZipFile(BytesIO(buffer)) as zip:
-            filenames = zip.namelist()
-            logging.debug('Trace %r archive contains %d files', cls.format, len(filenames))
+        with zipfile.ZipFile(BytesIO(buffer)) as archive:
+            filenames = archive.namelist()
+            logging.debug('Trace %r archive contains %d files', cls.media_type, len(filenames))
 
         if len(filenames) > TRACE_FILE_ARCHIVE_MAX_FILES:
             exceptions().raise_for_trace_file_archive_too_many_files()
@@ -79,13 +85,15 @@ class ZipTracksProcessor(TracksProcessor, ABC):
             nonlocal result_size
 
             async with await anyio.open_process(
-                ['unzip', '-p', '-', filename], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+                ['unzip', '-p', '-', filename],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
             ) as process:
                 await process.stdin.send(buffer)
                 file_result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 
             if process.returncode != 0:
-                exceptions().raise_for_trace_file_archive_corrupted(cls.format)
+                exceptions().raise_for_trace_file_archive_corrupted(cls.media_type)
 
             result[i] = file_result
             result_size += len(file_result)
@@ -97,71 +105,77 @@ class ZipTracksProcessor(TracksProcessor, ABC):
             for i, filename in enumerate(filenames):
                 tg.start_soon(read_file, i, filename)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.format, naturalsize(len(result), True))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result), True))
         return result
 
 
 class CompressionTracksProcessor(TracksProcessor, ABC):
-    format: str
+    media_type: str
     command: Sequence[str]
 
     @classmethod
     async def decompress(cls, buffer: bytes) -> bytes:
-        async with await anyio.open_process(cls.command, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as process:
+        async with await anyio.open_process(
+            cls.command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        ) as process:
             await process.stdin.send(buffer)
             result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 
         if process.returncode != 0:
-            exceptions().raise_for_trace_file_archive_corrupted(cls.format)
+            exceptions().raise_for_trace_file_archive_corrupted(cls.media_type)
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             exceptions().raise_for_input_too_big(len(result))
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.format, naturalsize(len(result), True))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result), True))
         return result
 
 
 class GzipTracksProcessor(CompressionTracksProcessor, ABC):
-    format = 'application/gzip'
-    command = ['gzip', '-d', '-c']
+    media_type = 'application/gzip'
+    command = ('gzip', '-d', '-c')
 
 
 class Bzip2TracksProcessor(CompressionTracksProcessor, ABC):
-    format = 'application/x-bzip2'
-    command = ['bzip2', '-d', '-c']
+    media_type = 'application/x-bzip2'
+    command = ('bzip2', '-d', '-c')
 
 
 class ZstdTracksProcessor(CompressionTracksProcessor, ABC):
-    format = 'application/zstd'
-    command = ['zstd', '-d', '-c']
+    media_type = 'application/zstd'
+    command = ('zstd', '-d', '-c')
     suffix = '.zst'
 
     @classmethod
     async def compress(cls, buffer: bytes) -> bytes:
         buffer_size = len(buffer)
-
-        for level_max_size, level in TRACE_FILE_COMPRESS_ZSTD_LEVEL:
-            if buffer_size <= level_max_size:
-                break
-
+        level = next(filter(lambda max_size, _: buffer_size <= max_size, TRACE_FILE_COMPRESS_ZSTD_LEVEL))[1]
         command = ['zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', len(buffer)]
 
-        async with await anyio.open_process(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as process:
+        async with await anyio.open_process(
+            command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        ) as process:
             await process.stdin.send(buffer)
             result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE * 2)
 
         if process.returncode != 0:
             raise RuntimeError('zstd compression failed')
 
-        logging.debug('Trace %r archive compressed size is %s', cls.format, naturalsize(len(result), True))
+        logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result), True))
         return result
 
 
 # maps content type to processor command
 # the processor reads from stdin and writes to stdout
-TRACKS_PROCESSORS: dict[str, TracksProcessor] = {
-    XmlTracksProcessor.format: XmlTracksProcessor,
-    TarTracksProcessor.format: TarTracksProcessor,
-    ZipTracksProcessor.format: ZipTracksProcessor,
-    GzipTracksProcessor.format: GzipTracksProcessor,
-    Bzip2TracksProcessor.format: Bzip2TracksProcessor,
-}
+TRACKS_PROCESSORS = MappingProxyType(
+    {
+        XmlTracksProcessor.media_type: XmlTracksProcessor,
+        TarTracksProcessor.media_type: TarTracksProcessor,
+        ZipTracksProcessor.media_type: ZipTracksProcessor,
+        GzipTracksProcessor.media_type: GzipTracksProcessor,
+        Bzip2TracksProcessor.media_type: Bzip2TracksProcessor,
+    }
+)

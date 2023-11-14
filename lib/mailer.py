@@ -132,7 +132,7 @@ class Mailer:
         Process next scheduled mail.
         """
 
-        async with DB() as session:
+        async with DB() as session, session.begin():
             now = utcnow()
             stmt = (
                 select(Mail)
