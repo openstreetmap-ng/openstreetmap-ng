@@ -20,6 +20,7 @@ class TracePoint(Base.NoID):
     trace: Mapped[Trace] = relationship(back_populates='trace_points', lazy='raise')
     track_idx: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    # TODO to_shape
     point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=Trace.SRID), nullable=False)
     elevation: Mapped[float | None] = mapped_column(float, nullable=True)
 

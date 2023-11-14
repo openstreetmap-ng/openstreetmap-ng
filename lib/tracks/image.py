@@ -37,11 +37,19 @@ class TracksImage(ABC):
 
     @staticmethod
     async def generate_async(points: Sequence[TracePoint]) -> tuple[bytes, bytes]:
+        """
+        Generate animation and icon images from a sequence of trace points.
+        """
+
         # Pillow frees the GIL when doing image operations
         return await anyio.to_thread.run_sync(TracksImage.generate, points)
 
     @staticmethod
     def generate(points: Sequence[TracePoint]) -> tuple[bytes, bytes]:
+        """
+        Generate animation and icon images from a sequence of trace points.
+        """
+
         # sample points to speed up image generation
         max_points = _SAMPLE_POINTS_PER_FRAME * _ANIM_FRAMES
         if len(points) > max_points:

@@ -26,7 +26,7 @@ from models.typed_element_ref import TypedElementRef
 from models.validating.element import ElementValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
-from utils import format_sql_date, utcnow
+from utils import format_sql_date
 
 
 class Format06:

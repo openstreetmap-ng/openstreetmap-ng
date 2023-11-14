@@ -27,6 +27,12 @@ class Tracks(ABC):
 
     @classmethod
     async def process_upload(cls, file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
+        """
+        Process the uploaded trace file.
+
+        Returns the created trace object.
+        """
+
         if len(file.size) > TRACE_FILE_MAX_SIZE:
             exceptions().raise_for_input_too_big(len(file.size))
 
@@ -116,7 +122,7 @@ class Tracks(ABC):
 
 async def _extract(buffer: bytes) -> Sequence[bytes]:
     """
-    Extracts the trace files from the buffer.
+    Extract the trace files from the buffer.
 
     The buffer may be compressed, in which case it will be decompressed first.
     """
@@ -144,7 +150,7 @@ async def _extract(buffer: bytes) -> Sequence[bytes]:
 
 def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
     """
-    Sorts and deduplicates the points.
+    Sort and deduplicates the points.
 
     The points are sorted by captured_at, then by longitude, then by latitude.
     """
@@ -166,7 +172,7 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
 
 async def _compress(buffer: bytes) -> tuple[bytes, str]:
     """
-    Compresses the buffer with zstd.
+    Compress the buffer with zstd.
     """
 
     return await ZstdTracksProcessor.compress(buffer), ZstdTracksProcessor.suffix
@@ -174,7 +180,7 @@ async def _compress(buffer: bytes) -> tuple[bytes, str]:
 
 async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
     """
-    Decompresses the buffer if needed.
+    Decompress the buffer if needed.
     """
 
     if file_id.endswith(ZstdTracksProcessor.suffix):
