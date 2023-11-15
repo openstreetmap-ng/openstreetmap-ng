@@ -29,10 +29,10 @@ def normalize_locale_case(code: str) -> str | None:
     """
     Normalize locale code case.
 
-    >>> normalize_locale_case('en')
-    'en'
     >>> normalize_locale_case('EN')
     'en'
+    >>> normalize_locale_case('NonExistent')
+    None
     """
 
     if code in _locales:

@@ -22,7 +22,7 @@ _DECOMPRESS_MAP = MappingProxyType(
 
 class RequestMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        content_encoding = request.headers.get('Content-Encoding')
+        content_encoding = request.headers.get('content-encoding')
 
         # check size with compression
         if content_encoding and (decompressor := _DECOMPRESS_MAP.get(content_encoding)):

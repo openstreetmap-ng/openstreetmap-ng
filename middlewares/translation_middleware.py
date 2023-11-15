@@ -1,27 +1,34 @@
 import logging
 import re
-from typing import Sequence
+from collections.abc import Sequence
 
 from cachetools import TTLCache, cached
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import DEFAULT_LANGUAGE
+from lib.auth import auth_user
 from lib.locales import normalize_locale_case
-from lib.translation import get_translation
+from lib.translation import translation_context
+from limits import LANGUAGE_CODE_MAX_LENGTH
 
-_accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{1,8}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?', re.X)
+_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{1,8}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?', re.X)
 
 
 @cached(TTLCache(128, ttl=86400))
 def _parse_accept_language(accept_language: str) -> Sequence[str]:
+    # small optimization
+    if not accept_language:
+        return (DEFAULT_LANGUAGE,)
+
     temp: list[tuple[float, str]] = []
 
-    for match in _accept_language_re.finditer(accept_language):
+    # process accept language codes
+    for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
         lang = match.group('lang')
 
-        if (lang_len := len(lang)) > 10:
-            logging.debug('Too long accept language %d', lang_len)
+        if (lang_len := len(lang)) > LANGUAGE_CODE_MAX_LENGTH:
+            logging.debug('Accept language code is too long %d', lang_len)
             continue
 
         if lang == '*':
@@ -45,20 +52,23 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
 
         temp.append((q, lang))
 
+    # always add default language with lowest q-factor
     temp.append((0, DEFAULT_LANGUAGE))
-    temp.sort(reverse=True)  # sort by q-factor, descending
+
+    # sort by q-factor, descending
+    temp.sort(reverse=True)
 
     return tuple(lang for _, lang in temp)
 
 
 class LanguageMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # TODO: user preference
+        # check user's preferred languages before parsing the accept language header
+        if (user := auth_user()) and user.languages:
+            languages = user.languages
+        else:
+            accept_language = request.headers.get('accept-language', '')
+            languages = _parse_accept_language(accept_language)
 
-        accept_language = request.headers.get('accept-language', '')
-        languages = _parse_accept_language(accept_language)
-
-        request.state.languages = languages
-        request.state.t = get_translation(languages)
-
-        return await call_next(request)
+        with translation_context(languages):
+            return await call_next(request)

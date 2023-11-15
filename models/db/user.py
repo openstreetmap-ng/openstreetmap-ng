@@ -258,7 +258,7 @@ class User(Base.NoID, CreatedAt):
                     SECRET,
                     user.password_hashed,
                     basic_request.client.host,
-                    basic_request.headers.get('User-Agent', ''),
+                    basic_request.headers.get('user-agent', ''),
                     password,
                 )
             )
