@@ -9,7 +9,7 @@ import cython
 import lxml.etree as ET
 from humanize import naturalsize
 
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from limits import XML_PARSE_MAX_SIZE
 
 
@@ -87,7 +87,7 @@ class XMLToDict:
         """
 
         if len(xml_b) > XML_PARSE_MAX_SIZE:
-            exceptions().raise_for_input_too_big(len(xml_b))
+            raise_for().input_too_big(len(xml_b))
 
         logging.debug('Parsing %s XML string', naturalsize(len(xml_b), True))
         root = stdET.fromstring(xml_b)  # noqa: S314

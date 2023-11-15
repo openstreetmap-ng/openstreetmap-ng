@@ -5,7 +5,7 @@ from uuid import UUID
 
 from betterproto import which_one_of
 
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from proto.cursor import Cursor as ProtoCursor
 from utils import utcnow
 
@@ -51,11 +51,11 @@ class Cursor:
         try:
             proto = ProtoCursor().parse(urlsafe_b64decode(s))
         except Exception:
-            exceptions().raise_for_bad_cursor()
+            raise_for().bad_cursor()
 
         # optionally check expiration
         if expire is not None and (proto.time is None or proto.time + expire < utcnow()):
-            exceptions().raise_for_cursor_expired()
+            raise_for().cursor_expired()
 
         _, val = which_one_of(proto, 'id')
 

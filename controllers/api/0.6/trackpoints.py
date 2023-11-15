@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 from pydantic import NonNegativeInt
 
 from geoutils import parse_bbox
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from models.db.trace_point import TracePoint
@@ -24,7 +24,7 @@ async def trackpoints_read(
 ) -> Sequence[dict]:
     geometry = parse_bbox(bbox)
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
-        exceptions().raise_for_trace_points_query_area_too_big()
+        raise_for().trace_points_query_area_too_big()
 
     points, _ = await TracePoint.find_many_by_geometry_with_(
         cursor=None,

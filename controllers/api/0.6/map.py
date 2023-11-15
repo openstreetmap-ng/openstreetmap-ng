@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 
 from cython_lib.xmltodict import XAttr
 from geoutils import parse_bbox
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.element import Element
@@ -22,7 +22,7 @@ async def map_read(
 ) -> Sequence[dict]:
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
-        exceptions().raise_for_map_query_area_too_big()
+        raise_for().map_query_area_too_big()
 
     elements = await Element.find_many_by_query(
         geometry, nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT, legacy_nodes_limit=True

@@ -9,7 +9,7 @@ from shapely.geometry import Point
 
 from geoutils import parse_bbox
 from lib.auth import api_user, auth_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
@@ -77,7 +77,7 @@ async def note_comment(
     if note is None or not note.visible_to(user):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if note.closed_at:
-        exceptions().raise_for_note_closed(note_id, note.closed_at)
+        raise_for().note_closed(note_id, note.closed_at)
 
     comment = NoteComment(note_id=note_id, user_id=user.id, user_ip=None, event=NoteEvent.commented, body=text)
 
@@ -100,7 +100,7 @@ async def note_close(
     if note is None or not note.visible_to(user):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if note.closed_at:
-        exceptions().raise_for_note_closed(note_id, note.closed_at)
+        raise_for().note_closed(note_id, note.closed_at)
 
     comment = NoteComment(note_id=note_id, user_id=user.id, user_ip=None, event=NoteEvent.closed, body=text)
 
@@ -136,7 +136,7 @@ async def note_reopen(
     else:
         # reopen
         if not note.closed_at:
-            exceptions().raise_for_note_open(note_id)
+            raise_for().note_open(note_id)
 
         async with Transaction() as session:
             await comment.create(session=session)
@@ -183,7 +183,7 @@ async def notes_read(
 ) -> Sequence[dict]:
     geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-        exceptions().raise_for_notes_query_area_too_big()
+        raise_for().notes_query_area_too_big()
 
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
     notes, _ = await Note.find_many_by_geometry_with_(
@@ -221,18 +221,18 @@ async def note_search(
     if display_name:
         user = await User.find_one_by_display_name(display_name)
         if not user:
-            exceptions().raise_for_user_not_found(display_name)
+            raise_for().user_not_found(display_name)
     elif user_id:
         user = await User.find_one_by_id(user_id)
         if not user:
-            exceptions().raise_for_user_not_found(user)
+            raise_for().user_not_found(user)
     else:
         user = None
 
     if bbox:
         geometry = parse_bbox(bbox)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
-            exceptions().raise_for_notes_query_area_too_big()
+            raise_for().notes_query_area_too_big()
     else:
         geometry = None
 

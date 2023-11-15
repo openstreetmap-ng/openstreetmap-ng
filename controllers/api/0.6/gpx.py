@@ -9,7 +9,7 @@ from pydantic import PositiveInt
 
 from cython_lib.xmltodict import XMLToDict
 from lib.auth import Auth, api_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.tracks import Tracks
 from models.db.trace_ import Trace
@@ -71,12 +71,12 @@ async def gpx_update(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('gpx_file', {})
 
     if not data:
-        exceptions().raise_for_bad_xml('trace', xml, "XML doesn't contain an osm/gpx_file element.")
+        raise_for().bad_xml('trace', xml, "XML doesn't contain an osm/gpx_file element.")
 
     try:
         new_trace = Format06.decode_gpx_file(data)
     except Exception as e:
-        exceptions().raise_for_bad_xml('trace', xml, str(e))
+        raise_for().bad_xml('trace', xml, str(e))
 
     trace.name = new_trace.name
     trace.description = new_trace.description

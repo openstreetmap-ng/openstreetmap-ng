@@ -8,7 +8,7 @@ from pydantic import PositiveInt
 
 from cython_lib.xmltodict import XMLToDict
 from lib.auth import api_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
 from models.db.element import Element
@@ -36,7 +36,7 @@ async def element_create(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
 
     # dynamically assign element id
     data['@id'] = -1
@@ -44,7 +44,7 @@ async def element_create(
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     old_ref_elements_map = await Optimistic((element,)).update()
     return next(iter(old_ref_elements_map.values()))[0].typed_id
@@ -78,14 +78,14 @@ async def element_update(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
 
     data['@id'] = typed_id
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     await Optimistic((element,)).update()
     return element.version
@@ -102,7 +102,7 @@ async def element_delete(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
 
     data['@id'] = typed_id
     data['@visible'] = False
@@ -110,7 +110,7 @@ async def element_delete(
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     await Optimistic((element,)).update()
     return element.version

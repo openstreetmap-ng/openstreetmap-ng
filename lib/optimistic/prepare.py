@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from lib.auth import Auth
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.element import Element
@@ -56,15 +56,15 @@ class OptimisticPrepare:
                 prev = None
 
                 if element.typed_id >= 0:
-                    exceptions().raise_for_diff_create_bad_id(element.versioned_ref)
+                    raise_for().diff_create_bad_id(element.versioned_ref)
             else:
                 # action: modify, delete
                 prev = await self._get_latest_element(element.typed_ref)
 
                 if prev.version + 1 != element.version:
-                    exceptions().raise_for_element_version_conflict(element.versioned_ref, prev.version)
+                    raise_for().element_version_conflict(element.versioned_ref, prev.version)
                 if not prev.visible and not element.visible:
-                    exceptions().raise_for_element_already_deleted(element.versioned_ref)
+                    raise_for().element_already_deleted(element.versioned_ref)
 
                 if prev.created_at and prev.created_at > now:
                     logging.error(
@@ -74,7 +74,7 @@ class OptimisticPrepare:
                         prev.created_at,
                         now,
                     )
-                    exceptions().raise_for_time_integrity()
+                    raise_for().time_integrity()
 
             # update references before performing checks
             # note that elements can self-reference themselves
@@ -103,11 +103,11 @@ class OptimisticPrepare:
         if not (changeset := self.changesets_next.get(changeset_id)):
             changeset = await Changeset.find_one_by_id(changeset_id)
             if not changeset:
-                exceptions().raise_for_changeset_not_found(changeset_id)
+                raise_for().changeset_not_found(changeset_id)
             if changeset.user_id != Auth.user().id:
-                exceptions().raise_for_changeset_access_denied()
+                raise_for().changeset_access_denied()
             if changeset.closed_at:
-                exceptions().raise_for_changeset_already_closed(changeset_id, changeset.closed_at)
+                raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
             self.changesets_next[changeset_id] = changeset
         return changeset
 
@@ -119,7 +119,7 @@ class OptimisticPrepare:
         changeset = await self._get_changeset(changeset_id)
         increase_size = len(elements)
         if not changeset.update_size_without_save(increase_size):
-            exceptions().raise_for_changeset_too_big(changeset.size + increase_size)
+            raise_for().changeset_too_big(changeset.size + increase_size)
 
     async def _update_changeset_boundary(self, prev: Element | None, element: Element) -> None:
         """
@@ -137,9 +137,9 @@ class OptimisticPrepare:
 
         if not (elements := self.state.get(typed_ref)):
             if typed_ref.typed_id < 0:
-                exceptions().raise_for_element_not_found(typed_ref)
+                raise_for().element_not_found(typed_ref)
             if not (element := await Element.find_one_by_typed_ref(typed_ref)):
-                exceptions().raise_for_element_not_found(typed_ref)
+                raise_for().element_not_found(typed_ref)
             self.state[typed_ref] = elements = [element]
         return elements[-1]
 
@@ -180,7 +180,7 @@ class OptimisticPrepare:
             if not (await self._get_latest_element(typed_ref)).visible:
                 raise Exception()
         except Exception:
-            exceptions().raise_for_element_member_not_found(initiator.versioned_ref, typed_ref)
+            raise_for().element_member_not_found(initiator.versioned_ref, typed_ref)
 
     async def _check_element_not_referenced(self, element: Element) -> None:
         """
@@ -189,7 +189,7 @@ class OptimisticPrepare:
 
         # check if not referenced by local elements
         if refs := self._references[(element.typed_ref, True)]:
-            exceptions().raise_for_element_in_use(element.versioned_ref, refs)
+            raise_for().element_in_use(element.versioned_ref, refs)
 
         # check if not referenced by database elements (only existing elements)
         if element.typed_id > 0:
@@ -199,7 +199,7 @@ class OptimisticPrepare:
             )
             referenced_by = set(r.typed_ref for r in referenced_by_elements)
             if refs := (referenced_by - negative_refs):
-                exceptions().raise_for_element_in_use(element.versioned_ref, refs)
+                raise_for().element_in_use(element.versioned_ref, refs)
 
             # remember the last referenced element for the successful reference check
             self.reference_checks.setdefault(

@@ -10,7 +10,7 @@ from fastapi import UploadFile
 
 from db import DB
 from lib.auth import auth_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.storage import LocalStorage, Storage
 from lib.tracks.image import TracksImage
@@ -34,7 +34,7 @@ class Tracks(ABC):
         """
 
         if len(file.size) > TRACE_FILE_MAX_SIZE:
-            exceptions().raise_for_input_too_big(len(file.size))
+            raise_for().input_too_big(len(file.size))
 
         buffer = await anyio.to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
@@ -51,10 +51,10 @@ class Tracks(ABC):
                 try:
                     points.extend(Format06.decode_gpx(file))
                 except Exception as e:
-                    exceptions().raise_for_bad_trace_file(str(e))
+                    raise_for().bad_trace_file(str(e))
 
             if len(points) < 2:
-                exceptions().raise_for_bad_trace_file('not enough points')
+                raise_for().bad_trace_file('not enough points')
 
             points = _sort_and_deduplicate(points)
 
@@ -130,13 +130,13 @@ async def _extract(buffer: bytes) -> Sequence[bytes]:
     # multiple layers handle combinations such as tar+gzip
     for layer in count(1):
         if layer > 2:
-            exceptions().raise_for_trace_file_archive_too_deep()
+            raise_for().trace_file_archive_too_deep()
 
         content_type = magic.from_buffer(buffer[:2048], mime=True)
         logging.debug('Trace file layer %d is %r', layer, content_type)
 
         if not (processor := TRACKS_PROCESSORS.get(content_type)):
-            exceptions().raise_for_trace_file_unsupported_format(content_type)
+            raise_for().trace_file_unsupported_format(content_type)
 
         result = await processor.decompress(buffer)
 

@@ -8,7 +8,7 @@ from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence,
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth1_application import OAuth1Application
@@ -80,7 +80,7 @@ class OAuth1Token(Base.UUID, CreatedAt):
         app = await OAuth1Application.find_one_by_key(app_token)
 
         if not app:
-            exceptions().raise_for_oauth_bad_app_token()
+            raise_for().oauth_bad_app_token()
 
         token = secrets.token_urlsafe(32)
         token_secret = secrets.token_urlsafe(32)
@@ -116,14 +116,14 @@ class OAuth1Token(Base.UUID, CreatedAt):
         )
 
         if not token_:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         app = OAuth1Application.find_one_by_id(token_.application_id)
 
         if not app:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
         if not set(scopes).issubset(app.scopes):
-            exceptions().raise_for_oauth_bad_scopes()
+            raise_for().oauth_bad_scopes()
 
         verifier = secrets.token_urlsafe(32)
 
@@ -157,11 +157,11 @@ class OAuth1Token(Base.UUID, CreatedAt):
         )
 
         if not token_:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         try:
             if token_.verifier != verifier:
-                exceptions().raise_for_oauth1_bad_verifier()
+                raise_for().oauth1_bad_verifier()
         except Exception as e:
             # for safety, delete the token if the verification fails
             await token_.delete()

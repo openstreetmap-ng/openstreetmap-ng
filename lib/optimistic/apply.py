@@ -7,7 +7,7 @@ import anyio
 from motor.core import AgnosticClientSession
 
 from db.transaction import Transaction, retry_transaction
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.optimistic.exceptions import OptimisticException
 from lib.optimistic.prepare import OptimisticPrepare
 from models.db.base_sequential import SequentialId
@@ -155,7 +155,7 @@ async def _check_time_integrity() -> None:
                 await anyio.sleep(in_future)
             else:
                 logging.error('Latest element was created %d seconds in the future', in_future)
-                exceptions().raise_for_time_integrity()
+                raise_for().time_integrity()
 
 
 def _set_elements_created_at(elements: Sequence[Element]) -> None:

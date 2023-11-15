@@ -4,7 +4,7 @@ from fastapi import APIRouter, Form
 from pydantic import PositiveInt
 
 from lib.auth import api_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
@@ -26,12 +26,12 @@ async def changeset_subscribe(
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
-        exceptions().raise_for_changeset_not_found(changeset_id)
+        raise_for().changeset_not_found(changeset_id)
 
     try:
         await ChangesetSubscription(user_id=user.id, changeset_id=changeset_id).create()
     except Exception:  # TODO: strict exception
-        exceptions().raise_for_changeset_already_subscribed(changeset_id)
+        raise_for().changeset_already_subscribed(changeset_id)
 
     return Format06.encode_changeset(changeset)
 
@@ -44,12 +44,12 @@ async def changeset_unsubscribe(
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
-        exceptions().raise_for_changeset_not_found(changeset_id)
+        raise_for().changeset_not_found(changeset_id)
 
     try:
         await ChangesetSubscription.delete_by({'user_id': user.id, 'changeset_id': changeset_id})
     except Exception:  # TODO: strict exception
-        exceptions().raise_for_changeset_not_subscribed(changeset_id)
+        raise_for().changeset_not_subscribed(changeset_id)
 
     return Format06.encode_changeset(changeset)
 
@@ -63,9 +63,9 @@ async def changeset_comment(
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
-        exceptions().raise_for_changeset_not_found(changeset_id)
+        raise_for().changeset_not_found(changeset_id)
     if not changeset.closed_at:
-        exceptions().raise_for_changeset_not_closed(changeset_id)
+        raise_for().changeset_not_closed(changeset_id)
 
     await ChangesetComment(user_id=user.id, changeset_id=changeset_id, body=text).create()
 
@@ -79,11 +79,11 @@ async def changeset_comment_hide(
 ) -> dict:
     comment = await ChangesetComment.find_one_by_id(comment_id)
     if not comment:
-        exceptions().raise_for_changeset_comment_not_found(comment_id)
+        raise_for().changeset_comment_not_found(comment_id)
 
     changeset = await Changeset.find_one_by_id(comment.changeset_id)
     if not changeset:
-        exceptions().raise_for_changeset_not_found(comment.changeset_id)
+        raise_for().changeset_not_found(comment.changeset_id)
 
     await comment.delete()
     return Format06.encode_changeset(changeset, add_comments_count=-1)

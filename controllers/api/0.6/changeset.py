@@ -8,7 +8,7 @@ from pydantic import PositiveInt
 from cython_lib.xmltodict import XMLToDict
 from geoutils import parse_bbox
 from lib.auth import api_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.optimistic import Optimistic
 from limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
@@ -35,12 +35,12 @@ async def element_create(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
+        raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
         changeset = Changeset(user_id=user.id, tags=Format06.decode_tags(data.get('tag', [])))
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     async with Transaction() as session:
         await changeset.create(session)
@@ -76,21 +76,21 @@ async def changeset_update(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
+        raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
         new_tags = Format06.decode_tags(data.get('tag', []))
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
-        exceptions().raise_for_changeset_not_found(changeset_id)
+        raise_for().changeset_not_found(changeset_id)
     if changeset.user_id != user.id:
-        exceptions().raise_for_changeset_access_denied()
+        raise_for().changeset_access_denied()
     if changeset.closed_at:
-        exceptions().raise_for_changeset_already_closed(changeset_id, changeset.closed_at)
+        raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
     changeset.tags = new_tags
     await changeset.update()  # TODO: check errors
@@ -105,11 +105,11 @@ async def changeset_close(
     changeset = await Changeset.find_one_by_id(changeset_id)
 
     if not changeset:
-        exceptions().raise_for_changeset_not_found(changeset_id)
+        raise_for().changeset_not_found(changeset_id)
     if changeset.user_id != user.id:
-        exceptions().raise_for_changeset_access_denied()
+        raise_for().changeset_access_denied()
     if changeset.closed_at:
-        exceptions().raise_for_changeset_already_closed(changeset_id, changeset.closed_at)
+        raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
     changeset.closed_at = utcnow()
     await changeset.update()
@@ -209,12 +209,12 @@ async def changeset_upload(
     data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', [])
 
     if not data:
-        exceptions().raise_for_bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
+        raise_for().bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
 
     try:
         elements = await Format06.decode_osmchange(data, changeset_id)
     except Exception as e:
-        exceptions().raise_for_bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, xml, str(e))
 
     old_ref_elements_map = await Optimistic(elements).update()
     return Format06.encode_diff_result(old_ref_elements_map)

@@ -9,7 +9,7 @@ from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence,
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE, hash_hex
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth2_application import OAuth2Application
@@ -85,11 +85,11 @@ class OAuth2Token(Base.UUID, CreatedAt):
         app = await OAuth2Application.find_one_by_key(app_token)
 
         if not app:
-            exceptions().raise_for_oauth_bad_app_token()
+            raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
-            exceptions().raise_for_oauth_bad_redirect_uri()
+            raise_for().oauth_bad_redirect_uri()
         if not set(scopes).issubset(app.scopes):
-            exceptions().raise_for_oauth_bad_scopes()
+            raise_for().oauth_bad_scopes()
 
         authorization_code = secrets.token_urlsafe(32)
 
@@ -123,18 +123,18 @@ class OAuth2Token(Base.UUID, CreatedAt):
         )
 
         if not token_:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         try:
             if token_.code_challenge_method is None:
                 if verifier:
-                    exceptions().raise_for_oauth2_challenge_method_not_set()
+                    raise_for().oauth2_challenge_method_not_set()
             elif token_.code_challenge_method == OAuth2CodeChallengeMethod.plain:
                 if token_.code_challenge != verifier:
-                    exceptions().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
+                    raise_for().oauth2_bad_verifier(token_.code_challenge_method)
             elif token_.code_challenge_method == OAuth2CodeChallengeMethod.S256:
                 if token_.code_challenge != urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('='):
-                    exceptions().raise_for_oauth2_bad_verifier(token_.code_challenge_method)
+                    raise_for().oauth2_bad_verifier(token_.code_challenge_method)
             else:
                 raise NotImplementedError(f'Unsupported OAuth2 code challenge method {token_.code_challenge_method!r}')
         except Exception as e:

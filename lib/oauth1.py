@@ -2,7 +2,7 @@ from authlib.oauth1.rfc5849.signature import generate_signature_base_string, hma
 from authlib.oauth1.rfc5849.wrapper import OAuth1Request
 from fastapi import Request
 
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.oauth1_token import OAuth1Token
 
 
@@ -39,20 +39,20 @@ class OAuth1:
         """
 
         if not request.signature_method or request.signature_method.upper() != 'HMAC-SHA1':
-            exceptions().raise_for_oauth1_unsupported_signature_method(request.signature_method)
+            raise_for().oauth1_unsupported_signature_method(request.signature_method)
         if not request.signature:
-            exceptions().raise_for_oauth1_bad_signature()
+            raise_for().oauth1_bad_signature()
 
         token = await OAuth1Token.find_one_by_key_with_(request.token)
 
         if not token:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
         if token.app_.key_public != request.client_id:
-            exceptions().raise_for_oauth_bad_app_token()
+            raise_for().oauth_bad_app_token()
 
         signature = await OAuth1.compute_hmac_sha1(request, token.app_.key_secret, token.key_secret)
 
         if signature != request.signature:
-            exceptions().raise_for_oauth1_bad_signature()
+            raise_for().oauth1_bad_signature()
 
         return token

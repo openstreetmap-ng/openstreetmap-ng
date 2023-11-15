@@ -1,7 +1,7 @@
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.oauth2_token import OAuth2Token
 
 
@@ -17,16 +17,16 @@ class OAuth2:
         authorization = request.headers.get('authorization')
 
         if not authorization:
-            exceptions().raise_for_oauth2_bearer_missing()
+            raise_for().oauth2_bearer_missing()
 
         scheme, param = get_authorization_scheme_param(authorization)
 
         if scheme.lower() != 'bearer':
-            exceptions().raise_for_oauth2_bearer_missing()
+            raise_for().oauth2_bearer_missing()
 
         token = await OAuth2Token.find_one_by_key_with_(param)
 
         if token is None:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         return token

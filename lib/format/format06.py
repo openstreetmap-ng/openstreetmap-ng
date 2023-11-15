@@ -8,7 +8,7 @@ from shapely.geometry import Point, mapping
 from config import BASE_URL, GENERATOR
 from cython_lib.xmltodict import XAttr
 from lib.auth import auth_user
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.format import format_is_json
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
@@ -370,19 +370,19 @@ class Format06:
 
             if action == OSMChangeAction.create.value:
                 if element.id > 0:
-                    exceptions().raise_for_diff_create_bad_id(element.versioned_ref)
+                    raise_for().diff_create_bad_id(element.versioned_ref)
                 if element.version > 1:
                     element.version = 1
             elif action == OSMChangeAction.modify.value:
                 if element.version < 2:
-                    exceptions().raise_for_diff_update_bad_version(element.versioned_ref)
+                    raise_for().diff_update_bad_version(element.versioned_ref)
             elif action == OSMChangeAction.delete.value:
                 if element.version < 2:
-                    exceptions().raise_for_diff_update_bad_version(element.versioned_ref)
+                    raise_for().diff_update_bad_version(element.versioned_ref)
                 if element.visible:
                     element.visible = False
             else:
-                exceptions().raise_for_diff_unsupported_action(action)
+                raise_for().diff_unsupported_action(action)
 
             result[i] = element
         return result

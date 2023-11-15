@@ -19,7 +19,7 @@ def exceptions_context(exceptions_type: type[ExceptionsBase]):
         _context.reset(token)
 
 
-def exceptions() -> type[ExceptionsBase]:
+def raise_for() -> type[ExceptionsBase]:
     """
     Get the configured exceptions base.
     """

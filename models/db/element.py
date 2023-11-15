@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset
@@ -256,7 +256,7 @@ class Element(Base.Sequential, CreatedAt, ABC):
         parent_way_relations = result_map['parent']['way']['parents']
 
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
-            exceptions().raise_for_map_query_nodes_limit_exceeded()
+            raise_for().map_query_nodes_limit_exceeded()
 
         result_ids = set()
         result = []

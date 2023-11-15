@@ -9,7 +9,7 @@ from fastapi import Request, Security
 from fastapi.security import SecurityScopes
 from fastapi.security.utils import get_authorization_scheme_param
 
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from models.db.user import User
 from models.scope import ExtendedScope, Scope
 
@@ -43,7 +43,7 @@ async def auth_context(request: Request):
             logging.debug('Attempting to authenticate with Basic')
             username, _, password = b64decode(param).decode().partition(':')
             if not username or not password:
-                exceptions().raise_for_bad_basic_auth_format()
+                raise_for().bad_basic_auth_format()
             user = await User.authenticate(username, password, basic_request=request)
             scopes = Scope.__members__.values()  # all scopes
 
@@ -113,9 +113,9 @@ def auth_scopes() -> Sequence[ExtendedScope]:
 def _get_api_user(require_scopes: SecurityScopes) -> User:
     user, user_scopes = auth_user_scopes()
     if not user:
-        exceptions().raise_for_unauthorized(request_basic_auth=True)
+        raise_for().unauthorized(request_basic_auth=True)
     if missing_scopes := set(require_scopes.scopes).difference(s.value for s in user_scopes):
-        exceptions().raise_for_insufficient_scopes(missing_scopes)
+        raise_for().insufficient_scopes(missing_scopes)
     return user
 
 

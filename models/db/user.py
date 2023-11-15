@@ -28,7 +28,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from config import DEFAULT_LANGUAGE, SECRET, SRID
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
-from lib.exceptions import exceptions
+from lib.exceptions import raise_for
 from lib.languages import LanguageInfo, get_language_info, normalize_language_case
 from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
@@ -364,12 +364,12 @@ class User(Base.NoID, CreatedAt):
             raise NotImplementedError(f'Unsupported OAuth version {oauth_version}')
 
         if not token.authorized_at or token.revoked_at:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         user = await cls.find_one_by_id(token.user_id)
 
         if not user:
-            exceptions().raise_for_oauth_bad_user_token()
+            raise_for().oauth_bad_user_token()
 
         return user, token.scopes
 
