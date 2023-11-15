@@ -1,7 +1,5 @@
 from typing import NamedTuple, Self
 
-from cachetools import cached
-
 from models.element_type import ElementType
 
 
@@ -9,11 +7,9 @@ class TypedElementRef(NamedTuple):
     type: ElementType
     typed_id: int
 
-    @cached({})
     def __hash__(self) -> int:
         return hash((self.type, self.typed_id))
 
-    @cached({})
     def __str__(self) -> str:
         """
         Produce a string representation of the element reference.

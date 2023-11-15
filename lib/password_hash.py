@@ -22,7 +22,7 @@ class PasswordHash:
         """
 
         if self.rehash_needed is not None:
-            raise RuntimeError(f'{self.verify.__qualname__} was called repeatedly')
+            raise RuntimeError(f'{self.verify.__qualname__} was reused')
 
         # argon2
         if password_hashed.startswith('$argon2'):

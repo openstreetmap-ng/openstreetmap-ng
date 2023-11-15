@@ -19,7 +19,7 @@ from limits import (
 )
 
 
-class TracksProcessor(ABC):
+class FileProcessor(ABC):
     media_type: str
 
     @classmethod
@@ -31,7 +31,7 @@ class TracksProcessor(ABC):
         raise NotImplementedError
 
 
-class XmlTracksProcessor(TracksProcessor, ABC):
+class XmlFileProcessor(FileProcessor, ABC):
     media_type = 'text/xml'
 
     @classmethod
@@ -40,7 +40,7 @@ class XmlTracksProcessor(TracksProcessor, ABC):
         return [buffer]
 
 
-class TarTracksProcessor(TracksProcessor, ABC):
+class TarFileProcessor(FileProcessor, ABC):
     media_type = 'application/x-tar'
 
     @classmethod
@@ -66,7 +66,7 @@ class TarTracksProcessor(TracksProcessor, ABC):
             return result
 
 
-class ZipTracksProcessor(TracksProcessor, ABC):
+class ZipFileProcessor(FileProcessor, ABC):
     media_type = 'application/zip'
 
     @classmethod
@@ -109,7 +109,7 @@ class ZipTracksProcessor(TracksProcessor, ABC):
         return result
 
 
-class CompressionTracksProcessor(TracksProcessor, ABC):
+class CompressionFileProcessor(FileProcessor, ABC):
     media_type: str
     command: Sequence[str]
 
@@ -132,17 +132,17 @@ class CompressionTracksProcessor(TracksProcessor, ABC):
         return result
 
 
-class GzipTracksProcessor(CompressionTracksProcessor, ABC):
+class GzipFileProcessor(CompressionFileProcessor, ABC):
     media_type = 'application/gzip'
     command = ('gzip', '-d', '-c')
 
 
-class Bzip2TracksProcessor(CompressionTracksProcessor, ABC):
+class Bzip2FileProcessor(CompressionFileProcessor, ABC):
     media_type = 'application/x-bzip2'
     command = ('bzip2', '-d', '-c')
 
 
-class ZstdTracksProcessor(CompressionTracksProcessor, ABC):
+class ZstdFileProcessor(CompressionFileProcessor, ABC):
     media_type = 'application/zstd'
     command = ('zstd', '-d', '-c')
     suffix = '.zst'
@@ -170,12 +170,12 @@ class ZstdTracksProcessor(CompressionTracksProcessor, ABC):
 
 # maps content type to processor command
 # the processor reads from stdin and writes to stdout
-TRACKS_PROCESSORS = MappingProxyType(
+TRACE_FILE_PROCESSORS = MappingProxyType(
     {
-        XmlTracksProcessor.media_type: XmlTracksProcessor,
-        TarTracksProcessor.media_type: TarTracksProcessor,
-        ZipTracksProcessor.media_type: ZipTracksProcessor,
-        GzipTracksProcessor.media_type: GzipTracksProcessor,
-        Bzip2TracksProcessor.media_type: Bzip2TracksProcessor,
+        XmlFileProcessor.media_type: XmlFileProcessor,
+        TarFileProcessor.media_type: TarFileProcessor,
+        ZipFileProcessor.media_type: ZipFileProcessor,
+        GzipFileProcessor.media_type: GzipFileProcessor,
+        Bzip2FileProcessor.media_type: Bzip2FileProcessor,
     }
 )

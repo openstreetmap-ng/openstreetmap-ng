@@ -51,11 +51,12 @@ def normalize_language_case(code: str) -> str:
     """
     Normalize language code case.
 
-    >>> fix_language_case('en')
-    'en'
     >>> fix_language_case('EN')
     'en'
+    >>> fix_language_case('NonExistent')
+    'NonExistent'
     """
+
     if code in _languages:
         return code
     return _languages_lower_map.get(code.casefold(), code)
@@ -65,4 +66,5 @@ def get_language_info(normalized_code: str) -> LanguageInfo | None:
     """
     Get `LanguageInfo` by normalized code.
     """
+
     return _languages.get(normalized_code, None)

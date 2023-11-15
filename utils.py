@@ -130,6 +130,7 @@ def updating_cached_property(compare: Callable[[Self], Any]) -> property:
     If compare returns a modified value, the property is re-evaluated.
     """
 
+    # TODO: this is bad: singleton for all instances
     def decorator(func):
         cache = None
         compare_val = None

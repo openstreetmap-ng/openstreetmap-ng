@@ -14,7 +14,7 @@ from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.storage import LocalStorage, Storage
 from lib.tracks.image import TracksImage
-from lib.tracks.processors import TRACKS_PROCESSORS, ZstdTracksProcessor
+from lib.tracks.processors import TRACE_FILE_PROCESSORS, ZstdFileProcessor
 from limits import TRACE_FILE_MAX_SIZE
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
@@ -135,7 +135,7 @@ async def _extract(buffer: bytes) -> Sequence[bytes]:
         content_type = magic.from_buffer(buffer[:2048], mime=True)
         logging.debug('Trace file layer %d is %r', layer, content_type)
 
-        if not (processor := TRACKS_PROCESSORS.get(content_type)):
+        if not (processor := TRACE_FILE_PROCESSORS.get(content_type)):
             raise_for().trace_file_unsupported_format(content_type)
 
         result = await processor.decompress(buffer)
@@ -175,7 +175,7 @@ async def _compress(buffer: bytes) -> tuple[bytes, str]:
     Compress the buffer with zstd.
     """
 
-    return await ZstdTracksProcessor.compress(buffer), ZstdTracksProcessor.suffix
+    return await ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
 
 
 async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
@@ -183,7 +183,7 @@ async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
     Decompress the buffer if needed.
     """
 
-    if file_id.endswith(ZstdTracksProcessor.suffix):
-        return await ZstdTracksProcessor.decompress(buffer)
+    if file_id.endswith(ZstdFileProcessor.suffix):
+        return await ZstdFileProcessor.decompress(buffer)
 
     return buffer

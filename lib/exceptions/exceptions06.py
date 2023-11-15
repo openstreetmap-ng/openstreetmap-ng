@@ -219,6 +219,13 @@ class Exceptions06(ExceptionsBase):
             raise NotImplementedError(f'Unsupported element type {versioned_ref.type!r}')
 
     @classmethod
+    def diff_multiple_changesets(cls) -> NoReturn:
+        return cls.APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Only one changeset can be modified at a time',
+        )
+
+    @classmethod
     def diff_unsupported_action(cls, action: str) -> NoReturn:
         return cls.APIError(
             status.HTTP_400_BAD_REQUEST,

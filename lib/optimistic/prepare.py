@@ -1,54 +1,85 @@
 import logging
 from collections import defaultdict
-from typing import Sequence
+from collections.abc import Sequence
+from datetime import datetime
+from itertools import chain
 
 import anyio
-from pymongo import ASCENDING
-from shapely.geometry import box
-from shapely.geometry.base import BaseGeometry
+from geoalchemy2 import WKBElement
+from geoalchemy2.shape import to_shape
 from shapely.ops import unary_union
 
-from lib.auth import Auth
+from lib.auth import auth_user
 from lib.exceptions import raise_for
-from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
 from models.db.element import Element
-from models.db.element_node import ElementNode
-from models.db.element_relation import ElementRelation
-from models.db.element_way import ElementWay
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
+from services.element_service import ElementService
 from utils import utcnow
 
 
 class OptimisticPrepare:
+    elements: Sequence[Element]
+    """
+    Elements the optimistic update is performed on.
+    """
+
+    changeset_state: dict[int, Changeset]
+    """
+    Local changeset state, mapping from id to the changeset.
+    """
+
+    _changeset_bbox_info: dict[int, set[WKBElement | TypedElementRef]]
+    """
+    Changeset bbox info, mapping from changeset id to the list of points and element refs.
+    """
+
+    element_state: dict[TypedElementRef, list[Element]]
+    """
+    Local element state, mapping from element ref to that elements history (from oldest to newest).
+    """
+
+    reference_check_state: dict[TypedElementRef, tuple[Element, int]]
+    """
+    Local reference check state, mapping from element ref to that element and the last referencing element id.
+    """
+
+    _reference_override: dict[tuple[TypedElementRef, bool], set[TypedElementRef]]
+    """
+    Local reference override, mapping from (element ref, override) tuple to the set of referenced element refs.
+
+    For example, `(way/1, False)` = `{node/1, node/2}` means that way/1 no longer references node/1 and node/2 locally.
+    """
+
+    _now: datetime
+    _last_id: int
+
     def __init__(self, elements: Sequence[Element]) -> None:
         self.elements = elements
-        self.changesets_next: dict[SequentialId, Changeset] = {}
-        self.reference_checks: dict[TypedElementRef, tuple[Element, SequentialId | None]] = {}
-        self.state: dict[TypedElementRef, list[Element]] = {}
-
-        self._references: dict[tuple[TypedElementRef, bool], set[TypedElementRef]] = defaultdict(set)
+        self.changeset_state = {}
+        self._changeset_bbox_info = defaultdict(set)
+        self.element_state = {}
+        self.reference_check_state = {}
+        self._reference_override = defaultdict(set)
+        self._now = None
+        self._last_id = None
 
     async def prepare(self) -> None:
-        if self.state:
+        if self._now is not None:
             raise RuntimeError(f'{self.__class__.__qualname__} was reused')
 
-        now = utcnow()
+        self._now = utcnow()
 
         async with anyio.create_task_group() as tg:
-            changeset_id_element_map = defaultdict(list)
-            for element in self.elements:
-                changeset_id_element_map[element.changeset_id].append(element)
+            # update and validate changesets
+            tg.start_soon(self._update_changesets)
 
-            # check if all changesets are valid (exist, belong to current user, and are open)
-            for changeset_id, changeset_elements in changeset_id_element_map.items():
-                tg.start_soon(self._update_changeset_size, changeset_id, changeset_elements)
+            # preload element state
+            tg.start_soon(self._preload_elements)
 
-            # preload some elements
-            for typed_ref in set(e.typed_ref for e in self.elements):
-                if typed_ref.id > 0:
-                    tg.start_soon(self._get_latest_element, typed_ref)
+            # fetch last element id
+            tg.start_soon(self._fetch_last_id)
 
         for element in self.elements:
             if element.version == 1:
@@ -58,7 +89,7 @@ class OptimisticPrepare:
                 if element.typed_id >= 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
             else:
-                # action: modify, delete
+                # action: modify | delete
                 prev = await self._get_latest_element(element.typed_ref)
 
                 if prev.version + 1 != element.version:
@@ -66,96 +97,156 @@ class OptimisticPrepare:
                 if not prev.visible and not element.visible:
                     raise_for().element_already_deleted(element.versioned_ref)
 
-                if prev.created_at and prev.created_at > now:
+                if prev.created_at and prev.created_at > self._now:
                     logging.error(
                         'Element %r/%r was created in the future: %r > %r',
                         prev.type,
                         prev.typed_id,
                         prev.created_at,
-                        now,
+                        self._now,
                     )
                     raise_for().time_integrity()
 
-            # update references before performing checks
+            # update reference overrides before performing checks
             # note that elements can self-reference themselves
-            self._update_references(prev, element)
+            self._update_reference_override(prev, element)
 
             async with anyio.create_task_group() as tg:
                 # check if all referenced elements are visible
-                for typed_ref in element.references:
-                    tg.start_soon(self._check_element_visible, element, typed_ref)
+                # TODO: check only added members?
+                for typed_ref in (e.typed_ref for e in element.members):
+                    tg.start_soon(self._check_member_visible, element, typed_ref)
 
                 # if deleted, check if not referenced by other elements
                 if not element.visible and prev and prev.visible:
                     tg.start_soon(self._check_element_not_referenced, element)
 
-                # update changeset boundary
-                tg.start_soon(self._update_changeset_boundary, prev, element)
+            # push the element bbox info
+            self._push_bbox_info(prev, element)
 
-            # update the latest element state
-            self._set_latest_element(element)
+            # push the element to the local state
+            self._push_element_state(element)
 
-    async def _get_changeset(self, changeset_id: SequentialId) -> Changeset:
+        # update changeset boundaries
+        await self._update_changeset_boundaries()
+
+    async def _get_changeset(self, changeset_id: int) -> Changeset:
         """
         Get the changeset from the local state or the database if not found.
         """
 
-        if not (changeset := self.changesets_next.get(changeset_id)):
-            changeset = await Changeset.find_one_by_id(changeset_id)
-            if not changeset:
-                raise_for().changeset_not_found(changeset_id)
-            if changeset.user_id != Auth.user().id:
-                raise_for().changeset_access_denied()
-            if changeset.closed_at:
-                raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
-            self.changesets_next[changeset_id] = changeset
+        if changeset := self.changeset_state.get(changeset_id):
+            return changeset
+
+        changeset = await Changeset.find_one_by_id(changeset_id)
+
+        if not changeset:
+            raise_for().changeset_not_found(changeset_id)
+        if changeset.user_id != auth_user().id:
+            raise_for().changeset_access_denied()
+        if changeset.closed_at:
+            raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
+
+        self.changeset_state[changeset_id] = changeset
         return changeset
 
-    async def _update_changeset_size(self, changeset_id: SequentialId, elements: Sequence[Element]) -> None:
+    async def _update_changesets(self) -> None:
         """
-        Update the changeset size and check if it is not too big.
+        Update and validate elements changesets.
+
+        Boundaries are not updated as a part of this method.
         """
 
-        changeset = await self._get_changeset(changeset_id)
-        increase_size = len(elements)
-        if not changeset.update_size_without_save(increase_size):
-            raise_for().changeset_too_big(changeset.size + increase_size)
+        if self.changeset_state:
+            raise RuntimeError('Cannot update changesets when local state is not empty')
 
-    async def _update_changeset_boundary(self, prev: Element | None, element: Element) -> None:
+        async def update_changeset(changeset_id: int, elements: Sequence[Element]) -> None:
+            changeset = await self._get_changeset(changeset_id)
+            increase_size = len(elements)
+
+            if not changeset.increase_size(increase_size, now=self._now):
+                raise_for().changeset_too_big(changeset.size + increase_size)
+
+        # map changeset id to elements
+        changeset_id_element_map = defaultdict(list)
+        for element in self.elements:
+            changeset_id_element_map[element.changeset_id].append(element)
+
+        # currently, enforce single changeset updates
+        if len(changeset_id_element_map) > 1:
+            raise_for().diff_multiple_changesets()
+
+        # update and validate changesets (exist, belong to the user, not closed, etc.)
+        async with anyio.create_task_group() as tg:
+            for changeset_id, changeset_elements in changeset_id_element_map.items():
+                tg.start_soon(update_changeset, changeset_id, changeset_elements)
+
+    async def _preload_elements(self) -> None:
         """
-        Update the changeset boundary.
+        Preload elements from the database.
         """
 
-        if boundary := await self._get_boundary(prev, element):
-            changeset = await self._get_changeset(element.changeset_id)
-            changeset.update_boundary_without_save(boundary)
+        if self.element_state:
+            raise RuntimeError('Cannot preload elements when local state is not empty')
+
+        # only preload elements that exist in the database (positive typed_id)
+        typed_refs = frozenset(e.typed_ref for e in self.elements if e.typed_id > 0)
+
+        # small optimization
+        if not typed_refs:
+            return
+
+        # preload and check if all elements exist
+        for element, typed_ref in zip(await ElementService.find_many_latest(typed_refs), typed_refs, strict=True):
+            if element is None:
+                raise_for().element_not_found(typed_ref)
+
+            self.element_state[typed_ref] = [element]
+
+    async def _fetch_last_id(self) -> None:
+        """
+        Fetch the last element id from the database.
+        """
+
+        if self._last_id is not None:
+            raise RuntimeError('Cannot fetch last id when already fetched')
+
+        if element := await ElementService.find_one_last():
+            self._last_id = element.id
+        else:
+            self._last_id = 0
 
     async def _get_latest_element(self, typed_ref: TypedElementRef) -> Element:
         """
         Get the latest element from the local state or the database if not found.
         """
 
-        if not (elements := self.state.get(typed_ref)):
-            if typed_ref.typed_id < 0:
-                raise_for().element_not_found(typed_ref)
-            if not (element := await Element.find_one_by_typed_ref(typed_ref)):
-                raise_for().element_not_found(typed_ref)
-            self.state[typed_ref] = elements = [element]
-        return elements[-1]
+        if elements := self.element_state.get(typed_ref):
+            return elements[-1]
 
-    def _set_latest_element(self, element: Element) -> None:
+        if typed_ref.typed_id < 0:
+            raise_for().element_not_found(typed_ref)
+        if not (element := await ElementService.find_one_latest(typed_ref)):
+            raise_for().element_not_found(typed_ref)
+
+        self.element_state[typed_ref] = [element]
+        return element
+
+    def _push_element_state(self, element: Element) -> None:
         """
         Update the local element state with the new element.
         """
 
-        if elements := self.state.get(element.typed_ref):
+        # if history exists, append to it
+        if elements := self.element_state.get(element.typed_ref):
             elements.append(element)
+        # otherwise, create a new history
         else:
-            self.state[element.typed_ref] = [element]
+            self.element_state[element.typed_ref] = [element]
 
-    def _update_references(self, prev: Element | None, element: Element) -> None:
+    def _update_reference_override(self, prev: Element | None, element: Element) -> None:
         """
-        Update the local references state.
+        Update the local reference overrides.
         """
 
         prev_refs = prev.references if prev else frozenset()
@@ -164,22 +255,23 @@ class OptimisticPrepare:
 
         # remove old references
         for ref in prev_refs - next_refs:
-            self._references[(ref, True)].discard(typed_ref)
-            self._references[(ref, False)].add(typed_ref)
+            self._reference_override[(ref, True)].discard(typed_ref)
+            self._reference_override[(ref, False)].add(typed_ref)
         # add new references
         for ref in next_refs - prev_refs:
-            self._references[(ref, True)].add(typed_ref)
-            self._references[(ref, False)].discard(typed_ref)
+            self._reference_override[(ref, True)].add(typed_ref)
+            self._reference_override[(ref, False)].discard(typed_ref)
 
-    async def _check_element_visible(self, initiator: Element, typed_ref: TypedElementRef) -> None:
+    async def _check_member_visible(self, initiator: Element, typed_ref: TypedElementRef) -> None:
         """
-        Check if the element exists and is visible.
+        Check if the member exists and is visible.
         """
 
         try:
             if not (await self._get_latest_element(typed_ref)).visible:
-                raise Exception()
+                raise Exception
         except Exception:
+            # convert all exceptions to element member not found
             raise_for().element_member_not_found(initiator.versioned_ref, typed_ref)
 
     async def _check_element_not_referenced(self, element: Element) -> None:
@@ -187,95 +279,116 @@ class OptimisticPrepare:
         Check if the element is not referenced by other elements.
         """
 
-        # check if not referenced by local elements
-        if refs := self._references[(element.typed_ref, True)]:
+        # check if not referenced by local state
+        if refs := self._reference_override[(element.typed_ref, True)]:
             raise_for().element_in_use(element.versioned_ref, refs)
 
         # check if not referenced by database elements (only existing elements)
         if element.typed_id > 0:
-            negative_refs = self._references[(element.typed_ref, False)]
-            referenced_by_elements = await element.get_referenced_by(
-                sort={'_id': ASCENDING}, limit=len(negative_refs) + 1
+            negative_refs = self._reference_override[(element.typed_ref, False)]
+            referenced_by_elements = await ElementService.get_referenced_by(
+                element.typed_ref,
+                limit=len(negative_refs) + 1,
             )
-            referenced_by = set(r.typed_ref for r in referenced_by_elements)
-            if refs := (referenced_by - negative_refs):
+            referenced_by_refs = {r.typed_ref for r in referenced_by_elements}
+            if refs := (referenced_by_refs - negative_refs):
                 raise_for().element_in_use(element.versioned_ref, refs)
 
-            # remember the last referenced element for the successful reference check
-            self.reference_checks.setdefault(
-                element.typed_ref, (element, referenced_by_elements[-1].id if referenced_by_elements else None)
-            )
+            # remember the last referencing element id for the future reference check
+            referenced_by_last_id = max(chain((self._last_id,), (e.id for e in referenced_by_elements)))
+            self.reference_check_state.setdefault(element.typed_ref, referenced_by_last_id)
 
-    # TODO: optimize geometry fetch, reduce database calls
-    async def _get_boundary(self, prev: Element | None, element: Element) -> BaseGeometry | None:
+    def _push_bbox_info(self, prev: Element | None, element: Element) -> None:
         """
-        Calculate the boundary (if any) of the element.
+        Push bbox info for later processing.
         """
 
         if element.type == ElementType.node:
-            return self._get_node_boundary(prev, element)
+            self._push_bbox_node_info(prev, element)
         elif element.type == ElementType.way:
-            return await self._get_way_boundary(prev, element)
+            self._push_bbox_way_info(prev, element)
         elif element.type == ElementType.relation:
-            return await self._get_relation_boundary(prev, element)
+            self._push_bbox_relation_info(prev, element)
         else:
             raise NotImplementedError(f'Unsupported element type {element.type!r}')
 
-    def _get_node_boundary(self, prev: ElementNode | None, element: ElementNode) -> BaseGeometry | None:
+    def _push_bbox_node_info(self, prev: Element | None, element: Element) -> None:
+        """
+        Push bbox info for a node.
+        """
+
+        bbox_info = self._changeset_bbox_info[element.changeset_id]
+
         if element.point:
-            return element.point
-        elif prev and prev.point:
-            return prev.point
-        else:
-            return None
+            bbox_info.add(element.point)
+        if prev and prev.point:
+            bbox_info.add(prev.point)
 
-    async def _get_way_boundary(self, prev: ElementWay | None, element: ElementWay) -> BaseGeometry | None:
-        prev_refs = prev.references if prev else frozenset()
-        next_refs = element.references
-        geoms = []
+    def _push_bbox_way_info(self, prev: Element | None, element: Element) -> None:
+        """
+        Push bbox info for a way.
 
-        async def update_geoms(typed_ref: TypedElementRef) -> None:
-            try:
-                node = await self._get_latest_element(typed_ref)
-                geoms.append(self._get_node_boundary(None, node))
-            except Exception:
-                # ignore geometry errors
-                pass
+        Way info contains all nodes.
+        """
 
-        async with anyio.create_task_group() as tg:
-            for typed_ref in prev_refs | next_refs:
-                tg.start_soon(update_geoms, typed_ref)
+        bbox_info = self._changeset_bbox_info[element.changeset_id]
+        pref_refs = prev.members if prev else ()
+        next_refs = element.members
 
-        return box(*unary_union(geoms).bounds) if geoms else None
+        for typed_ref in {e.typed_ref for e in chain(pref_refs, next_refs)}:
+            if elements := self.element_state.get(typed_ref):
+                bbox_info.add(elements[-1].point)
+            else:
+                bbox_info.add(typed_ref)
 
-    async def _get_relation_boundary(
-        self, prev: ElementRelation | None, element: ElementRelation
-    ) -> BaseGeometry | None:
-        prev_refs = prev.references if prev else frozenset()
-        next_refs = element.references
+    def _push_bbox_relation_info(self, prev: Element | None, element: Element) -> None:
+        """
+        Push bbox info for a relation.
+
+        Relation info contains either all members or only changed members.
+        """
+
+        bbox_info = self._changeset_bbox_info[element.changeset_id]
+        prev_refs = frozenset(prev.members if prev else ())
+        next_refs = frozenset(element.members)
         changed_refs = prev_refs ^ next_refs
         contains_relation = any(ref.type == ElementType.relation for ref in changed_refs)
         tags_changed = not prev or prev.tags != element.tags
-        geoms = []
 
-        async def update_geoms(typed_ref: TypedElementRef) -> None:
-            try:
-                element = await self._get_latest_element(typed_ref)
-                geoms.append(await self._get_boundary(None, element))
-            except Exception:
-                # ignore geometry errors
-                pass
+        # get full geometry or changed geometry
+        diff_refs = (prev_refs | next_refs) if (tags_changed or contains_relation) else (changed_refs)
 
-        async with anyio.create_task_group() as tg:
-            if tags_changed or contains_relation:
-                # get full geometry
-                for typed_ref in prev_refs | next_refs:
-                    if typed_ref.type != ElementType.relation:
-                        tg.start_soon(update_geoms, typed_ref)
+        for typed_ref in (e.typed_ref for e in diff_refs):
+            if typed_ref.type == ElementType.relation:
+                continue
+
+            if elements := self.element_state.get(typed_ref):
+                bbox_info.add(elements[-1].point)
             else:
-                # get only changed geometry
-                for typed_ref in changed_refs:
-                    if typed_ref.type != ElementType.relation:
-                        tg.start_soon(update_geoms, typed_ref)
+                bbox_info.add(typed_ref)
 
-        return box(*unary_union(geoms).bounds) if geoms else None
+    async def _update_changeset_boundaries(self) -> None:
+        """
+        Update changeset boundaries using the bbox info.
+        """
+
+        async def update_changeset(changeset_id: int, bbox_info: set[WKBElement | TypedElementRef]) -> None:
+            wkbs = {wkb for wkb in bbox_info if isinstance(wkb, WKBElement)}
+            typed_refs = {ref for ref in bbox_info if isinstance(ref, TypedElementRef)}
+
+            for element in await ElementService.get_elements(typed_refs, recurse_ways=True, limit=None):
+                if element.point:
+                    wkbs.add(element.point)
+                elif element.type == ElementType.node:
+                    # log warning as this should not happen
+                    logging.warning('Node %r has no point', element.typed_id)
+
+            if wkbs:
+                union_boundary = unary_union(tuple(to_shape(wkb) for wkb in wkbs))
+                changeset = await self._get_changeset(changeset_id)
+                changeset.union_boundary(union_boundary)
+
+        # update changeset boundaries
+        async with anyio.create_task_group() as tg:
+            for changeset_id, bbox_info in self._changeset_bbox_info.items():
+                tg.start_soon(update_changeset, changeset_id, bbox_info)

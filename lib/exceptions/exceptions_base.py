@@ -156,6 +156,11 @@ class ExceptionsBase(ABC):
 
     @classmethod
     @abstractmethod
+    def diff_multiple_changesets(cls) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def diff_unsupported_action(cls, action: str) -> NoReturn:
         raise NotImplementedError
 

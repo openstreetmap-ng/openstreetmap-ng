@@ -8,7 +8,7 @@ from motor.core import AgnosticClientSession
 
 from db.transaction import Transaction, retry_transaction
 from lib.exceptions import raise_for
-from lib.optimistic.exceptions import OptimisticException
+from lib.optimistic.exceptions import OptimisticError
 from lib.optimistic.prepare import OptimisticPrepare
 from models.db.base_sequential import SequentialId
 from models.db.changeset import Changeset
@@ -41,11 +41,11 @@ class OptimisticApply(ABC):
             lock(OptimisticApply.__class__.__qualname__, ttl=_LOCK_TTL),
             Transaction() as session,
         ):
-            for typed_ref, elements in prepare.state.items():
+            for typed_ref, elements in prepare.element_state.items():
                 if typed_ref.typed_id > 0:
                     tg.start_soon(_check_element_latest, elements[0])  # check the oldest element
 
-            for typed_ref, (element, after) in prepare.reference_checks.items():
+            for typed_ref, (element, after) in prepare.reference_check_state.items():
                 tg.start_soon(_check_element_not_referenced, element, after)
 
             # check time integrity before updating
@@ -56,7 +56,7 @@ class OptimisticApply(ABC):
                 nonlocal old_ref_elements_map
                 old_ref_elements_map = await _update_elements(elements, session)
 
-            tg.start_soon(_update_changesets, prepare.changesets_next, session)
+            tg.start_soon(_update_changesets, prepare.changeset_state, session)
             tg.start_soon(update_elements_and_store_typed_ids)
 
         return old_ref_elements_map
@@ -75,7 +75,7 @@ async def _update_changesets(changesets_next: dict[SequentialId, Changeset], ses
 
     result = await Changeset._collection().bulk_write(batch, ordered=False, session=session)
     if result.modified_count != len(batch):
-        raise OptimisticException('Changeset was modified')
+        raise OptimisticError('Changeset was modified')
 
 
 async def _update_elements(
@@ -105,7 +105,7 @@ async def _update_elements(
 
     result = await Element._collection().bulk_write(batch, ordered=False, session=session)
     if result.inserted_count != len(batch):
-        raise OptimisticException('Element failed to create')
+        raise OptimisticError('Element failed to create')
 
     return old_ref_elements_map
 
@@ -121,7 +121,7 @@ async def _check_element_latest(element: Element) -> None:
     if not latest:
         raise RuntimeError(f'Element {element.typed_ref} does not exist')
     if latest.version != element.version:
-        raise OptimisticException(
+        raise OptimisticError(
             f'Element {element.typed_ref} is not the latest version ' f'{latest.version} != {element.version}'
         )
 
@@ -134,9 +134,7 @@ async def _check_element_not_referenced(element: Element, after: SequentialId | 
     """
 
     if referenced_by_elements := await element.get_referenced_by(after=after, limit=1):
-        raise OptimisticException(
-            f'Element {element.typed_ref} is referenced by ' f'{referenced_by_elements[0].typed_ref}'
-        )
+        raise OptimisticError(f'Element {element.typed_ref} is referenced by ' f'{referenced_by_elements[0].typed_ref}')
 
 
 async def _check_time_integrity() -> None:

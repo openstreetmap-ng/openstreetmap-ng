@@ -18,7 +18,7 @@ from models.db.note_comment import NoteComment
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
 from models.db.user import User
-from models.element_member import ElementMember
+from models.element_member import ElementMemberRef
 from models.element_type import ElementType
 from models.osmchange_action import OSMChangeAction
 from models.trace_visibility import TraceVisibility
@@ -86,7 +86,7 @@ class Format06:
         )
 
     @classmethod
-    def encode_nodes(cls, nodes: Sequence[ElementMember]) -> Sequence[dict] | Sequence[int]:
+    def encode_nodes(cls, nodes: Sequence[ElementMemberRef]) -> Sequence[dict] | Sequence[int]:
         """
         >>> cls.encode_nodes([
         ...     ElementMember(type=ElementType.node, typed_id=1, role=''),
@@ -101,9 +101,9 @@ class Format06:
             return tuple({'@ref': node.typed_id} for node in nodes)
 
     @classmethod
-    def decode_nodes(cls, nodes: Sequence[dict]) -> Sequence[ElementMember]:
+    def decode_nodes(cls, nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
         return tuple(
-            ElementMember(
+            ElementMemberRef(
                 type=ElementType.node,
                 typed_id=int(node['@ref']),
                 role='',
@@ -112,7 +112,7 @@ class Format06:
         )
 
     @classmethod
-    def encode_members(cls, members: Sequence[ElementMember]) -> Sequence[dict]:
+    def encode_members(cls, members: Sequence[ElementMemberRef]) -> Sequence[dict]:
         """
         >>> cls.encode_members([
         ...     ElementMember(type=ElementType.node, typed_id=1, role='a'),
@@ -134,9 +134,9 @@ class Format06:
         )
 
     @classmethod
-    def decode_members(cls, members: Sequence[dict]) -> Sequence[ElementMember]:
+    def decode_members(cls, members: Sequence[dict]) -> Sequence[ElementMemberRef]:
         return tuple(
-            ElementMember(
+            ElementMemberRef(
                 type=ElementType.from_str(member['@type']),
                 typed_id=int(member['@ref']),
                 role=member['@role'],

@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Any, Type
 
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
@@ -9,15 +8,13 @@ from pydantic_core import core_schema
 
 
 class BaseEnum(StrEnum):
-    '''
+    """
     Enum that is always serialized as a string.
-    '''
+    """
 
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: Type[Any], handler: GetCoreSchemaHandler
-    ) -> core_schema.CoreSchema:
+    def __get_pydantic_core_schema__(cls, source: type, handler: GetCoreSchemaHandler) -> core_schema.CoreSchema:
         return core_schema.is_instance_schema(
             StrEnum,
-            serialization=core_schema.to_string_ser_schema()
+            serialization=core_schema.to_string_ser_schema(),
         )

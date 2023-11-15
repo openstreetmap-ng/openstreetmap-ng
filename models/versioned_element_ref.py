@@ -6,14 +6,20 @@ from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 
 
+# TODO: expiring cache, never forever on instance
 class VersionedElementRef(TypedElementRef):
     version: int
 
-    @cached({})  # TODO: expiring cache, never forever on instance
-    def __hash__(self) -> int:
-        return hash((self.type, self.typed_id, self.version))
+    @property
+    def typed_ref(self) -> TypedElementRef:
+        return TypedElementRef(
+            type=self.type,
+            typed_id=self.typed_id,
+        )
 
-    @cached({})
+    def __hash__(self) -> int:
+        return hash((super().__hash__(), self.version))
+
     def __str__(self) -> str:
         """
         Produce a string representation of the versioned element reference.

@@ -13,7 +13,7 @@ class FileCache:
 
     async def _get_path(self, key: str) -> Path:
         if len(key) < 3:
-            raise RuntimeError('FileCache key must be at least 3 characters long')
+            raise ValueError('key must be at least 3 characters long')
 
         d1 = key[:1]
         d2 = key[1:3]

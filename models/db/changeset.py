@@ -3,6 +3,7 @@ from typing import Self, Sequence
 
 import anyio
 from geoalchemy2 import Geometry, WKBElement
+from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import DateTime, ForeignKey, Integer
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import SRID
 from geoutils import mapping_mongo
-from lib.auth import Auth
+from lib.auth import Auth, auth_user
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
@@ -31,47 +32,58 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    boundary: Mapped[WKBElement | None] = mapped_column(Geometry(geometry_type='POLYGON', srid=SRID), nullable=True, default=None)
+    boundary: Mapped[WKBElement | None] = mapped_column(
+        Geometry(geometry_type='POLYGON', srid=SRID), nullable=True, default=None
+    )
 
     # relationships (nested imports to avoid circular imports)
     from changeset_comment import ChangesetComment
     from changeset_subscription import ChangesetSubscription
     from element import Element
-    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(back_populates='changeset', order_by='asc(ChangesetComment.created_at)', lazy='raise')
+
+    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
+        back_populates='changeset', order_by='asc(ChangesetComment.created_at)', lazy='raise'
+    )
     changeset_subscription_users: Mapped[Sequence[User]] = relationship(secondary=ChangesetSubscription, lazy='raise')
-    elements: Mapped[Sequence[Element]] = relationship(back_populates='changeset', order_by='asc(Element.id)', lazy='raise')
+    elements: Mapped[Sequence[Element]] = relationship(
+        back_populates='changeset', order_by='asc(Element.id)', lazy='raise'
+    )
 
     # TODO: SQL
     @classmethod
     async def find_many_by_query_with_(
-            cls,
-            ids: Sequence[SequentialId] | None = None,
-            user_id: SequentialId | None = None,
-            time_closed_after: datetime | None = None,
-            time_created_before: datetime | None = None,
-            open: bool | None = None,
-            geometry: Polygon | None = None,
-            sort: dict | None = None,
-            limit: int | None = _DEFAULT_FIND_LIMIT) -> Sequence[Self]:
+        cls,
+        ids: Sequence[SequentialId] | None = None,
+        user_id: SequentialId | None = None,
+        time_closed_after: datetime | None = None,
+        time_created_before: datetime | None = None,
+        open: bool | None = None,
+        geometry: Polygon | None = None,
+        sort: dict | None = None,
+        limit: int | None = _DEFAULT_FIND_LIMIT,
+    ) -> Sequence[Self]:
         pipeline = [
             # find all the documents that match all the filters
-            {'$match': {
-                **({'_id': {'$in': ids}} if ids else {}),
-                **({'user_id': user_id} if user_id else {}),
-                **({'closed_at': {'$gte': time_closed_after}} if time_closed_after else {}),
-                **({'created_at': {'$lt': time_created_before}} if time_created_before else {}),
-                **({'closed_at': None} if open is True else {}),
-                **({'closed_at': {'$ne': None}} if open is False else {}),
-                **({'boundary': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}}} if geometry else {}),
-            }},
-
+            {
+                '$match': {
+                    **({'_id': {'$in': ids}} if ids else {}),
+                    **({'user_id': user_id} if user_id else {}),
+                    **({'closed_at': {'$gte': time_closed_after}} if time_closed_after else {}),
+                    **({'created_at': {'$lt': time_created_before}} if time_created_before else {}),
+                    **({'closed_at': None} if open is True else {}),
+                    **({'closed_at': {'$ne': None}} if open is False else {}),
+                    **({'boundary': {'$geoIntersects': {'$geometry': mapping_mongo(geometry)}}} if geometry else {}),
+                }
+            },
             # lookup comments count
-            {'$lookup': {
-                'from': ChangesetComment._collection_name(),
-                'localField': '_id',
-                'foreignField': 'changeset_id',
-                'as': 'comments_'
-            }},
+            {
+                '$lookup': {
+                    'from': ChangesetComment._collection_name(),
+                    'localField': '_id',
+                    'foreignField': 'changeset_id',
+                    'as': 'comments_',
+                }
+            },
             {'$set': {'comments_count_': {'$size': '$comments_'}}},
             {'$unset': 'comments_'},
         ]
@@ -87,12 +99,15 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         return result
 
     @classmethod
-    async def find_one_by_id_with_(cls,
-                                   changeset_id: SequentialId, *,
-                                   comment_sort: dict | None = None,
-                                   comment_limit: int | None = 0,
-                                   element_sort: dict | None = None,
-                                   element_limit: int | None = 0) -> Self | None:
+    async def find_one_by_id_with_(
+        cls,
+        changeset_id: SequentialId,
+        *,
+        comment_sort: dict | None = None,
+        comment_limit: int | None = 0,
+        element_sort: dict | None = None,
+        element_limit: int | None = 0,
+    ) -> Self | None:
         changeset: Changeset = None
         comments_count: NonNegativeInt = None
         comments: Sequence[ChangesetComment] | None = None
@@ -110,9 +125,9 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
             nonlocal comments
             nonlocal comments_count
             if comment_limit != 0:
-                comments = await ChangesetComment.find_many_by_changeset_id(changeset_id,
-                                                                            sort=comment_sort,
-                                                                            limit=comment_limit)
+                comments = await ChangesetComment.find_many_by_changeset_id(
+                    changeset_id, sort=comment_sort, limit=comment_limit
+                )
                 comments_count = len(comments)
             else:
                 comments_count = await ChangesetComment.count_by_changeset_id(changeset_id)
@@ -120,9 +135,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         async def assign_elements() -> None:
             if element_limit != 0:
                 nonlocal elements
-                elements = await Element.find_many_by_changeset_id(changeset_id,
-                                                                   sort=element_sort,
-                                                                   limit=element_limit)
+                elements = await Element.find_many_by_changeset_id(changeset_id, sort=element_sort, limit=element_limit)
 
         async with anyio.create_task_group() as tg:
             tg.start_soon(assign_changeset, tg.cancel_scope)
@@ -141,13 +154,26 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     def update_batch(self, filter_ex: dict | None = None) -> UpdateOne:
         return super().update_batch({'updated_at': self.updated_at, **(filter_ex or {})})
 
-    def update_size_without_save(self, n: int) -> bool:
+    def increase_size(self, n: int, *, now: datetime | None = None) -> bool:
+        """
+        Increase the changeset size by n.
+
+        Returns `True` if the size was increased.
+
+        The changeset is automatically closed when it reaches the max size.
+        """
+
+        if n < 0:
+            raise ValueError('n must be non-negative')
+        if now is None:
+            now = utcnow()
+
         new_size = self.size + n
-        max_size = Auth.user().changeset_max_size
+        max_size = auth_user().changeset_max_size
         if new_size == max_size:
             # automatically close the changeset if it reaches the max size
-            if not self.closed_at:
-                self.closed_at = utcnow()
+            if self.closed_at is None:
+                self.closed_at = now
             self.size = new_size
             return True
         elif new_size < max_size:
@@ -156,5 +182,10 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         else:
             return False
 
-    def update_boundary_without_save(self, geometry: BaseGeometry) -> None:
-        self.boundary = box(*(self.boundary.union(geometry).bounds if self.boundary else geometry.bounds))
+    def union_boundary(self, geometry: BaseGeometry) -> None:
+        if not self.boundary:
+            self.boundary = from_shape(box(*geometry.bounds))
+        else:
+            boundary_shape: BaseGeometry = to_shape(self.boundary)
+            boundary_shape = boundary_shape.union(geometry)
+            self.boundary = from_shape(box(*boundary_shape.bounds))
