@@ -3,9 +3,11 @@ from abc import ABC
 from hashlib import md5
 
 import aioboto3
+from anyio import Path
 from fastapi import status
 
 from config import FILE_DATA_DIR
+from lib.avatar import Avatar
 from lib.crypto import hash_urlsafe
 from lib.file_cache import FileCache
 from utils import HTTP
@@ -136,11 +138,15 @@ class GravatarStorage(Storage):
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
 
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            # TODO: return default image
-            raise NotImplementedError
+            return await Avatar.get_default_image()
 
         r.raise_for_status()
         data = r.content
+        data = Avatar.normalize_image(data)
 
         await self._fc.set(key, data)
         return data
+
+
+AVATAR_STORAGE = LocalStorage('avatar')
+GRAVATAR_STORAGE = GravatarStorage()

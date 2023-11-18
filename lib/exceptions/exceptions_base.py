@@ -81,6 +81,16 @@ class ExceptionsBase(ABC):
 
     @classmethod
     @abstractmethod
+    def avatar_not_found(cls, avatar_id: str) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def avatar_too_big(cls) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def user_not_found(cls, name_or_id: str | int) -> NoReturn:
         raise NotImplementedError
 

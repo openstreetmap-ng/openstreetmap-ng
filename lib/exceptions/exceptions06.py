@@ -22,27 +22,27 @@ from utils import format_iso_date
 class Exceptions06(ExceptionsBase):
     @classmethod
     def timeout(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
+        raise cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
 
     @classmethod
     def rate_limit(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests')
+        raise cls.APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests')
 
     @classmethod
     def time_integrity(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity check failed')
+        raise cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity check failed')
 
     @classmethod
     def bad_cursor(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Failed to parse database cursor')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Failed to parse database cursor')
 
     @classmethod
     def cursor_expired(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='The database cursor has expired')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='The database cursor has expired')
 
     @classmethod
     def unauthorized(cls, *, request_basic_auth: bool = False) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail="Couldn't authenticate you",
             headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap API"'} if request_basic_auth else None,
@@ -50,119 +50,127 @@ class Exceptions06(ExceptionsBase):
 
     @classmethod
     def insufficient_scopes(cls, scopes: Sequence[str]) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_403_FORBIDDEN,
             detail=f'The request requires higher privileges than authorized ({", ".join(scopes)})',
         )
 
     @classmethod
     def bad_basic_auth_format(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials')
 
     @classmethod
     def bad_geometry(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST)
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST)
 
     @classmethod
     def bad_geometry_coordinates(cls, _: float, __: float) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='The latitudes must be between -90 and 90, longitudes between -180 and 180 and the minima must be less than the maxima.',
         )
 
     @classmethod
     def bad_bbox(cls, _: str, __: str | None = None) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='The parameter bbox is required, and must be of the form min_lon,min_lat,max_lon,max_lat.',
         )
 
     @classmethod
     def bad_xml(cls, name: str, message: str, xml_input: str) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'Cannot parse valid {name} from xml string {xml_input}. {message}',
         )
 
     @classmethod
     def input_too_big(cls, size: int) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f'Request entity too large: {naturalsize(size, True)}',
         )
 
     @classmethod
+    def avatar_not_found(cls, avatar_id: str) -> NoReturn:
+        raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'Avatar {avatar_id!r} not found')
+
+    @classmethod
+    def avatar_too_big(cls) -> NoReturn:
+        raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Avatar is too big')
+
+    @classmethod
     def user_not_found(cls, name_or_id: str | int) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
 
     @classmethod
     def changeset_not_found(cls, changeset_id: int) -> NoReturn:
-        return cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'The changeset with the id {changeset_id} was not found')
+        raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'The changeset with the id {changeset_id} was not found')
 
     @classmethod
     def changeset_access_denied(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset")
+        raise cls.APIError(status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset")
 
     @classmethod
     def changeset_not_closed(cls, changeset_id: int) -> NoReturn:
-        return cls.APIError(status.HTTP_409_CONFLICT, detail=f'The changeset {changeset_id} is not yet closed')
+        raise cls.APIError(status.HTTP_409_CONFLICT, detail=f'The changeset {changeset_id} is not yet closed')
 
     @classmethod
     def changeset_already_closed(cls, changeset_id: int, closed_at: datetime) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_409_CONFLICT,
             detail=f'The changeset {changeset_id} was closed at {format_iso_date(closed_at)}',
         )
 
     @classmethod
     def changeset_not_subscribed(cls, changeset_id: int) -> NoReturn:
-        return cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'You are not subscribed to changeset {changeset_id}.')
+        raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'You are not subscribed to changeset {changeset_id}.')
 
     @classmethod
     def changeset_already_subscribed(cls, changeset_id: int) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_409_CONFLICT,
             detail=f'The user is already subscribed to changeset {changeset_id}',
         )
 
     @classmethod
     def changeset_too_big(cls, size: int) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Changeset size {size} is too big. Please split your changes into multiple changesets.',
         )
 
     @classmethod
     def changeset_comment_not_found(cls, comment_id: int) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_404_NOT_FOUND,
             detail=f'The changeset comment with the id {comment_id} was not found',
         )
 
     @classmethod
     def element_not_found(cls, element_ref: VersionedElementRef | TypedElementRef) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_404_NOT_FOUND,
             detail=f'The {element_ref.type} with the id {element_ref.typed_id} was not found',
         )
 
     @classmethod
     def element_already_deleted(cls, versioned_ref: VersionedElementRef) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Cannot delete an already deleted {versioned_ref.type} with id {versioned_ref.typed_id}.',
         )
 
     @classmethod
     def element_changeset_missing(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_409_CONFLICT,
             detail='You need to supply a changeset to be able to make a change',
         )
 
     @classmethod
     def element_version_conflict(cls, versioned_ref: VersionedElementRef, local_version: int) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_409_CONFLICT,
             detail=f'Version mismatch: Provided {versioned_ref.version - 1}, server had: {local_version} of {versioned_ref.type} {versioned_ref.typed_id}',
         )
@@ -220,14 +228,14 @@ class Exceptions06(ExceptionsBase):
 
     @classmethod
     def diff_multiple_changesets(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='Only one changeset can be modified at a time',
         )
 
     @classmethod
     def diff_unsupported_action(cls, action: str) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'Unknown action {action}, choices are create, modify, delete',
         )
@@ -266,131 +274,131 @@ class Exceptions06(ExceptionsBase):
 
     @classmethod
     def redact_latest_version(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='Cannot redact current version of element, only historical versions may be redacted',
         )
 
     @classmethod
     def oauth1_timestamp_out_of_range(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth timestamp out of range')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth timestamp out of range')
 
     @classmethod
     def oauth1_nonce_missing(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce missing')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce missing')
 
     @classmethod
     def oauth1_bad_nonce(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce invalid')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce invalid')
 
     @classmethod
     def oauth1_nonce_used(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth nonce already used')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth nonce already used')
 
     @classmethod
     def oauth1_bad_verifier(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth verifier invalid')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth verifier invalid')
 
     @classmethod
     def oauth1_unsupported_signature_method(cls, method: str) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'OAuth unsupported signature method {method!r}')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'OAuth unsupported signature method {method!r}')
 
     @classmethod
     def oauth1_bad_signature(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth signature invalid')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth signature invalid')
 
     @classmethod
     def oauth2_bearer_missing(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth2 bearer authorization header missing')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth2 bearer authorization header missing')
 
     @classmethod
     def oauth2_challenge_method_not_set(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='OAuth2 verifier provided but code challenge method is not set',
         )
 
     @classmethod
     def oauth2_bad_verifier(cls, code_challenge_method: OAuth2CodeChallengeMethod) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail=f'OAuth2 verifier invalid for {code_challenge_method.value} code challenge method',
         )
 
     @classmethod
     def oauth_bad_app_token(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid')
 
     @classmethod
     def oauth_bad_user_token(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth user token invalid')
+        raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth user token invalid')
 
     @classmethod
     def oauth_bad_redirect_uri(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth redirect uri invalid')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth redirect uri invalid')
 
     @classmethod
     def oauth_bad_scopes(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth scopes invalid')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth scopes invalid')
 
     @classmethod
     def map_query_area_too_big(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'The maximum bbox size is {MAP_QUERY_AREA_MAX_SIZE}, and your request was too large. Either request a smaller area, or use planet.osm',
         )
 
     @classmethod
     def map_query_nodes_limit_exceeded(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'You requested too many nodes (limit is {MAP_QUERY_LEGACY_NODES_LIMIT}). Either request a smaller area, or use planet.osm',
         )
 
     @classmethod
     def notes_query_area_too_big(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'The maximum bbox size is {NOTE_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
         )
 
     @classmethod
     def trace_points_query_area_too_big(cls) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'The maximum bbox size is {TRACE_POINT_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
         )
 
     @classmethod
     def trace_file_unsupported_format(cls, content_type: str) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Unsupported trace file format {content_type!r}')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Unsupported trace file format {content_type!r}')
 
     @classmethod
     def trace_file_archive_too_deep(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive is too deep')
+        raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive is too deep')
 
     @classmethod
     def trace_file_archive_corrupted(cls, content_type: str) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'Trace file archive failed to decompress {content_type!r}',
         )
 
     @classmethod
     def trace_file_archive_too_many_files(cls) -> NoReturn:
-        return cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive contains too many files')
+        raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive contains too many files')
 
     @classmethod
     def bad_trace_file(cls, message: str) -> NoReturn:
-        return cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}')
 
     @classmethod
     def note_closed(cls, note_id: int, closed_at: datetime) -> NoReturn:
-        return cls.APIError(
+        raise cls.APIError(
             status.HTTP_409_CONFLICT,
             detail=f'The note {note_id} was closed at {format_iso_date(closed_at)}',
         )
 
     @classmethod
     def note_open(cls, note_id: int) -> NoReturn:
-        return cls.APIError(status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open')
+        raise cls.APIError(status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open')

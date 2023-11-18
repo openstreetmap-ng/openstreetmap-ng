@@ -1,8 +1,11 @@
 import logging
+import string
 
 from anyio import Path
 
 from config import FILE_CACHE_DIR
+
+_FILE_WHITELIST_CHARS = set(string.ascii_letters + string.digits + '._-')
 
 
 class FileCache:
@@ -12,6 +15,9 @@ class FileCache:
         self._base_dir = cache_dir / context
 
     async def _get_path(self, key: str) -> Path:
+        if set(key) - _FILE_WHITELIST_CHARS:
+            raise ValueError('key contains invalid characters')
+
         if len(key) < 3:
             raise ValueError('key must be at least 3 characters long')
 
