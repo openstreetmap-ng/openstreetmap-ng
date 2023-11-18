@@ -239,7 +239,11 @@ class User(Base.NoID, CreatedAt):
         Get the url for the user's avatar image.
         """
 
-        return Avatar.get_url(self.avatar_type, self.avatar_id)
+        # when using gravatar, use user id as the avatar id
+        if self.avatar_type == UserAvatarType.gravatar:
+            return Avatar.get_url(self.avatar_type, self.id)
+        else:
+            return Avatar.get_url(self.avatar_type, self.avatar_id)
 
     description_rich = rich_text_getter('description', TextFormat.markdown)
 
