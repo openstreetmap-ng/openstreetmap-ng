@@ -1,5 +1,4 @@
 import logging
-from abc import ABC
 from collections.abc import Sequence
 from itertools import count, pairwise
 from math import isclose
@@ -12,7 +11,7 @@ from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
-from lib.storage import LocalStorage, Storage
+from lib.storage import TRACKS_STORAGE
 from lib.tracks.image import TracksImage
 from lib.tracks.processors import TRACE_FILE_PROCESSORS, ZstdFileProcessor
 from limits import TRACE_FILE_MAX_SIZE
@@ -22,9 +21,7 @@ from models.trace_visibility import TraceVisibility
 from models.validating.trace_ import TraceValidating
 
 
-class Tracks(ABC):
-    storage: Storage = LocalStorage('tracks')
-
+class Tracks:
     @classmethod
     async def process_upload(cls, file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
         """
@@ -89,15 +86,15 @@ class Tracks(ABC):
 
         async def save_file() -> None:
             nonlocal file_id
-            file_id = await cls.storage.save(compressed, compressed_suffix)
+            file_id = await TRACKS_STORAGE.save(compressed, compressed_suffix)
 
         async def save_image() -> None:
             nonlocal image_id
-            image_id = await cls.storage.save(image, TracksImage.image_suffix)
+            image_id = await TRACKS_STORAGE.save(image, TracksImage.image_suffix)
 
         async def save_icon() -> None:
             nonlocal icon_id
-            icon_id = await cls.storage.save(icon, TracksImage.icon_suffix)
+            icon_id = await TRACKS_STORAGE.save(icon, TracksImage.icon_suffix)
 
         # when all validation is done, save the files
         async with anyio.create_task_group() as tg:
@@ -116,7 +113,7 @@ class Tracks(ABC):
 
     @classmethod
     async def get_file(cls, file_id: str) -> bytes:
-        buffer = await cls.storage.load(file_id)
+        buffer = await TRACKS_STORAGE.load(file_id)
         return await _decompress_if_needed(buffer, file_id)
 
 
