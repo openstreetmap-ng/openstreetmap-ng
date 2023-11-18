@@ -5,8 +5,8 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
 
+from cython_lib.geoutils import parse_bbox
 from cython_lib.xmltodict import XMLToDict
-from geoutils import parse_bbox
 from lib.auth import api_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06

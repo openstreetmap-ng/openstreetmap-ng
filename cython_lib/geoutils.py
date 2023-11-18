@@ -1,6 +1,9 @@
 import cython
 from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon, box
+
+from lib.exceptions import raise_for
+from validators.geometry import validate_geometry
 
 
 @cython.cfunc
@@ -54,3 +57,34 @@ def haversine_distance(p1: Point, p2: Point) -> cython.double:
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return c * 6371000  # R
+
+
+def parse_bbox(s: str) -> Polygon:
+    """
+    Parse a bbox string.
+
+    Raises exception if the string is not a valid bbox format.
+
+    >>> parse_bbox('1,2,3,4')
+    POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
+    """
+
+    try:
+        parts = s.strip().split(',', maxsplit=3)
+        minx, miny, maxx, maxy = map(float, parts)
+    except Exception:
+        raise_for().bad_bbox(s)
+    if minx > maxx:
+        raise_for().bad_bbox(s, 'min longitude > max longitude')
+    if miny > maxy:
+        raise_for().bad_bbox(s, 'min latitude > max latitude')
+
+    # skip box() call for some extra performance
+    coords = (
+        (maxx, miny),
+        (maxx, maxy),
+        (minx, maxy),
+        (minx, miny),
+    )
+
+    return validate_geometry(Polygon(coords))

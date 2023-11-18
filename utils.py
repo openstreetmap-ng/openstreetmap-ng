@@ -12,7 +12,6 @@ import dateutil.parser
 import httpx
 
 from config import USER_AGENT
-from limits import NG_MIGRATION_DATE
 
 
 def _log_http_request(r: httpx.Request) -> None:
@@ -157,15 +156,3 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
-
-
-def is_migrated(date: datetime | None = None) -> bool:
-    """
-    Check if a date is after the migration to NextGen.
-
-    This method is used to determine whether to enforce new validation limits.
-    """
-
-    if not date:
-        date = utcnow()
-    return date > NG_MIGRATION_DATE

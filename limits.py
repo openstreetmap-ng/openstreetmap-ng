@@ -1,11 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from math import inf
 
 _KB = 1024
 _MB = 1024 * _KB
-
-# TODO: update on migration, enforces new limits
-NG_MIGRATION_DATE = datetime(2023, 1, 1)
 
 CHANGESET_OPEN_TIMEOUT = timedelta(days=1)
 CHANGESET_IDLE_TIMEOUT = timedelta(hours=1)

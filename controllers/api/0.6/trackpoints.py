@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from pydantic import NonNegativeInt
 
-from geoutils import parse_bbox
+from cython_lib.geoutils import parse_bbox
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
