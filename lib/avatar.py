@@ -5,7 +5,7 @@ class Avatar:
     @staticmethod
     def get_url(avatar_type: UserAvatarType, avatar_id: str | None) -> str:
         """
-        Get the URL for a user's avatar.
+        Get the url of the avatar image.
         """
 
         if avatar_type == UserAvatarType.default:

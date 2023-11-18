@@ -1,10 +1,11 @@
 from geoalchemy2 import Geometry, WKBElement
-from sqlalchemy import ForeignKey, LargeBinary, Sequence, Unicode, UnicodeText
+from sqlalchemy import ForeignKey, LargeBinary, Sequence, Unicode, UnicodeText, update
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
+from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText
+from lib.rich_text import RichText, rich_text_getter
 from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt
@@ -27,7 +28,10 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
     # relationships (nested imports to avoid circular imports)
     from diary_comment import DiaryComment
     from diary_subscription import DiarySubscription
-    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(back_populates='diary', order_by='asc(DiaryComment.created_at)', lazy='raise')
+
+    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(
+        back_populates='diary', order_by='asc(DiaryComment.created_at)', lazy='raise'
+    )
     diary_subscription_users: Mapped[Sequence[User]] = relationship(secondary=DiarySubscription, lazy='raise')
 
     @validates('body')
@@ -36,10 +40,4 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
             raise ValueError('Diary is too long')
         return value
 
-    # TODO: SQL
-    async def body_rich(self) -> str:
-        cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)
-        if self.body_rich_hash != cache.id:
-            self.body_rich_hash = cache.id
-            await self.update()
-        return cache.value
+    body_rich = rich_text_getter('body', TextFormat.markdown)

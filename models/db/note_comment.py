@@ -2,12 +2,13 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Self
 
 from pydantic import model_validator
-from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText, update
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText
+from lib.rich_text import RichText, rich_text_getter
 from limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
@@ -35,14 +36,9 @@ class NoteComment(Base.UUID, CreatedAt):
             raise ValueError('Comment is too long')
         return value
 
-    # TODO: SQL
-    async def body_rich(self) -> str:
-        cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.plain)
-        if self.body_rich_hash != cache.id:
-            self.body_rich_hash = cache.id
-            await self.update()  # TODO: only selected fields
-        return cache.value
+    body_rich = rich_text_getter('body', TextFormat.plain)
 
+    # TODO: SQL
     @model_validator(mode='after')
     def validate_user_id_user_ip(self) -> Self:
         # TODO: check if backwards compatible
@@ -58,5 +54,7 @@ class NoteComment(Base.UUID, CreatedAt):
         return super().model_dump()
 
     @classmethod
-    def find_many_by_note_id(cls, note_id: SequentialId, *, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT) -> list[Self]:
+    def find_many_by_note_id(
+        cls, note_id: SequentialId, *, sort: dict | None = None, limit: int | None = _DEFAULT_FIND_LIMIT
+    ) -> list[Self]:
         return cls.find_many({'note_id': note_id}, sort=sort, limit=limit)

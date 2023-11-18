@@ -5,11 +5,12 @@ from itertools import chain
 from typing import Self
 
 from bs4 import BeautifulSoup
-from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText, update
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText
+from lib.rich_text import RichText, rich_text_getter
 from limits import MESSAGE_BODY_MAX_LENGTH, MESSAGE_FROM_MAIL_DATE_VALIDITY
 from models.db.base import Base
 from models.db.created_at import CreatedAt
@@ -40,14 +41,10 @@ class Message(Base.Sequential, CreatedAt):
         return value
 
     # TODO: test text/plain; charset=utf-8
-    # TODO: SQL
-    async def body_rich(self) -> str:
-        cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)
-        if self.body_rich_hash != cache.id:
-            self.body_rich_hash = cache.id
-            await self.update()
-        return cache.value
 
+    body_rich = rich_text_getter('body', TextFormat.markdown)
+
+    # TODO: SQL
     @classmethod
     def from_email(cls, mail: EmailMessage, from_user_id: SequentialId, to_user_id: SequentialId) -> Self:
         if not (title := mail.get('Subject')):
@@ -87,7 +84,8 @@ class Message(Base.Sequential, CreatedAt):
             to_hidden=False,
             read=False,
             title=title,
-            body=body)
+            body=body,
+        )
 
     async def mark_read(self) -> None:
         if not self.is_read:

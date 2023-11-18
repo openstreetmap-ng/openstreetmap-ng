@@ -21,19 +21,21 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     UniqueConstraint,
+    update,
 )
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import DEFAULT_LANGUAGE, SECRET, SRID
+from db import DB
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
 from lib.exceptions import raise_for
-from lib.languages import LanguageInfo, get_language_info, normalize_language_case
+from lib.languages import get_language_info, normalize_language_case
 from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
 from lib.password_hash import PasswordHash
-from lib.rich_text import RichText
+from lib.rich_text import RichText, rich_text_getter
 from limits import (
     FAST_PASSWORD_CACHE_EXPIRE,
     LANGUAGE_CODE_MAX_LENGTH,
@@ -46,6 +48,7 @@ from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth1_nonce import OAuth1Nonce
 from models.db.user_token_session import UserTokenSession
+from models.language_info import LanguageInfo
 from models.scope import Scope
 from models.text_format import TextFormat
 from models.user_avatar_type import UserAvatarType
@@ -161,23 +164,31 @@ class User(Base.NoID, CreatedAt):
     )
 
     @validates('languages')
-    def validate_languages(self, key: str, value: Sequence[str]):
+    def validate_languages(self, _: str, value: Sequence[str]):
         if len(value) > USER_LANGUAGES_LIMIT:
             raise ValueError('Too many languages')
         return value
 
     @validates('description')
-    def validate_description(self, key: str, value: str):
+    def validate_description(self, _: str, value: str):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
             raise ValueError('Description is too long')
         return value
 
     @property
     def is_administrator(self) -> bool:
+        """
+        Check if the user is an administrator.
+        """
+
         return UserRole.administrator in self.roles
 
     @property
     def is_moderator(self) -> bool:
+        """
+        Check if the user is a moderator.
+        """
+
         return UserRole.moderator in self.roles or self.is_administrator
 
     @property
@@ -194,31 +205,45 @@ class User(Base.NoID, CreatedAt):
 
     @property
     def preferred_diary_language(self) -> LanguageInfo:
+        """
+        Get the user's preferred diary language.
+        """
+
+        # return the first valid language
         for code in self.languages:
             if lang := get_language_info(code):
                 return lang
+
+        # fallback to default
         return get_language_info(DEFAULT_LANGUAGE)
 
     @property
     def changeset_max_size(self) -> int:
+        """
+        Get the maximum changeset size for this user.
+        """
+
         return UserRole.get_changeset_max_size(self.roles)
 
     @property
     def password_hasher(self) -> PasswordHasher:
+        """
+        Get the password hasher for this user.
+        """
+
         return UserRole.get_password_hasher(self.roles)
 
     @property
     def avatar_url(self) -> str:
+        """
+        Get the url for the user's avatar image.
+        """
+
         return Avatar.get_url(self.avatar_type, self.avatar_id)
 
-    # TODO: SQL
-    async def description_rich(self) -> str:
-        cache = await RichText.get_cache(self.description, self.description_rich_hash, TextFormat.markdown)
-        if self.description_rich_hash != cache.id:
-            self.description_rich_hash = cache.id
-            await self.update()
-        return cache.value
+    description_rich = rich_text_getter('description', TextFormat.markdown)
 
+    # TODO: SQL
     @classmethod
     async def authenticate(cls, email_or_username: str, password: str, *, basic_request: Request | None) -> Self | None:
         """
