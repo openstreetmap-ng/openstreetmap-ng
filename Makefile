@@ -1,14 +1,11 @@
 .PHONY: setup clean update version load-osm locale-compile dev-start dev-stop dev-logs zstd-tracks-download zstd-tracks
 
 setup:
-	# compile protobuf
-	protoc --proto_path=proto --python_betterproto_out=proto proto/*.proto
 	# compile cython
 	pipenv run python setup.py build_ext --build-lib cython_lib
 	rm -rf cython_lib/*.c
 
 clean:
-	rm -rf proto/*_pb2.py
 	rm -rf build/ cython_lib/*{.c,.so,.html}
 
 update:
