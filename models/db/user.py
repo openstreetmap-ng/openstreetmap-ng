@@ -21,13 +21,11 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     UniqueConstraint,
-    update,
 )
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import DEFAULT_LANGUAGE, SECRET, SRID
-from db import DB
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
 from lib.exceptions import raise_for
@@ -35,7 +33,7 @@ from lib.languages import get_language_info, normalize_language_case
 from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
 from lib.password_hash import PasswordHash
-from lib.rich_text import RichText, rich_text_getter
+from lib.rich_text import rich_text_getter
 from limits import (
     FAST_PASSWORD_CACHE_EXPIRE,
     LANGUAGE_CODE_MAX_LENGTH,
@@ -107,13 +105,19 @@ class User(Base.NoID, CreatedAt):
     from user_block import UserBlock
 
     changesets: Mapped[Sequence[Changeset]] = relationship(
-        back_populates='user', order_by='desc(Changeset.id)', lazy='raise'
+        back_populates='user',
+        order_by='desc(Changeset.id)',
+        lazy='raise',
     )
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
-        back_populates='user', order_by='desc(ChangesetComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(ChangesetComment.created_at)',
+        lazy='raise',
     )
     diary_comments: Mapped[Sequence[DiaryComment]] = relationship(
-        back_populates='user', order_by='desc(DiaryComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(DiaryComment.created_at)',
+        lazy='raise',
     )
     friendship_sent: Mapped[Sequence['User']] = relationship(
         back_populates='friendship_received',
@@ -130,32 +134,54 @@ class User(Base.NoID, CreatedAt):
         lazy='raise',
     )
     messages_sent: Mapped[Sequence[Message]] = relationship(
-        back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise'
+        back_populates='from_user',
+        order_by='desc(Message.created_at)',
+        lazy='raise',
     )
     messages_received: Mapped[Sequence[Message]] = relationship(
-        back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise'
+        back_populates='to_user',
+        order_by='desc(Message.created_at)',
+        lazy='raise',
     )
     note_comments: Mapped[Sequence[NoteComment]] = relationship(
-        back_populates='user', order_by='desc(NoteComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(NoteComment.created_at)',
+        lazy='raise',
     )
     oauth1_applications: Mapped[Sequence[OAuth1Application]] = relationship(
-        back_populates='user', order_by='asc(OAuth1Application.id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth1Application.id)',
+        lazy='raise',
     )
     oauth1_tokens: Mapped[Sequence[OAuth1Token]] = relationship(
-        back_populates='user', order_by='asc(OAuth1Token.application_id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth1Token.application_id)',
+        lazy='raise',
     )
     oauth2_applications: Mapped[Sequence[OAuth2Application]] = relationship(
-        back_populates='user', order_by='asc(OAuth2Application.id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth2Application.id)',
+        lazy='raise',
     )
     oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(
-        back_populates='user', order_by='asc(OAuth2Token.application_id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth2Token.application_id)',
+        lazy='raise',
     )
-    traces: Mapped[Sequence[Trace]] = relationship(back_populates='user', order_by='desc(Trace.id)', lazy='raise')
+    traces: Mapped[Sequence[Trace]] = relationship(
+        back_populates='user',
+        order_by='desc(Trace.id)',
+        lazy='raise',
+    )
     user_blocks_given: Mapped[Sequence[UserBlock]] = relationship(
-        back_populates='from_user', order_by='desc(UserBlock.id)', lazy='raise'
+        back_populates='from_user',
+        order_by='desc(UserBlock.id)',
+        lazy='raise',
     )
     user_blocks_received: Mapped[Sequence[UserBlock]] = relationship(
-        back_populates='to_user', order_by='desc(UserBlock.id)', lazy='raise'
+        back_populates='to_user',
+        order_by='desc(UserBlock.id)',
+        lazy='raise',
     )
 
     __table_args__ = (

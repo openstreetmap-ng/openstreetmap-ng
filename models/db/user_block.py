@@ -1,12 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func, update
+from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText, rich_text_getter
+from lib.rich_text import rich_text_getter
 from limits import USER_BLOCK_BODY_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt

@@ -1,12 +1,11 @@
 from collections.abc import Sequence
 from typing import Self
 
-from sqlalchemy import ForeignKey, LargeBinary, UnicodeText, update
+from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText, rich_text_getter
+from lib.rich_text import rich_text_getter
 from limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset

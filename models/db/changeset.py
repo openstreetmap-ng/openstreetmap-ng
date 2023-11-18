@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Self, Sequence
+from typing import Self
 
 import anyio
 from geoalchemy2 import Geometry, WKBElement
@@ -11,8 +12,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import SRID
-from geoutils import mapping_mongo
-from lib.auth import Auth, auth_user
+from lib.auth import auth_user
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
@@ -42,11 +42,18 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     from element import Element
 
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
-        back_populates='changeset', order_by='asc(ChangesetComment.created_at)', lazy='raise'
+        back_populates='changeset',
+        order_by='asc(ChangesetComment.created_at)',
+        lazy='raise',
     )
-    changeset_subscription_users: Mapped[Sequence[User]] = relationship(secondary=ChangesetSubscription, lazy='raise')
+    changeset_subscription_users: Mapped[Sequence[User]] = relationship(
+        secondary=ChangesetSubscription,
+        lazy='raise',
+    )
     elements: Mapped[Sequence[Element]] = relationship(
-        back_populates='changeset', order_by='asc(Element.id)', lazy='raise'
+        back_populates='changeset',
+        order_by='asc(Element.id)',
+        lazy='raise',
     )
 
     # TODO: SQL

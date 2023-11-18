@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Sequence
+from collections.abc import Sequence
 
 from sqlalchemy import ARRAY, Unicode
 from sqlalchemy.orm import Mapped, mapped_column

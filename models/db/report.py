@@ -1,9 +1,8 @@
-from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText, update
+from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db import DB
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText, rich_text_getter
+from lib.rich_text import rich_text_getter
 from limits import REPORT_BODY_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt

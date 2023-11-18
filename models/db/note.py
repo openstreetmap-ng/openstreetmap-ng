@@ -8,8 +8,6 @@ from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import SRID
-from db.transaction import Transaction, retry_transaction
-from geoutils import mapping_mongo
 from lib.auth import Auth
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from models.cursor import Cursor

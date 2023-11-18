@@ -13,6 +13,7 @@ from models.scope import Scope
 # TODO: cascading delete
 # TODO: move validation logic
 
+
 class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'oauth2_application'
 
@@ -27,7 +28,11 @@ class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
 
     # relationships (nested imports to avoid circular imports)
     from oauth2_token import OAuth2Token
-    oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(back_populates='application', lazy='raise')
+
+    oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(
+        back_populates='application',
+        lazy='raise',
+    )
 
     @updating_cached_property('client_secret_encrypted')
     def client_secret(self) -> str:

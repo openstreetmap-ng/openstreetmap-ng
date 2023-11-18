@@ -6,7 +6,6 @@ from geoalchemy2 import Geometry, WKBElement
 from sqlalchemy import DateTime, ForeignKey, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from geoutils import mapping_mongo
 from models.cursor import Cursor
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.trace_ import Trace
