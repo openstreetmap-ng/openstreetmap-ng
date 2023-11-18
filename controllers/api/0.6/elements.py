@@ -172,7 +172,7 @@ async def elements_read_many(
 
     query = (q.strip() for q in query.split(','))
     query = tuple(
-        VersionedElementRef.from_typed_str(type, q) if 'v' in q else TypedElementRef(type=type, typed_id=int(q))
+        VersionedElementRef.from_type_str(type, q) if 'v' in q else TypedElementRef(type=type, typed_id=int(q))
         for q in query
         if q
     )

@@ -1,11 +1,11 @@
 import logging
+from collections.abc import Sequence
 from datetime import datetime
 from hmac import compare_digest
 from ipaddress import IPv4Address, IPv6Address
-from typing import Self, Sequence
+from typing import Self
 
 from argon2 import PasswordHasher
-from asyncache import cached
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 from geoalchemy2 import Geometry, WKBElement
@@ -29,11 +29,11 @@ from config import DEFAULT_LANGUAGE, SECRET, SRID
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
 from lib.exceptions import raise_for
-from lib.languages import LanguageInfo, get_language_info, normalize_language_case
+from lib.languages import get_language_info, normalize_language_case
 from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
 from lib.password_hash import PasswordHash
-from lib.rich_text import RichText
+from lib.rich_text import rich_text_getter
 from limits import (
     FAST_PASSWORD_CACHE_EXPIRE,
     LANGUAGE_CODE_MAX_LENGTH,
@@ -46,6 +46,7 @@ from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth1_nonce import OAuth1Nonce
 from models.db.user_token_session import UserTokenSession
+from models.language_info import LanguageInfo
 from models.scope import Scope
 from models.text_format import TextFormat
 from models.user_avatar_type import UserAvatarType
@@ -104,13 +105,19 @@ class User(Base.NoID, CreatedAt):
     from user_block import UserBlock
 
     changesets: Mapped[Sequence[Changeset]] = relationship(
-        back_populates='user', order_by='desc(Changeset.id)', lazy='raise'
+        back_populates='user',
+        order_by='desc(Changeset.id)',
+        lazy='raise',
     )
     changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
-        back_populates='user', order_by='desc(ChangesetComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(ChangesetComment.created_at)',
+        lazy='raise',
     )
     diary_comments: Mapped[Sequence[DiaryComment]] = relationship(
-        back_populates='user', order_by='desc(DiaryComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(DiaryComment.created_at)',
+        lazy='raise',
     )
     friendship_sent: Mapped[Sequence['User']] = relationship(
         back_populates='friendship_received',
@@ -127,32 +134,54 @@ class User(Base.NoID, CreatedAt):
         lazy='raise',
     )
     messages_sent: Mapped[Sequence[Message]] = relationship(
-        back_populates='from_user', order_by='desc(Message.created_at)', lazy='raise'
+        back_populates='from_user',
+        order_by='desc(Message.created_at)',
+        lazy='raise',
     )
     messages_received: Mapped[Sequence[Message]] = relationship(
-        back_populates='to_user', order_by='desc(Message.created_at)', lazy='raise'
+        back_populates='to_user',
+        order_by='desc(Message.created_at)',
+        lazy='raise',
     )
     note_comments: Mapped[Sequence[NoteComment]] = relationship(
-        back_populates='user', order_by='desc(NoteComment.created_at)', lazy='raise'
+        back_populates='user',
+        order_by='desc(NoteComment.created_at)',
+        lazy='raise',
     )
     oauth1_applications: Mapped[Sequence[OAuth1Application]] = relationship(
-        back_populates='user', order_by='asc(OAuth1Application.id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth1Application.id)',
+        lazy='raise',
     )
     oauth1_tokens: Mapped[Sequence[OAuth1Token]] = relationship(
-        back_populates='user', order_by='asc(OAuth1Token.application_id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth1Token.application_id)',
+        lazy='raise',
     )
     oauth2_applications: Mapped[Sequence[OAuth2Application]] = relationship(
-        back_populates='user', order_by='asc(OAuth2Application.id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth2Application.id)',
+        lazy='raise',
     )
     oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(
-        back_populates='user', order_by='asc(OAuth2Token.application_id)', lazy='raise'
+        back_populates='user',
+        order_by='asc(OAuth2Token.application_id)',
+        lazy='raise',
     )
-    traces: Mapped[Sequence[Trace]] = relationship(back_populates='user', order_by='desc(Trace.id)', lazy='raise')
+    traces: Mapped[Sequence[Trace]] = relationship(
+        back_populates='user',
+        order_by='desc(Trace.id)',
+        lazy='raise',
+    )
     user_blocks_given: Mapped[Sequence[UserBlock]] = relationship(
-        back_populates='from_user', order_by='desc(UserBlock.id)', lazy='raise'
+        back_populates='from_user',
+        order_by='desc(UserBlock.id)',
+        lazy='raise',
     )
     user_blocks_received: Mapped[Sequence[UserBlock]] = relationship(
-        back_populates='to_user', order_by='desc(UserBlock.id)', lazy='raise'
+        back_populates='to_user',
+        order_by='desc(UserBlock.id)',
+        lazy='raise',
     )
 
     __table_args__ = (
@@ -161,23 +190,31 @@ class User(Base.NoID, CreatedAt):
     )
 
     @validates('languages')
-    def validate_languages(self, key: str, value: Sequence[str]):
+    def validate_languages(self, _: str, value: Sequence[str]):
         if len(value) > USER_LANGUAGES_LIMIT:
             raise ValueError('Too many languages')
         return value
 
     @validates('description')
-    def validate_description(self, key: str, value: str):
+    def validate_description(self, _: str, value: str):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
             raise ValueError('Description is too long')
         return value
 
     @property
     def is_administrator(self) -> bool:
+        """
+        Check if the user is an administrator.
+        """
+
         return UserRole.administrator in self.roles
 
     @property
     def is_moderator(self) -> bool:
+        """
+        Check if the user is a moderator.
+        """
+
         return UserRole.moderator in self.roles or self.is_administrator
 
     @property
@@ -194,32 +231,49 @@ class User(Base.NoID, CreatedAt):
 
     @property
     def preferred_diary_language(self) -> LanguageInfo:
+        """
+        Get the user's preferred diary language.
+        """
+
+        # return the first valid language
         for code in self.languages:
             if lang := get_language_info(code):
                 return lang
+
+        # fallback to default
         return get_language_info(DEFAULT_LANGUAGE)
 
     @property
     def changeset_max_size(self) -> int:
+        """
+        Get the maximum changeset size for this user.
+        """
+
         return UserRole.get_changeset_max_size(self.roles)
 
     @property
     def password_hasher(self) -> PasswordHasher:
+        """
+        Get the password hasher for this user.
+        """
+
         return UserRole.get_password_hasher(self.roles)
 
     @property
     def avatar_url(self) -> str:
-        return Avatar.get_url(self.avatar_type, self.avatar_id)
+        """
+        Get the url for the user's avatar image.
+        """
+
+        # when using gravatar, use user id as the avatar id
+        if self.avatar_type == UserAvatarType.gravatar:
+            return Avatar.get_url(self.avatar_type, self.id)
+        else:
+            return Avatar.get_url(self.avatar_type, self.avatar_id)
+
+    description_rich = rich_text_getter('description', TextFormat.markdown)
 
     # TODO: SQL
-    @cached({})
-    async def description_rich(self) -> str:
-        cache = await RichText.get_cache(self.description, self.description_rich_hash, TextFormat.markdown)
-        if self.description_rich_hash != cache.id:
-            self.description_rich_hash = cache.id
-            await self.update()
-        return cache.value
-
     @classmethod
     async def authenticate(cls, email_or_username: str, password: str, *, basic_request: Request | None) -> Self | None:
         """

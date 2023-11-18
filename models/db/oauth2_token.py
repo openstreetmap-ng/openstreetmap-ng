@@ -1,11 +1,12 @@
 import logging
 import secrets
 from base64 import urlsafe_b64encode
+from collections.abc import Sequence
 from datetime import datetime
 from hashlib import sha256
-from typing import Self, Sequence
+from typing import Self
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence, Unicode
+from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE, hash_hex

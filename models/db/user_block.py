@@ -1,13 +1,11 @@
 from datetime import datetime
 
-from asyncache import cached
-from sqlalchemy import (Boolean, ColumnElement, DateTime, ForeignKey,
-                        LargeBinary, UnicodeText, and_, func)
+from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.cache import CACHE_HASH_SIZE
-from lib.rich_text import RichText
+from lib.rich_text import rich_text_getter
 from limits import USER_BLOCK_BODY_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt
@@ -21,7 +19,9 @@ class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'user_block'
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(back_populates='user_blocks_given', foreign_keys=[from_user_id], lazy='raise')
+    from_user: Mapped[User] = relationship(
+        back_populates='user_blocks_given', foreign_keys=[from_user_id], lazy='raise'
+    )
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     to_user: Mapped[User] = relationship(back_populates='user_blocks_received', foreign_keys=[to_user_id], lazy='raise')
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -35,33 +35,22 @@ class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
     revoked_user: Mapped[User | None] = relationship(foreign_keys=[revoked_user_id], lazy='raise')
 
     @validates('body')
-    def validate_body(cls, key: str, value: str) -> str:
+    def validate_body(self, _: str, value: str) -> str:
         if len(value) > USER_BLOCK_BODY_MAX_LENGTH:
             raise ValueError('Comment is too long')
         return value
 
     @hybrid_property
     def expired(self) -> bool:
-        return (
-            self.expires_at and
-            self.expires_at < utcnow() and
-            self.acknowledged
-        )
+        return self.expires_at and self.expires_at < utcnow() and self.acknowledged
 
     @expired.inplace.expression
     @classmethod
     def _expired_expression(cls) -> ColumnElement[bool]:
         return and_(
-            cls.expires_at != None,
+            cls.expires_at != None,  # noqa: E711
             cls.expires_at < func.now(),
-            cls.acknowledged == True,
+            cls.acknowledged == True,  # noqa: E712
         )
 
-    # TODO: SQL
-    @cached({})
-    async def body_rich(self) -> str:
-        cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)
-        if self.body_rich_hash != cache.id:
-            self.body_rich_hash = cache.id
-            await self.update()
-        return cache.value
+    body_rich = rich_text_getter('body', TextFormat.markdown)

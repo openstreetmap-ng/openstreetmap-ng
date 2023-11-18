@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
 from lib.exceptions import raise_for
+from lib.updating_cached_property import updating_cached_property
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset
@@ -21,14 +22,11 @@ from models.element_member import ElementMemberRef, ElementMemberRefType
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
-from utils import updating_cached_property, utcnow
+from utils import utcnow
 
 
 class Element(Base.Sequential, CreatedAt, ABC):
     __tablename__ = 'element'
-    # node_id_seq = Sequence('node_id_seq', metadata=Base.Sequential.metadata)
-    # way_id_seq = Sequence('way_id_seq', metadata=Base.Sequential.metadata)
-    # relation_id_seq = Sequence('relation_id_seq', metadata=Base.Sequential.metadata)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='raise')
@@ -43,14 +41,6 @@ class Element(Base.Sequential, CreatedAt, ABC):
         Geometry(geometry_type='POINT', srid=SRID), nullable=True
     )  # TODO: indexes, spatial_index
     members: Mapped[Sequence[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
-
-    # BAD IDEA: sequences are not affected by transactions, just check latest id in table lock
-    # https://docs.sqlalchemy.org/en/20/core/defaults.html#client-invoked-sql-expressions
-    # typed_id: Mapped[int] = mapped_column(BigInteger, nullable=False, default=select(case({
-    #     ElementType.node.value: node_id_seq.next_value(),
-    #     ElementType.way.value: way_id_seq.next_value(),
-    #     ElementType.relation.value: relation_id_seq.next_value(),
-    # }, value=type)))
 
     # defaults
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
@@ -67,15 +57,15 @@ class Element(Base.Sequential, CreatedAt, ABC):
             raise ValueError('members typed_id must be positive')
         return value
 
-    # TODO: SQL
-    @updating_cached_property(lambda self: self.typed_id)
+    @updating_cached_property('typed_id')
     def typed_ref(self) -> TypedElementRef:
         return TypedElementRef(type=self.type, typed_id=self.typed_id)
 
-    @updating_cached_property(lambda self: self.typed_id)
+    @updating_cached_property('typed_id')
     def versioned_ref(self) -> VersionedElementRef:
         return VersionedElementRef(type=self.type, typed_id=self.typed_id, version=self.version)
 
+    # TODO: SQL
     @classmethod
     async def get_next_typed_sequence(cls, n: int, session: AgnosticClientSession | None) -> Sequence[SequentialId]:
         return await get_next_sequence(f'{cls._collection_name()}_{cls.type.value}', n, session)

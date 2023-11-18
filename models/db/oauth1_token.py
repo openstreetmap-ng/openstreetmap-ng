@@ -27,9 +27,8 @@ class OAuth1Token(Base.UUID, CreatedAt):
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id), nullable=False)
     application: Mapped[OAuth1Application] = relationship(back_populates='oauth1_tokens', lazy='raise')
     key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
-    key_secret: Mapped[bytes] = mapped_column(
-        LargeBinary(40), nullable=False
-    )  # encryption here is redundant, key is already hashed
+    # key_secret encryption is redundant, key is already hashed
+    key_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)
     scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)

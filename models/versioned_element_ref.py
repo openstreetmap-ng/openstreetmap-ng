@@ -1,7 +1,5 @@
 from typing import Self
 
-from cachetools import cached
-
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 
@@ -51,11 +49,11 @@ class VersionedElementRef(TypedElementRef):
         return cls(type, typed_id, version)
 
     @classmethod
-    def from_typed_str(cls, type: ElementType, s: str) -> Self:
+    def from_type_str(cls, type: ElementType, s: str) -> Self:
         """
         Parse a versioned element reference from a string.
 
-        >>> VersionedElementRef.from_typed_str(ElementType.node, '123v1')
+        >>> VersionedElementRef.from_type_str(ElementType.node, '123v1')
         VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
         """
 

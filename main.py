@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.staticfiles import StaticFiles
 
 from config import HTTPS_ONLY, NAME, SECRET
 from middlewares.auth_middleware import AuthMiddleware
@@ -25,3 +26,5 @@ app.add_middleware(
 )
 app.add_middleware(AuthMiddleware)
 app.add_middleware(LanguageMiddleware)
+
+app.mount('/static', StaticFiles(directory='static'), name='static')

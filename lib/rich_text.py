@@ -1,10 +1,13 @@
 import logging
+from collections.abc import Awaitable, Callable
 from html import escape
 from types import MappingProxyType
 
 import bleach
 from markdown_it import MarkdownIt
+from sqlalchemy import update
 
+from db import DB
 from lib.cache import Cache
 from models.db.cache_entry import CacheEntry
 from models.text_format import TextFormat
@@ -184,6 +187,10 @@ class RichText:
     async def get_cache(text: str, cache_id: bytes | None, text_format: TextFormat) -> CacheEntry:
         """
         Get a rich text cache entry by text and format.
+
+        Generate one if not found.
+
+        If `cache_id` is given, it will be used to accelerate cache lookup.
         """
 
         async def factory() -> str:
@@ -194,3 +201,42 @@ class RichText:
             return await Cache.get_one_by_id(cache_id, factory)
         else:
             return await Cache.get_one_by_key(text, _cache_context(text_format), factory)
+
+
+def rich_text_getter(
+    field_name: str,
+    text_format: TextFormat,
+    *,
+    rich_hash_suffix: str = '_rich_hash',
+) -> Callable[[object], Awaitable[str]]:
+    """
+    Create a rich text getter for a field.
+    """
+
+    rich_hash_field_name = field_name + rich_hash_suffix
+
+    async def getter(instance) -> str:
+        """
+        Get the rich text, and update the cache if needed.
+        """
+
+        text: str = getattr(instance, field_name)
+        text_rich_hash: bytes | None = getattr(instance, rich_hash_field_name)
+
+        cache = await RichText.get_cache(text, text_rich_hash, text_format)
+
+        if text_rich_hash != cache.id:
+            async with DB() as session:
+                cls = type(instance)
+                stmt = (
+                    update(cls)
+                    .where(cls.id == instance.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
+                    .values({rich_hash_field_name: cache.id})
+                )
+                await session.execute(stmt)
+
+            setattr(instance, rich_hash_field_name, cache.id)
+
+        return cache.value
+
+    return getter

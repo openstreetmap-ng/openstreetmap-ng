@@ -1,13 +1,10 @@
-import functools
 import logging
 import math
 import random
 import time
 import unicodedata
-from collections.abc import Callable
 from datetime import datetime, timedelta
 from itertools import count
-from typing import Any, Self
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import anyio
@@ -15,7 +12,6 @@ import dateutil.parser
 import httpx
 
 from config import USER_AGENT
-from limits import NG_MIGRATION_DATE
 
 
 def _log_http_request(r: httpx.Request) -> None:
@@ -123,33 +119,6 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 1, sleep_limit: floa
     return decorator
 
 
-def updating_cached_property(compare: Callable[[Self], Any]) -> property:
-    """
-    A decorator to cache the result of a property with an auto-update condition.
-
-    If compare returns a modified value, the property is re-evaluated.
-    """
-
-    # TODO: this is bad: singleton for all instances
-    def decorator(func):
-        cache = None
-        compare_val = None
-
-        @property
-        @functools.wraps(func)
-        def wrapper(self):
-            nonlocal cache, compare_val
-            new_compare_val = compare(self)
-            if cache is None or compare_val != new_compare_val:
-                cache = func(self)
-                compare_val = new_compare_val
-            return cache
-
-        return wrapper
-
-    return decorator
-
-
 def extend_query_params(uri: str, params: dict) -> str:
     """
     Extend the query parameters of a URI.
@@ -187,15 +156,3 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
-
-
-def is_migrated(date: datetime | None = None) -> bool:
-    """
-    Check if a date is after the migration to NextGen.
-
-    This method is used to determine whether to enforce new validation limits.
-    """
-
-    if not date:
-        date = utcnow()
-    return date > NG_MIGRATION_DATE

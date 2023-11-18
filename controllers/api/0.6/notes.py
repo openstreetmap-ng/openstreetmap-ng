@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
-from geoutils import parse_bbox
+from cython_lib.geoutils import parse_bbox
 from lib.auth import api_user, auth_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
