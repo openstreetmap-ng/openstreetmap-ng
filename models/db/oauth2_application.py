@@ -2,13 +2,13 @@ from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Sequence, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import decrypt_b
+from lib.updating_cached_property import updating_cached_property
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
 from models.oauth2_application_type import OAuth2ApplicationType
 from models.scope import Scope
-from utils import updating_cached_property
 
 # TODO: cascading delete
 # TODO: move validation logic
@@ -29,6 +29,6 @@ class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
     from oauth2_token import OAuth2Token
     oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(back_populates='application', lazy='raise')
 
-    @updating_cached_property(lambda self: self.client_secret_encrypted)
+    @updating_cached_property('client_secret_encrypted')
     def client_secret(self) -> str:
         return decrypt_b(self.client_secret_encrypted)

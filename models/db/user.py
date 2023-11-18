@@ -1,11 +1,11 @@
 import logging
+from collections.abc import Sequence
 from datetime import datetime
 from hmac import compare_digest
 from ipaddress import IPv4Address, IPv6Address
-from typing import Self, Sequence
+from typing import Self
 
 from argon2 import PasswordHasher
-from asyncache import cached
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 from geoalchemy2 import Geometry, WKBElement
@@ -212,7 +212,6 @@ class User(Base.NoID, CreatedAt):
         return Avatar.get_url(self.avatar_type, self.avatar_id)
 
     # TODO: SQL
-    @cached({})
     async def description_rich(self) -> str:
         cache = await RichText.get_cache(self.description, self.description_rich_hash, TextFormat.markdown)
         if self.description_rich_hash != cache.id:

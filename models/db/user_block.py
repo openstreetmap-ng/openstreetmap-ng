@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from asyncache import cached
-from sqlalchemy import (Boolean, ColumnElement, DateTime, ForeignKey,
-                        LargeBinary, UnicodeText, and_, func)
+from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -35,7 +33,7 @@ class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
     revoked_user: Mapped[User | None] = relationship(foreign_keys=[revoked_user_id], lazy='raise')
 
     @validates('body')
-    def validate_body(cls, key: str, value: str) -> str:
+    def validate_body(self, _: str, value: str) -> str:
         if len(value) > USER_BLOCK_BODY_MAX_LENGTH:
             raise ValueError('Comment is too long')
         return value
@@ -52,13 +50,12 @@ class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
     @classmethod
     def _expired_expression(cls) -> ColumnElement[bool]:
         return and_(
-            cls.expires_at != None,
+            cls.expires_at != None,  # noqa: E711
             cls.expires_at < func.now(),
-            cls.acknowledged == True,
+            cls.acknowledged == True,  # noqa: E712
         )
 
     # TODO: SQL
-    @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.markdown)
         if self.body_rich_hash != cache.id:

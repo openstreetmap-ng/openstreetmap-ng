@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
 from lib.exceptions import raise_for
+from lib.updating_cached_property import updating_cached_property
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset
@@ -21,7 +22,7 @@ from models.element_member import ElementMemberRef, ElementMemberRefType
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
-from utils import updating_cached_property, utcnow
+from utils import utcnow
 
 
 class Element(Base.Sequential, CreatedAt, ABC):
@@ -68,11 +69,11 @@ class Element(Base.Sequential, CreatedAt, ABC):
         return value
 
     # TODO: SQL
-    @updating_cached_property(lambda self: self.typed_id)
+    @updating_cached_property('typed_id')
     def typed_ref(self) -> TypedElementRef:
         return TypedElementRef(type=self.type, typed_id=self.typed_id)
 
-    @updating_cached_property(lambda self: self.typed_id)
+    @updating_cached_property('typed_id')
     def versioned_ref(self) -> VersionedElementRef:
         return VersionedElementRef(type=self.type, typed_id=self.typed_id, version=self.version)
 

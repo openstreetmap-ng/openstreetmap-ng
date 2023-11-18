@@ -1,22 +1,11 @@
 import logging
 import pathlib
-from functools import cached_property
-from typing import NamedTuple
 
 import yaml
 
 from config import DEFAULT_LANGUAGE
 from limits import LANGUAGE_CODE_MAX_LENGTH
-
-
-class LanguageInfo(NamedTuple):
-    code: str
-    english_name: str
-    native_name: str
-
-    @cached_property
-    def display_name(self) -> str:
-        return f'{self.english_name} ({self.native_name})'
+from models.language_info import LanguageInfo
 
 
 def _load_languages() -> dict[str, LanguageInfo]:

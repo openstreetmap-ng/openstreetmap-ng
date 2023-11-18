@@ -25,7 +25,8 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
 
     # process accept language codes
     for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
-        lang = match.group('lang')
+        lang = match['lang']
+        q = match['q']
 
         if (lang_len := len(lang)) > LANGUAGE_CODE_MAX_LENGTH:
             logging.debug('Accept language code is too long %d', lang_len)
@@ -38,8 +39,6 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
             if lang is None:
                 logging.debug('Unknown accept language %r', lang)
                 continue
-
-        q = match.group('q')
 
         if q is None:
             q = 1

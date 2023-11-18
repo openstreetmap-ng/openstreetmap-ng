@@ -1,7 +1,6 @@
 from ipaddress import IPv4Address, IPv6Address
 from typing import Self
 
-from asyncache import cached
 from pydantic import model_validator
 from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.dialects.postgresql import INET
@@ -31,13 +30,12 @@ class NoteComment(Base.UUID, CreatedAt):
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
 
     @validates('body')
-    def validate_body(cls, key: str, value: str) -> str:
+    def validate_body(self, _: str, value: str) -> str:
         if len(value) > NOTE_COMMENT_BODY_MAX_LENGTH:
             raise ValueError('Comment is too long')
         return value
 
     # TODO: SQL
-    @cached({})
     async def body_rich(self) -> str:
         cache = await RichText.get_cache(self.body, self.body_rich_hash, TextFormat.plain)
         if self.body_rich_hash != cache.id:
