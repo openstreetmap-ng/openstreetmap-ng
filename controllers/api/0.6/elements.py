@@ -46,8 +46,8 @@ async def element_create(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    old_ref_elements_map = await Optimistic((element,)).update()
-    return next(iter(old_ref_elements_map.values()))[0].typed_id
+    assigned_ref_map = await Optimistic((element,)).update()
+    return next(iter(assigned_ref_map.values()))[0].typed_id
 
 
 @router.get('/{type}/{typed_id}')

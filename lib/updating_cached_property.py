@@ -6,6 +6,7 @@ from typing import Self
 
 _NOT_FOUND = object()
 
+
 class updating_cached_property:  # noqa: N801
     """
     A decorator to cache the result of a property with an auto-update condition.
@@ -28,8 +29,7 @@ class updating_cached_property:  # noqa: N801
         if self._attr_name is None:
             if self._watch_field == name:
                 raise TypeError(
-                    f'Cannot use {type(self).__name__} '
-                    f'with the same property as the watch field ({name!r}).'
+                    f'Cannot use {type(self).__name__} with the same property as the watch field ({name!r}).'
                 )
 
             self._attr_name = name
@@ -40,15 +40,12 @@ class updating_cached_property:  # noqa: N801
                 f'to two different names ({self._attr_name!r} and {name!r}).'
             )
 
-    def __get__(self, instance: object, owner: type | None = None) -> object:
+    def __get__(self, instance: object, owner: type | None = None):
         if instance is None:
             return self
 
         if self._attr_name is None:
-            raise TypeError(
-                f'Cannot use {type(self).__name__} '
-                f'instance without calling __set_name__ on it.'
-            )
+            raise TypeError(f'Cannot use {type(self).__name__} instance without calling __set_name__ on it.')
 
         try:
             cache_data = getattr(instance, self._cache_name)

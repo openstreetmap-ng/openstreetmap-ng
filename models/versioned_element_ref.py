@@ -8,13 +8,6 @@ from models.typed_element_ref import TypedElementRef
 class VersionedElementRef(TypedElementRef):
     version: int
 
-    @property
-    def typed_ref(self) -> TypedElementRef:
-        return TypedElementRef(
-            type=self.type,
-            typed_id=self.typed_id,
-        )
-
     def __hash__(self) -> int:
         return hash((super().__hash__(), self.version))
 

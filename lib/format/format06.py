@@ -388,7 +388,7 @@ class Format06:
         return result
 
     @classmethod
-    def encode_diff_result(cls, old_ref_elements_map: dict[TypedElementRef, Sequence[Element]]) -> Sequence[tuple]:
+    def encode_diff_result(cls, assigned_ref_map: dict[TypedElementRef, Sequence[Element]]) -> Sequence[tuple]:
         """
         >>> cls.encode_diff_result({
         ...     TypedElementRef(type=ElementType.node, typed_id=-1): [
@@ -411,7 +411,7 @@ class Format06:
                     '@new_version': element.version,
                 },
             )
-            for typed_ref, elements in old_ref_elements_map.items()
+            for typed_ref, elements in assigned_ref_map.items()
             for element in elements
         )
 

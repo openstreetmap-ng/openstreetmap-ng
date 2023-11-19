@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
-from datetime import datetime
 from itertools import chain
 
 import anyio
@@ -20,6 +19,11 @@ from utils import utcnow
 
 
 class OptimisticPrepare:
+    applied: bool
+    """
+    Indicates if the optimistic update was applied.
+    """
+
     elements: Sequence[Element]
     """
     Elements the optimistic update is performed on.
@@ -52,24 +56,22 @@ class OptimisticPrepare:
     For example, `(way/1, False)` = `{node/1, node/2}` means that way/1 no longer references node/1 and node/2 locally.
     """
 
-    _now: datetime
     _last_id: int
 
     def __init__(self, elements: Sequence[Element]) -> None:
+        self.applied = False
         self.elements = elements
         self.changeset_state = {}
         self._changeset_bbox_info = defaultdict(set)
         self.element_state = {}
         self.reference_check_state = {}
         self._reference_override = defaultdict(set)
-        self._now = None
         self._last_id = None
 
     async def prepare(self) -> None:
-        if self._now is not None:
-            raise RuntimeError(f'{self.__class__.__qualname__} was reused')
-
-        self._now = utcnow()
+        """
+        Prepare the optimistic update.
+        """
 
         async with anyio.create_task_group() as tg:
             # update and validate changesets
@@ -78,8 +80,8 @@ class OptimisticPrepare:
             # preload element state
             tg.start_soon(self._preload_elements)
 
-            # fetch last element id
-            tg.start_soon(self._fetch_last_id)
+            # assign last element id
+            tg.start_soon(self._assign_last_id_and_check_time_integrity)
 
         for element in self.elements:
             if element.version == 1:
@@ -97,13 +99,13 @@ class OptimisticPrepare:
                 if not prev.visible and not element.visible:
                     raise_for().element_already_deleted(element.versioned_ref)
 
-                if prev.created_at and prev.created_at > self._now:
+                if prev.created_at and prev.created_at > (now := utcnow()):
                     logging.error(
                         'Element %r/%r was created in the future: %r > %r',
                         prev.type,
                         prev.typed_id,
                         prev.created_at,
-                        self._now,
+                        now,
                     )
                     raise_for().time_integrity()
 
@@ -164,7 +166,7 @@ class OptimisticPrepare:
             changeset = await self._get_changeset(changeset_id)
             increase_size = len(elements)
 
-            if not changeset.increase_size(increase_size, now=self._now):
+            if not changeset.increase_size(increase_size):
                 raise_for().changeset_too_big(changeset.size + increase_size)
 
         # map changeset id to elements
@@ -203,15 +205,25 @@ class OptimisticPrepare:
 
             self.element_state[typed_ref] = [element]
 
-    async def _fetch_last_id(self) -> None:
+    async def _assign_last_id_and_check_time_integrity(self) -> None:
         """
-        Fetch the last element id from the database.
+        Assign the last element id and check the time integrity.
         """
 
         if self._last_id is not None:
             raise RuntimeError('Cannot fetch last id when already fetched')
 
         if element := await ElementService.find_one_last():
+            if element.created_at > (now := utcnow()):
+                logging.error(
+                    'Element %r/%r was created in the future: %r > %r',
+                    element.type,
+                    element.typed_id,
+                    element.created_at,
+                    now,
+                )
+                raise_for().time_integrity()
+
             self._last_id = element.id
         else:
             self._last_id = 0

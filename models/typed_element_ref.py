@@ -7,6 +7,13 @@ class TypedElementRef(NamedTuple):
     type: ElementType
     typed_id: int
 
+    @property
+    def typed_ref(self) -> Self:
+        return TypedElementRef(
+            type=self.type,
+            typed_id=self.typed_id,
+        )
+
     def __hash__(self) -> int:
         return hash((self.type, self.typed_id))
 

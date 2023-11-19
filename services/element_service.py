@@ -3,6 +3,7 @@ from collections.abc import Set as AbstractSet
 
 from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
+from sqlalchemy.orm import load_only
 
 from db import DB
 from limits import FIND_LIMIT
@@ -16,12 +17,31 @@ class ElementService:
     @staticmethod
     async def find_one_last() -> Element | None:
         """
-        Find the last element.
+        Find the last created element.
         """
 
         async with DB() as session:
             stmt = select(Element).order_by(Element.id.desc()).limit(1)
             return await session.scalar(stmt)
+
+    @staticmethod
+    async def find_one_last_typed_id(type: ElementType) -> int:
+        """
+        Find the last typed_id for the given type.
+
+        Returns 0 if no elements exist for the given type.
+        """
+
+        async with DB() as session:
+            stmt = (
+                select(Element)
+                .options(load_only(Element.typed_id, raiseload=True))
+                .where(Element.type == type)
+                .order_by(Element.typed_id.desc())
+                .limit(1)
+            )
+            element = await session.scalar(stmt)
+            return element.typed_id if element else 0
 
     @staticmethod
     async def find_many_latest(typed_refs: AbstractSet[TypedElementRef]) -> Sequence[Element | None]:

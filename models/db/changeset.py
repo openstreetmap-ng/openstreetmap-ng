@@ -56,6 +56,14 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         lazy='raise',
     )
 
+    @property
+    def max_size(self) -> int:
+        """
+        Get the maximum size for this changeset
+        """
+
+        return self.user.changeset_max_size
+
     # TODO: SQL
     @classmethod
     async def find_many_by_query_with_(
@@ -161,33 +169,37 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     def update_batch(self, filter_ex: dict | None = None) -> UpdateOne:
         return super().update_batch({'updated_at': self.updated_at, **(filter_ex or {})})
 
-    def increase_size(self, n: int, *, now: datetime | None = None) -> bool:
+    def increase_size(self, n: int) -> bool:
         """
         Increase the changeset size by n.
 
-        Returns `True` if the size was increased.
-
-        The changeset is automatically closed when it reaches the max size.
+        Returns `True` if the size was increased successfully.
         """
 
         if n < 0:
             raise ValueError('n must be non-negative')
-        if now is None:
-            now = utcnow()
 
         new_size = self.size + n
-        max_size = auth_user().changeset_max_size
-        if new_size == max_size:
-            # automatically close the changeset if it reaches the max size
-            if self.closed_at is None:
-                self.closed_at = now
-            self.size = new_size
-            return True
-        elif new_size < max_size:
-            self.size = new_size
-            return True
-        else:
+        if new_size > self.max_size:
             return False
+
+        self.size = new_size
+        return True
+
+    def auto_close_on_size(self, *, now: datetime | None = None) -> bool:
+        """
+        Close the changeset if it is open and reaches the size limit.
+
+        Returns `True` if the changeset was closed.
+        """
+
+        if self.closed_at:
+            return False
+        if self._size < self.max_size:
+            return False
+
+        self.closed_at = now or utcnow()
+        return True
 
     def union_boundary(self, geometry: BaseGeometry) -> None:
         if not self.boundary:

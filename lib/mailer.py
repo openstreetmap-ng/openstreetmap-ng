@@ -184,4 +184,4 @@ class Mailer:
                 logging.info('Requeuing unprocessed mail %r', mail.id, exc_info=True)
                 mail.processing_counter += 1
                 mail.processing_at = processing_at
-                await session.commit()
+                # TODO: redundant? await session.commit()

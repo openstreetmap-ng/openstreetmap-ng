@@ -3,6 +3,8 @@ import time
 from collections.abc import Sequence
 from itertools import count
 
+from sqlalchemy.exc import IntegrityError
+
 from lib.optimistic.apply import OptimisticApply
 from lib.optimistic.exceptions import OptimisticError
 from lib.optimistic.prepare import OptimisticPrepare
@@ -20,7 +22,7 @@ class Optimistic:
         """
         Perform an optimistic update of the elements.
 
-        Returns a mapping of original element refs to the updated elements.
+        Returns a dict, mapping original typed refs to the new elements.
         """
 
         if not self._elements:
@@ -32,9 +34,9 @@ class Optimistic:
             try:
                 prep = OptimisticPrepare(self._elements)
                 await prep.prepare()
-                return await OptimisticApply.apply(prep)
+                return await OptimisticApply().apply(prep)
 
-            except OptimisticError:
+            except (OptimisticError, IntegrityError):
                 timeout_seconds = time.monotonic() - ts
 
                 # retry is still possible

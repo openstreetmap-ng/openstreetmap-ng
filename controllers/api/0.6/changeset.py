@@ -216,5 +216,5 @@ async def changeset_upload(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    old_ref_elements_map = await Optimistic(elements).update()
-    return Format06.encode_diff_result(old_ref_elements_map)
+    assigned_ref_map = await Optimistic(elements).update()
+    return Format06.encode_diff_result(assigned_ref_map)

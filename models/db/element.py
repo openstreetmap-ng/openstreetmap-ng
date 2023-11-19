@@ -6,7 +6,7 @@ from typing import Self
 
 from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Polygon
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -44,6 +44,8 @@ class Element(Base.Sequential, CreatedAt, ABC):
 
     # defaults
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+
+    __table_args__ = (Index('ix_type_typed_id_version', type, typed_id, version, unique=True),)
 
     @validates('typed_id')
     def validate_typed_id(self, _: str, value: int):
