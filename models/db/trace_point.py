@@ -2,13 +2,14 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Self
 
-from geoalchemy2 import Geometry, WKBElement
+from shapely import Point
 from sqlalchemy import DateTime, ForeignKey, SmallInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from models.cursor import Cursor
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.trace_ import Trace
+from models.geometry_type import PointType
+from models.msgspec.cursor import Cursor
 from models.trace_visibility import TraceVisibility
 
 
@@ -19,8 +20,7 @@ class TracePoint(Base.NoID):
     trace: Mapped[Trace] = relationship(back_populates='trace_points', lazy='raise')
     track_idx: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    # TODO to_shape
-    point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=Trace.SRID), nullable=False)
+    point: Mapped[Point] = mapped_column(PointType, nullable=False)
     elevation: Mapped[float | None] = mapped_column(float, nullable=True)
 
     # TODO: SQL

@@ -2,16 +2,16 @@ from collections.abc import Sequence
 from typing import Self
 
 import anyio
-from geoalchemy2 import Geometry, WKBElement
+from shapely import Point
 from sqlalchemy import ARRAY, Enum, ForeignKey, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import SRID
 from lib.tracks import Tracks
 from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.user import User
+from models.geometry_type import PointType
 from models.scope import ExtendedScope
 from models.trace_visibility import TraceVisibility
 
@@ -26,7 +26,7 @@ class Trace(Base.Sequential, CreatedAt):
     visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)
 
     size: Mapped[int] = mapped_column(int, nullable=False)
-    start_point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=False)
+    start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
     file_id: Mapped[str] = mapped_column(Unicode, nullable=False)
     image_id: Mapped[str] = mapped_column(Unicode, nullable=False)
     icon_id: Mapped[str] = mapped_column(Unicode, nullable=False)

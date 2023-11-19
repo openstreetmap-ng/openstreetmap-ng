@@ -3,20 +3,17 @@ from datetime import datetime
 from typing import Self
 
 import anyio
-from geoalchemy2 import Geometry, WKBElement
-from geoalchemy2.shape import from_shape, to_shape
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import DateTime, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from config import SRID
-from lib.auth import auth_user
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
+from models.geometry_type import PolygonType
 from utils import utcnow
 
 # TODO: 0.7 180th meridian ?
@@ -32,9 +29,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    boundary: Mapped[WKBElement | None] = mapped_column(
-        Geometry(geometry_type='POLYGON', srid=SRID), nullable=True, default=None
-    )
+    boundary: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, default=None)
 
     # relationships (nested imports to avoid circular imports)
     from changeset_comment import ChangesetComment
@@ -203,8 +198,6 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
 
     def union_boundary(self, geometry: BaseGeometry) -> None:
         if not self.boundary:
-            self.boundary = from_shape(box(*geometry.bounds))
+            self.boundary = box(*geometry.bounds)
         else:
-            boundary_shape: BaseGeometry = to_shape(self.boundary)
-            boundary_shape = boundary_shape.union(geometry)
-            self.boundary = from_shape(box(*boundary_shape.bounds))
+            self.boundary = box(*self.boundary.union(geometry).bounds)

@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import anyio
 import dateutil.parser
 import httpx
+import msgspec
 
 from config import USER_AGENT
 
@@ -36,6 +37,12 @@ HTTP = httpx.AsyncClient(
         'response': [_log_http_response],
     },
 )
+
+MSGSPEC_MSGPACK_ENCODER = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes')
+MSGSPEC_MSGPACK_DECODER = msgspec.msgpack.Decoder()
+MSGSPEC_JSON_ENCODER = msgspec.json.Encoder(decimal_format='number')
+MSGSPEC_JSON_DECODER = msgspec.json.Decoder()
+
 
 # TODO: reporting of deleted accounts (prometheus)
 

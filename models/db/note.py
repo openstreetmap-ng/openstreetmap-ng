@@ -2,26 +2,26 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Self
 
-from geoalchemy2 import Geometry, WKBElement
+from shapely import Point
 from shapely.geometry import Polygon
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from config import SRID
 from lib.auth import Auth
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
-from models.cursor import Cursor
 from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
+from models.geometry_type import PointType
+from models.msgspec.cursor import Cursor
 from utils import utcnow
 
 
 class Note(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'note'
 
-    point: Mapped[WKBElement] = mapped_column(Geometry(geometry_type='POINT', srid=SRID), nullable=False)
+    point: Mapped[Point] = mapped_column(PointType, nullable=False)
 
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)

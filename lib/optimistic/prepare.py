@@ -5,7 +5,7 @@ from itertools import chain
 
 import anyio
 from geoalchemy2 import WKBElement
-from geoalchemy2.shape import to_shape
+from shapely import Point
 from shapely.ops import unary_union
 
 from lib.auth import auth_user
@@ -34,7 +34,7 @@ class OptimisticPrepare:
     Local changeset state, mapping from id to the changeset.
     """
 
-    _changeset_bbox_info: dict[int, set[WKBElement | TypedElementRef]]
+    _changeset_bbox_info: dict[int, set[Point | TypedElementRef]]
     """
     Changeset bbox info, mapping from changeset id to the list of points and element refs.
     """
@@ -384,21 +384,26 @@ class OptimisticPrepare:
         Update changeset boundaries using the bbox info.
         """
 
-        async def update_changeset(changeset_id: int, bbox_info: set[WKBElement | TypedElementRef]) -> None:
-            wkbs = {wkb for wkb in bbox_info if isinstance(wkb, WKBElement)}
-            typed_refs = {ref for ref in bbox_info if isinstance(ref, TypedElementRef)}
+        async def update_changeset(changeset_id: int, bbox_info: set[Point | TypedElementRef]) -> None:
+            points = set()
+            typed_refs = set()
+
+            for point_or_ref in bbox_info:
+                if isinstance(point_or_ref, Point):
+                    points.add(point_or_ref)
+                else:
+                    typed_refs.add(point_or_ref)
 
             for element in await ElementService.get_elements(typed_refs, recurse_ways=True, limit=None):
                 if element.point:
-                    wkbs.add(element.point)
+                    points.add(element.point)
                 elif element.type == ElementType.node:
                     # log warning as this should not happen
                     logging.warning('Node %r has no point', element.typed_id)
 
-            if wkbs:
-                union_boundary = unary_union(tuple(to_shape(wkb) for wkb in wkbs))
+            if points:
                 changeset = await self._get_changeset(changeset_id)
-                changeset.union_boundary(union_boundary)
+                changeset.union_boundary(unary_union(points))
 
         # update changeset boundaries
         async with anyio.create_task_group() as tg:

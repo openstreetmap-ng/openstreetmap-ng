@@ -4,13 +4,12 @@ from datetime import datetime
 from itertools import chain
 from typing import Self
 
-from geoalchemy2 import Geometry, WKBElement
+from shapely import Point
 from shapely.geometry import Polygon
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import SRID
 from lib.exceptions import raise_for
 from lib.updating_cached_property import updating_cached_property
 from limits import MAP_QUERY_LEGACY_NODES_LIMIT
@@ -20,6 +19,7 @@ from models.db.created_at import CreatedAt
 from models.db.user import User
 from models.element_member import ElementMemberRef, ElementMemberRefType
 from models.element_type import ElementType
+from models.geometry_type import PointType
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
 from utils import utcnow
@@ -37,9 +37,8 @@ class Element(Base.Sequential, CreatedAt, ABC):
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
-    point: Mapped[WKBElement | None] = mapped_column(
-        Geometry(geometry_type='POINT', srid=SRID), nullable=True
-    )  # TODO: indexes, spatial_index
+    point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
+    # TODO: indexes, spatial_index
     members: Mapped[Sequence[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
 
     # defaults

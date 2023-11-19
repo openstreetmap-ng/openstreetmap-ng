@@ -41,7 +41,7 @@ class TracksImage(ABC):
         Generate animation and icon images from a sequence of trace points.
         """
 
-        # Pillow frees the GIL when doing image operations
+        # Pillow frees the GIL when doing some image operations
         return await anyio.to_thread.run_sync(TracksImage.generate, points)
 
     @staticmethod
@@ -52,12 +52,15 @@ class TracksImage(ABC):
 
         # sample points to speed up image generation
         max_points = _SAMPLE_POINTS_PER_FRAME * _ANIM_FRAMES
+
         if len(points) > max_points:
             step = (len(points) - 1) // (max_points - 1)
             indices = tuple(range(0, len(points), step))
+
+            # make sure we always include the last point (nice visually)
             if len(indices) > max_points:
-                # make sure we always include the last point (nice visually)
                 indices = chain(indices[: max_points - 1], (len(points) - 1,))
+
             points = tuple(points[i] for i in indices)
 
         logging.debug('Generating %d frames animation for %d points', _ANIM_FRAMES, len(points))
@@ -88,24 +91,32 @@ class TracksImage(ABC):
             frame = frame.resize(_ANIM_SAVE_SIZE_T, Resampling.BOX)
             frames[n] = frame
 
-        animation = BytesIO()
-        frames[0].save(
-            animation,
-            save_all=True,
-            append_images=frames[1:],
-            duration=_ANIM_DELAY,
-            loop=0,
-            format='WEBP',
-            lossless=True,
-        )
+        with BytesIO() as buffer:
+            frames[0].save(
+                buffer,
+                save_all=True,
+                append_images=frames[1:],
+                duration=_ANIM_DELAY,
+                loop=0,
+                format='WEBP',
+                lossless=True,
+            )
 
-        # icon generation
-        base_frame = Image.new('L', _ANIM_GEN_SIZE_T, color=_BACKGROUND_COLOR)
-        draw = ImageDraw.Draw(base_frame)
-        draw.line(points_proj, fill=_PRIMARY_COLOR, width=_SECONDARY_WIDTH * _ICON_DOWNSCALE + 10, joint=None)
-        base_frame = base_frame.resize(_ICON_SAVE_SIZE_T, Resampling.BOX)
+            animation = buffer.getvalue()
+            buffer.seek(0)
+            buffer.truncate()
 
-        icon = BytesIO()
-        base_frame.save(icon, format='WEBP', lossless=True)
+            # icon generation
+            base_frame = Image.new('L', _ANIM_GEN_SIZE_T, color=_BACKGROUND_COLOR)
+            draw = ImageDraw.Draw(base_frame)
+            draw.line(points_proj, fill=_PRIMARY_COLOR, width=_SECONDARY_WIDTH * _ICON_DOWNSCALE + 10, joint=None)
+            base_frame = base_frame.resize(_ICON_SAVE_SIZE_T, Resampling.BOX)
 
-        return animation.getvalue(), icon.getvalue()
+            base_frame.save(
+                buffer,
+                format='WEBP',
+                lossless=True,
+            )
+
+            icon = buffer.getvalue()
+        return animation, icon

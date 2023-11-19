@@ -6,14 +6,7 @@ from uuid import UUID
 import msgspec
 
 from lib.exceptions import raise_for
-from utils import utcnow
-
-_ENCODER = msgspec.msgpack.Encoder(
-    decimal_format='number',
-    uuid_format='bytes',
-)
-
-_DECODER = msgspec.msgpack.Decoder()
+from utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER, utcnow
 
 
 class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
@@ -33,7 +26,7 @@ class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, arr
         Return a string representation of the cursor.
         """
 
-        return urlsafe_b64encode(_ENCODER.encode(self)).decode()
+        return urlsafe_b64encode(MSGSPEC_MSGPACK_ENCODER.encode(self)).decode()
 
     @classmethod
     def from_str(cls, s: str, *, expire: timedelta | None = None) -> Self:
@@ -46,7 +39,7 @@ class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, arr
         buff = urlsafe_b64decode(s)
 
         try:
-            obj: Self = _DECODER.decode(buff, type=cls)
+            obj: Self = MSGSPEC_MSGPACK_DECODER.decode(buff, type=cls)
         except Exception:
             raise_for().bad_cursor()
 

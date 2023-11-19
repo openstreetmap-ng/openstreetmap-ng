@@ -1,19 +1,21 @@
 import logging
 from collections.abc import Sequence
-from itertools import count, pairwise
-from math import isclose
+from datetime import timedelta
+from itertools import pairwise
 
 import anyio
 import magic
 from fastapi import UploadFile
 
+from cython_lib.xmltodict import XMLToDict
 from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from lib.storage import TRACKS_STORAGE
 from lib.tracks.image import TracksImage
-from lib.tracks.processors import TRACE_FILE_PROCESSORS, ZstdFileProcessor
+from lib.tracks.processors import TRACE_FILE_PROCESSORS
+from lib.tracks.processors.zstd import ZstdFileProcessor
 from limits import TRACE_FILE_MAX_SIZE
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
@@ -41,19 +43,23 @@ class Tracks:
         compressed: bytes = None
         compressed_suffix: str = None
 
-        async def extract_and_generate(buffer: bytes) -> None:
+        async def extract_and_generate_image_icon() -> None:
             nonlocal trace, points, image, icon
 
-            for file in await _extract(buffer):
+            # process multiple files in the archive
+            for gpx_b in await _extract(buffer):
                 try:
-                    points.extend(Format06.decode_gpx(file))
+                    gpx = gpx_b.decode()
+                    data = XMLToDict.parse(gpx)
+                    points.extend(Format06.decode_gpx(data))
                 except Exception as e:
                     raise_for().bad_trace_file(str(e))
 
+            points = _sort_and_deduplicate(points)
+
+            # require two distinct points: sane bounding box and icon
             if len(points) < 2:
                 raise_for().bad_trace_file('not enough points')
-
-            points = _sort_and_deduplicate(points)
 
             trace = Trace(
                 **TraceValidating(
@@ -72,13 +78,13 @@ class Tracks:
 
             image, icon = await TracksImage.generate_async(points)
 
-        async def compress(buffer: bytes) -> None:
+        async def compress_upload() -> None:
             nonlocal compressed, compressed_suffix
-            compressed, compressed_suffix = await _compress(buffer)
+            compressed, compressed_suffix = await _zstd_compress(buffer)
 
         async with anyio.create_task_group() as tg:
-            tg.start_soon(extract_and_generate, buffer)
-            tg.start_soon(compress, buffer)
+            tg.start_soon(extract_and_generate_image_icon)
+            tg.start_soon(compress_upload)
 
         file_id: str = None
         image_id: str = None
@@ -96,7 +102,7 @@ class Tracks:
             nonlocal icon_id
             icon_id = await TRACKS_STORAGE.save(icon, TracksImage.icon_suffix)
 
-        # when all validation is done, save the files
+        # save the files after the validation
         async with anyio.create_task_group() as tg:
             tg.start_soon(save_file)
             tg.start_soon(save_image)
@@ -114,7 +120,7 @@ class Tracks:
     @classmethod
     async def get_file(cls, file_id: str) -> bytes:
         buffer = await TRACKS_STORAGE.load(file_id)
-        return await _decompress_if_needed(buffer, file_id)
+        return await _zstd_decompress_if_needed(buffer, file_id)
 
 
 async def _extract(buffer: bytes) -> Sequence[bytes]:
@@ -124,25 +130,28 @@ async def _extract(buffer: bytes) -> Sequence[bytes]:
     The buffer may be compressed, in which case it will be decompressed first.
     """
 
-    # multiple layers handle combinations such as tar+gzip
-    for layer in count(1):
-        if layer > 2:
-            raise_for().trace_file_archive_too_deep()
-
+    # multiple layers allow to handle nested archives
+    # such as .tar.gz
+    for layer in (1, 2):
         content_type = magic.from_buffer(buffer[:2048], mime=True)
         logging.debug('Trace file layer %d is %r', layer, content_type)
 
+        # get the appropriate processor
         if not (processor := TRACE_FILE_PROCESSORS.get(content_type)):
             raise_for().trace_file_unsupported_format(content_type)
 
         result = await processor.decompress(buffer)
 
+        # bytes: further processing is needed
         if isinstance(result, bytes):
-            # further processing is needed
             buffer = result
-        else:
-            # finished processing
-            return result
+            continue
+
+        # list of bytes: finished
+        return result
+
+    # raise on too many layers
+    raise_for().trace_file_archive_too_deep()
 
 
 def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
@@ -152,22 +161,25 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
     The points are sorted by captured_at, then by longitude, then by latitude.
     """
 
+    max_date_diff = timedelta(seconds=1)
+    max_pos_diff = 1e-7  # different up to 7 decimal places
+
     sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
     deduped_points = [sorted_points[0]]
 
-    for last, point in pairwise(sorted_points):
+    for prev, point in pairwise(sorted_points):
         if (
-            last.captured_at == point.captured_at
-            and isclose(last.point.x, point.point.x, abs_tol=9.999e-8)
-            and isclose(last.point.y, point.point.y, abs_tol=9.999e-8)
-        ):  # different up to 7 decimal places
+            point.captured_at - prev.captured_at < max_date_diff
+            and abs(point.point.x - prev.point.x) < max_pos_diff
+            and abs(point.point.y - prev.point.y) < max_pos_diff
+        ):
             continue
         deduped_points.append(point)
 
     return deduped_points
 
 
-async def _compress(buffer: bytes) -> tuple[bytes, str]:
+async def _zstd_compress(buffer: bytes) -> tuple[bytes, str]:
     """
     Compress the buffer with zstd.
     """
@@ -175,7 +187,7 @@ async def _compress(buffer: bytes) -> tuple[bytes, str]:
     return await ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
 
 
-async def _decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
+async def _zstd_decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
     """
     Decompress the buffer if needed.
     """
