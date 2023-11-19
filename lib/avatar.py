@@ -2,7 +2,7 @@ from io import BytesIO
 from typing import Any
 
 from anyio import Path
-from PIL import Image
+from PIL import Image, ImageOps
 
 from lib.exceptions import raise_for
 from limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
@@ -38,12 +38,16 @@ class Avatar:
         """
         Normalize the avatar image.
 
+        - Orientation: rotate
         - Shape ratio: crop
         - Megapixels: downscale
         - File size: reduce quality
         """
 
         img = Image.open(BytesIO(data))
+
+        # normalize orientation
+        ImageOps.exif_transpose(img, in_place=True)
 
         # normalize shape ratio
         ratio = img.width / img.height

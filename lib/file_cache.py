@@ -15,7 +15,7 @@ class FileCache:
         self._base_dir = cache_dir / context
 
     async def _get_path(self, key: str) -> Path:
-        if set(key) - _FILE_WHITELIST_CHARS:
+        if not all(c in _FILE_WHITELIST_CHARS for c in key):
             raise ValueError('key contains invalid characters')
 
         if len(key) < 3:
