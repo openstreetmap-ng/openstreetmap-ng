@@ -66,7 +66,7 @@ class User(Base.NoID, CreatedAt):
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
     consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    languages: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
+    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     auth_provider: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
@@ -77,7 +77,7 @@ class User(Base.NoID, CreatedAt):
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
     terms_seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-    roles: Mapped[Sequence[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
+    roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
     description_rich_hash: Mapped[bytes | None] = mapped_column(
         LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None
@@ -104,81 +104,81 @@ class User(Base.NoID, CreatedAt):
     from trace_ import Trace
     from user_block import UserBlock
 
-    changesets: Mapped[Sequence[Changeset]] = relationship(
+    changesets: Mapped[list[Changeset]] = relationship(
         back_populates='user',
         order_by='desc(Changeset.id)',
         lazy='raise',
     )
-    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
+    changeset_comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='user',
         order_by='desc(ChangesetComment.created_at)',
         lazy='raise',
     )
-    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(
+    diary_comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='user',
         order_by='desc(DiaryComment.created_at)',
         lazy='raise',
     )
-    friendship_sent: Mapped[Sequence['User']] = relationship(
+    friendship_sent: Mapped[list['User']] = relationship(
         back_populates='friendship_received',
         secondary=Friendship,
         primaryjoin=id == Friendship.from_user_id,
         secondaryjoin=id == Friendship.to_user_id,
         lazy='raise',
     )
-    friendship_received: Mapped[Sequence['User']] = relationship(
+    friendship_received: Mapped[list['User']] = relationship(
         back_populates='friendship_sent',
         secondary=Friendship,
         primaryjoin=id == Friendship.to_user_id,
         secondaryjoin=id == Friendship.from_user_id,
         lazy='raise',
     )
-    messages_sent: Mapped[Sequence[Message]] = relationship(
+    messages_sent: Mapped[list[Message]] = relationship(
         back_populates='from_user',
         order_by='desc(Message.created_at)',
         lazy='raise',
     )
-    messages_received: Mapped[Sequence[Message]] = relationship(
+    messages_received: Mapped[list[Message]] = relationship(
         back_populates='to_user',
         order_by='desc(Message.created_at)',
         lazy='raise',
     )
-    note_comments: Mapped[Sequence[NoteComment]] = relationship(
+    note_comments: Mapped[list[NoteComment]] = relationship(
         back_populates='user',
         order_by='desc(NoteComment.created_at)',
         lazy='raise',
     )
-    oauth1_applications: Mapped[Sequence[OAuth1Application]] = relationship(
+    oauth1_applications: Mapped[list[OAuth1Application]] = relationship(
         back_populates='user',
         order_by='asc(OAuth1Application.id)',
         lazy='raise',
     )
-    oauth1_tokens: Mapped[Sequence[OAuth1Token]] = relationship(
+    oauth1_tokens: Mapped[list[OAuth1Token]] = relationship(
         back_populates='user',
         order_by='asc(OAuth1Token.application_id)',
         lazy='raise',
     )
-    oauth2_applications: Mapped[Sequence[OAuth2Application]] = relationship(
+    oauth2_applications: Mapped[list[OAuth2Application]] = relationship(
         back_populates='user',
         order_by='asc(OAuth2Application.id)',
         lazy='raise',
     )
-    oauth2_tokens: Mapped[Sequence[OAuth2Token]] = relationship(
+    oauth2_tokens: Mapped[list[OAuth2Token]] = relationship(
         back_populates='user',
         order_by='asc(OAuth2Token.application_id)',
         lazy='raise',
     )
-    traces: Mapped[Sequence[Trace]] = relationship(
+    traces: Mapped[list[Trace]] = relationship(
         back_populates='user',
         order_by='desc(Trace.id)',
         lazy='raise',
     )
-    user_blocks_given: Mapped[Sequence[UserBlock]] = relationship(
+    user_blocks_given: Mapped[list[UserBlock]] = relationship(
         back_populates='from_user',
         order_by='desc(UserBlock.id)',
         lazy='raise',
     )
-    user_blocks_received: Mapped[Sequence[UserBlock]] = relationship(
+    user_blocks_received: Mapped[list[UserBlock]] = relationship(
         back_populates='to_user',
         order_by='desc(UserBlock.id)',
         lazy='raise',

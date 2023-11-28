@@ -2,7 +2,7 @@ from db import DB
 from models.db.user import User
 
 
-class UserService:
+class UserRepository:
     @staticmethod
     async def find_one_by_id(user_id: int) -> User | None:
         """

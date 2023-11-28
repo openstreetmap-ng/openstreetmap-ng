@@ -326,7 +326,7 @@ class Format06:
             return {'changeset': tuple(cls.encode_changeset(changeset)['changeset'] for changeset in changesets)}
 
     @classmethod
-    def encode_osmchange(cls, changes: Sequence[Element]) -> Sequence[tuple[str, dict]]:
+    def encode_osmchange(cls, elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
         """
         >>> cls.encode_osmchange([
         ...     Element(type=ElementType.node, typed_id=1, version=1, ...),
@@ -338,8 +338,8 @@ class Format06:
         ]
         """
 
-        result = [None] * len(changes)
-        for i, element in len(changes):
+        result = [None] * len(elements)
+        for i, element in len(elements):
             if element.version == 1:
                 action = OSMChangeAction.create.value
             elif element.visible:

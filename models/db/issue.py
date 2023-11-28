@@ -1,5 +1,3 @@
-from collections.abc import Sequence
-
 from sqlalchemy import Enum, ForeignKey, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,12 +28,12 @@ class Issue(Base.Sequential, CreatedAt, UpdatedAt):
     from issue_comment import IssueComment
     from report import Report
 
-    issue_comments: Mapped[Sequence[IssueComment]] = relationship(
+    issue_comments: Mapped[list[IssueComment]] = relationship(
         back_populates='issue',
         order_by='asc(IssueComment.created_at)',
         lazy='raise',
     )
-    reports: Mapped[Sequence[Report]] = relationship(
+    reports: Mapped[list[Report]] = relationship(
         back_populates='issue',
         order_by='asc(Report.created_at)',
         lazy='raise',

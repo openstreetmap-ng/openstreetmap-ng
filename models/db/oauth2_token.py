@@ -28,7 +28,7 @@ class OAuth2Token(Base.UUID, CreatedAt):
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
     application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='raise')
     key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
-    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)
     code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
         Enum(OAuth2CodeChallengeMethod), nullable=True

@@ -30,7 +30,7 @@ class Cache:
         """
 
         async with DB() as session:
-            entry = await session.get(CacheEntry, cache_id, options=(load_only(CacheEntry.value, raiseload=True),))
+            entry = await session.get(CacheEntry, cache_id, options=[load_only(CacheEntry.value, raiseload=True)])
             if not entry:
                 value = await factory()
                 entry = CacheEntry(

@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Self
 from urllib.parse import urlencode
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Sequence, Unicode
+from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE
@@ -29,7 +29,7 @@ class OAuth1Token(Base.UUID, CreatedAt):
     key_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
     # key_secret encryption is redundant, key is already hashed
     key_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)
-    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 

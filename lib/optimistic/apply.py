@@ -17,7 +17,7 @@ from models.db.element import Element
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
-from services.element_service import ElementService
+from repositories.element_repository import ElementRepository
 from utils import utcnow
 
 # TODO 0.7 don't reuse placeholder ids for simplicity
@@ -75,7 +75,7 @@ class OptimisticApply:
         Check the time integrity of the database.
         """
 
-        element = await ElementService.find_one_last()
+        element = await ElementRepository.find_one_latest()
         if not element:
             return
         if element.created_at > self._now:
@@ -110,8 +110,8 @@ class OptimisticApply:
         Raises `OptimisticException` if it is.
         """
 
-        if referenced_by_elements := await ElementService.get_referenced_by(element.typed_ref, after=after, limit=1):
-            raise OptimisticError(f'Element {element.typed_ref} is referenced by {referenced_by_elements[0].typed_ref}')
+        if parents := await ElementRepository.get_many_parents_by_typed_ref(element.typed_ref, after=after, limit=1):
+            raise OptimisticError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
 
     async def _update_changesets(
         self,
@@ -224,7 +224,7 @@ class OptimisticApply:
 
         async def assign_last_typed_id(type: ElementType) -> None:
             if any(e.typed_id < 0 and e.type == type for e in elements):
-                next_typed_id_map[type] = (await ElementService.find_one_last_typed_id(type)) + 1
+                next_typed_id_map[type] = (await ElementRepository.get_last_typed_id_by_type(type)) + 1
 
         async with anyio.create_task_group() as tg:
             for type in ElementType:

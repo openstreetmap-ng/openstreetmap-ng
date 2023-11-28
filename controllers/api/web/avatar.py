@@ -5,9 +5,7 @@ import magic
 from fastapi import APIRouter, Path, Response
 from pydantic import PositiveInt
 
-from lib.exceptions import raise_for
-from lib.storage import AVATAR_STORAGE, GRAVATAR_STORAGE
-from services.user_service import UserService
+from repositories.avatar_repository import AvatarRepository
 
 router = APIRouter(prefix='/avatar')
 
@@ -16,11 +14,7 @@ router = APIRouter(prefix='/avatar')
 async def gravatar(
     user_id: Annotated[PositiveInt, Path()],
 ) -> Sequence[dict]:
-    user = await UserService.find_one_by_id(user_id)
-    if not user:
-        raise_for().user_not_found(user_id)
-
-    file = await GRAVATAR_STORAGE.load(user.email)
+    file = await AvatarRepository.get_gravatar(user_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)
 
@@ -29,10 +23,6 @@ async def gravatar(
 async def custom(
     avatar_id: Annotated[str, Path(min_length=1)],
 ) -> Sequence[dict]:
-    try:
-        file = await AVATAR_STORAGE.load(avatar_id)
-    except FileNotFoundError:
-        raise_for().avatar_not_found(avatar_id)
-
+    file = await AvatarRepository.get_custom(avatar_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)

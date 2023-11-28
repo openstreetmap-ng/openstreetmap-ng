@@ -1,6 +1,6 @@
 from typing import Self
 
-from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Sequence, Unicode
+from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import decrypt_b
@@ -23,14 +23,14 @@ class OAuth1Application(Base.Sequential, CreatedAt, UpdatedAt):
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     consumer_key: Mapped[str] = mapped_column(Unicode(40), nullable=False)
     consumer_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    scopes: Mapped[Sequence[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     application_url: Mapped[str] = mapped_column(Unicode, nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # relationships (nested imports to avoid circular imports)
     from oauth1_token import OAuth1Token
 
-    oauth1_tokens: Mapped[Sequence[OAuth1Token]] = relationship(
+    oauth1_tokens: Mapped[list[OAuth1Token]] = relationship(
         back_populates='application',
         lazy='raise',
     )

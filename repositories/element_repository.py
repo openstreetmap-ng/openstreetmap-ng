@@ -13,19 +13,9 @@ from models.typed_element_ref import TypedElementRef
 from utils import utcnow
 
 
-class ElementService:
+class ElementRepository:
     @staticmethod
-    async def find_one_last() -> Element | None:
-        """
-        Find the last created element.
-        """
-
-        async with DB() as session:
-            stmt = select(Element).order_by(Element.id.desc()).limit(1)
-            return await session.scalar(stmt)
-
-    @staticmethod
-    async def find_one_last_typed_id(type: ElementType) -> int:
+    async def get_last_typed_id_by_type(type: ElementType) -> int:
         """
         Find the last typed_id for the given type.
 
@@ -44,101 +34,34 @@ class ElementService:
             return element.typed_id if element else 0
 
     @staticmethod
-    async def find_many_latest(typed_refs: AbstractSet[TypedElementRef]) -> Sequence[Element | None]:
+    async def find_one_latest(typed_ref: TypedElementRef | None = None) -> Element | None:
         """
-        Find the latest element (if any) for each of the given typed refs.
+        Find the latest element (if any).
+
+        Optionally by the given typed ref.
         """
 
-        # small optimization
-        if not typed_refs:
-            return ()
-
-        if not isinstance(typed_refs, AbstractSet):
-            raise TypeError('typed_refs must be unique')
+        if typed_ref:
+            elements = await ElementRepository.get_many_latest_by_typed_refs({typed_ref})
+            return elements[0] if elements else None
 
         async with DB() as session:
-            stmt = select(Element).where(
-                Element.id.in_(
-                    select(func.max(Element.id))
-                    .where(
-                        or_(
-                            and_(
-                                Element.type == typed_ref.type,
-                                Element.typed_id == typed_ref.typed_id,
-                            )
-                            for typed_ref in typed_refs
-                        )
-                    )
-                    .group_by(Element.type, Element.typed_id)
-                    .subquery()
-                )
-            )
-
-            result = [None] * len(typed_refs)
-            result_map = {typed_ref: i for i, typed_ref in enumerate(typed_refs)}
-
-            async for element in await session.stream_scalars(stmt):
-                result[result_map[element.typed_ref]] = element
-
-            return result
+            stmt = select(Element).order_by(Element.id.desc()).limit(1)
+            return await session.scalar(stmt)
 
     @staticmethod
-    async def find_one_latest(typed_ref: TypedElementRef) -> Element | None:
-        """
-        Find the latest element (if any) for the given typed ref.
-        """
-
-        return await ElementService.find_many_latest({typed_ref})[0]
-
-    @staticmethod
-    async def get_referenced_by(
-        member_ref: TypedElementRef,
-        parent_type: ElementType | None = None,
-        *,
-        after: int | None = None,
-        limit: int | None = FIND_LIMIT,
-    ) -> Sequence[Element]:
-        """
-        Get elements that reference the given element.
-        """
-
-        # TODO: index
-        # TODO: point in time
-        point_in_time = utcnow()
-
-        async with DB() as session:
-            stmt = select(Element).where(
-                Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                func.jsonb_path_exists(
-                    Element.members,
-                    cast(
-                        f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
-                        JSONPATH,
-                    ),
-                ),
-            )
-
-            if parent_type is not None:
-                stmt = stmt.where(Element.type == parent_type)
-            if after is not None:
-                stmt = stmt.where(Element.id > after)
-            if limit is not None:
-                stmt = stmt.limit(limit)
-
-            return (await session.scalars(stmt)).all()
-
-    @staticmethod
-    async def get_elements(
+    async def get_many_latest_by_typed_refs(
         typed_refs: AbstractSet[TypedElementRef],
         *,
         recurse_ways: bool = False,
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[Element]:
         """
-        Get elements for the given typed refs.
+        Get elements by the given typed refs.
 
         Optionally recurse ways to get their nodes.
+
+        This method does not check for the existence of the given elements.
         """
 
         # small optimization
@@ -193,5 +116,45 @@ class ElementService:
                     stmt = select(Element).select_from(stmt.subquery()).limit(limit)
                 else:
                     stmt = stmt.limit(limit)
+
+            return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def get_many_parents_by_typed_ref(
+        member_ref: TypedElementRef,
+        parent_type: ElementType | None = None,
+        *,
+        after: int | None = None,
+        limit: int | None = FIND_LIMIT,
+    ) -> Sequence[Element]:
+        """
+        Get elements that reference the given element.
+
+        This method does not check for the existence of the given element.
+        """
+
+        # TODO: index
+        # TODO: point in time
+        point_in_time = utcnow()
+
+        async with DB() as session:
+            stmt = select(Element).where(
+                Element.created_at <= point_in_time,
+                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                func.jsonb_path_exists(
+                    Element.members,
+                    cast(
+                        f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
+                        JSONPATH,
+                    ),
+                ),
+            )
+
+            if parent_type is not None:
+                stmt = stmt.where(Element.type == parent_type)
+            if after is not None:
+                stmt = stmt.where(Element.id > after)
+            if limit is not None:
+                stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()

@@ -17,7 +17,8 @@ from models.db.base import _DEFAULT_FIND_LIMIT, Base
 from models.db.changeset import Changeset
 from models.db.created_at import CreatedAt
 from models.db.user import User
-from models.element_member import ElementMemberRef, ElementMemberRefType
+from models.element_member import ElementMemberRef
+from models.element_member_type import ElementMemberRefType
 from models.element_type import ElementType
 from models.geometry_type import PointType
 from models.typed_element_ref import TypedElementRef
@@ -39,7 +40,7 @@ class Element(Base.Sequential, CreatedAt, ABC):
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
     # TODO: indexes, spatial_index
-    members: Mapped[Sequence[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
+    members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
 
     # defaults
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)

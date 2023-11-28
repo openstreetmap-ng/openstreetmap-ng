@@ -30,7 +30,7 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
     # relationships (nested imports to avoid circular imports)
     from note_comment import NoteComment
 
-    note_comments: Mapped[Sequence[NoteComment]] = relationship(
+    note_comments: Mapped[list[NoteComment]] = relationship(
         back_populates='note',
         order_by='asc(NoteComment.created_at)',
         lazy='raise',

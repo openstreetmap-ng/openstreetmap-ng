@@ -32,11 +32,11 @@ class Trace(Base.Sequential, CreatedAt):
     icon_id: Mapped[str] = mapped_column(Unicode, nullable=False)
 
     # defaults
-    tags: Mapped[Sequence[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
+    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
 
     from trace_point import TracePoint
 
-    trace_points: Mapped[Sequence[TracePoint]] = relationship(
+    trace_points: Mapped[list[TracePoint]] = relationship(
         back_populates='trace',
         order_by='asc(TracePoint.captured_at)',
         lazy='raise',

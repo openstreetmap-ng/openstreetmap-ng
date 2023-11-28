@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from itertools import chain
 
 import anyio
-from geoalchemy2 import WKBElement
 from shapely import Point
 from shapely.ops import unary_union
 
@@ -14,7 +13,7 @@ from models.db.changeset import Changeset
 from models.db.element import Element
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
-from services.element_service import ElementService
+from repositories.element_repository import ElementRepository
 from utils import utcnow
 
 
@@ -192,17 +191,23 @@ class OptimisticPrepare:
             raise RuntimeError('Cannot preload elements when local state is not empty')
 
         # only preload elements that exist in the database (positive typed_id)
-        typed_refs = frozenset(e.typed_ref for e in self.elements if e.typed_id > 0)
+        typed_refs = {e.typed_ref for e in self.elements if e.typed_id > 0}
 
         # small optimization
         if not typed_refs:
             return
 
-        # preload and check if all elements exist
-        for element, typed_ref in zip(await ElementService.find_many_latest(typed_refs), typed_refs, strict=True):
-            if element is None:
-                raise_for().element_not_found(typed_ref)
+        elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=None)
 
+        # check if all elements exist
+        if len(elements) != len(typed_refs):
+            for element in elements:
+                typed_refs.remove(element.typed_ref)
+
+            raise_for().element_not_found(next(iter(typed_refs)))
+
+        # if yes, push them to the local state
+        for typed_ref, element in zip(typed_refs, elements, strict=True):
             self.element_state[typed_ref] = [element]
 
     async def _assign_last_id_and_check_time_integrity(self) -> None:
@@ -213,7 +218,7 @@ class OptimisticPrepare:
         if self._last_id is not None:
             raise RuntimeError('Cannot fetch last id when already fetched')
 
-        if element := await ElementService.find_one_last():
+        if element := await ElementRepository.find_one_latest():
             if element.created_at > (now := utcnow()):
                 logging.error(
                     'Element %r/%r was created in the future: %r > %r',
@@ -238,7 +243,7 @@ class OptimisticPrepare:
 
         if typed_ref.typed_id < 0:
             raise_for().element_not_found(typed_ref)
-        if not (element := await ElementService.find_one_latest(typed_ref)):
+        if not (element := await ElementRepository.find_one_latest(typed_ref)):
             raise_for().element_not_found(typed_ref)
 
         self.element_state[typed_ref] = [element]
@@ -298,16 +303,16 @@ class OptimisticPrepare:
         # check if not referenced by database elements (only existing elements)
         if element.typed_id > 0:
             negative_refs = self._reference_override[(element.typed_ref, False)]
-            referenced_by_elements = await ElementService.get_referenced_by(
+            parents = await ElementRepository.get_many_parents_by_typed_ref(
                 element.typed_ref,
                 limit=len(negative_refs) + 1,
             )
-            referenced_by_refs = {r.typed_ref for r in referenced_by_elements}
-            if refs := (referenced_by_refs - negative_refs):
+            parent_refs = {e.typed_ref for e in parents}
+            if refs := (parent_refs - negative_refs):
                 raise_for().element_in_use(element.versioned_ref, refs)
 
             # remember the last referencing element id for the future reference check
-            referenced_by_last_id = max(chain((self._last_id,), (e.id for e in referenced_by_elements)))
+            referenced_by_last_id = max(chain((self._last_id,), (e.id for e in parents)))
             self.reference_check_state.setdefault(element.typed_ref, referenced_by_last_id)
 
     def _push_bbox_info(self, prev: Element | None, element: Element) -> None:
@@ -384,28 +389,33 @@ class OptimisticPrepare:
         Update changeset boundaries using the bbox info.
         """
 
-        async def update_changeset(changeset_id: int, bbox_info: set[Point | TypedElementRef]) -> None:
+        async def task(changeset_id: int, bbox_info: set[Point | TypedElementRef]) -> None:
             points = set()
             typed_refs = set()
 
+            # split bbox info into points and typed refs
             for point_or_ref in bbox_info:
                 if isinstance(point_or_ref, Point):
                     points.add(point_or_ref)
                 else:
                     typed_refs.add(point_or_ref)
 
-            for element in await ElementService.get_elements(typed_refs, recurse_ways=True, limit=None):
+            # get points for typed refs
+            elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, recurse_ways=True, limit=None)
+
+            for element in elements:
                 if element.point:
                     points.add(element.point)
                 elif element.type == ElementType.node:
                     # log warning as this should not happen
                     logging.warning('Node %r has no point', element.typed_id)
 
+            # update changeset boundary if any points
             if points:
                 changeset = await self._get_changeset(changeset_id)
                 changeset.union_boundary(unary_union(points))
 
-        # update changeset boundaries
+        # start task for each changeset
         async with anyio.create_task_group() as tg:
             for changeset_id, bbox_info in self._changeset_bbox_info.items():
-                tg.start_soon(update_changeset, changeset_id, bbox_info)
+                tg.start_soon(task, changeset_id, bbox_info)

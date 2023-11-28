@@ -1,5 +1,5 @@
 from geoalchemy2 import Geometry, WKBElement
-from sqlalchemy import ForeignKey, LargeBinary, Sequence, Unicode, UnicodeText
+from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
@@ -28,12 +28,12 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
     from diary_comment import DiaryComment
     from diary_subscription import DiarySubscription
 
-    diary_comments: Mapped[Sequence[DiaryComment]] = relationship(
+    diary_comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='diary',
         order_by='asc(DiaryComment.created_at)',
         lazy='raise',
     )
-    diary_subscription_users: Mapped[Sequence[User]] = relationship(
+    diary_subscription_users: Mapped[list[User]] = relationship(
         secondary=DiarySubscription,
         lazy='raise',
     )

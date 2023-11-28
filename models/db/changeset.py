@@ -24,7 +24,8 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(back_populates='changesets', lazy='raise')
-    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)  # TODO: normalize unicode, check unicode
+    tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
+    # TODO: normalize unicode, check unicode, check length
 
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
@@ -36,16 +37,16 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     from changeset_subscription import ChangesetSubscription
     from element import Element
 
-    changeset_comments: Mapped[Sequence[ChangesetComment]] = relationship(
+    changeset_comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='changeset',
         order_by='asc(ChangesetComment.created_at)',
         lazy='raise',
     )
-    changeset_subscription_users: Mapped[Sequence[User]] = relationship(
+    changeset_subscription_users: Mapped[list[User]] = relationship(
         secondary=ChangesetSubscription,
         lazy='raise',
     )
-    elements: Mapped[Sequence[Element]] = relationship(
+    elements: Mapped[list[Element]] = relationship(
         back_populates='changeset',
         order_by='asc(Element.id)',
         lazy='raise',
