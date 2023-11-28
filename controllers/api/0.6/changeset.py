@@ -27,7 +27,7 @@ router = APIRouter()
 
 
 @router.put('/changeset/create', response_class=PlainTextResponse)
-async def element_create(
+async def changeset_create(
     request: Request,
     type: ElementType,
     _: Annotated[User, api_user(Scope.write_api)],
@@ -89,6 +89,27 @@ async def changeset_update(
     return Format06.encode_changesets([changeset])
 
 
+@router.post('/changeset/{changeset_id}/upload', response_class=DiffResultResponse)
+async def changeset_upload(
+    request: Request,
+    changeset_id: PositiveInt,
+    _: Annotated[User, api_user(Scope.write_api)],
+) -> dict:
+    xml = (await request.body()).decode()
+    data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', [])
+
+    if not data:
+        raise_for().bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
+
+    try:
+        elements = Format06.decode_osmchange(data, changeset_id)
+    except Exception as e:
+        raise_for().bad_xml(type.value, xml, str(e))
+
+    assigned_ref_map = await Optimistic(elements).update()
+    return Format06.encode_diff_result(assigned_ref_map)
+
+
 @router.put('/changeset/{changeset_id}/close', response_class=PlainTextResponse)
 async def changeset_close(
     changeset_id: PositiveInt,
@@ -116,7 +137,7 @@ async def changeset_download(
 @router.get('/changesets')
 @router.get('/changesets.xml')
 @router.get('/changesets.json')
-async def changesets_read(
+async def changesets_query(
     changesets: Annotated[str | None, Query(None, min_length=1)],
     user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
     display_name: Annotated[str | None, Query(None, min_length=1)],
@@ -182,24 +203,3 @@ async def changesets_read(
     )
 
     return Format06.encode_changesets(changesets)
-
-
-@router.post('/changeset/{changeset_id}/upload', response_class=DiffResultResponse)
-async def changeset_upload(
-    request: Request,
-    changeset_id: PositiveInt,
-    _: Annotated[User, api_user(Scope.write_api)],
-) -> dict:
-    xml = (await request.body()).decode()
-    data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', [])
-
-    if not data:
-        raise_for().bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
-
-    try:
-        elements = Format06.decode_osmchange(data, changeset_id)
-    except Exception as e:
-        raise_for().bad_xml(type.value, xml, str(e))
-
-    assigned_ref_map = await Optimistic(elements).update()
-    return Format06.encode_diff_result(assigned_ref_map)

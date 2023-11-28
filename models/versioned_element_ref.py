@@ -4,7 +4,7 @@ from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 
 
-# TODO: expiring cache, never forever on instance
+# TODO: inherit on namedtuple won't work
 class VersionedElementRef(TypedElementRef):
     version: int
 

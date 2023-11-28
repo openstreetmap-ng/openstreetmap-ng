@@ -401,7 +401,11 @@ class OptimisticPrepare:
                     typed_refs.add(point_or_ref)
 
             # get points for typed refs
-            elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, recurse_ways=True, limit=None)
+            elements = await ElementRepository.get_many_latest_by_typed_refs(
+                typed_refs,
+                recurse_ways=True,
+                limit=None,
+            )
 
             for element in elements:
                 if element.point:
