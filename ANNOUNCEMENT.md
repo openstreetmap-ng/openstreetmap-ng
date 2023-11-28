@@ -365,9 +365,9 @@ No migration is required for the file store (local and S3), further easing the t
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
 
-**📅 Expected feature parity by:** 2023-12-07
+**📅 Expected feature parity by:** 2023-12-16
 
-**📅 Expected roadmap finish by:** 2024-02-07
+**📅 Expected roadmap finish by:** 2024-02-16
 
 ## The Future
 
