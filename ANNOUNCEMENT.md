@@ -226,6 +226,7 @@ OpenStreetMap-NG addresses a range of security concerns while introducing notabl
 The most significant security vulnerabilities were reported to Ruby security maintainers using a coordinated vulnerability disclosure approach. The timeline for this disclosure is as follows:
 
 - **2023-11-04** - Contacted Ruby security maintainers & disclosed the timeline publicly
+- **2023-11-08** - Maintainers acknowledged the report
 - **2024-03-02** - Publicized vulnerability details
 
 The maintainers are given up to 120 days to resolve the issues, but the vulnerability details may be made public earlier if necessary fixes are deployed on OpenStreetMap production servers.
