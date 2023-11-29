@@ -241,8 +241,8 @@ async def element_full(
     if not element.visible:
         raise HTTPException(status.HTTP_410_GONE)
 
-    elements = await ElementRepository.get_many_latest_members_by_element(
-        element,
+    elements = await ElementRepository.get_many_latest_by_typed_refs(
+        tuple(member.typed_ref for member in element.members),
         recurse_ways=True,
         limit=None,
     )
