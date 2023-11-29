@@ -6,3 +6,4 @@ class NoteEvent(BaseEnum):
     closed = 'closed'
     reopened = 'reopened'
     commented = 'commented'
+    hidden = 'hidden'

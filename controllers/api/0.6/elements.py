@@ -57,7 +57,8 @@ async def element_read_latest(
     typed_id: PositiveInt,
 ) -> dict:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    element = await ElementRepository.find_one_latest(typed_ref)
+    elements = await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)
+    element = elements[0] if elements else None
 
     if not element:
         raise_for().element_not_found(typed_ref)
@@ -76,12 +77,12 @@ async def element_read_version(
     version: PositiveInt,
 ) -> dict:
     versioned_ref = VersionedElementRef(type=type, typed_id=typed_id, version=version)
-    element = await ElementRepository.find_one_by_versioned_ref(versioned_ref)
+    elements = await ElementRepository.get_many_by_versioned_refs([versioned_ref])
 
-    if not element:
+    if not elements:
         raise_for().element_not_found(versioned_ref)
 
-    return Format06.encode_element(element)
+    return Format06.encode_element(elements[0])
 
 
 @router.put('/{type}/{typed_id}', response_class=PlainTextResponse)
@@ -234,7 +235,8 @@ async def element_full(
     typed_id: PositiveInt,
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    element = await ElementRepository.find_one_latest(typed_ref)
+    elements = await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)
+    element = elements[0] if elements else None
 
     if not element:
         raise_for().element_not_found(typed_ref)

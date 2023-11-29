@@ -1,10 +1,10 @@
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
 from models.db.changeset import Changeset
-from utils import utcnow
 
 
 class ChangesetService:
@@ -69,6 +69,6 @@ class ChangesetService:
             if changeset.closed_at:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
-            changeset.closed_at = utcnow()
+            changeset.closed_at = func.now()
 
         return changeset

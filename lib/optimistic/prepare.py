@@ -243,9 +243,10 @@ class OptimisticPrepare:
 
         if typed_ref.typed_id < 0:
             raise_for().element_not_found(typed_ref)
-        if not (element := await ElementRepository.find_one_latest(typed_ref)):
+        if not (elements := await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)):
             raise_for().element_not_found(typed_ref)
 
+        element = elements[0]
         self.element_state[typed_ref] = [element]
         return element
 

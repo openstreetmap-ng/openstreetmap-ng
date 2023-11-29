@@ -155,7 +155,7 @@ class Mailer:
                 .limit(1)
             )
 
-            mail = (await session.execute(stmt)).scalar_one_or_none()
+            mail = await session.scalar(stmt)
 
             # nothing to do
             if not mail:

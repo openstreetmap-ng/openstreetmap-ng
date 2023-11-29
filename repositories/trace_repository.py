@@ -27,7 +27,7 @@ class TraceRepository:
     @staticmethod
     async def get_one_data_by_id(trace_id: int) -> tuple[str, bytes]:
         """
-        Get a trace data by id.
+        Get a trace data file by id.
 
         Raises if the trace is not visible to the current user.
 

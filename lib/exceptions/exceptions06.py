@@ -401,6 +401,10 @@ class Exceptions06(ExceptionsBase):
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}')
 
     @classmethod
+    def note_not_found(cls, _: int) -> NoReturn:
+        raise cls.APIError(status.HTTP_404_NOT_FOUND)
+
+    @classmethod
     def note_closed(cls, note_id: int, closed_at: datetime) -> NoReturn:
         raise cls.APIError(
             status.HTTP_409_CONFLICT,

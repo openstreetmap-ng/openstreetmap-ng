@@ -57,15 +57,16 @@ async def changeset_read(
     # treat any non-empty string as True
     include_discussion = bool(include_discussion)
 
-    changeset = await ChangesetRepository.find_one_by_id(
-        changeset_id,
+    changesets = await ChangesetRepository.find_many_by_query(
+        changeset_ids=[changeset_id],
         include_comments=include_discussion,
+        limit=None,
     )
 
-    if not changeset:
+    if not changesets:
         raise_for().changeset_not_found(changeset_id)
 
-    return Format06.encode_changesets([changeset])
+    return Format06.encode_changesets(changesets)
 
 
 @router.put('/changeset/{changeset_id}')
@@ -123,15 +124,16 @@ async def changeset_close(
 async def changeset_download(
     changeset_id: PositiveInt,
 ) -> Sequence:
-    changeset = await ChangesetRepository.find_one_by_id(
-        changeset_id,
+    changesets = await ChangesetRepository.find_many_by_query(
+        changeset_ids=[changeset_id],
         include_elements=True,
+        limit=None,
     )
 
-    if not changeset:
+    if not changesets:
         raise_for().changeset_not_found(changeset_id)
 
-    return Format06.encode_osmchange(changeset.elements)
+    return Format06.encode_osmchange(changesets[0].elements)
 
 
 @router.get('/changesets')
@@ -139,14 +141,18 @@ async def changeset_download(
 @router.get('/changesets.json')
 async def changesets_query(
     changesets: Annotated[str | None, Query(None, min_length=1)],
-    user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
     display_name: Annotated[str | None, Query(None, min_length=1)],
+    user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
     time: Annotated[str | None, Query(None, min_length=1)],
     open: Annotated[str | None, Query(None)],
     closed: Annotated[str | None, Query(None)],
     bbox: Annotated[str | None, Query(None, min_length=1)],
     limit: Annotated[int, Query(CHANGESET_QUERY_DEFAULT_LIMIT, gt=0, le=CHANGESET_QUERY_MAX_LIMIT)],
 ) -> Sequence[dict]:
+    # small logical optimization
+    if open and closed:
+        return Format06.encode_changesets([])
+
     geometry = parse_bbox(bbox) if bbox else None
 
     if changesets:
@@ -156,18 +162,17 @@ async def changesets_query(
         if not changesets:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No changesets were given to search for')
 
-    if user_id and display_name:
+    if display_name and user_id:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
 
-    if user_id:
+    if display_name:
+        user = await UserRepository.find_one_by_display_name(display_name)
+        if not user:
+            raise_for().user_not_found(display_name)
+    elif user_id:
         user = await UserRepository.find_one_by_id(user_id)
         if not user:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, 'Object not found')
-
-    if display_name:
-        user = await User.find_one_by_display_name(display_name)
-        if not user:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, 'Object not found')
+            raise_for().user_not_found(user_id)
 
     if time:
         try:
@@ -186,10 +191,6 @@ async def changesets_query(
     else:
         closed_after = None
         created_before = None
-
-    # small logical optimization
-    if open and closed:
-        return Format06.encode_changesets([])
 
     changesets = await ChangesetRepository.find_many_by_query(
         changeset_ids=changesets,

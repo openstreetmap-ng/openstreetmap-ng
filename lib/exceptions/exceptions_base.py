@@ -321,6 +321,11 @@ class ExceptionsBase(ABC):
 
     @classmethod
     @abstractmethod
+    def note_not_found(cls, note_id: int) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def note_closed(cls, note_id: int, closed_at: datetime) -> NoReturn:
         raise NotImplementedError
 

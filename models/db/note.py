@@ -18,6 +18,7 @@ from models.msgspec.cursor import Cursor
 from utils import utcnow
 
 
+# TODO: ensure updated at on members
 class Note(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'note'
 
@@ -179,9 +180,6 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
         async for doc in doc_cursor:
             result.append(cls.model_validate(doc))
         return result
-
-    def visible_to(self, user: User | None) -> bool:
-        return not self.hidden_at or (user and user.is_moderator)
 
     @retry_transaction()
     async def create_with_comment(self, comment: NoteComment) -> None:

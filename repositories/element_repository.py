@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from collections.abc import Set as AbstractSet
 from itertools import islice
 
 import anyio
@@ -39,22 +38,18 @@ class ElementRepository:
             return element.typed_id if element else 0
 
     @staticmethod
-    async def find_one_by_versioned_ref(versioned_ref: VersionedElementRef) -> Element | None:
+    async def find_one_latest() -> Element | None:
         """
-        Find the element by the versioned ref.
+        Find the latest element.
         """
 
         async with DB() as session:
-            stmt = select(Element).where(
-                Element.type == versioned_ref.type,
-                Element.typed_id == versioned_ref.typed_id,
-                Element.version == versioned_ref.version,
-            )
+            stmt = select(Element).order_by(Element.id.desc()).limit(1)
             return await session.scalar(stmt)
 
     @staticmethod
     async def get_many_by_versioned_refs(
-        versioned_refs: AbstractSet[VersionedElementRef],
+        versioned_refs: Sequence[VersionedElementRef],
         *,
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[Element]:
@@ -111,24 +106,8 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def find_one_latest(typed_ref: TypedElementRef | None = None) -> Element | None:
-        """
-        Find the latest element (if any).
-
-        Optionally by the given typed ref.
-        """
-
-        if typed_ref:
-            elements = await ElementRepository.get_many_latest_by_typed_refs({typed_ref})
-            return elements[0] if elements else None
-
-        async with DB() as session:
-            stmt = select(Element).order_by(Element.id.desc()).limit(1)
-            return await session.scalar(stmt)
-
-    @staticmethod
     async def get_many_latest_by_typed_refs(
-        typed_refs: AbstractSet[TypedElementRef],
+        typed_refs: Sequence[TypedElementRef],
         *,
         recurse_ways: bool = False,
         limit: int | None = FIND_LIMIT,
@@ -198,7 +177,7 @@ class ElementRepository:
 
     @staticmethod
     async def find_many_by_refs(
-        refs: AbstractSet[VersionedElementRef | TypedElementRef],
+        refs: Sequence[VersionedElementRef | TypedElementRef],
         *,
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[Element | None]:

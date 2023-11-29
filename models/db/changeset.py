@@ -5,7 +5,7 @@ from typing import Self
 import anyio
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import DateTime, ForeignKey, Integer
+from sqlalchemy import DateTime, ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,7 +14,6 @@ from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
 from models.geometry_type import PolygonType
-from utils import utcnow
 
 # TODO: 0.7 180th meridian ?
 
@@ -194,7 +193,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         if self._size < self.max_size:
             return False
 
-        self.closed_at = now or utcnow()
+        self.closed_at = now or func.now()
         return True
 
     def union_boundary(self, geometry: BaseGeometry) -> None:
