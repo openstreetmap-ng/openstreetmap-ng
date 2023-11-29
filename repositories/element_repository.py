@@ -1,13 +1,16 @@
 from collections.abc import Sequence
 from collections.abc import Set as AbstractSet
+from itertools import islice
 
 import anyio
+from shapely import Polygon
 from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
 from sqlalchemy.orm import load_only
 
 from db import DB
-from limits import FIND_LIMIT
+from lib.exceptions import raise_for
+from limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.element import Element
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
@@ -222,11 +225,11 @@ class ElementRepository:
 
         async def versioned_task() -> None:
             elements = await ElementRepository.get_many_by_versioned_refs(versioned_refs, limit=limit)
-            ref_map.update({element.versioned_ref: element for element in elements})
+            ref_map.update((element.versioned_ref, element) for element in elements)
 
         async def typed_task() -> None:
             elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=limit)
-            ref_map.update({element.typed_ref: element for element in elements})
+            ref_map.update((element.typed_ref, element) for element in elements)
 
         async with anyio.create_task_group() as tg:
             if versioned_refs:
@@ -234,37 +237,31 @@ class ElementRepository:
             if typed_refs:
                 tg.start_soon(typed_task)
 
-        result = []
-        result_versioned_ref_set = set()
+        # efficiently deduplicate results, preserving order
+        def result_d_gen():
+            for i, ref in enumerate(refs):
+                element = ref_map.get(ref)
+                yield (element.id, element) if element else (-i, None)
 
-        for ref in refs:
-            element = ref_map.get(ref)
+        result_d = dict(result_d_gen()).values()
 
-            # deduplicate
-            if element:
-                versioned_ref = element.versioned_ref
-                if versioned_ref in result_versioned_ref_set:
-                    continue
-                result_versioned_ref_set.add(versioned_ref)
-
-            result.append(element)
-
-        # apply limit
-        if limit is not None:
-            result = result[:limit]
+        if limit is not None:  # noqa: SIM108
+            result = tuple(islice(result_d, limit))
+        else:
+            result = tuple(result_d)
 
         return result
 
     @staticmethod
-    async def get_many_parents_by_typed_ref(
-        member_ref: TypedElementRef,
+    async def get_many_parents_by_typed_refs(
+        member_refs: Sequence[TypedElementRef],
         parent_type: ElementType | None = None,
         *,
         after: int | None = None,
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[Element]:
         """
-        Get elements that reference the given element.
+        Get elements that reference the given elements.
 
         This method does not check for the existence of the given element.
         """
@@ -277,12 +274,15 @@ class ElementRepository:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
                 Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                func.jsonb_path_exists(
-                    Element.members,
-                    cast(
-                        f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
-                        JSONPATH,
-                    ),
+                or_(
+                    func.jsonb_path_exists(
+                        Element.members,
+                        cast(
+                            f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
+                            JSONPATH,
+                        ),
+                    )
+                    for member_ref in member_refs
                 ),
             )
 
@@ -294,3 +294,90 @@ class ElementRepository:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def find_many_by_query(
+        geometry: Polygon,
+        *,
+        nodes_limit: int | None = FIND_LIMIT,
+        legacy_nodes_limit: bool = False,
+    ) -> Sequence[Element]:
+        """
+        Find elements by the query.
+
+        The matching is performed on the nodes only and all related elements are returned:
+        - nodes
+        - nodes' ways
+        - nodes' ways' nodes
+        - nodes' ways' relations
+        - nodes' relations
+
+        Results don't include duplicates.
+        """
+
+        # TODO: point in time
+        point_in_time = utcnow()
+
+        if legacy_nodes_limit:
+            if nodes_limit != MAP_QUERY_LEGACY_NODES_LIMIT:
+                raise ValueError('limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is enabled')
+            nodes_limit += 1
+
+        # find all the matching nodes
+        async with DB() as session:
+            stmt = select(Element).where(
+                Element.created_at <= point_in_time,
+                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                Element.type == ElementType.node,
+                func.ST_Intersects(Element.point, geometry.wkt),
+            )
+
+            if nodes_limit is not None:
+                stmt = stmt.limit(nodes_limit)
+
+            nodes = (await session.scalars(stmt)).all()
+
+        if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
+            raise_for().map_query_nodes_limit_exceeded()
+
+        nodes_typed_refs = tuple(node.typed_ref for node in nodes)
+        result_sequences = [nodes]
+
+        async def fetch_parents(typed_refs: Sequence[TypedElementRef], parent_type: ElementType) -> Sequence[Element]:
+            parents = await ElementRepository.get_many_parents_by_typed_refs(
+                typed_refs,
+                parent_type=parent_type,
+                limit=None,
+            )
+            if parents:
+                result_sequences.append(parents)
+            return parents
+
+        async with anyio.create_task_group() as tg:
+
+            async def way_task() -> None:
+                # fetch parent ways
+                ways = await fetch_parents(nodes_typed_refs, ElementType.way)
+
+                if not ways:
+                    return
+
+                # fetch ways' parent relations
+                ways_typed_refs = tuple(way.typed_ref for way in ways)
+                tg.start_soon(fetch_parents, ways_typed_refs, ElementType.relation)
+
+                # fetch ways' nodes
+                ways_member_refs = tuple(member.typed_ref for way in ways for member in way.members)
+                ways_nodes = await ElementRepository.get_many_latest_by_typed_refs(
+                    ways_member_refs,
+                    limit=None,
+                )
+
+                if ways_nodes:
+                    result_sequences.append(ways_nodes)
+
+            tg.start_soon(way_task)
+            tg.start_soon(fetch_parents, nodes_typed_refs, ElementType.relation)
+
+        # deduplicate results, preserving order
+        return tuple({element.id: element for elements in result_sequences for element in elements}.values())

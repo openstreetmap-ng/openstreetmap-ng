@@ -43,7 +43,11 @@ class ChangesetRepository:
         geometry: Polygon | None = None,
         include_comments: bool = False,
         limit: int | None = FIND_LIMIT,
-    ):
+    ) -> Sequence[Changeset]:
+        """
+        Find changesets by query.
+        """
+
         async with DB() as session:
             options = []
 

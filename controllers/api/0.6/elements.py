@@ -203,8 +203,8 @@ async def element_parent_relations(
     typed_id: PositiveInt,
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    elements = await ElementRepository.get_many_parents_by_typed_ref(
-        typed_ref,
+    elements = await ElementRepository.get_many_parents_by_typed_refs(
+        [typed_ref],
         parent_type=ElementType.relation,
         limit=None,
     )
@@ -218,8 +218,8 @@ async def element_parent_ways(
     typed_id: PositiveInt,
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=ElementType.node, typed_id=typed_id)
-    elements = await ElementRepository.get_many_parents_by_typed_ref(
-        typed_ref,
+    elements = await ElementRepository.get_many_parents_by_typed_refs(
+        [typed_ref],
         parent_type=ElementType.way,
         limit=None,
     )

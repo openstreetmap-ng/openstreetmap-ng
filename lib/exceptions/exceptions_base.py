@@ -281,6 +281,16 @@ class ExceptionsBase(ABC):
 
     @classmethod
     @abstractmethod
+    def trace_not_found(cls, trace_id: int) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def trace_access_denied(cls, trace_id: int) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def trace_points_query_area_too_big(cls) -> NoReturn:
         raise NotImplementedError
 

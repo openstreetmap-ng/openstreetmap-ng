@@ -77,19 +77,10 @@ class Trace(Base.Sequential, CreatedAt):
     def timestamps_via_api(self) -> bool:
         return self.visibility in (TraceVisibility.identifiable, TraceVisibility.trackable)
 
-    # TODO: SQL
-    @classmethod
-    async def find_many_by_user_id(cls, user_id: SequentialId) -> tuple[Self, ...]:
-        return await cls.find_many({'user_id': user_id})
-
-    def model_dump(self) -> dict:
-        if not self.file_id or not self.image_id or not self.icon_id:
-            raise ValueError(f'{self.__class__.__qualname__} must have file_id, image_id and icon_id set to be dumped')
-        return super().model_dump()
-
     def visible_to(self, user: User | None, scopes: Sequence[ExtendedScope]) -> bool:
         return self.linked_to_user_on_site or (user and self.user_id == user.id and ExtendedScope.read_gpx in scopes)
 
+    # TODO: SQL
     @retry_transaction()
     async def delete(self) -> None:
         async with anyio.create_task_group() as tg, Transaction() as session:

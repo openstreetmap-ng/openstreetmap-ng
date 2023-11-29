@@ -119,6 +119,10 @@ class Tracks:
 
     @classmethod
     async def get_file(cls, file_id: str) -> bytes:
+        """
+        Get the trace file by id.
+        """
+
         buffer = await TRACKS_STORAGE.load(file_id)
         return await _zstd_decompress_if_needed(buffer, file_id)
 
@@ -161,17 +165,17 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
     The points are sorted by captured_at, then by longitude, then by latitude.
     """
 
-    max_date_diff = timedelta(seconds=1)
     max_pos_diff = 1e-7  # different up to 7 decimal places
+    max_date_diff = timedelta(seconds=1)
 
     sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
     deduped_points = [sorted_points[0]]
 
     for prev, point in pairwise(sorted_points):
         if (
-            point.captured_at - prev.captured_at < max_date_diff
-            and abs(point.point.x - prev.point.x) < max_pos_diff
+            abs(point.point.x - prev.point.x) < max_pos_diff
             and abs(point.point.y - prev.point.y) < max_pos_diff
+            and point.captured_at - prev.captured_at < max_date_diff  # check date last, slowest to compute
         ):
             continue
         deduped_points.append(point)

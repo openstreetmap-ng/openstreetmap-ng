@@ -363,6 +363,14 @@ class Exceptions06(ExceptionsBase):
         )
 
     @classmethod
+    def trace_not_found(cls, _: int) -> NoReturn:
+        raise cls.APIError(status.HTTP_404_NOT_FOUND)
+
+    @classmethod
+    def trace_access_denied(cls, _: int) -> NoReturn:
+        raise cls.APIError(status.HTTP_403_FORBIDDEN)
+
+    @classmethod
     def trace_points_query_area_too_big(cls) -> NoReturn:
         raise cls.APIError(
             status.HTTP_400_BAD_REQUEST,

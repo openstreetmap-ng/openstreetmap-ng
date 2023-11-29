@@ -303,8 +303,8 @@ class OptimisticPrepare:
         # check if not referenced by database elements (only existing elements)
         if element.typed_id > 0:
             negative_refs = self._reference_override[(element.typed_ref, False)]
-            parents = await ElementRepository.get_many_parents_by_typed_ref(
-                element.typed_ref,
+            parents = await ElementRepository.get_many_parents_by_typed_refs(
+                [element.typed_ref],
                 limit=len(negative_refs) + 1,
             )
             parent_refs = {e.typed_ref for e in parents}

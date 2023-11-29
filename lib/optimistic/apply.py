@@ -55,6 +55,7 @@ class OptimisticApply:
                     tg.start_soon(self._check_element_is_latest, elements[0])  # check the oldest element
 
             # check if the elements are not referenced by any *new* elements
+            # TODO: single db call (already implemented)
             for element, after in prepare.reference_check_state.values():
                 tg.start_soon(self._check_element_not_referenced, element, after)
 
@@ -110,7 +111,7 @@ class OptimisticApply:
         Raises `OptimisticException` if it is.
         """
 
-        if parents := await ElementRepository.get_many_parents_by_typed_ref(element.typed_ref, after=after, limit=1):
+        if parents := await ElementRepository.get_many_parents_by_typed_refs([element.typed_ref], after=after, limit=1):
             raise OptimisticError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
 
     async def _update_changesets(
