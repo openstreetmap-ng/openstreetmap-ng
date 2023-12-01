@@ -4,7 +4,7 @@ from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from lib.cache import CACHE_HASH_SIZE
+from services.cache_service import CACHE_HASH_SIZE
 from lib.rich_text import rich_text_getter
 from limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from models.db.base import Base

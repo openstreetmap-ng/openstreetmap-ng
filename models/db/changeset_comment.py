@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.cache import CACHE_HASH_SIZE
+from services.cache_service import CACHE_HASH_SIZE
 from lib.rich_text import rich_text_getter
 from models.db.base import Base
 from models.db.changeset import Changeset

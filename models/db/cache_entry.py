@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column
 
-from lib.cache import CACHE_HASH_SIZE
+from services.cache_service import CACHE_HASH_SIZE
 from models.db.base import Base
 
 

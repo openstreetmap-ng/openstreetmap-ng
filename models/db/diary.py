@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
-from lib.cache import CACHE_HASH_SIZE
+from services.cache_service import CACHE_HASH_SIZE
 from lib.rich_text import rich_text_getter
 from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base

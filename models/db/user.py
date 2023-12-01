@@ -22,7 +22,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from config import DEFAULT_LANGUAGE
 from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
-from lib.cache import CACHE_HASH_SIZE
+from services.cache_service import CACHE_HASH_SIZE
 from lib.languages import get_language_info, normalize_language_case
 from lib.rich_text import rich_text_getter
 from limits import (
