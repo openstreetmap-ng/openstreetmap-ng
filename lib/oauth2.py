@@ -3,6 +3,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 
 from lib.exceptions import raise_for
 from models.db.oauth2_token import OAuth2Token
+from repositories.oauth2_token_repository import OAuth2TokenRepository
 
 
 class OAuth2:
@@ -24,7 +25,7 @@ class OAuth2:
         if scheme.lower() != 'bearer':
             raise_for().oauth2_bearer_missing()
 
-        token = await OAuth2Token.find_one_by_key_with_(param)
+        token = await OAuth2TokenRepository.find_one_by_token(param)
 
         if token is None:
             raise_for().oauth_bad_user_token()

@@ -10,9 +10,6 @@ from models.db.user import User
 from models.oauth2_application_type import OAuth2ApplicationType
 from models.scope import Scope
 
-# TODO: cascading delete
-# TODO: move validation logic
-
 
 class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'oauth2_application'

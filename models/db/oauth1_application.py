@@ -13,6 +13,7 @@ from models.scope import Scope
 
 # TODO: cascading delete
 # TODO: move validation logic
+# TODO: OAUTH_APP_NAME_MAX_LENGTH
 
 
 class OAuth1Application(Base.Sequential, CreatedAt, UpdatedAt):
@@ -38,9 +39,3 @@ class OAuth1Application(Base.Sequential, CreatedAt, UpdatedAt):
     @updating_cached_property('consumer_secret_encrypted')
     def consumer_secret(self) -> str:
         return decrypt_b(self.consumer_secret_encrypted)
-
-    # TODO: SQL
-    # TODO: OAUTH_APP_NAME_MAX_LENGTH
-    @classmethod
-    async def find_one_by_key(cls, key: str) -> Self | None:
-        return await cls.find_one({'key_public': key})

@@ -13,9 +13,9 @@ class Scope(BaseEnum):
 
 # extend enums is not yet supported
 class ExtendedScope(BaseEnum):
-    '''
+    """
     Extended scopes with entries that are not obtainable by normal means.
-    '''
+    """
 
     read_prefs = 'read_prefs'
     write_prefs = 'write_prefs'

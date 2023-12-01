@@ -4,6 +4,7 @@ from fastapi import Request
 
 from lib.exceptions import raise_for
 from models.db.oauth1_token import OAuth1Token
+from repositories.oauth1_token_repository import OAuth1TokenRepository
 
 
 class OAuth1:
@@ -21,13 +22,14 @@ class OAuth1:
         )
 
     @staticmethod
-    async def compute_hmac_sha1(request: OAuth1Request, app_secret: str, token_secret: str) -> str:
+    async def compute_hmac_sha1(request: OAuth1Request, consumer_secret: str, token_secret: str) -> str:
         """
         Compute the HMAC-SHA1 signature for an OAuth1 request.
         """
 
         base_string = generate_signature_base_string(request)
-        signature = hmac_sha1_signature(base_string, app_secret, token_secret)
+        signature = hmac_sha1_signature(base_string, consumer_secret, token_secret)
+
         return signature
 
     @staticmethod
@@ -43,14 +45,18 @@ class OAuth1:
         if not request.signature:
             raise_for().oauth1_bad_signature()
 
-        token = await OAuth1Token.find_one_by_key_with_(request.token)
+        token = await OAuth1TokenRepository.find_one_by_token(request.token)
 
         if not token:
             raise_for().oauth_bad_user_token()
-        if token.app_.key_public != request.client_id:
+        if token.application.consumer_key != request.client_id:
             raise_for().oauth_bad_app_token()
 
-        signature = await OAuth1.compute_hmac_sha1(request, token.app_.key_secret, token.key_secret)
+        signature = await OAuth1.compute_hmac_sha1(
+            request,
+            token.application.consumer_secret,
+            token.token_secret,
+        )
 
         if signature != request.signature:
             raise_for().oauth1_bad_signature()

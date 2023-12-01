@@ -4,7 +4,7 @@ from shapely import Point
 from sqlalchemy import func, null, select
 
 from db import DB
-from limits import FIND_LIMIT, NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
+from limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
 from models.db.user import User
 
 
