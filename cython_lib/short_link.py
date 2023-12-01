@@ -1,5 +1,10 @@
 import cython
 
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+else:
+    print(f'{__name__}: 🐌 not compiled')
+
 # 64 chars to encode 6 bits
 _ARRAY = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~'
 _ARRAY_MAP = {c: i for i, c in enumerate(_ARRAY)}

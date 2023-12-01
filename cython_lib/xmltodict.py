@@ -12,6 +12,11 @@ from humanize import naturalsize
 from lib.exceptions import raise_for
 from limits import XML_PARSE_MAX_SIZE
 
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+else:
+    print(f'{__name__}: 🐌 not compiled')
+
 
 class XAttr(UserString):
     """

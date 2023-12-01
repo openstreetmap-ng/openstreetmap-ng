@@ -12,12 +12,15 @@ setup(
                 '*',
                 ['cython_lib/*.py'],
                 extra_compile_args=[
-                    '-fopenmp',
-                    '-march=native',  # TODO: figure out what to do on deployment
+                    '-march=x86-64',
+                    '-mtune=generic',
                     '-ffast-math',
+                    '-fopenmp',
+                    '-flto=auto',
                 ],
                 extra_link_args=[
                     '-fopenmp',
+                    '-flto=auto',
                 ],
             )
         ],

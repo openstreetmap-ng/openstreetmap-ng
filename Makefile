@@ -3,7 +3,6 @@
 setup:
 	# compile cython
 	pipenv run python setup.py build_ext --build-lib cython_lib
-	rm -rf cython_lib/*.c
 
 clean:
 	rm -rf build/ cython_lib/*{.c,.so,.html}

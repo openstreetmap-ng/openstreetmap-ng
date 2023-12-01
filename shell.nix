@@ -34,7 +34,7 @@ with pkgs; let
     export PYTHONPATH="$(pwd)"
     [ ! -e .venv/bin/python ] && [ -h .venv/bin/python ] && rm -r .venv
     [ ! -f .venv/bin/activate ] && pipenv sync --dev
-    pipenv run sh -c "npm install --silent; make setup"
+    pipenv run sh -c "npm install --silent"
     case $- in *i*) exec pipenv shell --fancy;; esac
   '';
 

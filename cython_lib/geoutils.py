@@ -1,9 +1,17 @@
 import cython
-from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import Point, Polygon
 
 from lib.exceptions import raise_for
 from validators.geometry import validate_geometry
+
+if cython.compiled:
+    from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
+
+    print(f'{__name__}: 🐇 compiled')
+else:
+    from math import atan2, cos, pi, sin, sqrt
+
+    print(f'{__name__}: 🐌 not compiled')
 
 
 @cython.cfunc

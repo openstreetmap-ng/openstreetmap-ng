@@ -67,7 +67,7 @@ select = [
   "SLF", # flake8-self
   "SLOT", # flake8-slots
   "T10", # flake8-debugger
-  "T20", # flake8-print
+  # "T20", # flake8-print
   # "TRY", # tryceratops
   "YTT", # flake8-2020
 ]
