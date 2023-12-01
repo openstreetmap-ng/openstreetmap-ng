@@ -48,19 +48,18 @@ class NoteService:
         Comment on a note.
         """
 
+        current_user = auth_user()
+
         async with DB() as session, session.begin():
             stmt = (
                 select(Note)
                 .options(joinedload(Note.note_comments))
                 .where(
                     Note.id == note_id,
+                    Note.visible_to(current_user),
                 )
                 .with_for_update()
             )
-
-            # only show hidden notes to moderators
-            if not (user := auth_user()) or not user.is_moderator:
-                stmt = stmt.where(Note.hidden_at == null())
 
             note = await session.scalar(stmt)
 
@@ -97,7 +96,7 @@ class NoteService:
             # TODO: will this updated_at ?
             note.note_comments.append(
                 NoteComment(
-                    user_id=user.id,
+                    user_id=current_user.id,
                     user_ip=None,
                     event=event,
                     body=text,

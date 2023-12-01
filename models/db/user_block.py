@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func
+from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary, UnicodeText, and_, func, null, true
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -48,9 +48,9 @@ class UserBlock(Base.Sequential, CreatedAt, UpdatedAt):
     @classmethod
     def _expired_expression(cls) -> ColumnElement[bool]:
         return and_(
-            cls.expires_at != None,  # noqa: E711
-            cls.expires_at < func.now(),
-            cls.acknowledged == True,  # noqa: E712
+            cls.expires_at != null(),
+            cls.expires_at <= func.now(),
+            cls.acknowledged == true(),
         )
 
     body_rich = rich_text_getter('body', TextFormat.markdown)

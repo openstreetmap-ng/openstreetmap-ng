@@ -158,9 +158,11 @@ async def changesets_query(
     if changesets:
         parts = (c.strip() for c in changesets.split(','))
         parts = (c for c in parts if c and c.isdigit())
-        changesets = tuple(int(c) for c in parts)
-        if not changesets:
+        changeset_ids = {int(c) for c in parts}
+        if not changeset_ids:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No changesets were given to search for')
+    else:
+        changeset_ids = None
 
     if display_name and user_id:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
@@ -168,11 +170,11 @@ async def changesets_query(
     if display_name:
         user = await UserRepository.find_one_by_display_name(display_name)
         if not user:
-            raise_for().user_not_found(display_name)
+            raise_for().user_not_found_bad_request(display_name)
     elif user_id:
         user = await UserRepository.find_one_by_id(user_id)
         if not user:
-            raise_for().user_not_found(user_id)
+            raise_for().user_not_found_bad_request(user_id)
 
     if time:
         try:
@@ -193,7 +195,7 @@ async def changesets_query(
         created_before = None
 
     changesets = await ChangesetRepository.find_many_by_query(
-        changeset_ids=changesets,
+        changeset_ids=changeset_ids,
         user_id=user.id if user else None,
         created_before=created_before,
         closed_after=closed_after,

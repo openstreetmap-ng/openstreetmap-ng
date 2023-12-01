@@ -167,11 +167,7 @@ class ElementRepository:
                 )
 
             if limit is not None:
-                # proper limit on union requires subquery
-                if recurse_way_refs:
-                    stmt = select(Element).select_from(stmt.subquery()).limit(limit)
-                else:
-                    stmt = stmt.limit(limit)
+                stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
 

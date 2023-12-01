@@ -7,6 +7,10 @@ from models.db.trace_ import Trace
 class TraceService:
     @staticmethod
     async def update(trace_id: int, new_trace: Trace) -> None:
+        """
+        Update a trace.
+        """
+
         async with DB() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
@@ -22,6 +26,10 @@ class TraceService:
 
     @staticmethod
     async def delete(trace_id: int) -> None:
+        """
+        Delete a trace.
+        """
+
         async with DB() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 

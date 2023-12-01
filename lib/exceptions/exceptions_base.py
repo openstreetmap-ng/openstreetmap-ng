@@ -96,6 +96,11 @@ class ExceptionsBase(ABC):
 
     @classmethod
     @abstractmethod
+    def user_not_found_bad_request(cls, name_or_id: str | int) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def changeset_not_found(cls, changeset_id: int) -> NoReturn:
         raise NotImplementedError
 

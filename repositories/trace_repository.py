@@ -1,3 +1,7 @@
+from collections.abc import Sequence
+
+from sqlalchemy import select
+
 from db import DB
 from lib.auth import auth_user_scopes
 from lib.exceptions import raise_for
@@ -38,3 +42,17 @@ class TraceRepository:
         filename = trace.name
         file = await Tracks.get_file(trace.file_id)
         return filename, file
+
+    @staticmethod
+    async def find_many_by_user_id(user_id: int) -> Sequence[Trace]:
+        """
+        Find traces by user id.
+        """
+
+        async with DB() as session:
+            stmt = select(Trace).where(
+                Trace.user_id == user_id,
+                Trace.visible_to(*auth_user_scopes()),
+            )
+
+            return (await session.scalars(stmt)).all()

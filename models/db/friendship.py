@@ -11,6 +11,4 @@ class Friendship(Base.NoID):
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
 
-    __table_args__ = (
-        PrimaryKeyConstraint(from_user_id, to_user_id),
-    )
+    __table_args__ = (PrimaryKeyConstraint(from_user_id, to_user_id),)

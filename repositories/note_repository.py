@@ -33,12 +33,10 @@ class NoteRepository:
 
         async with DB() as session:
             stmt = select(Note).join(NoteComment)
-            where_and = []
+            where_and = [
+                Note.visible_to(auth_user()),
+            ]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at
-
-            # only show hidden notes to moderators
-            if not (user := auth_user()) or not user.is_moderator:
-                where_and.append(Note.hidden_at == null())
 
             if note_ids:
                 where_and.append(Note.id.in_(note_ids))

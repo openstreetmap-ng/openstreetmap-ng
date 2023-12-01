@@ -8,7 +8,6 @@ from typing import Self
 from argon2 import PasswordHasher
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
-from geoalchemy2 import Geometry, WKBElement
 from shapely.geometry import Point
 from sqlalchemy import (
     ARRAY,
@@ -25,7 +24,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import DEFAULT_LANGUAGE, SECRET, SRID
+from config import DEFAULT_LANGUAGE, SECRET
+from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
 from lib.cache import CACHE_HASH_SIZE
 from lib.exceptions import raise_for
@@ -37,8 +37,6 @@ from lib.rich_text import rich_text_getter
 from limits import (
     FAST_PASSWORD_CACHE_EXPIRE,
     LANGUAGE_CODE_MAX_LENGTH,
-    NEARBY_USERS_LIMIT,
-    NEARBY_USERS_RADIUS_METERS,
     USER_DESCRIPTION_MAX_LENGTH,
     USER_LANGUAGES_LIMIT,
 )
@@ -46,13 +44,13 @@ from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.oauth1_nonce import OAuth1Nonce
 from models.db.user_token_session import UserTokenSession
+from models.geometry_type import PointType
 from models.language_info import LanguageInfo
 from models.scope import Scope
 from models.text_format import TextFormat
 from models.user_avatar_type import UserAvatarType
 from models.user_role import UserRole
 from models.user_status import UserStatus
-from utils import haversine_distance
 
 
 class User(Base.NoID, CreatedAt):
@@ -82,7 +80,7 @@ class User(Base.NoID, CreatedAt):
     description_rich_hash: Mapped[bytes | None] = mapped_column(
         LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None
     )
-    home_point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True, default=None)
+    home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
     home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
     avatar_type: Mapped[UserAvatarType] = mapped_column(
         Enum(UserAvatarType), nullable=False, default=UserAvatarType.default
@@ -427,32 +425,5 @@ class User(Base.NoID, CreatedAt):
 
         return user, token.scopes
 
-    @classmethod
-    async def find_one_by_display_name(cls, display_name: str) -> Self | None:
-        return await cls.find_one({'display_name': display_name})  # TODO: collation
-
-    @classmethod
-    async def find_many_by_ids(cls, ids: Sequence[int]) -> Sequence[Self]:
-        return await cls.find_many({'_id': {'$in': ids}})
-
-    async def find_many_nearby_users(
-        self, *, radius_meters: float = NEARBY_USERS_RADIUS_METERS, limit: int = NEARBY_USERS_LIMIT
-    ) -> Sequence[Self]:
-        if not self.home_point:
-            return []
-
-        # results are already sorted by distance
-        return await self.find_many(
-            {
-                'home_point': {
-                    '$nearSphere': {
-                        '$geometry': self.home_point,
-                        '$maxDistance': radius_meters,
-                    }
-                },
-            },
-            limit=limit,
-        )
-
-    async def distance_to(self, point: Point | None) -> float | None:
+    async def home_distance_to(self, point: Point | None) -> float | None:
         return haversine_distance(self.home_point, point) if self.home_point and point else None

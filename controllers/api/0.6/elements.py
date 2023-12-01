@@ -174,6 +174,7 @@ async def elements_read_many(
 
     try:
         query = (q.strip() for q in query.split(','))
+        query = (q for q in query if q)
         query = {
             VersionedElementRef.from_type_str(type, q)
             if 'v' in q
@@ -182,7 +183,6 @@ async def elements_read_many(
                 typed_id=int(q),
             )
             for q in query
-            if q
         }
     except ValueError as e:
         # parsing error => element not found

@@ -9,8 +9,6 @@ from models.issue_status import IssueStatus
 from models.report_type import ReportType
 from models.user_role import UserRole
 
-# TODO: https://docs.sqlalchemy.org/en/14/orm/loading_relationships.html#sqlalchemy.orm.joinedload
-
 
 class Issue(Base.Sequential, CreatedAt, UpdatedAt):
     __tablename__ = 'issue'

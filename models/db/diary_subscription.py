@@ -12,6 +12,4 @@ class DiarySubscription(Base.NoID):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
 
-    __table_args__ = (
-        PrimaryKeyConstraint(diary_id, user_id),
-    )
+    __table_args__ = (PrimaryKeyConstraint(diary_id, user_id),)

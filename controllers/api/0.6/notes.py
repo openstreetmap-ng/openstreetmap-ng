@@ -157,11 +157,11 @@ async def notes_query(
     if display_name:
         user = await UserRepository.find_one_by_display_name(display_name)
         if not user:
-            raise_for().user_not_found(display_name)
+            raise_for().user_not_found_bad_request(display_name)
     elif user_id:
         user = await UserRepository.find_one_by_id(user_id)
         if not user:
-            raise_for().user_not_found(user_id)
+            raise_for().user_not_found_bad_request(user_id)
     else:
         user = None
 

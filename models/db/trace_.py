@@ -1,9 +1,9 @@
 from collections.abc import Sequence
-from typing import Self
 
 import anyio
 from shapely import Point
-from sqlalchemy import ARRAY, Enum, ForeignKey, Unicode
+from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Unicode
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.tracks import Tracks
@@ -36,6 +36,7 @@ class Trace(Base.Sequential, CreatedAt):
 
     from trace_point import TracePoint
 
+    # TODO: cascade delete + files delete
     trace_points: Mapped[list[TracePoint]] = relationship(
         back_populates='trace',
         order_by='asc(TracePoint.captured_at)',
@@ -65,29 +66,44 @@ class Trace(Base.Sequential, CreatedAt):
         tags = (t for t in tags if t)
         self.tags = tuple(set(tags))
 
-    @property
+    @hybrid_property
     def linked_to_user_in_api(self) -> bool:
         return self.visibility == TraceVisibility.identifiable
 
-    @property
+    @linked_to_user_in_api.inplace.expression
+    @classmethod
+    def _linked_to_user_in_api_expression(cls) -> ColumnElement[bool]:
+        return cls.visibility == TraceVisibility.identifiable
+
+    @hybrid_property
     def linked_to_user_on_site(self) -> bool:
         return self.visibility in (TraceVisibility.identifiable, TraceVisibility.public)
 
-    @property
+    @linked_to_user_on_site.inplace.expression
+    @classmethod
+    def _linked_to_user_on_site_expression(cls) -> ColumnElement[bool]:
+        return cls.visibility.in_((TraceVisibility.identifiable, TraceVisibility.public))
+
+    @hybrid_property
     def timestamps_via_api(self) -> bool:
         return self.visibility in (TraceVisibility.identifiable, TraceVisibility.trackable)
 
+    @timestamps_via_api.inplace.expression
+    @classmethod
+    def _timestamps_via_api_expression(cls) -> ColumnElement[bool]:
+        return cls.visibility.in_((TraceVisibility.identifiable, TraceVisibility.trackable))
+
+    @hybrid_method
     def visible_to(self, user: User | None, scopes: Sequence[ExtendedScope]) -> bool:
-        return self.linked_to_user_on_site or (user and self.user_id == user.id and ExtendedScope.read_gpx in scopes)
+        if user and ExtendedScope.read_gpx in scopes:
+            return self.linked_to_user_on_site or (self.user_id == user.id)
+        else:
+            return self.linked_to_user_on_site
 
-    # TODO: SQL
-    @retry_transaction()
-    async def delete(self) -> None:
-        async with anyio.create_task_group() as tg, Transaction() as session:
-            tg.start_soon(TracePoint.delete_by, {'trace_id': self.id}, session=session)
-            tg.start_soon(super().delete, session=session)
-
-        async with anyio.create_task_group() as tg:
-            tg.start_soon(Tracks.storage.delete, self.file_id)
-            tg.start_soon(Tracks.storage.delete, self.image_id)
-            tg.start_soon(Tracks.storage.delete, self.icon_id)
+    @visible_to.expression
+    @classmethod
+    def visible_to(cls, user: User | None, scopes: Sequence[ExtendedScope]) -> ColumnElement[bool]:
+        if user and ExtendedScope.read_gpx in scopes:
+            return cls.linked_to_user_on_site | (cls.user_id == user.id)
+        else:
+            return cls.linked_to_user_on_site

@@ -5,11 +5,12 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import PositiveInt
 
 from lib.auth import api_user
+from lib.exceptions import raise_for
 from lib.format.format06 import Format06
-from models.db.trace_ import Trace
 from models.db.user import User
 from models.scope import Scope
-from models.str import NonEmptyStr
+from repositories.trace_repository import TraceRepository
+from repositories.user_repository import UserRepository
 
 router = APIRouter()
 
@@ -19,7 +20,7 @@ router = APIRouter()
 async def user_gpx_files(
     user: Annotated[User, api_user(Scope.read_gpx)],
 ) -> Sequence[dict]:
-    traces = await Trace.find_many_by_user_id(user.id)
+    traces = await TraceRepository.find_many_by_user_id(user.id)
     return Format06.encode_gpx_files(traces)
 
 
@@ -38,12 +39,13 @@ async def user_details(
 async def user_read(
     user_id: PositiveInt,
 ) -> dict:
-    user = await User.find_one_by_id(user_id)
+    user = await UserRepository.find_one_by_id(user_id)
+
     if user is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
-    # TODO: if user deleted
-    if False:
+        raise_for().user_not_found(user_id)
+    if False:  # TODO: if user deleted
         raise HTTPException(status.HTTP_410_GONE)
+
     return Format06.encode_user(user)
 
 
@@ -51,10 +53,14 @@ async def user_read(
 @router.get('/users.xml')
 @router.get('/users.json')
 async def users_read(
-    users: Annotated[NonEmptyStr, Query()],
+    users: Annotated[str, Query(min_length=1)],
 ) -> Sequence[dict]:
     query = (q.strip() for q in users.split(','))
     query = (q for q in query if q and q.isdigit())
     user_ids = {int(q) for q in query}
-    users = await User.find_many_by_ids(user_ids)
+
+    if not user_ids:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No users were given to search for')
+
+    users = await UserRepository.find_many_by_ids(user_ids)
     return Format06.encode_users(users)

@@ -101,6 +101,10 @@ class Exceptions06(ExceptionsBase):
 
     @classmethod
     def user_not_found(cls, name_or_id: str | int) -> NoReturn:
+        raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'User {name_or_id} not known')
+
+    @classmethod
+    def user_not_found_bad_request(cls, name_or_id: str | int) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
 
     @classmethod
