@@ -5,7 +5,7 @@ from httpx import HTTPError
 from shapely.geometry import Point
 
 from config import NOMINATIM_URL
-from lib.cache import Cache
+from services.cache_service import CacheService
 from utils import HTTP
 
 _CACHE_CONTEXT = 'Nominatim'
@@ -29,13 +29,14 @@ class Nominatim:
         )
 
         async def factory() -> str:
+            logging.debug('Nominatim cache miss for path %r', path)
             r = await HTTP.get(NOMINATIM_URL + path, timeout=4)
             r.raise_for_status()
             data = await r.json()
             return data['display_name']
 
         try:
-            display_name = await Cache.get_one_by_key(path, _CACHE_CONTEXT, factory)
+            display_name = await CacheService.get_one_by_key(path, _CACHE_CONTEXT, factory)
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None

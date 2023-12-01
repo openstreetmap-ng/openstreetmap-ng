@@ -18,7 +18,7 @@ class OAuth2TokenRepository:
         async with DB() as session:
             stmt = (
                 select(OAuth2Token)
-                .options(joinedload(OAuth2Token.application))
+                .options(joinedload(OAuth2Token.application, OAuth2Token.user))
                 .where(OAuth2Token.token_hashed == token_hashed)
             )
 

@@ -23,8 +23,8 @@ from lib.translation import render, translation_context
 from limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from models.db.mail import Mail
 from models.db.user import User
-from models.db.user_token_email_reply import UserTokenEmailReply
 from models.mail_from_type import MailFromType
+from services.user_token_email_reply_service import UserTokenEmailReplyService
 from utils import utcnow
 
 
@@ -68,9 +68,13 @@ async def _send_smtp(mail: Mail) -> None:
     if mail.from_type == MailFromType.system:
         message['From'] = SMTP_NOREPLY_FROM
     else:
-        # reverse mail from/to users because this is a reply token
-        from_addr = await UserTokenEmailReply.create_from_addr(mail.to_user_id, mail.source.user_id, mail.source.type)
-        message['From'] = formataddr((mail.from_user.display_name, from_addr))
+        # swap from/to users because this is a reply token
+        reply_address = await UserTokenEmailReplyService.create(
+            from_user_id=mail.to_user_id,
+            source_type=mail.from_type,
+            to_user_id=mail.from_user_id,
+        )
+        message['From'] = formataddr((mail.from_user.display_name, reply_address))
 
     message['To'] = formataddr((mail.to_user.display_name, mail.to_user.email))
     message['Date'] = formatdate()
@@ -82,6 +86,8 @@ async def _send_smtp(mail: Mail) -> None:
         logging.debug('Setting mail %r reference to %r', mail.id, full_ref)
         message['In-Reply-To'] = full_ref
         message['References'] = full_ref
+
+        # disables threading in gmail
         message['X-Entity-Ref-ID'] = full_ref
 
     if not _SMTP:
@@ -92,7 +98,7 @@ async def _send_smtp(mail: Mail) -> None:
     await _SMTP.send_message(message)
 
 
-class Mailer:
+class MailService:
     @staticmethod
     async def schedule(
         from_user: User | None,
@@ -112,24 +118,24 @@ class Mailer:
         with translation_context(to_user.languages):
             body = render(template_name, **template_data)
 
-        mail = Mail(
-            from_user_id=from_user.id if from_user else None,
-            from_type=from_type,
-            to_user_id=to_user.id,
-            subject=subject,
-            body=body,
-            ref=ref,
-            priority=priority,
-        )
-
         async with DB() as session:
+            mail = Mail(
+                from_user_id=from_user.id if from_user else None,
+                from_type=from_type,
+                to_user_id=to_user.id,
+                subject=subject,
+                body=body,
+                ref=ref,
+                priority=priority,
+            )
+
             logging.debug('Scheduling mail %r to %d with subject %r', mail.id, to_user.id, subject)
             session.add(mail)
 
     @staticmethod
     async def process_scheduled() -> None:
         """
-        Process next scheduled mail.
+        Process the next scheduled mail.
         """
 
         async with DB() as session, session.begin():
@@ -163,8 +169,10 @@ class Mailer:
 
             try:
                 logging.info('Processing mail %r to %d with subject %r', mail.id, mail.to_user.id, mail.subject)
+
                 with anyio.fail_after(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
                     await _send_smtp(mail)
+
                 await session.delete(mail)
 
             except Exception:

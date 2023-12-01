@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from shapely import Point
-from sqlalchemy import func, null, select
+from sqlalchemy import func, null, or_, select
 
 from db import DB
 from limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
@@ -26,6 +26,22 @@ class UserRepository:
 
         async with DB() as session:
             stmt = select(User).where(User.display_name == display_name)
+
+            return await session.scalar(stmt)
+
+    @staticmethod
+    async def find_one_by_display_name_or_email(display_name_or_email: str) -> User | None:
+        """
+        Find a user by display name or email.
+        """
+
+        async with DB() as session:
+            stmt = select(User).where(
+                or_(
+                    User.display_name == display_name_or_email,
+                    User.email == display_name_or_email,
+                )
+            )
 
             return await session.scalar(stmt)
 

@@ -1,5 +1,3 @@
-from typing import Self
-
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

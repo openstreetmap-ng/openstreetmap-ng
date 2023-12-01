@@ -15,10 +15,11 @@ class OAuth1TokenRepository:
 
         token_hashed = hash_b(token_str, context=None)
 
+        # TODO: always joinedload
         async with DB() as session:
             stmt = (
                 select(OAuth1Token)
-                .options(joinedload(OAuth1Token.application))
+                .options(joinedload(OAuth1Token.application, OAuth1Token.user))
                 .where(OAuth1Token.token_hashed == token_hashed)
             )
 

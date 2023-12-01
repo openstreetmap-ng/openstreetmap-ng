@@ -329,7 +329,7 @@ User profiles will now feature a section where all the communities they belong t
 
 ## Migration Plan
 
-OpenStreetMap-NG is designed with a smooth migration process from the ground up. To ensure a seamless transition, I recommend initially deploying the new system on OpenStreetMap's development server. This allows for thorough testing and validation of all migration procedures before they're executed on the production environmen
+OpenStreetMap-NG is designed with a smooth migration process from the ground up. To ensure a seamless transition, I recommend initially deploying the new system on OpenStreetMap's development server. This allows for thorough testing and validation of all migration procedures before they're executed on the production environment.
 
 The primary task for migration involves the database. Backend structures in OpenStreetMap-NG closely resemble those in the original system, often requiring only field renaming for compatibility. Data is fetched from the original database using simple SQL SELECT statements, processed minimally within a migration script, and then uploaded to the new database. Given the similarity in database structures, this data migration step is easy to execute.
 

@@ -8,9 +8,9 @@ from markdown_it import MarkdownIt
 from sqlalchemy import update
 
 from db import DB
-from lib.cache import Cache
 from models.db.cache_entry import CacheEntry
 from models.text_format import TextFormat
+from services.cache_service import CacheService
 
 _md = MarkdownIt(
     options_update={
@@ -198,9 +198,9 @@ class RichText:
 
         # accelerate cache lookup by ID if available
         if cache_id:
-            return await Cache.get_one_by_id(cache_id, factory)
+            return await CacheService.get_one_by_id(cache_id, factory)
         else:
-            return await Cache.get_one_by_key(text, _cache_context(text_format), factory)
+            return await CacheService.get_one_by_key(text, _cache_context(text_format), factory)
 
 
 def rich_text_getter(
