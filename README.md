@@ -28,7 +28,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [ ] Anti-vandalism stage 1
 - [ ] Deprecation of OAuth 1.0 warning
-- [ ] User permalinks
+- [30%] User permalinks
 - [25%] Proxy for Amazon requests (better privacy)
 - [ ] Addition of Rapid editor
 - [ ] Ability to rotate OAuth keys
