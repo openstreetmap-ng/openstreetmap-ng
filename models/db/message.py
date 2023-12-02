@@ -5,13 +5,13 @@ from bs4 import BeautifulSoup
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from services.cache_service import CACHE_HASH_SIZE
 from lib.rich_text import rich_text_getter
 from limits import MESSAGE_BODY_MAX_LENGTH
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.user import User
 from models.text_format import TextFormat
+from services.cache_service import CACHE_HASH_SIZE
 
 
 class Message(Base.Sequential, CreatedAt):

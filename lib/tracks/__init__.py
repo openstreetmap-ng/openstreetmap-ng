@@ -24,8 +24,8 @@ from models.validating.trace_ import TraceValidating
 
 
 class Tracks:
-    @classmethod
-    async def process_upload(cls, file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
+    @staticmethod
+    async def process_upload(file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
         """
         Process the uploaded trace file.
 
@@ -117,8 +117,8 @@ class Tracks:
 
         return trace
 
-    @classmethod
-    async def get_file(cls, file_id: str) -> bytes:
+    @staticmethod
+    async def get_file(file_id: str) -> bytes:
         """
         Get the trace file by id.
         """
