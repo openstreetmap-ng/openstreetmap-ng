@@ -337,38 +337,7 @@ No migration is required for the file store (local and S3), further easing the t
 
 ## Roadmap
 
-- [x] Architecture design
-- [x] ~~Migration of the database models (document-db)~~
-- [95%] Migration of the database models (sql-db)
-- [x] Migration of translations
-- [x] Migration of various utilities and "lib" folder
-- [x] Cache for markdown generated content (faster page loading)
-- [x] Migration of OAuth 1.0 & OAuth 2.0
-- [80%] Authorization
-- [x] Optimistic diff processing
-- [80%] Migration of API 0.6
-- [x] Improved GPX traces processing
-- [ ] Migration of website API
-- [ ] Migration of the front-end
-- [ ] 🎉 **FEATURE-PARITY POINT** 🎉
-- [ ] Anti-vandalism stage 1
-- [ ] Deprecation of OAuth 1.0 warning
-- [ ] User permalinks
-- [25%] Proxy for Amazon requests (better privacy)
-- [ ] Addition of Rapid editor
-- [ ] Ability to rotate OAuth keys
-- [ ] Scheduled account delete
-- [ ] Identification of anonymous note users
-- [ ] Anti-vandalism stage 2
-- [ ] Design finalization of API 0.7
-- [10%] Development of API 0.7
-- [ ] 2FA and U2F support
-- [ ] Community profiles
-- [ ] Functional sitemap.xml
-
-**📅 Expected feature parity by:** 2023-12-16
-
-**📅 Expected roadmap finish by:** 2024-02-16
+Moved to [README.md](https://github.com/Zaczero/openstreetmap-ng/blob/main/README.md).
 
 ## The Future
 
