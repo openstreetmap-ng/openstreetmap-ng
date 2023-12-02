@@ -5,6 +5,7 @@ from httpx import HTTPError
 from shapely.geometry import Point
 
 from config import NOMINATIM_URL
+from lib.translation import translation_languages
 from services.cache_service import CacheService
 from utils import HTTP
 
@@ -13,7 +14,7 @@ _CACHE_CONTEXT = 'Nominatim'
 
 class Nominatim:
     @staticmethod
-    async def reverse_name(point: Point, zoom: int, locales: str) -> str:
+    async def reverse_name(point: Point, zoom: int) -> str:
         """
         Reverse geocode a point into a human-readable name.
         """
@@ -24,7 +25,7 @@ class Nominatim:
                 'lon': point.x,
                 'lat': point.y,
                 'zoom': zoom,
-                'accept-language': locales,
+                'accept-language': translation_languages()[0],  # use only the primary language for better caching
             }
         )
 

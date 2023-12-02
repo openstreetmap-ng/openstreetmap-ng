@@ -33,9 +33,7 @@ class NoteRepository:
 
         async with DB() as session:
             stmt = select(Note).join(NoteComment)
-            where_and = [
-                Note.visible_to(auth_user()),
-            ]
+            where_and = [Note.visible_to(auth_user())]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at
 
             if note_ids:
@@ -56,8 +54,7 @@ class NoteRepository:
             if date_to:
                 where_and.append(sort_by_key < date_to)
 
-            if where_and:
-                stmt = stmt.where(*where_and)
+            stmt = stmt.where(*where_and)
 
             # small optimization, skip sort if at most one note will be returned
             if not (note_ids and len(note_ids) == 1):

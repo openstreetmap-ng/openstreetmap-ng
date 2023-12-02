@@ -21,7 +21,8 @@ LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 
 # Configuration (required)
 SECRET = os.environ['SECRET']
-BASE_URL = os.environ['BASE_URL']
+APP_URL = os.environ['APP_URL'].rstrip('/')
+API_URL = os.environ['API_URL'].rstrip('/')
 
 # Configuration (optional)
 SRID = int(os.getenv('SRID', 4326))

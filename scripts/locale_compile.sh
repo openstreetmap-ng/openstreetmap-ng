@@ -7,7 +7,7 @@ pipenv run python ./scripts/locale_compile_oci.py
 echo "Merging .po files ..."
 for file in $(find ./config/locale -type f -name "out-osm-0-all.po"); do
     locale_dir=$(dirname "$file")
-    msgcat --use-first "$file" "$locale_dir/oci.po" > "$locale_dir/combined.po"
+    msgcat --use-first "$file" "$locale_dir/oci.po" | sed 's/%{/{/g' > "$locale_dir/combined.po"
 done
 
 echo "Compiling .po files ..."

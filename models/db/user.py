@@ -21,7 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import DEFAULT_LANGUAGE
+from config import APP_URL, DEFAULT_LANGUAGE
 from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
 from lib.languages import get_language_info, normalize_language_case
@@ -214,6 +214,14 @@ class User(Base.NoID, CreatedAt):
         """
 
         return UserRole.moderator in self.roles or self.is_administrator
+
+    @property
+    def permalink(self) -> str:
+        """
+        Get the user's permalink.
+        """
+
+        return f'{APP_URL}/user/permalink/{self.id}'
 
     @property
     def language_str(self) -> str:

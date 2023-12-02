@@ -33,16 +33,18 @@ def format_style_context(request: Request):
         style = FormatStyle.json
     elif request_path.endswith('.xml'):
         style = FormatStyle.xml
-    elif request_path.endswith('.rss'):
+    elif request_path.endswith(('.rss', '/feed')):
         style = FormatStyle.rss
-    else:
-        if format_param := request.query_params.get('format'):
-            if format_param == 'json':
-                style = FormatStyle.json
-            elif format_param == 'xml':
-                style = FormatStyle.xml
-            elif format_param == 'rss':
-                style = FormatStyle.rss
+        style = FormatStyle.rss
+
+    # TODO: reconsider
+    # if format_param := request.query_params.get('format'):
+    #     if format_param == 'json':
+    #         style = FormatStyle.json
+    #     elif format_param == 'xml':
+    #         style = FormatStyle.xml
+    #     elif format_param == 'rss':
+    #         style = FormatStyle.rss
 
     token = _context.set(style)
     try:

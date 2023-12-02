@@ -163,3 +163,8 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
+
+
+# TODO: babel
+def timeago(date: datetime) -> str:
+    ...

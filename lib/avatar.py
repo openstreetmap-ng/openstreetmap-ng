@@ -23,7 +23,7 @@ class Avatar:
         elif avatar_type == UserAvatarType.custom:
             return f'/api/web/avatar/custom/{avatar_id}'
         else:
-            raise NotImplementedError(f'Unsupported avatar type: {avatar_type!r}')
+            raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')
 
     @staticmethod
     async def get_default_image() -> bytes:

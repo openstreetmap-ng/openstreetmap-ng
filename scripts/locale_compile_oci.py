@@ -23,9 +23,8 @@ def resolve_name(community: dict, community_locale: dict) -> str:
         return translated
 
     # if not, then look up the default translated name for this type of community, and interpolate the template
-    if (
-        (template := community_locale.get('_defaults', {}).get(community['type'], {}).get('name')) and
-        (community_name := community_locale.get('_communities', {}).get(community['strings'].get('communityID')))
+    if (template := community_locale.get('_defaults', {}).get(community['type'], {}).get('name')) and (
+        community_name := community_locale.get('_communities', {}).get(community['strings'].get('communityID'))
     ):
         return template.format(community=community_name)
 
@@ -80,12 +79,11 @@ for f in glob('node_modules/osm-community-index/i18n/*.yaml'):
         for k, v in data.items():
             k = PREFIX + k
             v = (
-                v
-                .replace('\\', '\\\\')  # escape backslashes
+                v.replace('\\', '\\\\')  # escape backslashes
                 .replace('"', '\\"')  # escape double quotes
                 .replace('\n', '\\n')  # escape newlines
             )
-            f.write(f'\n#: Generated from osm-community-index\n')
+            f.write('\n#: Generated from osm-community-index\n')
             f.write(f'msgctxt "{k}"\n')
             f.write(f'msgid "{k}"\n')
             f.write(f'msgstr "{v}"\n')

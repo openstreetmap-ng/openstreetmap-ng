@@ -5,7 +5,7 @@ from datetime import datetime
 
 from shapely.geometry import Point, mapping
 
-from config import BASE_URL, GENERATOR
+from config import API_URL, APP_URL, GENERATOR
 from cython_lib.xmltodict import XAttr
 from lib.auth import auth_user
 from lib.exceptions import raise_for
@@ -32,7 +32,7 @@ from utils import format_sql_date
 
 class Format06:
     @classmethod
-    def encode_tags(cls, tags: dict) -> Sequence[dict] | dict:
+    def _encode_tags(cls, tags: dict) -> Sequence[dict] | dict:
         if format_is_json():
             return tags
         else:
@@ -41,7 +41,7 @@ class Format06:
     @classmethod
     def _decode_tags_unsafe(cls, tags: Sequence[dict]) -> dict:
         """
-        >>> cls.decode_tags([
+        >>> cls._decode_tags_unsafe([
         ...     {'@k': 'a', '@v': '1'},
         ...     {'@k': 'b', '@v': '2'},
         ... ])
@@ -69,9 +69,9 @@ class Format06:
         return TagsValidating(tags=cls._decode_tags_unsafe(tags)).tags
 
     @classmethod
-    def encode_point(cls, point: Point | None) -> dict:
+    def _encode_point(cls, point: Point | None) -> dict:
         """
-        >>> cls.encode_point(Point(1, 2))
+        >>> cls._encode_point(Point(1, 2))
         {'@lon': 1, '@lat': 2}
         """
 
@@ -86,7 +86,7 @@ class Format06:
     @classmethod
     def _decode_point_unsafe(cls, data: dict) -> Point | None:
         """
-        >>> cls.decode_point({'@lon': '1', '@lat': '2'})
+        >>> cls._decode_point_unsafe({'@lon': '1', '@lat': '2'})
         POINT (1 2)
         """
 
@@ -99,9 +99,9 @@ class Format06:
         )
 
     @classmethod
-    def encode_nodes(cls, nodes: Sequence[ElementMemberRef]) -> Sequence[dict] | Sequence[int]:
+    def _encode_nodes(cls, nodes: Sequence[ElementMemberRef]) -> Sequence[dict] | Sequence[int]:
         """
-        >>> cls.encode_nodes([
+        >>> cls._encode_nodes([
         ...     ElementMember(type=ElementType.node, typed_id=1, role=''),
         ...     ElementMember(type=ElementType.node, typed_id=2, role=''),
         ... ])
@@ -116,7 +116,7 @@ class Format06:
     @classmethod
     def _decode_nodes_unsafe(cls, nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
         """
-        >>> cls.decode_nodes([{'@ref': '1'}])
+        >>> cls._decode_nodes_unsafe([{'@ref': '1'}])
         [ElementMember(type=ElementType.node, typed_id=1, role='')]
         """
 
@@ -130,9 +130,9 @@ class Format06:
         )
 
     @classmethod
-    def encode_members(cls, members: Sequence[ElementMemberRef]) -> Sequence[dict]:
+    def _encode_members(cls, members: Sequence[ElementMemberRef]) -> Sequence[dict]:
         """
-        >>> cls.encode_members([
+        >>> cls._encode_members([
         ...     ElementMember(type=ElementType.node, typed_id=1, role='a'),
         ...     ElementMember(type=ElementType.way, typed_id=2, role='b'),
         ... ])
@@ -154,7 +154,7 @@ class Format06:
     @classmethod
     def _decode_members_unsafe(cls, members: Sequence[dict]) -> Sequence[ElementMemberRef]:
         """
-        >>> cls.decode_members([
+        >>> cls._decode_members_unsafe([
         ...     {'@type': 'node', '@ref': '1', '@role': 'a'},
         ... ])
         [ElementMember(type=ElementType.node, typed_id=1, role='a')]
@@ -180,7 +180,7 @@ class Format06:
             return {
                 'type': element.type.value,
                 'id': element.typed_id,
-                **(cls.encode_point(element.point) if element.type == ElementType.node else {}),
+                **(cls._encode_point(element.point) if element.type == ElementType.node else {}),
                 'version': element.version,
                 'timestamp': element.created_at,
                 'changeset': element.changeset_id,
@@ -188,23 +188,25 @@ class Format06:
                 'user': element.user.display_name,
                 'visible': element.visible,
                 'tags': element.tags,
-                **({'nodes': cls.encode_nodes(element.members)} if element.type == ElementType.way else {}),
-                **({'members': cls.encode_members(element.members)} if element.type == ElementType.relation else {}),
+                **({'nodes': cls._encode_nodes(element.members)} if element.type == ElementType.way else {}),
+                **({'members': cls._encode_members(element.members)} if element.type == ElementType.relation else {}),
             }
         else:
             return {
                 element.type.value: {
                     '@id': element.typed_id,
-                    **(cls.encode_point(element.point) if element.type == ElementType.node else {}),
+                    **(cls._encode_point(element.point) if element.type == ElementType.node else {}),
                     '@version': element.version,
                     '@timestamp': element.created_at,
                     '@changeset': element.changeset_id,
                     '@uid': element.user_id,
                     '@user': element.user.display_name,
                     '@visible': element.visible,
-                    'tag': cls.encode_tags(element.tags),
-                    **({'nd': cls.encode_nodes(element.members)} if element.type == ElementType.way else {}),
-                    **({'member': cls.encode_members(element.members)} if element.type == ElementType.relation else {}),
+                    'tag': cls._encode_tags(element.tags),
+                    **({'nd': cls._encode_nodes(element.members)} if element.type == ElementType.way else {}),
+                    **(
+                        {'member': cls._encode_members(element.members)} if element.type == ElementType.relation else {}
+                    ),
                 }
             }
 
@@ -254,9 +256,9 @@ class Format06:
             return result
 
     @classmethod
-    def encode_changeset_comment(cls, comment: ChangesetComment) -> dict:
+    def _encode_changeset_comment(cls, comment: ChangesetComment) -> dict:
         """
-        >>> cls.encode_changeset_comment(ChangesetComment(...))
+        >>> cls._encode_changeset_comment(ChangesetComment(...))
         {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}
         """
 
@@ -300,7 +302,7 @@ class Format06:
                 'changes_count': changeset.size,
                 'tags': changeset.tags,
                 **(
-                    {'discussion': tuple(cls.encode_changeset_comment(comment) for comment in changeset.comments_)}
+                    {'discussion': tuple(cls._encode_changeset_comment(comment) for comment in changeset.comments_)}
                     if changeset.comments_ is not None
                     else {}
                 ),
@@ -317,12 +319,12 @@ class Format06:
                     **boundary_d,
                     '@comments_count': changeset.comments_count_ + add_comments_count,
                     '@changes_count': changeset.size,
-                    'tag': cls.encode_tags(changeset.tags),
+                    'tag': cls._encode_tags(changeset.tags),
                     **(
                         {
                             'discussion': {
                                 'comment': tuple(
-                                    cls.encode_changeset_comment(comment) for comment in changeset.comments_
+                                    cls._encode_changeset_comment(comment) for comment in changeset.comments_
                                 ),
                             }
                         }
@@ -489,7 +491,7 @@ class Format06:
                 # add point
                 trk_trkseg_trkpts.append(
                     {
-                        **cls.encode_point(tp.point),
+                        **cls._encode_point(tp.point),
                         **({'ele': tp.elevation} if tp.elevation is not None else {}),
                         'time': tp.captured_at,
                     }
@@ -506,7 +508,7 @@ class Format06:
                     last_trk_id = None
                     last_trkseg_id = None
 
-                trk_trkseg_trkpts.append(cls.encode_point(tp.point))
+                trk_trkseg_trkpts.append(cls._encode_point(tp.point))
 
         return {
             'gpx': {
@@ -599,9 +601,9 @@ class Format06:
         )
 
     @classmethod
-    def encode_note_comment(cls, comment: NoteComment) -> dict:
+    def _encode_note_comment(cls, comment: NoteComment) -> dict:
         """
-        >>> cls.encode_note_comment(NoteComment(...))
+        >>> cls._encode_note_comment(NoteComment(...))
         {'date': '2019-06-15 08:26:04 UTC', 'uid': 1234, 'user': 'userName', ...}
         """
 
@@ -609,7 +611,7 @@ class Format06:
             'date': format_sql_date(comment.created_at),
             'uid': comment.user_id,
             'user': comment.user.display_name,
-            'user_url': f'{BASE_URL}/user/{comment.user.display_name}',
+            'user_url': f'{APP_URL}/user/{comment.user.display_name}',
             'action': comment.event.value,
             'text': comment.body,
             'html': f'<p>{html.escape(comment.body)}</p>' if comment.body else '',  # a disaster waiting to happen
@@ -628,43 +630,43 @@ class Format06:
                 'geometry': mapping(note.point),
                 'properties': {
                     'id': note.id,
-                    'url': f'{BASE_URL}/api/0.6/notes/{note.id}.json',
+                    'url': f'{API_URL}/api/0.6/notes/{note.id}.json',
                     **(
                         {
-                            'reopen_url': f'{BASE_URL}/api/0.6/notes/{note.id}/reopen.json',
+                            'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.json',
                         }
                         if note.closed_at
                         else {
-                            'comment_url': f'{BASE_URL}/api/0.6/notes/{note.id}/comment.json',
-                            'close_url': f'{BASE_URL}/api/0.6/notes/{note.id}/close.json',
+                            'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.json',
+                            'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.json',
                         }
                     ),
                     'date_created': format_sql_date(note.created_at),
                     'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
                     **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
-                    'comments': tuple(cls.encode_note_comment(comment) for comment in note.comments_),
+                    'comments': tuple(cls._encode_note_comment(comment) for comment in note.comments_),
                 },
             }
         else:
             return {
-                **cls.encode_point(note.point),
+                **cls._encode_point(note.point),
                 'id': note.id,
-                'url': f'{BASE_URL}/api/0.6/notes/{note.id}',
+                'url': f'{API_URL}/api/0.6/notes/{note.id}',
                 **(
                     {
-                        'reopen_url': f'{BASE_URL}/api/0.6/notes/{note.id}/reopen',
+                        'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen',
                     }
                     if note.closed_at
                     else {
-                        'comment_url': f'{BASE_URL}/api/0.6/notes/{note.id}/comment',
-                        'close_url': f'{BASE_URL}/api/0.6/notes/{note.id}/close',
+                        'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment',
+                        'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close',
                     }
                 ),
                 'date_created': format_sql_date(note.created_at),
                 'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
                 **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
                 'comments': {
-                    'comment': tuple(cls.encode_note_comment(comment) for comment in note.comments_),
+                    'comment': tuple(cls._encode_note_comment(comment) for comment in note.comments_),
                 },
             }
 
@@ -684,9 +686,9 @@ class Format06:
             return {'note': tuple(cls.encode_note(note) for note in notes)}
 
     @classmethod
-    def encode_languages(cls, languages: Sequence[str]) -> dict | Sequence[str]:
+    def _encode_languages(cls, languages: Sequence[str]) -> dict | Sequence[str]:
         """
-        >>> cls.encode_languages(['en', 'pl'])
+        >>> cls._encode_languages(['en', 'pl'])
         {'lang': ('en', 'pl')}
         """
 
@@ -739,14 +741,14 @@ class Format06:
                         **(
                             {
                                 'home': {
-                                    **cls.encode_point(user.home_point),
+                                    **cls._encode_point(user.home_point),
                                     XAttr('zoom'): user.home_zoom,
                                 }
                             }
                             if user.home_point
                             else {}
                         ),
-                        'languages': cls.encode_languages(user.languages),
+                        'languages': cls._encode_languages(user.languages),
                         'messages': {
                             'received': {
                                 XAttr('count'): 0,  # TODO: messages count

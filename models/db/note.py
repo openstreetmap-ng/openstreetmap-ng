@@ -5,6 +5,7 @@ from sqlalchemy import ColumnElement, DateTime, null, true
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from config import APP_URL
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from models.db.base import Base
 from models.db.created_at import CreatedAt
@@ -54,3 +55,11 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
             return true()
 
         return cls.hidden_at == null()
+
+    @property
+    def permalink(self) -> str:
+        """
+        Get the note's permalink.
+        """
+
+        return f'{APP_URL}/note/{self.id}'

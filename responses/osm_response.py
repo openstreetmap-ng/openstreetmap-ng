@@ -29,7 +29,7 @@ class OSMResponse(Response):
             if isinstance(content, dict):
                 content |= attributes
             else:
-                raise ValueError(f'Invalid content type {type(content)}')
+                raise ValueError(f'Invalid json content type {type(content)}')
 
             return orjson.dumps(content, option=orjson.OPT_NAIVE_UTC | orjson.OPT_UTC_Z)
 
@@ -47,13 +47,18 @@ class OSMResponse(Response):
             elif isinstance(content, list | tuple):
                 content = {self.xml_root: tuple(chain(attributes.items(), content))}
             else:
-                raise ValueError(f'Invalid content type {type(content)}')
+                raise ValueError(f'Invalid xml content type {type(content)}')
 
             return XMLToDict.unparse(content, raw=True)
 
+        elif style == FormatStyle.rss:
+            if not isinstance(content, str):
+                raise ValueError(f'Invalid rss content type {type(content)}')
+
+            return content.encode()
+
         else:
-            # TODO: rss
-            raise NotImplementedError(f'Unsupported format style {style!r}')
+            raise NotImplementedError(f'Unsupported osm format style {style!r}')
 
 
 class OSMChangeResponse(OSMResponse):

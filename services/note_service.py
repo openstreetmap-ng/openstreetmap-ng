@@ -91,7 +91,7 @@ class NoteService:
                 note.hidden_at = func.now()
 
             else:
-                raise RuntimeError(f'Unsupported comment event: {event!r}')
+                raise RuntimeError(f'Unsupported comment event {event!r}')
 
             # TODO: will this updated_at ?
             note.note_comments.append(

@@ -4,6 +4,7 @@ from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from config import APP_URL
 from lib.rich_text import rich_text_getter
 from limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from models.db.base import Base
@@ -26,6 +27,7 @@ class NoteComment(Base.UUID, CreatedAt):
     event: Mapped[NoteEvent] = mapped_column(Enum(NoteEvent), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
+    body_rich = rich_text_getter('body', TextFormat.plain)
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
@@ -33,4 +35,10 @@ class NoteComment(Base.UUID, CreatedAt):
             raise ValueError('Comment is too long')
         return value
 
-    body_rich = rich_text_getter('body', TextFormat.plain)
+    @property
+    def legacy_permalink(self) -> str:
+        """
+        Get the note comment's legacy permalink.
+        """
+
+        return f'{APP_URL}/note/{self.note_id}#c{self.id}'

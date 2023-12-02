@@ -6,6 +6,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from config import APP_URL
 from models.db.base import Base
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
@@ -47,6 +48,14 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         order_by='asc(Element.id)',
         lazy='raise',
     )
+
+    @property
+    def permalink(self) -> str:
+        """
+        Get the changeset's permalink.
+        """
+
+        return f'{APP_URL}/changeset/{self.id}'
 
     @property
     def max_size(self) -> int:

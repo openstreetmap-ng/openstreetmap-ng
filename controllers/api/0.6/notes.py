@@ -4,13 +4,17 @@ from enum import StrEnum
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Request
+from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
 from cython_lib.geoutils import parse_bbox
 from lib.auth import api_user
 from lib.exceptions import raise_for
+from lib.format import format_style
 from lib.format.format06 import Format06
+from lib.format.format06_rss import Format06RSS
+from lib.translation import t
 from limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_CLOSED,
@@ -18,9 +22,11 @@ from limits import (
     NOTE_QUERY_LEGACY_MAX_LIMIT,
 )
 from models.db.user import User
+from models.format_style import FormatStyle
 from models.geometry import Latitude, Longitude
 from models.note_event import NoteEvent
 from models.scope import ExtendedScope, Scope
+from repositories.note_comment_repository import NoteCommentRepository
 from repositories.note_repository import NoteRepository
 from repositories.user_repository import UserRepository
 from services.note_service import NoteService
@@ -28,7 +34,7 @@ from validators.date import DateValidator
 
 router = APIRouter()
 
-# TODO: The output can be in several formats (e.g. XML, RSS, json or GPX) depending on the file extension.
+# TODO: gpx
 # TODO: validate input lengths
 
 
@@ -47,7 +53,9 @@ async def note_create(
 @router.get('/notes/{note_id}')
 @router.get('/notes/{note_id}.xml')
 @router.get('/notes/{note_id}.json')
+@router.get('/notes/{note_id}.rss')
 async def note_read(
+    request: Request,
     note_id: PositiveInt,
 ) -> dict:
     notes = await NoteRepository.find_many_by_query(note_ids=[note_id], limit=None)
@@ -55,7 +63,19 @@ async def note_read(
     if not notes:
         raise_for().note_not_found(note_id)
 
-    return Format06.encode_note(notes[0])
+    style = format_style()
+
+    if style == FormatStyle.rss:
+        fg = FeedGenerator()
+        fg.link(href=str(request.url), rel='self')
+        fg.title(t('api.notes.rss.title'))
+        fg.subtitle(t('api.notes.rss.description_item').format(id=note_id))
+
+        await Format06RSS.encode_notes(fg, notes)
+        return fg.rss_str()
+
+    else:
+        return Format06.encode_note(notes[0])
 
 
 @router.post('/notes/{note_id}/comment')
@@ -98,10 +118,52 @@ async def note_hide(
     return Format06.encode_note(note)
 
 
+@router.get('/notes/feed')
+@router.get('/notes/feed.rss')
+async def notes_feed(
+    request: Request,
+    bbox: Annotated[str | None, Query(None, min_length=1)],
+) -> Sequence[dict]:
+    if bbox:
+        geometry = parse_bbox(bbox)
+
+        if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
+            raise_for().notes_query_area_too_big()
+    else:
+        geometry = None
+
+    comments = await NoteCommentRepository.find_many_by_query(
+        geometry=geometry,
+        limit=NOTE_QUERY_DEFAULT_LIMIT,
+    )
+
+    fg = FeedGenerator()
+    fg.link(href=str(request.url), rel='self')
+    fg.title(t('api.notes.rss.title'))
+
+    if geometry:
+        min_lon, min_lat, max_lon, max_lat = geometry.bounds
+        fg.subtitle(
+            t('api.notes.rss.description_area').format(
+                min_lon=min_lon,
+                min_lat=min_lat,
+                max_lon=max_lon,
+                max_lat=max_lat,
+            )
+        )
+    else:
+        fg.subtitle(t('api.notes.rss.description_all'))
+
+    await Format06RSS.encode_note_comments(fg, comments)
+    return fg.rss_str()
+
+
 @router.get('/notes')
 @router.get('/notes.xml')
 @router.get('/notes.json')
+@router.get('/notes.rss')
 async def notes_read(
+    request: Request,
     bbox: Annotated[str, Query(min_length=1)],
     closed: Annotated[int, Query(NOTE_QUERY_DEFAULT_CLOSED)],
     limit: Annotated[PositiveInt, Query(NOTE_QUERY_DEFAULT_LIMIT, le=NOTE_QUERY_LEGACY_MAX_LIMIT)],
@@ -118,7 +180,28 @@ async def notes_read(
         limit=limit,
     )
 
-    return Format06.encode_notes(notes)
+    style = format_style()
+
+    if style == FormatStyle.rss:
+        min_lon, min_lat, max_lon, max_lat = geometry.bounds
+
+        fg = FeedGenerator()
+        fg.link(href=str(request.url), rel='self')
+        fg.title(t('api.notes.rss.title'))
+        fg.subtitle(
+            t('api.notes.rss.description_area').format(
+                min_lon=min_lon,
+                min_lat=min_lat,
+                max_lon=max_lon,
+                max_lat=max_lat,
+            )
+        )
+
+        await Format06RSS.encode_notes(fg, notes)
+        return fg.rss_str()
+
+    else:
+        return Format06.encode_notes(notes)
 
 
 class SearchSort(StrEnum):
@@ -134,7 +217,9 @@ class SearchOrder(StrEnum):
 @router.get('/notes/search')
 @router.get('/notes/search.xml')
 @router.get('/notes/search.json')
+@router.get('/notes.rss')
 async def notes_query(
+    request: Request,
     q: Annotated[str | None, Query(None)],
     closed: Annotated[float, Query(NOTE_QUERY_DEFAULT_CLOSED)],
     display_name: Annotated[str | None, Query(None, min_length=1)],
@@ -167,6 +252,7 @@ async def notes_query(
 
     if bbox:
         geometry = parse_bbox(bbox)
+
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for().notes_query_area_too_big()
     else:
@@ -184,4 +270,28 @@ async def notes_query(
         limit=limit,
     )
 
-    return Format06.encode_notes(notes)
+    style = format_style()
+
+    if style == FormatStyle.rss:
+        fg = FeedGenerator()
+        fg.link(href=str(request.url), rel='self')
+        fg.title(t('api.notes.rss.title'))
+
+        if geometry:
+            min_lon, min_lat, max_lon, max_lat = geometry.bounds
+            fg.subtitle(
+                t('api.notes.rss.description_area').format(
+                    min_lon=min_lon,
+                    min_lat=min_lat,
+                    max_lon=max_lon,
+                    max_lat=max_lat,
+                )
+            )
+        else:
+            fg.subtitle(t('api.notes.rss.description_all'))
+
+        await Format06RSS.encode_notes(fg, notes)
+        return fg.rss_str()
+
+    else:
+        return Format06.encode_notes(notes)

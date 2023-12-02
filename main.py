@@ -11,6 +11,8 @@ from middlewares.translation_middleware import LanguageMiddleware
 from middlewares.version_middleware import VersionMiddleware
 from responses.osm_response import OSMResponse
 
+# TODO: trust proxy
+# https://stackoverflow.com/questions/73450371/url-for-is-using-http-instead-of-https-in-fastapi
 app = FastAPI(
     title=NAME,
     default_response_class=OSMResponse,
