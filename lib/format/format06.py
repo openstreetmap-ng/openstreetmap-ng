@@ -31,17 +31,19 @@ from utils import format_sql_date
 
 
 class Format06:
-    @classmethod
-    def _encode_tags(cls, tags: dict) -> Sequence[dict] | dict:
+    @staticmethod
+    def _encode_tags(tags: dict) -> Sequence[dict] | dict:
         if format_is_json():
             return tags
         else:
             return tuple({'@k': k, '@v': v} for k, v in tags.items())
 
-    @classmethod
-    def _decode_tags_unsafe(cls, tags: Sequence[dict]) -> dict:
+    @staticmethod
+    def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
         """
-        >>> cls._decode_tags_unsafe([
+        This method does not validate the input data.
+
+        >>> _decode_tags_unsafe([
         ...     {'@k': 'a', '@v': '1'},
         ...     {'@k': 'b', '@v': '2'},
         ... ])
@@ -56,22 +58,22 @@ class Format06:
 
         return result
 
-    @classmethod
-    def decode_tags_and_validate(cls, tags: Sequence[dict]) -> dict:
+    @staticmethod
+    def decode_tags_and_validate(tags: Sequence[dict]) -> dict:
         """
-        >>> cls.decode_tags_and_validate([
+        >>> decode_tags_and_validate([
         ...     {'@k': 'a', '@v': '1'},
         ...     {'@k': 'b', '@v': '2'},
         ... ])
         {'a': '1', 'b': '2'}
         """
 
-        return TagsValidating(tags=cls._decode_tags_unsafe(tags)).tags
+        return TagsValidating(tags=Format06._decode_tags_unsafe(tags)).tags
 
-    @classmethod
-    def _encode_point(cls, point: Point | None) -> dict:
+    @staticmethod
+    def _encode_point(point: Point | None) -> dict:
         """
-        >>> cls._encode_point(Point(1, 2))
+        >>> _encode_point(Point(1, 2))
         {'@lon': 1, '@lat': 2}
         """
 
@@ -83,10 +85,12 @@ class Format06:
             XAttr('lat'): point.y,
         }
 
-    @classmethod
-    def _decode_point_unsafe(cls, data: dict) -> Point | None:
+    @staticmethod
+    def _decode_point_unsafe(data: dict) -> Point | None:
         """
-        >>> cls._decode_point_unsafe({'@lon': '1', '@lat': '2'})
+        This method does not validate the input data.
+
+        >>> _decode_point_unsafe({'@lon': '1', '@lat': '2'})
         POINT (1 2)
         """
 
@@ -98,10 +102,10 @@ class Format06:
             float(lat),
         )
 
-    @classmethod
-    def _encode_nodes(cls, nodes: Sequence[ElementMemberRef]) -> Sequence[dict] | Sequence[int]:
+    @staticmethod
+    def _encode_nodes(nodes: Sequence[ElementMemberRef]) -> Sequence[dict] | Sequence[int]:
         """
-        >>> cls._encode_nodes([
+        >>> _encode_nodes([
         ...     ElementMember(type=ElementType.node, typed_id=1, role=''),
         ...     ElementMember(type=ElementType.node, typed_id=2, role=''),
         ... ])
@@ -113,10 +117,12 @@ class Format06:
         else:
             return tuple({'@ref': node.typed_id} for node in nodes)
 
-    @classmethod
-    def _decode_nodes_unsafe(cls, nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
+    @staticmethod
+    def _decode_nodes_unsafe(nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
         """
-        >>> cls._decode_nodes_unsafe([{'@ref': '1'}])
+        This method does not validate the input data.
+
+        >>> _decode_nodes_unsafe([{'@ref': '1'}])
         [ElementMember(type=ElementType.node, typed_id=1, role='')]
         """
 
@@ -129,10 +135,10 @@ class Format06:
             for node in nodes
         )
 
-    @classmethod
-    def _encode_members(cls, members: Sequence[ElementMemberRef]) -> Sequence[dict]:
+    @staticmethod
+    def _encode_members(members: Sequence[ElementMemberRef]) -> Sequence[dict]:
         """
-        >>> cls._encode_members([
+        >>> _encode_members([
         ...     ElementMember(type=ElementType.node, typed_id=1, role='a'),
         ...     ElementMember(type=ElementType.way, typed_id=2, role='b'),
         ... ])
@@ -151,10 +157,12 @@ class Format06:
             for member in members
         )
 
-    @classmethod
-    def _decode_members_unsafe(cls, members: Sequence[dict]) -> Sequence[ElementMemberRef]:
+    @staticmethod
+    def _decode_members_unsafe(members: Sequence[dict]) -> Sequence[ElementMemberRef]:
         """
-        >>> cls._decode_members_unsafe([
+        This method does not validate the input data.
+
+        >>> _decode_members_unsafe([
         ...     {'@type': 'node', '@ref': '1', '@role': 'a'},
         ... ])
         [ElementMember(type=ElementType.node, typed_id=1, role='a')]
@@ -169,10 +177,10 @@ class Format06:
             for member in members
         )
 
-    @classmethod
-    def encode_element(cls, element: Element) -> dict:
+    @staticmethod
+    def encode_element(element: Element) -> dict:
         """
-        >>> cls.encode_element(Element(type=ElementType.node, typed_id=1, version=1, ...))
+        >>> encode_element(Element(type=ElementType.node, typed_id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
         """
 
@@ -180,7 +188,7 @@ class Format06:
             return {
                 'type': element.type.value,
                 'id': element.typed_id,
-                **(cls._encode_point(element.point) if element.type == ElementType.node else {}),
+                **(Format06._encode_point(element.point) if element.type == ElementType.node else {}),
                 'version': element.version,
                 'timestamp': element.created_at,
                 'changeset': element.changeset_id,
@@ -188,30 +196,36 @@ class Format06:
                 'user': element.user.display_name,
                 'visible': element.visible,
                 'tags': element.tags,
-                **({'nodes': cls._encode_nodes(element.members)} if element.type == ElementType.way else {}),
-                **({'members': cls._encode_members(element.members)} if element.type == ElementType.relation else {}),
+                **({'nodes': Format06._encode_nodes(element.members)} if element.type == ElementType.way else {}),
+                **(
+                    {'members': Format06._encode_members(element.members)}
+                    if element.type == ElementType.relation
+                    else {}
+                ),
             }
         else:
             return {
                 element.type.value: {
                     '@id': element.typed_id,
-                    **(cls._encode_point(element.point) if element.type == ElementType.node else {}),
+                    **(Format06._encode_point(element.point) if element.type == ElementType.node else {}),
                     '@version': element.version,
                     '@timestamp': element.created_at,
                     '@changeset': element.changeset_id,
                     '@uid': element.user_id,
                     '@user': element.user.display_name,
                     '@visible': element.visible,
-                    'tag': cls._encode_tags(element.tags),
-                    **({'nd': cls._encode_nodes(element.members)} if element.type == ElementType.way else {}),
+                    'tag': Format06._encode_tags(element.tags),
+                    **({'nd': Format06._encode_nodes(element.members)} if element.type == ElementType.way else {}),
                     **(
-                        {'member': cls._encode_members(element.members)} if element.type == ElementType.relation else {}
+                        {'member': Format06._encode_members(element.members)}
+                        if element.type == ElementType.relation
+                        else {}
                     ),
                 }
             }
 
-    @classmethod
-    def decode_element(cls, element: dict, changeset_id: int | None) -> Element:
+    @staticmethod
+    def decode_element(element: dict, changeset_id: int | None) -> Element:
         """
         If `changeset_id` is `None`, it will be extracted from the element data.
         """
@@ -223,6 +237,14 @@ class Format06:
         type = ElementType.from_str(type)
         data: dict
 
+        # decode members from either nd or member
+        if data_nodes := data.get('nd'):
+            members = Format06._decode_nodes_unsafe(data_nodes)
+        elif data_members := data.get('member'):
+            members = Format06._decode_members_unsafe(data_members)
+        else:
+            members = ()
+
         return Element(
             **ElementValidating(
                 user_id=auth_user().id,
@@ -231,16 +253,16 @@ class Format06:
                 typed_id=data.get('@id'),
                 version=data.get('@version', 0) + 1,
                 visible=data.get('@visible', True),
-                tags=cls._decode_tags_unsafe(data.get('tag', ())),
-                point=cls._decode_point_unsafe(data),
-                members=cls._decode_nodes_unsafe(data.get('nd', cls._decode_members_unsafe(data.get('member', ())))),
+                tags=Format06._decode_tags_unsafe(data.get('tag', ())),
+                point=Format06._decode_point_unsafe(data),
+                members=members,
             ).to_orm_dict()
         )
 
-    @classmethod
-    def encode_elements(cls, elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
+    @staticmethod
+    def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
         """
-        >>> cls.encode_elements([
+        >>> encode_elements([
         ...     Element(type=ElementType.node, typed_id=1, version=1, ...),
         ...     Element(type=ElementType.way, typed_id=2, version=1,
         ... ])
@@ -248,17 +270,17 @@ class Format06:
         """
 
         if format_is_json():
-            return {'elements': tuple(cls.encode_element(element) for element in elements)}
+            return {'elements': tuple(Format06.encode_element(element) for element in elements)}
         else:
             result: dict[str, list[dict]] = defaultdict(list)
             for element in elements:
-                result[element.type.value].append(cls.encode_element(element))
+                result[element.type.value].append(Format06.encode_element(element))
             return result
 
-    @classmethod
-    def _encode_changeset_comment(cls, comment: ChangesetComment) -> dict:
+    @staticmethod
+    def _encode_changeset_comment(comment: ChangesetComment) -> dict:
         """
-        >>> cls._encode_changeset_comment(ChangesetComment(...))
+        >>> _encode_changeset_comment(ChangesetComment(...))
         {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}
         """
 
@@ -270,10 +292,10 @@ class Format06:
             'text': comment.body,
         }
 
-    @classmethod
-    def encode_changeset(cls, changeset: Changeset, *, add_comments_count: int = 0) -> dict:
+    @staticmethod
+    def encode_changeset(changeset: Changeset, *, add_comments_count: int = 0) -> dict:
         """
-        >>> cls.encode_changeset(Changeset(...))
+        >>> encode_changeset(Changeset(...))
         {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
         """
 
@@ -302,7 +324,11 @@ class Format06:
                 'changes_count': changeset.size,
                 'tags': changeset.tags,
                 **(
-                    {'discussion': tuple(cls._encode_changeset_comment(comment) for comment in changeset.comments_)}
+                    {
+                        'discussion': tuple(
+                            Format06._encode_changeset_comment(comment) for comment in changeset.changeset_comments
+                        )
+                    }
                     if changeset.comments_ is not None
                     else {}
                 ),
@@ -319,12 +345,13 @@ class Format06:
                     **boundary_d,
                     '@comments_count': changeset.comments_count_ + add_comments_count,
                     '@changes_count': changeset.size,
-                    'tag': cls._encode_tags(changeset.tags),
+                    'tag': Format06._encode_tags(changeset.tags),
                     **(
                         {
                             'discussion': {
                                 'comment': tuple(
-                                    cls._encode_changeset_comment(comment) for comment in changeset.comments_
+                                    Format06._encode_changeset_comment(comment)
+                                    for comment in changeset.changeset_comments
                                 ),
                             }
                         }
@@ -334,10 +361,10 @@ class Format06:
                 }
             }
 
-    @classmethod
-    def encode_changesets(cls, changesets: Sequence[Changeset]) -> dict:
+    @staticmethod
+    def encode_changesets(changesets: Sequence[Changeset]) -> dict:
         """
-        >>> cls.encode_changesets([
+        >>> encode_changesets([
         ...     Changeset(...),
         ...     Changeset(...),
         ... ])
@@ -345,14 +372,14 @@ class Format06:
         """
 
         if format_is_json():
-            return {'elements': tuple(cls.encode_changeset(changeset) for changeset in changesets)}
+            return {'elements': tuple(Format06.encode_changeset(changeset) for changeset in changesets)}
         else:
-            return {'changeset': tuple(cls.encode_changeset(changeset)['changeset'] for changeset in changesets)}
+            return {'changeset': tuple(Format06.encode_changeset(changeset)['changeset'] for changeset in changesets)}
 
-    @classmethod
-    def encode_osmchange(cls, elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
+    @staticmethod
+    def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
         """
-        >>> cls.encode_osmchange([
+        >>> encode_osmchange([
         ...     Element(type=ElementType.node, typed_id=1, version=1, ...),
         ...     Element(type=ElementType.way, typed_id=2, version=2, ...)
         ... ])
@@ -370,15 +397,15 @@ class Format06:
                 action = OSMChangeAction.modify.value
             else:
                 action = OSMChangeAction.delete.value
-            result[i] = (action, cls.encode_element(element))
+            result[i] = (action, Format06.encode_element(element))
         return result
 
-    @classmethod
-    def decode_osmchange(cls, elements: Sequence[tuple[str, dict]], changeset_id: int | None) -> Sequence[Element]:
+    @staticmethod
+    def decode_osmchange(elements: Sequence[tuple[str, dict]], changeset_id: int | None) -> Sequence[Element]:
         """
         If `changeset_id` is `None`, it will be extracted from the element data.
 
-        >>> cls.decode_osmchange([
+        >>> decode_osmchange([
         ...     ('create', {'node': [{'@id': 1, '@version': 1, ...}]}),
         ...     ('modify', {'way': [{'@id': 2, '@version': 2, ...}]}),
         ... ])
@@ -391,7 +418,7 @@ class Format06:
             if len(element_d) != 1:
                 raise ValueError(f'Expected one element in {action!r}, got {len(element_d)}')
 
-            element = cls.decode_element(element_d, changeset_id)
+            element = Format06.decode_element(element_d, changeset_id)
 
             if action == OSMChangeAction.create.value:
                 if element.id > 0:
@@ -413,10 +440,10 @@ class Format06:
 
         return result
 
-    @classmethod
-    def encode_diff_result(cls, assigned_ref_map: dict[TypedElementRef, Sequence[Element]]) -> Sequence[tuple]:
+    @staticmethod
+    def encode_diff_result(assigned_ref_map: dict[TypedElementRef, Sequence[Element]]) -> Sequence[tuple]:
         """
-        >>> cls.encode_diff_result({
+        >>> encode_diff_result({
         ...     TypedElementRef(type=ElementType.node, typed_id=-1): [
         ...         Element(type=ElementType.node, typed_id=1, version=1, ...),
         ...         Element(type=ElementType.node, typed_id=1, version=2, ...),
@@ -441,10 +468,10 @@ class Format06:
             for element in elements
         )
 
-    @classmethod
-    def encode_gpx(cls, trace_points: Sequence[TracePoint]) -> dict:
+    @staticmethod
+    def encode_gpx(trace_points: Sequence[TracePoint]) -> dict:
         """
-        >>> cls.encode_gpx([
+        >>> encode_gpx([
         ...     TracePoint(...),
         ...     TracePoint(...),
         ... ])
@@ -491,7 +518,7 @@ class Format06:
                 # add point
                 trk_trkseg_trkpts.append(
                     {
-                        **cls._encode_point(tp.point),
+                        **Format06._encode_point(tp.point),
                         **({'ele': tp.elevation} if tp.elevation is not None else {}),
                         'time': tp.captured_at,
                     }
@@ -508,7 +535,7 @@ class Format06:
                     last_trk_id = None
                     last_trkseg_id = None
 
-                trk_trkseg_trkpts.append(cls._encode_point(tp.point))
+                trk_trkseg_trkpts.append(Format06._encode_point(tp.point))
 
         return {
             'gpx': {
@@ -519,10 +546,10 @@ class Format06:
             },
         }
 
-    @classmethod
-    def decode_gpx(cls, gpx: dict) -> Sequence[TracePoint]:
+    @staticmethod
+    def decode_gpx(gpx: dict) -> Sequence[TracePoint]:
         """
-        >>> cls.decode_gpx({'gpx': {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}]}})
+        >>> decode_gpx({'gpx': {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}]}})
         [TracePoint(...)]
         """
 
@@ -541,7 +568,7 @@ class Format06:
                             **TracePointValidating(
                                 track_idx=track_idx,
                                 captured_at=datetime.fromisoformat(time) if (time := trkpt.get('time')) else None,
-                                point=cls._decode_point_unsafe(trkpt),
+                                point=Format06._decode_point_unsafe(trkpt),
                                 elevation=trkpt.get('ele'),
                             ).to_orm_dict()
                         )
@@ -549,10 +576,10 @@ class Format06:
 
         return result
 
-    @classmethod
-    def encode_gpx_file(cls, trace: Trace) -> dict:
+    @staticmethod
+    def encode_gpx_file(trace: Trace) -> dict:
         """
-        >>> cls.encode_gpx_file(Trace(...))
+        >>> encode_gpx_file(Trace(...))
         {'gpx_file': {'@id': 1, '@uid': 1234, ...}}
         """
 
@@ -572,10 +599,10 @@ class Format06:
             }
         }
 
-    @classmethod
-    def encode_gpx_files(cls, traces: Sequence[Trace]) -> dict:
+    @staticmethod
+    def encode_gpx_files(traces: Sequence[Trace]) -> dict:
         """
-        >>> cls.encode_gpx_files([
+        >>> encode_gpx_files([
         ...     Trace(...),
         ...     Trace(...),
         ... ])
@@ -583,11 +610,11 @@ class Format06:
         """
 
         return {
-            'gpx_file': tuple(cls.encode_gpx_file(trace) for trace in traces),
+            'gpx_file': tuple(Format06.encode_gpx_file(trace) for trace in traces),
         }
 
-    @classmethod
-    def decode_gpx_file(cls, gpx_file: dict) -> Trace:
+    @staticmethod
+    def decode_gpx_file(gpx_file: dict) -> Trace:
         return Trace(
             **TraceValidating(
                 user_id=auth_user().id,
@@ -600,10 +627,10 @@ class Format06:
             ).to_orm_dict()
         )
 
-    @classmethod
-    def _encode_note_comment(cls, comment: NoteComment) -> dict:
+    @staticmethod
+    def _encode_note_comment(comment: NoteComment) -> dict:
         """
-        >>> cls._encode_note_comment(NoteComment(...))
+        >>> _encode_note_comment(NoteComment(...))
         {'date': '2019-06-15 08:26:04 UTC', 'uid': 1234, 'user': 'userName', ...}
         """
 
@@ -617,10 +644,10 @@ class Format06:
             'html': f'<p>{html.escape(comment.body)}</p>' if comment.body else '',  # a disaster waiting to happen
         }
 
-    @classmethod
-    def encode_note(cls, note: Note) -> dict:
+    @staticmethod
+    def encode_note(note: Note) -> dict:
         """
-        >>> cls.encode_note(Note(...))
+        >>> encode_note(Note(...))
         {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}
         """
 
@@ -644,12 +671,12 @@ class Format06:
                     'date_created': format_sql_date(note.created_at),
                     'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
                     **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
-                    'comments': tuple(cls._encode_note_comment(comment) for comment in note.comments_),
+                    'comments': tuple(Format06._encode_note_comment(comment) for comment in note.comments_),
                 },
             }
         else:
             return {
-                **cls._encode_point(note.point),
+                **Format06._encode_point(note.point),
                 'id': note.id,
                 'url': f'{API_URL}/api/0.6/notes/{note.id}',
                 **(
@@ -666,14 +693,14 @@ class Format06:
                 'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
                 **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
                 'comments': {
-                    'comment': tuple(cls._encode_note_comment(comment) for comment in note.comments_),
+                    'comment': tuple(Format06._encode_note_comment(comment) for comment in note.comments_),
                 },
             }
 
-    @classmethod
-    def encode_notes(cls, notes: Sequence[Note]) -> dict:
+    @staticmethod
+    def encode_notes(notes: Sequence[Note]) -> dict:
         """
-        >>> cls.encode_notes([
+        >>> encode_notes([
         ...     Note(...),
         ...     Note(...),
         ... ])
@@ -681,14 +708,14 @@ class Format06:
         """
 
         if format_is_json():
-            return {'type': 'FeatureCollection', 'features': tuple(cls.encode_note(note) for note in notes)}
+            return {'type': 'FeatureCollection', 'features': tuple(Format06.encode_note(note) for note in notes)}
         else:
-            return {'note': tuple(cls.encode_note(note) for note in notes)}
+            return {'note': tuple(Format06.encode_note(note) for note in notes)}
 
-    @classmethod
-    def _encode_languages(cls, languages: Sequence[str]) -> dict | Sequence[str]:
+    @staticmethod
+    def _encode_languages(languages: Sequence[str]) -> dict | Sequence[str]:
         """
-        >>> cls._encode_languages(['en', 'pl'])
+        >>> _encode_languages(['en', 'pl'])
         {'lang': ('en', 'pl')}
         """
 
@@ -697,10 +724,10 @@ class Format06:
         else:
             return {'lang': tuple(languages)}
 
-    @classmethod
-    def encode_user(cls, user: User) -> dict:
+    @staticmethod
+    def encode_user(user: User) -> dict:
         """
-        >>> cls.encode_user(User(...))
+        >>> encode_user(User(...))
         {'user': {'@id': 1234, '@display_name': 'userName', ...}}
         """
 
@@ -741,14 +768,14 @@ class Format06:
                         **(
                             {
                                 'home': {
-                                    **cls._encode_point(user.home_point),
+                                    **Format06._encode_point(user.home_point),
                                     XAttr('zoom'): user.home_zoom,
                                 }
                             }
                             if user.home_point
                             else {}
                         ),
-                        'languages': cls._encode_languages(user.languages),
+                        'languages': Format06._encode_languages(user.languages),
                         'messages': {
                             'received': {
                                 XAttr('count'): 0,  # TODO: messages count
@@ -763,10 +790,10 @@ class Format06:
             }
         }
 
-    @classmethod
-    def encode_users(cls, users: Sequence[User]) -> dict:
+    @staticmethod
+    def encode_users(users: Sequence[User]) -> dict:
         """
-        >>> cls.encode_users([
+        >>> encode_users([
         ...     User(...),
         ...     User(...),
         ... ])
@@ -774,6 +801,6 @@ class Format06:
         """
 
         if format_is_json():
-            return {'users': tuple(cls.encode_user(user) for user in users)}
+            return {'users': tuple(Format06.encode_user(user) for user in users)}
         else:
-            return {'user': tuple(cls.encode_changeset(user)['user'] for user in users)}
+            return {'user': tuple(Format06.encode_changeset(user)['user'] for user in users)}
