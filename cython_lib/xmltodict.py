@@ -23,6 +23,8 @@ class XAttr(UserString):
     Custom str implementation for XML attributes (used by `XMLToDict.unparse`).
     """
 
+    __slots__ = 'data', '_custom_xml'
+
     def __init__(self, seq: str, custom_xml: str | None = None) -> None:
         super().__init__(seq)
         self._custom_xml = custom_xml
