@@ -1,6 +1,5 @@
 import secrets
 from collections.abc import Sequence
-from urllib.parse import urlencode
 
 from sqlalchemy import func, null, select
 from sqlalchemy.orm import joinedload
@@ -13,11 +12,12 @@ from models.db.oauth1_token import OAuth1Token
 from models.scope import Scope
 from repositories.oauth1_application_repository import OAuth1ApplicationRepository
 from utils import extend_query_params
+from validators.url import URLValidator
 
 
 class OAuth1TokenService:
     @staticmethod
-    async def request_token(consumer_key: str, callback_url: str | None) -> dict:
+    async def request_token(consumer_key: str, callback_url_param: str | None) -> dict:
         """
         Create a new request token.
 
@@ -32,6 +32,19 @@ class OAuth1TokenService:
         token_str = secrets.token_urlsafe(32)
         token_hashed = hash_b(token_str, context=None)
         token_secret = secrets.token_urlsafe(32)
+
+        callback_url = callback_url_param or app.callback_url
+
+        # oob requests don't contain a callback url
+        if callback_url[:3].lower() == 'oob':
+            callback_url = None
+
+        # validate the callback url
+        if callback_url:
+            try:
+                URLValidator.validate(callback_url)
+            except Exception:
+                raise_for().oauth_bad_redirect_uri()
 
         async with DB() as session:
             session.add(
@@ -51,7 +64,8 @@ class OAuth1TokenService:
             'oauth_token_secret': token_secret,
         }
 
-        if callback_url:
+        # confirm the callback_url_param as required by oauth1.0a
+        if callback_url_param:
             result['oauth_callback_confirmed'] = 'true'
 
         return result
@@ -63,8 +77,9 @@ class OAuth1TokenService:
 
         The token is updated to reference the user and the given scopes.
 
-        The verifier is returned to the client and must be used
-        to exchange the request token for a valid access token.
+        The returned verifier must be used to exchange the request token for a valid access token.
+
+        Returns either a redirect url or a verifier code (prefixed with "oob;").
         """
 
         token_hashed = hash_b(token_str, context=None)
@@ -93,15 +108,15 @@ class OAuth1TokenService:
             token.scopes = scopes
             token.verifier = verifier
 
+        if token.is_oob:
+            return f'oob;{verifier}'
+
         params = {
-            'oauth_token': token,
+            'oauth_token': token_str,
             'oauth_verifier': verifier,
         }
 
-        if token.callback_url:
-            return extend_query_params(token.callback_url, params)
-        else:
-            return urlencode(params)
+        return extend_query_params(token.callback_url, params)
 
     @staticmethod
     async def access_token(token_str: str, verifier: str) -> dict:

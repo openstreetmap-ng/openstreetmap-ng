@@ -19,7 +19,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Migration of various utilities and "lib" folder
 - [x] Cache for markdown generated content (faster page loading)
 - [x] Migration of OAuth 1.0 & OAuth 2.0
-- [80%] Authorization
+- [85%] Authorization
 - [x] Optimistic diff processing
 - [80%] Migration of API 0.6
 - [x] Improved GPX traces processing

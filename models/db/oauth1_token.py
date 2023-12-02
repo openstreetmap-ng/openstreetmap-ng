@@ -33,3 +33,7 @@ class OAuth1Token(Base.UUID, CreatedAt):
     @property
     def scopes_str(self) -> str:
         return ' '.join(sorted(self.scopes))
+
+    @property
+    def is_oob(self) -> bool:
+        return not self.callback_url

@@ -35,10 +35,10 @@ class OAuth2TokenService:
         The code can be exchanged for an access token.
 
         In `init=True` mode, silent authentication is performed if the application is already authorized.
-        If successful, the redirect uri is returned.
+        When successful, a redirect url or an authorization code (prefixed with "oob;") is returned.
         Otherwise, the application instance is returned for the user to authorize it.
 
-        In `init=False` mode, the redirect uri is always returned.
+        In `init=False` mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
 
         app = await OAuth2ApplicationRepository.find_by_client_id(client_id)
@@ -51,6 +51,10 @@ class OAuth2TokenService:
         user_id = auth_user().id
         scopes_set = set(scopes)
 
+        if not scopes_set.issubset(app.scopes):
+            raise_for().oauth_bad_scopes()
+
+        # handle silent authentication
         if init:
             tokens = await OAuth2TokenRepository.find_many_authorized_by_user_app(user_id, app.id)
 
@@ -62,30 +66,30 @@ class OAuth2TokenService:
                 if scopes_set.symmetric_difference(token.scopes):
                     continue
 
-                # match found, return redirect uri
+                # session found, auto-approve
                 break
             else:
-                # no match found, return application instance
+                # no session found, require manual approval
                 return app
-
-        if not scopes_set.issubset(app.scopes):
-            raise_for().oauth_bad_scopes()
 
         authorization_code = secrets.token_urlsafe(32)
         authorization_code_hashed = hash_b(authorization_code, context=None)
 
         async with DB() as session:
-            session.add(
-                OAuth2Token(
-                    user_id=user_id,
-                    application_id=app.id,
-                    token_hashed=authorization_code_hashed,
-                    scopes=scopes,
-                    redirect_uri=redirect_uri,
-                    code_challenge=code_challenge,
-                    code_challenge_method=code_challenge_method,
-                )
+            token = OAuth2Token(
+                user_id=user_id,
+                application_id=app.id,
+                token_hashed=authorization_code_hashed,
+                scopes=scopes,
+                redirect_uri=redirect_uri,
+                code_challenge=code_challenge,
+                code_challenge_method=code_challenge_method,
             )
+
+            session.add(token)
+
+        if token.is_oob:
+            return f'oob;{authorization_code}'
 
         params = {
             'code': authorization_code,
@@ -94,7 +98,6 @@ class OAuth2TokenService:
         if state:
             params['state'] = state
 
-        # TODO: support OOB
         return extend_query_params(redirect_uri, params)
 
     @staticmethod
