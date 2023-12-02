@@ -5,32 +5,40 @@ from sqlalchemy import null, select
 from sqlalchemy.orm import joinedload
 
 from db import DB
+from lib.auth import auth_user
 from lib.crypto import hash_b
 from lib.exceptions import raise_for
+from models.db.oauth2_application import OAuth2Application
 from models.db.oauth2_token import OAuth2Token
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.scope import Scope
 from repositories.oauth2_application_repository import OAuth2ApplicationRepository
+from repositories.oauth2_token_repository import OAuth2TokenRepository
 from utils import extend_query_params, utcnow
 
 
 class OAuth2TokenService:
     @staticmethod
     async def authorize(
-        user_id: int,
+        *,
+        init: bool,
         client_id: str,
         redirect_uri: str,
         scopes: Sequence[Scope],
         code_challenge: str | None,
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         state: str | None,
-    ) -> str:
+    ) -> str | OAuth2Application:
         """
         Create a new authorization code.
 
         The code can be exchanged for an access token.
 
-        Returns the redirect uri with the authorization code as a query parameter.
+        In `init=True` mode, silent authentication is performed if the application is already authorized.
+        If successful, the redirect uri is returned.
+        Otherwise, the application instance is returned for the user to authorize it.
+
+        In `init=False` mode, the redirect uri is always returned.
         """
 
         app = await OAuth2ApplicationRepository.find_by_client_id(client_id)
@@ -39,7 +47,28 @@ class OAuth2TokenService:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
-        if not set(scopes).issubset(app.scopes):
+
+        user_id = auth_user().id
+        scopes_set = set(scopes)
+
+        if init:
+            tokens = await OAuth2TokenRepository.find_many_authorized_by_user_app(user_id, app.id)
+
+            for token in tokens:
+                # ignore different redirect uri
+                if token.redirect_uri != redirect_uri:
+                    continue
+                # ignore different scopes
+                if scopes_set.symmetric_difference(token.scopes):
+                    continue
+
+                # match found, return redirect uri
+                break
+            else:
+                # no match found, return application instance
+                return app
+
+        if not scopes_set.issubset(app.scopes):
             raise_for().oauth_bad_scopes()
 
         authorization_code = secrets.token_urlsafe(32)

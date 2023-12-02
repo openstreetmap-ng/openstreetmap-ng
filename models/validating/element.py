@@ -4,11 +4,9 @@ from typing import Self
 from pydantic import PositiveInt, model_validator
 
 from limits import ELEMENT_RELATION_MAX_MEMBERS, ELEMENT_WAY_MAX_NODES
-from models.db.base import Base
 from models.element_member import ElementMemberRef
 from models.element_type import ElementType
 from models.geometry import PointGeometry
-from models.str import EmptyStr255
 from models.validating.tags import TagsValidating
 
 

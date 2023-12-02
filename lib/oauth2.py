@@ -25,7 +25,7 @@ class OAuth2:
         if scheme.lower() != 'bearer':
             raise_for().oauth2_bearer_missing()
 
-        token = await OAuth2TokenRepository.find_one_by_token(param)
+        token = await OAuth2TokenRepository.find_one_authorized_by_token(param)
 
         if token is None:
             raise_for().oauth_bad_user_token()

@@ -4,7 +4,6 @@ from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from services.cache_service import CACHE_HASH_SIZE
 from lib.rich_text import rich_text_getter
 from limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from models.db.base import Base
@@ -13,6 +12,7 @@ from models.db.note import Note
 from models.db.user import User
 from models.note_event import NoteEvent
 from models.text_format import TextFormat
+from services.cache_service import CACHE_HASH_SIZE
 
 
 class NoteComment(Base.UUID, CreatedAt):

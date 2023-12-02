@@ -6,6 +6,7 @@ from sqlalchemy import func, null, select
 from sqlalchemy.orm import joinedload
 
 from db import DB
+from lib.auth import auth_user
 from lib.crypto import hash_b
 from lib.exceptions import raise_for
 from models.db.oauth1_token import OAuth1Token
@@ -56,7 +57,7 @@ class OAuth1TokenService:
         return result
 
     @staticmethod
-    async def authorize(token_str: str, user_id: int, scopes: Sequence[Scope]) -> str:
+    async def authorize(token_str: str, scopes: Sequence[Scope]) -> str:
         """
         Authorize a request token for a user.
 
@@ -88,7 +89,7 @@ class OAuth1TokenService:
 
             verifier = secrets.token_urlsafe(32)
 
-            token.user_id = user_id
+            token.user_id = auth_user().id
             token.scopes = scopes
             token.verifier = verifier
 

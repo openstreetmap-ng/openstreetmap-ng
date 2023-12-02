@@ -157,7 +157,7 @@ class UserAuthService:
         else:
             raise NotImplementedError(f'Unsupported OAuth version {oauth_version}')
 
-        if not token.authorized_at or token.revoked_at:
+        if not token.authorized_at:
             raise_for().oauth_bad_user_token()
 
         return token.user, token.scopes

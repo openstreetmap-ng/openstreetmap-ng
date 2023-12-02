@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import null, select
 from sqlalchemy.orm import joinedload
 
 from db import DB

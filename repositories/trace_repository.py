@@ -6,6 +6,7 @@ from db import DB
 from lib.auth import auth_user_scopes
 from lib.exceptions import raise_for
 from lib.tracks import Tracks
+from limits import FIND_LIMIT
 from models.db.trace_ import Trace
 
 
@@ -44,7 +45,11 @@ class TraceRepository:
         return filename, file
 
     @staticmethod
-    async def find_many_by_user_id(user_id: int) -> Sequence[Trace]:
+    async def find_many_by_user_id(
+        user_id: int,
+        *,
+        limit: int | None = FIND_LIMIT,
+    ) -> Sequence[Trace]:
         """
         Find traces by user id.
         """
@@ -54,5 +59,8 @@ class TraceRepository:
                 Trace.user_id == user_id,
                 Trace.visible_to(*auth_user_scopes()),
             )
+
+            if limit is not None:
+                stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()

@@ -29,7 +29,6 @@ class OAuth1Token(Base.UUID, CreatedAt):
 
     # defaults
     authorized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-    revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
     @property
     def scopes_str(self) -> str:
