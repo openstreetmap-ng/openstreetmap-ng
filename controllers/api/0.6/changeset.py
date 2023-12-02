@@ -39,7 +39,7 @@ async def changeset_create(
         raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
-        tags = Format06.decode_tags(data.get('tag', []))
+        tags = Format06.decode_tags_and_validate(data.get('tag', []))
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
@@ -82,7 +82,7 @@ async def changeset_update(
         raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
-        tags = Format06.decode_tags(data.get('tag', []))
+        tags = Format06.decode_tags_and_validate(data.get('tag', []))
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 

@@ -1,9 +1,11 @@
-from typing import NamedTuple, Self
+from dataclasses import dataclass
+from typing import Self
 
 from models.element_type import ElementType
 
 
-class TypedElementRef(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class TypedElementRef:
     type: ElementType
     typed_id: int
 
@@ -13,9 +15,6 @@ class TypedElementRef(NamedTuple):
             type=self.type,
             typed_id=self.typed_id,
         )
-
-    def __hash__(self) -> int:
-        return hash((self.type, self.typed_id))
 
     def __str__(self) -> str:
         """

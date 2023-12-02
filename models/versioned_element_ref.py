@@ -1,15 +1,15 @@
+from dataclasses import dataclass
 from typing import Self
+
+from pydantic import PositiveInt
 
 from models.element_type import ElementType
 from models.typed_element_ref import TypedElementRef
 
 
-# TODO: inherit on namedtuple won't work
+@dataclass(frozen=True, slots=True)
 class VersionedElementRef(TypedElementRef):
-    version: int
-
-    def __hash__(self) -> int:
-        return hash((super().__hash__(), self.version))
+    version: PositiveInt
 
     def __str__(self) -> str:
         """

@@ -49,7 +49,7 @@ async def main():
                 'created_at': datetime.fromisoformat(element['timestamp']),
                 'version': int(element['version']),
                 'visible': element.get('visible', True),
-                'tags': Format06.decode_tags(body.get('tag', [])),
+                'tags': Format06._decode_tags_unsafe(body.get('tag', [])),
             }
 
             if element_type == 'node':

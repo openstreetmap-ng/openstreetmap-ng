@@ -9,16 +9,16 @@ from models.element_member import ElementMemberRef
 from models.element_type import ElementType
 from models.geometry import PointGeometry
 from models.str import EmptyStr255
+from models.validating.tags import TagsValidating
 
 
-class ElementValidating(Base.Validating):
+class ElementValidating(TagsValidating):
     user_id: PositiveInt
     changeset_id: PositiveInt | None
     type: ElementType
     typed_id: int
     version: PositiveInt
     visible: bool
-    tags: dict[EmptyStr255, EmptyStr255]
     point: PointGeometry | None
     members: Sequence[ElementMemberRef]
 

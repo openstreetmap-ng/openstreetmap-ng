@@ -1,5 +1,2 @@
-from abc import ABC
-
-
-class Format07(ABC):
+class Format07:
     pass

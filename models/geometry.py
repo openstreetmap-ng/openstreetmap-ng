@@ -32,16 +32,8 @@ MultiPolygonGeometry = Annotated[
     GeometrySerializer,
 ]
 
-Longitude = Annotated[
-    float,
-    Interval(ge=-180, le=180),
-    AllowInfNan(False)
-]
+Longitude = Annotated[float, Interval(ge=-180, le=180), AllowInfNan(False)]
 
-Latitude = Annotated[
-    float,
-    Interval(ge=-90, le=90),
-    AllowInfNan(False)
-]
+Latitude = Annotated[float, Interval(ge=-90, le=90), AllowInfNan(False)]
 
 # TODO: check if type matches after validation

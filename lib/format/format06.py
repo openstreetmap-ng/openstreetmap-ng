@@ -24,6 +24,7 @@ from models.osmchange_action import OSMChangeAction
 from models.trace_visibility import TraceVisibility
 from models.typed_element_ref import TypedElementRef
 from models.validating.element import ElementValidating
+from models.validating.tags import TagsValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
 from utils import format_sql_date
@@ -38,7 +39,7 @@ class Format06:
             return tuple({'@k': k, '@v': v} for k, v in tags.items())
 
     @classmethod
-    def decode_tags(cls, tags: Sequence[dict]) -> dict:
+    def _decode_tags_unsafe(cls, tags: Sequence[dict]) -> dict:
         """
         >>> cls.decode_tags([
         ...     {'@k': 'a', '@v': '1'},
@@ -56,6 +57,18 @@ class Format06:
         return result
 
     @classmethod
+    def decode_tags_and_validate(cls, tags: Sequence[dict]) -> dict:
+        """
+        >>> cls.decode_tags_and_validate([
+        ...     {'@k': 'a', '@v': '1'},
+        ...     {'@k': 'b', '@v': '2'},
+        ... ])
+        {'a': '1', 'b': '2'}
+        """
+
+        return TagsValidating(tags=cls._decode_tags_unsafe(tags)).tags
+
+    @classmethod
     def encode_point(cls, point: Point | None) -> dict:
         """
         >>> cls.encode_point(Point(1, 2))
@@ -71,7 +84,7 @@ class Format06:
         }
 
     @classmethod
-    def decode_point(cls, data: dict) -> Point | None:
+    def _decode_point_unsafe(cls, data: dict) -> Point | None:
         """
         >>> cls.decode_point({'@lon': '1', '@lat': '2'})
         POINT (1 2)
@@ -101,7 +114,12 @@ class Format06:
             return tuple({'@ref': node.typed_id} for node in nodes)
 
     @classmethod
-    def decode_nodes(cls, nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
+    def _decode_nodes_unsafe(cls, nodes: Sequence[dict]) -> Sequence[ElementMemberRef]:
+        """
+        >>> cls.decode_nodes([{'@ref': '1'}])
+        [ElementMember(type=ElementType.node, typed_id=1, role='')]
+        """
+
         return tuple(
             ElementMemberRef(
                 type=ElementType.node,
@@ -120,7 +138,7 @@ class Format06:
         ... ])
         (
             {'@type': 'node', '@ref': 1, '@role': 'a'},
-            {'@type': 'way', '@ref': 2, '@role': 'b'}
+            {'@type': 'way', '@ref': 2, '@role': 'b'},
         )
         """
 
@@ -134,7 +152,14 @@ class Format06:
         )
 
     @classmethod
-    def decode_members(cls, members: Sequence[dict]) -> Sequence[ElementMemberRef]:
+    def _decode_members_unsafe(cls, members: Sequence[dict]) -> Sequence[ElementMemberRef]:
+        """
+        >>> cls.decode_members([
+        ...     {'@type': 'node', '@ref': '1', '@role': 'a'},
+        ... ])
+        [ElementMember(type=ElementType.node, typed_id=1, role='a')]
+        """
+
         return tuple(
             ElementMemberRef(
                 type=ElementType.from_str(member['@type']),
@@ -159,8 +184,8 @@ class Format06:
                 'version': element.version,
                 'timestamp': element.created_at,
                 'changeset': element.changeset_id,
-                'uid': element.user_.id,
-                'user': element.user_.display_name,
+                'uid': element.user_id,
+                'user': element.user.display_name,
                 'visible': element.visible,
                 'tags': element.tags,
                 **({'nodes': cls.encode_nodes(element.members)} if element.type == ElementType.way else {}),
@@ -174,8 +199,8 @@ class Format06:
                     '@version': element.version,
                     '@timestamp': element.created_at,
                     '@changeset': element.changeset_id,
-                    '@uid': element.user_.id,  # TODO: smart user cache
-                    '@user': element.user_.display_name,  # TODO: is @user here a mistake?
+                    '@uid': element.user_id,
+                    '@user': element.user.display_name,
                     '@visible': element.visible,
                     'tag': cls.encode_tags(element.tags),
                     **({'nd': cls.encode_nodes(element.members)} if element.type == ElementType.way else {}),
@@ -192,22 +217,21 @@ class Format06:
         if len(element) != 1:
             raise ValueError(f'Expected one root element, got {len(element)}')
 
-        user = auth_user()
         type, data = next(iter(element.items()))
         type = ElementType.from_str(type)
         data: dict
 
         return Element(
             **ElementValidating(
-                user_id=user.id,
+                user_id=auth_user().id,
                 changeset_id=changeset_id or data.get('@changeset'),
                 type=type,
                 typed_id=data.get('@id'),
                 version=data.get('@version', 0) + 1,
                 visible=data.get('@visible', True),
-                tags=cls.decode_tags(data.get('tag', ())),
-                point=cls.decode_point(data),
-                members=cls.decode_nodes(data.get('nd', cls.decode_members(data.get('member', ())))),
+                tags=cls._decode_tags_unsafe(data.get('tag', ())),
+                point=cls._decode_point_unsafe(data),
+                members=cls._decode_nodes_unsafe(data.get('nd', cls._decode_members_unsafe(data.get('member', ())))),
             ).to_orm_dict()
         )
 
@@ -220,8 +244,6 @@ class Format06:
         ... ])
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
         """
-
-        # TODO: multiprocessing batch?
 
         if format_is_json():
             return {'elements': tuple(cls.encode_element(element) for element in elements)}
@@ -241,8 +263,8 @@ class Format06:
         return {
             XAttr('id'): comment.id,
             XAttr('date'): comment.created_at,
-            XAttr('uid'): comment.user_.id,  # TODO: user cache
-            XAttr('user'): comment.user_.display_name,
+            XAttr('uid'): comment.user_id,
+            XAttr('user'): comment.user.display_name,
             'text': comment.body,
         }
 
@@ -271,8 +293,8 @@ class Format06:
                 'created_at': changeset.created_at,
                 **({'closed_at': changeset.closed_at} if changeset.closed_at else {}),
                 'open': not changeset.closed_at,
-                'user': changeset.user_.display_name,
-                'uid': changeset.user_.id,
+                'uid': changeset.user_id,
+                'user': changeset.user.display_name,
                 **boundary_d,
                 'comments_count': changeset.comments_count_ + add_comments_count,
                 'changes_count': changeset.size,
@@ -290,8 +312,8 @@ class Format06:
                     '@created_at': changeset.created_at,
                     **({'@closed_at': changeset.closed_at} if changeset.closed_at else {}),
                     '@open': not changeset.closed_at,
-                    '@user': changeset.user_.display_name,
-                    '@uid': changeset.user_.id,
+                    '@uid': changeset.user_id,
+                    '@user': changeset.user.display_name,
                     **boundary_d,
                     '@comments_count': changeset.comments_count_ + add_comments_count,
                     '@changes_count': changeset.size,
@@ -362,7 +384,8 @@ class Format06:
         """
 
         result = [None] * len(elements)
-        for i, (action, element_d) in len(elements):
+
+        for i, (action, element_d) in enumerate(elements):
             if len(element_d) != 1:
                 raise ValueError(f'Expected one element in {action!r}, got {len(element_d)}')
 
@@ -385,6 +408,7 @@ class Format06:
                 raise_for().diff_unsupported_action(action)
 
             result[i] = element
+
         return result
 
     @classmethod
@@ -433,31 +457,36 @@ class Format06:
         last_trkseg_id = None
 
         for tp in trace_points:
-            if tp.trace_.visibility in (TraceVisibility.identifiable, TraceVisibility.trackable):
-                if last_trk_id != tp.trace_id:
-                    if tp.trace_.visibility == TraceVisibility.identifiable:
-                        user: User = tp.trace_.user_id  # TODO: user load
-                        url = f'/user/{user.display_name}/traces/{tp.trace_id}'
+            trace = tp.trace
+
+            # if trace is available via api, encode full information
+            if trace.timestamps_via_api:
+                # handle track change
+                if last_trk_id != trace.id:
+                    if trace.visibility == TraceVisibility.identifiable:
+                        url = f'/user/{trace.user.display_name}/traces/{trace.id}'
                     else:
                         url = None
 
                     trk_trksegs = []
                     trks.append(
                         {
-                            'name': tp.trace_.name,
-                            'desc': tp.trace_.description,
+                            'name': trace.name,
+                            'desc': trace.description,
                             **({'url': url} if url else {}),
                             'trkseg': trk_trksegs,
                         }
                     )
-                    last_trk_id = tp.trace_id
+                    last_trk_id = trace.id
                     last_trkseg_id = None
 
+                # handle track segment change
                 if last_trkseg_id != tp.track_idx:
                     trk_trkseg_trkpts = []
                     trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
                     last_trkseg_id = tp.track_idx
 
+                # add point
                 trk_trkseg_trkpts.append(
                     {
                         **cls.encode_point(tp.point),
@@ -465,16 +494,19 @@ class Format06:
                         'time': tp.captured_at,
                     }
                 )
-        else:
-            if last_trk_id is not None or last_trkseg_id is not None:
-                trk_trksegs = []
-                trks.append({'trkseg': trk_trksegs})
-                trk_trkseg_trkpts = []
-                trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
-                last_trk_id = None
-                last_trkseg_id = None
 
-            trk_trkseg_trkpts.append(cls.encode_point(tp.point))
+            # otherwise, encode only coordinates
+            else:
+                # handle track and track segment change
+                if last_trk_id is not None or last_trkseg_id is not None:
+                    trk_trksegs = []
+                    trks.append({'trkseg': trk_trksegs})
+                    trk_trkseg_trkpts = []
+                    trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
+                    last_trk_id = None
+                    last_trkseg_id = None
+
+                trk_trkseg_trkpts.append(cls.encode_point(tp.point))
 
         return {
             'gpx': {
@@ -507,7 +539,7 @@ class Format06:
                             **TracePointValidating(
                                 track_idx=track_idx,
                                 captured_at=datetime.fromisoformat(time) if (time := trkpt.get('time')) else None,
-                                point=cls.decode_point(trkpt),
+                                point=cls._decode_point_unsafe(trkpt),
                                 elevation=trkpt.get('ele'),
                             ).to_orm_dict()
                         )
@@ -526,7 +558,7 @@ class Format06:
             'gpx_file': {
                 '@id': trace.id,
                 '@uid': trace.user_id,
-                '@user': trace.user_id.display_name,  # TODO: user load
+                '@user': trace.user.display_name,
                 '@timestamp': trace.created_at,
                 '@name': trace.name,
                 '@lon': trace.start_point.x,
@@ -576,7 +608,7 @@ class Format06:
         return {
             'date': format_sql_date(comment.created_at),
             'uid': comment.user_id,
-            'user': comment.user.display_name,  # TODO: user load
+            'user': comment.user.display_name,
             'user_url': f'{BASE_URL}/user/{comment.user.display_name}',
             'action': comment.event.value,
             'text': comment.body,
@@ -694,7 +726,7 @@ class Format06:
                 'blocks': {
                     'received': {
                         XAttr('count'): 0,  # TODO: blocks count
-                        XAttr('active'): 0,
+                        XAttr('active'): len(user.active_user_blocks_received),
                     },
                     'issued': {
                         XAttr('count'): 0,  # TODO: blocks count
@@ -716,7 +748,10 @@ class Format06:
                         ),
                         'languages': cls.encode_languages(user.languages),
                         'messages': {
-                            'received': {XAttr('count'): 0, XAttr('unread'): 0},  # TODO: messages count
+                            'received': {
+                                XAttr('count'): 0,  # TODO: messages count
+                                XAttr('unread'): 0,
+                            },
                             'sent': {XAttr('count'): 0},
                         },
                     }

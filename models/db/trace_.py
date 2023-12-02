@@ -1,12 +1,10 @@
 from collections.abc import Sequence
 
-import anyio
 from shapely import Point
 from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from lib.tracks import Tracks
 from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from models.db.base import Base
 from models.db.created_at import CreatedAt

@@ -15,6 +15,8 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     UniqueConstraint,
+    and_,
+    false,
 )
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -22,7 +24,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from config import DEFAULT_LANGUAGE
 from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
-from services.cache_service import CACHE_HASH_SIZE
 from lib.languages import get_language_info, normalize_language_case
 from lib.rich_text import rich_text_getter
 from limits import (
@@ -38,6 +39,7 @@ from models.text_format import TextFormat
 from models.user_avatar_type import UserAvatarType
 from models.user_role import UserRole
 from models.user_status import UserStatus
+from services.cache_service import CACHE_HASH_SIZE
 
 
 class User(Base.NoID, CreatedAt):
@@ -168,6 +170,16 @@ class User(Base.NoID, CreatedAt):
         back_populates='to_user',
         order_by='desc(UserBlock.id)',
         lazy='raise',
+    )
+    active_user_blocks_received: Mapped[list[UserBlock]] = relationship(
+        back_populates='to_user',
+        order_by='desc(UserBlock.id)',
+        lazy='raise',
+        viewonly=True,
+        primaryjoin=and_(
+            UserBlock.to_user_id == id,
+            UserBlock.expired == false(),
+        ),
     )
 
     __table_args__ = (

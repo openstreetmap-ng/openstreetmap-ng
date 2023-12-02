@@ -14,7 +14,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 
 - [x] Architecture design
 - [x] ~~Migration of the database models (document-db)~~
-- [95%] Migration of the database models (sql-db)
+- [x] Migration of the database models (sql-db)
 - [x] Migration of translations
 - [x] Migration of various utilities and "lib" folder
 - [x] Cache for markdown generated content (faster page loading)

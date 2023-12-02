@@ -2,6 +2,12 @@ import re
 
 from annotated_types import Predicate
 
+# def validate_str255(value: str) -> str:
+#     if len(value) > 255:
+#         raise ValueError(f'String is too long: {len(value)} > 255')
+#     return value
+
+
 _hex_str_re = re.compile(r'^(?:[0-9a-f]{2})+$')
 
 HexStrValidator = Predicate(lambda s: _hex_str_re.fullmatch(s))
