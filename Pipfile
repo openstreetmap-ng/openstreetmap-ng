@@ -33,7 +33,6 @@ lxml = "*"
 markdown-it-py = {extras = ["plugins"], version = "*"}
 msgspec = "*"
 networkx = "*"
-numba = "*"
 numpy = "*"
 orjson = "*"
 pillow = "*"
