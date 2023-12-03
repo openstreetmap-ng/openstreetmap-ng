@@ -497,7 +497,7 @@ class Format06:
                 # handle track change
                 if last_trk_id != trace.id:
                     if trace.visibility == TraceVisibility.identifiable:
-                        url = f'/user/{trace.user.display_name}/traces/{trace.id}'
+                        url = f'/user/permalink/{trace.user_id}/traces/{trace.id}'
                     else:
                         url = None
 
@@ -544,7 +544,7 @@ class Format06:
         return {'trk': trks}
 
     @staticmethod
-    def decode_tracks(tracks: Sequence[dict]) -> Sequence[TracePoint]:
+    def decode_tracks(tracks: Sequence[dict], *, track_idx_start: int = 0) -> Sequence[TracePoint]:
         """
         >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TracePoint(...)]
@@ -554,7 +554,7 @@ class Format06:
 
         for trk in tracks:
             trk: dict
-            for track_idx, trkseg in enumerate(trk.get('trkseg', [])):
+            for track_idx, trkseg in enumerate(trk.get('trkseg', []), track_idx_start):
                 trkseg: dict
                 for trkpt in trkseg.get('trkpt', []):
                     trkpt: dict

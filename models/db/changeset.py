@@ -37,7 +37,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
 
     comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='changeset',
-        order_by='asc(ChangesetComment.created_at)',
+        order_by=ChangesetComment.created_at.asc(),
         lazy='raise',
     )
     changeset_subscription_users: Mapped[list[User]] = relationship(
@@ -46,7 +46,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     )
     elements: Mapped[list[Element]] = relationship(
         back_populates='changeset',
-        order_by='asc(Element.id)',
+        order_by=Element.id.asc(),
         lazy='raise',
     )
 

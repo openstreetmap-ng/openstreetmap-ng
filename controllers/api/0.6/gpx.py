@@ -11,12 +11,16 @@ from cython_lib.xmltodict import XMLToDict
 from lib.auth import api_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
+from lib.joinedload_context import joinedload_context
 from lib.tracks import Tracks
+from models.db.trace_ import Trace
+from models.db.trace_point import TracePoint
 from models.db.user import User
 from models.scope import Scope
 from models.str import Str255
 from models.trace_visibility import TraceVisibility
 from repositories.trace_repository import TraceRepository
+from responses.osm_response import GPXResponse
 from services.trace_service import TraceService
 
 router = APIRouter()
@@ -45,25 +49,36 @@ async def gpx_create(
 async def gpx_read(
     trace_id: PositiveInt,
 ) -> dict:
-    trace = await TraceRepository.get_one_by_id(trace_id)
+    with joinedload_context(Trace.user):
+        trace = await TraceRepository.get_one_by_id(trace_id)
     return Format06.encode_gpx_file(trace)
 
 
-# TODO: handle .xml ?
 @router.get('/gpx/{trace_id}/data')
+@router.get('/gpx/{trace_id}/data.xml', response_class=GPXResponse)
+@router.get('/gpx/{trace_id}/data.gpx', response_class=GPXResponse)
 async def gpx_read_data(
+    request: Request,
     trace_id: PositiveInt,
 ) -> Response:
-    filename, file = await TraceRepository.get_one_data_by_id(trace_id)
-    content_type = magic.from_buffer(file[:2048], mime=True)
-    logging.debug('Downloading trace file content type is %r', content_type)
+    # if requested, encode as gpx
+    if request.url.path.endswith(('.xml', '.gpx')):
+        with joinedload_context(Trace.points, TracePoint.trace):
+            trace = await TraceRepository.get_one_by_id(trace_id)
+        return Format06.encode_tracks(trace.points)
 
-    return Response(
-        status.HTTP_200_OK,
-        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
-        content=file,
-        media_type=content_type,
-    )
+    # otherwise, return the raw file
+    else:
+        filename, file = await TraceRepository.get_one_data_by_id(trace_id)
+        content_type = magic.from_buffer(file[:2048], mime=True)
+        logging.debug('Downloading trace file content type is %r', content_type)
+
+        return Response(
+            status.HTTP_200_OK,
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+            content=file,
+            media_type=content_type,
+        )
 
 
 @router.put('/gpx/{trace_id}', response_class=PlainTextResponse)

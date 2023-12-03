@@ -2,7 +2,6 @@ import secrets
 from collections.abc import Sequence
 
 from sqlalchemy import func, null, select
-from sqlalchemy.orm import joinedload
 
 from db import DB
 from lib.auth import auth_user

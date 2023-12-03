@@ -28,11 +28,11 @@ class Issue(Base.Sequential, CreatedAt, UpdatedAt):
 
     comments: Mapped[list[IssueComment]] = relationship(
         back_populates='issue',
-        order_by='asc(IssueComment.created_at)',
+        order_by=IssueComment.created_at.asc(),
         lazy='raise',
     )
     reports: Mapped[list[Report]] = relationship(
         back_populates='issue',
-        order_by='asc(Report.created_at)',
+        order_by=Report.created_at.asc(),
         lazy='raise',
     )

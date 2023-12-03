@@ -102,17 +102,17 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
 
     changesets: Mapped[list[Changeset]] = relationship(
         back_populates='user',
-        order_by='desc(Changeset.id)',
+        order_by=Changeset.id.desc(),
         lazy='raise',
     )
     changeset_comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='user',
-        order_by='desc(ChangesetComment.created_at)',
+        order_by=ChangesetComment.created_at.desc(),
         lazy='raise',
     )
     diary_comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='user',
-        order_by='desc(DiaryComment.created_at)',
+        order_by=DiaryComment.created_at.desc(),
         lazy='raise',
     )
     friendship_sent: Mapped[list['User']] = relationship(
@@ -131,57 +131,57 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     )
     messages_sent: Mapped[list[Message]] = relationship(
         back_populates='from_user',
-        order_by='desc(Message.created_at)',
+        order_by=Message.created_at.desc(),
         lazy='raise',
     )
     messages_received: Mapped[list[Message]] = relationship(
         back_populates='to_user',
-        order_by='desc(Message.created_at)',
+        order_by=Message.created_at.desc(),
         lazy='raise',
     )
     note_comments: Mapped[list[NoteComment]] = relationship(
         back_populates='user',
-        order_by='desc(NoteComment.created_at)',
+        order_by=NoteComment.created_at.desc(),
         lazy='raise',
     )
     oauth1_applications: Mapped[list[OAuth1Application]] = relationship(
         back_populates='user',
-        order_by='asc(OAuth1Application.id)',
+        order_by=OAuth1Application.id.asc(),
         lazy='raise',
     )
     oauth1_tokens: Mapped[list[OAuth1Token]] = relationship(
         back_populates='user',
-        order_by='asc(OAuth1Token.application_id)',
+        order_by=OAuth1Token.application_id.asc(),
         lazy='raise',
     )
     oauth2_applications: Mapped[list[OAuth2Application]] = relationship(
         back_populates='user',
-        order_by='asc(OAuth2Application.id)',
+        order_by=OAuth2Application.id.asc(),
         lazy='raise',
     )
     oauth2_tokens: Mapped[list[OAuth2Token]] = relationship(
         back_populates='user',
-        order_by='asc(OAuth2Token.application_id)',
+        order_by=OAuth2Token.application_id.asc(),
         lazy='raise',
     )
     traces: Mapped[list[Trace]] = relationship(
         back_populates='user',
-        order_by='desc(Trace.id)',
+        order_by=Trace.id.desc(),
         lazy='raise',
     )
     user_blocks_given: Mapped[list[UserBlock]] = relationship(
         back_populates='from_user',
-        order_by='desc(UserBlock.id)',
+        order_by=UserBlock.id.desc(),
         lazy='raise',
     )
     user_blocks_received: Mapped[list[UserBlock]] = relationship(
         back_populates='to_user',
-        order_by='desc(UserBlock.id)',
+        order_by=UserBlock.id.desc(),
         lazy='raise',
     )
     active_user_blocks_received: Mapped[list[UserBlock]] = relationship(
         back_populates='to_user',
-        order_by='desc(UserBlock.id)',
+        order_by=UserBlock.id.desc(),
         lazy='raise',
         viewonly=True,
         primaryjoin=and_(

@@ -46,14 +46,19 @@ class Tracks:
         async def extract_and_generate_image_icon() -> None:
             nonlocal trace, points, image, icon
 
+            track_idx_last = -1
+
             # process multiple files in the archive
             for gpx_b in await _extract(buffer):
                 try:
                     gpx = gpx_b.decode()
                     tracks = XMLToDict.parse(gpx).get('gpx', {}).get('trk', [])
-                    points.extend(Format06.decode_tracks(tracks))
+                    points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_last + 1))
                 except Exception as e:
                     raise_for().bad_trace_file(str(e))
+
+                if points:
+                    track_idx_last = points[-1].track_idx
 
             points = _sort_and_deduplicate(points)
 
@@ -73,7 +78,7 @@ class Tracks:
                 ).to_orm_dict()
             )
 
-            trace.trace_points = points
+            trace.points = points
             trace.tag_string = tags
 
             image, icon = await TracksImage.generate_async(points)

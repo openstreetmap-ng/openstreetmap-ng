@@ -35,9 +35,9 @@ class Trace(Base.Sequential, CreatedAt):
     from trace_point import TracePoint
 
     # TODO: cascade delete + files delete
-    trace_points: Mapped[list[TracePoint]] = relationship(
+    points: Mapped[list[TracePoint]] = relationship(
         back_populates='trace',
-        order_by='asc(TracePoint.captured_at)',
+        order_by=(TracePoint.track_idx.asc(), TracePoint.captured_at.asc()),
         lazy='raise',
     )
 

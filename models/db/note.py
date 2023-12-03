@@ -32,7 +32,7 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
 
     comments: Mapped[list[NoteComment]] = relationship(
         back_populates='note',
-        order_by='asc(NoteComment.created_at)',
+        order_by=NoteComment.created_at.asc(),
         lazy='raise',
     )
 

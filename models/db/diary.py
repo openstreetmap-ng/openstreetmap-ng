@@ -40,7 +40,7 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt, RichTextMixin):
 
     comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='diary',
-        order_by='asc(DiaryComment.created_at)',
+        order_by=DiaryComment.created_at.asc(),
         lazy='raise',
     )
     diary_subscription_users: Mapped[list[User]] = relationship(
