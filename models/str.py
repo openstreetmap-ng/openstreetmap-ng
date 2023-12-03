@@ -1,25 +1,23 @@
 from typing import Annotated
 
-from annotated_types import MaxLen, MinLen
-from pydantic import Strict
+from annotated_types import MaxLen, MinLen, Predicate
+from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 
-from validators.str import HexStrValidator
+from limits import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH
 from validators.url import URLSafeValidator
 from validators.whitespace import BoundaryWhitespaceValidator
 
-NonEmptyStr = Annotated[str, Strict(), MinLen(1)]  # TODO: dont' use
-Str255 = Annotated[str, Strict(), MinLen(1), MaxLen(255)]
-EmptyStr255 = Annotated[str, Strict(), MaxLen(255)]
-HexStr = Annotated[NonEmptyStr, HexStrValidator]
+EmptyStr255 = Annotated[str, MaxLen(255)]
+Str255 = Annotated[EmptyStr255, MinLen(1)]
 
-# TODO: test case
-EmailStr = Annotated[
-    NonEmptyStr, MaxLen(998)
-    # no automatic email validation, use: python-email-validator
-]
+# no automatic email validation, use: python-email-validator
+EmptyEmailStr = Annotated[str, MaxLen(EMAIL_MAX_LENGTH)]
+EmailStr = Annotated[EmptyEmailStr, MinLen(len('a@a.a'))]
 
 UserNameStr = Annotated[Str255, MinLen(3), URLSafeValidator, BoundaryWhitespaceValidator]
-PasswordStr = Annotated[Str255, MinLen(8)]
+
+EmptyPasswordStr = Annotated[str, Predicate(lambda x: not x or PASSWORD_MIN_LENGTH <= len(x) <= PASSWORD_MAX_LENGTH)]
+PasswordStr = Annotated[str, MinLen(PASSWORD_MIN_LENGTH), MaxLen(PASSWORD_MAX_LENGTH)]
 
 # TypedElementId = Annotated[
 #     NonEmptyStr,

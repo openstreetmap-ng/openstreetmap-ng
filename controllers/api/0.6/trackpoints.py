@@ -7,7 +7,6 @@ from cython_lib.geoutils import parse_bbox
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
 from limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
-from models.str import NonEmptyStr
 from repositories.trace_point_repository import TracePointRepository
 from responses.osm_response import GPXResponse
 
@@ -17,7 +16,7 @@ router = APIRouter()
 @router.get('/trackpoints', response_class=GPXResponse)
 @router.get('/trackpoints.gpx', response_class=GPXResponse)
 async def trackpoints_read(
-    bbox: Annotated[NonEmptyStr, Query()],
+    bbox: Annotated[str, Query(min_length=1)],
     page_number: Annotated[NonNegativeInt, Query(0, alias='pageNumber')],
 ) -> dict:
     geometry = parse_bbox(bbox)

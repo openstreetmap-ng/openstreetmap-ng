@@ -3,6 +3,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 
 from argon2 import PasswordHasher
+from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from shapely.geometry import Point
 from sqlalchemy import (
     ARRAY,
@@ -31,6 +32,7 @@ from limits import (
     USER_DESCRIPTION_MAX_LENGTH,
     USER_LANGUAGES_LIMIT,
 )
+from models.auth_provider import AuthProvider
 from models.db.base import Base
 from models.db.cache_entry import CacheEntry
 from models.db.created_at import CreatedAt
@@ -49,7 +51,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
-    email: Mapped[str] = mapped_column(Unicode, nullable=False)
+    email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
     display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
@@ -57,7 +59,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
-    auth_provider: Mapped[str | None] = mapped_column(Unicode, nullable=True)
+    auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
@@ -235,11 +237,11 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         return f'{APP_URL}/user/permalink/{self.id}'
 
     @property
-    def language_str(self) -> str:
+    def languages_str(self) -> str:
         return ' '.join(self.languages)
 
-    @language_str.setter
-    def language_str(self, s: str) -> None:
+    @languages_str.setter
+    def languages_str(self, s: str) -> None:
         languages = s.split()
         languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
         languages = (normalize_language_case(t) for t in languages)

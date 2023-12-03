@@ -21,26 +21,6 @@ from utils import format_iso_date
 
 class Exceptions06(ExceptionsBase):
     @classmethod
-    def timeout(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
-
-    @classmethod
-    def rate_limit(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests')
-
-    @classmethod
-    def time_integrity(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity check failed')
-
-    @classmethod
-    def bad_cursor(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Failed to parse database cursor')
-
-    @classmethod
-    def cursor_expired(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='The database cursor has expired')
-
-    @classmethod
     def unauthorized(cls, *, request_basic_auth: bool = False) -> NoReturn:
         raise cls.APIError(
             status.HTTP_401_UNAUTHORIZED,

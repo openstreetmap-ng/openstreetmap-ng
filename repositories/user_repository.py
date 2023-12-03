@@ -4,6 +4,7 @@ from shapely import Point
 from sqlalchemy import func, null, or_, select
 
 from db import DB
+from lib.auth import auth_user
 from lib.joinedload_context import get_joinedload
 from limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
 from models.db.user import User
@@ -26,7 +27,30 @@ class UserRepository:
         """
 
         async with DB() as session:
-            stmt = select(User).options(get_joinedload()).where(User.display_name == display_name)
+            stmt = (
+                select(User)
+                .options(get_joinedload())
+                .where(
+                    User.display_name == display_name,
+                )
+            )
+
+            return await session.scalar(stmt)
+
+    @staticmethod
+    async def find_one_by_email(email: str) -> User | None:
+        """
+        Find a user by email.
+        """
+
+        async with DB() as session:
+            stmt = (
+                select(User)
+                .options(get_joinedload())
+                .where(
+                    User.email == email,
+                )
+            )
 
             return await session.scalar(stmt)
 
@@ -57,7 +81,13 @@ class UserRepository:
         """
 
         async with DB() as session:
-            stmt = select(User).options(get_joinedload()).where(User.id.in_(user_ids))
+            stmt = (
+                select(User)
+                .options(get_joinedload())
+                .where(
+                    User.id.in_(user_ids),
+                )
+            )
 
             return (await session.scalars(stmt)).all()
 
@@ -91,3 +121,33 @@ class UserRepository:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def check_display_name_available(display_name: str) -> bool:
+        """
+        Check if a display name is available.
+        """
+
+        # check if the name is unchanged
+        user = auth_user()
+        if user.display_name == display_name:
+            return True
+
+        # check if the name is available
+        other_user = await UserRepository.find_one_by_display_name(display_name)
+        return other_user is None or other_user.id == user.id
+
+    @staticmethod
+    async def check_email_available(email: str) -> bool:
+        """
+        Check if an email is available.
+        """
+
+        # check if the email is unchanged
+        user = auth_user()
+        if user.email == email:
+            return True
+
+        # check if the email is available
+        other_user = await UserRepository.find_one_by_email(email)
+        return other_user is None or other_user.id == user.id

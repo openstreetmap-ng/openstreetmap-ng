@@ -133,3 +133,19 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
             )
         ),
     )
+
+
+def _get_web_user(_: SecurityScopes) -> User:
+    user = auth_user()
+    if not user:
+        raise_for().unauthorized()
+    return user
+
+
+# TODO: only web user, not api
+def web_user() -> User:
+    """
+    Dependency for authenticating the web user.
+    """
+
+    return Security(_get_web_user, scopes=())

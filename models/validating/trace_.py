@@ -6,7 +6,7 @@ from pydantic import PositiveInt
 from models.db.base import Base
 from models.file_name import FileName
 from models.geometry import PointGeometry
-from models.str import NonEmptyStr, Str255
+from models.str import Str255
 from models.trace_visibility import TraceVisibility
 from validators.url import URLSafeValidator
 
@@ -21,7 +21,7 @@ class TraceValidating(Base.Validating):
     start_point: PointGeometry
 
     # defaults
-    file_id: NonEmptyStr | None = None
-    image_id: NonEmptyStr | None = None
-    icon_id: NonEmptyStr | None = None
+    file_id: str | None = None
+    image_id: str | None = None
+    icon_id: str | None = None
     tags: Sequence[Annotated[Str255, URLSafeValidator]] = ()

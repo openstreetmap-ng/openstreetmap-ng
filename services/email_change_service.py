@@ -8,10 +8,9 @@ from models.db.user_token_email_change import UserTokenEmailChange
 from utils import utcnow
 
 
-# TODO: rename to user email change service and code related methods
-class UserTokenEmailChangeService:
+class EmailChangeService:
     @staticmethod
-    async def create(user_id: int, from_email: str, to_email: str) -> tuple[UUID, str]:
+    async def _create_token(user_id: int, from_email: str, to_email: str) -> tuple[UUID, str]:
         """
         Create a new user email change token.
 

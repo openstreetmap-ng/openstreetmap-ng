@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import NoReturn
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.typed_element_ref import TypedElementRef
@@ -14,30 +14,33 @@ class ExceptionsBase(ABC):
     class APIError(HTTPException):
         pass
 
+    class FieldError(HTTPException):
+        def __init__(self, status_code: int, field: str, detail: str):
+            super().__init__(status_code, detail={field: detail})
+
     @classmethod
-    @abstractmethod
+    def field_bad_request(cls, field: str, detail: str) -> NoReturn:
+        raise cls.FieldError(status.HTTP_400_BAD_REQUEST, field, detail)
+
+    @classmethod
     def timeout(cls) -> NoReturn:
-        raise NotImplementedError
+        raise cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
 
     @classmethod
-    @abstractmethod
     def rate_limit(cls) -> NoReturn:
-        raise NotImplementedError
+        raise cls.APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests')
 
     @classmethod
-    @abstractmethod
     def time_integrity(cls) -> NoReturn:
-        raise NotImplementedError
+        raise cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity check failed')
 
     @classmethod
-    @abstractmethod
     def bad_cursor(cls) -> NoReturn:
-        raise NotImplementedError
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid database cursor')
 
     @classmethod
-    @abstractmethod
     def cursor_expired(cls) -> NoReturn:
-        raise NotImplementedError
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Database cursor expired')
 
     @classmethod
     @abstractmethod

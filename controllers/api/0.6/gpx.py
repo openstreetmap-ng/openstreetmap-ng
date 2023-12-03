@@ -60,7 +60,7 @@ async def gpx_read(
 async def gpx_read_data(
     request: Request,
     trace_id: PositiveInt,
-) -> Response:
+) -> Response | dict:
     # if requested, encode as gpx
     if request.url.path.endswith(('.xml', '.gpx')):
         with joinedload_context(Trace.points, TracePoint.trace):
