@@ -144,17 +144,6 @@ def extend_query_params(uri: str, params: dict) -> str:
     return urlunsplit(uri_._replace(query=urlencode(query)))
 
 
-def escape_cdata(text: str) -> str:
-    """
-    Escape a string and wrap it in a CDATA section.
-
-    >>> escape_cdata('example')
-    '<![CDATA[example]]>'
-    """
-
-    return f'<![CDATA[{saxutils.escape(text)}]]>'
-
-
 def utcnow() -> datetime:
     """
     Return a datetime object representing the current time in UTC.

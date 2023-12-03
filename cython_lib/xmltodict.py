@@ -229,15 +229,17 @@ def _unparse_element(key, value) -> tuple[ET.Element, ...]:
 
     else:
         element = ET.Element(key)
-        element.text = str(value)
+        element.text = _to_string(value)
         return (element,)
 
 
 @cython.cfunc
 def _to_string(v) -> str:
-    if isinstance(v, bool):
-        return 'true' if v else 'false'
+    if isinstance(v, str | ET.CDATA):
+        return v
     elif isinstance(v, datetime):
         return v.isoformat(timespec='seconds') + 'Z'
+    elif isinstance(v, bool):
+        return 'true' if v else 'false'
     else:
         return str(v)

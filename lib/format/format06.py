@@ -2,6 +2,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 
+import lxml.etree as ET
 from shapely.geometry import Point, mapping
 from sqlalchemy.exc import InvalidRequestError
 
@@ -29,7 +30,7 @@ from models.validating.element import ElementValidating
 from models.validating.tags import TagsValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
-from utils import escape_cdata, format_sql_date
+from utils import format_sql_date
 
 
 class Format06:
@@ -678,7 +679,7 @@ class Format06:
                     'time': note.created_at,
                     'name': f'Note: {note.id}',
                     'link': {'href': note.permalink},
-                    'desc': escape_cdata(render('api/0.6/note_comments_rss.jinja2', comments=note.comments)),
+                    'desc': ET.CDATA(render('api/0.6/note_comments_rss.jinja2', comments=note.comments)),
                     'extensions': {
                         'id': note.id,
                         'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',
