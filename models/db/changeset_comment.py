@@ -16,7 +16,7 @@ class ChangesetComment(Base.Sequential, CreatedAt, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.plain),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='comments', lazy='raise')
+    user: Mapped[User] = relationship(back_populates='changeset_comments', lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(back_populates='comments', lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)

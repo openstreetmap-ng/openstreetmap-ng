@@ -22,7 +22,7 @@ class NoteComment(Base.UUID, CreatedAt, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.plain),)
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(back_populates='comments', lazy='raise')
+    user: Mapped[User | None] = relationship(back_populates='note_comments', lazy='raise')
     user_ip: Mapped[IPv4Address | IPv6Address | None] = mapped_column(INET, nullable=True)
     note_id: Mapped[int] = mapped_column(ForeignKey(Note.id), nullable=False)
     note: Mapped[Note] = relationship(back_populates='comments', lazy='raise')

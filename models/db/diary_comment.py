@@ -17,7 +17,7 @@ class DiaryComment(Base.UUID, CreatedAt, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='comments', lazy='raise')
+    user: Mapped[User] = relationship(back_populates='diary_comments', lazy='raise')
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
     diary: Mapped[Diary] = relationship(back_populates='comments', lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)

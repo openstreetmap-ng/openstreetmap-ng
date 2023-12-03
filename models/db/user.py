@@ -105,12 +105,12 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         order_by='desc(Changeset.id)',
         lazy='raise',
     )
-    comments: Mapped[list[ChangesetComment]] = relationship(
+    changeset_comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='user',
         order_by='desc(ChangesetComment.created_at)',
         lazy='raise',
     )
-    comments: Mapped[list[DiaryComment]] = relationship(
+    diary_comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='user',
         order_by='desc(DiaryComment.created_at)',
         lazy='raise',
@@ -139,7 +139,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         order_by='desc(Message.created_at)',
         lazy='raise',
     )
-    comments: Mapped[list[NoteComment]] = relationship(
+    note_comments: Mapped[list[NoteComment]] = relationship(
         back_populates='user',
         order_by='desc(NoteComment.created_at)',
         lazy='raise',
