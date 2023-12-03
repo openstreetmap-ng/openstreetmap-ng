@@ -26,7 +26,7 @@ class Issue(Base.Sequential, CreatedAt, UpdatedAt):
     from issue_comment import IssueComment
     from report import Report
 
-    issue_comments: Mapped[list[IssueComment]] = relationship(
+    comments: Mapped[list[IssueComment]] = relationship(
         back_populates='issue',
         order_by='asc(IssueComment.created_at)',
         lazy='raise',

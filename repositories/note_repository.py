@@ -6,6 +6,7 @@ from sqlalchemy import func, null, select
 
 from db import DB
 from lib.auth import auth_user
+from lib.joinedload_context import get_joinedload
 from limits import FIND_LIMIT
 from models.db.note import Note
 from models.db.note_comment import NoteComment
@@ -32,7 +33,7 @@ class NoteRepository:
         """
 
         async with DB() as session:
-            stmt = select(Note).join(NoteComment)
+            stmt = select(Note).options(get_joinedload()).join(NoteComment)
             where_and = [Note.visible_to(auth_user())]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at
 

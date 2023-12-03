@@ -16,9 +16,9 @@ class OAuth2Token(Base.UUID, CreatedAt):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='oauth2_tokens', lazy='raise')
+    user: Mapped[User] = relationship(back_populates='oauth2_tokens', lazy='joined')
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
-    application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='raise')
+    application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='joined')
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)

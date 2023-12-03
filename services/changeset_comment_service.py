@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
+from lib.joinedload_context import get_joinedload
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
 
@@ -21,10 +22,8 @@ class ChangesetCommentService:
                     Changeset,
                     changeset_id,
                     options=[
-                        joinedload(
-                            Changeset.changeset_comments,
-                            Changeset.changeset_subscription_users,
-                        ),
+                        joinedload(Changeset.changeset_subscription_users),
+                        get_joinedload(),
                     ],
                 )
 
@@ -49,10 +48,8 @@ class ChangesetCommentService:
                 Changeset,
                 changeset_id,
                 options=[
-                    joinedload(
-                        Changeset.changeset_comments,
-                        Changeset.changeset_subscription_users,
-                    ),
+                    joinedload(Changeset.changeset_subscription_users),
+                    get_joinedload(),
                 ],
             )
 
@@ -77,7 +74,10 @@ class ChangesetCommentService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[joinedload(Changeset.changeset_comments)],
+                options=[
+                    joinedload(Changeset.comments),
+                    get_joinedload(),
+                ],
             )
 
             if not changeset:
@@ -85,7 +85,7 @@ class ChangesetCommentService:
             if not changeset.closed_at:
                 raise_for().changeset_not_closed(changeset_id)
 
-            changeset.changeset_comments.append(
+            changeset.comments.append(
                 ChangesetComment(
                     user_id=auth_user().id,
                     changeset_id=changeset_id,
@@ -105,7 +105,6 @@ class ChangesetCommentService:
             comment = await session.get(
                 ChangesetComment,
                 comment_id,
-                options=[joinedload(ChangesetComment.changeset)],
                 with_for_update=True,
             )
 
@@ -118,7 +117,7 @@ class ChangesetCommentService:
             changeset = await session.get(
                 Changeset,
                 comment.changeset_id,
-                options=[joinedload(Changeset.changeset_comments)],
+                options=[get_joinedload()],
             )
 
         return changeset

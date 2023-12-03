@@ -6,6 +6,7 @@ class FormatStyle(StrEnum):
     json = 'json'
     xml = 'xml'
     rss = 'rss'
+    gpx = 'gpx'
 
     @classmethod
     def media_type(cls, style: Self) -> str:
@@ -22,5 +23,7 @@ class FormatStyle(StrEnum):
             return 'application/xml; charset=utf-8'
         elif style == cls.rss:
             return 'application/rss+xml; charset=utf-8'
+        elif style == cls.gpx:
+            return 'application/gpx+xml; charset=utf-8'
         else:
             raise NotImplementedError(f'Unsupported format style {style!r}')

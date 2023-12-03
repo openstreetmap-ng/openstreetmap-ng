@@ -4,7 +4,6 @@ from hmac import compare_digest
 from uuid import UUID
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import joinedload
 
 from db import DB
 from lib.crypto import hash_b
@@ -30,13 +29,9 @@ class UserTokenEmailReplyRepository:
         token_id = UUID(bytes=combined_b[:16])
 
         async with DB() as session:
-            stmt = (
-                select(UserTokenEmailReply)
-                .options(joinedload(UserTokenEmailReply.user, UserTokenEmailReply.to_user))
-                .where(
-                    UserTokenEmailReply.id == token_id,
-                    UserTokenEmailReply.expires_at > func.now(),
-                )
+            stmt = select(UserTokenEmailReply).where(
+                UserTokenEmailReply.id == token_id,
+                UserTokenEmailReply.expires_at > func.now(),
             )
 
             token = await session.scalar(stmt)

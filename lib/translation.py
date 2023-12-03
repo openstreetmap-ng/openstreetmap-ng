@@ -1,23 +1,20 @@
 from collections.abc import Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
+from datetime import datetime
 from gettext import GNUTranslations, translation
 
+import arrow
 from cachetools import TTLCache, cached
 from jinja2 import Environment, FileSystemLoader
 
 from config import LOCALE_DOMAIN
-from utils import timeago
+from utils import format_iso_date, utcnow
 
 _J2 = Environment(
     loader=FileSystemLoader('templates'),
     autoescape=True,
     auto_reload=False,
-)
-
-# configure global filters
-_J2.filters.update(
-    timeago=timeago,
 )
 
 _context_langs = ContextVar('Translation_context_langs')
@@ -103,10 +100,39 @@ def render(template_name: str, **template_data: dict) -> str:
     return _J2.get_template(template_name).render(**template_data)
 
 
-# expose translation functions to jinja2
+def timeago(date: datetime, *, html: bool = False) -> str:
+    """
+    Get a human-readable time difference from the given date.
+
+    Optionally, return the result as an HTML <time> element.
+
+    >>> timeago(datetime(2021, 12, 31, 15, 30, 45))
+    'an hour ago'
+
+    >>> timeago(datetime(2021, 12, 31, 15, 30, 45), html=True)
+    '<time datetime="2021-12-31T15:30:45Z" title="31 December 2021 at 15:30">an hour ago</time>'
+    """
+
+    now = utcnow()
+    locale = translation_languages()[0]
+    ago = arrow.get(date).humanize(now, locale=locale)
+
+    if html:
+        datetime_ = format_iso_date(date)
+        title = date.strftime('%d %B %Y at %H:%M')
+        return f'<time datetime="{datetime_}" title="{title}">{ago}</time>'
+    else:
+        return ago
+
+
+# configure globals and filters
 _J2.globals.update(
     t=t,
     nt=nt,
     pt=pt,
     npt=npt,
+)
+
+_J2.filters.update(
+    timeago=timeago,
 )

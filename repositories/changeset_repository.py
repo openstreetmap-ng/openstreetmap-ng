@@ -6,6 +6,7 @@ from sqlalchemy import func, null, select
 from sqlalchemy.orm import joinedload
 
 from db import DB
+from lib.joinedload_context import get_joinedload
 from limits import FIND_LIMIT
 from models.db.changeset import Changeset
 
@@ -20,8 +21,6 @@ class ChangesetRepository:
         closed_after: datetime | None = None,
         is_open: bool | None = None,
         geometry: Polygon | None = None,
-        include_comments: bool = False,
-        include_elements: bool = False,
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[Changeset]:
         """
@@ -29,15 +28,7 @@ class ChangesetRepository:
         """
 
         async with DB() as session:
-            options = []
-
-            # TODO: single joinedload array performance?
-            if include_comments:
-                options.append(joinedload(Changeset.changeset_comments))
-            if include_elements:
-                options.append(joinedload(Changeset.elements))
-
-            stmt = select(Changeset).options(options)
+            stmt = select(Changeset).options(get_joinedload())
             where_and = []
 
             if changeset_ids:

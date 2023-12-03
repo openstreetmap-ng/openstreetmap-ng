@@ -32,7 +32,6 @@ class CacheService:
 
             if not entry:
                 value = await factory()
-
                 entry = CacheEntry(
                     id=cache_id,
                     value=value,

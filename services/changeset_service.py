@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
+from lib.joinedload_context import get_joinedload
 from models.db.changeset import Changeset
 
 
@@ -34,7 +35,7 @@ class ChangesetService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[joinedload(Changeset.changeset_comments)],
+                options=[get_joinedload()],
                 with_for_update=True,
             )
 
@@ -59,6 +60,7 @@ class ChangesetService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
+                options=[get_joinedload()],
                 with_for_update=True,
             )
 

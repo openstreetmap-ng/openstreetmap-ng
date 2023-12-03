@@ -13,10 +13,10 @@ class Mail(Base.UUID, CreatedAt):
     __tablename__ = 'mail'
 
     from_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    from_user: Mapped[User | None] = relationship(lazy='raise')
+    from_user: Mapped[User | None] = relationship(lazy='joined')
     from_type: Mapped[MailFromType] = mapped_column(Enum(MailFromType), nullable=False)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(lazy='raise')
+    to_user: Mapped[User] = relationship(lazy='joined')
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     ref: Mapped[str | None] = mapped_column(UnicodeText, nullable=True)

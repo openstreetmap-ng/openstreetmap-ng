@@ -8,6 +8,7 @@ from db import DB
 from lib.auth import auth_user
 from lib.crypto import hash_b
 from lib.exceptions import raise_for
+from limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from models.db.oauth2_application import OAuth2Application
 from models.db.oauth2_token import OAuth2Token
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
@@ -56,7 +57,11 @@ class OAuth2TokenService:
 
         # handle silent authentication
         if init:
-            tokens = await OAuth2TokenRepository.find_many_authorized_by_user_app(user_id, app.id)
+            tokens = await OAuth2TokenRepository.find_many_authorized_by_user_app(
+                user_id=user_id,
+                app_id=app.id,
+                limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,
+            )
 
             for token in tokens:
                 # ignore different redirect uri
@@ -113,7 +118,6 @@ class OAuth2TokenService:
         async with DB() as session, session.begin():
             stmt = (
                 select(OAuth2Token)
-                .options(joinedload(OAuth2Token.application))
                 .where(
                     OAuth2Token.token_hashed == authorization_code_hashed,
                     OAuth2Token.authorized_at == null(),

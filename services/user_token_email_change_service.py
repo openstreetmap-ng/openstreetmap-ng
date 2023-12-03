@@ -18,7 +18,7 @@ class UserTokenEmailChangeService:
         Returns a tuple of the token id and the token string.
         """
 
-        # TODO: check different + format
+        # TODO: check from_email!=to_email + format
 
         token_str = secrets.token_urlsafe(32)
         token_hashed = hash_b(token_str, context=None)

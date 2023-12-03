@@ -35,7 +35,8 @@ def format_style_context(request: Request):
         style = FormatStyle.xml
     elif request_path.endswith(('.rss', '/feed')):
         style = FormatStyle.rss
-        style = FormatStyle.rss
+    elif request_path.endswith('.gpx'):
+        style = FormatStyle.gpx
 
     # TODO: reconsider
     # if format_param := request.query_params.get('format'):

@@ -6,7 +6,6 @@ from email.utils import formataddr, formatdate
 import anyio
 from aiosmtplib import SMTP
 from sqlalchemy import null, or_, select
-from sqlalchemy.orm import joinedload
 
 from config import (
     SMTP_HOST,
@@ -142,10 +141,6 @@ class MailService:
             now = utcnow()
             stmt = (
                 select(Mail)
-                .options(
-                    joinedload(Mail.from_user),
-                    joinedload(Mail.to_user),
-                )
                 .where(
                     or_(
                         Mail.processing_at == null(),

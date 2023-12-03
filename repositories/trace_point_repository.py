@@ -4,6 +4,7 @@ from shapely import Polygon
 from sqlalchemy import func, select
 
 from db import DB
+from lib.joinedload_context import get_joinedload
 from limits import FIND_LIMIT
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
@@ -26,6 +27,7 @@ class TracePointRepository:
         async with DB() as session:
             stmt = (
                 select(TracePoint)
+                .options(get_joinedload())
                 .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),
@@ -38,6 +40,7 @@ class TracePointRepository:
                 )
             ).union(
                 select(TracePoint)
+                .options(get_joinedload())
                 .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),

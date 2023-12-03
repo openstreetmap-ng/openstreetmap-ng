@@ -22,12 +22,12 @@ class Format06RSS:
         fe = fg.add_entry(order='append')
         fe.guid(f'{API_URL}/api/0.6/notes/{note.id}', permalink=True)
         fe.link(href=note.permalink)
-        fe.content(render('api/0.6/note_comments_rss.jinja2', comments=note.note_comments), type='CDATA')
+        fe.content(render('api/0.6/note_comments_rss.jinja2', comments=note.comments), type='CDATA')
         fe.published(note.created_at)
         fe.updated(note.updated_at)
         fe.geo.point(f'{note.point.y} {note.point.x}')
 
-        if user := note.note_comments[0].user:
+        if user := note.comments[0].user:
             fe.author(name=user.display_name, uri=user.permalink)
             fe.dc.creator(user.display_name)
 
@@ -37,10 +37,10 @@ class Format06RSS:
         # reverse geocode the note point
         place = await Nominatim.reverse_name(note.point, 14)
 
-        if len(note.note_comments) == 1:
+        if len(note.comments) == 1:
             fe.title(t('api.notes.rss.opened', place=place))
         else:
-            for comment in reversed(note.note_comments):
+            for comment in reversed(note.comments):
                 # skip hide events
                 if comment.event == NoteEvent.hidden:
                     continue
@@ -66,7 +66,7 @@ class Format06RSS:
                 await tg.start(Format06RSS._encode_note, fg, note)
 
     @staticmethod
-    async def _encode_note(
+    async def _encode_note_comment(
         fg: FeedGenerator,
         comment: NoteComment,
         task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
@@ -80,7 +80,7 @@ class Format06RSS:
             render(
                 'api/0.6/note_feed_entry_rss.jinja2',
                 comment=comment,
-                comments=comment.note.note_comments,
+                comments=comment.note.comments,
             ),
             type='CDATA',
         )
@@ -111,7 +111,7 @@ class Format06RSS:
             raise NotImplementedError(f'Unsupported note event {comment.event!r}')
 
     @staticmethod
-    async def encode_note_comments(fg: FeedGenerator, note_comments: Sequence[NoteComment]) -> None:
+    async def encode_note_comments(fg: FeedGenerator, comments: Sequence[NoteComment]) -> None:
         """
         Encode note comments into a feed.
         """
@@ -120,5 +120,5 @@ class Format06RSS:
         fg.load_extension('geo')
 
         async with anyio.create_task_group() as tg:
-            for note_comment in note_comments:
-                await tg.start(Format06RSS._encode_note_comment, fg, note_comment)
+            for comment in comments:
+                await tg.start(Format06RSS._encode_note_comment, fg, comment)

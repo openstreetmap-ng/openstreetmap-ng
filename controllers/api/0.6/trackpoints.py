@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -16,12 +15,11 @@ router = APIRouter()
 
 
 @router.get('/trackpoints', response_class=GPXResponse)
-@router.get('/trackpoints.xml', response_class=GPXResponse)
 @router.get('/trackpoints.gpx', response_class=GPXResponse)
 async def trackpoints_read(
     bbox: Annotated[NonEmptyStr, Query()],
     page_number: Annotated[NonNegativeInt, Query(0, alias='pageNumber')],
-) -> Sequence[dict]:
+) -> dict:
     geometry = parse_bbox(bbox)
 
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
@@ -33,4 +31,4 @@ async def trackpoints_read(
         legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
     )
 
-    return Format06.encode_gpx(points)
+    return Format06.encode_tracks(points)

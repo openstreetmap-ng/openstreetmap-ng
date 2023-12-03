@@ -87,7 +87,6 @@ class OAuth1TokenService:
         async with DB() as session, session.begin():
             stmt = (
                 select(OAuth1Token)
-                .options(joinedload(OAuth1Token.application))
                 .where(
                     OAuth1Token.token_hashed == token_hashed,
                     OAuth1Token.user_id == null(),
@@ -131,7 +130,6 @@ class OAuth1TokenService:
         async with DB() as session, session.begin():
             stmt = (
                 select(OAuth1Token)
-                .options(joinedload(OAuth1Token.application))
                 .where(
                     OAuth1Token.token_hashed == token_hashed,
                     OAuth1Token.user_id != null(),

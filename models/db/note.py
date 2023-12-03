@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import anyio
 from shapely import Point
 from sqlalchemy import ColumnElement, DateTime, null, true
 from sqlalchemy.ext.hybrid import hybrid_method
@@ -12,6 +13,7 @@ from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
 from models.geometry_type import PointType
+from models.note_status import NoteStatus
 from utils import utcnow
 
 
@@ -28,7 +30,7 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
     # relationships (nested imports to avoid circular imports)
     from note_comment import NoteComment
 
-    note_comments: Mapped[list[NoteComment]] = relationship(
+    comments: Mapped[list[NoteComment]] = relationship(
         back_populates='note',
         order_by='asc(NoteComment.created_at)',
         lazy='raise',
@@ -60,6 +62,34 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
     def permalink(self) -> str:
         """
         Get the note's permalink.
+
+        >>> note.permalink
+        'https://www.openstreetmap.org/note/123456'
         """
 
         return f'{APP_URL}/note/{self.id}'
+
+    @property
+    def status(self) -> NoteStatus:
+        """
+        Get the note's status.
+
+        >>> note.status
+        NoteStatus.open
+        """
+
+        if self.hidden_at:
+            return NoteStatus.hidden
+        elif self.closed_at:
+            return NoteStatus.closed
+        else:
+            return NoteStatus.open
+
+    async def resolve_comments_rich_text(self) -> None:
+        """
+        Resolve rich text for all comments.
+        """
+
+        async with anyio.create_task_group() as tg:
+            for comment in self.comments:
+                tg.start_soon(comment.resolve_rich_text)

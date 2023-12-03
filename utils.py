@@ -6,6 +6,7 @@ import unicodedata
 from datetime import datetime, timedelta
 from itertools import count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from xml.sax import saxutils
 
 import anyio
 import dateutil.parser
@@ -143,6 +144,17 @@ def extend_query_params(uri: str, params: dict) -> str:
     return urlunsplit(uri_._replace(query=urlencode(query)))
 
 
+def escape_cdata(text: str) -> str:
+    """
+    Escape a string and wrap it in a CDATA section.
+
+    >>> escape_cdata('example')
+    '<![CDATA[example]]>'
+    """
+
+    return f'<![CDATA[{saxutils.escape(text)}]]>'
+
+
 def utcnow() -> datetime:
     """
     Return a datetime object representing the current time in UTC.
@@ -163,8 +175,3 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
-
-
-# TODO: babel
-def timeago(date: datetime) -> str:
-    ...

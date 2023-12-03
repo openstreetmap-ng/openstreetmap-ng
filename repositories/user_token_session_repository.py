@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import joinedload
 
 from db import DB
 from models.db.user_token_session import UserTokenSession
@@ -15,13 +14,9 @@ class UserTokenSessionRepository:
         """
 
         async with DB() as session:
-            stmt = (
-                select(UserTokenSession)
-                .options(joinedload(UserTokenSession.user))
-                .where(
-                    UserTokenSession.id == session_id,
-                    UserTokenSession.expires_at > func.now(),  # TODO: expires at check
-                )
+            stmt = select(UserTokenSession).where(
+                UserTokenSession.id == session_id,
+                UserTokenSession.expires_at > func.now(),  # TODO: expires at check
             )
 
             return await session.scalar(stmt)

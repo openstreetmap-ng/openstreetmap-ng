@@ -1,6 +1,6 @@
 <div class="note-comment" style="margin-top: 5px">
     <div class="note-comment-description" style="font-size: smaller; color: #999999">
-        {% set when = timeago(comment.created_at) %}
+        {% set when = timeago(comment.created_at, html=True) %}
 
         {% if comment.user %}
 
@@ -23,21 +23,21 @@
         {% else %}
 
         {% if comment.event.value == 'opened' %}
-        {{ t('api.notes.comment.opened_at_html', when=when) }}
+        {{ t('api.notes.comment.opened_at_html', when=when) | safe }}
         {% elseif comment.event.value == 'closed' %}
-        {{ t('api.notes.comment.closed_at_html', when=when) }}
+        {{ t('api.notes.comment.closed_at_html', when=when) | safe }}
         {% elseif comment.event.value == 'reopened' %}
-        {{ t('api.notes.comment.reopened_at_html', when=when) }}
+        {{ t('api.notes.comment.reopened_at_html', when=when) | safe }}
         {% elseif comment.event.value == 'commented' %}
-        {{ t('api.notes.comment.commented_at_html', when=when) }}
+        {{ t('api.notes.comment.commented_at_html', when=when) | safe }}
         {% elseif comment.event.value == 'hidden' %}
-        {{ t('api.notes.comment.hidden_at_html', when=when) }}
+        {{ t('api.notes.comment.hidden_at_html', when=when) | safe }}
         {% endif %}
 
         {% endif %}
     </div>
     <div class="note-comment-text">
-        {{ comment.body_rich | safe }}
+        {{ comment.body_rich.value | safe }}
     </div>
 </div>
 {% endfor %}

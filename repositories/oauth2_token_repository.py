@@ -13,19 +13,15 @@ class OAuth2TokenRepository:
     @staticmethod
     async def find_one_authorized_by_token(token_str: str) -> OAuth2Token | None:
         """
-        Find an OAuth2 token by token string.
+        Find an authorized OAuth2 token by token string.
         """
 
         token_hashed = hash_b(token_str, context=None)
 
         async with DB() as session:
-            stmt = (
-                select(OAuth2Token)
-                .options(joinedload(OAuth2Token.application, OAuth2Token.user))
-                .where(
-                    OAuth2Token.token_hashed == token_hashed,
-                    OAuth2Token.authorized_at != null(),
-                )
+            stmt = select(OAuth2Token).where(
+                OAuth2Token.token_hashed == token_hashed,
+                OAuth2Token.authorized_at != null(),
             )
 
             return await session.scalar(stmt)
@@ -38,13 +34,12 @@ class OAuth2TokenRepository:
         limit: int | None = FIND_LIMIT,
     ) -> Sequence[OAuth2Token]:
         """
-        Find all OAuth2 tokens for a user and application.
+        Find all authorized OAuth2 tokens for a user-application pair.
         """
 
         async with DB() as session:
             stmt = (
                 select(OAuth2Token)
-                .options(joinedload(OAuth2Token.application))
                 .where(
                     OAuth2Token.user_id == user_id,
                     OAuth2Token.application_id == app_id,

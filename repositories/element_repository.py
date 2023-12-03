@@ -9,6 +9,7 @@ from sqlalchemy.orm import load_only
 
 from db import DB
 from lib.exceptions import raise_for
+from lib.joinedload_context import get_joinedload
 from limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
 from models.db.element import Element
 from models.element_type import ElementType
@@ -44,7 +45,7 @@ class ElementRepository:
         """
 
         async with DB() as session:
-            stmt = select(Element).order_by(Element.id.desc()).limit(1)
+            stmt = select(Element).options(get_joinedload()).order_by(Element.id.desc()).limit(1)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -64,14 +65,18 @@ class ElementRepository:
             return ()
 
         async with DB() as session:
-            stmt = select(Element).where(
-                or_(
-                    and_(
-                        Element.type == versioned_ref.type,
-                        Element.typed_id == versioned_ref.typed_id,
-                        Element.version == versioned_ref.version,
+            stmt = (
+                select(Element)
+                .options(get_joinedload())
+                .where(
+                    or_(
+                        and_(
+                            Element.type == versioned_ref.type,
+                            Element.typed_id == versioned_ref.typed_id,
+                            Element.version == versioned_ref.version,
+                        )
+                        for versioned_ref in versioned_refs
                     )
-                    for versioned_ref in versioned_refs
                 )
             )
 
@@ -93,6 +98,7 @@ class ElementRepository:
         async with DB() as session:
             stmt = (
                 select(Element)
+                .options(get_joinedload())
                 .where(
                     Element.type == typed_ref.type,
                     Element.typed_id == typed_ref.typed_id,
@@ -130,21 +136,27 @@ class ElementRepository:
         recurse_way_refs = tuple(ref for ref in typed_refs if ref.type == ElementType.way) if recurse_ways else ()
 
         async with DB() as session:
-            stmt = select(Element).where(
-                Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                or_(
-                    and_(
-                        Element.type == typed_ref.type,
-                        Element.typed_id == typed_ref.typed_id,
-                    )
-                    for typed_ref in typed_refs
-                ),
+            stmt = (
+                select(Element)
+                .options(get_joinedload())
+                .where(
+                    Element.created_at <= point_in_time,
+                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                    or_(
+                        and_(
+                            Element.type == typed_ref.type,
+                            Element.typed_id == typed_ref.typed_id,
+                        )
+                        for typed_ref in typed_refs
+                    ),
+                )
             )
 
             if recurse_way_refs:
                 stmt = stmt.union(
-                    select(Element).where(
+                    select(Element)
+                    .options(get_joinedload())
+                    .where(
                         Element.created_at <= point_in_time,
                         Element.superseded_at == null() | (Element.superseded_at > point_in_time),
                         Element.type == ElementType.node,
@@ -246,19 +258,23 @@ class ElementRepository:
         point_in_time = utcnow()
 
         async with DB() as session:
-            stmt = select(Element).where(
-                Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                or_(
-                    func.jsonb_path_exists(
-                        Element.members,
-                        cast(
-                            f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
-                            JSONPATH,
-                        ),
-                    )
-                    for member_ref in member_refs
-                ),
+            stmt = (
+                select(Element)
+                .options(get_joinedload())
+                .where(
+                    Element.created_at <= point_in_time,
+                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                    or_(
+                        func.jsonb_path_exists(
+                            Element.members,
+                            cast(
+                                f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
+                                JSONPATH,
+                            ),
+                        )
+                        for member_ref in member_refs
+                    ),
+                )
             )
 
             if parent_type is not None:
@@ -300,11 +316,15 @@ class ElementRepository:
 
         # find all the matching nodes
         async with DB() as session:
-            stmt = select(Element).where(
-                Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                Element.type == ElementType.node,
-                func.ST_Intersects(Element.point, geometry.wkt),
+            stmt = (
+                select(Element)
+                .options(get_joinedload())
+                .where(
+                    Element.created_at <= point_in_time,
+                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                    Element.type == ElementType.node,
+                    func.ST_Intersects(Element.point, geometry.wkt),
+                )
             )
 
             if nodes_limit is not None:

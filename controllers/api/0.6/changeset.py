@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from contextlib import nullcontext
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
@@ -10,8 +11,11 @@ from cython_lib.xmltodict import XMLToDict
 from lib.auth import api_user
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
+from lib.joinedload_context import joinedload_context
 from lib.optimistic import Optimistic
 from limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from models.db.changeset import Changeset
+from models.db.changeset_comment import ChangesetComment
 from models.db.user import User
 from models.element_type import ElementType
 from models.scope import Scope
@@ -57,11 +61,11 @@ async def changeset_read(
     # treat any non-empty string as True
     include_discussion = bool(include_discussion)
 
-    changesets = await ChangesetRepository.find_many_by_query(
-        changeset_ids=[changeset_id],
-        include_comments=include_discussion,
-        limit=None,
-    )
+    with joinedload_context(Changeset.comments, ChangesetComment.user) if include_discussion else nullcontext():
+        changesets = await ChangesetRepository.find_many_by_query(
+            changeset_ids=[changeset_id],
+            limit=None,
+        )
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
@@ -124,11 +128,11 @@ async def changeset_close(
 async def changeset_download(
     changeset_id: PositiveInt,
 ) -> Sequence:
-    changesets = await ChangesetRepository.find_many_by_query(
-        changeset_ids=[changeset_id],
-        include_elements=True,
-        limit=None,
-    )
+    with joinedload_context(Changeset.elements):
+        changesets = await ChangesetRepository.find_many_by_query(
+            changeset_ids=[changeset_id],
+            limit=None,
+        )
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
@@ -201,7 +205,6 @@ async def changesets_query(
         closed_after=closed_after,
         is_open=True if open else (False if closed else None),
         geometry=geometry,
-        include_comments=True,
         limit=limit,
     )
 

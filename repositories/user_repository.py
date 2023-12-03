@@ -4,6 +4,7 @@ from shapely import Point
 from sqlalchemy import func, null, or_, select
 
 from db import DB
+from lib.joinedload_context import get_joinedload
 from limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
 from models.db.user import User
 
@@ -16,7 +17,7 @@ class UserRepository:
         """
 
         async with DB() as session:
-            return await session.get(User, user_id)
+            return await session.get(User, user_id, options=[get_joinedload()])
 
     @staticmethod
     async def find_one_by_display_name(display_name: str) -> User | None:
@@ -25,7 +26,7 @@ class UserRepository:
         """
 
         async with DB() as session:
-            stmt = select(User).where(User.display_name == display_name)
+            stmt = select(User).options(get_joinedload()).where(User.display_name == display_name)
 
             return await session.scalar(stmt)
 
@@ -36,10 +37,14 @@ class UserRepository:
         """
 
         async with DB() as session:
-            stmt = select(User).where(
-                or_(
-                    User.display_name == display_name_or_email,
-                    User.email == display_name_or_email,
+            stmt = (
+                select(User)
+                .options(get_joinedload())
+                .where(
+                    or_(
+                        User.display_name == display_name_or_email,
+                        User.email == display_name_or_email,
+                    )
                 )
             )
 
@@ -52,7 +57,7 @@ class UserRepository:
         """
 
         async with DB() as session:
-            stmt = select(User).where(User.id.in_(user_ids))
+            stmt = select(User).options(get_joinedload()).where(User.id.in_(user_ids))
 
             return (await session.scalars(stmt)).all()
 
@@ -74,6 +79,7 @@ class UserRepository:
         async with DB() as session:
             stmt = (
                 select(User)
+                .options(get_joinedload())
                 .where(
                     User.home_point != null(),
                     func.ST_DWithin(User.home_point, point_wkt, max_distance),

@@ -5,6 +5,7 @@ from sqlalchemy import select
 from db import DB
 from lib.auth import auth_user_scopes
 from lib.exceptions import raise_for
+from lib.joinedload_context import get_joinedload
 from lib.tracks import Tracks
 from limits import FIND_LIMIT
 from models.db.trace_ import Trace
@@ -20,7 +21,7 @@ class TraceRepository:
         """
 
         async with DB() as session:
-            trace = await session.get(Trace, trace_id)
+            trace = await session.get(Trace, trace_id, options=[get_joinedload()])
 
         if not trace:
             raise_for().trace_not_found(trace_id)
@@ -55,9 +56,13 @@ class TraceRepository:
         """
 
         async with DB() as session:
-            stmt = select(Trace).where(
-                Trace.user_id == user_id,
-                Trace.visible_to(*auth_user_scopes()),
+            stmt = (
+                select(Trace)
+                .options(get_joinedload())
+                .where(
+                    Trace.user_id == user_id,
+                    Trace.visible_to(*auth_user_scopes()),
+                )
             )
 
             if limit is not None:

@@ -25,13 +25,14 @@ from config import APP_URL, DEFAULT_LANGUAGE
 from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
 from lib.languages import get_language_info, normalize_language_case
-from lib.rich_text import rich_text_getter
+from lib.rich_text import RichTextMixin
 from limits import (
     LANGUAGE_CODE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
     USER_LANGUAGES_LIMIT,
 )
 from models.db.base import Base
+from models.db.cache_entry import CacheEntry
 from models.db.created_at import CreatedAt
 from models.geometry_type import PointType
 from models.language_info import LanguageInfo
@@ -42,8 +43,9 @@ from models.user_status import UserStatus
 from services.cache_service import CACHE_HASH_SIZE
 
 
-class User(Base.NoID, CreatedAt):
+class User(Base.NoID, CreatedAt, RichTextMixin):
     __tablename__ = 'user'
+    __rich_text_fields__ = (('description', TextFormat.markdown),)
 
     id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
@@ -69,7 +71,13 @@ class User(Base.NoID, CreatedAt):
     description_rich_hash: Mapped[bytes | None] = mapped_column(
         LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None
     )
-    description_rich = rich_text_getter('description', TextFormat.markdown)
+    description_rich: Mapped[CacheEntry | None] = relationship(
+        CacheEntry,
+        primaryjoin=CacheEntry.id == description_rich_hash,
+        viewonly=True,
+        default=None,
+        lazy='raise',
+    )
     home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
     home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
     avatar_type: Mapped[UserAvatarType] = mapped_column(
@@ -97,12 +105,12 @@ class User(Base.NoID, CreatedAt):
         order_by='desc(Changeset.id)',
         lazy='raise',
     )
-    changeset_comments: Mapped[list[ChangesetComment]] = relationship(
+    comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='user',
         order_by='desc(ChangesetComment.created_at)',
         lazy='raise',
     )
-    diary_comments: Mapped[list[DiaryComment]] = relationship(
+    comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='user',
         order_by='desc(DiaryComment.created_at)',
         lazy='raise',
@@ -131,7 +139,7 @@ class User(Base.NoID, CreatedAt):
         order_by='desc(Message.created_at)',
         lazy='raise',
     )
-    note_comments: Mapped[list[NoteComment]] = relationship(
+    comments: Mapped[list[NoteComment]] = relationship(
         back_populates='user',
         order_by='desc(NoteComment.created_at)',
         lazy='raise',
@@ -219,6 +227,9 @@ class User(Base.NoID, CreatedAt):
     def permalink(self) -> str:
         """
         Get the user's permalink.
+
+        >>> user.permalink
+        'https://www.openstreetmap.org/user/permalink/123456'
         """
 
         return f'{APP_URL}/user/permalink/{self.id}'

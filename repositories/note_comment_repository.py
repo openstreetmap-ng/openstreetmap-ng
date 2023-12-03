@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from db import DB
 from lib.auth import auth_user
+from lib.joinedload_context import get_joinedload
 from limits import FIND_LIMIT
 from models.db.note import Note
 from models.db.note_comment import NoteComment
@@ -22,8 +23,8 @@ class NoteCommentRepository:
         """
 
         async with DB() as session:
-            stmt = select(NoteComment).join(Note)
-            where_and = [Note.visible_to(auth_user())]  # TODO: or NoteComment.note ?
+            stmt = select(NoteComment).options(get_joinedload()).join(Note)
+            where_and = [Note.visible_to(auth_user())]
 
             if geometry:
                 where_and.append(func.ST_Intersects(Note.point, geometry.wkt))

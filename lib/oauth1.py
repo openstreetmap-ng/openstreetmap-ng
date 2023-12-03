@@ -45,7 +45,7 @@ class OAuth1:
         if not request.signature:
             raise_for().oauth1_bad_signature()
 
-        token = await OAuth1TokenRepository.find_one_by_token(request.token)
+        token = await OAuth1TokenRepository.find_one_authorized_by_token(request.token)
 
         if not token:
             raise_for().oauth_bad_user_token()

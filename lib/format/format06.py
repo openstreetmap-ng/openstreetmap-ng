@@ -1,15 +1,16 @@
-import html
 from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 
 from shapely.geometry import Point, mapping
+from sqlalchemy.exc import InvalidRequestError
 
-from config import API_URL, APP_URL, GENERATOR
+from config import API_URL
 from cython_lib.xmltodict import XAttr
 from lib.auth import auth_user
 from lib.exceptions import raise_for
-from lib.format import format_is_json
+from lib.format import format_is_json, format_style
+from lib.translation import render
 from models.db.changeset import Changeset
 from models.db.changeset_comment import ChangesetComment
 from models.db.element import Element
@@ -20,6 +21,7 @@ from models.db.trace_point import TracePoint
 from models.db.user import User
 from models.element_member import ElementMemberRef
 from models.element_type import ElementType
+from models.format_style import FormatStyle
 from models.osmchange_action import OSMChangeAction
 from models.trace_visibility import TraceVisibility
 from models.typed_element_ref import TypedElementRef
@@ -27,7 +29,7 @@ from models.validating.element import ElementValidating
 from models.validating.tags import TagsValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
-from utils import format_sql_date
+from utils import escape_cdata, format_sql_date
 
 
 class Format06:
@@ -310,6 +312,12 @@ class Format06:
         else:
             boundary_d = {}
 
+        try:
+            _ = changeset.comments
+            has_comments = True
+        except InvalidRequestError:
+            has_comments = False
+
         if format_is_json():
             return {
                 'type': 'changeset',
@@ -320,16 +328,12 @@ class Format06:
                 'uid': changeset.user_id,
                 'user': changeset.user.display_name,
                 **boundary_d,
-                'comments_count': changeset.comments_count_ + add_comments_count,
+                'comments_count': len(changeset.comments) + add_comments_count,
                 'changes_count': changeset.size,
                 'tags': changeset.tags,
                 **(
-                    {
-                        'discussion': tuple(
-                            Format06._encode_changeset_comment(comment) for comment in changeset.changeset_comments
-                        )
-                    }
-                    if changeset.comments_ is not None
+                    {'discussion': tuple(Format06._encode_changeset_comment(comment) for comment in changeset.comments)}
+                    if has_comments
                     else {}
                 ),
             }
@@ -343,19 +347,18 @@ class Format06:
                     '@uid': changeset.user_id,
                     '@user': changeset.user.display_name,
                     **boundary_d,
-                    '@comments_count': changeset.comments_count_ + add_comments_count,
+                    '@comments_count': len(changeset.comments) + add_comments_count,
                     '@changes_count': changeset.size,
                     'tag': Format06._encode_tags(changeset.tags),
                     **(
                         {
                             'discussion': {
                                 'comment': tuple(
-                                    Format06._encode_changeset_comment(comment)
-                                    for comment in changeset.changeset_comments
+                                    Format06._encode_changeset_comment(comment) for comment in changeset.comments
                                 ),
                             }
                         }
-                        if changeset.comments_ is not None
+                        if has_comments
                         else {}
                     ),
                 }
@@ -469,13 +472,13 @@ class Format06:
         )
 
     @staticmethod
-    def encode_gpx(trace_points: Sequence[TracePoint]) -> dict:
+    def encode_tracks(trace_points: Sequence[TracePoint]) -> dict:
         """
-        >>> encode_gpx([
+        >>> encode_tracks([
         ...     TracePoint(...),
         ...     TracePoint(...),
         ... ])
-        {'gpx': {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
+        {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
 
         trks = []
@@ -537,23 +540,15 @@ class Format06:
 
                 trk_trkseg_trkpts.append(Format06._encode_point(tp.point))
 
-        return {
-            'gpx': {
-                '@version': '1.0',
-                '@creator': GENERATOR,
-                '@xmlns': 'http://www.topografix.com/GPX/1/0',
-                'trk': trks,
-            },
-        }
+        return {'trk': trks}
 
     @staticmethod
-    def decode_gpx(gpx: dict) -> Sequence[TracePoint]:
+    def decode_tracks(tracks: Sequence[dict]) -> Sequence[TracePoint]:
         """
-        >>> decode_gpx({'gpx': {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}]}})
+        >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TracePoint(...)]
         """
 
-        tracks = gpx.get('gpx', {}).get('trk', [])
         result = []
 
         for trk in tracks:
@@ -638,20 +633,22 @@ class Format06:
             'date': format_sql_date(comment.created_at),
             'uid': comment.user_id,
             'user': comment.user.display_name,
-            'user_url': f'{APP_URL}/user/{comment.user.display_name}',
+            'user_url': comment.user.permalink,
             'action': comment.event.value,
             'text': comment.body,
-            'html': f'<p>{html.escape(comment.body)}</p>' if comment.body else '',  # a disaster waiting to happen
+            'html': comment.body_rich.value,  # a disaster waiting to happen
         }
 
     @staticmethod
     def encode_note(note: Note) -> dict:
         """
         >>> encode_note(Note(...))
-        {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}
+        {'note': {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}}
         """
 
-        if format_is_json():
+        style = format_style()
+
+        if style == FormatStyle.json:
             return {
                 'type': 'Feature',
                 'geometry': mapping(note.point),
@@ -669,32 +666,61 @@ class Format06:
                         }
                     ),
                     'date_created': format_sql_date(note.created_at),
-                    'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
                     **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
-                    'comments': tuple(Format06._encode_note_comment(comment) for comment in note.comments_),
+                    'status': note.status.value,
+                    'comments': tuple(Format06._encode_note_comment(comment) for comment in note.comments),
                 },
+            }
+        elif style == FormatStyle.gpx:
+            return {
+                'wpt': {
+                    **Format06._encode_point(note.point),
+                    'time': note.created_at,
+                    'name': f'Note: {note.id}',
+                    'link': {'href': note.permalink},
+                    'desc': escape_cdata(render('api/0.6/note_comments_rss.jinja2', comments=note.comments)),
+                    'extensions': {
+                        'id': note.id,
+                        'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',
+                        **(
+                            {
+                                'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.gpx',
+                            }
+                            if note.closed_at
+                            else {
+                                'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.gpx',
+                                'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.gpx',
+                            }
+                        ),
+                        'date_created': format_sql_date(note.created_at),
+                        **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at else {}),
+                        'status': note.status.value,
+                    },
+                }
             }
         else:
             return {
-                **Format06._encode_point(note.point),
-                'id': note.id,
-                'url': f'{API_URL}/api/0.6/notes/{note.id}',
-                **(
-                    {
-                        'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen',
-                    }
-                    if note.closed_at
-                    else {
-                        'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment',
-                        'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close',
-                    }
-                ),
-                'date_created': format_sql_date(note.created_at),
-                'status': 'hidden' if note.hidden_at else ('closed' if note.closed_at else 'open'),
-                **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
-                'comments': {
-                    'comment': tuple(Format06._encode_note_comment(comment) for comment in note.comments_),
-                },
+                'note': {
+                    **Format06._encode_point(note.point),
+                    'id': note.id,
+                    'url': f'{API_URL}/api/0.6/notes/{note.id}',
+                    **(
+                        {
+                            'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen',
+                        }
+                        if note.closed_at
+                        else {
+                            'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment',
+                            'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close',
+                        }
+                    ),
+                    'date_created': format_sql_date(note.created_at),
+                    **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at else {}),
+                    'status': note.status.value,
+                    'comments': {
+                        'comment': tuple(Format06._encode_note_comment(comment) for comment in note.comments),
+                    },
+                }
             }
 
     @staticmethod
@@ -707,10 +733,14 @@ class Format06:
         {'note': [{'@lon': 1, '@lat': 2, 'id': 1, ...}]}
         """
 
-        if format_is_json():
+        style = format_style()
+
+        if style == FormatStyle.json:
             return {'type': 'FeatureCollection', 'features': tuple(Format06.encode_note(note) for note in notes)}
+        elif style == FormatStyle.gpx:
+            return {'wpt': tuple(Format06.encode_note(note)['wpt'] for note in notes)}
         else:
-            return {'note': tuple(Format06.encode_note(note) for note in notes)}
+            return {'note': tuple(Format06.encode_note(note)['note'] for note in notes)}
 
     @staticmethod
     def _encode_languages(languages: Sequence[str]) -> dict | Sequence[str]:

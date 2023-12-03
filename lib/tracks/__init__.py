@@ -50,8 +50,8 @@ class Tracks:
             for gpx_b in await _extract(buffer):
                 try:
                     gpx = gpx_b.decode()
-                    data = XMLToDict.parse(gpx)
-                    points.extend(Format06.decode_gpx(data))
+                    tracks = XMLToDict.parse(gpx).get('gpx', {}).get('trk', [])
+                    points.extend(Format06.decode_tracks(tracks))
                 except Exception as e:
                     raise_for().bad_trace_file(str(e))
 

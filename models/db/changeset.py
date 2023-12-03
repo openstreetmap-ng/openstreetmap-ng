@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import anyio
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import DateTime, ForeignKey, Integer, func
@@ -34,7 +35,7 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     from changeset_subscription import ChangesetSubscription
     from element import Element
 
-    changeset_comments: Mapped[list[ChangesetComment]] = relationship(
+    comments: Mapped[list[ChangesetComment]] = relationship(
         back_populates='changeset',
         order_by='asc(ChangesetComment.created_at)',
         lazy='raise',
@@ -53,6 +54,9 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     def permalink(self) -> str:
         """
         Get the changeset's permalink.
+
+        >>> changeset.permalink
+        'https://www.openstreetmap.org/changeset/123456'
         """
 
         return f'{APP_URL}/changeset/{self.id}'
@@ -64,6 +68,15 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
         """
 
         return self.user.changeset_max_size
+
+    async def resolve_comments_rich_text(self) -> None:
+        """
+        Resolve rich text for all comments.
+        """
+
+        async with anyio.create_task_group() as tg:
+            for comment in self.comments:
+                tg.start_soon(comment.resolve_rich_text)
 
     def increase_size(self, n: int) -> bool:
         """

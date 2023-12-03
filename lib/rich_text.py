@@ -1,8 +1,9 @@
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Sequence
 from html import escape
 from types import MappingProxyType
 
+import anyio
 import bleach
 from markdown_it import MarkdownIt
 from sqlalchemy import update
@@ -162,10 +163,8 @@ class RichText:
                 attributes=_is_allowed_attribute,
                 strip=True,
             )
-
         elif text_format == TextFormat.plain:
             text_ = escape(text)
-
         else:
             raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
@@ -196,47 +195,55 @@ class RichText:
         async def factory() -> str:
             return RichText._get_value(text, text_format)
 
-        # accelerate cache lookup by ID if available
+        # accelerate cache lookup by id if available
         if cache_id:
             return await CacheService.get_one_by_id(cache_id, factory)
         else:
             return await CacheService.get_one_by_key(text, _cache_context(text_format), factory)
 
 
-def rich_text_getter(
-    field_name: str,
-    text_format: TextFormat,
-    *,
-    rich_hash_suffix: str = '_rich_hash',
-) -> Callable[[object], Awaitable[str]]:
-    """
-    Create a rich text getter for a field.
-    """
+class RichTextMixin:
+    __rich_text_fields__: Sequence[tuple[str, TextFormat]] = ()
 
-    rich_hash_field_name = field_name + rich_hash_suffix
-
-    async def getter(instance) -> str:
+    async def resolve_rich_text(self) -> None:
         """
-        Get the rich text, and update the cache if needed.
+        Resolve rich text fields.
         """
 
-        text: str = getattr(instance, field_name)
-        text_rich_hash: bytes | None = getattr(instance, rich_hash_field_name)
+        async def resolve_task(field_name: str, text_format: TextFormat) -> None:
+            rich_field_name = field_name + '_rich'
 
-        cache = await RichText.get_cache(text, text_rich_hash, text_format)
+            # skip if already resolved
+            if getattr(self, rich_field_name) is not None:
+                return
 
-        if text_rich_hash != cache.id:
-            async with DB() as session:
-                cls = type(instance)
-                stmt = (
-                    update(cls)
-                    .where(cls.id == instance.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
-                    .values({rich_hash_field_name: cache.id})
-                )
-                await session.execute(stmt)
+            rich_hash_field_name = field_name + '_rich_hash'
 
-            setattr(instance, rich_hash_field_name, cache.id)
+            text: str = getattr(self, field_name)
+            text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
+            cache = await RichText.get_cache(text, text_rich_hash, text_format)
 
-        return cache.value
+            # assign new hash if changed
+            if text_rich_hash != cache.id:
+                async with DB() as session:
+                    cls = type(self)
+                    stmt = (
+                        update(cls)
+                        .where(cls.id == self.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
+                        .values({rich_hash_field_name: cache.id})
+                    )
 
-    return getter
+                    await session.execute(stmt)
+                setattr(self, rich_hash_field_name, cache.id)
+
+            # assign value to instance
+            setattr(self, rich_field_name, cache)
+
+        # small optimization, don't create task group if at most one field
+        if len(self.__rich_text_fields__) <= 1:
+            for field_name, text_format in self.__rich_text_fields__:
+                await resolve_task(field_name, text_format)
+        else:
+            async with anyio.create_task_group() as tg:
+                for field_name, text_format in self.__rich_text_fields__:
+                    tg.start_soon(resolve_task, field_name, text_format)

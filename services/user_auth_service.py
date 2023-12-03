@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
+from sqlalchemy import update
 
 from config import SECRET
 from db import DB
@@ -83,11 +84,20 @@ class UserAuthService:
             return None
 
         if ph and ph.rehash_needed:
-            async with DB() as session, session.begin():
-                user = await session.get(User, user.id, with_for_update=True)
-                user.password_hashed = ph.hash(password)
-                user.password_salt = None
-                logging.debug('Rehashed password for user %r', user.id)
+            new_hash = ph.hash(password)
+
+            async with DB() as session:
+                stmt = (
+                    update(User)
+                    .where(User.id == user.id, User.password_hashed == user.password_hashed)
+                    .values({User.password_hashed: new_hash, User.password_salt: None})
+                )
+
+                await session.execute(stmt)
+
+            user.password_hashed = new_hash
+            user.password_salt = None
+            logging.debug('Rehashed password for user %r', user.id)
 
         return user
 

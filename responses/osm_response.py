@@ -57,6 +57,27 @@ class OSMResponse(Response):
 
             return content.encode()
 
+        elif style == FormatStyle.gpx:
+            attributes = {
+                '@version': '1.1',
+                '@creator': GENERATOR,
+                '@copyright': COPYRIGHT,
+                '@attribution': ATTRIBUTION_URL,
+                '@license': LICENSE_URL,
+                '@xmlns': 'http://www.topografix.com/GPX/1/1',
+                '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                '@xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
+            }
+
+            if isinstance(content, dict):
+                content = {self.xml_root: attributes | content}
+            elif isinstance(content, list | tuple):
+                content = {self.xml_root: tuple(chain(attributes.items(), content))}
+            else:
+                raise ValueError(f'Invalid xml content type {type(content)}')
+
+            return XMLToDict.unparse(content, raw=True)
+
         else:
             raise NotImplementedError(f'Unsupported osm format style {style!r}')
 

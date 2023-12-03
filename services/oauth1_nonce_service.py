@@ -1,6 +1,3 @@
-# TODO: OAUTH1_NONCE_MAX_LENGTH
-
-
 import logging
 from datetime import datetime
 
@@ -11,6 +8,8 @@ from lib.exceptions import raise_for
 from limits import OAUTH1_TIMESTAMP_VALIDITY
 from models.db.oauth1_nonce import OAuth1Nonce
 from utils import utcnow
+
+# TODO: OAUTH1_NONCE_MAX_LENGTH
 
 
 class OAuth1NonceService:

@@ -1,26 +1,36 @@
+import anyio
 from geoalchemy2 import Geometry, WKBElement
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import SRID
-from services.cache_service import CACHE_HASH_SIZE
-from lib.rich_text import rich_text_getter
+from lib.rich_text import RichTextMixin
 from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base
+from models.db.cache_entry import CacheEntry
 from models.db.created_at import CreatedAt
 from models.db.updated_at import UpdatedAt
 from models.db.user import User
 from models.text_format import TextFormat
+from services.cache_service import CACHE_HASH_SIZE
 
 
-class Diary(Base.Sequential, CreatedAt, UpdatedAt):
+class Diary(Base.Sequential, CreatedAt, UpdatedAt, RichTextMixin):
     __tablename__ = 'diary'
+    __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(back_populates='diaries', lazy='raise')
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
+    body_rich: Mapped[CacheEntry | None] = relationship(
+        CacheEntry,
+        primaryjoin=CacheEntry.id == body_rich_hash,
+        viewonly=True,
+        default=None,
+        lazy='raise',
+    )
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True)
 
@@ -28,7 +38,7 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
     from diary_comment import DiaryComment
     from diary_subscription import DiarySubscription
 
-    diary_comments: Mapped[list[DiaryComment]] = relationship(
+    comments: Mapped[list[DiaryComment]] = relationship(
         back_populates='diary',
         order_by='asc(DiaryComment.created_at)',
         lazy='raise',
@@ -44,4 +54,11 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt):
             raise ValueError('Diary is too long')
         return value
 
-    body_rich = rich_text_getter('body', TextFormat.markdown)
+    async def resolve_comments_rich_text(self) -> None:
+        """
+        Resolve rich text for all comments.
+        """
+
+        async with anyio.create_task_group() as tg:
+            for comment in self.comments:
+                tg.start_soon(comment.resolve_rich_text)

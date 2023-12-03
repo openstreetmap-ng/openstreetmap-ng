@@ -1,11 +1,12 @@
 from fastapi import Request
 from shapely import Point
-from sqlalchemy import func, null, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from db import DB
 from lib.auth import auth_user
 from lib.exceptions import raise_for
+from lib.joinedload_context import get_joinedload
 from models.db.note import Note
 from models.db.note_comment import NoteComment
 from models.note_event import NoteEvent
@@ -28,7 +29,7 @@ class NoteService:
         async with DB() as session, session.begin():
             note = Note(
                 point=point,
-                note_comments=[
+                comments=[
                     NoteComment(
                         user_id=user_id,
                         user_ip=user_ip,
@@ -53,7 +54,10 @@ class NoteService:
         async with DB() as session, session.begin():
             stmt = (
                 select(Note)
-                .options(joinedload(Note.note_comments))
+                .options(
+                    joinedload(Note.comments),
+                    get_joinedload(),
+                )
                 .where(
                     Note.id == note_id,
                     Note.visible_to(current_user),
@@ -94,7 +98,7 @@ class NoteService:
                 raise RuntimeError(f'Unsupported comment event {event!r}')
 
             # TODO: will this updated_at ?
-            note.note_comments.append(
+            note.comments.append(
                 NoteComment(
                     user_id=current_user.id,
                     user_ip=None,
