@@ -59,6 +59,7 @@ class XMLToDict:
             'trk',
             'trkseg',
             'trkpt',
+            'preference',
         )
     )
 

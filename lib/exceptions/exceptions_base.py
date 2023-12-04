@@ -345,3 +345,18 @@ class ExceptionsBase(ABC):
     @abstractmethod
     def note_open(cls, note_id: int) -> NoReturn:
         raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def pref_not_found(cls, app_id: int | None, key: str) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def pref_duplicate_key(cls, key: str) -> NoReturn:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def pref_bulk_set_limit_exceeded(cls) -> NoReturn:
+        raise NotImplementedError

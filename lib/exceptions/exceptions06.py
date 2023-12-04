@@ -11,6 +11,7 @@ from limits import (
     MAP_QUERY_LEGACY_NODES_LIMIT,
     NOTE_QUERY_AREA_MAX_SIZE,
     TRACE_POINT_QUERY_AREA_MAX_SIZE,
+    USER_PREF_BULK_SET_LIMIT,
 )
 from models.element_type import ElementType
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
@@ -398,3 +399,18 @@ class Exceptions06(ExceptionsBase):
     @classmethod
     def note_open(cls, note_id: int) -> NoReturn:
         raise cls.APIError(status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open')
+
+    @classmethod
+    def pref_not_found(cls, _: int | None, key: str) -> NoReturn:
+        raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'Preference {key!r} not found')
+
+    @classmethod
+    def pref_duplicate_key(cls, key: str) -> NoReturn:
+        raise cls.APIError(status.HTTP_406_NOT_ACCEPTABLE, detail=f'Duplicate preferences with key {key}')
+
+    @classmethod
+    def pref_bulk_set_limit_exceeded(cls) -> NoReturn:
+        raise cls.APIError(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f'Too many preferences (limit is {USER_PREF_BULK_SET_LIMIT})',
+        )

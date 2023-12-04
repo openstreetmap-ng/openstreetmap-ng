@@ -9,7 +9,7 @@ from models.db.user_pref import UserPref
 
 class UserPrefRepository:
     @staticmethod
-    async def find_one_by_app_key(app_id: int | None, key: str) -> str | None:
+    async def find_one_by_app_key(app_id: int | None, key: str) -> UserPref | None:
         """
         Find a user preference by app id and key.
         """
@@ -25,8 +25,7 @@ class UserPrefRepository:
                 .limit(1)
             )
 
-            pref = await session.scalar(stmt)
-            return pref.value if pref else None
+            return await session.scalar(stmt)
 
     @staticmethod
     async def find_many_by_app(app_id: int | None) -> Sequence[UserPref]:

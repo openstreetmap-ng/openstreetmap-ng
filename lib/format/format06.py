@@ -20,6 +20,7 @@ from models.db.note_comment import NoteComment
 from models.db.trace_ import Trace
 from models.db.trace_point import TracePoint
 from models.db.user import User
+from models.db.user_pref import UserPref
 from models.element_member import ElementMemberRef
 from models.element_type import ElementType
 from models.format_style import FormatStyle
@@ -30,6 +31,7 @@ from models.validating.element import ElementValidating
 from models.validating.tags import TagsValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
+from models.validating.user_pref import UserPrefValidating
 from utils import format_sql_date
 
 
@@ -835,3 +837,63 @@ class Format06:
             return {'users': tuple(Format06.encode_user(user) for user in users)}
         else:
             return {'user': tuple(Format06.encode_changeset(user)['user'] for user in users)}
+
+    @staticmethod
+    def decode_user_preference(pref: dict) -> UserPref:
+        """
+        >>> decode_user_preference({'@k': 'key', '@v': 'value'})
+        UserPref(key='key', value='value')
+        """
+
+        return UserPref(
+            **UserPrefValidating(
+                user_id=auth_user().id,
+                app_id=None,  # 0.6 api does not support prefs partitioning
+                key=pref['@k'],
+                value=pref['@v'],
+            ).to_orm_dict()
+        )
+
+    @staticmethod
+    def decode_user_preferences(prefs: Sequence[dict]) -> Sequence[UserPref]:
+        """
+        >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
+        [UserPref(key='key', value='value')]
+        """
+
+        seen_keys = set()
+
+        for pref in prefs:
+            key = pref['@k']
+            if key in seen_keys:
+                raise_for().pref_duplicate_key(key)
+            seen_keys.add(key)
+
+        return tuple(Format06.decode_user_preference(pref) for pref in prefs)
+
+    @staticmethod
+    def encode_user_preferences(prefs: Sequence[UserPref]) -> dict:
+        """
+        >>> encode_user_preferences([
+        ...     UserPref(key='key1', value='value1'),
+        ...     UserPref(key='key2', value='value2'),
+        ... ])
+        {'preferences': {'preference': [{'@k': 'key1', '@v': 'value1'}, {'@k': 'key2', '@v': 'value2'}]}}
+        """
+
+        if format_is_json():
+            return {
+                'preferences': {pref.key: pref.value for pref in prefs},
+            }
+        else:
+            return {
+                'preferences': {
+                    'preference': tuple(
+                        {
+                            '@k': pref.key,
+                            '@v': pref.value,
+                        }
+                        for pref in prefs
+                    )
+                }
+            }
