@@ -5,6 +5,7 @@ from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from models.db.base import Base
 from models.db.created_at import CreatedAt
@@ -25,9 +26,9 @@ class Trace(Base.Sequential, CreatedAt):
 
     size: Mapped[int] = mapped_column(int, nullable=False)
     start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
-    file_id: Mapped[str] = mapped_column(Unicode, nullable=False)
-    image_id: Mapped[str] = mapped_column(Unicode, nullable=False)
-    icon_id: Mapped[str] = mapped_column(Unicode, nullable=False)
+    file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
+    image_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
+    icon_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
 
     # defaults
     tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())

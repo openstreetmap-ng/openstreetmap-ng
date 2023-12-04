@@ -27,12 +27,14 @@ from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
 from lib.languages import get_language_info, normalize_language_case
 from lib.rich_text import RichTextMixin
+from lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from limits import (
     LANGUAGE_CODE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
     USER_LANGUAGES_LIMIT,
 )
 from models.auth_provider import AuthProvider
+from models.avatar_type import AvatarType
 from models.db.base import Base
 from models.db.cache_entry import CacheEntry
 from models.db.created_at import CreatedAt
@@ -40,7 +42,6 @@ from models.editor import Editor
 from models.geometry_type import PointType
 from models.language_info import LanguageInfo
 from models.text_format import TextFormat
-from models.user_avatar_type import UserAvatarType
 from models.user_role import UserRole
 from models.user_status import UserStatus
 from services.cache_service import CACHE_HASH_SIZE
@@ -82,14 +83,10 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         lazy='raise',
     )
     editor: Mapped[Editor | None] = mapped_column(Enum(Editor), nullable=True, default=None)
+    avatar_type: Mapped[AvatarType] = mapped_column(Enum(AvatarType), nullable=False, default=AvatarType.default)
+    avatar_id: Mapped[str | None] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=True, default=None)
     home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
     home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
-    avatar_type: Mapped[UserAvatarType] = mapped_column(
-        Enum(UserAvatarType),
-        nullable=False,
-        default=UserAvatarType.default,
-    )
-    avatar_id: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
 
     # relationships (nested imports to avoid circular imports)
     from changeset import Changeset
@@ -288,7 +285,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         """
 
         # when using gravatar, use user id as the avatar id
-        if self.avatar_type == UserAvatarType.gravatar:
+        if self.avatar_type == AvatarType.gravatar:
             return Avatar.get_url(self.avatar_type, self.id)
         else:
             return Avatar.get_url(self.avatar_type, self.avatar_id)

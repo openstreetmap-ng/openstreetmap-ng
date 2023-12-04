@@ -3,6 +3,8 @@ from abc import ABC
 
 from lib.crypto import hash_urlsafe
 
+STORAGE_KEY_MAX_LENGTH = 64
+
 
 class StorageBase(ABC):
     _context: str
@@ -17,10 +19,15 @@ class StorageBase(ABC):
         If random is `False`, the generated key is deterministic.
         """
 
-        if random:
-            return secrets.token_urlsafe(32) + suffix
+        if random:  # noqa: SIM108
+            result = secrets.token_urlsafe(32) + suffix
         else:
-            return hash_urlsafe(data) + suffix
+            result = hash_urlsafe(data) + suffix
+
+        if len(result) > STORAGE_KEY_MAX_LENGTH:
+            raise RuntimeError(f'Storage key too long: {len(result)} > {STORAGE_KEY_MAX_LENGTH}')
+
+        return result
 
     async def load(self, key: str) -> bytes:
         """

@@ -5,21 +5,21 @@ from PIL import Image, ImageOps
 
 from lib.exceptions import raise_for
 from limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
-from models.user_avatar_type import UserAvatarType
+from models.avatar_type import AvatarType
 
 
 class Avatar:
     @staticmethod
-    def get_url(avatar_type: UserAvatarType, avatar_id: str | int) -> str:
+    def get_url(avatar_type: AvatarType, avatar_id: str | int) -> str:
         """
         Get the url of the avatar image.
         """
 
-        if avatar_type == UserAvatarType.default:
+        if avatar_type == AvatarType.default:
             return '/static/img/avatar.webp'
-        elif avatar_type == UserAvatarType.gravatar:
+        elif avatar_type == AvatarType.gravatar:
             return f'/api/web/avatar/gravatar/{avatar_id}'
-        elif avatar_type == UserAvatarType.custom:
+        elif avatar_type == AvatarType.custom:
             return f'/api/web/avatar/custom/{avatar_id}'
         else:
             raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')

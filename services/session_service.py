@@ -1,5 +1,4 @@
 import secrets
-from uuid import UUID
 
 from db import DB
 from lib.crypto import hash_b
@@ -16,7 +15,7 @@ class SessionService:
         Create a new user session token.
         """
 
-        token_b = secrets.token_urlsafe(32)
+        token_b = secrets.token_bytes(32)
         token_hashed = hash_b(token_b, context=None)
 
         async with DB() as session:

@@ -32,6 +32,18 @@ def hash_b(s: str | bytes, *, context: str | None) -> bytes:
     return _hash(s, context=context).digest()
 
 
+def hash_hex(s: str | bytes, *, context: str | None) -> str:
+    """
+    Hash a string using SHA-256.
+
+    Optionally, provide a context to prevent hash collisions.
+
+    Returns a hex-encoded string of the hash.
+    """
+
+    return _hash(s, context=context).hexdigest()
+
+
 def hash_urlsafe(s: str | bytes, *, context: str | None) -> str:
     """
     Hash a string using SHA-256.
