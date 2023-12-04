@@ -23,7 +23,7 @@ from limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROC
 from models.db.mail import Mail
 from models.db.user import User
 from models.mail_from_type import MailFromType
-from services.user_token_email_reply_service import UserTokenEmailReplyService
+from services.email_reply_service import EmailReplyService
 from utils import utcnow
 
 
@@ -68,7 +68,7 @@ async def _send_smtp(mail: Mail) -> None:
         message['From'] = SMTP_NOREPLY_FROM
     else:
         # swap from/to users because this is a reply token
-        reply_address = await UserTokenEmailReplyService.create(
+        reply_address = await EmailReplyService.create_address(
             from_user_id=mail.to_user_id,
             source_type=mail.from_type,
             to_user_id=mail.from_user_id,

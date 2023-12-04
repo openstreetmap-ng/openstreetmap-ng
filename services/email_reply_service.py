@@ -10,9 +10,9 @@ from models.mail_from_type import MailFromType
 from utils import utcnow
 
 
-class UserTokenEmailReplyService:
+class EmailReplyService:
     @staticmethod
-    async def create(from_user_id: int, source_type: MailFromType, to_user_id: int) -> str:
+    async def create_address(from_user_id: int, source_type: MailFromType, to_user_id: int) -> str:
         """
         Create a new user email reply token.
 

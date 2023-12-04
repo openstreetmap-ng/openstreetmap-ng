@@ -1,27 +1,27 @@
 import logging
 from datetime import datetime
 
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from db import DB
 from lib.exceptions import raise_for
 from limits import OAUTH1_TIMESTAMP_VALIDITY
 from models.db.oauth1_nonce import OAuth1Nonce
+from models.validating.oauth1_nonce import OAuth1NonceValidating
 from utils import utcnow
-
-# TODO: OAUTH1_NONCE_MAX_LENGTH
 
 
 class OAuth1NonceService:
     @staticmethod
-    async def spend(nonce: str | None, timestamp: float | str | None) -> None:
+    async def spend(nonce_str: str | None, timestamp: float | str | None) -> None:
         """
         Spend an OAuth1 nonce.
 
         Raises an exception if the nonce is invalid or has already been spent.
         """
 
-        if not nonce or not timestamp:
+        if not nonce_str or not timestamp:
             raise_for().oauth1_nonce_missing()
 
         try:
@@ -35,19 +35,21 @@ class OAuth1NonceService:
             logging.debug('OAuth nonce timestamp expired %r', timestamp)
             raise_for().oauth1_timestamp_out_of_range()
 
+        try:
+            nonce = OAuth1Nonce(
+                **OAuth1NonceValidating(
+                    nonce=nonce_str,
+                    created_at=created_at,
+                ).to_orm_dict()
+            )
+        except ValidationError:
+            logging.debug('OAuth nonce timestamp invalid %r', timestamp)
+            raise_for().oauth1_bad_nonce()
+
         # TODO: normalize unicode globally?
         try:
             async with DB() as session:
-                session.add(
-                    OAuth1Nonce(
-                        nonce=nonce,
-                        created_at=created_at,
-                    )
-                )
-        # TODO: check exception type str255
-        # except IntegrityError:
-        #     logging.debug('OAuth nonce invalid %r', nonce)
-        #     raise_for().oauth1_bad_nonce()
+                session.add(nonce)
         except IntegrityError:
-            logging.debug('OAuth nonce already spent (%r, %r)', nonce, timestamp)
+            logging.debug('OAuth nonce already spent (%r, %r)', nonce_str, timestamp)
             raise_for().oauth1_nonce_used()

@@ -3,7 +3,6 @@ from datetime import datetime
 
 from shapely import Polygon
 from sqlalchemy import func, null, select
-from sqlalchemy.orm import joinedload
 
 from db import DB
 from lib.joinedload_context import get_joinedload
