@@ -227,7 +227,8 @@ The most significant security vulnerabilities were reported to Ruby security mai
 
 - **2023-11-04** - Contacted Ruby security maintainers & disclosed the timeline publicly
 - **2023-11-08** - Maintainers acknowledged the report
-- **2024-03-02** - Publicized vulnerability details
+- **2023-12-04** - Reported additional vulnerabilities with a 3-month deadline
+- **2024-03-02** - Publicize vulnerability details
 
 The maintainers are given up to 120 days to resolve the issues, but the vulnerability details may be made public earlier if necessary fixes are deployed on OpenStreetMap production servers.
 
