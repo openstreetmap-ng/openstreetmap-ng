@@ -35,6 +35,7 @@ class ElementRepository:
                 .order_by(Element.typed_id.desc())
                 .limit(1)
             )
+
             element = await session.scalar(stmt)
             return element.typed_id if element else 0
 

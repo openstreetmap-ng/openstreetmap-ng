@@ -57,8 +57,11 @@ class FileCache:
         path = await self._get_path(key)
 
         try:
-            return await path.read_bytes()
+            result = await path.read_bytes()
+            logging.debug('Cache hit for %r', key)
+            return result
         except OSError:
+            logging.debug('Cache miss for %r', key)
             return None
 
     # TODO: TTL Support

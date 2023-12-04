@@ -1,5 +1,4 @@
 from io import BytesIO
-from typing import Any
 
 from anyio import Path
 from PIL import Image, ImageOps
@@ -11,7 +10,7 @@ from models.user_avatar_type import UserAvatarType
 
 class Avatar:
     @staticmethod
-    def get_url(avatar_type: UserAvatarType, avatar_id: Any) -> str:
+    def get_url(avatar_type: UserAvatarType, avatar_id: str | int) -> str:
         """
         Get the url of the avatar image.
         """

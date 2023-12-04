@@ -25,7 +25,8 @@ APP_URL = os.environ['APP_URL'].rstrip('/')
 API_URL = os.environ['API_URL'].rstrip('/')
 
 # Configuration (optional)
-SRID = int(os.getenv('SRID', 4326))
+TEST = os.getenv('TEST', '0').strip().lower() in ('1', 'true', 'yes')
+
 FILE_CACHE_DIR = Path(os.getenv('FILE_CACHE_DIR', 'tmp/file'))
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
@@ -40,6 +41,7 @@ SMTP_USER = os.getenv('SMTP_USER', None)
 SMTP_PASS = os.getenv('SMTP_PASS', None)
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', '')
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', '')
+SRID = int(os.getenv('SRID', 4326))
 
 # Checks
 if not HTTPS_ONLY:

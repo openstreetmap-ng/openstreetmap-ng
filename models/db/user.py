@@ -36,6 +36,7 @@ from models.auth_provider import AuthProvider
 from models.db.base import Base
 from models.db.cache_entry import CacheEntry
 from models.db.created_at import CreatedAt
+from models.editor import Editor
 from models.geometry_type import PointType
 from models.language_info import LanguageInfo
 from models.text_format import TextFormat
@@ -56,11 +57,11 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
-    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
-
     auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
+
+    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     # defaults
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False, default=UserStatus.pending)
@@ -80,13 +81,15 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         default=None,
         lazy='raise',
     )
+    editor: Mapped[Editor | None] = mapped_column(Enum(Editor), nullable=True, default=None)
     home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
     home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
     avatar_type: Mapped[UserAvatarType] = mapped_column(
-        Enum(UserAvatarType), nullable=False, default=UserAvatarType.default
+        Enum(UserAvatarType),
+        nullable=False,
+        default=UserAvatarType.default,
     )
     avatar_id: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
-    # TODO: user preferences
 
     # relationships (nested imports to avoid circular imports)
     from changeset import Changeset

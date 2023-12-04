@@ -106,8 +106,8 @@ class MailService:
         subject: str,
         template_name: str,
         template_data: dict,
-        ref: str | None,
-        priority: int,
+        ref: str | None = None,
+        priority: int = 0,
     ) -> None:
         """
         Schedule a mail for later processing.

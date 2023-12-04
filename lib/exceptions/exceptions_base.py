@@ -43,6 +43,10 @@ class ExceptionsBase(ABC):
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Database cursor expired')
 
     @classmethod
+    def bad_user_token_struct(cls) -> NoReturn:
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid token')
+
+    @classmethod
     @abstractmethod
     def unauthorized(cls, *, request_basic_auth: bool = False) -> NoReturn:
         raise NotImplementedError
