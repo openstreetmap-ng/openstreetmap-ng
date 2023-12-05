@@ -108,14 +108,21 @@ class UserRepository:
         Check if a display name is available.
         """
 
-        # check if the name is unchanged
         user = auth_user()
-        if user.display_name == display_name:
-            return True
 
-        # check if the name is available
-        other_user = await UserRepository.find_one_by_display_name(display_name)
-        return other_user is None or other_user.id == user.id
+        if user:
+            # check if the name is unchanged
+            if user.display_name == display_name:
+                return True
+
+            # check if the name is available
+            other_user = await UserRepository.find_one_by_display_name(display_name)
+            return other_user is None or other_user.id == user.id
+
+        else:
+            # check if the name is available
+            other_user = await UserRepository.find_one_by_display_name(display_name)
+            return other_user is None
 
     @staticmethod
     async def check_email_available(email: str) -> bool:
@@ -123,11 +130,18 @@ class UserRepository:
         Check if an email is available.
         """
 
-        # check if the email is unchanged
         user = auth_user()
-        if user.email == email:
-            return True
 
-        # check if the email is available
-        other_user = await UserRepository.find_one_by_email(email)
-        return other_user is None or other_user.id == user.id
+        if user:
+            # check if the email is unchanged
+            if user.email == email:
+                return True
+
+            # check if the email is available
+            other_user = await UserRepository.find_one_by_email(email)
+            return other_user is None or other_user.id == user.id
+
+        else:
+            # check if the email is available
+            other_user = await UserRepository.find_one_by_email(email)
+            return other_user is None

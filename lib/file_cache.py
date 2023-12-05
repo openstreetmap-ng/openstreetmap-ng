@@ -17,7 +17,7 @@ class FileCache:
         Get the path to a file in the file cache by key string.
 
         >>> await FileCache('context')._get_path('file_key')
-        Path('.../context/f/il/file_key')
+        Path('.../context/4/68/468e5f...')
         """
 
         key: str = hash_hex(key_str)

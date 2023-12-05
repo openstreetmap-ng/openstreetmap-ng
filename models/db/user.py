@@ -56,7 +56,6 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
     email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
-    email_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False)
     display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)

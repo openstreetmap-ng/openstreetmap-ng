@@ -1,7 +1,7 @@
 import logging
 from base64 import b64decode
 from collections.abc import Sequence
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from itertools import chain
 
@@ -74,6 +74,19 @@ async def auth_context(request: Request):
         logging.debug('Request is not authenticated')
 
     token = _context.set((user, scopes))
+    try:
+        yield
+    finally:
+        _context.reset(token)
+
+
+@contextmanager
+def manual_auth_context(user: User):
+    """
+    Context manager for manually authenticating the user.
+    """
+
+    token = _context.set((user, ()))
     try:
         yield
     finally:

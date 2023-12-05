@@ -1,13 +1,12 @@
 import logging
-from base64 import urlsafe_b64encode
 from hmac import compare_digest
-from uuid import UUID
 
 from sqlalchemy import func, select
 
 from db import DB
 from lib.crypto import hash_b
 from models.db.user_token_email_reply import UserTokenEmailReply
+from models.msgspec.user_token_struct import UserTokenStruct
 
 
 class UserTokenEmailReplyRepository:
@@ -18,19 +17,15 @@ class UserTokenEmailReplyRepository:
         """
 
         try:
-            combined, _ = reply_address.split('@', maxsplit=1)
-            combined_b = urlsafe_b64encode(combined.encode())
-            if len(combined_b) != (16 + 32):
-                raise ValueError
+            token_str, _ = reply_address.split('@', maxsplit=1)
+            token_struct = UserTokenStruct.from_str(token_str)
         except Exception:
             logging.debug('Invalid reply_address format %r', reply_address)
             return None
 
-        token_id = UUID(bytes=combined_b[:16])
-
         async with DB() as session:
             stmt = select(UserTokenEmailReply).where(
-                UserTokenEmailReply.id == token_id,
+                UserTokenEmailReply.id == token_struct.id,
                 UserTokenEmailReply.expires_at > func.now(),
             )
 
@@ -39,11 +34,10 @@ class UserTokenEmailReplyRepository:
         if not token:
             return None
 
-        token_b = combined_b[16:]
-        token_hashed = hash_b(token_b, context=None)
+        token_hashed = hash_b(token_struct.token, context=None)
 
         if not compare_digest(token.token_hashed, token_hashed):
-            logging.debug('Invalid key for reply_address %r', reply_address)
+            logging.debug('Invalid reply token for reply_address %r', reply_address)
             return None
 
         return token

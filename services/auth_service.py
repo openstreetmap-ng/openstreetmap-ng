@@ -1,7 +1,6 @@
 import logging
 import secrets
 from collections.abc import Sequence
-from hmac import compare_digest
 
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
@@ -145,16 +144,10 @@ class AuthService:
         Returns `None` if the session is not found or the session key is incorrect.
         """
 
-        token = await UserTokenSessionRepository.find_one_by_id(token_struct.id)
+        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
 
         if not token:
-            logging.debug('Session (or user) not found %r', token_struct.id)
-            return None
-
-        token_hashed = hash_b(token_struct.token, context=None)
-
-        if not compare_digest(token.token_hashed, token_hashed):
-            logging.debug('Session key mismatch for session %r', token_struct.id)
+            logging.debug('Session not found %r', token_struct.id)
             return None
 
         return token.user

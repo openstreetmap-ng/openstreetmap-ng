@@ -23,7 +23,7 @@ from limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROC
 from models.db.mail import Mail
 from models.db.user import User
 from models.mail_from_type import MailFromType
-from services.email_reply_service import EmailReplyService
+from services.user_token_email_reply_service import EmailReplyService
 from utils import utcnow
 
 
