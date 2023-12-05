@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from shapely import Point
-from sqlalchemy import func, null, or_, select
+from sqlalchemy import func, null, select
 
 from db import DB
 from lib.auth import auth_user
@@ -49,26 +49,6 @@ class UserRepository:
                 .options(get_joinedload())
                 .where(
                     User.email == email,
-                )
-            )
-
-            return await session.scalar(stmt)
-
-    @staticmethod
-    async def find_one_by_display_name_or_email(display_name_or_email: str) -> User | None:
-        """
-        Find a user by display name or email.
-        """
-
-        async with DB() as session:
-            stmt = (
-                select(User)
-                .options(get_joinedload())
-                .where(
-                    or_(
-                        User.display_name == display_name_or_email,
-                        User.email == display_name_or_email,
-                    )
                 )
             )
 

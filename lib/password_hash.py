@@ -2,8 +2,11 @@ import base64
 import logging
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
+from typing import Self
 
 from argon2 import PasswordHasher
+
+from models.user_role import UserRole
 
 
 class PasswordHash:
@@ -62,3 +65,11 @@ class PasswordHash:
         """
 
         return self._hasher.hash(password)
+
+    @classmethod
+    def default(cls) -> Self:
+        """
+        Get a default password hasher.
+        """
+
+        return cls(UserRole.get_password_hasher(()))

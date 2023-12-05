@@ -26,6 +26,7 @@ from config import APP_URL, DEFAULT_LANGUAGE
 from cython_lib.geoutils import haversine_distance
 from lib.avatar import Avatar
 from lib.languages import get_language_info, normalize_language_case
+from lib.password_hash import PasswordHash
 from lib.rich_text import RichTextMixin
 from lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from limits import (
@@ -41,6 +42,7 @@ from models.db.created_at import CreatedAt
 from models.editor import Editor
 from models.geometry_type import PointType
 from models.language_info import LanguageInfo
+from models.scope import ExtendedScope
 from models.text_format import TextFormat
 from models.user_role import UserRole
 from models.user_status import UserStatus
@@ -54,22 +56,23 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
     email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
+    email_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False)
     display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
+    status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
+
     auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     # defaults
-    status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False, default=UserStatus.pending)
-    email_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
     terms_seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
     description_rich_hash: Mapped[bytes | None] = mapped_column(
@@ -226,6 +229,25 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         return UserRole.moderator in self.roles or self.is_administrator
 
     @property
+    def extended_scopes(self) -> Sequence[ExtendedScope]:
+        """
+        Get the user's extended scopes.
+        """
+
+        result = []
+
+        if self.terms_accepted_at:
+            result.append(ExtendedScope.terms_accepted)
+
+        # role-specific scopes
+        if self.is_administrator:
+            result.append(ExtendedScope.role_administrator)
+        if self.is_moderator:
+            result.append(ExtendedScope.role_moderator)
+
+        return result
+
+    @property
     def permalink(self) -> str:
         """
         Get the user's permalink.
@@ -271,12 +293,12 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         return UserRole.get_changeset_max_size(self.roles)
 
     @property
-    def password_hasher(self) -> PasswordHasher:
+    def password_hasher(self) -> PasswordHash:
         """
-        Get the password hasher for this user.
+        Get the password hash class for this user.
         """
 
-        return UserRole.get_password_hasher(self.roles)
+        return PasswordHash(UserRole.get_password_hasher(self.roles))
 
     @property
     def avatar_url(self) -> str:

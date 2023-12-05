@@ -29,7 +29,8 @@ class ExtendedScope(BaseEnum):
     read_email = 'read_email'
     skip_authorization = 'skip_authorization'
 
-    terms_accepted = 'terms_accepted'
+    web_user = 'web_user'
+    terms_accepted = 'terms_accepted'  # TODO: support
 
     # role-specific scopes
     role_moderator = 'role_moderator'

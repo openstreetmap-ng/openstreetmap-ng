@@ -4,6 +4,7 @@ import random
 import time
 import unicodedata
 from datetime import datetime, timedelta
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from itertools import count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from xml.sax import saxutils
@@ -12,6 +13,7 @@ import anyio
 import dateutil.parser
 import httpx
 import msgspec
+from fastapi import Request
 
 from config import USER_AGENT
 
@@ -164,3 +166,11 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     return dateutil.parser.parse(s, ignoretz=True)
+
+
+def request_ip(request: Request) -> IPv4Address | IPv6Address:
+    """
+    Return the client ip address from a request.
+    """
+
+    return ip_address(request.client.host)

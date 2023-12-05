@@ -11,11 +11,16 @@ from fastapi.security.utils import get_authorization_scheme_param
 
 from lib.exceptions import raise_for
 from models.db.user import User
+from models.msgspec.user_token_struct import UserTokenStruct
 from models.scope import ExtendedScope, Scope
+from services.auth_service import AuthService
 
 # TODO: ACL
-# TODO: role scopes
-# TODO: more 0.7 scopes?
+# TODO: more 0.7 scopes
+
+
+_ALL_SCOPES = tuple(Scope.__members__.values())
+_ALL_WEB_SCOPES = (*_ALL_SCOPES, ExtendedScope.web_user)
 
 
 _context = ContextVar('Auth_context')
@@ -26,56 +31,45 @@ async def auth_context(request: Request):
     """
     Context manager for authenticating the user.
 
-    For /api/ endpoints, it authenticates the user with Basic or OAuth.
+    API endpoints support basic auth and oauth.
 
-    For other endpoints, it authenticates the user with session cookies.
+    All endpoints support session cookies.
     """
 
     user, scopes = None, ()
 
-    # for /api/, use Basic or OAuth authentication
-    if request.url.path.startswith('/api/'):
+    # api endpoints support basic auth and oauth
+    if request.url.path.startswith(('/api/0.6/', '/api/0.7/')):
         authorization = request.headers.get('authorization')
         scheme, param = get_authorization_scheme_param(authorization)
         scheme = scheme.lower()
 
+        # handle basic auth
         if scheme == 'basic':
             logging.debug('Attempting to authenticate with Basic')
             username, _, password = b64decode(param).decode().partition(':')
             if not username or not password:
                 raise_for().bad_basic_auth_format()
-            user = await User.authenticate(username, password, basic_request=request)
-            scopes = Scope.__members__.values()  # all scopes
+            if user_ := await AuthService.authenticate(username, password, basic_request=request):
+                user, scopes = user_, _ALL_SCOPES
 
+        # handle oauth
         else:
-            # NOTE: don't rely on scheme for oauth, 1.0 may use query params
+            # don't rely on scheme for oauth, 1.0 may use query params
             logging.debug('Attempting to authenticate with OAuth')
-            if result := await User.authenticate_oauth(request):
+            if result := await AuthService.authenticate_oauth(request):
                 user, scopes = result
 
-    # otherwise, use session cookies
-    else:
+    # all endpoints support session cookies
+    if not user and (token_str := request.session.get('session')):
         logging.debug('Attempting to authenticate with cookies')
-        if (session_id := request.session.get('session_id')) and (session_key := request.session.get('session_key')):
-            user = await User.authenticate_session(session_id, session_key)
-            scopes = Scope.__members__.values()  # all scopes
+        token_struct = UserTokenStruct.from_str(token_str)
+        if user_ := await AuthService.authenticate_session(token_struct):
+            user, scopes = user_, _ALL_WEB_SCOPES
 
     if user:
         logging.debug('Request authenticated as user %d', user.id)
-        role_scopes = set()
-
-        if user.terms_accepted_at:
-            role_scopes.add(ExtendedScope.terms_accepted)
-
-        # extend scopes with role-specific scopes
-        if user.is_moderator:
-            role_scopes.add(ExtendedScope.role_moderator)
-        if user.is_administrator:
-            role_scopes.add(ExtendedScope.role_moderator)
-            role_scopes.add(ExtendedScope.role_administrator)
-
-        if role_scopes:
-            scopes = tuple(chain(scopes, role_scopes))
+        scopes = (*scopes, *user.extended_scopes)
     else:
         logging.debug('Request is not authenticated')
 
@@ -110,7 +104,7 @@ def auth_scopes() -> Sequence[ExtendedScope]:
     return _context.get()[1]
 
 
-def _get_api_user(require_scopes: SecurityScopes) -> User:
+def _get_user(require_scopes: SecurityScopes) -> User:
     user, user_scopes = auth_user_scopes()
     if not user:
         raise_for().unauthorized(request_basic_auth=True)
@@ -125,7 +119,7 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
     """
 
     return Security(
-        _get_api_user,
+        _get_user,
         scopes=tuple(
             chain(
                 (s.value for s in require_scopes),
@@ -135,17 +129,12 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
     )
 
 
-def _get_web_user(_: SecurityScopes) -> User:
-    user = auth_user()
-    if not user:
-        raise_for().unauthorized()
-    return user
-
-
-# TODO: only web user, not api
 def web_user() -> User:
     """
     Dependency for authenticating the web user.
     """
 
-    return Security(_get_web_user, scopes=())
+    return Security(
+        _get_user,
+        scopes=(ExtendedScope.web_user,),
+    )

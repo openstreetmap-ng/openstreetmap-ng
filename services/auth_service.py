@@ -1,7 +1,7 @@
 import logging
+import secrets
 from collections.abc import Sequence
 from hmac import compare_digest
-from uuid import UUID
 
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
@@ -10,21 +10,25 @@ from sqlalchemy import update
 from config import SECRET
 from db import DB
 from lib.crypto import hash_b
+from lib.email import Email
 from lib.exceptions import raise_for
 from lib.oauth1 import OAuth1
 from lib.oauth2 import OAuth2
-from lib.password_hash import PasswordHash
+from limits import USER_TOKEN_SESSION_EXPIRE
 from models.db.user import User
+from models.db.user_token_session import UserTokenSession
+from models.msgspec.user_token_struct import UserTokenStruct
 from models.scope import Scope
 from repositories.user_repository import UserRepository
 from repositories.user_token_session_repository import UserTokenSessionRepository
 from services.cache_service import CacheService
 from services.oauth1_nonce_service import OAuth1NonceService
+from utils import utcnow
 
 _CACHE_CONTEXT = 'FastPassword'
 
 
-class UserAuthService:
+class AuthService:
     @staticmethod
     async def authenticate(
         display_name_or_email: str,
@@ -41,8 +45,19 @@ class UserAuthService:
         """
 
         # TODO: normalize unicode & strip
+        # TODO: display_name_or_email is insecure + less efficient
 
-        user = await UserRepository.find_one_by_display_name_or_email(display_name_or_email)
+        # first, try to find a user by email if valid address is provided
+        if '@' in display_name_or_email:
+            try:
+                email = Email.validate(display_name_or_email)
+                user = await UserRepository.find_one_by_email(email)
+            except ValueError:
+                user = None
+
+        # then, try to find a user by display name
+        if not user:
+            user = await UserRepository.find_one_by_display_name(display_name_or_email)
 
         if not user:
             logging.debug('User not found %r', display_name_or_email)
@@ -63,11 +78,12 @@ class UserAuthService:
 
             async def factory() -> str:
                 logging.debug('Fast password cache miss for user %r', user.id)
-                ph = PasswordHash(user.password_hasher)
+                ph = user.password_hasher
                 ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
                 return 'OK' if ph_valid else ''
 
             # TODO: FAST_PASSWORD_CACHE_EXPIRE
+            # TODO: expire on pass change
             cache = await CacheService.get_one_by_key(key, _CACHE_CONTEXT, factory)
         else:
             cache = None
@@ -76,7 +92,7 @@ class UserAuthService:
             ph = None
             ph_valid = cache.value == 'OK'
         else:
-            ph = PasswordHash(user.password_hasher)
+            ph = user.password_hasher
             ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
 
         if not ph_valid:
@@ -102,23 +118,43 @@ class UserAuthService:
         return user
 
     @staticmethod
-    async def authenticate_session(session_id: UUID, token_str: str) -> User | None:
+    async def create_session(user_id: int) -> UserTokenStruct:
         """
-        Authenticate a user by session ID and session key.
+        Create a new user session token.
+        """
+
+        token_b = secrets.token_bytes(32)
+        token_hashed = hash_b(token_b, context=None)
+
+        async with DB() as session:
+            token = UserTokenSession(
+                user_id=user_id,
+                token_hashed=token_hashed,
+                expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
+            )
+
+            session.add(token)
+
+        return UserTokenStruct(token.id, token_b)
+
+    @staticmethod
+    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
+        """
+        Authenticate a user by user session token.
 
         Returns `None` if the session is not found or the session key is incorrect.
         """
 
-        token = await UserTokenSessionRepository.find_one_by_id(session_id)
+        token = await UserTokenSessionRepository.find_one_by_id(token_struct.id)
 
         if not token:
-            logging.debug('Session (or user) not found %r', session_id)
+            logging.debug('Session (or user) not found %r', token_struct.id)
             return None
 
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_b(token_struct.token, context=None)
 
         if not compare_digest(token.token_hashed, token_hashed):
-            logging.debug('Session key mismatch for session %r', session_id)
+            logging.debug('Session key mismatch for session %r', token_struct.id)
             return None
 
         return token.user

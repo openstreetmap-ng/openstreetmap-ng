@@ -1,24 +1,76 @@
 import logging
 
-from fastapi import UploadFile
+from fastapi import Request, UploadFile
 from shapely import Point
 
 from db import DB
 from lib.auth import auth_user
 from lib.email import Email
 from lib.exceptions import raise_for
-from lib.translation import t
+from lib.password_hash import PasswordHash
+from lib.translation import t, translation_languages
 from models.auth_provider import AuthProvider
 from models.avatar_type import AvatarType
 from models.db.user import User
 from models.editor import Editor
-from models.str import EmptyEmailStr, EmptyPasswordStr, UserNameStr
+from models.msgspec.user_token_struct import UserTokenStruct
+from models.str import EmailStr, EmptyEmailStr, EmptyPasswordStr, PasswordStr, UserNameStr
+from models.user_status import UserStatus
 from repositories.user_repository import UserRepository
+from services.auth_service import AuthService
 from services.avatar_service import AvatarService
 from services.email_change_service import EmailChangeService
+from utils import request_ip
 
 
 class UserService:
+    @staticmethod
+    async def signup(
+        request: Request,
+        *,
+        display_name: UserNameStr,
+        email: EmailStr,
+        password: PasswordStr,
+    ) -> UserTokenStruct:
+        """
+        Create a new user.
+
+        Returns a new user session token.
+        """
+
+        # some early validation
+        if not await UserRepository.check_display_name_available(display_name):
+            raise_for().field_bad_request('display_name', t('user.display_name_already_taken'))
+        if not await UserRepository.check_email_available(email):
+            raise_for().field_bad_request('email', t('user.email_already_taken'))
+        if not await Email.validate_dns(email):
+            raise_for().field_bad_request('email', t('user.invalid_email'))
+
+        # precompute values to reduce transaction time
+        password_hashed = PasswordHash.default().hash(password)
+        created_ip = request_ip(request)
+        languages = translation_languages()
+
+        # create user
+        async with DB() as session:
+            user = User(
+                email=email,
+                email_confirmed=False,
+                display_name=display_name,
+                password_hashed=password_hashed,
+                created_ip=created_ip,
+                status=UserStatus.pending,
+                auth_provider=None,  # TODO: support
+                auth_uid=None,
+                languages=languages,
+            )
+            session.add(user)
+
+        # send email confirmation
+        # TODO: send email confirmation
+
+        return await AuthService.create_session(user.id)
+
     @staticmethod
     async def update_profile(
         *,
