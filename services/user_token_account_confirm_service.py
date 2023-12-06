@@ -47,6 +47,7 @@ class UserTokenAccountConfirmService:
         if not token:
             raise_for().bad_user_token_struct()
 
+        # NOTE: potential timing attack, but the impact is negligible
         async with DB() as session, session.begin():
             stmt = (
                 update(User)

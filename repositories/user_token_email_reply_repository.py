@@ -1,4 +1,5 @@
 import logging
+from email.utils import parseaddr
 from hmac import compare_digest
 
 from sqlalchemy import func, select
@@ -15,6 +16,9 @@ class UserTokenEmailReplyRepository:
         """
         Find a user email reply token by reply email address.
         """
+
+        # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
+        _, reply_address = parseaddr(reply_address)
 
         try:
             token_str, _ = reply_address.split('@', maxsplit=1)

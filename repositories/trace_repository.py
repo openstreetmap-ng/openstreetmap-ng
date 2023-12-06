@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from db import DB
 from lib.auth import auth_user_scopes
@@ -69,3 +69,18 @@ class TraceRepository:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def count_by_user_id(user_id: int) -> int:
+        """
+        Count traces by user id.
+        """
+
+        async with DB() as session:
+            stmt = select(func.count()).select_from(
+                select(Trace).where(
+                    Trace.user_id == user_id,
+                )
+            )
+
+            return await session.scalar(stmt)

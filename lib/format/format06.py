@@ -2,6 +2,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 
+import anyio
 import lxml.etree as ET
 from shapely.geometry import Point, mapping
 from sqlalchemy.exc import InvalidRequestError
@@ -32,6 +33,10 @@ from models.validating.tags import TagsValidating
 from models.validating.trace_ import TraceValidating
 from models.validating.trace_point import TracePointValidating
 from models.validating.user_pref import UserPrefValidating
+from repositories.changeset_repository import ChangesetRepository
+from repositories.message_repository import MessageRepository
+from repositories.trace_repository import TraceRepository
+from repositories.user_block_repository import UserBlockRepository
 from utils import format_sql_date
 
 
@@ -758,7 +763,7 @@ class Format06:
             return {'lang': tuple(languages)}
 
     @staticmethod
-    def encode_user(user: User) -> dict:
+    async def encode_user(user: User) -> dict:
         """
         >>> encode_user(User(...))
         {'user': {'@id': 1234, '@display_name': 'userName', ...}}
@@ -766,6 +771,56 @@ class Format06:
 
         current_user = auth_user()
         access_private = current_user and current_user.id == user.id
+
+        changesets_count = 0
+        traces_count = 0
+        block_received_count = 0
+        block_received_active_count = 0
+        block_issued_count = 0
+        block_issued_active_count = 0
+        messages_received_count = 0
+        messages_received_unread_count = 0
+        messages_sent_count = 0
+
+        async def changesets_count_task() -> None:
+            nonlocal changesets_count
+            changesets_count = await ChangesetRepository.count_by_user_id(user.id)
+
+        async def traces_count_task() -> None:
+            nonlocal traces_count
+            traces_count = await TraceRepository.count_by_user_id(user.id)
+
+        async def block_received_count_task() -> None:
+            nonlocal block_received_count, block_received_active_count
+            total, active = await UserBlockRepository.count_received_by_user_id(user.id)
+            block_received_count = total
+            block_received_active_count = active
+
+        async def block_issued_count_task() -> None:
+            nonlocal block_issued_count, block_issued_active_count
+            total, active = await UserBlockRepository.count_given_by_user_id(user.id)
+            block_issued_count = total
+            block_issued_active_count = active
+
+        async def messages_received_count_task() -> None:
+            nonlocal messages_received_count, messages_received_unread_count
+            total, unread = await MessageRepository.count_received_by_user_id(user.id)
+            messages_received_count = total
+            messages_received_unread_count = unread
+
+        async def messages_sent_count_task() -> None:
+            nonlocal messages_sent_count
+            messages_sent_count = await MessageRepository.count_sent_by_user_id(user.id)
+
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(changesets_count_task)
+            tg.start_soon(traces_count_task)
+            tg.start_soon(block_received_count_task)
+            tg.start_soon(block_issued_count_task)
+
+            if access_private:
+                tg.start_soon(messages_received_count_task)
+                tg.start_soon(messages_sent_count_task)
 
         return {
             'user': {
@@ -779,20 +834,16 @@ class Format06:
                 },
                 'img': {XAttr('href'): user.avatar_url},
                 'roles': [role.value for role in user.roles],
-                'changesets': {
-                    XAttr('count'): 0  # TODO: changesets count
-                },
-                'traces': {
-                    XAttr('count'): 0  # TODO: traces count
-                },
+                'changesets': {XAttr('count'): changesets_count},
+                'traces': {XAttr('count'): traces_count},
                 'blocks': {
                     'received': {
-                        XAttr('count'): 0,  # TODO: blocks count
-                        XAttr('active'): len(user.active_user_blocks_received),
+                        XAttr('count'): block_received_count,
+                        XAttr('active'): block_received_active_count,
                     },
                     'issued': {
-                        XAttr('count'): 0,  # TODO: blocks count
-                        XAttr('active'): 0,
+                        XAttr('count'): block_issued_count,
+                        XAttr('active'): block_issued_active_count,
                     },
                 },
                 # private section
@@ -811,10 +862,10 @@ class Format06:
                         'languages': Format06._encode_languages(user.languages),
                         'messages': {
                             'received': {
-                                XAttr('count'): 0,  # TODO: messages count
-                                XAttr('unread'): 0,
+                                XAttr('count'): messages_received_count,
+                                XAttr('unread'): messages_received_unread_count,
                             },
-                            'sent': {XAttr('count'): 0},
+                            'sent': {XAttr('count'): messages_sent_count},
                         },
                     }
                     if access_private
@@ -824,7 +875,7 @@ class Format06:
         }
 
     @staticmethod
-    def encode_users(users: Sequence[User]) -> dict:
+    async def encode_users(users: Sequence[User]) -> dict:
         """
         >>> encode_users([
         ...     User(...),
@@ -833,10 +884,19 @@ class Format06:
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
 
+        encoded = [None] * len(users)
+
+        async def task(i: int, user: User):
+            encoded[i] = await Format06.encode_user(user)
+
+        async with anyio.create_task_group() as tg:
+            for i, user in enumerate(users):
+                tg.start_soon(task, i, user)
+
         if format_is_json():
-            return {'users': tuple(Format06.encode_user(user) for user in users)}
+            return {'users': tuple(user for user in encoded)}
         else:
-            return {'user': tuple(Format06.encode_changeset(user)['user'] for user in users)}
+            return {'user': tuple(user['user'] for user in encoded)}
 
     @staticmethod
     def decode_user_preference(pref: dict) -> UserPref:

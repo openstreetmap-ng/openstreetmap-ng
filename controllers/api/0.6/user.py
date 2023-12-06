@@ -30,7 +30,7 @@ async def user_gpx_files(
 async def user_details(
     user: Annotated[User, api_user()],
 ) -> dict:
-    return Format06.encode_user(user)
+    return await Format06.encode_user(user)
 
 
 @router.get('/user/{user_id}')
@@ -46,7 +46,7 @@ async def user_read(
     if False:  # TODO: if user deleted
         raise HTTPException(status.HTTP_410_GONE)
 
-    return Format06.encode_user(user)
+    return await Format06.encode_user(user)
 
 
 @router.get('/users')
@@ -63,4 +63,4 @@ async def users_read(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No users were given to search for')
 
     users = await UserRepository.find_many_by_ids(user_ids)
-    return Format06.encode_users(users)
+    return await Format06.encode_users(users)

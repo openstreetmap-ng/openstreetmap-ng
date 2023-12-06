@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 
-from argon2 import PasswordHasher
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from shapely.geometry import Point
 from sqlalchemy import (
@@ -193,6 +192,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
             UserBlock.expired == false(),
         ),
     )
+    # TODO: remove some relationships that should never be joined (performance)
 
     __table_args__ = (
         UniqueConstraint(email),

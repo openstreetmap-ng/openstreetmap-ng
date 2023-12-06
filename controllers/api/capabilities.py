@@ -54,8 +54,7 @@ async def legacy_capabilities() -> dict:
                 XAttr('maximum'): ELEMENT_RELATION_MAX_MEMBERS,
             },
             'status': {
-                # this is overly complicated,
-                # just check HTTP_503_SERVICE_UNAVAILABLE
+                # this is overly complicated, just check HTTP_503_SERVICE_UNAVAILABLE
                 XAttr('database'): 'online',
                 XAttr('api'): 'online',
                 XAttr('gpx'): 'online',
