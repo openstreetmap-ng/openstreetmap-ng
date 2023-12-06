@@ -3,7 +3,6 @@ from base64 import b64decode
 from collections.abc import Sequence
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
-from itertools import chain
 
 from fastapi import Request, Security
 from fastapi.security import SecurityScopes

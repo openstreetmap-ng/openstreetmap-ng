@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Query
 
 from lib.auth import web_user
+from lib.legal import get_legal
+from lib.translation import render
 from models.auth_provider import AuthProvider
 from models.db.user import User
 from models.editor import Editor
@@ -16,9 +18,18 @@ router = APIRouter(prefix='/user')
 @router.get('/display_name_available')
 async def display_name_available(
     display_name: Annotated[UserNameStr, Query()],
-    _: Annotated[User, web_user()],
 ) -> bool:
     return await UserRepository.check_display_name_available(display_name)
+
+
+# TODO: http caching
+@router.get('/terms')
+async def terms(
+    locale: Annotated[str, Query(regex=r'^(FR|GB|IT)$')],
+) -> str:
+    # TODO: fix: Please read the following terms and conditions carefully and click either the 'Accept' or 'Decline' button at the bottom to continue.
+    document = get_legal(locale)
+    return render('api/web/terms.jinja2', document=document)
 
 
 # TODO: some system to respond errors, information, etc.

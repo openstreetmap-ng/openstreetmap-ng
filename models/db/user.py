@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
@@ -8,7 +7,6 @@ from sqlalchemy import (
     ARRAY,
     BigInteger,
     Boolean,
-    DateTime,
     Enum,
     LargeBinary,
     SmallInteger,

@@ -1,0 +1,49 @@
+<p>
+    {{ document['intro'] }}
+    {{ document['next_with_decline'] }}
+</p>
+<h3>{{ document['introduction'] }}</h3>
+<ol start="1">
+    <li>
+        <p>{{ document['section_1'] }}</p>
+        {% if 'section_1a' in document %}
+        <ol>
+            <li>{{ document['section_1a'] }}</li>
+            <li>{{ document['section_1b'] }}</li>
+        </ol>
+        {% endif %}
+    </li>
+</ol>
+<h3>{{ document['rights_granted'] }}</h3>
+<ol start="2">
+    <li>
+        <p>{{ document['section_2'] }}</p>
+    </li>
+    <li>
+        <p>{{ document['section_3'] }}</p>
+        <p>{{ document['active_defn_1'] }}</p>
+        <p>{{ document['active_defn_2'] }}</p>
+        </ul>
+    </li>
+    <li>
+        <p>{{ document['section_4'] }}</p>
+    </li>
+    <li>
+        <p>{{ document['section_5'] }}</p>
+    </li>
+</ol>
+<h3>{{ document['limitation_of_liability'] }}</h3>
+<ol start="6">
+    <li>
+        <p>{{ document['section_6'] }}</p>
+    </li>
+    <li>
+        <p>{{ document['section_7'] }}</p>
+    </li>
+</ol>
+<h3>{{ document['miscellaneous'] }}</h3>
+<ol start="8">
+    <li>
+        <p>{{ document['section_8'] }}</p>
+    </li>
+</ol>
