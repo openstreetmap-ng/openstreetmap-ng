@@ -133,12 +133,7 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
 
     return Security(
         _get_user,
-        scopes=tuple(
-            chain(
-                (s.value for s in require_scopes),
-                (ExtendedScope.terms_accepted,),  # always require terms accepted
-            )
-        ),
+        scopes=tuple(s.value for s in require_scopes),
     )
 
 

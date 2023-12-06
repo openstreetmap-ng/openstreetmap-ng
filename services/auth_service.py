@@ -44,19 +44,18 @@ class AuthService:
         """
 
         # TODO: normalize unicode & strip
-        # TODO: display_name_or_email is insecure + less efficient
 
-        # first, try to find a user by email if valid address is provided
-        if '@' in display_name_or_email:
+        # dot in string indicates email, display name can't have a dot
+        if '.' in display_name_or_email:
             try:
-                email = Email.validate(display_name_or_email)
+                email = display_name_or_email
+                email = Email.validate(email)
                 user = await UserRepository.find_one_by_email(email)
             except ValueError:
                 user = None
-
-        # then, try to find a user by display name
-        if not user:
-            user = await UserRepository.find_one_by_display_name(display_name_or_email)
+        else:
+            display_name = display_name_or_email
+            user = await UserRepository.find_one_by_display_name(display_name)
 
         if not user:
             logging.debug('User not found %r', display_name_or_email)

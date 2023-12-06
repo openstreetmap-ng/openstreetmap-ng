@@ -829,7 +829,7 @@ class Format06:
                 XAttr('account_created'): user.created_at,
                 'description': user.description,
                 ('contributor_terms' if format_is_json() else 'contributor-terms'): {
-                    XAttr('agreed'): bool(user.terms_accepted_at),
+                    XAttr('agreed'): True,
                     **({XAttr('pd'): user.consider_public_domain} if access_private else {}),
                 },
                 'img': {XAttr('href'): user.avatar_url},

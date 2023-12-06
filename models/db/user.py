@@ -68,8 +68,6 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
 
     # defaults
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
-    terms_seen: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
@@ -234,9 +232,6 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
         """
 
         result = []
-
-        if self.terms_accepted_at:
-            result.append(ExtendedScope.terms_accepted)
 
         # role-specific scopes
         if self.is_administrator:
