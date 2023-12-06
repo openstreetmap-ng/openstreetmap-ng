@@ -15,7 +15,7 @@ class ShortLink:
     @staticmethod
     def encode(lon: cython.double, lat: cython.double, z: cython.int) -> str:
         """
-        Encode a coordinate pair and zoom level into a short link string.
+        Encode a coordinate pair and zoom level into a shortlink code.
         """
 
         x: cython.int = int((lon + 180) * 11930464.711111112)  # (2 ** 32) / 360
@@ -26,8 +26,8 @@ class ShortLink:
         for i in range(31, -1, -1):
             c = (c << 2) | (((x >> i) & 1) << 1) | ((y >> i) & 1)
 
-        d: cython.int = z + 8 // 3
-        r: cython.int = z + 8 % 3
+        d: cython.int = (z + 8) // 3
+        r: cython.int = (z + 8) % 3
 
         if r > 0:  # ceil instead of floor
             d += 1
@@ -43,7 +43,9 @@ class ShortLink:
     @staticmethod
     def decode(s: str) -> tuple[cython.double, cython.double, cython.int]:
         """
-        Decode a short link string into a coordinate pair and zoom level.
+        Decode a shortlink code into a coordinate pair and zoom level.
+
+        Returns a tuple of (lon, lat, z).
         """
 
         x: cython.int = 0

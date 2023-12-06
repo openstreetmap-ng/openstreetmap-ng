@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from itertools import count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
-from xml.sax import saxutils
 
 import anyio
 import dateutil.parser
