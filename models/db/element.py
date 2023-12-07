@@ -1,16 +1,15 @@
-from abc import ABC
 from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Index
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.updating_cached_property import updating_cached_property
 from models.db.base import Base
 from models.db.changeset import Changeset
-from models.db.created_at import CreatedAt
+from models.db.created_at_mixin import CreatedAtMixin
 from models.db.user import User
 from models.element_member import ElementMemberRef
 from models.element_member_type import ElementMemberRefType
@@ -20,7 +19,7 @@ from models.typed_element_ref import TypedElementRef
 from models.versioned_element_ref import VersionedElementRef
 
 
-class Element(Base.Sequential, CreatedAt, ABC):
+class Element(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'element'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
@@ -33,13 +32,12 @@ class Element(Base.Sequential, CreatedAt, ABC):
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
-    # TODO: indexes, spatial_index
     members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
 
     # defaults
     superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
-    __table_args__ = (Index('ix_type_typed_id_version', type, typed_id, version, unique=True),)
+    __table_args__ = (UniqueConstraint(type, typed_id, version),)
 
     @validates('typed_id')
     def validate_typed_id(self, _: str, value: int):

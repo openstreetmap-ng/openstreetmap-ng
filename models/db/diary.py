@@ -1,29 +1,29 @@
 import anyio
-from geoalchemy2 import Geometry, WKBElement
+from shapely import Point
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from config import SRID
+from lib.crypto import HASH_SIZE
 from lib.rich_text import RichTextMixin
 from limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from models.db.base import Base
 from models.db.cache_entry import CacheEntry
-from models.db.created_at import CreatedAt
-from models.db.updated_at import UpdatedAt
+from models.db.created_at_mixin import CreatedAtMixin
+from models.db.updated_at_mixin import UpdatedAtMixin
 from models.db.user import User
+from models.geometry_type import PointType
 from models.text_format import TextFormat
-from services.cache_service import CACHE_HASH_SIZE
 
 
-class Diary(Base.Sequential, CreatedAt, UpdatedAt, RichTextMixin):
+class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     __tablename__ = 'diary'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='diaries', lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise')
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(CACHE_HASH_SIZE), nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
     body_rich: Mapped[CacheEntry | None] = relationship(
         CacheEntry,
         primaryjoin=CacheEntry.id == body_rich_hash,
@@ -32,21 +32,7 @@ class Diary(Base.Sequential, CreatedAt, UpdatedAt, RichTextMixin):
         lazy='raise',
     )
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
-    point: Mapped[WKBElement | None] = mapped_column(Geometry('POINT', SRID), nullable=True)
-
-    # relationships (nested imports to avoid circular imports)
-    from diary_comment import DiaryComment
-    from diary_subscription import DiarySubscription
-
-    comments: Mapped[list[DiaryComment]] = relationship(
-        back_populates='diary',
-        order_by=DiaryComment.created_at.asc(),
-        lazy='raise',
-    )
-    diary_subscription_users: Mapped[list[User]] = relationship(
-        secondary=DiarySubscription,
-        lazy='raise',
-    )
+    point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

@@ -1,11 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import decrypt_b
 from lib.updating_cached_property import updating_cached_property
 from models.db.base import Base
-from models.db.created_at import CreatedAt
-from models.db.updated_at import UpdatedAt
+from models.db.created_at_mixin import CreatedAtMixin
+from models.db.updated_at_mixin import UpdatedAtMixin
 from models.db.user import User
 from models.scope import Scope
 
@@ -14,7 +16,7 @@ from models.scope import Scope
 # TODO: OAUTH_APP_NAME_MAX_LENGTH
 
 
-class OAuth1Application(Base.Sequential, CreatedAt, UpdatedAt):
+class OAuth1Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth1_application'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
@@ -26,10 +28,11 @@ class OAuth1Application(Base.Sequential, CreatedAt, UpdatedAt):
     application_url: Mapped[str] = mapped_column(Unicode, nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    # relationships (nested imports to avoid circular imports)
-    from oauth1_token import OAuth1Token
+    # relationships (avoid circular imports)
+    if TYPE_CHECKING:
+        from oauth1_token import OAuth1Token
 
-    oauth1_tokens: Mapped[list[OAuth1Token]] = relationship(
+    oauth1_tokens: Mapped[list['OAuth1Token']] = relationship(
         back_populates='application',
         lazy='raise',
     )

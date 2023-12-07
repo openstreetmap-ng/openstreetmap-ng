@@ -22,6 +22,8 @@ exclude = [
   "dist",
   "node_modules",
   "venv",
+  "alembic/versions",
+  "models/db/__init__.py",
 ]
 
 indent-width = 4

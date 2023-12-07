@@ -1,17 +1,19 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import decrypt_b
 from lib.updating_cached_property import updating_cached_property
 from models.db.base import Base
-from models.db.created_at import CreatedAt
-from models.db.updated_at import UpdatedAt
+from models.db.created_at_mixin import CreatedAtMixin
+from models.db.updated_at_mixin import UpdatedAtMixin
 from models.db.user import User
 from models.oauth2_application_type import OAuth2ApplicationType
 from models.scope import Scope
 
 
-class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
+class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth2_application'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
@@ -23,10 +25,11 @@ class OAuth2Application(Base.Sequential, CreatedAt, UpdatedAt):
     type: Mapped[OAuth2ApplicationType] = mapped_column(Enum(OAuth2ApplicationType), nullable=False)
     redirect_uris: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False)
 
-    # relationships (nested imports to avoid circular imports)
-    from oauth2_token import OAuth2Token
+    # relationships (avoid circular imports)
+    if TYPE_CHECKING:
+        from models.db.oauth2_token import OAuth2Token
 
-    oauth2_tokens: Mapped[list[OAuth2Token]] = relationship(
+    oauth2_tokens: Mapped[list['OAuth2Token']] = relationship(
         back_populates='application',
         lazy='raise',
     )

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import anyio
 from shapely.geometry import Polygon, box
@@ -9,19 +10,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from config import APP_URL
 from models.db.base import Base
-from models.db.created_at import CreatedAt
-from models.db.updated_at import UpdatedAt
+from models.db.created_at_mixin import CreatedAtMixin
+from models.db.updated_at_mixin import UpdatedAtMixin
 from models.db.user import User
 from models.geometry_type import PolygonType
 
 # TODO: 0.7 180th meridian ?
 
 
-class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
+class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'changeset'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='changesets', lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise')
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     # TODO: normalize unicode, check unicode, check length
 
@@ -30,23 +31,13 @@ class Changeset(Base.Sequential, CreatedAt, UpdatedAt):
     size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     boundary: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, default=None)
 
-    # relationships (nested imports to avoid circular imports)
-    from changeset_comment import ChangesetComment
-    from changeset_subscription import ChangesetSubscription
-    from element import Element
+    # relationships (avoid circular imports)
+    if TYPE_CHECKING:
+        from models.db.element import Element
 
-    comments: Mapped[list[ChangesetComment]] = relationship(
+    elements: Mapped[list['Element']] = relationship(
         back_populates='changeset',
-        order_by=ChangesetComment.created_at.asc(),
-        lazy='raise',
-    )
-    changeset_subscription_users: Mapped[list[User]] = relationship(
-        secondary=ChangesetSubscription,
-        lazy='raise',
-    )
-    elements: Mapped[list[Element]] = relationship(
-        back_populates='changeset',
-        order_by=Element.id.asc(),
+        order_by='Element.id.asc()',
         lazy='raise',
     )
 

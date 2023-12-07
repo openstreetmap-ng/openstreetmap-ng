@@ -95,6 +95,9 @@ class UserService:
         current_user = auth_user()
 
         # some early validation
+        if current_user.email == new_email:
+            return
+
         if not current_user.password_hasher.verify(password, current_user.password_hashed):
             collector.raise_error('password', t('user.invalid_password'))
         if not await UserRepository.check_email_available(new_email):

@@ -1,30 +1,31 @@
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from shapely import Point
-from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Unicode
+from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from models.db.base import Base
-from models.db.created_at import CreatedAt
+from models.db.created_at_mixin import CreatedAtMixin
 from models.db.user import User
 from models.geometry_type import PointType
 from models.scope import ExtendedScope
 from models.trace_visibility import TraceVisibility
 
 
-class Trace(Base.Sequential, CreatedAt):
+class Trace(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'trace'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='traces', lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise')
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     description: Mapped[str] = mapped_column(Unicode, nullable=False)
     visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)
 
-    size: Mapped[int] = mapped_column(int, nullable=False)
+    size: Mapped[int] = mapped_column(Integer, nullable=False)
     start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
     file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
     image_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
@@ -33,12 +34,15 @@ class Trace(Base.Sequential, CreatedAt):
     # defaults
     tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
 
-    from trace_point import TracePoint
+    # relationships (avoid circular imports)
+    if TYPE_CHECKING:
+        from models.db.trace_point import TracePoint
 
     # TODO: cascade delete + files delete
-    points: Mapped[list[TracePoint]] = relationship(
+    # TODO: limit size points
+    points: Mapped[list['TracePoint']] = relationship(
         back_populates='trace',
-        order_by=(TracePoint.track_idx.asc(), TracePoint.captured_at.asc()),
+        order_by='(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())',
         lazy='raise',
     )
 

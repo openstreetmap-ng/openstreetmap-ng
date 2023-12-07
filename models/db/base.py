@@ -13,13 +13,17 @@ _BAD_XML_RE = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XM
 
 
 class Base:
-    class NoID(DeclarativeBase, MappedAsDataclass):
+    class NoID(MappedAsDataclass, DeclarativeBase, kw_only=True):
         pass
 
     class Sequential(NoID):
+        __abstract__ = True
+
         id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
 
     class UUID(NoID):
+        __abstract__ = True
+
         # TODO: sortable like timeflake or ulid if needed?
         id: Mapped[UUID] = mapped_column(Uuid, nullable=False, primary_key=True, default_factory=uuid4)
 

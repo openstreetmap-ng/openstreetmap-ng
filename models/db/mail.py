@@ -4,12 +4,12 @@ from sqlalchemy import DateTime, Enum, ForeignKey, SmallInteger, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.db.base import Base
-from models.db.created_at import CreatedAt
+from models.db.created_at_mixin import CreatedAtMixin
 from models.db.user import User
 from models.mail_from_type import MailFromType
 
 
-class Mail(Base.UUID, CreatedAt):
+class Mail(Base.UUID, CreatedAtMixin):
     __tablename__ = 'mail'
 
     from_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)

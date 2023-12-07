@@ -4,7 +4,7 @@ from functools import partial
 import anyio
 from email_validator import EmailNotValidError, validate_email
 
-from config import TEST
+from config import TEST_ENV
 
 
 class Email:
@@ -20,7 +20,7 @@ class Email:
         """
 
         try:
-            info = validate_email(email, check_deliverability=False, test_environment=TEST)
+            info = validate_email(email, check_deliverability=False, test_environment=TEST_ENV)
         except EmailNotValidError as e:
             logging.debug('Received invalid email address %r', email)
             raise ValueError('Invalid email address') from e
@@ -35,7 +35,7 @@ class Email:
         Raises ValueError on error.
         """
 
-        fn = partial(validate_email, check_deliverability=True, test_environment=TEST)
+        fn = partial(validate_email, check_deliverability=True, test_environment=TEST_ENV)
 
         try:
             await anyio.to_thread.run_sync(fn, email)

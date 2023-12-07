@@ -25,7 +25,7 @@ APP_URL = os.environ['APP_URL'].rstrip('/')
 API_URL = os.environ['API_URL'].rstrip('/')
 
 # Configuration (optional)
-TEST = os.getenv('TEST', '0').strip().lower() in ('1', 'true', 'yes')
+TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 
 FILE_CACHE_DIR = Path(os.getenv('FILE_CACHE_DIR', 'tmp/file'))
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
@@ -44,7 +44,7 @@ SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', '')
 SRID = int(os.getenv('SRID', 4326))
 
 # Checks
-if not HTTPS_ONLY:
+if not HTTPS_ONLY and not TEST_ENV:
     logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
 
 # Derived configuration

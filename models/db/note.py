@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import anyio
 from shapely import Point
@@ -9,8 +10,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from config import APP_URL
 from limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from models.db.base import Base
-from models.db.created_at import CreatedAt
-from models.db.updated_at import UpdatedAt
+from models.db.created_at_mixin import CreatedAtMixin
+from models.db.updated_at_mixin import UpdatedAtMixin
 from models.db.user import User
 from models.geometry_type import PointType
 from models.note_status import NoteStatus
@@ -18,7 +19,8 @@ from utils import utcnow
 
 
 # TODO: ensure updated at on members
-class Note(Base.Sequential, CreatedAt, UpdatedAt):
+# TODO: pruner
+class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'note'
 
     point: Mapped[Point] = mapped_column(PointType, nullable=False)
@@ -27,12 +29,13 @@ class Note(Base.Sequential, CreatedAt, UpdatedAt):
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     hidden_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
 
-    # relationships (nested imports to avoid circular imports)
-    from note_comment import NoteComment
+    # relationships (avoid circular imports)
+    if TYPE_CHECKING:
+        from models.db.note_comment import NoteComment
 
-    comments: Mapped[list[NoteComment]] = relationship(
+    comments: Mapped[list['NoteComment']] = relationship(
         back_populates='note',
-        order_by=NoteComment.created_at.asc(),
+        order_by='NoteComment.created_at.asc()',
         lazy='raise',
     )
 

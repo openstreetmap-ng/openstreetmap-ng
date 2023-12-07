@@ -4,14 +4,12 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
 
 from db import DB
-from lib.crypto import HASH_SIZE, hash_b
+from lib.crypto import hash_b
 from limits import CACHE_DEFAULT_EXPIRE
 from models.db.cache_entry import CacheEntry
 from utils import utcnow
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough
-
-CACHE_HASH_SIZE = HASH_SIZE
 
 
 def _hash_key(key: str, context: str) -> bytes:

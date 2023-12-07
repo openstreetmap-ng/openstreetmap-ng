@@ -5,18 +5,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.crypto import HASH_SIZE
 from models.db.base import Base
-from models.db.created_at import CreatedAt
+from models.db.created_at_mixin import CreatedAtMixin
 from models.db.oauth2_application import OAuth2Application
 from models.db.user import User
 from models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from models.scope import Scope
 
 
-class OAuth2Token(Base.UUID, CreatedAt):
+class OAuth2Token(Base.UUID, CreatedAtMixin):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='oauth2_tokens', lazy='joined')
+    user: Mapped[User] = relationship(lazy='joined')
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
     application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='joined')
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
