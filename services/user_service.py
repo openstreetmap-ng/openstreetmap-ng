@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import UploadFile
-from shapely import Point
+from sqlalchemy import func
 
 from db import DB
 from lib.auth import auth_user
@@ -12,7 +12,8 @@ from models.auth_provider import AuthProvider
 from models.avatar_type import AvatarType
 from models.db.user import User
 from models.editor import Editor
-from models.str import EmptyEmailStr, EmptyPasswordStr, UserNameStr
+from models.geometry import PointGeometry
+from models.str import EmailStr, PasswordStr, UserNameStr
 from repositories.user_repository import UserRepository
 from services.avatar_service import AvatarService
 from services.email_change_service import EmailChangeService
@@ -20,53 +21,31 @@ from services.email_change_service import EmailChangeService
 
 class UserService:
     @staticmethod
-    async def update_profile(
+    async def update_about_me(
         *,
         description: str,
-        avatar_type: AvatarType | None,
-        avatar_file: UploadFile | None,
-        home_point: Point | None,
     ) -> None:
         """
-        Update user profile.
+        Update user's about me.
         """
 
-        current_user = auth_user()
-
-        # handle custom avatar
-        if avatar_type == AvatarType.custom:
-            avatar_id = await AvatarService.process_upload(avatar_file)
-        else:
-            avatar_id = None
-
-        # update user data
         async with DB() as session, session.begin():
-            user = await session.get(User, current_user.id, with_for_update=True)
-            user.home_point = home_point
+            user = await session.get(User, auth_user().id, with_for_update=True)
 
             if user.description != description:
                 user.description = description
                 user.description_rich_hash = None
 
-            if avatar_type:
-                user.avatar_type = avatar_type
-                user.avatar_id = avatar_id
-
-        # cleanup old avatar
-        if avatar_type and current_user.avatar_id:
-            await AvatarService.delete_by_id(current_user.avatar_id)
-
     @staticmethod
     async def update_settings(
         collector: MessageCollector,
         *,
+        avatar_type: AvatarType | None,
+        avatar_file: UploadFile | None,
         display_name: UserNameStr,
-        new_email: EmptyEmailStr,
-        new_password: EmptyPasswordStr,
-        auth_provider: AuthProvider | None,
-        auth_uid: str,
         editor: Editor | None,
         languages: str,
+        home_point: PointGeometry | None,
     ) -> None:
         """
         Update user settings.
@@ -78,32 +57,93 @@ class UserService:
         if not await UserRepository.check_display_name_available(display_name):
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
-        # handle email change
-        if new_email and new_email != current_user.email:
-            if not await UserRepository.check_email_available(new_email):
-                collector.raise_error('email', t('user.email_already_taken'))
-            if not await Email.validate_dns(new_email):
-                collector.raise_error('email', t('user.invalid_email'))
-
-            await EmailChangeService.send_confirm_email(new_email)
-            collector.info('email', t('user.email_change_confirm_sent'))
-
-        # precompute values to reduce transaction time
-        if new_password:  # noqa: SIM108
-            password_hashed = current_user.password_hasher.hash(new_password)
+        # handle custom avatar
+        if avatar_type == AvatarType.custom:
+            avatar_id = await AvatarService.process_upload(avatar_file)
         else:
-            password_hashed = None
+            avatar_id = None
 
         # update user data
         async with DB() as session, session.begin():
             user = await session.get(User, current_user.id, with_for_update=True)
             user.display_name = display_name
-            user.auth_provider = auth_provider
-            user.auth_uid = auth_uid or None
             user.editor = editor
             user.languages_str = languages
+            user.home_point = home_point
 
-            if new_password:
-                user.password_hashed = password_hashed
-                user.password_salt = None
-                logging.debug('Changed password for user %r', user.id)
+            if avatar_type:
+                user.avatar_type = avatar_type
+                user.avatar_id = avatar_id
+
+        # cleanup old avatar
+        if avatar_type and current_user.avatar_id:
+            await AvatarService.delete_by_id(current_user.avatar_id)
+
+    @staticmethod
+    async def update_email(
+        collector: MessageCollector,
+        *,
+        new_email: EmailStr,
+        password: str,
+    ) -> None:
+        """
+        Update user email.
+
+        Sends a confirmation email for the email change.
+        """
+
+        current_user = auth_user()
+
+        # some early validation
+        if not current_user.password_hasher.verify(password, current_user.password_hashed):
+            collector.raise_error('password', t('user.invalid_password'))
+        if not await UserRepository.check_email_available(new_email):
+            collector.raise_error('email', t('user.email_already_taken'))
+        if not await Email.validate_dns(new_email):
+            collector.raise_error('email', t('user.invalid_email'))
+
+        await EmailChangeService.send_confirm_email(new_email)
+        collector.info('email', t('user.email_change_confirm_sent'))
+        logging.debug('Sent email change confirmation for user %r', current_user.id)
+
+    @staticmethod
+    async def update_password(
+        collector: MessageCollector,
+        *,
+        old_password: str,
+        new_password: PasswordStr,
+    ) -> None:
+        """
+        Update user password.
+        """
+
+        current_user = auth_user()
+
+        # some early validation
+        if not current_user.password_hasher.verify(old_password, current_user.password_hashed):
+            collector.raise_error('old_password', t('user.invalid_password'))
+
+        # precompute values to reduce transaction time
+        password_hashed = current_user.password_hasher.hash(new_password)
+
+        # update user data
+        async with DB() as session, session.begin():
+            user = await session.get(User, current_user.id, with_for_update=True)
+            user.password_hashed = password_hashed
+            user.password_changed_at = func.now()
+            user.password_salt = None
+
+        collector.success(None, t('user.password_changed'))
+        logging.debug('Changed password for user %r', user.id)
+
+    @staticmethod
+    async def update_auth_provider(
+        auth_provider: AuthProvider | None,
+        auth_uid: str,
+    ) -> None:
+        """
+        Update user auth provider.
+        """
+
+        # TODO: implement
+        raise NotImplementedError

@@ -1,5 +1,6 @@
 from collections import defaultdict
 from enum import StrEnum
+from types import MappingProxyType
 from typing import NoReturn
 
 from fastapi import HTTPException, status
@@ -11,25 +12,28 @@ class MessageSeverity(StrEnum):
     error = 'error'
 
 
+_MESSAGE_TYPE = MappingProxyType({severity: f'custom_{severity}' for severity in MessageSeverity})
+
+
 class MessageCollector:
     def __init__(self) -> None:
-        self._messages: dict[str, list[tuple[MessageSeverity, str]]] = defaultdict(list)
+        self._messages: dict[str | None, list[tuple[MessageSeverity, str]]] = defaultdict(list)
 
-    def success(self, field: str, message: str) -> None:
+    def success(self, field: str | None, message: str) -> None:
         """
         Collect a success message for a field.
         """
 
         self._messages[field].append((MessageSeverity.success, message))
 
-    def info(self, field: str, message: str) -> None:
+    def info(self, field: str | None, message: str) -> None:
         """
         Collect an info message for a field.
         """
 
         self._messages[field].append((MessageSeverity.info, message))
 
-    def raise_error(self, field: str, message: str) -> NoReturn:
+    def raise_error(self, field: str | None, message: str) -> NoReturn:
         """
         Collect an error message for a field and raise a HTTPException.
         """
@@ -38,7 +42,7 @@ class MessageCollector:
             status.HTTP_400_BAD_REQUEST,
             detail=[
                 {
-                    'type': f'custom_{MessageSeverity.error}',
+                    'type': _MESSAGE_TYPE[MessageSeverity.error],
                     'loc': [None, field],
                     'msg': message,
                 }
@@ -54,7 +58,7 @@ class MessageCollector:
         return {
             'detail': [
                 {
-                    'type': f'custom_{severity}',
+                    'type': _MESSAGE_TYPE[severity],
                     'loc': [None, field],
                     'msg': message,
                 }
@@ -81,7 +85,7 @@ class MessageCollector:
 #         _context.reset(token)
 
 
-# def collect_success(field: str, message: str) -> None:
+# def collect_success(field: str | None, message: str) -> None:
 #     """
 #     Collect a success message for a field.
 #     """
@@ -90,7 +94,7 @@ class MessageCollector:
 #     collector.success(field, message)
 
 
-# def collect_info(field: str, message: str) -> None:
+# def collect_info(field: str | None, message: str) -> None:
 #     """
 #     Collect an info message for a field.
 #     """
@@ -99,7 +103,7 @@ class MessageCollector:
 #     collector.info(field, message)
 
 
-# def collect_raise_error(field: str, message: str) -> NoReturn:
+# def collect_raise_error(field: str | None, message: str) -> NoReturn:
 #     """
 #     Collect an error message for a field and raise a HTTPException.
 #     """

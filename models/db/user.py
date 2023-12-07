@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
@@ -7,6 +8,7 @@ from sqlalchemy import (
     ARRAY,
     BigInteger,
     Boolean,
+    DateTime,
     Enum,
     LargeBinary,
     SmallInteger,
@@ -15,6 +17,7 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     false,
+    func,
 )
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -65,6 +68,7 @@ class User(Base.NoID, CreatedAt, RichTextMixin):
     languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     # defaults
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=func.now())
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
     consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
