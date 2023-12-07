@@ -3,7 +3,7 @@ from fastapi import Request
 from db import DB
 from lib.auth import auth_user, manual_auth_context
 from lib.email import Email
-from lib.exceptions import raise_for
+from lib.message_collector import MessageCollector
 from lib.password_hash import PasswordHash
 from lib.translation import t, translation_languages
 from models.db.user import User
@@ -22,6 +22,7 @@ class UserSignupService:
     @staticmethod
     async def signup(
         request: Request,
+        collector: MessageCollector,
         *,
         display_name: UserNameStr,
         email: EmailStr,
@@ -35,11 +36,11 @@ class UserSignupService:
 
         # some early validation
         if not await UserRepository.check_display_name_available(display_name):
-            raise_for().field_bad_request('display_name', t('user.display_name_already_taken'))
+            collector.raise_error('display_name', t('user.display_name_already_taken'))
         if not await UserRepository.check_email_available(email):
-            raise_for().field_bad_request('email', t('user.email_already_taken'))
+            collector.raise_error('email', t('user.email_already_taken'))
         if not await Email.validate_dns(email):
-            raise_for().field_bad_request('email', t('user.invalid_email'))
+            collector.raise_error('email', t('user.invalid_email'))
 
         # precompute values to reduce transaction time
         password_hashed = PasswordHash.default().hash(password)

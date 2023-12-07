@@ -14,14 +14,6 @@ class ExceptionsBase(ABC):
     class APIError(HTTPException):
         pass
 
-    class FieldError(HTTPException):
-        def __init__(self, status_code: int, field: str, detail: str):
-            super().__init__(status_code, detail={field: detail})
-
-    @classmethod
-    def field_bad_request(cls, field: str, detail: str) -> NoReturn:
-        raise cls.FieldError(status.HTTP_400_BAD_REQUEST, field, detail)
-
     @classmethod
     def timeout(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
