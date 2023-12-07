@@ -1,5 +1,4 @@
 import typing
-from itertools import chain
 
 import orjson
 from fastapi import Response
@@ -45,7 +44,7 @@ class OSMResponse(Response):
             if isinstance(content, dict):
                 content = {self.xml_root: attributes | content}
             elif isinstance(content, list | tuple):
-                content = {self.xml_root: tuple(chain(attributes.items(), content))}
+                content = {self.xml_root: (*attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')
 
@@ -72,7 +71,7 @@ class OSMResponse(Response):
             if isinstance(content, dict):
                 content = {self.xml_root: attributes | content}
             elif isinstance(content, list | tuple):
-                content = {self.xml_root: tuple(chain(attributes.items(), content))}
+                content = {self.xml_root: (*attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')
 

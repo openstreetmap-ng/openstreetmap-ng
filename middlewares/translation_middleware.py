@@ -51,9 +51,6 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
 
         temp.append((q, lang))
 
-    # always add default language with lowest q-factor
-    temp.append((0, DEFAULT_LANGUAGE))
-
     # sort by q-factor, descending
     temp.sort(reverse=True)
 

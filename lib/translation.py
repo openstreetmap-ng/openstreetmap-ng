@@ -8,7 +8,7 @@ import arrow
 from cachetools import TTLCache, cached
 from jinja2 import Environment, FileSystemLoader
 
-from config import LOCALE_DOMAIN
+from config import DEFAULT_LANGUAGE, LOCALE_DOMAIN
 from utils import format_iso_date, utcnow
 
 _J2 = Environment(
@@ -37,6 +37,9 @@ def translation_context(languages: Sequence[str]):
 
     Languages order determines the preference, from most to least preferred.
     """
+
+    # always use default translation language
+    languages = tuple(*languages, DEFAULT_LANGUAGE)
 
     trans = _get_translation(languages)
     token_langs = _context_langs.set(languages)
