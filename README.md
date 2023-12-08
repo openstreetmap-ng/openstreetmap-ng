@@ -25,8 +25,8 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Migration of API 0.6
 - [ ] Migration of redactions
 - [x] Improved GPX traces processing
-- [8%] Migration of website API
-- [1%] Migration of the front-end
+- [10%] Migration of website API
+- [5%] Migration of the front-end
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [ ] Anti-vandalism stage 1
 - [ ] Deprecation of OAuth 1.0 warning
