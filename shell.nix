@@ -21,7 +21,8 @@ with pkgs; let
     pipenv
     gettext
     nodejs_18
-    unstable.ruff
+    dart-sass
+    ruff
   ];
 
   commonShellHook = ''

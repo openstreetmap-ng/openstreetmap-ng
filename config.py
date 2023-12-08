@@ -15,7 +15,7 @@ DEFAULT_LANGUAGE = 'en'
 LOCALE_DOMAIN = 'combined'  # run "make locale-compile" to generate combined locales
 
 GENERATOR = 'OpenStreetMap-NG'
-COPYRIGHT = 'OpenStreetMap and contributors'
+COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 

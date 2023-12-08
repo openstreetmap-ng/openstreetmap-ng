@@ -1,0 +1,2 @@
+image quality: 95
+alpha quality: 75

@@ -7,12 +7,11 @@
 	update-db \
 	load-osm \
 	locale-compile \
+	sass \
 	dev-start \
 	dev-stop \
 	dev-logs \
-	dev-clean \
-	zstd-tracks-download \
-	zstd-tracks
+	dev-clean
 
 setup:
 	# compile cython
@@ -40,6 +39,9 @@ load-osm:
 locale-compile:
 	./scripts/locale_compile.sh
 
+sass:
+	sass --watch --style compressed --load-path node_modules static/sass:static/css
+
 dev-start:
 	[ -d data/pgadmin ] || install -d -o 5050 -g 5050 data/pgadmin
 	docker compose -f docker-compose.dev.yml up -d
@@ -56,9 +58,3 @@ dev-clean:
 
 open-pgadmin:
 	xdg-open http://localhost:5433
-
-zstd-tracks-download:
-	pipenv run python ./scripts/zstd_tracks_download.py
-
-zstd-tracks:
-	zstd -o zstd/tracks.dict -19 --train-fastcover $$(find zstd/tracks/ -type f -name '*.gpx' -print0 | xargs -0)
