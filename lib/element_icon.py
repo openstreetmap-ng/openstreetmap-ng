@@ -4,106 +4,7 @@ from types import MappingProxyType
 from models.db.element import Element
 from models.element_type import ElementType
 
-_WAY_CONFIG = MappingProxyType(
-    {
-        'aeroway': {
-            'runway': 'aeroway_runway.20.webp',
-            'taxiway': 'aeroway_taxiway.20.webp',
-        },
-        'barrier': {
-            'fence': 'barrier_wall.20.webp',
-            'wall': 'barrier_wall.20.webp',
-            # TODO: 'hedge': '',
-        },
-        'building': {
-            None: 'building.webp',
-        },
-        'highway': {
-            'bridleway': 'highway_bridleway.20.webp',
-            'cycleway': 'highway_cycleway.20.webp',
-            'footway': 'highway_footway.20.webp',
-            'living_street': 'highway_service.20.webp',
-            'motorway': 'highway_motorway.20.webp',
-            'motorway_link': 'highway_motorway.20.webp',
-            'path': 'highway_path.20.webp',
-            'pedestrian': 'highway_service.20.webp',
-            'primary': 'highway_primary.20.webp',
-            'primary_link': 'highway_primary.20.webp',
-            'residential': 'highway_unclassified.20.webp',
-            'secondary': 'highway_secondary.20.webp',
-            'secondary_link': 'highway_secondary.20.webp',
-            'service': 'highway_service.20.webp',
-            'steps': 'highway_steps.webp',
-            'tertiary': 'highway_tertiary.20.webp',
-            'track': 'highway_track.20.webp',
-            'trunk': 'highway_trunk.20.webp',
-            'trunk_link': 'highway_trunk.20.webp',
-            'unclassified': 'highway_unclassified.20.webp',
-        },
-        'industrial': {
-            'port': 'industrial_port.webp',
-        },
-        'landuse': {
-            'allotments': 'landuse_allotments.webp',
-            'basin': 'water_lake.webp',
-            'brownfield': 'landuse_brownfield.webp',
-            'cemetery': 'landuse_cemetery.webp',
-            'commercial': 'landuse_commercial.webp',
-            'farmland': 'landuse_farmland.webp',
-            'farmyard': 'landuse_farmyard.webp',
-            'forest': 'landuse_forest.webp',
-            'grass': 'landuse_grass.10.webp',
-            'industrial': 'landuse_industrial.webp',
-            'meadow': 'landuse_meadow.webp',
-            'military': 'landuse_military.webp',
-            # TODO: 'orchard': '',
-            'recreational_ground': 'leisure_sports_centre.webp',
-            'reservoir': 'water_lake.webp',
-            'residential': 'landuse_residential.webp',
-            'retail': 'landuse_retail.webp',
-            'tourism': 'landuse_tourism.webp',
-            'village_green': 'landuse_grass.10.webp',
-            # TODO: 'vineyard': '',
-            'quarry': 'landuse_quarry.webp',
-        },
-        'leisure': {
-            'garden': 'landuse_grass.10.webp',
-            'golf_course': 'leisure_golf_course.webp',
-            'nature_reserve': 'leisure_natural_reserve.webp',
-            'park': 'leisure_park.webp',
-            'pitch': 'leisure_pitch.webp',
-            'playground': 'leisure_playground.16.webp',
-            'sports_centre': 'leisure_sports_centre.webp',
-            'swimming_pool': 'water_lake.webp',
-            'water_park': 'leisure_water_park.16.webp',
-        },
-        'man_made': {
-            'bridge': 'man_made_bridge.20.webp',
-            'tunnel': 'man_made_tunnel.20.webp',
-        },
-        'natural': {
-            'grassland': 'natural_grassland.webp',
-            'heath': 'natural_heath.webp',
-            'scrub': 'natural_scrub.webp',
-            'water': 'water_lake.webp',
-            'wood': 'natural_wood.webp',
-        },
-        'railway': {
-            'light_rail': 'railway_light_rail.20.webp',
-            'rail': 'railway_rail.20.webp',
-            'subway': 'railway_subway.20.webp',
-            'tram': 'railway_tram.20.webp',
-        },
-        'water': {
-            None: 'water_lake.webp',
-        },
-        'waterway': {
-            None: 'water_lake.webp',
-        },
-    }
-)
-
-_ALL_CONFIG = MappingProxyType(
+_CONFIG = MappingProxyType(
     {
         'aeroway': {
             'aerodrome': 'aeroway_airport.webp',
@@ -111,6 +12,10 @@ _ALL_CONFIG = MappingProxyType(
             'helipad': 'aeroway_helipad.webp',
             'terminal': 'aeroway_terminal.webp',
             'parking_position': 'aeroway_gate.webp',
+            ElementType.way: {
+                'runway': 'aeroway_runway.20.webp',
+                'taxiway': 'aeroway_taxiway.20.webp',
+            },
         },
         'amenity': {
             'atm': 'amenity_atm.16.webp',
@@ -191,9 +96,17 @@ _ALL_CONFIG = MappingProxyType(
             'stile': 'barrier_stile.webp',
             'toll_booth': 'barrier_toll_booth.webp',
             'turnstile': 'barrier_turnstile.webp',
+            ElementType.way: {
+                'fence': 'barrier_wall.20.webp',
+                'wall': 'barrier_wall.20.webp',
+                # TODO: 'hedge': '',
+            },
         },
         'building': {
             'bunker': 'military_bunker.webp',
+            ElementType.way: {
+                None: 'building.webp',
+            },
         },
         'crab': {
             'yes': 'crab_yes.webp',  # please don't spoil it :-)
@@ -224,6 +137,28 @@ _ALL_CONFIG = MappingProxyType(
             'turning_loop': 'highway_turning_circle.16.webp',
             # TODO: 'speed_camera': '',
             'street_lamp': 'man_made_lamp.webp',
+            ElementType.way: {
+                'bridleway': 'highway_bridleway.20.webp',
+                'cycleway': 'highway_cycleway.20.webp',
+                'footway': 'highway_footway.20.webp',
+                'living_street': 'highway_service.20.webp',
+                'motorway': 'highway_motorway.20.webp',
+                'motorway_link': 'highway_motorway.20.webp',
+                'path': 'highway_path.20.webp',
+                'pedestrian': 'highway_service.20.webp',
+                'primary': 'highway_primary.20.webp',
+                'primary_link': 'highway_primary.20.webp',
+                'residential': 'highway_unclassified.20.webp',
+                'secondary': 'highway_secondary.20.webp',
+                'secondary_link': 'highway_secondary.20.webp',
+                'service': 'highway_service.20.webp',
+                'steps': 'highway_steps.webp',
+                'tertiary': 'highway_tertiary.20.webp',
+                'track': 'highway_track.20.webp',
+                'trunk': 'highway_trunk.20.webp',
+                'trunk_link': 'highway_trunk.20.webp',
+                'unclassified': 'highway_unclassified.20.webp',
+            },
         },
         'historic': {
             'archaeological_site': 'historic_archaeological_site.16.webp',
@@ -237,9 +172,50 @@ _ALL_CONFIG = MappingProxyType(
             'wayside_shrine': 'historic_wayside_shrine.webp',
             'wreck': 'historic_wreck.webp',
         },
+        'industrial': {
+            ElementType.way: {
+                'port': 'industrial_port.webp',
+            },
+        },
+        'landuse': {
+            ElementType.way: {
+                'allotments': 'landuse_allotments.webp',
+                'basin': 'water_lake.webp',
+                'brownfield': 'landuse_brownfield.webp',
+                'cemetery': 'landuse_cemetery.webp',
+                'commercial': 'landuse_commercial.webp',
+                'farmland': 'landuse_farmland.webp',
+                'farmyard': 'landuse_farmyard.webp',
+                'forest': 'landuse_forest.webp',
+                'grass': 'landuse_grass.10.webp',
+                'industrial': 'landuse_industrial.webp',
+                'meadow': 'landuse_meadow.webp',
+                'military': 'landuse_military.webp',
+                # TODO: 'orchard': '',
+                'recreational_ground': 'leisure_sports_centre.webp',
+                'reservoir': 'water_lake.webp',
+                'residential': 'landuse_residential.webp',
+                'retail': 'landuse_retail.webp',
+                'tourism': 'landuse_tourism.webp',
+                'village_green': 'landuse_grass.10.webp',
+                # TODO: 'vineyard': '',
+                'quarry': 'landuse_quarry.webp',
+            },
+        },
         'leisure': {
             'marina': 'leisure_marina.webp',
             'slipway': 'leisure_slipway.webp',
+            ElementType.way: {
+                'garden': 'landuse_grass.10.webp',
+                'golf_course': 'leisure_golf_course.webp',
+                'nature_reserve': 'leisure_natural_reserve.webp',
+                'park': 'leisure_park.webp',
+                'pitch': 'leisure_pitch.webp',
+                'playground': 'leisure_playground.16.webp',
+                'sports_centre': 'leisure_sports_centre.webp',
+                'swimming_pool': 'water_lake.webp',
+                'water_park': 'leisure_water_park.16.webp',
+            },
         },
         'man_made': {
             'crane': 'man_made_crane.webp',
@@ -252,6 +228,10 @@ _ALL_CONFIG = MappingProxyType(
             'utility_pole': 'power_pole.webp',
             'water_tower': 'man_made_water_tower.16.webp',
             'windmill': 'man_made_windmill.16.webp',
+            ElementType.way: {
+                'bridge': 'man_made_bridge.20.webp',
+                'tunnel': 'man_made_tunnel.20.webp',
+            },
         },
         'military': {
             'bunker': 'military_bunker.webp',
@@ -260,6 +240,13 @@ _ALL_CONFIG = MappingProxyType(
             'cave_entrance': 'natural_cave_entrance.webp',
             'peak': 'natural_peak.webp',
             'tree': 'natural_tree.webp',
+            ElementType.way: {
+                'grassland': 'natural_grassland.webp',
+                'heath': 'natural_heath.webp',
+                'scrub': 'natural_scrub.webp',
+                'water': 'water_lake.webp',
+                'wood': 'natural_wood.webp',
+            },
         },
         'place': {
             None: 'place_town.webp',
@@ -285,13 +272,19 @@ _ALL_CONFIG = MappingProxyType(
             'subway_entrance': 'railway_subway_entrance.32.webp',
             'tram_level_crossing': 'railway_level_crossing.16.webp',
             'tram_stop': 'railway_subway_entrance.32.webp',
+            ElementType.way: {
+                'light_rail': 'railway_light_rail.20.webp',
+                'rail': 'railway_rail.20.webp',
+                'subway': 'railway_subway.20.webp',
+                'tram': 'railway_tram.20.webp',
+            },
         },
         'shop': {
             None: 'shop_convenience.webp',
             'alcohol': 'shop_alcohol.16.webp',
             'anime': 'shop_anime.webp',
             'bakery': 'shop_bakery.16.webp',
-            'beauty': 'shop_anime.webp',
+            'beauty': 'shop_beauty.webp',
             'bicycle': 'shop_bicycle.16.webp',
             'books': 'shop_books.16.webp',
             'boutique': 'shop_clothes.16.webp',
@@ -310,6 +303,7 @@ _ALL_CONFIG = MappingProxyType(
             'doityourself': 'shop_doityourself.16.webp',
             'e-cigarette': 'shop_tobacco.webp',
             'electronics': 'shop_electronics.16.webp',
+            'erotic': 'shop_erotic.webp',
             'estate_agent': 'shop_estate_agent.16.webp',
             'farm': 'shop_greengrocer.webp',
             'fishing': 'shop_fishing.webp',
@@ -369,12 +363,22 @@ _ALL_CONFIG = MappingProxyType(
             'hump': 'traffic_calming_bump.webp',
             'table': 'traffic_calming_bump.webp',
         },
+        'water': {
+            ElementType.way: {
+                None: 'water_lake.webp',
+            },
+        },
         'waterway': {
             'dam': 'water_dam.webp',
             'weir': 'water_weir.webp',
+            ElementType.way: {
+                None: 'water_lake.webp',
+            },
         },
     }
 )
+
+_CONFIG_KEYS_SET = frozenset(_CONFIG)
 
 
 class ElementIcon:
@@ -393,33 +397,49 @@ class ElementIcon:
         if not tags:
             return None, None
 
-        # check type-specific config first
-        if element.type == ElementType.way:  # noqa: SIM108
-            configs = (_WAY_CONFIG, _ALL_CONFIG)
-        else:
-            configs = (_ALL_CONFIG,)
+        config_keys = _CONFIG_KEYS_SET.intersection(tags)
 
-        for config in configs:
-            for key, value_config in config.items():
-                if (value := tags.get(key)) and (icon := value_config.get(value)):
-                    return icon, f'{key}={value}'
+        for key in config_keys:
+            key_value = tags[key]
+            key_config = _CONFIG[key]
+            key_type_config = key_config.get(element.type)
 
-        for config in configs:
-            for key, value_config in config.items():
-                if (value := tags.get(key)) and (icon := value_config.get(None)):
-                    return icon, key
+            # prefer type-specific configuration
+            if key_type_config and (icon := key_type_config.get(key_value)):
+                return icon, f'{key}={key_value}'
+            if icon := key_config.get(key_value):
+                return icon, f'{key}={key_value}'
+
+        for key in config_keys:
+            key_config = _CONFIG[key]
+            key_type_config = key_config.get(element.type)
+
+            # prefer type-specific configuration
+            if key_type_config and (icon := key_type_config.get(None)):
+                return icon, key
+            if icon := key_config.get(None):
+                return icon, key
 
         return None, None
 
+    # TODO: deleted objects use previous tagging
+    # TODO: test
     @staticmethod
     def raise_if_file_missing() -> None:
         """
         Raise an exception if any of the icon files are missing.
         """
 
-        for config in (_WAY_CONFIG, _ALL_CONFIG):
-            for value_config in config.values():
-                for value in value_config.values():
-                    path = pathlib.Path('static/img/element/' + value)
+        for key_config in _CONFIG.values():
+            for icon_or_type_config in key_config.values():
+                if isinstance(icon_or_type_config, str):
+                    icon = icon_or_type_config
+                    icons = (icon,)
+                else:
+                    key_type_config = icon_or_type_config
+                    icons = key_type_config.values()
+
+                for icon in icons:
+                    path = pathlib.Path('static/img/element/' + icon)
                     if not path.is_file():
                         raise FileNotFoundError(path)
