@@ -1,0 +1,81 @@
+.leaflet-container {
+    // The sprite usage is deprecated.
+    // New icons should be kept separate for ease of maintenance.
+    // TODO: Split the sprite into separate files.
+    @mixin legacy-leaflet-icon($x, $y) {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 10px;
+        background: transparent url("/static/img/leaflet/sprite.webp") no-repeat;
+        background-position: $x $y;
+    }
+
+    .icon.search {
+        @include legacy-leaflet-icon(0, 0);
+    }
+
+    .icon.donate {
+        @include legacy-leaflet-icon(-20px, 0);
+    }
+
+    .icon.zoomin {
+        @include legacy-leaflet-icon(-40px, 0);
+    }
+
+    .icon.zoomout {
+        @include legacy-leaflet-icon(-60px, 0);
+    }
+
+    .icon.geolocate {
+        @include legacy-leaflet-icon(-80px, 0);
+    }
+
+    .active .icon.geolocate {
+        @include legacy-leaflet-icon(-80px, -20px);
+    }
+
+    .icon.layers {
+        @include legacy-leaflet-icon(-100px, 0);
+    }
+
+    .icon.key {
+        @include legacy-leaflet-icon(-120px, 0);
+    }
+
+    .icon.share {
+        @include legacy-leaflet-icon(-140px, 0);
+    }
+
+    .icon.clipboard {
+        @include legacy-leaflet-icon(-160px, 0);
+    }
+
+    .icon.link {
+        @include legacy-leaflet-icon(-180px, 0);
+    }
+
+    .icon.close {
+        @include legacy-leaflet-icon(-200px, 0);
+    }
+
+    .icon.close:hover {
+        @include legacy-leaflet-icon(-200px, -20px);
+    }
+
+    .icon.check {
+        @include legacy-leaflet-icon(-220px, 0);
+    }
+
+    .icon.note {
+        @include legacy-leaflet-icon(-240px, 0);
+    }
+
+    .icon.note.gray {
+        @include legacy-leaflet-icon(-240px, -20px);
+    }
+
+    .icon.query {
+        @include legacy-leaflet-icon(-260px, 0);
+    }
+}

@@ -43,6 +43,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
 
-**📅 Expected feature parity by:** 2023-12-16
+**📅 Expected feature parity by:** 2023-12-16 \
+(delayed, new ETA soon, [read more here](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/61))
 
 **📅 Expected roadmap finish by:** 2024-02-16

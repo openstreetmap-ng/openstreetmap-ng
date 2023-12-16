@@ -1,0 +1,31 @@
+.leaflet-container {
+    // Style buttons displayed on the side of the map
+    // (e.g. zoom in/out, layers, etc.)
+    .control-button {
+        display: block;
+        background-color: rgba(0, 0, 0, 0.6);
+
+        &-first {
+            border-start-start-radius: $border-radius-sm;
+        }
+
+        &-last {
+            border-end-start-radius: $border-radius-sm;
+            margin-bottom: 10px;
+        }
+
+        &:hover,
+        &:focus {
+            background-color: black;
+        }
+
+        &.disabled {
+            background-color: rgba(0, 0, 0, 0.5);
+            cursor: default;
+        }
+
+        &.active {
+            background-color: $vibrant-green;
+        }
+    }
+}
