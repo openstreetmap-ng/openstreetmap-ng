@@ -9,7 +9,7 @@ from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
-from cython_lib.geoutils import parse_bbox
+from cython_lib.geo_utils import parse_bbox
 from lib.auth import api_user
 from lib.exceptions import raise_for
 from lib.format import format_style

@@ -21,7 +21,7 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from config import APP_URL, DEFAULT_LANGUAGE
-from cython_lib.geoutils import haversine_distance
+from cython_lib.geo_utils import haversine_distance
 from lib.avatar import Avatar
 from lib.crypto import HASH_SIZE
 from lib.languages import get_language_info, normalize_language_case

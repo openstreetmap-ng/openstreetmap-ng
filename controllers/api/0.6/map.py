@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from cython_lib.geoutils import parse_bbox
+from cython_lib.geo_utils import parse_bbox
 from cython_lib.xmltodict import XAttr
 from lib.exceptions import raise_for
 from lib.format.format06 import Format06
