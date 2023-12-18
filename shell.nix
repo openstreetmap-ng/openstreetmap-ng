@@ -20,9 +20,9 @@ with pkgs; let
     gnumake
     pipenv
     gettext
+    ruff
     nodejs_18
     dart-sass
-    ruff
   ];
 
   commonShellHook = ''

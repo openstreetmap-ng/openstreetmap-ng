@@ -40,7 +40,7 @@ locale-compile:
 	./scripts/locale_compile.sh
 
 sass:
-	sass --watch --style compressed --load-path node_modules static/sass:static/css
+	npm run sass
 
 dev-start:
 	[ -d data/pgadmin ] || install -d -o 5050 -g 5050 data/pgadmin
