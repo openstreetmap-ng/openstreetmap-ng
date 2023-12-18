@@ -1,0 +1,26 @@
+// Style the tags table
+.tags {
+    table-layout: fixed;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+    border: 1px solid $gray-600;
+    border-radius: $border-radius;
+
+    .key {
+    }
+
+    .value {
+        // Style the color preview box
+        // (used with colour, roof:colour, etc.)
+        .color-preview {
+            float: right;
+            width: 1.1em;
+            height: 1.1em;
+            position: relative;
+            top: 0.2em;
+            border: 1px solid $gray-200;
+            // TODO: in JS: background: var(--color);
+        }
+    }
+}
