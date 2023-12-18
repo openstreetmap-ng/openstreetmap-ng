@@ -23,14 +23,18 @@
     .control-button {
         display: block;
         background-color: rgba(0, 0, 0, 0.6);
+        margin-top: 0px;
+        margin-right: 0px;
+        margin-bottom: 0px;
 
         &-first {
+            margin-top: 0.625rem;
             border-start-start-radius: $border-radius-sm;
         }
 
         &-last {
+            margin-bottom: 0.625rem;
             border-end-start-radius: $border-radius-sm;
-            margin-bottom: 10px;
         }
 
         &:hover,
@@ -46,5 +50,11 @@
         &.active {
             background-color: $vibrant-green;
         }
+    }
+
+    // Style the map popup
+    // Make the border radius match the sidebar
+    .leaflet-popup-content-wrapper {
+        border-radius: $border-radius-sm;
     }
 }
