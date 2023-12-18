@@ -2,6 +2,7 @@
     // The sprite usage is deprecated.
     // New icons should be kept separate for ease of maintenance.
     // TODO: Split the sprite into separate files.
+    // The use of @mixin prevents deprecated pollution of .icon class.
     @mixin legacy-leaflet-icon($x, $y) {
         display: inline-block;
         width: 20px;

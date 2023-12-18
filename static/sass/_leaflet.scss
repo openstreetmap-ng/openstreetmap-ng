@@ -1,4 +1,23 @@
 .leaflet-container {
+    // Style map cursor depending on the action
+    &.query-features {
+        cursor: help;
+
+        // TODO: ESC to cancel
+        &.query-features-disabled {
+            cursor: not-allowed;
+        }
+    }
+
+    // TODO: is this necessary?
+    .leaflet-marker-draggable {
+        cursor: move;
+
+        &.leaflet-drag-target {
+            cursor: grabbing;
+        }
+    }
+
     // Style buttons displayed on the side of the map
     // (e.g. zoom in/out, layers, etc.)
     .control-button {

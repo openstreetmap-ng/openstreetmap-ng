@@ -1,0 +1,21 @@
+// Make body a flex container and stretch it to fill the viewport
+.map-body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+// Expand map container and make it another flex container
+.map-container {
+    flex-grow: 1;
+    position: relative;
+    display: flex;
+    // TODO: overflow: hidden;
+
+    // Expand leaflet container (tiles)
+    .leaflet-container {
+        flex-grow: 1;
+    }
+}
+
+// TODO: media-breakpoint-down(md)
