@@ -1,0 +1,9 @@
+.map-container {
+    // Style the alert container that appears on top of the map
+    .alert-container {
+        position: absolute;
+        top: 0.625rem;
+        display: flex;
+        justify-content: center;
+    }
+}

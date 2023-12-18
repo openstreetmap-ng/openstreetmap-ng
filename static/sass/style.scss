@@ -3,11 +3,15 @@
 @import "rtl";
 @import "navbar";
 @import "map";
-@import "map-donate";
+@import "map-attribution";
 @import "map-sidebar";
 @import "map-sidebar-banner";
 @import "map-sidebar-layers";
 @import "map-sidebar-legend";
 @import "map-sidebar-share";
+@import "map-sidebar-content-result";
+@import "map-sidebar-content-routing";
+@import "map-sidebar-content-export";
+@import "map-alert";
 @import "leaflet";
 @import "leaflet-icons";
