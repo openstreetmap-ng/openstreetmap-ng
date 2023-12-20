@@ -12,7 +12,9 @@ from lib.locales import normalize_locale_case
 from lib.translation import translation_context
 from limits import LANGUAGE_CODE_MAX_LENGTH
 
-_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{1,8}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?', re.X)
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
+# limit to matches only supported by our translation files: config/locale
+_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
 @cached(TTLCache(128, ttl=86400))
