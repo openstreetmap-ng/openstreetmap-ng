@@ -14,31 +14,31 @@
 }
 
 .welcome-icon.x {
-    @include legacy-welcome-icon(-50px 0);
+    @include legacy-welcome-icon(-50px, 0);
 }
 
 .welcome-icon.node {
-    @include legacy-welcome-icon(-100px 0);
+    @include legacy-welcome-icon(-100px, 0);
 }
 
 .welcome-icon.way {
-    @include legacy-welcome-icon(-150px 0);
+    @include legacy-welcome-icon(-150px, 0);
 }
 
 .welcome-icon.tag {
-    @include legacy-welcome-icon(-200px 0);
+    @include legacy-welcome-icon(-200px, 0);
 }
 
 .welcome-icon.editor {
-    @include legacy-welcome-icon(-250px 0);
+    @include legacy-welcome-icon(-250px, 0);
 }
 
 .welcome-icon.question {
-    @include legacy-welcome-icon(-300px 0);
+    @include legacy-welcome-icon(-300px, 0);
 }
 
 .welcome-icon.rules {
-    @include legacy-welcome-icon(-350px 0);
+    @include legacy-welcome-icon(-350px, 0);
 }
 
 // Add background to the leaflet's note icon

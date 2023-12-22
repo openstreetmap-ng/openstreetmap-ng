@@ -1,7 +1,7 @@
 .diary {
     // Dashed separator between diary comments
     .diary-comment {
-        border-bottom: 1px dashed $gray;
+        border-bottom: 1px dashed $gray-500;
 
         &:last-child {
             border-bottom: none;

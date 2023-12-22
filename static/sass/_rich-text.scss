@@ -1,12 +1,12 @@
 // Styles for rich text
 .rich-text {
     code {
-        background: $lightgray;
+        background: $gray-400;
         padding: 0.1em 0.2em;
     }
 
     pre {
-        background: $lightgray;
+        background: $gray-400;
         padding: 0.1em 0.2em;
 
         // Allow line wrapping

@@ -31,21 +31,21 @@
 }
 
 .about-icon.community {
-    @include legacy-about-icon(0 -40px);
+    @include legacy-about-icon(0, -40px);
 }
 
 .about-icon.open {
-    @include legacy-about-icon(0 -80px);
+    @include legacy-about-icon(0, -80px);
 }
 
 .about-icon.partners {
-    @include legacy-about-icon(0 -120px);
+    @include legacy-about-icon(0, -120px);
 }
 
 .about-icon.infringement {
-    @include legacy-about-icon(0 -160px);
+    @include legacy-about-icon(0, -160px);
 }
 
 .about-icon.legal {
-    @include legacy-about-icon(-45px -160px);
+    @include legacy-about-icon(-45px, -160px);
 }
