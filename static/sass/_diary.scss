@@ -1,0 +1,10 @@
+.diary {
+    // Dashed separator between diary comments
+    .diary-comment {
+        border-bottom: 1px dashed $gray;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+}

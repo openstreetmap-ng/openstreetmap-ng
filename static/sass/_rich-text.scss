@@ -1,0 +1,34 @@
+// Styles for rich text
+.rich-text {
+    code {
+        background: $lightgray;
+        padding: 0.1em 0.2em;
+    }
+
+    pre {
+        background: $lightgray;
+        padding: 0.1em 0.2em;
+
+        // Allow line wrapping
+        white-space: pre-wrap;
+
+        // Remove padding from nested code blocks
+        code {
+            padding: 0;
+        }
+    }
+
+    blockquote {
+        border-left: 1.5em solid $off-white;
+        padding-left: 1.5em;
+        color: $gray-700;
+    }
+
+    img {
+        padding: 1.5em;
+        background: $off-white;
+        display: block;
+        margin: auto;
+        max-width: 100%;
+    }
+}

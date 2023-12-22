@@ -1,0 +1,51 @@
+// Style the about section header
+.about-header {
+    .map-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .attribution {
+        background: $vibrant-green;
+    }
+
+    .vibrant {
+        color: $vibrant-green;
+    }
+}
+
+// The sprite usage is deprecated.
+// New icons should be kept separate for ease of maintenance.
+// TODO: Split the sprite into separate files.
+@mixin legacy-about-icon($x, $y) {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background: url("/static/img/about/sprite.webp");
+    background-position: $x $y;
+}
+
+.about-icon.local {
+    @include legacy-about-icon(0, 0);
+}
+
+.about-icon.community {
+    @include legacy-about-icon(0 -40px);
+}
+
+.about-icon.open {
+    @include legacy-about-icon(0 -80px);
+}
+
+.about-icon.partners {
+    @include legacy-about-icon(0 -120px);
+}
+
+.about-icon.infringement {
+    @include legacy-about-icon(0 -160px);
+}
+
+.about-icon.legal {
+    @include legacy-about-icon(-45px -160px);
+}

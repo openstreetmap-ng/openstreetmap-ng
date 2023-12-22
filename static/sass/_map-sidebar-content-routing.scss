@@ -1,11 +1,16 @@
 .map-container {
     .sidebar-content {
-        // Style the routing marker
-        .routing-marker {
-            cursor: move;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        // Style the routing form
+        .routing-form {
+            background: $gray-400;
+
+            // Style the routing marker (contain image and indicate draggable)
+            .routing-marker {
+                cursor: move;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
         }
     }
 

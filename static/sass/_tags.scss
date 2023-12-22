@@ -14,11 +14,12 @@
         // Style the color preview box
         // (used with colour, roof:colour, etc.)
         .color-preview {
-            float: right;
+            display: inline-block;
             width: 1.1em;
             height: 1.1em;
             position: relative;
             top: 0.2em;
+            margin-right: 0.2em;
             border: 1px solid $gray-200;
             // TODO: in JS: background: var(--color);
         }

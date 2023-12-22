@@ -1,0 +1,11 @@
+// Style the legal container, make it scrollable and resizable
+.legal {
+    overflow-y: auto;
+    resize: vertical;
+    height: 20em;
+
+    // Style the nested list items to display letters instead of numbers
+    ol ol {
+        list-style-type: lower-alpha;
+    }
+}

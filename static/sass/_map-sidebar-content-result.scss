@@ -6,7 +6,7 @@
             cursor: pointer;
 
             &:hover {
-                background-color: $list-highlight;
+                background: $list-highlight;
             }
 
             // Style the comments icon in changesets
