@@ -26,7 +26,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Migration of redactions
 - [x] Improved GPX traces processing
 - [10%] Migration of website API
-- [80%] Migration of the stylesheets
+- [x] Migration of the stylesheets
 - [ ] Migration of the scripts
 - [5%] Migration of the templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉

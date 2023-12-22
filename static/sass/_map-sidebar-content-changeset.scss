@@ -1,7 +1,26 @@
 .map-container {
     .sidebar-dynamic-content {
-        // Style the changeset information in the sidebar
         .changeset {
+            .elements {
+                // Style the elements icons
+                .icon {
+                    display: inline-block;
+                    width: 2em;
+                    height: 1em;
+                    object-fit: contain;
+                }
+
+                // Style the deleted elements
+                .deleted {
+                    text-decoration: line-through;
+
+                    // Fade out the icon
+                    .icon {
+                        // TODO: adjust
+                        opacity: 0.8;
+                    }
+                }
+            }
         }
     }
 }
