@@ -141,65 +141,6 @@ OSM = {
     return mapParams;
   },
 
-  parseHash: function(hash) {
-    var args = {};
-
-    var i = hash.indexOf('#');
-    if (i < 0) {
-      return args;
-    }
-
-    hash = Qs.parse(hash.slice(i + 1));
-
-    var map = (hash.map || '').split('/'),
-      zoom = parseInt(map[0], 10),
-      lat = parseFloat(map[1]),
-      lon = parseFloat(map[2]);
-
-    if (!isNaN(zoom) && !isNaN(lat) && !isNaN(lon)) {
-      args.center = new L.LatLng(lat, lon);
-      args.zoom = zoom;
-    }
-
-    if (hash.layers) {
-      args.layers = hash.layers;
-    }
-
-    return args;
-  },
-
-  formatHash: function(args) {
-    var center, zoom, layers;
-
-    if (args instanceof L.Map) {
-      center = args.getCenter();
-      zoom = args.getZoom();
-      layers = args.getLayersCode();
-    } else {
-      center = args.center || L.latLng(args.lat, args.lon);
-      zoom = args.zoom;
-      layers = args.layers || '';
-    }
-
-    center = center.wrap();
-    layers = layers.replace('M', '');
-
-    var precision = OSM.zoomPrecision(zoom),
-      hash = '#map=' + zoom +
-        '/' + center.lat.toFixed(precision) +
-        '/' + center.lng.toFixed(precision);
-
-    if (layers) {
-      hash += '&layers=' + layers;
-    }
-
-    return hash;
-  },
-
-  zoomPrecision: function(zoom) {
-    return Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-  },
-
   locationCookie: function(map) {
     var center = map.getCenter().wrap(),
       zoom = map.getZoom(),
