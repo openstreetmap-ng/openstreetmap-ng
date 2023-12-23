@@ -44,10 +44,8 @@ times during routing:
   move the map without the hash changing.
 */
 
+import { Route } from './_route.js'
 import { formatHash, parseHash } from './_utils.js'
-
-// Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#escaping
-const escapeRegExWithoutRoundBrackets = str => str.replace(/[.*+?^${}|[\]\\]/g, "\\$&")
 
 const removeTrailingSlash = str => (str.endsWith('/') && str.length > 1) ? str.slice(0, -1) : str
 
@@ -60,32 +58,6 @@ const stripHash = str => {
 const replaceState = state => window.history.replaceState(state, document.title, state.center ? formatHash(state) : window.location)
 
 export const Router = (map, pathControllerMap) => {
-  const Route = (path, controller) => {
-    const re = new RegExp(
-      '^' +
-      escapeRegExWithoutRoundBrackets(path)
-        .replace(/\((.*?)\)/g, '(?:$1)?') // make (segments) optional
-        .replace(/:\w+/g, '([^/]+)') + // make :placeholders match any sequence
-      '(?:\\?.*)?$' // ignore query string
-    )
-
-    // Return Route object
-    return {
-      // Test if a path matches this route
-      match: path => re.test(path),
-
-      // Run action on this route
-      run: (action, path, ...args) => {
-        // Extract path parameters
-        const pathParams = re
-          .exec(path)
-          .map((param, i) => (i > 0 && param) ? decodeURIComponent(param) : param)
-
-        return controller[action](...pathParams, ...args)
-      }
-    }
-  }
-
   const routes = Object
     .entries(pathControllerMap)
     .map(([path, controller]) => Route(path, controller))
