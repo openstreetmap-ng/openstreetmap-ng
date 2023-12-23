@@ -1,3 +1,4 @@
+import { Map, latLng } from 'leaflet'
 import QueryString from 'qs'
 
 // Compute the coordinate precision for a given zoom level
@@ -5,19 +6,19 @@ export const zoomPrecision = zoom => Math.max(0, Math.ceil(Math.log(zoom) / Math
 
 // Create a hash string for a state
 // Accepts either a map object or an object with the following properties:
-//   center: L.LatLng
+//   center: LatLng
 //   zoom: number
 //   layers: string
 // Returns a string like "#map=15/51.505/-0.09&layers=BT"
 export const formatHash = args => {
     let center, zoom, layers
 
-    if (args instanceof L.Map) {
+    if (args instanceof Map) {
         center = args.getCenter()
         zoom = args.getZoom()
         layers = args.getLayersCode()
     } else {
-        center = args.center || L.latLng(args.lat, args.lon)
+        center = args.center || latLng(args.lat, args.lon)
         zoom = args.zoom
         layers = args.layers || ''
     }
@@ -58,7 +59,7 @@ export const parseHash = hash => {
             const lat = parseFloat(components[1])
             const lon = parseFloat(components[2])
             if (!isNaN(lat) && !isNaN(lon))
-                args.center = new L.LatLng(lat, lon)
+                args.center = latLng(lat, lon)
 
         }
     }

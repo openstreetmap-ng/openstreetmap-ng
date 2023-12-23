@@ -28,6 +28,8 @@ for (const group of document.querySelectorAll('.rich-text-btn-group')) {
     editBtn.on('click', () => {
         abortRequest(sourceTextArea)
 
+        editBtn.disabled = true
+        previewBtn.disabled = false
         sourceTextArea.classList.remove('d-none')
         previewDiv.classList.add('d-none')
         previewDiv.innerHTML = ''
@@ -37,6 +39,8 @@ for (const group of document.querySelectorAll('.rich-text-btn-group')) {
     previewBtn.on('click', () => {
         const abortController = abortRequest(source, true)
 
+        editBtn.disabled = false
+        previewBtn.disabled = true
         previewDiv.innerHTML = I18n.t('shared.richtext_field.loading')
         sourceTextArea.classList.add('d-none')
         previewDiv.classList.remove('d-none')
