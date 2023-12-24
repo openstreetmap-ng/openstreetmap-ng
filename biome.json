@@ -1,0 +1,55 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.4.0/schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noVoid": "error",
+        "useSimplifiedLogicExpression": "warn"
+      },
+      "correctness": {
+        "noUndeclaredVariables": "warn"
+      },
+      "style": {
+        "noParameterProperties": "error",
+        "useCollapsedElseIf": "warn",
+        "useNamingConvention": "warn",
+        "useShorthandArrayType": "warn",
+        "useShorthandAssign": "warn"
+      },
+      "suspicious": {
+        "noApproximativeNumericConstant": "warn",
+        "noMisrefactoredShorthandAssign": "error"
+      },
+      "nursery": {
+        "noDuplicateJsonKeys": "error",
+        "noEmptyBlockStatements": "warn",
+        "noInvalidUseBeforeDeclaration": "warn",
+        "noMisleadingCharacterClass": "warn",
+        "noNodejsModules": "error",
+        "noUnusedPrivateClassMembers": "warn",
+        "noUselessLoneBlockStatements": "warn",
+        "noUselessTernary": "warn",
+        "useAwait": "warn",
+        "useForOf": "warn",
+        "useRegexLiterals": "warn"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentWidth": 4,
+    "indentStyle": "space",
+    "lineEnding": "lf",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded"
+    }
+  }
+}

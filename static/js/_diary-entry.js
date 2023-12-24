@@ -1,55 +1,73 @@
-import { control, latLng, map, marker } from 'leaflet'
-import { getMarkerIcon } from './_leaflet.map.js'
-import { Mapnik } from './_leaflet.osm.js'
+import * as L from "leaflet"
+import { getMarkerIcon } from "./_leaflet.map.js"
+import { Mapnik } from "./_leaflet.osm.js"
+import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
 
-const useMapContainer = document.querySelector('.diary-entry-use-map-container')
+const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
     const latInput = useMapContainer.querySelector('input[name="latitude"]')
     const lonInput = useMapContainer.querySelector('input[name="longitude"]')
-    const useMapBtn = useMapContainer.querySelector('.diary-entry-use-map-btn')
-    const mapDiv = useMapContainer.querySelector('.leaflet-container')
-    let map_ = undefined
-    let marker_ = undefined
+    const useMapBtn = useMapContainer.querySelector(".diary-entry-use-map-btn")
+    const mapDiv = useMapContainer.querySelector(".leaflet-container")
+
+    // Null values until the map/marker is initialized
+    let map = null
+    let marker = null
+
+    const markerFactory = (latlng) =>
+        L.marker(latlng, { icon: getMarkerIcon() }).addTo(map).bindPopup(I18n.t("diary_entries.edit.marker_text"))
 
     // On map click, update the coordinates and move the marker
-    const onMapClick = e => {
-        latInput.value = e.latlng.lat
-        lonInput.value = e.latlng.lng
+    const onMapClick = (e) => {
+        const precision = zoomPrecision(map.getZoom())
+        const lat = e.latlng.lat.toFixed(precision)
+        const lon = e.latlng.lng.toFixed(precision)
+        const latLng = L.latLng(lat, lon)
+
+        latInput.value = lat
+        lonInput.value = lon
 
         // If there's already a marker, move it, otherwise create a new one
-        if (marker_)
-            marker_.setLatLng(e.latlng)
-        else
-            marker_ = marker(e.latlng, { icon: getMarkerIcon() })
-                .addTo(map_)
-                .bindPopup(I18n.t('diary_entries.edit.marker_text'))
+        if (marker) marker.setLatLng(latLng)
+        else marker = markerFactory(latLng)
     }
 
     // On "Use Map" button click, show the map and hide the button
-    useMapBtn.on('click', e => {
-        useMapBtn.classList.add('d-none')
-        mapDiv.classList.remove('d-none')
-
+    useMapBtn.on("click", () => {
+        useMapBtn.classList.add("d-none")
+        mapDiv.classList.remove("d-none")
         const params = mapDiv.dataset
-        const center = latLng(params.lat, params.lon)
 
-        map_ = map(mapDiv, {
+        map = L.map(mapDiv, {
             attributionControl: false,
-            zoomControl: false
+            zoomControl: false,
         }).addLayer(new Mapnik())
 
         // Make zoom control respect RTL
-        control.zoom({
-            position: document.documentElement.dir === 'rtl' ? 'topleft' : 'topright'
-        }).addTo(map_)
+        L.control
+            .zoom({
+                position: document.documentElement.dir === "rtl" ? "topleft" : "topright",
+            })
+            .addTo(map)
 
-        // Display marker by default if there are coordinates
-        if (latInput.value && lonInput.value)
-            marker_ = marker(center, { icon: getMarkerIcon() })
-                .addTo(map_)
-                .bindPopup(I18n.t('diary_entries.edit.marker_text'))
+        let center
 
-        map_.setView(center, params.zoom)
-        map_.on('click', onMapClick)
+        // Attempt to parse the lat/lon from the inputs
+        // If they're valid, use them as the initial center and display a marker
+        if (latInput.value && lonInput.value) {
+            const lat = parseFloat(latInput.value)
+            const lon = parseFloat(lonInput.value)
+            if (isLatitude(lat) && isLongitude(lon)) {
+                center = L.latLng(lat, lon)
+                marker = markerFactory(center)
+            }
+        }
+
+        // When input is not valid, use the default center
+        // This will only focus the map, not display a marker
+        if (center === undefined) center = L.latLng(params.lat, params.lon)
+
+        map.setView(center, params.zoom)
+        map.on("click", onMapClick)
     })
 }

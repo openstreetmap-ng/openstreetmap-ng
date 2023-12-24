@@ -44,142 +44,135 @@ times during routing:
   move the map without the hash changing.
 */
 
-import { Route } from './_route.js'
-import { formatHash, parseHash } from './_utils.js'
+import { Route } from "./_route.js"
+import { formatHash, parseHash } from "./_utils.js"
 
-const removeTrailingSlash = str => (str.endsWith('/') && str.length > 1) ? str.slice(0, -1) : str
+const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? str.slice(0, -1) : str)
 
-const stripHash = str => {
-  const i = str.indexOf('#')
-  return i === -1 ? str : str.slice(0, i)
+const stripHash = (str) => {
+    const i = str.indexOf("#")
+    return i === -1 ? str : str.slice(0, i)
 }
 
 // Replace the current window.history state
-const replaceState = state => window.history.replaceState(state, document.title, state.center ? formatHash(state) : window.location)
+const replaceState = (state) =>
+    window.history.replaceState(state, document.title, state.center ? formatHash(state) : window.location)
 
 export const Router = (map, pathControllerMap) => {
-  const routes = Object
-    .entries(pathControllerMap)
-    .map(([path, controller]) => Route(path, controller))
+    const routes = Object.entries(pathControllerMap).map(([path, controller]) => Route(path, controller))
 
-  console.debug(`Loaded ${routes.length} routes`)
+    console.debug(`Loaded ${routes.length} routes`)
 
-  // Find the first route that matches a path
-  const routesRecognize = path => routes.find(route => route.match(path))
+    // Find the first route that matches a path
+    const routesRecognize = (path) => routes.find((route) => route.match(path))
 
-  let currentPath = removeTrailingSlash(window.location.pathname) + window.location.search
-  let currentRoute = routesRecognize(currentPath)
-  let currentHash = location.hash || formatHash(map)
+    let currentPath = removeTrailingSlash(window.location.pathname) + window.location.search
+    let currentRoute = routesRecognize(currentPath)
+    let currentHash = location.hash || formatHash(map)
 
-  // On popstate (browser back/forward), replace the state
-  const onWindowPopState = e => {
-    // Is it a real popstate event or just a hash change?
-    if (!e.originalEvent.state)
-      return
+    // On popstate (browser back/forward), replace the state
+    const onWindowPopState = (e) => {
+        // Is it a real popstate event or just a hash change?
+        if (!e.originalEvent.state) return
 
-    const path = removeTrailingSlash(window.location.pathname) + window.location.search
+        const path = removeTrailingSlash(window.location.pathname) + window.location.search
 
-    // Skip if the path hasn't changed
-    if (path === currentPath)
-      return
+        // Skip if the path hasn't changed
+        if (path === currentPath) return
 
-    const newRoute = routesRecognize(path)
+        const newRoute = routesRecognize(path)
 
-    // Unload the current route
-    if (currentRoute) {
-      const sameRoute = newRoute === currentRoute
-      currentRoute.run('unload', null, sameRoute)
+        // Unload the current route
+        if (currentRoute) {
+            const sameRoute = newRoute === currentRoute
+            currentRoute.run("unload", null, sameRoute)
+        }
+
+        // Load the new route via popState action
+        currentPath = path
+        currentRoute = newRoute
+        if (currentRoute) currentRoute.run("popState", currentPath)
+
+        map.setState(e.originalEvent.state, { animate: false })
     }
 
-    // Load the new route via popState action
-    currentPath = path
-    currentRoute = newRoute
-    if (currentRoute)
-      currentRoute.run('popState', currentPath)
+    // On hash change, replace the state
+    const onWindowHashChange = () => {
+        const hash = location.hash
+        console.debug("onWindowHashChange", hash)
+        if (hash === currentHash) return
 
-    map.setState(e.originalEvent.state, { animate: false })
-  }
+        const state = parseHash(hash)
+        currentHash = hash
+        replaceState(state)
+        map.setState(state)
+    }
 
-  // On hash change, replace the state
-  const onWindowHashChange = () => {
-    const hash = location.hash
-    console.debug('onWindowHashChange', hash)
-    if (hash === currentHash)
-      return
+    // On move, compute the current state and replace the state
+    const onMapMove = () => {
+        const hash = formatHash(map)
+        console.debug("onMove", hash)
+        if (hash === currentHash) return
 
-    const state = parseHash(hash)
-    currentHash = hash
-    replaceState(state)
-    map.setState(state)
-  }
+        const state = parseHash(hash) // TODO: optimize unnecessary format+parse
+        currentHash = hash
+        replaceState(state)
+    }
 
-  // On move, compute the current state and replace the state
-  const onMapMove = () => {
-    const hash = formatHash(map)
-    console.debug('onMove', hash)
-    if (hash === currentHash)
-      return
+    // Listen for window and map events
+    window.on("popstate", onWindowPopState)
+    window.on("hashchange", onWindowHashChange)
+    map.on("moveend baselayerchange overlaylayerchange", onMapMove)
 
-    const state = parseHash(hash) // TODO: optimize unnecessary format+parse
-    currentHash = hash
-    replaceState(state)
-  }
+    // Return Router object
+    return {
+        // Route to a path and return true if successful
+        route: (path) => {
+            const pathWithoutHash = stripHash(path)
+            const newRoute = routesRecognize(pathWithoutHash)
 
-  // Listen for window and map events
-  window.on('popstate', onWindowPopState)
-  window.on('hashchange', onWindowHashChange)
-  map.on('moveend baselayerchange overlaylayerchange', onMapMove)
+            // No matching route
+            if (!newRoute) return false
 
-  // Return Router object
-  return {
-    // Route to a path and return true if successful
-    route: path => {
-      const pathWithoutHash = stripHash(path)
-      const newRoute = routesRecognize(pathWithoutHash)
+            // Unload the current route
+            if (currentRoute) {
+                const sameRoute = newRoute === currentRoute
+                currentRoute.run("unload", null, sameRoute)
+            }
 
-      // No matching route
-      if (!newRoute)
-        return false
+            // Update browser history
+            const state = formatHash(map)
+            window.history.pushState(state, document.title, path)
 
-      // Unload the current route
-      if (currentRoute) {
-        const sameRoute = newRoute === currentRoute
-        currentRoute.run('unload', null, sameRoute)
-      }
+            // Load the new route via pushState action
+            currentPath = pathWithoutHash
+            currentRoute = newRoute
+            currentRoute.run("pushState", currentPath)
 
-      // Update browser history
-      const state = formatHash(map)
-      window.history.pushState(state, document.title, path)
+            return true
+        },
 
-      // Load the new route via pushState action
-      currentPath = pathWithoutHash
-      currentRoute = newRoute
-      currentRoute.run('pushState', currentPath)
+        // Replace the state and path without "reloading" the page
+        replaceStateFromPath: (path) => window.history.replaceState(parseHash(path), document.title, path),
 
-      return true
-    },
+        // Call load on the current route and replace the state
+        load: () => {
+            if (currentRoute) {
+                const state = currentRoute.run("load", currentPath)
+                replaceState(state || {})
+            }
+        },
 
-    // Replace the state and path without "reloading" the page
-    replaceStateFromPath: path => window.history.replaceState(parseHash(path), document.title, path),
+        // Execute a callback without computing the new hash
+        withoutMoveListener: (callback) => {
+            const disableMoveListener = () => {
+                map.off("moveend", onMapMove)
+                map.once("moveend", () => map.on("moveend", onMapMove))
+            }
 
-    // Call load on the current route and replace the state
-    load: () => {
-      if (currentRoute) {
-        const state = currentRoute.run('load', currentPath)
-        replaceState(state || {})
-      }
-    },
-
-    // Execute a callback without computing the new hash
-    withoutMoveListener: callback => {
-      const disableMoveListener = () => {
-        map.off('moveend', onMapMove)
-        map.once('moveend', () => map.on('moveend', onMapMove))
-      }
-
-      map.once('movestart', disableMoveListener)
-      callback()
-      map.off('movestart', disableMoveListener)
-    },
-  }
+            map.once("movestart", disableMoveListener)
+            callback()
+            map.off("movestart", disableMoveListener)
+        },
+    }
 }

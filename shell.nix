@@ -23,6 +23,7 @@ with pkgs; let
     ruff
     nodejs_18
     dart-sass
+    biome
   ];
 
   commonShellHook = ''
