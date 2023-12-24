@@ -37,7 +37,7 @@ for (const group of document.querySelectorAll(".rich-text-btn-group")) {
 
     // On preview button click, abort any requests and fetch the preview
     previewBtn.on("click", () => {
-        const abortController = abortRequest(source, true)
+        const abortController = abortRequest(sourceTextArea, true)
 
         editBtn.disabled = false
         previewBtn.disabled = true
