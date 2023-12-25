@@ -24,6 +24,7 @@ with pkgs; let
     nodejs_18
     dart-sass
     biome
+    esbuild
   ];
 
   commonShellHook = ''

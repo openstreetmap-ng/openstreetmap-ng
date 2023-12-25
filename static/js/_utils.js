@@ -71,3 +71,26 @@ export const parseHash = (hash) => {
 
     return args
 }
+
+// Throttle a function to only be called once every `delay` milliseconds
+export const throttle = (func, delay) => {
+    let lastCalled = 0
+    let timeoutId = null
+
+    return (...args) => {
+        if (timeoutId) clearTimeout(timeoutId)
+        const now = performance.now()
+        const timeElapsed = now - lastCalled
+        const timeLeft = delay - timeElapsed
+
+        if (timeLeft <= 0) {
+            lastCalled = now
+            func(...args)
+        } else {
+            timeoutId = setTimeout(() => {
+                lastCalled = performance.now()
+                func(...args)
+            }, timeLeft)
+        }
+    }
+}

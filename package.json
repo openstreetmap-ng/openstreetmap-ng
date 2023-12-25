@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "bootstrap": "^5.3.2",
+    "iD": "github:openstreetmap/iD#release",
     "js-cookie": "^3.0.0",
     "leaflet": "^1.8.0",
     "leaflet.locatecontrol": "^0.79.0",
