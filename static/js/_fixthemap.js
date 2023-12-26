@@ -1,11 +1,10 @@
 import { qsParse } from "./_qs.js"
 import { formatHash, isLatitude, isLongitude, isZoom } from "./_utils.js"
 
-const noteIcon = document.querySelector(".fix-the-map-note-link")
+const noteIcon = document.querySelector(".fixthemap-note-link")
 if (noteIcon) {
-    let href = "/note/new"
-
     // Support default location setting via URL parameters
+    let locationProvided = false
     const params = qsParse(window.location.search.substring(1))
     if (params.lat && params.lon) {
         // Zoom is optional, default to 17
@@ -13,9 +12,11 @@ if (noteIcon) {
         params.lat = parseFloat(params.lat)
         params.lon = parseFloat(params.lon)
 
-        // Assign position only if it's valid
-        if (isZoom(params.zoom) && isLatitude(params.lat) && isLongitude(params.lon)) href += formatHash(params)
+        if (isZoom(params.zoom) && isLatitude(params.lat) && isLongitude(params.lon)) locationProvided = true
     }
 
-    noteIcon.setAttribute("href", href)
+    // Assign position only if it's valid
+    let noteHref = "/note/new"
+    if (locationProvided) noteHref += formatHash(params)
+    noteIcon.setAttribute("href", noteHref)
 }
