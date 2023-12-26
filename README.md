@@ -27,10 +27,11 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Improved GPX traces processing
 - [10%] Migration of website API
 - [x] Migration of the stylesheets
-- [10%] Migration of the scripts
+- [15%] Migration of the scripts
 - [5%] Migration of the templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [ ] Anti-vandalism stage 1
+- [ ] Paginations and limits
 - [ ] Deprecation of OAuth 1.0 warning
 - [30%] User permalinks
 - [25%] Proxy for Amazon requests (better privacy)
