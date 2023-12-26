@@ -17,12 +17,12 @@ const abortRequest = (source, newController = false) => {
     return null
 }
 
-for (const group of document.querySelectorAll(".rich-text-btn-group")) {
+for (const container of document.querySelectorAll(".rich-text-container")) {
     // Discover all required elements
-    const editBtn = group.querySelector(".rich-text-edit-btn")
-    const previewBtn = group.querySelector(".rich-text-preview-btn")
-    const sourceTextArea = document.querySelector(group.dataset.richTextSource)
-    const previewDiv = document.querySelector(group.dataset.richTextPreview)
+    const editBtn = container.querySelector(".rich-text-edit-btn")
+    const previewBtn = container.querySelector(".rich-text-preview-btn")
+    const sourceTextArea = container.querySelector(".rich-text-source")
+    const previewDiv = container.querySelector(".rich-text-preview")
 
     // On edit button click, abort any requests and show the source textarea
     editBtn.on("click", () => {

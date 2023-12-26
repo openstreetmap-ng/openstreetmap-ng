@@ -5,8 +5,8 @@ import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
 
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
-    const latInput = useMapContainer.querySelector('input[name="latitude"]')
     const lonInput = useMapContainer.querySelector('input[name="longitude"]')
+    const latInput = useMapContainer.querySelector('input[name="latitude"]')
     const useMapBtn = useMapContainer.querySelector(".diary-entry-use-map-btn")
     const mapDiv = useMapContainer.querySelector(".leaflet-container")
 
@@ -20,12 +20,12 @@ if (useMapContainer) {
     // On map click, update the coordinates and move the marker
     const onMapClick = (e) => {
         const precision = zoomPrecision(map.getZoom())
-        const lat = e.latlng.lat.toFixed(precision)
         const lon = e.latlng.lng.toFixed(precision)
+        const lat = e.latlng.lat.toFixed(precision)
         const latLng = L.latLng(lat, lon)
 
-        latInput.value = lat
         lonInput.value = lon
+        latInput.value = lat
 
         // If there's already a marker, move it, otherwise create a new one
         if (marker) marker.setLatLng(latLng)
@@ -54,10 +54,10 @@ if (useMapContainer) {
 
         // Attempt to parse the lat/lon from the inputs
         // If they're valid, use them as the initial center and display a marker
-        if (latInput.value && lonInput.value) {
-            const lat = parseFloat(latInput.value)
+        if (lonInput.value && latInput.value) {
             const lon = parseFloat(lonInput.value)
-            if (isLatitude(lat) && isLongitude(lon)) {
+            const lat = parseFloat(latInput.value)
+            if (isLongitude(lon) && isLatitude(lat)) {
                 center = L.latLng(lat, lon)
                 marker = markerFactory(center)
             }
@@ -65,7 +65,9 @@ if (useMapContainer) {
 
         // When input is not valid, use the default center
         // This will only focus the map, not display a marker
-        if (center === undefined) center = L.latLng(params.lat, params.lon)
+        if (center === undefined) {
+            center = L.latLng(params.lat, params.lon)
+        }
 
         map.setView(center, params.zoom)
         map.on("click", onMapClick)
