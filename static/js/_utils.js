@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import QueryString from "qs"
+import { qsParse } from "./_qs.js"
 
 // Check if number is a valid latitude
 export const isLatitude = (lat) => !Number.isNaN(lat) && lat >= -90 && lat <= 90
@@ -51,7 +51,7 @@ export const parseHash = (hash) => {
     if (i < 0) return args
 
     // Parse the hash as a query string
-    const params = QueryString.parse(hash.slice(i + 1))
+    const params = qsParse(hash.slice(i + 1))
 
     // Assign map state only if present and length is 3
     if (params.map) {
