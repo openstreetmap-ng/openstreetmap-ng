@@ -2,10 +2,13 @@ import * as L from "leaflet"
 import { qsParse } from "./_qs.js"
 
 // Check if number is a valid latitude
-export const isLatitude = (lat) => !Number.isNaN(lat) && lat >= -90 && lat <= 90
+export const isLatitude = (lat) => lat >= -90 && lat <= 90
 
 // Check if number is a valid longitude
-export const isLongitude = (lon) => !Number.isNaN(lon) && lon >= -180 && lon <= 180
+export const isLongitude = (lon) => lon >= -180 && lon <= 180
+
+// Check if number is a valid zoom level
+export const isZoom = (zoom) => zoom >= 0 && zoom <= 25
 
 // Compute the coordinate precision for a given zoom level
 export const zoomPrecision = (zoom) => Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2))
@@ -44,11 +47,11 @@ export const formatHash = (args) => {
 
 // Parse a hash string into a state
 export const parseHash = (hash) => {
-    const args = {}
+    const result = {}
 
     // Skip if there's no hash
     const i = hash.indexOf("#")
-    if (i < 0) return args
+    if (i < 0) return result
 
     // Parse the hash as a query string
     const params = qsParse(hash.slice(i + 1))
@@ -57,19 +60,22 @@ export const parseHash = (hash) => {
     if (params.map) {
         const components = params.map.split("/")
         if (components.length === 3) {
-            args.zoom = parseInt(components[0], 10)
-
-            // Assign position only if it's valid
+            const zoom = parseInt(components[0], 10)
             const lat = parseFloat(components[1])
             const lon = parseFloat(components[2])
-            if (isLatitude(lat) && isLongitude(lon)) args.center = L.latLng(lat, lon)
+
+            // Assign position only if it's valid
+            if (isZoom(result.zoom) && isLatitude(lat) && isLongitude(lon)) {
+                result.zoom = zoom
+                result.center = L.latLng(lat, lon)
+            }
         }
     }
 
     // Assign layers only if present
-    if (params.layers) args.layers = params.layers
+    if (params.layers) result.layers = params.layers
 
-    return args
+    return result
 }
 
 // Throttle a function to only be called once every `delay` milliseconds
