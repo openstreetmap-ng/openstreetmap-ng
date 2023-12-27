@@ -1,23 +1,40 @@
 import * as L from "leaflet"
 
-const ZoomControl = L.Control.extend({
-    options: {
-        position: "topright",
-    },
+export const getZoomControl = (options) => {
+    const control = L.control(options)
 
-    onAdd: function (map) {
+    // On zoom change, disable/enable specific buttons
+    const onZoomChange = () => {
+        const currentZoom = control.map.getZoom()
+        const minZoom = control.map.getMinZoom()
+        const maxZoom = control.map.getMaxZoom()
+
+        // Enable/disable buttons based on current zoom level
+        if (currentZoom === minZoom) {
+            control.zoomOutButton.classList.add("disabled")
+        } else {
+            control.zoomOutButton.classList.remove("disabled")
+        }
+
+        if (currentZoom === maxZoom) {
+            control.zoomInButton.classList.add("disabled")
+        } else {
+            control.zoomInButton.classList.remove("disabled")
+        }
+    }
+
+    control.onAdd = (map) => {
         // Create container
         const container = document.createElement("div")
-        container.className = "zoom"
 
         // Create buttons
         const zoomInButton = document.createElement("button")
-        zoomInButton.className = "control-button zoomin"
+        zoomInButton.className = "control-button"
         zoomInButton.title = I18n.t("javascripts.map.zoom.in")
         zoomInButton.innerHTML = "<span class='icon zoomin'></span>"
 
         const zoomOutButton = document.createElement("button")
-        zoomOutButton.className = "control-button zoomout"
+        zoomOutButton.className = "control-button"
         zoomOutButton.title = I18n.t("javascripts.map.zoom.out")
         zoomOutButton.innerHTML = "<span class='icon zoomout'></span>"
 
@@ -34,41 +51,21 @@ const ZoomControl = L.Control.extend({
             map.zoomOut(e.shiftKey ? 3 : 1)
         }
 
-        map.addEventListener("zoomend zoomlevelschange", this.updateButtonState, this)
         zoomInButton.addEventListener("click", onZoomIn)
         zoomOutButton.addEventListener("click", onZoomOut)
+        map.addEventListener("zoomend zoomlevelschange", onZoomChange)
 
-        this.map = map
-        this.zoomInButton = zoomInButton
-        this.zoomOutButton = zoomOutButton
+        control.zoomInButton = zoomInButton
+        control.zoomOutButton = zoomOutButton
+        control.map = map
 
         return container
-    },
+    }
 
-    onRemove: function (map) {
+    control.onRemove = (map) => {
         // Remove map event listeners
-        map.removeEventListener("zoomend zoomlevelschange", this.updateButtonState, this)
-    },
+        map.removeEventListener("zoomend zoomlevelschange", onZoomChange)
+    }
 
-    updateButtonState: function () {
-        const disabledClassName = "disabled"
-        const currentZoom = this._map.getZoom()
-        const minZoom = this._map.getMinZoom()
-        const maxZoom = this._map.getMaxZoom()
-
-        // Enable/disable buttons based on current zoom level
-        if (currentZoom === minZoom) {
-            this._zoomOutButton.classList.add(disabledClassName)
-        } else {
-            this._zoomOutButton.classList.remove(disabledClassName)
-        }
-
-        if (currentZoom === maxZoom) {
-            this._zoomInButton.classList.add(disabledClassName)
-        } else {
-            this._zoomInButton.classList.remove(disabledClassName)
-        }
-    },
-})
-
-export const getZoomControl = (options) => new ZoomControl(options)
+    return control
+}

@@ -52,6 +52,11 @@
         }
     }
 
+    // Support activation via btn-check (radio input)
+    .btn-check:checked + .control-button {
+        background: $vibrant-green;
+    }
+
     // Style the map popup
     // Make the border radius match the sidebar
     .leaflet-popup-content-wrapper {

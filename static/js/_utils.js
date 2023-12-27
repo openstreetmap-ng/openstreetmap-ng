@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { homePoint } from "./_dataset.js"
-import { getLastLocation } from "./_local_storage.js"
+import { getLastLocation } from "./_local-storage.js"
 import { qsParse } from "./_qs.js"
 
 // Check if number is a valid longitude

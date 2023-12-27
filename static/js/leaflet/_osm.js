@@ -151,7 +151,7 @@ export const DataLayer = L.FeatureGroup.extend({
         const ways = getWays(xml, nodes)
         const relations = getRelations(xml, nodes, ways)
 
-        const interestingNodes = Object.values(nodes).filter((node) => this.interestingNode(node, ways, relations))
+        const interestingNodes = Object.values(nodes).filter((node) => this.isInterestingNode(node, ways, relations))
         const features = [...changesets, ...ways, ...interestingNodes]
         return features
     },
@@ -166,7 +166,7 @@ export const DataLayer = L.FeatureGroup.extend({
         return hasAreaTag
     },
 
-    interestingNode: (node, ways, relations) => {
+    isInterestingNode: (node, ways, relations) => {
         const usedInWay = ways.some((way) => way.nodes.includes(node))
         if (!usedInWay) return true
 
