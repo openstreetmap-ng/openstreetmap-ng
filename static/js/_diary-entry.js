@@ -44,10 +44,8 @@ if (useMapContainer) {
             zoomControl: false,
         }).addLayer(new Mapnik())
 
-        // Make zoom control respect RTL
-        getZoomControl({
-            position: document.documentElement.dir === "rtl" ? "topleft" : "topright",
-        }).addTo(map)
+        // Add zoom control
+        getZoomControl().addTo(map)
 
         let center
 

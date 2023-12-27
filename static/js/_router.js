@@ -109,9 +109,9 @@ export const Router = (map, pathControllerMap) => {
     }
 
     // On move, compute the current state and replace the state
-    const onMapMove = () => {
+    const onMapChange = () => {
         const hash = formatHash(map)
-        console.debug("onMove", hash)
+        console.debug("onMapChange", hash)
         if (hash === currentHash) return
 
         const state = parseHash(hash) // TODO: optimize unnecessary format+parse
@@ -122,7 +122,7 @@ export const Router = (map, pathControllerMap) => {
     // Listen for window and map events
     window.addEventListener("popstate", onWindowPopState)
     window.addEventListener("hashchange", onWindowHashChange)
-    map.addEventListener("moveend baselayerchange overlaylayerchange", onMapMove)
+    map.addEventListener("moveend baselayerchange overlaylayerchange", onMapChange)
 
     // Return Router object
     return {
@@ -166,9 +166,9 @@ export const Router = (map, pathControllerMap) => {
         // Execute a callback without computing the new hash
         withoutMoveListener: (callback) => {
             const disableMoveListener = () => {
-                map.removeEventListener("moveend", onMapMove)
+                map.removeEventListener("moveend", onMapChange)
                 map.addOneTimeEventListener("moveend", () => {
-                    map.addEventListener("moveend", onMapMove)
+                    map.addEventListener("moveend", onMapChange)
                 })
             }
 

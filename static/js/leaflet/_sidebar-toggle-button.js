@@ -1,6 +1,7 @@
+import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 
-export const sidebarToggleButton = (options, className, buttonTitle) => {
+export const getSidebarToggleButton = (options, className, tooltipTitle) => {
     const control = L.control(options)
 
     control.onAdd = () => {
@@ -11,18 +12,25 @@ export const sidebarToggleButton = (options, className, buttonTitle) => {
         // Create container
         const container = document.createElement("div")
 
-        // Create button
+        // Create button and tooltip
         const input = document.createElement("input")
         input.type = "radio"
         input.name = "sidebar-toggle"
         input.id = `sidebar-toggle-${className}`
         input.className = "btn-check"
 
+        // Always deselect the input on load/reload
+        input.autocomplete = "off"
+
         const label = document.createElement("label")
         label.className = "control-button"
-        label.title = I18n.t(buttonTitle)
         label.innerHTML = `<span class='icon ${className}'></span>`
         label.htmlFor = input.id
+
+        const tooltip = Tooltip.getOrCreateInstance(label, {
+            title: I18n.t(tooltipTitle),
+            placement: "left",
+        })
 
         // Add button to container
         container.appendChild(input)
@@ -38,6 +46,11 @@ export const sidebarToggleButton = (options, className, buttonTitle) => {
         }
 
         input.addEventListener("change", onChange)
+
+        control.sidebar = sidebar
+        control.input = input
+        control.label = label
+        control.tooltip = tooltip
 
         return container
     }
