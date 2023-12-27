@@ -38,7 +38,7 @@ if (messagesContainer) {
     }
 
     // Listen for panel events
-    toggleAllCheckbox.on("change", () => {
+    toggleAllCheckbox.addEventListener("change", () => {
         const checked = toggleAllCheckbox.checked
         for (const check of toggleCheckboxes) {
             check.checked = checked
@@ -54,7 +54,7 @@ if (messagesContainer) {
         markUnreadButton.closest("form"),
         deleteButton.closest("form"),
     ]) {
-        form.on("submit", () => {
+        form.addEventListener("submit", () => {
             const input = document.createElement("input")
             input.type = "hidden"
             input.name = "message_ids"
@@ -65,7 +65,7 @@ if (messagesContainer) {
 
     // Listen for table events
     for (const check of toggleCheckboxes) {
-        check.on("change", () => {
+        check.addEventListener("change", () => {
             const id = check.dataset.messageId
             const checked = check.checked
             if (checked) messageIds.add(id)

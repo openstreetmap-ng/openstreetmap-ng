@@ -1,7 +1,8 @@
 import * as L from "leaflet"
-import { getMarkerIcon } from "./_leaflet.map.js"
-import { Mapnik } from "./_leaflet.osm.js"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
+import { Mapnik } from "./leaflet/_osm.js"
+import { getMarkerIcon } from "./leaflet/_utils.js"
+import { getZoomControl } from "./leaflet/_zoom.js"
 
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
@@ -33,7 +34,7 @@ if (useMapContainer) {
     }
 
     // On "Use Map" button click, show the map and hide the button
-    useMapBtn.on("click", () => {
+    useMapBtn.addEventListener("click", () => {
         useMapBtn.classList.add("d-none")
         mapDiv.classList.remove("d-none")
         const params = mapDiv.dataset
@@ -44,11 +45,9 @@ if (useMapContainer) {
         }).addLayer(new Mapnik())
 
         // Make zoom control respect RTL
-        L.control
-            .zoom({
-                position: document.documentElement.dir === "rtl" ? "topleft" : "topright",
-            })
-            .addTo(map)
+        getZoomControl({
+            position: document.documentElement.dir === "rtl" ? "topleft" : "topright",
+        }).addTo(map)
 
         let center
 
@@ -70,6 +69,6 @@ if (useMapContainer) {
         }
 
         map.setView(center, params.zoom)
-        map.on("click", onMapClick)
+        map.addEventListener("click", onMapClick)
     })
 }

@@ -25,7 +25,7 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
     const previewDiv = container.querySelector(".rich-text-preview")
 
     // On edit button click, abort any requests and show the source textarea
-    editBtn.on("click", () => {
+    editBtn.addEventListener("click", () => {
         abortRequest(sourceTextArea)
 
         editBtn.disabled = true
@@ -36,14 +36,14 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
     })
 
     // On preview button click, abort any requests and fetch the preview
-    previewBtn.on("click", () => {
+    previewBtn.addEventListener("click", () => {
         const abortController = abortRequest(sourceTextArea, true)
 
         editBtn.disabled = false
         previewBtn.disabled = true
-        previewDiv.innerHTML = I18n.t("shared.richtext_field.loading")
         sourceTextArea.classList.add("d-none")
         previewDiv.classList.remove("d-none")
+        previewDiv.innerHTML = I18n.t("shared.richtext_field.loading")
 
         const formData = new FormData()
         formData.append("text", sourceTextArea.value)

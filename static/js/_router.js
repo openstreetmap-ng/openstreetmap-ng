@@ -120,9 +120,9 @@ export const Router = (map, pathControllerMap) => {
     }
 
     // Listen for window and map events
-    window.on("popstate", onWindowPopState)
-    window.on("hashchange", onWindowHashChange)
-    map.on("moveend baselayerchange overlaylayerchange", onMapMove)
+    window.addEventListener("popstate", onWindowPopState)
+    window.addEventListener("hashchange", onWindowHashChange)
+    map.addEventListener("moveend baselayerchange overlaylayerchange", onMapMove)
 
     // Return Router object
     return {
@@ -166,13 +166,15 @@ export const Router = (map, pathControllerMap) => {
         // Execute a callback without computing the new hash
         withoutMoveListener: (callback) => {
             const disableMoveListener = () => {
-                map.off("moveend", onMapMove)
-                map.once("moveend", () => map.on("moveend", onMapMove))
+                map.removeEventListener("moveend", onMapMove)
+                map.addOneTimeEventListener("moveend", () => {
+                    map.addEventListener("moveend", onMapMove)
+                })
             }
 
-            map.once("movestart", disableMoveListener)
+            map.addOneTimeEventListener("movestart", disableMoveListener)
             callback()
-            map.off("movestart", disableMoveListener)
+            map.removeEventListener("movestart", disableMoveListener)
         },
     }
 }

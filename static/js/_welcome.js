@@ -49,7 +49,7 @@ if (noteIcon) {
         }
 
         if (navigator.geolocation) {
-            startButton.on("click", (e) => {
+            startButton.addEventListener("click", (e) => {
                 e.preventDefault()
                 startButton.disabled = true
                 startButton.addClass("loading")
