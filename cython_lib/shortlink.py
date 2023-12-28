@@ -13,7 +13,7 @@ _ARRAY_MAP['@'] = _ARRAY_MAP['~']  # backwards compatibility
 
 class ShortLink:
     @staticmethod
-    def encode(lon: cython.double, lat: cython.double, z: cython.int) -> str:
+    def encode(lon: cython.double, lat: cython.double, zoom: cython.int) -> str:
         """
         Encode a coordinate pair and zoom level into a shortlink code.
         """
@@ -26,8 +26,8 @@ class ShortLink:
         for i in range(31, -1, -1):
             c = (c << 2) | (((x >> i) & 1) << 1) | ((y >> i) & 1)
 
-        d: cython.int = (z + 8) // 3
-        r: cython.int = (z + 8) % 3
+        d: cython.int = (zoom + 8) // 3
+        r: cython.int = (zoom + 8) % 3
 
         if r > 0:  # ceil instead of floor
             d += 1

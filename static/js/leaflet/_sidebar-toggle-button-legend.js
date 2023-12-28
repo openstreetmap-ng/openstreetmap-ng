@@ -33,7 +33,6 @@ export const getLegendSidebarToggleButton = (options) => {
             return result
         }, {})
 
-        // Listen for events
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {
             const layer = map.getMapBaseLayerId()
@@ -97,6 +96,7 @@ export const getLegendSidebarToggleButton = (options) => {
             if (input.checked) onZoomEnd()
         }
 
+        // Listen for events
         map.addEventListener("baselayerchange", onBaseLayerChange)
         map.addEventListener("zoomend", onZoomEnd)
         input.addEventListener("change", inputOnChange)

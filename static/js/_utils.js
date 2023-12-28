@@ -1,7 +1,8 @@
 import * as L from "leaflet"
 import { homePoint } from "./_dataset.js"
 import { getLastLocation } from "./_local-storage.js"
-import { qsParse } from "./_qs.js"
+import { qsParse, qsStringify } from "./_qs.js"
+import { shortLinkEncode } from "./_shortlink.js"
 
 // Check if number is a valid longitude
 export const isLongitude = (lon) => lon >= -180 && lon <= 180
@@ -15,6 +16,7 @@ export const isZoom = (zoom) => zoom >= 0 && zoom <= 25
 // Compute the coordinate precision for a given zoom level
 export const zoomPrecision = (zoom) => Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2))
 
+// TODO: always map?
 // Create a hash string for a state
 // Accepts either a map object or an object with the following properties:
 //   center: LatLng
@@ -32,12 +34,10 @@ export const formatHash = (args) => {
         layers = args.getLayersCode()
     } else {
         center = args.center || L.latLng(args.lat, args.lon)
+        center = center.wrap()
         zoom = args.zoom
         layers = args.layers || ""
     }
-
-    center = center.wrap()
-    layers = layers.replace("M", "") // Standard layer is the default (implicit)
 
     const precision = zoomPrecision(zoom)
     const lat = center.lat.toFixed(precision)
@@ -78,6 +78,103 @@ export const parseHash = (hash) => {
     if (params.layers) result.layers = params.layers
 
     return result
+}
+
+// Get a URL for the current map location, optionally including a marker
+export const getMapUrl = (map, showMarker = false) => {
+    const center = map.getCenter()
+    const zoom = map.getZoom()
+    const precision = zoomPrecision(zoom)
+    const lat = center.lat.toFixed(precision)
+    const lon = center.lng.toFixed(precision)
+    const hash = formatHash(map)
+
+    if (showMarker) {
+        return `${location.protocol}//${location.host}/?mlat=${lat}&mlon=${lon}${hash}`
+    }
+
+    return `${location.protocol}//${location.host}/${hash}`
+}
+
+// Get a short URL for the current map location, optionally including a marker
+export const getMapShortUrl = (map, showMarker = false) => {
+    const center = map.getCenter()
+    const zoom = map.getZoom()
+    const layers = map.getLayersCode()
+    const precision = zoomPrecision(zoom)
+    const lat = center.lat.toFixed(precision)
+    const lon = center.lng.toFixed(precision)
+
+    const code = shortLinkEncode(lon, lat, zoom)
+    const params = {}
+
+    if (layers) params.layers = layers
+    if (showMarker) params.m = ""
+
+    let protocol = "https:"
+    let host = "osm.org"
+
+    // Use the current protocol and host if running locally
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        protocol = location.protocol
+        host = location.host
+    }
+
+    if (Object.keys(params).length > 0) {
+        return `${protocol}//${host}/go/${code}?${qsStringify(params)}`
+    }
+
+    return `${protocol}//${host}/go/${code}`
+}
+
+// Get HTML for embedding the current map location, optionally including a marker
+export const getMapEmbedHtml = (map, markerLatLng = null) => {
+    const bbox = map.getBounds().toBBoxString()
+    const layer = map.getMapBaseLayerId()
+    // TODO: getMapBaseLayerId, getLayersCode
+
+    const params = {
+        bbox: bbox,
+        layer: layer,
+    }
+
+    if (markerLatLng) {
+        // Don't apply precision on embeds
+        const lat = markerLatLng.lat
+        const lon = markerLatLng.lng
+        params.marker = `${lat},${lon}`
+    }
+
+    // Container for HTML generation
+    const container = document.createElement("div")
+
+    // Create the iframe
+    const iframe = document.createElement("iframe")
+    iframe.width = 425
+    iframe.height = 350
+    iframe.src = `${location.protocol}//${location.host}/export/embed.html?${qsStringify(params)}`
+    iframe.style.border = "1px solid black"
+    container.appendChild(iframe)
+
+    // Create the link to view the larger map
+    const small = document.createElement("small")
+    const link = document.createElement("a")
+    link.href = getMapUrl(map, markerLatLng)
+    link.textContent = I18n.t("javascripts.share.view_larger_map")
+    small.appendChild(link)
+    container.appendChild(small)
+
+    return container.innerHTML
+}
+
+// Get a geo URI for the current map location
+export const getGeoUri = (map) => {
+    const center = map.getCenter()
+    const zoom = map.getZoom()
+    const precision = zoomPrecision(zoom)
+    const lat = center.lat.toFixed(precision)
+    const lon = center.lng.toFixed(precision)
+    return `geo:${lat},${lon}?z=${zoom}`
 }
 
 // Throttle a function to only be called once every `delay` milliseconds

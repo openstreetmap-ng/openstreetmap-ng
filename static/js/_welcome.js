@@ -7,7 +7,7 @@ if (noteIcon) {
 
     // Support default location setting via URL parameters
     let locationProvided = false
-    const params = qsParse(window.location.search.substring(1))
+    const params = qsParse(location.search.substring(1))
     if (params.lon && params.lat) {
         params.lon = parseFloat(params.lon)
         params.lat = parseFloat(params.lat)
@@ -40,12 +40,12 @@ if (noteIcon) {
 
             if (Object.keys(startParams).length > 0) startHref += `?${qsStringify(startParams)}`
             startHref += formatHash(params)
-            window.location = startHref
+            location = startHref
         }
 
         // On geolocation failure, redirect to /?edit_help=1
         const onGeolocationFailure = () => {
-            window.location = "/?edit_help=1"
+            location = "/?edit_help=1"
         }
 
         if (navigator.geolocation) {

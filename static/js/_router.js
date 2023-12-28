@@ -56,7 +56,7 @@ const stripHash = (str) => {
 
 // Replace the current window.history state
 const replaceState = (state) =>
-    window.history.replaceState(state, document.title, state.center ? formatHash(state) : window.location)
+    window.history.replaceState(state, document.title, state.center ? formatHash(state) : location)
 
 export const Router = (map, pathControllerMap) => {
     const routes = Object.entries(pathControllerMap).map(([path, controller]) => Route(path, controller))
@@ -66,7 +66,7 @@ export const Router = (map, pathControllerMap) => {
     // Find the first route that matches a path
     const routesRecognize = (path) => routes.find((route) => route.match(path))
 
-    let currentPath = removeTrailingSlash(window.location.pathname) + window.location.search
+    let currentPath = removeTrailingSlash(location.pathname) + location.search
     let currentRoute = routesRecognize(currentPath)
     let currentHash = location.hash || formatHash(map)
 
@@ -75,7 +75,7 @@ export const Router = (map, pathControllerMap) => {
         // Is it a real popstate event or just a hash change?
         if (!e.originalEvent.state) return
 
-        const path = removeTrailingSlash(window.location.pathname) + window.location.search
+        const path = removeTrailingSlash(location.pathname) + location.search
 
         // Skip if the path hasn't changed
         if (path === currentPath) return

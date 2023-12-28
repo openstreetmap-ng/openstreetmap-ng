@@ -5,7 +5,7 @@ const noteIcon = document.querySelector(".fixthemap-note-link")
 if (noteIcon) {
     // Support default location setting via URL parameters
     let locationProvided = false
-    const searchParams = qsParse(window.location.search.substring(1))
+    const searchParams = qsParse(location.search.substring(1))
     if (searchParams.lon && searchParams.lat) {
         searchParams.lon = parseFloat(searchParams.lon)
         searchParams.lat = parseFloat(searchParams.lat)
