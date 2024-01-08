@@ -6,7 +6,7 @@
     "iD": "github:openstreetmap/iD#release",
     "leaflet": "^1.8.0",
     "leaflet.locatecontrol": "^0.79.0",
-    "osm-community-index": "^5.2.0"
+    "osm-community-index": "^5.6.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
