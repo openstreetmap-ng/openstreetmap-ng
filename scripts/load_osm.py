@@ -6,15 +6,15 @@ import anyio
 import xmltodict
 from shapely.geometry import Point
 
-from cython_lib.xmltodict import XMLToDict
-from lib.format.format06 import Format06
-from models.db.element import Element
-from models.db.element_node import ElementNode
-from models.db.element_relation import ElementRelation
-from models.db.element_way import ElementWay
-from models.element_member import ElementMemberRef
-from models.element_type import ElementType
-from models.typed_element_ref import TypedElementRef
+from src.lib.format.format06 import Format06
+from src.lib_cython.xmltodict import XMLToDict
+from src.models.db.element import Element
+from src.models.db.element_node import ElementNode
+from src.models.db.element_relation import ElementRelation
+from src.models.db.element_way import ElementWay
+from src.models.element_member import ElementMemberRef
+from src.models.element_type import ElementType
+from src.models.typed_element_ref import TypedElementRef
 
 
 async def main():

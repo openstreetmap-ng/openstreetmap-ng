@@ -1,0 +1,61 @@
+/*
+ * Leaflet.locationfilter - leaflet location filter plugin
+ * Copyright (C) 2012, Tripbirds.com, http://tripbirds.com
+ * https://github.com/kajic/leaflet-locationfilter
+ * Originally licensed under the MIT License.
+ * Modification licensed under the AGPL-3.0 License.
+ */
+
+div.leaflet-marker-icon.location-filter.resize-marker {
+    background: url(/static/img/location-filter/resize-handle.png) no-repeat;
+    cursor: move;
+}
+
+div.leaflet-marker-icon.location-filter.move-marker {
+    background: url(/static/img/location-filter/move-handle.png) no-repeat;
+    cursor: move;
+}
+
+div.location-filter.button-container {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 7px;
+    padding: 5px;
+}
+
+.leaflet-container div.location-filter.button-container a {
+    display: inline-block;
+    color: #0f2416;
+    font-size: 11px;
+    font-weight: normal;
+    text-shadow: #a1bb9c 0 1px;
+    padding: 6px 7px;
+    border: 1px solid #9cc5a4;
+    border-radius: 3px;
+    box-shadow: inset rgba(255, 255, 255, 0.75) 0 1px 1px;
+    background: linear-gradient(top, rgba(218, 252, 205, 0.9) 0%, rgba(173, 226, 176, 0.9) 100%);
+}
+
+.leaflet-container div.location-filter.button-container a:hover {
+    color: #263f1c;
+    background: linear-gradient(top, rgba(245, 255, 240, 0.9) 0%, rgba(203, 228, 205, 0.9) 100%);
+}
+
+.leaflet-container div.location-filter.button-container a.enable-button {
+    padding: 6px 7px 6px 25px;
+    background: url(/static/img/location-filter/filter-icon.png),
+        linear-gradient(top, rgba(218, 252, 205, 0.9) 0%, rgba(173, 226, 176, 0.9) 100%);
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+.leaflet-container div.location-filter.button-container a.enable-button:hover,
+.leaflet-container div.location-filter.button-container.enabled a.enable-button {
+    background: url(/static/img/location-filter/filter-icon.png),
+        linear-gradient(top, rgba(245, 255, 240, 0.9) 0%, rgba(203, 228, 205, 0.9) 100%);
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+.leaflet-container div.location-filter.button-container a.adjust-button {
+    margin-left: 2px;
+}

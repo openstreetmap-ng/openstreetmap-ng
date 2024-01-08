@@ -1,0 +1,5 @@
+inputs:
+  devenv:
+    url: github:cachix/devenv/python-rewrite
+  nixpkgs:
+    url: github:NixOS/nixpkgs/nixpkgs-23.11-darwin

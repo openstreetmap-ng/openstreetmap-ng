@@ -10,9 +10,9 @@ setup(
         [
             Extension(
                 '*',
-                ['cython_lib/*.py'],
+                ['src/lib_cython/*.py'],
                 extra_compile_args=[
-                    '-march=x86-64',
+                    '-march=x86-64-v2',
                     '-mtune=generic',
                     '-ffast-math',
                     '-fopenmp',
