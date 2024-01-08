@@ -40,7 +40,7 @@ let
 
       echo "Compiling .po files"
       for file in $(find config/locale -type f -name combined.po); do
-        msgfmt "$file" -o "\$\{file%.po\}.mo";
+        msgfmt "$file" -o "''${file%.po}.mo";
       done
     '')
   ] ++ lib.optionals isDevelopment [
