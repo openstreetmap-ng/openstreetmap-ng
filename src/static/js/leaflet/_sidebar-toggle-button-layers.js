@@ -22,6 +22,10 @@ export const getLayersSidebarToggleButton = (options) => {
         for (const layerContainer of layerContainers) {
             const layerId = layerContainer.dataset.layerId
             const layer = getBaseLayerById(layerId)
+            if (!layer) {
+                console.error(`Base layer ${layerId} not found`)
+                continue
+            }
 
             const minimapContainer = layerContainer.querySelector(".leaflet-container")
             const minimap = L.map(minimapContainer, {
@@ -69,6 +73,9 @@ export const getLayersSidebarToggleButton = (options) => {
         const onLayerClick = (e) => {
             const layerContainer = e.currentTarget
             const layerId = layerContainer.dataset.layerId
+            const layer = getBaseLayerById(layerId)
+            if (!layer) throw new Error(`Base layer ${layerId} not found`)
+
             const activeLayerId = map.getBaseLayerId()
 
             // Skip updates if the layer is already active
@@ -80,7 +87,6 @@ export const getLayersSidebarToggleButton = (options) => {
             })
 
             // Add the new base layer
-            const layer = getBaseLayerById(layerId)
             map.addLayer(layer)
 
             // Trigger the baselayerchange event
