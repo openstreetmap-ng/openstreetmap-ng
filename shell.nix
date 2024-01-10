@@ -19,37 +19,20 @@ let
     python312
     busybox
     zstd
-    gettext
 
     # Scripts
+    # -- Misc
     (writeShellScriptBin "make-version" ''
       sed -i -r "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" config.py
-    '')
-    (writeShellScriptBin "make-locale" ''
-      set -e
-      [ "$(realpath $(pwd))" != "$(realpath "$PROJECT_DIR")" ] && echo "WARNING: CWD != $PROJECT_DIR"
-
-      echo "Processing osm-community-index"
-      python scripts/make_locale_oci.py
-
-      echo "Merging .po files"
-      for file in $(find config/locale -type f -name out-osm-0-all.po); do
-        locale_dir=$(dirname "$file")
-        msgcat --use-first "$file" "$locale_dir/oci.po" | sed 's/%{/{/g' > "$locale_dir/combined.po"
-      done
-
-      echo "Compiling .po files"
-      for file in $(find config/locale -type f -name combined.po); do
-        msgfmt "$file" -o "''${file%.po}.mo";
-      done
     '')
   ] ++ lib.optionals isDevelopment [
     # Development packages
     poetry
-    nodejs_20
-    gcc
     ruff
+    nodejs_20
     biome
+    gcc
+    gettext
     dart-sass
     esbuild
 
@@ -91,8 +74,36 @@ let
     '')
 
     # -- Misc
+    (writeShellScriptBin "make-locale" ''
+      set -e
+      [ "$(realpath $(pwd))" != "$(realpath "$PROJECT_DIR")" ] && echo "WARNING: CWD != $PROJECT_DIR"
+
+      echo "Processing osm-community-index"
+      python scripts/make_locale_oci.py
+
+      echo "Merging .po files"
+      for file in $(find config/locale -type f -name out-osm-0-all.po); do
+        locale_dir=$(dirname "$file")
+        msgcat --use-first "$file" "$locale_dir/oci.po" | sed 's/%{/{/g' > "$locale_dir/combined.po"
+      done
+
+      echo "Compiling .po files"
+      for file in $(find config/locale -type f -name combined.po); do
+        msgfmt "$file" -o "''${file%.po}.mo";
+      done
+    '')
     (writeShellScriptBin "docker-build-push" ''
-      docker push $(docker load < $(nix-build --no-out-link) | sed -En 's/Loaded image: (\S+)/\1/p')
+      set -e
+      cython-clean && cython-build
+
+      # Some data files require elevated permissions
+      if [ -d "$PROJECT_DIR/data" ]; then
+        image_path=$(sudo nix-build --no-out-link)
+      else
+        image_path=$(nix-build --no-out-link)
+      fi
+
+      docker push $(docker load < "$image_path" | sed -En 's/Loaded image: (\S+)/\1/p')
     '')
     (writeShellScriptBin "watch-sass" ''
       npm run watch:sass
@@ -106,9 +117,12 @@ let
   ];
 
   shell' = with pkgs; ''
+    export PROJECT_DIR="$(pwd)"
+  '' + lib.optionalString isDevelopment ''
     [ ! -e .venv/bin/python ] && [ -h .venv/bin/python ] && rm -r .venv
 
     echo "Installing Python dependencies"
+    export POETRY_VIRTUALENVS_IN_PROJECT=1
     poetry install --compile
 
     echo "Installing Node.js dependencies"
@@ -118,8 +132,6 @@ let
     source .venv/bin/activate
 
     export LD_LIBRARY_PATH="${lib.makeLibraryPath libraries'}"
-  '' + lib.optionalString isDevelopment ''
-    export PROJECT_DIR="$(pwd)"
 
     # Development environment variables
     export SECRET="development-secret"
@@ -128,9 +140,12 @@ let
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
+  '' + lib.optionalString (!isDevelopment) ''
+    make-version
   '';
 in
 pkgs.mkShell {
-  packages = libraries' ++ packages';
+  libraries = libraries';
+  buildInputs = libraries' ++ packages';
   shellHook = shell';
 }

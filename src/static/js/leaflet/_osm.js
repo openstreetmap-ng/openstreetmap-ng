@@ -20,7 +20,6 @@ export const Mapnik = defaultLayer.extend({
     },
 })
 
-// biome-ignore lint/style/useNamingConvention: Own name
 export const CyclOSM = defaultLayer.extend({
     options: {
         url: "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
@@ -49,7 +48,6 @@ export const TransportMap = defaultLayer.extend({
     },
 })
 
-// biome-ignore lint/style/useNamingConvention: Own name
 export const OPNVKarte = defaultLayer.extend({
     options: {
         url: "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",

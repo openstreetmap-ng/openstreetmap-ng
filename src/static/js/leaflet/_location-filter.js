@@ -158,8 +158,8 @@ L.LocationFilter = L.Class.extend({
             fillOpacity: 0.3,
             clickable: false,
         }
-        options = L.Util.extend(defaultOptions, options || {})
-        const rect = new L.Rectangle(bounds, options)
+        const mergedOptions = L.Util.extend(defaultOptions, options || {})
+        const rect = new L.Rectangle(bounds, mergedOptions)
         rect.addTo(this._layer)
         return rect
     },
@@ -318,7 +318,7 @@ L.LocationFilter = L.Class.extend({
 
     /* Reposition all rectangles and markers to the current filter bounds. */
     _draw: function (options) {
-        options = L.Util.extend({ repositionResizeMarkers: true }, options)
+        const mergedOptions = L.Util.extend({ repositionResizeMarkers: true }, options)
 
         // Calculate filter bounds
         this._calculateBounds()
@@ -331,7 +331,7 @@ L.LocationFilter = L.Class.extend({
         this._innerRect.setBounds(this.getBounds())
 
         // Reposition resize markers
-        if (options.repositionResizeMarkers) {
+        if (mergedOptions.repositionResizeMarkers) {
             this._nwMarker.setLatLng(this._nw)
             this._neMarker.setLatLng(this._ne)
             this._swMarker.setLatLng(this._sw)

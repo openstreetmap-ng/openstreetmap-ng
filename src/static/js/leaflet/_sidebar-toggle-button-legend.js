@@ -91,7 +91,7 @@ export const getLegendSidebarToggleButton = (options) => {
             }
         }
 
-        // On input checked, update the legend (simulate zoomend)
+        // On sidebar shown, update the legend (simulate zoomend)
         const inputOnChange = () => {
             if (input.checked) onZoomEnd()
         }
@@ -101,7 +101,7 @@ export const getLegendSidebarToggleButton = (options) => {
         map.addEventListener("zoomend", onZoomEnd)
         input.addEventListener("change", inputOnChange)
 
-        // Initial update
+        // Initial update to set tooltip text
         onBaseLayerChange()
 
         return container

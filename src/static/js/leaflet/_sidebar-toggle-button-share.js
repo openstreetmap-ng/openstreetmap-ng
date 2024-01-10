@@ -1,5 +1,7 @@
 import * as L from "leaflet"
 import { getGeoUri, getMapEmbedHtml, getMapShortUrl, getMapUrl } from "../_utils.js"
+import { getOptimalExportParams } from "./_image-export.js"
+import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 
 export const getShareSidebarToggleButton = (options) => {
@@ -19,10 +21,32 @@ export const getShareSidebarToggleButton = (options) => {
         const embedRadioInput = sidebar.querySelector(".embed-button")
         const embedInput = sidebar.querySelector(".embed-input")
         const geoUriLink = sidebar.querySelector(".geo-uri-link")
+        const exportForm = sidebar.querySelector(".export-form")
+        const exportFormatSelect = exportForm.querySelector(".export-format-select")
+        const customRegionCheckbox = exportForm.querySelector(".custom-region-checkbox")
+        const offsetsWithDetailRadioInputs = exportForm
+            .querySelectorAll(".detail-input")
+            .map((input) => [parseInt(input.value), input])
 
-        // Null values until the marker/locationFilter is initialized
+        // Null values until initialized
         let marker = null
         let locationFilter = null
+        let optimalExportParams = null
+
+        // TODO: in map object
+        const getBaseLayer = () => {
+            let baseLayer = null
+
+            // Find the current base layer
+            map.eachLayer((layer) => {
+                if (map.baseLayers.has(layer)) {
+                    baseLayer = layer
+                }
+            })
+
+            if (!baseLayer) throw new Error("No base layer found")
+            return baseLayer
+        }
 
         const updateLinks = () => {
             const showMarker = markerCheckbox.checked
@@ -64,6 +88,37 @@ export const getShareSidebarToggleButton = (options) => {
             updateGeoUri()
         }
 
+        // On map zoomend or baselayerchange, update the optimal export params
+        const onMapZoomOrLayerChange = () => {
+            // Skip updates if the sidebar is hidden
+            if (!input.checked) return
+
+            const baseLayer = getBaseLayer()
+
+            // Get the current base layer's min and max zoom
+            const minZoom = baseLayer.options.minZoom
+            const maxZoom = baseLayer.options.maxNativeZoom ?? baseLayer.options.maxZoom
+
+            const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+            optimalExportParams = getOptimalExportParams(bounds)
+
+            // Update the radio inputs availability
+            for (const [zoomOffset, radioInput] of offsetsWithDetailRadioInputs) {
+                const zoom = optimalExportParams.zoom + zoomOffset
+                // TODO: Display the export resolution
+                // const xResolution = Math.round(optimalExportParams.xResolution * 2 ** zoomOffset)
+                // const yResolution = Math.round(optimalExportParams.yResolution * 2 ** zoomOffset)
+                const isAvailable = minZoom <= zoom && zoom <= maxZoom
+
+                radioInput.disabled = !isAvailable
+
+                if (radioInput.checked && !isAvailable) {
+                    radioInput.checked = false
+                    radioInput.dispatchEvent(new Event("change"))
+                }
+            }
+        }
+
         // On marker checkbox change, display/hide the marker
         const onMarkerCheckboxChange = () => {
             if (markerCheckbox.checked) {
@@ -84,6 +139,40 @@ export const getShareSidebarToggleButton = (options) => {
             }
         }
 
+        const onExportFormSubmit = (e) => {
+            e.preventDefault()
+
+            const format = exportFormatSelect.value
+            const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+            const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
+            const zoom = optimalExportParams.zoom + zoomOffset
+            const baseLayer = getBaseLayer()
+
+            // TODO: export call, disable button while exporting
+        }
+
+        // On custom region checkbox change, enable/disable the location filter
+        const onCustomRegionCheckboxChange = () => {
+            if (customRegionCheckbox.checked) {
+                if (!locationFilter) {
+                    locationFilter = getLocationFilter({
+                        enableButton: false,
+                        adjustButton: false,
+                    })
+                    locationFilter.addEventListener("change", onMapZoomOrLayerChange)
+                }
+
+                // By default, location filter is slightly smaller than the current view
+                locationFilter.setBounds(map.getBounds().pad(-0.2))
+
+                map.addLayer(locationFilter)
+            } else {
+                map.removeLayer(locationFilter)
+            }
+
+            onMapZoomOrLayerChange()
+        }
+
         // On marker drag end, center map to marker
         const onMarkerDragEnd = () => {
             map.removeEventListener("move", onMapMove)
@@ -93,9 +182,26 @@ export const getShareSidebarToggleButton = (options) => {
             })
         }
 
+        const inputOnChange = () => {
+            // On sidebar shown, force update
+            if (input.checked) {
+                onMapMoveEnd()
+                onMapZoomOrLayerChange()
+            } else {
+                // On sidebar hidden, deselect the marker checkbox
+                // biome-ignore lint/style/useCollapsedElseIf: Readability
+                if (markerCheckbox.checked) {
+                    markerCheckbox.checked = false
+                    markerCheckbox.dispatchEvent(new Event("change"))
+                }
+            }
+        }
+
         // Listen for events
         map.addEventListener("move", onMapMove)
         map.addEventListener("moveend", onMapMoveEnd)
+        map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
+        input.addEventListener("change", inputOnChange)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
         linkRadioInput.addEventListener("change", () => {
             if (linkRadioInput.checked) updateLinks()
@@ -106,9 +212,8 @@ export const getShareSidebarToggleButton = (options) => {
         embedRadioInput.addEventListener("change", () => {
             if (embedRadioInput.checked) updateLinks()
         })
-
-        // TODO: deselect checkbox
-        // TODO: on show panel
+        exportForm.addEventListener("submit", onExportFormSubmit)
+        customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
 
         return container
     }

@@ -17,7 +17,12 @@
       "style": {
         "noParameterProperties": "error",
         "useCollapsedElseIf": "warn",
-        "useNamingConvention": "warn",
+        "useNamingConvention": {
+          "level": "warn",
+          "options": {
+            "strictCase": false
+          }
+        },
         "useShorthandArrayType": "warn",
         "useShorthandAssign": "warn"
       },
