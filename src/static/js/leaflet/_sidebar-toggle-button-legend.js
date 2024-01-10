@@ -1,7 +1,6 @@
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 
-const availableLegends = ["mapnik", "cyclemap"]
-const precomputeMaxZoom = 25
+const PRECOMPUTE_MAX_ZOOM = 25
 
 export const getLegendSidebarToggleButton = (options) => {
     const control = getSidebarToggleButton(options, "legend", "javascripts.key.tooltip")
@@ -20,7 +19,7 @@ export const getLegendSidebarToggleButton = (options) => {
             const elements = layerContainer.querySelectorAll(".legend-item").map((element) => {
                 const minZoom = parseFloat(element.dataset.minZoom)
                 const maxZoom = parseFloat(element.dataset.maxZoom)
-                const visibility = new Array(precomputeMaxZoom + 1)
+                const visibility = new Array(PRECOMPUTE_MAX_ZOOM + 1)
 
                 visibility.fill(false, 0, minZoom)
                 visibility.fill(true, minZoom, maxZoom + 1)
@@ -36,9 +35,9 @@ export const getLegendSidebarToggleButton = (options) => {
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {
             const layer = map.getMapBaseLayerId()
-            const isLegendAvailable = availableLegends.includes(layer)
+            const isAvailableForLayer = layerElementsMap[layer] !== undefined
 
-            if (isLegendAvailable) {
+            if (isAvailableForLayer) {
                 if (input.disabled) {
                     input.disabled = false
                     tooltip.setContent({
