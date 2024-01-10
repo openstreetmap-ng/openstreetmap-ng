@@ -122,7 +122,7 @@ export const Router = (map, pathControllerMap) => {
     // Listen for window and map events
     window.addEventListener("popstate", onWindowPopState)
     window.addEventListener("hashchange", onWindowHashChange)
-    map.addEventListener("moveend baselayerchange overlaylayerchange", onMapChange)
+    map.addEventListener("zoomend moveend baselayerchange overlaylayerchange", onMapChange)
 
     // Return Router object
     return {

@@ -26,24 +26,24 @@ export const zoomPrecision = (zoom) => Math.max(0, Math.ceil(Math.log(zoom) / Ma
 export const formatHash = (args) => {
     let center
     let zoom
-    let layers
+    let layersCode
 
     if (args instanceof L.Map) {
         center = args.getCenter()
         zoom = args.getZoom()
-        layers = args.getLayersCode()
+        layersCode = args.getLayersCode()
     } else {
         center = args.center || L.latLng(args.lat, args.lon)
         center = center.wrap()
         zoom = args.zoom
-        layers = args.layers || ""
+        layersCode = args.layers || ""
     }
 
     const precision = zoomPrecision(zoom)
     const lat = center.lat.toFixed(precision)
     const lon = center.lng.toFixed(precision)
 
-    const hash = layers ? `#map=${zoom}/${lat}/${lon}&layers=${layers}` : `#map=${zoom}/${lat}/${lon}`
+    const hash = layersCode ? `#map=${zoom}/${lat}/${lon}&layers=${layersCode}` : `#map=${zoom}/${lat}/${lon}`
     return hash
 }
 
@@ -75,7 +75,7 @@ export const parseHash = (hash) => {
     }
 
     // Assign layers only if present
-    if (params.layers) result.layers = params.layers
+    if (params.layers) result.layersCode = params.layers
 
     return result
 }
@@ -100,7 +100,7 @@ export const getMapUrl = (map, showMarker = false) => {
 export const getMapShortUrl = (map, showMarker = false) => {
     const center = map.getCenter()
     const zoom = map.getZoom()
-    const layers = map.getLayersCode()
+    const layersCode = map.getLayersCode()
     const precision = zoomPrecision(zoom)
     const lat = center.lat.toFixed(precision)
     const lon = center.lng.toFixed(precision)
@@ -108,7 +108,7 @@ export const getMapShortUrl = (map, showMarker = false) => {
     const code = shortLinkEncode(lon, lat, zoom)
     const params = {}
 
-    if (layers) params.layers = layers
+    if (layersCode) params.layers = layersCode
     if (showMarker) params.m = ""
 
     let protocol = "https:"
@@ -130,12 +130,12 @@ export const getMapShortUrl = (map, showMarker = false) => {
 // Get HTML for embedding the current map location, optionally including a marker
 export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const bbox = map.getBounds().toBBoxString()
-    const layer = map.getMapBaseLayerId()
+    const layerId = map.getBaseLayerId()
     // TODO: getMapBaseLayerId, getLayersCode
 
     const params = {
         bbox: bbox,
-        layer: layer,
+        layer: layerId,
     }
 
     if (markerLatLng) {
@@ -306,7 +306,7 @@ export const getMapParams = (searchParams) => {
     setPosition(result)
 
     // Decide on the initial layer
-    result.layer = state.layers || lastLocation?.layer || ""
+    result.layer = state.layersCode || lastLocation?.layersCode || ""
 
     // Apply optional scaling
     const scale = parseFloat(searchParams.scale)

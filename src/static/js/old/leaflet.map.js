@@ -72,64 +72,6 @@ L.OSM.Map = L.Map.extend({
 
         this.baseLayers = []
 
-        this.baseLayers.push(
-            new L.OSM.Mapnik({
-                attribution: copyright + " &hearts; " + donate + ". " + terms,
-                code: "M",
-                keyid: "mapnik",
-                name: I18n.t("javascripts.map.base.standard"),
-            }),
-        )
-
-        this.baseLayers.push(
-            new L.OSM.CyclOSM({
-                attribution: copyright + ". " + cyclosm + ". " + terms,
-                code: "Y",
-                keyid: "cyclosm",
-                name: I18n.t("javascripts.map.base.cyclosm"),
-            }),
-        )
-
-        if (OSM.THUNDERFOREST_KEY) {
-            this.baseLayers.push(
-                new L.OSM.CycleMap({
-                    attribution: copyright + ". " + thunderforest + ". " + terms,
-                    apikey: OSM.THUNDERFOREST_KEY,
-                    code: "C",
-                    keyid: "cyclemap",
-                    name: I18n.t("javascripts.map.base.cycle_map"),
-                }),
-            )
-
-            this.baseLayers.push(
-                new L.OSM.TransportMap({
-                    attribution: copyright + ". " + thunderforest + ". " + terms,
-                    apikey: OSM.THUNDERFOREST_KEY,
-                    code: "T",
-                    keyid: "transportmap",
-                    name: I18n.t("javascripts.map.base.transport_map"),
-                }),
-            )
-        }
-
-        this.baseLayers.push(
-            new L.OSM.OPNVKarte({
-                attribution: copyright + ". " + memomaps + ". " + terms,
-                code: "O",
-                keyid: "opnvkarte",
-                name: I18n.t("javascripts.map.base.opnvkarte"),
-            }),
-        )
-
-        this.baseLayers.push(
-            new L.OSM.HOT({
-                attribution: copyright + ". " + hotosm + ". " + terms,
-                code: "H",
-                keyid: "hot",
-                name: I18n.t("javascripts.map.base.hot"),
-            }),
-        )
-
         this.noteLayer = new L.FeatureGroup()
         this.noteLayer.options = { code: "N" }
 

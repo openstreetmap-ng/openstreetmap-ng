@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
-import { Mapnik } from "./leaflet/_osm.js"
+import { getLayerById } from "./leaflet/_osm.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 import { getZoomControl } from "./leaflet/_zoom.js"
 
@@ -15,8 +15,8 @@ if (useMapContainer) {
     let map = null
     let marker = null
 
-    const markerFactory = (latlng) =>
-        L.marker(latlng, { icon: getMarkerIcon() }).addTo(map).bindPopup(I18n.t("diary_entries.edit.marker_text"))
+    const markerFactory = (latLng) =>
+        L.marker(latLng, { icon: getMarkerIcon() }).addTo(map).bindPopup(I18n.t("diary_entries.edit.marker_text"))
 
     // On map click, update the coordinates and move the marker
     const onMapClick = (e) => {
@@ -42,10 +42,13 @@ if (useMapContainer) {
         map = L.map(mapDiv, {
             attributionControl: false,
             zoomControl: false,
-        }).addLayer(new Mapnik())
+        })
 
-        // Add zoom control
-        getZoomControl().addTo(map)
+        // Add default layer
+        map.addLayer(getLayerById("mapnik"))
+
+        // Add custom zoom control
+        map.addControl(getZoomControl())
 
         let center
 
@@ -57,6 +60,7 @@ if (useMapContainer) {
             if (isLongitude(lon) && isLatitude(lat)) {
                 center = L.latLng(lat, lon)
                 marker = markerFactory(center)
+                // TODO: draggable marker
             }
         }
 

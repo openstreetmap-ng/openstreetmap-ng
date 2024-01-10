@@ -37,11 +37,7 @@ export const getSidebarToggleButton = (options, className, tooltipTitle) => {
         container.appendChild(label)
 
         const onChange = () => {
-            if (input.checked) {
-                sidebar.classList.remove("d-none")
-            } else {
-                sidebar.classList.add("d-none")
-            }
+            sidebar.classList.toggle("d-none", !input.checked)
         }
 
         // Listen for events

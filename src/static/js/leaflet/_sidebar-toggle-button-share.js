@@ -4,6 +4,21 @@ import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 
+// TODO: in map object
+// const getBaseLayer = () => {
+//     let baseLayer = null
+
+//     // Find the current base layer
+//     map.eachLayer((layer) => {
+//         if (map.baseLayers.has(layer)) {
+//             baseLayer = layer
+//         }
+//     })
+
+//     if (!baseLayer) throw new Error("No base layer found")
+//     return baseLayer
+// }
+
 export const getShareSidebarToggleButton = (options) => {
     const control = getSidebarToggleButton(options, "share", "javascripts.share.title")
     const controlOnAdd = control.onAdd
@@ -33,21 +48,6 @@ export const getShareSidebarToggleButton = (options) => {
         let marker = null
         let locationFilter = null
         let optimalExportParams = null
-
-        // TODO: in map object
-        const getBaseLayer = () => {
-            let baseLayer = null
-
-            // Find the current base layer
-            map.eachLayer((layer) => {
-                if (map.baseLayers.has(layer)) {
-                    baseLayer = layer
-                }
-            })
-
-            if (!baseLayer) throw new Error("No base layer found")
-            return baseLayer
-        }
 
         const updateLinks = () => {
             const showMarker = markerCheckbox.checked
@@ -80,8 +80,8 @@ export const getShareSidebarToggleButton = (options) => {
             }
         }
 
-        // On map move, update sidebar data
-        const onMapMoveEnd = () => {
+        // On map zoomend or moveend, update sidebar data
+        const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
@@ -94,7 +94,7 @@ export const getShareSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const baseLayer = getBaseLayer()
+            const baseLayer = map.getBaseLayer()
 
             // Get the current base layer's min and max zoom
             const minZoom = baseLayer.options.minZoom
@@ -156,7 +156,7 @@ export const getShareSidebarToggleButton = (options) => {
                 const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
                 const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
                 const zoom = optimalExportParams.zoom + zoomOffset
-                const baseLayer = getBaseLayer()
+                const baseLayer = map.getBaseLayer()
 
                 // Create image blob and download it
                 const blob = await exportMapImage(mimeType, bounds, zoom, baseLayer)
@@ -205,10 +205,10 @@ export const getShareSidebarToggleButton = (options) => {
             })
         }
 
-        const inputOnChange = () => {
+        const onInputCheckedChange = () => {
             // On sidebar shown, force update
             if (input.checked) {
-                onMapMoveEnd()
+                onMapZoomOrMoveEnd()
                 onMapZoomOrLayerChange()
             } else {
                 // On sidebar hidden, deselect the marker checkbox
@@ -222,9 +222,9 @@ export const getShareSidebarToggleButton = (options) => {
 
         // Listen for events
         map.addEventListener("move", onMapMove)
-        map.addEventListener("moveend", onMapMoveEnd)
+        map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
-        input.addEventListener("change", inputOnChange)
+        input.addEventListener("change", onInputCheckedChange)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
         linkRadioInput.addEventListener("change", () => {
             if (linkRadioInput.checked) updateLinks()

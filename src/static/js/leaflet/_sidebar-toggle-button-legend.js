@@ -15,7 +15,7 @@ export const getLegendSidebarToggleButton = (options) => {
         // Discover the legend items and precompute their visibility
         const layerContainers = sidebar.querySelectorAll(".layer-container")
         const layerElementsMap = layerContainers.reduce((result, layerContainer) => {
-            const layer = layerContainer.dataset.layer
+            const layerId = layerContainer.dataset.layerId
             const elements = layerContainer.querySelectorAll(".legend-item").map((element) => {
                 const minZoom = parseFloat(element.dataset.minZoom)
                 const maxZoom = parseFloat(element.dataset.maxZoom)
@@ -28,16 +28,16 @@ export const getLegendSidebarToggleButton = (options) => {
                 return { element, visibility }
             })
 
-            result[layer] = elements
+            result[layerId] = elements
             return result
         }, {})
 
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {
-            const layer = map.getMapBaseLayerId()
-            const isAvailableForLayer = layerElementsMap[layer] !== undefined
+            const activeLayerId = map.getBaseLayerId()
+            const isLegendAvailable = layerElementsMap[activeLayerId] !== undefined
 
-            if (isAvailableForLayer) {
+            if (isLegendAvailable) {
                 if (input.disabled) {
                     input.disabled = false
                     tooltip.setContent({
@@ -65,23 +65,19 @@ export const getLegendSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const activeLayer = map.getMapBaseLayerId()
+            const activeLayerId = map.getBaseLayerId()
             const currentZoom = Math.floor(map.getZoom())
 
             for (const layerContainer of layerContainers) {
-                const layer = layerContainer.dataset.layer
-                if (layer === activeLayer) {
+                const layerId = layerContainer.dataset.layerId
+                if (layerId === activeLayerId) {
                     // Show section
                     layerContainer.classList.remove("d-none")
 
                     // Update visibility of elements
-                    for (const { element, visibility } of layerElementsMap[layer]) {
+                    for (const { element, visibility } of layerElementsMap[layerId]) {
                         const isVisible = visibility[currentZoom]
-                        if (isVisible) {
-                            element.classList.remove("d-none")
-                        } else {
-                            element.classList.add("d-none")
-                        }
+                        element.classList.toggle("d-none", !isVisible)
                     }
                 } else {
                     // Hide section
@@ -91,14 +87,14 @@ export const getLegendSidebarToggleButton = (options) => {
         }
 
         // On sidebar shown, update the legend (simulate zoomend)
-        const inputOnChange = () => {
+        const onInputCheckedChange = () => {
             if (input.checked) onZoomEnd()
         }
 
         // Listen for events
         map.addEventListener("baselayerchange", onBaseLayerChange)
         map.addEventListener("zoomend", onZoomEnd)
-        input.addEventListener("change", inputOnChange)
+        input.addEventListener("change", onInputCheckedChange)
 
         // Initial update to set tooltip text
         onBaseLayerChange()
