@@ -57,20 +57,10 @@ const wrapTileCoords = (x, y, zoom) => {
     return { x: ((x % n) + n) % n, y: ((y % n) + n) % n }
 }
 
-export const exportMapImage = async (format, bounds, zoom, baseLayer) => {
+export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
     let [minLat, minLon, maxLat, maxLon] = bounds
     // The bounds cross the antimeridian
     if (minLon > maxLon) maxLon += 360
-
-    const sizeInDegrees = L.point(maxLon - minLon, maxLat - minLat)
-    const sizeInRadians = sizeInDegrees.multiplyBy(Math.PI / 180)
-    const sizeInMeters = sizeInRadians.multiplyBy(EARTH_RADIUS)
-    const xProportion = sizeInMeters.x / EARTH_CIRCUMFERENCE
-    const yProportion = sizeInMeters.y / EARTH_CIRCUMFERENCE
-
-    const earthResolution = TILE_SIZE * 2 ** zoom
-    const xResolution = earthResolution * xProportion
-    const yResolution = earthResolution * yProportion
 
     const minTileCoords = getTileCoords(minLon, maxLat, zoom)
     const maxTileCoords = getTileCoords(maxLon, minLat, zoom)
@@ -131,7 +121,7 @@ export const exportMapImage = async (format, bounds, zoom, baseLayer) => {
                 if (blob) resolve(blob)
                 else reject("Failed to export the map image")
             },
-            format,
+            mimeType,
             IMAGE_QUALITY,
         )
     })

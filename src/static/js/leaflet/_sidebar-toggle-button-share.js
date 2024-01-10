@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { getGeoUri, getMapEmbedHtml, getMapShortUrl, getMapUrl } from "../_utils.js"
-import { getOptimalExportParams } from "./_image-export.js"
+import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 
@@ -27,6 +27,7 @@ export const getShareSidebarToggleButton = (options) => {
         const offsetsWithDetailRadioInputs = exportForm
             .querySelectorAll(".detail-input")
             .map((input) => [parseInt(input.value), input])
+        const exportButton = exportForm.querySelector("[type=submit]")
 
         // Null values until initialized
         let marker = null
@@ -139,16 +140,38 @@ export const getShareSidebarToggleButton = (options) => {
             }
         }
 
-        const onExportFormSubmit = (e) => {
+        const onExportFormSubmit = async (e) => {
             e.preventDefault()
 
-            const format = exportFormatSelect.value
-            const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-            const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
-            const zoom = optimalExportParams.zoom + zoomOffset
-            const baseLayer = getBaseLayer()
+            if (exportButton.disabled) return
 
-            // TODO: export call, disable button while exporting
+            const originalInner = exportButton.innerHTML
+            exportButton.disabled = true
+            exportButton.textContent = I18n.t("javascripts.share.exporting")
+
+            try {
+                // Get export params from the form
+                const mimeType = exportFormatSelect.value
+                const fileExtension = exportFormatSelect.selectedOptions[0].dataset.fileExtension
+                const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+                const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
+                const zoom = optimalExportParams.zoom + zoomOffset
+                const baseLayer = getBaseLayer()
+
+                // Create image blob and download it
+                const blob = await exportMapImage(mimeType, bounds, zoom, baseLayer)
+
+                const now = new Date()
+                const date = `${now.toISOString().slice(0, 10)} ${now.toLocaleTimeString().replace(/:/g, "-")}`
+
+                const a = document.createElement("a")
+                a.href = URL.createObjectURL(blob)
+                a.download = `Map ${date}.${fileExtension}`
+                a.click()
+            } finally {
+                exportButton.innerHTML = originalInner
+                exportButton.disabled = false
+            }
         }
 
         // On custom region checkbox change, enable/disable the location filter
