@@ -39,7 +39,7 @@ export const getNewNoteControl = (options) => {
         button.innerHTML = "<span class='icon note'></span>"
 
         const tooltip = Tooltip.getOrCreateInstance(button, {
-            title: "",
+            title: I18n.t("javascripts.site.createnote_tooltip"),
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })
