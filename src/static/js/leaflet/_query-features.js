@@ -1,9 +1,9 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 
-const minZoom = 12
+const minZoom = 14
 
-export const getNewNoteControl = (options) => {
+export const getQueryFeaturesControl = (options) => {
     const control = L.control(options)
 
     // On zoomend, disable/enable button
@@ -15,7 +15,7 @@ export const getNewNoteControl = (options) => {
             if (!control.button.disabled) {
                 control.button.disabled = true
                 control.tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.createnote_disabled_tooltip"),
+                    ".tooltip-inner": I18n.t("javascripts.site.queryfeature_disabled_tooltip"),
                 })
             }
         } else {
@@ -23,14 +23,14 @@ export const getNewNoteControl = (options) => {
             if (control.button.disabled) {
                 control.button.disabled = false
                 control.tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.createnote_tooltip"),
+                    ".tooltip-inner": I18n.t("javascripts.site.queryfeature_tooltip"),
                 })
             }
         }
     }
 
     control.onAdd = (map) => {
-        if (control.map) console.error("NewNoteControl has already been added to a map")
+        if (control.map) console.error("QueryFeaturesControl has already been added to a map")
 
         // Create container
         const container = document.createElement("div")
@@ -38,10 +38,10 @@ export const getNewNoteControl = (options) => {
         // Create a button and a tooltip
         const button = document.createElement("button")
         button.className = "control-button"
-        button.innerHTML = "<span class='icon note'></span>"
+        button.innerHTML = "<span class='icon query'></span>"
 
         const tooltip = Tooltip.getOrCreateInstance(button, {
-            title: I18n.t("javascripts.site.createnote_tooltip"),
+            title: I18n.t("javascripts.site.queryfeature_tooltip"),
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })

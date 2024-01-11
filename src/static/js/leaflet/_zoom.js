@@ -25,6 +25,8 @@ export const getZoomControl = (options) => {
     }
 
     control.onAdd = (map) => {
+        if (control.map) console.error("ZoomControl has already been added to a map")
+
         // Create container
         const container = document.createElement("div")
 
