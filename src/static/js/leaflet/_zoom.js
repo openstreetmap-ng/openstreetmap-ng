@@ -59,16 +59,19 @@ export const getZoomControl = (options) => {
             map.zoomOut(e.shiftKey ? 3 : 1)
         }
 
-        // Listen for events
-        zoomInButton.addEventListener("click", onZoomIn)
-        zoomOutButton.addEventListener("click", onZoomOut)
-        map.addEventListener("zoomend zoomlevelschange", onZoomChange)
-
         control.zoomInButton = zoomInButton
         control.zoomInTooltip = zoomInTooltip
         control.zoomOutButton = zoomOutButton
         control.zoomOutTooltip = zoomOutTooltip
         control.map = map
+
+        // Listen for events
+        zoomInButton.addEventListener("click", onZoomIn)
+        zoomOutButton.addEventListener("click", onZoomOut)
+        map.addEventListener("zoomend zoomlevelschange", onZoomChange)
+
+        // Initial update to set button states
+        onZoomChange()
 
         return container
     }

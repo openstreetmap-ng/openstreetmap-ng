@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import "leaflet.locatecontrol"
 
 // TODO: import (S)CSS?
+// TODO: tooltip
 
 export const getLocateControl = (options) => {
     const control = L.control.locate(
