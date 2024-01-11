@@ -1,11 +1,11 @@
 import * as L from "leaflet"
 
 // There is no point to keep these secret, they are a part of the frontend code
-const THUNDERFOREST_API_KEY = "6e5478c8a4f54c779f85573c0e399391"
-const TRACESTRACK_API_KEY = "383118983d4a867dd2d367451720d724"
+const thunderforestApiKey = "6e5478c8a4f54c779f85573c0e399391"
+const tracestrackApiKey = "383118983d4a867dd2d367451720d724"
 
-const COPYRIGHT = '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
-const TERMS = '<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">Website and API terms</a>'
+const copyright = '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+const terms = '<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">Website and API terms</a>'
 
 const defaultLayer = L.TileLayer.extend({
     options: {},
@@ -15,91 +15,105 @@ const defaultLayer = L.TileLayer.extend({
     },
 })
 
-export const Mapnik = defaultLayer.extend({
+const Mapnik = defaultLayer.extend({
     options: {
         url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         maxZoom: 19,
-        attribution: `${COPYRIGHT} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank">Make a Donation</a>. ${TERMS}`,
+        attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank">Make a Donation</a>. ${terms}`,
         layerCode: "M",
         layerId: "mapnik",
     },
 })
 
-export const CyclOSM = defaultLayer.extend({
+const CyclOSM = defaultLayer.extend({
     options: {
         url: "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
         maxZoom: 20,
         subdomains: "abc",
-        attribution: `${COPYRIGHT}. Tiles style by <a href="https://www.cyclosm.org" target="_blank">CyclOSM</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${TERMS}`,
+        attribution: `${copyright}. Tiles style by <a href="https://www.cyclosm.org" target="_blank">CyclOSM</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${terms}`,
         layerCode: "Y",
         layerId: "cyclosm",
     },
 })
 
-export const CycleMap = defaultLayer.extend({
+const CycleMap = defaultLayer.extend({
     options: {
         url: "https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey={apiKey}",
         maxZoom: 21, // supports up to 22
-        attribution: `${COPYRIGHT}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${TERMS}`,
-        apiKey: THUNDERFOREST_API_KEY,
+        attribution: `${copyright}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${terms}`,
+        apiKey: thunderforestApiKey,
         layerCode: "C",
         layerId: "cyclemap",
     },
 })
 
-export const TransportMap = defaultLayer.extend({
+const TransportMap = defaultLayer.extend({
     options: {
         url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey={apiKey}",
         maxZoom: 21, // supports up to 22
-        attribution: `${COPYRIGHT}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${TERMS}`,
-        apiKey: THUNDERFOREST_API_KEY,
+        attribution: `${copyright}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${terms}`,
+        apiKey: thunderforestApiKey,
         layerCode: "T",
         layerId: "transportmap",
     },
 })
 
-export const TracestrackTopo = defaultLayer.extend({
+const TracestrackTopo = defaultLayer.extend({
     options: {
         url: "https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key={apiKey}",
         maxZoom: 19,
-        attribution: `${COPYRIGHT}. Tiles courtesy of <a href="https://www.tracestrack.com" target="_blank">Tracestrack</a>. ${TERMS}`,
-        apiKey: TRACESTRACK_API_KEY,
+        attribution: `${copyright}. Tiles courtesy of <a href="https://www.tracestrack.com" target="_blank">Tracestrack</a>. ${terms}`,
+        apiKey: tracestrackApiKey,
         layerCode: "P",
         layerId: "tracestracktopo",
     },
 })
 
-export const OPNVKarte = defaultLayer.extend({
+const OPNVKarte = defaultLayer.extend({
     options: {
         url: "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
         maxZoom: 17,
-        attribution: `${COPYRIGHT}. Tiles courtesy of <a href="https://memomaps.de" target="_blank">MeMoMaps</a>. ${TERMS}`,
+        attribution: `${copyright}. Tiles courtesy of <a href="https://memomaps.de" target="_blank">MeMoMaps</a>. ${terms}`,
         layerCode: "O",
         layerId: "opnvkarte",
     },
 })
 
-export const HOT = defaultLayer.extend({
+const HOT = defaultLayer.extend({
     options: {
         url: "https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
         maxZoom: 20,
-        attribution: `${COPYRIGHT}. Tiles style by <a href="https://www.hotosm.org" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${TERMS}`,
+        attribution: `${copyright}. Tiles style by <a href="https://www.hotosm.org" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${terms}`,
         layerCode: "H",
         layerId: "hot",
     },
 })
 
-export const GPS = defaultLayer.extend({
+const GPS = defaultLayer.extend({
     options: {
+        // This layer has no zoom limits
         url: "https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png",
-        maxZoom: 21, // supports up to <unlimited?>
+        maxZoom: 21,
         maxNativeZoom: 20,
         layerCode: "G",
         layerId: "gps",
     },
 })
 
-export const DataLayer = L.FeatureGroup.extend({
+const NoteLayer = L.FeatureGroup.extend({
+    options: {
+        layerCode: "N",
+        layerId: "notes",
+        style: {
+            weight: 2.5,
+            radius: 20,
+            fillOpacity: 0.5,
+            color: "#FF6200",
+        },
+    },
+})
+
+const DataLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "D",
         layerId: "data",
@@ -115,14 +129,21 @@ export const DataLayer = L.FeatureGroup.extend({
             "natural",
             "sport",
         ],
-        styles: {},
-    },
-
-    initialize: function (xml, options) {
-        L.Util.setOptions(this, options)
-        L.FeatureGroup.prototype.initialize.call(this)
-
-        if (xml) this.addData(xml)
+        styles: {
+            object: {
+                color: "#FF6200",
+                weight: 4,
+                opacity: 1,
+                fillOpacity: 0.5,
+            },
+            changeset: {
+                weight: 4,
+                color: "#FF9500",
+                opacity: 1,
+                fillOpacity: 0,
+                interactive: false,
+            },
+        },
     },
 
     addData: function (featuresOrXml) {
@@ -140,15 +161,17 @@ export const DataLayer = L.FeatureGroup.extend({
                     layer = L.rectangle(feature.latLngBounds, this.options.styles.changeset)
                     break
                 case "node":
-                    layer = L.circleMarker(feature.latLng, this.options.styles.node)
+                    layer = L.circleMarker(feature.latLng, this.options.styles.object)
                     break
                 default: {
                     const latLngs = feature.nodes.map((node) => node.latLng)
                     if (this.isWayArea(feature)) {
+                        // is "area"
                         latLngs.pop() // remove last == first
-                        layer = L.polygon(latLngs, this.options.styles.area)
+                        layer = L.polygon(latLngs, this.options.styles.object)
                     } else {
-                        layer = L.polyline(latLngs, this.options.styles.way)
+                        // is way
+                        layer = L.polyline(latLngs, this.options.styles.object)
                     }
                     break
                 }
@@ -271,3 +294,10 @@ const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackT
 )
 
 export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP[layerId]
+
+const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((result, layer) => {
+    result[layer.options.layerId] = new layer()
+    return result
+}, {})
+
+export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP[layerId]

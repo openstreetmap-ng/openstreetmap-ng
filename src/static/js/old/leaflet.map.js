@@ -14,62 +14,6 @@ L.OSM.Map = L.Map.extend({
     initialize: function (id, options) {
         L.Map.prototype.initialize.call(this, id, options)
 
-        var copyright_link = $("<a>", {
-            href: "/copyright",
-            text: I18n.t("javascripts.map.openstreetmap_contributors"),
-        }).prop("outerHTML")
-        var copyright = I18n.t("javascripts.map.copyright_text", { copyright_link: copyright_link })
-
-        var donate = $("<a>", {
-            href: "https://supporting.openstreetmap.org",
-            class: "donate-attr",
-            text: I18n.t("javascripts.map.make_a_donation"),
-        }).prop("outerHTML")
-
-        var terms = $("<a>", {
-            href: "https://wiki.osmfoundation.org/wiki/Terms_of_Use",
-            text: I18n.t("javascripts.map.website_and_api_terms"),
-        }).prop("outerHTML")
-
-        var cyclosm_link = $("<a>", {
-            href: "https://www.cyclosm.org",
-            target: "_blank",
-            text: I18n.t("javascripts.map.cyclosm_name"),
-        }).prop("outerHTML")
-        var osm_france_link = $("<a>", {
-            href: "https://openstreetmap.fr/",
-            target: "_blank",
-            text: I18n.t("javascripts.map.osm_france"),
-        }).prop("outerHTML")
-        var cyclosm = I18n.t("javascripts.map.cyclosm_credit", {
-            cyclosm_link: cyclosm_link,
-            osm_france_link: osm_france_link,
-        })
-
-        var thunderforest_link = $("<a>", {
-            href: "https://www.thunderforest.com/",
-            target: "_blank",
-            text: I18n.t("javascripts.map.andy_allan"),
-        }).prop("outerHTML")
-        var thunderforest = I18n.t("javascripts.map.thunderforest_credit", { thunderforest_link: thunderforest_link })
-
-        var memomaps_link = $("<a>", {
-            href: "https://memomaps.de/",
-            target: "_blank",
-            text: I18n.t("javascripts.map.memomaps"),
-        }).prop("outerHTML")
-        var memomaps = I18n.t("javascripts.map.opnvkarte_credit", { memomaps_link: memomaps_link })
-
-        var hotosm_link = $("<a>", {
-            href: "https://www.hotosm.org/",
-            target: "_blank",
-            text: I18n.t("javascripts.map.hotosm_name"),
-        }).prop("outerHTML")
-        var hotosm = I18n.t("javascripts.map.hotosm_credit", {
-            hotosm_link: hotosm_link,
-            osm_france_link: osm_france_link,
-        })
-
         this.baseLayers = []
 
         this.noteLayer = new L.FeatureGroup()
@@ -127,28 +71,6 @@ L.OSM.Map = L.Map.extend({
     },
 
     addObject: function (object, callback) {
-        var objectStyle = {
-            color: "#FF6200",
-            weight: 4,
-            opacity: 1,
-            fillOpacity: 0.5,
-        }
-
-        var changesetStyle = {
-            weight: 4,
-            color: "#FF9500",
-            opacity: 1,
-            fillOpacity: 0,
-            interactive: false,
-        }
-
-        var haloStyle = {
-            weight: 2.5,
-            radius: 20,
-            fillOpacity: 0.5,
-            color: "#FF6200",
-        }
-
         this.removeObject()
 
         if (object.type === "note") {
