@@ -28,7 +28,7 @@ if (idContainer) {
     const map = id.map()
 
     // On map move, update the location hash
-    map.on(
+    map.addEventListener(
         "move.embed",
         throttle(() => {
             if (id.inIntro()) return

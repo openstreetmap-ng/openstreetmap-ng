@@ -125,7 +125,7 @@ export const getShareSidebarToggleButton = (options) => {
             if (markerCheckbox.checked) {
                 if (!marker) {
                     marker = L.marker(map.getCenter(), { draggable: true })
-                    marker.on("dragend", onMarkerDragEnd)
+                    marker.addEventListener("dragend", onMarkerDragEnd)
                 } else {
                     marker.setLatLng(map.getCenter())
                 }
