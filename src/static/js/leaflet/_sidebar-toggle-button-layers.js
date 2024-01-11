@@ -1,6 +1,6 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
-import { getBaseLayerById, getOverlayLayerById } from "./_osm.js"
+import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getLatLngBoundsSize, getMapBaseLayerId } from "./_utils.js"
 
@@ -120,7 +120,10 @@ export const getLayersSidebarToggleButton = (options) => {
             const layerContainer = e.currentTarget
             const layerId = layerContainer.dataset.layerId
             const layer = getBaseLayerById(layerId)
-            if (!layer) throw new Error(`Base layer ${layerId} not found`)
+            if (!layer) {
+                console.error(`Base layer ${layerId} not found`)
+                return
+            }
 
             const activeLayerId = getMapBaseLayerId(map)
 
@@ -146,7 +149,10 @@ export const getLayersSidebarToggleButton = (options) => {
             const overlayCheckbox = e.currentTarget
             const layerId = overlayCheckbox.dataset.layerId
             const layer = getOverlayLayerById(layerId)
-            if (!layer) throw new Error(`Overlay ${layerId} not found`)
+            if (!layer) {
+                console.error(`Overlay ${layerId} not found`)
+                return
+            }
 
             const checked = overlayCheckbox.checked
             const containsLayer = map.hasLayer(layer)

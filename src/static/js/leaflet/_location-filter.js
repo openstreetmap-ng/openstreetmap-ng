@@ -158,7 +158,7 @@ L.LocationFilter = L.Class.extend({
             fillOpacity: 0.3,
             clickable: false,
         }
-        const mergedOptions = L.Util.extend(defaultOptions, options || {})
+        const mergedOptions = L.Util.extend(defaultOptions, options ?? {})
         const rect = new L.Rectangle(bounds, mergedOptions)
         rect.addTo(this._layer)
         return rect

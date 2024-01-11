@@ -1,6 +1,7 @@
 import { coreContext } from "iD"
+import { encodeMapState } from "./_map_utils.js"
 import { primaryLanguage } from "./_params.js"
-import { formatHash, throttle } from "./_utils.js"
+import { throttle } from "./_utils.js"
 
 const idContainer = document.querySelector(".id-container")
 if (idContainer) {
@@ -39,7 +40,7 @@ if (idContainer) {
 
             // TODO: parent.updateLinks(latLonZoom, zoom)
 
-            parent.location.hash = formatHash(latLonZoom)
+            parent.location.hash = encodeMapState(latLonZoom)
         }, 250),
     )
 }

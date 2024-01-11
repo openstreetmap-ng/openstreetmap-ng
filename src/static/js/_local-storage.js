@@ -18,12 +18,7 @@ export const getLastMapState = () => {
         }
     }
 
-    return {
-        lon: null,
-        lat: null,
-        zoom: null,
-        layersCode: "",
-    }
+    return null
 }
 
 // Set last map state to local storage

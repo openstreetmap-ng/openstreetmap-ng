@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
-import { getLayerById } from "./leaflet/_osm.js"
+import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 import { getZoomControl } from "./leaflet/_zoom.js"
 
@@ -47,7 +47,7 @@ if (useMapContainer) {
         })
 
         // Add default layer
-        map.addLayer(getLayerById("mapnik"))
+        map.addLayer(getBaseLayerById(getLayerIdByCode("")))
 
         // Add custom zoom control
         map.addControl(getZoomControl())

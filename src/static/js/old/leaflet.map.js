@@ -15,14 +15,6 @@ L.OSM.Map = L.Map.extend({
         }
     },
 
-    getMapBaseLayerId: function () {
-        var baseLayerId
-        this.eachLayer(function (layer) {
-            if (layer.options && layer.options.keyid) baseLayerId = layer.options.keyid
-        })
-        return baseLayerId
-    },
-
     addObject: function (object, callback) {
         this.removeObject()
 
@@ -88,19 +80,6 @@ L.OSM.Map = L.Map.extend({
         this._object = null
         if (this._objectLoader) this._objectLoader.abort()
         if (this._objectLayer) this.removeLayer(this._objectLayer)
-    },
-
-    getState: function () {
-        return {
-            center: this.getCenter().wrap(),
-            zoom: this.getZoom(),
-            layers: this.getLayersCode(),
-        }
-    },
-
-    setState: function (state, options) {
-        if (state.center) this.setView(state.center, state.zoom, options)
-        if (state.layers) this.updateLayers(state.layers)
     },
 
     setSidebarOverlaid: function (overlaid) {

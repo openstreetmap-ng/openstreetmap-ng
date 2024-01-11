@@ -44,8 +44,8 @@ times during routing:
   move the map without the hash changing.
 */
 
+import { encodeMapState, parseMapState, setMapState } from "./_map_utils.js"
 import { Route } from "./_route.js"
-import { formatHash, parseHash } from "./_utils.js"
 
 const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? str.slice(0, -1) : str)
 
@@ -56,7 +56,7 @@ const stripHash = (str) => {
 
 // Replace the current window.history state
 const replaceState = (state) =>
-    window.history.replaceState(state, document.title, state.center ? formatHash(state) : location)
+    window.history.replaceState(state, document.title, state.center ? encodeMapState(state) : location)
 
 export const Router = (map, pathControllerMap) => {
     const routes = Object.entries(pathControllerMap).map(([path, controller]) => Route(path, controller))
@@ -68,7 +68,7 @@ export const Router = (map, pathControllerMap) => {
 
     let currentPath = removeTrailingSlash(location.pathname) + location.search
     let currentRoute = routesRecognize(currentPath)
-    let currentHash = location.hash || formatHash(map)
+    let currentHash = location.hash || encodeMapState(map)
 
     // On popstate (browser back/forward), replace the state
     const onWindowPopState = (e) => {
@@ -93,7 +93,8 @@ export const Router = (map, pathControllerMap) => {
         currentRoute = newRoute
         if (currentRoute) currentRoute.run("popState", currentPath)
 
-        map.setState(e.originalEvent.state, { animate: false })
+        // Change the map state without animation
+        setMapState(map, e.originalEvent.state, { animate: false })
     }
 
     // On hash change, replace the state
@@ -102,19 +103,21 @@ export const Router = (map, pathControllerMap) => {
         console.debug("onWindowHashChange", hash)
         if (hash === currentHash) return
 
-        const state = parseHash(hash)
+        const state = parseMapState(hash)
         currentHash = hash
         replaceState(state)
-        map.setState(state)
+
+        // Change the map state with animation
+        setMapState(map, state)
     }
 
     // On move, compute the current state and replace the state
     const onMapChange = () => {
-        const hash = formatHash(map)
+        const hash = encodeMapState(map)
         console.debug("onMapChange", hash)
         if (hash === currentHash) return
 
-        const state = parseHash(hash) // TODO: optimize unnecessary format+parse
+        const state = parseMapState(hash) // TODO: optimize unnecessary encode+parse
         currentHash = hash
         replaceState(state)
     }
@@ -141,7 +144,8 @@ export const Router = (map, pathControllerMap) => {
             }
 
             // Update browser history
-            const state = formatHash(map)
+            const hash = encodeMapState(map)
+            const state = parseMapState(hash) // TODO: optimize unnecessary encode+parse
             window.history.pushState(state, document.title, path)
 
             // Load the new route via pushState action
@@ -153,13 +157,13 @@ export const Router = (map, pathControllerMap) => {
         },
 
         // Replace the state and path without "reloading" the page
-        replaceStateFromPath: (path) => window.history.replaceState(parseHash(path), document.title, path),
+        replaceStateFromPath: (path) => window.history.replaceState(parseMapState(path), document.title, path),
 
         // Call load on the current route and replace the state
         load: () => {
             if (currentRoute) {
                 const state = currentRoute.run("load", currentPath)
-                replaceState(state || {})
+                replaceState(state ?? {})
             }
         },
 

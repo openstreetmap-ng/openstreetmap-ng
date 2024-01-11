@@ -1,5 +1,6 @@
+import { encodeMapState } from "./_map_utils.js"
 import { qsParse, qsStringify } from "./_qs.js"
-import { formatHash, isLatitude, isLongitude, isZoom } from "./_utils.js"
+import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 
 const noteIcon = document.querySelector(".welcome-note-link")
 if (noteIcon) {
@@ -11,8 +12,8 @@ if (noteIcon) {
     if (params.lon && params.lat) {
         params.lon = parseFloat(params.lon)
         params.lat = parseFloat(params.lat)
-        // Zoom is optional, default to 17
-        params.zoom = parseInt(params.zoom || 17, 10)
+        // Zoom is optional, defaults to 17
+        params.zoom = parseInt(params.zoom ?? 17, 10)
 
         if (isLongitude(params.lon) && isLatitude(params.lat) && isZoom(params.zoom)) {
             locationProvided = true
@@ -21,7 +22,7 @@ if (noteIcon) {
 
     // Assign position only if it's valid
     let noteHref = "/note/new"
-    if (locationProvided) noteHref += formatHash(params)
+    if (locationProvided) noteHref += encodeMapState(params)
     noteIcon.setAttribute("href", noteHref)
 
     let startHref = "/edit"
@@ -39,7 +40,7 @@ if (noteIcon) {
             params.zoom = 17
 
             if (Object.keys(startParams).length > 0) startHref += `?${qsStringify(startParams)}`
-            startHref += formatHash(params)
+            startHref += encodeMapState(params)
             location = startHref
         }
 
@@ -65,7 +66,7 @@ if (noteIcon) {
     } else {
         // If location was provided, redirect to /edit with the provided coordinates
         if (Object.keys(startParams).length > 0) startHref += `?${qsStringify(startParams)}`
-        startHref += formatHash(params)
+        startHref += encodeMapState(params)
         startButton.setAttribute("href", startHref)
     }
 }

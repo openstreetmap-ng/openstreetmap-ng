@@ -1,5 +1,6 @@
+import { encodeMapState } from "./_map_utils.js"
 import { qsParse } from "./_qs.js"
-import { formatHash, isLatitude, isLongitude, isZoom } from "./_utils.js"
+import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 
 const noteIcon = document.querySelector(".fixthemap-note-link")
 if (noteIcon) {
@@ -10,7 +11,7 @@ if (noteIcon) {
         searchParams.lon = parseFloat(searchParams.lon)
         searchParams.lat = parseFloat(searchParams.lat)
         // Zoom is optional, default to 17
-        searchParams.zoom = parseInt(searchParams.zoom || 17, 10)
+        searchParams.zoom = parseInt(searchParams.zoom ?? 17, 10)
 
         if (isLongitude(searchParams.lon) && isLatitude(searchParams.lat) && isZoom(searchParams.zoom)) {
             locationProvided = true
@@ -19,6 +20,6 @@ if (noteIcon) {
 
     // Assign position only if it's valid
     let noteHref = "/note/new"
-    if (locationProvided) noteHref += formatHash(searchParams)
+    if (locationProvided) noteHref += encodeMapState(searchParams)
     noteIcon.setAttribute("href", noteHref)
 }
