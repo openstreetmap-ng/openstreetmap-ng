@@ -86,7 +86,7 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
     const canvas = document.createElement("canvas")
     canvas.width = (maxTileCoords.x - minTileCoords.x + 1) * tileSizePx - leftOffset - rightOffset
     canvas.height = (maxTileCoords.y - minTileCoords.y + 1) * tileSizePx - topOffset - bottomOffset
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: false })
 
     const fetchTilePromise = (x, y) => {
         return new Promise((resolve, reject) => {
