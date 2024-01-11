@@ -1,40 +1,4 @@
-//= require qs/dist/qs
-
-L.extend(L.LatLngBounds.prototype, {
-    getSize: function () {
-        return (this._northEast.lat - this._southWest.lat) * (this._northEast.lng - this._southWest.lng)
-    },
-
-    wrap: function () {
-        return new L.LatLngBounds(this._southWest.wrap(), this._northEast.wrap())
-    },
-})
-
 L.OSM.Map = L.Map.extend({
-    initialize: function (id, options) {
-        L.Map.prototype.initialize.call(this, id, options)
-
-        this.baseLayers = []
-
-        this.noteLayer = new L.FeatureGroup()
-        this.noteLayer.options = { code: "N" }
-
-        this.dataLayer = new L.OSM.DataLayer(null)
-        this.dataLayer.options.code = "D"
-
-        this.gpsLayer = new L.OSM.GPS({
-            pane: "overlayPane",
-            code: "G",
-            name: I18n.t("javascripts.map.base.gps"),
-        })
-
-        this.on("layeradd", function (event) {
-            if (this.baseLayers.indexOf(event.layer) >= 0) {
-                this.setMaxZoom(event.layer.options.maxZoom)
-            }
-        })
-    },
-
     updateLayers: function (layerParam) {
         var layers = layerParam || "M",
             layersAdded = ""
@@ -49,17 +13,6 @@ L.OSM.Map = L.Map.extend({
                 this.removeLayer(this.baseLayers[i])
             }
         }
-    },
-
-    getLayersCode: function () {
-        // TODO: skip M
-        var layerConfig = ""
-        this.eachLayer(function (layer) {
-            if (layer.options && layer.options.code) {
-                layerConfig += layer.options.code
-            }
-        })
-        return layerConfig
     },
 
     getMapBaseLayerId: function () {
@@ -166,22 +119,5 @@ L.OSM.Map = L.Map.extend({
             this.invalidateSize({ pan: false })
         }
         return this
-    },
-})
-
-L.Icon.Default.imagePath = "/images/"
-
-L.Icon.Default.imageUrls = {
-    "/images/marker-icon.png": OSM.MARKER_ICON,
-    "/images/marker-icon-2x.png": OSM.MARKER_ICON_2X,
-    "/images/marker-shadow.png": OSM.MARKER_SHADOW,
-}
-
-L.extend(L.Icon.Default.prototype, {
-    _oldGetIconUrl: L.Icon.Default.prototype._getIconUrl,
-
-    _getIconUrl: function (name) {
-        var url = this._oldGetIconUrl(name)
-        return L.Icon.Default.imageUrls[url]
     },
 })

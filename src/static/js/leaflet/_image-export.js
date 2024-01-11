@@ -6,6 +6,8 @@ const optimalExportResolution = 1024
 const earthRadius = 6371000
 const earthCircumference = 40030173 // 2 * Math.PI * EARTH_RADIUS
 
+// TODO: add information that only base layer is exported, no markers etc.
+
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const imageQuality = 0.95
 

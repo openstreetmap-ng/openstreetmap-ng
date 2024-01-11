@@ -1,8 +1,9 @@
 import * as L from "leaflet"
 import { homePoint } from "./_dataset.js"
-import { getLastLocation } from "./_local-storage.js"
+import { getLastMapState } from "./_local-storage.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
+import { getMapLayersCode } from "./leaflet/_utils.js"
 
 // Check if number is a valid longitude
 export const isLongitude = (lon) => lon >= -180 && lon <= 180
@@ -29,9 +30,10 @@ export const formatHash = (args) => {
     let layersCode
 
     if (args instanceof L.Map) {
-        center = args.getCenter()
-        zoom = args.getZoom()
-        layersCode = args.getLayersCode()
+        const map = args
+        center = map.getCenter()
+        zoom = map.getZoom()
+        layersCode = getMapLayersCode(map)
     } else {
         center = args.center || L.latLng(args.lat, args.lon)
         center = center.wrap()
@@ -100,7 +102,7 @@ export const getMapUrl = (map, showMarker = false) => {
 export const getMapShortUrl = (map, showMarker = false) => {
     const center = map.getCenter()
     const zoom = map.getZoom()
-    const layersCode = map.getLayersCode()
+    const layersCode = getMapLayersCode(map)
     const precision = zoomPrecision(zoom)
     const lat = center.lat.toFixed(precision)
     const lon = center.lng.toFixed(precision)
@@ -131,7 +133,6 @@ export const getMapShortUrl = (map, showMarker = false) => {
 export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const bbox = map.getBounds().toBBoxString()
     const layerId = map.getBaseLayerId()
-    // TODO: getMapBaseLayerId, getLayersCode
 
     const params = {
         bbox: bbox,
@@ -232,7 +233,7 @@ export const getMapParams = (searchParams) => {
     }
 
     const state = parseHash(location.hash)
-    const lastLocation = getLastLocation()
+    const lastLocation = getLastMapState()
 
     // Decide on the initial position and zoom
     const setPosition = (result) => {

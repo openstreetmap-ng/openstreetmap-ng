@@ -1,4 +1,5 @@
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
+import { getMapBaseLayerId } from "./_utils.js"
 
 const PRECOMPUTE_MAX_ZOOM = 25
 
@@ -34,7 +35,7 @@ export const getLegendSidebarToggleButton = (options) => {
 
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {
-            const activeLayerId = map.getBaseLayerId()
+            const activeLayerId = getMapBaseLayerId(map)
             const isLegendAvailable = layerElementsMap[activeLayerId] !== undefined
 
             if (isLegendAvailable) {
@@ -65,7 +66,7 @@ export const getLegendSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const activeLayerId = map.getBaseLayerId()
+            const activeLayerId = getMapBaseLayerId(map)
             const currentZoom = Math.floor(map.getZoom())
 
             for (const layerContainer of layerContainers) {

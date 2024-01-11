@@ -2,6 +2,7 @@ import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { getBaseLayerById, getOverlayLayerById } from "./_osm.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
+import { getLatLngBoundsSize, getMapBaseLayerId } from "./_utils.js"
 
 const minimapZoomOut = 2
 
@@ -50,7 +51,7 @@ export const getLayersSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const activeLayerId = map.getBaseLayerId()
+            const activeLayerId = getMapBaseLayerId(map)
 
             for (const layerContainer of layerContainers) {
                 const layerId = layerContainer.dataset.layerId
@@ -76,7 +77,7 @@ export const getLayersSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const currentViewAreaSize = map.getBounds().getSize()
+            const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
 
             for (const overlayCheckbox of overlayCheckboxes) {
                 const areaMaxSize = overlayCheckbox.dataset.areaMaxSize
@@ -121,7 +122,7 @@ export const getLayersSidebarToggleButton = (options) => {
             const layer = getBaseLayerById(layerId)
             if (!layer) throw new Error(`Base layer ${layerId} not found`)
 
-            const activeLayerId = map.getBaseLayerId()
+            const activeLayerId = getMapBaseLayerId(map)
 
             // Skip updates if the layer is already active
             if (layerId === activeLayerId) return

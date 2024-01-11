@@ -16,7 +16,9 @@ if (useMapContainer) {
     let marker = null
 
     const markerFactory = (latLng) =>
-        L.marker(latLng, { icon: getMarkerIcon() }).addTo(map).bindPopup(I18n.t("diary_entries.edit.marker_text"))
+        L.marker(latLng, { icon: getMarkerIcon("red") })
+            .bindPopup(I18n.t("diary_entries.edit.marker_text"))
+            .addTo(map)
 
     // On map click, update the coordinates and move the marker
     const onMapClick = (e) => {

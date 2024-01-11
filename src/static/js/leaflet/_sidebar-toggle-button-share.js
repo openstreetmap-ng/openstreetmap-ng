@@ -3,21 +3,7 @@ import { getGeoUri, getMapEmbedHtml, getMapShortUrl, getMapUrl } from "../_utils
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
-
-// TODO: in map object
-// const getBaseLayer = () => {
-//     let baseLayer = null
-
-//     // Find the current base layer
-//     map.eachLayer((layer) => {
-//         if (map.baseLayers.has(layer)) {
-//             baseLayer = layer
-//         }
-//     })
-
-//     if (!baseLayer) throw new Error("No base layer found")
-//     return baseLayer
-// }
+import { getMapBaseLayer, getMarkerIcon } from "./_utils.js"
 
 export const getShareSidebarToggleButton = (options) => {
     const control = getSidebarToggleButton(options, "share", "javascripts.share.title")
@@ -94,7 +80,7 @@ export const getShareSidebarToggleButton = (options) => {
             // Skip updates if the sidebar is hidden
             if (!input.checked) return
 
-            const baseLayer = map.getBaseLayer()
+            const baseLayer = getMapBaseLayer(map)
 
             // Get the current base layer's min and max zoom
             const minZoom = baseLayer.options.minZoom
@@ -124,7 +110,7 @@ export const getShareSidebarToggleButton = (options) => {
         const onMarkerCheckboxChange = () => {
             if (markerCheckbox.checked) {
                 if (!marker) {
-                    marker = L.marker(map.getCenter(), { draggable: true })
+                    marker = L.marker(map.getCenter(), { icon: getMarkerIcon("blue"), draggable: true })
                     marker.addEventListener("dragend", onMarkerDragEnd)
                 } else {
                     marker.setLatLng(map.getCenter())
@@ -156,7 +142,7 @@ export const getShareSidebarToggleButton = (options) => {
                 const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
                 const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
                 const zoom = optimalExportParams.zoom + zoomOffset
-                const baseLayer = map.getBaseLayer()
+                const baseLayer = getMapBaseLayer(map)
 
                 // Create image blob and download it
                 const blob = await exportMapImage(mimeType, bounds, zoom, baseLayer)

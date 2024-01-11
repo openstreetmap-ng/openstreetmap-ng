@@ -20,7 +20,8 @@ const Mapnik = defaultLayer.extend({
         url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         maxZoom: 19,
         attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank">Make a Donation</a>. ${terms}`,
-        layerCode: "M",
+        // Mapnik has no layer code, it's the default layer
+        // layerCode: "M",
         layerId: "mapnik",
     },
 })
@@ -97,6 +98,7 @@ const GPS = defaultLayer.extend({
         maxNativeZoom: 20,
         layerCode: "G",
         layerId: "gps",
+        pane: "overlayPane",
     },
 })
 
@@ -301,3 +303,16 @@ const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((result, layer) 
 }, {})
 
 export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP[layerId]
+
+const CODE_ID_MAP = [...Object.values(BASE_LAYER_ID_MAP), ...Object.values(OVERLAY_LAYER_ID_MAP)].reduce(
+    (result, layer) => {
+        // Default layer has no code
+        result[layer.options.layerCode ?? ""] = layer.options.layerId
+        return result
+    },
+    {},
+)
+
+// Decodes layer code to layer id
+// To get default layer id by code use: getLayerIdByCode("")
+export const getLayerIdByCode = (layerCode) => CODE_ID_MAP[layerCode]
