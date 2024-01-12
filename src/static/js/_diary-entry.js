@@ -16,7 +16,7 @@ if (useMapContainer) {
     let marker = null
 
     const markerFactory = (latLng) =>
-        L.marker(latLng, { icon: getMarkerIcon("red") })
+        L.marker(latLng, { icon: getMarkerIcon("red", true) })
             .bindPopup(I18n.t("diary_entries.edit.marker_text"))
             .addTo(map)
 

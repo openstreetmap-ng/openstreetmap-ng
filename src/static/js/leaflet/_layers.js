@@ -1,4 +1,5 @@
 import * as L from "leaflet"
+import { getMarkerIcon } from "./_utils.js"
 
 // There is no point to keep these secret, they are a part of the frontend code
 const thunderforestApiKey = "6e5478c8a4f54c779f85573c0e399391"
@@ -115,7 +116,7 @@ const NoteLayer = L.FeatureGroup.extend({
     },
 })
 
-const DataLayer = L.FeatureGroup.extend({
+export const DataLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "D",
         layerId: "data",
@@ -149,11 +150,10 @@ const DataLayer = L.FeatureGroup.extend({
     },
 
     addData: function (featuresOrXml) {
-        let features
-
         // Parse XML if necessary
-        if (Array.isArray(featuresOrXml)) features = featuresOrXml
-        else features = this.buildFeatures(featuresOrXml)
+        const features = Array.isArray(featuresOrXml) ? featuresOrXml : this.buildFeatures(featuresOrXml)
+        const featureLayers = []
+        const markers = []
 
         for (const feature of features) {
             let layer
@@ -162,6 +162,7 @@ const DataLayer = L.FeatureGroup.extend({
                 case "changeset":
                     layer = L.rectangle(feature.latLngBounds, this.options.styles.changeset)
                     break
+                case "note":
                 case "node":
                     layer = L.circleMarker(feature.latLng, this.options.styles.object)
                     break
@@ -179,9 +180,23 @@ const DataLayer = L.FeatureGroup.extend({
                 }
             }
 
-            this.addLayer(layer)
+            // Features can have icons (e.g., note open/closed)
+            if (feature.icon) {
+                layer.marker = L.marker(feature.latLng, { icon: getMarkerIcon(feature.icon, false) })
+                markers.push(layer.marker)
+            }
+
             layer.feature = feature
+            this.addLayer(layer)
+            featureLayers.push(layer)
         }
+
+        // Render icons on top of the feature layers
+        for (const marker of markers) {
+            this.addLayer(marker)
+        }
+
+        return featureLayers
     },
 
     buildFeatures: function (xml) {

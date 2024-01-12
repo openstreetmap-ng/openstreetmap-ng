@@ -1,6 +1,9 @@
 // Global dataset options are defined on <html> tag
 const params = document.documentElement.dataset
 
+// API base URL
+export const apiUrl = params.apiUrl
+
 // User preferred languages
 export const languages = JSON.parse(params.languages)
 

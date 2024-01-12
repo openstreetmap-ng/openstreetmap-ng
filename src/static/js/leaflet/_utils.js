@@ -1,10 +1,10 @@
 import * as L from "leaflet"
 
-export const getMarkerIcon = (color, shadow = true) => {
+export const getMarkerIcon = (color, showShadow) => {
     let shadowUrl = null
     let shadowSize = null
 
-    if (shadow) {
+    if (showShadow) {
         shadowUrl = "/static/img/marker/shadow.webp"
         shadowSize = [41, 41]
     }

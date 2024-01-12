@@ -4,7 +4,7 @@ import * as L from "leaflet"
 export const getSidebarToggleButton = (options, className, tooltipTitle) => {
     const control = L.control(options)
 
-    control.onAdd = () => {
+    control.onAdd = (map) => {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`.sidebar.leaflet-sidebar.${className}`)
         if (!sidebar) console.error(`Sidebar ${className} not found`)
@@ -38,6 +38,7 @@ export const getSidebarToggleButton = (options, className, tooltipTitle) => {
 
         const onChange = () => {
             sidebar.classList.toggle("d-none", !input.checked)
+            map.invalidateSize({ pan: false }) // TODO: skipping animation, seems unnecessary
         }
 
         // Listen for events
