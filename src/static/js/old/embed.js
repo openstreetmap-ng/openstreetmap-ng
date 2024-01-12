@@ -1,10 +1,3 @@
-//= depend_on settings.yml
-//= depend_on settings.local.yml
-//= require leaflet/dist/leaflet-src
-//= require leaflet.osm
-//= require i18n
-//= require i18n/embed
-
 window.onload = function () {
   if (navigator.languages) {
     I18n.locale = navigator.languages[0];
