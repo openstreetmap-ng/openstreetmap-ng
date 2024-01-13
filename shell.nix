@@ -185,6 +185,13 @@ let
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
+
+    if [ -f .env ]; then
+      echo "Loading .env file"
+      set -o allexport
+      source .env set
+      +o allexport
+    fi
   '' + lib.optionalString (!isDevelopment) ''
     make-version
   '';
