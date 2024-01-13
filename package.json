@@ -15,8 +15,8 @@
   },
   "scripts": {
     "prefix:css": "postcss src/static/css/**/*.css --use autoprefixer --replace --no-map",
-    "build:sass": "sass --style compressed --load-path node_modules --no-source-map src/static/sass:src/static/css && npm run prefix:css",
-    "watch:sass": "onchange 'src/static/sass/**/*.scss' -- npm run build:sass"
+    "build:sass": "sass --style compressed --load-path node_modules --no-source-map src/static/sass:src/static/css && bun run prefix:css",
+    "watch:sass": "bun run build:sass && onchange 'src/static/sass/**/*.scss' -- bun run build:sass"
   },
   "browserslist": [
     "defaults"

@@ -17,24 +17,69 @@ let
   packages' = with pkgs; [
     # Base packages
     python312
-    busybox
+    coreutils
     zstd
+    bun
 
     # Scripts
     # -- Misc
     (writeShellScriptBin "make-version" ''
-      sed -i -r "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" config.py
+      sed \
+        --in-place \
+        --regexp-extended \
+        "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" config.py
+    '')
+    (writeShellScriptBin "make-bundle" ''
+      dir="$PROJECT_DIR/src/static/js"
+
+      bundle_paths=$(find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "bundle-*")
+
+      # Delete existing bundles
+      [ -z "$bundle_paths" ] || rm $bundle_paths
+
+      src_paths=$(find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "*.js" \
+        -not -name "_*")
+
+      for src_path in $src_paths; do
+        src_name=$(basename "$src_path")
+        src_stem=$(echo "$src_name" | cut -d. -f1)
+        src_ext=$(echo "$src_name" | cut -d. -f2)
+
+        output=$(bun build \
+          "$src_path" \
+          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --minify \
+          --outdir "$dir" | tee /dev/stdout)
+
+        bundle_name=$(grep \
+          --only-matching \
+          --extended-regexp \
+          --max-count=1 \
+          "bundle-$src_stem-[0-9a-f]{16}\.$src_ext" <<< "$output")
+
+        if [ -z "$bundle_name" ]; then
+          echo "ERROR: Failed to match bundle name for $src_path"
+          exit 1
+        fi
+
+        # TODO: sed replace
+        echo "Replacing $src_name with $bundle_name"
+      done
     '')
   ] ++ lib.optionals isDevelopment [
     # Development packages
     poetry
     ruff
-    nodejs_20
     biome
     gcc
     gettext
     dart-sass
-    esbuild
 
     # Scripts
     # -- Cython
@@ -106,7 +151,7 @@ let
       docker push $(docker load < "$image_path" | sed -En 's/Loaded image: (\S+)/\1/p')
     '')
     (writeShellScriptBin "watch-sass" ''
-      npm run watch:sass
+      bun run watch:sass
     '')
     (writeShellScriptBin "load-osm" ''
       python "$PROJECT_DIR/scripts/load_osm.py" $(find "$PROJECT_DIR" -maxdepth 1 -name '*.osm' -print -quit)
@@ -125,8 +170,8 @@ let
     export POETRY_VIRTUALENVS_IN_PROJECT=1
     poetry install --compile
 
-    echo "Installing Node.js dependencies"
-    npm install --no-fund
+    echo "Installing Bun dependencies"
+    bun install
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
