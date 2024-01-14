@@ -10,7 +10,6 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
-    "font-gis": "^1.0.5",
     "onchange": "^7.1.0",
     "postcss-cli": "^11.0.0"
   },
