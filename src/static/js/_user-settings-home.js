@@ -1,5 +1,4 @@
 import * as L from "leaflet"
-import { homePoint } from "./_params.js"
 import { zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
 import { getLocateControl } from "./leaflet/_locate.js"
@@ -46,8 +45,9 @@ if (userSettingsForm) {
         }).addTo(map)
 
     // Set initial view
-    if (homePoint) {
-        const [lon, lat] = JSON.parse(homePoint)
+    if (lonInput.value && latInput.value) {
+        const lon = parseFloat(lonInput.value)
+        const lat = parseFloat(latInput.value)
         const latLng = L.latLng(lat, lon)
         map.setView(latLng, defaultHomeZoom)
         marker = markerFactory(latLng)

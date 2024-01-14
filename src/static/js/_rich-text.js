@@ -59,15 +59,15 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
             body: formData,
             signal: abortController.signal,
         })
-            .then((resp) => resp.text())
-            .then((text) => {
-                previewDiv.innerHTML = text
+            .then(async (resp) => {
+                previewDiv.innerHTML = await resp.text()
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
 
                 console.error(error)
                 previewDiv.innerHTML = error.message
+                // TODO: standard alert
             })
     })
 }

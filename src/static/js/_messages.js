@@ -49,6 +49,7 @@ if (messagesContainer) {
         refreshUi()
     })
 
+    // On form submit, add a hidden input with the message IDs
     for (const form of [
         markReadButton.closest("form"),
         markUnreadButton.closest("form"),
