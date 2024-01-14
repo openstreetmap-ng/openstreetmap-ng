@@ -50,6 +50,7 @@ if (messagesContainer) {
     })
 
     // On form submit, add a hidden input with the message IDs
+    // TODO: standard form
     for (const form of [
         markReadButton.closest("form"),
         markUnreadButton.closest("form"),

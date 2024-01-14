@@ -12,8 +12,8 @@ if (userSettingsForm) {
     const lonInput = userSettingsForm.querySelector('input[name="home_longitude"]')
     const latInput = userSettingsForm.querySelector('input[name="home_latitude"]')
     // TODO: make those leaflet buttons
-    const deleteButton = userSettingsForm.querySelector(".user-settings-home-delete-btn")
-    const restoreButton = userSettingsForm.querySelector(".user-settings-home-restore-btn")
+    const deleteButton = userSettingsForm.querySelector(".home-delete-btn")
+    const restoreButton = userSettingsForm.querySelector(".home-restore-btn")
     const mapDiv = userSettingsForm.querySelector(".leaflet-container")
 
     const map = L.map(mapDiv, {

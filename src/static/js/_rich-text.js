@@ -24,8 +24,8 @@ const abortRequest = (source, newController = false) => {
 
 for (const container of document.querySelectorAll(".rich-text-container")) {
     // Discover all required elements
-    const editBtn = container.querySelector(".rich-text-edit-btn")
-    const previewBtn = container.querySelector(".rich-text-preview-btn")
+    const editBtn = container.querySelector(".edit-btn")
+    const previewBtn = container.querySelector(".preview-btn")
     const sourceTextArea = container.querySelector(".rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
 

@@ -8,7 +8,7 @@ const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
     const lonInput = useMapContainer.querySelector("input[name=longitude]")
     const latInput = useMapContainer.querySelector("input[name=latitude]")
-    const useMapBtn = useMapContainer.querySelector(".diary-entry-use-map-btn")
+    const useMapBtn = useMapContainer.querySelector(".use-map-btn")
     const mapDiv = useMapContainer.querySelector(".leaflet-container")
 
     // Null values until the map/marker is initialized
