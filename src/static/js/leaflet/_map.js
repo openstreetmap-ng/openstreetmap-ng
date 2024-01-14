@@ -9,6 +9,9 @@ import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 const getMainMap = (container) => {
     const map = L.map(container, {})
 
+    // Disable Leaflet's attribution prefix
+    map.attributionControl.setPrefix(false)
+
     // Configure layers
     const gpsLayer = getOverlayLayerById("gps")
     const dataLayer = getOverlayLayerById("data")
