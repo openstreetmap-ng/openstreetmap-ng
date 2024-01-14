@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { getLastMapState } from "./_local-storage.js"
-import { parseMapState } from "./_map_utils.js"
+import { parseMapState } from "./_map-utils.js"
 import { homePoint } from "./_params.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"

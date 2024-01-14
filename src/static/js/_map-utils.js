@@ -133,7 +133,7 @@ export const setMapState = (map, state, options) => {
     console.debug("setMapState", state)
     const { lon, lat, zoom, layersCode } = state
     if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) map.setView(L.latLng(lat, lon), zoom, options)
-    if (layersCode) setMapLayersCode(map, layersCode)
+    setMapLayersCode(map, layersCode)
 }
 
 // TODO: always map?

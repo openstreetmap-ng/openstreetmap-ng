@@ -1,4 +1,4 @@
-import { encodeMapState } from "./_map_utils.js"
+import { encodeMapState } from "./_map-utils.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 

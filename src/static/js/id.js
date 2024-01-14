@@ -1,5 +1,5 @@
 import { coreContext } from "iD"
-import { encodeMapState } from "./_map_utils.js"
+import { encodeMapState } from "./_map-utils.js"
 import { primaryLanguage } from "./_params.js"
 import { throttle } from "./_utils.js"
 
