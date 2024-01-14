@@ -295,6 +295,12 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
     iframe.height = 350
     iframe.src = `${location.protocol}//${location.host}/export/embed.html?${qsStringify(params)}`
     iframe.style.border = "1px solid black"
+
+    // allow-popups: allow links to open in a new window: "Report a problem", copyright
+    // allow-popups-to-escape-sandbox: opened links should not be restricted by this sandbox
+    // allow-scripts: allow the iframe to run javascript
+    iframe.sandbox = "allow-popups allow-popups-to-escape-sandbox allow-scripts"
+
     container.appendChild(iframe)
 
     // Create the link to view the larger map
