@@ -1,10 +1,18 @@
 import * as L from "leaflet"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
+import "./_types.js"
 import { isLatitude, isLongitude, isZoom, zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode, getOverlayLayerById } from "./leaflet/_layers.js"
 
-// Encode current layers to a string using layer codes
+/**
+ * Encode current layers to a string using layer codes
+ * @param {L.Map} map Leaflet map
+ * @returns {string} Layers code
+ * @example
+ * getMapLayersCode(map)
+ * // => "BT"
+ */
 export const getMapLayersCode = (map) => {
     const layerCodes = []
     map.eachLayer((layer) => {
@@ -13,7 +21,14 @@ export const getMapLayersCode = (map) => {
     return layerCodes.join("")
 }
 
-// Get the base layer id of the map
+/**
+ * Get the base layer id of the map
+ * @param {L.Map} map Leaflet map
+ * @returns {string} Base layer id
+ * @example
+ * getMapBaseLayerId(map)
+ * // => "mapnik"
+ */
 export const getMapBaseLayerId = (map) => {
     let baseLayerId = null
     map.eachLayer((layer) => {
@@ -23,7 +38,11 @@ export const getMapBaseLayerId = (map) => {
     return baseLayerId
 }
 
-// Get the base layer instance of the map
+/**
+ * Get the base layer instance of the map
+ * @param {L.Map} map Leaflet map
+ * @returns {L.Layer} Base layer instance
+ */
 export const getMapBaseLayer = (map) => {
     let baseLayer = null
     map.eachLayer((layer) => {
@@ -33,7 +52,14 @@ export const getMapBaseLayer = (map) => {
     return baseLayer
 }
 
-// Set the map layers from a layers code
+/**
+ * Set the map layers from a layers code
+ * @param {L.Map} map Leaflet map
+ * @param {string} layersCode Layers code
+ * @returns {void}
+ * @example
+ * setMapLayersCode(map, "BT")
+ */
 export const setMapLayersCode = (map, layersCode) => {
     const layersIds = new Set()
 
@@ -84,85 +110,107 @@ export const setMapLayersCode = (map, layersCode) => {
     map.fire("baselayerchange", { layer: baseLayers[0], name: baseLayers[0].options.layerId })
 }
 
-// Get the current map state object
+/**
+ * Get the current map state object
+ * @param {L.Map} map Leaflet map
+ * @returns {MapState} Map state object
+ */
 export const getMapState = (map) => {
     const center = map.getCenter()
     const zoom = map.getZoom()
     const layersCode = getMapLayersCode(map)
-    return { center, zoom, layersCode }
+    return { lon: center.lng, lat: center.lat, zoom, layersCode }
 }
 
-// Set the map state from a state object
+/**
+ * Set the map state from a state object
+ * @param {L.Map} map Leaflet map
+ * @param {MapState} state Map state object
+ * @param {object} options Options for setView
+ * @returns {void}
+ */
 export const setMapState = (map, state, options) => {
-    const { center, zoom, layersCode } = state
     console.debug("setMapState", state)
-    if (center && zoom) map.setView(center, zoom, options)
+    const { lon, lat, zoom, layersCode } = state
+    if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) map.setView(L.latLng(lat, lon), zoom, options)
     if (layersCode) setMapLayersCode(map, layersCode)
 }
 
 // TODO: always map?
-// Create a hash string for a state
-// Accepts either a map object or an object with the following properties:
-//   center: LatLng
-//   zoom: number
-//   layers: string
-// Returns a string like "#map=15/51.505/-0.09&layers=BT"
-export const encodeMapState = (args) => {
-    let center
-    let zoom
-    let layersCode
+/**
+ * Create a hash string for a state
+ * @param {L.Map|MapState} args Leaflet map or map state object
+ * @returns {string} Hash string
+ * @example
+ * encodeMapState(map)
+ * // => "#map=15/51.505/-0.09&layers=BT"
+ */
+export const encodeMapState = (args) => encodeMapStateEx(args).hash
 
-    if (args instanceof L.Map) {
-        ;({ center, zoom, layersCode } = getMapState(args))
-    } else {
-        center = args.center ?? L.latLng(args.lat, args.lon)
-        center = center.wrap()
-        zoom = args.zoom
-        layersCode = args.layersCode ?? args.layers ?? ""
-    }
-
+/**
+ * Create a hash string for a state and return the state object
+ * @param {L.Map|MapState} args Leaflet map or map state object
+ * @example
+ * encodeMapStateEx(map)
+ * // => { hash: "#map=15/51.505/-0.09&layers=BT", state: { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" } }
+ */
+export const encodeMapStateEx = (args) => {
+    const state = args instanceof L.Map ? getMapState(args) : args
+    let { lon, lat, zoom, layersCode } = state
     const precision = zoomPrecision(zoom)
-    const lat = center.lat.toFixed(precision)
-    const lon = center.lng.toFixed(precision)
-
+    lon = lon.toFixed(precision)
+    lat = lat.toFixed(precision)
     const hash = layersCode ? `#map=${zoom}/${lat}/${lon}&layers=${layersCode}` : `#map=${zoom}/${lat}/${lon}`
-    return hash
+    return { hash, state }
 }
 
-// Parse a hash string into a state
+/**
+ * Parse a hash string into a map state object
+ * @param {string} hash Hash string
+ * @returns {MapState|null} Map state object or null if invalid
+ * @example
+ * parseMapState("#map=15/51.505/-0.09&layers=BT")
+ * // => { center: L.LatLng(51.505, -0.09), zoom: 15, layersCode: "BT" }
+ */
 export const parseMapState = (hash) => {
-    const result = {}
-
     // Skip if there's no hash
     const i = hash.indexOf("#")
-    if (i < 0) return result
+    if (i < 0) return null
 
     // Parse the hash as a query string
     const params = qsParse(hash.slice(i + 1))
 
-    // Assign map state only if present and length is 3
-    if (params.map) {
-        const components = params.map.split("/")
-        if (components.length === 3) {
-            const zoom = parseInt(components[0], 10)
-            const lat = parseFloat(components[1])
-            const lon = parseFloat(components[2])
+    // Hash string must contain map parameter
+    if (!params.map) return null
 
-            // Assign position only if it's valid
-            if (isZoom(zoom) && isLatitude(lat) && isLongitude(lon)) {
-                result.zoom = zoom
-                result.center = L.latLng(lat, lon)
-            }
-        }
+    // Map must contain zoom, lat, lon parameters
+    const components = params.map.split("/")
+    if (components.length !== 3) return null
+
+    const zoom = parseInt(components[0], 10)
+    const lat = parseFloat(components[1])
+    const lon = parseFloat(components[2])
+
+    // Each component must be in a valid format
+    if (!(isZoom(zoom) && isLatitude(lat) && isLongitude(lon))) return null
+
+    return {
+        lon: lon,
+        lat: lat,
+        zoom: zoom,
+        layersCode: params.layers ?? "",
     }
-
-    // Assign layers only if present
-    if (params.layers) result.layersCode = params.layers
-
-    return result
 }
 
-// Get a URL for the current map location, optionally including a marker
+/**
+ * Get a URL for the current map location
+ * @param {L.Map} map Leaflet map
+ * @param {boolean} showMarker Whether to include a marker
+ * @returns {string} Map URL
+ * @example
+ * getMapUrl(map)
+ * // => "https://www.openstreetmap.org/#map=15/51.505/-0.09&layers=BT"
+ */
 export const getMapUrl = (map, showMarker = false) => {
     const { center, zoom, layersCode } = getMapState(map)
     const precision = zoomPrecision(zoom)
@@ -177,7 +225,15 @@ export const getMapUrl = (map, showMarker = false) => {
     return `${location.protocol}//${location.host}/${hash}`
 }
 
-// Get a short URL for the current map location, optionally including a marker
+/**
+ * Get a short URL for the current map location
+ * @param {L.Map} map Leaflet map
+ * @param {boolean} showMarker Whether to include a marker
+ * @returns {string} Short map URL
+ * @example
+ * getMapShortUrl(map)
+ * // => "https://osm.org/go/wF7ZdNbjU-"
+ */
 export const getMapShortUrl = (map, showMarker = false) => {
     const { center, zoom, layersCode } = getMapState(map)
     const precision = zoomPrecision(zoom)
@@ -206,7 +262,14 @@ export const getMapShortUrl = (map, showMarker = false) => {
     return `${protocol}//${host}/go/${code}`
 }
 
-// Get HTML for embedding the current map location, optionally including a marker
+/**
+ * Get HTML for embedding the current map location
+ * @param {L.Map} map Leaflet map
+ * @param {L.LatLng|null} markerLatLng Optional marker position
+ * @returns {string} Embed HTML
+ * @example
+ * getMapEmbedHtml(map, L.latLng(51.505, -0.09))
+ */
 export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const bbox = map.getBounds().toBBoxString()
     const layerId = map.getBaseLayerId()
@@ -245,7 +308,14 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
     return container.innerHTML
 }
 
-// Get a geo URI for the current map location
+/**
+ * Get a geo URI for the current map location
+ * @param {L.Map} map Leaflet map
+ * @returns {string} Geo URI
+ * @example
+ * getMapGeoUri(map)
+ * // => "geo:51.505,-0.09?z=15"
+ */
 export const getMapGeoUri = (map) => {
     const { center, zoom } = getMapState(map)
     const precision = zoomPrecision(zoom)

@@ -44,20 +44,46 @@ times during routing:
   move the map without the hash changing.
 */
 
-import { encodeMapState, parseMapState, setMapState } from "./_map_utils.js"
+import * as L from "leaflet"
+import { encodeMapState, encodeMapStateEx, getMapState, parseMapState, setMapState } from "./_map_utils.js"
 import { Route } from "./_route.js"
+import "./_types.js"
 
+/**
+ * Remove trailing slash from a string
+ * @param {string} str Input string
+ * @returns {string} String without trailing slash
+ * @example
+ * removeTrailingSlash("/way/1234/")
+ * // => "/way/1234"
+ */
 const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? str.slice(0, -1) : str)
 
+/**
+ * Remove hash from a string
+ * @param {string} str Input string
+ * @returns {string} String without hash
+ * @example
+ * stripHash("/way/1234#map=17/51.505/-0.09")
+ * // => "/way/1234"
+ */
 const stripHash = (str) => {
     const i = str.indexOf("#")
     return i === -1 ? str : str.slice(0, i)
 }
 
-// Replace the current window.history state
-const replaceState = (state) =>
-    window.history.replaceState(state, document.title, state.center ? encodeMapState(state) : location)
+/**
+ * Replace the current history state
+ * @param {MapState|null} state Optional map state object
+ * @returns {void}
+ */
+const replaceState = (state) => history.replaceState(state, document.title, state ? encodeMapState(state) : location)
 
+/**
+ * Create a router object
+ * @param {L.Map} map Leaflet map
+ * @param {object} pathControllerMap Mapping of URL path templates to route controller objects
+ */
 export const Router = (map, pathControllerMap) => {
     const routes = Object.entries(pathControllerMap).map(([path, controller]) => Route(path, controller))
 
@@ -108,16 +134,15 @@ export const Router = (map, pathControllerMap) => {
         replaceState(state)
 
         // Change the map state with animation
-        setMapState(map, state)
+        if (state) setMapState(map, state)
     }
 
     // On move, compute the current state and replace the state
     const onMapChange = () => {
-        const hash = encodeMapState(map)
+        const { hash, state } = encodeMapStateEx(map)
         console.debug("onMapChange", hash)
         if (hash === currentHash) return
 
-        const state = parseMapState(hash) // TODO: optimize unnecessary encode+parse
         currentHash = hash
         replaceState(state)
     }
@@ -129,7 +154,14 @@ export const Router = (map, pathControllerMap) => {
 
     // Return Router object
     return {
-        // Route to a path and return true if successful
+        /**
+         * Navigate to a path and return true if successful
+         * @param {string} path Path to navigate to
+         * @returns {boolean} True if navigation was successful (i.e. path matched a route)
+         * @example
+         * router.route("/way/1234")
+         * // => true
+         */
         route: (path) => {
             const pathWithoutHash = stripHash(path)
             const newRoute = routesRecognize(pathWithoutHash)
@@ -144,9 +176,8 @@ export const Router = (map, pathControllerMap) => {
             }
 
             // Update browser history
-            const hash = encodeMapState(map)
-            const state = parseMapState(hash) // TODO: optimize unnecessary encode+parse
-            window.history.pushState(state, document.title, path)
+            const state = getMapState(map)
+            history.pushState(state, document.title, path)
 
             // Load the new route via pushState action
             currentPath = pathWithoutHash
@@ -156,10 +187,19 @@ export const Router = (map, pathControllerMap) => {
             return true
         },
 
-        // Replace the state and path without "reloading" the page
-        replaceStateFromPath: (path) => window.history.replaceState(parseMapState(path), document.title, path),
+        /**
+         * Replace the current history state parsed from a path
+         * @param {string} path Path to parse state from
+         * @returns {void}
+         * @example
+         * router.replaceStateFromPath("/way/1234")
+         */
+        replaceStateFromPath: (path) => history.replaceState(parseMapState(path), document.title, path),
 
-        // Call load on the current route and replace the state
+        /**
+         * Call load on the current route and replace the current history state
+         * @returns {void}
+         */
         load: () => {
             if (currentRoute) {
                 const state = currentRoute.run("load", currentPath)
@@ -167,7 +207,11 @@ export const Router = (map, pathControllerMap) => {
             }
         },
 
-        // Execute a callback without computing the new hash
+        /**
+         * Execute a function without triggering map move events
+         * @param {function} callback Function to execute
+         * @returns {void}
+         */
         withoutMoveListener: (callback) => {
             const disableMoveListener = () => {
                 map.removeEventListener("moveend", onMapChange)

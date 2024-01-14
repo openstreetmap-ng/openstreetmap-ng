@@ -1,6 +1,11 @@
 import * as L from "leaflet"
 import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 
+/**
+ * Get the main map
+ * @param {HTMLElement} container The container element
+ * @returns {L.Map} The map
+ */
 const getMainMap = (container) => {
     const map = L.map(container, {})
 

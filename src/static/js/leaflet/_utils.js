@@ -1,5 +1,11 @@
 import * as L from "leaflet"
 
+/**
+ * Get a marker icon
+ * @param {string} color Marker color/theme
+ * @param {boolean} showShadow Whether to show the marker shadow
+ * @returns {L.Icon} The marker icon
+ */
 export const getMarkerIcon = (color, showShadow) => {
     let shadowUrl = null
     let shadowSize = null
@@ -19,9 +25,13 @@ export const getMarkerIcon = (color, showShadow) => {
     })
 }
 
-// Get the size (area in square degrees) of a LatLngBounds
-export const getLatLngBoundsSize = (latLngBounds) => {
-    const sw = latLngBounds.getSouthWest()
-    const ne = latLngBounds.getNorthEast()
+/**
+ * Get the bounds area in square degrees
+ * @param {L.LatLngBounds} bounds Leaflet bounds
+ * @returns {number} The bounds area in square degrees
+ */
+export const getLatLngBoundsSize = (bounds) => {
+    const sw = bounds.getSouthWest()
+    const ne = bounds.getNorthEast()
     return (ne.lng - sw.lng) * (ne.lat - sw.lat)
 }

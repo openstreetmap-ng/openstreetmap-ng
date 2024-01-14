@@ -1,4 +1,5 @@
 import * as L from "leaflet"
+import "../_types.js"
 import { getMarkerIcon } from "./_utils.js"
 
 // There is no point to keep these secret, they are a part of the frontend code
@@ -149,9 +150,12 @@ export const DataLayer = L.FeatureGroup.extend({
         },
     },
 
-    addData: function (featuresOrXml) {
-        // Parse XML if necessary
-        const features = Array.isArray(featuresOrXml) ? featuresOrXml : this.buildFeatures(featuresOrXml)
+    /**
+     * Add data to the layer
+     * @param {OSMObject[]} features Array of features
+     * @returns {L.Layer[]} Array of added layers
+     */
+    addData: function (features) {
         const featureLayers = []
         const markers = []
 
@@ -160,14 +164,20 @@ export const DataLayer = L.FeatureGroup.extend({
 
             switch (feature.type) {
                 case "changeset":
-                    layer = L.rectangle(feature.latLngBounds, this.options.styles.changeset)
+                    layer = L.rectangle(feature.bounds ?? [0, 0, 0, 0], this.options.styles.changeset)
                     break
-                case "note":
+                case "note": {
+                    const latLng = L.latLng(feature.lat, feature.lon)
+                    layer = L.circleMarker(latLng, this.options.styles.object)
+                    layer.marker = L.marker(latLng, { icon: getMarkerIcon(feature.icon, false) })
+                    markers.push(layer.marker)
+                    break
+                }
                 case "node":
-                    layer = L.circleMarker(feature.latLng, this.options.styles.object)
+                    layer = L.circleMarker(L.latLng(feature.lat, feature.lon), this.options.styles.object)
                     break
-                default: {
-                    const latLngs = feature.nodes.map((node) => node.latLng)
+                case "way": {
+                    const latLngs = feature.nodes.map((node) => L.latLng(node.lat, node.lon))
                     if (this.isWayArea(feature)) {
                         // is "area"
                         latLngs.pop() // remove last == first
@@ -178,12 +188,8 @@ export const DataLayer = L.FeatureGroup.extend({
                     }
                     break
                 }
-            }
-
-            // Features can have icons (e.g., note open/closed)
-            if (feature.icon) {
-                layer.marker = L.marker(feature.latLng, { icon: getMarkerIcon(feature.icon, false) })
-                markers.push(layer.marker)
+                default:
+                    throw new Error(`Unsupported feature type: ${feature.type}`)
             }
 
             layer.feature = feature
@@ -199,9 +205,14 @@ export const DataLayer = L.FeatureGroup.extend({
         return featureLayers
     },
 
-    buildFeatures: function (xml) {
+    /**
+     * Parse features from the given XML string
+     * @param {string} xml XML string
+     * @returns {OSMObject[]} Array of features
+     */
+    parseFeaturesFromXML: function (xml) {
         const changesets = getChangesets(xml)
-        const nodes = getNodes(xml)
+        const nodes = getNodesMap(xml)
         const ways = getWays(xml, nodes)
         const relations = getRelations(xml, nodes, ways)
 
@@ -210,17 +221,30 @@ export const DataLayer = L.FeatureGroup.extend({
         return features
     },
 
+    /**
+     * Check if the given way is considered an area
+     * @param {OSMWay} way Way
+     * @returns {boolean} True if the way is an area
+     */
     isWayArea: function (way) {
         if (way.nodes.length <= 2) return false
 
-        const isClosedWay = way.nodes[0] === way.nodes[way.nodes.length - 1]
+        const isClosedWay = way.nodes[0].id === way.nodes[way.nodes.length - 1].id
         if (!isClosedWay) return false
 
         const hasAreaTag = Object.keys(way.tags).some((key) => this.options.areaTags.includes(key))
         return hasAreaTag
     },
 
+    /**
+     * Check if the given node is interesting to display
+     * @param {OSMNode} node Node
+     * @param {OSMWay[]} ways Ways
+     * @param {OSMRelation[]} relations Relations
+     * @returns {boolean} True if the node is interesting
+     */
     isInterestingNode: (node, ways, relations) => {
+        // TODO: this could be optimized with set
         const usedInWay = ways.some((way) => way.nodes.includes(node))
         if (!usedInWay) return true
 
@@ -232,70 +256,101 @@ export const DataLayer = L.FeatureGroup.extend({
     },
 })
 
+/**
+ * Parse changesets from the given XML string
+ * @param {string} xml XML string
+ * @returns {OSMChangeset[]} Array of changesets
+ */
 const getChangesets = (xml) => {
-    const nodes = Array.from(xml.getElementsByTagName("changeset"))
-    return nodes.map((node) => ({
-        id: node.getAttribute("id"),
+    const changesets = Array.from(xml.getElementsByTagName("changeset"))
+    return changesets.map((cs) => ({
         type: "changeset",
-        latLngBounds: L.latLngBounds(
-            [node.getAttribute("min_lat"), node.getAttribute("min_lon")],
-            [node.getAttribute("max_lat"), node.getAttribute("max_lon")],
-        ),
-        tags: getTags(node),
+        id: parseInt(cs.getAttribute("id"), 10),
+        tags: getTagsMap(cs),
+        // Empty changesets have no bounds
+        bounds: cs.hasAttribute("min_lat")
+            ? [
+                  parseFloat(cs.getAttribute("min_lat")),
+                  parseFloat(cs.getAttribute("min_lon")),
+                  parseFloat(cs.getAttribute("max_lat")),
+                  parseFloat(cs.getAttribute("max_lon")),
+              ]
+            : null,
     }))
 }
 
-const getNodes = (xml) => {
+/**
+ * Parse nodes map from the given XML string
+ * @param {string} xml XML string
+ * @returns {object} Nodes map
+ */
+const getNodesMap = (xml) => {
     const nodes = Array.from(xml.getElementsByTagName("node"))
     return nodes.reduce((result, node) => {
-        const id = node.getAttribute("id")
+        const id = parseInt(node.getAttribute("id"), 10)
         result[id] = {
-            id: id,
             type: "node",
-            latLng: L.latLng(node.getAttribute("lat"), node.getAttribute("lon")),
-            tags: getTags(node),
+            id: id,
+            version: parseInt(node.getAttribute("version"), 10),
+            tags: getTagsMap(node),
+            lon: parseFloat(node.getAttribute("lon")),
+            lat: parseFloat(node.getAttribute("lat")),
         }
         return result
     }, {})
 }
 
-const getWays = (xml, nodes) => {
+/**
+ * Parse ways from the given XML string
+ * @param {string} xml XML string
+ * @param {object} nodesMap Nodes map
+ * @returns {OSMWay[]} Array of ways
+ */
+const getWays = (xml, nodesMap) => {
     const ways = Array.from(xml.getElementsByTagName("way"))
     return ways.map((way) => {
-        const nodesIds = Array.from(way.getElementsByTagName("nd"))
-        const nodesArray = nodesIds.map((nd) => nodes[nd.getAttribute("ref")])
-
+        const nodesMembers = Array.from(way.getElementsByTagName("nd"))
+        const nodesArray = nodesMembers.map((nd) => nodesMap[nd.getAttribute("ref")])
         return {
-            id: way.getAttribute("id"),
             type: "way",
+            id: way.getAttribute("id"),
+            version: parseInt(way.getAttribute("version"), 10),
+            tags: getTagsMap(way),
             nodes: nodesArray,
-            tags: getTags(way),
         }
     })
 }
 
-const getRelations = (xml, nodes, ways) => {
+/**
+ * Parse relations from the given XML string
+ * @param {string} xml XML string
+ * @param {object} nodesMap Nodes map
+ * @returns {OSMRelation[]} Array of relations
+ */
+const getRelations = (xml, nodesMap) => {
     const rels = Array.from(xml.getElementsByTagName("relation"))
     return rels.map((rel) => {
         const members = Array.from(rel.getElementsByTagName("member"))
-
         return {
             id: rel.getAttribute("id"),
             type: "relation",
             members: members.map((member) => {
+                // Member ways and relations are not currently used, ignore them
                 const memberType = member.getAttribute("type")
-                if (memberType === "node") return nodes[member.getAttribute("ref")]
-
-                // member ways and relations are not currently used, skip them
-                return null
+                return memberType === "node" ? nodesMap[member.getAttribute("ref")] : null
             }),
-            tags: getTags(rel),
+            tags: getTagsMap(rel),
         }
     })
 }
 
-const getTags = (xml) => {
-    const tags = Array.from(xml.getElementsByTagName("tag"))
+/**
+ * Parse tags from the given XML element
+ * @param {Element} element XML element
+ * @returns {object} Tags map
+ */
+const getTagsMap = (element) => {
+    const tags = Array.from(element.getElementsByTagName("tag"))
     return tags.reduce((result, tag) => {
         result[tag.getAttribute("k")] = tag.getAttribute("v")
         return result
@@ -310,6 +365,11 @@ const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackT
     {},
 )
 
+/**
+ * Get base layer instance by id
+ * @param {string} layerId Layer id
+ * @returns {L.TileLayer} Layer instance
+ */
 export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP[layerId]
 
 const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((result, layer) => {
@@ -317,6 +377,11 @@ const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((result, layer) 
     return result
 }, {})
 
+/**
+ * Get overlay layer instance by id
+ * @param {string} layerId Layer id
+ * @returns {L.Layer} Layer instance
+ */
 export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP[layerId]
 
 const CODE_ID_MAP = [...Object.values(BASE_LAYER_ID_MAP), ...Object.values(OVERLAY_LAYER_ID_MAP)].reduce(
@@ -328,6 +393,15 @@ const CODE_ID_MAP = [...Object.values(BASE_LAYER_ID_MAP), ...Object.values(OVERL
     {},
 )
 
-// Decodes layer code to layer id
-// To get default layer id by code use: getLayerIdByCode("")
-export const getLayerIdByCode = (layerCode) => CODE_ID_MAP[layerCode]
+/**
+ * Get layer id by code
+ * @param {string} layerCode Layer code
+ * @returns {string} Layer id
+ * @example
+ * getLayerIdByCode("")
+ * // => "mapnik"
+ */
+export const getLayerIdByCode = (layerCode) => {
+    if (layerCode.length > 1) throw new Error(`Invalid layer code: ${layerCode}`)
+    return CODE_ID_MAP[layerCode]
+}

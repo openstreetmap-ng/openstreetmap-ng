@@ -1,6 +1,11 @@
 const abortControllers = new Map()
 
-// Abort requests for the given source and optionally return a new AbortController
+/**
+ * Abort any pending request for the given source element, optionally returning a new AbortController
+ * @param {HTMLElement} source Source element
+ * @param {boolean} newController Whether to return a new AbortController
+ * @returns {AbortController|null} AbortController if newController is true, null otherwise
+ */
 const abortRequest = (source, newController = false) => {
     const controller = abortControllers.get(source)
     if (controller) controller.abort()

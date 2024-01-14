@@ -5,7 +5,10 @@ import { homePoint } from "./_params.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 
-// Convert search parameters to id parameters
+/**
+ * Convert search parameters to iD parameters
+ * @param {object} searchParams Search parameters
+ */
 const convertSearchParams = (searchParams) => {
     const result = {}
     // Slightly better type hinting
@@ -42,10 +45,9 @@ const convertSearchParams = (searchParams) => {
     // Decide on the initial position and zoom
     const setPosition = (result) => {
         // 1. Use the position from the hash state
-        // (already validated)
-        if (state.center) {
-            result.lon = state.center.lng
-            result.lat = state.center.lat
+        if (state) {
+            result.lon = state.lon
+            result.lat = state.lat
             result.zoom = state.zoom
             return
         }
@@ -111,7 +113,7 @@ const convertSearchParams = (searchParams) => {
     setPosition(result)
 
     // Decide on the initial layer
-    result.layer = state.layersCode ?? lastLocation?.layersCode ?? ""
+    result.layer = state?.layersCode ?? lastLocation?.layersCode ?? ""
 
     // Apply optional scaling
     const scale = parseFloat(searchParams.scale)
@@ -137,9 +139,7 @@ if (idIframe) {
 
         // Optionally override location from hash
         const state = parseMapState(location.hash)
-        if (state.center) {
-            result.map = `${state.zoom}/${state.center.lat}/${state.center.lng}`
-        }
+        if (state) result.map = `${state.zoom}/${state.lat}/${state.lon}`
     } else if (dataset.lat && dataset.lon) {
         // TODO: is this still used?
         result.map = `16/${dataset.lat}/${dataset.lon}`
@@ -154,7 +154,7 @@ if (idIframe) {
         result.gpx = hashParams.gpx
     }
 
-    // Passthrough hash parameters
+    // Passthrough some hash parameters
     for (const param of [
         "background",
         "comment",

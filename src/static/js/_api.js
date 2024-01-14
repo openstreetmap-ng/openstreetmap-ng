@@ -1,5 +1,14 @@
 import { apiUrl } from "./_params.js"
+import "./_types.js"
 
+/**
+ * Get object request URL
+ * @param {OSMObject} object OSM object
+ * @returns {string} Request URL
+ * @example
+ * getObjectRequestUrl({ type: "node", id: 123456 })
+ * // => "https://api.openstreetmap.org/api/0.6/node/123456"
+ */
 export const getObjectRequestUrl = (object) => {
     const type = object.type === "note" ? "notes" : object.type
 

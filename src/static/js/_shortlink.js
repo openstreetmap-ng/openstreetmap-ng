@@ -1,6 +1,16 @@
 // 64 chars to encode 6 bits
 const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 
+/**
+ * Encode a coordinate and zoom level to a short link code
+ * @param {number} lon Longitude
+ * @param {number} lat Latitude
+ * @param {number} zoom Zoom level
+ * @returns {string} Short link code
+ * @example
+ * shortLinkEncode(5.123, 10.456, 17)
+ * // => "wF7ZdNbjU-"
+ */
 export const shortLinkEncode = (lon, lat, zoom) => {
     const x = BigInt(Math.floor((lon + 180) * 11930464.711111112)) // (2 ** 32) / 360
     const y = BigInt(Math.floor((lat + 90) * 23860929.422222223)) // (2 ** 32) / 180

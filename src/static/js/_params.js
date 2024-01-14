@@ -1,17 +1,33 @@
 // Global dataset options are defined on <html> tag
 const params = document.documentElement.dataset
 
-// API base URL
+/**
+ * API base URL
+ * @type {string}
+ * @example "https://api.openstreetmap.org"
+ */
 export const apiUrl = params.apiUrl
 
-// User preferred languages
+/**
+ * User preferred languages
+ * @type {string[]}
+ * @example ["en", "pl"]
+ */
 export const languages = JSON.parse(params.languages)
 
-// The first language is the most preferred
-// TODO: py, only existing/installed locales
+/**
+ * User preferred primary language
+ * @type {string}
+ * @example "en"
+ */
 export const primaryLanguage = languages[0]
+// TODO: py, only existing/installed locales
 
-// User home location point
+/**
+ * User home location point (JSON-encoded)
+ * @type {string}
+ * @example "[0, 30]"
+ */
 export const homePoint = params.homePoint
 
 // TODO: perhaps useful globally?
