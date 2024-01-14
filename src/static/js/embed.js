@@ -29,10 +29,12 @@ const searchParams = qsParse(location.search.substring(1))
 if (searchParams.layer === "cycle map") searchParams.layer = "cyclemap"
 
 const mapContainer = document.getElementById("map")
-const map = L.map(mapContainer)
+const map = L.map(mapContainer, {
+    center: L.latLng(0, 0),
+    zoom: 1,
+})
 
 // Set initial view
-// TODO: is fitWorld necessary?
 if (searchParams.bbox) {
     const bbox = searchParams.bbox.split(",").map(parseFloat)
     if (bbox.length === 4) {

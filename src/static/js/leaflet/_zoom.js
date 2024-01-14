@@ -1,6 +1,8 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 
+// TODO: is that even necessary?
+
 export const getZoomControl = (options) => {
     const control = L.control(options)
 

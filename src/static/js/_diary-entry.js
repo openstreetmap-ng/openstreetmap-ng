@@ -6,8 +6,8 @@ import { getZoomControl } from "./leaflet/_zoom.js"
 
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
-    const lonInput = useMapContainer.querySelector('input[name="longitude"]')
-    const latInput = useMapContainer.querySelector('input[name="latitude"]')
+    const lonInput = useMapContainer.querySelector("input[name=longitude]")
+    const latInput = useMapContainer.querySelector("input[name=latitude]")
     const useMapBtn = useMapContainer.querySelector(".diary-entry-use-map-btn")
     const mapDiv = useMapContainer.querySelector(".leaflet-container")
 
