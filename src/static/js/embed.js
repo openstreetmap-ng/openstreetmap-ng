@@ -25,9 +25,6 @@ const reportProblemText = I18n.t("javascripts.embed.report_problem")
 
 const searchParams = qsParse(location.search.substring(1))
 
-// Backwards compatibility for old cyclemap id
-if (searchParams.layer === "cycle map") searchParams.layer = "cyclemap"
-
 const mapContainer = document.getElementById("map")
 const map = L.map(mapContainer, {
     center: L.latLng(0, 0),

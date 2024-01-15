@@ -17,14 +17,14 @@ const defaultLayer = L.TileLayer.extend({
     },
 })
 
-const Mapnik = defaultLayer.extend({
+const StandardLayer = defaultLayer.extend({
     options: {
         url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         maxZoom: 19,
         attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank">Make a Donation</a>. ${terms}`,
-        // Mapnik has no layer code, it's the default layer
-        // layerCode: "M",
-        layerId: "mapnik",
+        layerCode: "", // Standard has no layer code - it's the default layer
+        layerId: "standard",
+        legacyLayerIds: ["mapnik"],
     },
 })
 
@@ -47,6 +47,7 @@ const CycleMap = defaultLayer.extend({
         apiKey: thunderforestApiKey,
         layerCode: "C",
         layerId: "cyclemap",
+        legacyLayerIds: ["cycle map"],
     },
 })
 
@@ -357,7 +358,7 @@ const getTagsMap = (element) => {
     )
 }
 
-const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
+const BASE_LAYER_ID_MAP = [StandardLayer, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
     (map, layer) => map.set(layer.options.layerId, new layer()),
     new Map(),
 )
@@ -369,10 +370,16 @@ const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackT
  */
 export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP.get(layerId)
 
-const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce(
-    (map, layer) => map.set(layer.options.layerId, new layer()),
-    new Map(),
-)
+const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((map, layer) => {
+    const instance = new layer()
+    map.set(layer.options.layerId, instance)
+    if (layer.options.legacyLayerIds) {
+        for (const legacyLayerId of layer.options.legacyLayerIds) {
+            map.set(legacyLayerId, instance)
+        }
+    }
+    return map
+}, new Map())
 
 /**
  * Get overlay layer instance by id
@@ -382,7 +389,7 @@ const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce(
 export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP.get(layerId)
 
 const CODE_ID_MAP = [...BASE_LAYER_ID_MAP.values(), ...OVERLAY_LAYER_ID_MAP.values()].reduce(
-    (map, layer) => map.set(layer.options.layerCode ?? "", layer.options.layerId),
+    (map, layer) => map.set(layer.options.layerCode, layer.options.layerId),
     new Map(),
 )
 
@@ -392,7 +399,7 @@ const CODE_ID_MAP = [...BASE_LAYER_ID_MAP.values(), ...OVERLAY_LAYER_ID_MAP.valu
  * @returns {string} Layer id
  * @example
  * getLayerIdByCode("")
- * // => "mapnik"
+ * // => "standard"
  */
 export const getLayerIdByCode = (layerCode) => {
     if (layerCode.length > 1) throw new Error(`Invalid layer code: ${layerCode}`)

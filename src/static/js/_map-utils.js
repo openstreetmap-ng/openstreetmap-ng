@@ -28,7 +28,7 @@ export const getMapLayersCode = (map) => {
  * @returns {string} Base layer id
  * @example
  * getMapBaseLayerId(map)
- * // => "mapnik"
+ * // => "standard"
  */
 export const getMapBaseLayerId = (map) => {
     let baseLayerId = null
