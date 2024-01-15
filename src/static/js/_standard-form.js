@@ -4,11 +4,11 @@ import { Alert } from "bootstrap"
  * Initialize a standard bootstrap form
  * @param {HTMLFormElement} form The form element to initialize
  * @param {object} options
- * @param {function|undefined} options.successCallback Optional callback to call on success
+ * @param {function|null} options.successCallback Optional callback to call on success
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const initializeStandardForm = (form, { successCallback }) => {
+export const initializeStandardForm = (form, { successCallback = null }) => {
     console.debug("Initializing standard form", form)
 
     const submitElements = form.querySelectorAll("[type=submit]")

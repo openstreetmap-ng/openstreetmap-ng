@@ -1,5 +1,4 @@
 import { coreContext } from "iD"
-import { encodeMapState } from "./_map-utils.js"
 import { primaryLanguage } from "./_params.js"
 import { throttle } from "./_utils.js"
 
@@ -28,19 +27,17 @@ if (idContainer) {
 
     const map = id.map()
 
-    // On map move, update the location hash
+    // On map move, send the new state to the parent
+    // TODO: isn't there moveend event?
     map.addEventListener(
         "move.embed",
         throttle(() => {
+            // Skip if in intro
             if (id.inIntro()) return
 
             const [lon, lat] = map.center()
             const zoom = Math.floor(map.zoom())
-            const latLonZoom = { lon: lon, lat: lat, zoom: zoom }
-
-            // TODO: parent.updateLinks(latLonZoom, zoom)
-
-            parent.location.hash = encodeMapState(latLonZoom)
+            parent.postMessage({ type: "mapState", source: "id", state: { lon, lat, zoom } }, "*")
         }, 250),
     )
 }

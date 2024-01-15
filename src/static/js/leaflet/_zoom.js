@@ -8,21 +8,25 @@ export const getZoomControl = (options) => {
 
     // On zoom change, disable/enable specific buttons
     const onZoomChange = () => {
-        const currentZoom = control.map.getZoom()
-        const minZoom = control.map.getMinZoom()
-        const maxZoom = control.map.getMaxZoom()
+        const map = control.map
+        const zoomInButton = control.zoomInButton
+        const zoomOutButton = control.zoomOutButton
+
+        const currentZoom = map.getZoom()
+        const minZoom = map.getMinZoom()
+        const maxZoom = map.getMaxZoom()
 
         // Enable/disable buttons based on current zoom level
         if (currentZoom <= minZoom) {
-            control.zoomOutButton.disabled = true
+            zoomOutButton.disabled = true
         } else {
-            control.zoomOutButton.disabled = false
+            zoomOutButton.disabled = false
         }
 
         if (currentZoom >= maxZoom) {
-            control.zoomInButton.disabled = true
+            zoomInButton.disabled = true
         } else {
-            control.zoomInButton.disabled = false
+            zoomInButton.disabled = false
         }
     }
 
@@ -37,7 +41,7 @@ export const getZoomControl = (options) => {
         zoomInButton.className = "control-button"
         zoomInButton.innerHTML = "<span class='icon zoomin'></span>"
 
-        const zoomInTooltip = Tooltip.getOrCreateInstance(zoomInButton, {
+        const zoomInTooltip = new Tooltip(zoomInButton, {
             title: I18n.t("javascripts.map.zoom.in"),
             placement: "left",
         })
@@ -46,7 +50,7 @@ export const getZoomControl = (options) => {
         zoomOutButton.className = "control-button"
         zoomOutButton.innerHTML = "<span class='icon zoomout'></span>"
 
-        const zoomOutTooltip = Tooltip.getOrCreateInstance(zoomOutButton, {
+        const zoomOutTooltip = new Tooltip(zoomOutButton, {
             title: I18n.t("javascripts.map.zoom.out"),
             placement: "left",
         })

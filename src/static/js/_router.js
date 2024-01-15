@@ -1,5 +1,6 @@
 import * as L from "leaflet"
-import { encodeMapState, encodeMapStateEx, parseMapState, setMapState } from "./_map-utils.js"
+import { getMapState, parseMapState, setMapState } from "./_map-utils.js"
+import { updateNavbarAndHash } from "./_navbar.js"
 import { Route } from "./_route.js"
 import "./_types.js"
 
@@ -16,10 +17,10 @@ const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? remo
 /**
  * Create a router object
  * @param {L.Map} map Leaflet map
- * @param {object} pathControllerMap Mapping of URL path templates to route controller objects
+ * @param {Map<string, object>} pathControllerMap Mapping of URL path templates to route controller objects
  */
 export const Router = (map, pathControllerMap) => {
-    const routes = Object.entries(pathControllerMap).map(([path, controller]) => Route(path, controller))
+    const routes = [...pathControllerMap.entries()].map(([path, controller]) => Route(path, controller))
     console.debug(`Loaded ${routes.length} routes`)
 
     // Find the first route that matches a path
@@ -55,20 +56,17 @@ export const Router = (map, pathControllerMap) => {
 
         // Get the current state if empty/invalid and replace the hash
         if (!newState) {
-            const encoded = encodeMapStateEx(map)
-            newState = encoded.state
-            history.replaceState(null, "", encoded.hash) // TODO: will this not remove path?
+            newState = getMapState(map)
+            updateNavbarAndHash(newState)
         }
 
         // Change the map view
         setMapState(map, newState)
     }
 
-    // On map change, update the hash
+    // On map change, update the navbar and hash
     const onMapChange = () => {
-        const hash = encodeMapState(map)
-        console.debug("onMapChange", hash)
-        history.replaceState(null, "", hash) // TODO: will this not remove path?
+        updateNavbarAndHash(getMapState(map))
     }
 
     // Listen for events

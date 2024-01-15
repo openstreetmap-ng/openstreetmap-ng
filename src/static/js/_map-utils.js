@@ -1,4 +1,5 @@
 import * as L from "leaflet"
+import { setLastMapState } from "./_local-storage.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
 import "./_types.js"
@@ -60,7 +61,7 @@ export const getMapBaseLayer = (map) => {
  * @example
  * setMapLayersCode(map, "BT")
  */
-export const setMapLayersCode = (map, layersCode) => {
+const setMapLayersCode = (map, layersCode) => {
     const layersIds = new Set()
 
     // Extract base layers to validate the code
@@ -134,34 +135,24 @@ export const setMapState = (map, state, options) => {
     const { lon, lat, zoom, layersCode } = state
     if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) map.setView(L.latLng(lat, lon), zoom, options)
     setMapLayersCode(map, layersCode)
+    setLastMapState(state)
 }
 
-// TODO: always map?
 /**
- * Create a hash string for a state
- * @param {L.Map|MapState} args Leaflet map or map state object
+ * Create a hash string for a map state
+ * @param {MapState} state Map state object
  * @returns {string} Hash string
  * @example
- * encodeMapState(map)
+ * encodeMapState(state)
  * // => "#map=15/51.505/-0.09&layers=BT"
  */
-export const encodeMapState = (args) => encodeMapStateEx(args).hash
-
-/**
- * Create a hash string for a state and return the state object
- * @param {L.Map|MapState} args Leaflet map or map state object
- * @example
- * encodeMapStateEx(map)
- * // => { hash: "#map=15/51.505/-0.09&layers=BT", state: { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" } }
- */
-export const encodeMapStateEx = (args) => {
-    const state = args instanceof L.Map ? getMapState(args) : args
+export const encodeMapState = (state) => {
     let { lon, lat, zoom, layersCode } = state
     const precision = zoomPrecision(zoom)
     lon = lon.toFixed(precision)
     lat = lat.toFixed(precision)
     const hash = layersCode ? `#map=${zoom}/${lat}/${lon}&layers=${layersCode}` : `#map=${zoom}/${lat}/${lon}`
-    return { hash, state }
+    return hash
 }
 
 /**
@@ -212,11 +203,11 @@ export const parseMapState = (hash) => {
  * // => "https://www.openstreetmap.org/#map=15/51.505/-0.09&layers=BT"
  */
 export const getMapUrl = (map, showMarker = false) => {
-    const { center, zoom, layersCode } = getMapState(map)
+    let { lon, lat, zoom, layersCode } = getMapState(map)
     const precision = zoomPrecision(zoom)
-    const lat = center.lat.toFixed(precision)
-    const lon = center.lng.toFixed(precision)
-    const hash = encodeMapState({ center, zoom, layersCode })
+    lon = lon.toFixed(precision)
+    lat = lat.toFixed(precision)
+    const hash = encodeMapState({ lon, lat, zoom, layersCode })
 
     if (showMarker) {
         return `${location.protocol}//${location.host}/?mlat=${lat}&mlon=${lon}${hash}`

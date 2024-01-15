@@ -15,7 +15,7 @@ export const getLegendSidebarToggleButton = (options) => {
 
         // Discover the legend items and precompute their visibility
         const layerContainers = sidebar.querySelectorAll(".layer-container")
-        const layerElementsMap = layerContainers.reduce((result, layerContainer) => {
+        const layerElementsMap = layerContainers.reduce((map, layerContainer) => {
             const layerId = layerContainer.dataset.layerId
             const elements = layerContainer.querySelectorAll(".legend-item").map((element) => {
                 const minZoom = parseFloat(element.dataset.minZoom)
@@ -29,9 +29,8 @@ export const getLegendSidebarToggleButton = (options) => {
                 return { element, visibility }
             })
 
-            result[layerId] = elements
-            return result
-        }, {})
+            return map.set(layerId, elements)
+        }, new Map())
 
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {

@@ -1,5 +1,5 @@
 import "./_types.js"
-import { isLatitude, isLongitude, isZoom, zoomPrecision } from "./_utils.js"
+import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 
 const mapStateVersion = 1
 
@@ -32,10 +32,7 @@ export const getLastMapState = () => {
  * setLastMapState({ lon: 16.3725, lat: 48.208889, zoom: 12, layersCode: "K" })
  */
 export const setLastMapState = (state) => {
-    let { lon, lat, zoom, layersCode } = state
-    const precision = zoomPrecision(zoom)
-    lon = lon.toFixed(precision)
-    lat = lat.toFixed(precision)
+    const { lon, lat, zoom, layersCode } = state
     localStorage.setItem(
         "lastMapState",
         JSON.stringify({

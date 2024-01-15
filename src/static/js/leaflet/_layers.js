@@ -121,7 +121,7 @@ export const DataLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "D",
         layerId: "data",
-        areaTags: [
+        areaTagsSet: new Set([
             "area",
             "building",
             "leisure",
@@ -132,7 +132,7 @@ export const DataLayer = L.FeatureGroup.extend({
             "military",
             "natural",
             "sport",
-        ],
+        ]),
         styles: {
             object: {
                 color: "#FF6200",
@@ -212,11 +212,12 @@ export const DataLayer = L.FeatureGroup.extend({
      */
     parseFeaturesFromXML: function (xml) {
         const changesets = getChangesets(xml)
-        const nodes = getNodesMap(xml)
-        const ways = getWays(xml, nodes)
-        const relations = getRelations(xml, nodes, ways)
+        const nodesMap = getNodesMap(xml)
+        const ways = getWays(xml, nodesMap)
+        const relations = getRelations(xml, nodesMap, ways)
 
-        const interestingNodes = Object.values(nodes).filter((node) => this.isInterestingNode(node, ways, relations))
+        const interestingNodes = [...nodesMap.values()].filter((node) => this.isInterestingNode(node, ways, relations))
+
         const features = [...changesets, ...ways, ...interestingNodes]
         return features
     },
@@ -232,8 +233,12 @@ export const DataLayer = L.FeatureGroup.extend({
         const isClosedWay = way.nodes[0].id === way.nodes[way.nodes.length - 1].id
         if (!isClosedWay) return false
 
-        const hasAreaTag = Object.keys(way.tags).some((key) => this.options.areaTags.includes(key))
-        return hasAreaTag
+        const areaTagsSet = this.options.areaTagsSet
+        for (const tagKey of way.tags.keys()) {
+            if (areaTagsSet.has(tagKey)) return true
+        }
+
+        return false
     },
 
     /**
@@ -251,7 +256,7 @@ export const DataLayer = L.FeatureGroup.extend({
         const usedInRelation = relations.some((relation) => relation.members.includes(node))
         if (!usedInRelation) return true
 
-        const hasTags = Object.keys(node.tags).length > 0
+        const hasTags = node.tags.size > 0
         return hasTags
     },
 })
@@ -262,8 +267,7 @@ export const DataLayer = L.FeatureGroup.extend({
  * @returns {OSMChangeset[]} Array of changesets
  */
 const getChangesets = (xml) => {
-    const changesets = Array.from(xml.getElementsByTagName("changeset"))
-    return changesets.map((cs) => ({
+    return [...xml.getElementsByTagName("changeset")].map((cs) => ({
         type: "changeset",
         id: parseInt(cs.getAttribute("id"), 10),
         tags: getTagsMap(cs),
@@ -282,41 +286,37 @@ const getChangesets = (xml) => {
 /**
  * Parse nodes map from the given XML string
  * @param {string} xml XML string
- * @returns {object} Nodes map
+ * @returns {Map<number, OSMNode>} Nodes map
  */
 const getNodesMap = (xml) => {
-    const nodes = Array.from(xml.getElementsByTagName("node"))
-    return nodes.reduce((result, node) => {
+    return [...xml.getElementsByTagName("node")].reduce((map, node) => {
         const id = parseInt(node.getAttribute("id"), 10)
-        result[id] = {
+        map.set(id, {
             type: "node",
             id: id,
             version: parseInt(node.getAttribute("version"), 10),
             tags: getTagsMap(node),
             lon: parseFloat(node.getAttribute("lon")),
             lat: parseFloat(node.getAttribute("lat")),
-        }
-        return result
-    }, {})
+        })
+        return map
+    }, new Map())
 }
 
 /**
  * Parse ways from the given XML string
  * @param {string} xml XML string
- * @param {object} nodesMap Nodes map
+ * @param {Map<number, OSMNode>} nodesMap Nodes map
  * @returns {OSMWay[]} Array of ways
  */
 const getWays = (xml, nodesMap) => {
-    const ways = Array.from(xml.getElementsByTagName("way"))
-    return ways.map((way) => {
-        const nodesMembers = Array.from(way.getElementsByTagName("nd"))
-        const nodesArray = nodesMembers.map((nd) => nodesMap[nd.getAttribute("ref")])
+    return [...xml.getElementsByTagName("way")].map((way) => {
         return {
             type: "way",
             id: way.getAttribute("id"),
             version: parseInt(way.getAttribute("version"), 10),
             tags: getTagsMap(way),
-            nodes: nodesArray,
+            nodes: [...way.getElementsByTagName("nd")].map((nd) => nodesMap.get(parseInt(nd.getAttribute("ref"), 10))),
         }
     })
 }
@@ -324,20 +324,21 @@ const getWays = (xml, nodesMap) => {
 /**
  * Parse relations from the given XML string
  * @param {string} xml XML string
- * @param {object} nodesMap Nodes map
+ * @param {Map<number, OSMNode>} nodesMap Nodes map
  * @returns {OSMRelation[]} Array of relations
  */
 const getRelations = (xml, nodesMap) => {
-    const rels = Array.from(xml.getElementsByTagName("relation"))
-    return rels.map((rel) => {
-        const members = Array.from(rel.getElementsByTagName("member"))
+    return [...xml.getElementsByTagName("relation")].map((rel) => {
         return {
             id: rel.getAttribute("id"),
             type: "relation",
-            members: members.map((member) => {
+            members: [...rel.getElementsByTagName("member")].map((member) => {
                 // Member ways and relations are not currently used, ignore them
                 const memberType = member.getAttribute("type")
-                return memberType === "node" ? nodesMap[member.getAttribute("ref")] : null
+                if (memberType !== "node") return null
+
+                const memberRef = parseInt(member.getAttribute("ref"), 10)
+                return nodesMap.get(memberRef)
             }),
             tags: getTagsMap(rel),
         }
@@ -347,22 +348,18 @@ const getRelations = (xml, nodesMap) => {
 /**
  * Parse tags from the given XML element
  * @param {Element} element XML element
- * @returns {object} Tags map
+ * @returns {Map<string, string>} Tags map
  */
 const getTagsMap = (element) => {
-    const tags = Array.from(element.getElementsByTagName("tag"))
-    return tags.reduce((result, tag) => {
-        result[tag.getAttribute("k")] = tag.getAttribute("v")
-        return result
-    }, {})
+    return [...element.getElementsByTagName("tag")].reduce(
+        (map, tag) => map.set(tag.getAttribute("k"), tag.getAttribute("v")),
+        new Map(),
+    )
 }
 
 const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
-    (result, layer) => {
-        result[layer.options.layerId] = new layer()
-        return result
-    },
-    {},
+    (map, layer) => map.set(layer.options.layerId, new layer()),
+    new Map(),
 )
 
 /**
@@ -370,27 +367,23 @@ const BASE_LAYER_ID_MAP = [Mapnik, CyclOSM, CycleMap, TransportMap, TracestrackT
  * @param {string} layerId Layer id
  * @returns {L.TileLayer} Layer instance
  */
-export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP[layerId]
+export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP.get(layerId)
 
-const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((result, layer) => {
-    result[layer.options.layerId] = new layer()
-    return result
-}, {})
+const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce(
+    (map, layer) => map.set(layer.options.layerId, new layer()),
+    new Map(),
+)
 
 /**
  * Get overlay layer instance by id
  * @param {string} layerId Layer id
  * @returns {L.Layer} Layer instance
  */
-export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP[layerId]
+export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP.get(layerId)
 
-const CODE_ID_MAP = [...Object.values(BASE_LAYER_ID_MAP), ...Object.values(OVERLAY_LAYER_ID_MAP)].reduce(
-    (result, layer) => {
-        // Default layer has no code
-        result[layer.options.layerCode ?? ""] = layer.options.layerId
-        return result
-    },
-    {},
+const CODE_ID_MAP = [...BASE_LAYER_ID_MAP.values(), ...OVERLAY_LAYER_ID_MAP.values()].reduce(
+    (map, layer) => map.set(layer.options.layerCode ?? "", layer.options.layerId),
+    new Map(),
 )
 
 /**
@@ -403,5 +396,5 @@ const CODE_ID_MAP = [...Object.values(BASE_LAYER_ID_MAP), ...Object.values(OVERL
  */
 export const getLayerIdByCode = (layerCode) => {
     if (layerCode.length > 1) throw new Error(`Invalid layer code: ${layerCode}`)
-    return CODE_ID_MAP[layerCode]
+    return CODE_ID_MAP.get(layerCode)
 }

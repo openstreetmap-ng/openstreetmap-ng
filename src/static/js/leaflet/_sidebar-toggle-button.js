@@ -27,7 +27,7 @@ export const getSidebarToggleButton = (options, className, tooltipTitle) => {
         label.innerHTML = `<span class='icon ${className}'></span>`
         label.htmlFor = input.id
 
-        const tooltip = Tooltip.getOrCreateInstance(label, {
+        const tooltip = new Tooltip(label, {
             title: I18n.t(tooltipTitle),
             placement: "left",
         })

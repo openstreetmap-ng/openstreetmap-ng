@@ -11,7 +11,7 @@
  * @property {"node"} type Object type
  * @property {number} id Object id
  * @property {string} version Object version
- * @property {object} tags Object tags
+ * @property {Map<string, string>} tags Object tags
  * @property {number} lon Object longitude
  * @property {number} lat Object latitude
  */
@@ -21,7 +21,7 @@
  * @property {"way"} type Object type
  * @property {number} id Object id
  * @property {string} version Object version
- * @property {object} tags Object tags
+ * @property {Map<string, string>} tags Object tags
  * @property {OSMNode[]} nodes Object nodes
  */
 
@@ -37,7 +37,7 @@
  * @property {"relation"} type Object type
  * @property {number} id Object id
  * @property {string} version Object version
- * @property {object} tags Object tags
+ * @property {Map<string, string>} tags Object tags
  * @property {OSMRelationMember[]} members Object members
  */
 
@@ -54,7 +54,7 @@
  * @typedef {object} OSMChangeset
  * @property {"changeset"} type Object type
  * @property {number} id Object id
- * @property {object} tags Object tags
+ * @property {Map<string, string>} tags Object tags
  * @property {number[]|null} bounds Optional object bounds coordinates in the format [minLat, minLon, maxLat, maxLon]
 
 /**

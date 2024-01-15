@@ -8,21 +8,25 @@ export const getNewNoteControl = (options) => {
 
     // On zoomend, disable/enable button
     const onZoomEnd = () => {
-        const currentZoom = control.map.getZoom()
+        const map = control.map
+        const button = control.button
+        const tooltip = control.tooltip
+
+        const currentZoom = map.getZoom()
 
         // Enable/disable buttons based on current zoom level
         if (currentZoom < minZoom) {
-            if (!control.button.disabled) {
-                control.button.disabled = true
-                control.tooltip.setContent({
+            if (!button.disabled) {
+                button.disabled = true
+                tooltip.setContent({
                     ".tooltip-inner": I18n.t("javascripts.site.createnote_disabled_tooltip"),
                 })
             }
         } else {
             // biome-ignore lint/style/useCollapsedElseIf: Readability
-            if (control.button.disabled) {
-                control.button.disabled = false
-                control.tooltip.setContent({
+            if (button.disabled) {
+                button.disabled = false
+                tooltip.setContent({
                     ".tooltip-inner": I18n.t("javascripts.site.createnote_tooltip"),
                 })
             }
@@ -40,7 +44,7 @@ export const getNewNoteControl = (options) => {
         button.className = "control-button"
         button.innerHTML = "<span class='icon note'></span>"
 
-        const tooltip = Tooltip.getOrCreateInstance(button, {
+        const tooltip = new Tooltip(button, {
             title: I18n.t("javascripts.site.createnote_tooltip"),
             placement: "left",
             // TODO: check RTL support, also with leaflet options

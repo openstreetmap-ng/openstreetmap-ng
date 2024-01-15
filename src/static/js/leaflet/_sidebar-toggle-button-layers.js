@@ -87,7 +87,7 @@ export const getLayersSidebarToggleButton = (options) => {
                 if (isAvailable) {
                     if (overlayCheckbox.disabled) {
                         overlayCheckbox.disabled = false
-                        Tooltip.getOrCreateInstance(overlayCheckbox).disable()
+                        Tooltip.getInstance(overlayCheckbox).disable()
                         // TODO: will it hide if needed?
 
                         // Restore the overlay state if it was checked before
@@ -101,7 +101,7 @@ export const getLayersSidebarToggleButton = (options) => {
                     // biome-ignore lint/style/useCollapsedElseIf: Readability
                     if (!overlayCheckbox.disabled) {
                         overlayCheckbox.disabled = true
-                        Tooltip.getOrCreateInstance(overlayCheckbox).enable()
+                        Tooltip.getInstance(overlayCheckbox).enable()
                         // TODO: will it hide if needed?
 
                         // Force uncheck the overlay when it becomes unavailable
