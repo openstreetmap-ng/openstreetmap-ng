@@ -1,59 +1,8 @@
-//= require_self
-//= require leaflet.sidebar
-//= require leaflet.sidebar-pane
-//= require leaflet.locatecontrol/src/L.Control.Locate
-//= require leaflet.locate
-//= require leaflet.layers
-//= require leaflet.key
-//= require leaflet.note
-//= require leaflet.share
-//= require leaflet.polyline
-//= require leaflet.query
-//= require leaflet.contextmenu
-//= require index/contextmenu
-//= require index/search
-//= require index/browse
-//= require index/export
-//= require index/notes
-//= require index/history
-//= require index/note
-//= require index/new_note
-//= require index/directions
-//= require index/changeset
-//= require index/query
-//= require router
-//= require qs/dist/qs
-
 $(document).ready(function () {
-    var loaderTimeout
-
-    var map = new L.OSM.Map("map", {
-        zoomControl: false,
-        layerControl: false,
-        contextmenu: true,
-        worldCopyJump: true,
-    })
-
     OSM.loadSidebarContent = function (path, callback) {
-        var content_path = path
-
-        map.setSidebarOverlaid(false)
-
-        clearTimeout(loaderTimeout)
-
         loaderTimeout = setTimeout(function () {
             $("#sidebar_loader").show()
         }, 200)
-
-        // IE<10 doesn't respect Vary: X-Requested-With header, so
-        // prevent caching the XHR response as a full-page URL.
-        if (content_path.indexOf("?") >= 0) {
-            content_path += "&xhr=1"
-        } else {
-            content_path += "?xhr=1"
-        }
-
-        $("#sidebar_content").empty()
 
         $.ajax({
             url: content_path,
@@ -83,103 +32,12 @@ $(document).ready(function () {
         })
     }
 
-    var params = OSM.mapParams()
-
-    map.attributionControl.setPrefix("")
-
-    map.updateLayers(params.layers)
-
-    map.on("baselayerchange", function (e) {
-        if (map.getZoom() > e.layer.options.maxZoom) {
-            map.setView(map.getCenter(), e.layer.options.maxZoom, { reset: true })
-        }
-    })
-
-    var sidebar = L.OSM.sidebar("#map-ui").addTo(map)
-
-    var position = $("html").attr("dir") === "rtl" ? "topleft" : "topright"
-
-    function addControlGroup(controls) {
-        controls.forEach(function (control) {
-            control.addTo(map)
-        })
-
-        var firstContainer = controls[0].getContainer()
-        $(firstContainer).find(".control-button").first().addClass("control-button-first")
-
-        var lastContainer = controls[controls.length - 1].getContainer()
-        $(lastContainer).find(".control-button").last().addClass("control-button-last")
-    }
-
-    addControlGroup([L.OSM.zoom({ position: position }), L.OSM.locate({ position: position })])
-
-    addControlGroup([
-        L.OSM.layers({
-            position: position,
-            layers: map.baseLayers,
-            sidebar: sidebar,
-        }),
-        L.OSM.key({
-            position: position,
-            sidebar: sidebar,
-        }),
-        L.OSM.share({
-            position: position,
-            sidebar: sidebar,
-            short: true,
-        }),
-    ])
-
-    addControlGroup([
-        L.OSM.note({
-            position: position,
-            sidebar: sidebar,
-        }),
-    ])
-
-    addControlGroup([
-        L.OSM.query({
-            position: position,
-            sidebar: sidebar,
-        }),
-    ])
-
-    L.control.scale().addTo(map)
-
     OSM.initializeContextMenu(map)
 
     if (OSM.STATUS !== "api_offline" && OSM.STATUS !== "database_offline") {
         OSM.initializeNotes(map)
-        if (params.layers.indexOf(map.noteLayer.options.code) >= 0) {
-            map.addLayer(map.noteLayer)
-        }
-
         OSM.initializeBrowse(map)
-        if (params.layers.indexOf(map.dataLayer.options.code) >= 0) {
-            map.addLayer(map.dataLayer)
-        }
-
-        if (params.layers.indexOf(map.gpsLayer.options.code) >= 0) {
-            map.addLayer(map.gpsLayer)
-        }
     }
-
-    var placement = $("html").attr("dir") === "rtl" ? "right" : "left"
-    $(".leaflet-control .control-button").tooltip({ placement: placement, container: "body" })
-
-    var expiry = new Date()
-    expiry.setYear(expiry.getFullYear() + 10)
-
-    map.on("moveend layeradd layerremove", function () {
-        updateLinks(map.getCenter().wrap(), map.getZoom(), map.getLayersCode(), map._object)
-
-        Cookies.set("_osm_location", OSM.locationCookie(map), {
-            secure: true,
-            expires: expiry,
-            path: "/",
-            samesite: "lax",
-        })
-    })
 
     if (Cookies.get("_osm_welcome") !== "hide") {
         $(".welcome").removeAttr("hidden")

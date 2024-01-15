@@ -5,8 +5,8 @@ import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getMapBaseLayer, getMarkerIcon } from "./_utils.js"
 
-export const getShareSidebarToggleButton = (options) => {
-    const control = getSidebarToggleButton(options, "share", "javascripts.share.title")
+export const getShareSidebarToggleButton = () => {
+    const control = getSidebarToggleButton("share", "javascripts.share.title")
     const controlOnAdd = control.onAdd
 
     control.onAdd = (map) => {

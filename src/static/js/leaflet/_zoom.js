@@ -3,8 +3,8 @@ import * as L from "leaflet"
 
 // TODO: is that even necessary?
 
-export const getZoomControl = (options) => {
-    const control = L.control(options)
+export const getZoomControl = () => {
+    const control = new L.Control()
 
     // On zoom change, disable/enable specific buttons
     const onZoomChange = () => {

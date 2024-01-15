@@ -67,3 +67,5 @@ export const throttle = (func, delay) => {
         }
     }
 }
+
+export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))

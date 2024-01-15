@@ -1,5 +1,6 @@
 import * as L from "leaflet"
 import "leaflet.locatecontrol"
+import { isMetricUnit } from "../_utils.js"
 
 // TODO: import (S)CSS?
 // TODO: tooltip
@@ -10,6 +11,7 @@ export const getLocateControl = (options) => {
             {
                 icon: "icon geolocate",
                 iconLoading: "icon geolocate",
+                metric: isMetricUnit,
                 strings: {
                     title: I18n.t("javascripts.map.locate.title"),
                     popup: ({ distance, unit }) => {

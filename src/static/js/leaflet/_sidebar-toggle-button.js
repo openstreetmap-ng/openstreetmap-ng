@@ -1,8 +1,8 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 
-export const getSidebarToggleButton = (options, className, tooltipTitle) => {
-    const control = L.control(options)
+export const getSidebarToggleButton = (className, tooltipTitle) => {
+    const control = new L.Control()
 
     control.onAdd = (map) => {
         // Find corresponding sidebar
@@ -36,6 +36,7 @@ export const getSidebarToggleButton = (options, className, tooltipTitle) => {
         container.appendChild(input)
         container.appendChild(label)
 
+        // On input checked, toggle sidebar visibility and invalidate map size
         const onChange = () => {
             sidebar.classList.toggle("d-none", !input.checked)
             map.invalidateSize({ pan: false }) // TODO: skipping animation, seems unnecessary

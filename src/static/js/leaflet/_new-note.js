@@ -3,8 +3,8 @@ import * as L from "leaflet"
 
 const minZoom = 12
 
-export const getNewNoteControl = (options) => {
-    const control = L.control(options)
+export const getNewNoteControl = () => {
+    const control = new L.Control()
 
     // On zoomend, disable/enable button
     const onZoomEnd = () => {

@@ -6,8 +6,8 @@ import { getLatLngBoundsSize, getMapBaseLayerId } from "./_utils.js"
 
 const minimapZoomOut = 2
 
-export const getLayersSidebarToggleButton = (options) => {
-    const control = getSidebarToggleButton(options, "layers", "javascripts.map.layers.title")
+export const getLayersSidebarToggleButton = () => {
+    const control = getSidebarToggleButton("layers", "javascripts.map.layers.title")
     const controlOnAdd = control.onAdd
 
     control.onAdd = (map) => {

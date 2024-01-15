@@ -3,8 +3,8 @@ import * as L from "leaflet"
 
 const minZoom = 14
 
-export const getQueryFeaturesControl = (options) => {
-    const control = L.control(options)
+export const getQueryFeaturesControl = () => {
+    const control = new L.Control()
 
     // On zoomend, disable/enable button
     const onZoomEnd = () => {

@@ -3,8 +3,8 @@ import { getMapBaseLayerId } from "./_utils.js"
 
 const precomputeMaxZoom = 25
 
-export const getLegendSidebarToggleButton = (options) => {
-    const control = getSidebarToggleButton(options, "legend", "javascripts.key.tooltip")
+export const getLegendSidebarToggleButton = () => {
+    const control = getSidebarToggleButton("legend", "javascripts.key.tooltip")
     const controlOnAdd = control.onAdd
 
     control.onAdd = (map) => {

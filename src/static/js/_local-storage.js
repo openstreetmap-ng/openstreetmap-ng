@@ -44,3 +44,19 @@ export const setLastMapState = (state) => {
         }),
     )
 }
+
+/**
+ * Check whether user has hidden a banner
+ * @param {string} name Banner name
+ * @returns {boolean} Whether banner is hidden
+ * @example
+ * isBannerHidden("welcome")
+ */
+export const isBannerHidden = (name) => localStorage.getItem(`banner-hidden-${name}`) === "true"
+
+/**
+ * Mark a banner as hidden in local storage
+ * @param {string} name Banner name
+ * @returns {void}
+ */
+export const markBannerHidden = (name) => localStorage.setItem(`banner-hidden-${name}`, "true")
