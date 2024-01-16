@@ -14,13 +14,13 @@ let abortController = null
  * @returns {void}
  */
 export const remoteEdit = (map, object = null) => {
-    const bounds = map.getBounds()
-    const padding = 0.0001 // I honestly don't know why this padding is needed
+    const paddingRatio = 0.05 // Extend 5% in each direction
+    const bounds = map.getBounds().pad(paddingRatio)
     const loadQuery = {
-        left: bounds.getWest() - padding,
-        top: bounds.getNorth() + padding,
-        right: bounds.getEast() + padding,
-        bottom: bounds.getSouth() - padding,
+        left: bounds.getWest(),
+        top: bounds.getNorth(),
+        right: bounds.getEast(),
+        bottom: bounds.getSouth(),
     }
 
     // Select object if specified
