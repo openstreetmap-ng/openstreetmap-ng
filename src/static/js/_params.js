@@ -9,6 +9,13 @@ const params = document.documentElement.dataset
 export const apiUrl = params.apiUrl
 
 /**
+ * ID editor base URL
+ * @type {string}
+ * @example "https://id.openstreetmap.org"
+ */
+export const idUrl = params.idUrl
+
+/**
  * User preferred languages
  * @type {string[]}
  * @example ["en", "pl"]
@@ -24,11 +31,18 @@ export const primaryLanguage = languages[0]
 // TODO: py, only existing/installed locales
 
 /**
- * User home location point (JSON-encoded)
- * @type {string}
+ * Optional user home location point (JSON-encoded)
+ * @type {string|undefined}
  * @example "[0, 30]"
  */
 export const homePoint = params.homePoint
+
+/**
+ * Optional user country bounding box in minLon,minLat,maxLon,maxLat format (JSON-encoded)
+ * @type {string|undefined}
+ * @example "[14.123, 49.006, 24.150, 54.839]"
+ */
+export const countryBounds = params.countryBounds
 
 // TODO: perhaps useful globally?
 // Maximum map query area in square degrees

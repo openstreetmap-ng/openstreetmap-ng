@@ -118,7 +118,8 @@ export const initializeStandardForm = (form, { successCallback = null }) => {
         form.addEventListener("submit", onInvalidated)
     }
 
-    form.noValidate = true // Disable browser validation in favor of bootstrap
+    // Disable browser validation in favor of bootstrap
+    form.noValidate = true
     form.classList.add("needs-validation")
     let pending = false
 
@@ -135,6 +136,7 @@ export const initializeStandardForm = (form, { successCallback = null }) => {
 
         form.classList.remove("was-validated")
 
+        // Prevent double submission
         if (pending) {
             console.warn("Form already pending", form)
             return
@@ -143,11 +145,9 @@ export const initializeStandardForm = (form, { successCallback = null }) => {
         pending = true
         toggleSubmit(false)
 
-        const formData = new FormData(form)
-
         fetch(form.action, {
             method: form.method,
-            body: formData,
+            body: new FormData(form),
         })
             .then(async (resp) => {
                 const data = await resp.json()

@@ -81,7 +81,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     avatar_type: Mapped[AvatarType] = mapped_column(Enum(AvatarType), nullable=False, default=AvatarType.default)
     avatar_id: Mapped[str | None] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=True, default=None)
     home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
-    home_zoom: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, default=None)
 
     # relationships (avoid circular imports)
     if TYPE_CHECKING:

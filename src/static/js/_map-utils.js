@@ -1,5 +1,6 @@
 import * as L from "leaflet"
-import { setLastMapState } from "./_local-storage.js"
+import { getLastMapState, setLastMapState } from "./_local-storage.js"
+import { countryBounds, homePoint } from "./_params.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
 import "./_types.js"
@@ -161,7 +162,7 @@ export const encodeMapState = (state) => {
  * @returns {MapState|null} Map state object or null if invalid
  * @example
  * parseMapState("#map=15/51.505/-0.09&layers=BT")
- * // => { center: L.LatLng(51.505, -0.09), zoom: 15, layersCode: "BT" }
+ * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
  */
 export const parseMapState = (hash) => {
     // Skip if there's no hash
@@ -190,6 +191,119 @@ export const parseMapState = (hash) => {
         lat: lat,
         zoom: zoom,
         layersCode: params.layers ?? "",
+    }
+}
+
+/**
+ * Convert bounds to a lon, lat, zoom object
+ * @param {L.Map|null} map Optional leaflet map for improved bounds detection
+ * @param {number[]} bounds Bounds array in the [minLon, minLat, maxLon, maxLat] format
+ * @returns {object} { lon, lat, zoom } object
+ */
+const convertBoundsToLonLatZoom = (map, bounds) => {
+    const [minLon, minLat, maxLon, maxLat] = bounds
+    const lon = (minLon + maxLon) / 2
+    const lat = (minLat + maxLat) / 2
+
+    if (map) {
+        const zoom = map.getBoundsZoom(L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon)))
+        return { lon, lat, zoom }
+    }
+
+    const latRad = (lat) => Math.sin((lat * Math.PI) / 180)
+    const getZoom = (mapPx, worldPx, fraction) => Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2)
+
+    // Calculate the fraction of the world that the longitude and latitude take up
+    const latFraction = (latRad(maxLat) - latRad(minLat)) / Math.PI
+    const lonDiff = maxLon - minLon
+    const lonFraction = (lonDiff < 0 ? lonDiff + 360 : lonDiff) / 360
+
+    // Assume the map takes up the entire screen
+    const mapHeight = window.innerHeight
+    const mapWidth = window.innerWidth
+
+    // Calculate the maximum zoom level at which the entire bounds would fit in the map view
+    const tileSize = 256
+    const maxLatZoom = getZoom(mapHeight, tileSize, latFraction)
+    const maxLonZoom = getZoom(mapWidth, tileSize, lonFraction)
+
+    const zoom = Math.min(maxLatZoom, maxLonZoom)
+    return { lon, lat, zoom }
+}
+
+/**
+ * Get initial (default) map state by analyzing various parameters
+ * @param {L.Map|null} map Optional leaflet map for improved bounds detection
+ * @returns {MapState} Map state object
+ * @example
+ * getInitialMapState()
+ * // => { lon: -0.09, lat: 51.505, zoom: 15, layersCode: "BT" }
+ */
+export const getInitialMapState = (map = null) => {
+    // TODO: check if hash is set
+    const hashState = parseMapState(location.hash)
+
+    // 1. Use the position from the hash state
+    if (hashState) return hashState
+
+    // Delay search parsing, most URLs have a valid hash state
+    const searchParams = qsParse(location.search.substring(1))
+    const lastState = getLastMapState()
+
+    // 2. Use the bounds from the bbox query parameter
+    if (searchParams.bbox) {
+        const bbox = searchParams.bbox.split(",").map(parseFloat)
+        if (bbox.length === 4) {
+            const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bbox)
+            return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
+        }
+    }
+
+    // 3. Use the bounds from minlon, minlat, maxlon, maxlat query parameters
+    if (searchParams.minlon && searchParams.minlat && searchParams.maxlon && searchParams.maxlat) {
+        const minLon = parseFloat(searchParams.minlon)
+        const minLat = parseFloat(searchParams.minlat)
+        const maxLon = parseFloat(searchParams.maxlon)
+        const maxLat = parseFloat(searchParams.maxlat)
+        if (isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat)) {
+            const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
+            return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
+        }
+    }
+
+    // 4. Use the position from the marker
+    if (searchParams.mlon && searchParams.mlat) {
+        const mlon = parseFloat(searchParams.mlon)
+        const mlat = parseFloat(searchParams.mlat)
+        const zoom = parseInt(searchParams.zoom ?? 12, 10)
+        if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
+            return { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode ?? "" }
+        }
+    }
+
+    // 5. Use the last location from local storage
+    if (lastState) return lastState
+
+    // 6. Use the user home location
+    if (homePoint) {
+        const [lon, lat] = JSON.parse(homePoint)
+        const zoom = 15 // Home zoom defaults to 15
+        return { lon, lat, zoom, layersCode: "" }
+    }
+
+    // 7. Use the user's country bounds
+    if (countryBounds) {
+        const bounds = JSON.parse(countryBounds)
+        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bounds)
+        return { lon, lat, zoom, layersCode: "" }
+    }
+
+    // 8. Use the default location
+    return {
+        lon: 0,
+        lat: 30,
+        zoom: 3,
+        layersCode: "",
     }
 }
 
@@ -262,14 +376,12 @@ export const getMapShortUrl = (map, showMarker = false) => {
  * getMapEmbedHtml(map, L.latLng(51.505, -0.09))
  */
 export const getMapEmbedHtml = (map, markerLatLng = null) => {
-    const bbox = map.getBounds().toBBoxString()
-    const layerId = map.getBaseLayerId()
-
     const params = {
-        bbox: bbox,
-        layer: layerId,
+        bbox: map.getBounds().toBBoxString(),
+        layer: map.getBaseLayerId(),
     }
 
+    // Add optional map marker
     if (markerLatLng) {
         // Don't apply precision on embeds
         const lat = markerLatLng.lat

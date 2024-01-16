@@ -12,8 +12,8 @@
     display: flex;
     // TODO: overflow: hidden;
 
-    // Expand leaflet container (tiles)
-    .leaflet-container {
+    // Expand main map (tiles)
+    .main-map {
         flex-grow: 1;
     }
 }

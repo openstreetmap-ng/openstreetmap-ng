@@ -34,31 +34,8 @@ $(document).ready(function () {
 
     OSM.initializeContextMenu(map)
 
-    if (OSM.STATUS !== "api_offline" && OSM.STATUS !== "database_offline") {
         OSM.initializeNotes(map)
         OSM.initializeBrowse(map)
-    }
-
-    if (Cookies.get("_osm_welcome") !== "hide") {
-        $(".welcome").removeAttr("hidden")
-    }
-
-    $(".welcome .btn-close").on("click", function () {
-        $(".welcome").hide()
-        Cookies.set("_osm_welcome", "hide", { secure: true, expires: expiry, path: "/", samesite: "lax" })
-    })
-
-    var bannerExpiry = new Date()
-    bannerExpiry.setYear(bannerExpiry.getFullYear() + 1)
-
-    $("#banner .btn-close").on("click", function (e) {
-        var cookieId = e.target.id
-        $("#banner").hide()
-        e.preventDefault()
-        if (cookieId) {
-            Cookies.set(cookieId, "hide", { secure: true, expires: bannerExpiry, path: "/", samesite: "lax" })
-        }
-    })
 
     if (OSM.MATOMO) {
         map.on("layeradd", function (e) {
@@ -70,65 +47,6 @@ $(document).ready(function () {
                 }
             }
         })
-    }
-
-    if (params.bounds) {
-        map.fitBounds(params.bounds)
-    } else {
-        map.setView([params.lat, params.lon], params.zoom)
-    }
-
-    if (params.marker) {
-        L.marker([params.mlat, params.mlon]).addTo(map)
-    }
-
-    $("#homeanchor").on("click", function (e) {
-        e.preventDefault()
-
-        var data = $(this).data(),
-            center = L.latLng(data.lat, data.lon)
-
-        map.setView(center, data.zoom)
-        L.marker(center, { icon: OSM.getUserIcon() }).addTo(map)
-    })
-
-    function remoteEditHandler(bbox, object) {
-        var remoteEditHost = "http://127.0.0.1:8111",
-            osmHost = location.protocol + "//" + location.host,
-            query = {
-                left: bbox.getWest() - 0.0001,
-                top: bbox.getNorth() + 0.0001,
-                right: bbox.getEast() + 0.0001,
-                bottom: bbox.getSouth() - 0.0001,
-            }
-
-        if (object && object.type !== "note") query.select = object.type + object.id // can't select notes
-        sendRemoteEditCommand(remoteEditHost + "/load_and_zoom?" + Qs.stringify(query), function () {
-            if (object && object.type === "note") {
-                var noteQuery = { url: osmHost + OSM.apiUrl(object) }
-                sendRemoteEditCommand(remoteEditHost + "/import?" + Qs.stringify(noteQuery))
-            }
-        })
-
-        function sendRemoteEditCommand(url, callback) {
-            var iframe = $("<iframe>")
-            var timeoutId = setTimeout(function () {
-                alert(I18n.t("site.index.remote_failed"))
-                iframe.remove()
-            }, 5000)
-
-            iframe
-                .hide()
-                .appendTo("body")
-                .attr("src", url)
-                .on("load", function () {
-                    clearTimeout(timeoutId)
-                    iframe.remove()
-                    if (callback) callback()
-                })
-        }
-
-        return false
     }
 
     $("a[data-editor=remote]").click(function (e) {

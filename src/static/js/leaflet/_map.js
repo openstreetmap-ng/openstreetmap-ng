@@ -1,13 +1,17 @@
 import * as L from "leaflet"
-import { getLastMapState } from "../_local-storage.js"
-import { setMapState } from "../_map-utils.js"
+import { getInitialMapState, setMapState } from "../_map-utils.js"
+import { qsParse } from "../_qs.js"
+import { isLatitude, isLongitude } from "../_utils.js"
 import { getLocateControl } from "./_locate.js"
 import { getNewNoteControl } from "./_new-note.js"
 import { getQueryFeaturesControl } from "./_query-features.js"
 import { getLayersSidebarToggleButton } from "./_sidebar-toggle-button-layers.js"
 import { getLegendSidebarToggleButton } from "./_sidebar-toggle-button-legend.js"
 import { getShareSidebarToggleButton } from "./_sidebar-toggle-button-share.js"
+import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom.js"
+
+// TODO: map.invalidateSize({ pan: false }) on sidebar-content
 
 /**
  * Get the main map
@@ -23,7 +27,7 @@ export const getMainMap = (container) => {
     map.attributionControl.setPrefix(false)
 
     // Add native controls
-    map.addControl(L.control.scale({ updateWhenIdle: true }))
+    map.addControl(L.control.scale())
 
     // Add custom controls
     map.addControl(getZoomControl())
@@ -34,9 +38,20 @@ export const getMainMap = (container) => {
     map.addControl(getNewNoteControl())
     map.addControl(getQueryFeaturesControl())
 
-    // TODO: finish configuration
-    // TOOD: get/set last state
-    // TODO: map.invalidateSize({ pan: false }) on sidebar-content
+    // Add optional map marker
+    const searchParams = qsParse(location.search.substring(1))
+    if (searchParams.mlon && searchParams.mlat) {
+        const mlon = parseFloat(searchParams.mlon)
+        const mlat = parseFloat(searchParams.mlat)
+        if (isLongitude(mlon) && isLatitude(mlat)) {
+            const marker = L.marker(L.latLng(mlat, mlon), {
+                icon: getMarkerIcon("blue", true),
+                keyboard: false,
+                interactive: false,
+            })
+            map.addLayer(marker)
+        }
+    }
 
     // On base layer change, limit max zoom and zoom to max if needed
     const onBaseLayerChange = ({ layer }) => {
@@ -48,9 +63,10 @@ export const getMainMap = (container) => {
     // Listen for events
     map.addEventListener("baselayerchange", onBaseLayerChange)
 
-    // Initialize map state
-    const lastMapState = getLastMapState()
-    if (lastMapState) setMapState(map, lastMapState, { animate: false })
+    // TODO: support this on more maps
+    // Initialize map state after configuring events
+    const initialMapState = getInitialMapState(map)
+    setMapState(map, initialMapState, { animate: false })
 
     return map
 }

@@ -4,22 +4,24 @@ import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 
 const noteIcon = document.querySelector(".fixthemap-note-link")
 if (noteIcon) {
-    // Support default location setting via URL parameters
-    let locationProvided = false
-    const searchParams = qsParse(location.search.substring(1))
-    if (searchParams.lon && searchParams.lat) {
-        searchParams.lon = parseFloat(searchParams.lon)
-        searchParams.lat = parseFloat(searchParams.lat)
-        // Zoom is optional, default to 17
-        searchParams.zoom = parseInt(searchParams.zoom ?? 17, 10)
+    const getStateFromSearch = () => {
+        // Support default location setting via URL parameters
+        const searchParams = qsParse(location.search.substring(1))
+        if (searchParams.lon && searchParams.lat) {
+            const lon = parseFloat(searchParams.lon)
+            const lat = parseFloat(searchParams.lat)
+            // Zoom is optional, defaults to 17
+            const zoom = parseInt(searchParams.zoom ?? 17, 10)
 
-        if (isLongitude(searchParams.lon) && isLatitude(searchParams.lat) && isZoom(searchParams.zoom)) {
-            locationProvided = true
+            if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
+                return { lon, lat, zoom, layersCode: "" }
+            }
         }
+
+        return null
     }
 
-    // Assign position only if it's valid
-    let noteHref = "/note/new"
-    if (locationProvided) noteHref += encodeMapState(searchParams)
-    noteIcon.setAttribute("href", noteHref)
+    const state = getStateFromSearch()
+    const href = state ? `/note/new${encodeMapState(state)}` : "/note/new"
+    noteIcon.setAttribute("href", href)
 }

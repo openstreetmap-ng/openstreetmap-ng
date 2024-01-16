@@ -27,7 +27,8 @@ let
       sed \
         --in-place \
         --regexp-extended \
-        "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" config.py
+        "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" \
+        "$PROJECT_DIR/src/config.py"
     '')
     (writeShellScriptBin "make-bundle" ''
       dir="$PROJECT_DIR/src/static/js"

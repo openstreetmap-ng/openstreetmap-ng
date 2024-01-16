@@ -853,7 +853,7 @@ class Format06:
                             {
                                 'home': {
                                     **Format06._encode_point(user.home_point),
-                                    XAttr('zoom'): user.home_zoom,
+                                    XAttr('zoom'): 15,  # Default home zoom level
                                 }
                             }
                             if user.home_point

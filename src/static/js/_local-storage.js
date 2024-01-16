@@ -52,11 +52,11 @@ export const setLastMapState = (state) => {
  * @example
  * isBannerHidden("welcome")
  */
-export const isBannerHidden = (name) => localStorage.getItem(`banner-hidden-${name}`) === "true"
+export const isBannerHidden = (name) => localStorage.getItem(`banner-hidden-${name}`) === "1"
 
 /**
  * Mark a banner as hidden in local storage
  * @param {string} name Banner name
  * @returns {void}
  */
-export const markBannerHidden = (name) => localStorage.setItem(`banner-hidden-${name}`, "true")
+export const markBannerHidden = (name) => localStorage.setItem(`banner-hidden-${name}`, "1")
