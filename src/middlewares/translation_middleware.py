@@ -17,8 +17,19 @@ from src.limits import LANGUAGE_CODE_MAX_LENGTH
 _ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
-@cached(TTLCache(128, ttl=86400))
+@cached(TTLCache(maxsize=128, ttl=86400))
 def _parse_accept_language(accept_language: str) -> Sequence[str]:
+    """
+    Parse the accept language header.
+
+    Asterisk (*) is replaced with the default language.
+
+    Returns a tuple of the languages, from most to least preferred.
+
+    >>> _parse_accept_language('en-US,pl;q=0.8,es;q=0.9,*;q=0.5')
+    ('en-US', 'es', 'pl', 'en')
+    """
+
     # small optimization
     if not accept_language:
         return (DEFAULT_LANGUAGE,)
@@ -30,18 +41,22 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
         lang = match['lang']
         q = match['q']
 
+        # skip weird accept language codes
         if (lang_len := len(lang)) > LANGUAGE_CODE_MAX_LENGTH:
             logging.debug('Accept language code is too long %d', lang_len)
             continue
 
+        # replace asterisk with default language
         if lang == '*':
             lang = DEFAULT_LANGUAGE
+        # normalize language case and check if it's supported
         else:
             lang = normalize_locale_case(lang)
             if lang is None:
                 logging.debug('Unknown accept language %r', lang)
                 continue
 
+        # parse q-factor
         if q is None:
             q = 1
         else:

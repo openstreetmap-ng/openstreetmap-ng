@@ -21,8 +21,12 @@ _context_langs = ContextVar('Translation_context_langs')
 _context_trans = ContextVar('Translation_context_trans')
 
 
-@cached(TTLCache(128, ttl=86400))
+@cached(TTLCache(maxsize=128, ttl=86400))
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
+    """
+    Get the translation object for the given languages.
+    """
+
     return translation(
         domain=LOCALE_DOMAIN,
         localedir='config/locale',
