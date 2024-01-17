@@ -9,7 +9,6 @@ let
     # Base libraries
     stdenv.cc.cc.lib
     file.out
-    expat.out
     libxml2.out
     zlib.out
   ];
