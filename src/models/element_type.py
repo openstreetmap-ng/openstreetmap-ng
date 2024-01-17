@@ -10,6 +10,15 @@ class ElementType(BaseEnum):
 
     @classmethod
     def from_str(cls, s: str) -> Self:
+        """
+        Get the element type from the given string.
+
+        >>> ElementType.from_str('node')
+        ElementType.node
+        >>> ElementType.from_str('w123')
+        ElementType.way
+        """
+
         if s.startswith('n'):
             return cls.node
         elif s.startswith('w'):

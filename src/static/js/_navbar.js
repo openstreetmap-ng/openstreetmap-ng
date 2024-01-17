@@ -53,7 +53,7 @@ export const updateNavbarAndHash = (state, object = null) => {
 // On window mapState message, update the navbar and hash
 const onMapState = (data) => {
     const { lon, lat, zoom } = data.state
-    updateNavbarAndHash({ lon, lat, zoom, layersCode: "" })
+    updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
 }
 
 addEventListener("message", (event) => {

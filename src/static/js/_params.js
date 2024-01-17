@@ -16,6 +16,13 @@ export const apiUrl = params.apiUrl
 export const idUrl = params.idUrl
 
 /**
+ * Rapid editor base URL
+ * @type {string}
+ * @example "https://rapid.openstreetmap.org"
+ */
+export const rapidUrl = params.rapidUrl
+
+/**
  * User preferred languages
  * @type {string[]}
  * @example ["en", "pl"]

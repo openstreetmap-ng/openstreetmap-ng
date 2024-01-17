@@ -35,7 +35,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Deprecation of OAuth 1.0 warning
 - [30%] User permalinks
 - [25%] Proxy for Amazon requests (better privacy)
-- [ ] Addition of Rapid editor
+- [30%] Addition of Rapid editor
 - [ ] Ability to rotate OAuth keys
 - [ ] Scheduled account delete
 - [ ] Identification of anonymous note users

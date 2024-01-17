@@ -20,7 +20,7 @@ WEBSITE = 'https://www.openstreetmap.org'
 USER_AGENT = f'{NAME}/{VERSION} (+{WEBSITE})'
 
 DEFAULT_LANGUAGE = 'en'
-LOCALE_DOMAIN = 'combined'  # run "make locale-compile" to generate combined locales
+LOCALE_DOMAIN = 'combined'  # run "make-locale" to generate combined locales
 
 GENERATOR = 'OpenStreetMap-NG'
 COPYRIGHT = 'OpenStreetMap contributors'
@@ -32,7 +32,7 @@ SECRET = os.environ['SECRET']
 APP_URL = os.environ['APP_URL'].rstrip('/')
 API_URL = os.environ['API_URL'].rstrip('/')
 ID_URL = os.environ['ID_URL'].rstrip('/')
-
+RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 
 # Configuration (optional)
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
@@ -65,6 +65,6 @@ SMTP_SECURE = os.getenv('SMTP_SECURE', '0' if SMTP_PORT == 25 else '1').strip().
 SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else ''
 SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else ''
 
-# synchronously create directories if missing
+# Synchronously create directories if missing
 pathlib.Path(FILE_CACHE_DIR).mkdir(parents=True, exist_ok=True)
 pathlib.Path(FILE_DATA_DIR).mkdir(parents=True, exist_ok=True)
