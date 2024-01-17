@@ -1,3 +1,5 @@
+from os import cpu_count
+
 import Cython.Compiler.Options as Options
 from Cython.Build import cythonize
 from setuptools import Extension, setup
@@ -25,6 +27,7 @@ setup(
                 ],
             )
         ],
+        nthreads=cpu_count(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'language_level': 3,
