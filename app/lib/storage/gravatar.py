@@ -8,7 +8,7 @@ from app.lib_cython.avatar import Avatar
 from app.lib_cython.file_cache import FileCache
 from app.utils import HTTP
 
-_ttl = timedelta(days=1)
+_local_cache_ttl = timedelta(days=1)
 
 
 class GravatarStorage(StorageBase):
@@ -37,5 +37,5 @@ class GravatarStorage(StorageBase):
         data = r.content
         data = Avatar.normalize_image(data)
 
-        await self._fc.set(key, data, ttl=_ttl)
+        await self._fc.set(key, data, ttl=_local_cache_ttl)
         return data

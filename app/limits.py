@@ -64,12 +64,6 @@ OPTIMISTIC_UPDATE_RETRY_TIMEOUT = timedelta(seconds=30)
 PASSWORD_MIN_LENGTH = 6
 PASSWORD_MAX_LENGTH = 255  # TODO:
 
-POLICY_LEGACY_IMAGERY_BLACKLISTS = [
-    '.*\\.google(apis)?\\..*/.*',
-    'http://xdworld\\.vworld\\.kr:8080/.*',
-    '.*\\.here\\.com[/:].*',
-    '.*\\.mapy\\.cz.*',
-]
 
 REPORT_BODY_MAX_LENGTH = 50_000  # NOTE: value TBD
 

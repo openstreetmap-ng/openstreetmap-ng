@@ -6,7 +6,7 @@ from collections.abc import Sequence
 import anyio
 from humanize import naturalsize
 
-from app.lib.exceptions import raise_for
+from app.lib_cython.exceptions_context import raise_for
 from app.limits import TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 

@@ -5,7 +5,7 @@ from typing import NoReturn
 from fastapi import status
 from humanize import naturalsize
 
-from app.lib.exceptions.exceptions_base import ExceptionsBase
+from app.lib.exceptions import ExceptionsBase
 from app.limits import (
     MAP_QUERY_AREA_MAX_SIZE,
     MAP_QUERY_LEGACY_NODES_LIMIT,

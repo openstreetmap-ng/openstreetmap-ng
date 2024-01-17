@@ -30,6 +30,7 @@ setup(
         nthreads=cpu_count(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
+            'overflowcheck': True,
             'language_level': 3,
         },
     ),

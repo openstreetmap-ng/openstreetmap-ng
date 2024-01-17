@@ -9,11 +9,11 @@ from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
-from app.lib.exceptions import raise_for
-from app.lib.format import format_style
-from app.lib.format.format06 import Format06
-from app.lib.format.format06_rss import Format06RSS
+from app.lib.format06 import Format06
+from app.lib.format06rss import Format06rss
 from app.lib_cython.auth import api_user
+from app.lib_cython.exceptions_context import raise_for
+from app.lib_cython.format_style_context import format_style
 from app.lib_cython.geo_utils import parse_bbox
 from app.lib_cython.joinedload_context import joinedload_context
 from app.lib_cython.translation import t
@@ -103,7 +103,7 @@ async def note_read(
         fg.title(t('api.notes.rss.title'))
         fg.subtitle(t('api.notes.rss.description_item').format(id=note_id))
 
-        await Format06RSS.encode_notes(fg, notes)
+        await Format06rss.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:
@@ -210,7 +210,7 @@ async def notes_feed(
     else:
         fg.subtitle(t('api.notes.rss.description_all'))
 
-    await Format06RSS.encode_note_comments(fg, comments)
+    await Format06rss.encode_note_comments(fg, comments)
     return fg.rss_str()
 
 
@@ -256,7 +256,7 @@ async def notes_read(
             )
         )
 
-        await Format06RSS.encode_notes(fg, notes)
+        await Format06rss.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:
@@ -352,7 +352,7 @@ async def notes_query(
         else:
             fg.subtitle(t('api.notes.rss.description_all'))
 
-        await Format06RSS.encode_notes(fg, notes)
+        await Format06rss.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:

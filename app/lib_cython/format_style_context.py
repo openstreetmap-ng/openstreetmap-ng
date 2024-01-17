@@ -10,6 +10,7 @@ from app.models.format_style import FormatStyle
 _context = ContextVar('Format_context')
 
 
+# TODO: don't autodetect here
 @contextmanager
 def format_style_context(request: Request):
     """
@@ -37,15 +38,6 @@ def format_style_context(request: Request):
         style = FormatStyle.rss
     elif request_path.endswith('.gpx'):
         style = FormatStyle.gpx
-
-    # TODO: reconsider
-    # if format_param := request.query_params.get('format'):
-    #     if format_param == 'json':
-    #         style = FormatStyle.json
-    #     elif format_param == 'xml':
-    #         style = FormatStyle.xml
-    #     elif format_param == 'rss':
-    #         style = FormatStyle.rss
 
     token = _context.set(style)
     try:

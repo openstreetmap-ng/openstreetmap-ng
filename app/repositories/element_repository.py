@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONPATH
 from sqlalchemy.orm import load_only
 
 from app.db import DB
-from app.lib.exceptions import raise_for
+from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element

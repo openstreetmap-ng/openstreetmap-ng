@@ -1,7 +1,12 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from app.lib.exceptions.exceptions_base import ExceptionsBase
+import cython
+
+from app.lib.exceptions import ExceptionsBase
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 _context = ContextVar('Exceptions_context')
 

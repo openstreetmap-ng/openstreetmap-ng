@@ -43,7 +43,7 @@ class FileCache:
         Get a value from the file cache by key string.
         """
 
-        path = await self._get_path(key)
+        path = await self.get_path(key)
 
         try:
             entry_bytes = await path.read_bytes()
@@ -66,7 +66,7 @@ class FileCache:
         Set a value in the file cache by key string.
         """
 
-        path = await self._get_path(key)
+        path = await self.get_path(key)
         expires_at = int(time.time()) + ttl.total_seconds() if ttl else None
         entry = FileCacheEntry(expires_at, data)
         entry_bytes = entry.to_bytes()
@@ -84,7 +84,7 @@ class FileCache:
         Delete a key from the file cache.
         """
 
-        path = await self._get_path(key)
+        path = await self.get_path(key)
 
         await path.unlink(missing_ok=True)
 

@@ -8,9 +8,9 @@ from sqlalchemy import update
 
 from app.config import SECRET
 from app.db import DB
-from app.lib.exceptions import raise_for
 from app.lib_cython.crypto import hash_bytes
 from app.lib_cython.email import validate_email
+from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.oauth1 import OAuth1
 from app.lib_cython.oauth2 import OAuth2
 from app.limits import USER_TOKEN_SESSION_EXPIRE

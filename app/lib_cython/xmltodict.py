@@ -8,7 +8,7 @@ import cython
 import lxml.etree as ET
 from humanize import naturalsize
 
-from app.lib.exceptions import raise_for
+from app.lib_cython.exceptions_context import raise_for
 from app.limits import XML_PARSE_MAX_SIZE
 
 if cython.compiled:

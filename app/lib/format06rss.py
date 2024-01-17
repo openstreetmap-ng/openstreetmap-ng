@@ -12,7 +12,7 @@ from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
 
 
-class Format06RSS:
+class Format06rss:
     @staticmethod
     async def _encode_note(
         fg: FeedGenerator,
@@ -63,7 +63,7 @@ class Format06RSS:
 
         async with anyio.create_task_group() as tg:
             for note in notes:
-                await tg.start(Format06RSS._encode_note, fg, note)
+                await tg.start(Format06rss._encode_note, fg, note)
 
     @staticmethod
     async def _encode_note_comment(
@@ -121,4 +121,4 @@ class Format06RSS:
 
         async with anyio.create_task_group() as tg:
             for comment in comments:
-                await tg.start(Format06RSS._encode_note_comment, fg, comment)
+                await tg.start(Format06rss._encode_note_comment, fg, comment)

@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from app.lib.exceptions import raise_for
-from app.lib.format.format06 import Format06
+from app.lib.format06 import Format06
+from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.geo_utils import parse_bbox
 from app.lib_cython.xmltodict import XAttr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT

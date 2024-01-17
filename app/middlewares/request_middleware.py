@@ -7,7 +7,7 @@ from fastapi import Request
 from humanize import naturalsize
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.lib.exceptions import raise_for
+from app.lib_cython.exceptions_context import raise_for
 from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
 # map of content-encoding to decompression function

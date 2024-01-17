@@ -4,7 +4,7 @@ import orjson
 from fastapi import Response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
-from app.lib.format import format_style
+from app.lib_cython.format_style_context import format_style
 from app.lib_cython.xmltodict import XMLToDict
 from app.models.format_style import FormatStyle
 

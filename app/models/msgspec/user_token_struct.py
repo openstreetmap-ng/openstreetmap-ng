@@ -4,7 +4,7 @@ from uuid import UUID
 
 import msgspec
 
-from app.lib.exceptions import raise_for
+from app.lib_cython.exceptions_context import raise_for
 from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 

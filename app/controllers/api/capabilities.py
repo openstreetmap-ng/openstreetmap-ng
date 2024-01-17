@@ -11,13 +11,19 @@ from app.limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_LIMIT,
     NOTE_QUERY_LEGACY_MAX_LIMIT,
-    POLICY_LEGACY_IMAGERY_BLACKLISTS,
     TRACE_POINT_QUERY_AREA_MAX_SIZE,
     TRACE_POINT_QUERY_DEFAULT_LIMIT,
 )
 from app.models.user_role import UserRole
 
 router = APIRouter()
+
+_legacy_imagery_blacklist = [
+    '.*\\.google(apis)?\\..*/.*',
+    'http://xdworld\\.vworld\\.kr:8080/.*',
+    '.*\\.here\\.com[/:].*',
+    '.*\\.mapy\\.cz.*',
+]
 
 
 @router.get('/capabilities')
@@ -71,7 +77,7 @@ async def legacy_capabilities() -> dict:
         },
         'policy': {
             'imagery': {
-                'blacklist': [{XAttr('regex'): entry} for entry in POLICY_LEGACY_IMAGERY_BLACKLISTS],
+                'blacklist': [{XAttr('regex'): entry} for entry in _legacy_imagery_blacklist],
             },
         },
     }

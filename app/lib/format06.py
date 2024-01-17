@@ -8,9 +8,9 @@ from shapely.geometry import Point, mapping
 from sqlalchemy.exc import InvalidRequestError
 
 from app.config import API_URL
-from app.lib.exceptions import raise_for
-from app.lib.format import format_is_json, format_style
 from app.lib_cython.auth import auth_user
+from app.lib_cython.exceptions_context import raise_for
+from app.lib_cython.format_style_context import format_is_json, format_style
 from app.lib_cython.translation import render
 from app.lib_cython.xmltodict import XAttr
 from app.models.db.changeset import Changeset
