@@ -1,5 +1,4 @@
 import logging
-import xml.etree.ElementTree as stdET
 from collections import UserString
 from collections.abc import Mapping, Sequence
 from datetime import datetime
@@ -14,6 +13,15 @@ from app.limits import XML_PARSE_MAX_SIZE
 
 if cython.compiled:
     print(f'{__name__}: 🐇 compiled')
+
+_parser = ET.XMLParser(
+    ns_clean=True,
+    resolve_entities=False,
+    remove_comments=True,
+    remove_pis=True,
+    collect_ids=False,
+    compact=False,
+)
 
 
 class XAttr(UserString):
@@ -39,10 +47,6 @@ class XAttr(UserString):
 
 
 class XMLToDict:
-    """
-    Uses standard library `xml.etree.ElementTree` for XML parsing, and `lxml.etree` for XML unparsing.
-    """
-
     force_list = frozenset(
         (
             'create',
@@ -83,18 +87,18 @@ class XMLToDict:
     }
 
     @staticmethod
-    def parse(xml_b: bytes, *, sequence: cython.char = False) -> dict:
+    def parse(xml_bytes: bytes, *, sequence: cython.char = False) -> dict:
         """
         Parse XML string to dict.
 
         If `sequence` is `True`, then the root element is parsed as a sequence.
         """
 
-        if len(xml_b) > XML_PARSE_MAX_SIZE:
-            raise_for().input_too_big(len(xml_b))
+        if len(xml_bytes) > XML_PARSE_MAX_SIZE:
+            raise_for().input_too_big(len(xml_bytes))
 
-        logging.debug('Parsing %s XML string', naturalsize(len(xml_b), True))
-        root = stdET.fromstring(xml_b)  # noqa: S314
+        logging.debug('Parsing %s XML string', naturalsize(len(xml_bytes), True))
+        root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(sequence, root, is_root=True)}
 
     @staticmethod
@@ -132,7 +136,7 @@ _value_postprocessor = XMLToDict.value_postprocessor
 
 
 @cython.cfunc
-def _parse_element(sequence: cython.char, element: stdET.Element, *, is_root: cython.char):
+def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: cython.char):
     parsed = [None] * len(element.attrib)
     is_sequence_and_root: cython.char = sequence and is_root
     i: cython.int
@@ -198,7 +202,7 @@ def _postprocessor(key: str, value):
 
 
 @cython.cfunc
-def _unparse_element(key, value) -> tuple[ET.Element, ...]:
+def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
     if isinstance(value, Mapping):
         element = ET.Element(key)
         for k, v in value.items():
