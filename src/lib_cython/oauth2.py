@@ -1,9 +1,13 @@
+import cython
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 
 from src.lib.exceptions import raise_for
 from src.models.db.oauth2_token import OAuth2Token
 from src.repositories.oauth2_token_repository import OAuth2TokenRepository
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 
 class OAuth2:

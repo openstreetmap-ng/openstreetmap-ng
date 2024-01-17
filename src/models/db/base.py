@@ -9,7 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_co
 
 from src.utils import unicode_normalize
 
-_BAD_XML_RE = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XML 1.0
+_bad_xml_re = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XML 1.0
 
 
 class Base:
@@ -43,7 +43,7 @@ class Base:
         def str_validator(cls, v):
             if isinstance(v, str) and v:
                 # check for invalid XML 1.0 characters
-                if _BAD_XML_RE.search(v):
+                if _bad_xml_re.search(v):
                     raise ValueError(f'Invalid XML 1.0 characters {v!r}')
 
                 # normalize unicode to NFC form

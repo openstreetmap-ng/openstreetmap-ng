@@ -4,10 +4,10 @@ from fastapi import UploadFile
 from sqlalchemy import func
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.email import Email
-from src.lib.message_collector import MessageCollector
-from src.lib.translation import t
+from src.lib_cython.auth import auth_user
+from src.lib_cython.email import validate_email_deliverability
+from src.lib_cython.message_collector import MessageCollector
+from src.lib_cython.translation import t
 from src.models.auth_provider import AuthProvider
 from src.models.avatar_type import AvatarType
 from src.models.db.user import User
@@ -102,7 +102,7 @@ class UserService:
             collector.raise_error('password', t('user.invalid_password'))
         if not await UserRepository.check_email_available(new_email):
             collector.raise_error('email', t('user.email_already_taken'))
-        if not await Email.validate_dns(new_email):
+        if not await validate_email_deliverability(new_email):
             collector.raise_error('email', t('user.invalid_email'))
 
         await EmailChangeService.send_confirm_email(new_email)

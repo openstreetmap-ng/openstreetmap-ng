@@ -1,15 +1,19 @@
 import logging
 from urllib.parse import urlencode
 
+import cython
 from httpx import HTTPError
 from shapely.geometry import Point
 
 from src.config import NOMINATIM_URL
-from src.lib.translation import translation_languages
+from src.lib_cython.translation import primary_translation_language, translation_languages
 from src.services.cache_service import CacheService
 from src.utils import HTTP
 
-_CACHE_CONTEXT = 'Nominatim'
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+
+_cache_context = 'Nominatim'
 
 
 class Nominatim:
@@ -25,7 +29,7 @@ class Nominatim:
                 'lon': point.x,
                 'lat': point.y,
                 'zoom': zoom,
-                'accept-language': translation_languages()[0],  # use only the primary language for better caching
+                'accept-language': primary_translation_language(),
             }
         )
 
@@ -37,7 +41,7 @@ class Nominatim:
             return data['display_name']
 
         try:
-            display_name = await CacheService.get_one_by_key(path, _CACHE_CONTEXT, factory)
+            display_name = await CacheService.get_one_by_key(path, _cache_context, factory)
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None

@@ -14,13 +14,12 @@ alembic = "^1.13.1"
 anyio = "^4.2.0"
 argon2-cffi = "^23.1.0"
 arrow = "^1.3.0"
-asyncache = "^0.3.1"
 asyncpg = "^0.29.0"
 authlib = "^1.3.0"
 babel = "^2.14.0"
 beautifulsoup4 = "^4.12.2"
 bleach = "^6.1.0"
-cachetools = "^5.3.2"
+brotlicffi = "^1.1.0.0"
 cryptography = "^41.0.7"
 cython = "^3.0.7"
 email-validator = "^2.1.0.post1"
@@ -116,15 +115,16 @@ select = [
   "F", # pyflakes
   # "FBT", # flake8-boolean-trap
   "FLY", # flynt
-  # "FURB", # refurb (preview)
+  "FURB", # refurb
   "G", # flake8-logging-format
   "I", # isort
   "INT", # flake8-gettext
-  # "LOG", # flake8-logging (preview)
+  "ISC", # flake8-implicit-str-concat
+  "LOG", # flake8-logging
   "N", # pep8-naming
   "NPY", # numpy
-  "UP", # pyupgrade
   "Q", # flake8-quotes
+  "PD", # pandas-vet
   "PERF", # perflint
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
@@ -140,7 +140,9 @@ select = [
   "SLOT", # flake8-slots
   "T10", # flake8-debugger
   # "T20", # flake8-print
+  "TID", # flake8-tidy-imports
   # "TRY", # tryceratops
+  "UP", # pyupgrade
   "YTT", # flake8-2020
 ]
 

@@ -18,7 +18,7 @@ from src.config import (
     SMTP_USER,
 )
 from src.db import DB
-from src.lib.translation import render, translation_context
+from src.lib_cython.translation import render, translation_context
 from src.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from src.models.db.mail import Mail
 from src.models.db.user import User

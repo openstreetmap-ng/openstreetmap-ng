@@ -11,7 +11,6 @@ from sqlalchemy import (
     DateTime,
     Enum,
     LargeBinary,
-    SmallInteger,
     Unicode,
     UnicodeText,
     UniqueConstraint,
@@ -21,13 +20,14 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from src.config import APP_URL, DEFAULT_LANGUAGE
-from src.lib.avatar import Avatar
-from src.lib.crypto import HASH_SIZE
-from src.lib.languages import get_language_info, normalize_language_case
-from src.lib.password_hash import PasswordHash
-from src.lib.rich_text import RichTextMixin
 from src.lib.storage.base import STORAGE_KEY_MAX_LENGTH
+from src.lib_cython.avatar import Avatar
+from src.lib_cython.crypto import HASH_SIZE
 from src.lib_cython.geo_utils import haversine_distance
+from src.lib_cython.languages import get_language_info
+from src.lib_cython.locale import normalize_locale_case
+from src.lib_cython.password_hash import PasswordHash
+from src.lib_cython.rich_text_mixin import RichTextMixin
 from src.limits import (
     LANGUAGE_CODE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
@@ -184,7 +184,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     def languages_str(self, s: str) -> None:
         languages = s.split()
         languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
-        languages = (normalize_language_case(t) for t in languages)
+        languages = (normalize_locale_case(t, raise_on_not_found=False) for t in languages)
         languages = (t for t in languages if t)
         self.languages = tuple(set(languages))
 

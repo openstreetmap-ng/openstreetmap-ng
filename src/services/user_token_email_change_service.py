@@ -1,8 +1,8 @@
 import secrets
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.crypto import hash_b
+from src.lib_cython.auth import auth_user
+from src.lib_cython.crypto import hash_bytes
 from src.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
 from src.models.db.user_token_email_change import UserTokenEmailChange
 from src.models.msgspec.user_token_struct import UserTokenStruct
@@ -18,7 +18,7 @@ class UserTokenEmailChangeService:
 
         user = auth_user()
         token_b = secrets.token_bytes(32)
-        token_hashed = hash_b(token_b, context=None)
+        token_hashed = hash_bytes(token_b, context=None)
 
         async with DB() as session:
             token = UserTokenEmailChange(

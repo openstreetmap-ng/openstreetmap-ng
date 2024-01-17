@@ -2,6 +2,8 @@ import string
 
 from annotated_types import Predicate
 
-_WHITESPACE = tuple(string.whitespace)
+_whitespace_chars = tuple(string.whitespace)
 
-BoundaryWhitespaceValidator = Predicate(lambda s: not s.startswith(_WHITESPACE) and not s.endswith(_WHITESPACE))
+BoundaryWhitespaceValidator = Predicate(
+    lambda s: not s.startswith(_whitespace_chars) and not s.endswith(_whitespace_chars)
+)

@@ -1,7 +1,7 @@
 from sqlalchemy import null, select
 
 from src.db import DB
-from src.lib.crypto import hash_b
+from src.lib_cython.crypto import hash_bytes
 from src.models.db.oauth1_token import OAuth1Token
 
 
@@ -12,7 +12,7 @@ class OAuth1TokenRepository:
         Find an authorized OAuth1 token by token string.
         """
 
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_bytes(token_str, context=None)
 
         # TODO: always joinedload
         async with DB() as session:

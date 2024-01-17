@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from sqlalchemy import func, null, select
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.crypto import hash_b
 from src.lib.exceptions import raise_for
+from src.lib_cython.auth import auth_user
+from src.lib_cython.crypto import hash_bytes
 from src.models.db.oauth1_token import OAuth1Token
 from src.models.scope import Scope
 from src.repositories.oauth1_application_repository import OAuth1ApplicationRepository
@@ -29,7 +29,7 @@ class OAuth1TokenService:
             raise_for().oauth_bad_app_token()
 
         token_str = secrets.token_urlsafe(32)
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_bytes(token_str, context=None)
         token_secret = secrets.token_urlsafe(32)
 
         callback_url = callback_url_param or app.callback_url
@@ -81,7 +81,7 @@ class OAuth1TokenService:
         Returns either a redirect url or a verifier code (prefixed with "oob;").
         """
 
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_bytes(token_str, context=None)
 
         async with DB() as session, session.begin():
             stmt = (
@@ -124,7 +124,7 @@ class OAuth1TokenService:
         The access token can be used to make requests on behalf of the user.
         """
 
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_bytes(token_str, context=None)
 
         async with DB() as session, session.begin():
             stmt = (
@@ -151,7 +151,7 @@ class OAuth1TokenService:
                 raise
 
             token_str = secrets.token_urlsafe(32)
-            token_hashed = hash_b(token_str, context=None)
+            token_hashed = hash_bytes(token_str, context=None)
             token_secret = secrets.token_urlsafe(32)
 
             token.token_hashed = token_hashed

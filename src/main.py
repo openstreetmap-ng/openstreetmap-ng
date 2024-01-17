@@ -29,4 +29,4 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 app.add_middleware(LanguageMiddleware)
 
-app.mount('/static', StaticFiles(directory='static'), name='static')
+app.mount('/static', StaticFiles(directory='src/static'), name='static')

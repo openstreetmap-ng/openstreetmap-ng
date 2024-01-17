@@ -5,6 +5,7 @@ from setuptools import Extension, setup
 Options.docstrings = False
 Options.annotate = True
 
+
 setup(
     ext_modules=cythonize(
         [

@@ -2,16 +2,20 @@ from collections.abc import Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime
+from functools import lru_cache
 from gettext import GNUTranslations, translation
 
 import arrow
-from cachetools import TTLCache, cached
+import cython
 from jinja2 import Environment, FileSystemLoader
 
-from src.config import DEFAULT_LANGUAGE, LOCALE_DOMAIN
+from src.config import DEFAULT_LANGUAGE, LOCALE_DIR, LOCALE_DOMAIN
 from src.utils import format_iso_date, utcnow
 
-_J2 = Environment(
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+
+_j2 = Environment(
     loader=FileSystemLoader('templates'),
     autoescape=True,
     auto_reload=False,
@@ -21,7 +25,7 @@ _context_langs = ContextVar('Translation_context_langs')
 _context_trans = ContextVar('Translation_context_trans')
 
 
-@cached(TTLCache(maxsize=128, ttl=86400))
+@lru_cache(maxsize=128)
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
@@ -29,7 +33,7 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
 
     return translation(
         domain=LOCALE_DOMAIN,
-        localedir='config/locale',
+        localedir=LOCALE_DIR,
         languages=languages,
     )
 
@@ -58,9 +62,23 @@ def translation_context(languages: Sequence[str]):
 def translation_languages() -> Sequence[str]:
     """
     Get the languages from the translation context.
+
+    >>> translation_languages()
+    ('en', 'pl')
     """
 
     return _context_langs.get()
+
+
+def primary_translation_language() -> str:
+    """
+    Get the primary language from the translation context.
+
+    >>> primary_translation_language()
+    'en'
+    """
+
+    return _context_langs.get()[0]
 
 
 def t(message: str, **kwargs) -> str:
@@ -104,7 +122,7 @@ def render(template_name: str, **template_data: dict) -> str:
     Render the given Jinja2 template with translation.
     """
 
-    return _J2.get_template(template_name).render(**template_data)
+    return _j2.get_template(template_name).render(**template_data)
 
 
 def timeago(date: datetime, *, html: bool = False) -> str:
@@ -121,7 +139,7 @@ def timeago(date: datetime, *, html: bool = False) -> str:
     """
 
     now = utcnow()
-    locale = translation_languages()[0]
+    locale = primary_translation_language()
     ago = arrow.get(date).humanize(now, locale=locale)
 
     if html:
@@ -132,14 +150,15 @@ def timeago(date: datetime, *, html: bool = False) -> str:
         return ago
 
 
-# configure globals and filters
-_J2.globals.update(
+# configure template globals
+_j2.globals.update(
     t=t,
     nt=nt,
     pt=pt,
     npt=npt,
 )
 
-_J2.filters.update(
+# configure template filters
+_j2.filters.update(
     timeago=timeago,
 )

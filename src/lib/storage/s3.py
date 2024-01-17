@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 import aioboto3
 
-from src.lib.file_cache import FileCache
 from src.lib.storage.base import StorageBase
+from src.lib_cython.file_cache import FileCache
 
-_S3 = aioboto3.Session()
+_s3 = aioboto3.Session()
+_ttl = timedelta(days=1)
 
 
 class S3Storage(StorageBase):
@@ -21,22 +24,22 @@ class S3Storage(StorageBase):
         if data := await self._fc.get(key):
             return data
 
-        async with _S3.client('s3') as s3:
+        async with _s3.client('s3') as s3:
             data = await (await s3.get_object(Bucket=self._context, Key=key))['Body'].read()
 
-        await self._fc.set(key, data)
+        await self._fc.set(key, data, ttl=_ttl)
         return data
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
         key = self._get_key(data, suffix, random)
 
-        async with _S3.client('s3') as s3:
+        async with _s3.client('s3') as s3:
             await s3.put_object(Bucket=self._context, Key=key, Body=data)
 
         return key
 
     async def delete(self, key: str) -> None:
-        async with _S3.client('s3') as s3:
+        async with _s3.client('s3') as s3:
             await s3.delete_object(Bucket=self._context, Key=key)
 
         await self._fc.delete(key)

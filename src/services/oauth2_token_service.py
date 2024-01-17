@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from sqlalchemy import null, select
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.crypto import hash_b
 from src.lib.exceptions import raise_for
+from src.lib_cython.auth import auth_user
+from src.lib_cython.crypto import hash_bytes
 from src.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from src.models.db.oauth2_application import OAuth2Application
 from src.models.db.oauth2_token import OAuth2Token
@@ -77,7 +77,7 @@ class OAuth2TokenService:
                 return app
 
         authorization_code = secrets.token_urlsafe(32)
-        authorization_code_hashed = hash_b(authorization_code, context=None)
+        authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
         async with DB() as session:
             token = OAuth2Token(
@@ -112,7 +112,7 @@ class OAuth2TokenService:
         The access token can be used to make requests on behalf of the user.
         """
 
-        authorization_code_hashed = hash_b(authorization_code, context=None)
+        authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
         async with DB() as session, session.begin():
             stmt = (
@@ -149,7 +149,7 @@ class OAuth2TokenService:
                 raise
 
             access_token = secrets.token_urlsafe(32)
-            access_token_hashed = hash_b(access_token, context=None)
+            access_token_hashed = hash_bytes(access_token, context=None)
 
             token.token_hashed = access_token_hashed
             token.authorized_at = utcnow()

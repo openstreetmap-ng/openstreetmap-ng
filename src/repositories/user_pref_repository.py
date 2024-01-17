@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import select
 
 from src.db import DB
-from src.lib.auth import auth_user
+from src.lib_cython.auth import auth_user
 from src.models.db.user_pref import UserPref
 
 

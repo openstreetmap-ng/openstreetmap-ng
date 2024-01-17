@@ -1,7 +1,7 @@
 import secrets
 from abc import ABC
 
-from src.lib.crypto import hash_urlsafe
+from src.lib_cython.crypto import hash_urlsafe
 
 STORAGE_KEY_MAX_LENGTH = 64
 

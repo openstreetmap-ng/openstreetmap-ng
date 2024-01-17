@@ -4,7 +4,7 @@ from hmac import compare_digest
 from sqlalchemy import func, select
 
 from src.db import DB
-from src.lib.crypto import hash_b
+from src.lib_cython.crypto import hash_bytes
 from src.models.db.user_token_account_confirm import UserTokenAccountConfirm
 from src.models.msgspec.user_token_struct import UserTokenStruct
 
@@ -27,7 +27,7 @@ class UserTokenAccountConfirmRepository:
         if not token:
             return None
 
-        token_hashed = hash_b(token_struct.token, context=None)
+        token_hashed = hash_bytes(token_struct.token, context=None)
 
         if not compare_digest(token.token_hashed, token_hashed):
             logging.debug('Invalid account confirmation token for id %r', token_struct.id)

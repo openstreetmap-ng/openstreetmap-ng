@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 
+import cython
 from fastapi import Request, Security
 from fastapi.security import SecurityScopes
 from fastapi.security.utils import get_authorization_scheme_param
@@ -14,13 +15,17 @@ from src.models.msgspec.user_token_struct import UserTokenStruct
 from src.models.scope import ExtendedScope, Scope
 from src.services.auth_service import AuthService
 
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+
 # TODO: ACL
 # TODO: more 0.7 scopes
 
+# all scopes when using basic auth
+_basic_auth_scopes = tuple(Scope.__members__.values())
 
-_ALL_SCOPES = tuple(Scope.__members__.values())
-_ALL_WEB_SCOPES = (*_ALL_SCOPES, ExtendedScope.web_user)
-
+# all scopes when using session auth
+_session_auth_scopes = (*_basic_auth_scopes, ExtendedScope.web_user)
 
 _context = ContextVar('Auth_context')
 
@@ -49,8 +54,8 @@ async def auth_context(request: Request):
             username, _, password = b64decode(param).decode().partition(':')
             if not username or not password:
                 raise_for().bad_basic_auth_format()
-            if user_ := await AuthService.authenticate(username, password, basic_request=request):
-                user, scopes = user_, _ALL_SCOPES
+            if basic_user := await AuthService.authenticate(username, password, basic_request=request):
+                user, scopes = basic_user, _basic_auth_scopes
 
         # handle oauth
         else:
@@ -63,8 +68,8 @@ async def auth_context(request: Request):
     if not user and (token_str := request.session.get('session')):
         logging.debug('Attempting to authenticate with cookies')
         token_struct = UserTokenStruct.from_str(token_str)
-        if user_ := await AuthService.authenticate_session(token_struct):
-            user, scopes = user_, _ALL_WEB_SCOPES
+        if session_user := await AuthService.authenticate_session(token_struct):
+            user, scopes = session_user, _session_auth_scopes
 
     if user:
         logging.debug('Request authenticated as user %d', user.id)

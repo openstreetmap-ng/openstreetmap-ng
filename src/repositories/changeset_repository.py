@@ -5,7 +5,7 @@ from shapely import Polygon
 from sqlalchemy import func, null, select
 
 from src.db import DB
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.joinedload_context import get_joinedload
 from src.limits import FIND_LIMIT
 from src.models.db.changeset import Changeset
 

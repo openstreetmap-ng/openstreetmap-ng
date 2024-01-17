@@ -11,15 +11,15 @@ from src.lib_cython.geo_utils import (
     radians_to_meters,
 )
 
-_EARTH_RADIUS_METERS = 6371000
+_earth_radius_meters = 6371000
 
 
 @pytest.mark.parametrize(
     ('meters', 'radians'),
     [
         (0, 0),
-        (_EARTH_RADIUS_METERS, 1),
-        (_EARTH_RADIUS_METERS * math.pi, math.pi),
+        (_earth_radius_meters, 1),
+        (_earth_radius_meters * math.pi, math.pi),
     ],
 )
 def test_meters_to_radians_and_back(meters, radians):

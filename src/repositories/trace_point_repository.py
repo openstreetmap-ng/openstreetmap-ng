@@ -4,7 +4,7 @@ from shapely import Polygon
 from sqlalchemy import func, select
 
 from src.db import DB
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.joinedload_context import get_joinedload
 from src.limits import FIND_LIMIT
 from src.models.db.trace_ import Trace
 from src.models.db.trace_point import TracePoint

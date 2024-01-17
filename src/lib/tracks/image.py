@@ -5,30 +5,30 @@ from io import BytesIO
 from itertools import chain
 from math import ceil
 
-import anyio
+from anyio import to_thread
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
 
 from src.lib_cython.mercator import Mercator
 from src.models.db.trace_point import TracePoint
 
-_SAMPLE_POINTS_PER_FRAME = 20
+_sample_points_per_frame = 20
 
-_ANTIALIAS = 4
-_ANIM_FRAMES = 10
-_ANIM_DELAY = 500
-_ANIM_GEN_SIZE = 250 * _ANTIALIAS
-_ANIM_GEN_SIZE_T = _ANIM_GEN_SIZE, _ANIM_GEN_SIZE
-_ANIM_SAVE_SIZE_T = _ANIM_GEN_SIZE // _ANTIALIAS, _ANIM_GEN_SIZE // _ANTIALIAS
+_antialias = 4
+_anim_frames = 10
+_anim_delay = 500
+_anim_gen_size = 250 * _antialias
+_anim_gen_size_tuple = _anim_gen_size, _anim_gen_size
+_anim_save_size_tuple = _anim_gen_size // _antialias, _anim_gen_size // _antialias
 
-_ICON_DOWNSCALE = 5
-_ICON_SAVE_SIZE_T = _ANIM_SAVE_SIZE_T[0] // _ICON_DOWNSCALE, _ANIM_SAVE_SIZE_T[1] // _ICON_DOWNSCALE
+_icon_downscale = 5
+_icon_save_size_tuple = _anim_save_size_tuple[0] // _icon_downscale, _anim_save_size_tuple[1] // _icon_downscale
 
-_BACKGROUND_COLOR = 255
-_PRIMARY_COLOR = 0
-_PRIMARY_WIDTH = 3 * _ANTIALIAS
-_SECONDARY_COLOR = 187
-_SECONDARY_WIDTH = 1 * _ANTIALIAS
+_background_color = 255
+_primary_color = 0
+_primary_width = 3 * _antialias
+_secondary_color = 187
+_secondary_width = 1 * _antialias
 
 
 class TracksImage(ABC):
@@ -42,7 +42,7 @@ class TracksImage(ABC):
         """
 
         # Pillow frees the GIL when doing some image operations
-        return await anyio.to_thread.run_sync(TracksImage.generate, points)
+        return await to_thread.run_sync(TracksImage.generate, points)
 
     @staticmethod
     def generate(points: Sequence[TracePoint]) -> tuple[bytes, bytes]:
@@ -51,7 +51,7 @@ class TracksImage(ABC):
         """
 
         # sample points to speed up image generation
-        max_points = _SAMPLE_POINTS_PER_FRAME * _ANIM_FRAMES
+        max_points = _sample_points_per_frame * _anim_frames
 
         if len(points) > max_points:
             step = (len(points) - 1) // (max_points - 1)
@@ -63,32 +63,32 @@ class TracksImage(ABC):
 
             points = tuple(points[i] for i in indices)
 
-        logging.debug('Generating %d frames animation for %d points', _ANIM_FRAMES, len(points))
+        logging.debug('Generating %d frames animation for %d points', _anim_frames, len(points))
 
         min_lon, max_lon = min(p.point.x for p in points), max(p.point.x for p in points)
         min_lat, max_lat = min(p.point.y for p in points), max(p.point.y for p in points)
 
-        proj = Mercator(min_lon, min_lat, max_lon, max_lat, _ANIM_GEN_SIZE, _ANIM_GEN_SIZE)
+        proj = Mercator(min_lon, min_lat, max_lon, max_lat, _anim_gen_size, _anim_gen_size)
         points_proj = tuple((proj.x(p.point.x), proj.y(p.point.y)) for p in points)
-        points_per_frame = ceil(len(points) / _ANIM_FRAMES)
+        points_per_frame = ceil(len(points) / _anim_frames)
 
         # animation generation
         # L = luminance (grayscale)
-        base_frame = Image.new('L', _ANIM_GEN_SIZE_T, color=_BACKGROUND_COLOR)
+        base_frame = Image.new('L', _anim_gen_size_tuple, color=_background_color)
         draw = ImageDraw.Draw(base_frame)
-        draw.line(points_proj, fill=_SECONDARY_COLOR, width=_SECONDARY_WIDTH, joint=None)
+        draw.line(points_proj, fill=_secondary_color, width=_secondary_width, joint=None)
 
-        frames = [None] * _ANIM_FRAMES
+        frames = [None] * _anim_frames
 
-        for n in range(_ANIM_FRAMES):
+        for n in range(_anim_frames):
             start_idx = n * points_per_frame
             end_idx = start_idx + points_per_frame  # no need to clamp, slicing does it for us
 
             frame = base_frame.copy()
             draw = ImageDraw.Draw(frame)
-            draw.line(points_proj[start_idx : end_idx + 1], fill=_PRIMARY_COLOR, width=_PRIMARY_WIDTH, joint='curve')
+            draw.line(points_proj[start_idx : end_idx + 1], fill=_primary_color, width=_primary_width, joint='curve')
 
-            frame = frame.resize(_ANIM_SAVE_SIZE_T, Resampling.BOX)
+            frame = frame.resize(_anim_save_size_tuple, Resampling.BOX)
             frames[n] = frame
 
         with BytesIO() as buffer:
@@ -96,7 +96,7 @@ class TracksImage(ABC):
                 buffer,
                 save_all=True,
                 append_images=frames[1:],
-                duration=_ANIM_DELAY,
+                duration=_anim_delay,
                 loop=0,
                 format='WEBP',
                 lossless=True,
@@ -107,10 +107,10 @@ class TracksImage(ABC):
             buffer.truncate()
 
             # icon generation
-            base_frame = Image.new('L', _ANIM_GEN_SIZE_T, color=_BACKGROUND_COLOR)
+            base_frame = Image.new('L', _anim_gen_size_tuple, color=_background_color)
             draw = ImageDraw.Draw(base_frame)
-            draw.line(points_proj, fill=_PRIMARY_COLOR, width=_SECONDARY_WIDTH * _ICON_DOWNSCALE + 10, joint=None)
-            base_frame = base_frame.resize(_ICON_SAVE_SIZE_T, Resampling.BOX)
+            draw.line(points_proj, fill=_primary_color, width=_secondary_width * _icon_downscale + 10, joint=None)
+            base_frame = base_frame.resize(_icon_save_size_tuple, Resampling.BOX)
 
             base_frame.save(
                 buffer,

@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form, Query
 
-from src.lib.auth import web_user
-from src.lib.legal import get_legal
-from src.lib.translation import render
+from src.lib_cython.auth import web_user
+from src.lib_cython.legal import get_legal
+from src.lib_cython.translation import render
 from src.models.auth_provider import AuthProvider
 from src.models.db.user import User
 from src.models.editor import Editor

@@ -9,14 +9,14 @@ from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format import format_style
 from src.lib.format.format06 import Format06
 from src.lib.format.format06_rss import Format06RSS
-from src.lib.joinedload_context import joinedload_context
-from src.lib.translation import t
+from src.lib_cython.auth import api_user
 from src.lib_cython.geo_utils import parse_bbox
+from src.lib_cython.joinedload_context import joinedload_context
+from src.lib_cython.translation import t
 from src.limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_CLOSED,

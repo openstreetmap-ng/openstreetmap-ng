@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import PositiveInt
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
+from src.lib_cython.auth import api_user
 from src.models.db.user import User
 from src.models.scope import Scope
 from src.repositories.trace_repository import TraceRepository

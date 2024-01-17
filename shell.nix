@@ -141,15 +141,8 @@ let
     (writeShellScriptBin "docker-build-push" ''
       set -e
       cython-clean && cython-build
-
-      # Some data files require elevated permissions
-      if [ -d "$PROJECT_DIR/data" ]; then
-        image_path=$(sudo nix-build --no-out-link)
-      else
-        image_path=$(nix-build --no-out-link)
-      fi
-
-      docker push $(docker load < "$image_path" | sed -En 's/Loaded image: (\S+)/\1/p')
+      if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
+      docker push $(docker load < "$(sudo nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
     '')
     (writeShellScriptBin "watch-sass" ''
       bun run watch:sass
@@ -186,6 +179,7 @@ let
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
+    export RAPID_URL="http://127.0.0.1:3000"
 
     if [ -f .env ]; then
       echo "Loading .env file"

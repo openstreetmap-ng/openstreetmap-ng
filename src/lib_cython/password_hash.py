@@ -4,9 +4,14 @@ from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
 from typing import Self
 
+import cython
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
 from src.models.user_role import UserRole
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 
 class PasswordHash:
@@ -32,10 +37,12 @@ class PasswordHash:
             if salt is not None:
                 logging.warning('Unexpected salt for Argon2 hash')
 
-            if self._hasher.verify(password_hashed, password):
-                self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
+            try:
+                hasher = self._hasher  # read property once for performance
+                hasher.verify(password_hashed, password)
+                self.rehash_needed = hasher.check_needs_rehash(password_hashed)
                 return True
-            else:
+            except VerifyMismatchError:
                 self.rehash_needed = False
                 return False
 

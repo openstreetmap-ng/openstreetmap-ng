@@ -1,9 +1,9 @@
 from sqlalchemy import func
 
 from src.db import DB
-from src.lib.auth import auth_user
 from src.lib.exceptions import raise_for
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.auth import auth_user
+from src.lib_cython.joinedload_context import get_joinedload
 from src.models.db.changeset import Changeset
 
 

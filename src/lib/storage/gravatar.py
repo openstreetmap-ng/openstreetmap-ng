@@ -1,11 +1,14 @@
+from datetime import timedelta
 from hashlib import md5
 
 from fastapi import status
 
-from src.lib.avatar import Avatar
-from src.lib.file_cache import FileCache
 from src.lib.storage.base import StorageBase
+from src.lib_cython.avatar import Avatar
+from src.lib_cython.file_cache import FileCache
 from src.utils import HTTP
+
+_ttl = timedelta(days=1)
 
 
 class GravatarStorage(StorageBase):
@@ -34,5 +37,5 @@ class GravatarStorage(StorageBase):
         data = r.content
         data = Avatar.normalize_image(data)
 
-        await self._fc.set(key, data)
+        await self._fc.set(key, data, ttl=_ttl)
         return data

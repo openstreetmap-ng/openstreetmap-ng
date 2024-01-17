@@ -13,14 +13,12 @@ from phonenumbers import (
     is_valid_number,
 )
 
-from src.lib.email import Email
-from src.lib.translation import translation_languages
+from src.lib_cython.email import validate_email
+from src.lib_cython.translation import primary_translation_language, translation_languages
 from src.models.tag_format import TagFormat
 
 if cython.compiled:
     print(f'{__name__}: 🐇 compiled')
-else:
-    print(f'{__name__}: 🐌 not compiled')
 
 
 class TagFormatTuple(NamedTuple):
@@ -34,8 +32,8 @@ class TagFormatTuple(NamedTuple):
 
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys
-_WIKI_LANG_RE = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
-_WIKI_LANG_VALUE_RE = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<value>.+)$')
+_wiki_lang_re = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
+_wiki_lang_value_re = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<value>.+)$')
 
 
 def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
@@ -127,7 +125,7 @@ def _format_color(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple,
         )
 
     def is_w3c_color(s: str) -> cython.char:
-        return s.lower() in _W3C_COLORS
+        return s.lower() in _w3c_colors
 
     def format_value(s: str) -> TagFormatTuple:
         return (
@@ -148,7 +146,7 @@ def _is_email_key(key_parts: frozenset[str]) -> cython.char:
 def _format_email(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def is_email(s: str) -> cython.char:
         try:
-            Email.validate(s)
+            validate_email(s)
             return True
         except ValueError:
             return False
@@ -219,11 +217,11 @@ def _is_wikipedia_key(key_parts: frozenset[str]) -> cython.char:
 def _format_wikipedia(key_parts: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     # always default to english
     key_lang = 'en'
-    user_lang = translation_languages()[0]
+    user_lang = primary_translation_language()
 
     # check for key language override
     for key_part in key_parts:
-        if _WIKI_LANG_RE.fullmatch(key_part):
+        if _wiki_lang_re.fullmatch(key_part):
             key_lang = key_part
             break
 
@@ -242,7 +240,7 @@ def _format_wikipedia(key_parts: frozenset[str], values: list[str]) -> tuple[Tag
         lang = key_lang
 
         # check for value language override
-        if match := _WIKI_LANG_VALUE_RE.fullmatch(s):
+        if match := _wiki_lang_value_re.fullmatch(s):
             lang = match['lang']
             s = match['value']
 
@@ -265,14 +263,14 @@ def _is_wikidata_key(key_parts: frozenset[str]) -> cython.char:
 
 @cython.cfunc
 def _format_wikidata(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+    user_lang = primary_translation_language()
+
     def is_wiki_id(s: str) -> cython.char:
         return len(s) >= 2 and s[0] == 'Q' and ('1' <= s[1] <= '9') and all('0' <= c <= '9' for c in s[2:])
 
     def format_value(s: str) -> TagFormatTuple:
         return (
-            TagFormatTuple(
-                TagFormat.url, s, f'https://www.wikidata.org/entity/{s}?uselang={translation_languages()[0]}'
-            )
+            TagFormatTuple(TagFormat.url, s, f'https://www.wikidata.org/entity/{s}?uselang={user_lang}')
             if is_wiki_id(s)
             else TagFormatTuple(TagFormat.default, s, s)
         )
@@ -287,15 +285,15 @@ def _is_wikimedia_commons_key(key_parts: frozenset[str]) -> cython.char:
 
 @cython.cfunc
 def _format_wikimedia_commons(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+    user_lang = primary_translation_language()
+
     def is_entry(s: str) -> cython.char:
         # intentionally don't support lowercase to promote consistency
         return s.startswith(('File:', 'Category:'))
 
     def format_value(s: str) -> TagFormatTuple:
         return (
-            TagFormatTuple(
-                TagFormat.url, s, f'https://commons.wikimedia.org/wiki/{s}?uselang={translation_languages()[0]}'
-            )
+            TagFormatTuple(TagFormat.url, s, f'https://commons.wikimedia.org/wiki/{s}?uselang={user_lang}')
             if is_entry(s)
             else TagFormatTuple(TagFormat.default, s, s)
         )
@@ -304,7 +302,7 @@ def _format_wikimedia_commons(_: frozenset[str], values: list[str]) -> tuple[Tag
 
 
 # source: https://www.w3.org/TR/css-color-3/#svg-color
-_W3C_COLORS = frozenset(
+_w3c_colors = frozenset(
     (
         'aliceblue',
         'antiquewhite',

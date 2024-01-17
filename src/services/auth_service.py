@@ -8,11 +8,11 @@ from sqlalchemy import update
 
 from src.config import SECRET
 from src.db import DB
-from src.lib.crypto import hash_b
-from src.lib.email import Email
 from src.lib.exceptions import raise_for
-from src.lib.oauth1 import OAuth1
-from src.lib.oauth2 import OAuth2
+from src.lib_cython.crypto import hash_bytes
+from src.lib_cython.email import validate_email
+from src.lib_cython.oauth1 import OAuth1
+from src.lib_cython.oauth2 import OAuth2
 from src.limits import USER_TOKEN_SESSION_EXPIRE
 from src.models.db.user import User
 from src.models.db.user_token_session import UserTokenSession
@@ -24,7 +24,7 @@ from src.services.cache_service import CacheService
 from src.services.oauth1_nonce_service import OAuth1NonceService
 from src.utils import utcnow
 
-_CACHE_CONTEXT = 'FastPassword'
+_cache_context = 'FastPassword'
 
 
 class AuthService:
@@ -48,8 +48,7 @@ class AuthService:
         # dot in string indicates email, display name can't have a dot
         if '.' in display_name_or_email:
             try:
-                email = display_name_or_email
-                email = Email.validate(email)
+                email = validate_email(display_name_or_email)
                 user = await UserRepository.find_one_by_email(email)
             except ValueError:
                 user = None
@@ -82,7 +81,7 @@ class AuthService:
 
             # TODO: FAST_PASSWORD_CACHE_EXPIRE
             # TODO: expire on pass change
-            cache = await CacheService.get_one_by_key(key, _CACHE_CONTEXT, factory)
+            cache = await CacheService.get_one_by_key(key, _cache_context, factory)
         else:
             cache = None
 
@@ -122,7 +121,7 @@ class AuthService:
         """
 
         token_b = secrets.token_bytes(32)
-        token_hashed = hash_b(token_b, context=None)
+        token_hashed = hash_bytes(token_b, context=None)
 
         async with DB() as session:
             token = UserTokenSession(

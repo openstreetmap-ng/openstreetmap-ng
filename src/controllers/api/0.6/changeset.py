@@ -6,12 +6,12 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
-from src.lib.joinedload_context import joinedload_context
 from src.lib.optimistic import Optimistic
+from src.lib_cython.auth import api_user
 from src.lib_cython.geo_utils import parse_bbox
+from src.lib_cython.joinedload_context import joinedload_context
 from src.lib_cython.xmltodict import XMLToDict
 from src.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from src.models.db.changeset import Changeset

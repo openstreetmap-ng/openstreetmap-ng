@@ -1,19 +1,15 @@
 import re
 
 import cython
-from cachetools import TTLCache, cached
 
 if cython.compiled:
     print(f'{__name__}: 🐇 compiled')
-else:
-    print(f'{__name__}: 🐌 not compiled')
 
 # Safari detection would be nice, but requires more computational resources
 
-_RE = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
+_user_agent_re = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
 
 
-@cached(TTLCache(maxsize=1024, ttl=86400))
 def is_browser_supported(user_agent: str) -> bool:
     """
     Check if the given user agent supports the targeted web standards.
@@ -26,7 +22,7 @@ def is_browser_supported(user_agent: str) -> bool:
     if not user_agent:
         return True
 
-    match = _RE.search(user_agent)
+    match = _user_agent_re.search(user_agent)
 
     # support unknown user agents
     if not match:
@@ -38,10 +34,8 @@ def is_browser_supported(user_agent: str) -> bool:
     # current target is es2020
     # see: https://www.w3schools.com/Js/js_2020.asp
     if name == 'Chrome':
-        min_version: cython.int = 85
+        return major_version >= 85
     elif name == 'Firefox':
-        min_version: cython.int = 79
+        return major_version >= 79
     else:
         raise NotImplementedError(f'Unsupported browser name {name!r}')
-
-    return major_version >= min_version

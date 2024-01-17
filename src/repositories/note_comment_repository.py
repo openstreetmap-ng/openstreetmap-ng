@@ -4,8 +4,8 @@ from shapely import Polygon
 from sqlalchemy import func, select
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.auth import auth_user
+from src.lib_cython.joinedload_context import get_joinedload
 from src.limits import FIND_LIMIT
 from src.models.db.note import Note
 from src.models.db.note_comment import NoteComment

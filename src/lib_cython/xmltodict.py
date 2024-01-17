@@ -4,7 +4,6 @@ from collections import UserString
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from itertools import chain
-from types import MappingProxyType
 
 import cython
 import lxml.etree as ET
@@ -15,8 +14,6 @@ from src.limits import XML_PARSE_MAX_SIZE
 
 if cython.compiled:
     print(f'{__name__}: 🐇 compiled')
-else:
-    print(f'{__name__}: 🐌 not compiled')
 
 
 class XAttr(UserString):
@@ -64,28 +61,26 @@ class XMLToDict:
         )
     )
 
-    postprocessor_d = MappingProxyType(
-        {
-            '@changeset': int,
-            '@closed_at': datetime.fromisoformat,
-            '@comments_count': int,
-            '@created_at': datetime.fromisoformat,
-            '@id': int,
-            '@lat': float,
-            '@lon': float,
-            '@max_lat': float,
-            '@max_lon': float,
-            '@min_lat': float,
-            '@min_lon': float,
-            '@num_changes': int,
-            '@open': lambda x: x == 'true',
-            '@ref': int,
-            '@timestamp': datetime.fromisoformat,
-            '@uid': int,
-            '@version': lambda x: int(x) if x.isdigit() else float(x),
-            '@visible': lambda x: x == 'true',
-        }
-    )
+    value_postprocessor = {  # noqa: RUF012
+        '@changeset': int,
+        '@closed_at': datetime.fromisoformat,
+        '@comments_count': int,
+        '@created_at': datetime.fromisoformat,
+        '@id': int,
+        '@lat': float,
+        '@lon': float,
+        '@max_lat': float,
+        '@max_lon': float,
+        '@min_lat': float,
+        '@min_lon': float,
+        '@num_changes': int,
+        '@open': lambda x: x == 'true',
+        '@ref': int,
+        '@timestamp': datetime.fromisoformat,
+        '@uid': int,
+        '@version': lambda x: int(x) if x.isdigit() else float(x),
+        '@visible': lambda x: x == 'true',
+    }
 
     @staticmethod
     def parse(xml_b: bytes, *, sequence: cython.char = False) -> dict:
@@ -131,9 +126,9 @@ class XMLToDict:
             return result.decode()
 
 
-# store direct references to speed up calls
+# read property once for performance
 _force_list = XMLToDict.force_list
-_postprocessor_d = XMLToDict.postprocessor_d
+_value_postprocessor = XMLToDict.value_postprocessor
 
 
 @cython.cfunc
@@ -196,7 +191,7 @@ def _strip_namespace(tag: str) -> str:
 
 @cython.cfunc
 def _postprocessor(key: str, value):
-    if call := _postprocessor_d.get(key):
+    if call := _value_postprocessor.get(key):
         return call(value)
     else:
         return value

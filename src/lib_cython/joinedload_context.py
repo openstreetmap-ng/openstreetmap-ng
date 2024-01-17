@@ -1,7 +1,11 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 
+import cython
 from sqlalchemy.orm import joinedload
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 _context = ContextVar('JoinedLoad_context')
 

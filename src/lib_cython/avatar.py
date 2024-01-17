@@ -1,11 +1,15 @@
 from io import BytesIO
 
+import cython
 from anyio import Path
 from PIL import Image, ImageOps
 
 from src.lib.exceptions import raise_for
 from src.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 from src.models.avatar_type import AvatarType
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 
 class Avatar:
@@ -30,7 +34,7 @@ class Avatar:
         Get the default avatar image.
         """
 
-        return await Path('static/img/avatar.webp').read_bytes()
+        return await Path('src/static/img/avatar.webp').read_bytes()
 
     @staticmethod
     def normalize_image(data: bytes) -> bytes:
@@ -49,18 +53,32 @@ class Avatar:
         ImageOps.exif_transpose(img, in_place=True)
 
         # normalize shape ratio
-        ratio = img.width / img.height
+        img_width: cython.int = img.width
+        img_height: cython.int = img.height
+        ratio: cython.double = img_width / img_height
+
+        # image is too wide
         if ratio > AVATAR_MAX_RATIO:
-            width = int(img.height * AVATAR_MAX_RATIO)
-            img = img.crop(((img.width - width) // 2, 0, (img.width + width) // 2, img.height))
+            new_width: cython.int = int(img_height * AVATAR_MAX_RATIO)
+            x1: cython.int = (img_width - new_width) // 2
+            x2: cython.int = (img_width + new_width) // 2
+            img = img.crop((x1, 0, x2, img_height))
+            img_width: cython.int = img.width
+
+        # image is too tall
         elif ratio < 1 / AVATAR_MAX_RATIO:
-            height = int(img.width / AVATAR_MAX_RATIO)
-            img = img.crop((0, (img.height - height) // 2, img.width, (img.height + height) // 2))
+            new_height: cython.int = int(img_width / AVATAR_MAX_RATIO)
+            y1: cython.int = (img_height - new_height) // 2
+            y2: cython.int = (img_height + new_height) // 2
+            img = img.crop((0, y1, img_width, y2))
+            img_height: cython.int = img.height
 
         # normalize megapixels
-        mp_ratio = (img.width * img.height) / AVATAR_MAX_MEGAPIXELS
+        mp_ratio: cython.double = (img_width * img_height) / AVATAR_MAX_MEGAPIXELS
         if mp_ratio > 1:
-            img.thumbnail((img.width // mp_ratio, img.height // mp_ratio))
+            img_width: cython.int = int(img_width / mp_ratio)
+            img_height: cython.int = int(img_height / mp_ratio)
+            img.thumbnail((img_width, img_height))
 
         # normalize file size
         with BytesIO() as buffer:

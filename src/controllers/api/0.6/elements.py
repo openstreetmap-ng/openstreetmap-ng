@@ -5,10 +5,10 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
 from src.lib.optimistic import Optimistic
+from src.lib_cython.auth import api_user
 from src.lib_cython.xmltodict import XMLToDict
 from src.models.db.user import User
 from src.models.element_type import ElementType

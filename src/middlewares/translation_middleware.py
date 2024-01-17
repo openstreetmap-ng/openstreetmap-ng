@@ -1,23 +1,24 @@
 import logging
 import re
 from collections.abc import Sequence
+from functools import lru_cache
 
-from cachetools import TTLCache, cached
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.config import DEFAULT_LANGUAGE
-from src.lib.auth import auth_user
-from src.lib.locales import normalize_locale_case
-from src.lib.translation import translation_context
+from src.lib_cython.auth import auth_user
+from src.lib_cython.locale import normalize_locale_case
+from src.lib_cython.translation import translation_context
 from src.limits import LANGUAGE_CODE_MAX_LENGTH
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
-_ACCEPT_LANGUAGE_RE = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
+_accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
-@cached(TTLCache(maxsize=128, ttl=86400))
+# TODO: is cache any good here?
+@lru_cache(maxsize=128)
 def _parse_accept_language(accept_language: str) -> Sequence[str]:
     """
     Parse the accept language header.
@@ -37,7 +38,7 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
     temp: list[tuple[float, str]] = []
 
     # process accept language codes
-    for match in _ACCEPT_LANGUAGE_RE.finditer(accept_language):
+    for match in _accept_language_re.finditer(accept_language):
         lang = match['lang']
         q = match['q']
 
@@ -51,8 +52,9 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
             lang = DEFAULT_LANGUAGE
         # normalize language case and check if it's supported
         else:
-            lang = normalize_locale_case(lang)
-            if lang is None:
+            try:
+                lang = normalize_locale_case(lang, raise_on_not_found=True)
+            except KeyError:
                 logging.debug('Unknown accept language %r', lang)
                 continue
 

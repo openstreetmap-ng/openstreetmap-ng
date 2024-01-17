@@ -1,9 +1,8 @@
 import gzip
 import logging
 import zlib
-from types import MappingProxyType
 
-import brotli
+import brotlicffi
 from fastapi import Request
 from humanize import naturalsize
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -11,13 +10,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from src.lib.exceptions import raise_for
 from src.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
-_DECOMPRESS_MAP = MappingProxyType(
-    {
-        'deflate': lambda b: zlib.decompress(b, -zlib.MAX_WBITS),
-        'gzip': lambda b: gzip.decompress(b),
-        'br': lambda b: brotli.decompress(b),
-    }
-)
+# map of content-encoding to decompression function
+_decompress_map = {
+    'deflate': lambda buffer: zlib.decompress(buffer, -zlib.MAX_WBITS),
+    'gzip': lambda buffer: gzip.decompress(buffer),
+    'br': lambda buffer: brotlicffi.decompress(buffer),
+}
 
 
 class RequestMiddleware(BaseHTTPMiddleware):
@@ -25,7 +23,7 @@ class RequestMiddleware(BaseHTTPMiddleware):
         content_encoding = request.headers.get('content-encoding')
 
         # check size with compression
-        if content_encoding and (decompressor := _DECOMPRESS_MAP.get(content_encoding)):
+        if content_encoding and (decompressor := _decompress_map.get(content_encoding)):
             logging.debug('Decompressing %r content-encoding', content_encoding)
 
             input_size = 0

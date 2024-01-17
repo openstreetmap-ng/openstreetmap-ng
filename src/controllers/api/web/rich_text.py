@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form
 
-from src.lib.auth import web_user
-from src.lib.rich_text import RichText
+from src.lib_cython.auth import web_user
+from src.lib_cython.rich_text import rich_text
 from src.models.db.user import User
 from src.models.text_format import TextFormat
 
@@ -16,5 +16,5 @@ async def preview(
     text_format: Annotated[TextFormat, Form()],
     _: Annotated[User, web_user()],
 ) -> str:
-    cache = await RichText.get_cache(text, None, text_format)
+    cache = await rich_text(text, None, text_format)
     return cache.value

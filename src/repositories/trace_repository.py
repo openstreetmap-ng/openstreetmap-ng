@@ -3,10 +3,10 @@ from collections.abc import Sequence
 from sqlalchemy import func, select
 
 from src.db import DB
-from src.lib.auth import auth_user_scopes
 from src.lib.exceptions import raise_for
-from src.lib.joinedload_context import get_joinedload
 from src.lib.tracks import Tracks
+from src.lib_cython.auth import auth_user_scopes
+from src.lib_cython.joinedload_context import get_joinedload
 from src.limits import FIND_LIMIT
 from src.models.db.trace_ import Trace
 

@@ -2,9 +2,14 @@ from collections.abc import Callable
 from types import GenericAlias
 from typing import Self
 
+import cython
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+
 # inspired by functools.cached_property
 
-_NOT_FOUND = object()
+_not_found = object()
 
 
 class updating_cached_property:  # noqa: N801
@@ -54,10 +59,10 @@ class updating_cached_property:  # noqa: N801
             setattr(instance, self._cache_name, cache_data)
 
         watch_val = getattr(instance, self._watch_field)
-        prev_watch_val = cache_data.get(self._watch_field, _NOT_FOUND)
-        cached_val = cache_data.get(self._attr_name, _NOT_FOUND)
+        prev_watch_val = cache_data.get(self._watch_field, _not_found)
+        cached_val = cache_data.get(self._attr_name, _not_found)
 
-        if watch_val != prev_watch_val or cached_val is _NOT_FOUND:
+        if watch_val != prev_watch_val or cached_val is _not_found:
             cached_val = self._func(instance)
             cache_data[self._watch_field] = watch_val
             cache_data[self._attr_name] = cached_val

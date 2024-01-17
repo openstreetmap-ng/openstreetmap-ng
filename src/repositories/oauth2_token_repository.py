@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import null, select
 
 from src.db import DB
-from src.lib.crypto import hash_b
+from src.lib_cython.crypto import hash_bytes
 from src.limits import FIND_LIMIT
 from src.models.db.oauth2_token import OAuth2Token
 
@@ -15,7 +15,7 @@ class OAuth2TokenRepository:
         Find an authorized OAuth2 token by token string.
         """
 
-        token_hashed = hash_b(token_str, context=None)
+        token_hashed = hash_bytes(token_str, context=None)
 
         async with DB() as session:
             stmt = select(OAuth2Token).where(

@@ -9,7 +9,7 @@ from sqlalchemy.orm import load_only
 
 from src.db import DB
 from src.lib.exceptions import raise_for
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.joinedload_context import get_joinedload
 from src.limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
 from src.models.db.element import Element
 from src.models.element_type import ElementType

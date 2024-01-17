@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.lib.crypto import decrypt_b
-from src.lib.updating_cached_property import updating_cached_property
+from src.lib_cython.crypto import decrypt
+from src.lib_cython.updating_cached_property import updating_cached_property
 from src.models.db.base import Base
 from src.models.db.created_at_mixin import CreatedAtMixin
 from src.models.db.updated_at_mixin import UpdatedAtMixin
@@ -36,4 +36,4 @@ class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @updating_cached_property('client_secret_encrypted')
     def client_secret(self) -> str:
-        return decrypt_b(self.client_secret_encrypted)
+        return decrypt(self.client_secret_encrypted)

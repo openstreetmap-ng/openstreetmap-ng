@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
 
 from src.db import DB
-from src.lib.crypto import hash_b
+from src.lib_cython.crypto import hash_bytes
 from src.limits import CACHE_DEFAULT_EXPIRE
 from src.models.db.cache_entry import CacheEntry
 from src.utils import utcnow
@@ -13,7 +13,7 @@ from src.utils import utcnow
 
 
 def _hash_key(key: str, context: str) -> bytes:
-    return hash_b(key, context=context)
+    return hash_bytes(key, context=context)
 
 
 class CacheService:

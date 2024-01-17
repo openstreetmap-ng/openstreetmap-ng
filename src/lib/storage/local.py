@@ -1,6 +1,6 @@
 from src.config import FILE_DATA_DIR
-from src.lib.file_cache import FileCache
 from src.lib.storage.base import StorageBase
+from src.lib_cython.file_cache import FileCache
 
 
 class LocalStorage(StorageBase):
@@ -20,7 +20,7 @@ class LocalStorage(StorageBase):
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
         key = self._get_key(data, suffix, random)
-        await self._fc.set(key, data)
+        await self._fc.set(key, data, ttl=None)
 
     async def delete(self, key: str) -> None:
         await self._fc.delete(key)

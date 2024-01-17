@@ -7,8 +7,6 @@ if cython.compiled:
 else:
     from math import log, pi, tan
 
-    print(f'{__name__}: 🐌 not compiled')
-
 
 @cython.cfunc
 def degrees(x: cython.double) -> cython.double:

@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Form
 from pydantic import PositiveInt
 
-from src.lib.auth import api_user
 from src.lib.format.format06 import Format06
+from src.lib_cython.auth import api_user
 from src.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from src.models.db.user import User
 from src.models.scope import ExtendedScope, Scope

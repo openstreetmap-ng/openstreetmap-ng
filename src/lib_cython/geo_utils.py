@@ -13,12 +13,10 @@ if cython.compiled:
 else:
     from math import atan2, cos, pi, sin, sqrt
 
-    print(f'{__name__}: 🐌 not compiled')
 
-
-@cython.cfunc
-def degrees(x: cython.double) -> cython.double:
-    return x * (180 / pi)
+# @cython.cfunc
+# def degrees(x: cython.double) -> cython.double:
+#     return x * (180 / pi)
 
 
 @cython.cfunc

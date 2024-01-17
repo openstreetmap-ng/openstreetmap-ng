@@ -5,8 +5,8 @@ from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
 
 from src.config import API_URL
-from src.lib.nominatim import Nominatim
-from src.lib.translation import render, t
+from src.lib_cython.nominatim import Nominatim
+from src.lib_cython.translation import render, t
 from src.models.db.note import Note
 from src.models.db.note_comment import NoteComment
 from src.models.note_event import NoteEvent

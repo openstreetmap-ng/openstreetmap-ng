@@ -5,16 +5,17 @@ from itertools import pairwise
 
 import anyio
 import magic
+from anyio import to_thread
 from fastapi import UploadFile
 
 from src.db import DB
-from src.lib.auth import auth_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
 from src.lib.storage import TRACKS_STORAGE
 from src.lib.tracks.image import TracksImage
 from src.lib.tracks.processors import TRACE_FILE_PROCESSORS
 from src.lib.tracks.processors.zstd import ZstdFileProcessor
+from src.lib_cython.auth import auth_user
 from src.lib_cython.xmltodict import XMLToDict
 from src.limits import TRACE_FILE_MAX_SIZE
 from src.models.db.trace_ import Trace
@@ -35,7 +36,7 @@ class Tracks:
         if len(file.size) > TRACE_FILE_MAX_SIZE:
             raise_for().input_too_big(len(file.size))
 
-        buffer = await anyio.to_thread.run_sync(file.file.read)
+        buffer = await to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
         trace: Trace = None
         image: bytes = None

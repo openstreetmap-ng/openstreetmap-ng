@@ -7,11 +7,11 @@ from fastapi.responses import PlainTextResponse
 from httpx import Response
 from pydantic import PositiveInt
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
-from src.lib.joinedload_context import joinedload_context
 from src.lib.tracks import Tracks
+from src.lib_cython.auth import api_user
+from src.lib_cython.joinedload_context import joinedload_context
 from src.lib_cython.xmltodict import XMLToDict
 from src.models.db.trace_ import Trace
 from src.models.db.trace_point import TracePoint

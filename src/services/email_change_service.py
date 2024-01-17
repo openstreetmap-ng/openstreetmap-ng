@@ -1,4 +1,4 @@
-from src.lib.auth import auth_user
+from src.lib_cython.auth import auth_user
 from src.models.mail_from_type import MailFromType
 from src.services.mail_service import MailService
 from src.services.user_token_email_change_service import UserTokenEmailChangeService

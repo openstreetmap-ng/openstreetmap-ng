@@ -4,9 +4,9 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from src.db import DB
-from src.lib.auth import auth_user
 from src.lib.exceptions import raise_for
-from src.lib.joinedload_context import get_joinedload
+from src.lib_cython.auth import auth_user
+from src.lib_cython.joinedload_context import get_joinedload
 from src.models.db.note import Note
 from src.models.db.note_comment import NoteComment
 from src.models.note_event import NoteEvent

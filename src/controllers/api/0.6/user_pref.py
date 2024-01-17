@@ -3,9 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Request
 
-from src.lib.auth import api_user
 from src.lib.exceptions import raise_for
 from src.lib.format.format06 import Format06
+from src.lib_cython.auth import api_user
 from src.lib_cython.xmltodict import XMLToDict
 from src.models.db.user import User
 from src.models.scope import Scope

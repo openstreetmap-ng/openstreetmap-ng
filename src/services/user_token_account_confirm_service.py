@@ -3,9 +3,9 @@ import secrets
 from sqlalchemy import delete, update
 
 from src.db import DB
-from src.lib.auth import auth_user
-from src.lib.crypto import hash_b
 from src.lib.exceptions import raise_for
+from src.lib_cython.auth import auth_user
+from src.lib_cython.crypto import hash_bytes
 from src.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
 from src.models.db.user import User
 from src.models.db.user_token_account_confirm import UserTokenAccountConfirm
@@ -23,7 +23,7 @@ class UserTokenAccountConfirmService:
         """
 
         token_b = secrets.token_bytes(32)
-        token_hashed = hash_b(token_b, context=None)
+        token_hashed = hash_bytes(token_b, context=None)
 
         async with DB() as session:
             token = UserTokenAccountConfirm(

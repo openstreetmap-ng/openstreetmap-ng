@@ -8,10 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from src.lib.optimistic.apply import OptimisticApply
 from src.lib.optimistic.exceptions import OptimisticError
 from src.lib.optimistic.prepare import OptimisticPrepare
+from src.limits import OPTIMISTIC_UPDATE_RETRY_TIMEOUT
 from src.models.db.element import Element
 from src.models.typed_element_ref import TypedElementRef
-
-_RETRY_TIMEOUT = 30
 
 
 class Optimistic:
@@ -40,7 +39,7 @@ class Optimistic:
                 timeout_seconds = time.monotonic() - ts
 
                 # retry is still possible
-                if timeout_seconds < _RETRY_TIMEOUT:
+                if timeout_seconds < OPTIMISTIC_UPDATE_RETRY_TIMEOUT.total_seconds():
                     if attempt <= 2:
                         logging.debug('Optimistic failed at attempt %d, retrying', attempt)
                     elif attempt <= 3:

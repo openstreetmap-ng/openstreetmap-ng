@@ -1,9 +1,16 @@
 import logging
+import time
+from datetime import timedelta
 
+import cython
 from anyio import Path
 
 from src.config import FILE_CACHE_DIR
-from src.lib.crypto import hash_hex
+from src.lib_cython.crypto import hash_hex
+from src.models.msgspec.file_cache_entry import FileCacheEntry
+
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
 
 
 class FileCache:
@@ -39,24 +46,34 @@ class FileCache:
         path = await self._get_path(key)
 
         try:
-            result = await path.read_bytes()
-            logging.debug('Cache hit for %r', key)
-            return result
+            entry_bytes = await path.read_bytes()
         except OSError:
             logging.debug('Cache miss for %r', key)
             return None
 
-    # TODO: TTL Support
-    async def set(self, key: str, data: bytes) -> None:  # noqa: A003
+        entry = FileCacheEntry.from_bytes(entry_bytes)
+
+        if entry.expires_at and entry.expires_at < int(time.time()):
+            logging.debug('Cache miss for %r', key)
+            await path.unlink(missing_ok=True)
+            return None
+
+        logging.debug('Cache hit for %r', key)
+        return entry.data
+
+    async def set(self, key: str, data: bytes, *, ttl: timedelta | None) -> None:  # noqa: A003
         """
         Set a value in the file cache by key string.
         """
 
         path = await self._get_path(key)
+        expires_at = int(time.time()) + ttl.total_seconds() if ttl else None
+        entry = FileCacheEntry(expires_at, data)
+        entry_bytes = entry.to_bytes()
 
         try:
             async with await path.open('xb') as f:
-                await f.write(data)
+                await f.write(entry_bytes)
         except OSError:
             if not await path.is_file():
                 logging.warning('Failed to create file cache %r', path)

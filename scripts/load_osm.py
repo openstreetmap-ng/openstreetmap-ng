@@ -2,8 +2,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import anyio
 import xmltodict
+from anyio import to_thread
 from shapely.geometry import Point
 
 from src.lib.format.format06 import Format06
@@ -107,7 +107,7 @@ async def main():
         if batch:
             anyio.from_thread.run(process_batch)
 
-    await anyio.to_thread.run_sync(thread)
+    await to_thread.run_sync(thread)
 
     # TODO: fixup latest
     # TODO: fixup sequence

@@ -1,11 +1,11 @@
 from fastapi import Request
 
 from src.db import DB
-from src.lib.auth import auth_user, manual_auth_context
-from src.lib.email import Email
-from src.lib.message_collector import MessageCollector
-from src.lib.password_hash import PasswordHash
-from src.lib.translation import t, translation_languages
+from src.lib_cython.auth import auth_user, manual_auth_context
+from src.lib_cython.email import validate_email_deliverability
+from src.lib_cython.message_collector import MessageCollector
+from src.lib_cython.password_hash import PasswordHash
+from src.lib_cython.translation import t, translation_languages
 from src.models.db.user import User
 from src.models.mail_from_type import MailFromType
 from src.models.msgspec.user_token_struct import UserTokenStruct
@@ -39,7 +39,7 @@ class UserSignupService:
             collector.raise_error('display_name', t('user.display_name_already_taken'))
         if not await UserRepository.check_email_available(email):
             collector.raise_error('email', t('user.email_already_taken'))
-        if not await Email.validate_dns(email):
+        if not await validate_email_deliverability(email):
             collector.raise_error('email', t('user.invalid_email'))
 
         # precompute values to reduce transaction time

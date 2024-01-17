@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.lib.crypto import HASH_SIZE
+from src.lib_cython.crypto import HASH_SIZE
 from src.models.db.base import Base
 
 

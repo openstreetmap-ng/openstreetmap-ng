@@ -3,13 +3,18 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 from hmac import HMAC
 
+import cython
 from Crypto.Cipher import ChaCha20
 
 from src.config import SECRET_32b
 
+if cython.compiled:
+    print(f'{__name__}: 🐇 compiled')
+
 HASH_SIZE = 32
 
 
+@cython.cfunc
 def _hash(s: str | bytes, *, context: str | None):
     if isinstance(s, str):
         s = s.encode()
@@ -20,7 +25,7 @@ def _hash(s: str | bytes, *, context: str | None):
         return HMAC(context.encode(), s, sha256)
 
 
-def hash_b(s: str | bytes, *, context: str | None) -> bytes:
+def hash_bytes(s: str | bytes, *, context: str | None) -> bytes:
     """
     Hash a string using SHA-256.
 
@@ -56,27 +61,27 @@ def hash_urlsafe(s: str | bytes, *, context: str | None) -> str:
     return urlsafe_b64encode(_hash(s, context=context).digest()).decode()
 
 
-def encrypt_b(s: str) -> bytes:
+def encrypt(s: str) -> bytes:
     """
     Encrypt a string using XChaCha20.
 
-    Returns a buffer of the nonce and ciphertext.
+    Returns a buffer of the nonce and cipher text.
     """
 
     nonce_b = secrets.token_bytes(24)
     cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_b)
-    ciphertext_b = cipher.encrypt(s.encode())
-    return nonce_b + ciphertext_b
+    cipher_text_b = cipher.encrypt(s.encode())
+    return nonce_b + cipher_text_b
 
 
-def decrypt_b(b: bytes) -> str:
+def decrypt(b: bytes) -> str:
     """
     Decrypt a buffer using XChaCha20.
 
-    Expects a buffer of the nonce and ciphertext.
+    Expects a buffer of the nonce and cipher text.
     """
 
     nonce_b = b[:24]
-    ciphertext_b = b[24:]
+    cipher_text_b = b[24:]
     cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_b)
-    return cipher.decrypt(ciphertext_b).decode()
+    return cipher.decrypt(cipher_text_b).decode()

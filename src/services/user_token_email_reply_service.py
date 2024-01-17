@@ -2,9 +2,9 @@ import secrets
 
 from src.config import SMTP_MESSAGES_FROM_HOST
 from src.db import DB
-from src.lib.auth import auth_user, manual_auth_context
-from src.lib.crypto import hash_b
 from src.lib.exceptions import raise_for
+from src.lib_cython.auth import auth_user, manual_auth_context
+from src.lib_cython.crypto import hash_bytes
 from src.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from src.models.db.user_token_email_reply import UserTokenEmailReply
 from src.models.mail_from_type import MailFromType
@@ -24,7 +24,7 @@ class UserTokenEmailReplyService:
         """
 
         token_b = secrets.token_bytes(32)
-        token_hashed = hash_b(token_b, context=None)
+        token_hashed = hash_bytes(token_b, context=None)
 
         async with DB() as session:
             token = UserTokenEmailReply(
