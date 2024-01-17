@@ -15,9 +15,6 @@ from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.scope import ExtendedScope, Scope
 from app.services.auth_service import AuthService
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 # TODO: ACL
 # TODO: more 0.7 scopes
 

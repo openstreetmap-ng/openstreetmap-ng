@@ -8,8 +8,6 @@ from app.libc.exceptions_context import raise_for
 
 if cython.compiled:
     from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
-
-    print(f'{__name__}: 🐇 compiled')
 else:
     from math import atan2, cos, pi, sin, sqrt
 

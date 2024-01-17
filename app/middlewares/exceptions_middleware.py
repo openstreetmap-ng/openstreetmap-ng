@@ -2,6 +2,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.lib.exceptions import Exceptions
 from app.lib.exceptions06 import Exceptions06
 from app.libc.exceptions_context import exceptions_context
 
@@ -13,9 +14,9 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next) -> Response:
         if request.url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities')):
-            type = Exceptions06
+            implementation = Exceptions06()
         else:
-            type = Exceptions06  # TODO: just Exceptions when implemented
+            implementation = Exceptions()
 
-        async with exceptions_context(type):
+        async with exceptions_context(implementation):
             return await super().dispatch(request, call_next)

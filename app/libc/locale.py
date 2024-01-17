@@ -1,12 +1,7 @@
 import logging
 import pathlib
 
-import cython
-
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 _locales: frozenset[str] = frozenset(p.name for p in pathlib.Path(LOCALE_DIR).iterdir() if p.is_dir())
 _locales_lower_map = {k.casefold(): k for k in _locales}

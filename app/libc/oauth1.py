@@ -7,9 +7,6 @@ from app.libc.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
 from app.repositories.oauth1_token_repository import OAuth1TokenRepository
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 
 @cython.cfunc
 def _compute_hmac_sha1(request: OAuth1Request, consumer_secret: str, token_secret: str) -> str:

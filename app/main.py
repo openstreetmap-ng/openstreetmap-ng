@@ -8,6 +8,7 @@ from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 
+import app.libc.cython_detect  # DO NOT REMOVE
 from app.config import HTTPS_ONLY, NAME, SECRET
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware

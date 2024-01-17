@@ -4,14 +4,10 @@ from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
 from typing import Self
 
-import cython
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
 from app.models.user_role import UserRole
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 
 class PasswordHash:

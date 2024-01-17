@@ -1,15 +1,11 @@
 from collections.abc import Sequence
 
 import anyio
-import cython
 from sqlalchemy import update
 
 from app.db import DB
 from app.libc.rich_text import rich_text
 from app.models.text_format import TextFormat
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 
 class RichTextMixin:

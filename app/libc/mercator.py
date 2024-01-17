@@ -2,8 +2,6 @@ import cython
 
 if cython.compiled:
     from cython.cimports.libc.math import log, pi, tan
-
-    print(f'{__name__}: 🐇 compiled')
 else:
     from math import log, pi, tan
 

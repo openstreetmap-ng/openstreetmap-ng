@@ -1,11 +1,7 @@
 from collections import defaultdict
 from typing import Literal, NoReturn
 
-import cython
 from fastapi import HTTPException, status
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 MessageSeverity = Literal['success', 'info', 'error']
 

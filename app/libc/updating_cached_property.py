@@ -2,16 +2,10 @@ from collections.abc import Callable
 from types import GenericAlias
 from typing import Self
 
-import cython
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
-# inspired by functools.cached_property
-
 _not_found = object()
 
 
+# inspired by functools.cached_property
 class updating_cached_property:  # noqa: N801
     """
     A decorator to cache the result of a property with an auto-update condition.

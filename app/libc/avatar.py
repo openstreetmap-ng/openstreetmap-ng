@@ -8,9 +8,6 @@ from app.libc.exceptions_context import raise_for
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 from app.models.avatar_type import AvatarType
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 
 class Avatar:
     @staticmethod

@@ -1,16 +1,11 @@
 import logging
 import pathlib
 
-import cython
 import yaml
 
 from app.config import CONFIG_DIR, DEFAULT_LANGUAGE
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 from app.models.language_info import LanguageInfo
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 
 # TODO: test "no" code
 with pathlib.Path(CONFIG_DIR / 'languages.yml').open() as f:

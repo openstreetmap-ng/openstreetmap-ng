@@ -2,9 +2,6 @@ import re
 
 import cython
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 # Safari detection would be nice, but requires more computational resources
 
 _user_agent_re = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')

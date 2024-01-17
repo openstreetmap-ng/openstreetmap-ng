@@ -1,12 +1,7 @@
 import pathlib
 
-import cython
-
 from app.models.db.element import Element
 from app.models.element_type import ElementType
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 # map[tag_key][tag_value_or_type] = icon
 _config: dict[str, dict] = {

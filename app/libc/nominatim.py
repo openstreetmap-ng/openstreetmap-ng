@@ -1,7 +1,6 @@
 import logging
 from urllib.parse import urlencode
 
-import cython
 from httpx import HTTPError
 from shapely.geometry import Point
 
@@ -9,9 +8,6 @@ from app.config import NOMINATIM_URL
 from app.libc.translation import primary_translation_language
 from app.services.cache_service import CacheService
 from app.utils import HTTP
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 _cache_context = 'Nominatim'
 

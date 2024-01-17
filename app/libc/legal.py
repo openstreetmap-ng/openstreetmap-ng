@@ -2,13 +2,9 @@ import logging
 import pathlib
 from functools import cache
 
-import cython
 import yaml
 
 from app.config import LEGAL_DIR
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 
 @cache

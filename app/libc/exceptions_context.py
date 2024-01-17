@@ -1,32 +1,27 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-import cython
-
 from app.lib.exceptions import Exceptions
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 _context = ContextVar('Exceptions_context')
 
 
 @contextmanager
-def exceptions_context(exceptions_type: type[Exceptions]):
+def exceptions_context(implementation: Exceptions):
     """
     Context manager for setting the exceptions type in ContextVar.
     """
 
-    token = _context.set(exceptions_type)
+    token = _context.set(implementation)
     try:
         yield
     finally:
         _context.reset(token)
 
 
-def raise_for() -> type[Exceptions]:
+def raise_for() -> Exceptions:
     """
-    Get the configured exceptions base.
+    Get the configured exceptions implementation.
     """
 
     return _context.get()

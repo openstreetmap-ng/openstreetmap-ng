@@ -6,14 +6,10 @@ from functools import lru_cache
 from gettext import GNUTranslations, translation
 
 import arrow
-import cython
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, LOCALE_DOMAIN
 from app.utils import format_iso_date, utcnow
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 _j2 = Environment(
     loader=FileSystemLoader('templates'),

@@ -17,9 +17,6 @@ from app.libc.email import validate_email
 from app.libc.translation import primary_translation_language
 from app.models.tag_format import TagFormat
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 
 class TagFormatTuple(NamedTuple):
     format: TagFormat  # noqa: A003

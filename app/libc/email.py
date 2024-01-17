@@ -1,15 +1,11 @@
 import logging
 from functools import partial
 
-import cython
 from anyio import to_thread
 from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
 
 from app.config import TEST_ENV
-
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
 
 
 def validate_email(email: str) -> str:

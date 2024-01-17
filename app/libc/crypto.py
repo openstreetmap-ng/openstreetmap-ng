@@ -8,9 +8,6 @@ from Crypto.Cipher import ChaCha20
 
 from app.config import SECRET_32b
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 HASH_SIZE = 32
 
 

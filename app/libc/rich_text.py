@@ -9,9 +9,6 @@ from app.models.db.cache_entry import CacheEntry
 from app.models.text_format import TextFormat
 from app.services.cache_service import CacheService
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 _md = MarkdownIt(options_update={'typographer': True})
 _md.enable(['replacements', 'smartquotes'])
 

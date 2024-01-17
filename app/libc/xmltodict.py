@@ -11,9 +11,6 @@ from humanize import naturalsize
 from app.libc.exceptions_context import raise_for
 from app.limits import XML_PARSE_MAX_SIZE
 
-if cython.compiled:
-    print(f'{__name__}: 🐇 compiled')
-
 _parser = ET.XMLParser(
     ns_clean=True,
     resolve_entities=False,
