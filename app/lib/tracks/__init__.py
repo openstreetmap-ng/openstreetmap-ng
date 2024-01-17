@@ -14,7 +14,7 @@ from app.lib.storage import TRACKS_STORAGE
 from app.lib.tracks.image import TracksImage
 from app.lib.tracks.processors import TRACE_FILE_PROCESSORS
 from app.lib.tracks.processors.zstd import ZstdFileProcessor
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_MAX_SIZE

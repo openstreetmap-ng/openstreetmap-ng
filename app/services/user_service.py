@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy import func
 
 from app.db import DB
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.email import validate_email_deliverability
 from app.lib_cython.message_collector import MessageCollector
 from app.lib_cython.translation import t

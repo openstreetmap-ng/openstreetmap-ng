@@ -2,14 +2,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.lib_cython.auth_context import auth_context
+from app.lib_cython.format_style_context import format_style_context
 
 
-class AuthMiddleware(BaseHTTPMiddleware):
+class FormatStyleMiddleware(BaseHTTPMiddleware):
     """
-    Wrap request in auth context.
+    Wrap request in format style context.
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        async with auth_context(request):
+        async with format_style_context(request):
             return await super().dispatch(request, call_next)

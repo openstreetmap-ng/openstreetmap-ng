@@ -9,7 +9,7 @@ from pydantic import PositiveInt
 
 from app.lib.format06 import Format06
 from app.lib.tracks import Tracks
-from app.lib_cython.auth import api_user
+from app.lib_cython.auth_context import api_user
 from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.joinedload_context import joinedload_context
 from app.lib_cython.xmltodict import XMLToDict

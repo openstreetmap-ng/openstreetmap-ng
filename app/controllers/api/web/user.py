@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form, Query
 
-from app.lib_cython.auth import web_user
+from app.lib_cython.auth_context import web_user
 from app.lib_cython.legal import get_legal
 from app.lib_cython.translation import render
 from app.models.auth_provider import AuthProvider

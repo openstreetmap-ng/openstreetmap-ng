@@ -7,7 +7,7 @@ import anyio
 from shapely import Point
 from shapely.ops import unary_union
 
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from sqlalchemy import null, select
 
 from app.db import DB
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.crypto import hash_bytes
 from app.lib_cython.exceptions_context import raise_for
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT

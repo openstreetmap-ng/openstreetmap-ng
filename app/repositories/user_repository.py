@@ -4,7 +4,7 @@ from shapely import Point
 from sqlalchemy import func, null, select
 
 from app.db import DB
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.joinedload_context import get_joinedload
 from app.limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
 from app.models.db.user import User

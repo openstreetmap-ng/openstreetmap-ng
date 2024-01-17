@@ -18,7 +18,11 @@ _decompress_map = {
 }
 
 
-class RequestMiddleware(BaseHTTPMiddleware):
+class RequestBodyMiddleware(BaseHTTPMiddleware):
+    """
+    Decompress request body and limit its size.
+    """
+
     async def dispatch(self, request: Request, call_next):
         content_encoding = request.headers.get('content-encoding')
 

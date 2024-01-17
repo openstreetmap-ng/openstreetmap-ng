@@ -10,12 +10,17 @@ from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 
 
-class ExceptionsBase(ABC):
+# TODO: new implementation
+class Exceptions:
     class APIError(HTTPException):
         pass
 
     @classmethod
-    def timeout(cls) -> NoReturn:
+    def request_uri_too_long(cls) -> NoReturn:
+        raise cls.APIError(status.HTTP_414_REQUEST_URI_TOO_LONG, detail='URI Too Long')
+
+    @classmethod
+    def request_timeout(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request timed out')
 
     @classmethod
@@ -24,7 +29,7 @@ class ExceptionsBase(ABC):
 
     @classmethod
     def time_integrity(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity check failed')
+        raise cls.APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity error')
 
     @classmethod
     def bad_cursor(cls) -> NoReturn:
@@ -36,7 +41,7 @@ class ExceptionsBase(ABC):
 
     @classmethod
     def bad_user_token_struct(cls) -> NoReturn:
-        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid token')
+        raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid user token')
 
     @classmethod
     @abstractmethod

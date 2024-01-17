@@ -5,7 +5,7 @@ from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 
 from app.db import DB
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.exceptions_context import raise_for
 from app.limits import USER_PREF_BULK_SET_LIMIT
 from app.models.db.user_pref import UserPref

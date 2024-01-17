@@ -24,8 +24,9 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Optimistic diff processing
 - [x] Migration of API 0.6
 - [ ] Migration of redactions
+- [ ] Migration of rate limiting
 - [x] Improved GPX traces processing
-- [10%] Migration of website API
+- [15%] Migration of website API
 - [x] Migration of the stylesheets
 - [70%] Migration of the scripts
 - [5%] Migration of the templates
@@ -33,9 +34,9 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Anti-vandalism stage 1
 - [ ] Paginations and limits
 - [ ] Deprecation of OAuth 1.0 warning
-- [30%] User permalinks
-- [25%] Proxy for Amazon requests (better privacy)
-- [30%] Addition of Rapid editor
+- [50%] User permalinks
+- [50%] Proxy for Amazon requests (better privacy)
+- [50%] Addition of Rapid editor
 - [ ] Ability to rotate OAuth keys
 - [ ] Scheduled account delete
 - [ ] Identification of anonymous note users

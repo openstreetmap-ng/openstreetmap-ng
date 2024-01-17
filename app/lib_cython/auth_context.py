@@ -121,12 +121,24 @@ def auth_scopes() -> Sequence[ExtendedScope]:
     return _context.get()[1]
 
 
+@cython.cfunc
 def _get_user(require_scopes: SecurityScopes) -> User:
+    """
+    Get the authenticated user.
+
+    Raises an exception if the user is not authenticated or does not have the required scopes.
+    """
+
     user, user_scopes = auth_user_scopes()
+
+    # user must be authenticated
     if not user:
         raise_for().unauthorized(request_basic_auth=True)
+
+    # and have the required scopes
     if missing_scopes := set(require_scopes.scopes).difference(s.value for s in user_scopes):
         raise_for().insufficient_scopes(missing_scopes)
+
     return user
 
 
@@ -135,10 +147,7 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
     Dependency for authenticating the api user.
     """
 
-    return Security(
-        _get_user,
-        scopes=tuple(s.value for s in require_scopes),
-    )
+    return Security(_get_user, scopes=tuple(s.value for s in require_scopes))
 
 
 def web_user() -> User:
@@ -146,7 +155,4 @@ def web_user() -> User:
     Dependency for authenticating the web user.
     """
 
-    return Security(
-        _get_user,
-        scopes=(ExtendedScope.web_user,),
-    )
+    return Security(_get_user, scopes=(ExtendedScope.web_user,))

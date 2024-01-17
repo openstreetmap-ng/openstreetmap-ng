@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form
 
-from app.lib_cython.auth import web_user
+from app.lib_cython.auth_context import web_user
 from app.lib_cython.rich_text import rich_text
 from app.models.db.user import User
 from app.models.text_format import TextFormat

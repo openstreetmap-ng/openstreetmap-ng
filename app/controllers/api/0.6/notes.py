@@ -11,7 +11,7 @@ from shapely.geometry import Point
 
 from app.lib.format06 import Format06
 from app.lib.format06rss import Format06rss
-from app.lib_cython.auth import api_user
+from app.lib_cython.auth_context import api_user
 from app.lib_cython.exceptions_context import raise_for
 from app.lib_cython.format_style_context import format_style
 from app.lib_cython.geo_utils import parse_bbox

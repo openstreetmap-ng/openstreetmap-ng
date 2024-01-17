@@ -5,12 +5,9 @@ from fastapi import Request
 
 from app.models.format_style import FormatStyle
 
-# TODO: middleware for context
-# TODO: 0.7 only &format
 _context = ContextVar('Format_context')
 
 
-# TODO: don't autodetect here
 @contextmanager
 def format_style_context(request: Request):
     """

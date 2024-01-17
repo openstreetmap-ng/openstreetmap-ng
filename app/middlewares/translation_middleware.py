@@ -7,7 +7,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import DEFAULT_LANGUAGE
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.locale import normalize_locale_case
 from app.lib_cython.translation import translation_context
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
@@ -76,7 +76,11 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
     return tuple(lang for _, lang in temp)
 
 
-class LanguageMiddleware(BaseHTTPMiddleware):
+class TranslationMiddleware(BaseHTTPMiddleware):
+    """
+    Wrap request in translation context.
+    """
+
     async def dispatch(self, request: Request, call_next):
         # check user's preferred languages before parsing the accept language header
         if (user := auth_user()) and user.languages:

@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import PositiveInt
 
 from app.lib.format06 import Format06
-from app.lib_cython.auth import api_user
+from app.lib_cython.auth_context import api_user
 from app.lib_cython.exceptions_context import raise_for
 from app.models.db.user import User
 from app.models.scope import Scope

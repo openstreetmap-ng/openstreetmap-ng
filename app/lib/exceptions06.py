@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import NoReturn
+from typing import NoReturn, override
 
 from fastapi import status
 from humanize import naturalsize
 
-from app.lib.exceptions import ExceptionsBase
+from app.lib.exceptions import Exceptions
 from app.limits import (
     MAP_QUERY_AREA_MAX_SIZE,
     MAP_QUERY_LEGACY_NODES_LIMIT,
@@ -20,7 +20,8 @@ from app.models.versioned_element_ref import VersionedElementRef
 from app.utils import format_iso_date
 
 
-class Exceptions06(ExceptionsBase):
+class Exceptions06(Exceptions):
+    @override
     @classmethod
     def unauthorized(cls, *, request_basic_auth: bool = False) -> NoReturn:
         raise cls.APIError(
@@ -29,6 +30,7 @@ class Exceptions06(ExceptionsBase):
             headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap API"'} if request_basic_auth else None,
         )
 
+    @override
     @classmethod
     def insufficient_scopes(cls, scopes: Sequence[str]) -> NoReturn:
         raise cls.APIError(
@@ -36,14 +38,17 @@ class Exceptions06(ExceptionsBase):
             detail=f'The request requires higher privileges than authorized ({", ".join(scopes)})',
         )
 
+    @override
     @classmethod
     def bad_basic_auth_format(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials')
 
+    @override
     @classmethod
     def bad_geometry(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST)
 
+    @override
     @classmethod
     def bad_geometry_coordinates(cls, _: float, __: float) -> NoReturn:
         raise cls.APIError(
@@ -51,6 +56,7 @@ class Exceptions06(ExceptionsBase):
             detail='The latitudes must be between -90 and 90, longitudes between -180 and 180 and the minima must be less than the maxima.',
         )
 
+    @override
     @classmethod
     def bad_bbox(cls, _: str, __: str | None = None) -> NoReturn:
         raise cls.APIError(
@@ -58,6 +64,7 @@ class Exceptions06(ExceptionsBase):
             detail='The parameter bbox is required, and must be of the form min_lon,min_lat,max_lon,max_lat.',
         )
 
+    @override
     @classmethod
     def bad_xml(cls, name: str, message: str, xml_input: str) -> NoReturn:
         raise cls.APIError(
@@ -65,6 +72,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'Cannot parse valid {name} from xml string {xml_input}. {message}',
         )
 
+    @override
     @classmethod
     def input_too_big(cls, size: int) -> NoReturn:
         raise cls.APIError(
@@ -72,34 +80,42 @@ class Exceptions06(ExceptionsBase):
             detail=f'Request entity too large: {naturalsize(size, True)}',
         )
 
+    @override
     @classmethod
     def avatar_not_found(cls, avatar_id: str) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'Avatar {avatar_id!r} not found')
 
+    @override
     @classmethod
     def avatar_too_big(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Avatar is too big')
 
+    @override
     @classmethod
     def user_not_found(cls, name_or_id: str | int) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'User {name_or_id} not known')
 
+    @override
     @classmethod
     def user_not_found_bad_request(cls, name_or_id: str | int) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'User {name_or_id} not known')
 
+    @override
     @classmethod
     def changeset_not_found(cls, changeset_id: int) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'The changeset with the id {changeset_id} was not found')
 
+    @override
     @classmethod
     def changeset_access_denied(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset")
 
+    @override
     @classmethod
     def changeset_not_closed(cls, changeset_id: int) -> NoReturn:
         raise cls.APIError(status.HTTP_409_CONFLICT, detail=f'The changeset {changeset_id} is not yet closed')
 
+    @override
     @classmethod
     def changeset_already_closed(cls, changeset_id: int, closed_at: datetime) -> NoReturn:
         raise cls.APIError(
@@ -107,10 +123,12 @@ class Exceptions06(ExceptionsBase):
             detail=f'The changeset {changeset_id} was closed at {format_iso_date(closed_at)}',
         )
 
+    @override
     @classmethod
     def changeset_not_subscribed(cls, changeset_id: int) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'You are not subscribed to changeset {changeset_id}.')
 
+    @override
     @classmethod
     def changeset_already_subscribed(cls, changeset_id: int) -> NoReturn:
         raise cls.APIError(
@@ -118,6 +136,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'The user is already subscribed to changeset {changeset_id}',
         )
 
+    @override
     @classmethod
     def changeset_too_big(cls, size: int) -> NoReturn:
         raise cls.APIError(
@@ -125,6 +144,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'Changeset size {size} is too big. Please split your changes into multiple changesets.',
         )
 
+    @override
     @classmethod
     def changeset_comment_not_found(cls, comment_id: int) -> NoReturn:
         raise cls.APIError(
@@ -132,6 +152,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'The changeset comment with the id {comment_id} was not found',
         )
 
+    @override
     @classmethod
     def element_not_found(cls, element_ref: VersionedElementRef | TypedElementRef) -> NoReturn:
         raise cls.APIError(
@@ -139,6 +160,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'The {element_ref.type} with the id {element_ref.typed_id} was not found',
         )
 
+    @override
     @classmethod
     def element_already_deleted(cls, versioned_ref: VersionedElementRef) -> NoReturn:
         raise cls.APIError(
@@ -146,6 +168,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'Cannot delete an already deleted {versioned_ref.type} with id {versioned_ref.typed_id}.',
         )
 
+    @override
     @classmethod
     def element_changeset_missing(cls) -> NoReturn:
         raise cls.APIError(
@@ -153,6 +176,7 @@ class Exceptions06(ExceptionsBase):
             detail='You need to supply a changeset to be able to make a change',
         )
 
+    @override
     @classmethod
     def element_version_conflict(cls, versioned_ref: VersionedElementRef, local_version: int) -> NoReturn:
         raise cls.APIError(
@@ -160,6 +184,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'Version mismatch: Provided {versioned_ref.version - 1}, server had: {local_version} of {versioned_ref.type} {versioned_ref.typed_id}',
         )
 
+    @override
     @classmethod
     def element_member_not_found(cls, initiator_ref: VersionedElementRef, member_ref: TypedElementRef) -> NoReturn:
         if initiator_ref.type == ElementType.way:
@@ -175,6 +200,7 @@ class Exceptions06(ExceptionsBase):
         else:
             raise NotImplementedError(f'Unsupported element type {initiator_ref.type!r}')
 
+    @override
     @classmethod
     def element_in_use(cls, versioned_ref: VersionedElementRef, used_by: Sequence[TypedElementRef]) -> NoReturn:
         # wtf is this
@@ -211,6 +237,7 @@ class Exceptions06(ExceptionsBase):
         else:
             raise NotImplementedError(f'Unsupported element type {versioned_ref.type!r}')
 
+    @override
     @classmethod
     def diff_multiple_changesets(cls) -> NoReturn:
         raise cls.APIError(
@@ -218,6 +245,7 @@ class Exceptions06(ExceptionsBase):
             detail='Only one changeset can be modified at a time',
         )
 
+    @override
     @classmethod
     def diff_unsupported_action(cls, action: str) -> NoReturn:
         raise cls.APIError(
@@ -225,6 +253,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'Unknown action {action}, choices are create, modify, delete',
         )
 
+    @override
     @classmethod
     def diff_create_bad_id(cls, versioned_ref: VersionedElementRef) -> NoReturn:
         if versioned_ref.type == ElementType.node:
@@ -245,6 +274,7 @@ class Exceptions06(ExceptionsBase):
         else:
             raise NotImplementedError(f'Unsupported element type {versioned_ref.type.type!r}')
 
+    @override
     @classmethod
     def diff_update_bad_version(cls, versioned_ref: VersionedElementRef) -> NoReturn:
         raise cls.APIError(
@@ -252,11 +282,13 @@ class Exceptions06(ExceptionsBase):
             detail=f'Update action requires version >= 1, got {versioned_ref.version - 1}',
         )
 
+    @override
     @classmethod
     def element_redacted(cls, versioned_ref: VersionedElementRef) -> NoReturn:
         # TODO: 0.7 legal reasons
         return cls.element_not_found(versioned_ref)
 
+    @override
     @classmethod
     def redact_latest_version(cls) -> NoReturn:
         raise cls.APIError(
@@ -264,38 +296,47 @@ class Exceptions06(ExceptionsBase):
             detail='Cannot redact current version of element, only historical versions may be redacted',
         )
 
+    @override
     @classmethod
     def oauth1_timestamp_out_of_range(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth timestamp out of range')
 
+    @override
     @classmethod
     def oauth1_nonce_missing(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce missing')
 
+    @override
     @classmethod
     def oauth1_bad_nonce(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce invalid')
 
+    @override
     @classmethod
     def oauth1_nonce_used(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth nonce already used')
 
+    @override
     @classmethod
     def oauth1_bad_verifier(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth verifier invalid')
 
+    @override
     @classmethod
     def oauth1_unsupported_signature_method(cls, method: str) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'OAuth unsupported signature method {method!r}')
 
+    @override
     @classmethod
     def oauth1_bad_signature(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth signature invalid')
 
+    @override
     @classmethod
     def oauth2_bearer_missing(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth2 bearer authorization header missing')
 
+    @override
     @classmethod
     def oauth2_challenge_method_not_set(cls) -> NoReturn:
         raise cls.APIError(
@@ -303,6 +344,7 @@ class Exceptions06(ExceptionsBase):
             detail='OAuth2 verifier provided but code challenge method is not set',
         )
 
+    @override
     @classmethod
     def oauth2_bad_verifier(cls, code_challenge_method: OAuth2CodeChallengeMethod) -> NoReturn:
         raise cls.APIError(
@@ -310,22 +352,27 @@ class Exceptions06(ExceptionsBase):
             detail=f'OAuth2 verifier invalid for {code_challenge_method.value} code challenge method',
         )
 
+    @override
     @classmethod
     def oauth_bad_app_token(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid')
 
+    @override
     @classmethod
     def oauth_bad_user_token(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth user token invalid')
 
+    @override
     @classmethod
     def oauth_bad_redirect_uri(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth redirect uri invalid')
 
+    @override
     @classmethod
     def oauth_bad_scopes(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth scopes invalid')
 
+    @override
     @classmethod
     def map_query_area_too_big(cls) -> NoReturn:
         raise cls.APIError(
@@ -333,6 +380,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'The maximum bbox size is {MAP_QUERY_AREA_MAX_SIZE}, and your request was too large. Either request a smaller area, or use planet.osm',
         )
 
+    @override
     @classmethod
     def map_query_nodes_limit_exceeded(cls) -> NoReturn:
         raise cls.APIError(
@@ -340,6 +388,7 @@ class Exceptions06(ExceptionsBase):
             detail=f'You requested too many nodes (limit is {MAP_QUERY_LEGACY_NODES_LIMIT}). Either request a smaller area, or use planet.osm',
         )
 
+    @override
     @classmethod
     def notes_query_area_too_big(cls) -> NoReturn:
         raise cls.APIError(
@@ -347,14 +396,17 @@ class Exceptions06(ExceptionsBase):
             detail=f'The maximum bbox size is {NOTE_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
         )
 
+    @override
     @classmethod
     def trace_not_found(cls, _: int) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND)
 
+    @override
     @classmethod
     def trace_access_denied(cls, _: int) -> NoReturn:
         raise cls.APIError(status.HTTP_403_FORBIDDEN)
 
+    @override
     @classmethod
     def trace_points_query_area_too_big(cls) -> NoReturn:
         raise cls.APIError(
@@ -362,14 +414,17 @@ class Exceptions06(ExceptionsBase):
             detail=f'The maximum bbox size is {TRACE_POINT_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
         )
 
+    @override
     @classmethod
     def trace_file_unsupported_format(cls, content_type: str) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Unsupported trace file format {content_type!r}')
 
+    @override
     @classmethod
     def trace_file_archive_too_deep(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive is too deep')
 
+    @override
     @classmethod
     def trace_file_archive_corrupted(cls, content_type: str) -> NoReturn:
         raise cls.APIError(
@@ -377,18 +432,22 @@ class Exceptions06(ExceptionsBase):
             detail=f'Trace file archive failed to decompress {content_type!r}',
         )
 
+    @override
     @classmethod
     def trace_file_archive_too_many_files(cls) -> NoReturn:
         raise cls.APIError(status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Trace file archive contains too many files')
 
+    @override
     @classmethod
     def bad_trace_file(cls, message: str) -> NoReturn:
         raise cls.APIError(status.HTTP_400_BAD_REQUEST, detail=f'Failed to parse trace file: {message}')
 
+    @override
     @classmethod
     def note_not_found(cls, _: int) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND)
 
+    @override
     @classmethod
     def note_closed(cls, note_id: int, closed_at: datetime) -> NoReturn:
         raise cls.APIError(
@@ -396,18 +455,22 @@ class Exceptions06(ExceptionsBase):
             detail=f'The note {note_id} was closed at {format_iso_date(closed_at)}',
         )
 
+    @override
     @classmethod
     def note_open(cls, note_id: int) -> NoReturn:
         raise cls.APIError(status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open')
 
+    @override
     @classmethod
     def pref_not_found(cls, _: int | None, key: str) -> NoReturn:
         raise cls.APIError(status.HTTP_404_NOT_FOUND, detail=f'Preference {key!r} not found')
 
+    @override
     @classmethod
     def pref_duplicate_key(cls, key: str) -> NoReturn:
         raise cls.APIError(status.HTTP_406_NOT_ACCEPTABLE, detail=f'Duplicate preferences with key {key}')
 
+    @override
     @classmethod
     def pref_bulk_set_limit_exceeded(cls) -> NoReturn:
         raise cls.APIError(

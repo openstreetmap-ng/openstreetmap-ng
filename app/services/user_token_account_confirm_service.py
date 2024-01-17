@@ -3,7 +3,7 @@ import secrets
 from sqlalchemy import delete, update
 
 from app.db import DB
-from app.lib_cython.auth import auth_user
+from app.lib_cython.auth_context import auth_user
 from app.lib_cython.crypto import hash_bytes
 from app.lib_cython.exceptions_context import raise_for
 from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
