@@ -4,7 +4,7 @@ import pytest
 from shapely import Polygon
 from shapely.geometry import Point
 
-from src.lib_cython.geo_utils import (
+from app.lib_cython.geo_utils import (
     haversine_distance,
     meters_to_radians,
     parse_bbox,

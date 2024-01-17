@@ -3,7 +3,7 @@ authors = ["Your Name <you@example.com>"]
 description = ""
 name = "openstreetmap-ng"
 packages = [
-  {include = "src"},
+  {include = "app"},
 ]
 version = "0.0.0"
 
@@ -89,7 +89,7 @@ exclude = [
   "dist",
   "node_modules",
   "venv",
-  "src/alembic/versions",
+  "app/alembic/versions",
 ]
 
 indent-width = 4

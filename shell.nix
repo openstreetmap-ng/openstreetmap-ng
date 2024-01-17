@@ -28,10 +28,10 @@ let
         --in-place \
         --regexp-extended \
         "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" \
-        "$PROJECT_DIR/src/config.py"
+        "$PROJECT_DIR/app/config.py"
     '')
     (writeShellScriptBin "make-bundle" ''
-      dir="$PROJECT_DIR/src/static/js"
+      dir="$PROJECT_DIR/app/static/js"
 
       bundle_paths=$(find "$dir" \
         -maxdepth 1 \
@@ -85,10 +85,10 @@ let
     # Scripts
     # -- Cython
     (writeShellScriptBin "cython-build" ''
-      python "$PROJECT_DIR/setup.py" build_ext --build-lib "$PROJECT_DIR/src/lib_cython"
+      python "$PROJECT_DIR/setup.py" build_ext --build-lib "$PROJECT_DIR/app/lib_cython"
     '')
     (writeShellScriptBin "cython-clean" ''
-      rm -rf "$PROJECT_DIR/build/" "$PROJECT_DIR/src/lib_cython/"*{.c,.html,.so}
+      rm -rf "$PROJECT_DIR/build/" "$PROJECT_DIR/app/lib_cython/"*{.c,.html,.so}
     '')
 
     # -- Alembic

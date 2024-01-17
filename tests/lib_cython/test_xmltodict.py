@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 import xmltodict
 
-from src.lib_cython.xmltodict import XMLToDict
+from app.lib_cython.xmltodict import XMLToDict
 
 
 @pytest.mark.parametrize(

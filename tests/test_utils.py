@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import anyio
 import pytest
 
-from src.utils import (
+from app.utils import (
     extend_query_params,
     format_iso_date,
     format_sql_date,
