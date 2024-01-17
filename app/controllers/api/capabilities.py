@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from app.lib_cython.auth_context import auth_user
-from app.lib_cython.xmltodict import XAttr
+from app.libc.auth_context import auth_user
+from app.libc.xmltodict import XAttr
 from app.limits import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
     CHANGESET_QUERY_MAX_LIMIT,

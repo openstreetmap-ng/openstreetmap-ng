@@ -9,7 +9,7 @@ from fastapi import Request, Security
 from fastapi.security import SecurityScopes
 from fastapi.security.utils import get_authorization_scheme_param
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.models.db.user import User
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.scope import ExtendedScope, Scope

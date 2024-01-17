@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import null, select
 
 from app.db import DB
-from app.lib_cython.crypto import hash_bytes
+from app.libc.crypto import hash_bytes
 from app.limits import FIND_LIMIT
 from app.models.db.oauth2_token import OAuth2Token
 

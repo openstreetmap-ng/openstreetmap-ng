@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.lib_cython.xmltodict import XAttr
+from app.libc.xmltodict import XAttr
 
 router = APIRouter()
 

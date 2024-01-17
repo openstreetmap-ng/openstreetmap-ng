@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 
 from app.lib.storage import AVATAR_STORAGE
-from app.lib_cython.avatar import Avatar
+from app.libc.avatar import Avatar
 
 
 class AvatarService:

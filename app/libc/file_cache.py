@@ -6,7 +6,7 @@ import cython
 from anyio import Path
 
 from app.config import FILE_CACHE_DIR
-from app.lib_cython.crypto import hash_hex
+from app.libc.crypto import hash_hex
 from app.models.msgspec.file_cache_entry import FileCacheEntry
 
 if cython.compiled:

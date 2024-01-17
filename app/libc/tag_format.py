@@ -13,8 +13,8 @@ from phonenumbers import (
     is_valid_number,
 )
 
-from app.lib_cython.email import validate_email
-from app.lib_cython.translation import primary_translation_language
+from app.libc.email import validate_email
+from app.libc.translation import primary_translation_language
 from app.models.tag_format import TagFormat
 
 if cython.compiled:

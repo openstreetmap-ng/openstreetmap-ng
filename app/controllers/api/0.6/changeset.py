@@ -8,11 +8,11 @@ from pydantic import PositiveInt
 
 from app.lib.format06 import Format06
 from app.lib.optimistic import Optimistic
-from app.lib_cython.auth_context import api_user
-from app.lib_cython.exceptions_context import raise_for
-from app.lib_cython.geo_utils import parse_bbox
-from app.lib_cython.joinedload_context import joinedload_context
-from app.lib_cython.xmltodict import XMLToDict
+from app.libc.auth_context import api_user
+from app.libc.exceptions_context import raise_for
+from app.libc.geo_utils import parse_bbox
+from app.libc.joinedload_context import joinedload_context
+from app.libc.xmltodict import XMLToDict
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment

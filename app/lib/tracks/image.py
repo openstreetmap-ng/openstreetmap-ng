@@ -9,7 +9,7 @@ from anyio import to_thread
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
 
-from app.lib_cython.mercator import Mercator
+from app.libc.mercator import Mercator
 from app.models.db.trace_point import TracePoint
 
 _sample_points_per_frame = 20

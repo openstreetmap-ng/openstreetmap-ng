@@ -5,7 +5,7 @@ import cython
 from sqlalchemy import update
 
 from app.db import DB
-from app.lib_cython.rich_text import rich_text
+from app.libc.rich_text import rich_text
 from app.models.text_format import TextFormat
 
 if cython.compiled:

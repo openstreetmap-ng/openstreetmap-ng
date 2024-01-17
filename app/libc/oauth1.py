@@ -3,7 +3,7 @@ from authlib.oauth1.rfc5849.signature import generate_signature_base_string, hma
 from authlib.oauth1.rfc5849.wrapper import OAuth1Request
 from fastapi import Request
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
 from app.repositories.oauth1_token_repository import OAuth1TokenRepository
 

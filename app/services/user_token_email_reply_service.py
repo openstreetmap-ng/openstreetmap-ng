@@ -2,9 +2,9 @@ import secrets
 
 from app.config import SMTP_MESSAGES_FROM_HOST
 from app.db import DB
-from app.lib_cython.auth_context import auth_user, manual_auth_context
-from app.lib_cython.crypto import hash_bytes
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.auth_context import auth_user, manual_auth_context
+from app.libc.crypto import hash_bytes
+from app.libc.exceptions_context import raise_for
 from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.mail_from_type import MailFromType

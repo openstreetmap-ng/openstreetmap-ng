@@ -3,7 +3,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from app.lib.exceptions06 import Exceptions06
-from app.lib_cython.exceptions_context import exceptions_context
+from app.libc.exceptions_context import exceptions_context
 
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):

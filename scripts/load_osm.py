@@ -7,7 +7,7 @@ from anyio import to_thread
 from shapely.geometry import Point
 
 from app.lib.format06 import Format06
-from app.lib_cython.xmltodict import XMLToDict
+from app.libc.xmltodict import XMLToDict
 from app.models.db.element import Element
 from app.models.db.element_node import ElementNode
 from app.models.db.element_relation import ElementRelation

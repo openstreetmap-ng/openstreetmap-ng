@@ -1,7 +1,7 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.limits import REQUEST_PATH_QUERY_MAX_LENGTH
 
 

@@ -3,7 +3,7 @@ from datetime import timedelta
 import aioboto3
 
 from app.lib.storage.base import StorageBase
-from app.lib_cython.file_cache import FileCache
+from app.libc.file_cache import FileCache
 
 _s3 = aioboto3.Session()
 _local_cache_ttl = timedelta(days=1)

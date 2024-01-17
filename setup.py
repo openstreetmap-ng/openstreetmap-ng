@@ -13,7 +13,7 @@ setup(
         [
             Extension(
                 '*',
-                ['app/lib_cython/*.py'],
+                ['app/libc/*.py'],
                 extra_compile_args=[
                     '-march=x86-64-v2',
                     '-mtune=generic',

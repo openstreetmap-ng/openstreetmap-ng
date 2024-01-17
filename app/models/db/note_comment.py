@@ -5,8 +5,8 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config import APP_URL
-from app.lib_cython.crypto import HASH_SIZE
-from app.lib_cython.rich_text_mixin import RichTextMixin
+from app.libc.crypto import HASH_SIZE
+from app.libc.rich_text_mixin import RichTextMixin
 from app.limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.cache_entry import CacheEntry

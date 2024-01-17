@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.lib_cython.crypto import decrypt
-from app.lib_cython.updating_cached_property import updating_cached_property
+from app.libc.crypto import decrypt
+from app.libc.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin

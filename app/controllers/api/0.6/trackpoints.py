@@ -4,8 +4,8 @@ from fastapi import APIRouter, Query
 from pydantic import NonNegativeInt
 
 from app.lib.format06 import Format06
-from app.lib_cython.exceptions_context import raise_for
-from app.lib_cython.geo_utils import parse_bbox
+from app.libc.exceptions_context import raise_for
+from app.libc.geo_utils import parse_bbox
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.repositories.trace_point_repository import TracePointRepository
 from app.responses.osm_response import GPXResponse

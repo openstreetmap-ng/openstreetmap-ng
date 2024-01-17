@@ -1,5 +1,5 @@
 from app.lib.storage import AVATAR_STORAGE, GRAVATAR_STORAGE
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.repositories.user_repository import UserRepository
 
 

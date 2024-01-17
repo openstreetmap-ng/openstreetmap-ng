@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from app.db import DB
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.limits import OAUTH1_TIMESTAMP_VALIDITY
 from app.models.db.oauth1_nonce import OAuth1Nonce
 from app.models.validating.oauth1_nonce import OAuth1NonceValidating

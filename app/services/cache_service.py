@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
 
 from app.db import DB
-from app.lib_cython.crypto import hash_bytes
+from app.libc.crypto import hash_bytes
 from app.limits import CACHE_DEFAULT_EXPIRE
 from app.models.db.cache_entry import CacheEntry
 from app.utils import utcnow

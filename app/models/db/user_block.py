@@ -4,8 +4,8 @@ from sqlalchemy import Boolean, ColumnElement, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.lib_cython.crypto import HASH_SIZE
-from app.lib_cython.rich_text_mixin import RichTextMixin
+from app.libc.crypto import HASH_SIZE
+from app.libc.rich_text_mixin import RichTextMixin
 from app.limits import USER_BLOCK_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.cache_entry import CacheEntry

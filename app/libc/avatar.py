@@ -4,7 +4,7 @@ import cython
 from anyio import Path
 from PIL import Image, ImageOps
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 from app.models.avatar_type import AvatarType
 

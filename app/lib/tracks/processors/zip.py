@@ -9,7 +9,7 @@ import anyio
 from humanize import naturalsize
 
 from app.lib.tracks.processors.base import FileProcessor
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES, TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 

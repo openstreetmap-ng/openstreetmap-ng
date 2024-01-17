@@ -2,7 +2,7 @@ import cython
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 from app.models.db.oauth2_token import OAuth2Token
 from app.repositories.oauth2_token_repository import OAuth2TokenRepository
 

@@ -7,9 +7,9 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import DEFAULT_LANGUAGE
-from app.lib_cython.auth_context import auth_user
-from app.lib_cython.locale import normalize_locale_case
-from app.lib_cython.translation import translation_context
+from app.libc.auth_context import auth_user
+from app.libc.locale import normalize_locale_case
+from app.libc.translation import translation_context
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language

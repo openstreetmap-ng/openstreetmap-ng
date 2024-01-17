@@ -1,8 +1,8 @@
 import secrets
 
 from app.db import DB
-from app.lib_cython.auth_context import auth_user
-from app.lib_cython.crypto import hash_bytes
+from app.libc.auth_context import auth_user
+from app.libc.crypto import hash_bytes
 from app.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
 from app.models.db.user_token_email_change import UserTokenEmailChange
 from app.models.msgspec.user_token_struct import UserTokenStruct

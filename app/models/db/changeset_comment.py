@@ -1,8 +1,8 @@
 from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.lib_cython.crypto import HASH_SIZE
-from app.lib_cython.rich_text_mixin import RichTextMixin
+from app.libc.crypto import HASH_SIZE
+from app.libc.rich_text_mixin import RichTextMixin
 from app.models.db.base import Base
 from app.models.db.cache_entry import CacheEntry
 from app.models.db.changeset import Changeset

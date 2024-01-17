@@ -1,5 +1,5 @@
 from app.db import DB
-from app.lib_cython.auth_context import auth_user
+from app.libc.auth_context import auth_user
 from app.models.db.message import Message
 
 

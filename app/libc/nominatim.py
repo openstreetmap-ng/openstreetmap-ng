@@ -6,7 +6,7 @@ from httpx import HTTPError
 from shapely.geometry import Point
 
 from app.config import NOMINATIM_URL
-from app.lib_cython.translation import primary_translation_language
+from app.libc.translation import primary_translation_language
 from app.services.cache_service import CacheService
 from app.utils import HTTP
 

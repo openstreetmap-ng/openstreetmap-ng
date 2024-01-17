@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Path, Request, status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL
-from app.lib_cython.shortlink import ShortLink
+from app.libc.shortlink import ShortLink
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@ import re
 
 from annotated_types import Predicate
 
-from app.lib_cython.email import validate_email
+from app.libc.email import validate_email
 
 _hex_str_re = re.compile(r'^(?:[0-9a-f]{2})+$')
 

@@ -4,8 +4,8 @@ from hashlib import md5
 from fastapi import status
 
 from app.lib.storage.base import StorageBase
-from app.lib_cython.avatar import Avatar
-from app.lib_cython.file_cache import FileCache
+from app.libc.avatar import Avatar
+from app.libc.file_cache import FileCache
 from app.utils import HTTP
 
 _local_cache_ttl = timedelta(days=1)

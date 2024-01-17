@@ -4,9 +4,9 @@ from sqlalchemy import func, select
 
 from app.db import DB
 from app.lib.tracks import Tracks
-from app.lib_cython.auth_context import auth_user_scopes
-from app.lib_cython.exceptions_context import raise_for
-from app.lib_cython.joinedload_context import get_joinedload
+from app.libc.auth_context import auth_user_scopes
+from app.libc.exceptions_context import raise_for
+from app.libc.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
 from app.models.db.trace_ import Trace
 

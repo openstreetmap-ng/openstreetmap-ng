@@ -4,7 +4,7 @@ import cython
 from shapely.geometry import Point, Polygon, shape
 from shapely.ops import BaseGeometry
 
-from app.lib_cython.exceptions_context import raise_for
+from app.libc.exceptions_context import raise_for
 
 if cython.compiled:
     from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt

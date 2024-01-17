@@ -84,10 +84,10 @@ let
     # Scripts
     # -- Cython
     (writeShellScriptBin "cython-build" ''
-      python "$PROJECT_DIR/setup.py" build_ext --build-lib "$PROJECT_DIR/app/lib_cython"
+      python "$PROJECT_DIR/setup.py" build_ext --build-lib "$PROJECT_DIR/app/libc"
     '')
     (writeShellScriptBin "cython-clean" ''
-      rm -rf "$PROJECT_DIR/build/" "$PROJECT_DIR/app/lib_cython/"*{.c,.html,.so}
+      rm -rf "$PROJECT_DIR/build/" "$PROJECT_DIR/app/libc/"*{.c,.html,.so}
     '')
 
     # -- Alembic

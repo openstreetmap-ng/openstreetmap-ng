@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
-from app.lib_cython.crypto import HASH_SIZE
+from app.libc.crypto import HASH_SIZE
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
