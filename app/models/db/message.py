@@ -63,7 +63,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
                 return payload.strip()
             elif content_type == 'text/html':
                 payload: str = part.get_payload(decode=True).decode()
-                return BeautifulSoup(payload, 'html.parser').get_text(separator=' ').strip()
+                return BeautifulSoup(payload, 'lxml').get_text(separator=' ').strip()  # TODO: test this
             else:
                 return None
 
