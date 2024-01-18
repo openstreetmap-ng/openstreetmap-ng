@@ -27,10 +27,10 @@ let
         --in-place \
         --regexp-extended \
         "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" \
-        "$PROJECT_DIR/app/config.py"
+        "app/config.py"
     '')
     (writeShellScriptBin "make-bundle" ''
-      dir="$PROJECT_DIR/app/static/js"
+      dir="app/static/js"
 
       bundle_paths=$(find "$dir" \
         -maxdepth 1 \
@@ -84,10 +84,10 @@ let
     # Scripts
     # -- Cython
     (writeShellScriptBin "cython-build" ''
-      python "$PROJECT_DIR/setup.py" build_ext --build-lib "$PROJECT_DIR/app/libc"
+      python setup.py build_ext --inplace --parallel $(nproc --all)
     '')
     (writeShellScriptBin "cython-clean" ''
-      rm -rf "$PROJECT_DIR/build/" "$PROJECT_DIR/app/libc/"*{.c,.html,.so}
+      rm -rf build/ app/libc/*{.c,.html,.so}
     '')
 
     # -- Alembic
@@ -121,8 +121,6 @@ let
     # -- Misc
     (writeShellScriptBin "make-locale" ''
       set -e
-      [ "$(realpath $(pwd))" != "$(realpath "$PROJECT_DIR")" ] && echo "WARNING: CWD != $PROJECT_DIR"
-
       echo "Processing osm-community-index"
       python scripts/make_locale_oci.py
 
@@ -147,16 +145,14 @@ let
       bun run watch:sass
     '')
     (writeShellScriptBin "load-osm" ''
-      python "$PROJECT_DIR/scripts/load_osm.py" $(find "$PROJECT_DIR" -maxdepth 1 -name '*.osm' -print -quit)
+      python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
     '')
     (writeShellScriptBin "open-pgadmin" ''
       xdg-open http://127.0.0.1:5433
     '')
   ];
 
-  shell' = with pkgs; ''
-    export PROJECT_DIR="$(pwd)"
-  '' + lib.optionalString isDevelopment ''
+  shell' = with pkgs; lib.optionalString isDevelopment ''
     [ ! -e .venv/bin/python ] && [ -h .venv/bin/python ] && rm -r .venv
 
     echo "Installing Python dependencies"

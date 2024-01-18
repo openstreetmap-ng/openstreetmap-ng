@@ -1,4 +1,5 @@
-from os import cpu_count
+import os
+from pathlib import Path
 
 import Cython.Compiler.Options as Options
 from Cython.Build import cythonize
@@ -8,12 +9,19 @@ Options.docstrings = False
 Options.annotate = True
 
 
+dirs = [
+    'app/libc',
+]
+
+paths = [p for d in dirs for p in Path(d).glob('*.py')]
+
+
 setup(
     ext_modules=cythonize(
         [
             Extension(
-                '*',
-                ['app/libc/*.py'],
+                str(path.with_suffix('')).replace('/', '.'),
+                [str(path)],
                 extra_compile_args=[
                     '-march=x86-64-v2',
                     '-mtune=generic',
@@ -26,8 +34,9 @@ setup(
                     '-flto=auto',
                 ],
             )
+            for path in paths
         ],
-        nthreads=cpu_count(),
+        nthreads=os.cpu_count(),
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,
