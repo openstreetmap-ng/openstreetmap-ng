@@ -1,8 +1,9 @@
 import logging
+import tempfile
 import time
 from datetime import timedelta
 
-from anyio import Path
+from anyio import Path, open_file, to_thread
 
 from app.config import FILE_CACHE_DIR
 from app.libc.crypto import hash_hex
@@ -39,7 +40,7 @@ class FileCache:
         Get a value from the file cache by key string.
         """
 
-        path = await self.get_path(key)
+        path = await self._get_path(key)
 
         try:
             entry_bytes = await path.read_bytes()
@@ -62,25 +63,24 @@ class FileCache:
         Set a value in the file cache by key string.
         """
 
-        path = await self.get_path(key)
-        expires_at = int(time.time()) + ttl.total_seconds() if ttl else None
+        path = await self._get_path(key)
+        expires_at = int(time.time() + ttl.total_seconds()) if ttl else None
         entry = FileCacheEntry(expires_at, data)
         entry_bytes = entry.to_bytes()
 
-        try:
-            async with await path.open('xb') as f:
-                await f.write(entry_bytes)
-        except OSError:
-            if not await path.is_file():
-                logging.warning('Failed to create file cache %r', path)
-                raise
+        fd, temp_path_str = await to_thread.run_sync(tempfile.mkstemp)
+
+        async with await open_file(fd, 'wb', closefd=True) as f:
+            await f.write(entry_bytes)
+
+        await Path(temp_path_str).rename(path)
 
     async def delete(self, key: str) -> None:
         """
         Delete a key from the file cache.
         """
 
-        path = await self.get_path(key)
+        path = await self._get_path(key)
 
         await path.unlink(missing_ok=True)
 

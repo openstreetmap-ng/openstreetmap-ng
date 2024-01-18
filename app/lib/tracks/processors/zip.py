@@ -6,10 +6,10 @@ from collections.abc import Sequence
 from io import BytesIO
 
 import anyio
-from humanize import naturalsize
 
 from app.lib.tracks.processors.base import FileProcessor
 from app.libc.exceptions_context import raise_for
+from app.libc.naturalsize import naturalsize
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES, TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 
@@ -52,5 +52,5 @@ class ZipFileProcessor(FileProcessor, ABC):
             for i, filename in enumerate(filenames):
                 tg.start_soon(read_file, i, filename)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result), True))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

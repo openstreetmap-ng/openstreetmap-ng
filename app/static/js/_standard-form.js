@@ -163,6 +163,7 @@ export const initializeStandardForm = (form, { successCallback = null }) => {
                     } of data.detail) {
                         if (field) {
                             const input = form.querySelector(`[name=${field}]`)
+                            // TODO: handle not found
                             if (input.type === "hidden") {
                                 handleFormFeedback(type, msg)
                             } else {

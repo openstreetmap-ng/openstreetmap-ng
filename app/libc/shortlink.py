@@ -6,7 +6,7 @@ _array_map = {c: i for i, c in enumerate(_array)}
 _array_map['@'] = _array_map['~']  # backwards compatibility
 
 
-def shortlink_encode(lon: cython.double, lat: cython.double, zoom: cython.int) -> str:
+def shortlink_encode(lon: float, lat: float, zoom: int) -> str:
     """
     Encode a coordinate pair and zoom level into a shortlink code.
     """
@@ -34,7 +34,7 @@ def shortlink_encode(lon: cython.double, lat: cython.double, zoom: cython.int) -
     return ''.join(str_list)
 
 
-def shortlink_decode(s: str) -> tuple[cython.double, cython.double, cython.int]:
+def shortlink_decode(s: str) -> tuple[float, float, int]:
     """
     Decode a shortlink code into a coordinate pair and zoom level.
 

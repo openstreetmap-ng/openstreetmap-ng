@@ -2,8 +2,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.lib.exceptions import Exceptions
-from app.lib.exceptions06 import Exceptions06
+from app.exceptions import Exceptions
+from app.exceptions06 import Exceptions06
 from app.libc.exceptions_context import exceptions_context
 
 

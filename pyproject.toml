@@ -27,7 +27,6 @@ fastapi = "^0.108.0"
 feedgen = "^1.0.0"
 geoalchemy2 = "^0.14.3"
 httpx = {extras = ["brotli", "http2"], version = "^0.26.0"}
-humanize = "^4.9.0"
 jinja2 = "^3.1.2"
 lxml = "^5.0.1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
@@ -113,12 +112,12 @@ select = [
   "F", # pyflakes
   # "FBT", # flake8-boolean-trap
   "FLY", # flynt
-  "FURB", # refurb
+  # "FURB", # refurb (preview)
   "G", # flake8-logging-format
   "I", # isort
   "INT", # flake8-gettext
   "ISC", # flake8-implicit-str-concat
-  "LOG", # flake8-logging
+  # "LOG", # flake8-logging (preview)
   "N", # pep8-naming
   "NPY", # numpy
   "Q", # flake8-quotes

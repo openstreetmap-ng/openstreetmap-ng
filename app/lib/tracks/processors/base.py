@@ -4,9 +4,9 @@ from abc import ABC
 from collections.abc import Sequence
 
 import anyio
-from humanize import naturalsize
 
 from app.libc.exceptions_context import raise_for
+from app.libc.naturalsize import naturalsize
 from app.limits import TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 
@@ -41,5 +41,5 @@ class CompressionFileProcessor(FileProcessor, ABC):
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(len(result))
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result), True))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

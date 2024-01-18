@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from app.lib.exceptions import Exceptions
+from app.exceptions import Exceptions
 
 _context = ContextVar('Exceptions_context')
 

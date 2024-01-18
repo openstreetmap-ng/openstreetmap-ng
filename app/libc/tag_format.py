@@ -24,8 +24,25 @@ class TagFormatTuple(NamedTuple):
     data: str
 
 
-# TODO: 0.7 official reserved characters
+@cython.cfunc
+def _get_key_parts(key: str, *, maxsplit: cython.int) -> list[str]:
+    """
+    Split a key into parts using ':' as a separator.
+    """
 
+    return key.split(':', maxsplit=maxsplit)
+
+
+@cython.cfunc
+def _get_values(value: str, *, maxsplit: cython.int) -> list[str]:
+    """
+    Split a value into parts using ';' as a separator.
+    """
+
+    return value.split(';', maxsplit=maxsplit)
+
+
+# TODO: 0.7 official reserved tag characters
 
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys
@@ -90,44 +107,30 @@ def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
 
 
 @cython.cfunc
-def _get_key_parts(key: str, *, maxsplit: cython.int) -> list[str]:
-    """
-    Split a key into parts using ':' as a separator.
-    """
-
-    return key.split(':', maxsplit=maxsplit)
-
-
-@cython.cfunc
-def _get_values(value: str, *, maxsplit: cython.int) -> list[str]:
-    """
-    Split a value into parts using ';' as a separator.
-    """
-
-    return value.split(';', maxsplit=maxsplit)
-
-
-@cython.cfunc
 def _is_color_key(key_parts: frozenset[str]) -> cython.char:
     return 'colour' in key_parts
 
 
 @cython.cfunc
+def _is_hex_color(s: str) -> cython.char:
+    return (
+        len(s) in (4, 7)
+        and s[0] == '#'
+        and all(('0' <= c <= '9') or ('A' <= c <= 'F') or ('a' <= c <= 'f') for c in s[1:])
+    )
+
+
+@cython.cfunc
+def _is_w3c_color(s: str) -> cython.char:
+    return s.lower() in _w3c_colors
+
+
+@cython.cfunc
 def _format_color(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
-    def is_hex(s: str) -> cython.char:
-        return (
-            len(s) in (4, 7)
-            and s[0] == '#'
-            and all(('0' <= c <= '9') or ('A' <= c <= 'F') or ('a' <= c <= 'f') for c in s[1:])
-        )
-
-    def is_w3c_color(s: str) -> cython.char:
-        return s.lower() in _w3c_colors
-
     def format_value(s: str) -> TagFormatTuple:
         return (
             TagFormatTuple(TagFormat.color, s, s)
-            if (is_hex(s) or is_w3c_color(s))
+            if (_is_hex_color(s) or _is_w3c_color(s))
             else TagFormatTuple(TagFormat.default, s, s)
         )
 
@@ -140,18 +143,20 @@ def _is_email_key(key_parts: frozenset[str]) -> cython.char:
 
 
 @cython.cfunc
-def _format_email(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
-    def is_email(s: str) -> cython.char:
-        try:
-            validate_email(s)
-            return True
-        except ValueError:
-            return False
+def _is_email_string(s: str) -> cython.char:
+    try:
+        validate_email(s)
+        return True
+    except ValueError:
+        return False
 
+
+@cython.cfunc
+def _format_email(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def format_value(s: str) -> TagFormatTuple:
         return (
             TagFormatTuple(TagFormat.email, s, f'mailto:{s}')
-            if is_email(s)
+            if _is_email_string(s)
             else TagFormatTuple(TagFormat.default, s, s)
         )
 
@@ -195,12 +200,14 @@ def _is_url_key(key_parts: frozenset[str]) -> cython.char:
 
 
 @cython.cfunc
-def _format_url(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
-    def is_url(s: str) -> cython.char:
-        return s.startswith(('https://', 'http://'))
+def _is_url_string(s: str) -> cython.char:
+    return s.startswith(('https://', 'http://'))
 
+
+@cython.cfunc
+def _format_url(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def format_value(s: str) -> TagFormatTuple:
-        return TagFormatTuple(TagFormat.url, s, s) if is_url(s) else TagFormatTuple(TagFormat.default, s, s)
+        return TagFormatTuple(TagFormat.url, s, s) if _is_url_string(s) else TagFormatTuple(TagFormat.default, s, s)
 
     return tuple(format_value(s) for s in values)
 
@@ -222,16 +229,13 @@ def _format_wikipedia(key_parts: frozenset[str], values: list[str]) -> tuple[Tag
             key_lang = key_part
             break
 
-    def is_url(s: str) -> cython.char:
-        return s.startswith(('https://', 'http://'))
-
     def format_value(s: str) -> TagFormatTuple:
         # return empty values without formatting
         if not s:
             return TagFormatTuple(TagFormat.default, s, s)
 
         # return urls as-is
-        if is_url(s):
+        if _is_url_string(s):
             return TagFormatTuple(TagFormat.url, s, s)
 
         lang = key_lang
@@ -259,16 +263,18 @@ def _is_wikidata_key(key_parts: frozenset[str]) -> cython.char:
 
 
 @cython.cfunc
+def _is_wiki_id(s: str) -> cython.char:
+    return len(s) >= 2 and s[0] == 'Q' and ('1' <= s[1] <= '9') and all('0' <= c <= '9' for c in s[2:])
+
+
+@cython.cfunc
 def _format_wikidata(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     user_lang = primary_translation_language()
-
-    def is_wiki_id(s: str) -> cython.char:
-        return len(s) >= 2 and s[0] == 'Q' and ('1' <= s[1] <= '9') and all('0' <= c <= '9' for c in s[2:])
 
     def format_value(s: str) -> TagFormatTuple:
         return (
             TagFormatTuple(TagFormat.url, s, f'https://www.wikidata.org/entity/{s}?uselang={user_lang}')
-            if is_wiki_id(s)
+            if _is_wiki_id(s)
             else TagFormatTuple(TagFormat.default, s, s)
         )
 
@@ -281,17 +287,19 @@ def _is_wikimedia_commons_key(key_parts: frozenset[str]) -> cython.char:
 
 
 @cython.cfunc
+def _is_wikimedia_entry(s: str) -> cython.char:
+    # intentionally don't support lowercase to promote consistency
+    return s.startswith(('File:', 'Category:'))
+
+
+@cython.cfunc
 def _format_wikimedia_commons(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     user_lang = primary_translation_language()
-
-    def is_entry(s: str) -> cython.char:
-        # intentionally don't support lowercase to promote consistency
-        return s.startswith(('File:', 'Category:'))
 
     def format_value(s: str) -> TagFormatTuple:
         return (
             TagFormatTuple(TagFormat.url, s, f'https://commons.wikimedia.org/wiki/{s}?uselang={user_lang}')
-            if is_entry(s)
+            if _is_wikimedia_entry(s)
             else TagFormatTuple(TagFormat.default, s, s)
         )
 

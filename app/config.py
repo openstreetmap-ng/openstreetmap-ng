@@ -41,10 +41,10 @@ RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 
 CONFIG_DIR = path(os.getenv('CONFIG_DIR', 'config'))
-FILE_CACHE_DIR = path(os.getenv('FILE_CACHE_DIR', 'tmp/file'))
+FILE_CACHE_DIR = path(os.getenv('FILE_CACHE_DIR', 'data/file_cache'))
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
-FILE_DATA_DIR = path(os.getenv('FILE_DATA_DIR', 'data/file'))
+FILE_STORE_DIR = path(os.getenv('FILE_STORE_DIR', 'data/file_store'))
 HTTPS_ONLY = os.getenv('HTTPS_ONLY', '1').strip().lower() in ('1', 'true', 'yes')
 ID_ASSETS_DIR = path(os.getenv('ID_ASSETS_DIR', 'node_modules/iD/dist'))
 LEGAL_DIR = path(os.getenv('LEGAL_DIR', 'config/legal'))
@@ -74,4 +74,4 @@ SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1]
 
 # Synchronously create directories if missing
 pathlib.Path(FILE_CACHE_DIR).mkdir(parents=True, exist_ok=True)
-pathlib.Path(FILE_DATA_DIR).mkdir(parents=True, exist_ok=True)
+pathlib.Path(FILE_STORE_DIR).mkdir(parents=True, exist_ok=True)

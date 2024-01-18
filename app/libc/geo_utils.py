@@ -13,6 +13,7 @@ else:
 
 
 # @cython.cfunc
+#
 # def degrees(x: cython.double) -> cython.double:
 #     return x * (180 / pi)
 
@@ -22,7 +23,7 @@ def radians(x: cython.double) -> cython.double:
     return x * (pi / 180)
 
 
-def meters_to_radians(meters: cython.double) -> cython.double:
+def meters_to_radians(meters: float) -> float:
     """
     Convert a distance in meters to radians.
 
@@ -33,7 +34,7 @@ def meters_to_radians(meters: cython.double) -> cython.double:
     return meters / 6371000  # R
 
 
-def radians_to_meters(radians: cython.double) -> cython.double:
+def radians_to_meters(radians: float) -> float:
     """
     Convert a distance in radians to meters.
 
@@ -44,7 +45,7 @@ def radians_to_meters(radians: cython.double) -> cython.double:
     return radians * 6371000  # R
 
 
-def haversine_distance(p1: Point, p2: Point) -> cython.double:
+def haversine_distance(p1: Point, p2: Point) -> float:
     """
     Calculate the distance between two points on the Earth's surface using the Haversine formula.
 
@@ -117,7 +118,7 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     return value
 
 
-def _iterate_geometry(geom: BaseGeometry) -> Generator[tuple[cython.double, cython.double], None, None]:
+def _iterate_geometry(geom: BaseGeometry) -> Generator[tuple[float, float], None, None]:
     """
     Iterate over points of a geometry.
 

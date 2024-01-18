@@ -3,9 +3,9 @@ import subprocess
 from abc import ABC
 
 import anyio
-from humanize import naturalsize
 
 from app.lib.tracks.processors.base import CompressionFileProcessor
+from app.libc.naturalsize import naturalsize
 from app.limits import (
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
@@ -35,5 +35,5 @@ class ZstdFileProcessor(CompressionFileProcessor, ABC):
         if process.returncode != 0:
             raise RuntimeError('zstd compression failed')
 
-        logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result), True))
+        logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

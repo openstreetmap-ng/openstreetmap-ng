@@ -1,6 +1,8 @@
-from anyio import Path
+import tempfile
 
-from app.config import FILE_DATA_DIR
+from anyio import Path, open_file, to_thread
+
+from app.config import FILE_STORE_DIR
 from app.lib.storage.base import StorageBase
 
 
@@ -20,7 +22,7 @@ class LocalStorage(StorageBase):
         Path('.../context/file_key.png')
         """
 
-        dir_path = FILE_DATA_DIR / self._context
+        dir_path = FILE_STORE_DIR / self._context
         await dir_path.mkdir(parents=True, exist_ok=True)
 
         full_path = dir_path / key
@@ -34,8 +36,12 @@ class LocalStorage(StorageBase):
         key = self._make_key(data, suffix, random)
         path = await self._get_path(key)
 
-        async with await path.open('xb') as f:
+        fd, temp_path_str = await to_thread.run_sync(tempfile.mkstemp)
+
+        async with await open_file(fd, 'wb', closefd=True) as f:
             await f.write(data)
+
+        await Path(temp_path_str).rename(path)
 
         return key
 

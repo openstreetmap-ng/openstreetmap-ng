@@ -6,9 +6,9 @@ from itertools import chain
 
 import cython
 import lxml.etree as ET
-from humanize import naturalsize
 
 from app.libc.exceptions_context import raise_for
+from app.libc.naturalsize import naturalsize
 from app.limits import XML_PARSE_MAX_SIZE
 
 _parser = ET.XMLParser(
@@ -94,7 +94,7 @@ class XMLToDict:
         if len(xml_bytes) > XML_PARSE_MAX_SIZE:
             raise_for().input_too_big(len(xml_bytes))
 
-        logging.debug('Parsing %s XML string', naturalsize(len(xml_bytes), True))
+        logging.debug('Parsing %s XML string', naturalsize(len(xml_bytes)))
         root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(sequence, root, is_root=True)}
 
@@ -119,7 +119,7 @@ class XMLToDict:
             elements = (ET.Element(root_k),)
 
         result: bytes = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
-        logging.debug('Unparsed %s XML string', naturalsize(len(result), True))
+        logging.debug('Unparsed %s XML string', naturalsize(len(result)))
 
         if raw:
             return result

@@ -4,10 +4,10 @@ import zlib
 
 import brotlicffi
 from fastapi import Request
-from humanize import naturalsize
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.libc.exceptions_context import raise_for
+from app.libc.naturalsize import naturalsize
 from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
 # map of content-encoding to decompression function
@@ -39,10 +39,10 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
-            logging.debug('Compressed request body size: %s', naturalsize(input_size, True))
+            logging.debug('Compressed request body size: %s', naturalsize(input_size))
             request._body = body = decompressor(b''.join(chunks))  # noqa: SLF001
             decompressed_size = len(body)
-            logging.debug('Decompressed request body size: %s', naturalsize(decompressed_size, True))
+            logging.debug('Decompressed request body size: %s', naturalsize(decompressed_size))
 
             if decompressed_size > HTTP_BODY_MAX_SIZE:
                 raise_for().input_too_big(decompressed_size)
@@ -58,7 +58,7 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
-            logging.debug('Request body size: %s', naturalsize(input_size, True))
+            logging.debug('Request body size: %s', naturalsize(input_size))
             request._body = b''.join(chunks)  # noqa: SLF001
 
         return await call_next(request)

@@ -67,11 +67,13 @@ class CMercator:
         self._bx = max_lon_sheet + half_x_pad
         self._by = max_lat_sheet + half_y_pad
 
+    @cython.cfunc
     def x(self, lon: cython.double) -> cython.double:
         if self._bx - self._tx <= 0:
             return self._width / 2
         return (x_sheet(lon) - self._tx) / (self._bx - self._tx) * self._width
 
+    @cython.cfunc
     def y(self, lat: cython.double) -> cython.double:
         if self._by - self._ty <= 0:
             return self._height / 2
@@ -81,17 +83,17 @@ class CMercator:
 class Mercator:
     def __init__(
         self,
-        min_lon: cython.double,
-        min_lat: cython.double,
-        max_lon: cython.double,
-        max_lat: cython.double,
-        width: cython.int,
-        height: cython.int,
+        min_lon: float,
+        min_lat: float,
+        max_lon: float,
+        max_lat: float,
+        width: int,
+        height: int,
     ):
         self._impl = CMercator(min_lon, min_lat, max_lon, max_lat, width, height)
 
-    def x(self, lon: cython.double) -> cython.double:
+    def x(self, lon: float) -> float:
         return self._impl.x(lon)
 
-    def y(self, lat: cython.double) -> cython.double:
+    def y(self, lat: float) -> float:
         return self._impl.y(lat)

@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 
-import cython
 from fastapi import Request, Security
 from fastapi.security import SecurityScopes
 from fastapi.security.utils import get_authorization_scheme_param
@@ -118,7 +117,6 @@ def auth_scopes() -> Sequence[ExtendedScope]:
     return _context.get()[1]
 
 
-@cython.cfunc
 def _get_user(require_scopes: SecurityScopes) -> User:
     """
     Get the authenticated user.
