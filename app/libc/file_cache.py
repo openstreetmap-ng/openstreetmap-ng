@@ -1,9 +1,9 @@
 import logging
-import tempfile
+import secrets
 import time
 from datetime import timedelta
 
-from anyio import Path, open_file, to_thread
+from anyio import Path
 
 from app.config import FILE_CACHE_DIR
 from app.libc.crypto import hash_hex
@@ -68,12 +68,13 @@ class FileCache:
         entry = FileCacheEntry(expires_at, data)
         entry_bytes = entry.to_bytes()
 
-        fd, temp_path_str = await to_thread.run_sync(tempfile.mkstemp)
+        temp_name = f'.{secrets.token_urlsafe(16)}.tmp'
+        temp_path = path.with_name(temp_name)
 
-        async with await open_file(fd, 'wb', closefd=True) as f:
+        async with await temp_path.open('xb') as f:
             await f.write(entry_bytes)
 
-        await Path(temp_path_str).rename(path)
+        await temp_path.rename(path)
 
     async def delete(self, key: str) -> None:
         """

@@ -1,6 +1,6 @@
-import tempfile
+import secrets
 
-from anyio import Path, open_file, to_thread
+from anyio import Path
 
 from app.config import FILE_STORE_DIR
 from app.lib.storage.base import StorageBase
@@ -36,12 +36,13 @@ class LocalStorage(StorageBase):
         key = self._make_key(data, suffix, random)
         path = await self._get_path(key)
 
-        fd, temp_path_str = await to_thread.run_sync(tempfile.mkstemp)
+        temp_name = f'.{secrets.token_urlsafe(16)}.tmp'
+        temp_path = path.with_name(temp_name)
 
-        async with await open_file(fd, 'wb', closefd=True) as f:
+        async with await temp_path.open('xb') as f:
             await f.write(data)
 
-        await Path(temp_path_str).rename(path)
+        await temp_path.rename(path)
 
         return key
 
