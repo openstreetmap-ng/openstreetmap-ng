@@ -8,11 +8,11 @@ from sqlalchemy import update
 
 from app.config import SECRET
 from app.db import DB
-from app.libc.crypto import hash_bytes
-from app.libc.email import validate_email
-from app.libc.exceptions_context import raise_for
-from app.libc.oauth1 import OAuth1
-from app.libc.oauth2 import OAuth2
+from app.lib.crypto import hash_bytes
+from app.lib.email import validate_email
+from app.lib.exceptions_context import raise_for
+from app.lib.oauth1 import OAuth1
+from app.lib.oauth2 import OAuth2
 from app.limits import USER_TOKEN_SESSION_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession

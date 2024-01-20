@@ -1,6 +1,6 @@
 from shapely import Point
 
-from app.libc.xmltodict import XAttr
+from app.lib.xmltodict import XAttr
 
 
 class Geometry06Mixin:

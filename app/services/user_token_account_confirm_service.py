@@ -3,9 +3,9 @@ import secrets
 from sqlalchemy import delete, update
 
 from app.db import DB
-from app.libc.auth_context import auth_user
-from app.libc.crypto import hash_bytes
-from app.libc.exceptions_context import raise_for
+from app.lib.auth_context import auth_user
+from app.lib.crypto import hash_bytes
+from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm

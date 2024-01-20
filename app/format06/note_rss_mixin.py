@@ -5,8 +5,8 @@ from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
 
 from app.config import API_URL
-from app.libc.nominatim import Nominatim
-from app.libc.translation import render, t
+from app.lib.nominatim import Nominatim
+from app.lib.translation import render, t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent

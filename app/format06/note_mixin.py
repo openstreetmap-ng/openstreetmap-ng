@@ -6,8 +6,8 @@ from shapely import Point
 
 from app.config import API_URL
 from app.format06.geometry_mixin import Geometry06Mixin
-from app.libc.format_style_context import format_style
-from app.libc.translation import render
+from app.lib.format_style_context import format_style
+from app.lib.translation import render
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.format_style import FormatStyle

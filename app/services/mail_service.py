@@ -18,7 +18,7 @@ from app.config import (
     SMTP_USER,
 )
 from app.db import DB
-from app.libc.translation import render, translation_context
+from app.lib.translation import render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User

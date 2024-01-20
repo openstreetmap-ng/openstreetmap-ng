@@ -4,7 +4,7 @@ from fastapi import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.request_mixin import RequestExceptionsMixin
-from app.libc.naturalsize import naturalsize
+from app.lib.naturalsize import naturalsize
 
 
 class RequestExceptions06Mixin(RequestExceptionsMixin):

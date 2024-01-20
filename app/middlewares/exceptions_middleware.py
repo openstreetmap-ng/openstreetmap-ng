@@ -4,7 +4,7 @@ from starlette.responses import Response
 
 from app.exceptions import Exceptions
 from app.exceptions06 import Exceptions06
-from app.libc.exceptions_context import exceptions_context
+from app.lib.exceptions_context import exceptions_context
 
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):

@@ -8,11 +8,11 @@ from fastapi import UploadFile
 
 from app.db import DB
 from app.format06 import Format06
-from app.libc.auth_context import auth_user
-from app.libc.exceptions_context import raise_for
-from app.libc.trace_file import TraceFile
-from app.libc.trace_image import TraceImage
-from app.libc.xmltodict import XMLToDict
+from app.lib.auth_context import auth_user
+from app.lib.exceptions_context import raise_for
+from app.lib.trace_file import TraceFile
+from app.lib.trace_image import TraceImage
+from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_MAX_SIZE
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint

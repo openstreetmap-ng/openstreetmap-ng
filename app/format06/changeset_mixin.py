@@ -3,8 +3,8 @@ from collections.abc import Sequence
 import cython
 
 from app.format06.tags_mixin import Tags06Mixin
-from app.libc.format_style_context import format_is_json
-from app.libc.xmltodict import XAttr
+from app.lib.format_style_context import format_is_json
+from app.lib.xmltodict import XAttr
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 

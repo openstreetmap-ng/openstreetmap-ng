@@ -87,7 +87,7 @@ let
       python setup.py build_ext --inplace --parallel $(nproc --all)
     '')
     (writeShellScriptBin "cython-clean" ''
-      rm -rf build/ app/{format06,format07,libc}/**/*{.c,.html,.so}
+      rm -rf build/ app/{format06,format07,lib}/**/*{.c,.html,.so}
     '')
 
     # -- Alembic

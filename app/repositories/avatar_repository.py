@@ -1,4 +1,4 @@
-from app.libc.exceptions_context import raise_for
+from app.lib.exceptions_context import raise_for
 from app.repositories.user_repository import UserRepository
 from app.storage import AVATAR_STORAGE, GRAVATAR_STORAGE
 

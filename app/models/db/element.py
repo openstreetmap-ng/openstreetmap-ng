@@ -6,7 +6,7 @@ from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, UniqueCo
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.libc.updating_cached_property import updating_cached_property
+from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
 from app.models.db.created_at_mixin import CreatedAtMixin

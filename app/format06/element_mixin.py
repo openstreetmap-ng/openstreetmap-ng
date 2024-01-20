@@ -5,9 +5,9 @@ import cython
 
 from app.format06.geometry_mixin import Geometry06Mixin
 from app.format06.tags_mixin import Tags06Mixin
-from app.libc.auth_context import auth_user
-from app.libc.format_style_context import format_is_json
-from app.libc.xmltodict import XAttr
+from app.lib.auth_context import auth_user
+from app.lib.format_style_context import format_is_json
+from app.lib.xmltodict import XAttr
 from app.models.db.element import Element
 from app.models.element_member import ElementMemberRef
 from app.models.element_type import ElementType

@@ -1,6 +1,6 @@
 from fastapi import UploadFile
 
-from app.libc.avatar import Avatar
+from app.lib.avatar import Avatar
 from app.storage import AVATAR_STORAGE
 
 

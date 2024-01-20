@@ -6,8 +6,8 @@ import brotlicffi
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.libc.exceptions_context import raise_for
-from app.libc.naturalsize import naturalsize
+from app.lib.exceptions_context import raise_for
+from app.lib.naturalsize import naturalsize
 from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
 # map of content-encoding to decompression function

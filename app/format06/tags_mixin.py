@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from app.libc.format_style_context import format_is_json
+from app.lib.format_style_context import format_is_json
 from app.models.validating.tags import TagsValidating
 
 

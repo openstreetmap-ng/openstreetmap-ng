@@ -3,8 +3,8 @@ from shapely import Point
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.libc.crypto import HASH_SIZE
-from app.libc.rich_text_mixin import RichTextMixin
+from app.lib.crypto import HASH_SIZE
+from app.lib.rich_text_mixin import RichTextMixin
 from app.limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.cache_entry import CacheEntry

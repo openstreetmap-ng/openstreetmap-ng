@@ -2,7 +2,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.libc.format_style_context import format_style_context
+from app.lib.format_style_context import format_style_context
 
 
 class FormatStyleMiddleware(BaseHTTPMiddleware):

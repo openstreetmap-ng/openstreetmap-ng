@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from app.format06.element_mixin import Element06Mixin
-from app.libc.exceptions_context import raise_for
+from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
 from app.models.osmchange_action import OSMChangeAction
 from app.models.typed_element_ref import TypedElementRef

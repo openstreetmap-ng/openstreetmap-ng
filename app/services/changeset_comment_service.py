@@ -2,9 +2,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 from app.db import DB
-from app.libc.auth_context import auth_user
-from app.libc.exceptions_context import raise_for
-from app.libc.joinedload_context import get_joinedload
+from app.lib.auth_context import auth_user
+from app.lib.exceptions_context import raise_for
+from app.lib.joinedload_context import get_joinedload
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 

@@ -11,7 +11,7 @@ from sqlalchemy.orm import load_only
 
 from app.db import DB
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
-from app.libc.exceptions_context import raise_for
+from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_type import ElementType

@@ -1,7 +1,7 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.libc.exceptions_context import raise_for
+from app.lib.exceptions_context import raise_for
 from app.limits import REQUEST_PATH_QUERY_MAX_LENGTH
 
 

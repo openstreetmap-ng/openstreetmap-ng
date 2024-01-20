@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.libc.crypto import HASH_SIZE
+from app.lib.crypto import HASH_SIZE
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.oauth1_application import OAuth1Application

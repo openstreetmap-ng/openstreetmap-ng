@@ -1,11 +1,11 @@
 from fastapi import Request
 
 from app.db import DB
-from app.libc.auth_context import auth_user, manual_auth_context
-from app.libc.email import validate_email_deliverability
-from app.libc.message_collector import MessageCollector
-from app.libc.password_hash import PasswordHash
-from app.libc.translation import t, translation_languages
+from app.lib.auth_context import auth_user, manual_auth_context
+from app.lib.email import validate_email_deliverability
+from app.lib.message_collector import MessageCollector
+from app.lib.password_hash import PasswordHash
+from app.lib.translation import t, translation_languages
 from app.models.db.user import User
 from app.models.mail_from_type import MailFromType
 from app.models.msgspec.user_token_struct import UserTokenStruct

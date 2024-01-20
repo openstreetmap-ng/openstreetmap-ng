@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form
 
-from app.libc.auth_context import web_user
-from app.libc.rich_text import rich_text
+from app.lib.auth_context import web_user
+from app.lib.rich_text import rich_text
 from app.models.db.user import User
 from app.models.text_format import TextFormat
 

@@ -12,7 +12,7 @@ Options.annotate = True
 dirs = [
     'app/format06',
     'app/format07',
-    'app/libc',
+    'app/lib',
 ]
 
 paths = [p for d in dirs for p in Path(d).rglob('*.py')]

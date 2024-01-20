@@ -4,8 +4,8 @@ import orjson
 from fastapi import Response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
-from app.libc.format_style_context import format_style
-from app.libc.xmltodict import XMLToDict
+from app.lib.format_style_context import format_style
+from app.lib.xmltodict import XMLToDict
 from app.models.format_style import FormatStyle
 
 

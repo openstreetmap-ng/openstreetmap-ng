@@ -4,10 +4,10 @@ from fastapi import UploadFile
 from sqlalchemy import func
 
 from app.db import DB
-from app.libc.auth_context import auth_user
-from app.libc.email import validate_email_deliverability
-from app.libc.message_collector import MessageCollector
-from app.libc.translation import t
+from app.lib.auth_context import auth_user
+from app.lib.email import validate_email_deliverability
+from app.lib.message_collector import MessageCollector
+from app.lib.translation import t
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User

@@ -4,9 +4,9 @@ from collections.abc import Sequence
 from sqlalchemy import func, null, select
 
 from app.db import DB
-from app.libc.auth_context import auth_user
-from app.libc.crypto import hash_bytes
-from app.libc.exceptions_context import raise_for
+from app.lib.auth_context import auth_user
+from app.lib.crypto import hash_bytes
+from app.lib.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
 from app.models.scope import Scope
 from app.repositories.oauth1_application_repository import OAuth1ApplicationRepository

@@ -1,5 +1,5 @@
 from app.db import DB
-from app.libc.auth_context import auth_user
+from app.lib.auth_context import auth_user
 from app.models.db.message import Message
 
 

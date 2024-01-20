@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.libc.xmltodict import XAttr
+from app.lib.xmltodict import XAttr
 
 router = APIRouter()
 

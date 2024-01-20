@@ -4,7 +4,7 @@ from datetime import datetime
 from shapely import Point
 
 from app.format06.geometry_mixin import Geometry06Mixin
-from app.libc.auth_context import auth_user
+from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility

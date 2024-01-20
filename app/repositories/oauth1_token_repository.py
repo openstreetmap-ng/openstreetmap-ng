@@ -1,7 +1,7 @@
 from sqlalchemy import null, select
 
 from app.db import DB
-from app.libc.crypto import hash_bytes
+from app.lib.crypto import hash_bytes
 from app.models.db.oauth1_token import OAuth1Token
 
 

@@ -5,8 +5,8 @@ from shapely import Polygon
 from sqlalchemy import func, null, select
 
 from app.db import DB
-from app.libc.auth_context import auth_user
-from app.libc.joinedload_context import get_joinedload
+from app.lib.auth_context import auth_user
+from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment

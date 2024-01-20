@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Path, Request, status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL
-from app.libc.shortlink import ShortLink
+from app.lib.shortlink import ShortLink
 
 router = APIRouter()
 
