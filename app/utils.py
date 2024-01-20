@@ -1,15 +1,10 @@
 import logging
-import math
-import random
-import time
 import unicodedata
-from datetime import datetime, timedelta
+from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address, ip_address
-from itertools import count
 from shutil import which
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import anyio
 import dateutil.parser
 import httpx
 import msgspec
@@ -18,6 +13,7 @@ from fastapi import Request
 from app.config import USER_AGENT
 
 
+# TODO: configure logging
 def _log_http_request(r: httpx.Request) -> None:
     logging.debug('Client HTTP request: %s %s', r.method, r.url)
 
@@ -48,7 +44,6 @@ MSGSPEC_JSON_DECODER = msgspec.json.Decoder()
 
 
 # TODO: reporting of deleted accounts (prometheus)
-
 # NOTE: breaking change
 
 
@@ -91,53 +86,6 @@ def raise_if_program_unavailable(program: str) -> None:
 
     if which(program) is None:
         raise FileNotFoundError(f'Program {program} is not available')
-
-
-def retry(timeout: timedelta | None, *, sleep_init: float = 1, sleep_limit: float = 300):
-    """
-    Decorator to retry a function.
-
-    The function is retried until it succeeds or the timeout is reached.
-    """
-
-    timeout_seconds = math.inf if timeout is None else timeout.total_seconds()
-
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
-            ts = time.monotonic()
-            sleep = sleep_init
-
-            for attempt in count(1):
-                try:
-                    return await func(*args, **kwargs)
-                except Exception:
-                    next_timeout_seconds = (time.monotonic() + sleep) - ts
-
-                    # retry is still possible
-                    if next_timeout_seconds < timeout_seconds:
-                        logging.info(
-                            'Function %s failed at attempt %d, retrying in %.3f seconds',
-                            func.__qualname__,
-                            attempt,
-                            sleep,
-                            exc_info=True,
-                        )
-                        await anyio.sleep(sleep)
-                        sleep = min(sleep * (1.5 + random.random()), sleep_limit)  # noqa: S311
-
-                    # retry is not possible, re-raise the exception
-                    else:
-                        logging.warning(
-                            'Function %s failed and timed out after %d attempts',
-                            func.__qualname__,
-                            attempt,
-                            exc_info=True,
-                        )
-                        raise
-
-        return wrapper
-
-    return decorator
 
 
 def extend_query_params(uri: str, params: dict) -> str:

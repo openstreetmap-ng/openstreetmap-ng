@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
-import anyio
 import pytest
 
 from app.utils import (
@@ -8,7 +7,6 @@ from app.utils import (
     format_iso_date,
     format_sql_date,
     parse_date,
-    retry,
     unicode_normalize,
 )
 
@@ -51,30 +49,6 @@ def test_format_iso_date(date, expected):
 )
 def test_format_sql_date(date, expected):
     assert format_sql_date(date) == expected
-
-
-async def test_retry():
-    runs = 0
-
-    @retry(None)
-    async def func():
-        nonlocal runs
-        runs += 1
-
-        # raise exception on first run
-        if runs < 2:
-            raise Exception
-
-    await func()
-    assert runs == 2
-
-
-def test_retry_timeout():
-    @retry(timedelta(seconds=1))
-    async def func():
-        raise RuntimeError
-
-    pytest.raises(RuntimeError, anyio.run, func)
 
 
 @pytest.mark.parametrize(
