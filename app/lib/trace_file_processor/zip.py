@@ -6,6 +6,7 @@ from io import BytesIO
 from typing import override
 
 import anyio
+import cython
 
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
@@ -29,7 +30,7 @@ class ZipFileProcessor(TraceFileProcessor):
         result = [None] * len(filenames)
         result_size = 0
 
-        async def read_file(i: int, filename: bytes) -> None:
+        async def read_file(i: cython.int, filename: bytes) -> None:
             nonlocal result_size
 
             async with await anyio.open_process(

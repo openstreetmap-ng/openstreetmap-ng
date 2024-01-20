@@ -4,6 +4,8 @@ from collections.abc import Sequence
 from io import BytesIO
 from typing import override
 
+import cython
+
 from app.lib.exceptions_context import raise_for
 from app.lib.trace_file_processor.base import TraceFileProcessor
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES
@@ -25,6 +27,7 @@ class TarFileProcessor(TraceFileProcessor):
                 raise_for().trace_file_archive_too_many_files()
 
             result = [None] * len(members)
+            i: cython.int
 
             for i, member in enumerate(members):
                 file = archive.extractfile(member)

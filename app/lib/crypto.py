@@ -65,10 +65,10 @@ def encrypt(s: str) -> bytes:
     Returns a buffer of the nonce and cipher text.
     """
 
-    nonce_b = secrets.token_bytes(24)
-    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_b)
-    cipher_text_b = cipher.encrypt(s.encode())
-    return nonce_b + cipher_text_b
+    nonce_bytes = secrets.token_bytes(24)
+    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_bytes)
+    cipher_text_bytes = cipher.encrypt(s.encode())
+    return nonce_bytes + cipher_text_bytes
 
 
 def decrypt(b: bytes) -> str:
@@ -78,7 +78,7 @@ def decrypt(b: bytes) -> str:
     Expects a buffer of the nonce and cipher text.
     """
 
-    nonce_b = b[:24]
-    cipher_text_b = b[24:]
-    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_b)
-    return cipher.decrypt(cipher_text_b).decode()
+    nonce_bytes = b[:24]
+    cipher_text_bytes = b[24:]
+    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_bytes)
+    return cipher.decrypt(cipher_text_bytes).decode()

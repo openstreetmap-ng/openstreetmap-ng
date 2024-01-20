@@ -55,7 +55,7 @@ async def auth_context(request: Request):
 
         # handle oauth
         else:
-            # don't rely on scheme for oauth, 1.0 may use query params
+            # don't rely on scheme header for oauth, 1.0 may use query params
             logging.debug('Attempting to authenticate with OAuth')
             if result := await AuthService.authenticate_oauth(request):
                 user, scopes = result
