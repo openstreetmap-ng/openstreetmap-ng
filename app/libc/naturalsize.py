@@ -19,6 +19,6 @@ def naturalsize(value: float) -> str:
         bytes_ /= base
 
         if bytes_ < base:
-            return f'{bytes_:.1f}{s}'
+            return f'{bytes_:.2f}{s}' if bytes_ < 10 else f'{bytes_:.1f}{s}'
 
     return '(too large to display)'
