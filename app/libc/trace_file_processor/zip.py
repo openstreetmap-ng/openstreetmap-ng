@@ -1,21 +1,22 @@
 import logging
 import subprocess
 import zipfile
-from abc import ABC
 from collections.abc import Sequence
 from io import BytesIO
+from typing import override
 
 import anyio
 
-from app.lib.tracks.processors.base import FileProcessor
 from app.libc.exceptions_context import raise_for
 from app.libc.naturalsize import naturalsize
+from app.libc.trace_file_processor.base import TraceFileProcessor
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES, TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 
-class ZipFileProcessor(FileProcessor, ABC):
+class ZipFileProcessor(TraceFileProcessor):
     media_type = 'application/zip'
 
+    @override
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         with zipfile.ZipFile(BytesIO(buffer)) as archive:

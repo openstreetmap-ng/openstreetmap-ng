@@ -91,4 +91,4 @@ class FileCache:
         """
 
         # TODO: implement cleaning logic here, using Lock for distributed-process safety
-        ...
+        raise NotImplementedError

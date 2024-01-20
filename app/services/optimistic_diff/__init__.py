@@ -5,15 +5,15 @@ from itertools import count
 
 from sqlalchemy.exc import IntegrityError
 
-from app.lib.optimistic.apply import OptimisticApply
-from app.lib.optimistic.exceptions import OptimisticError
-from app.lib.optimistic.prepare import OptimisticPrepare
-from app.limits import OPTIMISTIC_UPDATE_RETRY_TIMEOUT
+from app.exceptions.optimistic_diff_error import OptimisticDiffError
+from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.models.db.element import Element
 from app.models.typed_element_ref import TypedElementRef
+from app.services.optimistic_diff.apply import OptimisticDiffApply
+from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 
-class Optimistic:
+class OptimisticDiff:
     def __init__(self, elements: Sequence[Element]) -> None:
         self._elements = elements
 
@@ -31,24 +31,24 @@ class Optimistic:
 
         for attempt in count(1):
             try:
-                prep = OptimisticPrepare(self._elements)
+                prep = OptimisticDiffPrepare(self._elements)
                 await prep.prepare()
-                return await OptimisticApply().apply(prep)
+                return await OptimisticDiffApply().apply(prep)
 
-            except (OptimisticError, IntegrityError):
+            except (OptimisticDiffError, IntegrityError):
                 timeout_seconds = time.monotonic() - ts
 
                 # retry is still possible
-                if timeout_seconds < OPTIMISTIC_UPDATE_RETRY_TIMEOUT.total_seconds():
+                if timeout_seconds < OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
                     if attempt <= 2:
-                        logging.debug('Optimistic failed at attempt %d, retrying', attempt)
+                        logging.debug('Optimistic diff failed at attempt %d, retrying', attempt)
                     elif attempt <= 3:
-                        logging.info('Optimistic failed at attempt %d, retrying', attempt, exc_info=True)
+                        logging.info('Optimistic diff failed at attempt %d, retrying', attempt, exc_info=True)
                     else:
-                        logging.warning('Optimistic failed at attempt %d, retrying', attempt, exc_info=True)
+                        logging.warning('Optimistic diff failed at attempt %d, retrying', attempt, exc_info=True)
                     continue
 
                 # retry is not possible, re-raise the exception
                 else:
-                    logging.exception('Optimistic failed and timed out after %d attempts', attempt)
+                    logging.exception('Optimistic diff failed and timed out after %d attempts', attempt)
                     raise

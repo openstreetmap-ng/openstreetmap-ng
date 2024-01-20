@@ -1,19 +1,21 @@
 import logging
 import subprocess
-from abc import ABC
 
 import anyio
 
-from app.lib.tracks.processors.base import CompressionFileProcessor
 from app.libc.naturalsize import naturalsize
+from app.libc.trace_file_processor.base import CompressionFileProcessor
 from app.limits import (
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
 )
+from app.utils import raise_if_program_unavailable
+
+raise_if_program_unavailable('zstd')
 
 
-class ZstdFileProcessor(CompressionFileProcessor, ABC):
+class ZstdFileProcessor(CompressionFileProcessor):
     media_type = 'application/zstd'
     command = ('zstd', '-d', '-c')
     suffix = '.zst'

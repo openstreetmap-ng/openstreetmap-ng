@@ -108,7 +108,10 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     if not value.is_valid:
         raise_for().bad_geometry()
 
-    for lon, lat in _iterate_geometry(value):
+    lon: cython.double
+    lat: cython.double
+
+    for lon, lat in _geom_points(value):
         if not (-180 <= lon <= 180 and -90 <= lat <= 90):
             raise_for().bad_geometry_coordinates(lon, lat)
             # TODO: 0.7:
@@ -118,37 +121,35 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     return value
 
 
-def _iterate_geometry(geom: BaseGeometry) -> Generator[tuple[float, float], None, None]:
+@cython.cfunc
+def _geom_points(geom: BaseGeometry) -> tuple[tuple[float, float], ...]:
     """
-    Iterate over points of a geometry.
+    Get all points from a geometry.
 
-    Generates tuples of (longitude, latitude) coordinates.
+    Returns a sequence of (lon, lat) tuples.
+
+    >>> _geom_points(Polygon([(1, 2), (3, 4), (5, 6)]))
+    [(1, 2), (3, 4), (5, 6)]
     """
 
-    if geom.type == 'Point':
-        yield geom.x, geom.y
-    elif geom.type == 'MultiPoint':
-        for point in geom.geoms:
-            yield point.x, point.y
-    elif geom.type == 'LineString':
-        for point in geom.coords:
-            yield point
-    elif geom.type == 'MultiLineString':
-        for line in geom.geoms:
-            for point in line.coords:
-                yield point
-    elif geom.type == 'Polygon':
-        for point in geom.exterior.coords:
-            yield point
-        for interior in geom.interiors:
-            for point in interior.coords:
-                yield point
-    elif geom.type == 'MultiPolygon':
+    # read property once for performance
+    geom_type: str = geom.type
+
+    if geom_type == 'Point':
+        return ((geom.x, geom.y),)
+    elif geom_type == 'MultiPoint':
+        return tuple((point.x, point.y) for point in geom.geoms)
+    elif geom_type == 'LineString':
+        return tuple(geom.coords)
+    elif geom_type == 'MultiLineString':
+        return tuple(point for line in geom.geoms for point in line.coords)
+    elif geom_type == 'Polygon':
+        return tuple(geom.exterior.coords) + tuple(point for interior in geom.interiors for point in interior.coords)
+    elif geom_type == 'MultiPolygon':
+        result = []
         for polygon in geom.geoms:
-            for point in polygon.exterior.coords:
-                yield point
-            for interior in polygon.interiors:
-                for point in interior.coords:
-                    yield point
+            result.extend(polygon.exterior.coords)
+            result.extend(point for interior in polygon.interiors for point in interior.coords)
+        return tuple(result)
     else:
         raise_for().bad_geometry()

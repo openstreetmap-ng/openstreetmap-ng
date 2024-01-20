@@ -15,7 +15,7 @@ dirs = [
     'app/libc',
 ]
 
-paths = [p for d in dirs for p in Path(d).glob('*.py')]
+paths = [p for d in dirs for p in Path(d).rglob('*.py')]
 
 
 setup(

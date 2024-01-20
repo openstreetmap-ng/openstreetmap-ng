@@ -17,15 +17,15 @@ from app.repositories.element_repository import ElementRepository
 from app.utils import utcnow
 
 
-class OptimisticPrepare:
+class OptimisticDiffPrepare:
     applied: bool
     """
-    Indicates if the optimistic update was applied.
+    Indicates if the optimistic diff was applied.
     """
 
     elements: Sequence[Element]
     """
-    Elements the optimistic update is performed on.
+    Elements the optimistic diff is performed on.
     """
 
     changeset_state: dict[int, Changeset]

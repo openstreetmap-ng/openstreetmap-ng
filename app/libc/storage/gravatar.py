@@ -3,9 +3,9 @@ from hashlib import md5
 
 from fastapi import status
 
-from app.lib.storage.base import StorageBase
 from app.libc.avatar import Avatar
 from app.libc.file_cache import FileCache
+from app.libc.storage.base import StorageBase
 from app.utils import HTTP
 
 _local_cache_ttl = timedelta(days=1)
@@ -31,11 +31,11 @@ class GravatarStorage(StorageBase):
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
 
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            return await Avatar.get_default_image()
-
-        r.raise_for_status()
-        data = r.content
-        data = Avatar.normalize_image(data)
+            data = await Avatar.get_default_image()
+        else:
+            r.raise_for_status()
+            data = r.content
+            data = Avatar.normalize_image(data)
 
         await self._fc.set(key, data, ttl=_local_cache_ttl)
         return data

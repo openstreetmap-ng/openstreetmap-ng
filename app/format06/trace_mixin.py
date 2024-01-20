@@ -14,9 +14,9 @@ from app.models.validating.trace_point import TracePointValidating
 
 class Trace06Mixin:
     @staticmethod
-    def encode_traces(trace_points: Sequence[TracePoint]) -> dict:
+    def encode_track(trace_points: Sequence[TracePoint]) -> dict:
         """
-        >>> encode_traces([
+        >>> encode_track([
         ...     TracePoint(...),
         ...     TracePoint(...),
         ... ])
@@ -85,9 +85,9 @@ class Trace06Mixin:
         return {'trk': trks}
 
     @staticmethod
-    def decode_traces(tracks: Sequence[dict], *, track_idx_start: int = 0) -> Sequence[TracePoint]:
+    def decode_tracks(tracks: Sequence[dict], *, track_idx_start: int = 0) -> Sequence[TracePoint]:
         """
-        >>> decode_traces([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
+        >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TracePoint(...)]
         """
 

@@ -6,6 +6,7 @@ import unicodedata
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from itertools import count
+from shutil import which
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import anyio
@@ -79,6 +80,17 @@ def format_sql_date(date: datetime | None) -> str:
     """
 
     return date.strftime('%Y-%m-%d %H:%M:%S UTC') if date else 'None'
+
+
+def raise_if_program_unavailable(program: str) -> None:
+    """
+    Raise an exception if a program is not available.
+
+    >>> raise_if_program_unavailable('bzip2')
+    """
+
+    if which(program) is None:
+        raise FileNotFoundError(f'Program {program} is not available')
 
 
 def retry(timeout: timedelta | None, *, sleep_init: float = 1, sleep_limit: float = 300):

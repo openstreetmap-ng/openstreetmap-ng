@@ -1,17 +1,18 @@
 import logging
 import tarfile
-from abc import ABC
 from collections.abc import Sequence
 from io import BytesIO
+from typing import override
 
-from app.lib.tracks.processors.base import FileProcessor
 from app.libc.exceptions_context import raise_for
+from app.libc.trace_file_processor.base import TraceFileProcessor
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES
 
 
-class TarFileProcessor(FileProcessor, ABC):
+class TarFileProcessor(TraceFileProcessor):
     media_type = 'application/x-tar'
 
+    @override
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         # pure tar uses no compression, so it's efficient to read files from the memory buffer
@@ -27,9 +28,11 @@ class TarFileProcessor(FileProcessor, ABC):
 
             for i, member in enumerate(members):
                 file = archive.extractfile(member)
+
+                # skip directories
                 if not file:
-                    # skip directories
                     continue
+
                 result[i] = file.read()
 
             return result

@@ -59,7 +59,7 @@ class UserService:
 
         # handle custom avatar
         if avatar_type == AvatarType.custom:
-            avatar_id = await AvatarService.process_upload(avatar_file)
+            avatar_id = await AvatarService.upload(avatar_file)
         else:
             avatar_id = None
 

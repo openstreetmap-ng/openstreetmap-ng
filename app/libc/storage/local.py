@@ -3,7 +3,7 @@ import secrets
 from anyio import Path
 
 from app.config import FILE_STORE_DIR
-from app.lib.storage.base import StorageBase
+from app.libc.storage.base import StorageBase
 
 
 class LocalStorage(StorageBase):

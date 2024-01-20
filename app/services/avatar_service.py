@@ -1,12 +1,12 @@
 from fastapi import UploadFile
 
-from app.lib.storage import AVATAR_STORAGE
 from app.libc.avatar import Avatar
+from app.storage import AVATAR_STORAGE
 
 
 class AvatarService:
     @staticmethod
-    async def process_upload(file: UploadFile) -> str:
+    async def upload(file: UploadFile) -> str:
         """
         Process upload of a custom avatar image.
 

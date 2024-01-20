@@ -20,7 +20,6 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config import APP_URL, DEFAULT_LANGUAGE
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.libc.avatar import Avatar
 from app.libc.crypto import HASH_SIZE
 from app.libc.geo_utils import haversine_distance
@@ -28,6 +27,7 @@ from app.libc.languages import get_language_info
 from app.libc.locale import normalize_locale_case
 from app.libc.password_hash import PasswordHash
 from app.libc.rich_text_mixin import RichTextMixin
+from app.libc.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
     LANGUAGE_CODE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,

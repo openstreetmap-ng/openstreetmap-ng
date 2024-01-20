@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import replace
 from datetime import datetime
 
 import anyio
@@ -9,8 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
 from app.db import DB
-from app.lib.optimistic.exceptions import OptimisticError
-from app.lib.optimistic.prepare import OptimisticPrepare
+from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.libc.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
@@ -18,15 +18,16 @@ from app.models.element_type import ElementType
 from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
+from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 from app.utils import utcnow
 
 # TODO 0.7 don't reuse placeholder ids for simplicity
 
 
-class OptimisticApply:
+class OptimisticDiffApply:
     _now: datetime
 
-    async def apply(self, prepare: OptimisticPrepare) -> dict[TypedElementRef, Sequence[Element]]:
+    async def apply(self, prepare: OptimisticDiffPrepare) -> dict[TypedElementRef, Sequence[Element]]:
         """
         Apply the optimistic update.
 
@@ -93,14 +94,14 @@ class OptimisticApply:
         """
         Check if the element is the latest version.
 
-        Raises `OptimisticException` if it is not.
+        Raises `OptimisticDiffError` if it is not.
         """
 
         latest = await Element.find_one_by_typed_ref(element.typed_ref)
         if not latest:
             raise RuntimeError(f'Element {element.typed_ref} does not exist')
         if latest.version != element.version:
-            raise OptimisticError(
+            raise OptimisticDiffError(
                 f'Element {element.typed_ref} is not the latest version ({latest.version} != {element.version})'
             )
 
@@ -108,11 +109,11 @@ class OptimisticApply:
         """
         Check if the element is not referenced by any other element.
 
-        Raises `OptimisticException` if it is.
+        Raises `OptimisticDiffError` if it is.
         """
 
         if parents := await ElementRepository.get_many_parents_by_typed_refs([element.typed_ref], after=after, limit=1):
-            raise OptimisticError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
+            raise OptimisticDiffError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
 
     async def _update_changesets(
         self,
@@ -122,7 +123,7 @@ class OptimisticApply:
         """
         Update the changeset table.
 
-        Raises `OptimisticException` if any of the changesets were modified in the meantime.
+        Raises `OptimisticDiffError` if any of the changesets were modified in the meantime.
         """
 
         stmt = (
@@ -136,7 +137,9 @@ class OptimisticApply:
 
             # check if the changeset was modified in the meantime
             if remote.updated_at != local.updated_at:
-                raise OptimisticError(f'Changeset {remote.id} was modified ({remote.updated_at} != {local.updated_at})')
+                raise OptimisticDiffError(
+                    f'Changeset {remote.id} was modified ({remote.updated_at} != {local.updated_at})'
+                )
 
             # update the changeset
             local.updated_at = self._now
@@ -184,11 +187,7 @@ class OptimisticApply:
 
             # supersede the previous version
             if element.version > 1:
-                superseded_refs.add(
-                    element_versioned_ref._replace(
-                        version=element_versioned_ref.version - 1,
-                    )
-                )
+                superseded_refs.add(replace(element_versioned_ref, version=element_versioned_ref.version - 1))
 
         # process superseded elements (remote)
         if superseded_refs:
@@ -254,6 +253,6 @@ class OptimisticApply:
         # update element members
         for element in elements:
             element.members = tuple(
-                member._replace(typed_id=assigned_typed_id_map[member.typed_ref]) if member.typed_id < 0 else member
+                replace(member, typed_id=assigned_typed_id_map[member.typed_ref]) if member.typed_id < 0 else member
                 for member in element.members
             )

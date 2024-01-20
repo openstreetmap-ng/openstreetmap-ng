@@ -6,7 +6,7 @@ from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
+from app.libc.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin

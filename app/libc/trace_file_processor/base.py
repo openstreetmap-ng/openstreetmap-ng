@@ -2,6 +2,7 @@ import logging
 import subprocess
 from abc import ABC
 from collections.abc import Sequence
+from typing import override
 
 import anyio
 
@@ -10,7 +11,7 @@ from app.libc.naturalsize import naturalsize
 from app.limits import TRACE_FILE_UNCOMPRESSED_MAX_SIZE
 
 
-class FileProcessor(ABC):
+class TraceFileProcessor(ABC):
     media_type: str
 
     @classmethod
@@ -22,10 +23,11 @@ class FileProcessor(ABC):
         raise NotImplementedError
 
 
-class CompressionFileProcessor(FileProcessor, ABC):
+class CompressionFileProcessor(TraceFileProcessor, ABC):
     media_type: str
     command: Sequence[str]
 
+    @override
     @classmethod
     async def decompress(cls, buffer: bytes) -> bytes:
         async with await anyio.open_process(
