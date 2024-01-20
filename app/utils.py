@@ -1,6 +1,6 @@
 import logging
 import unicodedata
-from datetime import datetime
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from shutil import which
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -110,7 +110,7 @@ def utcnow() -> datetime:
     Return a datetime object representing the current time in UTC.
     """
 
-    return datetime.utcnow()
+    return datetime.now(UTC)
 
 
 def parse_date(s: str) -> datetime:
@@ -124,7 +124,8 @@ def parse_date(s: str) -> datetime:
     """
 
     # TODO: support timezones
-    return dateutil.parser.parse(s, ignoretz=True)
+    date = dateutil.parser.parse(s, ignoretz=False)
+    return date.replace(tzinfo=UTC) if date.tzinfo is None else date
 
 
 def parse_request_ip(request: Request) -> IPv4Address | IPv6Address:

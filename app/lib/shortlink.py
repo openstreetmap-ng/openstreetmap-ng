@@ -43,7 +43,7 @@ def shortlink_decode(s: str) -> tuple[float, float, int]:
 
     x: cython.int = 0
     y: cython.int = 0
-    z: cython.int = len(s) * 3
+    z: cython.int = 0
     z_offset: cython.int = 0
 
     for c in s:
@@ -57,6 +57,8 @@ def shortlink_decode(s: str) -> tuple[float, float, int]:
             x = (x << 1) | ((t >> 5) & 1)
             y = (y << 1) | ((t >> 4) & 1)
             t <<= 2
+
+        z += 3
 
     x <<= 32 - z
     y <<= 32 - z

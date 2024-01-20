@@ -144,6 +144,9 @@ let
     (writeShellScriptBin "watch-sass" ''
       bun run watch:sass
     '')
+    (writeShellScriptBin "watch-test" ''
+      ptw --now .
+    '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
     '')

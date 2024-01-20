@@ -56,7 +56,9 @@ uvicorn = {extras = ["standard"], version = "^0.25.0"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"
+pytest-cov = "^4.1.0"
 xmltodict = "^0.13.0"
+pytest-watcher = "^0.3.4"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -195,3 +197,10 @@ extend-ignore-names = ["ET"]
 
 [tool.ruff.lint.pylint]
 max-args = 10
+
+[tool.pytest.ini_options]
+addopts = "-ra --quiet --cov app --cov-report xml --disable-pytest-warnings"
+minversion = "6.0"
+testpaths = [
+  "tests",
+]

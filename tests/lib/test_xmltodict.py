@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 import xmltodict
 
-from app.lib.xmltodict import XMLToDict
+from app.lib.xmltodict import XAttr, XMLToDict
 
 
 @pytest.mark.parametrize(
@@ -101,35 +101,36 @@ def test_parse_compare_pypi(input):
                 'osmChange': {
                     'create': [],
                     'modify': [
-                        {
-                            '@id': 1,
-                        },
+                        {'@id': 1},
                         {
                             '@id': 2,
                             'tag': [
-                                {
-                                    '@k': 'test',
-                                    '@v': 'zebra',
-                                },
-                                {
-                                    '@k': 'test2',
-                                    '@v': 'zebra2',
-                                },
+                                {'@k': 'test', '@v': 'zebra'},
+                                {'@k': 'test2', '@v': 'zebra2'},
                             ],
                         },
                         {},
                     ],
-                    'delete': {
-                        '@id': 3,
-                    },
+                    'delete': {'@id': 3},
                 }
             },
             '<?xml version=\'1.0\' encoding=\'UTF-8\'?>\n<osmChange><modify id="1"/><modify id="2"><tag k="test" v="zebra"/><tag k="test2" v="zebra2"/></modify><modify/><delete id="3"/></osmChange>',
+        ),
+        (
+            {'root': {'#text': 'text'}},
+            "<?xml version='1.0' encoding='UTF-8'?>\n<root>text</root>",
         ),
     ],
 )
 def test_unparse(input, output):
     assert XMLToDict.unparse(input) == output
+
+
+def test_unparse_xattr():
+    assert (
+        XMLToDict.unparse({'root': {XAttr('test', custom_xml='test_xml'): 'test_value'}})
+        == "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
+    )
 
 
 def test_unparse_invalid_multi_root():

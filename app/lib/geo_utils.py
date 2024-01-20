@@ -133,7 +133,7 @@ def _geom_points(geom: BaseGeometry) -> tuple[tuple[float, float], ...]:
     """
 
     # read property once for performance
-    geom_type: str = geom.type
+    geom_type: str = geom.geom_type
 
     if geom_type == 'Point':
         return ((geom.x, geom.y),)

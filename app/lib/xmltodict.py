@@ -203,8 +203,11 @@ def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
     if isinstance(value, Mapping):
         element = ET.Element(key)
         for k, v in value.items():
-            if k and k[0] == '@':
+            is_k: cython.char = bool(k)
+            if is_k and k[0] == '@':
                 element.attrib[k[1:]] = _to_string(v)
+            elif is_k and k[0] == '#':
+                element.text = _to_string(v)
             elif isinstance(k, XAttr):
                 element.attrib[k.xml] = _to_string(v)
             else:
@@ -219,8 +222,11 @@ def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
             elif isinstance(first, Sequence) and not isinstance(first, str):
                 element = ET.Element(key)
                 for k, v in value:
-                    if k and k[0] == '@':
+                    is_k: cython.char = bool(k)
+                    if is_k and k[0] == '@':
                         element.attrib[k[1:]] = _to_string(v)
+                    elif is_k and k[0] == '#':
+                        element.text = _to_string(v)
                     elif isinstance(k, XAttr):
                         element.attrib[k.xml] = _to_string(v)
                     else:
