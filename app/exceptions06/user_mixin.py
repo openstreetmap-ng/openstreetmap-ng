@@ -2,7 +2,7 @@ from typing import NoReturn, override
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.exceptions.user_mixin import UserExceptionsMixin
 from app.limits import USER_PREF_BULK_SET_LIMIT
 

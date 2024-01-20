@@ -9,8 +9,7 @@ from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry import Point
 
-from app.lib.format06 import Format06
-from app.lib.format06rss import Format06rss
+from app.format06 import Format06, FormatRSS06
 from app.libc.auth_context import api_user
 from app.libc.exceptions_context import raise_for
 from app.libc.format_style_context import format_style
@@ -103,7 +102,7 @@ async def note_read(
         fg.title(t('api.notes.rss.title'))
         fg.subtitle(t('api.notes.rss.description_item').format(id=note_id))
 
-        await Format06rss.encode_notes(fg, notes)
+        await FormatRSS06.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:
@@ -210,7 +209,7 @@ async def notes_feed(
     else:
         fg.subtitle(t('api.notes.rss.description_all'))
 
-    await Format06rss.encode_note_comments(fg, comments)
+    await FormatRSS06.encode_note_comments(fg, comments)
     return fg.rss_str()
 
 
@@ -256,11 +255,11 @@ async def notes_read(
             )
         )
 
-        await Format06rss.encode_notes(fg, notes)
+        await FormatRSS06.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:
-        return Format06.encode_notes(notes)
+        return FormatRSS06.encode_notes(notes)
 
 
 class SearchSort(StrEnum):
@@ -352,7 +351,7 @@ async def notes_query(
         else:
             fg.subtitle(t('api.notes.rss.description_all'))
 
-        await Format06rss.encode_notes(fg, notes)
+        await FormatRSS06.encode_notes(fg, notes)
         return fg.rss_str()
 
     else:

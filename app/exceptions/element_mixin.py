@@ -4,7 +4,7 @@ from typing import NoReturn
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 

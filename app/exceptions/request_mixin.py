@@ -3,7 +3,7 @@ from typing import NoReturn
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 
 
 class RequestExceptionsMixin:

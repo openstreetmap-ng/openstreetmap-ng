@@ -2,7 +2,7 @@ from typing import NoReturn, override
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.exceptions.map_mixin import MapExceptionsMixin
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 

@@ -3,7 +3,7 @@ from typing import NoReturn, override
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.exceptions.auth_mixin import AuthExceptionsMixin
 from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 

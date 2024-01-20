@@ -10,6 +10,8 @@ Options.annotate = True
 
 
 dirs = [
+    'app/format06',
+    'app/format07',
     'app/libc',
 ]
 

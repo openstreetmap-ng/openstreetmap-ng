@@ -2,7 +2,7 @@ from typing import NoReturn, override
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.exceptions.avatar_mixin import AvatarExceptionsMixin
 
 

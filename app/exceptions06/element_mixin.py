@@ -3,7 +3,7 @@ from typing import NoReturn, override
 
 from fastapi import status
 
-from app.exceptions import APIError
+from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
 from app.models.element_type import ElementType
 from app.models.typed_element_ref import TypedElementRef
