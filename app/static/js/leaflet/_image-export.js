@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 
 const maxZoom = 25
-const tileSizePx = 256
+const tileSize = 256
 const optimalExportResolution = 1024
 const earthRadius = 6371000
 const earthCircumference = 40030173 // 2 * Math.PI * EARTH_RADIUS
@@ -30,12 +30,12 @@ export const getOptimalExportParams = (bounds) => {
 
     // Find the zoom level that closest matches the optimal export resolution
     for (let z = 0; z < maxZoom; z++) {
-        const yResolution = tileSizePx * 2 ** z * yProportion
+        const yResolution = tileSize * 2 ** z * yProportion
         if (yResolution < optimalExportResolution * (2 / 3)) continue
         optimalZoom = z
     }
 
-    const optimalEarthResolution = tileSizePx * 2 ** optimalZoom
+    const optimalEarthResolution = tileSize * 2 ** optimalZoom
     const optimalXResolution = optimalEarthResolution * xProportion
     const optimalYResolution = optimalEarthResolution * yProportion
 
@@ -122,17 +122,15 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
     const wrappedMaxEndTileCoords = wrapTileCoords(maxTileCoords.x + 1, maxTileCoords.y + 1, zoom)
     const maxBottomRight = getLatLonFromTileCoords(wrappedMaxEndTileCoords.x, wrappedMaxEndTileCoords.y, zoom)
 
-    const topOffset = Math.round(((maxLat - minTopLeft.lat) / (minBottomRight.lat - minTopLeft.lat)) * tileSizePx)
-    const leftOffset = Math.round(((minLon - minTopLeft.lon) / (minBottomRight.lon - minTopLeft.lon)) * tileSizePx)
-    const bottomOffset = Math.round(
-        ((maxBottomRight.lat - minLat) / (maxBottomRight.lat - maxTopLeft.lat)) * tileSizePx,
-    )
-    const rightOffset = Math.round(((maxBottomRight.lon - maxLon) / (maxBottomRight.lon - maxTopLeft.lon)) * tileSizePx)
+    const topOffset = Math.round(((maxLat - minTopLeft.lat) / (minBottomRight.lat - minTopLeft.lat)) * tileSize)
+    const leftOffset = Math.round(((minLon - minTopLeft.lon) / (minBottomRight.lon - minTopLeft.lon)) * tileSize)
+    const bottomOffset = Math.round(((maxBottomRight.lat - minLat) / (maxBottomRight.lat - maxTopLeft.lat)) * tileSize)
+    const rightOffset = Math.round(((maxBottomRight.lon - maxLon) / (maxBottomRight.lon - maxTopLeft.lon)) * tileSize)
 
     // Create a canvas to draw the tiles on
     const canvas = document.createElement("canvas")
-    canvas.width = (maxTileCoords.x - minTileCoords.x + 1) * tileSizePx - leftOffset - rightOffset
-    canvas.height = (maxTileCoords.y - minTileCoords.y + 1) * tileSizePx - topOffset - bottomOffset
+    canvas.width = (maxTileCoords.x - minTileCoords.x + 1) * tileSize - leftOffset - rightOffset
+    canvas.height = (maxTileCoords.y - minTileCoords.y + 1) * tileSize - topOffset - bottomOffset
     const ctx = canvas.getContext("2d", { alpha: false })
 
     const fetchTilePromise = (x, y) => {
@@ -140,8 +138,8 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
             const img = new Image()
             img.crossOrigin = "anonymous"
             img.onload = () => {
-                const dx = (x - minTileCoords.x) * tileSizePx - leftOffset
-                const dy = (y - minTileCoords.y) * tileSizePx - topOffset
+                const dx = (x - minTileCoords.x) * tileSize - leftOffset
+                const dy = (y - minTileCoords.y) * tileSize - topOffset
                 ctx.drawImage(img, dx, dy)
                 resolve()
             }

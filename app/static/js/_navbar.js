@@ -1,14 +1,23 @@
 import { Tooltip } from "bootstrap"
 import { encodeMapState } from "./_map-utils.js"
+import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
 
 const minEditZoom = 13
-
 const navbar = document.querySelector(".navbar")
+// Don't assume navbar exists in case we ever make it fancy
+
+/**
+ * Map of navbar elements to their base href
+ * @type {Map<HTMLElement, string>}
+ */
 const mapLinksHrefMap = (navbar?.querySelectorAll(".map-link") ?? []).reduce(
     (map, link) => map.set(link, link.getAttribute("href")),
     new Map(),
 )
+
+const remoteEditButton = navbar?.querySelector(".remote-edit")
+if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 
 /**
  * Update the navbar links and current URL hash
@@ -23,8 +32,14 @@ export const updateNavbarAndHash = (state, object = null) => {
     for (const [link, baseHref] of mapLinksHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
         if (isEditLink) {
-            const href = object ? `${baseHref}?${object.type}=${object.id}${hash}` : baseHref + hash
-            link.setAttribute("href", href)
+            // Remote edit button stores information in dataset
+            const isRemoteEditButton = link.classList.contains("remote-edit")
+            if (isRemoteEditButton) {
+                link.dataset.remoteEdit = JSON.stringify({ state, object })
+            } else {
+                const href = object ? `${baseHref}?${object.type}=${object.id}${hash}` : baseHref + hash
+                link.setAttribute("href", href)
+            }
 
             // Enable/disable edit links based on current zoom level
             if (isEditDisabled) {

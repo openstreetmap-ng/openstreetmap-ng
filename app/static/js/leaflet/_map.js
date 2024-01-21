@@ -15,7 +15,7 @@ import { getZoomControl } from "./_zoom.js"
 
 /**
  * Get the main map
- * @param {HTMLElement} container The container element
+ * @param {HTMLDivElement} container The container element
  * @returns {L.Map} The map
  */
 export const getMainMap = (container) => {

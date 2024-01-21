@@ -34,26 +34,8 @@ $(document).ready(function () {
 
     OSM.initializeContextMenu(map)
 
-        OSM.initializeNotes(map)
-        OSM.initializeBrowse(map)
-
-    if (OSM.MATOMO) {
-        map.on("layeradd", function (e) {
-            if (e.layer.options) {
-                var goal = OSM.MATOMO.goals[e.layer.options.keyid]
-
-                if (goal) {
-                    $("body").trigger("matomogoal", goal)
-                }
-            }
-        })
-    }
-
-    $("a[data-editor=remote]").click(function (e) {
-        var params = OSM.mapParams(this.search)
-        remoteEditHandler(map.getBounds(), params.object)
-        e.preventDefault()
-    })
+    OSM.initializeNotes(map)
+    OSM.initializeBrowse(map)
 
     if (OSM.params().edit_help) {
         $("#editanchor")
@@ -144,11 +126,6 @@ $(document).ready(function () {
         "/changeset/:id": OSM.Changeset(map),
         "/query": OSM.Query(map),
     })
-
-    if (OSM.preferred_editor === "remote" && document.location.pathname === "/edit") {
-        remoteEditHandler(map.getBounds(), params.object)
-        OSM.router.setCurrentPath("/")
-    }
 
     OSM.router.load()
 

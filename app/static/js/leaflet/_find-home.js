@@ -5,7 +5,7 @@ import { getMarkerIcon } from "./_utils.js"
 /**
  * Configure the find home button
  * @param {L.Map} map Leaflet map to configure the button for
- * @param {HTMLElement} button The button element
+ * @param {HTMLButtonElement} button The button element
  * @returns {void}
  */
 export const configureFindHomeButton = (map, button) => {
