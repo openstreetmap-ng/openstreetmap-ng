@@ -1,5 +1,3 @@
-from collections.abc import Generator
-
 import cython
 from shapely.geometry import Point, Polygon, shape
 from shapely.ops import BaseGeometry
