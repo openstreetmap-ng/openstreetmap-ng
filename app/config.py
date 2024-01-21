@@ -66,7 +66,7 @@ if not HTTPS_ONLY and not TEST_ENV:
     logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
 
 # Derived configuration
-SECRET_32b = sha256(SECRET.encode()).digest()
+SECRET_32bytes = sha256(SECRET.encode()).digest()
 
 SMTP_SECURE = os.getenv('SMTP_SECURE', '0' if SMTP_PORT == 25 else '1').strip().lower() in ('1', 'true', 'yes')
 SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else ''

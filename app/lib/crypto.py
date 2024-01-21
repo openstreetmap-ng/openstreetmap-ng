@@ -4,9 +4,9 @@ from hashlib import sha256
 from hmac import HMAC
 
 import cython
-from Crypto.Cipher import ChaCha20
+from Cryptodome.Cipher import ChaCha20
 
-from app.config import SECRET_32b
+from app.config import SECRET_32bytes
 
 HASH_SIZE = 32
 
@@ -66,7 +66,7 @@ def encrypt(s: str) -> bytes:
     """
 
     nonce_bytes = secrets.token_bytes(24)
-    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_bytes)
+    cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
     cipher_text_bytes = cipher.encrypt(s.encode())
     return nonce_bytes + cipher_text_bytes
 
@@ -80,5 +80,5 @@ def decrypt(b: bytes) -> str:
 
     nonce_bytes = b[:24]
     cipher_text_bytes = b[24:]
-    cipher = ChaCha20.new(key=SECRET_32b, nonce=nonce_bytes)
+    cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
     return cipher.decrypt(cipher_text_bytes).decode()
