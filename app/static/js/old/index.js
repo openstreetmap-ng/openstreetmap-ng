@@ -50,28 +50,6 @@ if (OSM.params().edit_help) {
     })
 }
 
-OSM.Index = function (map) {
-    var page = {}
-
-    page.pushstate = page.popstate = function () {
-        map.setSidebarOverlaid(true)
-        document.title = I18n.t("layouts.project_name.title")
-    }
-
-    page.load = function () {
-        var params = Qs.parse(location.search.substring(1))
-        if (params.query) {
-            $("#sidebar .search_form input[name=query]").value(params.query)
-        }
-        if (!("autofocus" in document.createElement("input"))) {
-            $("#sidebar .search_form input[name=query]").focus()
-        }
-        return map.getState()
-    }
-
-    return page
-}
-
 OSM.Browse = function (map, type) {
     var page = {}
 
