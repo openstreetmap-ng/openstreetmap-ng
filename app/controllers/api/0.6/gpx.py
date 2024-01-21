@@ -7,9 +7,9 @@ from fastapi.responses import PlainTextResponse
 from httpx import Response
 from pydantic import PositiveInt
 
+from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.format06 import Format06
 from app.lib.joinedload_context import joinedload_context
 from app.lib.tracks import Tracks
 from app.lib.xmltodict import XMLToDict

@@ -1,5 +1,6 @@
 import * as L from "leaflet"
-import { getInitialMapState, setMapState } from "../_map-utils.js"
+import { getInitialMapState, getMapState, parseMapState, setMapState } from "../_map-utils.js"
+import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { getLocateControl } from "./_locate.js"
@@ -53,6 +54,22 @@ export const getMainMap = (container) => {
         }
     }
 
+    // On hash change, update the map view
+    const onHashChange = () => {
+        // TODO: check if no double setMapState triggered
+        console.debug("onHashChange", location.hash)
+        let newState = parseMapState(location.hash)
+
+        // Get the current state if empty/invalid and replace the hash
+        if (!newState) {
+            newState = getMapState(map)
+            updateNavbarAndHash(newState)
+        }
+
+        // Change the map view
+        setMapState(map, newState)
+    }
+
     // On base layer change, limit max zoom and zoom to max if needed
     const onBaseLayerChange = ({ layer }) => {
         const maxZoom = layer.options.maxZoom
@@ -60,8 +77,13 @@ export const getMainMap = (container) => {
         if (map.getZoom() > maxZoom) map.setZoom(maxZoom)
     }
 
+    // On map state change, update the navbar and hash
+    const onMapStateChange = () => updateNavbarAndHash(getMapState(map))
+
     // Listen for events
+    window.addEventListener("hashchange", onHashChange)
     map.addEventListener("baselayerchange", onBaseLayerChange)
+    map.addEventListener("zoomend moveend baselayerchange overlaylayerchange", onMapStateChange)
 
     // TODO: support this on more maps
     // Initialize map state after configuring events

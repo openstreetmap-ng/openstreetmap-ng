@@ -1,28 +1,11 @@
 /**
- * Escape a string for use in a regular expression.
- * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#escaping
- * @param {string} str String to escape
- * @returns {string} Escaped string
- * @example
- * escapeRegExWithoutRoundBrackets("foo.bar()")
- * // => "foo\.bar()"
- */
-const escapeRegExWithoutRoundBrackets = (str) => str.replace(/[.*+?^${}|[\]\\]/g, "\\$&")
-
-/**
  * Create a route object
  * @param {string} path Route path
  * @param {object} controller Controller object
  */
-export const Route = (path, controller) => {
-    const re = new RegExp(
-        // biome-ignore lint/style/useTemplate: String concatenation for readability
-        "^" +
-            escapeRegExWithoutRoundBrackets(path)
-                .replace(/\((.*?)\)/g, "(?:$1)?") // make (segments) optional
-                .replace(/:\w+/g, "([^/]+)") + // make :placeholders match any sequence
-            "(?:\\?.*)?$", // ignore query string
-    )
+export const Route = (pattern, controller) => {
+    // Ignore query string and require exact match
+    const re = new RegExp(`^${pattern}($|\\?)`)
 
     // Return Route object
     return {

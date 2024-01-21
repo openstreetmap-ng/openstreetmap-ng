@@ -17,9 +17,9 @@ class OptimisticDiff:
     def __init__(self, elements: Sequence[Element]) -> None:
         self._elements = elements
 
-    async def update(self) -> dict[TypedElementRef, Sequence[Element]]:
+    async def run(self) -> dict[TypedElementRef, Sequence[Element]]:
         """
-        Perform an optimistic update of the elements.
+        Perform an optimistic diff update of the elements.
 
         Returns a dict, mapping original typed refs to the new elements.
         """

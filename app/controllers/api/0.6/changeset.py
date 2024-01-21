@@ -6,12 +6,11 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
 
+from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.format06 import Format06
 from app.lib.geo_utils import parse_bbox
 from app.lib.joinedload_context import joinedload_context
-from app.lib.optimistic import Optimistic
 from app.lib.xmltodict import XMLToDict
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset import Changeset
@@ -23,10 +22,12 @@ from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
+from app.services.optimistic_diff import OptimisticDiff
 from app.utils import parse_date
 
 router = APIRouter()
 
+# TODO: https://www.openstreetmap.org/history/feed
 # TODO: 0.7 mandatory created_by and comment tags
 
 
@@ -111,7 +112,7 @@ async def changeset_upload(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    assigned_ref_map = await Optimistic(elements).update()
+    assigned_ref_map = await OptimisticDiff(elements).run()
     return Format06.encode_diff_result(assigned_ref_map)
 
 

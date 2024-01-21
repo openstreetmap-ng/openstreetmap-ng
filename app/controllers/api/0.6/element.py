@@ -5,10 +5,9 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
 
+from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.format06 import Format06
-from app.lib.optimistic import Optimistic
 from app.lib.xmltodict import XMLToDict
 from app.models.db.user import User
 from app.models.element_type import ElementType
@@ -16,6 +15,7 @@ from app.models.scope import Scope
 from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
+from app.services.optimistic_diff import OptimisticDiff
 
 # TODO: rate limit
 # TODO: dependency for xml parsing?
@@ -45,7 +45,7 @@ async def element_create(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    assigned_ref_map = await Optimistic([element]).update()
+    assigned_ref_map = await OptimisticDiff([element]).run()
     return next(iter(assigned_ref_map.values()))[0].typed_id
 
 
@@ -105,7 +105,7 @@ async def element_update(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    await Optimistic([element]).update()
+    await OptimisticDiff([element]).run()
     return element.version
 
 
@@ -130,7 +130,7 @@ async def element_delete(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    await Optimistic([element]).update()
+    await OptimisticDiff([element]).run()
     return element.version
 
 

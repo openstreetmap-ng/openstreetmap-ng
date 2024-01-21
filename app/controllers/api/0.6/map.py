@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
+from app.format06 import Format06
 from app.lib.exceptions_context import raise_for
-from app.lib.format06 import Format06
 from app.lib.geo_utils import parse_bbox
 from app.lib.xmltodict import XAttr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
