@@ -9,7 +9,7 @@ import { getMarkerIcon } from "./_utils.js"
  * @returns {void}
  */
 export const configureFindHomeButton = (map, button) => {
-    const [lon, lat] = JSON.parse(homePoint)
+    const [lon, lat] = homePoint
     const latLng = L.latLng(lat, lon)
 
     let marker = null

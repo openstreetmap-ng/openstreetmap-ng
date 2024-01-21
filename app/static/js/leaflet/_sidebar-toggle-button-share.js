@@ -196,16 +196,21 @@ export const getShareSidebarToggleButton = () => {
         }
 
         const onInputCheckedChange = () => {
-            // On sidebar shown, force update
             if (input.checked) {
+                // On sidebar shown, force update
                 onMapZoomOrMoveEnd()
                 onMapZoomOrLayerChange()
             } else {
                 // On sidebar hidden, deselect the marker checkbox
-                // biome-ignore lint/style/useCollapsedElseIf: Readability
                 if (markerCheckbox.checked) {
                     markerCheckbox.checked = false
                     markerCheckbox.dispatchEvent(new Event("change"))
+                }
+
+                // On sidebar hidden, deselect the custom region checkbox
+                if (customRegionCheckbox.checked) {
+                    customRegionCheckbox.checked = false
+                    customRegionCheckbox.dispatchEvent(new Event("change"))
                 }
             }
         }

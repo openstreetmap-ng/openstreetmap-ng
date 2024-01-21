@@ -286,15 +286,14 @@ export const getInitialMapState = (map = null) => {
 
     // 6. Use the user home location
     if (homePoint) {
-        const [lon, lat] = JSON.parse(homePoint)
+        const [lon, lat] = homePoint
         const zoom = 15 // Home zoom defaults to 15
         return { lon, lat, zoom, layersCode: "" }
     }
 
     // 7. Use the user's country bounds
     if (countryBounds) {
-        const bounds = JSON.parse(countryBounds)
-        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bounds)
+        const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
         return { lon, lat, zoom, layersCode: "" }
     }
 

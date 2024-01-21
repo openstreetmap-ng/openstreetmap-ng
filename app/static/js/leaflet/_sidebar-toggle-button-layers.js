@@ -1,5 +1,6 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
+import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_params.js"
 import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getLatLngBoundsSize, getMapBaseLayerId } from "./_utils.js"
@@ -80,8 +81,20 @@ export const getLayersSidebarToggleButton = () => {
             const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
 
             for (const overlayCheckbox of overlayCheckboxes) {
-                const areaMaxSize = overlayCheckbox.dataset.areaMaxSize
-                if (!areaMaxSize) continue // Some overlays are always available
+                const layerId = overlayCheckbox.dataset.layerId
+                let areaMaxSize
+
+                switch (layerId) {
+                    case "notes":
+                        areaMaxSize = noteQueryAreaMaxSize
+                        break
+                    case "data":
+                        areaMaxSize = mapQueryAreaMaxSize
+                        break
+                    default:
+                        // Some overlays are always available
+                        continue
+                }
 
                 const isAvailable = currentViewAreaSize <= areaMaxSize
                 if (isAvailable) {

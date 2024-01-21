@@ -1,5 +1,6 @@
 import { homePoint } from "./_params.js"
 import { Router } from "./_router.js"
+import { getExportController } from "./controllers/_export.js"
 import { getIndexController } from "./controllers/_index.js"
 import { configureActionSidebars } from "./controllers/_utils.js"
 import { configureFindHomeButton } from "./leaflet/_find-home.js"
@@ -17,8 +18,8 @@ if (homePoint) {
 
 const router = Router(
     new Map([
-        ["/", getIndexController()], // TODO: index
-        ["/export", null], // TODO: export
+        ["/", getIndexController()],
+        ["/export", getExportController(map)],
         ["/directions", null], // TODO: directions
         ["/search", null], // TODO: search
         ["/query", null], // TODO: query
