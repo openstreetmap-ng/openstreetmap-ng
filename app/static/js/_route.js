@@ -25,8 +25,8 @@ export const Route = (pattern, controller) => {
          */
         load: (path, options) => {
             // Extract path parameters
-            const pathParams = re.exec(path).map((param, i) => (i > 0 && param ? decodeURIComponent(param) : param))
-            return controller.load(pathParams, options)
+            const matchGroups = re.exec(path).groups
+            return controller.load(matchGroups, options)
         },
 
         /**

@@ -1,0 +1,42 @@
+.action-sidebar {
+    // Style the routing form
+    .routing-form {
+        background: $gray-400;
+
+        // Style the routing marker (contain image and indicate draggable)
+        .routing-marker {
+            cursor: move;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+}
+
+// TODO: hover action
+// TODO: limit navigation updates per sec
+.action-sidebar.routing {
+    // The sprite usage is deprecated.
+    // New icons should be kept separate for ease of maintenance.
+    // TODO: Split the sprite into separate files.
+    @mixin legacy-routing-icon($x, $y) {
+        width: 20px;
+        height: 20px;
+        background: url("/static/img/routing/sprite.webp");
+        background-position: $x $y;
+    }
+
+    @for $i from 0 through 25 {
+        .icon.icon-#{$i} {
+            @include legacy-routing-icon($i * -20px, 0px);
+        }
+    }
+
+    // Style the distance text for each turn
+    .distance {
+        color: $gray-600;
+        font-size: 0.75em;
+        text-align: right;
+        vertical-align: middle;
+    }
+}

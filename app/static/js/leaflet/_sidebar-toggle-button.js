@@ -1,12 +1,18 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 
+/**
+ * Create a sidebar toggle button
+ * @param {string} className Class name of the sidebar
+ * @param {string} tooltipTitle Title of the tooltip
+ * @returns {L.Control} Sidebar toggle button
+ */
 export const getSidebarToggleButton = (className, tooltipTitle) => {
     const control = new L.Control()
 
     control.onAdd = (map) => {
         // Find corresponding sidebar
-        const sidebar = document.querySelector(`.sidebar.leaflet-sidebar.${className}`)
+        const sidebar = document.querySelector(`.leaflet-sidebar.${className}`)
         if (!sidebar) console.error(`Sidebar ${className} not found`)
 
         // Create container

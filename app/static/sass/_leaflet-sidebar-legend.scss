@@ -1,0 +1,9 @@
+// Style the "Map Key" sidebar panel
+.leaflet-sidebar.legend {
+    .icon {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        // TODO: finish styling
+    }
+}

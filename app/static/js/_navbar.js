@@ -11,7 +11,7 @@ const navbar = document.querySelector(".navbar")
  * Map of navbar elements to their base href
  * @type {Map<HTMLElement, string>}
  */
-const mapLinksHrefMap = (navbar?.querySelectorAll(".map-link") ?? []).reduce(
+const mapLinksHrefMap = [...(navbar?.querySelectorAll(".map-link") ?? [])].reduce(
     (map, link) => map.set(link, link.getAttribute("href")),
     new Map(),
 )

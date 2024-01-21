@@ -1,5 +1,7 @@
 import { homePoint } from "./_params.js"
 import { Router } from "./_router.js"
+import { getIndexController } from "./controllers/_index.js"
+import { configureActionSidebars } from "./controllers/_utils.js"
 import { configureFindHomeButton } from "./leaflet/_find-home.js"
 import { getMainMap } from "./leaflet/_map.js"
 
@@ -15,23 +17,18 @@ if (homePoint) {
 
 const router = Router(
     new Map([
-        ["/", null], // TODO: index
+        ["/", getIndexController()], // TODO: index
         ["/export", null], // TODO: export
         ["/directions", null], // TODO: directions
         ["/search", null], // TODO: search
         ["/query", null], // TODO: query
-        ["/history", null], // TODO: history
-        ["/history/nearby", null], // TODO: history
-        ["/history/friends", null], // TODO: history
-        ["/user/(?<display_name>[^/]+)/history", null], // TODO: history
+        ["(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<display_name>[^/]+)/history)", null], // TODO: history
         ["/note/new", null], // TODO: new note
         ["/note/(?<id>\\d+)", null], // TODO: note
-        ["/node/(?<id>\\d+)", null], // TODO: browse
-        ["/node/(?<id>\\d+)/history", null], // TODO: history
-        ["/way/(?<id>\\d+)", null], // TODO: browse
-        ["/way/(?<id>\\d+)/history", null], // TODO: history
-        ["/relation/(?<id>\\d+)", null], // TODO: browse
-        ["/relation/(?<id>\\d+)/history", null], // TODO: history
         ["/changeset/(?<id>\\d+)", null], // TODO: changeset
+        ["/(?<type>node|way|relation)/(?<id>\\d+)", null], // TODO: browse
+        ["/(?<type>node|way|relation)/(?<id>\\d+)/history", null], // TODO: history
     ]),
 )
+
+configureActionSidebars(router)

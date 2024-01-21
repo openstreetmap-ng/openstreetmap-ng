@@ -1,0 +1,13 @@
+.action-sidebar {
+    // Style the search form
+    .search-form {
+        background: $gray-400;
+
+        // Overlay the where-is-this button on the input
+        .where-is-this {
+            position: absolute;
+            right: 0;
+            font-size: 0.625em;
+        }
+    }
+}

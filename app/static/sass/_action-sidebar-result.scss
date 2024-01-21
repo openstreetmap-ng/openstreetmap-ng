@@ -1,0 +1,20 @@
+.action-sidebar {
+    // Style generic result actions (clickable) in the sidebar
+    // (search results, changesets, etc.)
+    .result-action {
+        cursor: pointer;
+
+        &:hover {
+            background: $list-highlight;
+        }
+
+        // Style the comments icon in changesets
+        .comments {
+            color: $secondary;
+
+            &.no-comments {
+                opacity: 0.5;
+            }
+        }
+    }
+}
