@@ -1,0 +1,15 @@
+# Messages for Taroko (Seediq)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+trv:
+  diary_entries:
+    location:
+      view: Qmita
+  layouts:
+    history: Endaan
+    about: Quri
+  site:
+    search:
+      search: Miying
+...

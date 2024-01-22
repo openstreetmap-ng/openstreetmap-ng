@@ -1,0 +1,178 @@
+# Messages for Campidanese Sardinian (sardu campidanesu)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: F Samaritani
+# Author: Jaime Sulas
+# Author: Larentzu
+---
+sro:
+  time:
+    formats:
+      friendly: '%e %B %Y a is %H:%M'
+  helpers:
+    file:
+      prompt: Scèbera file
+    submit:
+      diary_comment:
+        create: Sarva
+      diary_entry:
+        create: Pùblica
+        update: Agiorna
+      issue_comment:
+        create: Aciungi cumentu
+      message:
+        create: Imbia
+      client_application:
+        create: Registradì
+        update: Agiorna
+      oauth2_application:
+        create: Registradì
+        update: Agiorna
+      trace:
+        create: Càrriga
+        update: Sarva is modìficas
+      user_block:
+        create: Crea unu blocu
+        update: Agiorna su blocu
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: no parit essi unu indirìtzu de curreu eletrònicu vàlidu
+        email_address_not_routable: no si podit ponni a bia
+    models:
+      changeset: Truma de modìficas
+      country: Stadu
+      diary_comment: Cumentu in su diàriu
+      diary_entry: Boxi de su diàriu
+      friend: Amigu
+      issue: Chistioni
+      language: Lìngua
+      message: Messàgiu
+      node: Nodu
+      old_node: Nodu bèciu
+      old_relation: Arrelata bècia
+      old_way: Caminu bèciu
+      old_way_node: Nodu bèciu de su caminu
+      relation: Arrelata
+      relation_member: Membru de s'arrelata
+      user: Impreadori
+    attributes:
+      client_application:
+        name: Nòmini (cumandau)
+        allow_write_api: modìfica sa mapa
+      diary_comment:
+        body: Corpus
+      diary_entry:
+        user: Impreadori
+        latitude: Latitùdini
+        longitude: Longitùdini
+        language_code: Lìngua
+      doorkeeper/application:
+        name: Nòmini
+      friend:
+        user: Impreadori
+        friend: Amigu
+      trace:
+        user: Impreadori
+        latitude: Latitùdini
+        longitude: Longitùdini
+        public: Pùbricu
+        description: Descridura
+        gpx_file: Càrriga file GPX
+      message:
+        body: Corpus
+      redaction:
+        title: Tìtulu
+        description: Descridura
+      report:
+        category: Poni s'arraxoni po ai sinnalau
+      user:
+        email: Curreu eletrònicu
+        email_confirmation: Cunfirma de su curreu eletrònicu
+        new_email: Indiritzu nou de su curreu eletrònicu
+        home_lat: Latitùdini
+        home_lon: Longitùdini
+        pass_crypt: Password
+        pass_crypt_confirmation: Cunfirma sa password
+  auth:
+    providers:
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Wikipedia
+  api:
+    notes:
+      rss:
+        title: Notas de OpenStreetMap
+      entry:
+        comment: Cumentu
+  account:
+    deletions:
+      show:
+        confirm_delete: Seguru ses?
+        cancel: Annudda
+  accounts:
+    edit:
+      title: Muda perfilu
+      my settings: Impostatzionis
+      openid:
+        link text: it'est custu?
+      public editing:
+        enabled link text: it'est custu?
+        disabled link text: poita no potzu fai mudàntzias?
+      contributor terms:
+        heading: Arrègulas po contribuiri
+        link text: it'est custu?
+      save changes button: Sarva is mudàntzias
+  browse:
+    version: Versioni
+    location: 'Localisadura:'
+    changeset:
+      belongs_to: Autori
+    query:
+      nearby: Elementus innoi acanta
+  changesets:
+    changeset_paging_nav:
+      showing_page: Pàgina %{page}
+      next: Su chi sighit »
+      previous: « Su de innantis
+    changeset:
+      anonymous: Anònimu
+    changesets:
+      user: Impreadori
+  dashboards:
+    popup:
+      nearby mapper: Mapadori acanta
+      friend: Amigu
+    show:
+      title: Sa schermada mia
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          cafe: Cafeteria
+          clock: Arrelògiu
+          grave_yard: Campusantu
+          hospital: Spidali
+          library: Biblioteca
+          monastery: Monastèriu
+          parking: Parchègiu
+          parking_entrance: Intrada de su parchègiu
+          pharmacy: Potecaria
+          place_of_worship: Logu de cultu
+          police: Politzia
+          prison: Presoni
+          pub: Tzilleri irlandesu
+          public_bath: Còmodu pùbricu
+          public_bookcase: Libreria pùbrica
+          public_building: Fàbricu pùbricu
+          school: Scola
+          toilets: Aposentus de còmodu
+          townhall: Domu comunali
+          university: Universidadi
+        boundary:
+          "yes": Làcana
+        building:
+          chapel: Capella
+          church: Crèsia
+...

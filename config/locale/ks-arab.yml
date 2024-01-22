@@ -1,0 +1,19 @@
+# Messages for Kashmiri (Arabic script) (کٲشُر)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Iflaq
+# Author: Tajamul9
+---
+ks-arab:
+  html:
+    dir: rtl
+  site:
+    help:
+      community:
+        title: کٕمیٖٹی فارَم
+    welcome:
+      basic_terms:
+        editor: اؠڈِٹَر
+        tag: ٹیگ
+...

@@ -1,0 +1,9 @@
+# Messages for Kazakh (Arabic script) (قازاقشا (تٴوتە))
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+kk-arab:
+  html:
+    dir: rtl
+...

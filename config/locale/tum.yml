@@ -1,0 +1,19 @@
+# Messages for Tumbuka (chiTumbuka)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Tumbuka Arch
+---
+tum:
+  helpers:
+    file:
+      prompt: Sankhani chinthu
+    submit:
+      diary_comment:
+        create: Ganizo
+      diary_entry:
+        create: Chapiska
+      message:
+        create: Tuma
+      client_application:
+        create: Lembeska
+...

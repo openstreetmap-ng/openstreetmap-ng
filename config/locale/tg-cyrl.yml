@@ -1,0 +1,239 @@
+# Messages for Tajik (Cyrillic script) (тоҷикӣ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: ToJack
+# Author: Vashgird
+---
+tg-cyrl:
+  time:
+    formats:
+      friendly: '%e %B %Y дар %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: Захира
+      diary_entry:
+        create: Нашр
+        update: Азнав бор кардан
+      issue_comment:
+        create: Иловаи шарҳ
+      message:
+        create: Фиристодан
+      client_application:
+        create: Регистр
+        update: Вироиш
+      redaction:
+        create: Эҷоди тағйирот
+        update: Захираи тағйирот
+      trace:
+        create: Боркунӣ
+        update: Захиракунии тағйирот
+      user_block:
+        create: Эҷоди масдудӣ
+        update: Азнавсозии масдудӣ
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: зоҳиран имайли муътабаре ворид накардаед
+        email_address_not_routable: қобили масирёбӣ нест
+    models:
+      acl: Феҳристи контроли дастрасият
+      changeset: Тағйиротҳо
+      changeset_tag: Барчаспи тағйироти анчомшуда
+      country: Даалат
+      diary_comment: Назар ба рӯзнавишт
+      friend: Дӯст
+      language: Забон
+      message: Паём
+      old_way: Роҳи пешина
+      user: Корбар
+      user_token: Токени корбар
+      way: Роҳ
+    attributes:
+      diary_entry:
+        user: Корбар
+        language_code: Забон
+      friend:
+        user: Корбар
+        friend: Дӯст
+      trace:
+        user: Корбар
+        visible: Намоён
+        name: Номи файл
+        size: Андоза
+        latitude: Арзи ҷуғрофӣ
+        longitude: Тӯли ҷуғрофӣ
+        public: Нашрӣ
+        description: Тавсифот
+      message:
+        title: Олот
+        body: Бадан
+      user:
+        email: Почтаи электронӣ
+        active: Фаъол
+        description: Тавсифот
+        languages: Забонҳо
+        pass_crypt: Гузарвожа
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: оиди 1 соат қабл
+        other: оиди %{count} соат пеш
+  api:
+    notes:
+      comment:
+        opened_at_html: Эҷодшуда %{when}
+        opened_at_by_html: Эҷодшуда %{when} аз тарафи %{user}
+      rss:
+        title: Навиштаҳои OpenSreetMap
+      entry:
+        comment: Шарҳ
+        full: Навиштании пурра
+  browse:
+    created: Эҷод шуд
+    closed: Пӯшида
+    version: Нусха
+    anonymous: гумном
+    no_comment: (бе шарҳ)
+    part_of: Қисме аз
+    view_history: Дидани таърих
+    view_details: Дидани деталҳо
+    location: 'Мавқеъ:'
+    changeset:
+      belongs_to: Муаллиф
+      join_discussion: Вуруд шудан барои баҳснамоӣ
+      discussion: Баҳс
+    relation_member:
+      type:
+        way: Роҳ
+    not_found:
+      type:
+        way: роҳ
+    start_rjs:
+      loading: Дар ҳоли бор шудан…
+    tag_details:
+      wikidata_link: Унсури %{page} дар Викидода
+  changesets:
+    changeset_paging_nav:
+      next: Баъдӣ »
+      previous: « Қаблӣ
+    changeset:
+      anonymous: Аноним
+    changesets:
+      user: Корбар
+      comment: Шарҳ
+      area: Минтақа
+    index:
+      load_more: Мутолиаи бештар
+  dashboards:
+    contact:
+      latest_edit_html: 'Охирин виоиш (%{ago}):'
+  diary_entries:
+    form:
+      location: 'Мавқеъ:'
+      use_map_link: истифодаи харита
+    show:
+      login: Вуруд ба систем
+    location:
+      location: 'Мавқеъ:'
+      view: Дидан
+      edit: Вироиш
+    comments:
+      when: Кай
+      comment: Шарҳ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: Аэродром
+          runway: Роҳи гузаштан
+          taxiway: Роҳи таксӣ
+          terminal: Терминал
+        amenity:
+          atm: Банкомат
+          bank: Бонк
+          bar: Бар
+          cafe: Қаҳвахона
+          car_wash: Шустушӯи мошинҳо
+          casino: Казино
+          cinema: Синамо
+          clinic: Беморхона (клиника)
+          college: Коллеҷ
+          doctors: Табибон
+          fast_food: Тезтайёр
+          hospital: Беморхонаи госпиталӣ
+          ice_cream: Яхмос
+          kindergarten: Майдончаи бозии кӯдакон
+          library: Китобхона
+          nightclub: Клуби шабона
+          police: Полис
+          post_box: Қуттии почта
+          post_office: Маркази почта
+          public_building: Бинои истиқоматӣ
+          restaurant: Тарабхона
+          school: Мактаб
+          social_centre: Маркази иҷтимоӣ
+          studio: Студия
+          swimming_pool: Басейн
+          taxi: Такси
+          theatre: Театр
+          toilets: Ҳоҷатхона
+          university: Донишгоҳ
+        boundary:
+          national_park: Парки миллӣ
+          protected_area: Минтақаи ҳифзшуда
+        man_made:
+          tower: Бино
+          watermill: Осиёби обӣ
+          water_tower: Бинои об
+          water_well: Хуб
+          water_works: Обанбор
+          windmill: Осёби бодӣ
+          works: Фабрика
+          "yes": Дастӣ-иҷрошуда
+        military:
+          airfield: Фурӯдгоҳи низомӣ
+          barracks: Подагон
+          bunker: Бункер
+          "yes": Низомӣ
+        mountain_pass:
+          "yes": Гардана
+        place:
+          postcode: Нишонаи почта
+        shop:
+          books: Мағозаи китоб
+        waterway:
+          canal: Канал
+          river: Дарё
+  reports:
+    new:
+      categories:
+        user:
+          other_label: Ғайра
+        note:
+          other_label: Ғайра
+  messages:
+    messages_table:
+      from: аз
+    sent_message_summary:
+      destroy_button: Ҳазф кардан
+  site:
+    help:
+      welcome:
+        title: Хуш омадед ба ХаритаиКушодаиКӯча
+      help:
+        title: Кумак дар Форум
+    search:
+      search: Ҷустуҷӯ
+  traces:
+    edit:
+      cancel: Пӯшидан
+  user_blocks:
+    helper:
+      time_past_html: Тамом шуд %{time}
+  notes:
+    show:
+      description: Тавзеҳот
+    new:
+      title: Навиштании ҷадиде
+...

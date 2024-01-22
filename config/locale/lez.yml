@@ -1,0 +1,31 @@
+# Messages for Lezghian (лезги)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Lezgia
+# Author: Namik
+# Author: Soul Train
+# Author: Vago
+---
+lez:
+  time:
+    formats:
+      friendly: '%e %B %Y идаз %H:%M'
+  activerecord:
+    models:
+      changeset: Расунин кӀepeтӀ
+      changeset_tag: Тейг расунин кӀepeтӀ
+      country: Гьукумат
+      diary_comment: Веревирд журналдик
+      friend: Гъали
+      language: Чlал
+      message: Хъагъаз
+      node: ТӀенкъ
+      node_tag: Тейг тlекъинин
+      old_node: ЦӀуру тӀeнкъ
+      user: Иштиракчи
+    attributes:
+      diary_entry:
+        user: Иштиракчи
+  layouts:
+    history: Тарих
+...

@@ -1,0 +1,15 @@
+# Messages for Aragonese (aragonés)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Fitoschido
+---
+an:
+  layouts:
+    about: Quanto a
+  traces:
+    show:
+      edit: edición
+  users:
+    show:
+      edits: edicions
+...

@@ -1,0 +1,16 @@
+# Messages for Tigre (ትግራይት‎)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Bbeshir
+---
+tig:
+  site:
+    key:
+      table:
+        entry:
+          train: ባቡር
+          wood: ዕጨይ
+          grass: ሳዓር
+          hospital: ሙስተሽፋ
+          stop: ብጠር
+...

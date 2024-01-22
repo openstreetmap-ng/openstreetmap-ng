@@ -1,0 +1,14 @@
+# Messages for Guianan Creole (kriyòl gwiyannen)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: LeGuyanaisPure
+# Author: Léon973
+---
+gcr:
+  activerecord:
+    attributes:
+      user:
+        languages: Lanng
+  layouts:
+    community: Kouminoté
+...

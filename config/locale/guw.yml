@@ -1,0 +1,94 @@
+# Messages for Gun (gungbe)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Anthonymodec
+# Author: Hunpatinjob
+# Author: Misteld
+# Author: Samatics
+---
+guw:
+  helpers:
+    submit:
+      oauth2_application:
+        create: Ze yinkọ dai
+        update: Hen je dogbo
+  activerecord:
+    attributes:
+      doorkeeper/application:
+        name: Yinkọ
+        scopes: Nagbè
+    help:
+      doorkeeper/application:
+        redirect_uri: Zan hukan dopo na URI
+  doorkeeper:
+    flash:
+      applications:
+        create:
+          notice: Azonwanu zeyinkodayi
+  traces:
+    index:
+      all_traces: Afodidona lẹ
+      my_traces: Afodidona sie
+      remove_tag_filter: De hia adavo
+  application:
+    settings_menu:
+      oauth1_settings: OAuth 1 tito
+      oauth2_applications: OAuth 2 azonawnu
+      oauth2_authorizations: OAuth 2 na gbedide
+  oauth:
+    scopes:
+      read_prefs: Hia meyinwana nuyisan ton
+      write_prefs: Diodo nuyizanto meyinwana
+      write_api: Diodo yedewe lo
+      read_gpx: Hia meton titi GPS afodona
+      write_notes: Diokadayi
+  oauth2_applications:
+    index:
+      title: Nuyizan ahisino se ton
+      new: Zeyinko dayi na azonwanu yoyo
+      name: Yinkọ
+      permissions: Nagbè
+    application:
+      edit: Jlado
+      delete: Sunsunsẹ
+      confirm_delete: Sunsun nuzizan
+    new:
+      title: Zeyinko dayi nah azonwanu yotoyo
+    edit:
+      title: Basi vojlado nuyizanto towe ton
+    show:
+      edit: Jlado
+      delete: Sunsunsẹ
+      confirm_delete: Sunsun nuzizan ehe?
+      client_id: Ahisino ID
+      client_secret: Asli ahisino ton
+      permissions: Nagbè
+      redirect_uris: Vo anade na URIs
+    not_found:
+      sorry: Jaale, azonwanu hene masogan yin mimo
+  oauth2_authorizations:
+    new:
+      title: Gbedide yin bobio
+      introduction: Na gbedide%{application} nado bio akwesedoten towe po alokeyi
+        he bodego he le po
+      authorize: Na gbedide
+      deny: Gbe dai
+    error:
+      title: Nusiwa kosoawu hia
+    show:
+      title: Gbedide koodu ton
+  oauth2_authorized_applications:
+    index:
+      title: Gbedide azonwanu se ton
+      application: Azon wanu
+      permissions: Nagbè
+      no_applications_html: Ama ko na gbedide na azonwanu %{oauth2}depope ton
+    application:
+      revoke: Donnugbon alokeyi
+      confirm_revoke: Donnugbon alokeyi na azonwanu ehe?
+  users:
+    terms_declined_flash:
+      terms_declined_link: Ada wiki ton ehe
+    suspended:
+      support: Nogodona
+...

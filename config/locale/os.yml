@@ -1,0 +1,30 @@
+# Messages for Ossetic (ирон)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Amikeco
+---
+os:
+  helpers:
+    submit:
+      client_application:
+        update: Баив
+  activerecord:
+    models:
+      country: Бæстæ
+      friend: Æмбал
+      language: Æвзаг
+      user: Архайæг
+    attributes:
+      diary_entry:
+        user: Архайæг
+      trace:
+        user: Архайæг
+        name: Ном
+      message:
+        title: Сæргонд
+      user:
+        email: Эл. посты адрис
+        description: Афыст
+        languages: Æвзæгтæ
+        pass_crypt: Пароль
+...

@@ -1,0 +1,30 @@
+# Messages for Emilian (emiliano)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: LvdT
+---
+egl:
+  activerecord:
+    models:
+      friend: Amîg
+      language: Léngua
+      user: Utèint
+    attributes:
+      diary_entry:
+        user: Utèint
+        language_code: Léngua
+      friend:
+        user: Utèint
+        friend: Amîg
+      trace:
+        user: Utèint
+      user:
+        languages: Léngui
+  editor:
+    id:
+      name: iD
+  browse:
+    changeset:
+      belongs_to: Autôr
+      discussion: Discusiòun
+...

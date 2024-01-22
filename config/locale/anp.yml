@@ -1,0 +1,11 @@
+# Messages for Angika (अंगिका)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Proabscorp!
+---
+anp:
+  javascripts:
+    changesets:
+      show:
+        hide_comment: नुकाबौ
+...

@@ -1,0 +1,110 @@
+# Messages for Mazanderani (مازِرونی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: فیروز
+# Author: محک
+---
+mzn:
+  html:
+    dir: rtl
+  time:
+    formats:
+      friendly: '%e %B %Y ساعت %H:%M'
+  helpers:
+    submit:
+      client_application:
+        update: دچی‌ین
+      trace:
+        create: باربی‌یشتن
+  activerecord:
+    models:
+      changeset: مجموعه تغییرات
+      country: کِشور
+    attributes:
+      diary_entry:
+        latitude: جوغرافیایی عرض
+        longitude: جوغرافیایی طول
+        language_code: زوون
+      friend:
+        user: کاربر
+        friend: رَفِخ
+      trace:
+        user: کارور
+        name: نـوم
+        size: قایده
+        latitude: جوغرافیایی عرض
+        longitude: جوغرافیایی طول
+  diary_entries:
+    location:
+      edit: دچی‌ین
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          atm: شه‌پیل‌ده
+          brothel: لَم‌پشت
+          townhall: شهرداری
+          waste_basket: آشخال‌دون
+        landuse:
+          railway: ریل
+        natural:
+          coastline: دریو کینار
+          volcano: تَش‌فیشون
+        place:
+          farm: باغ
+        shop:
+          books: کتاب بروتن جاء
+          kiosk: تلفون خِنِه
+          supermarket: دوکـّون
+  layouts:
+    edit: دچی‌ین
+  user_mailer:
+    diary_comment_notification:
+      hi: سِلام %{to_user} ،
+    friendship_notification:
+      befriend_them: You can also add them as a friend at %{befriendurl}.
+    email_confirm:
+      greeting: سِلام ،
+    lost_password:
+      greeting: سِلام ،
+  messages:
+    messages_table:
+      from: جه
+      to: به
+  profiles:
+    edit:
+      image: 'هارشا :'
+  sessions:
+    new:
+      title: ده‌لـه بـوری
+      login_button: دله بوردن
+  site:
+    index:
+      permalink: بموندستنی لینک
+    help:
+      welcome:
+        url: /خش بمونی
+    key:
+      table:
+        entry:
+          motorway: اوتوبون
+          trunk: گت راه
+          forest: جِنگِل
+          cemetery: قبرستون
+          school: مدرسه
+          university: دانشگا
+    welcome:
+      title: خش بمونی!
+  traces:
+    show:
+      edit: دچی‌ین
+    trace:
+      edit_map: نخشه ره دچی‌ین
+  user_blocks:
+    show:
+      edit: دچی‌ین
+  notes:
+    index:
+      no_notes: بی یادداشت
+...

@@ -1,0 +1,27 @@
+# Messages for الحسانية (الحسانية)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Tidsaleh
+---
+mey:
+  time:
+    formats:
+      friendly: '%e %B %Y ف %H:%M'
+  activerecord:
+    attributes:
+      client_application:
+        name: الاسم (فرص)
+      doorkeeper/application:
+        name: الاسم
+      friend:
+        user: المستخدم
+      trace:
+        user: المستخدم
+  errors:
+    contact:
+      contact: إتصال
+  javascripts:
+    directions:
+      distance_m: '%{distance} م'
+      distance_km: '%{distance} كم'
+...

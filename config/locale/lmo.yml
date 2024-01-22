@@ -1,0 +1,33 @@
+# Messages for Lombard (lombard)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Salvemm el lombard
+---
+lmo:
+  diary_entries:
+    form:
+      location: Posizzion
+      use_map_link: Dovra la mappa
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        highway:
+          turning_circle: Voltada
+  shared:
+    markdown_help:
+      headings: Intestazzion
+      heading: Intestazzion
+      subheading: Sot-intestazzion
+      unordered: Lista minga in ordin
+      ordered: Lista in ordin
+      first: Prim element
+      second: segond element
+      link: Conligament
+      text: Test
+      image: Imagin
+      alt: Test in scambi
+      url: URL
+    richtext_field:
+      edit: Fà un cambiament
+      preview: Veduda antecipada
+...

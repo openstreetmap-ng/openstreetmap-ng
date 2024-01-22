@@ -1,0 +1,249 @@
+# Messages for Manipuri (ꯃꯤꯇꯩ ꯂꯣꯟ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Awangba Mangang
+# Author: Luwangcha
+# Author: ꯴꯰꯴
+---
+mni:
+  helpers:
+    submit:
+      diary_comment:
+        create: ꯇꯨꯡꯁꯤꯟꯕ
+      diary_entry:
+        create: ꯐꯣꯡꯗꯣꯛꯄ
+        update: ꯅꯧꯊꯣꯛꯍꯟꯕ
+      issue_comment:
+        create: ꯀꯃꯦꯟ ꯍꯥꯞꯆꯤꯟꯂꯨ
+      message:
+        create: ꯊꯥꯈꯣ
+      client_application:
+        create: ꯃꯤꯡ ꯆꯟꯁꯤꯟꯕ
+        update: ꯁꯦꯝꯒꯠꯄ
+      trace:
+        create: ꯊꯥꯒꯠꯂꯨ
+        update: ꯑꯍꯣꯡꯕꯗꯨ ꯇꯨꯡꯁꯤꯟꯂꯨ
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: ꯏꯃꯦꯜꯁꯤ ꯍꯧꯖꯤꯛ ꯌꯥꯗꯔꯦ
+        email_address_not_routable: ꯃꯁꯤ ꯆꯠꯄ ꯌꯥꯕ ꯂꯝꯕꯤ ꯑꯣꯏꯗꯔꯦ
+    models:
+      country: ꯂꯩꯄꯥꯛ
+      diary_comment: ꯗꯥꯏꯔꯤꯒꯤ ꯀꯃꯦꯟ
+      friend: ꯏꯃꯥꯟꯅꯕ
+      language: ꯂꯣꯟ
+      message: ꯄꯥꯎꯖꯦꯜ
+      old_way: ꯑꯔꯤꯕ ꯂꯝꯕꯤ
+      relation: ꯃꯔꯤꯂꯩꯅꯕ
+      user: ꯁꯤꯖꯤꯟꯅꯔꯤꯕ
+      way: ꯂꯝꯕꯤ
+    attributes:
+      diary_comment:
+        body: ꯃꯁꯥ
+      diary_entry:
+        user: ꯁꯤꯖꯤꯟꯅꯔꯤꯕ
+        title: ꯍꯤꯔꯝ
+        latitude: ꯃꯔꯥꯛ
+        longitude: ꯃꯌꯨꯡ
+        language_code: ꯂꯣꯟ
+      friend:
+        user: ꯁꯤꯖꯤꯟꯅꯔꯤꯕ
+        friend: ꯏꯃꯥꯟꯅꯕ
+      trace:
+        user: ꯁꯤꯖꯤꯟꯅꯔꯤꯕ
+        visible: ꯎꯕ ꯌꯥꯕꯥ
+        name: ꯃꯃꯤꯡ
+        size: ꯆꯥꯎꯕꯒꯤ ꯆꯥꯡ
+        latitude: ꯃꯔꯥꯛ
+        longitude: ꯃꯌꯨꯡ
+        public: ꯃꯌꯥꯝꯄꯨꯝꯕꯒꯤ
+        description: ꯁꯟꯗꯣꯛꯅꯥ ꯇꯥꯛꯄꯥ
+      message:
+        sender: ꯊꯥꯔꯤꯕ
+        title: ꯍꯤꯔꯝ
+        body: ꯃꯁꯥ
+        recipient: ꯐꯪꯖꯕ
+      user:
+        email: ꯏ-ꯃꯦꯜ
+        active: ꯏꯆꯪ ꯊꯧꯕ
+        display_name: ꯎꯨꯠꯅꯕ ꯃꯃꯤꯡ
+        description: ꯁꯟꯗꯣꯛꯅꯥ ꯇꯥꯛꯄꯥ
+        languages: ꯂꯣꯟꯁꯤꯡ
+        pass_crypt: ꯆꯪꯁꯤꯟꯅꯕꯥ ꯋꯥꯍꯩ
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: ꯆꯥꯎꯔꯥꯛꯅ ꯄꯨꯡ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯆꯥꯎꯔꯥꯛꯅ ꯄꯨꯡ %{count} ꯍꯧꯈꯔꯦ
+      about_x_months:
+        one: ꯆꯥꯎꯔꯥꯛꯅ ꯊꯥ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯆꯥꯎꯔꯥꯛꯅ ꯊꯥ %{count} ꯍꯧꯈꯔꯦ
+      about_x_years:
+        one: ꯆꯥꯎꯔꯥꯛꯅ ꯆꯩꯍꯤ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯆꯥꯎꯔꯥꯛꯅ ꯆꯩꯍꯤ %{count} ꯍꯧꯈꯔꯦ
+      almost_x_years:
+        one: ꯌꯥꯝꯃꯕꯗ ꯆꯩꯍꯤ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯌꯥꯝꯃꯕꯗ ꯆꯩꯍꯤ %{count} ꯍꯧꯈꯔꯦ
+      half_a_minute: ꯃꯤꯅꯨꯠ ꯱ ꯇꯪꯈꯥꯏ ꯍꯧꯈꯔꯦ
+      less_than_x_seconds:
+        one: ꯁꯦꯀꯦꯟ ꯱ꯗꯒꯤ ꯇꯥꯊꯅ ꯍꯧꯈꯔꯦ
+        other: ꯁꯦꯀꯦꯟ %{count}ꯗꯒꯤ ꯇꯥꯊꯅ ꯍꯧꯈꯔꯦ
+      less_than_x_minutes:
+        one: ꯃꯤꯅꯨꯠ ꯱ꯗꯒꯤ ꯇꯥꯊꯅ ꯍꯧꯈꯔꯦ
+        other: ꯃꯤꯅꯨꯠ %{count}ꯗꯒꯤ ꯇꯥꯊꯅ ꯍꯧꯈꯔꯦ
+      over_x_years:
+        one: ꯆꯩꯍꯤ ꯱ꯒꯤ ꯃꯊꯛꯇ ꯍꯧꯈꯔꯦ
+        other: ꯆꯩꯍꯤ %{count}ꯒꯤ ꯃꯊꯛꯇ ꯍꯧꯈꯔꯦ
+      x_seconds:
+        one: ꯁꯦꯀꯦꯟ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯁꯦꯀꯦꯟ %{count} ꯍꯧꯈꯔꯦ
+      x_minutes:
+        one: ꯃꯤꯅꯨꯠ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯃꯤꯅꯨꯠ %{count} ꯍꯧꯈꯔꯦ
+      x_days:
+        one: ꯅꯨꯃꯤꯠ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯅꯨꯃꯤꯠ %{count} ꯍꯧꯈꯔꯦ
+      x_months:
+        one: ꯊꯥ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯊꯥ %{count} ꯍꯧꯈꯔꯦ
+      x_years:
+        one: ꯆꯩꯍꯤ ꯱ ꯍꯧꯈꯔꯦ
+        other: ꯆꯩꯍꯤ %{count} ꯍꯧꯈꯔꯦ
+  editor:
+    default: ꯱ ꯍꯦꯛꯇ (ꯍꯧꯖꯤꯛꯀꯤ %{name})
+    id:
+      name: ꯁꯛꯇꯥꯛ
+      description: ꯁꯛꯇꯥꯛ
+  auth:
+    providers:
+      none: ꯑꯃꯇꯥ ꯂꯩꯇꯕ
+      openid: ꯍꯥꯡꯗꯣꯛꯄ ꯑꯥꯏꯗꯤ
+      google: ꯒꯨꯒꯜ
+      facebook: ꯐꯦꯁꯕꯨꯛ
+      github: ꯒꯤꯠꯍꯨꯕ
+      wikipedia: ꯋꯤꯀꯤꯄꯦꯗꯤꯌꯥ
+  api:
+    notes:
+      comment:
+        opened_at_html: '%{when}ꯗ ꯁꯥꯈꯔꯦ'
+        opened_at_by_html: '%{user}ꯅ %{when}ꯗ ꯁꯥꯈꯔꯦ'
+        commented_at_html: '%{when}ꯗ ꯅꯧꯊꯣꯛꯍꯟꯂꯦ'
+        commented_at_by_html: '%{user}ꯅ %{when}ꯗ ꯅꯧꯊꯣꯛꯍꯟꯈꯔꯦ'
+        closed_at_html: '%{when}ꯗ ꯌꯥꯅꯈꯔꯦ'
+        closed_at_by_html: '%{user}ꯅ %{when}ꯗ ꯌꯥꯅꯈꯔꯦ'
+        reopened_at_html: '%{when}ꯗ ꯑꯃꯨꯛꯍꯟꯅ ꯑꯦꯛꯇꯤꯚꯦꯠ ꯇꯧꯔꯦ'
+      entry:
+        comment: ꯑꯄꯥꯝꯕꯥ ꯐꯣꯡꯗꯣꯛ ꯎ
+  browse:
+    created: ꯁꯥꯈꯔꯦ
+    closed: ꯈꯨꯝꯖꯤꯟꯕꯥ
+    version: ꯑꯋꯥꯡꯕꯥ
+    in_changeset: ꯑꯍꯣꯡꯕ ꯁꯦꯝꯈꯔꯦ
+    anonymous: ꯃꯤꯁꯛ ꯈꯪꯗꯕ
+    no_comment: ꯑꯄꯥꯃꯕ ꯐꯣꯡꯗꯣꯛꯄ ꯂꯩꯇꯦ
+    part_of: ꯃꯃꯇꯦꯛ ꯱ꯒꯤ
+    download_xml: ꯆꯤꯡꯊꯕ xml
+    view_history: ꯄꯨꯋꯥꯔꯤ ꯎꯠꯂꯨ
+    view_details: ꯑꯀꯨꯞꯄ ꯋꯥꯔꯣꯟ ꯎꯠꯂꯨ
+    location: ꯃꯐꯝ
+    changeset:
+      belongs_to: ꯄꯨꯊꯣꯛꯂꯤꯕ ꯃꯤ
+      discussion: ꯈꯟꯅ ꯅꯩꯅꯕ
+    relation:
+      members: ꯊꯧꯃꯤꯁꯤꯡ
+    relation_member:
+      entry_role_html: '%{type} %{name} ꯑꯁꯤ ꯑꯣꯏꯅꯥ %{role}'
+      type:
+        way: ꯂꯝꯕꯤ
+        relation: ꯃꯔꯤꯂꯩꯅꯕ
+    containing_relation:
+      entry_html: ꯃꯔꯤꯂꯩꯅꯕ %{relation_name}
+      entry_role_html: ꯃꯔꯤꯂꯩꯅꯕ %{relation_name} (%{relation_role} ꯑꯁꯨꯃꯥꯏꯅꯥ)
+    not_found:
+      type:
+        way: ꯂꯝꯕꯤ
+        relation: ꯃꯔꯤꯂꯩꯅꯕ
+        changeset: ꯑꯍꯣꯡꯕ ꯁꯦꯝꯈꯔꯦ
+    timeout:
+      type:
+        way: ꯂꯝꯕꯤ
+    redacted:
+      type:
+        way: ꯂꯝꯕꯤ
+        relation: ꯃꯔꯤꯂꯩꯅꯕ
+    start_rjs:
+      loading: ꯍꯥꯞꯆꯤꯟꯂꯤ(ꯎꯨꯡꯂꯤ)
+  changesets:
+    changeset_paging_nav:
+      showing_page: ꯂꯃꯥꯏ %{page}
+      next: ꯃꯊꯪ »
+      previous: « ꯃꯃꯥꯡꯒꯤ
+    changeset:
+      anonymous: ꯃꯤꯁꯛ ꯈꯪꯗꯕ
+      no_edits: (ꯀꯔꯤꯝ ꯁꯦꯝꯒꯠꯇꯦ)
+    changesets:
+      id: ꯁꯛꯇꯥꯛ
+      saved_at: ꯇꯨꯡꯁꯤꯟꯂꯦ
+      user: ꯁꯤꯖꯤꯟꯅꯔꯤꯕ
+      comment: ꯑꯄꯥꯝꯕꯥ ꯐꯣꯡꯗꯣꯛ ꯎ
+      area: ꯄꯥꯛꯆꯥꯎꯕ
+    index:
+      load_more: ꯍꯦꯟꯅ ꯆꯤꯡꯊꯔꯣ
+  diary_entries:
+    form:
+      location: ꯃꯐꯝ
+      use_map_link: ꯃꯦꯞ ꯁꯤꯖꯤꯟꯅꯧ
+    location:
+      location: 'ꯃꯐꯝ:'
+      view: ꯌꯦꯡꯕ
+      edit: ꯁꯦꯝꯒꯠꯄ
+    comments:
+      post: ꯄꯣꯁꯇ
+      when: ꯀꯔꯝꯀꯥꯟꯗ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: ꯀꯣꯟꯊꯣꯡ
+        amenity:
+          atm: ꯑꯦꯇꯤꯑꯦꯝ
+          bank: ꯕꯦꯡꯛ
+          bicycle_parking: ꯁꯥꯏꯀꯜ ꯈꯥꯝꯐꯝ
+          bicycle_rental: ꯁꯥꯏꯀꯜ ꯋꯥꯏꯐꯝ
+          biergarten: ꯕꯤꯑꯔ ꯂꯩꯀꯣꯜ
+          car_wash: ꯀꯥꯔ ꯆꯥꯝꯐꯝ
+          casino: ꯁꯦꯟ ꯊꯥꯟꯅꯐꯝ
+          clock: ꯄꯨꯡ
+          college: ꯀꯣꯂꯦꯖ
+          driving_school: ꯘꯔꯤ ꯇꯝꯐꯝ
+          library: ꯂꯥꯏꯔꯤꯛ ꯊꯝꯐꯝ
+          marketplace: ꯀꯩꯊꯦꯜ ꯃꯐꯝ
+          parking: ꯈꯥꯝꯐꯝ
+          prison: ꯀꯩꯁꯨꯝꯁꯡ
+          school: ꯃꯍꯩꯂꯣꯏꯁꯡ
+          shelter: ꯈꯨꯟꯗꯐꯝ
+          toilets: ꯑꯃꯥꯡꯁꯡꯁꯤꯡ
+          townhall: ꯈꯨꯟꯖꯥꯎ ꯍꯣꯜ
+          university: ꯇꯥꯤꯏꯕꯡ ꯃꯍꯩꯀꯣꯜ
+        bridge:
+          "yes": ꯊꯣꯡ
+        building:
+          "yes": ꯌꯨꯝꯋꯥꯡ ꯃꯊꯣꯜ
+        historic:
+          house: ꯌꯨꯝ
+        landuse:
+          grass: ꯅꯥꯄꯤ
+  reports:
+    create:
+      successful_report: ꯅꯪꯅ ꯇꯝꯕꯥ ꯄꯥꯎ ꯑꯗꯨ ꯃꯥꯢ ꯄꯥꯛꯅꯥ ꯃꯤꯡ ꯆꯟꯈꯔꯦ
+  shared:
+    markdown_help:
+      text: ꯋꯥꯍꯩ-ꯋꯥꯇꯥ
+      image: ꯃꯤꯔꯦꯜ
+    richtext_field:
+      edit: ꯁꯦꯝꯒꯠ-ꯁꯥꯒꯠꯄ
+  notes:
+    show:
+      description: ꯁꯟꯗꯣꯛꯅꯥ ꯇꯥꯛꯄꯥ
+...

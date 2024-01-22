@@ -1,0 +1,216 @@
+# Messages for Inari Sami (anarâškielâ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Seipinne
+# Author: Yupik
+---
+smn:
+  helpers:
+    file:
+      prompt: Valjii tiätuvuárhá
+    submit:
+      diary_comment:
+        create: Vuorkkii
+      diary_entry:
+        create: Almostit
+      message:
+        create: Vuolgât
+      client_application:
+        create: Registerist
+      trace:
+        create: Vuorkkii
+        update: Vuorkkii nubástusâid
+  activerecord:
+    models:
+      language: Kielâ
+      user: Kevttee
+    attributes:
+      diary_entry:
+        user: Kevttee
+        language_code: Kielâ
+      doorkeeper/application:
+        name: Nommâ
+      friend:
+        user: Kevttee
+      trace:
+        user: Kevttee
+        name: Tiätuvuárkkánommâ
+        size: Stuárudâh
+        tagstring: Kilgoleh
+      user:
+        languages: Kielah
+  auth:
+    providers:
+      wikipedia: Wikipedia
+  api:
+    notes:
+      entry:
+        comment: Komment
+  account:
+    deletions:
+      show:
+        cancel: Jooskâ
+  accounts:
+    edit:
+      save changes button: Vuorkkii nubástusâid
+  browse:
+    version: Versio
+    download_xml: Luođii XML-tiätuvuárkkán
+    view_history: Čääiti historjá
+    start_rjs:
+      load_data: Luođii tiäđuid
+    tag_details:
+      tags: Kilgoleh
+  changesets:
+    changeset_paging_nav:
+      next: Čuávuvâš »
+    changesets:
+      user: Kevttee
+      comment: Komment
+    index:
+      load_more: Luođii lase
+  diary_entries:
+    show:
+      leave_a_comment: Čääli komment
+      login_to_leave_a_comment_html: '%{login_link}, jis halijdiččih čäälliđ komment'
+      login: Čáládât siisâ
+    location:
+      view: Čääiti
+    comments:
+      comment: Komment
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          clock: Tijme
+          language_school: Kielâškovlâ
+          library: Kirjerááju
+        tourism:
+          information: Mađhâšemravvim
+  issues:
+    index:
+      search: Uusâ
+  layouts:
+    logout: Čáládât olgos
+    log_in: Čáládât siisâ
+    history: Historjá
+    intro_2_create_account: Rähtiđ kevtteetubdâlduv
+    tou: Kevttimiävtuh
+    help: Iše
+    about: Tiäđuh
+  messages:
+    messages_table:
+      from: Vuolgâtteijee
+      to: Vuástáväldee
+    message_summary:
+      destroy_button: Siho
+    show:
+      destroy_button: Siho
+    sent_message_summary:
+      destroy_button: Siho
+  passwords:
+    new:
+      email address: 'Šleđgâpostâčujottâs:'
+  preferences:
+    show:
+      preferred_languages: Vuosâsajasiih kielah
+    edit:
+      cancel: Jooskâ
+  profiles:
+    edit:
+      cancel: Jooskâ
+      image: Kove
+      show: Čääiti
+  sessions:
+    new:
+      title: Čáládât siisâ
+      heading: Čáládât siisâ
+      email or username: 'Šleđgâpostâčujottâs teikkâ kevtteenommâ:'
+      login_button: Čáládât siisâ
+  shared:
+    markdown_help:
+      link: Liŋkkâ
+      image: Kove
+  site:
+    about:
+      next: Čuávuvâš
+    index:
+      permalink: Avalâš liŋkkâ
+    edit:
+      user_page_link: kevtteesijđo
+    export:
+      licence: Liiseens
+    help:
+      welcome:
+        url: /welcome
+    any_questions:
+      title: Koččâmâšah?
+    sidebar:
+      search_results: Uuccâmpuátuseh
+    search:
+      search: Uusâ
+    key:
+      table:
+        entry:
+          main_road: Válduluoddâ
+    welcome:
+      title: Tiervâpuáttim!
+  traces:
+    new:
+      help: Iše
+    edit:
+      cancel: Jooskâ
+    trace_optionals:
+      tags: Kilgoleh
+    show:
+      filename: 'Tiätuvuárkkánommâ:'
+      download: luođii
+      map: kárttá
+  oauth:
+    authorize:
+      allow_read_prefs: luuhâđ tuu kevttee asâttâsâid.
+      allow_write_prefs: mutteđ tuu kevttee asâttâsâid.
+  oauth2_applications:
+    index:
+      name: Nommâ
+    application:
+      delete: Siho
+    show:
+      delete: Siho
+  users:
+    terms:
+      read_tou: Lam luuhâm kevttimiävtuid já mun tuhhiittâm täid
+    no_such_user:
+      deleted: sikkum
+    show:
+      email address: 'Šleđgâpostâčujottâs:'
+    index:
+      title: Kevtteeh
+      heading: Kevtteeh
+  user_blocks:
+    show:
+      show: Čääiti
+    block:
+      show: Čääiti
+    blocks:
+      next: Čuávuvâš »
+  notes:
+    show:
+      hide: Čievâ
+      comment: Vuolgât komment
+  javascripts:
+    share:
+      title: Jyevi
+      cancel: Jooskâ
+      image: Kove
+      link: Liŋkkâ teikkâ HTML-koodi
+      long_link: Liŋkkâ
+      download: Luođii
+    changesets:
+      show:
+        comment: Čääli komment
+        subscribe: Tiiláá
+        hide_comment: čievâ
+    context:
+      show_address: Čääiti čujottâs
+...

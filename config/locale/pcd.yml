@@ -1,0 +1,13 @@
+# Messages for Picard (Picard)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Geoleplubo
+---
+pcd:
+  traces:
+    index:
+      all_traces: Tous chés traches
+      my_traces: Mes traches
+      traces_from: Traches publiques dé %{user}
+      remove_tag_filter: Abolir ech filte éd balise
+...

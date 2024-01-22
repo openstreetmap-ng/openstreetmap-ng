@@ -1,0 +1,13 @@
+# Messages for Zhuang (Vahcuengh)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: A Retired User
+---
+za:
+  helpers:
+    submit:
+      diary_entry:
+        update: Swnggaep
+      client_application:
+        update: Gaij
+...

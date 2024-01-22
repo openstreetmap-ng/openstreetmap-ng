@@ -1,0 +1,23 @@
+# Messages for Batak Mandailing (Batak Mandailing)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Simartampua
+---
+btm:
+  javascripts:
+    directions:
+      instructions:
+        roundabout_with_exit_ordinal: I kuliang buat %{exit} exit tu %{name}
+        exit_roundabout: Kaluar kuliang tu %{name}
+        exit_counts:
+          first: "1"
+          second: "2"
+          third: "3"
+          fourth: "4"
+          fifth: "5"
+          sixth: "6"
+          seventh: "7"
+          eighth: "8"
+          ninth: "9"
+          tenth: "10"
+...

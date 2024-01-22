@@ -1,0 +1,526 @@
+# Messages for Erzya (эрзянь)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Botuzhaleny-sodamo
+# Author: Rueter
+---
+myv:
+  time:
+    formats:
+      friendly: '%e %B %Y %H:%M чассто'
+  helpers:
+    file:
+      prompt: Кочкамс файла
+    submit:
+      diary_comment:
+        create: Ванстомс
+      diary_entry:
+        create: Нолдамс ломань икелев
+        update: Одкстомтомс
+      issue_comment:
+        create: Поладомс мельть-арсемат
+      message:
+        create: Кучомс
+      client_application:
+        create: Путомс регистрас
+        update: Одкстомтомс
+      oauth2_application:
+        create: Сёрмадстомс
+        update: Одкстомтомс
+      redaction:
+        create: Шкамс-теемс витнема-петнема
+        update: Ванстомс витнема-петнема
+      trace:
+        create: Тонгомс
+        update: Ванстомс полавтоматнень
+  activerecord:
+    models:
+      changeset: Полавтовкспусмо
+      changeset_tag: Полавтовкспусмонь тэг
+      country: Мастор
+      friend: Ялга
+      language: Келезэ
+      message: Пачтамнэ
+      relation: Сюлмавкс
+      relation_member: Сюлмавксонь ломань
+      relation_tag: Сюлмавкстэг
+      session: Промкс
+      trace: Ки
+      user: Теиця
+      user_preference: Теицянь аравтомат
+      user_token: Теицянь токен
+      way: Черькс
+    attributes:
+      diary_comment:
+        body: Рунготекст
+      diary_entry:
+        user: Теиця
+        title: Мезде
+        latitude: Келезэ
+        longitude: Кувалмозо
+        language_code: Кель
+      doorkeeper/application:
+        name: Лемезэ
+      friend:
+        user: Теиця
+        friend: Ялга
+      trace:
+        user: Теиця
+        visible: Неяви
+        name: Файлань лем
+        size: Покшолмазо
+        latitude: Келезэ
+        longitude: Кувалмозо
+        public: Весень туртов
+        description: Чарькодевтемгакс
+        gpx_file: Совавтомс GPX Файла
+        visibility: Неявомачи
+        tagstring: Тэгензэ
+      message:
+        sender: Кучицязо
+        title: Мезде
+        body: Рунготекст
+        recipient: Кинень кучомс
+      redaction:
+        title: Конякс
+        description: Чарькодевтемгакс
+      user:
+        email: Е-сёрма
+        description: Профильсэ чарькодевтемгакс
+        home_lat: Келезэ
+        home_lon: Кувалмозо
+        languages: Эсеть келеть
+        preferred_editor: Эсеть витнемка-петнемка
+        pass_crypt: салававал
+        pass_crypt_confirmation: Кемекстык салававалот
+    help:
+      trace:
+        tagstring: ботпулосо явозь лемрисьме
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: пель минутадо икеле
+  auth:
+    providers:
+      github: GitHub
+      wikipedia: Википедия
+  api:
+    notes:
+      comment:
+        opened_at_html: Шказь %{when}
+        opened_at_by_html: '%{user} шкизе %{when}'
+        commented_at_html: Одкстомтозь %{when}
+        commented_at_by_html: '%{user} одкстомтызе %{when}'
+        closed_at_html: Пекстазь %{when}
+        closed_at_by_html: '%{user} пекстызе %{when}'
+        reopened_at_html: Одов панжозь %{when}
+        reopened_at_by_html: '%{user} одов панжизе %{when}'
+      entry:
+        comment: Мельполадкс
+  accounts:
+    edit:
+      my settings: Монь аравтомат
+      openid:
+        link text: те мезе?
+      public editing:
+        enabled link text: те мезе?
+      contributor terms:
+        link text: те мезе?
+      save changes button: Ванстомс полавтоматнень
+    go_public:
+      make_edits_public_button: Весе витнеман-петнеман улест весенень неявикст
+  browse:
+    created: Шказь-теезь
+    closed: Пекстазь
+    version: Версия
+    in_changeset: Полавтовкспусмо
+    anonymous: лемтеме
+    part_of: Пельксэзэ
+    download_xml: Таргамс XML
+    view_history: Ваномс юронзо-путовксонзо
+    location: 'Косо:'
+    changeset:
+      title: 'Полавтовкспусмо: %{id}'
+      belongs_to: Теицязо
+      changesetxml: Полавтовкспусмо XML-сэ
+      feed:
+        title: 'Полавтовкспусмо: %{id}'
+        title_comment: Полавтовкспусмо %{id} - %{comment}
+    relation:
+      members: Куронь ломанть
+    relation_member:
+      type:
+        relation: Сюлмавкс
+    containing_relation:
+      entry_html: Сюлмавкс %{relation_name}
+      entry_role_html: Сюлмавкс %{relation_name} (as %{relation_role})
+    not_found:
+      sorry: 'Кежеть иляст са, %{type} #%{id} а муеви.'
+      type:
+        relation: Сюлмавкс
+        changeset: полавтовкспусмо
+    timeout:
+      type:
+        relation: Сюлмавкс
+        changeset: полавтовкспусмо
+    redacted:
+      type:
+        relation: Сюлмавкс
+    start_rjs:
+      load_data: Таргамс дататнень
+      loading: Тонгомазо моли…
+    tag_details:
+      tags: Тэгензэ
+    query:
+      nearby: Малавикс уликсчить
+  changesets:
+    changeset_paging_nav:
+      next: Седе тов »
+      previous: « Мекев
+    changeset:
+      anonymous: Лемтеме
+      no_edits: (апак витне-петне)
+    changesets:
+      saved_at: Ванстозь
+      user: Теиця
+    index:
+      title: Полавтовкспусмот
+      empty: Полавтовкспусмот а муевить.
+      empty_area: Тияня полавтовкспусмот арасть.
+      empty_user: Те теицянть полавтовкспусмонзо арасть.
+      no_more: Лия полавтовкспусмот а муевить.
+      no_more_area: Тияня лия полавтовкспусмот арасть.
+      no_more_user: Те теицянть лия полавтовкспусмонзо арасть.
+  dashboards:
+    contact:
+      km away: '%{count} вайгельпень тарка'
+      m away: '%{count} метрань тарка'
+    popup:
+      your location: Неень аштема таркат
+      nearby mapper: Маласо картань теиця
+      friend: Ялга
+    show:
+      my friends: Монь ялган
+  diary_entries:
+    form:
+      location: Аштема тарка
+      use_map_link: Нолдык тевс Картанть
+    show:
+      leave_a_comment: Кадт мельть-поладкст
+      login_to_leave_a_comment_html: '%{login_link} мелень-поладксонь кадомга'
+      login: Совамо
+    diary_entry:
+      confirm: Кемекстамс
+    diary_comment:
+      hide_link: Кекшик те арьсеманть
+      unhide_link: Саемс кекшемстэ те арьсеманть
+      confirm: Кемекстамс
+      report: Пеняцямс те арьсеманть лангс
+    location:
+      location: 'Косо:'
+      view: Невтемс
+      edit: Витнемс-петнемс
+    comments:
+      when: Зярдо
+      comment: Мельполадкс
+      newer_comments: Седе од мельть-поладкст
+      older_comments: Седе ташто мельть-поладкст
+  doorkeeper:
+    flash:
+      applications:
+        create:
+          notice: Программакерьксэсь сёрмадстозь.
+  friendships:
+    make_friend:
+      heading: Саемс %{user}-нь ялгакс?
+      button: Саемс ялгакс
+      success: Ней %{name} ялгат!
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          apron: Икельгапаця
+          gate: Ортат
+          hangar: Ангар
+          terminal: Терминал
+        amenity:
+          bank: Банк
+          bar: Бар
+          bbq: Барбекю
+          bench: Эзем
+          biergarten: Пияпире
+          brothel: Ардыварянь кудо
+          dentist: Пеень врач
+          doctors: Рачт
+          embassy: Кучолкс кудо
+          fuel: Уштомапель
+          grave_yard: Калмозэрь
+          pharmacy: Оптека
+          post_office: Почта
+          prison: Пекстамо кудо
+          school: Школа
+          shower: Душ
+          taxi: Такси
+          theatre: Театра
+          toilets: Туалет
+          townhall: Ош кудо
+          university: Нюрситет
+        bridge:
+          "yes": Сэдь
+        building:
+          church: Церкова
+        craft:
+          shoemaker: Котань сустый
+          tailor: Сустый
+        highway:
+          bus_stop: Бузонь лотксема тарка
+          elevator: Лифт
+          footway: Ян
+          ford: Келямо тарка
+          motorway: Покш ки
+          path: Яннэ
+          road: Ки
+          steps: Кузтемат
+          "yes": Ки
+        historic:
+          church: Церкова
+          house: Кудо
+          stone: Кев
+        landuse:
+          cemetery: Калмозэрь
+          forest: Вирь
+          grass: Пиже тикше
+          meadow: Лём
+          orchard: Умарьпире
+          railway: Чугункань ки
+        leisure:
+          fishing: Калонь кундсема тарка
+          garden: Пире
+          park: Парк
+          sauna: Баня
+        man_made:
+          beehive: Нешке
+          bridge: Сэдь
+          mast: Торзей
+          watermill: Ведькев
+          water_well: Лисьма
+          windmill: Вармаведькев
+        natural:
+          cave_entrance: Мода курго
+          coastline: Иневедь чире
+          forest: Вирь
+          hill: Пандо
+          island: Усия
+          land: Мода
+          mud: Рудаз
+          rock: Кев
+          sand: Човар
+          spring: Лисьмапря
+          stone: Кев
+          tree: Чувто
+          volcano: Тол пандо
+          water: Ведь
+          wood: Вирне
+        place:
+          city: Ош
+          country: Мастор
+          county: Мастор
+          farm: Хверма
+          hamlet: Церковавтомо веле
+          house: Кудо
+          houses: Кудот
+          island: Усия
+          islet: Усиине
+          sea: Иневедь
+          state: Штат
+          town: Ошкэ
+          village: Веле
+          "yes": Тарка
+        railway:
+          tram: Трамвай
+        shop:
+          books: Кинигань лавка
+        tourism:
+          motel: Валгонь кудо
+          museum: Музей
+          zoo: Зоопарк
+        waterway:
+          canal: Канал
+          dam: Сёлт
+          river: Лей
+          stream: Чудикерькс
+      types:
+        cities: Ошт
+        towns: Ошкэть
+        places: Таркат
+  reports:
+    new:
+      categories:
+        diary_entry:
+          other_label: Лия
+        diary_comment:
+          other_label: Лия
+        user:
+          other_label: Лия
+        note:
+          other_label: Лия
+  layouts:
+    logout: Лисемс
+    log_in: Совамс
+    edit: Витнемс-петнемс
+    help: Лезкс
+  user_mailer:
+    signup_confirm:
+      greeting: Кода тевтне?!
+    email_confirm:
+      greeting: Шумбрачи,
+    lost_password:
+      greeting: Шумбрачи,
+    note_comment_notification:
+      greeting: Шумбрачи,
+    changeset_comment_notification:
+      greeting: Шумбрачи,
+  confirmations:
+    confirm:
+      button: Кемекстамс
+    confirm_email:
+      button: Кемекстамс
+  messages:
+    inbox:
+      title: Сыця сёрмат
+    messages_table:
+      subject: Мезде
+      date: Чи-ков
+    message_summary:
+      destroy_button: Нардамс
+    show:
+      back: Мекев
+    sent_message_summary:
+      destroy_button: Нардамс
+    heading:
+      my_inbox: Монень сыця сёрмат
+  sessions:
+    new:
+      title: Совамо
+      heading: Совамо
+      lost password link: Совамо валот ёмавтык?
+  site:
+    about:
+      next: Седе тов
+    copyright:
+      foreign:
+        title: Те ютавтомадонть
+        english_link: англань келень оригиналонзо
+    sidebar:
+      close: Пекстамс
+    search:
+      search: Вешнемс
+      where_am_i: Те косо?
+    key:
+      table:
+        entry:
+          motorway: Кепедень ки
+          subway: Мода алгань ки
+          forest: Вирь
+          park: Парк
+          common: Вейсэнь
+          lake: Эрьке
+          school: Школа
+          university: нюрситет
+          summit: Тёкш
+          peak: тёкш
+          toilets: Туалетт
+    welcome:
+      title: Совак, инеське!
+      whats_on_the_map:
+        title: Мезе картасонть
+      rules:
+        title: Правилат!
+  traces:
+    new:
+      help: Лезкс
+    trace_optionals:
+      tags: Тэгензэ
+    show:
+      filename: 'Файлань лемесь:'
+      download: таргамс
+      uploaded: 'Тонгозь:'
+      map: карта
+      edit: витнемс-петнемс
+      owner: 'Азорозо:'
+      description: 'Чарькодевтемгакс:'
+      tags: 'Тегензэ:'
+      none: Арась мезе невтемс
+  oauth:
+    authorize:
+      allow_write_api: лиякстомтомс картанть
+  users:
+    new:
+      title: Шкамс совамо тарка
+    terms:
+      consider_pd_why: те мезе?
+      continue: Поладомс
+      legale_names:
+        france: Хранция
+        italy: Италия
+    no_such_user:
+      title: Истямо теиця арась
+    show:
+      my edits: Мезе витнинь-петнинь
+      send message: кучомс пачтямнэ
+      edits: витнемат-петнемат
+      add as friend: Поладомс ялга
+      confirm: Кемекстамс
+    index:
+      title: Совицят
+      heading: Теицятне
+  user_role:
+    grant:
+      confirm: Кемекстамс
+    revoke:
+      confirm: Кемекстамс
+  user_blocks:
+    helper:
+      time_past_html: Прядовсь %{time}
+    show:
+      created: Шказь-теезь
+      edit: Витнемс-петнемс
+    block:
+      show: Невтемс
+      edit: Витнемс-петнемс
+    blocks:
+      creator_name: Шкицязо-теицязо
+      next: Седе тов »
+      previous: « Мекев
+  notes:
+    index:
+      creator: Шкицязо-теицязо
+      created_at: Шказь-теезь
+      last_changed: Меельцеде лиякстомтозь
+    show:
+      description: Чарькодевтемгакс
+      hide: Кекшемс
+  javascripts:
+    close: Пекстамс
+    share:
+      title: Явшемс
+      cancel: Саемс мекев
+      long_link: Сюлмавома пе
+      download: Таргамс
+    changesets:
+      show:
+        hide_comment: кекшемс
+        unhide_comment: невтемс
+    directions:
+      descend: Валгомс
+      distance: Ютко
+      time: Шказо
+    query:
+      way: Ки
+      relation: Сюлмавкс
+  redactions:
+    show:
+      description: 'Чарькодевтемгакс:'
+      user: 'Шкицязо-теицязо:'
+    update:
+      flash: Лиякстомтоматне ванстозь.
+...

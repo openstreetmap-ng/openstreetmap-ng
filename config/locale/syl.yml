@@ -1,0 +1,11 @@
+# Messages for Sylheti (ꠍꠤꠟꠐꠤ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: ꠢꠣꠍꠘ ꠞꠣꠎꠣ
+---
+syl:
+  helpers:
+    submit:
+      diary_entry:
+        create: ꠛꠣꠞ ꠇꠞꠂꠘ
+...

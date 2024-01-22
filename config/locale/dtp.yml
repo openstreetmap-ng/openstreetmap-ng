@@ -1,0 +1,13 @@
+# Messages for Central Dusun (Dusun Bundu-liwan)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Jjurieee
+---
+dtp:
+  site:
+    key:
+      table:
+        entry:
+          pedestrian: Wayaan mamanau gakod
+          hospital: Lamin pongusapan
+...

@@ -1,0 +1,14 @@
+# Messages for Nanai (на̄ни)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: RFScott
+---
+gld:
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        natural:
+          atoll: Атолл
+        place:
+          archipelago: Боачансал
+...

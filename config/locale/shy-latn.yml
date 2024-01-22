@@ -1,0 +1,52 @@
+# Messages for Shawiya (Latin script) (tacawit)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Vikoula5
+---
+shy-latn:
+  activerecord:
+    models:
+      user: Aseqdac
+    attributes:
+      diary_entry:
+        user: Aseqdac
+      friend:
+        user: Aseqdac
+        friend: Ami
+      trace:
+        user: Aseqdac
+        visible: Yeban
+        name: isem
+      message:
+        title: 'Asentel:'
+      user:
+        email: E-mail
+        languages: Tutlayt
+        pass_crypt: Awal n uɛeddi
+  editor:
+    id:
+      name: iD
+  browse:
+    created: Rnu
+    closed: Yebleε
+  changesets:
+    changesets:
+      user: Aseqdac
+  diary_entries:
+    location:
+      edit: Glef
+  messages:
+    messages_table:
+      date: Azmez
+  site:
+    search:
+      search: Iruzzi
+  traces:
+    show:
+      edit: glef
+  user_blocks:
+    show:
+      edit: Glef
+    block:
+      edit: Glef
+...

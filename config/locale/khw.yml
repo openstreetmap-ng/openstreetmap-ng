@@ -1,0 +1,9 @@
+# Messages for Khowar (کھوار)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+khw:
+  html:
+    dir: rtl
+...

@@ -1,0 +1,35 @@
+# Messages for Arpitan (arpetan)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Eihel
+# Author: Sampi│ϡ
+---
+frp:
+  time:
+    formats:
+      friendly: '%e %B %Y a %H:%M'
+  helpers:
+    file:
+      prompt: Chouèsir un fichiér
+    submit:
+      diary_comment:
+        create: Encenevar
+      diary_entry:
+        create: Publeyér
+        update: Betar a jorn
+      issue_comment:
+        create: Apondre un comentèro
+      message:
+        create: Mandar
+      client_application:
+        create: S’enscrire
+        update: Betar a jorn
+      oauth2_application:
+        update: Betar a jorn
+  activerecord:
+    models:
+      language: Lengoua
+  layouts:
+    logout: Sè dèbranchiér
+    help: Éde
+...

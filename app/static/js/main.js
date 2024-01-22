@@ -1,8 +1,8 @@
 import { homePoint } from "./_params.js"
 import { Router } from "./_router.js"
+import { configureActionSidebars } from "./controllers/_action-sidebar.js"
 import { getExportController } from "./controllers/_export.js"
 import { getIndexController } from "./controllers/_index.js"
-import { configureActionSidebars } from "./controllers/_utils.js"
 import { configureFindHomeButton } from "./leaflet/_find-home.js"
 import { getMainMap } from "./leaflet/_map.js"
 

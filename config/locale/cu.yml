@@ -1,0 +1,15 @@
+# Messages for Church Slavic (словѣньскъ / ⰔⰎⰑⰂⰡⰐⰠⰔⰍⰟ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: NR Deblocked
+---
+cu:
+  dashboards:
+    show:
+      no_home_location_html: '%{edit_profile_link}​ и҆​ ᲂукажите своѐ дома́шнее местоплаженїе
+        что́бы ви́дѣть ближа́йшихъ пользователей.'
+      edit_your_profile: Ⱃⰵⰴⰰⰽⱅⰹⱃⱁⰲⰰⱅⱐ ⱂⱃⱁⱇⰹⰾⱐ
+  application:
+    settings_menu:
+      account_settings: Настройки аккаꙋнта
+...

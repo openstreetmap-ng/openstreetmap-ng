@@ -1,0 +1,299 @@
+# Messages for Cantonese (Traditional) (粵語（繁體）)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Winston Sung
+---
+yue-hant:
+  time:
+    formats:
+      friendly: '%Y 年 %B %e  %H 時 %M 分'
+  helpers:
+    submit:
+      diary_comment:
+        create: 儲存
+      diary_entry:
+        create: 發佈
+        update: 更新
+      issue_comment:
+        create: 加留言
+      message:
+        create: 傳送
+      client_application:
+        create: 註冊
+        update: 更新
+      trace:
+        create: 上載
+  activerecord:
+    models:
+      acl: 管理通行表
+      changeset: 變更
+      changeset_tag: 變更標籤
+      country: 國家
+      diary_comment: 日記留言
+      diary_entry: 日記一則
+      friend: 朋友
+      language: 話
+      message: 信
+      node: 節點
+      node_tag: 節標籤
+      old_node: 舊節點
+      old_node_tag: 舊節標籤
+      old_relation: 舊關聯
+      old_relation_member: 舊關聯成員
+      old_relation_tag: 舊關聯標籤
+      old_way: 舊路徑
+      old_way_node: 舊路徑節點
+      old_way_tag: 舊路徑標籤
+      relation: 關聯
+      relation_member: 關聯成員
+      relation_tag: 關聯標籤
+      session: 小節
+      trace: 軌跡
+      tracepoint: 行蹤之處
+      tracetag: 軌跡標籤
+      user: 用戶
+      user_preference: 用者喜好
+      user_token: 用戶代碼
+      way: 路徑
+      way_node: 路徑節點
+      way_tag: 路徑標籤
+    attributes:
+      client_application:
+        name: 名（必填）
+        allow_write_api: 改地圖
+        allow_read_gpx: 讀佢哋嘅私人GPS軌跡
+        allow_write_gpx: 上載GPS軌跡
+      diary_comment:
+        body: 內文
+      diary_entry:
+        user: 用戶
+        title: 題
+        latitude: 緯度
+        longitude: 經度
+        language_code: 話
+      friend:
+        user: 用戶
+        friend: 朋友
+      trace:
+        user: 用戶
+        visible: 睇得到
+        name: 檔名
+        size: 大細
+        latitude: 緯度
+        longitude: 經度
+        public: 公家
+        description: 描述
+        gpx_file: 上載GPX檔
+        visibility: 可見度
+        tagstring: 標籤
+      message:
+        sender: 寄信人
+        title: 題
+        body: 內文
+        recipient: 收信人
+      user:
+        email: 電郵
+        active: 用緊
+        display_name: 顯示名
+        description: 描述
+        languages: 話
+        pass_crypt: 密碼
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: 半分鐘前
+      x_years:
+        one: 1年前
+        other: '%{count}年前'
+  editor:
+    default: 預設 (現為 %{name})
+    id:
+      name: iD
+      description: iD（瀏覽器內製圖）
+    remote:
+      name: 遙遠控制
+      description: 遙遠控制 (JOSM 或 Merkaartor)
+  auth:
+    providers:
+      google: Google
+      facebook: Facebook
+      wikipedia: 維基百科
+  browse:
+    created: 開咗
+    closed: 合咗
+    version: 版本
+    in_changeset: 變更
+    anonymous: 無名氏
+    no_comment: （無留言）
+    part_of: 部份
+    download_xml: 下載XML
+    view_history: 睇返紀錄
+    view_details: 睇返明細
+    location: 地點：
+    changeset:
+      title: 變更： %{id}
+      belongs_to: 作者
+      node: 節點（夾埋有%{count}點)
+      node_paginated: 節 (%{x} 到 %{y}，全部%{count})
+      way: 路徑（總共有%{count}條)
+      way_paginated: 道（%{x}到%{y}，總共%{count}）
+      relation: 關聯（%{count}）
+      relation_paginated: 關聯（%{x}到%{y}，總共%{count}）
+      comment: 留言（%{count}）
+      changesetxml: 變更檔XML
+      osmchangexml: osmChange格式 XML
+      feed:
+        title: 變更： %{id}
+        title_comment: 變更 %{id} － %{comment}
+      join_discussion: 簽到一齊傾下
+      discussion: 傾下
+    node:
+      title_html: 節點：%{name}
+      history_title_html: 節紀錄：%{name}
+    way:
+      title_html: 路徑：%{name}
+      history_title_html: 道紀錄：%{name}
+      nodes: 節點
+    relation_member:
+      type:
+        relation: 拏褦
+    not_found:
+      type:
+        relation: 拏褦
+        note: 註
+    timeout:
+      sorry: 唔好意思，有關叫%{id}ID嘅%{type}嘅數據使咗好耐時間先至搵到。
+      type:
+        relation: 拏褦
+    redacted:
+      type:
+        relation: 拏褦
+    start_rjs:
+      load_data: 載入數據
+      loading: 載入緊……
+    tag_details:
+      tags: 標籤
+    query:
+      introduction: 撳下個地圖去搵喺左近嘅功能。
+  changesets:
+    changesets:
+      saved_at: 儲存喺
+      user: 用戶
+    index:
+      load_more: 睇多啲
+  diary_entries:
+    show:
+      leave_a_comment: 留言
+      login: 簽到
+    diary_entry:
+      edit_link: 改呢項
+      hide_link: 收埋呢項
+      confirm: 確認
+    comments:
+      when: 幾時
+      comment: 備註
+  friendships:
+    make_friend:
+      button: 加做朋友
+    remove_friend:
+      heading: 同%{user}解除朋友?
+      button: 移除朋友
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: 機場閘口
+          terminal: 機場客運大樓
+        amenity:
+          cinema: 戲院
+          clinic: 診所
+          dentist: 牙醫
+          fire_station: 消防局
+          ice_cream: 雪糕
+          kindergarten: 幼稚園
+          library: 圖書館
+          motorcycle_parking: 泊電單車
+          nightclub: 夜總會
+          parking: 泊車
+          police: 差人
+          school: 學校
+          shower: 沖涼
+          taxi: 的士
+          university: 大學
+        bridge:
+          "yes": 橋
+        building:
+          "yes": 樓
+        highway:
+          bus_stop: 巴士站
+          elevator: "\U000282E2"
+          milestone: 里程碑
+          rest_area: 休息區
+          road: 路
+        historic:
+          church: 教堂
+          tower: 塔
+        landuse:
+          commercial: 商業區
+          conservation: 保護區
+          construction: 建築工地
+          forest: 森林
+          retail: 零售區域
+        leisure:
+          fishing: 釣魚區
+          fitness_centre: 健身中心
+          golf_course: 哥爾夫球場
+          horse_riding: 騎馬
+        man_made:
+          chimney: 煙通
+          works: 工廠
+        place:
+          town: 鎮
+        shop:
+          bicycle: 單車舖
+          books: 書舖
+          boutique: 精品舖
+          car: 車舖
+          hifi: 音像店
+        tourism:
+          cabin: 遊客客艙
+  layouts:
+    logo:
+      alt_text: OpenStreetMap標誌
+    gps_traces: GPS軌跡
+    intro_header: 歡迎嚟到OpenStreetMap！
+  profiles:
+    edit:
+      gravatar:
+        disabled: 無法支持呢個Gravatar
+        enabled: 你已經開咗顯示Gravatar功能。
+  sessions:
+    destroy:
+      heading: 簽走OpenStreetMap
+  site:
+    key:
+      table:
+        entry:
+          cycleway_national: 國家環形路
+          cycleway_regional: 區域環形路
+          cycleway_local: 當地環形路
+          bicycle_shop: 自行車商店
+          bicycle_parking: 停單車場
+          toilets: 衛生間
+  traces:
+    trace_optionals:
+      tags: 標籤
+    show:
+      tags: 標籤：
+    index:
+      public_traces_from: '%{user}嘅公開GPS軌跡'
+    georss:
+      title: OpenStreetMap GPS 軌跡
+  user_blocks:
+    show:
+      created: 開咗
+      status: 狀態：
+  notes:
+    show:
+      description: 描述
+      open_title: 未搞掂嘅註釋#%{note_name}
+...

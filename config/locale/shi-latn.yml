@@ -1,0 +1,13 @@
+# Messages for Tachelhit (Latin script) (Taclḥit)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Aɣaras iḍlan
+---
+shi-latn:
+  site:
+    key:
+      table:
+        entry:
+          wood: Akccuḍ
+          stop: Bidd
+...

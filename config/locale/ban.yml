@@ -1,0 +1,80 @@
+# Messages for Balinese (Basa Bali)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Carma Citrawati
+# Author: Chinamoonroll
+# Author: Joseagush
+---
+ban:
+  helpers:
+    file:
+      prompt: Pilih berkas
+    submit:
+      diary_comment:
+        create: Raksa
+      diary_entry:
+        create: Sobyahang
+        update: Anyarin
+      issue_comment:
+        create: Wewehin penampen
+      message:
+        create: Kirim
+      client_application:
+        create: Makarya akun
+        update: Anyarin
+      oauth2_application:
+        create: makarya akun
+        update: Anyarin
+      redaction:
+        create: makarya redaksi
+        update: simpen redaksi
+      trace:
+        create: Unggah
+        update: Raksa uahan
+      user_block:
+        create: makarya blokir
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: nénten panggih pinaka rerepél sané patut
+    models:
+      language: Basa
+      message: Séwala
+      node: Node/Titik
+      node_tag: Tag node/titik
+      user: Sang anganggé
+      way: Garis
+    attributes:
+      diary_entry:
+        user: Sang anganggé
+        title: Parihindik
+        latitude: Lintang
+        longitude: Bujur
+        language_code: Basa
+      doorkeeper/application:
+        name: Peséngan
+      friend:
+        user: Sang anganggé
+        friend: Sawitra
+      trace:
+        user: Sang anganggé
+  accounts:
+    edit:
+      openid:
+        link text: napi niki?
+      public editing:
+        enabled link text: napi niki?
+      contributor terms:
+        link text: napi niki?
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        natural:
+          tundra: Tundra
+  site:
+    help:
+      welcome:
+        url: /rahajeng rauh
+    welcome:
+      title: Rahajeng rauh!
+...

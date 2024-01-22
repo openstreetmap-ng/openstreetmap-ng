@@ -1,0 +1,45 @@
+# Messages for Sundanese (Sunda)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Dipusparaga
+# Author: Kandar
+---
+su:
+  time:
+    formats:
+      friendly: '%e %B %Y dina %H:%M'
+  helpers:
+    file:
+      prompt: Pilih berkas
+    submit:
+      diary_comment:
+        create: Simpen
+      diary_entry:
+        create: Pedalkeun
+        update: Mutahirkeun
+      issue_comment:
+        create: Pairan
+      message:
+        create: Kirim
+      client_application:
+        create: Daptar
+        update: Mutahirkeun
+      oauth2_application:
+        create: Daptar
+        update: Mutahirkeun
+      redaction:
+        create: Jieun redaksi
+        update: Simpen redaksi
+      trace:
+        create: Unjal
+        update: Simpen Parobahan
+      user_block:
+        create: Jieun blok
+        update: Mutahirkeun blok
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: sigana lain alamat surélék anu sah
+  layouts:
+    partners_ucl: UCL
+...

@@ -1,0 +1,196 @@
+# Messages for Northern Sami (davvisámegiella)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Yupik
+---
+se:
+  helpers:
+    file:
+      prompt: Vállje fiilla
+    submit:
+      diary_comment:
+        create: Vurke
+  activerecord:
+    models:
+      language: Giella
+      user: Geavaheaddji
+    attributes:
+      diary_entry:
+        user: Geavaheaddji
+        latitude: Govdodatgráda
+        longitude: Guhkkodatgráda
+        language_code: Giella
+      friend:
+        user: Geavaheaddji
+      trace:
+        user: Geavaheaddji
+        name: Fiilanamma
+        size: Sturrodat
+        latitude: Govdodatgráda
+        longitude: Guhkkodatgráda
+        description: Govvádus
+        tagstring: Gilkorat
+      redaction:
+        description: Govvádus
+      user:
+        email: E-poastačujuhus
+        new_email: Ođđa e-poastačujuhus
+        pass_crypt: Beassansátni
+        pass_crypt_confirmation: Nanne beassansáni
+  account:
+    deletions:
+      show:
+        cancel: Gaskkalduhte
+  browse:
+    version: Veršuvdna
+    anonymous: anonyma
+    changeset:
+      discussion: Ságastallan
+    tag_details:
+      tags: Gilkorat
+  changesets:
+    changeset_paging_nav:
+      next: Čuovvovaš »
+    changeset:
+      anonymous: Anonyma
+    changesets:
+      user: Geavaheaddji
+    index:
+      load_more: Luđe lasi
+  diary_entries:
+    show:
+      login: Čálit sisa
+    location:
+      view: Čájet
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          library: Girjerádju
+        tourism:
+          information: Turismarávven
+  issues:
+    index:
+      search: Oza
+  layouts:
+    logout: Čálit olggos
+    log_in: Čálit sisa
+    tou: Geavahaneavttut
+    learn_more: Lassedieđut
+  user_mailer:
+    note_comment_notification:
+      anonymous: Anonyma geavaheaddji
+  messages:
+    messages_table:
+      from: Sáddejeaddji
+      to: Vuostáiváldi
+    message_summary:
+      destroy_button: Sihko
+    new:
+      title: Sádde dieđu
+      send_message_to_html: Sádde ođđâ dieđu geavaheaddjái %{name}
+    show:
+      destroy_button: Sihko
+    sent_message_summary:
+      destroy_button: Sihko
+  passwords:
+    new:
+      heading: Vajáldahttetgo beassansáni?
+      email address: 'E-poastačujuhus:'
+      new password button: Ráhkat ođđa beassansáni
+    edit:
+      title: Ođđa beassansáni ráhkadeapmi
+      reset: Ráhkat ođđa beassansáni
+  preferences:
+    edit:
+      cancel: Gaskkalduhte
+  profiles:
+    edit:
+      cancel: Gaskkalduhte
+      show: Čájet
+  sessions:
+    new:
+      heading: Čálit sisa
+      password: 'Beassansátni:'
+      lost password link: Vajáldahttetgo beassansáni?
+      login_button: Čálit sisa
+      no account: Iigo dus leat geavaheaddjidovddaldat?
+      openid_logo_alt: Čálit sisa OpenID bokte
+  site:
+    about:
+      next: Čuovvovaš
+    index:
+      permalink: Bissovaš liŋka
+    edit:
+      user_page_link: geavaheaddjisiidu
+    export:
+      licence: Liseansa
+    help:
+      welcome:
+        url: /welcome
+    sidebar:
+      search_results: Ohcanbohtosat
+      close: Gidde
+    search:
+      search: Oza
+    key:
+      table:
+        entry:
+          main_road: Váldogeaidnu
+    welcome:
+      title: Bures boahtin!
+  traces:
+    edit:
+      cancel: Gaskkalduhte
+    trace_optionals:
+      tags: Gilkorat
+    show:
+      filename: 'Fiilanamma:'
+      map: kárta
+      tags: 'Gilkorat:'
+  oauth2_applications:
+    application:
+      delete: Sihko
+    show:
+      delete: Sihko
+  users:
+    terms:
+      read_tou: Lean lohkan geavahaneavttuid ja dohkkehan dáid
+      continue: Čuovvovaš
+    no_such_user:
+      deleted: sihkkojuvvon
+    show:
+      send message: Sádde dieđu
+      email address: 'E-poastačujuhus:'
+    index:
+      title: Geavaheaddjit
+      heading: Geavaheaddjit
+  user_blocks:
+    show:
+      show: Čájet
+    block:
+      show: Čájet
+    blocks:
+      next: Čuovvovaš »
+  notes:
+    show:
+      description: Govvádus
+      hide: Čiega
+  javascripts:
+    close: Gidde
+    share:
+      title: Juoge
+      cancel: Gaskkalduhte
+      link: Liŋka dahje HTML-koda
+      long_link: Liŋka
+    changesets:
+      show:
+        subscribe: Diŋgo
+        unsubscribe: Heaitte diŋgomis
+        hide_comment: čiega
+    context:
+      show_address: Čájet čujuhusa
+  redactions:
+    show:
+      description: 'Govvádus:'
+...

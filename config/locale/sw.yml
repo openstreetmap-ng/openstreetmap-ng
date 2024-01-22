@@ -1,0 +1,188 @@
+# Messages for Swahili (Kiswahili)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Edwingudfriend
+# Author: Ilooremeta
+# Author: Killy95
+# Author: Stacy Lavuha
+# Author: Yasen igra
+---
+sw:
+  activerecord:
+    models:
+      friend: Rafiki
+      language: Lugha
+      message: Ujumbe
+      user: Mtumiaji
+      way: Njia
+    attributes:
+      diary_entry:
+        user: Mtumiaji
+        language_code: Lugha
+      friend:
+        user: Mtumiaji
+        friend: Rafiki
+      trace:
+        visible: Huonekana
+        name: Jina
+        size: Ukubwa
+        latitude: Latitudo
+        longitude: Longitudo
+        public: Ya uma
+        description: Elezo
+      user:
+        email: Barua pepe
+        languages: Lugha
+        pass_crypt: Neno la siri
+        pass_crypt_confirmation: Thibitisha Nywila
+  accounts:
+    go_public:
+      find_out_why: Pata kujua mbona
+  browse:
+    way:
+      title_html: 'Njia: %{name}'
+    timeout:
+      type:
+        way: njia
+    tag_details:
+      tags: Tagi
+  changesets:
+    changeset_paging_nav:
+      showing_page: Ukurasa %{page}
+    changesets:
+      user: Mtumiaji
+      area: Eneo
+  diary_entries:
+    form:
+      location: 'Mahali:'
+    show:
+      user_title: Kumbukumbu ya %{user}
+    diary_entry:
+      confirm: Yakinisha
+    diary_comment:
+      confirm: Yakinisha
+    location:
+      location: 'Mahali:'
+      view: Angalia
+      edit: Hariri
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          apron: Aproni
+          gate: Lango
+        amenity:
+          cinema: Sinema
+          college: Chuo
+          hospital: Hospitali
+          library: Maktaba
+          marketplace: Soko
+          police: Polisi
+          prison: Gereza
+          school: Shule
+          taxi: Teksi
+          theatre: Thiata
+          toilets: Vyoo
+          university: Chuo kikuu
+        bridge:
+          "yes": Daraja
+        building:
+          "yes": Jengo
+        highway:
+          elevator: Eleveta
+          primary: Barabara kuu
+          primary_link: Barabara kuu
+          road: Barabara
+        historic:
+          castle: Ngome
+          church: Kanisa
+          fort: Ngome
+          house: Nyumba
+          mine: Mgodi
+          stone: Jiwe
+          tower: Mnara
+        landuse:
+          forest: Msitu
+          grass: Nyasi
+          meadow: Nyika
+          mine: Mgodi
+        man_made:
+          bridge: Daraja
+          tower: Mnara
+          works: Kiwanda
+        natural:
+          bay: Ghuba
+          beach: Pwani
+          forest: Msitu
+          grassland: Nyika
+          hill: Kilima
+          island: Kisiwa
+          land: Nchi
+          peak: Kile
+          rock: Mwamba
+          stone: Jiwe
+          tree: Mti
+          volcano: Volkeno
+          water: Maji
+        place:
+          city: Jiji
+          country: Nchi
+          county: Mkoa
+          farm: Shamba
+          house: Nyumba
+          houses: Nyumba
+          island: Kisiwa
+          region: Wilaya
+          town: Mji
+          village: Kijiji
+        shop:
+          toys: Duka la vichezeo
+          wine: Duka la mvinyo
+          "yes": Duka
+        tourism:
+          hotel: Hoteli
+          zoo: Bustani ya wanyama
+        waterway:
+          river: Mto
+      types:
+        cities: Majiji
+        towns: Miji
+  passwords:
+    new:
+      email address: Anwani ya barua pepe
+  sessions:
+    new:
+      email or username: Anwani ya Barua Pepe au Jina la Mtumiaji
+      password: Neno la siri
+  site:
+    copyright:
+      legal_babble:
+        contributors_cz_credit_html: '%{czechia}ːIna data kutoka kwa usimamizi wa
+          jimbo wa upimaji Ardhi na cadastre iliyoidhinishwa chini ya %{cc_licence_link}'
+        contributors_cz_czechia: Ucheki
+    any_questions:
+      get_help_here: Pata usaidizi hapa
+    key:
+      table:
+        entry:
+          capital: Mji mkuu
+          city: Jiji
+          beach: Fukwe
+          school: Shule
+          bicycle_rental: Kukodisha baiskeli
+          bicycle_parking_small: Maegesho ya baiskeli ndogo
+  traces:
+    show:
+      map: ramani
+    trace:
+      view_map: Tazama ramani
+      edit_map: Hariri Ramani
+    index:
+      empty_title: Hamna chochote hapa kwa sasa
+  users:
+    show:
+      revoke_all_blocks: Kuondoa vizuizi vyote
+  user_blocks:
+    revoke_all:
+      revoke: Batilisha!
+...

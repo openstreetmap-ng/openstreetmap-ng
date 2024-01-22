@@ -1,0 +1,34 @@
+# Messages for Old English (Ænglisc)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Gtbot2007
+# Author: Hogweard
+---
+ang:
+  time:
+    formats:
+      friendly: '%e %B %Y æt %H:%M'
+  helpers:
+    file:
+      prompt: Ċēosan leaf
+    submit:
+      diary_comment:
+        create: Hordian
+      diary_entry:
+        create: Publicen
+        update: Nīƿa
+      issue_comment:
+        create: Ƿrītan comet
+      message:
+        create: Sende
+      client_application:
+        create: Ioindre
+        update: Nīƿa
+      oauth2_application:
+        create: Ioindre
+        update: Nīƿa
+  javascripts:
+    directions:
+      engines:
+        fossgis_osrm_foot: Fōt (OSRM)
+...

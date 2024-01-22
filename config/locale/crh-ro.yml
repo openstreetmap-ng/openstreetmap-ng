@@ -1,0 +1,50 @@
+# Messages for Dobrujan Tatar (tatarşa)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Zolgoyo
+---
+crh-ro:
+  time:
+    formats:
+      friendly: '%e %B %Y sáát %H:%M'
+  helpers:
+    file:
+      prompt: Dosiya sayla
+    submit:
+      diary_comment:
+        create: Yorum
+      diary_entry:
+        create: Yayînla
+        update: Ğañîlîk
+      issue_comment:
+        create: Yorum koşuw
+      message:
+        create: Ğíber
+      client_application:
+        update: Ğañîlîk
+      oauth2_application:
+        update: Ğañîlîk
+      trace:
+        update: Deñíştírmelerdí sakla
+  activerecord:
+    models:
+      country: Memleket
+      language: Tĭl
+      message: Qaber
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          cinema: Deweran
+          clinic: Klinika
+          clock: Sáát
+          college: Kolej
+          doctors: Doktorlar
+          hospital: Awuruwkana
+  site:
+    key:
+      table:
+        entry:
+          train: Tren
+          grass: Ot
+...

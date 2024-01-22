@@ -1,0 +1,291 @@
+# Messages for Neapolitan (Napulitano)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: C.R.
+# Author: Chelin
+# Author: Finizio
+# Author: Ruthven
+---
+nap:
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: Astipa
+      diary_entry:
+        create: Pubblica
+      message:
+        create: Manna
+      client_application:
+        create: Registrate
+      oauth2_application:
+        create: Registrate
+      redaction:
+        update: Astipa a redazione
+      trace:
+        create: Carreca
+        update: Astipa 'e cagnamiénte
+  activerecord:
+    errors:
+      messages:
+        email_address_not_routable: nun tene na via
+    models:
+      acl: Lista 'e controllo dde acciesse
+      changeset: Gruppo 'e càgnamiente
+      changeset_tag: Etichetta ddo gruppo 'e càgnamiente
+      country: Nazzione
+      diary_comment: Commento al diario
+      diary_entry: Articolo d' 'o diario
+      friend: Amico
+      language: Lengua
+      message: '''Mmasciata'
+      node: Nodo
+      node_tag: Etichetta ddo nodo
+      old_node: Viecchio nodo
+      old_node_tag: Viecchia etichetta d' 'o nodo
+      old_relation: Viecchia relazzione
+      old_relation_member: Viecchio membro dda relazzione
+      old_relation_tag: Viecchia etichetta dda relazzione
+      old_way: Viecchio percurso
+      old_way_node: Viecchio nodo ddo percurso
+      old_way_tag: Viecchia etichetta ddo percurso
+      relation: Relazzione
+      relation_member: Membro dda relazzione
+      relation_tag: Etichetta d' 'a relazzione
+      session: Sezzione
+      trace: Ascià 'o singo
+      tracepoint: Punto d' 'o Singo
+      tracetag: Etichetta d' 'a ricerca d' 'o singo
+      user: Utente
+      user_preference: Preferenze 'e ll'utente
+      user_token: Codece 'e ll'utente
+      way: Percurso
+      way_node: Nodo d' 'o percurso
+      way_tag: Etichetta ddo percurso
+    attributes:
+      client_application:
+        name: Nomme (obbligatorio)
+        allow_write_api: Cagna 'a mappa
+        allow_write_notes: cagna 'e note
+      diary_comment:
+        body: Cuorpo dda 'mmasciata
+      diary_entry:
+        user: Utente
+        title: Suggietto
+        latitude: Latitudine
+        longitude: Longitudine
+        language_code: Lengua
+      doorkeeper/application:
+        name: Nomme
+        scopes: Permesse
+      friend:
+        user: Utente
+        friend: Amico
+      trace:
+        user: Utente
+        visible: Vesibile
+        name: Nomme d''o file
+        size: Dimenzione
+        latitude: Latitudine
+        longitude: Longitudine
+        public: Pubbreco
+        description: Descrizzione
+        tagstring: Etichette
+      message:
+        sender: Mittente
+        title: Suggietto
+        body: Cuorpo d' 'a 'mmasciata
+        recipient: Recipiente
+      redaction:
+        title: Titulo
+        description: Descrizzione
+      user:
+        email: Email
+        active: Attivo
+        display_name: Nomme vesualizzato
+        description: Descrizzione r'o profilo
+        home_lat: Latitudine
+        home_lon: Longitudine
+        languages: Lengue canosciute
+        preferred_editor: Editor preferito
+        pass_crypt: Password
+        pass_crypt_confirmation: Cunferma 'a password
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: miezzo minuto fa
+  editor:
+    default: Predefinito (mo %{name})
+    id:
+      name: iD
+      description: iD (editore int' 'o navigatóre)
+    remote:
+      name: Cuntrollo Remoto
+      description: Cuntrollo Remoto (JOSM, Potlatch, Merkaartor)
+  auth:
+    providers:
+      none: Nisciuno
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Wikipedia
+  api:
+    notes:
+      comment:
+        opened_at_html: Criato %{when}
+        opened_at_by_html: Criato %{when} by %{user}
+      rss:
+        title: Note 'e OpenStreetMap
+      entry:
+        comment: Cummentario
+  account:
+    deletions:
+      show:
+        title: Scancella 'o cunto d''o mio
+        delete_account: Scancella 'o cunto utente
+        confirm_delete: Sì sicur'?
+        cancel: Sfaje
+  accounts:
+    edit:
+      title: Cagna 'o conto
+      current email address: 'Indirizzo email ''e mmò:'
+      openid:
+        link text: Che r'è chist?
+      public editing:
+        enabled link text: Che r'è chist?
+      contributor terms:
+        link text: che r'è 'sta cosa?
+      save changes button: Astipa 'e cagnamiénte
+  browse:
+    created: Criato
+    closed: Nchiuso
+    version: Verzione
+    in_changeset: Gruppo 'e càgnamiente
+    anonymous: anonimo
+    no_comment: (nisciuno commento)
+    part_of: Parte 'e
+    part_of_relations:
+      one: 1 relazziona
+      other: '%{count} relazione'
+    part_of_ways:
+      one: 1 via
+      other: '%{count} vie'
+    download_xml: Scarreca XML
+    view_history: Vire Cronologgia
+    view_details: Vire Dettaglie
+    location: 'Pizzo:'
+    changeset:
+      title: 'Gruppo dde càgnamiente: %{id}'
+      belongs_to: Autore
+      node: Núrece (%{count})
+      node_paginated: Núrece (%{x}-%{y} 'e %{count})
+      way: Vvie (%{count})
+      way_paginated: Vvie (%{x}-%{y} 'e %{count})
+      relation: Azzeccamiente (%{count})
+      relation_paginated: Azzeccamiente (%{x}-%{y} 'e %{count})
+      comment: Commentarie (%{count})
+      changesetxml: Gruppo dde càgnamiente XML
+      osmchangexml: càgnamienteOsm XML
+      feed:
+        title: Gruppo dde càgnamiente %{id}
+        title_comment: Gruppo dde càgnamiente %{id} - %{comment}
+      discussion: Chiàcchiera
+    node:
+      title_html: 'Nureco: %{name}'
+      history_title_html: 'Cronologgia ''e nureco: %{name}'
+    way:
+      title_html: 'Via: %{name}'
+      history_title_html: 'Cronologgia ''e via: %{name}'
+      nodes: Núrece
+      also_part_of_html:
+        one: parte d' 'a via %{related_ways}
+        other: parte d' 'e vvie %{related_ways}
+    relation:
+      title_html: 'Azzeccamiento: %{name}'
+      history_title_html: 'Cronologgia azzeccamiente: %{name}'
+      members: Membre
+    relation_member:
+      type:
+        node: Nudo
+        way: Via
+        relation: Relazzione
+    containing_relation:
+      entry_html: Relazzione %{relation_name}
+    not_found:
+      title: Nun aggio truvato
+      type:
+        node: nudo
+        way: via
+        note: nota
+    timeout:
+      type:
+        way: via
+        relation: relazzione
+    redacted:
+      type:
+        node: nudo
+        way: via
+    start_rjs:
+      loading: Carrecanno...
+  changesets:
+    changeset_paging_nav:
+      showing_page: Paggena %{page}
+      next: Aroppo »
+      previous: « Primma
+    changesets:
+      id: ID
+      saved_at: Astipato 'a
+      user: Utente
+      comment: Cummentario
+      area: Area
+    timeout:
+      sorry: Ve cercammo scusa, l'elenco 'e cagnamiente c'avit'addimannato se tricava
+        troppo tiempo a piglià.
+  dashboards:
+    popup:
+      your location: '''O puosto tujo'
+      friend: Amico
+    show:
+      my friends: L'ammici d'e miei
+  diary_entries:
+    form:
+      location: Pizzo
+    show:
+      login: Tràse
+    location:
+      view: Vire
+      edit: Càgna
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          cinema: Cinnema
+          dentist: Scippamole
+          fountain: Funtana
+          hospital: Ospitale
+          pharmacy: Farmacia
+          school: Scola
+          taxi: Taxi
+          theatre: Triato
+        bridge:
+          "yes": Puonte
+        building:
+          house: Casa
+        historic:
+          stone: Preta
+          tomb: Taùto
+          tower: Torre
+        leisure:
+          sauna: Sauna
+        natural:
+          crater: Crater
+          land: Terra
+        place:
+          house: Casa
+        railway:
+          station: Stazione d'e trene
+          subway: Metro
+          subway_entrance: Stazione d'a metro
+...

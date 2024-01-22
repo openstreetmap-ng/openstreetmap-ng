@@ -1,0 +1,15 @@
+# Messages for Gothic (𐌲𐌿𐍄𐌹𐍃𐌺)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Gothicspeaker
+---
+got:
+  activerecord:
+    models:
+      friend: "\U00010346\U00010342\U00010339\U0001033E\U00010349\U0001033D\U00010333\U00010343"
+      language: "\U00010342\U00010330\U00010336\U00010333\U00010330"
+      message: "\U00010345\U00010330\U0001033F\U00010342\U00010333"
+    attributes:
+      diary_entry:
+        title: "\U0001033F\U00010346\U00010345\U00010330\U0001033F\U00010342\U00010340\U00010330"
+...

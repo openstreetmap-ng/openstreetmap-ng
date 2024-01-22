@@ -1,0 +1,46 @@
+# Messages for Sanskrit (संस्कृतम्)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Charunandan16
+---
+sa:
+  issues:
+    index:
+      select_status: स्थितिचयनम्
+      not_updated: अपरिष्कृतम्
+      search: अन्विष्यताम्
+      search_guidance: विषयान् अन्विष्यतु
+      status: स्थितिः
+      link_to_reports: वृत्तानि पश्यतु
+      states:
+        ignored: दुर्लक्षितम्
+    show:
+      report_created_at_html: प्रथमनिवेदनस्य समयः%{datetime}
+      last_updated_at_html: अन्तिमं परिष्करणम् %{displayname}  इति अनेन जनेन %{datetime}इति
+        अस्मिन् समये कृतम्।
+      ignore: अवगण्यताम्
+      no_other_issues: एतम् उपयोक्तारं विरुद्य्ू न अन्यः कश्चन विषयः अस्ति।
+    ignore:
+      ignored: विषयस्थितिः ‘उपेक्षिता’ इति निर्धारितम्
+    reopen:
+      reopened: विषयस्थितिः उद्धाटिता
+    comments:
+      reassign_param: विषयस्य पुनर्योजना कार्या ?
+  reports:
+    new:
+      categories:
+        user:
+          spam_label: उपभोक्तुः एतद् वृत्तम् असम्बद्धम्।
+          vandal_label: अयम् उपयोक्ता घातकः।
+          other_label: अन्यत्
+        note:
+          spam_label: असम्बद्धा एषा सूचना
+          personal_label: अस्यां सूचनायां निजविवरणं विद्यते।
+          abusive_label: एषा सूचना अवमानकरी।
+    create:
+      provide_details: कृपया आवश्यकं विवरणं ददातु।
+  application:
+    require_admin:
+      not_an_admin: तत् कार्यं कर्तुं भवान् /भवती प्रशासकः/ प्रशासिका भवितुम् अर्हति
+        /
+...

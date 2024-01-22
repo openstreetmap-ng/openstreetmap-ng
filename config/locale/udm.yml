@@ -1,0 +1,21 @@
+# Messages for Udmurt (удмурт)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Kotwys
+# Author: Света Поторочина
+---
+udm:
+  helpers:
+    file:
+      prompt: Файл быръе
+  activerecord:
+    attributes:
+      trace:
+        name: Файл ним
+        gpx_file: GPX файл тыроно
+        visibility: Адӟиськонэз
+        tagstring: Тодмостонъёс
+  traces:
+    edit:
+      cancel: Берланьтон
+...

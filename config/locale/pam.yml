@@ -1,0 +1,68 @@
+# Messages for Pampanga (Kapampangan)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Amiel Guanlao
+# Author: Leeheonjin
+---
+pam:
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          clock: Orasan
+          gambling: Pamag-sugal
+          monastery: Monasteryu
+        craft:
+          carpenter: Karpinteru
+          gardener: Ardineru
+          painter: Tala-pinta
+          plumber: Plumeru
+          tailor: Sastri
+        emergency:
+          ambulance_station: Estasyun ning Ambulansya
+        highway:
+          "yes": Dalan
+        historic:
+          building: Pangkasaleselang gusali
+          heritage: Pamanang Lugal (Heritage Site)
+          roman_road: Dalan Romanu
+        leisure:
+          dog_park: Liwasan da reng asu
+        man_made:
+          lighthouse: Parola
+          tower: Tori
+          works: Pabrika
+        office:
+          administrative: Administrasyun
+        place:
+          "yes": Lugal
+        tourism:
+          gallery: Galerya
+        waterway:
+          "yes": Dalan-danum
+  sessions:
+    new:
+      auth_providers:
+        openid:
+          title: Maglagda (login) gamit ing OpenID
+          alt: Maglagda (login) gamit ing OpenID URL
+        google:
+          title: Maglagda (login) gamit ing Google
+          alt: Maglagda (login) gamit ing Google OpenID
+        wordpress:
+          title: Maglagda (login) gamit ing Wordpress
+        aol:
+          alt: Maglagda (login) gamit ing AOL OpenID
+  site:
+    key:
+      table:
+        entry:
+          main_road: dalang kabulusan
+  javascripts:
+    directions:
+      directions: Deng Direksyun
+      distance: Laut
+      instructions:
+        unnamed: alang lagyu
+      time: Oras
+...

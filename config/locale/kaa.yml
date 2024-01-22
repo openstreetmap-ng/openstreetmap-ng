@@ -1,0 +1,59 @@
+# Messages for Kara-Kalpak (Qaraqalpaqsha)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajiniyaz Nurniyazov
+# Author: Nurlan
+---
+kaa:
+  helpers:
+    file:
+      prompt: Fayldı saylań
+    submit:
+      diary_comment:
+        create: Pikir
+      diary_entry:
+        create: Járiyalaw
+        update: Jańalaw
+      issue_comment:
+        create: Pikir qosıw
+      message:
+        create: Jiberiw
+      client_application:
+        create: Dizimnen ótiw
+        update: Jańalaw
+      oauth2_application:
+        create: Dizimnen ótiw
+        update: Jańalaw
+      redaction:
+        create: Redakciya jaratıw
+  datetime:
+    distance_in_words_ago:
+      about_x_months:
+        one: shama menen 1 ay burın
+        other: shama menen %{count} 1 ay burın
+      x_days:
+        one: '%{count} kún burın'
+        other: '%{count} kún burın'
+  errors:
+    not_found:
+      title: Fayl tabılmadı
+  layouts:
+    communities: Jámiyetler
+  sessions:
+    suspended_flash:
+      suspended: Keshirersiz, akkauntıńız gúmanlı háreket sebepli toqtatıldı.
+      support: járdem
+  site:
+    welcome:
+      title: Xosh keldińiz!
+    communities:
+      title: Jámiyetler
+      local_chapters:
+        title: Jergilikli bólimler
+      other_groups:
+        title: Basqa toparlar
+  javascripts:
+    directions:
+      distance_m: '%{distance}m'
+      distance_km: '%{distance}km'
+...

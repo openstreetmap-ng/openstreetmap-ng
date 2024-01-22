@@ -1,0 +1,556 @@
+# Messages for Ido (Ido)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Danieldegroot2
+# Author: JSantos
+# Author: Joao Xavier
+---
+io:
+  helpers:
+    file:
+      prompt: Selektez arkivo
+    submit:
+      diary_comment:
+        create: Komentar
+      diary_entry:
+        create: Publikigar
+        update: Aktualigar
+      issue_comment:
+        create: Adjuntez komento
+      message:
+        create: Sendar
+      client_application:
+        create: Registragar
+        update: Aktualigar
+      oauth2_application:
+        create: Registragar
+        update: Aktualigar
+      redaction:
+        create: Krear supreso
+        update: Konservar redakturo
+      trace:
+        create: Sendar arkivo
+        update: Konservar Modifikuri
+      user_block:
+        create: Krear blokuso
+        update: Aktualigar blokuso
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: ne semblas esar valida e-post-adreso
+        email_address_not_routable: ne esas atingebla
+    models:
+      acl: Listo por Admiso-Kontrolo
+      changeset: Ensemblo di chanji
+      changeset_tag: Etiketo por chanjo-ensembli
+      country: Lando
+      diary_comment: Diala komento
+      diary_entry: Diala redakturo
+      friend: Amiko
+      issue: Questiono
+      language: Linguo
+      message: Mesajo
+      node: Nodo
+      node_tag: Nodo-etiketo
+      old_node: Anciena nodo
+      old_node_tag: Etiketo dil anciena grupo
+      old_relation: Anciena relato
+      old_relation_member: Membro de anciena relato
+      old_relation_tag: Anciena etiketo di relato
+      old_way: Anciena agado-metodo
+      old_way_node: Anciena agado-nodo
+      old_way_tag: Etiketo pri 'anciena formo'
+      relation: Relato
+      relation_member: Membro de la relato
+      relation_tag: Relato-etiketo
+      report: Raporto
+      session: Sesiono
+      trace: Treko
+      tracepoint: Punto en la treko
+      tracetag: Treko-etiketo
+      user: Uzero
+      user_preference: Preferajo dil uzero
+      user_token: Signo (''token'') dil uzero
+      way: Treko
+      way_node: Nodo en la treko
+      way_tag: Treko-etiketo
+    attributes:
+      client_application:
+        name: Nomo (Bezonata)
+        url: Precipua URL dil programo (Bezonata)
+        callback_url: URL por supreso
+        support_url: URL por suporto
+        allow_read_prefs: Lektez lia preferaji pri uzo
+        allow_write_prefs: Modifikez lia preferaji di uzeri
+        allow_write_diary: kreez diala redakturi, komenti e facez nova amiki
+        allow_write_api: modifikar la mapo
+        allow_read_gpx: Lektez lia privata registri de GPS
+        allow_write_notes: modifikez noti
+      diary_comment:
+        body: Korpo
+      diary_entry:
+        user: Uzero
+        title: Temo
+        body: Korpo
+        latitude: Latitudo
+        longitude: Longitudo
+        language_code: Idiomo
+      doorkeeper/application:
+        name: Nomo
+        redirect_uri: Ridirektar ret-adresi
+        confidential: Konfidencal aplikajo?
+        scopes: Permisi
+      friend:
+        user: Uzero
+        friend: Amiko
+      trace:
+        user: Uzero
+        visible: Videbla
+        name: Nomo dil arkivo
+        size: Grandeso
+        latitude: Latitudo
+        longitude: Longitudo
+        public: Publika
+        description: Deskripto
+        gpx_file: Sendez arkivo GPX
+        visibility: Videbleso
+        tagstring: Etiketi
+      message:
+        sender: Sendanto
+        title: Temo
+        body: Korpo
+        recipient: Recevero
+      redaction:
+        title: Titulo
+        description: Deskripto
+      report:
+        category: Selektez motivo por vua raporto
+        details: Adjuntez plusa detali pri la problemo (bezonata).
+      user:
+        auth_provider: Furnisanto di autentikigo
+        auth_uid: UID por autentikigo
+        email: E-posto
+        new_email: Nova e-posto-adreso
+        active: Aktiva
+        display_name: Montrez nomo
+        description: Deskripto dil profilo
+        home_lat: Latitudo
+        home_lon: Longitudo
+        languages: Idiomi preferita
+        preferred_editor: Redaktilo preferita
+        pass_crypt: Pasovorto
+        pass_crypt_confirmation: Konfirmez pasovorto
+    help:
+      doorkeeper/application:
+        confidential: Application will be used where the client secret can be kept
+          confidential (native mobile apps and single page apps are not confidential)
+        redirect_uri: Uzez un lineo po URI
+      trace:
+        tagstring: separita per komi
+      user_block:
+        reason: La motivo pro quo l'uzero blokusesis. Agez tam kalma kam posibla,
+          informez tanta detali kam posibla pri la situaciono, e rimemorigez ke ca
+          mesajo esus publike videbla. Savez ke ne omna uzeri konocas la slangi uzata
+          da la komunitato, do skribez per simpla vorti.
+        needs_view: Ka l'uzero mustas enirar ante ke ka blokuso esos videbla?
+      user:
+        new_email: (nulatempe montrez publike)
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: cirkume %{count} horo ante nun
+        other: cirkume %{count} hori ante nun
+      about_x_months:
+        one: cirkume %{count} monato ante nun
+        other: cirkume %{count} monati ante nun
+      about_x_years:
+        one: cirkume %{count} yaro ante nun
+        other: cirkume %{count} yari ante nun
+      almost_x_years:
+        one: preske %{count} yaro ante nun
+        other: preske %{count} yari ante nun
+      half_a_minute: 30 sekundi ante nun
+      less_than_x_seconds:
+        one: min kam %{count} sekundo ante nun
+        other: min kam %{count} sekundi ante nun
+      less_than_x_minutes:
+        one: min kam %{count} minuto ante nun
+        other: min kam %{count} minuti ante nun
+      over_x_years:
+        one: plu kam %{count} yaro ante nun
+        other: plu kam %{count} yari ante nun
+      x_seconds:
+        one: '%{count} sekundo ante nun'
+        other: '%{count} sekundi ante nun'
+      x_minutes:
+        one: '%{count} minuto ante nun'
+        other: '%{count} minuti ante nun'
+      x_days:
+        one: '%{count} dio ante nun'
+        other: '%{count} dii ante nun'
+      x_months:
+        one: '%{count} monato ante nun'
+        other: '%{count} monati ante nun'
+      x_years:
+        one: '%{count} yaro ante nun'
+        other: '%{count} yari ante nun'
+  printable_name:
+    with_version: '%{id}, v%{version}'
+    with_name_html: '%{name} (%{id})'
+  editor:
+    default: Predefinita (nuna %{name})
+    id:
+      name: iD
+      description: iD (redaktero interne navigilo)
+    remote:
+      name: Extera kontrolo
+      description: Extera kontrolo (JOSM, Potlatch, Merkaartor)
+  auth:
+    providers:
+      none: Nula
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      microsoft: Microsoft
+      github: GitHub
+      wikipedia: Wikipedio
+  api:
+    notes:
+      comment:
+        opened_at_html: Kreita %{when}
+        opened_at_by_html: Kreita %{when} da %{user}
+        commented_at_html: Aktualigita %{when}
+        commented_at_by_html: Aktualigita %{when} da %{user}
+        closed_at_html: Solvita ye %{when}
+        closed_at_by_html: Solvita ye %{when} da %{user}
+        reopened_at_html: Itere funcionanta depos %{when}
+        reopened_at_by_html: '%{user} facis ol itere funcionar ye %{when}'
+      rss:
+        title: Noti de OpenStreetMap
+        description_area: Listo di noti informita, komentita, o klozita en vua regiono
+          [(%{min_lat}|%{min_lon}) -- (%{max_lat}|%{max_lon})]
+        description_item: RSS-listo por vidar %{id}
+        opened: nova noto (proxim %{place})
+        commented: nova komento (proxim %{place})
+        closed: klozita noto (proxim %{place})
+        reopened: noto riapertita (proxim %{place})
+      entry:
+        comment: Komento
+        full: Kompleta noto
+  account:
+    deletions:
+      show:
+        title: Efacez mea konto
+        warning: Avizo! Pos finar, la procedo por efacar konto ne povas reversionesar.
+        delete_account: Efacez konto
+        delete_introduction: 'Vu povas efacar vua konto che OpenStreetMap uzanta la
+          butono adinfre. Atencez pri la sequanta detali:'
+        delete_profile: Tota vua personal informo, inkluzite vua imajo ''avatar'',
+          la deskripto pri vu e l'informo pri lokizo di vua rezideyo efacesos.
+        delete_display_name: Vua uzero-nomo eliminesos, e povos uzesar da altra konti.
+        confirm_delete: Ka vu esas certa pri to?
+        cancel: Desfacar
+  accounts:
+    edit:
+      title: Aktualigez konto
+      my settings: Mea ajusti
+      current email address: Nuna e-postal adreso
+      external auth: Extera autentikigo
+      openid:
+        link: https://wiki.openstreetmap.org/wiki/OpenID
+        link text: quo esas to?
+      public editing:
+        heading: Redakto publika
+        enabled: Permisita. Ne esas anonimo, e povas redaktar.
+        enabled link: https://wiki.openstreetmap.org/wiki/Anonymous_edits
+        enabled link text: quo esas to?
+        disabled link text: Pro quo me ne povas redaktar?
+      contributor terms:
+        heading: Reguli pri quale kontributar
+        agreed: Vu mustas aceptar la nova reguli pri quale kontributar.
+        link text: quo esas to?
+      save changes button: Konservez Chanji
+    go_public:
+      heading: Redakto publika
+  browse:
+    created: Kreita
+    closed: Klozita
+    version: Versiono
+    in_changeset: Ensemblo di chanji
+    anonymous: anonimo
+    no_comment: (sen komento)
+    part_of: Parto de
+    part_of_relations:
+      one: 1 relato
+      other: '%{count} relati'
+    part_of_ways:
+      one: 1 treko
+      other: '%{count} treki'
+    download_xml: Deskargar XML
+    view_history: Kronologio
+    view_details: Vidar detali
+    location: Lokizoː
+    changeset:
+      title: Ensemblo di chanjiː %{id}
+      belongs_to: Autoro
+      node: Nodi (%{count})
+      node_paginated: Nodi (%{x}-%{y} de %{count})
+      way: Posibla agadi (%{count})
+      way_paginated: (%{x}-%{y} de %{count}) posibla agadi
+      relation: Relati (%{count})
+      relation_paginated: (%{x}-%{y} de %{count}) relati
+      comment: Komenti (%{count})
+      feed:
+        title: Ensemblo di chanji %{id}
+        title_comment: Ensemblo di chanji %{id} - %{comment}
+      discussion: Diskuto
+    way:
+      nodes: Nodi
+    relation:
+      members: Membri
+      members_count:
+        one: 1 membro
+        other: '%{count} membri'
+    relation_member:
+      entry_role_html: '%{type} %{name} kom %{role}'
+      type:
+        node: Nodo
+        relation: Relato
+    containing_relation:
+      entry_html: Relato %{relation_name}
+    not_found:
+      type:
+        node: nodo
+    timeout:
+      type:
+        node: nodo
+    redacted:
+      type:
+        node: nodo
+    start_rjs:
+      loading: Karganta...
+    tag_details:
+      tags: Etiketi
+      wikidata_link: L'elemento %{page} che Wikidata
+  changesets:
+    changeset_paging_nav:
+      previous: « Antea
+    changeset:
+      anonymous: Anonimo
+    changesets:
+      user: Uzero
+    index:
+      empty: Nula ensemblo di modifikuri trovesis.
+  diary_entries:
+    index:
+      my_diary: Mea personala jurnalo
+    show:
+      login: Eniro
+  doorkeeper:
+    flash:
+      applications:
+        create:
+          notice: Aplikajo enrejistrita.
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        highway:
+          path: Voyo
+        natural:
+          island: Insulo
+        place:
+          city: Urbo
+          island: Insulo
+          state: Stato
+          subdivision: Subdividuro
+        waterway:
+          river: Fluvio o rivero
+      types:
+        cities: Urbi
+  layouts:
+    home: Irar a komenco
+    logout: Ekirar
+    log_in: Enirar
+    sign_up: Registragez
+    edit: Redaktar
+    learn_more: Lernez pluse
+  user_mailer:
+    note_comment_notification:
+      anonymous: Ul anonima uzero
+  confirmations:
+    resend_success_flash:
+      confirmation_sent: We've sent a new confirmation note to %{email} and as soon
+        as you confirm your account you'll be able to get mapping.
+      whitelist: If you use an antispam system which sends confirmation requests then
+        please make sure you whitelist %{sender} as we are unable to reply to any
+        confirmation requests.
+  messages:
+    message_summary:
+      unread_button: Indikez quale "ne lektita"
+      reply_button: Respondar
+    reply:
+      wrong_user: Vu eniris quale `%{user}', tamen la mesajo quan vu probis respondar
+        se sendesis a ca uzero. Voluntez facar ''log in'' per la korekta uzeronomo,
+        por respondar ol.
+    show:
+      reply_button: Respondar
+      unread_button: Indikez quale "ne lektita"
+  preferences:
+    show:
+      title: Mea preferaji
+    edit:
+      save: Aktualigar preferaji
+    update:
+      failure: Ne povis aktualigar preferaji.
+    update_success_flash:
+      message: Preferaji aktualigita.
+  shared:
+    markdown_help:
+      headings: Tituli
+      heading: Titulo
+  site:
+    index:
+      permalink: Permananta ligilo
+    edit:
+      user_page_link: Uzero-pagino
+    help:
+      welcome:
+        url: /bonveno
+    any_questions:
+      paragraph_1_html: |-
+        OpenStreetMap havas diversa resursi por lernar pri la projeto, facanta questioni e respondanta
+        dubi, diskutanta kunlaborive, e produktanta dokumentigo pri temi kartografiala.
+        %{help_link}. Ka vu partoprenas organizuro kun projeti pri OpenStreetMap? %{welcome_mat_link}.
+    sidebar:
+      close: Klozez
+    search:
+      search: Serchez
+      submit_text: Irez
+    welcome:
+      title: Bonveno!
+  traces:
+    show:
+      visibility: 'Videbleso:'
+  oauth:
+    scopes:
+      read_prefs: Preferaji dil lektero
+      write_prefs: Modifikez preferaji dil uzero
+      write_diary: Kreez diala redakturi, komenti e facez nova amiki
+      write_api: Modifikez la mapo
+      read_gpx: Read private GPS traces
+      write_gpx: Upload GPS traces
+      read_email: Lektez e-postal adreso dil uzero
+      skip_authorization: Automatale aceptar ''app''
+  oauth_clients:
+    index:
+      application: Nomo di la programo ''app''
+  oauth2_applications:
+    index:
+      title: My client applications
+      no_applications_html: Do you have an application you would like to register
+        for use with us using the %{oauth2} standard? You must register your application
+        before it can make OAuth requests to this service.
+      name: Nomo
+      permissions: Permisi
+    application:
+      edit: Redaktar
+      delete: Efacez
+      confirm_delete: Ka vu deziras efacar ca aplikajo?
+    new:
+      title: Registrez nova aplikajo
+    edit:
+      title: Modifikez vua aplikajo
+    show:
+      edit: Redaktar
+      delete: Efacar
+      confirm_delete: Ka vu deziras efacar ca aplikajo?
+      client_id: Identifikuro dil kliento
+      client_secret_warning: Mantenez ca sekreta - ol ne esos itere videbla
+      permissions: Permisi
+    not_found:
+      sorry: Pardonez, l'aplikajo ne trovesis.
+  oauth2_authorizations:
+    new:
+      title: Permiso bezonata
+      authorize: Permisez
+      deny: Refuzar
+    error:
+      title: Ula eroro eventis
+  oauth2_authorized_applications:
+    index:
+      title: Aplikaji quin me permisis
+      permissions: Permisi
+    application:
+      revoke: Revokar aceso
+  users:
+    new:
+      continue: Registrago
+    terms:
+      consider_pd_why: quo esas to?
+    show:
+      my messages: Mea mesaji
+      my profile: Mea profilo
+      my settings: Mea ajusti
+      my_preferences: Mea preferaji
+      my_dashboard: Mea tablo (''dashboard'')
+      status: 'Stando:'
+    index:
+      title: Uzeri
+      heading: Uzeri
+    suspended:
+      support: suporto
+  user_role:
+    grant:
+      confirm: Konfirmez
+    revoke:
+      confirm: Konfirmez
+  user_blocks:
+    helper:
+      block_duration:
+        days:
+          one: 1 dio
+          other: '%{count} dii'
+        weeks:
+          one: 1 semano
+          other: '%{count} semani'
+        months:
+          one: 1 monato
+          other: '%{count} monati'
+        years:
+          one: 1 yaro
+          other: '%{count} yaro'
+    show:
+      status: 'Stando:'
+      show: Montrar
+      edit: Redaktar
+    block:
+      show: Montrez
+      edit: Redaktar
+    blocks:
+      reason: Motivo di blokuso
+      status: Stando
+  notes:
+    index:
+      last_changed: Lastafoye chanjita
+    show:
+      hide: Celez
+      resolve: Solvez
+      comment: Komento
+  javascripts:
+    close: Klozez
+    share:
+      title: Partigez
+      cancel: Desfacar
+      image: Imajo
+      link: Ligilo od HTML
+      download: Deskargar
+    changesets:
+      show:
+        comment: Komento
+        subscribe: Abonar
+        unsubscribe: Desabonar
+        hide_comment: celez
+        unhide_comment: desvelizez
+    query:
+      node: Nodo
+...

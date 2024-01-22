@@ -1,0 +1,475 @@
+# Messages for Armenian (հայերեն)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: 23artashes
+# Author: Kareyac
+# Author: M hamlet
+# Author: Narek
+# Author: Աշոտ1997
+# Author: Սերգեյ Սաֆարյան
+---
+hy:
+  time:
+    formats:
+      friendly: '%e %B %Y, ժամը՝ %H:%M'
+  helpers:
+    file:
+      prompt: Ընտրեք նիշք
+    submit:
+      diary_comment:
+        create: Մեկնաբանել
+      diary_entry:
+        create: Հրապարակել
+        update: Թարմացնել
+      issue_comment:
+        create: Ավելացնել մեկնաբանություն
+      message:
+        create: Ուղարկել
+      client_application:
+        create: Գրանցում
+        update: Թարմացնել
+      oauth2_application:
+        create: Գրանցում
+        update: Թարմացնել
+      trace:
+        create: Վերբեռնել
+        update: Պահպանել փոփոխությունները
+  activerecord:
+    models:
+      changeset: Փոփոխությունների փաթեթ
+      country: Երկիր
+      diary_comment: Օրագրի մեկնաբանությունը
+      friend: Ընկեր
+      issue: Խնդիր
+      language: Լեզու
+      message: Հաղորդագրություն
+      node: Կետ
+      node_tag: Հանգույցի պիտակ
+      old_way: Հին ճանապարհ
+      relation: Հարաբերություն
+      report: Հաշվետվություն
+      user: Մասնակից
+      way: Գիծ
+      way_node: Գծի կետ
+    attributes:
+      diary_entry:
+        user: Մասնակից
+        title: Թեմա
+        latitude: Լայնություն
+        longitude: Երկայնություն
+        language_code: Լեզու
+      friend:
+        user: Մասնակից
+        friend: Ընկեր
+      trace:
+        user: Մասնակից
+        visible: Տեսանելի
+        name: Նիշքի անվանում
+        size: Չափ
+        latitude: Լայնություն
+        longitude: Երկայնություն
+        description: Նկարագրություն
+      redaction:
+        description: Նկարագրություն
+      user:
+        email: Էլ. փոստ
+        languages: Նախընտրելի լեզուներ
+        pass_crypt: Գաղտնաբառ
+        pass_crypt_confirmation: Հաստատեք գաղտնաբառը
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: կես րոպե առաջ
+  auth:
+    providers:
+      none: Ոչ մեկը
+      google: Գուգլ
+      facebook: Ֆեյսբուք
+      wikipedia: Վիքիպեդիա
+  api:
+    notes:
+      entry:
+        comment: Մեկնաբանություն
+  accounts:
+    edit:
+      save changes button: Պահպանել փոփոխությունները
+  browse:
+    closed_ago_html: Փակվել է %{time_ago}
+    version: Տարբերակ
+    anonymous: անանուն
+    no_comment: (առանց մեկնաբանության)
+    view_history: Դիտել պատմությունը
+    view_details: Դիտել մանրամասները
+    changeset:
+      belongs_to: Հեղինակ
+      discussion: Քննարկում
+    relation:
+      members: Մասնակիցներ
+    relation_member:
+      type:
+        way: Գիծ
+        relation: Հարաբերություն
+    not_found:
+      type:
+        way: գիծ
+        relation: հարաբերություն
+        note: նշում
+    timeout:
+      type:
+        note: նշում
+    redacted:
+      type:
+        way: գիծ
+        relation: հարաբերություն
+    start_rjs:
+      loading: Բեռնվում է…
+  changesets:
+    changeset_paging_nav:
+      next: Հաջորդը »
+      previous: « Նախորդ
+    changeset:
+      anonymous: Անանուն
+    changesets:
+      user: Մասնակից
+      comment: Մեկնաբանություն
+      area: Շրջան
+  dashboards:
+    popup:
+      friend: Ընկեր
+  diary_entries:
+    index:
+      my_diary: Իմ օրագիր
+    show:
+      login: Ներկայացեք
+    diary_entry:
+      confirm: Հաստատել
+    diary_comment:
+      confirm: Հաստատել
+    location:
+      view: Դիտել
+      edit: Խմբագրել
+    comments:
+      when: Երբ
+  errors:
+    forbidden:
+      title: Արգելված է
+    not_found:
+      title: Նիշքը չի ​​գտնվել
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: Օդանավակայան
+          airstrip: Թռիչքուղու գոտի
+          apron: Հարթակ
+        amenity:
+          bank: Բանկ
+          bench: Նստարան
+          cafe: Սրճարան
+          car_rental: Ավտոմեքենաների վարձույթ
+          car_wash: Մեքենայի լվացում
+          casino: Խաղատուն
+          cinema: Կինոթատրոն
+          clock: Ժամացույց
+          college: Քոլեջ
+          community_centre: Համայնքային կենտրոն
+          courthouse: Դատարան
+          crematorium: Կրեմատորիա
+          dentist: Ատամնաբուժարան
+          doctors: Բժիշկ
+          drinking_water: Խմելու ջուր
+          driving_school: Վարորդական դպրոց
+          embassy: Դեսպանատուն
+          fast_food: Արագ սնունդ
+          fire_station: Հրշեջ ծառայություն
+          fountain: Շատրվան
+          fuel: Բենզալցակայան
+          ice_cream: Պաղպաղակ
+          kindergarten: Մանկապարտեզ
+          library: Գրադարան
+          monastery: Վանք
+          music_school: Երաժշտական ​​դպրոց
+          nightclub: Գիշերային ակումբ
+          parking: Կայանատեղի
+          pharmacy: Դեղատուն
+          police: Ոստիկանություն
+          post_office: Փոստային բաժանմունք
+          prison: Բանտ
+          restaurant: Ռեստորան
+          school: Դպրոց
+          swimming_pool: Լողավազան
+          taxi: Տաքսի
+          theatre: Թատրոն
+          toilets: Զուգարան
+          university: Համալսարան
+        boundary:
+          national_park: Ազգային պարկ
+          protected_area: Պաշտպանված տարածք
+        bridge:
+          aqueduct: Ջրատար
+          boardwalk: Մայթ
+          "yes": Կամուրջ
+        building:
+          chapel: Մատուռ
+          garage: Ավտոտնակ
+          garages: Ավտոտնակներ
+          hospital: Հիվանդանոցի շենք
+          hotel: Հյուրանոց
+          house: Տուն
+          kindergarten: Մանկապարտեզ
+          roof: Տանիք
+          ruins: Քանդված շենք
+          school: Դպրոցի շենք
+          warehouse: Պահեստ
+          "yes": Շենք
+        club:
+          sport: Սպորտային ակումբ
+          "yes": Ակումբ
+        craft:
+          blacksmith: Դարբին
+          brewery: Գարեջրագործություն
+          carpenter: Ատաղձագործ
+          electrician: Էլեկտրիկ
+          gardener: Այգեպան
+          painter: Նկարիչ
+          photographer: Լուսանկարիչ
+          plumber: Ջրմուղագործ
+          shoemaker: Կոշկակար
+          tailor: Դերձակ
+        highway:
+          elevator: Վերելակ
+          road: Ճանապարհ
+          "yes": Ճանապարհ
+        historic:
+          battlefield: Մարտադաշտ
+          boundary_stone: Սահմանային քար
+          building: Պատմական շենք
+          castle: Ամրոց
+          church: Եկեղեցի
+          house: Տուն
+          memorial: Հուշարձան
+          ruins: Ավերակներ
+          stone: Քար
+          tomb: Գերեզմանաքար
+          tower: Աշտարակ
+        landuse:
+          cemetery: Գերեզմանոց
+          conservation: Արգելոց
+          construction: Շինարարություն
+          forest: Անտառ
+          orchard: Պտղատու այգի
+          railway: Երկաթուղի
+        leisure:
+          dog_park: Շների խաղահրապարակ
+          park: Այգի
+          sauna: Սաունա
+          stadium: Մարզադաշտ
+        man_made:
+          bridge: Կամուրջ
+        military:
+          "yes": Ռազմական
+        mountain_pass:
+          "yes": Լեռնանցք
+        natural:
+          bay: Ծոց
+          fjord: Ֆյորդ
+          forest: Անտառ
+          geyser: Գեյզեր
+          glacier: Սառցադաշտ
+          grassland: Մարգագետին
+          hill: Բլուր
+          island: Կղզի
+          peninsula: Թերակղզի
+          rock: ժայռ
+          sand: Ավազ
+          spring: Աղբյուր
+          stone: Քար
+          strait: Նեղուց
+          tree: Ծառ
+          volcano: Հրաբուխ
+          wood: Անտառ
+        office:
+          accountant: Հաշվապահ
+          architect: ճարտարապետ
+          company: Ընկերություն
+          lawyer: Փաստաբան
+          travel_agent: Տուրիստական գործակալություն
+        place:
+          archipelago: Արշիպելագ
+          city: Քաղաք
+          country: Երկիր
+          island: Կղզի
+          sea: Ծով
+          state: Նահանգ / Շրջան
+          village: Գյուղ
+          "yes": Վայր
+        railway:
+          subway: Մետրո
+          tram: Տրամվայ
+        shop:
+          books: Գրախանութ
+          furniture: Կահույք
+          lottery: Վիճակախաղ
+          massage: Մերսում
+          "yes": Խանութ
+        tourism:
+          attraction: Տեսարժանություն
+          gallery: Պատկերասրահ
+          hotel: Հյուրանոց
+          information: Տեղեկատվություն
+          museum: Թանգարան
+          zoo: Կենդանաբանական այգի
+        waterway:
+          canal: Ջրանցք
+          river: Գետ
+          waterfall: Ջրվեժ
+      types:
+        cities: Քաղաքներ
+        places: Վայրեր
+    results:
+      no_results: Ոչինչ չի գտնվել
+  issues:
+    index:
+      title: Խնդիրներ
+      search: Որոնել
+      status: Կարգավիճակ
+      states:
+        open: Բաց է
+  reports:
+    new:
+      categories:
+        diary_entry:
+          other_label: Այլ
+        diary_comment:
+          other_label: Այլ
+        user:
+          other_label: Այլ
+        note:
+          other_label: Այլ
+  layouts:
+    edit: Խմբագրում
+    history: Պատմություն
+    issues: Խնդիրներ
+    data: Տվյալներ
+    help: Օգնություն
+    copyright: Հեղինակային իրավունքներ
+    community: Համայնք
+  confirmations:
+    confirm:
+      button: Հաստատել
+    confirm_email:
+      button: Հաստատել
+  messages:
+    messages_table:
+      actions: Գործողություններ
+    outbox:
+      actions: Գործողություններ
+    show:
+      back: Հետ
+  shared:
+    markdown_help:
+      text: Տեքստ
+      image: Պատկեր
+    richtext_field:
+      edit: Խմբագրել
+      preview: Նախադիտել
+  site:
+    about:
+      legal_1_1_openstreetmap_foundation: OpenStreetMap հիմնադրամ
+      legal_1_1_terms_of_use: Օգտագործման պայմաններ
+    copyright:
+      legal_babble:
+        contributors_at_austria: Ավստրիա
+        contributors_au_australia: Ավստրալիա
+        contributors_ca_canada: Կանադա
+        contributors_cz_czechia: Չեխիա
+        contributors_cz_cc_licence: Creative Commons Attribution 4.0 Միջազգային արտոնագիր
+          (CC BY 4.0)
+        contributors_fi_finland: Ֆինլանդիա
+        contributors_fr_france: Ֆրանսիա
+        contributors_nl_netherlands: Նիդերլանդներ
+        contributors_nz_new_zealand: Նոր Զելանդիա
+        contributors_si_slovenia: Սլովենիա
+        contributors_es_spain: Իսպանիա
+        contributors_za_south_africa: Հարավային Աֆրիկա
+    help:
+      welcomemat:
+        title: Կազմակերպությունների համար
+    sidebar:
+      close: Փակել
+    search:
+      search: Որոնում
+    key:
+      table:
+        entry:
+          cycleway_mtb: Լեռնային հեծանիվների երթուղին
+          ferry: Լաստանավ
+          tram: Տրամվայ
+          trolleybus: Տրոլեյբուս
+          bus: Ավտոբուս
+          capital: Մայրաքաղաք
+          city: Քաղաք
+          forest: Անտառ
+          reservoir: Ջրամբար
+          glacier: Սառցադաշտ
+          school: Դպրոց
+          university: Համալսարան
+          hospital: Հիվանդանոց
+          peak: Գագաթնակետ
+          bus_stop: Ավտոբուսի կանգառ
+          toilets: Զուգարան
+    welcome:
+      basic_terms:
+        editor: խմբագիր
+  traces:
+    new:
+      help: Օգնություն
+    edit:
+      cancel: Չեղարկել
+    show:
+      map: քարտեզ
+      edit: խմբագրել
+  users:
+    terms:
+      continue: Շարունակել
+      decline: Մերժել
+    show:
+      confirm: Հաստատել
+  user_role:
+    grant:
+      confirm: Հաստատել
+    revoke:
+      confirm: Հաստատել
+  user_blocks:
+    show:
+      edit: Խմբագրել
+    blocks:
+      creator_name: Հեղինակ
+      next: Հաջորդը »
+      previous: « Նախորդ
+  user_mutes:
+    index:
+      table:
+        thead:
+          actions: Գործողություններ
+  notes:
+    show:
+      description: Նկարագրություն
+      hide: Թաքցնել
+    new:
+      add: Ավելացնել նշում
+  javascripts:
+    close: Փակել
+    share:
+      title: Կիսվել
+      image: Պատկեր
+      long_link: Հղում
+    map:
+      zoom:
+        in: Խոշորացնել
+      layers:
+        title: Շերտեր
+    changesets:
+      show:
+        hide_comment: թաքցնել
+        unhide_comment: ցուցադրել
+...

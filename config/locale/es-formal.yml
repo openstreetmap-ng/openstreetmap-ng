@@ -1,0 +1,12 @@
+# Messages for Spanish (formal address) (español (formal))
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Fitoschido
+---
+es-formal:
+  javascripts:
+    directions:
+      instructions:
+        offramp_right_with_directions: Tome la salida a la derecha hacia %{directions}
+        onramp_right_without_exit: Gire a la derecha en la salida hacia %{name}
+...

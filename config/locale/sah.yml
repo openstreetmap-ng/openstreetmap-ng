@@ -1,0 +1,125 @@
+# Messages for Yakut (саха тыла)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: HalanTul
+# Author: TumatUola
+---
+sah:
+  activerecord:
+    models:
+      country: Дойду
+      diary_comment: Күннүк ырытыыта
+      diary_entry: Күннүккэ сурук
+      friend: Доҕор
+      language: Тыл
+      message: Сурук
+      node: Чоп
+      node_tag: Чоп тиэгэ
+      old_node: Эргэ чоп
+      old_node_tag: Чоп эргэ тиэгэ
+      old_relation: Эргэ сыһыан
+      old_relation_member: Сыһыан эргэ кыттыылааҕа
+      old_relation_tag: Сыһыан эргэ тиэгэ
+      old_way: Эргэ чэрчик
+      old_way_node: Лиинньийэ эргэ чобо
+      old_way_tag: Лиинньийэ эргэ тиэгэ
+      relation: Сыһыан
+      relation_member: Сыһыан кыттыылааҕа
+      relation_tag: Сыһыан тиэгэ
+      session: Сиэссийэ
+      trace: Трек
+      tracepoint: Трек чобо
+      tracetag: Трек тиэгэ
+      user: Кыттааччы
+      user_preference: Кыттааччы туруоруулара
+      way: Суол
+      way_node: Суол чобо
+      way_tag: Суол тиэгэ
+    attributes:
+      diary_comment:
+        body: Тиэкиһэ
+      diary_entry:
+        user: Кыттааччы
+        title: Баһа (аата)
+        latitude: Кэтитэ
+        longitude: Усталааһын
+        language_code: Омугун тыла
+      friend:
+        user: Кыттааччы
+        friend: Доҕор
+      trace:
+        user: Кыттааччы
+        visible: Көстөөһүн
+        name: Аат
+        size: Кээмэйэ
+        latitude: Кэтирээһин
+        longitude: Усталааһын
+        public: Аһаҕас
+        description: Быһаарыыта
+      message:
+        sender: Ыытааччы
+        title: Баһа (аата)
+        body: Тиэкис
+        recipient: Ылааччы
+      user:
+        email: Email
+        description: Суруйуу
+        languages: Тыллар
+        pass_crypt: Киирии тыл
+  editor:
+    remote:
+      name: Ыраахтан салайыы
+      description: Ыраахтан салайыы
+  browse:
+    changeset:
+      title: Көннөрүү бөлөҕө
+    not_found:
+      type:
+        way: Суол
+        relation: сыһыан
+    start_rjs:
+      loading: Киллэрэбин...
+  diary_entries:
+    index:
+      older_entries: Урукку бэлиэлэр
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: Аэродром
+          apron: Перрон
+          gate: Посадкаҕа тахсыы
+          helipad: Вертолет хонуута
+          runway: Сүүрэр суол
+          taxiway: Салайар суол
+          terminal: Терминал
+        amenity:
+          atm: Банкомат
+          bank: Баанка
+          bar: Бар
+          bbq: Барбекю
+          bench: Ыскаамыйа
+          biergarten: Аһаҕас салгыҥҥа пиибэлиир сир
+          brothel: Бордель
+          bureau_de_change: Харчыны уларытыы
+          bus_station: Автобус станцията
+          car_rental: Массыынаны уларсыы
+          car_wash: Массыынаны сууйуу
+          casino: Казино
+          charging_station: Электричествонан иитии
+          cinema: Киинэ
+          clinic: Поликлиника
+          college: Колледж
+          community_centre: Общественнай киин
+          courthouse: Суут
+          dentist: Тиис барааһа
+          doctors: Быраас
+          drinking_water: Иһэр уу
+          driving_school: Автошкола
+          fast_food: Түргэн аһылык
+        natural:
+          forest: Ойуур
+  users:
+    no_such_user:
+      deleted: сотулунна
+...

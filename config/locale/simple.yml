@@ -1,0 +1,10 @@
+# Messages for Simple English (Simple English)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+simple:
+  profiles:
+    edit:
+      gravatar:
+        enabled: Your Gravatar can be shown now.
+...

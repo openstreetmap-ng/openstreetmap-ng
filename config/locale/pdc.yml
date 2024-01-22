@@ -1,0 +1,39 @@
+# Messages for Pennsylvania German (Deitsch)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Xqt
+---
+pdc:
+  helpers:
+    submit:
+      diary_comment:
+        create: Beilege
+  activerecord:
+    models:
+      language: Schprooch
+    attributes:
+      diary_entry:
+        language_code: Schprooch
+      user:
+        languages: Schprooche
+  browse:
+    relation_member:
+      type:
+        way: Weg
+    not_found:
+      type:
+        way: Weg
+    timeout:
+      type:
+        way: Weg
+    tag_details:
+      wikipedia_link: Blatt zu %{page} in de Wikipedia
+  messages:
+    message_summary:
+      destroy_button: Verwische
+    sent_message_summary:
+      destroy_button: Verwische
+  traces:
+    show:
+      download: runnerdraage
+...

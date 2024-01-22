@@ -1,0 +1,340 @@
+# Messages for Divehi (ދިވެހިބަސް)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Mapmeld
+---
+dv:
+  html:
+    dir: rtl
+  activerecord:
+    attributes:
+      diary_entry:
+        title: މައުޟޫއު
+        latitude: ލެޓިޓިއުޑް
+        longitude: ލޯންގިޓިޔުޑް
+      trace:
+        name: ނަން
+        latitude: ލެޓިޓިއުޑް
+        longitude: ލޯންގިޓިޔުޑް
+      message:
+        title: މައުޟޫއު
+      redaction:
+        description: ޗާާޓުގެ ޚުލާޞާ
+      user:
+        new_email: 'އީމެއިލްް އެޑްރެސް ބަދަލުކުރައްވާ:'
+        display_name: ފެންނަން އިންނަ ނަން
+        home_lat: 'ލެޓިޓިއުޑް:'
+        home_lon: 'ލޯންގިޓިޔުޑް:'
+        pass_crypt: ޕާާސްވޯރޑު
+    help:
+      user:
+        new_email: (އީމެއިިލް އެޑްރެސް ޢާއްމެއް ނުކުރާނެ)
+  editor:
+    id:
+      description: iD (އިންޓަރނެޓުގެ ތެރޭގައި އެޑިޓްކުރުން)
+  accounts:
+    edit:
+      my settings: ސެޓިންގްސް
+      current email address: 'މިހާާރު ބޭނުންކުރާ އީމެއިލް އެޑްރެސް:'
+      external auth: 'އިތުރު ޕާޓީތައް ބޭނުންކޮށްގެން ލޮގިންވުމަށް:'
+      public editing:
+        heading: އާއްމުކޮށް ފެންނާނެ ބަދަލުތައް
+        enabled: އެކްޓިވޭޓްވެއްޖެ
+        enabled link text: ޢާއްމުކޮށް ބޭނުންކުރާ ޑޮމެއިން
+        disabled: «ކުރީ ޞަފްޙާ
+      contributor terms:
+        heading: 'ޗާޓުގައި މައުލޫމާތު ޙިއްސާކުރުމުގެ އެއްބަސްވުން:'
+    go_public:
+      heading: 'އާއްމުކޮށް ފެންނާނެ ބަދަލުތައް:'
+  browse:
+    download_xml: ޑައުންލޯޑުކުރައްވާ XML
+    changeset:
+      comment: މިހާތަނަށް ކޮށްފައިވާ ކޮމެންޓްތައް (%{count})
+    query:
+      title: ހޯދާ
+      enclosing: މިސަަރަޙައްދުގައި ހިމެނޭ ތަންތަން
+  changesets:
+    changeset_paging_nav:
+      next: ޖެހިގެން އޮތް ސަފްޙާ»
+      previous: «ކުރީ ޞަފްޙާ
+    changesets:
+      comment: ކޮމެންޓް
+      area: އިމާރާތްތައް
+  dashboards:
+    show:
+      no friends: އެއްވެސް ބައިވެރިއަކު އިތުރުކޮށްފައެއް ނެތް
+      nearby users: ކައިރި ހިސާބުތަކުން ބޭނުންކުރާ މީހުން
+      no nearby users: މިވަގުތު ޗާޓު ކުރަހަމުންދާ އިތުރު ބައިވެރިޔަކު ކައިރިއަކު ނެތް
+  diary_entries:
+    new:
+      title: ޑަައިރީއަށް އާ ޕޯސްޓެއް އިތުރުކުރައްވާ
+    index:
+      new: ޑަައިރީއަށް އާ ޕޯސްޓެއް އިތުރުކުރައްވާ
+      recent_entries: އެންމެ ފަހުން ޑައިރީއަށް އިތުރުކުރި ލިޔުން
+    show:
+      leave_a_comment: ކޮމެންޓް
+    diary_entry:
+      reply_link: ޖަވާބު
+    location:
+      edit: އެޑިޓްކުރައްވާ
+    feed:
+      language:
+        description: އެންމެ ފަހުން ޑައިރީއަށް އިތުރުކުރި ލިޔުން (%{language_name})
+      all:
+        description: އެންމެ ފަހުން ޑައިރީއަށް އިތުރުކުރި ލިޔުން
+    comments:
+      post: ޕޯސްޓުގެ ނަން
+      when: ކޮންއިރަކު
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        natural:
+          water: ފެން
+        place:
+          "yes": ތަނުގެ ނަން
+  layouts:
+    logout: ލޮގްް އައުޓް
+    log_in: ލޮގް އިން
+    sign_up: ސައިން އަޕް
+    start_mapping: ޗާޓް ހަދަން ފަށާ
+    history: އެންމެ ފަހުން ގެނައި ބަދަލުތައް
+    export: އެކްސްޕޯޓް
+    export_data: އެކްސްޕޯޓް
+    gps_traces: ޖިޕީއެސް މައުލޫމާތު
+    user_diaries: ބޭނުންކުރާ ފަރާތްތަކުގެ ޑައިރީ
+    intro_header: އޯޕަން ސްޓްރީޓް މެޕަށް މަރުޙަބާ
+    intro_text: އޯޕަން ސްޓްރީޓް މެޕަކީ މުޅި ދުނިޔޭގެ މައުލޫމާތު ހިމެނޭ ޗާޓެއް. މިޗާޓު
+      ތައްޔާރުކުރަނީ ތިބޭފުޅުން، އަދި މިއީ ލައިސަންސެއްގެ ދަށުން ހިލޭ ބޭނުންކުރެވޭ
+      ޗާޓެއް.
+    partners_bytemark: ބައިޓްމާރކް ހޮސްޓިންގ
+    partners_partners: ބައިވެރިން
+    help: އެހީ ހޯއްދަވާ
+    about: ފުރަތަމަ ސަފްޙާ
+    copyright: ކޮޕީރައިޓް ލިންކް
+    learn_more: އިތުރަށް ހޯއްދަވާ
+  user_mailer:
+    signup_confirm:
+      subject: '[OpenStreetMap] އޯޕަން ސްޓްރީޓް މެޕަށް މަރުޙަބާ'
+      confirm: މިއީ ތިފަރާތުން އައި ރިކުއެސްޓެއްކަން ޔަޤީންކުރުމަށްޓަކައި، ތިރީގައިވާ
+        ލިންކަށް ފިތާލައްވާ.
+      welcome: އެކައުންޓް ހެއްދެވުމުން، ކުރިއަށް ދިއުމަށް ބޭނުންވާ އިތުރު މައުލޫމާތު
+        އަޅުގަނޑުމެން ދޭނަން.
+    lost_password:
+      subject: '[OpenStreetMap] ޕާާސްވޯރޑު reset request'
+  confirmations:
+    confirm:
+      heading: އީމެއިލް ޗެކްކުރައްވާ
+      introduction_1: އެކައުންޓް ޔަޤީންކުރުމަށް އީލެއިލެއް ފޮނުވައިފިން.
+      introduction_2: އީމެއިލްގައިވާ ލިންކަށް ފިތާލުމަށްފަހު އެކައުންޓް ޔަޤީންކުރެއްވުމުގައި
+        ޗާޓު ބޭނުންކުރައްވަން ފެއްޓެވޭނެ
+    confirm_email:
+      heading: އީމެއިލް އެޑްރެސް ޔަޤީންކުރައްވާ
+  messages:
+    messages_table:
+      from: އީމެއިލް ފޮނުވި ފަރާތް
+      subject: މައުޟޫއު
+      date: ޑޭޓް
+    message_summary:
+      unread_button: ނުކިޔާ ކަމަށް ފާހަގަކުރައްވާ
+      reply_button: ޖަވާބު
+      destroy_button: ޑިލީޓްކުރުން
+    new:
+      title: މެސެޖެއް ފޮނުވާ
+      back_to_inbox: ކުރީ ސަފްޙާ
+    outbox:
+      title: އައުޓްބޮކްސް
+    show:
+      reply_button: ޖަވާބު
+      unread_button: ނުކިޔާ ކަމަށް ފާހަގަކުރައްވާ
+      destroy_button: ޑިލީޓްކުރުން
+      back: ކުރީ ސަފްޙާ
+    sent_message_summary:
+      destroy_button: ޑިލީޓްކުރުން
+    heading:
+      my_inbox: އިންބޮކްސް
+  passwords:
+    new:
+      title: ޕާސްވޯޑް ހަނދާން ނެތުނީތޯ؟
+      email address: 'އީމެއިލް އެެޑްރެސް:'
+  profiles:
+    edit:
+      image: 'ފޮޓޯ:'
+      home location: 'ގެ ހުރި ތަން:'
+      update home location on click: ޗާޓަށް ކްލިކް ކުރުމުން ލޮކޭޝަން ފެންނާނެ
+  sessions:
+    new:
+      email or username: 'އީމެއިލް އެޑްްރެސް ނޫނީ ޔޫސަރ ނޭމް:'
+      password: 'ޕާާސްވޯރޑު:'
+      remember: ހަނދާން އެބަހުރި
+      register now: އެކައުންޓް ހެދުމަށް ރަޖިސްޓްރީ ކުރައްވާ
+      with external: 'ގޫގްލް، ފޭސްބުކް އަދި މިނޫންވެސް އިތުރު ޕާޓިއެއް ބޭނުންކޮށްގެން
+        ލޮގިންވުމަށް:'
+      no account: އެކައުންޓެއް ނެތް؟
+  site:
+    about:
+      next: ޖެހިގެން އޮތް ސަފްޙާ
+      used_by_html: ހުޅުވާލާފައިވާ މަގު ޗާޓު ނުވަތަ %{name}، އެތައް ހާސް ވެބްސައިޓާއި،
+        މޯބައިލް އެޕާއި، ހާރޑްވެއާރ ޑިވައިސްތަކުގައި ބޭނުންކުރާ ޗާޓްތަކުގެ މައުލޫމާތު
+        ފަސޭހައިން ލިބެން ހުންނާނެ ވެބްސައިޓެކެވެ.
+      lede_text: މިވެބްސައިޓް އުފައްދާފައިވަނީ، މުޅި ދުނިޔޭގެ އެކި ހިސާބުތަކުގައި
+        ހުރި ރޭލްވޭ ގިމަތަތަކާއި، ކެފޭތަކާއި، މަގުތަކާއި އަދިވެސް އެނޫން ތަންތަނުގެ
+        ޗާޓްތައް ތައްޔާރުކޮށް އެމައުލޫމާތު ބޭނުންވާ ފަރާތްތަަކަށް އެޚިދުމަތް ދެމުންދާ
+        ފަރާތްތައް ގުޅިގެންނެވެ.
+      local_knowledge_title: ރަށު މައުލޫމާތު
+      local_knowledge_html: މިވެބްސައިޓަކީ، އެޤައުމެއްގެ ރައްޔިތުންނަށް އެންމެ ފަސޭހަވާނެ
+        ގޮތަކަށް ރަށުގެ މުހިއްމު  ތަންތަނުގެ މައުލޫމާތު ފޯރުކޮށްދޭ ސައިޓެކެވެ. އެގޮތުން
+        މިވެބްސައިޓްގައި ޗާޓުތައް ތައްޔާރުކުރާ ފަރާތްތަކުން އެމައުލޫމާތު ފޯރުކޮށްދެނީ
+        ބޭނުންކުރާ މީހުންނަށް ފަސޭހަވާނެ ގޮތަށާއި، ޖީޕީއެސް ބޭނުންކޮށްގެންނާއި އަދި
+        މަތިން ނަގާފައިވާ ފޮޓޯތައް ހިމަނައިގެންނެވެ.
+      community_driven_title: ގުޅިލާމެހިފައިވާ ޖަމާޢަތެއް
+      open_data_title: ހުޅުވާލެވިފައިވާ މަޢުލޫމާތުތަކެއް
+      legal_title: ޤާނޫނާއި ޤަވާއިދު
+      partners_title: ބައިވެރިން
+    copyright:
+      native:
+        mapping_link: ޗާޓް ހަދަން ފަށާ
+    index:
+      createnote: އިތުުރުކުރެއްވި ނޯޓު ސޭވްކުރައްވާ
+    export:
+      title: އެކްސްޕޯޓް
+      export_button: އެކްސްޕޯޓް
+    help:
+      welcome:
+        title: އޯޕަން ސްޓްރީޓް މެޕަށް މަރުޙަބާ
+      wiki:
+        title: wiki.openstreetmap.org
+    search:
+      search: ހޯދާ
+      get_directions: ދެޕޮއިންޓްގެ މެދުގައިވާ މަގުތައް ހޯއްދަވާ
+      from: އީމެއިލް ފޮނުވި ފަރާތް
+      where_am_i: ކޮޮބާ އަހަރެން؟
+      submit_text: ހޯދާ
+    welcome:
+      start_mapping: ޗާޓް ހަދަން ފަށާ
+  traces:
+    new:
+      help: އެހީ ހޯއްދަވާ
+    show:
+      download: ޑައުންލޯޑުކުރައްވާ
+      edit: އެޑިޓްކުރައްވާ
+      description: 'ޗާާޓުގެ ޚުލާޞާ:'
+    trace:
+      edit_map: އެޑިޓްކުރައްވާ
+    index:
+      public_traces: އާާއްމު ފަރާތްތަކުން އިތުރުކުރާ ޖީޕީއެސް މައުލޫމާތު
+      public_traces_from: އާާއްމު ފަރާތްތަކުން އިތުރުކުރާ ޖީޕީއެސް މައުލޫމާތު (%{user})
+      upload_trace: ފާހަަގައެއް އިތުރުކުރައްވާ
+    georss:
+      title: ޖީޕީއެސް މެދުވެރިކޮށް ހޯދާ
+  users:
+    new:
+      title: ސައިން އަޕް
+      about:
+        header: އެޑިޓްކުެރެވޭނެ
+      display name description: ޔޫސަރނޭމް މިހާރު ޢާއްމުކޮށް ފެންނާނެ، ބޭނުންނަމަ މިބައި
+        ފަހުން ބަދަލުކުރެވޭނެ
+      use external auth: 'ގޫގްލް، ފޭސްބުކް އަދި މިނޫންވެސް އިތުރު ޕާޓިއެއް ބޭނުންކޮށްގެން
+        ލޮގިންވުމަށް:'
+      continue: ސައިން އަޕް
+    terms:
+      heading: ޗާޓުގައި މައުލޫމާތު ޙިއްސާކުރުމުގެ އެއްބަސްވުން
+      consider_pd: ޢާއްމުކޮށް ބޭނުންކުރަ ޑޮމެއިންވެސް ބޭނުންކުރެވިދާނެ
+      decline: އެއްބަސްނުވަން
+      you need to accept or decline: ޗާޓު ބޭޭނުންކުރުމަށާއި، މައުލޫމަތު ހިއްސާކުރަމުން
+        ދިއުމަށްޓަކައި، އެއްބަސްވުމުގައިވާ ބައިތައް ފުރިހަމައަށް ކިޔުއްވުމަށްފަހު،
+        އެއްބަސްވާކަން ހާމަކުރައްވާ.
+      legale_select: 'ރަށްވެހިވެފައިވާ ޤައުމު:'
+      legale_names:
+        rest_of_world: އެހެން ޤައުމުތައް
+    show:
+      my diary: ޑައިރީ
+      my edits: ޗާޓަށް ގެނައި ބަދަލުތައް
+      my traces: ޖީޕީީއެސް މައުލޫމާތުތައް
+      my notes: ޗާޓަށް ކުރާ ކޮމެންޓުތައް
+      my messages: މެސެޖްތައް
+      my profile: ޕްރޮފައިލް
+      my settings: ސެޓިންގްސް
+      my comments: ކޮމެންޓުތައް
+      blocks on me: ހުއްޓުވުން
+      send message: މެސެޖެއް ފޮނުވާ
+      diary: ޑައިރީ
+      edits: ޗާޓަށް ގެނެސްފައިވާ ބަދަލުތައް
+      traces: ޖިޕީއެސް މައުލޫމާތު
+      notes: ޗާޓުު ބޭނުންކުރާ ފަރާތްތަކުގެ ކޮމެންޓް
+      add as friend: އިތުރު ބައިވެރިއެއް އެއްކުރައްވާ
+      ct status: 'ޗާޓުގައި މައުލޫމާތު ޙިއްސާކުރުމުގެ އެއްބަސްވުން:'
+      email address: 'އީމެއިލް އެެޑްރެސް:'
+      comments: މިހާތަނަށް ކޮށްފައިވާ ކޮމެންޓްތައް
+  user_blocks:
+    not_found:
+      back: ކުރީ ސަފްޙާ
+    show:
+      edit: އެޑިޓްކުރައްވާ
+    block:
+      edit: އެޑިޓްކުރައްވާ
+    blocks:
+      creator_name: މައުލޫމާތު އެއްކުރި ފަރާތް
+      next: ޖެހިގެން އޮތް ސަފްޙާ»
+      previous: «ކުރީ ޞަފްޙާ
+  notes:
+    index:
+      creator: މައުލޫމާތު އެއްކުރި ފަރާތް
+      description: ޗާާޓުގެ ޚުލާޞާ
+      created_at: ހަދާފައިވަނީ
+      last_changed: އެންމެ ފަަހުން ބަދަލު ގެނައީ
+    show:
+      description: ޗާާޓުގެ ޚުލާޞާ
+    new:
+      title: އާ ނޯޓެއް
+      intro: |-
+        ބަައެއް މައުލޫމާތު މަދުކަމަށް ފާހަގަކުރެވިއްޖެ ނަމަ އެކަން ރަނަގޅުކޮށްދެވޭނެ ކަން ޗާޓު ހަދާ ފަރާތްތަކަށް އަންގާލާ.
+        ފާހަގަަ ރަނގަޅު ތަނަށް ގެންގޮސް މައްސަލަ ތަފްސީލުކުރައްވާ.  (އަމިއްލަ މައުލޫމާތު، ނުވަތަ ކޮޕީރައިޓްކޮށްފައިވާ ޗާޓުތައް އަދި ޑައިރެކްޓަރީގައި ހުންނަ މައުލޫމާތު އެއްނުކުރައްވާ.)
+      add: އިތުުރުކުރެއްވި ނޯޓު ސޭވްކުރައްވާ
+  javascripts:
+    share:
+      title: ސޯޝަލް މީޑިއާ ޙިއްސާކުރައްވާ
+      image: ފޮޓޯ
+      link: ލިންކުު ނޫނީ އެޗްޓީއެމްއެލް
+      short_link: ސޯޯޝަލް މީޑިޔާގެ ލިންކު
+      custom_dimensions: އަމިއްލަ މިންތަކެއް ކަނޑައަޅުއްވާ
+      format: ފޯމެޓް
+      scale: 'ސްކޭލް:'
+      download: ޑައުންލޯޑުކުރައްވާ
+      include_marker: ފާހަގައެއް ހިމަނުއްވާ
+    key:
+      title: ޗާާޓުގައި އެކި ތަންތަން ފެންނާނެ ގޮތް
+    map:
+      zoom:
+        in: ޒޫމް އިން
+        out: ޒޫމް އައުޓް
+      locate:
+        title: ލޮކޭޝަން ދައްކާ
+      base:
+        standard: ޗާާޓުގެ ބެކްގްރައުންޑް
+        cycle_map: ބައިިސިކަލް ދުއްވާ ފަރާތްތަކުގެ ޗާޓު
+        transport_map: ދަތުރުފަތުރުގެ ޗާޓު
+        hot: ކުއްލި ޙާލަތްތަކުގެ ޚާއްސަ ޗާޓު
+      layers:
+        header: ފަށަލަތައް
+        notes: ޗާޓުު ބޭނުންކުރާ ފަރާތްތަކުގެ ކޮމެންޓް
+        data: ޗާޓުގެ މައުލޫމާތު
+        gps: އާާއްމު ފަރާތްތަކުން އިތުރުކުރާ ޖީޕީއެސް މައުލޫމާތު
+        overlays: ޓްރަބަލް ޝޫޓިންގ ޓޫލް އެކްޓިވޭޓް ކުރައްވާ
+        title: ފަށަލަތައް
+    site:
+      edit_tooltip: އެޑިޓްކުރައްވާ
+      edit_disabled_tooltip: ޗާާޓު އެޑިޓްކުރުމަށް ޒޫމްއިން ކުރައްވާ
+      createnote_tooltip: ޗާޓަށް ބޭނުންވާ ނޯޓު ލިޔުއްވާ
+      createnote_disabled_tooltip: ޗާޓަށް މައުލޫމާތެއް އެއްކުރުމަށް ޒޫމްއިން ކުރައްވާ
+      queryfeature_tooltip: ހޯދާ
+      queryfeature_disabled_tooltip: ތަފްސީލު ބެލުމަށް ޒޫމްއިންކުރައްވާ
+    query:
+      nothing_found: އެއްވެެސް މައުލޫމާތެއް ނުފެނުނު
+    context:
+      query_features: ހޯދާ
+  redactions:
+    show:
+      description: 'ޗާާޓުގެ ޚުލާޞާ:'
+      user: 'މައުލޫމާތު އެއްކުރި ފަރާތް:'
+...

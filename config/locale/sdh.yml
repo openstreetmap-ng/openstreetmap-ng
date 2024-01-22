@@ -1,0 +1,132 @@
+# Messages for Southern Kurdish (کوردی خوارگ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: TerranBoy
+---
+sdh:
+  html:
+    dir: rtl
+  activerecord:
+    models:
+      country: وڵات
+      language: زوان
+      message: پەێام
+      node: گریە
+      user: وەکاربەر
+      user_preference: هەڵوژیاێەیل وەکاربەر
+    attributes:
+      diary_entry:
+        user: وەکاربەر
+      friend:
+        user: وەکاربەر
+        friend: دووس
+      trace:
+        user: وەکاربەر
+        name: ناو پەڕگە
+        size: ئەندازە
+      user:
+        email: ئیمەیل
+  auth:
+    providers:
+      google: گووگڵ
+      facebook: فەیسبووک
+  account:
+    deletions:
+      show:
+        title: حساوەگەم بسڕەو
+        delete_account: سڕینەگەێ حساو
+  accounts:
+    edit:
+      contributor terms:
+        link text: ئەیە چەس؟
+      save changes button: پاشەکەفتکردن ئاڵشتکاریەگان
+      delete_account: سڕینەوەێ حساو...
+  browse:
+    changeset:
+      belongs_to: نۊسەر
+    relation:
+      members: ئەندامەیل
+    relation_member:
+      type:
+        node: گریە
+        way: ڕێ
+    timeout:
+      type:
+        node: گریە
+        way: ڕێ
+    redacted:
+      type:
+        node: گریە
+    start_rjs:
+      load_data: بارکردن داتا
+  changesets:
+    changesets:
+      user: وەکاربەر
+      area: ناوچە
+    index:
+      load_more: فێشتر باربکە
+  dashboards:
+    popup:
+      friend: دووس
+  diary_entries:
+    form:
+      location: شوون
+    location:
+      location: 'شوون:'
+      edit: دەسکاری
+    comments:
+      when: کەی
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          bank: بانک
+          casino: کازینۆ
+          cinema: سینەما
+          doctors: پزشکەیل
+          grave_yard: گووڕستان
+          hospital: نەخوەشخانە
+          pharmacy: دەرمانخانە
+          place_of_worship: پەرستگە
+          police: پۆلیس
+          prison: زندان
+          studio: ستودیۆ
+          taxi: تاکسی
+        building:
+          house: ماڵ
+        craft:
+          gardener: باخەوان
+          photographer: وێنەگر
+        historic:
+          house: ماڵ
+        landuse:
+          cemetery: گووڕستان
+          forest: دارستان
+        leisure:
+          park: پارک
+        natural:
+          forest: دارستان
+          tree: دار
+          water: ئاو
+          wood: دارستان
+        place:
+          house: ماڵ
+          houses: ماڵەیل
+          region: ناوچە
+  site:
+    edit:
+      user_page_link: پەڕەێ وەکاربەر
+    welcome:
+      title: خوەش هاتی!
+  oauth2_applications:
+    index:
+      name: ناو
+  users:
+    index:
+      title: وەکاربەرەیل
+      heading: وەکاربەرەیل
+  javascripts:
+    share:
+      image: وێنە
+...

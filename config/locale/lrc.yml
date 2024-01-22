@@ -1,0 +1,161 @@
+# Messages for Northern Luri (لۊری شومالی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Lorestani
+# Author: Mogoeilor
+---
+lrc:
+  html:
+    dir: rtl
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: ذخيره كردن
+  activerecord:
+    models:
+      country: ڤلات
+      diary_comment: نٱزٱر دؽاری
+      friend: دۊس
+      language: زڤوݩ
+      message: پاٛغوم
+      node: ناد
+      old_node: ناد زیتری
+      old_way: رٱ زیتری
+      relation: اْرتبات
+      user: كاریار
+      way: رٱ
+    attributes:
+      diary_comment:
+        body: لٛٱش
+      diary_entry:
+        user: كاریار
+        title: سرتال
+        language_code: زڤوݩ
+      friend:
+        user: كاریار
+        friend: دۊس
+      trace:
+        user: كاریار
+        visible: دیئنی
+        name: نوم
+        size: ٱندازٱ
+        public: خلک مٱن
+      message:
+        sender: راٛکن
+        title: سرتال
+        body: لٛٱش
+      user:
+        email: ایماٛیلٛ
+        active: کنشگٱر
+        languages: زڤونؽا
+        pass_crypt: پٱسڤورد
+  editor:
+    id:
+      name: آی دی
+  browse:
+    created: دۏرس بیٱ
+    closed: بٱستٱ
+    version: نۏسخٱ
+    in_changeset: دٱسٱ آلشت
+    anonymous: ناشناس
+    no_comment: (بؽ نٱزٱر)
+    part_of: کوتؽ د
+    download_xml: گرتن جی پی ایکس
+    view_history: ديئن ڤیرگار
+    location: 'جاگٱ:'
+    changeset:
+      belongs_to: نڤیسیار
+    way:
+      nodes: نادؽا
+    relation:
+      members: ٱندومؽا
+    relation_member:
+      type:
+        node: ناد
+        way: رٱ
+        relation: اْرتبات
+    not_found:
+      type:
+        node: ناد
+        way: رٱ
+        relation: اْرتبات
+        changeset: دٱسٱ آلشت
+    timeout:
+      type:
+        node: ناد
+        way: رٱ
+        relation: اْرتبات
+        changeset: دٱسٱ آلشت
+    redacted:
+      type:
+        node: ناد
+        way: رٱ
+        relation: اْرتبات
+    start_rjs:
+      loading: د هالٱت سڤار کرد...
+  changesets:
+    changeset_paging_nav:
+      next: نها»
+      previous: وادمايی»
+    changeset:
+      anonymous: ناشناس
+    changesets:
+      id: شناسه
+      saved_at: ذخیره بیه د
+      user: كارور
+      comment: نظر
+      area: راساگه
+    index:
+      title: دسه آلشت
+  diary_entries:
+    form:
+      location: 'جاگه:'
+    show:
+      login: اومائن د سیستم
+    diary_entry:
+      confirm: مہكم كردن
+    diary_comment:
+      confirm: مئكم كردن
+    location:
+      location: 'جاگه:'
+      view: ديئن
+      edit: ويرايشت
+    comments:
+      when: وختی که
+      comment: نظر
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          atm: اٛی تی اْم
+          bank: بانڳ
+          bbq: بی بی کیۊ
+          cafe: کافٱ
+          casino: بازنٱ هونٱ
+          cinema: سینما
+          clinic: کلینیک
+          college: دانشگٱدٱ
+          dentist: دنوپزشگ
+          doctors: دۏگدۏرؽا
+          embassy: سفارٱت
+          fuel: سۊخت
+          hospital: مریزهونٱ
+  layouts:
+    more: بؽشتر
+  site:
+    export:
+      licence: ليسانس
+      too_large:
+        other:
+          title: سرچشمٱیا هنی
+  users:
+    show:
+      my messages: پاٛغومؽا ماْ
+  notes:
+    new:
+      title: نیسناٛیی تازٱ
+...

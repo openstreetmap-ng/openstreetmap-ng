@@ -1,0 +1,34 @@
+# Messages for Ingush (гӀалгӀай)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Adam-Yourist
+---
+inh:
+  activerecord:
+    models:
+      user: Доакъашхо
+    attributes:
+      diary_entry:
+        user: Доакъашхо
+      friend:
+        user: Доакъашхо
+      trace:
+        user: Доакъашхо
+  browse:
+    created: Хьакхеллад
+  changesets:
+    changesets:
+      user: Доакъашхо
+  layouts:
+    more: Кхы а
+  site:
+    edit:
+      user_page_link: доакъашхочун оагIув
+  users:
+    index:
+      title: Доакъашхой
+      heading: Доакъашхой
+  user_blocks:
+    block:
+      show: Гойта
+...

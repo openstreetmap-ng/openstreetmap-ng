@@ -1,0 +1,16 @@
+# Messages for Igala (Igala)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: AgnesAbah
+---
+igl:
+  users:
+    new:
+      support: Ateko
+  javascripts:
+    directions:
+      engines:
+        fossgis_valhalla_bicycle: Anya
+        fossgis_valhalla_car: móto
+        fossgis_valhalla_foot: Erẹ́
+...

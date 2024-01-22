@@ -1,0 +1,92 @@
+# Messages for Frafra (farefare)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Akakiiri
+# Author: Akoonaba
+# Author: Baba Ayɛ'ɛra
+---
+gur:
+  activerecord:
+    errors:
+      models:
+        user_mute:
+          is_already_muted: A pugum Yu mɛ
+  dashboards:
+    show:
+      title: Ma Dasibɔɔde
+  messages:
+    messages_table:
+      actions: Tuna bii ita
+    message_summary:
+      unmute_button: Vi'e siŋɛ puan daka la puan
+    outbox:
+      actions: Tuna bii ita
+    muted:
+      title: Yu lahebaari
+      messages:
+        one: '%{count} muted message'
+        other: You have %{count} muted messages
+    heading:
+      muted_messages: Yu lahebaari
+    unmute:
+      notice: Lahebaari la nyaa siŋɛ puan daka la puan
+      error: Lahebaari la ka ta'am siŋɛ puan daka la puan
+  shared:
+    markdown_help:
+      codeblock: Ba gu cooti la mɛ
+  site:
+    key:
+      table:
+        entry:
+          pedestrian: Sinɛ zi'an
+          cycleway_mtb: '''Mountain bike route'''
+          chair_lift: Kuka gɔbega
+          taxiway: Tagezi zi'an
+          capital: Nyu'ɔ
+          city: Tinkatɛ
+          vineyard: '''Vineyard'''
+          wood: Dɔɔ
+          meadow: Muurɔ zi'an
+          reservoir: Lɔgerɔ ga'a zi'an bii mɔgerɛ
+          university: Yunivɛsiti
+          hospital: Dɔgeta yire
+          peak: '''Peak'''
+  application:
+    settings_menu:
+      muted_users: Yu tuntuneba
+  oauth:
+    scopes:
+      write_redactions: Girego yɛsega mapi deeta
+      read_email: Kaanlɛ yusa imeeli adɛresi
+  users:
+    show:
+      create_mute: Yu Tuntuna kana
+      destroy_mute: Yo'e Tuntuna kana
+  user_mutes:
+    index:
+      title: Yu tuntuneba
+      my_muted_users: Man tuntuneba sɛba n yu
+      you_have_muted_n_users:
+        one: You have muted %{count} User
+        other: You have muted %{count} users
+      user_mute_explainer: Tuntuna mina ti ba yu lahebaari ni siŋɛ la a ma'a puan
+        daka la puan dee fu me man nyɛ imeeli lahebaari yelesum la
+      user_mute_admins_and_moderators: Fu ta'am you fire la duma la sɛba n biseri
+        la dee ba lahebaari duma man ta'am yu
+      table:
+        thead:
+          muted_user: Tuntuneba sɛba n yu
+          actions: Tuna bii ita
+        tbody:
+          unmute: Yo'e
+          send_message: Dikɛ lahebaari la ta'asɛ
+    create:
+      notice: Fu yu %{name}.
+      error: '%{name} ka ta''am yu. %{full_message}.'
+    destroy:
+      notice: Fu yo'e %{name}.
+      error: Tuntuna la ka nyaŋɛ yo'e amiŋa. N beleni mɛ malum zigɛ bisɛ
+  notes:
+    show:
+      log_in_to_comment: Mɛ puan LA fu pa'asɛ fu puti'irɛ gulesegɔ wa puan
+...

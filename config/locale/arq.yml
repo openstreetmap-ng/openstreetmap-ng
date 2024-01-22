@@ -1,0 +1,16 @@
+# Messages for Algerian Arabic (جازايرية)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Mekakem
+# Author: Oldstoneage
+---
+arq:
+  html:
+    dir: rtl
+  activerecord:
+    models:
+      country: بلاد
+  layouts:
+    home: روح لل پاجة اللولانيّة
+...

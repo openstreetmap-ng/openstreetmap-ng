@@ -1,0 +1,21 @@
+# Messages for Kinyarwanda (Ikinyarwanda)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: RebecaRwanda
+---
+rw:
+  site:
+    help:
+      community:
+        title: Ihuriro rya abanyamuryango
+        description: Ahantu hasangiwe kubiganiro kubyerekeye OpenStreetMap.
+  notes:
+    show:
+      report_link_html: Niba iyi nyandiko ikubiyemo amakuru yoroheje agomba kuvaho,
+        urashobora %{link}
+      other_problems_resolve: Kubindi bibazo byose hamwe ninyandiko, nyamuneka ubikemure
+        wenyine hamwe nigitekerezo.
+      other_problems_resolved: Kubindi bibazo byose, kubikemura birahagije.
+      disappear_date_html: Iyi nyandiko yakemuwe izabura ku ikarita muri% {kubura_in}.
+        %{disappear_in}
+...

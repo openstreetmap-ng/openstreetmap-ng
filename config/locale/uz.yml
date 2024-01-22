@@ -1,0 +1,208 @@
+# Messages for Uzbek (oʻzbekcha / ўзбекча)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: CoderSI
+# Author: Malikxan
+# Author: Таржимон
+# Author: Шоҳидахоним
+---
+uz:
+  helpers:
+    file:
+      prompt: Faylni tanlang
+    submit:
+      diary_comment:
+        create: Saqlamoq
+      diary_entry:
+        create: Chop etish
+        update: Yangilash
+      issue_comment:
+        create: Izoh qo‘shish
+      message:
+        create: Jo‘natish
+      client_application:
+        create: Ro‘yxatdan o‘tkazish
+        update: Yangilash
+      oauth2_application:
+        create: Ro‘yxatdan o‘tkazish
+        update: Yangilash
+      redaction:
+        create: Tahrir qilsh
+        update: Tahrirni saqlash
+      trace:
+        create: Yuklab olish
+        update: O‘zgarishlarni saqlash
+      user_block:
+        create: Blok yaratish
+        update: Blokni yangilash
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: bunday e-pochta manzili mos kelmaydi
+        email_address_not_routable: yo‘naltirilishi mumkin emas
+    models:
+      acl: Kirish nazorati to‘plami
+      changeset: O‘zgartirish to‘plami
+      changeset_tag: To‘plam tegini o‘zgartirish
+      country: Davlat
+      diary_comment: Kundalik izoh
+      diary_entry: Kundalik yozuvi
+      friend: O'rtoq
+      issue: Muammo
+      language: Til
+      message: Xabar
+      node: Bog'lama
+      node_tag: Bog'lama Tegi
+      old_node: Eski bog'lama
+      old_node_tag: Eski Tugun Tegi
+      old_relation: Eski munosabat
+      old_way: Eski Yo'l
+      relation: Aloqa
+      user: Foydalanuvchi
+      way: Yo'l
+    attributes:
+      diary_entry:
+        user: Foydalanuvchi
+        title: Mavzu
+        latitude: Kenglik
+        longitude: Uzunlik
+        language_code: Til
+      friend:
+        user: Foydalanuvchi
+        friend: O'rtoq
+      trace:
+        user: Foydalanuvchi
+        visible: Ko'rinadigan
+        name: Nomi
+        size: Oʻlchami
+        latitude: Kenglik
+        longitude: Uzunlik
+        description: Taʼrif
+      message:
+        sender: Jo'natuvchi
+        title: Mavzu
+        body: Tarkib
+        recipient: Qabul qiluvchi
+      redaction:
+        description: Tavsif
+      user:
+        email: Elektron pochta
+        active: Faol
+        description: Taʼrif
+        languages: Tillar
+        pass_crypt: Maxfiy soʻz
+  editor:
+    remote:
+      name: Masofaviy Boshqaruv
+  auth:
+    providers:
+      none: Hech qaysi
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Vikipediya
+  api:
+    notes:
+      entry:
+        comment: Izoh
+  account:
+    deletions:
+      show:
+        confirm_delete: Ishonchingiz komilmi?
+        cancel: Bekor qilish
+  accounts:
+    edit:
+      my settings: Sozlamalarim
+      current email address: Joriy e-pochta manzili
+      openid:
+        link text: bu nima?
+      public editing:
+        enabled link text: bu nima?
+      contributor terms:
+        link text: bu nima?
+      save changes button: Oʻzgarishlarni saqlash
+  browse:
+    created: Yaratildi
+    closed: Yopildi
+    version: Versiya
+    in_changeset: Oʻzgarishlar
+    anonymous: anonim
+    no_comment: (sharh yo'q)
+    part_of: Qismi
+    download_xml: XMLni yuklab olish
+    view_history: Tarixni Ko'rish
+    view_details: Tafsilotlarni Ko'rish
+    location: 'Joylashuv:'
+    changeset:
+      belongs_to: Muallif
+      discussion: Munozara
+    relation_member:
+      type:
+        way: Yo'l
+        relation: Aloqa
+    not_found:
+      type:
+        node: bog'lama
+        way: yo'l
+        relation: aloqa
+        changeset: o'zgarishlar
+    timeout:
+      type:
+        node: bog'lama
+        way: yo'l
+        relation: aloqa
+        changeset: o'zgarishlar
+    redacted:
+      type:
+        node: bog'lama
+        way: yo'l
+        relation: aloqa
+    start_rjs:
+      load_data: Ma'lumotlarni Yuklash
+      loading: Yuklanyapti...
+    tag_details:
+      tags: Bandlar
+  changesets:
+    changeset_paging_nav:
+      next: Keyingisi »
+      previous: « Oldingisi
+    changesets:
+      id: ID
+      user: Foydalanuvchi
+      comment: Izoh
+      area: Hudud
+  dashboards:
+    show:
+      nearby users: Boshqa yaqindagi foydalanuvchilar
+  diary_entries:
+    form:
+      location: Joylashuv
+      use_map_link: Xaritadan foydalaning
+    diary_entry:
+      confirm: Tasdiqlash
+    diary_comment:
+      confirm: Tasdiqlash
+    location:
+      location: 'Joylashuv:'
+      view: Koʻrish
+      edit: Tahrirlash
+    comments:
+      comment: Izoh
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        tourism:
+          gallery: Galereya
+  messages:
+    message_summary:
+      unread_button: Oʻqilmagan deb belgilash
+    show:
+      unread_button: Oʻqilmagan deb belgilash
+  site:
+    search:
+      search: Qidiruv
+  notes:
+    show:
+      description: Tavsif
+...

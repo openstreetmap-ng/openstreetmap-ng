@@ -119,6 +119,11 @@ let
     '')
 
     # -- Misc
+    (writeShellScriptBin "download-locale" ''
+      set -e
+      echo "Downloading locale files"
+      python scripts/download_locale.py
+    '')
     (writeShellScriptBin "make-locale" ''
       set -e
       echo "Processing osm-community-index"

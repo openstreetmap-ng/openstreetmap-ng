@@ -1,0 +1,9 @@
+# Messages for Kurdish (Arabic script) (كوردي (عەرەبی))
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+ku-arab:
+  html:
+    dir: rtl
+...

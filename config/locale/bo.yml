@@ -1,0 +1,28 @@
+# Messages for Tibetan (བོད་ཡིག)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Phurbutsering
+---
+bo:
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  activerecord:
+    models:
+      acl: ལྟ་སྤྱོད་ཚོད་འཛིན་ཐོ།
+      changeset: སྒྲིག་འཇུག་བཟོ་འཅོས།
+      changeset_tag: སྒྲིག་འཇུག་བཟོ་འཅོས་མཆན་བུ།
+      country: རྒྱལ་ཁབ།
+      diary_comment: ཉིན་དེབ་མཆན་འགྲེལ།
+      diary_entry: ཉིན་ཐོ་དེབ་འགོད།
+      friend: གྲོགས་པོ།
+      language: སྐད་ཡིག།
+      message: བརྡ་འཕྲིན།
+      node: ཚིགས་མདུད།
+      node_tag: ཚིགས་མདུད་མཆན་བུ།
+      old_node: ཚིགས་མདུད་རྙིང་པ།
+      old_node_tag: ཚིགས་མདུད་མཆན་བུ་རྙིང་པ།
+      old_relation: འབྲེལ་བ་རྙིང་པ།
+      old_relation_member: འབྲེལ་མི་རྙིང་པ།
+      old_way: ལམ་རྙིང་པ།
+...

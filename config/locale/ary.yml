@@ -1,0 +1,15 @@
+# Messages for Moroccan Arabic (الدارجة)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Ideophagous
+---
+ary:
+  html:
+    dir: rtl
+  layouts:
+    help: معاونة
+  traces:
+    new:
+      help: معاونة
+...

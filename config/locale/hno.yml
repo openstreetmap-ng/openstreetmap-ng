@@ -1,0 +1,13 @@
+# Messages for Northern Hindko (ہندکو)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Bgo eiu
+# Author: Saraiki
+---
+hno:
+  html:
+    dir: rtl
+  auth:
+    providers:
+      google: گوگل
+...

@@ -1,0 +1,11 @@
+# Messages for Iloko (Ilokano)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Lam-ang
+---
+ilo:
+  javascripts:
+    directions:
+      errors:
+        no_place: Pasensian - saan a mabirukan iti '%{place}'.
+...

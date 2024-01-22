@@ -1,0 +1,25 @@
+# Messages for Twi (Twi)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Afia360
+# Author: Baidoom
+# Author: Charity00
+# Author: Kojo Owusu 2020
+---
+tw:
+  account:
+    deletions:
+      show:
+        title: Pepa me akount
+        confirm_delete: Wogye di?
+        cancel: Twa mu
+  accounts:
+    destroy:
+      success: Akount no apepa
+  passwords:
+    new:
+      email address: E-mail Address
+  sessions:
+    new:
+      password: Kukuwa mu ahyɛnsode
+...

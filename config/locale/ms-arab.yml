@@ -1,0 +1,67 @@
+# Messages for Malay (Jawi script) (بهاس ملايو)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Tofeiku
+---
+ms-arab:
+  html:
+    dir: rtl
+  helpers:
+    submit:
+      diary_comment:
+        create: سيمڤن
+      diary_entry:
+        create: تربيت
+        update: کمس کيني
+      message:
+        create: هانتر
+      client_application:
+        create: دفتر
+        update: کمس کيني
+      trace:
+        create: موات ناءيق
+  activerecord:
+    models:
+      country: نݢارا
+      language: بهاس
+      message: ڤسنن
+      session: سيسي
+      user: ڤڠݢونا
+      user_preference: کأوتاماءن ڤڠݢونا
+    attributes:
+      diary_entry:
+        user: ڤڠݢونا
+        latitude: لاتيتود
+        longitude: لوڠيتود
+        language_code: بهاس
+      friend:
+        user: ڤڠݢونا
+      trace:
+        user: ڤڠݢونا
+        name: نام فاءيل
+        size: ساءيز
+        latitude: لاتيتود
+        longitude: لوڠيتود
+        public: عوام
+        description: کترڠن
+      message:
+        recipient: ڤنريما
+      user:
+        email: إي-ميل
+  browse:
+    view_history: ليهت سجاره
+    changeset:
+      belongs_to: ڤڠارڠ
+      discussion: ڤربينچڠن
+  diary_entries:
+    form:
+      location: لوکاسي
+  site:
+    search:
+      submit_text: ڤرݢي
+  javascripts:
+    changesets:
+      show:
+        subscribe: لڠݢن
+...

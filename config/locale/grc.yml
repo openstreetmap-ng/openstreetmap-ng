@@ -1,0 +1,54 @@
+# Messages for Ancient Greek (Ἀρχαία ἑλληνικὴ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Crazymadlover
+# Author: Michael5iLVEr
+# Author: NikosLikomitros
+# Author: PastelKos
+---
+grc:
+  helpers:
+    submit:
+      client_application:
+        update: Μεταγράφειν
+  activerecord:
+    models:
+      country: Χώρα
+      language: Γλῶττα
+      user: Χρώμενος
+    attributes:
+      diary_entry:
+        language_code: Γλῶττα
+      trace:
+        name: Ὄνομα
+        size: Μέγεθος
+        latitude: Πλάτος γεωγραφικόν
+        longitude: Γεωγραφικὸν μῆκος
+        public: Δημοσία
+        description: Περιγραφή
+      redaction:
+        description: Περιγραφή
+      user:
+        languages: Γλῶτται
+  diary_entries:
+    form:
+      location: Τοποθεσία
+  geocoder:
+    search_osm_nominatim:
+      admin_levels:
+        level7: Ὅρος Δήμου
+  layouts:
+    edit: Μεταγράφειν
+    more: Πλείω
+  shared:
+    markdown_help:
+      url: URL
+  traces:
+    show:
+      edit: μεταγράφειν
+    trace:
+      more: πλείω
+  redactions:
+    show:
+      description: 'Περιγραφή:'
+...

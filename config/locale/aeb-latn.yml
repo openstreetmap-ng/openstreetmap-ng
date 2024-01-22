@@ -1,0 +1,10 @@
+# Messages for Tunisian Arabic (Latin script) (Tûnsî)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+aeb-latn:
+  site:
+    help:
+      beginners_guide:
+        title: Ktēb l- il-mubtad'īn
+...

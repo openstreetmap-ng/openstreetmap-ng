@@ -1,0 +1,14 @@
+# Messages for Swiss High German (Schweizer Hochdeutsch)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Das Schäfchen
+---
+de-ch:
+  activerecord:
+    attributes:
+      trace:
+        size: Grösse
+  browse:
+    query:
+      enclosing: Einschliessende Objekte
+...

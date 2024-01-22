@@ -1,0 +1,13 @@
+# Messages for Banjar (Banjar)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ezagren
+---
+bjn:
+  time:
+    formats:
+      friendly: '%e %B %Y pada %H:%M'
+  helpers:
+    file:
+      prompt: Pilih barakas
+...

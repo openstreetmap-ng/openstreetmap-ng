@@ -1,0 +1,117 @@
+# Messages for Laki (لەکی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Arash71
+# Author: Hosseinblue
+# Author: Lakzon
+---
+lki:
+  html:
+    dir: rtl
+  helpers:
+    submit:
+      diary_comment:
+        create: هیشتن(ذخیره)
+  activerecord:
+    models:
+      country: کشور/ؤڵات
+      diary_comment: نظر یادداشت روزانه
+      friend: دوست
+      language: زوون
+      message: پیغام
+      node: گره
+    attributes:
+      diary_comment:
+        body: بدنۀ
+      diary_entry:
+        title: عنوان
+        language_code: زوون
+      friend:
+        user: کاربۀر
+        friend: دوست
+      trace:
+        user: کاربۀر
+        visible: قابل دیدن
+        name: نۆم
+        size: اندازۀ
+        latitude: عرض جغرافیایی
+        longitude: طول جغرافیایی
+        public: همگانی
+        description: توضیحةل
+      message:
+        sender: فرستنده/کِل کةر
+        title: عنوان
+        body: بدنۀ
+        recipient: گیرنده/بِگر
+      redaction:
+        description: توضیحةل
+      user:
+        email: ایمیل
+        active: فعال)کارکَر)
+        display_name: نیشان دائن نؤم
+        description: توضیحةل
+        languages: زوونەل
+  api:
+    notes:
+      rss:
+        opened: یادداشت تازه (نزدیک %{place})
+        reopened: یادداشت دوباره فعال شد(نزدیک %{place})
+      entry:
+        full: ویرنۆیسة-یادداشت کامڵ
+  browse:
+    created: دورس بیة/سازیائة
+    closed: نِریاسآ-بسته شده
+    not_found:
+      type:
+        note: ویرنۆیسة-یادداشت
+    timeout:
+      type:
+        note: ویرنۆیسة-یادداشت
+    tag_details:
+      wiki_link:
+        key: توضیحات صفحه ویکی برای برچسب %{key}
+        tag: توضیحات صفحه ویکی برای برچسب %{key}=%{value} برچسب
+  diary_entries:
+    form:
+      location: :محل زندگی/جازِنِی
+      use_map_link: استفاده از نقشه
+    edit:
+      marker_text: محل ورودی یادداشت روزانه
+    show:
+      login: 'ڤەنۆم هەتن:'
+  layouts:
+    logout: دەرچێن|خروج
+    community: انجمن/کوومڵة
+  site:
+    copyright:
+      foreign:
+        english_link: اصل انگلیسی
+  traces:
+    show:
+      description: 'توصیف:'
+  application:
+    setup_user_auth:
+      blocked: دسترسی شما به API مسدود شده. برای یافتن اطلاعات بیشتر لطفاً وارد رابط
+        کاربری وب شوید.
+  oauth:
+    authorize:
+      allow_read_prefs: تمارزووەل(ترجیحات)کاربەری ووِژِت بخووەن
+      allow_write_prefs: گؤەڕانن(تغییر)ترجیحات(تمارزوو)کاربەری هۆمە.
+  users:
+    new:
+      display name description: ' نام کاربری شما برای عموم نمایش داده شده. شما می
+        توانید بعدا این مورد را در ترجیحات تغییر دهید.'
+  notes:
+    index:
+      description: توضیحةل
+    show:
+      title: 'ویرنۆیسة-یادداشت: %{id}'
+      description: 'توصیف:'
+      open_title: 'یادداشت برطرف نشده #%{note_name}'
+    new:
+      add: ' افزودن ویرنۆیسة-یادداشت'
+  redactions:
+    show:
+      description: 'شرح:'
+...

@@ -1,0 +1,30 @@
+# Messages for Tetum (tetun)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: MF-Warburg
+---
+tet:
+  helpers:
+    submit:
+      client_application:
+        update: Edita
+  activerecord:
+    models:
+      language: Lian
+    attributes:
+      diary_entry:
+        language_code: Lian
+      trace:
+        name: Naran
+      user:
+        active: Ativu
+        languages: Lian sira
+  layouts:
+    edit: Edita
+  traces:
+    show:
+      edit: edita
+  users:
+    show:
+      edits: edisaun
+...

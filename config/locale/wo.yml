@@ -1,0 +1,21 @@
+# Messages for Wolof (Wolof)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+wo:
+  activerecord:
+    models:
+      language: Làkk
+      message: Bataaxal
+      user: Jëfandikukat
+    attributes:
+      diary_entry:
+        user: Jëfandikukat
+      friend:
+        user: Jëfandikukat
+      trace:
+        user: Jëfandikukat
+  browse:
+    changeset:
+      belongs_to: Aji-jëf
+...

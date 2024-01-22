@@ -1,0 +1,59 @@
+# Messages for Sindhi (سنڌي)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Mehtab ahmed
+---
+sd:
+  html:
+    dir: rtl
+  helpers:
+    submit:
+      diary_entry:
+        create: ڇاپيو
+  activerecord:
+    models:
+      country: ملڪ
+      friend: دوست
+      language: ٻولي
+      message: پيغام
+      old_relation: پراڻو رشتو
+      old_relation_tag: پراڻي رشتي جو ٽيگ
+      old_way: پراڻو رستو
+      relation: رشتو
+      relation_tag: رشتي جو ٽيگ
+      user: يوزر
+      user_preference: يوزر ترجيحون
+    attributes:
+      diary_entry:
+        user: يوزر
+        language_code: ٻولي
+      friend:
+        friend: دوست
+      trace:
+        user: يوزر
+        visible: ظاهر
+        name: نالو
+        size: ' ماپ'
+        public: عوام
+        description: وضاحت
+      message:
+        sender: موڪليندڙ
+  datetime:
+    distance_in_words_ago:
+      x_years:
+        one: '%{count} سال اڳ'
+        other: '%{count} سال اڳ'
+  changesets:
+    changeset_paging_nav:
+      next: اڳيون
+  site:
+    about:
+      next: اڳيون
+  oauth:
+    scopes:
+      read_email: واپرائيندڙ جو ايميل پتو پڙھو
+  user_blocks:
+    blocks:
+      next: اڳيون
+...

@@ -1,0 +1,37 @@
+# Messages for Livvi-Karelian (livvinkarjala)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Mashoi7
+---
+olo:
+  helpers:
+    submit:
+      diary_entry:
+        create: Piästä ilmah
+  activerecord:
+    models:
+      language: Kieli
+      message: Viesti
+      user: Käyttäi
+      user_preference: Käyttäjän azetus
+      user_token: Käyttäjän tunnus
+      way: Juno
+    attributes:
+      diary_entry:
+        user: Käyttäi
+      trace:
+        user: Käyttäi
+        visible: Nägövil
+        name: Nimi
+        size: Kogo
+      user:
+        languages: Kielet
+        pass_crypt: Peittosana
+  browse:
+    created: Luajittu
+  messages:
+    inbox:
+      new_messages:
+        one: '%{count} uuzi viesti'
+        other: '%{count} uuttu viestii'
+...

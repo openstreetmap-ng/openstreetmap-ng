@@ -1,0 +1,79 @@
+# Messages for Western Balochi (روچ کپتین بلوچی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Baloch Afghanistan
+# Author: Ibrahim khashrowdi
+---
+bgn:
+  html:
+    dir: rtl
+  time:
+    formats:
+      friendly: '%e %B %Y بئ %H:%M'
+  helpers:
+    file:
+      prompt: فایلا انتخاب کن
+    submit:
+      diary_comment:
+        create: نظر داتین
+      diary_entry:
+        create: شینک کورتین
+        update: اپڈیٹ
+      issue_comment:
+        create: نظرئ لیکیتین
+      message:
+        create: دیم داتین
+      client_application:
+        create: نام لیکیتین
+        update: اپڈیٹ
+      oauth2_application:
+        create: نام لیکیتین
+        update: اپڈیٹ
+  activerecord:
+    models:
+      country: مُلک
+      language: زبان
+      message: پیام
+      user: کار زوروک
+      way: راه
+    attributes:
+      diary_entry:
+        user: کار زوروک
+      friend:
+        user: کار زوروک
+        friend: دوست
+      trace:
+        user: کار زوروک
+        visible: نمایان
+        name: نام
+        size: اندازه گ
+  editor:
+    id:
+      name: iD
+  browse:
+    created: جوڑ بوته
+    closed: بستین
+    version: نخسه
+    changeset:
+      discussion: حبر/گپ
+    not_found:
+      type:
+        way: راه
+  changesets:
+    changesets:
+      user: کار زوروک
+  layouts:
+    about: بِه باره‌ئا
+  user_mailer:
+    diary_comment_notification:
+      hi: '%{to_user} سلام علیکم،'
+    message_notification:
+      hi: سلام علیکم %{to_user}،
+    email_confirm:
+      greeting: سلام علیکم ،
+  users:
+    index:
+      title: کار زوروکان
+      heading: کار زوروکان
+...

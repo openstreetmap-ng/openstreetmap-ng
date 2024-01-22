@@ -1,0 +1,28 @@
+# Messages for Komi-Permyak (перем коми)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Римма
+---
+koi:
+  doorkeeper:
+    errors:
+      messages:
+        account_selection_required: Авторизациялӧн сервер корӧ бӧръя вӧдитчисьлісь
+          аккаунт
+        login_required: Авторизациялӧн сервер корӧ бӧръя вӧдитчиськӧт йитсьӧм
+    scopes:
+      address: Оланін адреснытӧ видзӧтӧм
+      email: Электроннӧй почтанытӧ видзӧтӧм
+      openid: Вынсьӧтӧ аккаунтнытӧ
+      phone: Телепон номернытӧ видзӧтӧм
+      profile: Ас йылісь юӧртом видзӧтӧм
+  site:
+    copyright:
+      legal_babble:
+        contributors_cz_czechia: Чехия
+        contributors_cz_cc_licence: Creative Commons Attribution 4.0 Международнӧй
+          лицензия(CC BY 4.0)
+  oauth:
+    scopes:
+      openid: Пырӧ OpenStreetMap отсӧтӧн
+...

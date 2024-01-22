@@ -31,10 +31,10 @@ HTTP = httpx.AsyncClient(
     follow_redirects=True,
     http1=True,
     http2=True,
-    event_hooks={
-        'request': [_log_http_request],
-        'response': [_log_http_response],
-    },
+    # event_hooks={
+    #     'request': [_log_http_request],
+    #     'response': [_log_http_response],
+    # },
 )
 
 MSGSPEC_MSGPACK_ENCODER = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes')

@@ -1,0 +1,192 @@
+# Messages for Romansh (rumantsch)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Kazu89
+---
+rm:
+  time:
+    formats:
+      friendly: '%e. %B. %Y a las %H.%M'
+  activerecord:
+    models:
+      acl: Glista da controlla d'access
+      changeset: Gruppa da modificaziuns
+      changeset_tag: Attribut da la gruppa da modificaziuns
+      country: Stadi
+      diary_comment: Commentari dal diari
+      diary_entry: Inscripziun en il diari
+      friend: Ami
+      language: Lingua
+      message: Messadi
+      node: Node
+      node_tag: Attribut dal node
+      old_node: Node vegl
+      old_node_tag: Attribut dal node vegl
+      old_relation: Relaziun veglia
+      old_relation_member: Commember da la relaziun veglia
+      old_relation_tag: Attribut da la relaziun veglia
+      old_way: Via veglia
+      old_way_node: Node da la via veglia
+      old_way_tag: Attribut da la via veglia
+      relation: Relaziun
+      relation_member: Commember da la relaziun
+      relation_tag: Attribut da la relaziun
+      session: Sessida
+      trace: Fastiz
+      tracepoint: Puntg dal fastiz
+      tracetag: Attribut dal fastiz
+      user: Utilisader
+      user_preference: Preferenza da l'utilisader
+      user_token: Token da l'utilisader
+      way: Via
+      way_node: Node da la via
+      way_tag: Attribut da la via
+    attributes:
+      diary_comment:
+        body: Text
+      diary_entry:
+        user: Utilisader
+        title: Titel
+        latitude: Latituda/Ladezza geografica
+        longitude: Longhituda/Lunghezza geografica
+        language_code: Lingua
+      friend:
+        user: Utilisader
+        friend: Ami
+      trace:
+        user: Utilisader
+        visible: Vesaivel
+        name: Num
+        size: Grondezza
+        latitude: Latituda/Ladezza geografica
+        longitude: Longhituda/Lunghezza geografica
+        public: Public
+        description: Descripziun
+      message:
+        sender: Speditur
+        title: Titel
+        body: Text
+        recipient: Retschavider
+      user:
+        email: E-mail
+        active: Activ
+        display_name: Num mussà
+        description: Descripziun
+        languages: Linguas
+        pass_crypt: Pled-clav
+  editor:
+    default: Standard (actualmain %{name})
+    id:
+      name: iD
+      description: iD (editur integrà en il navigatur)
+    remote:
+      name: Editur extern
+      description: Editur extern (JOSM u Merkaartor)
+  browse:
+    created: Creà
+    closed: Serrà
+    version: Versiun
+    in_changeset: Gruppa da modificaziuns
+    anonymous: anonim
+    no_comment: (nagins commentaris)
+    part_of: Part da
+    download_xml: Telechargiar l'XML
+    view_history: Mussar la cronologia
+    view_details: Mussar ils detagls
+    changeset:
+      title: 'Gruppa da modificaziuns: %{id}'
+      belongs_to: Autur
+      node: Nodes (%{count})
+      node_paginated: Nodes (%{x}-%{y} of %{count})
+      way: Vias (%{count})
+      way_paginated: Vias (%{x}-%{y} of %{count})
+      relation: Relaziuns (%{count})
+      relation_paginated: Relaziuns (%{x}-%{y} of %{count})
+      changesetxml: XML da la gruppa da modificaziuns
+      osmchangexml: XML en il format osmChange
+      feed:
+        title: Gruppa da modificaziuns %{id}
+        title_comment: Gruppa da modificaziuns %{id} - %{comment}
+    node:
+      title_html: 'Node: %{name}'
+      history_title_html: 'Cronologia dal node: %{name}'
+    way:
+      title_html: 'Via: %{name}'
+      history_title_html: 'Cronologia da la via: %{name}'
+      nodes: Nodes
+      also_part_of_html:
+        one: part da la via %{related_ways}
+        other: part da las vias %{related_ways}
+    relation:
+      title_html: 'Relaziun: %{name}'
+      history_title_html: 'Cronologia da la relaziun: %{name}'
+      members: Commembers
+    relation_member:
+      entry_role_html: '%{type} %{name} sco %{role}'
+      type:
+        node: Node
+        way: Via
+        relation: Relaziun
+    containing_relation:
+      entry_html: Relaziun %{relation_name}
+      entry_role_html: Relaziun %{relation_name} (sco %{relation_role})
+    not_found:
+      sorry: '%{type} cun il numer #%{id} n''è betg vegnì chattà.'
+      type:
+        node: node
+        way: via
+        relation: relaziun
+        changeset: gruppa da modificaziuns
+    timeout:
+      type:
+        node: node
+        way: via
+        relation: relaziun
+        changeset: gruppa da modificaziuns
+    redacted:
+      redaction: Obscuraziun %{id}
+      type:
+        node: node
+        way: via
+        relation: relaziun
+    start_rjs:
+      load_data: Chargiar datas
+      loading: Chargiar…
+    tag_details:
+      tags: Attributs
+      wiki_link:
+        key: La pagina da descripziun dal wiki per l'attribut %{key}
+        tag: La pagina da descripziun dal wiki per l'attribut %{key}=%{value}
+      wikipedia_link: L'artitgel %{page} tar Vichipedia
+  changesets:
+    changeset_paging_nav:
+      showing_page: Pagina %{page}
+      next: Proxim »
+      previous: « Precedent
+    changeset:
+      anonymous: Anonim
+      no_edits: (naginas modificaziuns)
+      view_changeset_details: Mussar detagls da la gruppa da modificaziuns
+    changesets:
+      id: ID
+      saved_at: Memorisà ils
+      user: Utilisader
+      comment: Commentari
+      area: Areal
+    index:
+      title: Gruppas da modificaziuns
+      title_user: Gruppas da modificaziun da(d) %{user}
+      title_friend: Gruppas da modificaziun da tes amis
+      title_nearby: Gruppas da modificaziun dad utilisaders en vischinanza
+      empty: I n'èn vegnidas chattadas naginas gruppas da modificaziuns.
+      empty_area: I na dat naginas gruppas da modificaziuns en quest areal.
+      empty_user: I na dat naginas gruppas da modificaziuns da quest utilisader.
+  notes:
+    show:
+      title: 'Annotaziun: %{id}'
+      open_title: 'Annotaziun betg resolvida #%{note_name}'
+      closed_title: 'Annotaziun resolvida #%{note_name}'
+      hidden_title: 'Annotaziun zuppentada #%{note_name}'
+    new:
+      title: Nova annotaziun
+...

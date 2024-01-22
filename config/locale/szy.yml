@@ -1,0 +1,9 @@
+# Messages for Sakizaya (Sakizaya)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+szy:
+  user_blocks:
+    block:
+      show: paazih
+...

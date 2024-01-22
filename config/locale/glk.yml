@@ -1,0 +1,9 @@
+# Messages for Gilaki (گیلکی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+glk:
+  html:
+    dir: rtl
+...

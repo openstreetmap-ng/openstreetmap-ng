@@ -1,0 +1,10 @@
+# Messages for Manx (Gaelg)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Shimmin Beg
+---
+gv:
+  javascripts:
+    share:
+      long_link: Kiangley
+...

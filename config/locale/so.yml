@@ -1,0 +1,484 @@
+# Messages for Somali (Soomaaliga)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Abshirdheere
+# Author: Mapmeld
+---
+so:
+  helpers:
+    submit:
+      diary_comment:
+        create: Keydi
+      message:
+        create: Dir
+      trace:
+        update: Keydso is-beddelada
+  activerecord:
+    models:
+      changeset: Hagaajinada uu beddelay
+      country: Wadanka
+      diary_comment: Faallo
+      friend: Saaxiib
+      language: Luqada
+      message: Farriin
+      node: Bar
+      user: Isticmaale
+    attributes:
+      diary_entry:
+        title: Mawduuc
+        latitude: Lool
+        longitude: Dhig
+        language_code: Luqada
+      friend:
+        user: Isticmaale
+        friend: Saaxiib
+      trace:
+        user: Isticmaale
+        name: Magaca
+        latitude: Lool
+        longitude: Dhig
+        description: Sharaxaad
+      message:
+        title: Arinta
+      redaction:
+        description: Sharaxaad
+      user:
+        email: Emayl
+        new_email: 'Cinwaan Emayl Cusub:'
+        display_name: Magaca Muuqda
+        description: Sharaxaad
+        languages: Luqadaha
+        pass_crypt: Furaha Sirta
+    help:
+      user:
+        new_email: (marna si cad looma soo bandhigin)
+  editor:
+    id:
+      name: iD
+      description: iD (tifaftiraha shabakadda gudaheeda)
+  api:
+    notes:
+      entry:
+        comment: Faallo
+  accounts:
+    edit:
+      my settings: Hagaajintayda
+      current email address: 'Cinwaanka Emaylka ugu Dambeeyay:'
+      external auth: 'Xaqiijinta Dibbada:'
+      public editing:
+        heading: Tifaftirka guud
+      contributor terms:
+        heading: 'Shuruudaha Wadaaggaha:'
+        agreed_with_pd: Sidoo kale waxtarkayga ayaa ku jira Diiwaanka Dadweynaha
+      save changes button: Keydso is-beddelada
+    go_public:
+      heading: 'Tifaftirka guud:'
+  browse:
+    closed: La xiray ka
+    in_changeset: Hagaajinada uu beddelay
+    download_xml: Soo-deji XML
+    changeset:
+      title: 'Hagaajinada uu beddelay: %{id}'
+      comment: Faallooyin (%{count})
+      changesetxml: Hagaajinada uu beddelay XML
+      osmchangexml: osmChange XML
+      feed:
+        title: Hagaajinada uu beddelay %{id}
+        title_comment: Hagaajinada uu beddelay %{id} - %{comment}
+    not_found:
+      type:
+        note: qoraalada
+    timeout:
+      type:
+        changeset: hagaajinada uu beddelay
+    query:
+      title: Tilmaamaha Raadinta
+      enclosing: Tilmaamaha xeritaanada
+  changesets:
+    changeset_paging_nav:
+      showing_page: Bogga %{page}
+      next: Xiga »
+      previous: « Hore
+    changesets:
+      comment: Faallo
+    index:
+      title_user: Hagaajinada uu beddelay %{user}
+  dashboards:
+    show:
+      no friends: Weli kuma aad darsan wax saaxiibo.
+      nearby users: Isticmaalayaasha kale ee kuu dhow
+      no nearby users: Ma jiraan isticmaalayaal kale jahayn ka samaynaya agtaada.
+  diary_entries:
+    new:
+      title: Gelitaanka Diiwaan Cusub
+    index:
+      user_title: Diiwaanka %{user}
+      new: Gelitaanka Diiwaan Cusub
+      recent_entries: Diiwaanad qoraal ugu dambeeyay
+    diary_entry:
+      posted_by_html: Waxaa soo dhigay %{link_user} taariikhda marka ay ahayd %{created}
+        ee %{language_link}
+      reply_link: Jawaab celi
+      confirm: Xaqiiji
+    diary_comment:
+      confirm: Xaqiiji
+    location:
+      edit: Tifaftir
+    feed:
+      user:
+        description: Diiwaanad qoraal %{user} ugu dambeeyay
+      language:
+        description: Diiwaanad qoraal ugu dambeeyay
+      all:
+        description: Diiwaanad qoraal ugu dambeeyay
+    comments:
+      post: Dhig
+      when: Goorma
+      comment: Faallo
+  friendships:
+    make_friend:
+      success: '%{name} hadda waa saaxiibkaaga!'
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          fast_food: Cuntooyinka Fudud
+          hospital: Isbitaal
+          library: Maktabad
+          place_of_worship: Goobta Cibaadada
+          public_building: Dhismaha Dadweynaha
+          restaurant: Maqaayad
+          school: Dugsiyada
+          toilets: Musqulo
+        highway:
+          ford: Tog
+          path: Waddo
+          primary: Wadada Koowaad
+          residential: Waddada Guryaha
+          service: Jidka Shaqaalaha
+          tertiary: Waddada Sarre
+        historic:
+          house: Guri
+        landuse:
+          commercial: Aagga Ganacsiga
+          forest: Duur
+          grass: Aag Cagaaran
+          industrial: Aagga Warshadaha
+          landfill: Qashin-qub
+          military: Goob Ciidan
+          residential: Aag Degaan
+          retail: Tafaariiqda
+        leisure:
+          marina: Deked
+          park: Jardiino
+          sports_centre: Xarunta Cayaaraha
+          stadium: Garoon
+        man_made:
+          pier: Dekedyaro
+        military:
+          "yes": Ciidan
+        natural:
+          forest: Duur
+          island: Jasiirad
+          point: Bar
+          water: Biyaha
+          wetland: Dhul biyo-fadhiyaan
+        office:
+          government: Xafiis Dowladeed
+          travel_agent: Wakaalad Socdaal
+        place:
+          city: Magaalo
+          farm: Dhul beereed
+          house: Guri
+          island: Jasiirad
+          locality: Deegaanka
+          town: Magaalo
+          "yes": Goob
+        shop:
+          hardware: Dukaanka Qalabka
+          mobile_phone: Dukaanka Taleefoonka Gacanta
+          supermarket: Suuq-weyne
+          travel_agency: Wakaalad Socdaal
+          "yes": Dukaan
+        tourism:
+          hotel: Huteel
+        tunnel:
+          "yes": Jid dalool
+        waterway:
+          "yes": Biyo mareen
+  layouts:
+    logout: Ka bax
+    log_in: Gal
+    sign_up: Is-diiwaangeli
+    start_mapping: Bilow Jihaynta
+    history: Taariikh
+    export: Shubo
+    gps_traces: Raadadka GPS
+    user_diaries: Isticmaal xasuus-qoryo
+    user_diaries_tooltip: Isticmaal xasuus-qoryo
+    edit_with: Ku tifaftir %{editor}
+    intro_header: Ku soo dhowow OpenStreetMap!
+    intro_text: OpenStreetMap waa Khariidadda aduunka, oo ay sameeyeen dad adiga oo
+      kale ah oo si bilaash ah loogu isticmaali karo rukhsad furan.
+    partners_bytemark: Bytemark Hosting
+    partners_partners: shuraakada
+    help: Caawin
+    about: Ku-saabsan
+    copyright: Xuquuqda daabacaadda
+    learn_more: Wax Badan Ogow
+  user_mailer:
+    signup_confirm:
+      subject: '[OpenStreetMap] Ku soo dhowow OpenStreetMap'
+      created: Qof ayaa akoon ka sameeyay %{site_url}.
+      confirm: 'Waxaan u baahannahay inaan xaqiijino in codsigan uu adiga kaa yimid,
+        sidaa daraadeed fadlan waxaad riixdaa xiriirka hoose si aad u xaqiijisid akoonkaaga:'
+      welcome: Kadib markaad xaqiijiso akoonkaaga, waxaan ku siin doonaa macluumaad
+        dheeraad ah si aad u gasho.
+    email_confirm:
+      subject: '[OpenStreetMap] Xaqiiji Cinwaanka Emaylka'
+  confirmations:
+    confirm:
+      heading: Eeg emaylkaaga!
+      introduction_1: Waxaan kuu soo dirnay emayl xaqiijin ah.
+      introduction_2: Xaqiiji akoonkaaga adiga oo gujinaya xiriirka emaylka la jira
+        waxaadna awoodi doontaa inaad bilowdo jihayn.
+  messages:
+    inbox:
+      messages: Waxaad heshay %{new_messages} iyo %{old_messages}
+    messages_table:
+      from: Ka socdo
+      subject: Mawduuc
+      date: Taariikhda
+    message_summary:
+      unread_button: U calaamadee sida in la akhrin
+      reply_button: Jawaab celi
+      destroy_button: Tirtir
+    new:
+      title: Dir fariin
+      back_to_inbox: gadaal
+    outbox:
+      messages: Waxaad dirtay %{count} farriimo
+    show:
+      reply_button: Jawaab celi
+      unread_button: U calaamadee sida in la akhrin
+      destroy_button: Tirtir
+      back: gadaal
+    sent_message_summary:
+      destroy_button: Tirtir
+    heading:
+      my_inbox: Sanduuqayga Fariimaha
+  passwords:
+    new:
+      email address: 'Cinwaanka Emaylka:'
+  profiles:
+    edit:
+      image: 'Sawir:'
+      home location: 'Goob Guri:'
+      update home location on click: Cusboonaysii goobta guriga marka aan gujiyo khariidada?
+  sessions:
+    new:
+      title: Gal
+      email or username: 'Cinwaanka Emaylka ama Aqoonsiga:'
+      password: 'Furaha Sirta:'
+      remember: I xasuuso
+      lost password link: Ma iska lumisay furaha sirta?
+      login_button: Gal
+      register now: Hadda is-diiwaangeli
+      with external: 'Haddii kale, isticmaal barnaamij saddexaad si aad u gasho:'
+      no account: Ma lihid miyaa akoon?
+    destroy:
+      title: Ka bax
+      logout_button: Ka bax
+  site:
+    about:
+      next: Xiga
+      used_by_html: '%{name} wuxuu awood siiyaa macluumaadka ku jira kumanaan shabakado,
+        barnaamijyada telefoonada, iyo qalabka kombuyuutarka'
+      lede_text: OpenStreetMap waxaa dhisay bulsho khariiradlayaal ah kuwaas oo gacan
+        ka geysta oona ilaaliya xogta ku saabsan wadooyinka, raadadka, makhaayadaha,
+        boostaajooyinka tareenka, iyo in ka badan, adduunka oo idil.
+      local_knowledge_title: Aqoonta Deegaanka
+      local_knowledge_html: OpenStreetMap waxay xoojisaa aqoonta deegaanka. Tabarucayaashu
+        waxay isticmaalaan sawirro muuqaal ah, qalabka GPS (Nidaamka Meeleynta Caalamka),
+        iyo khariiradaha goobta tiknoolajiyadooda sahlan si loo xaqiijiyo in OSM sax
+        tahay oona la cusboonaysiiyay.
+      community_driven_title: Hoggaamiso Bulshada
+      open_data_title: Xog Furan
+      legal_title: Sharciga
+      partners_title: Shuraakada
+    copyright:
+      native:
+        title: Ku-saabsan
+        mapping_link: bilow jihaynta
+    index:
+      shortlink: Xiriir Gaaban
+      createnote: Ku dar qoraal
+    export:
+      title: Shubo
+      export_button: Shubo
+    help:
+      welcome:
+        title: Ku soo dhowow OSM
+    search:
+      search: Raadi
+      get_directions_title: Raadi jihooyinka u dhaxeeya laba barood
+      from: Ka socdo
+      submit_text: Gaar
+    key:
+      table:
+        entry:
+          primary: Wadada koowaad
+          runway: Gegada Diyaaradaha
+          forest: Duur
+          park: Jardiino
+          resident: Aag degaan
+          retail: Goobta tafaariiqda
+          industrial: Aagga warshadaha
+          commercial: Aagga ganacsiga
+          lake: Haro
+          farm: Dhul beereed
+          military: Goob ciidan
+          school: Dugsiyada
+          toilets: Musqulo
+    welcome:
+      title: Soo dhowoow!
+      start_mapping: Bilow Jihaynta
+  traces:
+    new:
+      help: Caawin
+    show:
+      download: soo-deji
+      edit: tifaftir
+      description: 'Sharaxaad:'
+    index:
+      public_traces: Raadadka GPS-ka Guud
+      public_traces_from: Raadadka GPS-ka Guud %{user}
+      upload_trace: Ku dar raad raac
+  oauth:
+    authorize:
+      allow_write_gpx: ku dar raad raac.
+  users:
+    new:
+      title: Is-diiwaangeli
+      about:
+        header: Bilaash ah waxna laga beddelli karo
+      display name description: Aqoonsigaaga dadweynaha u muuqdo. Waxaad ka beddeli
+        kartaa xilli kale doorbidaada.
+      use external auth: 'Haddii kale, isticmaal barnaamij saddexaad si aad u gasho:'
+      continue: Is-diiwaangeli
+    terms:
+      heading: Shuruudaha wadaaggaha
+      consider_pd: Sidoo kale waxtarkayga ayaa ku jira Diiwaanka Dadweynaha
+      decline: Diid
+      you need to accept or decline: Fadlan akhri heshiiska oo riix badhanka ogolaanshaha
+        si aad u xaqiijiso in aad ogolaatay shuruudaha heshiiskan ee waxtarkaaga socda
+        iyo kan mustaqbalka.
+      legale_select: 'Wadanka Deganaanshaha:'
+    show:
+      my diary: Xasuus-qorkayga
+      my edits: Tifaftirkayga
+      my traces: Raadadkayga
+      my notes: Qoraaladayda
+      my messages: Fariimahayga
+      my profile: Haybtayda
+      my settings: Hagaajintayda
+      my comments: Faallooyinkayga
+      blocks on me: Xannibaada I Saaran
+      send message: Dir Fariin
+      diary: Xasuus-qor
+      edits: Tifaftiraada
+      traces: Raadadka
+      notes: Qoraalada Khariidada
+      add as friend: Ku darso Saaxiib
+      mapper since: 'Jaheeye tan iyo:'
+      ct status: Shuruudaha wadaaggaha
+      email address: 'Cinwaanka emaylka:'
+      comments: Faallooyin
+      confirm: Xaqiiji
+  user_role:
+    grant:
+      confirm: Xaqiiji
+    revoke:
+      confirm: Xaqiiji
+  user_blocks:
+    not_found:
+      back: gadaal
+    show:
+      edit: Tifaftir
+    block:
+      edit: Tifaftir
+    blocks:
+      creator_name: Suurtogeliye
+      showing_page: Bogga %{page}
+      next: Xiga »
+      previous: « Hore
+  notes:
+    index:
+      title: Qoraalada uu soo gudbiyay ama ka faallooday %{user}
+      heading: Qoraalada %{user}
+      subheading_html: Qoraalada uu soo gudbiyay ama ka faallooday %{user}
+      creator: Suurtogeliye
+      description: Sharaxaad
+      created_at: Lagu suurtogeliyay
+      last_changed: Ugu dambeeyn la beddelay
+    show:
+      title: 'Qoraalada: %{id}'
+      description: Sharaxaad
+    new:
+      title: Qoraal Cusub
+      intro: Miyaad aragtay qalad ama wax la maqan? U ogoloow jiheeyayaasha kale inay
+        ogaadaan si aan u saxno. U dhaqaaji calaamadeeyaha meesha saxda ah oo qor
+        qoraal si aad u sharaxdo dhibaatada.
+      advice: Fadlan ha ku qorin macluumaad shakhsiyadeed ama macluumaadka Khariidadaha
+        xuquuqda daabacaad leh ama taxaalka diiwaanada.
+      add: Ku dar Qoraal
+  javascripts:
+    share:
+      title: Faafi
+      image: Sawir
+      link: Xiriir ama HTML
+      short_link: Xiriir Gaaban
+      custom_dimensions: Aasaas cabbirada gaarka ah
+      format: 'Khiddad:'
+      scale: 'Qiyaas:'
+      download: Soo-deji
+      include_marker: Ku dar calaamadeeyaha
+    key:
+      title: Furaha Khariidadda
+    map:
+      zoom:
+        in: Soo dhawee
+        out: Fogee
+      locate:
+        title: Muuji Goobtayda
+      base:
+        standard: Caadi
+        transport_map: Qaad Khariidada
+        hot: Bini'aadinimo
+      layers:
+        header: Lakabyada Khariidada
+        notes: Qoraalada Khariidada
+        data: Xogta Khariidada
+        gps: Raadadka GPS-ka Guud
+        title: Lakabyada
+    site:
+      edit_disabled_tooltip: Soo dhawee si aad u tifaftirto khariidada
+      createnote_tooltip: Ku dar qoraal khariidada
+      createnote_disabled_tooltip: Soo dhawee si aad ugu darto qoraal khariidada
+      queryfeature_tooltip: Tilmaamaha raadinta
+      queryfeature_disabled_tooltip: Soo dhawee si aad u weydiiso tilmaamaha
+    changesets:
+      show:
+        comment: Faallo
+    directions:
+      engines:
+        graphhopper_foot: Cag (GraphHopper)
+    query:
+      nothing_found: Wax tilmaamo ah lama helin
+    context:
+      query_features: Tilmaamaha raadinta
+  redactions:
+    show:
+      description: 'Sharaxaad:'
+      user: 'Suurtogeliye:'
+...

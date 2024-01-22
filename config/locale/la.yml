@@ -1,0 +1,44 @@
+# Messages for Latin (Latina)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Demetrius Talpa
+# Author: Lorem Ipsum
+# Author: MissPetticoats
+---
+la:
+  helpers:
+    file:
+      prompt: Fasciculum elige
+    submit:
+      diary_comment:
+        create: Servare
+      diary_entry:
+        create: In medio ponere
+        update: Renovare
+      message:
+        create: Mittere
+      oauth2_application:
+        update: Renovare
+      trace:
+        update: Mutationes servare
+  activerecord:
+    models:
+      friend: Amicus
+      language: Lingua
+    attributes:
+      diary_comment:
+        body: Corpus
+      doorkeeper/application:
+        name: Nomen
+      trace:
+        name: Nomen
+  oauth2_applications:
+    index:
+      name: Nomen
+    application:
+      edit: Recensere
+      delete: Delere
+    show:
+      edit: Recensere
+      delete: Delere
+...

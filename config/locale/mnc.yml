@@ -1,0 +1,19 @@
+# Messages for Manchu (ᠮᠠᠨᠵᡠ ᡤᡳᠰᡠᠨ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Chulsu463
+---
+mnc:
+  diary_entries:
+    diary_entry:
+      comment_count:
+        one: '%{count} leolen'
+        other: '%{count} leolen'
+      no_comments: leolen akū
+  issues:
+    show:
+      reports:
+        one: '%{count} boolan'
+        other: '%{count} boolan'
+      no_reports: boolan akū
+...

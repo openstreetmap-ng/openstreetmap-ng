@@ -1,0 +1,408 @@
+# Messages for Tulu (ತುಳು)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: BHARATHESHA ALASANDEMAJALU
+# Author: ChiK
+# Author: Mahaveer Indra
+# Author: Ravi Mundkur
+# Author: VASANTH S.N.
+# Author: Vishwanatha Badikana
+---
+tcy:
+  helpers:
+    submit:
+      diary_comment:
+        create: ಅಬಿಪ್ರಾಯೊ
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: ಒಂಜಿ ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸದಂಚ ತೋಜುಜಿ.
+        email_address_not_routable: ಪಥಶಕ್ತ ಅತ್ತ್.
+      models:
+        user_mute:
+          is_already_muted: ದುಂಬೆ ತಡೆ ಪತ್ತ್‌ದಾತ್ಂಡ್
+    models:
+      country: ದೇಶ
+      friend: ದೋಸ್ತಿ
+      language: ಬಾಸೆ
+      message: ಸಂದೇಶ
+      old_way: ಪರ ಸಾದಿ
+      relation: ಸಂಬಂಧೊ
+      user: ಬಳಕೆದಾರೆರ್
+      way: ಸಾದಿ
+    attributes:
+      diary_comment:
+        body: ಶರೀರೊ
+      diary_entry:
+        user: ಬಳಕೆದಾರೆರ್
+        title: ವಿಷಯ
+        latitude: ಅಕ್ಷಾಂಶ
+        longitude: ರೇಖಾಂಶ
+        language_code: ಬಾಸೆ
+      friend:
+        user: ಬಳಕೆದಾರೆರ್
+        friend: ದೋಸ್ತಿ
+      trace:
+        user: ಬಳಕೆದಾರೆರ್
+        name: ಪುದರ್
+        size: ಗಾತ್ರೊ
+        latitude: ಅಕ್ಷಾಂಶ
+        longitude: ರೇಖಾಂಶ
+        public: ಸಾರ್ವಜನಿಕೊ
+        description: ವಿವರಣೆ
+      message:
+        sender: ಕಡಪುಡುನಾರ್
+        title: ವಿಷಯ
+        body: ಶರೀರೊ
+        recipient: ಪಡೆಯಿನಾರ್
+      user:
+        email: ಇ-ಅಂಚೆ
+        active: ಸಕ್ರಿಯ
+        description: ವಿವರಣೆ
+        languages: ಭಾಸೆ
+        pass_crypt: ಪ್ರವೇಶ ಪದೊ
+  editor:
+    id:
+      name: ಐಡಿ
+  accounts:
+    go_public:
+      currently_not_public: ಇರೆನ ಸದ್ಯೊದ ಸಂಪಾದಿಲು ಪುದರ್ ಇಜ್ಜಂದೆ ಉಲ್ಲ ಬುಕ್ಕ ಜನಕುಲೆಗ್
+        ಇರೆನ್ ಸಂಪರ್ಕಿಸಾವರ ಆಪುಜಿ. ಜನಕುಲು ಇರೆನ್ ಸಂಪರ್ಕಿಸಾವರ ಬುಕ್ಕ ಇರ್ ದಾದ ಸಂಪಾದಿಸಾಯರ್
+        ಪನ್ಪುನ ತೂವರ ಮುಲ್ಪ ಬೊಟ್ಟುಲೆ.
+      find_out_why_html: '%{link}'
+      find_out_why: ದಾಯೆಗ್? ತೆರಿಯೊನ್ಲೆ.
+      email_not_revealed: ಇರೆನ ಇಮೇಲ್ ಏರೆಗ್ಲಾ ತೆರಿವುಜಿ.
+  browse:
+    created: ಸ್ರಿಸ್ಟಿಸಯಿನ
+    closed: ಮುಚ್ಚಿದ್‍ನ
+    version: ಆವೃತ್ತಿ
+    in_changeset: ಬದಲಾವಣೆಲು
+    anonymous: ಅನಾಮಧೇಯ
+    no_comment: (ಟಿಪ್ಪಣಿಯಿಜ್ಜಿ)
+    part_of: ಭಾಗ
+    view_history: ಇತಿಹಾಸೊನು ತೂಲೆ
+    view_details: ವಿವರಣೆ ತೂಲೆ
+    location: 'ಸ್ಥಳೊ:'
+    changeset:
+      belongs_to: ಬರೆತಿನಾರ್
+      discussion: ಚರ್ಚೆ
+    relation:
+      members: ಸದಸ್ಯೆರ್
+    relation_member:
+      type:
+        way: ಸಾದಿ
+        relation: ಸಂಬಂಧೊ
+    not_found:
+      type:
+        node: ‍ನೋಡ್
+        way: ಸಾದಿ
+        relation: ಸಂಬಂಧೊ
+        changeset: ಬದಲಾವಣೆಲು
+        note: ಟಿಪ್ಪಣಿ
+    timeout:
+      type:
+        node: ‍ನೋಡ್
+        way: ಸಾದಿ
+        relation: ಸಂಬಂಧೊ
+        changeset: ಬದಲಾವಣೆಲು
+        note: ಟಿಪ್ಪಣಿ
+    redacted:
+      type:
+        node: ‍ನೋಡ್
+        way: ಸಾದಿ
+        relation: ಸಂಬಂಧೊ
+    start_rjs:
+      load_data: ದತ್ತಾಂಶ ದಿಂಜಾಲೆ
+      loading: ದಿಂಜಾವೊಂದುಂಡು......
+  changesets:
+    changeset_paging_nav:
+      next: ‍ದುಂಬುದ »
+      previous: ‍‍ « ಪಿರವುದ
+    changeset:
+      anonymous: ಅನಾಮಧೇಯ
+    changesets:
+      id: ಐಡಿ
+      user: ಬಳಕೆದಾರೆರ್
+      comment: ಅಬಿಪ್ರಾಯೊ
+      area: ಪ್ರದೇಶ
+    index:
+      title: ಬದಲಾವಣೆಲು
+      load_more: ನನಲಾ ದಿಂಜಾಲೆ
+  changeset_comments:
+    comments:
+      comment: 'ಬದಲಿಜತೆತ ಮಿತ್ತ್ ಪೊಸ ಟೀಕೆ #%{changeset_id},by %{author}'
+    timeout:
+      sorry: ಕ್ಷಮಿಸಾಲೆ,ಈರ್ ಕೇಣಿನ ಬದಲಿಜತೆ ಟೀಕೆಲೆನ ಪಟ್ಟಿನ್ ದೆಪ್ಪರೆ ದಿಂಜ ಪೊರ್ತು ತಾಗುಂಡು!
+  diary_entries:
+    form:
+      location: 'ಸ್ಥಳೊ:'
+      use_map_link: ನಕ್ಷೆ ಉಪಯೋಗ ಮಲ್ಪುಲೆ
+    show:
+      login: ಲಾಗಿನ್ ಆಲೆ
+    diary_entry:
+      confirm: ಗಟ್ಟಿಮಲ್ಪುಲೆ
+    diary_comment:
+      confirm: ಗಟ್ಟಿಮಲ್ಪುಲೆ
+    location:
+      location: 'ಸ್ಥಳೊ:'
+      view: ನೋಟಲು
+      edit: ಸಂಪೊಲಿಪುಲೆ
+    comments:
+      when: ಏಪ
+      comment: ಅಭಿಪ್ರಾಯೊ
+      newer_comments: ಪೊಸ ಅಭಿಪ್ರಾಯೊಲು
+      older_comments: ಪರ ಅಭಿಪ್ರಾಯೊಲು
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: ವಿಮಾನ ನಿಲ್ದಾಣೊ
+          helipad: ಹೆಲಿಪ್ಯಾಡ್
+          runway: ರನ್‍ವೇ
+          terminal: ತಂಗುದಾಣೊ
+        amenity:
+          arts_centre: ಕಲಾ ಕೇಂದ್ರೊ
+          atm: ಎಟಿಎಂ
+          bank: ಬ್ಯಾಂಕ್
+          bar: ಬಾರ್
+          bench: ‍ಬೆಂಚ್
+          bicycle_parking: ‍‍ಸೈಕಲ್ ನಿಲುಗಡೆ
+          bus_station: ಬಸ್ ನಿಲ್ದಾಣೊ
+          cafe: ಕೆಫೆ
+          car_rental: ಬಾಡಿಗೆ ಕಾರ್
+          casino: ಕೆಸಿನೊ
+          cinema: ಸಿನೆಮೊ
+          clinic: ಚಿಕತ್ಸಾಲಯ
+          clock: ಗಡಿಯಾರ
+          college: ಕಾಲೇಜು
+          community_centre: ಸಮುದಾಯದ ಕೇಂದ್ರ
+          courthouse: ನ್ಯಾಯಾಲಯೊ
+          crematorium: ‍‍ಚಿತಾಗಾರ
+          dentist: ದಂತವೈದ್ಯ
+          doctors: ವೈದ್ಯರು
+          drinking_water: ಪರ್ಪಿ ನೀರ್
+          embassy: ರಾಯಭಾರ ಕಛೇರಿ
+          fast_food: ‍‍ಫಾಸ್ಟ್ ಫುಡ್
+          ferry_terminal: ದೋಣಿ ನಿಲ್ದಾಣೊ
+          fire_station: ‍‍ಅಗ್ನಿಶಾಮಕ ಠಾಣೆ
+          fountain: ‍ಕಾರಂಜಿ
+          fuel: ‍ಇಂಧನ
+          grave_yard: ಸ್ಮಶಾನೊ
+          hospital: ಆಸ್ಪತ್ರೆ
+          ice_cream: ‍ಐಸ್ ಕ್ರೀಂ
+          kindergarten: ‍‍‍ಶಿಶುವಿಹಾರ
+          library: ಗ್ರಂಥಾಲಯೊ
+          marketplace: ‍‍ಮಾರುಕಟ್ಟೆ
+          monastery: ‍‍ಮಠೊ
+          pharmacy: ‍‍ಔ‍ಷಧಾಲಯ
+          place_of_worship: ‍‍ಆರಾಧನಾ ಮಂದಿರ
+          police: ಪೊಲೀಸ್
+          post_box: ಟಪಾಲು
+          post_office: ಅಂಚೆ ಕಛೇರಿ
+          prison: ಕಾರಾಗೃಹ
+          public_building: ಸಾರ್ವಜನಿಕ ಕಟ್ಟಡ
+          restaurant: ‍‍ರೆಸ್ಟೋರೆಂಟ್
+          school: ಶಾಲೆ
+          social_centre: ಸಮುದಾಯ ಭವನ
+          swimming_pool: ಈಜು ಕೊಳ
+          taxi: ಬಾಡಿಗೆ ವಾಹನ
+          telephone: ಸಾರ್ವಜನಿಕ ಫೋನು
+          theatre: ಕಲಾಭವನ
+          toilets: ಶೌಚಾಲಯಲು
+          townhall: ‍‍‍‍ಪುರಭವನ
+          university: ವಿಶ್ವವಿದ್ಯಾಲಯ
+          veterinary: ‍‍ಪಶುವೈದ್ಯಕೀಯ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ
+          waste_basket: ‍ಕಸದ ಬುಟ್ಟಿ
+          waste_disposal: ‍ಕಜವುದ ವಿಲೇವಾರಿ
+        boundary:
+          administrative: ‍‍ಆಡಳಿತಾತ್ಮಕ ಪರಿಧಿ
+          census: ‍‍ಜನಗಣತಿ ಪರಿಧಿ
+          national_park: ರಾಷ್ಟ್ರೀಯ ಉದ್ಯಾನವನ
+        bridge:
+          "yes": ಸೇತುವೆ
+        building:
+          "yes": ಕಟ್ಟಡೊ
+        craft:
+          carpenter: ಆಚಾರಿ
+          painter: ಪೈಂಟರ್
+          photographer: ಛಾಯಾಗ್ರಾಹಕ
+        emergency:
+          phone: ‍‍ತುರ್ತು ದೂರವಾಣಿ
+        highway:
+          abandoned: ‍ಪರಿತ್ಯಕ್ತ ಹೆದ್ದಾರಿ
+          bus_stop: ಬಸ್ ತಂಗುದಾಣ
+          milestone: ಮೈಲ್ ಕಂಬ
+          path: ಸಾದಿ
+          pedestrian: ನಡಪಿ ಸಾದಿ
+          platform: ಮಂಚೊ
+          road: ಸಾದಿ
+          street_lamp: ಸಾದಿ ದೀಪ
+          track: ಪಥೊ
+          "yes": ಸಾದಿ
+        historic:
+          archaeological_site: ಐತಿಹಾಸಿಕ ಸ್ಥಳೊ
+          battlefield: ಯುದ್ಧ ಭೂಮಿ
+          building: ಐತಿಹಾಸಿಕ ಕಟ್ಟಡೊ
+          bunker: ಬಂಕರ್
+          castle: ಕೋಟೆ
+          church: ಚರ್ಚ್
+          city_gate: ನಗರ ದ್ವಾರೊ
+          fort: ಕೋಟೆ
+          heritage: ಸಾಂಸ್ಕೃತಿಕ ಜಾಗ
+          house: ಇಲ್ಲ್
+          memorial: ಸ್ಮಾರಕೊ
+        landuse:
+          conservation: ಸಂರಕ್ಷಣೆ
+          construction: ನಿರ್ಮಾಣೊ
+          forest: ಕಾಡ್
+          grass: ಪಜಿರ್
+          greenfield: ಪಜಿರ್‍ದ ಕಂಡೊ
+          industrial: ಕೈಗಾರಿಕಾ ಪ್ರದೇಶೊ
+          quarry: ಕೋರೆ
+          reservoir: ಸರೋವರ
+          retail: ಚಿಲ್ಲರೆ
+        leisure:
+          common: ಸಾರ್ವಜನಿಕ ಜಾಗ
+          fishing: ಮೀನುಗಾರಿಕಾ ಪ್ರೆದೇಶ
+          garden: ತೋಟ
+          park: ಉದ್ಯಾನ
+          stadium: ಕ್ರೀಡಾಂಗಣ
+          swimming_pool: ಈಜು ಕೊಳ
+          water_park: ಜಲ ಉದ್ಯಾನ
+        military:
+          bunker: ಬಂಕರ್
+        natural:
+          beach: ಕಡಲತೀರ
+          forest: ಕಾಡ್
+          heath: ಆರೋಗ್ಯ
+          hill: ಗುಡ್ಡ
+          island: ದ್ವೀಪ
+          mud: ಕೆಸರ್
+          sand: ಪೊಯ್ಯೆ
+          stone: ಕಲ್ಲ್
+          tree: ಮರ
+          valley: ಕಣಿವೆ
+          volcano: ಜ್ವಾಲಾಮುಖಿ
+          water: ನೀರ್
+          wetland: ಚೌಗು ಭೂಮಿ
+          wood: ಮರ
+        office:
+          administrative: ಆಡಳಿತ
+          architect: ವಾಸ್ತುಶಿಲ್ಪಿ
+          company: ಕಂಪನಿ
+          government: ಸರ್ಕಾರಿ ಕಛೇರಿ
+          lawyer: ವಕೀಲೆ
+          ngo: ಸರ್ಕಾರೇತರ ಕಛೇರಿ
+        place:
+          city: ನಗರ
+          country: ದೇಶ
+          county: ದೇಶೊ
+          farm: ಬೈಲ್
+          house: ಇಲ್ಲ್
+          houses: ಇಲ್ಲ್‍ಲು
+  messages:
+    messages_table:
+      actions: ಕ್ರಿಯೆಲು
+    message_summary:
+      unmute_button: ಇನ್‌ಬಾಕ್ಸ್‌ಗ್ ಸೇರಾಲೆ
+    outbox:
+      actions: ಕ್ರಿಯೆಲು
+    muted:
+      title: ತಡೆ ಪತ್ತ್‌ನ ಸಂದೇಸೊ
+      messages:
+        one: '%{count} muted message'
+        other: ಈರ್ %{count} ಪತ್ತ್‌ದೀಡ್‌ನ ಸಂದೇಸೊಲೆನ್ ಹೊಂದ್‌ದಿಪ್ಪರ್
+    heading:
+      muted_messages: ತಡೆ ಪತ್ತ್‌ನ ಸಂದೇಸೊ
+    unmute:
+      notice: ಸಂದೇಸೊನ್ ಇನ್‌ಬಾಕ್ಸ್‌ಗ್ ಸೇರಾದಾತ್ಂಡ್
+  shared:
+    markdown_help:
+      codeblock: ಕೋಡ್ ತಡೆ
+  site:
+    export:
+      title: ರಫ್ತು ಮಲ್ಪುಲೆ
+      licence: ಪರವಾನಗಿ
+      licence_details_html: ಓಪನ್‌ಸ್ಟ್ರೀಟ್‌ಮ್ಯಾಪ್‌ದ ಮಾಹಿತಿಲು %{odbl_link}ತ ಅಡಿಟ್ ಪರವಾನಗಿ
+        ದೆತೊಂದುಂಡು.
+      export_button: ರಫ್ತು ಮಲ್ಪುಲೆ
+    any_questions:
+      get_help_here: ಮುಲ್ಪ ಸಾಯ ದೆತೊನ್ಲೆ
+    key:
+      table:
+        entry:
+          stop: ಉಂತಾಲೆ
+    welcome:
+      whats_on_the_map:
+        real_and_current: ನಿಜವಾಯಿನ ಬುಕ್ಕ ಸದ್ಯೊದ
+      basic_terms:
+        an_editor_html: ನಕ್ಷೆನ್ ಸಂಪಾದಿಸಾವರ %{editor} ಉಂದೊಂಜಿ ಜಾಲತಾನೊ ಇಜ್ಜಿಡ ಪ್ರೋಗ್ರಾಮ್
+          ಆದುಂಡು.
+        a_node_html: ಅ %{node} ಉಂದು ನಕ್ಷೆಡ್ ಇಪ್ಪುನ ಒಂಜಿ ಜಾಗೆ. ಮರ, ಅಂಗಡಿ- ಇಂಚ.
+        a_tag_html: '%{tag}ಉಂದು ಒಂಜಿ ಮಾಹಿತಿದ ಬಿಟ್ಟೆ. ಪಂಡ, ತಾದಿದ ಪುದರ್, ಹೋಟೆಲ್‌ದ ಪುದರ್-
+          ಇಂಚ.'
+        editor: ಸಂಪಾದಕೆ
+        node: ಸಂಕೇತೊ
+        way: ಸಾದಿ
+      rules:
+        imports: ಇಂಚಿ ಪತೊಂದು ಬತ್ತಿನವು
+      add_a_note:
+        the_map: ನಕ್ಷೆ
+  traces:
+    index:
+      empty_title: ಮುಲ್ಪ ದಾಲಲ ಇಜ್ಜಿ
+      wiki_page: ವಿಕಿ ಪುಟ
+  application:
+    permission_denied: ಆ ಕ್ರಿಯೆತ ಬಳಕೆಗ್ ಇರೆಗ್ ಅನುಮತಿ ಇಜ್ಜಿ.
+    settings_menu:
+      muted_users: ತಡೆ ಪತ್ತ್‌ನ ಬಳಕೆದಾರೆರ್
+  oauth2_authorized_applications:
+    index:
+      oauth_2: ಪ್ರಮಾಣೊ 2
+  users:
+    new:
+      about:
+        paragraph_1: ಓಪನ್‍‍ಸ್ಟ್ರೀಟ್‌ಮ್ಯಾಪ್ ಎಂಕುಲು ನಿಕುಲಂಚಿನ ಸಾಮಾನ್ಯ ಜನಕುಲೇ ತಯಾರ್ ಮಲ್ತಿನ
+          ನಕ್ಷೆ. ಉಂದೆನ್ ಏರ್‌ಲಾ ಸರಿ ಮಲ್ಪೊಲಿ, ಸಂಪಾದಿಪೊಲಿ ಬುಕ್ಕ ಡೌನ್‍ಲೋಡ್ ಮಲ್ತ್‌ದ್ ಗಲಸೊಲಿ.
+        paragraph_2: ಸಂಪಾದಿ ಸುರು ಮಲ್ಪರ ಸೈನ್ ಅಪ್ ಆಲೆ, ಇರೆನ ಖಾತೆ ಉಂಡಯಿಬೊಕ್ಕ ಇರೆಗೊಂಜಿ
+          ಈಮೇಲ್ ಕಡಪಡುವ.
+    show:
+      create_mute: ಈ ಬಳೆಕೆದಾರೆರೆನ್ ತಡೆ ಪತ್ತ್‌ಲೆ
+      destroy_mute: ಈ ಬಳೆಕೆದಾರೆರೆನ ತಡೆ ಪತ್ತ್‌ನೆನ್ ದೆಪ್ಪುಲೆ
+  user_mutes:
+    index:
+      title: ತಡೆ ಪತ್ತ್‌ನ ಬಳಕೆದಾರೆರ್
+      my_muted_users: ಎನ್ನನ್ ತಡೆ ಪತ್ತಿನ ಬಳಕೆದಾರೆರ್
+      you_have_muted_n_users:
+        one: You have muted %{count} User
+        other: ಈರ್ %{count} ಬಳಕೆದಾರೆರೆನ್ ತಡೆಪತ್ತ್‌ದರ್
+      user_mute_explainer: ತಡೆಪತ್ತ್‌ನ ಳಕೆದಾರೆರೆ ಸಂದೇಸೊಲೆನ್ ಬೇತೆನೆ ಇನ್‌ಬಾಕ್ಸ್‌ಗ್ ಕಡಪೂಡ್‌ನೆ
+        ಬುಕ್ಕೊ ಈರ್ ಇಮೇಲ್ ಅದಿಸೂಚನೆಲೆನ್ ದೆತೊನುಜರ್.
+      table:
+        thead:
+          muted_user: ತಡೆ ಪತ್ತ್‌ನ ಬಳಕೆದಾರೆರ್
+          actions: ಕ್ರಿಯೆಲು
+        tbody:
+          unmute: ತಡೆ ಪತ್ತಿನೆನ್ ದೆಪ್ಪುಲೆ
+          send_message: ಸಂದೇಸೊ ಕಡಪುಡ್ಲೆ
+    create:
+      notice: ಈರೆನ್ ತಡೆಪತ್ತ್‌‌ದೆರ್ %{name}.
+      error: '%{name} ಆರೆನ್ ತಡೆ ಮಲ್ಪೆರೆ ಆಯಿಜಿ. %{full_message}.'
+    destroy:
+      notice: ಈರೆನ್ ತಡೆ ಪತ್ತ್‌ಜಿ %{name}.
+  notes:
+    show:
+      description: ವಿವರಣೆ
+    new:
+      title: ಪೊಸ ಟಿಪ್ಪಣಿ
+  javascripts:
+    directions:
+      engines:
+        fossgis_osrm_bike: ಬೈಸಯಕಲ್ (ಒಎಸ್ಆರ್'ಎಂ)
+        fossgis_osrm_foot: ಕಾರ್(ಒಎಸ್ಆರ್'ಎಂ)
+  validations:
+    leading_whitespace: ಆರಂಭಿಕ ಬೊಲ್ದುಜಾಗ ಉಂಡು
+    trailing_whitespace: ಅಂತಿಕ ಬೊಲ್ದುಜಾಗ ಉಂಡು.
+    invalid_characters: ಅಮಾನ್ಯ ಅಕ್ಷರೊಲು ಸೇರ್ದುಂಡು
+    url_characters: ವಿಶೇಷ ಯು.ಆರ್.ಎಲ್ ಅಕ್ಷರೊಲೆನ್ ಸೇರ್ದುಂಡು.(%{characters})
+...

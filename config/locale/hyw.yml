@@ -1,0 +1,241 @@
+# Messages for Western Armenian (Արեւմտահայերէն)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Armeniki
+# Author: Azniv Stepanian
+# Author: Kareyac
+# Author: Շահէն
+---
+hyw:
+  helpers:
+    submit:
+      diary_comment:
+        create: Յիշել
+      diary_entry:
+        create: Հրապարակել
+        update: Թարմացնել
+      message:
+        create: Ղրկել
+      client_application:
+        update: Թարմացնել
+  activerecord:
+    models:
+      country: Երկիր
+      friend: Ընկեր
+      language: Լեզու
+      message: Հաղորդագրութիւն
+      node: Կէտ
+      user: Գործածող
+    attributes:
+      client_application:
+        name: Անուն (պարտադիր)
+      diary_entry:
+        user: Գործածող
+        title: Նիւթ
+        latitude: Լայնութիւն
+        language_code: Լեզու
+      friend:
+        user: Գործածող
+        friend: Ընկեր
+      trace:
+        user: Գործածող
+        visible: Տեսանելի
+        name: Անուն
+      message:
+        title: Նիւթ
+        recipient: Ստացողը
+      user:
+        email: Ելեկտրոնային նամակ
+        languages: Լեզուներ
+        pass_crypt: Անցաբառ
+  auth:
+    providers:
+      facebook: Ֆէյսպուք
+      wikipedia: Ուիքիփետիա
+  accounts:
+    edit:
+      my settings: Իմ կարգաւորումները
+      public editing:
+        enabled link text: 'Այս ի՞նչ է:'
+      contributor terms:
+        link text: 'Այս ի՞նչ է:'
+  browse:
+    version: Տարբերակ
+    view_history: Տեսնել պատմութիւնը
+    changeset:
+      belongs_to: Հեղինակ
+    relation_member:
+      type:
+        relation: Յարաբերութիւն
+    containing_relation:
+      entry_html: Յարաբերութիւն %{relation_name}
+      entry_role_html: Յարաբերութիւն %{relation_name} (իբր %{relation_role})
+    not_found:
+      sorry: 'Ներողութիւն, %{type} #%{id} չը կրցաւ գտնուիլ:'
+    redacted:
+      type:
+        relation: յարաբերութիւն
+  dashboards:
+    popup:
+      friend: Ընկեր
+  diary_entries:
+    show:
+      login: Մուտք գործել
+    diary_entry:
+      confirm: Հաստատել
+    location:
+      edit: Խմբագրել
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aerialway:
+          cable_car: Ճոպանուղ
+        amenity:
+          bank: Դրամատուն
+          bbq: Խորոված
+          biergarten: Գարեջուրի Պարտէզ
+          dentist: Ատամնաբուժ
+          doctors: Բժիշկներ
+          hospital: Հիւանդանոց
+          love_hotel: Սիրոյ Հիւրանոց
+          music_school: Երաժշտութեան Դպրոց
+          restaurant: Ճաշարան
+          school: Դպրոց
+          shower: Տուշ
+          swimming_pool: Աւազան
+          taxi: Թաքսի
+        boundary:
+          aboriginal_lands: Բնիկ հողեր
+          "yes": Սահման
+        building:
+          apartment: Յարկաբաժին
+          apartments: Յարկաբաժիններ
+          church: Եկեղեցիի շէնք
+          college: Համալսարանի Շէնք
+          hotel: Հիւրանոցի Շէնք
+          roof: Տանիք
+        craft:
+          blacksmith: Երկաթագործ
+          electrician: Ելեկտրագէտ
+          gardener: Պարտիզպան
+          photographer: Նկարիչ
+          plumber: Կապարագործ
+          winery: Գինետուն
+        emergency:
+          siren: Ահազանգ
+        highway:
+          elevator: Վերամբարձ
+          road: Ճամբայ
+        landuse:
+          forest: Անտար
+        leisure:
+          dance: Պարասրահ
+          fitness_centre: Մարմնամարզարան
+          garden: Պարտէզ
+          ice_rink: Սարոյցադաշտ
+          swimming_pool: Աւազան
+        man_made:
+          advertising: Ծանուցել
+          telescope: Հեռադիտակ
+        natural:
+          sand: Աւազ
+        office:
+          diplomatic: Դիւանագիտական Գրասենեակ
+          newspaper: Օրաթերթի Գրասենեակ
+          research: Պրպտումի Գրասենեակ
+          "yes": Գրասենեակ
+        place:
+          country: Երկիր
+          farm: Ագարակ
+          region: Շրջան
+          village: Գիւղ
+        shop:
+          bag: Պայուսակի Խանութ
+          car: Ինքնաշարժի Խանութ
+          cheese: Պանիրի Խանութ
+          chocolate: Տուրմ
+          ice_cream: Պաղպաղակի խանութ
+          wholesale: Մեծագանակ Խանութ
+          "yes": Խանութ
+  layouts:
+    logout: Դուրս գալ
+    partners_fastly: Արագօրէն
+    help: Օգնութիւն
+  user_mailer:
+    gpx_failure:
+      hi: Բարեւ %{to_user},
+    gpx_success:
+      hi: Բարեւ %{to_user},
+    email_confirm:
+      greeting: Բարեւ,
+    note_comment_notification:
+      greeting: Բարեւ,
+    changeset_comment_notification:
+      hi: Բարեւ %{to_user},
+      greeting: Բարեւ,
+  confirmations:
+    confirm:
+      button: Հաստատել
+    confirm_email:
+      button: Հաստատել
+  messages:
+    messages_table:
+      subject: Նիւթ
+      date: Թուական
+    show:
+      destroy_button: Ջնջել
+      back: Ետ
+    sent_message_summary:
+      destroy_button: Ջնջել
+  passwords:
+    new:
+      title: Մոռցուած գաղտնաբառ
+      heading: 'Գաղտնաբարս մոռցած եմ:'
+  sessions:
+    new:
+      title: Մուտք գործել
+      heading: Մուտք գործել
+      password: Անցաբառ
+      lost password link: 'Գաղտնաբարս մոռցած եմ:'
+      login_button: Մուտք գործել
+    destroy:
+      logout_button: Դուրս գալ
+  site:
+    edit:
+      user_page_link: Մասնակիցի էջ
+    export:
+      licence: Հրամանագիր
+    search:
+      from: Ղրկողը
+      to: Ստացողը
+      where_am_i: 'Ու՞ր է ասիկա:'
+      submit_text: Յառաջ
+    key:
+      table:
+        entry:
+          school: Դպրոց
+          university: համալսարան
+          hospital: հիւանդանոց
+    welcome:
+      title: 'Բարի Եկաք:'
+      rules:
+        title: Օրէնքներ
+  traces:
+    new:
+      help: Օգնութիւն
+    show:
+      map: քարտէս
+  oauth_clients:
+    show:
+      confirm: 'Վստա՞հ էք:'
+  users:
+    index:
+      title: Գործածողներ
+      heading: Գործածողներ
+  user_role:
+    revoke:
+      confirm: Հաստատել
+  user_blocks:
+    blocks:
+      status: Վիճակ
+...

@@ -1,0 +1,194 @@
+# Messages for Sinhala (සිංහල)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: BuddhikaW88
+# Author: Chathuri Jayaweera
+# Author: Chiran sadeep
+# Author: Pradeepmaduranga
+# Author: Roonyh
+# Author: Sahan.ssw
+# Author: Shwetha123
+# Author: Singhalawap
+# Author: පන්හිඳ
+# Author: පසිඳු කාවින්ද
+# Author: 1100100
+---
+si:
+  time:
+    formats:
+      friendly: '%e %B %Y හි %H:% M'
+  helpers:
+    file:
+      prompt: ගොනුව තෝරන්න
+    submit:
+      diary_comment:
+        create: සුරකින්න
+      diary_entry:
+        create: ප්‍රකාශ කරන්න
+        update: යාවත්කාලීන
+      issue_comment:
+        create: අදහස් එක් කරන්න
+      message:
+        create: යවන්න
+      client_application:
+        create: ලියාපදිංචි වන්න
+        update: යාවත්කාලීන කරන්න
+      oauth2_application:
+        create: ලියාපදිංචි වන්න
+        update: යාවත්කාලීන කරන්න
+      redaction:
+        create: නැවත සකස් කරන්න
+        update: නැවත සකස් කිරීම සුරකින්න
+      trace:
+        create: උඩුගතකරන්න
+        update: වෙනස්කම් සුරකින්න
+      user_block:
+        create: අවහිරයක් සකස් කරන්න
+        update: අවහිරය යාවත්කාලීන කරන්න
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: වලංගු විද්‍යුත් තැපැල් ලිපිනයක් ලෙස නොපෙනේ
+        email_address_not_routable: ගමන් කළ නොහැකි ය
+    models:
+      acl: prආවේශ පරිපාලන ලැයිස්තුව
+      changeset: වෙනස්කිරීම්
+      changeset_tag: වෙනස් කරන ලද හැදුනුම
+      country: රට
+      diary_comment: දිනපොත් ආලෝචනය
+      diary_entry: දිනපොත් සටහන
+      friend: මිතුරා
+      language: භාෂාව
+      message: පණිවුඩය
+      node: මංසල
+      old_node: පැරණි මංසල
+      old_way: පැරණි ක්‍රමය
+      session: සැසිය
+      user: පරිශීලක
+      user_preference: පරිශීලක අභිරුචි
+    attributes:
+      diary_entry:
+        user: පරිශීලක
+        title: මාතෘකාව
+        latitude: අක්ෂාංශය
+        longitude: දේශාංශය
+        language_code: භාෂාව
+      friend:
+        user: පරිශීලක
+        friend: මිතුරා
+      trace:
+        user: පරිශීලක
+        visible: දෘශ්‍යමාන
+        name: ගොනුනාමය
+        size: විශාලත්වය
+        latitude: අක්ෂාංශ
+        longitude: දේශාංශ
+        public: පොදු
+        description: විස්තරය
+      message:
+        sender: යවන්නා
+        title: මාතෘකාව
+        body: අන්තර්ගතය
+        recipient: ලබාගන්නා
+      user:
+        email: ඊ-තැපෑල
+        active: සක්‍රීය
+        display_name: ප්‍රදර්ශන නාමය
+        description: පැතිකඩ විස්තරය
+        languages: කැමති භාෂා
+        pass_crypt: මුරපදය
+  browse:
+    created: තනන ලදි
+    closed: වැසුවා
+    version: අනුවාදය
+    in_changeset: වෙනස් කිරීම්
+    anonymous: නිර්නාමික
+    no_comment: (විචාර නොමැත)
+    part_of: කොටසක්
+    download_xml: XML බාගත කරන්න
+    view_history: ඉතිහාසය නරඹන්න
+    view_details: විස්තර පෙන්වන්න
+    location: 'ස්ථානය:'
+    changeset:
+      belongs_to: කතෘ
+      discussion: සාකච්ඡාව
+    way:
+      title_html: 'මාවත:  %{name}'
+      history_title_html: 'මාවත ඉතිහාසය : %{name}'
+    relation:
+      members: සාමාජිකයන්
+    relation_member:
+      type:
+        node: මංසල
+        way: මඟ
+        relation: සබැඳියාව
+    not_found:
+      sorry: 'සමාවන්න, %{type} #%{id} හමුනොවුනි.'
+      type:
+        node: මංසල
+        way: මාවත
+        relation: සබැඳියාව
+        changeset: වෙනස්කම්
+    timeout:
+      type:
+        node: මංසල
+        way: මාවත
+        relation: සබැඳියාව
+        changeset: වෙනස්කම්
+    redacted:
+      type:
+        node: මංසල
+        relation: සබැඳියාව
+    start_rjs:
+      load_data: දත්ත ප්‍රවේශනය
+      loading: ප්‍රවේශනය වෙමින් පවතී...
+    tag_details:
+      tags: 'ටැගයන්:'
+      wikipedia_link: විකිපීඩියා ලිපිය %{page}
+      telephone_link: අමතන්න %{phone_number}
+  changesets:
+    changeset_paging_nav:
+      next: මීළඟ >>
+      previous: << ආපසු
+    changeset:
+      anonymous: නිර්නාමික
+    changesets:
+      user: පරිශීලක
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          parking: නවත්වන ස්ථානය
+          parking_entrance: නවත්වන ස්ථානයේ ඇතුල්වීම
+          pharmacy: ෆාමසිය
+          place_of_worship: අදහන ස්ථානය
+          police: පොලිසිය
+          post_box: තැපැල් පෙට්ටිය
+          post_office: තැපැල් කාර්යාලය
+          prison: හිරගෙය
+          public_building: පොදු ගොඩනැගිලි
+          recycling: ප්‍රතිචක්‍රීය කරන ස්ථානය
+          restaurant: අවන්හල
+  site:
+    edit:
+      user_page_link: පරිශීලක පිටුව
+    export:
+      licence: බලපත්‍රය
+      too_large:
+        other:
+          title: අනෙක් ප්‍රබව
+      export_button: ආනයනය
+  user_blocks:
+    blocks:
+      display_name: වාරණය කල පරිශීලක
+  notes:
+    show:
+      title: 'සටහන : %{id}'
+      description: විස්තරය
+      hidden_title: 'සැඟවූ සටහන #%{note_name}'
+    new:
+      title: නව සටහන
+  validations:
+    invalid_characters: වලංගු නොවන අකුරු අඩංගු වේ
+    url_characters: විශේෂ URL අකුරු අඩංගු වේ (%{characters})
+...

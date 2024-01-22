@@ -1,0 +1,9 @@
+# Messages for Limburgish (Limburgs)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+li:
+  site:
+    welcome:
+      title: Wilkóm!
+...

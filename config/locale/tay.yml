@@ -1,0 +1,9 @@
+# Messages for Tayal (Tayal)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+tay:
+  diary_entries:
+    show:
+      login: mzyup
+...

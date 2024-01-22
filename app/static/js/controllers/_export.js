@@ -3,7 +3,7 @@ import { mapQueryAreaMaxSize } from "../_params.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude, zoomPrecision } from "../_utils.js"
 import { getLocationFilter } from "../leaflet/_location-filter.js"
-import { getActionSidebar, switchActionSidebar } from "./_utils.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 
 /**
  * Create a new export controller

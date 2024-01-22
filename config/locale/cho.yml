@@ -1,0 +1,86 @@
+# Messages for Choctaw (Chahta anumpa)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Adriendelucca
+---
+cho:
+  activerecord:
+    models:
+      country: Yakni
+      friend: Kana
+      language: Anumpa
+      node: Ashekonopa
+    attributes:
+      diary_entry:
+        language_code: Anumpa
+      doorkeeper/application:
+        name: Hohchifo
+      friend:
+        friend: Kana
+  accounts:
+    edit:
+      openid:
+        link text: yammat nanta?
+      public editing:
+        enabled link text: yammat nanta?
+      contributor terms:
+        link text: yammat nanta?
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          school: Holisso apisa
+        building:
+          house: Chuka
+        highway:
+          motorway_link: Hina pʋtha
+          path: Atia
+          road: Hina
+          "yes": Hina
+        historic:
+          house: Chuka
+        place:
+          house: Chuka
+  issues:
+    index:
+      search: Hoyo
+  messages:
+    message_summary:
+      destroy_button: Okpʋni
+    show:
+      destroy_button: Okpʋni
+    sent_message_summary:
+      destroy_button: Okpʋni
+    destroy:
+      destroyed: Anumpa okpʋnituk
+  profiles:
+    edit:
+      delete: Okpʋni
+  site:
+    copyright:
+      legal_babble:
+        contributors_fr_france: Filanchi yakni
+        contributors_es_spain: Ishpani yakni
+    search:
+      search: Hoyo
+    key:
+      table:
+        entry:
+          school: Holisso apisa
+    welcome:
+      rules:
+        title: Anumpa ʋlhpisa!
+  oauth2_applications:
+    index:
+      name: Hohchifo
+    application:
+      delete: Okpʋni
+    show:
+      delete: Okpʋni
+  users:
+    terms:
+      legale_names:
+        france: Filanchi yakni
+    no_such_user:
+      deleted: okpʋnituk
+...

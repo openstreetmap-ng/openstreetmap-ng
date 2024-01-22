@@ -1,0 +1,43 @@
+# Messages for Volapük (Volapük)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Malafaya
+---
+vo:
+  activerecord:
+    models:
+      friend: Flen
+      language: Pük
+      message: Nun
+      user: Geban
+    attributes:
+      diary_entry:
+        user: Geban
+        title: Tiäd
+        language_code: Pük
+      friend:
+        user: Geban
+        friend: Flen
+      trace:
+        user: Geban
+        name: Nem
+      message:
+        title: Tiäd
+      user:
+        languages: Püks
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          clock: Glok
+          pharmacy: Pötek
+        craft:
+          shoemaker: Jukel
+        natural:
+          volcano: Volkan
+        place:
+          island: Nisul
+  javascripts:
+    directions:
+      time: Tim
+...

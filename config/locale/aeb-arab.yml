@@ -1,0 +1,9 @@
+# Messages for Tunisian Arabic (Arabic script) (تونسي)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+aeb-arab:
+  html:
+    dir: rtl
+...

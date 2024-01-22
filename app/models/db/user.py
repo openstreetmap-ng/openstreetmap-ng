@@ -23,7 +23,6 @@ from app.config import APP_URL, DEFAULT_LANGUAGE
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.languages import get_language_info
 from app.lib.locale import normalize_locale_case
 from app.lib.password_hash import PasswordHash
 from app.lib.rich_text_mixin import RichTextMixin
@@ -40,7 +39,7 @@ from app.models.db.cache_entry import CacheEntry
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry_type import PointType
-from app.models.language_info import LanguageInfo
+from app.models.locale_name import LocaleName
 from app.models.scope import ExtendedScope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole
@@ -189,18 +188,23 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         self.languages = tuple(set(languages))
 
     @property
-    def preferred_diary_language(self) -> LanguageInfo:
+    def preferred_diary_language(self) -> str:
         """
-        Get the user's preferred diary language.
+        Get the user's preferred diary language code.
+
+        >>> user.preferred_diary_language
+        'en'
         """
 
         # return the first valid language
         for code in self.languages:
-            if lang := get_language_info(code):
-                return lang
+            try:
+                return normalize_locale_case(code, raise_on_not_found=True)
+            except KeyError:
+                continue
 
         # fallback to default
-        return get_language_info(DEFAULT_LANGUAGE)
+        return DEFAULT_LANGUAGE
 
     @property
     def changeset_max_size(self) -> int:

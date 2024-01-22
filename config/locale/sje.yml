@@ -1,0 +1,347 @@
+# Messages for Pite Sami (bidumsámegiella)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Olve Utne
+---
+sje:
+  helpers:
+    file:
+      prompt: Vällji fijlav
+    submit:
+      diary_comment:
+        create: Vurrki
+      message:
+        create: Säddi
+      client_application:
+        create: Registreri
+      oauth2_application:
+        create: Registreri
+      trace:
+        create: Lässti bajás
+        update: Vurrki rävvdadimijt
+  activerecord:
+    models:
+      country: Lánnda
+      friend: Vienak
+      language: Giella
+      message: Sárdnom
+      user: Adnej
+    attributes:
+      diary_entry:
+        user: Adnej
+        title: Ábnas
+        language_code: Giella
+      doorkeeper/application:
+        name: Namma
+      friend:
+        user: Adnej
+        friend: Vienak
+      trace:
+        user: Adnej
+        name: Fijjlanamma
+        size: Sturrudak
+        tagstring: Mierka
+      message:
+        title: Ábnas
+        body: Sisadno
+      user:
+        email: E-påsstå
+        new_email: 'Åđđå e-påsståadrässa:'
+        pass_crypt: Biessambáhko
+  editor:
+    id:
+      name: iD
+  auth:
+    providers:
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Wikipedia
+  api:
+    notes:
+      comment:
+        opened_at_html: Älgij %{when}
+      rss:
+        title: OpenStreetMap-notáhta
+  accounts:
+    edit:
+      title: Rävvdada kåntåv
+  browse:
+    version: Versjuvdna
+    download_xml: Lässti XML vulus
+    view_history: Vuoseda histurjav
+    changeset:
+      belongs_to: Tjállej
+      discussion: Ságastallam
+    not_found:
+      type:
+        note: notáhtta
+    start_rjs:
+      load_data: Lässti dáhtájt
+      loading: Lässti...
+    tag_details:
+      tags: Mierka
+  changesets:
+    changesets:
+      id: ID
+      saved_at: Vurrkim
+      user: Adnej
+      area: Guavvdo
+    index:
+      load_more: Lässti ienabuv
+  dashboards:
+    popup:
+      friend: Vienak
+    show:
+      my friends: Muv vienaga
+  diary_entries:
+    form:
+      use_map_link: Ane kártav
+    location:
+      view: Vuoseda
+      edit: Rävvdada
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          bank: Báŋŋka
+          bench: Bäŋŋka
+          bus_station: Bussastasjuvdna
+          cafe: Kafea
+          clock: Klåhkkå
+          college: Allaskåvvlå
+          dentist: Bádnedálkodäjje
+          doctors: Dåktår
+          drinking_water: Juhkamtjáhtse
+          fast_food: Åsstobäbbmo
+          hospital: Sjkäbbtjaståhpo
+          internet_cafe: Internähttakafea
+          language_school: Giellaskåvvlå
+          library: Girrjevuarrká
+          music_school: Musijjkaskåvvlå
+          nursing_home: Vuorrasijhäjbma
+          post_office: Påsståkontuvvra
+          school: Skåvvlå
+          toilets: Dássa
+          university: Universitähtta
+        boundary:
+          national_park: Nasjonálpárrka
+        bridge:
+          "yes": Råvve
+        building:
+          barn: Láđđo
+          church: Girrko
+          college: Allaskåvvlåbiŋnik
+          roof: Táhkka
+          school: Skåvvlåbiŋnik
+          train_station: Tågåstasjuvdnabiŋnik
+          university: Universitähttabiŋnik
+        highway:
+          bus_stop: Bussaginudak
+          road: Viega
+          "yes": Viega
+        historic:
+          castle: Slåhttå
+          church: Girrko
+          railway: Histurjalatj ruävvdeviega
+          stone: Gäđđge
+        landuse:
+          railway: Ruävvdeviega
+        leisure:
+          nature_reserve: Natuvvrareserváhtta
+          park: Párrka
+          sauna: Basstu
+        man_made:
+          bridge: Råvve
+          pier: Kájja
+          water_well: Bruddne
+        natural:
+          bay: Luakkta
+          coastline: Mierragádde
+          fjord: Vuodna
+          forest: Mähttse
+          glacier: Jiegŋa
+          island: Suolo
+          land: Iednam
+          spring: Ája
+          stone: Gäđđge
+          strait: Tjålbme
+          tree: Muorra
+          tundra: Duoddar
+          water: Tjáhtse
+        place:
+          city: Stáđđa
+          country: Lánnda
+          county: Lánnda
+          island: Suolo
+          municipality: Kommuvdna
+          postcode: Påsstånummir
+          sea: Sievva
+        railway:
+          disused: Ij adnám ruävvdeviega
+          halt: Tågåginudak
+          preserved: Várrjaluvvum ruävvdeviega
+          station: Tågåstasjuvdna
+        shop:
+          bakery: Bähkkumståhpo
+          books: Girrjebuvvda
+          cheese: Vuasstábuvvda
+          clothes: Gárrvobuvvda
+          computer: Dáhtorbuvvda
+          confectionery: Njállgabuvvda
+          curtain: Gardijdnabuvvda
+          food: Bäbbmobuvvda
+          gift: Skäŋŋkabuvvda
+          organic: Ekolågålatj bäbbmobuvvda
+          stationery: Báhperbuvvda
+          ticket: Biljähttabuvvda
+          toys: Ståhkåmåbmebuvvda
+          video: Videobuvvda
+          wine: Vijdnabuvvda
+          "yes": Åsestimbuvvda
+        tourism:
+          museum: Musea
+        waterway:
+          river: Iedno
+          stream: jåhkå
+      types:
+        cities: Stáđa
+  issues:
+    index:
+      search: Åtså
+  reports:
+    new:
+      categories:
+        diary_entry:
+          other_label: Ietjá
+        diary_comment:
+          other_label: Ietjá
+        user:
+          other_label: Ietjá
+        note:
+          other_label: Ietjá
+  layouts:
+    logout: Luggi ulgus
+    log_in: Luggi sisa
+    edit: Rävvdada
+    history: Histurrja
+    data: Dáhtá
+    intro_2_create_account: Álge adnejkåntåv
+    partners_ucl: UCL
+    help: Vähkke
+    about: Birra
+  messages:
+    messages_table:
+      from: Rájest
+      subject: Ábnas
+      date: Bäjjve
+    message_summary:
+      reply_button: Svärru
+      destroy_button: Gádoda
+    new:
+      title: Säddi sárdnomav
+    show:
+      reply_button: Svärru
+      destroy_button: Gádoda
+    sent_message_summary:
+      destroy_button: Gádoda
+  passwords:
+    new:
+      email address: 'E-påsståadrässa:'
+  preferences:
+    edit:
+      cancel: Buŧŧki
+  profiles:
+    edit:
+      title: Rävvdada profijlav
+      cancel: Buŧŧki
+      image: Gåvvå
+      gravatar:
+        gravatar: Ane Gravatar'av
+        what_is_gravatar: Mij lä Gravatar?
+      delete image: Gádoda dálátj gåvåv
+  sessions:
+    new:
+      password: 'Biessambáhko:'
+  shared:
+    markdown_help:
+      url: URL
+    richtext_field:
+      edit: Rävvdada
+      preview: Åvvdåvuosedibme
+  site:
+    about:
+      next: Maŋep
+    edit:
+      user_page_link: adnejbielle
+    export:
+      licence: Lisännsa
+    key:
+      table:
+        entry:
+          rail: Ruävvdeviega
+          park: Párrka
+          lake: Jávvre
+          reserve: Natuvvrareserváhtta
+          school: Skåvvlå
+          university: universitähtta
+          station: Tågåstasjuvdna
+          bicycle_shop: Syhkkilbuvvda
+          toilets: Dássa
+    welcome:
+      title: Burist båhtem!
+  traces:
+    new:
+      help: Vähkke
+    edit:
+      cancel: Buŧŧki
+    trace_optionals:
+      tags: Mierka
+    show:
+      filename: 'Fijjlanamma:'
+      download: lässti vulus
+      uploaded: 'Lässtim bajás:'
+      map: kárrta
+      edit: rävvdada
+      tags: 'Mierka:'
+    trace:
+      more: ienap
+      view_map: Vuoseda kártav
+      edit_map: Rävvdada kártav
+  oauth2_applications:
+    index:
+      name: Namma
+      permissions: Låhpe
+    application:
+      edit: Rävvdadit
+      delete: Gádodit
+    show:
+      edit: Rävvdada
+      delete: Gádoda
+  oauth2_authorized_applications:
+    index:
+      permissions: Låhpe
+  users:
+    show:
+      edit_profile: Rävvdada profijlav
+      send message: Säddi sárdnomav
+      diary: Bäjjvegirrje
+      edits: Rävvdadime
+      hide_user: Tjiega dáv adnejav
+      delete_user: Gádoda dáv adnejav
+    index:
+      title: Adneja
+      heading: Adneja
+  user_blocks:
+    show:
+      created: 'Állgám:'
+      show: Vuoseda
+      edit: Rävvdada
+    block:
+      show: Vuoseda
+      edit: Rävvdada
+  javascripts:
+    share:
+      long_link: Liŋŋka
+...

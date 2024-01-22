@@ -1,0 +1,9 @@
+# Messages for Latgalian (latgaļu)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Dark Eagle
+---
+ltg:
+  layouts:
+    history: Viesture
+...

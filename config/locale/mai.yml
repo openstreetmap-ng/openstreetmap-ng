@@ -1,0 +1,144 @@
+# Messages for Maithili (मैथिली)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Haribanshi
+---
+mai:
+  time:
+    formats:
+      friendly: '%e %B %Y से %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: सुरक्षित करू
+      diary_entry:
+        create: प्रकाशित करी
+  activerecord:
+    models:
+      acl: अभिगम नियंत्रण सूची
+      changeset: बदलाव
+      changeset_tag: बदलाव टैग
+      country: देश
+      diary_comment: डायरी टिप्पणी
+      diary_entry: डायरी प्रविष्टि
+      friend: दोस्त
+      language: भाषा
+      message: सन्देश
+      node: मोड
+      old_node: पुरान आसंधि
+      old_relation: पुरना संबंध
+      old_relation_member: पुरान संबंध सदस्य
+      old_way: पुराना रस्ता
+      old_way_node: पुराना रस्ता के आसंधि
+      relation: संबंध
+      relation_member: पुरान संबंध सदस्य
+      session: सत्र
+      trace: अनुरेख
+      tracepoint: अनुरेखण बिंदु
+      tracetag: अनुरेखन टैग
+      user: प्रयोक्ता
+      user_preference: उपयोगकर्ता के वरीयता
+      user_token: उपयोगकर्ता के अंकितक
+      way: रस्ता
+      way_tag: अंकितक रस्ता
+    attributes:
+      diary_comment:
+        body: शरीर
+      diary_entry:
+        user: प्रयोक्ता
+        title: विषय
+        latitude: अक्षांश
+        longitude: रेखांश
+        language_code: भाषा
+      friend:
+        user: प्रयोक्ता
+      trace:
+        visible: देखल
+        name: नाम
+        size: आकार
+        latitude: अक्षांश
+        longitude: रेखांश
+        public: सार्वजनिक
+        description: विवरण
+      message:
+        sender: प्रेषक
+      user:
+        active: सक्रिय
+        display_name: प्रदर्शन नाम
+        description: विवरण
+        languages: भाषासभ
+        pass_crypt: कूटशब्द
+  editor:
+    id:
+      name: अाइडी
+  browse:
+    created: बनाबी
+    version: संस्करण
+    in_changeset: बदलाव
+    anonymous: बेनाम
+    no_comment: (बिना टिप्पणी)
+    part_of: भाग
+    view_history: इतिहास देखी
+    view_details: जानकारी देखें
+    location: ठाम
+    changeset:
+      belongs_to: लेखक
+    way:
+      nodes: मोडसभ
+    relation:
+      title_html: 'सम्बन्ध: %{name}'
+      history_title_html: 'सम्बन्ध र्इतिहास: %{name}'
+      members: सदस्यसभ
+    relation_member:
+      type:
+        node: मोड
+        way: रस्ता
+        relation: संबंध
+    not_found:
+      type:
+        node: मोड
+        relation: संबंध
+        changeset: बदलाव
+        note: मोड
+    timeout:
+      type:
+        way: रस्ता
+        relation: संबंध
+        changeset: बदलाव
+        note: मोड
+    redacted:
+      type:
+        node: मोड
+        way: रस्ता
+        relation: संबंध
+    tag_details:
+      tags: चिप्पियाँ
+  changesets:
+    changesets:
+      comment: टिप्पणी
+    index:
+      title: बदलाव
+  diary_entries:
+    form:
+      location: 'ठाम :'
+      use_map_link: नक्सा प्रयाेग
+    diary_entry:
+      confirm: पक्का छी
+    diary_comment:
+      confirm: पक्का छी
+    location:
+      location: 'ठाम :'
+      view: दर्शाव
+      edit: सम्पादन करू
+    comments:
+      post: मेजबान
+      when: कहिया
+      comment: टिप्पणी
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aerialway:
+          cable_car: केवल कार
+        aeroway:
+          gate: तिथि
+...

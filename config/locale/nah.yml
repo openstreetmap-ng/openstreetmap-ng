@@ -1,0 +1,129 @@
+# Messages for Nāhuatl (Nāhuatl)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Akapochtli
+# Author: Languaeditor
+# Author: Taresi
+---
+nah:
+  helpers:
+    submit:
+      client_application:
+        update: Ticpatlaz
+  activerecord:
+    models:
+      language: Tlahtolli
+      user: Tequihuihqui
+    attributes:
+      diary_entry:
+        user: Tequihuihqui
+      friend:
+        user: Tequihuihqui
+      trace:
+        user: Tequihuihqui
+        name: Tocaitl
+      user:
+        languages: Tlahtōlli
+  accounts:
+    edit:
+      title: Ticpatlaz tlapōhualli
+  browse:
+    version: Machiyopohualiztli
+    changeset:
+      discussion: Zānīlli
+  changesets:
+    changesets:
+      user: Tequihuihqui
+  diary_entries:
+    location:
+      edit: Ticpatlaz
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          clock: Tepoztlapōhualli
+          doctors: Tītīcih
+          fountain: Āmēyalli
+          place_of_worship: Teōpancalli
+        highway:
+          road: Ohtli
+          "yes": Ohtli
+        historic:
+          battlefield: Tlachinōltēmpan
+          church: Iglésia
+          house: Calli
+        landuse:
+          forest: Cuauhtlah
+          grass: Zacatl
+          meadow: Tlacellōtl
+          orchard: Xococuauhtlah
+        leisure:
+          sauna: Temāzcalli
+        mountain_pass:
+          "yes": Tepētozcatl
+        natural:
+          beach: Xāllah
+          cave_entrance: Ōztōtēntli
+          cliff: Tepehxitl
+          forest: Cuauhtlah
+          grassland: Zacatlah
+          hill: Tepētl
+          island: Tlālhuāctli
+          land: Tlālli
+          mud: Zoquitl
+          peak: Tzonyōtl
+          rock: Texcalli
+          sand: Xālli
+          spring: Āmēyalco
+          stone: Tetl
+          valley: Ātlauhtli
+          volcano: Tletepētl
+          water: Ātl
+          wood: Cuahuitl
+        place:
+          city: Āltepētl
+          house: Calli
+          houses: Calli
+          island: Tlālhuāctli
+      types:
+        cities: Āltepēmeh
+  layouts:
+    edit: Xikpatla
+    history: Tololli
+  site:
+    help:
+      welcome:
+        url: Ximopanolti
+    search:
+      search: Xiktemo
+    key:
+      table:
+        entry:
+          forest: Cuauhtlah
+          wood: Cuahuitl
+          summit: Tzonyōtl
+          peak: tzonyōtl
+  traces:
+    show:
+      filename: 'Ihcuilōlli ītōcā:'
+      edit: ticpatlaz
+  users:
+    show:
+      my edits: Nopatlaliz
+      edits: Patlaliztli
+  user_blocks:
+    show:
+      show: Xiknexti
+      edit: Ticpatlaz
+    block:
+      show: Xiknexti
+      edit: Ticpatlaz
+    blocks:
+      creator_name: Chīuhqui
+  notes:
+    index:
+      creator: Chīuhqui
+  redactions:
+    show:
+      user: 'Chīuhqui:'
+...

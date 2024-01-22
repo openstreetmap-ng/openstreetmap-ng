@@ -1,0 +1,567 @@
+# Messages for Kyrgyz (кыргызча)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Bosogo
+# Author: Chorobek
+# Author: Growingup
+# Author: Tynchtyk Chorotegin
+---
+ky:
+  helpers:
+    submit:
+      diary_comment:
+        create: Сактоо
+      diary_entry:
+        create: Жарыялоо
+      message:
+        create: Жөнөтүү
+      client_application:
+        create: Каттоо
+        update: Оңдоо
+      trace:
+        create: Жүктөө
+  activerecord:
+    models:
+      acl: Кирүүнү чектөө тизмеси
+      country: Өлкө
+      diary_comment: Күндөлүктөгү комментарий
+      diary_entry: Күндөлүктөгү жазуу
+      friend: Дос
+      language: Тил
+      message: Билдирме
+      node: Түйүн
+      node_tag: Түйүн белгиси
+      old_node: Эски түйүн
+      old_relation: Эски катыш
+      old_relation_member: Катыштын эски мүчөсү
+      old_relation_tag: Катыштын эски теги
+      old_way: Эски жол
+      relation: Катыш
+      relation_tag: Катыш теги
+      session: Сессия
+      user: Колдонуучу
+      user_preference: Параметрлер
+    attributes:
+      diary_comment:
+        body: Текст
+      diary_entry:
+        user: Колдонуучу
+        title: Баш
+        latitude: Кеңдик
+        longitude: Узундук
+        language_code: Тил
+      friend:
+        user: Колдонуучу
+        friend: Дос
+      trace:
+        user: Колдонуучу
+        visible: Көрүнүп турган
+        name: Ат
+        size: Өлчөм
+        latitude: Кеңдик
+        longitude: Узундук
+        public: Коомдук
+        description: Баяндама
+      message:
+        sender: Жөнөтүүчү
+        title: Баш
+        body: Текст
+        recipient: Кат алуучу
+      redaction:
+        description: Баяндама
+      user:
+        email: Электрондук почта
+        active: Активдүү
+        display_name: Көрсөтүү аты
+        description: Баяндама
+        home_lat: 'Кеңдик:'
+        home_lon: 'Узундук:'
+        languages: Тилдер
+        pass_crypt: Сырсөз
+  editor:
+    default: Жарыяланбасча (кезекте %{name})
+    id:
+      name: iD
+      description: iD (браузердеги редактор)
+    remote:
+      name: Дистанциялык башкаруу
+      description: Аралыктан башкаргыч (JOSM же Merkaartor)
+  auth:
+    providers:
+      wikipedia: Википедия
+  account:
+    deletions:
+      show:
+        cancel: Жокко чыгаруу
+  accounts:
+    edit:
+      my settings: Ырастоолорум
+      contributor terms:
+        link text: бул эмне?
+      save changes button: Өзгөртүүлөрдү сактоо
+  browse:
+    created: Түзүлдү
+    closed: Жабык
+    version: Нуска
+    changeset:
+      title: Оңдоолор түркүмү
+      belongs_to: Автор
+      changesetxml: Оңдоолор түркүмүнүн XML
+      osmchangexml: osmChange XML
+      feed:
+        title: 'Оңдоолор түркүмү: %{id}'
+        title_comment: 'Оңдоолор түркүмү: %{id} - %{comment}'
+      discussion: Талкуу
+    relation_member:
+      type:
+        node: Түйүн
+        relation: Катыш
+    containing_relation:
+      entry_html: Катыш %{relation_name}
+    not_found:
+      type:
+        node: түйүн
+        relation: катыш
+        note: эскертме
+    timeout:
+      type:
+        node: түйүн
+        relation: катыш
+    redacted:
+      type:
+        node: түйүн
+        relation: катыш
+    start_rjs:
+      load_data: Маалыматты жүктөө
+      loading: Жүктөлүүдө...
+    tag_details:
+      tags: 'Тегдер:'
+      wikipedia_link: Уикипедиядагы %{page} макаласы
+  changesets:
+    changeset_paging_nav:
+      showing_page: '%{page}-барак'
+      next: Кийинки »
+      previous: « Мурунку
+    changeset:
+      anonymous: Аноним
+      no_edits: (оңдоолор жок)
+    changesets:
+      id: ID
+      user: Колдонуучу
+      comment: Комментарий
+      area: Жер
+  dashboards:
+    popup:
+      friend: Дос
+  diary_entries:
+    new:
+      title: Күндөлүктөн жаңы жазууну жаратуу
+    form:
+      location: 'Орун:'
+    index:
+      title: Күндөлүктөр
+      title_friends: Достордун күндөлүктөрү
+      new: Күндөлүктөгү жаңы жазуу
+    show:
+      leave_a_comment: Комментарий калтыруу
+      login: Кирүү
+    diary_entry:
+      comment_link: Комментарий берүү
+      reply_link: Бул жазууга жооп берүү
+      edit_link: Жазууну оңдоо
+      hide_link: Жазууну жашыруу
+      confirm: Аныктоо
+    diary_comment:
+      hide_link: Бул комментарийди жашыруу
+      confirm: Аныктоо
+    location:
+      location: 'Орун:'
+      view: Көрүнүш
+      edit: Оңдоо
+    comments:
+      post: Пост
+      when: Качан
+      comment: Комментарий
+      newer_comments: Жаңыраак комментарийлер
+      older_comments: Эскирээк комментарийлер
+  friendships:
+    make_friend:
+      button: Досторго кошуу
+    remove_friend:
+      button: Достордон өчүрүү
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: Аэродром
+          apron: Перрон
+          runway: Учуп-конуучу тилке
+          taxiway: Рулёждук жолчо
+          terminal: Терминал
+        amenity:
+          arts_centre: Көркөм өнөр үйү
+          atm: Банкомат
+          bank: Банк
+          bar: Бар
+          bbq: Барбекю
+          bench: Отургуч
+          brothel: Бордель
+          bureau_de_change: Валюта алмаштыруу
+          bus_station: Автобустук станциясы
+          cafe: Кафе
+          car_sharing: Каршаринг
+          car_wash: Автожуугуч
+          casino: Казино
+          cinema: Кинотеатр
+          clinic: Поликлиника
+          college: Колледж
+          community_centre: Коомдук борбор
+          courthouse: Сот имараты
+          crematorium: Крематорий
+          dentist: Стоматология
+          doctors: Врач
+          drinking_water: Ичүүгө жарактуу суу
+          driving_school: Автомектеп
+          embassy: Элчилик
+          fast_food: Фаст-фуд
+          fire_station: Өрт өчүрүүчү станция
+          food_court: Тамак-аш короосу
+          fountain: Фонтан
+          fuel: Май куюу
+          hospital: Оорукана
+          ice_cream: Балмуздак
+          kindergarten: Бала бакча
+          library: Китепкана
+          marketplace: Базар аянты
+          nightclub: Түнкү клуб
+          parking: Автотурук
+          pharmacy: Дарыкана
+          police: Полиция
+          post_office: Почталык бөлүм
+          prison: Түрмө
+          pub: Паб
+          restaurant: Ресторан
+          school: Мектеп
+          shelter: Калка
+          shower: Душ
+          studio: Студия
+          swimming_pool: Бассейн
+          taxi: Такси
+          telephone: Телефон
+          theatre: Театр
+          toilets: Даараткана
+          university: Университет
+          waste_basket: Себет
+        boundary:
+          national_park: Улуттук сейилбак
+        bridge:
+          "yes": Көпүрө
+        highway:
+          footway: Тротуар
+          ford: Өткөөл
+          living_street: Турак көчөсү
+          path: Чыйыр жол
+          platform: Платформа
+          road: Жол
+          steps: Тепкичтер
+        historic:
+          building: Имарат
+          castle: Сепил
+          church: Чиркөө
+          fort: Форт
+          house: Үй
+          memorial: Эстелик
+          ruins: Уранды
+          tower: Мунара
+        landuse:
+          basin: Бассейн
+          forest: Токой
+          garages: Гараждар
+          grass: Чөп
+          railway: Темир жол
+        leisure:
+          garden: Бакча
+          golf_course: Гольф талаасы
+          nature_reserve: Корук
+          park: Сейилбак
+          playground: Балдардын ойноо аянтчасы
+          sauna: Сауна
+          stadium: Стадион
+          swimming_pool: Бассейн
+        natural:
+          forest: Токой
+          geyser: Гейзер
+          island: Арал
+          land: Жер
+          rock: Аска
+          tree: Бак
+          valley: Өрөөн
+          volcano: Вулкан
+          water: Көлмө
+        office:
+          company: Компания
+          "yes": Офис
+        place:
+          city: Шаар
+          country: Өлкө
+          county: Үйөз
+          house: Үй
+          houses: Үйлөр
+          island: Арал
+          region: Чөлкөм
+          sea: Деңиз
+          state: Область/Штат
+          suburb: Шаар айланасы
+          town: Шаарча
+          village: Кыштак
+        shop:
+          supermarket: Супермаркет
+        tourism:
+          attraction: Аттракцион
+          cabin: Каюта
+          hostel: Хостел
+          hotel: Мейманкана
+          information: Маалымат
+          motel: Мотель
+          museum: Музей
+          picnic_site: Пикник үчүн орун
+          theme_park: Аттракциондор
+          zoo: Зоопарк
+        tunnel:
+          "yes": Туннель
+        waterway:
+          canal: Канал
+          derelict_canal: Какшыган канал
+          dock: Док
+          river: Өзөн
+          waterfall: Шаркыратма
+      types:
+        cities: Шаарлар
+        towns: Шаарчалар
+  layouts:
+    logout: чыгуу
+    log_in: кирүү
+    sign_up: каттоо
+    edit: Оңдоо
+    history: Тарых
+    export: Экспорт
+    data: Маалымат
+    intro_2_create_account: Эсеп жазуусун жаратыңыз
+    partners_bytemark: Bytemark Hosting
+    help: Жардам
+    about: Тууралуу
+    copyright: Автордук укуктар жана лицензиялоо
+    community: Жамаат
+    community_blogs: Жамааттын блогдору
+    make_a_donation:
+      text: Тартуу кылуу
+    learn_more: Толук маалымат
+    more: Көбүрөөк
+  user_mailer:
+    diary_comment_notification:
+      hi: Саламатсызбы, %{to_user},
+    message_notification:
+      hi: Саламатсызбы, %{to_user},
+    signup_confirm:
+      greeting: Саламатсызбы!
+    email_confirm:
+      greeting: Саламатсызбы,
+    lost_password:
+      greeting: Саламатсызбы,
+  confirmations:
+    confirm:
+      button: Аныктоо
+    confirm_email:
+      button: Аныктоо
+  messages:
+    messages_table:
+      from: Кимден
+      to: Кимге
+      subject: Тема
+      date: Дата
+    message_summary:
+      reply_button: Жооп берүү
+      destroy_button: Өчүрүү
+    show:
+      title: Билдирмени окуу
+      reply_button: Жооп берүү
+      back: Артка
+    sent_message_summary:
+      destroy_button: Өчүрүү
+    destroy:
+      destroyed: Билдирме өчүрүлдү
+  passwords:
+    new:
+      title: Сырсөздү калыбына келтирүү
+      heading: Сырсөздү унуттуңузбу?
+      email address: 'Эл. почтанын дареги:'
+      new password button: Сыр сөздү алмаштыруу
+    edit:
+      title: Сыр сөздү алмаштыруу
+      reset: Сыр сөздү алмаштыруу
+  preferences:
+    edit:
+      cancel: Жокко чыгаруу
+  profiles:
+    edit:
+      cancel: Жокко чыгаруу
+      image: 'Сүрөт:'
+      gravatar:
+        gravatar: Gravatar'ды колдонуу
+      new image: Сүрөттү кошуу
+  sessions:
+    new:
+      title: Кирүү
+      heading: Кирүү
+      password: 'Сырсөз:'
+      openid_html: '%{logo} OpenID:'
+      remember: Мени эске сактоо
+      lost password link: Сыр сөзүңүздү унуттуңузбу ?
+      login_button: Кирүү
+      register now: Каттаңыз
+      openid_logo_alt: OpenID аркылуу кирүү
+    destroy:
+      title: Чыгуу
+      heading: OpenStreetMap'тан чыгуу
+      logout_button: Чыгуу
+  site:
+    copyright:
+      foreign:
+        title: Бул котормо жөнүндө
+      native:
+        title: Бул барак жөнүндө
+        native_link: кыргыз версиясынын
+        mapping_link: картага түшүрүүнү баштоо
+      legal_babble:
+        title_html: Автордук укуктар жана лицензиялоо
+    index:
+      permalink: Туруктуу шилтеме
+      shortlink: Кыска шилтеме
+      createnote: Эскертме кошуу
+    edit:
+      user_page_link: колдонуучунун барагы
+    export:
+      licence: Лицензия
+      export_button: Экспорттоо
+    sidebar:
+      close: Жабуу
+    search:
+      search: Издөө
+      where_am_i: Мен кайдамын?
+      submit_text: Өтүү
+    key:
+      table:
+        entry:
+          forest: Токой
+          wood: Токой
+          golf: Гольф аянтчасы
+          park: Парк
+          lake: Көл
+          farm: Ферма
+          school: Мектеп
+          university: университет
+  traces:
+    new:
+      help: Жардам
+    edit:
+      cancel: Жокко чыгаруу
+    show:
+      filename: 'Файл аты:'
+      download: жүктөп алуу
+      uploaded: 'Жүктөлдү:'
+      map: карта
+      edit: оңдоо
+      owner: 'Ээ:'
+      description: 'Баяндама:'
+      tags: 'Тегдер:'
+      none: Жок
+    trace:
+      view_map: Картаны кароо
+      edit_map: Картаны оңдоо
+      private: ЖЕКЕ
+  oauth_clients:
+    edit:
+      title: Тиркемеңизди өзгөртүү
+    show:
+      delete: Клиентти өчүрүү
+      confirm: Аракетиңизди ырастаңыз
+  users:
+    new:
+      title: Каттоо
+      continue: Улантуу
+    terms:
+      legale_names:
+        france: Франция
+        italy: Италия
+        rest_of_world: Башка жер
+    show:
+      my diary: менин күндөлүгүм
+      diary: күндөлүк
+      edits: оңдоолор
+      email address: 'Эл. почтанын дареги:'
+      status: 'Абал:'
+      confirm: Аныктоо
+    index:
+      title: Колдонуучулар
+      heading: Колдонуучулар
+  user_role:
+    grant:
+      confirm: Ырастоо
+    revoke:
+      confirm: Ырастоо
+  user_blocks:
+    update:
+      success: Тосмолоо жаңыртылды.
+    show:
+      status: 'Абал:'
+      show: Көрсөтүү
+      edit: Оңдоо
+      confirm: Аракетиңизди ырастаңыз
+      reason: 'Тосмолоонун себеби:'
+    block:
+      show: Көрсөтүү
+      edit: Оңдоо
+    blocks:
+      display_name: Тосмолонгон колдонуучу
+      creator_name: Автор
+      reason: Тосмолоонун себеби
+      status: Абал
+      showing_page: '%{page}-барак'
+      next: Кийинки »
+      previous: « Мурунку
+  notes:
+    index:
+      creator: Автор
+    show:
+      title: 'Эскертме: %{id}'
+    new:
+      add: Эскертме кошуу
+  javascripts:
+    close: Жабуу
+    share:
+      cancel: Жокко чыгаруу
+      image: Сүрөт
+      link: Шилтеме же HTML
+      long_link: Шилтеме
+      download: Жүктөп алуу
+    map:
+      base:
+        standard: Стандарттуу
+        cycle_map: Велосипед картасы
+        transport_map: Унаанын картасы
+    site:
+      edit_tooltip: Картаны оңдоо
+    changesets:
+      show:
+        subscribe: Жазылуу
+        hide_comment: жашыруу
+    directions:
+      time: Убакыт
+  redactions:
+    show:
+      description: 'Баяндама:'
+      user: 'Жаратуучу:'
+      confirm: Аракетиңизди ырастаңыз
+    update:
+      flash: Өзгөртүүлөр сакталды.
+...

@@ -1,0 +1,11 @@
+# Messages for Pannonian Rusyn (руски)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Zp
+---
+rsk:
+  account:
+    deletions:
+      show:
+        confirm_delete: Сиґурни сце?
+...

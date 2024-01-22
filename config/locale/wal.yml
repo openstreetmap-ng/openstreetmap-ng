@@ -1,0 +1,57 @@
+# Messages for Wolaytta (wolaytta)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ella Lachow
+---
+wal:
+  datetime:
+    distance_in_words_ago:
+      x_years:
+        other: 'issi=%{count} layttaappe kase '
+  accounts:
+    go_public:
+      currently_not_public: Ha'i ne harumati ne sunttaa bessokkona hegaassi asay niyo
+        kiitaa yeddanawu woykko ne beettiyoosaa be'anawu danddayenna. Ne harummidoogaa
+        asay be'anawunne nenaara weebisaytiyan gayttanawu garssaara de'iya butoniya
+        bocha.
+  confirmations:
+    confirm:
+      click_here: Hagan bocha
+  site:
+    copyright:
+      legal_babble:
+        introduction_2_legal_code: seeraa maxaafaa
+        more_2_1_api_usage_policy: API Go'etaa Polisiya
+        contributors_at_austria: Awustiraaliyaa
+        contributors_at_cc_by: Hagan CC
+        contributors_au_australia: Awustiraaliyaa
+        contributors_ca_canada: Kanaadaa
+        contributors_fi_finland: Finlandde
+        contributors_fr_france: Faransaaye
+        contributors_nl_netherlands: Hoolandde
+        contributors_nz_new_zealand: Niw Ziilandde
+        contributors_nz_cc_by: CC HAGAAN 4.0
+        contributors_si_slovenia: Slooveeniyaa
+        contributors_si_mkgp: Goshshaa, Woraanne Kattaa Moconaa
+        contributors_es_spain: Ispeene
+        contributors_es_ign: IGN
+        contributors_za_south_africa: Tohossa Afriqqaa
+        trademarks_title: Zal"e malaatata
+        trademarks_1_1_trademark_policy: Zal"e malaataa polisiya
+    fixthemap:
+      other_concerns:
+        copyright: duuqqiyo maataa sinttaa
+    any_questions:
+      get_help_here: Maaduwaa hagaappe demma
+    welcome:
+      rules:
+        imports: Gelidaageeta
+      add_a_note:
+        the_map: Karttaa
+  traces:
+    index:
+      empty_title: Hagan aybiika baawa
+  users:
+    terms:
+      readable_summary: asan nabbabettiyaa xaaxi waaxuwaa
+...

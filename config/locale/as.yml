@@ -1,0 +1,275 @@
+# Messages for Assamese (অসমীয়া)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Mohsin Ali
+# Author: Nilamdyuti
+# Author: Sagsag
+---
+as:
+  time:
+    formats:
+      friendly: '%e %B %Yৰ %H:%M বজাত'
+  helpers:
+    submit:
+      diary_comment:
+        create: সাঁচি থওক
+      diary_entry:
+        create: প্ৰকাশ কৰক
+        update: আপডেট কৰক
+      issue_comment:
+        create: মন্তব্য যোগ কৰক
+      message:
+        create: পঠিয়াওক
+      client_application:
+        create: পঞ্জীয়ন কৰক
+        update: আপডেট কৰক
+      redaction:
+        create: ৰিডেকশ্যন সৃষ্টি কৰক
+        update: ৰিডেকশ্যন সাঁচি থওক
+      trace:
+        create: আপল'ড কৰক
+        update: সাল-সলনি সাঁচি থওক
+      user_block:
+        create: ব্লক সৃষ্টি কৰক
+        update: ব্লক আপডেট কৰক
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: বৈধ ই-মেইল ঠিকনা যেন লগা নাই
+    models:
+      acl: অভিগম নিয়ন্ত্ৰণ তালিকা
+      country: দেশ
+      friend: বন্ধু
+      issue: সমস্যা
+      language: ভাষা
+      message: বাৰ্তা
+      node: ন'ড
+      node_tag: ন'ড টেগ
+      old_node: পুৰণি ন'ড
+      old_node_tag: পুৰণি ন'ডৰ টেগ
+      old_relation: পুৰণি সম্পৰ্ক
+      old_relation_member: পুৰণি সম্পৰ্ক পৰিচালক
+      old_relation_tag: পুৰণি সম্পৰ্ক টেগ
+      old_way: পুৰণি পথ
+      old_way_node: পুৰণি পথৰ ন'ড
+      old_way_tag: পুৰণি পথৰ টেগ
+      relation: সম্পৰ্ক
+      relation_member: সম্পৰ্ক পৰিচালক
+      relation_tag: সম্পৰ্ক টেগ
+      report: সদৰি কৰক
+      session: ছেশ্য়ন
+      trace: ট্ৰেচ
+      tracepoint: ট্ৰেচৰ বিন্দু
+      tracetag: ট্ৰেচৰ টেগ
+      user: ব্যৱহাৰকাৰী
+      user_preference: ব্যৱহাৰকাৰীৰ পচন্দসমূহ
+      user_token: ব্যৱহাৰকাৰীৰ ট'কেন
+      way: পথ
+      way_node: পথৰ ন'ড
+      way_tag: পথৰ টেগ
+    attributes:
+      client_application:
+        name: নাম (প্ৰয়োজনীয়)
+        url: মুখ্য এপ্লিকেশ্যন URL (প্ৰয়োজনীয়)
+        allow_read_prefs: তেওঁলোকৰ ব্যৱহাৰকাৰী পছন্দসমূহ পঢ়ক
+        allow_write_prefs: তেওঁলোকৰ ব্যৱহাৰকাৰী পছন্দসমূহ বদলি কৰক
+        allow_write_diary: ডায়েৰী এণ্ট্ৰী সৃষ্টি কৰক, মন্তব্য দিয়ক আৰু বন্ধু বনাওক
+        allow_write_api: মানচিত্ৰ বদলি কৰক
+        allow_read_gpx: তেওঁলোকৰ ব্যক্তিগত GPS ট্ৰেচসমূহ পঢ়ক
+        allow_write_gpx: GPS ট্ৰেচ আপল'ড কৰক
+      diary_comment:
+        body: মূলভাগ
+      diary_entry:
+        user: ব্যৱহাৰকাৰী
+        title: বিষয়
+        latitude: অক্ষাংশ
+        longitude: দ্ৰাঘিমাংশ
+        language_code: ভাষা
+      friend:
+        user: ব্যৱহাৰকাৰী
+        friend: বন্ধু
+      trace:
+        user: ব্যৱহাৰকাৰী
+        visible: দৃশ্যমান
+        name: নাম
+        size: আকাৰ
+        latitude: অক্ষাংশ
+        longitude: দ্ৰাঘিমাংশ
+        public: ৰাজহুৱা
+        description: বৰ্ণনা
+      message:
+        sender: প্ৰেৰক
+        title: বিষয়
+        body: মূলভাগ
+        recipient: প্ৰাপক
+      redaction:
+        description: বৰ্ণনা
+      report:
+        category: আপোনাৰ প্ৰতিবেদনৰ কাৰণ বাছনি কৰক
+      user:
+        email: ইমেইল
+        active: সক্ৰিয়
+        display_name: ডিছপ্লে' নাম
+        description: বৰ্ণনা
+        languages: ভাষা
+        pass_crypt: পাছৱৰ্ড
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: প্ৰায় এঘণ্টা আগতে
+        other: প্ৰায় %{count} ঘণ্টা আগতে
+      about_x_months:
+        one: প্ৰায় এমাহ আগতে
+        other: প্ৰায় %{count} মাহ আগতে
+      about_x_years:
+        one: প্ৰায় এবছৰ আগতে
+        other: প্ৰায় %{count} বছৰ আগতে
+      almost_x_years:
+        one: প্ৰায় এবছৰ আগতে
+        other: প্ৰায় %{count} বছৰ আগতে
+      half_a_minute: আধা মিনিট আগতে
+  browse:
+    not_found:
+      type:
+        note: টোকা
+    timeout:
+      type:
+        node: ন'ড
+        way: পথ
+        relation: সম্পৰ্ক
+        note: টোকা
+    redacted:
+      redaction: সম্পাদন %{id}
+      type:
+        node: ন'ড
+        way: পথ
+        relation: সম্পৰ্ক
+  changesets:
+    changeset_paging_nav:
+      next: পৰৱৰ্তী »
+      previous: « পূৰ্বৱৰ্তী
+    changeset:
+      anonymous: নামবিহীন
+      no_edits: (কোনো সম্পাদনা নাই)
+    changesets:
+      id: ID
+      saved_at: ইয়াত সাঁচি থোৱা হৈছে
+      user: ব্যৱহাৰকাৰী
+    index:
+      load_more: অধিক ল'ড কৰক
+  issues:
+    index:
+      select_status: স্থিতি বাছনি কৰক
+      select_type: প্ৰকাৰ বাছনি কৰক
+      search: সন্ধান কৰক
+      search_guidance: 'সমস্যাৰ সন্ধান কৰক:'
+      user_not_found: ব্যৱহাৰকাৰী নাই
+      states:
+        ignored: আওকাণ কৰা
+        open: খোলক
+    show:
+      ignore: আওকাণ কৰক
+  reports:
+    new:
+      categories:
+        diary_entry:
+          other_label: আন
+        diary_comment:
+          other_label: আন
+        user:
+          other_label: আন
+        note:
+          other_label: আন
+  layouts:
+    issues: সমস্যাসমূহ
+  traces:
+    show:
+      coordinates_html: '%{latitude}; %{longitude}'
+  notes:
+    show:
+      hide: লুকুৱাওক
+      comment: মন্তব্য দিয়ক
+  javascripts:
+    close: বন্ধ কৰক
+    share:
+      cancel: বাতিল
+      image: ছবি
+      link: লিংক বা HTML
+      long_link: লিংক
+      short_link: চমু লিংক
+      geo_uri: জিঅ' URI
+      embed: HTML
+      download: ডাউনল'ড কৰক
+      short_url: চমু URL
+      view_larger_map: আৰু ডাঙৰ মেপ চাওক
+    embed:
+      report_problem: সমস্যাৰ কথা সদৰি কৰক
+    key:
+      title: মেপৰ চাবি
+      tooltip: মেপৰ চাবি
+      tooltip_disabled: এই লেয়াৰৰ বাবে মেপৰ চাবি উপলব্ধ নহয়
+    map:
+      base:
+        opnvkarte: ÖPNVKarte
+      layers:
+        header: মেপৰ লেয়াৰ
+        notes: মেপৰ টোকা
+        data: মেপ ডেটা
+        gps: ৰাজহুৱা GPS ট্ৰেচসমূহ
+        title: লেয়াৰ
+    site:
+      edit_tooltip: মেপ সম্পাদনা কৰক
+      edit_disabled_tooltip: মেপ সম্পাদনা কৰিবলৈ জুম ইন কৰক
+      createnote_tooltip: মেপত টোকা যোগ কৰক
+    changesets:
+      show:
+        comment: মন্তব্য দিয়ক
+        hide_comment: লুকুৱাওক
+        unhide_comment: দেখুৱাওক
+    directions:
+      directions: নিৰ্দেশনা
+      distance: দূৰত্ব
+      instructions:
+        destination_without_exit: গন্তব্যলৈ গৈ পাওক
+        unnamed: নামবিহীন পথ
+        exit_counts:
+          first: ১য়
+          second: ২য়
+          third: ৩য়
+          fourth: ৪ৰ্থ
+          fifth: ৫ম
+          sixth: ৬ষ্ঠ
+          seventh: ৭ম
+          eighth: ৮ম
+          ninth: ৯ম
+          tenth: ১০ম
+      time: সময়
+    context:
+      add_note: ইয়াত টোকা যোগ কৰক
+      show_address: ঠিকনা দেখুৱাওক
+      query_features: কুৱেৰী বৈশিষ্ট্যসমূহ
+      centre_map: মেপ ইয়াত কেন্দ্ৰস্থ কৰক
+  redactions:
+    edit:
+      heading: ৰিডেকশ্যনৰ সম্পাদনা
+      title: ৰিডেকশ্যনৰ সম্পাদনা
+    index:
+      empty: দেখুৱাবলৈ কোনো ৰিডেকশ্যনৰ নাই।
+      heading: সম্পাদনৰ তালিকা
+      title: সম্পাদনৰ তালিকা
+    new:
+      heading: নতুন সম্পাদনৰ তথ্য ভৰাওক
+      title: নতুন সম্পাদন সৃষ্টি কৰি থকা হৈছে
+    show:
+      description: 'বৰ্ণনা:'
+      heading: সম্পাদন "%{title}" দেখুৱায় থকা হৈছে
+      title: সম্পাদন দেখুৱায় থকা হৈছে
+      user: 'সৃষ্টিকৰ্তা:'
+      edit: এই সম্পাদন সম্পাদনা কৰক
+      destroy: এই সম্পাদন আঁতৰাওক
+      confirm: আপনি নিশ্চিতনে?
+    create:
+      flash: সম্পাদন সৃষ্টি কৰা হ'ল।
+    update:
+      flash: সাল-সলনি সাঁচি থোৱা হ'ল।
+...

@@ -1,0 +1,26 @@
+# Messages for Quechua (Runa Simi)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: AlimanRuna
+---
+qu:
+  diary_entries:
+    diary_comment:
+      confirm: Takyachiy
+  confirmations:
+    confirm:
+      button: Takyachiy
+    confirm_email:
+      button: Takyachiy
+  users:
+    terms:
+      consider_pd: Kay ñawpaq rimanakuyman yapaspa, rurasqaykunata Sapsi Chaskinancha
+        nisqapi kayta hamut'anim
+    show:
+      confirm: Takyachiy
+  user_role:
+    grant:
+      confirm: Takyachiy
+    revoke:
+      confirm: Takyachiy
+...

@@ -1,0 +1,64 @@
+# Messages for Kaqchikel (Kaqchikel)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Mynor Archila
+---
+cak:
+  time:
+    formats:
+      friendly: '%H:%M pa %d/%m/%Y'
+  helpers:
+    submit:
+      diary_comment:
+        create: Yakonïk
+  activerecord:
+    models:
+      friend: Rachib’il
+      language: Chʼabʼäl
+      message: Taqonem
+      user: Okisanel
+    attributes:
+      diary_entry:
+        user: Okisanel
+        latitude: Kojobʼalil
+        longitude: Rukojolil
+        language_code: Ch’ab’äl
+      friend:
+        user: Okisanel
+        friend: Rachib’il
+      trace:
+        user: Okisanel
+      user:
+        email: Taqoyaʼl
+        pass_crypt: Ewa’etal
+  browse:
+    location: 'K’ojolib’äl:'
+    changeset:
+      belongs_to: B’anoy
+  layouts:
+    help: To’ïk
+  sessions:
+    new:
+      title: Okïk
+      login_button: Okïk
+      auth_providers:
+        openid:
+          title: Okem pa OpenID
+        google:
+          title: Okem pa Google
+        facebook:
+          title: Okem pa Facebook
+        microsoft:
+          title: Okem pa Windows Live
+        github:
+          title: Okem pa GitHub
+        wikipedia:
+          title: Okem pa Wiki
+        wordpress:
+          title: Okem pa Wordpress
+        aol:
+          title: Okem pa AoL
+  traces:
+    new:
+      help: To’ïk
+...

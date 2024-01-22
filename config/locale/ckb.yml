@@ -1,0 +1,282 @@
+# Messages for Central Kurdish (کوردی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Aram
+# Author: Arya sarhan
+# Author: Asoxor
+# Author: Diyar se
+# Author: Halbast
+# Author: Kushared
+# Author: Pirehelokan
+# Author: Serwan
+# Author: Épine
+# Author: ڕاستی
+---
+ckb:
+  html:
+    dir: rtl
+  time:
+    formats:
+      friendly: '%eی %Bی %Y لە %H:%M'
+  helpers:
+    file:
+      prompt: پەڕگە ھەڵبژێرە
+    submit:
+      diary_comment:
+        create: بۆچوون
+      diary_entry:
+        create: بڵاوکردنەوە
+        update: نوێکردنەوە
+      issue_comment:
+        create: زیادکردنی لێدوان
+      message:
+        create: ناردن
+      client_application:
+        create: تۆمارکەر
+        update: نوێکردنەوە
+      oauth2_application:
+        create: تۆمارکردن
+        update: نوێکردنەوە
+      trace:
+        create: بارکردن
+        update: پاشەکەوتکردنی گۆڕانکارییەکان
+  activerecord:
+    models:
+      country: وڵات
+      friend: هاوڕێ
+      language: زمان
+      message: پەیام
+      old_way: رێگای کۆن
+      session: کۆبوونەوە
+      trace: شوێنەوار
+      user: بەکارھێنەر
+      way: رێگا
+    attributes:
+      diary_comment:
+        body: ناوەرۆک
+      diary_entry:
+        user: بەکارھێنەر
+        title: بابەت
+        latitude: هێڵی پانیی
+        longitude: هێڵی درێژی
+        language_code: زمان
+      friend:
+        user: بەکارھێنەر
+        friend: ھەڤاڵ
+      trace:
+        user: بەکارھێنەر
+        visible: دەرکەوتوو
+        name: ناوی پەڕگە
+        size: قەبارە
+        latitude: هێڵی پانیی
+        longitude: هێڵی درێژی
+        public: گشتی
+        description: وەسف
+      message:
+        sender: پەیامنێر
+        title: بابەت
+        body: ناوەرۆک
+        recipient: وەرگر
+      user:
+        email: ئیمەیل
+        active: چالاک
+        display_name: پیشاندانی ناو
+        description: وەسفی ژیاننامە
+        languages: زمانەکان
+        pass_crypt: تێپەڕوشە
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: نیو خولەک پێش ئێستا
+  editor:
+    id:
+      name: ناسنامە
+  api:
+    notes:
+      entry:
+        comment: بۆچوون
+  browse:
+    closed: داخراوە
+    version: وەشان
+    anonymous: ناوی نادیار
+    part_of: بەشێک لە
+    download_xml: داگرتنی XML
+    view_history: مێژووەکەی ببینە
+    view_details: وردەکاری ببینە
+    location: شوێن
+    changeset:
+      belongs_to: نووسەر
+    relation:
+      members: ئەندامەکان
+    relation_member:
+      type:
+        way: رێگا
+    not_found:
+      type:
+        way: رێگا
+        note: تێبینی
+    timeout:
+      type:
+        way: رێگا
+    redacted:
+      type:
+        way: رێگا
+    start_rjs:
+      loading: باركردن‌ ...
+  changesets:
+    changeset_paging_nav:
+      next: << دواتر
+      previous: پێشتر >>
+    changeset:
+      anonymous: ناوی نادیار
+      no_edits: (ھیچ دەستکارییەک)
+    changesets:
+      id: پێناسە
+      user: بەکارھێنەر
+      comment: بۆچوون
+      area: ناوچە
+    index:
+      load_more: زیاتر بخوێنەوە
+  dashboards:
+    show:
+      edit_your_profile: دەستکاریکردنی ژیاننامە
+  diary_entries:
+    form:
+      location: شوێن
+      use_map_link: بەکارھێنانی نەخشە
+    show:
+      login: بچۆ ژوورەوە
+    location:
+      location: 'شوێن:'
+      view: بینین
+      edit: دەستکاری
+  errors:
+    contact:
+      contact: پەیوەندی
+    not_found:
+      title: پەڕگەکە نەدۆزرایەوە
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: دەروازە
+          taxiway: ڕێگەی تاکسی
+        amenity:
+          arts_centre: ناوەندی هونەری
+          bank: بانک
+          bar: مەیخانە
+          bus_station: وێستگەی پاس
+          car_wash: شوشتنگەی ئۆتۆمبێل
+          casino: گازینۆ
+          cinema: سینەما
+          clinic: نۆرینگە
+          clock: کاتژمێر
+          college: کۆلێژ
+          dentist: ددانساز
+          drinking_water: ئاوی خواردنەوە
+          fast_food: خواردنی خێرا
+          fire_station: بنکەی ئاگرکوژێنەوە
+          fountain: نافورە
+          grave_yard: گۆڕستان
+          hospital: نەخۆشخانە
+          ice_cream: ساردەمەنی
+          library: پەرتووکخانە
+          nightclub: یانەی شەوانە
+          pharmacy: دەرمانخانە
+          place_of_worship: شوێنی پەرستش
+          police: پۆلیس
+          post_box: سندوقی پۆستە
+          post_office: نووسینگەی پۆستە
+          prison: بەندینخانە
+          public_building: باڵەخانەی گشتیی
+          restaurant: خواردنگە
+          school: قوتابخانە
+          social_centre: ناوەندی کۆمەڵایەتی
+          studio: ستۆدیۆ
+          swimming_pool: مەلەوانگە
+          taxi: تاکسی
+          telephone: تەلەفۆنی گشتیی
+          theatre: شانۆ
+          university: زانکۆ
+        boundary:
+          national_park: پارکی نەتەوەیی
+          protected_area: ناوچەی پارێزراو
+        bridge:
+          "yes": پرد
+        building:
+          "yes": باڵەخانە
+        craft:
+          gardener: باخەوان
+          painter: وێنەکێش
+          photographer: وێنەگر
+          plumber: بۆڕیچی
+          shoemaker: پینەدۆز
+        highway:
+          elevator: ئاسانسەر
+          footway: پیادەڕێ
+          primary: ڕێگەی سەرەکی
+          primary_link: ڕێگەی سەرەکی
+          road: ڕێگە
+          secondary: ڕێگەی لاوەکی
+          secondary_link: ڕێگەی لاوەکی
+          speed_camera: کامێرای خێرایی
+          steps: پەیژە
+          street_lamp: چرای سەرشەقام
+          trunk: ڕێگەی بارهەڵگر
+          trunk_link: ڕێگەی بارهەڵگر
+          unclassified: ڕێگەی پۆلێننەکراو
+          "yes": ڕێگە
+        historic:
+          building: باڵەخانەی مێژوویی
+          castle: کۆشک
+          church: کڵێسە
+          city_gate: دەروازەی شار
+          house: خانوو
+          monument: مۆنۆمێنت
+        landuse:
+          forest: دارستان
+          grass: گیا
+          industrial: ناوچەی پیشەسازی
+          military: ناوچەی سەربازیی
+          residential: ناوچەی نیشتەجێبوون
+        leisure:
+          fishing: ناوچەی ڕاوکردنی ماسی
+          fitness_centre: ناوەندی لەشجوانی
+          fitness_station: بنکەی لەشجوانی
+          garden: باخچە
+          park: پارک
+          sauna: گەرماوی هەڵمین
+          stadium: یاریگا
+          swimming_pool: مەلەوانگە
+  layouts:
+    history: مێژوو
+    more: زیاتر
+  user_mailer:
+    changeset_comment_notification:
+      hi: سڵاو %{to_user}
+      unsubscribe: بۆ ڕاگرتنی ھەواڵەکان، سەردانی %{url} بکەو کرتە لەسەر «unsubscribe»
+        بکە.
+  messages:
+    message_summary:
+      destroy_button: سڕینەوە
+    sent_message_summary:
+      destroy_button: سڕینەوە
+  site:
+    search:
+      where_am_i: ئەمە لەکوێیە؟
+  notes:
+    show:
+      description: وەسف
+    new:
+      title: تێبینی نوێ
+  javascripts:
+    directions:
+      instructions:
+        continue_without_exit: درێژە بدە لە سەر %{name}
+        turn_left_without_exit: بیسووڕێنەوە بۆ چەپ %{name}
+        slight_left_without_exit: تۆزێک بەرەو چەپ %{name}
+        follow_without_exit: شوێنی بکەوە %{name}
+        start_without_exit: دەست پێبکە لە %{name}
+        destination_without_exit: بگە بە مەبەست
+        unnamed: ڕێگەی ناونەنراو
+...

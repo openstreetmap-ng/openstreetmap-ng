@@ -1,0 +1,18 @@
+# Messages for Ga (Ga)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Cnii
+---
+gaa:
+  helpers:
+    submit:
+      client_application:
+        update: Nitsakemɔ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        building:
+          shed: Agba
+        man_made:
+          manhole: Bu agbo
+...

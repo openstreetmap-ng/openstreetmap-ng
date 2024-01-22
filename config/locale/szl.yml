@@ -1,0 +1,48 @@
+# Messages for Silesian (ślůnski)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Adam040773
+# Author: Ozi64
+---
+szl:
+  activerecord:
+    models:
+      friend: Kamrat
+      language: Godka
+      message: Wjadůmość
+      user: Używacz
+    attributes:
+      redaction:
+        description: Uopis
+  editor:
+    id:
+      name: iD
+  browse:
+    version: Wersyjo
+  messages:
+    show:
+      reply_button: Uodpowjydz
+      destroy_button: Wyćep
+  site:
+    help:
+      irc:
+        title: IRC
+    sidebar:
+      close: Zawrzij
+    search:
+      search: Sznupańy
+      where_am_i: Kaj jŏ je?
+    key:
+      table:
+        entry:
+          school: Szula
+          university: uńiwerzytet
+  javascripts:
+    directions:
+      instructions:
+        via_point_without_exit: (bez půnkt)
+  redactions:
+    show:
+      description: Uopis
+      user: 'Twůrca:'
+...

@@ -1,0 +1,12 @@
+# Messages for Bishnupriya (বিষ্ণুপ্রিয়া মণিপুরী)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Usingha
+---
+bpy:
+  activerecord:
+    attributes:
+      client_application:
+        name: নাঙহান (লাগতই)
+        allow_write_api: মানচিত্রগ পতা
+...

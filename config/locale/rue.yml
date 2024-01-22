@@ -1,0 +1,225 @@
+# Messages for Rusyn (русиньскый)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Gazeb
+# Author: Gramo6
+---
+rue:
+  helpers:
+    file:
+      prompt: Уберіть файл
+    submit:
+      diary_comment:
+        create: Всокотити
+      diary_entry:
+        create: Опубликовати
+        update: Убновити
+      issue_comment:
+        create: Додати коментарь
+      message:
+        create: Загнати
+      client_application:
+        create: Зареґістровати ся
+        update: Убновити
+      oauth2_application:
+        create: Реґістрація
+        update: Убновити
+      redaction:
+        create: Вчинити управленя
+        update: Всокотити управленя
+      trace:
+        create: Наладовати
+        update: Всокотити зміны
+      user_block:
+        create: Вчитити блок
+        update: Убновити блок
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: не упозірує ги читава е-мейлова адреса
+    models:
+      changeset: Зміны
+      country: Держава
+      friend: Цімбор
+      language: Бесїда
+      message: Уповістка
+      node: Ґуз
+      user: Хосновач
+    attributes:
+      doorkeeper/application:
+        name: Имня
+        confidential: Довірна аплікація?
+        scopes: Позволеня
+      user:
+        email: Е-мейл
+        active: Активный
+    help:
+      user:
+        new_email: (ниґде ся ни укаже)
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: пув минуты теперь
+  auth:
+    providers:
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Вікіпедія
+  api:
+    notes:
+      comment:
+        opened_at_by_html: Вчинено %{when} хосновачом %{user}
+        commented_at_html: Убновлено %{when}
+        commented_at_by_html: Убновлено %{when} хосновачом %{user}
+  browse:
+    changeset:
+      title: Сада змін
+      changesetxml: XML сада  змін
+      osmchangexml: osmChange XML
+      feed:
+        title: Сада змін  %{id}
+        title_comment: Сада змін %{id} — %{comment}
+    relation_member:
+      entry_role_html: '%{type} %{name} як %{role}'
+      type:
+        node: Узел
+        way: Лінія
+        relation: Звязок
+    containing_relation:
+      entry_html: Звязок %{relation_name}
+      entry_role_html: Звязок %{relation_name} (як %{relation_role})
+    not_found:
+      sorry: На жаль,  %{type} з ідентіфікатором %{id} не найдено.
+      type:
+        node: узел
+        way: лінія
+        relation: звязок
+        changeset: сада змін
+    timeout:
+      sorry: На жаль, дата про %{type} з ідентіфікатором %{id}, ся начітавали дуже
+        довго.
+      type:
+        node: узел
+        way: лінія
+        relation: звязок
+        changeset: сада змін
+    start_rjs:
+      load_data: Награти дата
+      loading: Награваня...
+    tag_details:
+      tags: 'Значкы:'
+      wiki_link:
+        key: Сторінка вікі, што пописує значку %{key}
+        tag: Сторінка вікі, што пописує значку %{key}=%{value}
+      wikipedia_link: Статя %{page} у Вікіпедії
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          bank: Банка
+          bar: Бар
+          cafe: Кафе
+          crematorium: Крематорій
+          post_office: Пошта
+          school: Школа
+          toilets: Тоалета
+        leisure:
+          garden: Загорода
+          park: Парк
+          stadium: Штадіон
+        natural:
+          island: Остров
+          tree: Стром
+        place:
+          houses: Будовы
+          island: Остров
+          state: Штат
+          town: Місто
+        tourism:
+          bed_and_breakfast: Ложко і фрыштик
+          chalet: Велика хата
+          guest_house: Пензіон
+          hotel: Готел
+          motel: Мотел
+          museum: Музей
+          theme_park: Тематічный парк
+          zoo: Зоопарк
+  confirmations:
+    confirm:
+      button: Підтвердити
+  passwords:
+    new:
+      email address: 'Адреса електронічной пошты:'
+  sessions:
+    new:
+      title: Приголошіня
+      heading: Приголошіня
+      login_button: Приголошіня
+    destroy:
+      title: Одголосити
+      logout_button: Одголосити
+  site:
+    export:
+      licence: Ліценція
+  traces:
+    new:
+      help: Поміч
+    show:
+      download: скачати
+      map: на мапі
+      edit: управити
+      owner: 'Властник:'
+    trace:
+      more: веце
+      by: 'Автор:'
+      in: у
+  oauth:
+    scopes:
+      write_api: Измінити мапу
+      write_gpx: Наладовати GPS-трекы
+  oauth2_applications:
+    index:
+      new: Зареґістровати нову аплікацію
+      name: Имня
+      permissions: Позволеня
+    application:
+      edit: Едітовати
+      confirm_delete: Удсторонити исю аплікацію?
+    new:
+      title: Зареґістровати нову аплікацію
+    show:
+      edit: Едітовати
+      delete: Истерти
+      confirm_delete: Удсторонити исю аплікацію?
+      client_id: клієнтовоє ID
+  oauth2_authorizations:
+    new:
+      deny: Удвернути
+    error:
+      title: Стала ся хыба
+  oauth2_authorized_applications:
+    index:
+      application: Аплікація
+      permissions: Позволеня
+  users:
+    terms_declined_flash:
+      terms_declined_link: исю сторунку вікі
+    show:
+      add as friend: Придати як приятеля
+      email address: 'Адреса електронічной пошты:'
+      create_block: Заблоковати того хоснователя
+      confirm: Підтвердити
+    index:
+      heading: Хоснователї
+    suspended:
+      support: пудпора
+  user_role:
+    filter:
+      not_a_role: Рядок «%{role}» не означує платну ролю.
+      already_has_role: Хоснователь уж ролю %{role} має.
+      doesnt_have_role: Хоснователь не має %{role}.
+    grant:
+      confirm: Підтвердити
+    revoke:
+      confirm: Підтвердити
+...

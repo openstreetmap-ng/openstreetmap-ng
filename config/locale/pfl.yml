@@ -1,0 +1,19 @@
+# Messages for Palatine German (Pälzisch)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Xqt
+---
+pfl:
+  helpers:
+    submit:
+      client_application:
+        update: Bearwaide
+  layouts:
+    edit: Bearwaide
+  traces:
+    show:
+      edit: bearwaide
+  users:
+    show:
+      edits: Bearwaidunge
+...

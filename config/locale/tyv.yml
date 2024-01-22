@@ -1,0 +1,23 @@
+# Messages for Tuvinian (тыва дыл)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Agilight
+---
+tyv:
+  layouts:
+    logout: Үнер
+    intro_header: OpenStreetMap-че кирип моорлаңар!
+  sessions:
+    destroy:
+      title: Үнер
+      heading: OpenStreetMap-тен үнер
+      logout_button: Үнер
+  site:
+    help:
+      welcome:
+        title: OSM-же кирип моорлаңар
+    search:
+      search: Дилээшкин
+    welcome:
+      title: Кирип моорлаңар!
+...

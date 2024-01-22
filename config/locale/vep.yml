@@ -1,0 +1,18 @@
+# Messages for Veps (vepsän kel’)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Sebranik
+---
+vep:
+  activerecord:
+    attributes:
+      user:
+        languages: Keled
+  layouts:
+    logout: Lähtta
+    more: Völ
+  sessions:
+    destroy:
+      title: Lähtta
+      logout_button: Lähtta
+...

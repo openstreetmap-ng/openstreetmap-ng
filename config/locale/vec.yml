@@ -1,0 +1,454 @@
+# Messages for Venetian (vèneto)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Conky77
+# Author: Cusolotto
+# Author: Fierodelveneto
+# Author: GatoSelvadego
+---
+vec:
+  time:
+    formats:
+      friendly: '%e %B %Y a łe %H:%M'
+  helpers:
+    file:
+      prompt: Sièli file
+    submit:
+      diary_comment:
+        create: Salva
+      diary_entry:
+        create: Pubƚica
+        update: Ajorna
+      issue_comment:
+        create: Xonta comento
+      message:
+        create: Spedisi
+      client_application:
+        create: Nòtate
+        update: Ajorna
+      redaction:
+        create: Crea revixion
+        update: Salva ƚa revixion
+      trace:
+        create: Carga
+        update: Salva le modìfeghe
+      user_block:
+        create: Crea bloco
+        update: Axorna bloco
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: no'l senbra èsare on indiriso de posta eƚetronega vaƚido
+        email_address_not_routable: no'l xe instradabiƚe
+    models:
+      acl: Lista de controło de i acesi
+      changeset: Grupo de modifeghe
+      changeset_tag: Etichete del grupo de modifeghe
+      country: Paexe
+      diary_comment: Comento al diario
+      diary_entry: Voxe del diario
+      friend: Amigo
+      issue: Problema
+      language: Léngua
+      message: Messajo
+      node: Gropo
+      node_tag: Targheta del gropo
+      old_node: Gropo vecio
+      old_node_tag: Vecia targheta del gropo
+      old_relation: Vecia rełasion
+      old_relation_member: Vecio toco de ła rełasion
+      old_relation_tag: Vecia eticheta de ła rełasion
+      old_way: Via vecia
+      old_way_node: Vecio gropo de ła via
+      old_way_tag: Vecia eticheta de ła via
+      relation: Rełasion
+      relation_member: Toco de ła rełasion
+      relation_tag: Targheta de ła rełasion
+      report: Reporta on problema
+      session: Sesion
+      trace: Trasa
+      tracepoint: Ponto de ła trasa
+      tracetag: Eticheta de ła trasa
+      user: Utente
+      user_preference: Preferense del utente
+      user_token: Còdexe del utente
+      way: Via
+      way_node: Gropo de ła via
+      way_tag: Eticheta de ła via
+    attributes:
+      client_application:
+        name: Nòme (dimandà)
+        url: URL prinsipałe Application (dimandà)
+        callback_url: URL de riciamada
+        support_url: Indiriso URL de suporto
+        allow_read_prefs: lexi le to prefarense utente
+        allow_write_prefs: modifega le sò prefarense utente
+        allow_write_api: modifega la mapa
+        allow_read_gpx: lexi i sò traciati personałi
+        allow_write_gpx: carica i traciati GPS
+        allow_write_notes: modifega łe note
+      diary_comment:
+        body: Corpo del mesajo
+      diary_entry:
+        user: Utente
+        title: Titoło
+        latitude: Latitudine
+        longitude: Longitudine
+        language_code: Léngua
+      friend:
+        user: Utente
+        friend: Amigo
+      trace:
+        user: Utente
+        visible: Vixibiłe
+        name: 'Nòme del file:'
+        size: Dimension
+        latitude: Latitudine
+        longitude: Longitudine
+        public: Pùblico
+        description: Descrision
+        gpx_file: Carica file GPX
+        visibility: Visibilità
+        tagstring: Tag
+      message:
+        sender: Mitente
+        title: Titoło
+        body: Corpo del mesajo
+        recipient: Resipiente
+      user:
+        email: Indiriso e-mail
+        active: Ativo
+        display_name: Nome mostrà
+        description: Descrision
+        languages: Lengue
+        pass_crypt: Ciave
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: sirca 1 ora fa
+        other: sirca %{count} ore fa
+      about_x_months:
+        one: sirca 1 mexe fa
+        other: sirca %{count} mexi fa
+      about_x_years:
+        one: sirca 1 ano fa
+        other: sirca %{count} ani fa
+      almost_x_years:
+        one: scuaxi 1 ano fa
+        other: scuaxi %{count} ani fa
+      half_a_minute: mexo minuto fa
+      less_than_x_seconds:
+        one: manco de 1 secondo fa
+        other: manco de %{count} secondi fa
+      less_than_x_minutes:
+        one: manco de un minuto fa
+        other: manco de %{count} minuti fa
+      over_x_years:
+        one: pì de 1 ano fa
+        other: pì de %{count} ani fa
+      x_seconds:
+        one: 1 secondo fa
+        other: '%{count} secondi fa'
+      x_minutes:
+        one: 1 minuto fa
+        other: '%{count} minuti fa'
+      x_days:
+        one: 1 dì fa
+        other: '%{count} dì fa'
+      x_months:
+        one: 1 mexe fa
+        other: '%{count} mexi fa'
+      x_years:
+        one: 1 ano fa
+        other: '%{count} ani fa'
+  editor:
+    default: Predefinio (al momento %{name})
+    id:
+      name: iD
+      description: iD (editor nel browser)
+    remote:
+      name: Controło remoto
+      description: Controło remoto (JOSM o Merkaartor)
+  auth:
+    providers:
+      none: Nisun
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Wikipedia
+  api:
+    notes:
+      comment:
+        opened_at_html: Creà %{when}
+        opened_at_by_html: Creà %{when} da %{user}
+        commented_at_html: Axornà %{when}
+        commented_at_by_html: Axornà %{when} da %{user}
+        closed_at_html: Sarà %{when}
+        closed_at_by_html: Sarà %{when} da %{user}
+        reopened_at_html: Riverta %{when}
+        reopened_at_by_html: Riverta %{when} da %{user}
+      rss:
+        title: Note de OpenStreetMap
+        description_area: Na ƚista de note inserìe, comentà o sarà nela to xona [(%{min_lat}|%{min_lon})
+          -- (%{max_lat}|%{max_lon})]
+        description_item: Feed rss par la nota %{id}
+        opened: nova nota (visin a %{place})
+        commented: novo comento (visin a %{place})
+        closed: nota sarà(visin a %{place})
+        reopened: nota riativà (visin a %{place})
+      entry:
+        comment: Comento
+        full: Nota conpleta
+  browse:
+    created: Creà
+    closed: Serà
+    version: Version
+    in_changeset: Grupo de modifighe
+    anonymous: Anonimo
+    no_comment: (nesun comento)
+    part_of: Parte de
+    download_xml: Descarga XML
+    view_history: Varda l'istorego
+    view_details: Visualixa i detai
+    location: 'Posto:'
+    changeset:
+      title: 'Grupo de modifighe: %{id}'
+      belongs_to: Autor
+      node: Nodi (%{count})
+      node_paginated: Nodi (%{x}-%{y} de %{count})
+      way: Percorsi (%{count})
+      way_paginated: Percorsi (%{x}-%{y} de %{count})
+      relation: Relasioni (%{count})
+      relation_paginated: Relasioni (%{x}-%{y} de %{count})
+      comment: Comenti (%{count})
+      changesetxml: Grupo de modifeghe XML
+      osmchangexml: modifegheOsm XML
+      feed:
+        title: Grupo de modifeghe %{id}
+        title_comment: Grupo de modifeghe %{id} - %{comment}
+      join_discussion: Acedi par unirte a la discusion
+      discussion: Discusion
+      still_open: Grupo de modifiche verto - le discusioni le sarà disponibili cuando
+        el se serarà.
+    node:
+      title_html: 'Nodo: %{name}'
+      history_title_html: 'Cronologia nodo: %{name}'
+    way:
+      title_html: 'Percorso: %{name}'
+      history_title_html: 'Cronologia percorso: %{name}'
+      nodes: Gropo
+      also_part_of_html:
+        one: parte del percorso %{related_ways}
+        other: parte dei percorsi %{related_ways}
+    relation:
+      title_html: 'Relasion: %{name}'
+      history_title_html: 'Cronologia relasion: %{name}'
+      members: Membri
+    relation_member:
+      entry_role_html: '%{type} %{name} come %{role}'
+      type:
+        node: Gropo
+        way: Via
+        relation: Rełasion
+    containing_relation:
+      entry_html: Rełasion %{relation_name}
+      entry_role_html: Rełasion %{relation_name} (cofà %{relation_role})
+    not_found:
+      sorry: Ne dispiaxe, nó l'è sta posibiłe trovar el %{type} có 'l identifegativo
+        %{id}.
+      type:
+        node: gropo
+        way: via
+        relation: rełasion
+        changeset: grupo de modifeghe
+        note: gropo
+    timeout:
+      sorry: Ne despiaxe, el ciapar dei dati %{type} co id %{id} l'ha domandà masa
+        tempo.
+      type:
+        node: gropo
+        way: via
+        relation: rełasion
+        changeset: grupo de modifeghe
+        note: gropo
+    redacted:
+      redaction: Redasion %{id}
+      message_html: Ƚa version %{version} de sto %{type} no ƚa poƚe èsare mostrà parchè
+        la xe stà redata. Fà riferimento a %{redaction_link} par i detaji.
+      type:
+        node: gropo
+        way: via
+        relation: rełasion
+    start_rjs:
+      feature_warning: Caricamento de %{num_features} carateristighe, che ƚe poƚe
+        rendare el to browser ƚento o che no lo fà rispondere. Sito seguro de voler
+        vixualixare sti dati?
+      load_data: Carga dati
+      loading: Son drio cargare...
+    tag_details:
+      tags: 'Tag:'
+      wiki_link:
+        key: Ła pàjina wiki pa' ła descrsion de l'eticheta %{key}
+        tag: Ła pàjina wiki pa' ła descrision de l'eticheta %{key}=%{value}
+      wikidata_link: L'elemento %{page} so Wikidata
+      wikipedia_link: Ła voxe de Wikipedia so %{page}
+      wikimedia_commons_link: '''L eƚemento %{page} so Wikimedia Commons'
+      telephone_link: Ciama %{phone_number}
+      colour_preview: Anteprima coƚore %{colour_value}
+    query:
+      title: Riserca de eƚementi
+      introduction: Struca so ƚa mapa par ƚa disponibilità tacà.
+      nearby: Disponibiƚità tacà
+      enclosing: Eƚementi interni
+  changesets:
+    changeset_paging_nav:
+      showing_page: Pàgina %{page}
+      next: El seguente »
+      previous: « Presedente
+    changeset:
+      anonymous: Anonimo
+      no_edits: (nisuna modifega)
+      view_changeset_details: Vixualixa i detaji de 'l grupo de modifeghe
+    changesets:
+      id: ID
+      saved_at: Salvà el
+      user: Utente
+      comment: Comento
+      area: Area
+    index:
+      title: Grupi de modifighe
+      title_user: Grupi de modifeghe de %{user}
+      title_friend: Grupi de modefeghe de i mé amisi
+      title_nearby: Grupi de modìfeghe fate da i utenti che i me xe tacà
+      empty: Nisun grupo de modefeghe catà.
+      empty_area: Nisun grupo de modefeghe en sta xona.
+      empty_user: Nisun grupo de modifeghe da sto utente.
+      no_more: Nisun grupo de modefeghe catà.
+      no_more_area: Nisun grupo de modefeghe en sta xona.
+      no_more_user: Nisun grupo de modifeghe da sto utente.
+      load_more: Càrga de pì
+    timeout:
+      sorry: Dispiase, l'eƚenco de i grupi de modifeghe che te ghe dimandà ga impiegà
+        masa tenpo par poder èsare recuperà.
+  changeset_comments:
+    comment:
+      comment: 'Novo comento a''l grupo de modifeghe #%{changeset_id} de %{author}'
+      commented_at_by_html: Axornà %{when} da %{user}
+    comments:
+      comment: 'Novo comento a''l grupo de modifeghe #%{changeset_id} de %{author}'
+    index:
+      title_all: Discusion so 'l grupo de modifeghe OpenStreetMap
+      title_particular: 'Discusion in tel grupo de modifeghe OpenStreetMap #%{changeset_id}'
+    timeout:
+      sorry: '''L eƚenco dimandà de comenti a''l changeset gà impiegà masa tempo par
+        poder èsare recuperà.'
+  diary_entries:
+    new:
+      title: Nova vose de'l diario
+    form:
+      location: 'Posto:'
+      use_map_link: uxa mapa
+    index:
+      title: Diari de i utenti
+      title_friends: Diari de i amisi
+      title_nearby: Diari de i utenti che i xe tacà
+      user_title: Diario de %{user}
+      in_language_title: Vosi de'l diario en %{language}
+      new: Nova vose de'l diario
+      new_title: Componi na nova vose inte'l me diario utente
+      no_entries: Nisuna vose ne'l diario
+      recent_entries: Vosi de'l diario resenti
+      older_entries: Vosi pì vècie
+      newer_entries: Vosi pì nove
+    edit:
+      title: Modifega voxe del diario
+      marker_text: Posto de ƚa vose de'l diario
+    show:
+      title: Diario de %{user} | %{title}
+      user_title: Diario de %{user}
+      leave_a_comment: Lasa on commento
+      login_to_leave_a_comment_html: '%{login_link} par lasare on comento'
+      login: Va rento
+    no_such_entry:
+      title: Nisuna vose de'l diario
+      heading: 'Nisuna voxe co l''identifegadivo: %{id}'
+      body: Ne despiaxe, no ghe xe voxe del diàrio o comento co l'identifegadivo %{id}.
+        Se vardee ben se xe sta scrivesto ben, o podaria èsar che el ligo che te ghè
+        seguio el sìpia sbajà.
+    diary_entry:
+      posted_by_html: Publegà da %{link_user} el %{created} in %{language_link}
+      comment_link: Comenta sta vose
+      reply_link: Rispondi a sta vose
+      comment_count:
+        other: xero=Nisun comento
+        one: '%{count} comento'
+      edit_link: Modifega sta vose
+      hide_link: Scondi sta vose
+      unhide_link: Mostra sta vose
+      confirm: Conferma
+      report: Segnaƚa sta vose
+    diary_comment:
+      comment_from_html: Comento de %{link_user} el %{comment_created_at}
+      hide_link: Scondi sto comento
+      unhide_link: Mostra sto comento
+      confirm: Conferma
+      report: Segnaƚa sto comento
+    location:
+      location: 'Posto:'
+      view: Varda
+      edit: Modìfega
+    feed:
+      user:
+        title: Vosi de'l diario de OpenStreetMap par %{user}
+        description: Vosi de'l diario resenti de OpenStreetMap par %{user}
+      language:
+        title: Voxe del diàrio de OpenStreetMap in %{language_name}
+        description: Voxe del diàrio in ùltema dei utenti de OpenStreetMap in %{language_name}
+      all:
+        title: Vosi de'l diario de OpenStreetMap
+        description: Vosi de'l diario resenti de i utenti de OpenStreetMap
+    comments:
+      post: Messajo
+      when: Quando
+      comment: Comento
+      newer_comments: Comenti pì resenti
+      older_comments: Comenti pì veci
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aerialway:
+          cable_car: Sogavia
+          chair_lift: Sejovia
+          drag_lift: Sciovia
+          gondola: Cabinovia
+          platter: Skilift a piateło
+          pylon: Piłon
+          station: Stasion funivia
+          t-bar: Skilift a àncora
+        aeroway:
+          aerodrome: Aerodromo
+  site:
+    index:
+      permalink: Łinganbo permanente
+  traces:
+    show:
+      confirm_delete: Scanselar sta pagina?
+  users:
+    terms:
+      continue: Sèvita
+  notes:
+    show:
+      title: 'Nota: %{id}'
+      description: Descrision
+      open_title: 'Nota no desbregà #%{note_name}'
+      closed_title: 'Nota desbregà #%{note_name}'
+      hidden_title: 'Nota sconta #%{note_name}'
+      report: Segnala sta nota
+    new:
+      title: Nova nota
+  javascripts:
+    key:
+      title: Lejenda
+      tooltip: Lejenda
+...

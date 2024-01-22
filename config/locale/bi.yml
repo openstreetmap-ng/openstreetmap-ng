@@ -1,0 +1,12 @@
+# Messages for Bislama (Bislama)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+bi:
+  activerecord:
+    models:
+      language: Toktok
+  browse:
+    changeset:
+      discussion: Tingting
+...

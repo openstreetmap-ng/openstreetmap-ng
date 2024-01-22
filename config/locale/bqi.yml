@@ -1,0 +1,9 @@
+# Messages for Bakhtiari (بختیاری)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+---
+bqi:
+  html:
+    dir: rtl
+...

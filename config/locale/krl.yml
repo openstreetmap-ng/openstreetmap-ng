@@ -1,0 +1,66 @@
+# Messages for Karelian (karjal)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ilja.mos
+# Author: Likopiän tyttö
+---
+krl:
+  activerecord:
+    models:
+      changeset: Muutoškokoelma
+      changeset_tag: Muutoškokoelman tagi
+      country: Mua
+      diary_comment: Päiväkirjakommentti
+      diary_entry: Päiväkirjamerkintä
+      friend: Yštävä
+      language: Kieli
+      message: Viesti
+      node: Piste
+      node_tag: Pistehen tagi
+      old_node: Vanha poste
+      old_node_tag: Vanha pistehen tagi
+      old_relation: Vanha šuhteh
+      old_relation_member: Vanha šuhtehen jäšen
+      old_relation_tag: Vanha šuhtehen tagi
+      session: Iššunto
+      user: Käyttäjä
+    attributes:
+      diary_entry:
+        user: Käyttäjä
+        title: Aihe
+        latitude: Levehyš
+        longitude: Pituš
+        language_code: Kieli
+      friend:
+        user: Käyttäjä
+        friend: Yštävä
+      trace:
+        user: Käyttäjä
+        visible: Näkyvyš
+        name: Nimi
+        size: Koko
+        latitude: Levehyš
+        longitude: Pituš
+        public: Julkini
+        description: Kuvauš
+      message:
+        sender: Työntäjä
+        title: Aihe
+        body: Teksti
+        recipient: Vaštahottaja
+      user:
+        email: Šähköpošti
+        active: Aktiivini
+        display_name: Näytön nimi
+        description: Kuvauš
+        languages: Kielet
+        pass_crypt: Šalašana
+  editor:
+    default: Oletuš (tällä hetkellä %{name})
+  users:
+    show:
+      edits: Kohennukšet
+  user_blocks:
+    block:
+      edit: Kohentele
+...

@@ -1,0 +1,461 @@
+# Messages for Pashto (پښتو)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Af420
+# Author: Ahmed-Najib-Biabani-Ibrahimkhel
+# Author: Ajeje Brazorf
+# Author: Amjad Khan
+---
+ps:
+  html:
+    dir: rtl
+  helpers:
+    file:
+      prompt: فایل غوره کړئ
+    submit:
+      diary_comment:
+        create: تبصره
+      diary_entry:
+        create: خپرول
+        update: تازه کول
+      issue_comment:
+        create: تبصره ورگډول
+      message:
+        create: لېږل
+      client_application:
+        create: ثبتول
+        update: تازه کول
+      oauth2_application:
+        create: ثبتول
+        update: تازه کول
+      trace:
+        create: پورته کول
+        update: بدلونونه خوندي کول
+  activerecord:
+    models:
+      country: هېواد
+      friend: ملگری
+      language: ژبه
+      message: پيغام
+      old_way: زړه لاره
+      user: کارن
+      way: لار
+    attributes:
+      diary_comment:
+        body: جوسه
+      diary_entry:
+        user: کارن
+        title: سکالو
+        latitude: لوړوالی
+        longitude: اوږدوالی
+        language_code: ژبه
+      friend:
+        user: کارن
+        friend: ملگری
+      trace:
+        user: کارن
+        visible: ښکاره
+        name: نوم
+        size: کچه
+        latitude: لوړوالی
+        longitude: اوږدوالی
+        public: ټولگړی
+        description: څرگندونه
+        gpx_file: 'GPX دوتنه پورته کول:'
+        visibility: 'ښکارېدنه:'
+        tagstring: 'نښلنونه:'
+      message:
+        sender: لېږونکی
+        title: سکالو
+        body: جوسه
+        recipient: اخيستونکی
+      redaction:
+        description: څرگندونه
+      user:
+        email: برېښليک
+        new_email: 'نوې برېښليک پته:'
+        active: فعال
+        display_name: ښکارېدونکی نوم
+        description: څرگندونه
+        languages: ژبې
+        pass_crypt: پټنوم
+  editor:
+    default: تلواليز (اوسنی %{name})
+    id:
+      name: iD
+  accounts:
+    edit:
+      my settings: زما امستنې
+      openid:
+        link text: دا څه دی؟
+      public editing:
+        enabled link text: دا څه دی؟
+      contributor terms:
+        link text: دا څه دی؟
+      save changes button: بدلونونه خوندي کول
+  browse:
+    created: جوړ شو
+    closed: تړل شوی
+    relation:
+      members: غړي
+    relation_member:
+      type:
+        way: لار
+    not_found:
+      type:
+        way: لار
+    timeout:
+      type:
+        way: لار
+    redacted:
+      type:
+        way: لار
+    start_rjs:
+      loading: رابرسېرېږي...
+  changesets:
+    changeset:
+      anonymous: ورکنومی
+    changesets:
+      id: پېژند
+      user: کارن
+      comment: تبصره
+      area: سيمه
+  dashboards:
+    popup:
+      friend: ملگری
+  diary_entries:
+    form:
+      location: 'ځای:'
+      use_map_link: نخشه کارول
+    show:
+      leave_a_comment: يوه تبصره پرېښودل
+      login: ننوتل
+    diary_entry:
+      confirm: تاييد
+    diary_comment:
+      comment_from_html: په %{comment_created_at} باندې د %{link_user} تبصره
+      hide_link: دا تبصره پټول
+      confirm: تاييد
+    location:
+      location: 'ځای:'
+      view: کتل
+      edit: سمول
+    comments:
+      when: کله
+      comment: تبصره
+  friendships:
+    make_friend:
+      button: د ملگري په توگه ورگډول
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          bank: بانک
+          brothel: کنجرتون
+          bus_station: د بسونو اډه
+          casino: جوارګرتون
+          cinema: سينما
+          clinic: کلينيک
+          clock: گړۍ
+          college: پوهنځی
+          courthouse: منياوالۍ
+          crematorium: کوره
+          dentist: غاښ درملګر
+          doctors: رنځورګران
+          drinking_water: د څښلو اوبه
+          driving_school: د چلولو ښوونځی
+          embassy: سفارت
+          grave_yard: هديره
+          hospital: روغتون
+          ice_cream: آيسکريم
+          kindergarten: وړکتون
+          library: کتابتون
+          pharmacy: درملتون
+          place_of_worship: عبادتځی
+          police: پوليس
+          post_box: پوستبکس
+          post_office: ډاګخانه
+          prison: بنديخانه
+          pub: ميخانه
+          public_building: ټولگړې ودانۍ
+          restaurant: خوړنځی
+          school: ښوونځی
+          studio: سټوډيو
+          taxi: ټېکسي
+          theatre: نندارتون
+          toilets: چړچوبي
+          university: پوهنتون
+        bridge:
+          "yes": پول
+        building:
+          church: کلیسا
+          garage: ګاراژ
+          hospital: د روغتون ودانۍ
+          hotel: هوټل
+          house: کور
+          school: د ښوونځي ودانۍ
+          university: د پوهنتون ودانۍ
+          "yes": ودانۍ
+        craft:
+          carpenter: ترکاڼ
+          electrician: برېښناگر
+          gardener: بڼوال
+        highway:
+          bus_stop: تمځای
+          road: واټ
+          "yes": واټ
+        historic:
+          castle: ماڼۍ
+          church: کليسا
+          house: کور
+          tower: برج
+        landuse:
+          cemetery: هديره
+          forest: ځنگل
+          military: پوځي سيمه
+          mine: کان
+        leisure:
+          garden: بڼ
+          park: پارک
+          stadium: لوبغالی
+        man_made:
+          lighthouse: رڼاڅلی
+          tower: څلی
+          works: فابريکه
+        natural:
+          hill: غونډۍ
+          island: ټاپو
+          land: ځمکه
+          peak: څوکه
+          sand: شگه
+          stone: تيږه
+          tree: ونه
+          valley: دره
+          volcano: اورشيندغر
+          water: اوبه
+          wood: ځنگل
+        office:
+          company: ملتون
+        place:
+          city: ښار
+          country: هېواد
+          county: هېواد
+          farm: فارم
+          house: کور
+          houses: کورونه
+          island: ټاپو
+          islet: ټاپوگۍ
+          region: سيمه
+          sea: درياب
+          state: ايالت
+          town: ښارګوټی
+          village: کلی
+          "yes": ځای
+        shop:
+          bakery: بټيارۍ
+          butcher: قصاب
+          chemist: کيمياگر
+          florist: گل پلورنځی
+          jewelry: زرګري
+          "yes": هټۍ
+        tourism:
+          apartment: اپارتمان
+          cabin: کابین
+          gallery: انځورتون
+          guest_house: مېلمستون
+          hostel: ليليه
+          hotel: هوټل
+          information: مالومات
+          museum: موزيم
+          picnic_site: مېله ځای
+          zoo: ژوبڼ
+        tunnel:
+          "yes": تونل
+        waterway:
+          canal: کانال
+          dam: برېښناکوټ
+          river: رود
+          stream: لښتی
+          waterfall: ځوړاوبی
+      types:
+        cities: ښارونه
+        towns: ښارګوټي
+        places: ځايونه
+    results:
+      no_results: کومې پايلې و  نه موندل شوې
+      more_results: نورې پايلې
+  layouts:
+    home: کور
+    logout: وتل
+    log_in: ننوتل
+    sign_up: نومليکل
+    edit: سمول
+    history: پېښليک
+    help: لارښود
+    make_a_donation:
+      text: بسپنه ورکول
+    learn_more: نور مالومات
+  user_mailer:
+    diary_comment_notification:
+      hi: '%{to_user} سلامونه،'
+    message_notification:
+      hi: '%{to_user} سلامونه،'
+    email_confirm:
+      greeting: سلامونه،
+    lost_password:
+      greeting: سلامونه،
+  confirmations:
+    confirm:
+      button: تاييد
+    confirm_email:
+      button: تاييد
+  messages:
+    messages_table:
+      date: نېټه
+    message_summary:
+      reply_button: ځوابول
+      destroy_button: ړنگول
+    new:
+      title: پيغام لېږل
+    show:
+      title: پيغام لوستل
+      reply_button: ځواب
+    sent_message_summary:
+      destroy_button: ړنگول
+  passwords:
+    new:
+      heading: آيا پټنوم مو هېر شوی؟
+      email address: 'برېښليک پته:'
+  profiles:
+    edit:
+      image: 'انځور:'
+      new image: يو انځور ورگډول
+  sessions:
+    new:
+      title: ننوتل
+      heading: ننوتل
+      password: 'پټنوم:'
+      login_button: ننوتل
+      auth_providers:
+        github:
+          title: د گېټ هب له لارې ننوتل
+          alt: د يو گېټ هب گڼون له لارې ننوتل
+    destroy:
+      title: وتل
+      logout_button: وتل
+  site:
+    copyright:
+      foreign:
+        title: د دې ژباړې په اړه
+      native:
+        title: د دې مخ په اړه
+      legal_babble:
+        credit_1_html: موږ غواړو چې تاسو کریډیټ وکاروي لپاره &ldquo;&copy; د اوفن
+          سټریټ ميپ مرسته کوونکی&rdquo;.
+    edit:
+      user_page_link: د کارن مخ
+    export:
+      licence: منښتليک
+    sidebar:
+      search_results: د پلټنې پايلې
+      close: تړل
+    search:
+      search: پلټل
+      where_am_i: زه چېرته يم؟
+      submit_text: ورځه
+    key:
+      table:
+        entry:
+          forest: ځنگل
+          park: پارک
+          lake: ډنډ
+          reservoir: زېرمتون
+          farm: کرونده
+          cemetery: هديره
+          military: پوځي سيمه
+          school: ښوونځی
+          university: پوهنتون
+  traces:
+    new:
+      visibility_help: دا څه مانا لري؟
+      help: لارښود
+    edit:
+      visibility_help: دا څه مانا لري؟
+    show:
+      filename: 'د دوتنې نوم:'
+      download: ښکته کول
+      map: نخشه
+      edit: سمول
+      owner: 'خاوند:'
+      none: هېڅ
+      edit_trace: دا څارنه سمول
+    trace:
+      view_map: نخشه کتل
+      edit_map: نخشه سمول
+  oauth_clients:
+    show:
+      confirm: آيا تاسې ډاډه ياست؟
+    index:
+      application: کاريال نوم
+  users:
+    new:
+      title: نومليکنه
+    terms:
+      decline: ردول
+      legale_names:
+        france: فرانسه
+        italy: اېټاليا
+    show:
+      my edits: زما سمونونه
+      my messages: زما پيغامونه
+      send message: پيغام لېږل
+      edits: سمونونه
+      add as friend: ملگری ورگډول
+      email address: 'برېښليک پته:'
+      status: 'دريځ:'
+      block_history: فعاله بنديزونه
+      moderator_history: لگېدلي بنديزونه
+      comments: تبصرې
+      create_block: په دې کارن بنديز لگول
+      activate_user: دا کارن فعالول
+      confirm_user: همدا کارن تاييدول
+      hide_user: دا کارن پټول
+      unhide_user: دا کارن ښکاره کول
+      delete_user: دا کارن ړنگول
+      confirm: تاييد
+    index:
+      title: کارنان
+      heading: کارنان
+  user_role:
+    grant:
+      confirm: تاييد
+    revoke:
+      confirm: تاييد
+  user_blocks:
+    show:
+      created: جوړ شو
+      status: دريځ
+      show: ښکاره کول
+      edit: سمول
+    block:
+      show: ښکاره کول
+      edit: سمول
+    blocks:
+      creator_name: جوړونکی
+      status: دريځ
+  notes:
+    show:
+      hide: پټول
+      comment: تبصره
+  javascripts:
+    directions:
+      distance: واټن
+      instructions:
+        unnamed: بې نومه
+      time: وخت
+  redactions:
+    show:
+      description: 'څرگندونه:'
+      user: 'جوړونکی:'
+      confirm: آيا تاسې ډاډه ياست؟
+...

@@ -1,0 +1,240 @@
+# Messages for Talysh (tolışi)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Patriot Kor
+# Author: Гусейн
+---
+tly:
+  time:
+    formats:
+      friendly: '%e %B %Y %H:%M'
+  helpers:
+    submit:
+      diary_entry:
+        update: Bıxovın
+      message:
+        create: Vyǧandej
+      client_application:
+        create: Ǧejdijot
+        update: Tojə karde
+      oauth2_application:
+        update: Bıxovın
+  activerecord:
+    models:
+      country: Kišvər
+      friend: Düst
+      language: Zıvon
+      old_way: Kána Ro
+      user: Ištirokəkə
+      way: Ro
+      way_tag: Roə Nişon
+    attributes:
+      client_application:
+        name: Nom (Tələb kardə)
+      diary_comment:
+        body: Mətn
+      diary_entry:
+        user: Ištirokəkə
+        title: Myžor
+        latitude: Hevüji
+        language_code: Zıvon
+      friend:
+        user: Ištirokəkə
+        friend: Düst
+      trace:
+        user: Ištirokəkə
+        name: Nom
+        size: Pamjə
+        latitude: Hevüji
+        description: Təsvir
+        tagstring: 'Нышонон:'
+      message:
+        sender: Әвғанд
+        title: Myžor
+        body: Mətn
+      user:
+        email: E-nomə
+        description: Təsvir
+        languages: Zıvonon
+        pass_crypt: Parol
+  browse:
+    relation_member:
+      type:
+        way: Ro
+    not_found:
+      type:
+        way: ro
+    timeout:
+      type:
+        way: ro
+    redacted:
+      type:
+        way: ro
+    start_rjs:
+      load_data: Мәлумот бо жәј
+      loading: Бо карде...
+    tag_details:
+      email_link: Enomə %{email}
+  changesets:
+    changeset_paging_nav:
+      showing_page: Səhifə %{page}
+      next: Esənə →
+      previous: ← Навынәни
+    changeset:
+      no_edits: (дәгишон нин)
+    changesets:
+      id: İD
+      user: Ištirokəkə
+  dashboards:
+    popup:
+      friend: Düst
+  diary_entries:
+    diary_comment:
+      confirm: Təsdiğ
+    location:
+      edit: Дәгиши
+    comments:
+      when: Кејнә
+  doorkeeper:
+    scopes:
+      phone: Šymə telefoni numrə vinde
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          drinking_water: Peşumə Ov
+          library: Kitobxonə
+          music_school: Musiği Məktəb
+          parking: Mandəco
+          toilets: Lınqəro
+        club:
+          "yes": Klub
+        emergency:
+          access_point: Dəşəcoi Noxtə
+          ambulance_station: Çı təciliyə tibbi koməki məntəğə
+        historic:
+          house: Кә
+        landuse:
+          forest: Vişə
+          orchard: Ләлгылә боғ
+          village_green: Havzə Di
+        leisure:
+          garden: Боғ
+        natural:
+          forest: Vişə
+          land: Zəmin
+          peak: Банди бәш
+          spring: Һони
+          stone: Sığ
+          tree: Do
+          volcano: Вәшәбанд
+        place:
+          city: Шәһр
+          country: Kišvər
+          house: Кә
+          houses: Кәон
+          sea: Dıyo
+          village: Di
+        railway:
+          halt: Ғәтәри мандәҹо
+        shop:
+          books: Kitobə dükon
+          tea: Çay Vıjor
+        tourism:
+          information: Məlumot
+        waterway:
+          river: Ru
+      types:
+        places: Вырон
+    results:
+      no_results: Һичи пәјдо быәни
+      more_results: Һәниән нәтиҹә
+  layouts:
+    home: әсосә сәһифә
+    logout: Beši
+    sign_up: ғејдијот
+    edit: Sərost bykə
+    history: Torix
+    export: İxroc
+    tag_line: Дынјо Озодә Вики Хәритә
+    partners_bytemark: Bytemark Hosting
+    help: Koməq
+    community: Ҹәмјәт
+  user_mailer:
+    diary_comment_notification:
+      hi: Səlom %{to_user},
+    message_notification:
+      hi: Səlom %{to_user},
+    email_confirm:
+      greeting: Səlom,
+    lost_password:
+      greeting: Səlom,
+  messages:
+    messages_table:
+      subject: Myžor
+    message_summary:
+      destroy_button: Mole
+  profiles:
+    edit:
+      image: 'Şəkl:'
+      new image: Şəkl ziyod kardə
+  sessions:
+    suspended_flash:
+      support: dastək
+  site:
+    export:
+      title: İxroc
+      licence: Lisenzijə
+      export_button: İxroc
+    search:
+      submit_text: Dəvardej
+    key:
+      table:
+        entry:
+          forest: Vişə
+          lake: Гол
+          school: Məktəb
+  traces:
+    new:
+      help: Koməq
+    trace_optionals:
+      tags: 'Tegon:'
+    show:
+      filename: 'Faylinom:'
+      map: xəritə
+      edit: sərost bıkə
+      owner: 'Сојб:'
+      description: 'Təsvir:'
+      tags: 'Tegon:'
+      none: Ne
+    trace:
+      view_map: Tamşo kardə bə Xəritə
+      edit_map: Xəritə dəqiş karde
+      by: 'Мыәллиф:'
+      in: бә
+  oauth_clients:
+    edit:
+      title: Sərosti bıkə şımə aplikasiya
+  users:
+    new:
+      continue: Дәвом кардеј
+    show:
+      my settings: чымы кукон
+    index:
+      title: İştirakəkon
+      heading: İştirakəkon
+  user_blocks:
+    block:
+      edit: Sərost bykə
+    blocks:
+      creator_name: Мыәллиф
+      showing_page: Səhifə %{page}
+  notes:
+    show:
+      description: Təsvir
+  redactions:
+    show:
+      user: 'Офәјә быә:'
+    update:
+      flash: Дәгишон огәтә быән.
+...

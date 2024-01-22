@@ -1,0 +1,120 @@
+# Messages for Lingala (lingála)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Dimitar
+# Author: Eruedin
+---
+ln:
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  activerecord:
+    models:
+      country: Esé
+      friend: Moníngá
+      language: Lokótá
+      message: Liyébísí
+      node: Ntingá
+      relation: Mokangano
+      session: Sɛsíɔ́
+      trace: Elembo
+      user: Mosáleli
+      way: Nzelá
+    attributes:
+      diary_entry:
+        user: Mosáleli
+        title: Litɛ́mɛ
+        language_code: Lokótá
+      friend:
+        user: Mosáleli
+        friend: Moníngá
+      trace:
+        user: Mosáleli
+        name: Kómbó
+        size: Limekiseli
+        description: Bolimboli
+      message:
+        title: Litɛ́mɛ
+      user:
+        email: Mokánda
+        description: Bolimboli
+        languages: Nkótá
+        pass_crypt: Banda nayó
+  editor:
+    id:
+      name: iD
+  browse:
+    relation_member:
+      type:
+        node: Ntingá
+        way: Nzelá
+        relation: Mokangano
+    containing_relation:
+      entry_html: Mokangano %{relation_name}
+    not_found:
+      type:
+        node: ntingá
+        way: nzelá
+        relation: Mokangano
+    timeout:
+      type:
+        node: ntingá
+        way: nzelá
+        relation: mokangano
+    start_rjs:
+      loading: Bokɔngi…
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: Mwâ libándá lya mpɛ́pɔ
+        amenity:
+          bank: Bánki
+          bar: Nganda
+          cinema: Sindemá
+          clinic: Kiliníki
+          courthouse: Biló ya tibináli
+          doctors: Mónganga
+          driving_school: Eyékwelo-mótuka
+          embassy: Etómá
+          fire_station: Babomi-mɔ́tɔ
+          fuel: Límba
+          hospital: Lopitálo
+          library: Ebómbelo múku
+        place:
+          island: Esanga
+        tourism:
+          alpine_hut: Ndáko mɔkɛ́ na ngómba
+          hotel: Ndáko na mobémbo
+  layouts:
+    project_name:
+      title: MwángoMpámba
+      h1: MwángoMpámba
+  confirmations:
+    confirm_email:
+      button: Kondima
+  passwords:
+    new:
+      email address: 'Adɛlɛ́sɛ-ímɛ́lɛ:'
+  sessions:
+    new:
+      title: Ekitoli
+      heading: Ekitoli
+  traces:
+    new:
+      help: Bosálisi
+      help_url: http://wiki.openstreetmap.org/wiki/Upload
+    show:
+      download: kokɔ́ngɔlɔ
+      edit: kobimisela
+  users:
+    terms:
+      consider_pd_why_url: https://www.osmfoundation.org/wiki/License/Why_would_I_want_my_contributions_to_be_public_domain
+      legale_names:
+        france: Falansia
+        italy: Italia
+    show:
+      my edits: Bokomi Nangái
+      my settings: Palamɛ́tɛlɛ Nangái
+      confirm: Kondima
+...

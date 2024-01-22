@@ -1,0 +1,121 @@
+# Messages for Dagbani (dagbanli)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Alhassan Mohammed Awal
+# Author: Amire80
+# Author: Kalakpagh
+# Author: Munkaila Sulemana
+# Author: Sir Amugi
+---
+dag:
+  helpers:
+    submit:
+      diary_comment:
+        create: Zaŋpkɛhi
+      diary_entry:
+        create: Poloni yihibu
+        update: Dariza pahibu
+      issue_comment:
+        create: Pahimi tɔɣino
+      message:
+        create: Tahima
+      client_application:
+        create: Maŋ pahibu kundi ni
+        update: Dariza pahibu
+      trace:
+        create: Kpɛhibu
+        update: Kpɛhimi taɣibu nima
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: taliŋ daa daka ŋmanila dimi niŋ dede
+        display_name_is_user_n: a ku tooi nyɛ _n naɣi la n nyɛ a "user id"
+    models:
+      country: Tiŋgbani
+      diary_comment: Lahabali kundi tɔɣino
+      diary_entry: Lahabali kundi kpɛhibu
+      friend: Zo
+      issue: Yɛltɔɣa
+      language: Balli
+      message: Lahabali
+      node: Guhimbu
+      old_relation: Biɛhi kurili
+      old_relation_member: Biɛhi kurilini nira
+      old_way: Kurimbuna biɛhigu
+      relation: Biɛhigu
+      relation_member: Biɛhigu puuni nira
+      report: Lahabali
+      session: Yaɣili
+      trace: Niŋ dola
+      tracepoint: Niŋ doli pilli
+      user: Ŋun mali n tumda
+      user_preference: Ŋun zaŋdi n tumda ni bɔri shɛli
+      user_token: Ŋun zaŋdi n tumda pini
+      way: Soli
+      way_node: So doligu
+    attributes:
+      client_application:
+        name: Yuli tuya ni di biɛni
+        callback_url: Labi boli
+        support_url: Soŋsim URL
+        allow_read_prefs: karimma ŋun zaŋdi tumdi tuma ni bɔri shɛli
+        allow_write_prefs: malimi bɛ ni piigi piiri shɛŋa ni bɛ zaŋ n tum tuma maa
+        allow_write_diary: nammi kundi din yɛn deeri yɛla, tɔɣino nima ka bo zonima
+        allow_write_notes: malimali lahabali gbahira
+      diary_comment:
+        body: Niŋgbuna
+      diary_entry:
+        user: Ŋun zaŋdi tumdi tuma
+        title: Baŋsim yaɣili
+        language_code: Balli
+      friend:
+        user: Ŋun zaŋdi tumdi tuma
+        friend: Zo
+      trace:
+        user: Ŋun zaŋdi tumdi tuma
+        visible: Dini tooi nya ni nini
+        name: Chaaka yuli
+        size: Galisim tariga
+        public: Salo
+        description: Buɣisibu
+        gpx_file: Kpɛhimi GPX Kundi
+        visibility: Nyɛbu
+      message:
+        sender: Ŋun zaŋdi tahira
+        title: Baŋsim yaɣili
+        body: Niŋgbuŋ
+        recipient: Ŋun yɛn deegi
+      report:
+        category: Piimi a lahabali ŋɔ daliri
+        details: Dimisuɣilo pahimi lahibali din ziligi n jɛndi yɛlimuɣisirili ŋɔ (di
+          niŋ talahi).
+      user:
+        email: Taliŋ kpanjɔɣu
+        active: Din na tumda
+        display_name: Yihimi yuli pani poloni
+        description: Nahingbana
+        languages: Bala
+        pass_crypt: Din liriti ashili
+        pass_crypt_confirmation: Saɣiti din liriti ashili
+  datetime:
+    distance_in_words_ago:
+      half_a_minute: Minti pirigili saha
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        natural:
+          atoll: Dingili mɔɣli
+          peninsula: Peninsula‎
+        place:
+          archipelago: Archipelago
+  messages:
+    heading:
+      my_outbox: Ŋ lahabaya din yiri adaka
+  passwords:
+    new:
+      email address: 'Yimaili addrɛɛsi:'
+  sessions:
+    new:
+      email or username: Yimail adrɛɛri bee ŋunsuyuli
+      password: Paswɛdi
+...

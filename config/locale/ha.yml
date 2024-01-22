@@ -1,0 +1,52 @@
+# Messages for Hausa (Hausa)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Abbaty
+# Author: DaSupremo
+# Author: Gwanki
+# Author: Hamza DK
+# Author: Salihu aliyu
+# Author: Yusuf Sa'adu
+---
+ha:
+  activerecord:
+    errors:
+      messages:
+        display_name_is_user_n: ba zai iya zama mai amfani ba sai dai idan n shine
+          id mai amfani
+  dashboards:
+    show:
+      title: Gidauniya ta
+  user_mailer:
+    gpx_description:
+      description_with_tags_html: 'Ya yi kama da fayil ɗin GPX ɗinku %{trace_name}
+        tare da bayanin  %{trace_description} da kuma alamun masu zuwa: %{tags}'
+      description_with_no_tags_html: Ya yi kama da fayil ɗin GPX ɗinku %{trace_name}
+        tare da bayanin %{trace_description} kuma babu alamun
+    gpx_failure:
+      hi: Barka dai %{to_user},
+      more_info_html: Ana iya samun ƙarin bayani game da gazawar shigo da GPX da yadda
+        za a guje su a %{url}.
+    gpx_success:
+      hi: Barka dai %{to_user},
+  passwords:
+    new:
+      email address: Adireshin imel
+  sessions:
+    new:
+      email or username: Adireshin imel ko sunan mai amfani
+      password: kalman sirri
+  site:
+    welcome:
+      continue_authorization: Ci gaba da izini
+  oauth:
+    scopes:
+      read_email: Karanta user email address
+      skip_authorization: Karban bayani kai tsaye
+  users:
+    show:
+      my_dashboard: Farfajiya ta
+  javascripts:
+    site:
+      embed_html_disabled: Ba a samun HTML sakawa don wannan taswirar taswira
+...

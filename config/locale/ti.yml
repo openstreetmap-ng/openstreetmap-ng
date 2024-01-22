@@ -1,0 +1,71 @@
+# Messages for Tigrinya (ትግርኛ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Joanmp17
+---
+ti:
+  helpers:
+    submit:
+      diary_comment:
+        create: ኣቐምጥ
+      diary_entry:
+        update: ኣሓድስ
+      client_application:
+        update: ኣመዓራርይ
+  activerecord:
+    models:
+      country: ሃገር
+      language: ቋንቋ
+      message: መልእኽቲ
+      user: ተጠቃሚ
+    attributes:
+      diary_entry:
+        user: ተጠቃሚ
+        language_code: ቋንቋ
+      friend:
+        user: ተጠቃሚ
+      trace:
+        user: ተጠቃሚ
+        name: ስም ፋይል
+        public: ህዝባዊ
+        description: መግለጺ
+      user:
+        email: ኢሜይል
+        description: መግለጺ
+        home_lat: ማእገር
+        home_lon: ዝንግሪር
+        languages: ቋንቋታት
+        pass_crypt: ቃለ-ምስጢር
+  auth:
+    providers:
+      wikipedia: ዊኪፐድያ
+  browse:
+    closed: ዝተዓጽወ
+    version: ሕታም
+    location: ቦታ፦
+    changeset:
+      belongs_to: ደራሲ
+      discussion: ምይይጥ
+  changesets:
+    changesets:
+      user: ተጠቃሚ
+      comment: ርእይቶ
+  diary_entries:
+    form:
+      location: ቦታ
+    show:
+      login: ብመንነት እተው
+    diary_comment:
+      confirm: ኣረጋግጽ
+    location:
+      location: ቦታ፦
+      edit: ኣመዓራርይ
+    comments:
+      comment: ርእይቶ
+  geocoder:
+    results:
+      no_results: ውጺኢታት ኣይተረኸቡን
+  notes:
+    show:
+      description: መግለጺ
+...

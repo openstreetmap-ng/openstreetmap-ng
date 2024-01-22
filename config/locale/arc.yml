@@ -1,0 +1,106 @@
+# Messages for Aramaic (ܐܪܡܝܐ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Basharh
+# Author: Man2fly2002
+---
+arc:
+  html:
+    dir: rtl
+  activerecord:
+    models:
+      country: ܐܬܪܐ
+      friend: ܚܒܪܐ
+      language: ܠܫܢܐ
+      message: ܐܓܪܬܐ
+      node: ܩܛܪܐ
+      user: ܡܦܠܚܢܐ
+    attributes:
+      diary_entry:
+        user: ܡܦܠܚܢܐ
+        title: ܟܘܢܝܐ
+        language_code: ܠܫܢܐ
+      friend:
+        user: ܡܦܠܚܢܐ
+      trace:
+        user: ܡܦܠܚܢܐ
+        visible: ܡܬܚܙܝܢܐ
+        name: ܫܡܐ
+        size: ܥܓܪܐ
+        public: ܓܠܝܐ
+      message:
+        title: ܟܘܢܝܐ
+      user:
+        email: ܒܝܠܕܪܐ ܐܠܩܛܪܘܢܝܐ
+        active: ܚܦܝܛܐ
+        display_name: ܫܡܐ ܡܬܚܙܝܢܐ
+        languages: ܠܫܢ̈ܐ
+        pass_crypt: ܡܠܬܐ ܕܥܠܠܐ
+  browse:
+    timeout:
+      type:
+        way: ܐܘܪܚܐ
+    tag_details:
+      tags: 'ܪ̈ܘܫܡܐ:'
+  changesets:
+    changeset_paging_nav:
+      next: ܕܒܬܪ »
+      previous: « ܕܩܕܡ
+    changesets:
+      id: ܗܝܝܘܬܐ
+      user: ܡܦܠܚܢܐ
+  diary_entries:
+    form:
+      location: 'ܫܘܦܐ:'
+      use_map_link: ܡܦܠܚ ܚܪܝܛܐ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: ܬܪܥܝܘܬܐ
+        amenity:
+          college: ܟܘܠܝܬܐ
+          embassy: ܐܝܙܓܕܘܬܐ
+          fuel: ܝܩܕ̈ܐ
+          taxi: ܪܕܝܬܐ ܠܐܓܪܐ
+        historic:
+          church: ܥܕܬܐ
+          house: ܒܝܬܐ
+        landuse:
+          forest: ܥܒܐ
+        leisure:
+          garden: ܓܢܬܐ
+        place:
+          city: ܡܕܝܢܬܐ
+          country: ܐܬܪܐ
+          county: ܗܘܦܪܟܝܐ
+          farm: ܡܙܪܥܬܐ
+          house: ܒܝܬܐ
+          houses: ܒ̈ܬܐ
+          island: ܓܙܪܬܐ
+          islet: ܓܙܪܬܐ ܙܥܘܪܬܐ
+          sea: ܝܡܐ
+          state: ܐܘܚܕܢܐ
+          subdivision: ܡܦܠܓܬܐ ܦܪܥܝܬܐ
+          village: ܡܬܐ
+        waterway:
+          river: ܢܗܪܐ
+  layouts:
+    logout: ܦܠܘܛ
+    log_in: ܥܘܠ
+    sign_up: ܒܪܝ ܚܘܫܒܢܐ
+    edit: ܫܚܠܦ
+    history: ܬܫܥܝܬܐ
+    export: ܐܦܩ
+  user_mailer:
+    email_confirm:
+      greeting: ܫܠܡܐ،
+  messages:
+    inbox:
+      no_messages_yet_html: ܠܝܬ ܠܟ ܥܕ ܐܓܪ̈ܬܐ. ܠܡܢܐ ܠܐ ܬܩܪܐ ܚܕܟܡܐ %{people_mapping_nearby_link}؟
+    messages_table:
+      from: ܡܢ
+      subject: ܡܠܘܐܐ
+      date: ܣܝܩܘܡܐ
+...

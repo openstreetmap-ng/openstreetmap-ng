@@ -1,0 +1,373 @@
+# Messages for Toki Pona (toki pona)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Juwan
+# Author: Robin van der Vliet
+# Author: Somasis
+# Author: Tbodt
+---
+tok:
+  time:
+    formats:
+      friendly: tenpo ilo %H:%M lon tenpo suno %Y-%m-%d
+  helpers:
+    file:
+      prompt: o wile e lipu
+    submit:
+      diary_comment:
+        create: o pana
+      diary_entry:
+        create: o pana
+        update: o pana sin
+      issue_comment:
+        create: o toki
+      message:
+        create: o pana
+      client_application:
+        create: o pali e sijelo
+        update: o ante
+      oauth2_application:
+        create: o pali e sijelo
+        update: o pana sin
+      trace:
+        create: o pana
+        update: o awen e ante
+  activerecord:
+    models:
+      changeset: kulupu ante
+      country: ma lawa
+      friend: jan pona
+      issue: pakala
+      language: toki
+      message: toki pi ilo lipu
+      node: ijo
+      user: jan
+    attributes:
+      diary_comment:
+        body: sijelo
+      diary_entry:
+        user: jan
+        language_code: toki
+      friend:
+        friend: jan pona
+      user:
+        email: nimi lon ilo toki Email
+        email_confirmation: nimi lon ilo toki Email kin
+        new_email: o pali e nimi sin pi ilo toki Email
+        display_name: nimi pona
+        pass_crypt: nimi open
+        pass_crypt_confirmation: nimi open kin
+  editor:
+    id:
+      description: ilo iD (ilo ante lon ilo linja)
+    remote:
+      description: ilo ante lon ilo sina (ilo JOSM, ilo Potlatch, ilo Merkaartor)
+  account:
+    deletions:
+      show:
+        delete_display_name: moli sijelo la nimi pona sina li kama weka. sijelo ante
+          li ken kepeken nimi sina.
+        cancel: ala
+  accounts:
+    edit:
+      my settings: nasin mi
+      current email address: nimi lon pi ilo toki Email
+  browse:
+    closed: pini
+    in_changeset: kulupu ante
+    view_history: o lukin e tenpo pini
+    changeset:
+      title: 'kulupu ante: %{id}'
+      feed:
+        title: kulupu ante %{id}
+    not_found:
+      type:
+        changeset: kulupu ante
+    timeout:
+      type:
+        changeset: kulupu ante
+    query:
+      title: ijo alasa pi luka sina
+      introduction: o luka e lipu ma la o alasa e ijo lon luka
+      enclosing: ijo ni li jo e ni
+  changesets:
+    index:
+      title: kulupu ante
+      title_friend: kulupu ante tan jan pona mi
+      title_nearby: kulupu ante tan jan poka
+  dashboards:
+    contact:
+      km away: mute %{count}km weka tan sina
+      m away: mute %{count}m weka tan sina
+      latest_edit_html: 'ante nanpa pini (%{ago}):'
+    popup:
+      friend: jan pona
+    show:
+      title: tomo mi
+      my friends: jan pona mi
+      nearby users: jan ante lon poka
+      friends_changesets: kulupu ante pi jan pona mi
+      friends_diaries: lipu pi jan pona mi
+      nearby_changesets: kulupu ante tan jan poka
+      nearby_diaries: lipu pi jan poka
+  diary_entries:
+    index:
+      title_friends: lipu pi jan pona mi
+      title_nearby: lipu pi jan poka
+  geocoder:
+    results:
+      no_results: alasa li jo ala e ijo
+  reports:
+    new:
+      title_html: o toki e ike tan %{link}
+  layouts:
+    home: o tawa ma mi
+    sign_up: o pali e sijelo
+    start_mapping: o pali ma
+    history: tenpo pini
+    export: o poki ante
+    edit_with: o ante kepeken %{editor}
+    intro_header: o kama pona tawa lipu OpenStreetMap!
+    intro_text: lipu OpenStreetMap li lipu pi ma ale a, li lon tan pali pi jan sama
+      sina. jan ale li ken kepeken lipu ma lon nasin pana pona.
+    hosting_partners_html: 'kulupu ni li wawa e ken awen pi kulupu OpenStreetMap:
+      %{ucl}, %{fastly}, %{bytemark}, %{partners}.'
+    partners_fastly: kulupu Fastly
+    partners_bytemark: kulupu Bytemark Hosting
+    partners_partners: kulupu ante
+    help: o kama sona
+    about: kon kulupu
+    make_a_donation:
+      text: o pana mani
+    learn_more: o kama sona
+  user_mailer:
+    signup_confirm:
+      subject: '[OpenStreetMap] o kama pona tawa lipu ma OpenStreetMap'
+  messages:
+    messages_table:
+      from: tan
+      to: tawa
+    message_summary:
+      destroy_button: o weka
+    new:
+      send_message_to_html: o toki tawa %{name}
+    show:
+      destroy_button: o weka
+    sent_message_summary:
+      destroy_button: o weka
+  preferences:
+    show:
+      title: wile mi
+      edit_preferences: o ante e wile sina
+    edit:
+      save: o sin e wile
+      cancel: ala
+  profiles:
+    edit:
+      title: o ante e lipu jan sina
+      save: o sin e lipu jan
+      cancel: ala
+      image: sitelen jan
+      gravatar:
+        gravatar: o kepeken sitelen tan lipu Gravatar
+        what_is_gravatar: lipu Gravatar li seme?
+      new image: o pana e sitelen jan
+      delete image: o weka e sitelen ni
+      home location: ma mi
+      update home location on click: mi luka e lipu ma la o sin e nanpa pi ma mi
+  shared:
+    richtext_field:
+      edit: o ante
+      preview: o lukin taso
+  site:
+    export:
+      title: o poki e ma
+      too_large:
+        body: 'suli mute pi wile ma li mute ike. mi ken ala pana e ni lon lipu ma
+          pi nasin XML. sina ken pona: o suli e lukin ma, anu o lili e wile ma, anu
+          o kepeken poki ma ante (poka ma li lon toki anpa).'
+      export_button: o poki
+    help:
+      welcome:
+        title: o kama pona tawa lipu OpenStreetMap
+    any_questions:
+      title: sina wile e sona seme?
+    sidebar:
+      search_results: ijo alasa
+    search:
+      search: o alasa
+      from: tan
+      to: tawa
+      where_am_i: ni li ma seme?
+      submit_text: o tawa
+      reverse_directions_text: open o kama pini
+    welcome:
+      title: kama pona!
+      introduction: o kama pona tawa lipu ma OpenStreetMap. lipu ma ni la, jan ale
+        li ken lukin, li ken ante, li ken pana. sijelo sina li lon kulupu ni la, sina
+        ken pona e lipu ma a! sina o kama sona e ijo suli tan lipu sona ni.
+      whats_on_the_map:
+        title: lipu ma li wile e ijo seme?
+      basic_terms:
+        title: nimi suli tawa pali lipu
+      rules:
+        title: nasin pi kulupu pona!
+      start_mapping: o kama pali a
+      add_a_note:
+        title: sina wile ala pali, o pana e toki pi wile pali!
+  traces:
+    edit:
+      cancel: ala
+  application:
+    settings_menu:
+      account_settings: nasin sijelo
+      oauth1_settings: nasin pi nasin OAuth 1
+      oauth2_applications: ilo pi nasin OAuth 2
+  users:
+    new:
+      title: o kama lon kulupu OpenStreetMap
+      display name description: jan ale li ken lukin e nimi pona sina. sina ken ante
+        e nimi pona lon tenpo kama lon nasin sijelo sina.
+      continue: o pali e sijelo
+    show:
+      my diary: lipu mi
+      my edits: pali mi
+      my traces: lipu pi tawa mi
+      my profile: lipu jan mi
+      my settings: nasin mi
+      my comments: toki mi
+      my_dashboard: tomo mi
+      edit_profile: o ante e lipu jan
+      send message: o toki tawa ona
+      diary: lipu
+      edits: ante
+      traces: lipu tawa
+      notes: wile pali
+      remove as friend: o kama ala jan pona
+      add as friend: o kama jan pona
+      mapper since: 'ona li pali lon lipu ma tan tenpo:'
+      email address: 'nimi pi ilo toki Email:'
+      comments: toki
+      report: o toki e ike pi jan ni
+  notes:
+    new:
+      title: wile pali sin
+      add: o pana
+  javascripts:
+    share:
+      title: o pana
+      cancel: ala
+      link: linja anu toki ilo HTML
+      short_link: linja lili
+      geo_uri: linja pi nanpa ma
+      custom_dimensions: o sitelen kepeken mute suli pi wile sina
+      format: 'nasin sitelen:'
+      include_marker: o jo e sitelen lili pi nanpa ma wile
+    key:
+      title: sitelen ma
+    map:
+      zoom:
+        in: o suli
+        out: o lili
+      locate:
+        title: o lukin e ma mi
+      layers:
+        header: selo ma
+        notes: toki pi wile pali
+        data: sona ma
+        title: selo
+    site:
+      edit_disabled_tooltip: o suli e lipu ma tawa pali ma
+      createnote_disabled_tooltip: o suli e lipu ma la o toki e wile pali
+      map_data_zoom_in_tooltip: o suli e lipu ma la o lukin e sona ma
+      queryfeature_tooltip: o alasa kepeken luka
+      queryfeature_disabled_tooltip: o suli e lipu ma la o alasa e ijo ma
+    edit_help: o tawa e lipu ma o suli e ma pi wile sina la o luka e ni
+    directions:
+      ascend: mute pi tawa sewi
+      engines:
+        fossgis_osrm_bike: ilo tawa (kepeken ilo OSRM)
+        fossgis_osrm_car: tomo tawa (kepeken ilo OSRM)
+        fossgis_osrm_foot: noka (kepeken ilo OSRM)
+        graphhopper_bicycle: ilo tawa (kepeken ilo GraphHopper)
+        graphhopper_car: tomo tawa (kepeken ilo GraphHopper)
+        graphhopper_foot: noka (kepeken ilo GraphHopper)
+      descend: mute pi tawa anpa
+      directions: nasin tawa
+      distance: mute tawa
+      instructions:
+        continue_without_exit: o awen tawa lon nasin %{name}
+        slight_right_without_exit: o tawa teje lili tawa nasin %{name}
+        offramp_right: o kepeken nasin lon teje
+        offramp_right_with_exit: o tawa nanpa %{exit} lon teje
+        offramp_right_with_exit_name: o tawa nanpa %{exit} lon teje tawa nasin %{name}
+        offramp_right_with_exit_directions: o tawa nanpa %{exit} lon teje tawa nasin
+          %{directions}
+        offramp_right_with_exit_name_directions: o tawa nanpa %{exit} lon teje tawa
+          nasin %{name}, tawa %{directions}
+        offramp_right_with_name: o kepeken nasin lon teje tawa nasin %{name}
+        offramp_right_with_directions: o kepeken nasin lili lon teje tawa nasin %{directions}
+        offramp_right_with_name_directions: o kepeken nasin lon soto tawa nasin %{name},
+          tawa %{directions}
+        onramp_right_without_exit: o tawa teje lon nasin lili tawa nasin %{name}
+        onramp_right_with_directions: o tawa teje tawa nasin lili tawa nasin %{directions}
+        onramp_right_with_name_directions: o tawa teje lon nasin lili tawa nasin %{name},
+          tawa %{directions}
+        onramp_right_without_directions: o tawa teje tawa nasin lili
+        onramp_right: o tawa teje tawa nasin lili
+        endofroad_right_without_exit: o tawa teje tawa nasin %{name} lon pini nasin
+        sharp_right_without_exit: o tawa teje mute tawa nasin %{name}
+        sharp_left_without_exit: o tawa soto mute tawa nasin %{name}
+        turn_left_without_exit: o tawa soto tawa nasin %{name}
+        offramp_left: o kepeken nasin lon soto
+        offramp_left_with_exit: o tawa nanpa %{exit} lon soto
+        offramp_left_with_exit_name: o tawa nanpa %{exit} lon soto tawa nasin %{name}
+        offramp_left_with_exit_directions: o tawa nanpa %{exit} lon soto tawa nasin
+          %{directions}
+        offramp_left_with_exit_name_directions: o tawa nanpa %{exit} lon soto tawa
+          nasin %{name}, tawa %{directions}
+        offramp_left_with_name: o kepeken nasin lon soto tawa nasin %{name}
+        offramp_left_with_directions: o kepeken nasin lili lon soto tawa nasin %{directions}
+        offramp_left_with_name_directions: o kepeken nasin lon soto tawa nasin %{name},
+          tawa %{directions}
+        onramp_left_without_exit: o tawa soto lon nasin lili tawa nasin %{name}
+        onramp_left_with_directions: o tawa soto tawa nasin lili tawa nasin %{directions}
+        onramp_left_with_name_directions: o tawa soto lon nasin lili tawa nasin %{name},
+          tawa %{directions}
+        onramp_left_without_directions: o tawa soto tawa nasin lili
+        onramp_left: o tawa soto tawa nasin lili
+        endofroad_left_without_exit: o tawa soto tawa nasin %{name} lon pini nasin
+        slight_left_without_exit: o tawa soto lili tawa nasin %{name}
+        follow_without_exit: o tawa lon nasin %{name}
+        roundabout_without_exit: nasin sike la o tawa nasin %{name}
+        stay_roundabout_without_exit: o tawa lon nasin sike %{name}
+        start_without_exit: o kama lon %{name}
+        destination_without_exit: o kama tawa pini
+        roundabout_with_exit: nasin sike la o tawa nanpa %{exit} tawa nasin %{name}
+        exit_roundabout: o weka tan nasin sike tawa nasin %{name}
+        unnamed: nasin pi nimi ala
+        courtesy: nasin tawa ni li tan %{link}
+        exit_counts:
+          first: nanpa wan
+          second: nanpa tu
+          third: nanpa tu wan
+          fourth: nanpa tu tu
+          fifth: nanpa luka
+          sixth: nanpa luka wan
+          seventh: nanpa luka tu
+          eighth: nanpa luka tu wan
+          ninth: nanpa luka tu tu
+          tenth: nanpa luka luka
+      time: tenpo
+    query:
+      node: ijo
+      way: ijo nasin
+      relation: kulupu ijo
+    context:
+      directions_from: o tawa tan ni
+      directions_to: o tawa ni
+      add_note: o pana e wile pali lon ni
+      show_address: o lukin e nimi pi ma ni
+      query_features: o alasa e ijo lon ni
+      centre_map: insa lipu o tawa ni
+...

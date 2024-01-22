@@ -1,0 +1,40 @@
+# Messages for Waray (Winaray)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Harvzsf
+---
+war:
+  activerecord:
+    models:
+      language: Pinulongán
+      message: Mensahe
+    attributes:
+      diary_entry:
+        user: Gumaramit
+        latitude: Latitud
+        longitude: Longitud
+        language_code: Pinulongán
+      friend:
+        user: Gumaramit
+        friend: Sangkay
+      trace:
+        user: Gumaramit
+        visible: Nakikit-an
+        name: Ngaran
+        size: Kadako
+        latitude: Latitud
+        longitude: Longitud
+        public: Publiko
+      user:
+        email: E-mail
+        active: Aktibo
+        languages: Mga pinulongán
+        pass_crypt: Tigaman pagsakob
+  browse:
+    created: Ginhímò
+    version: Bersyon
+  changesets:
+    changeset_paging_nav:
+      next: Sunod »
+      previous: « Naha-uná
+...

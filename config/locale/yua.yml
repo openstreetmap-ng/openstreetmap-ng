@@ -1,0 +1,11 @@
+# Messages for Maaya T'aan (Maaya T'aan)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+---
+yua:
+  sessions:
+    new:
+      auth_providers:
+        github:
+          title: Ooken yeetel Github
+...

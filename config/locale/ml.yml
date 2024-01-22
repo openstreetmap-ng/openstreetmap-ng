@@ -1,0 +1,512 @@
+# Messages for Malayalam (മലയാളം)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Adithyak1997
+# Author: Akhilan
+# Author: Jameela P.
+# Author: Kavya Manohar
+# Author: Kiran Gopi
+# Author: Manojk
+# Author: Naveenpf
+# Author: Netha Hussain
+# Author: Praveenp
+# Author: Sabarish
+---
+ml:
+  time:
+    formats:
+      friendly: '%e %B %Y-നു %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: സേവ് ചെയ്യുക
+      diary_entry:
+        create: പ്രസിദ്ധീകരിക്കുക
+        update: പുതുക്കുക
+      issue_comment:
+        create: കുറിപ്പ് ചേർക്കുക
+      message:
+        create: അയയ്ക്കുക
+      client_application:
+        create: രജിസ്റ്റർ ചെയ്യുക
+        update: പുതുക്കുക
+      trace:
+        create: അപ്‌‌ലോഡ് ചെയ്യുക
+        update: മാറ്റങ്ങൾ സേവ് ചെയ്യുക
+  activerecord:
+    models:
+      acl: അഭിഗമ്യതാ നിയന്ത്രണപട്ടിക
+      changeset: മാറ്റങ്ങൾ
+      country: രാജ്യം
+      friend: സുഹൃത്ത്
+      issue: പ്രശ്നം
+      language: ഭാഷ
+      message: സന്ദേശം
+      node: നോഡ്
+      node_tag: നോഡ് ടാഗ്
+      old_node: പഴയ നോഡ്
+      old_node_tag: പഴയ നോഡിന്റെ ടാഗ്
+      old_relation: പഴയ ബന്ധം
+      old_relation_member: പഴയ ബന്ധു
+      old_relation_tag: പഴയ ബന്ധത്തിന്റെ ടാഗ്
+      old_way: പഴയ വഴി
+      old_way_node: പഴയ വഴിയുടെ നോഡ്
+      old_way_tag: പഴയ വഴിയുടെ ടാഗ്
+      relation: ബന്ധം
+      session: സെഷൻ
+      trace: ട്രേസ്
+      tracepoint: ട്രേസ് ബിന്ദു
+      tracetag: ട്രേസ് ടാഗ്
+      user: ഉപയോക്താവ്
+      user_preference: ഉപയോക്തൃ ക്രമീകരണങ്ങൾ
+      user_token: ഉപയോക്തൃചീട്ട്
+      way: വഴി
+      way_node: വഴിയുടെ നോഡ്
+      way_tag: വഴിയുടെ ടാഗ്
+    attributes:
+      diary_comment:
+        body: ഉള്ളടക്കം
+      diary_entry:
+        user: ഉപയോക്താവ്
+        title: വിഷയം
+        latitude: അക്ഷാംശം
+        longitude: രേഖാംശം
+        language_code: ഭാഷ
+      friend:
+        user: ഉപയോക്താവ്
+        friend: സുഹൃത്ത്
+      trace:
+        user: ഉപയോക്താവ്
+        visible: ദൃശ്യം
+        name: പേര്
+        size: വലിപ്പം
+        latitude: അക്ഷാംശം
+        longitude: രേഖാംശം
+        public: സാർവ്വജനികം
+        description: വിവരണം
+      message:
+        sender: അയയ്ക്കുന്നയാൾ
+        title: വിഷയം
+        body: ഉള്ളടക്കം
+        recipient: സ്വീകർത്താവ്
+      redaction:
+        description: വിവരണം
+      user:
+        email: ഇമെയിൽ
+        active: സജീവം
+        display_name: പ്രദർശിപ്പിക്കപ്പെടുന്ന നാമം
+        description: വിവരണം
+        home_lat: 'അക്ഷാംശം:'
+        home_lon: 'രേഖാംശം:'
+        languages: ഭാഷ
+        pass_crypt: രഹസ്യവാക്ക്
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: ഏകദേശം ഒരു മണിക്കൂർ മുമ്പ്
+        other: ഏകദേശം %{count} മണിക്കൂർ മുമ്പ്
+      about_x_months:
+        one: ഏകദേശം ഒരു മാസം മുമ്പ്
+        other: ഏകദേശം %{count} മാസം മുമ്പ്
+      about_x_years:
+        one: ഏകദേശം ഒരു വർഷം മുമ്പ്
+        other: ഏകദേശം %{count} വർഷം മുമ്പ്
+      almost_x_years:
+        one: ഒരു വർഷത്തോളം മുമ്പ്
+        other: '%{count} വർഷത്തോളം മുമ്പ്'
+      half_a_minute: അരമിനിറ്റ് മുമ്പ്
+  editor:
+    default: സ്വതേ (നിലവിൽ %{name})
+    id:
+      name: ഐഡി
+      description: ഐഡി (ബ്രൗസർ എഡിറ്റർ)
+    remote:
+      name: വിദൂരനിയന്ത്രണം
+      description: വിദൂരനിയന്ത്രണം (JOSM അല്ലെങ്കിൽ Merkaartor)
+  auth:
+    providers:
+      google: ഗൂഗിൾ
+      facebook: ഫേസ്ബുക്ക്
+      microsoft: വിൻഡോസ് ലൈവ്
+      github: ജിറ്റ്ഹബ്ബ്
+      wikipedia: വിക്കിപീഡിയ
+  api:
+    notes:
+      rss:
+        title: ഓപ്പൺസ്ട്രീറ്റ്‌മാപ്പ് കുറിപ്പുകൾ
+      entry:
+        comment: അഭിപ്രായം
+        full: പൂർണ്ണമായ കുറിപ്പ്
+  browse:
+    created: സൃഷ്ടിച്ചത്
+    closed: അടച്ചു
+    version: പതിപ്പ്‌
+    in_changeset: മാറ്റങ്ങൾ
+    anonymous: അജ്ഞാതം
+    no_comment: (കുറിപ്പുകൾ ഇല്ല)
+    part_of: ഭാഗമാണ്
+    download_xml: ഡൗൺലോഡ് XML
+    view_history: നാൾവഴി കാണുക
+    view_details: അധികവിവരങ്ങൾ പ്രദർശിപ്പിക്കുക
+    location: 'സ്ഥലം:'
+    changeset:
+      title: 'മാറ്റങ്ങൾ: %{id}'
+      belongs_to: സ്രഷ്ടാവ്
+      comment: അഭിപ്രായങ്ങൾ (%{count})
+      changesetxml: എക്സ്‌.എം.എൽ. മാറ്റഗണം
+      osmchangexml: ഓഎസ്‌എം ചേഞ്ച് എക്സ്‌എംഎൽ
+      feed:
+        title: മാറ്റഗണം %{id}
+        title_comment: മാറ്റഗണം %{id} -  %{comment}
+      join_discussion: സംവാദത്തിൽ പങ്കെടുക്കുവാൻ പ്രവേശിക്കുക
+      discussion: സംവാദം
+    way:
+      title_html: 'വഴി: %{name}'
+      nodes: നോഡ്
+    relation:
+      members: അംഗങ്ങൾ
+    relation_member:
+      type:
+        node: നോഡ്
+        way: വഴി
+        relation: ബന്ധം
+    not_found:
+      sorry: 'ക്ഷമിക്കണം, #%{id}ഐ.ഡി.യുള്ള %{type} കണ്ടെത്താൻ കഴിഞ്ഞില്ല.'
+      type:
+        node: നോഡ്
+        way: വഴി
+        relation: ബന്ധം
+        changeset: മാറ്റങ്ങൾ
+        note: കുറിപ്പ്
+    timeout:
+      sorry: ക്ഷമിക്കണം, %{id} ഐഡി യുള്ള %{type}ലെ വിവരങ്ങൾക്ക് കണ്ടത്താവുന്നതിനെക്കാൾ
+        നീളം കൂടുതലാണ്.
+      type:
+        node: നോഡ്
+        way: വഴി
+        relation: ബന്ധം
+        changeset: മാറ്റങ്ങൾ
+        note: കുറിപ്പ്
+    redacted:
+      type:
+        node: നോഡ്
+        way: വഴി
+        relation: ബന്ധം
+    start_rjs:
+      loading: ശേഖരിക്കുന്നു...
+    tag_details:
+      tags: ടാഗുകൾ
+      wikipedia_link: ഈ %{page}ലേഖനം വിക്കിപീഡിയയിൽ
+  changesets:
+    changeset_paging_nav:
+      showing_page: താൾ %{page}
+      next: അടുത്തത് »
+      previous: « മുൻപത്തേത്
+    changeset:
+      anonymous: അജ്ഞാതം
+      no_edits: (തിരുത്തലുകളില്ല)
+    changesets:
+      id: ഐഡി
+      saved_at: സേവ് ചെയ്തത്
+      user: ഉപയോക്താവ്
+      comment: കുറിപ്പ്
+      area: വിസ്തീർണ്ണം
+    index:
+      title: മാറ്റങ്ങൾ
+  dashboards:
+    contact:
+      km away: '%{count}കി.മീ. അകലെ'
+      m away: '%{count}മൈൽ അകലെ'
+      latest_edit_html: '%{ago} മുമ്പത്തെ അവസാന തിരുത്തൽ:'
+    show:
+      no friends: താങ്കൾ ഇതുവരെ സുഹൃത്തുക്കളെയൊന്നും ചേർത്തിട്ടില്ല.
+  diary_entries:
+    form:
+      location: 'സ്ഥലം:'
+    show:
+      leave_a_comment: ഒരു കുറിപ്പിടുക
+      login: പ്രവേശിക്കുക
+    diary_entry:
+      confirm: സ്ഥിരീകരിക്കുക
+    diary_comment:
+      hide_link: ഈ കുറിപ്പ് മറയ്ക്കുക
+      confirm: സ്ഥിരീകരിക്കുക
+    location:
+      location: 'സ്ഥലം:'
+      view: കാണുക
+      edit: തിരുത്തുക
+    comments:
+      post: പോസ്റ്റ്
+      when: എപ്പോൾ
+      comment: അഭിപ്രായം
+      newer_comments: പുതിയ അഭിപ്രായങ്ങൾ
+      older_comments: പഴയ അഭിപ്രായങ്ങൾ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aerialway:
+          cable_car: കേബിൾ കാർ
+          pylon: പൈലോൺ
+        aeroway:
+          aerodrome: എയ്റോഡ്രോം
+          apron: ഏപ്രൺ
+          gate: പടിപ്പുര
+          helipad: ഹെലിപ്പാഡ്
+          parking_position: പാർക്ക് ചെയ്യാനുള്ള സ്ഥലം
+          runway: റൺവേ
+          taxiway: ടാക്സി‌വേ
+          terminal: ടെർമിനൽ
+        amenity:
+          arts_centre: കലാകേന്ദ്രം
+          atm: എ.റ്റി.എം.
+          bank: ബാങ്ക്
+          bar: ബാർ
+          bbq: ബി.ബി.ക്യു
+          bench: ബെഞ്ച്
+          bicycle_parking: സൈക്കിൾ വെയ്ക്കുന്നയിടം
+          bicycle_rental: സൈക്കിൾ വാടകയ്ക്ക് കിട്ടുന്നയിടം
+          biergarten: ബീർ ഉദ്യാനം
+          brothel: വ്യഭിചാരകേന്ദ്രം
+          bureau_de_change: വിവിധരാജ്യങ്ങളുടെ നാണയങ്ങൾ മാറുന്നയിടം
+          bus_station: ബസ് സ്റ്റാൻഡ്
+          cafe: കാപ്പിക്കട
+          car_rental: കാർ വാടകയ്ക്ക്
+          car_sharing: കാർ പങ്ക്‌വെയ്ക്കൽ
+          car_wash: കാർ കഴുകൽ
+          casino: ചൂതാട്ടകേന്ദ്രം
+          charging_station: ചാർജിങ് സ്റ്റേഷൻ
+          cinema: സിനിമാകൊട്ടക
+          clinic: ആശുപത്രി
+          clock: ക്ലോക്ക്
+          college: കലാലയം
+          community_centre: സമൂഹമണ്ഡപം
+          courthouse: കോടതിമന്ദിരം
+          crematorium: സെമിത്തേരി
+          dentist: ദന്തവൈദ്യൻ
+          doctors: ഡോക്ടർമാർ
+          drinking_water: കുടിവെള്ളം
+          driving_school: ഡ്രൈവിങ് സ്കൂൾ
+          embassy: എംബസി
+          fast_food: ലഘുഭക്ഷണം
+          ferry_terminal: കടത്ത്
+          fire_station: അഗ്നിശമനാകേന്ദ്രം
+          food_court: ഭക്ഷണശാല
+          fountain: ജലധാര
+          fuel: ഇന്ധനം
+          gambling: ഗാംബ്ലിങ്
+          grave_yard: ശവക്കോട്ട
+          hospital: ആശുപത്രി
+          ice_cream: ഐസ്‌ക്രീം
+          kindergarten: അങ്കണവാടി
+          library: ഗ്രന്ഥശാല
+          marketplace: ചന്ത
+          nightclub: നിശാക്ലബ്
+          nursing_home: നഴ്സിങ് ഹോം
+          parking: പാർക്കിങ്ങ്
+          parking_space: പാർക്കിംഗ് സ്ഥലം
+          pharmacy: ഫാർമസി
+          place_of_worship: ആരാധനാ കേന്ദ്രം
+          police: പോലീസ്
+          post_box: തപാൽപ്പെട്ടി
+          post_office: തപാലാപ്പീസ്
+          prison: തടവറ
+          pub: പബ്
+          public_building: പൊതുകെട്ടിടം
+          restaurant: ഭക്ഷണശാല
+          school: വിദ്യാലയം
+          studio: സ്റ്റുഡിയോ
+          swimming_pool: നീന്തൽക്കുളം
+          taxi: ടാക്സി
+          telephone: പൊതു ടെലിഫോൺ
+          theatre: തീയറ്റർ
+          toilets: മൂത്രപ്പുരകൾ
+          townhall: ടൗൺഹാൾ
+          university: സർവ്വകലാശാല
+          village_hall: ഗ്രാമകേന്ദ്രം
+          waste_basket: ചവറ്റുകുട്ട
+        boundary:
+          national_park: ദേശിയോദ്യാനം
+          protected_area: സംരക്ഷിതമേഖല
+        bridge:
+          suspension: തൂക്കുപാലം
+          "yes": പാലം
+        building:
+          "yes": കെട്ടിടം
+        craft:
+          carpenter: ആശാരി
+          photographer: ഛായാഗ്രാഹകൻ
+          tailor: തയ്യൽക്കാരൻ
+        emergency:
+          phone: അടിയന്തര ഫോൺ
+        highway:
+          bus_stop: കാത്തിരിപ്പുകേന്ദ്രം
+          cycleway: സൈക്കിൾ പാത
+          footway: നടപ്പാത
+          milestone: മൈൽക്കുറ്റി
+          motorway: മോട്ടോർ വാഹനങ്ങൾക്കുള്ള വഴി
+          path: പാത
+          pedestrian: നടപ്പാത
+          platform: പ്ലാറ്റ്‌ഫോം
+          primary: പ്രധാന പാത
+          primary_link: പ്രധാന പാത
+          proposed: നിർദ്ദേശിച്ചിരിക്കുന്ന പാത
+          rest_area: വിശ്രമ സ്ഥലം
+          road: പാത
+          secondary: രണ്ടാം തലത്തിലെ പാത
+          service: അനുബന്ധ പാത
+          speed_camera: വേഗതാനിയന്ത്രണ ക്യാമറ
+          steps: പടിക്കെട്ടുകൾ
+          street_lamp: വഴിവിളക്ക്
+          tertiary: ത്രിതീയതലത്തിലെ പാത
+          tertiary_link: ത്രിതീയതലത്തിലെ പാത
+          track: ട്രാക്ക്
+          traffic_signals: ട്രാഫിക് സിഗ്നലുകൾ
+          "yes": റോഡ്
+        historic:
+          archaeological_site: പുരാവസ്തു പ്രദേശം
+          building: കെട്ടിടം
+          church: കൃസ്ത്യൻപള്ളി
+          fort: കോട്ട
+          house: വീട്
+          memorial: സ്മാരകം
+          mine: മൈൻ
+          monument: സ്മാരകം
+          stone: കല്ല്
+          tomb: ശവക്കല്ലറ
+          tower: ഗോപുരം
+        landuse:
+          cemetery: സെമിത്തേരി
+          forest: കാട്
+          grass: പുൽത്തകിടി
+          industrial: വാണിജ്യമേഖല
+          mine: മൈൻ
+          railway: റെയിൽവേ
+          reservoir: സംഭരണി
+        leisure:
+          garden: ഉദ്യാനം
+          park: ഉദ്യാനം
+          pitch: കായിക പിച്ച്
+          playground: കളിസ്ഥലം
+          resort: റിസോർട്ട്
+          stadium: സ്റ്റേഡിയം
+          swimming_pool: നീന്തൽക്കുളം
+        man_made:
+          bridge: പാലം
+          pipeline: പൈപ്പ്‌ലൈൻ
+          water_well: കിണറ്
+          works: ഫാക്ടറി
+          "yes": മനുഷ്യനിർമ്മിതം
+        military:
+          "yes": മിലിട്ടറി
+        natural:
+          beach: ബീച്ച്
+          cave_entrance: ഗുഹ കവാടം
+          forest: വനം
+          hill: കുന്ന്
+          island: ദ്വീപ്
+          land: കരസ്ഥലം
+          marsh: ചതുപ്പ്
+          mud: ചെളിപ്രദേശം
+          peak: കുന്നിൻപുറം
+          point: ബിന്ദു
+          rock: പാറക്കെട്ട്
+          sand: മണ്ണ്
+          stone: കല്ല്
+          tree: മരം
+          volcano: അഗ്നിപർവ്വതം
+          water: വെള്ളം
+          wood: മരം
+        office:
+          company: കമ്പനി
+          educational_institution: വിദ്യാഭ്യാസ സ്ഥാപനം
+          government: സർക്കാർ ഓഫീസ്
+          insurance: ഇൻഷൂറൻസ് ഓഫീസ്
+          lawyer: അഭിഭാഷകൻ
+          ngo: എൻജിഓ ഓഫീസ്
+          travel_agent: യാത്ര ഏജൻസി
+          "yes": ഓഫീസ്
+        place:
+          city: പട്ടണം
+          country: രാജ്യം
+          house: വീട്
+          houses: വീടുകൾ
+          island: ദ്വീപ്
+  confirmations:
+    confirm:
+      heading: താങ്കളുടെ ഇമെയിൽ പരിശോധിക്കുക!
+      button: സ്ഥിരീകരിക്കുക
+  messages:
+    show:
+      back: പുറകോട്ട്
+  site:
+    export:
+      licence: അനുമതി
+      export_button: കയറ്റുമതി ചെയ്യുക
+  traces:
+    edit:
+      visibility_help: എന്താണ് ഇതുകൊണ്ടുദ്ദേശിക്കുന്നത് ?
+    trace:
+      view_map: ഭൂപടം കാണുക
+      edit_map: ഭൂപടം തിരുത്തുക
+  users:
+    terms:
+      consider_pd_why: എന്താണിത്?
+      decline: സിരസിക്കുന്നു
+      you need to accept or decline: തുടരാനായി പുതിയ സംഭാവകരുടെ നിബന്ധനകൾ വായിച്ച
+        ശേഷം സമ്മതിക്കുകയോ നിരസിക്കുകയോ ചെയ്യുക.
+      legale_select: 'താങ്കൾ താമസിക്കുന്ന രാജ്യം ദയവായി തിരഞ്ഞെടുക്കുക:'
+      legale_names:
+        france: ഫ്രാൻസ്
+        italy: ഇറ്റലി
+        rest_of_world: മറ്റ് ലോകഭാഗങ്ങൾ
+    show:
+      email address: 'ഇമെയിൽ വിലാസം:'
+      created from: 'സൃഷ്ടിച്ചത്:'
+      status: 'സ്ഥിതി:'
+      spam score: 'പാഴെഴുത്ത് സ്കോർ:'
+  user_blocks:
+    helper:
+      block_duration:
+        hours:
+          one: ഒരു മണിക്കൂർ
+          other: '%{count} മണിക്കൂർ'
+    show:
+      status: സ്ഥിതി
+      show: പ്രദർശിപ്പിക്കുക
+      edit: തിരുത്തുക
+      revoke: പിൻവലിക്കുക!
+      confirm: താങ്കൾക്ക് ഉറപ്പാണോ?
+      reason: 'തടയുന്നതിനുള്ള കാരണം:'
+      back: എല്ലാ തടയലുകളും കാണുക
+      revoker: 'പിൻവലിക്കുന്നത്:'
+      needs_view: ഈ തടയൽ ഒഴിവാക്കുന്നതിനു മുമ്പായി ഉപയോക്താവ് ലോഗിൻ ചെയ്യേണ്ടതാവശ്യമാണ്.
+    block:
+      not_revoked: (എടുത്തുകളഞ്ഞിട്ടില്ല)
+      show: പ്രദർശിപ്പിക്കുക
+      edit: തിരുത്തുക
+      revoke: എടുത്തുകളയുക!
+    blocks:
+      display_name: തടയപ്പെട്ട ഉപയോക്താവ്
+      creator_name: സ്രഷ്ടാവ്
+      reason: തടയലിന്റെ കാരണം
+      status: സ്ഥിതി
+      revoker_name: എടുത്തുകളഞ്ഞത്
+      showing_page: താൾ %{page}
+      next: അടുത്തത് »
+      previous: « മുൻപത്തേത്
+  notes:
+    show:
+      title: 'കുറിപ്പ്: %{id}'
+      description: വിവരണം
+  javascripts:
+    map:
+      base:
+        cycle_map: ഭൂപടം കറക്കുക
+    site:
+      edit_tooltip: ഭൂപടം തിരുത്തുക
+      edit_disabled_tooltip: തിരുത്താനായി ഭൂപടം വലുതാക്കുക
+  redactions:
+    show:
+      description: 'വിവരണം:'
+      user: സ്രഷ്ടാവ്
+...

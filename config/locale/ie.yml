@@ -1,0 +1,50 @@
+# Messages for Interlingue (Interlingue)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: RWMuc
+---
+ie:
+  time:
+    formats:
+      friendly: '%e %B %Y a %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: Conservar
+      diary_entry:
+        create: Publica
+        update: Actualisar
+      issue_comment:
+        create: Supleer commentarie
+      message:
+        create: Misser
+      client_application:
+        update: Redacte
+      redaction:
+        create: Crear redaction
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: Ne apari esser un legitim e-mail adresse
+        email_address_not_routable: ne es desordinamen
+    models:
+      acl: Accesse control liste
+      changeset: Changes
+      country: Nation
+      language: Lingue
+      message: Missage
+      user: Usator
+    attributes:
+      diary_entry:
+        user: Usator
+      trace:
+        user: Usator
+        name: Nómine
+      user:
+        languages: Lingues
+        pass_crypt: 'Parol-clave:'
+  browse:
+    version: Version
+    changeset:
+      belongs_to: Autor
+...

@@ -1,0 +1,18 @@
+# Messages for Southern Luri (لئری دوٙمینی)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: FarsiNevis
+# Author: Setenly
+---
+luz:
+  html:
+    dir: rtl
+  helpers:
+    submit:
+      diary_entry:
+        update: روزآمدسازی
+  javascripts:
+    share:
+      image_dimensions: عیس استاندارد نشون داده ایبوی وا %{width} x %{height}
+...

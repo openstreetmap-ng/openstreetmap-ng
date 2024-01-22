@@ -1,0 +1,35 @@
+# Messages for Lingua Franca Nova (Lingua Franca Nova)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Mafcadio
+# Author: Robin van der Vliet
+---
+lfn:
+  activerecord:
+    models:
+      language: Lingua
+    attributes:
+      diary_entry:
+        language_code: Lingua
+      trace:
+        description: Descrive
+      redaction:
+        description: Descrive
+      user:
+        description: Descrive
+        languages: Linguas
+  traces:
+    show:
+      description: 'Descrive:'
+  notes:
+    index:
+      description: Descrive
+    show:
+      description: Descrive
+  javascripts:
+    share:
+      link: Lia o HTML
+  redactions:
+    show:
+      description: 'Descrive:'
+...

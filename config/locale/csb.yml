@@ -1,0 +1,83 @@
+# Messages for Kashubian (kaszëbsczi)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Kaszeba
+---
+csb:
+  time:
+    formats:
+      friendly: '%e %B %Y o %H:%M'
+  activerecord:
+    models:
+      acl: Lësta kòntrolë przistãpù
+      changeset: Zestôw zjinaków
+      changeset_tag: Znakòwnik zestôwù zjinaków
+      country: Państwò
+      diary_comment: Dopòwiesc do dniownika
+      diary_entry: Wpisënk do dniownika
+      friend: Drëch
+      language: Jãzëk
+      message: Wiadło
+      node: Wãzeł
+      node_tag: Znakòwnik wãzła
+      old_node: Stôri wãzeł
+      old_node_tag: Znakòwnik stôregò wãzła
+      user: Brëkòwnik
+      user_preference: Preferencëje brëkòwnika
+    attributes:
+      diary_comment:
+        body: Zamkłosc
+      diary_entry:
+        user: Brëkòwnik
+        title: Téma
+      friend:
+        user: Brëkòwnik
+        friend: Drëch
+      trace:
+        user: Brëkòwnik
+        visible: Widzawny
+        name: Miono
+        size: Miara
+        public: Pùbliczny
+        description: Òpisënk
+      message:
+        title: Téma
+        body: Zamkłosc
+      user:
+        email: E-mail
+        active: Aktiwny
+        display_name: Wëskrzeniwóné miono
+        description: Òpisënk
+        languages: Jãzëczi
+        pass_crypt: Parola
+  editor:
+    default: Domëslno (terô %{name})
+    id:
+      name: iD
+      description: iD (w editorze przezérnika)
+    remote:
+      name: Bùtnowy editora
+      description: Bùtnowi editora (JOSM abò Merkaartor)
+  browse:
+    created: Ùsadzoné
+    closed: Zamkłé
+    version: Wersëjô
+    in_changeset: Zestôw zjinaków
+    anonymous: Anonimòwi brëkòwnik
+    no_comment: (bez dopòwiescë)
+    part_of: Je dzélã
+    download_xml: Zladëjë XML
+    view_history: Wëskrzëni historëjã
+    view_details: Wëskrzëni detale
+    location: 'Lokalizacëjô:'
+    changeset:
+      title: 'Zestôwk zjinaków: %{id}'
+      belongs_to: Ùsôdzca
+      node: Wãzłë (%{count})
+      node_paginated: Wãzłë (%{x}-%{y} z %{count})
+      way: Linije (%{count})
+      way_paginated: Linije (%{x}-%{y} z %{count})
+  sessions:
+    new:
+      no account: Ni môsz kònta?
+...

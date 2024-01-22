@@ -1,0 +1,164 @@
+# Messages for Guarani (Avañe'ẽ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: P. S. F. Freitas
+---
+gn:
+  time:
+    formats:
+      friendly: '%e %B %Y upe %H:%M jave'
+  activerecord:
+    models:
+      country: Tetã
+      diary_comment: Ára ha ára marandu
+      diary_entry: Ára ha ára jeikeha
+      friend: Irũ
+      language: Ñe'ẽ
+      message: Marandu
+      old_way: Tape tuja
+      user: Puruhára
+      way: Tape
+    attributes:
+      diary_entry:
+        user: Puruhára
+        title: Ñe'ẽrã
+        language_code: Ñe'ẽ
+      friend:
+        user: Puruhára
+        friend: Irũ
+      trace:
+        user: Puruhára
+        visible: Ojehecháva
+        name: Téra
+        size: Tuichakue
+        public: Maymápe guarã
+        description: Mombe'uanga
+      message:
+        sender: Omondóva
+        title: Ñe'ẽrã
+        body: Tete
+        recipient: Ohechátava
+      user:
+        email: Pareha (e-mail)
+        active: Oikóva gueteri
+        display_name: Téra jechaukarã
+        description: Mombe'uanga
+        languages: Ñe'ẽnguéra
+        pass_crypt: Ñe'ẽñemi
+  browse:
+    closed: Emboty
+    location: Ñemohendaː
+    changeset:
+      title: Ñemoambue atyː %{id}
+      belongs_to: Apohára
+    way:
+      title_html: 'Tape: %{name}'
+      history_title_html: 'Tape rembiasakue: %{name}'
+    relation_member:
+      type:
+        way: Tape
+    not_found:
+      sorry: 'Oreñyrõmíkena, %{type} #%{id} ndorojuhúi.'
+      type:
+        way: tape
+  changesets:
+    changesets:
+      user: Puruhára
+      comment: Ñeimo'ã
+      area: Yvy apekue
+    index:
+      load_more: Tojechaukave
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: Okẽ guasu
+        amenity:
+          bank: Viruróga
+          bar: Volícho
+          bbq: So'o ka'ẽ
+          bench: Apykapuku
+          casino: Kasíno
+          cinema: Ta'angamýi róga
+          clinic: Tasyo'i
+          clock: Aravorechaukaha
+          college: Ñemoarandu róga
+          hospital: Tasyo
+          library: Arandukarenda
+          marketplace: Ñemuha
+          monastery: Pa'irã róga
+          police: Tahachi
+          post_box: Pareha róga
+          post_office: Pareha renda
+          prison: Ka'irã
+          pub: Pub
+          restaurant: Karuha
+          school: Mbo'ehao
+          shower: Jahuha
+          social_centre: Tenda Avano'õrã
+          social_facility: Tenda Avano'õrã
+          telephone: Pumbyry
+          university: Mbo'ehaorusu
+          veterinary: Tasyo mymbáme guarã
+          village_hall: Táva róga
+        bridge:
+          aqueduct: Yrape
+        building:
+          "yes": Jogapopyre
+        craft:
+          brewery: Kaguy apoha
+          gardener: Yvotyty ñangarekoha
+          shoemaker: Sapatu apohára
+        historic:
+          church: Tupão
+          city_gate: Táva rokẽ
+          citywalls: Táva mongoraha
+          fort: Ógambarete
+          heritage: Yvypóra rembireja
+          house: Óga
+          manor: Jára róga
+          tower: Óga yvate
+          "yes": Tenda hembiasa mba'eguasúva
+        junction:
+          "yes": Tape ojuasáva
+        landuse:
+          allotments: Ka'aguymi
+          cemetery: Tyvyty
+          farmland: Yvy ñemitỹrã
+          farmyard: Korapy
+          forest: Ka'aguy
+          garages: Mba'yrumýi renda
+          grass: Kapi'ipe
+          landfill: Yty renda
+        office:
+          administrative: Ñemoangapyhy
+  issues:
+    index:
+      search: Jeheka
+  layouts:
+    logout: Sẽ
+    log_in: Jeike
+    edit: Ñemoambue
+    history: Tembiasakue
+    data: Apopyme'ẽ
+    help: Pytyvõhára
+    about: Rehegua
+  sessions:
+    new:
+      with external: Ikatu reike peteĩ jeikeha ambuéva rupive̠ː
+      auth_providers:
+        openid:
+          title: Jeike OpenID rupi
+          alt: Jeike OpenID URL rupi
+        google:
+          title: Jeike Google rupi
+        aol:
+          title: Jeike AOL rupi
+          alt: Jeike AOL OpenID rupi
+  users:
+    new:
+      continue: Jeike
+  notes:
+    show:
+      description: Mombe'uanga
+...

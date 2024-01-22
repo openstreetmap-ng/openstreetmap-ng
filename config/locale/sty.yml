@@ -1,0 +1,27 @@
+# Messages for Siberian Tatar (себертатар)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Sorbat
+---
+sty:
+  activerecord:
+    models:
+      friend: Тус
+      language: Тел
+      way: Йул
+    attributes:
+      diary_entry:
+        user: Ҡатнашыуцы
+        language_code: Тел
+      friend:
+        user: Ҡатнашыуцы
+        friend: Тус
+      trace:
+        user: Ҡатнашыуцы
+        name: Исем
+      user:
+        languages: Телләр
+  browse:
+    way:
+      title_html: 'Йул: %{name}'
+...

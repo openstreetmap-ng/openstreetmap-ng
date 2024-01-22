@@ -1,0 +1,223 @@
+# Messages for Haitian Creole (Kreyòl ayisyen)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Amire80
+# Author: BaRaN6161 TURK
+# Author: Danieldegroot2
+# Author: Jeleaba
+# Author: Schery19
+# Author: Tisave
+---
+ht:
+  activerecord:
+    models:
+      country: Peyi
+      friend: Zanmi
+      language: Lang
+      message: Mesaj
+      node: Pwent
+      old_node: Ansyen pwent
+      old_way: Ansyen chimen
+      old_way_node: Ansyen pwent chimen
+      relation: Relasyon
+      session: Sesyon
+      trace: Tras
+      tracepoint: Trase pwen
+      user: Itilizatè
+      way: Chimen
+      way_node: Pwent chimen
+    attributes:
+      diary_comment:
+        body: Kò
+      diary_entry:
+        user: Itilizatè
+        title: Sijè
+        latitude: Latitid
+        longitude: Lonjitid
+        language_code: Lang
+      friend:
+        user: Itilizatè
+        friend: Zanmi
+      trace:
+        user: Itilizatè
+        visible: Vizib
+        name: Non
+        latitude: Latitid
+        longitude: Lonjitid
+        public: Piblik
+        description: Deskripsyon
+      message:
+        title: Sijè
+        body: Kò
+      redaction:
+        description: Deskripsyon
+      user:
+        email: Imèl
+        active: Aktif
+        home_lat: Latitid
+        home_lon: Lonjitid
+        languages: Lang
+        pass_crypt: Mopas
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: 1 èdtan pase
+        other: '%{count} èdtan pase'
+      about_x_months:
+        one: anviron 1 mwa pase
+        other: anviron %{count} mwa pase
+      about_x_years:
+        one: anviron 1 an pase
+        other: anviron %{count} an pase
+      almost_x_years:
+        one: plis ke 1 an pase
+        other: plis ke %{count} an pase
+      half_a_minute: 30 segonn pase
+      less_than_x_seconds: '{{PIZYÈ|sèl=mwens ke 1 segonn pase|mwens ke %{count} segonn
+        pase}}'
+      less_than_x_minutes:
+        one: mwens ke yon minit pase
+        other: mwens ke %{count} minit pase
+      over_x_years:
+        one: plis ke 1 an pase
+        other: plis ke %{count} an pase
+      x_seconds:
+        one: 1 segonn pase
+        other: '%{count} segonn pase'
+      x_minutes:
+        one: 1 minit pase
+        other: '%{count} minit pase'
+      x_days:
+        one: 1 jou pase
+        other: '%{count} jou pase'
+      x_months:
+        one: 1 mwa pase
+        other: '%{count} mwa pase'
+      x_years:
+        one: 1 an pase
+        other: '%{count} an pase'
+  editor:
+    id:
+      name: iD
+  api:
+    notes:
+      comment:
+        opened_at_html: Kreye %{when}
+  browse:
+    created: Kreye
+    closed: Fèmen
+    version: Vèsyon
+    anonymous: anonim
+    part_of_relations:
+      one: 1 relasyon
+      other: '%{count} relasyon'
+    view_history: Gade istorik
+    view_details: Gade detay
+    changeset:
+      belongs_to: Kreyatè
+      node: Pwent (%{count})
+      node_paginated: Pwent (%{x}-%{y} sou %{count})
+      way: Chimen (%{count})
+      way_paginated: Chimen (%{x}-%{y} sou %{count})
+      relation: Relasyon (%{count})
+      comment: Kòmantè %{count}
+      join_discussion: Konekte pou patisipe nan diskisyon a
+    way:
+      title_html: 'Chimen: %{name}'
+      nodes: Pwent
+    relation:
+      title_html: 'Relasyon: %{name}'
+    relation_member:
+      entry_role_html: '%{Tape} %{non''w} ak %{wol''w}'
+      type:
+        node: Pwent
+        way: Shemin
+        relation: Relasyon
+    containing_relation:
+      entry_html: Relasyon %{relation_name}
+    not_found:
+      type:
+        node: pwent
+        way: chimen
+        relation: relasyon
+    timeout:
+      type:
+        node: pwent
+        way: chimen
+        relation: relasyon
+    redacted:
+      type:
+        node: pwent
+        way: chimen
+        relation: relasyon
+  changesets:
+    changeset:
+      anonymous: Anonim
+    changesets:
+      user: Itilizatè
+  dashboards:
+    popup:
+      friend: Zanmi
+  diary_entries:
+    location:
+      view: Gade
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        place:
+          country: Peyi
+  messages:
+    messages_table:
+      subject: Sijè
+  sessions:
+    new:
+      password: 'Mopas :'
+  site:
+    about:
+      legal_title: Legal
+    help:
+      beginners_guide:
+        title: Gid pou moun k ap fèk kòmanse
+      mailing_lists:
+        title: Lis imèl
+      irc:
+        title: IRC
+  traces:
+    show:
+      description: 'Deskripsyon:'
+    trace:
+      public: PIBLIK
+  users:
+    show:
+      comments: Kòmantè
+  user_blocks:
+    helper:
+      block_duration:
+        hours:
+          one: 1 èdtan
+          other: '%{count} èdtan'
+        days:
+          one: 1 jou
+          other: '%{count} jou'
+        months:
+          one: 1 mwa
+          other: '%{count} mwa'
+        years:
+          one: 1 an
+          other: '%{count} an'
+    show:
+      created: 'Kreye:'
+  notes:
+    index:
+      description: Deskripsyon
+    show:
+      description: Deskripsyon
+  javascripts:
+    query:
+      node: Pwent
+      way: Chimen
+      relation: Relasyon
+  redactions:
+    show:
+      description: 'Deskripsyon:'
+...

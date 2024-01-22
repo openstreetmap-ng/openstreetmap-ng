@@ -1,0 +1,268 @@
+# Messages for Faroese (føroyskt)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: EileenSanda
+---
+fo:
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  helpers:
+    submit:
+      diary_comment:
+        create: Goym
+  activerecord:
+    models:
+      acl: Atgongd eftirlitslisti
+      changeset: Broytingar
+      changeset_tag: Broytingar merki (tag)
+      country: Land
+      diary_comment: Dagbók Viðmerking
+      diary_entry: Dagbók
+      friend: Vinur
+      language: Mál
+      message: Boð
+      node: Knútur
+      node_tag: Knútur Tag (merki)
+      old_node: Gamal Knútur
+      old_node_tag: Gamalt knútamerki (old node tag)
+      old_relation: Gomul relatión
+      old_relation_member: Fyrrverandi relasjónslimur
+      old_relation_tag: Gamal relasjónseginleiki
+      old_way: Gamli mátin
+      old_way_node: Fyrrverandi vegarpunkt
+      old_way_tag: Fyrrverandi vegareginleiki
+      relation: Relasjón
+      relation_member: Relasjónslimur
+      relation_tag: Relasjónseginleiki
+      trace: Spor
+      tracepoint: Sporpunkt
+      tracetag: Sporeginleiki
+      user: Brúkari
+      user_preference: Brúkarainnstillingar
+      user_token: Brúkaratekin
+      way: Vegur
+      way_node: Vegarpunkt
+      way_tag: Eginleiki við vegi
+    attributes:
+      diary_entry:
+        user: Brúkari
+        title: Heiti
+        latitude: Breiddarstig
+        longitude: Longdarstig
+        language_code: Mál
+      friend:
+        user: Brúkari
+        friend: Vinur
+      trace:
+        user: Brúkari
+        visible: Sjónligt
+        name: Navn
+        size: Stødd
+        latitude: Breiddarstig
+        longitude: Longdarstig
+        public: Alment
+        description: Frágreiðing
+      message:
+        sender: Sendari
+        title: Heitið
+        body: Kroppur
+        recipient: Móttakari
+      user:
+        email: Teldupostur
+        active: Aktivur
+        display_name: Vís Navn
+        description: Frágreiðing
+        languages: Mál
+        pass_crypt: Loyniorð
+  editor:
+    default: Standard (verandi %{navn})
+    id:
+      name: iD
+      description: iD (í-brovsara rættara)
+    remote:
+      name: Fjarstýring
+      description: Fjarstýring (JOSM ella Merkaartor)
+  browse:
+    created: Upprættað
+    closed: Stongt
+    changeset:
+      title: Broytingar
+      changesetxml: Broytingar XML
+      osmchangexml: osmChange XML
+      feed:
+        title: Broytingar %{id}
+        title_comment: Broytingar %{id} - %{viðmerking}
+    relation_member:
+      entry_role_html: '%{type} %{name} sum %{role}'
+      type:
+        node: Punkt
+        way: Vegur
+        relation: Relasjón
+    containing_relation:
+      entry_html: Relasjón %{relation_name}
+      entry_role_html: Relasjón %{relation_name} (sum %{relation_role})
+    not_found:
+      sorry: Orsaka, tað bar ikki til at finna %{type} við id %{id}.
+      type:
+        node: punkt
+        way: vegur
+        relation: relasjón
+        changeset: Broytingarsett
+    timeout:
+      sorry: Orsakað, dáta fyri %{type} við id %{id}, tók ov langa at heinta.
+      type:
+        node: punkt
+        way: vegur
+        relation: relasjón
+        changeset: broytingarsett
+    redacted:
+      redaction: Redaksjón %{id}
+      message_html: Versjón %{version} av hesum %{type} kann ikki vísast eftirsum
+        tað er blivið redigerað. Vinarliga hygg at %{redaction_link} fyri smálutir.
+      type:
+        node: punkt
+        way: vegur
+        relation: relasjón
+    start_rjs:
+      load_data: Innlesur dáta
+      loading: Loadar...
+    tag_details:
+      tags: 'Lyklaorð:'
+      wiki_link:
+        key: Wiki frágreiðingarsíðan fyri %{key} frámerkinum
+        tag: Wiki frágreiðingarsíðan fyri %{key}=%{value} lyklaorðið
+      wikipedia_link: '%{síða} greinin á Wikipedia'
+  changesets:
+    changeset_paging_nav:
+      showing_page: Síða %{page}
+      next: Næsta »
+      previous: « Fyrra
+    changeset:
+      anonymous: Dulnevnd
+      no_edits: (ongar rættingar)
+    changesets:
+      id: SAMLEIKAPRÓGV (ID)
+      saved_at: Goymt á
+      user: Brúkari
+      comment: Viðmerking
+      area: Øki
+    index:
+      title: Broytingarsett
+      title_user: Broytingarsett av %{user}
+      title_friend: Broytingarsett av vinum tínum
+      title_nearby: Broytingarsett av brúkarum nærindis
+  diary_entries:
+    form:
+      location: 'Staður:'
+      use_map_link: brúka kortið
+    index:
+      title: Brúkarabloggar
+      title_friends: Bloggar hjá vinum
+      title_nearby: Bloggar frá brúkarum nærindis
+      user_title: Bloggur hjá %{user}
+      in_language_title: Bloggar á %{language}
+      new_title: Skriva eina nýggja bloggsíðu í tínum brúkarabloggi
+    show:
+      leave_a_comment: Skriva eina viðmerking
+      login_to_leave_a_comment_html: '%{login_link} fyri at skriva eina viðmerking'
+      login: Logga á
+    no_such_entry:
+      title: Ongin sovorðin dagbók
+      heading: 'Ongin atgongd við hesum samleikaprógvi (ID): %{id}'
+    diary_entry:
+      comment_link: Viðmerk hetta innslagið
+      reply_link: Svara hesum innslagnum
+      comment_count:
+        zero: No comments
+        one: '%{count} comment'
+        other: '%{count} comments'
+      edit_link: Rætta hetta petti
+      hide_link: Goym hetta petti
+      confirm: Vátta
+    diary_comment:
+      comment_from_html: Viðmerkig frá %{link_user} á %{comment_created_at}
+      hide_link: Goym hesa viðmerking
+      confirm: Vátta
+    location:
+      location: 'Staður:'
+      view: Hygg
+      edit: Rætta
+    feed:
+      user:
+        title: OpenStreetMap dagbók ískoyti frá %{brúkara}
+        description: Nýliga komin OpenStreetMap dagbók ískoyti frá %{brúkari}
+      language:
+        title: OpenStreetMap dagbók ískoyti á %{mál_navn}
+        description: Seinastu blogginnsløg frá brúkarum av OpenStreetMap á %{language_name}
+      all:
+        title: OpenStreetMap blogginnsløg
+    comments:
+      post: Skriva
+      when: Nær
+      comment: Viðmerking
+      newer_comments: Nýggjari viðmerkingar
+      older_comments: Eldri viðmerkingar
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: Gate
+          helipad: Tyrlupallur
+          runway: Lendingarbreyt
+          terminal: Terminalur
+        amenity:
+          bench: Bonkur
+          bicycle_parking: Súkkluparkering
+          bicycle_rental: Súkkluleigan
+          brothel: Bordel
+          bus_station: Busstøð
+          cafe: Kaffistova
+          car_rental: Bilútleigan
+          car_wash: Bilvask
+          cinema: Biografur
+          courthouse: Rættarbygningur
+          crematorium: Krematorium
+          dentist: Tannlækni
+          doctors: Læknar
+          drinking_water: Drekkivatn
+          driving_school: Koyriskúli
+          fire_station: Brandstøð
+          fountain: Springvatn
+          hospital: Sjúkrahús
+          library: Bókasavn
+          nightclub: Náttklubbur
+          nursing_home: Røktarheim
+          police: Politi
+          post_office: Posthús
+          prison: Fongsul
+          public_building: Almennur bygningur
+          recycling: Endurnýtslustøð
+          restaurant: Matstova
+          school: Skúli
+          swimming_pool: Svimjihylur
+          theatre: Sjónleikarhús
+        building:
+          "yes": Bygningur
+        highway:
+          motorway: Motorvegur
+          pedestrian: Gongugøta
+          road: Vegur
+          steps: Trappur
+          street_lamp: Gøtulykt
+        historic:
+          castle: Slott
+          church: Kirkja
+          house: Hús
+          ruins: Leivdir
+          tower: Torn
+  site:
+    export:
+      manually_select: Vel manuelt eitt annað øki
+      licence: Lisensur
+      export_button: Útflyt
+  notes:
+    show:
+      title: Viðmerking
+      description: 'Frágreiðing:'
+...

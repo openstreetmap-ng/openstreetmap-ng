@@ -1,0 +1,52 @@
+# Messages for Literary Chinese (文言)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: A Retired User
+# Author: Itsmine
+---
+lzh:
+  helpers:
+    submit:
+      diary_comment:
+        create: 存
+      diary_entry:
+        update: 更
+      message:
+        create: 遣
+      client_application:
+        update: 纂
+      trace:
+        create: 貢
+  activerecord:
+    models:
+      changeset: 易
+      country: 國
+      friend: 友
+      language: 語
+      message: 訊
+      node: 點
+      user: 簿
+      way: 徑
+    attributes:
+      diary_entry:
+        user: 簿
+        title: 題
+        latitude: 緯
+        longitude: 經
+        language_code: 語
+      friend:
+        user: 簿
+        friend: 友
+      trace:
+        user: 簿
+        visible: 現
+        name: 名
+        size: 幅
+        latitude: 緯
+        longitude: 經
+      user:
+        email: 郵
+  browse:
+    tag_details:
+      wikidata_link: 維基數據%{page}
+...

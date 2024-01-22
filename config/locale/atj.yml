@@ -1,0 +1,82 @@
+# Messages for Atikamekw (Atikamekw)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Benoit Rochon
+---
+atj:
+  activerecord:
+    attributes:
+      trace:
+        description: E witcikemakak
+      redaction:
+        description: E witcikemakak
+      user:
+        email: Matcetcicihikan
+        description: E witcikemakak
+  browse:
+    anonymous: nama kiskeritakosiw ka ki masinahak
+  changesets:
+    changeset:
+      anonymous: Nama kiskeritakosiw ka ki masinahak
+  diary_entries:
+    location:
+      view: Tapwatcike
+      edit: Meckotcita
+  layouts:
+    about: Taci we otciparik
+  messages:
+    messages_table:
+      date: Tatokonakisitc
+  passwords:
+    new:
+      email address: 'Pamikicikwepitcikan matcetcicihikan:'
+  sessions:
+    new:
+      title: Posi
+      login_button: Posi
+      auth_providers:
+        openid:
+          title: Posi OpenID
+        google:
+          title: Posi Google
+        facebook:
+          title: Posi Facebook
+        microsoft:
+          title: Posi Windows Live
+        github:
+          title: Posi GitHub
+        wikipedia:
+          title: Posi Wikipetia
+        wordpress:
+          title: Posi Wordpress
+        aol:
+          title: Posi AOL
+  site:
+    sidebar:
+      search_results: Kaki nta kiskeritakok
+    search:
+      search: Nantokaskeritcikatek
+  traces:
+    show:
+      edit: meckotcita
+      description: 'E witcikemakak:'
+  users:
+    show:
+      email address: 'Pamikicikwepitcikan matcetcicihikan:'
+  user_blocks:
+    show:
+      edit: Meckotcita
+    block:
+      edit: Meckotcita
+  notes:
+    index:
+      description: E witcikemakak
+    show:
+      description: E witcikemakak
+  javascripts:
+    directions:
+      time: Tato tipahikaneak
+  redactions:
+    show:
+      description: 'E witcikemakak:'
+...

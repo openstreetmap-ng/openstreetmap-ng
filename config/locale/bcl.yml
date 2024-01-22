@@ -1,0 +1,45 @@
+# Messages for Central Bikol (Bikol Central)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Kunokuno
+---
+bcl:
+  diary_entries:
+    form:
+      location: Lokasyon
+      use_map_link: Maggamit nin Mapa
+  sessions:
+    new:
+      auth_providers:
+        facebook:
+          title: Maglaog na gamit an Facebook
+          alt: Maglaog na gamit an sarong Panindog sa Facebook
+        microsoft:
+          title: Maglaog na gamit an Windows Live
+  shared:
+    markdown_help:
+      headings: Mga Pamayo
+      heading: Pamayo
+      subheading: Subheading
+      unordered: Dai nakapasunod-sunod na lista
+      ordered: Nakapasunod-sunod na lista
+      first: Inot na item
+      second: Ikaduwang item
+      link: Link
+      text: Teksto
+      image: Imahen
+      alt: Alt text
+      url: URL
+    richtext_field:
+      edit: Edit
+      preview: Preview
+  site:
+    help:
+      beginners_guide:
+        url: http://wiki.openstreetmap.org/wiki/Beginners%27_giya
+  users:
+    auth_failure:
+      no_authorization_code: Mayong kodigo nin awtorisasyon
+      unknown_signature_algorithm: Bakong bistadong pirma nin algoritmo
+      invalid_scope: Imbalidong kinasakupan
+...

@@ -1,0 +1,166 @@
+# Messages for Central Atlas Tamazight (ⵜⴰⵎⴰⵣⵉⵖⵜ)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Hakim1bal
+# Author: Tifinaghes
+---
+tzm:
+  time:
+    formats:
+      friendly: '%e %B %Y deg %H:%M'
+  helpers:
+    file:
+      prompt: Stey afaylu
+    submit:
+      diary_comment:
+        create: ḥḍu
+      diary_entry:
+        update: Sedɣi
+      issue_comment:
+        create: Rnu aɣefawal
+      message:
+        create: Azen
+      client_application:
+        create: Zemmem
+        update: Sedɣi
+      trace:
+        update: ḥḍu isnfelen
+  activerecord:
+    models:
+      country: Tamurt
+      friend: ⴰⵎⴷⴷⴰⴽⵯⵍ
+      language: Tutlayt
+      message: Tuzinet
+      user: ⴰⵎⴷⴰⵏ
+      way: Abrid
+    attributes:
+      diary_comment:
+        body: ⴰⴹⵔⵉⵙ ⵏ ⵜⴰⴱⵔⴰⵜ
+      diary_entry:
+        user: ⴰⵎⴷⴰⵏ
+        title: ⴰⵣⵡⵉⵍ
+        language_code: Tutlayt
+      friend:
+        friend: ⴰⵎⴷⴷⴰⴽⵯⵍ
+      trace:
+        name: ⴰⵙⵙⴰⵖ
+        public: ⴰⵎⴰⵜⵜⵓ
+      message:
+        sender: Amazan
+        title: Imersi
+        body: ⴰⴹⵔⵉⵙ ⵏ ⵜⴰⴱⵔⴰⵜ
+      user:
+        email: Imayl
+        languages: Tutlayin
+        pass_crypt: Taguri n uzeray
+  browse:
+    relation_member:
+      type:
+        relation: ⵜⴰⵣⴷⴰⵢⵜ
+    containing_relation:
+      entry_html: ⵜⴰⵣⴷⴰⵢⵜ %{relation_name}
+      entry_role_html: ⵜⴰⵣⴷⴰⵢⵜ %{relation_name} (ⴰⵎ %{relation_role})
+    not_found:
+      type:
+        way: ⴰⴱⵔⵉⴷ
+        relation: ⵜⴰⵣⴷⴰⵢⵜ
+    timeout:
+      type:
+        way: ⴰⴱⵔⵉⴷ
+  diary_entries:
+    comments:
+      comment: ⵜⴰⵏⵏⴰⵢⵜ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          aerodrome: ⴰⵣⴰⴳⴳⵯⵣ
+          gate: ⵜⴰⴳⴳⵓⵔⵜ
+        amenity:
+          arts_centre: ⴰⵎⵎⴰⵙ ⵏ ⵜⵥⵓⵔⵉ
+          cafe: ⵍⵇⵇⵀⵡⴰ
+          cinema: ⵙⵙⵉⵏⵉⵎⴰ
+          marketplace: ⴰⴳⴰⴷⴰⵣ
+          place_of_worship: ⴰⴼⴰⴽⴰⵏ
+          post_box: ⴰⴼⵏⵉⵇ ⵓⵎⵢⴰⵣⴰⵏ
+          prison: ⴰⴱⵏⵉⵇ
+          school: ⵜⵉⵏⵎⵍ
+          studio: ⵙⵜⵓⴷⵢⴰ
+        landuse:
+          village_green: ⴰⴽⴰⵍ ⴰⵣⴳⵣⴰ
+        leisure:
+          garden: ⵜⵓⵔⵜⵉⵜ
+          golf_course: ⴰⴱⴰⵔⴰⵣ ⵏ ⵍⴳⵓⵍⴼ
+          marina: ⵎⴰⵔⵉⵏⴰ
+          pitch: ⴰⴱⴰⵔⴰⵣ ⵏ ⵡⴰⴷⴷⴰⵍ
+          playground: ⴰⴱⴰⵔⴰⵣ
+          recreation_ground: ⴰⵏⵏⴰⵔ ⵏ ⵓⵔⴰⵔⵏ
+          sports_centre: ⴰⵎⵎⴰⵙ ⵏ ⵡⴰⴷⴷⴰⵍ
+        natural:
+          fell: ⵉⵖⵣⵔ
+          forest: ⵜⴰⴳⴰⵏⵜ
+          island: ⵜⴰⴳⵓⵎⴰⵎⵜ
+          land: ⴰⴽⴰⵍ
+          rock: ⵜⴰⵥⵔⵓⵜ
+          stone: ⴰⵥⵔⵓ
+          tree: ⵜⴰⴷⴷⴰⴳⵜ
+          valley: ⴰⵙⵉⴼ
+          water: ⴰⵎⴰⵏ
+        office:
+          company: Tadrawet
+          lawyer: Amestan
+          "yes": Amaris
+        place:
+          city: ⵜⵉⵖⵔⵎⵜ
+          country: ⵜⴰⵎⵓⵔⵜ
+          county: ⵜⴰⵖⵉⵡⴰⵏⵜ
+          farm: ⵜⵓⵔⵜⵉⵜ
+          house: ⵜⴰⴷⴷⴰⵔⵜ/ⵜⵉⴳⵎⵎⵉ
+          houses: ⵜⴰⴷⴷⴰⵔⵉⵏ / ⵜⵉⴳⵎⵎⴰ
+          island: ⵜⴰⴳⵓⵎⴰⵎⵜ
+          islet: ⵜⴰⴳⵓⵎⴰⵎⵜ ⵜⴰⵎⵥⵢⴰⵏⵜ
+          municipality: Taɣiwanet
+          sea: Ill
+          town: Tamazirt
+          village: ⵜⴰⵡⵔⵉⵔⵜ
+        shop:
+          art: ⵜⴰⵃⴰⵏⵓⵜ ⵏ ⵜⵥⵓⵔⵉ
+          bakery: ⴰⴼⵕⵕⴰⵏ
+          books: ⵜⴰⵃⴰⵏⵓⵜ ⵏ ⵉⴷⵍⵉⵙⵏ
+          butcher: ⴰⵎⵖⵔⴰⵙ
+          hifi: ⵜⴰⵃⴰⵏⵓⵜ ⵏ ⵀⴰⵢ ⴼⴰⵢ
+          music: ⴰⴳⴰⴷⴰⵣ ⵏ ⵓⵥⴰⵡⴰⵏ
+          newsagent: ⴰⵎⵎⴰⵙ ⵏ ⵉⵏⵖⵎⵉⵙⵏ
+        tourism:
+          hotel: ⴰⵙⵏⵙⵓ
+          information: ⵉⵏⵖⵎⵉⵙⵏ
+          museum: ⴰⵙⴰⵍⴰⵢ
+          zoo: ⵜⵓⵔⵜⵉⵜ ⵏ ⵉⵎⵓⴷⴰⵔⵏ
+        waterway:
+          canal: Tabadut
+          dam: ⵓⴳⴳⵓⴳ
+          wadi: ⴰⵙⵉⴼ
+          waterfall: ⴰⵎⵓⵣⵣⵔ
+      types:
+        cities: Tiɣeṛmin
+        towns: Timizar
+    results:
+      more_results: Uggar n tyafutin
+  layouts:
+    home: ⴰⵙⵏⵓⴱⴳ
+  profiles:
+    edit:
+      image: 'Tawelafet:'
+  site:
+    key:
+      table:
+        entry:
+          secondary: ⴰⴱⵔⵉⴷ ⴰⵙⵉⵏⴰⵏ
+          school: Tinmel
+          university: Tasdawit
+  users:
+    terms:
+      legale_names:
+        france: Fṛansa
+        italy: Ṭalyan
+...

@@ -1,0 +1,14 @@
+# Messages for Doteli (डोटेली)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Nirajan pant
+---
+dty:
+  layouts:
+    partners_ucl: UCL
+  profiles:
+    edit:
+      gravatar:
+        disabled: Gravatar अक्षम अरियो।
+        enabled: तमरा Gravatarओ दृश्य सक्षम अरियो।
+...

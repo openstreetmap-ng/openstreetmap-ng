@@ -1,0 +1,396 @@
+# Messages for South Azerbaijani (تۆرکجه)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ajeje Brazorf
+# Author: Alp Er Tunqa
+# Author: Ilğım
+---
+azb:
+  html:
+    dir: rtl
+  helpers:
+    submit:
+      diary_comment:
+        create: ذخیره ائت
+      diary_entry:
+        create: یاییملا
+      message:
+        create: گؤندر
+      client_application:
+        create: آد یازدیر
+        update: دَییشدیر
+  activerecord:
+    models:
+      country: اؤلکه
+      friend: یوْلداش
+      language: دیل
+      message: مساژ
+      node: دویون
+      node_tag: دویون اِتیکتی
+      old_node: اسکی دۆیون
+      old_relation: اسکی علاقه
+      old_way: قدیم یول
+      relation: علاقه
+      session: جلسه
+      trace: ایزله
+      tracepoint: ایزله‌مه نوقطه‌سی
+      user: ایشلدن
+      user_preference: ایشلدن ترجیحلری
+      way: یوْل
+      way_node: یوْل دۆیونو
+    attributes:
+      diary_comment:
+        body: بدن
+      diary_entry:
+        user: ایشلدن
+        title: قوْنو
+        language_code: دیل
+      friend:
+        user: ایشلدن
+        friend: یوْلداش
+      trace:
+        user: ایشلدن
+        visible: گؤرونن
+        name: آد
+        size: اؤلچو
+        public: گئنل
+        description: آچیقلاما
+        tagstring: 'اِتیکتلر:'
+      message:
+        sender: گؤندرن
+        title: قوْنو
+        body: بدن
+        recipient: آلان
+      user:
+        email: ایمئیل
+        active: چالیشقان
+        description: آچیقلاما
+        languages: دیل‌لر
+        pass_crypt: رمز
+  editor:
+    id:
+      name: iD
+    remote:
+      name: اۇزاقدان کونترول
+  browse:
+    created: یارادیلیب
+    closed: باغلاندی
+    version: نۆسخه‌
+    in_changeset: ديَیشیکلیک‌لر
+    anonymous: تانیلمایان
+    no_comment: (باخیش‌سیز)
+    view_history: گئچمیشه باخ
+    location: 'یئر:'
+    changeset:
+      belongs_to: یازار
+      comment: باخیشلار (%{count})
+      join_discussion: دانیشیغا قاتیلماق اۆچون گیریش ائدین
+      discussion: دانیشیق
+    way:
+      title_html: 'یوْل: %{name}'
+      history_title_html: 'یوْلون گئچمیشی: %{name}'
+      nodes: دۆیونلر
+    relation:
+      members: عۆضولر
+    relation_member:
+      type:
+        way: یوْل
+        relation: علاقه
+    not_found:
+      type:
+        way: یوْل
+        relation: علاقه
+        changeset: ديَیشیکلیک‌لر
+        note: نوْت
+    timeout:
+      type:
+        way: یوْل
+        relation: ارتباط
+    redacted:
+      type:
+        way: یوْل
+    start_rjs:
+      loading: یۆکلنیر...
+    tag_details:
+      tags: اِتیکتلر
+      wikidata_link: '%{page} ویکی‌دئیتا آیتمی'
+  changesets:
+    changeset_paging_nav:
+      next: سوْنراکی »
+      previous: « قاباقکی
+    changeset:
+      anonymous: تانیلمایان
+    changesets:
+      id: آی‌دی
+      user: ایشلدن
+      comment: باخیش
+      area: بؤلگه
+    index:
+      title: ديَیشیکلیک‌لر
+      load_more: داها آرتیق یۆکله
+  diary_entries:
+    form:
+      location: 'یئر:'
+      use_map_link: نقشه‌نی ایشلت
+    show:
+      leave_a_comment: باخیش یاز
+      login: گیریش
+    diary_entry:
+      confirm: تأیید ائت
+    diary_comment:
+      hide_link: بۇ باخیشی گیزلت
+      confirm: تأیید ائت
+    location:
+      location: 'یئر:'
+      view: باخ
+      edit: دَییشدیر
+    comments:
+      post: گؤندر
+      when: هاچان
+      comment: باخیش
+      newer_comments: یئنی باخیشلار
+      older_comments: قدیمی باخیشلار
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        aeroway:
+          gate: قاپی
+          terminal: ترمینال
+        amenity:
+          atm: خودپرداز
+          bank: بانک
+          bar: بار
+          bbq: BBQ
+          bench: نیمکت
+          brothel: قهبه‌خانا
+          cafe: کافه
+          car_wash: کارواش
+          casino: کازینو
+          charging_station: شارژ دۇراغی
+          cinema: سینما
+          clinic: کیلینیک
+          clock: ساعات
+          college: کالج
+          courthouse: محکمه
+          dentist: دیش حکیمی
+          doctors: طبیبلر
+          embassy: ائلچیلیک
+          fast_food: فست فود
+          ferry_terminal: گمی ترمینالی
+          fountain: بۇلاق
+          fuel: پمپ بنزین
+          gambling: قمار
+          hospital: مریضخانا
+          ice_cream: دوْندورما
+          library: کیتاب‌ائوی
+          marketplace: بازار
+          monastery: صومعه
+          nightclub: گئجه کولوبو
+          parking: پارکینگ
+          pharmacy: داواخانا
+          police: پولیس
+          prison: محبس
+          pub: میخانا
+          restaurant: رستوران
+          school: مدرسه
+          shelter: سیغیناجاق
+          shower: دوش
+          studio: استودیو
+          taxi: تاکسی
+          telephone: عمومی تلفون
+          theatre: تئاتر
+          toilets: توالت
+          university: دانیشگاه
+        bridge:
+          "yes": کؤرپو
+        building:
+          "yes": تیکینتی
+        craft:
+          carpenter: نجار
+          painter: نقاش
+          photographer: عکاس
+          shoemaker: باشماقچی
+          tailor: خیاط
+        highway:
+          platform: پلتفورم
+          road: یوْل
+          steps: پله
+          "yes": یوْل
+        historic:
+          castle: قلعه
+          church: کلیسا
+          fort: قلعه
+          house: ائو
+          mine: معدن
+          stone: داش
+          tomb: قبر
+          tower: بورج
+        landuse:
+          basin: حوض
+          forest: مئشه
+          garages: گاراژ
+          grass: چمن
+          mine: معدن
+          quarry: معدن
+          railway: دمیریوْلو
+        leisure:
+          garden: باغ
+          park: پارک
+          stadium: ایستادیوم
+        man_made:
+          tower: بورج
+          works: کارخانا
+        natural:
+          beach: ساحیل
+          forest: مئشه
+          hill: تپه
+          island: آدا
+          land: یئر
+          marsh: باتلاق
+          peak: دیمدیک
+          point: نوقطه
+          reef: ریف
+          ridge: خط‌الرأس
+          rock: قایا
+          sand: قۇم
+          spring: بۇلاق
+          stone: داش
+          strait: بوْغاز
+          tree: آغاج
+          valley: دره
+          volcano: یانارداغ
+          water: سو
+          wetland: باتلاق
+          wood: مئشه
+        office:
+          accountant: حسابدار
+          architect: معمار
+          company: شیرکت
+          lawyer: وکیل
+          "yes": دفتر
+        place:
+          city: شهر
+          country: اؤلکه
+          county: شهریستان
+          farm: مزرعه
+          house: ائو
+          houses: ائولر
+          island: آدا
+          region: بؤلگه
+          sea: دنیز
+          state: ایالت
+          village: کند
+          "yes": یئر
+        railway:
+          subway: مترو
+        shop:
+          mall: بازار
+          tailor: خیاطی
+          "yes": ساتیش یئری
+        tourism:
+          cabin: کابین
+          gallery: قالری
+          hotel: هوْتل
+          information: ایطلاعات
+          motel: موْتل
+          museum: موزه
+          zoo: باغ وحش
+        tunnel:
+          "yes": تونل
+        waterway:
+          lock: قیفیل
+          river: چای
+          stream: چای
+          wadi: وادی
+      types:
+        cities: شهرلر
+        places: یئرلر
+  layouts:
+    logout: چیخیش
+    log_in: گیریش
+    sign_up: آد یازدیر
+    edit: دَییشدیر
+    history: گئچمیش
+    data: دئیتا
+    help: کؤمک
+    about: گؤره
+    more: داها
+  user_mailer:
+    signup_confirm:
+      greeting: ‎سلام،
+    email_confirm:
+      greeting: سلام ،
+    lost_password:
+      greeting: سلام ،
+    note_comment_notification:
+      greeting: ‎سلام ،
+    changeset_comment_notification:
+      greeting: سلام ،
+  messages:
+    messages_table:
+      subject: موضوع
+      date: تاریخ
+    message_summary:
+      reply_button: جاواب
+      destroy_button: سیل
+    show:
+      reply_button: جاواب
+      back: دالی
+    sent_message_summary:
+      destroy_button: سیل
+  sessions:
+    new:
+      title: گیریش
+      heading: گیریش
+      login_button: گیریش
+    destroy:
+      title: چیخیش
+      logout_button: چیخیش
+  site:
+    about:
+      legal_title: قانونی
+    edit:
+      user_page_link: ایشلدن صفحه‌سی
+    export:
+      title: ائشیگه آپارماق
+      licence: لیسانس
+      too_large:
+        other:
+          title: آیری قایناقلار
+      export_button: ائشیگه چیخارت
+    help:
+      welcome:
+        url: /خوش گلدینیز
+    sidebar:
+      search_results: آختاریش نتیجه‌لری
+      close: باغلا
+    search:
+      search: آختار
+      submit_text: گئت
+    key:
+      table:
+        entry:
+          forest: مئشه
+          park: پارک
+          lake: گؤل
+          reservoir: مخزن
+          farm: مزرعه
+          school: مدرسه
+    welcome:
+      title: خوش گلدینیز!
+      rules:
+        title: قانونلار!
+  traces:
+    new:
+      help: کؤمک
+    trace_optionals:
+      tags: اِتیکتلر
+    show:
+      map: نقشه
+      edit: دَییشدیر
+      owner: 'یییه:'
+      tags: 'اِتیکتلر:'
+      none: هئچ بیری
+    trace:
+      more: داها
+...

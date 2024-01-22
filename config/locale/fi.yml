@@ -1,0 +1,3046 @@
+# Messages for Finnish (suomi)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: 01miki10
+# Author: 3Johnny
+# Author: Actuallyisjoha
+# Author: Alluk.
+# Author: Antsa
+# Author: Artnay
+# Author: BriskyBlizzard
+# Author: Centerlink
+# Author: Crt
+# Author: Daeron
+# Author: Espeox
+# Author: Jnovikov
+# Author: Joquliina
+# Author: Konstaduck
+# Author: Laurianttila
+# Author: Lliehu
+# Author: MITO
+# Author: Maantietäjä
+# Author: Macofe
+# Author: Markosu
+# Author: Markus Mikkonen
+# Author: McSalama
+# Author: Mediawikitranslator
+# Author: Mikahama
+# Author: Moiman
+# Author: Moj
+# Author: Moottori
+# Author: MrTapsa
+# Author: Nedergard
+# Author: Nelg
+# Author: Nemo bis
+# Author: Nike
+# Author: Olli
+# Author: Pahkiqaz
+# Author: Patalakki
+# Author: Pyscowicz
+# Author: Ramilehti
+# Author: Ruila
+# Author: Rönttönen
+# Author: SMAUG
+# Author: Samoasambia
+# Author: Silvonen
+# Author: Snidata
+# Author: Spude
+# Author: Str4nd
+# Author: Susannaanas
+# Author: Tomi Toivio
+# Author: Tumm1
+# Author: Usp
+# Author: Veikk0.ma
+# Author: ZeiP
+---
+fi:
+  time:
+    formats:
+      friendly: '%e. %Bta %Y klo %H.%M'
+      blog: '%e. %Bta %Y'
+  helpers:
+    file:
+      prompt: Valitse tiedosto
+    submit:
+      diary_comment:
+        create: Kommentoi
+      diary_entry:
+        create: Julkaise
+        update: Päivitä
+      issue_comment:
+        create: Lisää kommentti
+      message:
+        create: Lähetä
+      client_application:
+        create: Rekisteröi
+        update: Päivitä
+      oauth2_application:
+        create: Rekisteröidy
+        update: Päivitä
+      redaction:
+        create: Luo redaktio
+        update: Tallenna redaktio
+      trace:
+        create: Lataa
+        update: Tallenna muutokset
+      user_block:
+        create: Luo esto
+        update: Päivitä esto
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: '"%s" ei näytä olevan kelvollinen sähköpostiosoite.'
+        email_address_not_routable: reittiohjeet eivät ole saatavilla
+    models:
+      acl: Pääsyoikeuslista
+      changeset: Muutoskokoelma
+      changeset_tag: Muutoskokoelman tunniste
+      country: Maa
+      diary_comment: Päiväkirjakommentti
+      diary_entry: Päiväkirjamerkintä
+      friend: Kaveri
+      issue: Ongelma
+      language: Kieli
+      message: Viesti
+      node: Piste
+      node_tag: Pisteen tunniste
+      old_node: Vanha piste
+      old_node_tag: Vanha pisteen tunniste
+      old_relation: Vanha relaatio
+      old_relation_member: Vanha relaation jäsen
+      old_relation_tag: Vanha relaation tunniste
+      old_way: Vanha viiva
+      old_way_node: Vanha viiva piste
+      old_way_tag: Viivan vanha tunniste
+      relation: Relaatio
+      relation_member: Relaation jäsen
+      relation_tag: Relaation tunniste
+      report: Raportti
+      session: Istunto
+      trace: Jälki
+      tracepoint: Jälkipiste
+      tracetag: Jäljen tagi
+      user: Käyttäjä
+      user_preference: Käyttäjän asetus
+      user_token: Käyttäjän poletti
+      way: Viiva
+      way_node: Viivan piste
+      way_tag: Viivan tagi
+    attributes:
+      client_application:
+        name: Nimi (pakollinen)
+        url: Pääsovelluksen URL-osoite (pakollinen)
+        callback_url: Takaisinsoiton verkko-osoite
+        support_url: Tuen osoite (URL)
+        allow_read_prefs: päästä käyttäjäasetuksiin
+        allow_write_prefs: muokata käyttäjäasetuksia
+        allow_write_diary: lisätä päiväkirjamerkintöjä, kommentteja ja kavereita
+        allow_write_api: muokata karttaa
+        allow_read_gpx: päästä yksityisiin GPS-jälkiin
+        allow_write_gpx: tallentaa GPS-jälkiä
+        allow_write_notes: muokata karttailmoituksia
+      diary_comment:
+        body: Leipäteksti
+      diary_entry:
+        user: Käyttäjä
+        title: Aihe
+        body: Sisältö
+        latitude: Leveyspiiri
+        longitude: Pituuspiiri
+        language_code: Kieli
+      doorkeeper/application:
+        name: Nimi
+        redirect_uri: Uudelleenohjaa URI:t
+        confidential: Korkean tietoturvariskin sovellus
+        scopes: Käyttöoikeudet
+      friend:
+        user: Käyttäjä
+        friend: Kaveri
+      trace:
+        user: Käyttäjä
+        visible: Näkyvissä
+        name: Tiedostonimi
+        size: Koko
+        latitude: Leveyspiiri
+        longitude: Pituuspiiri
+        public: Julkinen
+        description: Kuvaus
+        gpx_file: Tallenna GPX-tiedosto
+        visibility: Näkyvyys
+        tagstring: Ominaisuustiedot
+      message:
+        sender: Lähettäjä
+        title: Aihe
+        body: Viesti
+        recipient: Vastaanottaja
+      redaction:
+        title: Otsikko
+        description: Kuvaus
+      report:
+        category: Valitse ilmiannon syy
+        details: Kuvaile ongelmaa (pakollinen)
+      user:
+        auth_provider: Todennuksen tarjoaja
+        auth_uid: Todennus-UID
+        email: Sähköpostiosoite
+        email_confirmation: Sähköpostin varmistus
+        new_email: Uusi sähköpostiosoite
+        active: Aktivoitu
+        display_name: Näyttönimi
+        description: Henkilökuvaus
+        home_lat: Leveyspiiri
+        home_lon: Pituuspiiri
+        languages: Kielet
+        preferred_editor: Ensisijainen muokkausohjelma
+        pass_crypt: Salasana
+        pass_crypt_confirmation: Vahvista salasana
+    help:
+      doorkeeper/application:
+        confidential: Sovellusta käytettäessä ei voida taata käyttäjätietojen tietoturvaa
+          (natiivit mobiilisovellukset ja yhden sivun sovellukset eivät ole korkean
+          tietoturvariskin sovelluksia)
+        redirect_uri: Käytä yhtä riviä URI:a kohden
+      trace:
+        tagstring: pilkuilla eroteltu lista
+      user_block:
+        reason: Syy käyttäjän estoon. Ole mahdollisimman rauhallinen ja asiallinen
+          ja kuvaile tilannetta mahdollisimman yksityiskohtaisesti. Pidä mielessä,
+          että viesti tulee olemaan julkisesti näkyvillä. Muista myös, että kaikki
+          käyttäjät eivät ymmärrä yhteisön erikoissanastoa, joten pyri sen sijaan
+          käyttämään yleiskielen käsitteitä.
+        needs_view: Pitääkö tämän käyttäjän kirjautua sisään ennen kuin esto poistetaan?
+      user:
+        new_email: (ei näy muille)
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: noin %{count} tunti sitten
+        other: noin %{count} tuntia sitten
+      about_x_months:
+        one: noin %{count} kuukausi sitten
+        other: noin %{count} kuukautta sitten
+      about_x_years:
+        one: noin %{count} vuosi sitten
+        other: noin %{count} vuotta sitten
+      almost_x_years:
+        one: lähes %{count} vuosi sitten
+        other: lähes %{count} vuotta sitten
+      half_a_minute: puoli minuuttia sitten
+      less_than_x_seconds:
+        one: vähemmän kuin %{count} sekuntia sitten
+        other: vähemmän kuin %{count} sekuntia sitten
+      less_than_x_minutes:
+        one: vähemmän kuin %{count} minuutti sitten
+        other: vähemmän kuin %{count} minuuttia sitten
+      over_x_years:
+        one: yli %{count} vuosi sitten
+        other: yli %{count} vuotta sitten
+      x_seconds:
+        one: '%{count} sekunti sitten'
+        other: '%{count} sekuntia sitten'
+      x_minutes:
+        one: '%{count} minuutti sitten'
+        other: '%{count} minuuttia sitten'
+      x_days:
+        one: '%{count} päivä sitten'
+        other: '%{count} päivää sitten'
+      x_months:
+        one: '%{count} kuukausi sitten'
+        other: '%{count} kuukautta sitten'
+      x_years:
+        one: '%{count} vuosi sitten'
+        other: '%{count} vuotta sitten'
+  editor:
+    default: Oletus (tällä hetkellä %{name})
+    id:
+      name: iD
+      description: iD (selainkäyttöinen muokkain)
+    remote:
+      name: Kauko-ohjaus
+      description: Kauko-ohjaus (JOSM, Potlatch tai Merkaartor)
+  auth:
+    providers:
+      none: Ei mitään
+      openid: OpenID
+      google: Google
+      facebook: Facebook
+      microsoft: Microsoft
+      github: GitHub
+      wikipedia: Wikipedia
+  api:
+    notes:
+      comment:
+        opened_at_html: Luotu %{when}
+        opened_at_by_html: '%{user} luonut %{when}'
+        commented_at_html: Päivitetty %{when}
+        commented_at_by_html: '%{user} päivittänyt %{when}'
+        closed_at_html: Ratkaistu %{when}
+        closed_at_by_html: '%{user} ratkaissut %{when}'
+        reopened_at_html: Avattu uudelleen %{when}
+        reopened_at_by_html: '%{user} aktivoinut uudelleen %{when}'
+      rss:
+        title: OpenStreetMapin karttailmoitukset
+        description_area: Luettelo raportoiduista, kommentoiduista tai suljetuista
+          huomautuksista omalla alueellasi [( %{min_lat}|%{min_lon})--( %{max_lat}|%{max_lon})]
+        description_item: Karttailmoituksen %{id} RSS-syöte
+        opened: uusi huomautus (lähellä kohdetta %{place})
+        commented: uusi kommentti (lähellä kohdetta %{place})
+        closed: suljettu karttailmoitus (lähellä paikkaa %{place})
+        reopened: uudelleenavattu karttailmoitus (lähellä paikka %{place})
+      entry:
+        comment: Kommentti
+        full: Koko karttailmoitus
+  account:
+    deletions:
+      show:
+        title: Poista käyttäjäni
+        warning: Varoitus! Käyttäjän poistaminen on lopullinen, eikä sitä voi peruuttaa.
+        delete_account: Poista käyttäjä
+        delete_introduction: 'Voit poistaa OpenStreetMap-tilisi alla olevalla painikkeella.
+          Huomioi seuraavat asiat:'
+        delete_profile: Käyttäjätietosi, avatar, kuvaus ja kotisijainti mukaan lukien
+          poistetaan.
+        delete_display_name: Näyttönimesi poistetaan, ja muut tilit voivat käyttää
+          sitä uudelleen.
+        retain_caveats: 'Vaikka tilisi poistetaan, joitain sinuun liittyviä tietoja
+          säilytetään OpenStreetMapissa:'
+        retain_edits: Mahdolliset karttatietokantaan tekemäsi muutokset säilytetään.
+        retain_traces: Lähettämäsi jäljet, jos sellaisia on, säilytetään.
+        retain_diary_entries: Päiväkirjamerkintäsi ja päiväkirjakommenttisi, jos sellaisia
+          on, säilytetään, mutta piilotetaan näkyviltä.
+        retain_email: Sähköpostiosoitteesi säilytetään.
+        confirm_delete: Oletko varma?
+        cancel: Peruuta
+  accounts:
+    edit:
+      title: Asetusten muokkaus
+      my settings: Käyttäjäasetukset
+      current email address: Nykyinen sähköpostiosoite
+      external auth: Kolmannen osapuolen tunnukset kirjautuessa
+      openid:
+        link: https://wiki.openstreetmap.org/wiki/Fi:OpenID
+        link text: Mitä tämä tarkoittaa?
+      public editing:
+        heading: Julkinen muokkaus
+        enabled: Kyllä. Karttatietojen muokkaus sallittu.
+        enabled link text: Mitä tämä tarkoittaa?
+        disabled: Ei. Karttatietojen muokkaus estetty. Aiemmat karttamuutokset anonyymejä.
+        disabled link text: Miksen voi enää muokata karttaa?
+      contributor terms:
+        heading: Osallistumisehdot
+        agreed: Olet hyväksynyt osallistumisehdot.
+        not yet agreed: Et ole vielä hyväksynyt osallistumisehtoja.
+        review link text: Lue ja hyväksy uudistuneet osallistumisehdot napsauttamalla
+          tätä linkkiä.
+        agreed_with_pd: Olet myös ilmaissut muokkaustesi olevan tekijänoikeudesta
+          vapaita (Public Domain).
+        link text: Mitä tämä tarkoittaa?
+      save changes button: Tallenna muutokset
+      delete_account: Poista käyttäjä...
+    go_public:
+      heading: Muokkaukset julkisia
+      currently_not_public: Tällä hetkellä muokkauksesi ovat anonyymejä, eivätkä ihmiset
+        voi lähettää sinulle viestejä tai nähdä sijaintiasi. Napsauta alla olevaa
+        painiketta nähdäksesi, mitä olet muokannut, ja anna ihmisten ottaa sinuun
+        yhteyttä verkkosivuston kautta.
+      make_edits_public_button: Tee muokkauksistani julkisia
+    update:
+      success_confirm_needed: Käyttäjätietojen muutokset on tallennettu. Vahvista
+        uusi sähköpostiosoite siihen lähetettyjen ohjeiden mukaisesti.
+      success: Käyttäjätietojen muutokset on tallennettu.
+    destroy:
+      success: Käyttäjä poistettu.
+  browse:
+    created: Luotu
+    closed: Suljettu
+    created_ago_html: Luotu %{time_ago}
+    closed_ago_html: Suljettu %{time_ago}
+    created_ago_by_html: Luonut %{user}, %{time_ago}
+    closed_ago_by_html: Sulkenut %{user}, %{time_ago}
+    deleted_ago_by_html: Poistanut %{user}, %{time_ago}
+    edited_ago_by_html: Muokannut %{time_ago} %{user}
+    version: Versio
+    in_changeset: Muutoskokoelma
+    anonymous: tuntematon
+    no_comment: (ei kommenttia)
+    part_of: Osana seuraavia
+    part_of_relations:
+      one: '%{count} relaatio'
+      other: '%{count} relaatiota'
+    part_of_ways:
+      one: '%{count} viiva'
+      other: '%{count} viivaa'
+    download_xml: Lataa XML-tiedostona
+    view_history: Näytä historia
+    view_details: Näytä tiedot
+    location: 'Sijainti:'
+    changeset:
+      title: 'Muutoskokoelma: %{id}'
+      belongs_to: Lähettäjä
+      node: Pisteet (%{count})
+      node_paginated: Pisteet (%{x}-%{y} / %{count})
+      way: Reitit (%{count})
+      way_paginated: Reitit (%{x}-%{y} of %{count})
+      relation: Relaatiot (%{count})
+      relation_paginated: Relaatiot (%{x}-%{y} / %{count})
+      comment: Kommentit (%{count})
+      hidden_comment_by_html: Piilotettu kommentti käyttäjältä %{user} %{time_ago}
+      comment_by_html: Kommentti käyttäjältä %{user}, %{time_ago}
+      changesetxml: Muutoskokoelman XML
+      osmchangexml: osmChange XML
+      feed:
+        title: Muutoskokoelma %{id}
+        title_comment: Muutoskokoelma %{id} - %{comment}
+      join_discussion: Kirjaudu sisään osallistuaksesi keskusteluun
+      discussion: Keskustelu
+      still_open: Muutoskokoelma on edelleen avoimena - keskustelu avataan heti kun
+        muutoskokoelma on suljettu.
+    node:
+      title_html: 'Piste: %{name}'
+      history_title_html: Pisteen %{name} historia
+    way:
+      title_html: 'Viiva: %{name}'
+      history_title_html: Viivan %{name} historia
+      nodes: Pisteet
+      nodes_count:
+        one: '%{count} piste'
+        other: '%{count} pistettä'
+      also_part_of_html:
+        one: osana viivaa %{related_ways}
+        other: osana viivoja %{related_ways}
+    relation:
+      title_html: 'Relaatio: %{name}'
+      history_title_html: Relaation %{name} historia
+      members: Jäsenet
+      members_count:
+        one: '%{count} jäsen'
+        other: '%{count} jäsentä'
+    relation_member:
+      entry_role_html: '%{type} %{name} roolissa %{role}'
+      type:
+        node: Piste
+        way: Polku
+        relation: Relaatio
+    containing_relation:
+      entry_html: Relaatio %{relation_name}
+      entry_role_html: Relaatio %{relation_name} (rooli %{relation_role})
+    not_found:
+      title: Ei löytynyt
+      sorry: 'Pahoittelemme, %{type} #%{id} ei pystytty löytämään.'
+      type:
+        node: Pistettä
+        way: Polkua
+        relation: Relaatiota
+        changeset: muutoskokoelma
+        note: merkintä
+    timeout:
+      title: Aikakatkaisu
+      sorry: Pahoittelut, tietojen hakeminen (kohde %{type}:%{id}) kesti liian kauan.
+      type:
+        node: piste
+        way: polku
+        relation: relaatio
+        changeset: muutoskokoelma
+        note: merkintä
+    redacted:
+      redaction: Redaktio %{id}
+      message_html: Tämän %{type}-tyypin versiota %{version} ei voi näyttää koska
+        se on relaatoitu. Katso lisätietoja %{redaction_link}.
+      type:
+        node: piste
+        way: polku
+        relation: relaatio
+    start_rjs:
+      feature_warning: Ladataan %{num_features} ominaisuutta, mikä saatta hidastaa
+        tai kaataa verkkoselaimen. Haluatko varmasti näyttää nämä tiedot?
+      load_data: Lataa tiedot
+      loading: Ladataan tietoja...
+    tag_details:
+      tags: Ominaisuustiedot
+      wiki_link:
+        key: Wikisivu avaimelle %{key}
+        tag: Wikisivu tietueelle %{key}=%{value}
+      wikidata_link: '%{page} Wikidatassa'
+      wikipedia_link: Artikkeli %{page} Wikipediassa
+      wikimedia_commons_link: '%{page} Wikimedia Commonsissa'
+      telephone_link: Soita %{phone_number}
+      colour_preview: Värin %{colour_value} esikatselu
+      email_link: Sähköposti %{email}
+    query:
+      title: Ominaisuuskysely
+      introduction: Napsauta karttaa löytääksesi lähistön karttakohteita.
+      nearby: Lähistön karttakohteet
+      enclosing: Ympäröivät karttakohteet
+  changesets:
+    changeset_paging_nav:
+      showing_page: Sivu %{page}
+      next: Seuraava »
+      previous: « Edellinen
+    changeset:
+      anonymous: Tuntematon
+      no_edits: (ei muokkauksia)
+      view_changeset_details: Näytä muutoskokoelman tarkemmat tiedot
+    changesets:
+      id: Tunniste
+      saved_at: Tallennettu
+      user: Käyttäjä
+      comment: Kommentti
+      area: Alue
+    index:
+      title: Muutoskokoelmat
+      title_user: Käyttäjän %{user} muutoskokoelmat
+      title_user_link_html: Käyttäjän %{user_link} muutoskokoelmat
+      title_friend: Kaverien muutoskokoelmat
+      title_nearby: Lähellä olevien käyttäjien muutoskokoelmat
+      empty: Muutosryhmiä ei löytynyt.
+      empty_area: Ei muutosryhmiä tällä alueella.
+      empty_user: Tämä käyttäjä ei ole tehnyt muutosryhmiä.
+      no_more: Ei löytynyt enempää muutosryhmiä.
+      no_more_area: Ei muita muutosryhmiä tällä alueella.
+      no_more_user: Ei muita muutosryhmiä tällä käyttäjällä.
+      load_more: Lataa lisää
+    timeout:
+      sorry: Valitettavasti pyytämäsi muutoskokoelmien listan hakeminen kesti liian
+        kauan.
+  changeset_comments:
+    comment:
+      comment: 'Käyttäjä %{author} kommentoi muutoskokoelmaa #%{changeset_id}'
+      commented_at_by_html: '%{user} päivittänyt %{when}'
+    comments:
+      comment: 'Uusi kommentti käyttäjän %{author} muutoskokoelmassa #%{changeset_id}'
+    index:
+      title_all: Keskustelu OpenStreetMapin muutoskokoelmasta
+      title_particular: 'OpenStreetMap muutoskokoelma #%{changeset_id} keskustelu'
+    timeout:
+      sorry: Valitettavasti pyytämäsi muutoskokoelmien kommenttien hakeminen kesti
+        liian kauan.
+  dashboards:
+    contact:
+      km away: '%{count} kilometrin päässä'
+      m away: '%{count} metrin päässä'
+      latest_edit_html: 'Viimeisin muutos (%{ago}):'
+    popup:
+      your location: Oma sijaintisi
+      nearby mapper: Lähellä oleva kartoittaja
+      friend: Kaveri
+    show:
+      title: Tapahtumat
+      no_home_location_html: '%{edit_profile_link} ja aseta kotisijaintisi, jotta
+        näet lähellä olevat käyttäjät.'
+      edit_your_profile: Muokkaa profiiliasi
+      my friends: Kaverit
+      no friends: Sinulla ei ole vielä kavereita.
+      nearby users: Muut lähialueen käyttäjät
+      no nearby users: Valitun sijainnin lähellä ei ole tiedossa muita käyttäjiä.
+      friends_changesets: kaverien muutoskokoelmat
+      friends_diaries: kaverien päiväkirjamerkinnät
+      nearby_changesets: lähialueen käyttäjien muutoskokoelmat
+      nearby_diaries: lähialueen käyttäjien päiväkirjamerkinnät
+  diary_entries:
+    new:
+      title: Uusi päiväkirjamerkintä
+    form:
+      location: Sijainti
+      use_map_link: Käytä karttaa
+    index:
+      title: Käyttäjien päiväkirjamerkinnät
+      title_friends: Kaverien päiväkirjat
+      title_nearby: Lähellä olevien käyttäjien päiväkirjat
+      user_title: Käyttäjän %{user} päiväkirja
+      in_language_title: Päiväkirjamerkinnät kielellä %{language}
+      new: Lisää päiväkirjamerkintä
+      new_title: Kirjoita uusi merkintä käyttäjän päiväkirjaani
+      my_diary: Päiväkirjani
+      no_entries: Päiväkirjassa ei ole merkintöjä.
+      recent_entries: Uusimmat päiväkirjamerkinnät
+      older_entries: Vanhempia...
+      newer_entries: Uudempia...
+    edit:
+      title: Muokkaa päiväkirjamerkintää
+      marker_text: Päiväkirjamerkinnän sijainti
+    show:
+      title: Käyttäjän %{user} päiväkirja | %{title}
+      user_title: Käyttäjän %{user} päiväkirja
+      leave_a_comment: Kommentoi tätä kirjoitusta
+      login_to_leave_a_comment_html: '%{login_link} kommentoidaksesi'
+      login: Kirjaudu sisään
+    no_such_entry:
+      title: Päiväkirjamerkintää ei ole
+      heading: Tunnuksella %{id} ei ole päiväkirjamerkintää.
+      body: Tunnuksella %{id} ei ole päiväkirjamerkintää. Joko saamasi linkki oli
+        virheellinen tai kirjoitit sen väärin.
+    diary_entry:
+      posted_by_html: Käyttäjä %{link_user} kirjoitti tämän %{created} kielellä %{language_link}.
+      updated_at_html: Päivitetty viimeksi %{updated}.
+      comment_link: Kommentoi tätä kirjoitusta
+      reply_link: Lähetä viesti tekijälle
+      comment_count:
+        one: '%{count} kommentti'
+        other: '%{count} kommenttia'
+      no_comments: Ei kommentteja
+      edit_link: Muokkaa päiväkirjamerkintää
+      hide_link: Piilota tämä merkintä
+      unhide_link: Poista merkinnän piilottaminen
+      confirm: Vahvista
+      report: Ilmianna julkaisu
+    diary_comment:
+      comment_from_html: Kommentti käyttäjältä %{link_user} %{comment_created_at}
+      hide_link: Piilota tämä kommentti
+      unhide_link: Poista kommentin piilottaminen
+      confirm: Vahvista
+      report: Ilmianna kommentti
+    location:
+      location: 'Sijainti:'
+      view: Näytä
+      edit: Muokkaa
+    feed:
+      user:
+        title: Käyttäjän %{user} OpenStreetMap-päiväkirjamerkinnät
+        description: Tuoreimmat OpenStreetMapin päiväkirjamerkinnät käyttäjältä %{user}
+      language:
+        title: OpenStreetMap-päiväkirjamerkinnät kielellä %{language_name}
+        description: Viimeisimmät päiväkirjamerkinnät OpenStreetMapin käyttäjiltä
+          kielellä %{language_name}
+      all:
+        title: OpenStreetMap-päiväkirjamerkinnät
+        description: Tuoreimmat OpenStreetMapin käyttäjien päiväkirjamerkinnät
+    comments:
+      title: Käyttäjän %{user} lisäämät päiväkirjamerkinnät
+      heading: Päiväkirjamerkinnät käyttäjältä %{user}
+      subheading_html: Käyttäjän %{user} lisäämät päiväkirjamerkinnät
+      no_comments: Ei päiväkirjamerkintöjä
+      post: Kommentti
+      when: Päiväys
+      comment: Kommentti
+      newer_comments: Uudemmat kommentit
+      older_comments: Vanhemmat kommentit
+  doorkeeper:
+    flash:
+      applications:
+        create:
+          notice: Sovellus rekisteröity.
+  errors:
+    contact:
+      contact: Ota yhteyttä
+      contact_the_community_html: '%{contact_link} OpenStreetMap-yhteisöön, jos olet
+        löytänyt rikkinäisen linkin / virheen. Kirjoita muistiin pyyntösi tarkka URL-osoite.'
+    forbidden:
+      title: Kielletty
+      description: OpenStreetMap-palvelimella pyytämäsi toiminto on vain järjestelmänvalvojien
+        käytettävissä (HTTP 403)
+    internal_server_error:
+      title: Sovellusvirhe
+      description: OpenStreetMap-palvelin kohtasi odottamattoman tilanteen, joka esti
+        sitä täyttämästä pyyntöä (HTTP 500)
+    not_found:
+      title: Tiedostoa ei löydy
+  friendships:
+    make_friend:
+      heading: Lisätäänkö %{user} kaveriksi?
+      button: Lisää kaveriksi
+      success: '%{name} on nyt kaverisi.'
+      failed: Käyttäjää %{name} ei voitu lisätä kaverilistaasi.
+      already_a_friend: '%{name} on jo kaverisi.'
+    remove_friend:
+      heading: Poistetaanko kaveri %{user}?
+      button: Poista kaveri
+      success: '%{name} poistettiin kaverilistastasi.'
+      not_a_friend: '%{name} ei ole enää kaverisi.'
+  geocoder:
+    search:
+      title:
+        results_from_html: Tulokset kohteesta %{results_link}
+        latlon: Sisäinen
+    search_osm_nominatim:
+      prefix:
+        aerialway:
+          cable_car: Köysirata
+          chair_lift: Tuolihissi
+          drag_lift: Vetohissi
+          gondola: Gondolihissi
+          magic_carpet: Mattohissi
+          platter: Hiihtohissi
+          pylon: Pylväs
+          station: Ilmarata-asema
+          t-bar: Ankkurihissi
+          "yes": Ilmarata
+        aeroway:
+          aerodrome: Lentokenttä
+          airstrip: Kiitorata
+          apron: Lentoaseman asemataso
+          gate: Lentoaseman portti
+          hangar: Hangaari
+          helipad: Helikopterikenttä
+          holding_position: Odotuspaikka
+          navigationaid: Ilmailunavigointituki
+          parking_position: Parkkialue
+          runway: Kiitorata
+          taxilane: Taksikaista
+          taxiway: Rullaustie
+          terminal: Lentoaseman terminaali
+          windsock: Tuulipussi
+        amenity:
+          animal_boarding: Lemmikkihoitola
+          animal_shelter: Eläinsuoja
+          arts_centre: Taidekeskus
+          atm: Pankkiautomaatti
+          bank: Pankki
+          bar: Baari
+          bbq: Grillauskatos
+          bench: Penkki
+          bicycle_parking: Pyöräparkki
+          bicycle_rental: Pyörävuokraamo
+          bicycle_repair_station: Pyöränkorjauspiste
+          biergarten: Terassi
+          blood_bank: Veripalvelu
+          boat_rental: Venevuokraamo
+          brothel: Bordelli
+          bureau_de_change: Rahanvaihto
+          bus_station: Linja-autoasema
+          cafe: Kahvila
+          car_rental: Autovuokraamo
+          car_sharing: Kimppakyyti
+          car_wash: Autopesu
+          casino: Kasino
+          charging_station: Latausasema
+          childcare: Lastenhoito
+          cinema: Elokuvateatteri
+          clinic: Klinikka
+          clock: Kello
+          college: Oppilaitos
+          community_centre: Yhteisökeskus
+          conference_centre: Konferenssikeskus
+          courthouse: Oikeustalo
+          crematorium: Krematorio
+          dentist: Hammaslääkäri
+          doctors: Lääkäreitä
+          drinking_water: Juomavesi
+          driving_school: Autokoulu
+          embassy: Lähetystö
+          events_venue: Tapahtumakeskus
+          fast_food: Pikaruokaravintola
+          ferry_terminal: Lauttaterminaali
+          fire_station: Paloasema
+          food_court: Elintarviketori
+          fountain: Lähde
+          fuel: Huoltoasema
+          gambling: Uhkapelaus
+          grave_yard: Hautausmaa
+          grit_bin: Hiekka-astia
+          hospital: Sairaala
+          hunting_stand: Metsästyslava
+          ice_cream: Jäätelö
+          internet_cafe: Internet-kahvila
+          kindergarten: Päiväkoti
+          language_school: Kielikoulu
+          library: Kirjasto
+          loading_dock: Lastauslaituri
+          love_hotel: Rakkaushotelli
+          marketplace: Tori
+          mobile_money_agent: Mobiiliraha-agentti
+          monastery: Luostari
+          money_transfer: Rahansiirto
+          motorcycle_parking: Moottoripyöräpysäköinti
+          music_school: Musiikkikoulu
+          nightclub: Yökerho
+          nursing_home: Hoitokoti
+          parking: Parkkipaikka
+          parking_entrance: Pysäköintialueen sisäänkäynti
+          parking_space: Parkkipaikka
+          payment_terminal: Maksupääte
+          pharmacy: Apteekki
+          place_of_worship: Kirkko, temppeli, pyhä paikka
+          police: Poliisi
+          post_box: Kirjelaatikko
+          post_office: Postitoimisto
+          prison: Vankila
+          pub: Pubi
+          public_bath: Uimahalli
+          public_bookcase: Julkinen kirjahylly
+          public_building: Julkinen rakennus
+          ranger_station: Metsänvartijan tupa
+          recycling: Kierrätyspaikka
+          restaurant: Ravintola
+          sanitary_dump_station: Septitankin tyhjennyspiste
+          school: Koulu
+          shelter: Katos
+          shower: Suihku
+          social_centre: Sosiaalikeskus
+          social_facility: Sosiaalilaitos
+          studio: Studio
+          swimming_pool: Uima-allas
+          taxi: Taksi
+          telephone: Puhelinkoppi
+          theatre: Teatteri
+          toilets: WC
+          townhall: Kaupungintalo
+          training: Koulutuslaitos
+          university: Yliopisto
+          vehicle_inspection: Katsastus
+          vending_machine: Myyntiautomaatti
+          veterinary: Eläinlääkäri
+          village_hall: Kyläkoti
+          waste_basket: Roskakori
+          waste_disposal: Jätehuolto
+          waste_dump_site: Kaatopaikka
+          watering_place: Juottopaikka
+          water_point: vesipiste
+          weighbridge: Vaaka-asema
+          "yes": Palvelu
+        boundary:
+          aboriginal_lands: Alkuperäisasukkaiden maa-alue
+          administrative: Hallinnollinen raja
+          census: Väestönlaskenta-alueen raja
+          national_park: Kansallispuisto
+          political: Vaalipiirin raja
+          protected_area: Suojelualue
+          "yes": Raja
+        bridge:
+          aqueduct: Akvedukti
+          boardwalk: Laudoitettu polku
+          suspension: Riippusilta
+          swing: Kääntösilta
+          viaduct: Maasilta
+          "yes": Silta
+        building:
+          apartment: Asuinkerrostalo
+          apartments: Kerrostalo
+          barn: Lato
+          bungalow: Bungalow
+          cabin: Mökki
+          chapel: Kappeli
+          church: Kirkkorakennus
+          civic: Julkinen rakennus
+          college: Yliopistorakennus
+          commercial: Liikerakennus
+          construction: Rakenteilla oleva rakennus
+          detached: Omakotitalo
+          dormitory: Asuntola
+          duplex: Paritalo
+          farm: Maalaistalo
+          garage: Autotalli
+          garages: Autotalleja
+          greenhouse: Kasvihuone
+          hangar: Hangaari
+          hospital: Sairaalarakennus
+          hotel: Hotellirakennus
+          house: Talo
+          houseboat: Asuntovene
+          hut: Maja
+          industrial: Teollisuusrakennus
+          kindergarten: Päiväkotirakennus
+          manufacture: Tehdasrakennus
+          office: Toimistorakennus
+          public: Julkinen rakennus
+          residential: Asuinrakennus
+          retail: Liikerakennus
+          roof: Katto
+          ruins: Raunioitunut rakennus
+          school: Koulurakennus
+          semidetached_house: Paritalo
+          service: Palvelurakennus
+          shed: Vaja
+          stable: Talli
+          static_caravan: Karavaani
+          temple: Temppelirakennus
+          terrace: Rivitalo
+          train_station: Rautatieasema
+          university: Yliopistorakennus
+          warehouse: Varasto
+          "yes": Rakennus
+        club:
+          scout: Partioryhmän tukikohta
+          sport: Urheiluseura
+          "yes": Klubi
+        craft:
+          beekeeper: Mehiläishoitaja
+          blacksmith: Sepän paja
+          brewery: Panimo
+          carpenter: Puuseppä
+          caterer: Pitopalvelu
+          confectionery: Makeiset
+          dressmaker: Ompelija
+          electrician: Sähköasentaja
+          electronics_repair: Elektroniikkahuolto
+          gardener: Puutarhuri
+          glaziery: Lasitusliike
+          handicraft: Käsityöt
+          hvac: Ilmastointiliike
+          metal_construction: Metallirakentaja
+          painter: Taidemaalari
+          photographer: Valokuvaaja
+          plumber: Putkimies
+          roofer: Kattoliike
+          sawmill: Sahalaitos
+          shoemaker: Suutari
+          stonemason: Kivenhakkaaja
+          tailor: Räätäli
+          window_construction: Ikkunoiden valmistaminen
+          winery: Viinitila
+          "yes": Käsityömyymälä
+        emergency:
+          access_point: Tukiasema
+          ambulance_station: Ensihoitoasema
+          assembly_point: kohtaamispaikka
+          defibrillator: Defibrillaattori
+          fire_extinguisher: Palosammutin
+          landing_site: Hätälaskualue
+          life_ring: Pelastusrengas
+          phone: Hätäpuhelin
+          siren: Väestöhälytin
+          water_tank: hätävesitankki
+        highway:
+          abandoned: Hylätty valtatie
+          bridleway: Ratsastustie
+          bus_guideway: Ohjattu linja-autokaista
+          bus_stop: Bussipysäkki
+          construction: Rakenteilla oleva tie
+          corridor: käytävä
+          crossing: Suojatie
+          cycleway: Pyörätie
+          elevator: Hissi
+          emergency_access_point: Hätätilapaikka
+          emergency_bay: Hätäpysähdyspaikka
+          footway: Polku
+          ford: Kahluupaikka
+          give_way: kärkikolmio
+          living_street: Asuinkatu
+          milestone: Virstanpylväs
+          motorway: Moottoritie
+          motorway_junction: Moottoritien liittymä
+          motorway_link: Moottoritie
+          passing_place: ohituspaikka
+          path: Polku
+          pedestrian: Jalkakäytävä
+          platform: Asemalaituri
+          primary: Kantatie
+          primary_link: Kantatie
+          proposed: Suunnitteilla oleva tie
+          raceway: Kilparata
+          residential: Asuinkatu
+          rest_area: Lepoalue
+          road: Tie
+          secondary: Seututie
+          secondary_link: Seututie
+          service: Huoltotie
+          services: Moottoritiepalvelut
+          speed_camera: Nopeuskamera
+          steps: Portaat
+          stop: Stopmerkki
+          street_lamp: Katuvalaisin
+          tertiary: Yhdystie
+          tertiary_link: Yhdystie
+          track: Metsätie
+          traffic_mirror: Liikennepeili
+          traffic_signals: Liikennevalot
+          trunk: Valtatie
+          trunk_link: Valtatie
+          turning_circle: Kääntöpaikka
+          turning_loop: Kääntöpaikka
+          unclassified: Luokittelematon tie
+          "yes": Tie
+        historic:
+          aircraft: Historiallinen lentokone
+          archaeological_site: Arkeologinen kohde
+          bomb_crater: Historiallinen pommikraatteri
+          battlefield: Taistelukenttä
+          boundary_stone: Rajakivi
+          building: Historiallinen rakennus
+          bunker: Bunkkeri
+          cannon: Historiallinen tykki
+          castle: Linna
+          charcoal_pile: Historiallinen puuhiilikasa
+          church: Kirkko
+          city_gate: Kaupungin portti
+          citywalls: Kaupunginmuurit
+          fort: Linnake
+          heritage: Perintökohde
+          house: Talo
+          manor: Kartano
+          memorial: Muistomerkki
+          milestone: Historiallinen virstanpylväs
+          mine: Kaivos
+          mine_shaft: kaivostunneli
+          monument: Muistomerkki
+          railway: Historiallinen rautatie
+          roman_road: Roomalainen tie
+          ruins: Rauniot
+          rune_stone: Riimukivi
+          stone: Kivi
+          tomb: Hautakammio
+          tower: Torni
+          wayside_chapel: Tienvarsikappeli
+          wayside_cross: Tieristi
+          wayside_shrine: Tienvarsialttari
+          wreck: Hylky
+          "yes": historiallinen paikka
+        junction:
+          "yes": Risteys
+        landuse:
+          allotments: Siirtolapuutarha
+          aquaculture: Vesiviljely
+          basin: Syvänne
+          brownfield: Purettujen rakennusten alue
+          cemetery: Hautausmaa
+          commercial: Kaupallinen alue
+          conservation: Suojelualue
+          construction: Rakennustyömaa
+          farmland: Viljelysmaa
+          farmyard: Maatilan piha
+          forest: Talousmetsä
+          garages: Autotalleja
+          grass: Nurmikko
+          greenfield: Viheralue
+          industrial: Teollisuusalue
+          landfill: Kaatopaikka
+          meadow: Niitty
+          military: Sotilasalue
+          mine: Kaivos
+          orchard: Puutarha
+          plant_nursery: Taimitarha
+          quarry: Avolouhos
+          railway: Rautatie
+          recreation_ground: Virkistysalue
+          religious: Uskonnollisen toiminnan alue
+          reservoir: Tekojärvi
+          reservoir_watershed: Tekoaltaan vedenjakaja
+          residential: Asuinalue
+          retail: Vähittäiskauppa-alue
+          village_green: Puisto
+          vineyard: Viinitarha
+          "yes": Maankäyttö
+        leisure:
+          adult_gaming_centre: Pelikeskus aikuisille
+          amusement_arcade: Pelihalli
+          bandstand: Musiikkipaviljonki
+          beach_resort: Rantakohde
+          bird_hide: Linnunpesä
+          bleachers: Katsomo
+          bowling_alley: Keilahalli
+          common: Yhteinen maa
+          dance: Tanssisali
+          dog_park: Koirapuisto
+          firepit: Tulentekopaikka
+          fishing: Kalastusalue
+          fitness_centre: Kuntoilukeskus
+          fitness_station: Kuntosali
+          garden: Puutarha
+          golf_course: Golf-kenttä
+          horse_riding: Ratsastuskeskus
+          ice_rink: Luistelurata
+          marina: Huvivenesatama
+          miniature_golf: Minigolf
+          nature_reserve: Luonnonsuojelualue
+          park: Puisto
+          picnic_table: Piknikpöytä
+          pitch: Urheilukenttä
+          playground: Leikkikenttä
+          recreation_ground: Virkistysalue
+          resort: Oleskelupaikka
+          sauna: Sauna
+          slipway: Vesillelaskuramppi
+          sports_centre: Urheilukeskus
+          stadium: Stadioni
+          swimming_pool: Uima-allas
+          track: Juoksurata
+          water_park: Vesipuisto
+          "yes": Vapaa-aika
+        man_made:
+          adit: Suuaukko
+          advertising: Mainonta
+          antenna: Antenni
+          beacon: Majakka
+          beam: Palkki
+          beehive: ampiaispesä
+          breakwater: Aallonmurtaja
+          bridge: Silta
+          bunker_silo: Bunkkeri
+          cairn: Kiviröykkiö
+          chimney: piippu
+          clearcut: Avohakkuualue
+          communications_tower: Linkkitorni
+          crane: Nosturi
+          cross: Risti
+          dolphin: Kiinnityspaikka
+          dyke: Pato
+          embankment: Maavalli
+          flagpole: Lipputanko
+          gasometer: Kaasusäiliö
+          groyne: Suojavalli
+          kiln: Kalkkiuuni
+          lighthouse: Majakka
+          manhole: Katukaivo
+          mast: Masto
+          mine: Kaivos
+          mineshaft: kaivostunneli
+          monitoring_station: Valvonta-asema
+          petroleum_well: Öljynporauslautta
+          pier: Laituri
+          pipeline: Putkisto
+          pumping_station: Pumppuasema
+          reservoir_covered: Katettu vesisäiliö
+          silo: Siilo
+          snow_cannon: Lumitykki
+          snow_fence: Lumiaita
+          storage_tank: Varastosäiliö
+          street_cabinet: Jakokaappi
+          surveillance: vartiointi
+          telescope: Teleskooppi
+          tower: Torni
+          wastewater_plant: Jätevesilaitos
+          watermill: Vesimylly
+          water_tap: Vesihana
+          water_tower: Vesitorni
+          water_well: Kaivo
+          water_works: Vedenpuhdistuslaitos
+          windmill: Tuulimylly
+          works: Tehdas
+          "yes": ihmisen tekemä
+        military:
+          airfield: Sotilaskenttä
+          barracks: Kasarmi
+          bunker: Bunkkeri
+          checkpoint: Tarkastuspiste
+          trench: Juoksuhauta
+          "yes": armeija
+        mountain_pass:
+          "yes": Vuoristosola
+        natural:
+          atoll: Atolli
+          bare_rock: Avokallio
+          bay: Lahti
+          beach: Hiekkaranta
+          cape: Niemi
+          cave_entrance: Luolan sisäänkäynti
+          cliff: Jyrkänne
+          coastline: Rantaviiva
+          crater: Kraatteri
+          dune: Dyyni
+          fell: Tunturi
+          fjord: Vuono
+          forest: Metsä
+          geyser: Geysir
+          glacier: Jäätikkö
+          grassland: Ruohomaa
+          heath: Nummi
+          hill: Mäki
+          hot_spring: Kuuma lähde
+          island: Saari
+          isthmus: Kannas
+          land: Maa
+          marsh: Suo
+          moor: Nummi
+          mud: Muta
+          peak: Huippu
+          peninsula: Niemimaa
+          point: Niemi
+          reef: Riutta
+          ridge: Harju
+          rock: Kivi
+          saddle: Satula
+          sand: Hiekka
+          scree: Kivikko
+          scrub: Pensaikko
+          shingle: Pirunpelto
+          spring: Lähde
+          stone: Kivi
+          strait: Salmi
+          tree: Puu
+          tree_row: Puurivi
+          tundra: Tundra
+          valley: Laakso
+          volcano: Tulivuori
+          water: Vesi
+          wetland: Kosteikko
+          wood: Metsä
+        office:
+          accountant: Kirjanpitäjä
+          administrative: Hallinto
+          advertising_agency: Mainostoimisto
+          architect: Arkkitehti
+          association: Yhdistys
+          company: Yritys
+          diplomatic: Diplomaattinen edustusto
+          educational_institution: Oppilaitos
+          employment_agency: Työnvälitystoimisto
+          energy_supplier: Energiantoimittajan toimisto
+          estate_agent: Kiinteistönvälittäjä
+          financial: Rahoitusalan toimisto
+          government: Virasto
+          insurance: Vakuutusyhtiö
+          it: IT-toimisto
+          lawyer: Asianajotoimisto
+          logistics: Logistiikkatoimisto
+          newspaper: Sanomalehtitoimisto
+          ngo: Kansalaisjärjestö
+          notary: Notaari
+          religion: Uskonnollinen toimisto
+          research: Tutkimuslaitoksen toimisto
+          tax_advisor: Veroasiantuntija
+          telecommunication: Tietoliikenneyritys
+          travel_agent: Matkatoimisto
+          "yes": Toimisto
+        place:
+          allotments: Siirtolapuutarha
+          archipelago: Saaristo
+          city: Kaupunki
+          city_block: kortteli
+          country: Maa
+          county: Piirikunta
+          farm: Maatila
+          hamlet: Pieni kylä
+          house: Talo
+          houses: Taloja
+          island: Saari
+          islet: Saareke
+          isolated_dwelling: Erakkomaja
+          locality: Paikkakunta
+          municipality: Kunta
+          neighbourhood: Naapurusto
+          plot: Maapalsta
+          postcode: Postinumero
+          quarter: Kortteli
+          region: Alue
+          sea: Meri
+          square: Neliö
+          state: Osavaltio
+          subdivision: Naapurusto
+          suburb: Lähiö
+          town: Kaupunki
+          village: Kylä
+          "yes": Paikka
+        railway:
+          abandoned: Hylätty rautatie
+          buffer_stop: Päätepuskin
+          construction: Rakenteilla oleva rautatie
+          disused: Käyttämätön rautatie
+          funicular: Funikulaari
+          halt: Seisake
+          junction: Rautatien risteys
+          level_crossing: Tasoristeys
+          light_rail: Pikaraitiotie
+          miniature: Pienoisrautatie
+          monorail: Yksikiskoinen raide
+          narrow_gauge: Kapearaiteinen rautatie
+          platform: Asemalaituri
+          preserved: Museorautatie
+          proposed: Suunnitteilla oleva rautatie
+          rail: Raide
+          spur: Pistoraide
+          station: Rautatieasema
+          stop: Rautatieseisake
+          subway: Metro
+          subway_entrance: Metron sisäänkäynti
+          switch: Ratavaihde
+          tram: Raitiotie
+          tram_stop: Raitiovaunupysäkki
+          turntable: Kääntöpöytä
+          yard: Ratapiha
+        shop:
+          agrarian: Maatalouskauppa
+          alcohol: Alkoholikauppa
+          antiques: Antiikkia
+          appliance: Kodinkonekauppa
+          art: Taidekauppa
+          baby_goods: Lastentarvikekauppa
+          bag: Laukkukauppa
+          bakery: Leipomo
+          bathroom_furnishing: Kylpyhuonemyymälä
+          beauty: Kosmetiikkakauppa
+          bed: Sänky- ja vuodevaatekauppa
+          beverages: Juomakauppa
+          bicycle: Polkupyöräkauppa
+          bookmaker: kirjanmerkki
+          books: Kirjakauppa
+          boutique: Puoti
+          butcher: Lihakauppa
+          car: Autokauppa
+          car_parts: Auton osia
+          car_repair: Autokorjaamo
+          carpet: Mattokauppa
+          charity: Hyväntekeväisyyskauppa
+          cheese: Juustokauppa
+          chemist: Apteekki
+          chocolate: Suklaa
+          clothes: Vaatekauppa
+          coffee: Kahvila
+          computer: Tietokonekauppa
+          confectionery: Makeiskauppa
+          convenience: Lähikauppa
+          copyshop: Kopiointipalvelu
+          cosmetics: Kosmetiikkakauppa
+          craft: Askartelukauppa
+          curtain: Verholiike
+          dairy: Maitotuotekauppa
+          deli: Herkkukauppa
+          department_store: Tavaratalo
+          discount: Alennusmyymälä
+          doityourself: Tee-se-itse -kauppa
+          dry_cleaning: Kuivapesula
+          e-cigarette: Sähkötupakkakauppa
+          electronics: Elektroniikkakauppa
+          erotic: Seksikauppa
+          estate_agent: Kiinteistönvälittäjä
+          fabric: Kangaskauppa
+          farm: Maatalouskauppa
+          fashion: Muotikauppa
+          fishing: Kalastustarvikekauppa
+          florist: Kukkakauppa
+          food: Ruokakauppa
+          frame: Kehysliike
+          funeral_directors: Hautausurakoitsija
+          furniture: Huonekaluliike
+          garden_centre: Puutarhakeskus
+          gas: Huoltoasema
+          general: Sekatavarakauppa
+          gift: Lahjakauppa
+          greengrocer: Vihanneskauppa
+          grocery: Ruokakauppa
+          hairdresser: Kampaamo
+          hardware: Rautakauppa
+          health_food: Terveysruokakauppa
+          hearing_aids: Kuulokojeliike
+          herbalist: Luontaistuotekauppias
+          hifi: Hi-Fi-kauppa
+          houseware: Taloustavaraliike
+          ice_cream: Jäätelökauppa
+          interior_decoration: Kodinsisustus
+          jewelry: Korukauppa
+          kiosk: Kioski
+          kitchen: Keittiöliike
+          laundry: Pesula
+          locksmith: Lukkoseppä
+          lottery: Lotto
+          mall: Ostoskeskus
+          massage: hieronta
+          medical_supply: Lääketieteellisten tarvikkeiden kauppa
+          mobile_phone: Matkapuhelinkauppa
+          money_lender: Rahanlainaaja
+          motorcycle: Moottoripyöräkauppa
+          motorcycle_repair: Moottoripyöräkorjaamo
+          music: Musiikkikauppa
+          musical_instrument: Soitinliike
+          newsagent: Lehtikioski
+          nutrition_supplements: Lisäravinnekauppa
+          optician: Optikko
+          organic: Luomukauppa
+          outdoor: Ulkoiluvälinekauppa
+          paint: Maalikauppa
+          pastry: Konditoria
+          pawnbroker: Panttilainaamo
+          perfumery: Hajuvesiliike
+          pet: Eläinkauppa
+          pet_grooming: Trimmaamo
+          photo: Valokuvausliike
+          seafood: Meriruoka
+          second_hand: Osto- ja myyntiliike
+          sewing: Ompelutarvikeliike
+          shoes: Kenkäkauppa
+          sports: Urheilukauppa
+          stationery: Paperikauppa
+          storage_rental: Pienvarasto
+          supermarket: Supermarketti
+          tailor: Räätäli
+          tattoo: Tatuointiliike
+          tea: Teekauppa
+          ticket: Lippupiste
+          tobacco: Tupakkakauppa
+          toys: Lelukauppa
+          travel_agency: Matkatoimisto
+          tyres: Rengaskauppa
+          vacant: Avoin kauppa
+          variety_store: Tavaratalo
+          video: Videokauppa
+          video_games: Videopelikauppa
+          wholesale: Tukkukauppa
+          wine: Viinikauppa
+          "yes": Kauppa
+        tourism:
+          alpine_hut: Alppimaja
+          apartment: Lomahuoneisto
+          artwork: Taideteos
+          attraction: Nähtävyys
+          bed_and_breakfast: Aamiaismajoitus
+          cabin: Turistimökki
+          camp_pitch: Telttapaikka
+          camp_site: Leirintäalue
+          caravan_site: Leirintäalue
+          chalet: Alppimaja
+          gallery: Galleria
+          guest_house: Vierasmaja
+          hostel: Hostelli
+          hotel: Hotelli
+          information: Infopiste
+          motel: Motelli
+          museum: Museo
+          picnic_site: Piknik-paikka
+          theme_park: Teemapuisto
+          viewpoint: Näköalapaikka
+          wilderness_hut: Erämaamökki
+          zoo: Eläintarha
+        tunnel:
+          building_passage: Läpikäytävä
+          culvert: Siltarumpu
+          "yes": Tunneli
+        waterway:
+          artificial: Kanava
+          boatyard: Telakka
+          canal: Kanaali
+          dam: Pato
+          derelict_canal: Hylätty kanava
+          ditch: Oja
+          dock: Märkätelakka
+          drain: Oja
+          lock: Sulku
+          lock_gate: Sulkuportti
+          mooring: Rantautumispaikka
+          rapids: Koski
+          river: Joki
+          stream: Puro
+          wadi: Vadi
+          waterfall: Vesiputous
+          weir: Pato
+          "yes": Vesistö
+      admin_levels:
+        level2: Valtion raja
+        level3: Alueraja
+        level4: Osavaltion raja
+        level5: Alueen raja
+        level6: Maakunnan raja
+        level7: Kunnanraja
+        level8: Kunnan raja
+        level9: Kylän raja
+        level10: Asuinalueen raja
+        level11: Naapuruston raja
+      types:
+        cities: Kaupungit
+        towns: Kylät
+        places: Paikat
+    results:
+      no_results: Ei hakutuloksia
+      more_results: Lisää tuloksia
+  issues:
+    index:
+      title: Tapaukset
+      select_status: Valitse tila
+      select_type: Valitse tyyppi
+      select_last_updated_by: Valitse viimeisin päivittäjä
+      reported_user: Ilmiannettu
+      not_updated: Ei päivitetty
+      search: Etsi
+      search_guidance: 'Etsi tapauksia:'
+      user_not_found: Käyttäjää ei löydy
+      issues_not_found: Tapahtumia ei löytynyt
+      status: Tila
+      reports: Ilmiannot
+      last_updated: Päivitetty
+      last_updated_time_ago_user_html: '%{time_ago}, %{user}'
+      link_to_reports: Näytä ilmiannot
+      reports_count:
+        one: '%{count} ilmoitus'
+        other: '%{count} ilmiantoa'
+      reported_item: Ilmiannettu kohde
+      states:
+        ignored: Aiheeton
+        open: Käsittelyssä
+        resolved: Ratkaistu
+    show:
+      title: '%{status} Tapaus #%{issue_id}'
+      reports:
+        one: '%{count} ilmianto'
+        other: '%{count} ilmiantoa'
+      no_reports: Ei ilmiantoja
+      report_created_at_html: Ilmoitettu ensimmäisen kerran %{datetime}
+      last_resolved_at_html: Ratkaistu %{datetime}
+      last_updated_at_html: Viimeisin käsittelijä %{displayname} %{datetime}
+      resolve: Ratkaise
+      ignore: Merkitse aiheettomaksi
+      reopen: Avaa uudelleen
+      reports_of_this_issue: Ilmianna tapahtuma
+      read_reports: Lue ilmiantoja
+      new_reports: Uudet ilmiannot
+      other_issues_against_this_user: Muut tähän käyttäjään kohdistetut ilmiannot
+      no_other_issues: Ei muita tähän käyttäjään kohdistuvia ilmiantoja.
+      comments_on_this_issue: Tapauksen kommentit
+    resolve:
+      resolved: Tapaus on merkitty ratkaistuksi
+    ignore:
+      ignored: Tapaus on merkitty aiheettomaksi
+    reopen:
+      reopened: Tapaus on merkitty käsittelyssä olevaksi
+    comments:
+      comment_from_html: Kommentti käyttäjältä %{user_link} %{comment_created_at}
+      reassign_param: Haluatko määrittää tapauksen tilan uudelleen?
+    reports:
+      reported_by_html: Käyttäjä %{user} ilmiantanut merkinnällä %{category} %{updated_at}
+    helper:
+      reportable_title:
+        diary_comment: '%{entry_title}, kommenttitunnus %{comment_id}'
+        note: Karttailmoitustunnus %{note_id}
+  issue_comments:
+    create:
+      comment_created: Kommentti jätetty
+      issue_reassigned: Kommenttisi luotiin ja tapaus määritettiin uudelleen
+  reports:
+    new:
+      title_html: Ilmianna %{link}
+      missing_params: Ilmoituksen luominen epäonnistui
+      disclaimer:
+        intro: 'Varmista ennen ilmiantoa seuraavat asiat:'
+        not_just_mistake: Ongelma ei ole vain väärinkäsitys
+        unable_to_fix: Et voi ratkaista ongelmaa itse tai muun yhteisön tuella
+        resolve_with_user: Kyseinen käyttäjä ei ole ollut halukas yhteistyöhön
+      categories:
+        diary_entry:
+          spam_label: Päiväkirjamerkintä on roskapostia
+          offensive_label: Päiväkirjamerkintä on hyökkäävä
+          threat_label: Päiväkirjamerkintä sisältää uhkauksia
+          other_label: Muu
+        diary_comment:
+          spam_label: Päiväkirjamerkinnän kommentti on roskapostia
+          offensive_label: Päiväkirjamerkinnän kommentti on hyökkäävä
+          threat_label: Päiväkirjamerkinnän kommentti sisältää uhkauksia
+          other_label: Muu
+        user:
+          spam_label: Tämä käyttäjäsivu on roskapostia
+          offensive_label: Käyttäjäsivu on hyökkäävä
+          threat_label: Käyttäjäsivu sisältää uhkauksia
+          vandal_label: Käyttäjä harrastaa ilkivaltaa
+          other_label: Muu
+        note:
+          spam_label: Karttailmoitus on roskapostia
+          personal_label: Karttailmoitus sisältää henkilökohtaisia tietoja
+          abusive_label: Karttailmoitus on loukkaava
+          other_label: Muu
+    create:
+      successful_report: Ilmianto on rekisteröity
+      provide_details: Täydennä puuttuvat tiedot
+  layouts:
+    logo:
+      alt_text: OpenStreetMap-logo
+    home: Siirry kotipaikkaan
+    logout: Kirjaudu ulos
+    log_in: Kirjaudu sisään
+    sign_up: Rekisteröidy
+    start_mapping: Liity mukaan
+    edit: Muokkaa
+    history: Historia
+    export: Vienti
+    issues: Ilmiannot
+    data: Tiedot
+    export_data: Vie tiedostona
+    gps_traces: GPS-jäljet
+    gps_traces_tooltip: Hallitse GPS-jälkiä
+    user_diaries: Päiväkirjamerkinnät
+    user_diaries_tooltip: Näytä käyttäjän päiväkirjat
+    edit_with: 'Muokkaa: %{editor}'
+    tag_line: Avoin wikimaailmankartta
+    intro_header: Tervetuloa OpenStreetMapiin!
+    intro_text: OpenStreetMap on vapaaehtoisten luoma maailmankartta, jota voi käyttää
+      vapaasti avoimella lisenssillä.
+    intro_2_create_account: luomalla ensin käyttäjätunnuksen
+    hosting_partners_html: Palvelinkapasiteettia meille tarjoaa %{ucl}, %{fastly},
+      %{bytemark} ja muut %{partners}.
+    partners_ucl: UCL
+    partners_fastly: Fastly
+    partners_bytemark: Bytemark Hosting
+    partners_partners: kumppanimme
+    tou: Käyttöehdot
+    osm_offline: OpenStreetMapin tietokanta ei toistaiseksi ole käytettävissä välttämättömien
+      ylläpitotöiden takia.
+    osm_read_only: OpenStreetMapin tietokantaa ei toistaiseksi voi muokata välttämättömien
+      ylläpitotöiden takia.
+    donate: Tue OpenStreetMapia %{link} laitteistopäivitysrahastoon.
+    help: Ohje
+    about: Tietoja
+    copyright: Tekijänoikeudet
+    communities: Yhteisöt
+    community: Yhteisö
+    community_blogs: Yhteisöblogit
+    community_blogs_title: OpenStreetMap-yhteisön jäsenten blogit
+    make_a_donation:
+      title: Tue OpenStreetMapia rahallisella lahjoituksella.
+      text: Lahjoita
+    learn_more: Lisätietoja
+    more: Lisää
+  user_mailer:
+    diary_comment_notification:
+      subject: '[OpenStreetMap] %{user} on lisännyt kommentin päiväkirjamerkintääsi'
+      hi: Hei %{to_user}!
+      header: '%{from_user} kommentoi kirjoittamaasi päiväkirjamerkintää OpenStreetMapissa
+        otsikolla %{subject}:'
+      header_html: '%{from_user} on kommentoinut OpenStreetMap-päiväkirjamerkintää
+        otsikolla %{subject}:'
+      footer: Lue kommentti sivulla %{readurl}. Jatkokommentin voi lähettää sivulla
+        %{commenturl} tai lähettää viestin tekijälle sivulla %{replyurl}.
+    message_notification:
+      subject: '[OpenStreetMap] %{message_title}'
+      hi: Hei %{to_user}!
+      header: '%{from_user} on lähettänyt sinulle viestin OpenStreetMapissa otsikkolla
+        %{subject}:'
+      header_html: '%{from_user} on lähettänyt sinulle viestin OpenStreetMapissa otsikolla
+        %{subject}:'
+      footer_html: Lue viesti osoitteessa %{readurl} ja lähetä viesti tekijälle osoitteessa
+        %{replyurl}.
+    friendship_notification:
+      hi: Hei %{to_user}!
+      subject: '[OpenStreetMap] %{user} lisäsi sinut kaverikseen'
+      had_added_you: Käyttäjä %{user} lisäsi sinut kaverikseen OpenStreetMapissa.
+      see_their_profile: Voit tutustua hänen käyttäjäsivuunsa osoitteessa %{userurl}.
+      see_their_profile_html: Tutustu hänen käyttäjäsivuunsa osoitteessa %{userurl}.
+      befriend_them: Voit myös lisätä lähettäjän kaveriksi osoitteessa %{befriendurl}.
+      befriend_them_html: Voit myös lisätä lähettäjän kaveriksi osoitteessa %{befriendurl}.
+    gpx_failure:
+      hi: Hei %{to_user}!
+      failed_to_import: 'epäonnistui tuoda. Tässä virhe:'
+      subject: '[OpenStreetMap] GPX-tuonti epäonnistui'
+    gpx_success:
+      hi: Hei %{to_user}!
+      subject: '[OpenStreetMap] GPX-tuonti onnistui'
+    signup_confirm:
+      subject: '[OpenStreetMap] Tervetuloa OpenStreetMapiin'
+      greeting: Hei!
+      created: Joku (toivottavasti sinä) on luonut käyttäjätunnuksen osoitteessa %{site_url}.
+      confirm: 'Jos olet luonut tämän käyttäjätilin, vahvista se napsauttamalla tätä
+        linkkiä:'
+      welcome: Käyttäjätilin vahvistamisen jälkeen haluaisimme kertoa joitain hyödyllisiä
+        asioita, jotta pääset alkuun.
+    email_confirm:
+      subject: '[OpenStreetMap] Vahvista sähköpostiosoitteesi'
+      greeting: Hei,
+      hopefully_you: Joku (toivottavasti sinä) haluaa vaihtaa sähköpostiosoitteen
+        palvelimella %{server_url} osoitteeksi %{new_address}
+      click_the_link: Jos tämä olet sinä, napsauta linkkiä alla vahvistaaksesi muutoksen.
+    lost_password:
+      subject: '[OpenStreetMap] Salasanan vaihtopyyntö'
+      greeting: Hei,
+      hopefully_you: Joku (mahdollisesti sinä) on pyytänyt tähän sähköpostiosoitteeseen
+        rekisteröidyn openstreetmap.org-tunnuksen salasanan vaihtoa.
+      click_the_link: Jos tämä olet sinä, napsauta linkkiä alla nollataksesi salasanasi.
+    note_comment_notification:
+      anonymous: Tuntematon käyttäjä
+      greeting: Hei!
+      commented:
+        subject_own: '[OpenStreetMap] %{commenter} on kommentoinut merkintääsi'
+        subject_other: '[OpenStreetMap] %{commenter} on kommentoinut sinua kiinnostavaa
+          merkintää'
+        your_note: '%{commenter} on kommentoinut yhtä merkinnöistäsi lähellä paikkaa
+          %{place}.'
+        your_note_html: '%{commenter} on kommentoinut karttailmoitustasi lähellä paikkaa
+          %{place}.'
+        commented_note: '%{commenter} on kommentoinut yhtä kommentoimaasi merkintää.
+          Merkintä on lähellä paikkaa %{place}.'
+        commented_note_html: '%{commenter} on kommentoinut kommentoimaasi karttailmoitusta,
+          joka on lähellä paikkaa %{place}.'
+      closed:
+        subject_own: '[OpenStreetMap] %{commenter} on ratkaissut karttailmoituksesi'
+        subject_other: '[OpenStreetMap] %{commenter} on ratkaissut sinua kiinnostavan
+          karttailmoituksen'
+        your_note: '%{commenter} on ratkaissut lähettämäsi karttailmoituksen lähellä
+          paikkaa %{place}.'
+        your_note_html: '%{commenter} on ratkaissut lähettämäsi karttailmoituksen
+          lähellä paikkaa %{place}.'
+        commented_note: '%{commenter} on ratkaissut karttailmoituksen, jota olet kommentoinut.
+          Merkintä on lähellä paikkaa %{place}.'
+        commented_note_html: '%{commenter} on ratkaissut kommentoimasi karttailmoituksen
+          lähellä paikkaa %{place}.'
+      reopened:
+        subject_own: '[OpenStreetMap] %{commenter} on avannut karttamerkintäsi uudelleen'
+        subject_other: '[OpenStreetMap] %{commenter} on avannut karttailmoituksen
+          uudelleen'
+        your_note: '%{commenter} on avannut karttamerkinnän uudelleen lähellä paikkaa
+          %{place}.'
+        your_note_html: '%{commenter} on avannut karttamerkintäsi lähellä paikkaa
+          %{place} uudelleen.'
+        commented_note: '%{commenter} on aktivoinut karttailmoituksen uudelleen. Tämä
+          viesti lähetetään siksi, että olet kommentoinut tätä karttailmoitusta, joka
+          on lähellä paikkaa %{place}.'
+        commented_note_html: '%{commenter} on aktivoinut kommentoimasi karttailmoituksen
+          lähellä paikkaa %{place} uudelleen.'
+      details: Lisätietoja merkinnästä löytyy osoitteesta %{url}.
+      details_html: Lisätietoja karttailmoituksesta löytyy osoitteesta %{url}.
+    changeset_comment_notification:
+      hi: Hei %{to_user}!
+      greeting: Hei,
+      commented:
+        subject_own: '[OpenStreetMap] %{commenter} on kommentoinut muutoskokoelmaasi'
+        subject_other: '[OpenStreetMap] %{commenter} on kommentoinut sinua kiinnostavaa
+          muutoskokoelmaa'
+        your_changeset: '%{commenter} kommentoi %{time} muutoskokoelmaasi'
+        your_changeset_html: '%{commenter} kommentoi muutoskokoelmaasi %{time}'
+        commented_changeset: '%{commenter} jätti %{time} kommentin kartan muutoskokoelmaan
+          jota katselet jonka on luonut %{changeset_author}'
+        commented_changeset_html: '%{commenter} kommentoi %{time} tarkastelemaasi
+          muutoskokoelmaa, jonka muokkaaja on %{changeset_author}'
+        partial_changeset_with_comment: 'seuraavasti: "%{changeset_comment}"'
+        partial_changeset_with_comment_html: 'seuraavasti: "%{changeset_comment}"'
+        partial_changeset_without_comment: ei kommenttia
+      details: 'Lisätietoja muutoskokoelmasta: %{url}'
+      details_html: 'Lisätietoja muutoskokoelmasta: %{url}'
+      unsubscribe: Peru tämän muutoskokoelman sähköposti-ilmoitukset siirtymällä osoitteeseen
+        %{url} ja napsauttamalla Lopeta tilaus.
+      unsubscribe_html: Peru tämän muutoskokoelman sähköposti-ilmoitukset siirtymällä
+        osoitteeseen %{url} ja napsauttamalla Lopeta tilaus.
+  confirmations:
+    confirm:
+      heading: Tarkista sähköpostisi!
+      introduction_1: Vahvistusviesti lähetetty.
+      introduction_2: Aktivoi tili napsauttamalla vahvistustilissä olevaa linkkiä,
+        minkä jälkeen voit aloittaa kartan muokkaamisen!
+      press confirm button: Aktivoi uusi käyttäjätunnuksesi valitsemalla Vahvista.
+      button: Vahvista
+      success: Käyttäjätunnuksesi on nyt vahvistettu.
+      already active: Tämä tunnus on jo vahvistettu.
+      unknown token: Vahvistuskoodi on vanhentunut tai sitä ei ole.
+      resend_html: Jos haluat, että lähetämme vahvistussähköpostin uudelleen, %{reconfirm_link}.
+      click_here: napsauta tästä
+    confirm_resend:
+      failure: Käyttäjää %{name} ei löytynyt.
+    confirm_email:
+      heading: Vahvista sähköpostiosoitteen muutos
+      press confirm button: Varmenna sähköpostiosoitteesi valitsemalla Vahvista.
+      button: Vahvista
+      success: Sähköpostiosoitteesi muutos on nyt vahvistettu!
+      failure: Tällä tunnisteella on jo vahvistettu sähköpostiosoite.
+      unknown_token: Vahvistuskoodi on vanhentunut tai sitä ei ole.
+    resend_success_flash:
+      confirmation_sent: Olemme lähettäneet uuden vahvistusviestin osoitteeseen %{email}.
+        Vahvistettuasi käyttäjätunnuksesi voit aloittaa kartoittamisen.
+  messages:
+    inbox:
+      title: Saapuneet
+      messages: Kansiossa on %{new_messages} ja %{old_messages}.
+      new_messages:
+        one: '%{count} lukematon viesti'
+        other: '%{count} lukematonta viestiä'
+      old_messages:
+        one: '%{count} luettu viesti'
+        other: '%{count} luettua viestiä'
+      no_messages_yet_html: Ei viestejä. %{people_mapping_nearby_link}
+      people_mapping_nearby: Lähiseudun kartoittajat
+    messages_table:
+      from: Lähettäjä
+      to: Vastaanottaja
+      subject: Otsikko
+      date: Päiväys
+    message_summary:
+      unread_button: Merkitse lukemattomaksi
+      read_button: Merkitse luetuksi
+      reply_button: Vastaa
+      destroy_button: Poista
+    new:
+      title: Lähetä viesti
+      send_message_to_html: Lähetä viesti käyttäjälle %{name}
+      back_to_inbox: Takaisin saapuneisiin
+    create:
+      message_sent: Viesti on lähetetty.
+      limit_exceeded: Olet lähettänyt runsaasti viestejä lyhyessä ajassa. Odota hetki
+        ennen kuin yrität lähettää lisää.
+    no_such_message:
+      title: Ei sellaista viestiä
+      heading: Ei sellaista viestiä
+      body: Valitettavasti tällä ID-tunnuksella ei ole viestiä.
+    outbox:
+      title: Lähetetyt
+      messages:
+        one: Kansiossa on %{count} lähetetty viesti.
+        other: Kansiossa on %{count} lähetettyä viestiä.
+      no_sent_messages_html: Et ole lähettänyt vielä viestejä. Miksi et ottaisi yhteyttä
+        joihinkin %{people_mapping_nearby_link}?
+      people_mapping_nearby: lähellä kartoittaviin käyttäjiin
+    reply:
+      wrong_user: Olet kirjautunut sisään tunnuksella `%{user}' mutta viestiä, johon
+        tahdot vastata, ei ole lähetetty kyseiselle käyttäjälle. Ole hyvä ja kirjaudu
+        sisään oikealla käyttäjätunnuksella vastataksesi.
+    show:
+      title: Lue viesti
+      reply_button: Vastaa
+      unread_button: Merkitse lukemattomaksi
+      destroy_button: Poista
+      back: Takaisin
+      wrong_user: Olet kirjautunut sisään tunnuksella `%{user}' mutta viestiä, jonka
+        tahdot lukea, ei ole lähetetty kyseiselle käyttäjälle. Ole hyvä ja kirjaudu
+        sisään oikealla käyttäjätunnukselle lukeaksesi sen.
+    sent_message_summary:
+      destroy_button: Poista
+    heading:
+      my_inbox: Saapuneet
+      my_outbox: Lähetetyt
+    mark:
+      as_read: Viesti on merkitty luetuksi.
+      as_unread: Viesti on merkitty lukemattomaksi.
+    destroy:
+      destroyed: Viesti on poistettu.
+  passwords:
+    new:
+      title: Unohtunut salasana
+      heading: Unohditko salasanasi?
+      email address: 'Sähköpostiosoite:'
+      new password button: Lähetä salasanan palautusohjeet
+      help_text: Kirjoita alapuolelle kirjautumissähköpostiosoitteesi. Osoitteeseen
+        lähetetään salasanan palautusohjeet.
+    create:
+      notice email on way: Salasanan palautusohjeet on lähetetty annettuun sähköpostiosoitteeseen.
+      notice email cannot find: Annettu sähköpostiosoite ei ole käytössä.
+    edit:
+      title: Salasanan vaihto
+      heading: Vaihda käyttäjän %{user} salasana
+      reset: Vaihda salasana
+      flash token bad: Tuntematon tunniste. Tarkista että URL on sama kuin postissasi.
+    update:
+      flash changed: Salasanasi on vaihdettu.
+  preferences:
+    show:
+      title: Asetukset
+      preferred_editor: Ensisijainen muokkain
+      preferred_languages: Ensisijaiset kielet
+      edit_preferences: Muokkaa asetuksia
+    edit:
+      title: Muokkaa asetuksia
+      save: Päivitä asetukset
+      cancel: Peruuta
+    update:
+      failure: Asetuksia ei voida päivittää.
+    update_success_flash:
+      message: Asetukset päivitetty.
+  profiles:
+    edit:
+      title: Muokkaa profiilia
+      save: Päivitä profiili
+      cancel: Peruuta
+      image: Kuva
+      gravatar:
+        gravatar: Käytä Gravataria
+        what_is_gravatar: Mikä on Gravatar?
+        disabled: Gravatar on poistettu käytöstä.
+        enabled: Gravatarisi näyttäminen on otettu käyttöön.
+      new image: Lisää kuva
+      keep image: Säilytä nykyinen kuva
+      delete image: Poista nykyinen kuva
+      replace image: Korvaa nykyinen kuva
+      image size hint: (parhaat kuvat ovat neliönmuotoisia, joiden koko on vähintään
+        100x100)
+      home location: Kotipaikka
+      no home location: Kotipaikkaa ei ole vielä määritetty.
+      update home location on click: Päivitä kotipaikka karttaa napsauttaessa
+      show: Näytä
+      delete: Poista
+      undelete: Peruuta poistaminen
+    update:
+      success: Profiili päivitetty.
+      failure: Profiilia ei voitu päivittää.
+  sessions:
+    new:
+      title: Kirjautumissivu
+      heading: Kirjaudu
+      email or username: 'Sähköpostiosoite tai käyttäjätunnus:'
+      password: 'Salasana:'
+      openid_html: '%{logo} OpenID:'
+      remember: Pidä minut sisäänkirjautuneena
+      lost password link: Unohditko salasanasi?
+      login_button: Kirjaudu sisään
+      register now: Rekisteröidy
+      with external: 'Voit myös kirjautua jonkun muun palvelun tunnuksilla:'
+      no account: Eikö sinulla vielä ole käyttäjätunnusta?
+      auth failure: Kirjautuminen epäonnistui.
+      openid_logo_alt: Kirjaudu sisään OpenID-tunnuksella
+      auth_providers:
+        openid:
+          title: Kirjaudu sisään OpenID:llä
+          alt: Kirjaudu sisään OpenID-osoitteella
+        google:
+          title: Kirjaudu käyttämällä Google-tunnustasi
+          alt: Kirjaudu käyttämällä Google OpenID-tunnustasi
+        facebook:
+          title: Kirjaudu Facebookin avulla
+          alt: Kirjaudu käyttämällä Facebook-tunnustasi
+        microsoft:
+          title: Kirjaudu Microsoft-tilin avulla
+          alt: Kirjaudu sisään Microsoft-tililläsi
+        github:
+          title: Kirjaudu GitHubin avulla
+          alt: Kirjaudu käyttämällä GitHub-tiliäsi
+        wikipedia:
+          title: Kirjaudu sisään Wikipedialla
+          alt: Kirjaudu sisään Wikipedia-tunnuksella
+        wordpress:
+          title: Kirjaudu WordPressin avulla
+          alt: Kirjaudu käyttämällä Wordpress OpenID -tunnustasi
+        aol:
+          title: Kirjaudu AOL:n avulla
+          alt: Kirjaudu käyttämällä AOL OpenID -tunnustasi
+    destroy:
+      title: Kirjaudu ulos
+      heading: Kirjaudu ulos OpenStreetMapista
+      logout_button: Kirjaudu ulos
+    suspended_flash:
+      suspended: Valitettavasti tilisi on jäädytetty epäilyttävän toiminnan vuoksi.
+      contact_support_html: Ota yhteyttä %{support_link}, jos haluat keskustella tästä.
+      support: tuki
+  shared:
+    markdown_help:
+      headings: Otsikot
+      heading: Otsikko
+      subheading: Alaotsikko
+      unordered: Järjestämätön luettelo
+      ordered: Järjestetty luettelo
+      first: Ensimmäinen tuote
+      second: Toinen kohta
+      link: Linkki
+      text: Teksti
+      image: Kuva
+      alt: Vaihtoehtoinen teksti
+      url: URL
+    richtext_field:
+      edit: Muokkaa
+      preview: Esikatsele
+  site:
+    about:
+      next: Seuraava
+      heading_html: '%{copyright}OpenStreetMap %{br} kartoittajat'
+      used_by_html: Tuhannet verkkosivustot, mobiilisovellukset ja laitteistot käyttävät
+        %{name}-karttaa
+      lede_text: OpenStreetMapia rakentavat vapaaehtoiset yhteisön jäsenet, jotka
+        tuottavat ja ylläpitävät karttatietoja teistä, rautateistä, kahviloista, rautatieasemista
+        ja monista muista kohteista kaikkialla maailmassa.
+      local_knowledge_title: Paikallistuntemus
+      local_knowledge_html: OpenStreetMapissa korostuu paikallistuntemus. Kartoittajat
+        käyttävät ilmakuvia, GPS-paikantamia ja jalkautumista pitääkseen OpenStreetMap-kartan
+        ajan tasalla.
+      community_driven_title: Yhteisön voima
+      community_driven_1_html: OpenStreetMap-yhteisö on monipuolinen, intohimoinen
+        ja kasvaa joka päivä. Yhteisöön kuuluu harrastajakartoittajia, GIS-ammattilaisia,
+        järjestelmää ylläpitäviä insinöörejä, humanitaarisia auttajia, jotka kartoittavat
+        katastrofin kärsineitä alueita sekä monia muita. Lisätietoja yhteisöstä saa
+        lukemalla %{osm_blog_link}, %{user_diaries_link}, %{community_blogs_link}
+        ja %{osm_foundation_link} verkkosivua.
+      community_driven_osm_blog: OpenStreetMap-blogia
+      community_driven_user_diaries: käyttäjien päiväkirjoja
+      community_driven_community_blogs: yhteisöblogeja
+      community_driven_osm_foundation: OSM-säätiön
+      open_data_title: Avoin data
+      open_data_1_html: 'OpenStreetMap on %{open_data}: palvelua saa käyttää vapaasti
+        mihin tahansa, kunhan OpenStreetMap tekijöineen mainitaan. Jos palvelua kehitetään
+        tai muuunnellaan, sitä saa levittää eteenpäin vain samalla lisenssillä. Lisätietoja
+        on %{copyright_license_link} -sivulla.'
+      open_data_open_data: avointa dataa
+      open_data_copyright_license: Tekijänoikeudet ja lisenssi
+      legal_title: Lakitekninen jako
+      legal_1_1_html: Tämä sivusto ja monet siihen liittyvät palvelut ovat muodollisesti
+        %{openstreetmap_foundation_link} (OSMF) hallinnoimia OSM-yhteisön puolesta.
+        Kaikkien OSMF:n hallinnoimien palveluiden käyttöön sovelletaan %{terms_of_use_link},
+        %{aup_link} ja %{privacy_policy_link} (saatavilla vain englanniksi).
+      legal_1_1_openstreetmap_foundation: OpenStreetMap-säätiön
+      legal_1_1_terms_of_use: käyttöehtoja
+      legal_1_1_aup: sallitun käytön käytäntöjä
+      legal_1_1_privacy_policy: tietosuojakäytäntöä
+      legal_2_1_html: Ota yhteyttä %{contact_the_osmf_link}, jos sinulla on kysymyksiä
+        lisenssoinnista, tekijänoikeuksista tai muista oikeudellisista kysymyksistä.
+      legal_2_1_contact_the_osmf: OSM-säätiöön
+      legal_2_2_html: OpenStreetMap, suurennuslasilogo ja State of the Map ovat %{registered_trademarks_link}.
+      legal_2_2_registered_trademarks: OSM-säätiön rekisteröityjä tuotemerkkejä
+      partners_title: Kumppanit
+    copyright:
+      foreign:
+        title: Tietoja tästä käännöksestä
+        html: Jos tämän käännetyn sivun ja %{english_original_link} välillä on eroja,
+          englanninkielinen sivu on aina etusijalla.
+        english_link: englanninenkielisen alkuperäisversion
+      native:
+        title: Tietoja sivusta
+        html: Tällä sivulla on alkuperäinen englanninkielinen versio tekijäoikeuksista.
+          Saatavilla on myös %{native_link}. Voit myös lopettaa tekijänoikeuksien
+          lukemisen ja %{mapping_link}.
+        native_link: suomenkielinen versio
+        mapping_link: aloittaa kartoituksen
+      legal_babble:
+        title_html: Tekijänoikeus ja lisenssi
+        introduction_1_html: OpenStreetMap%{registered_trademark_link} on %{open_data},
+          jonka %{osm_foundation_link} (OSMF) on lisensoinut %{odc_odbl_link} (ODbL).
+        introduction_1_open_data: avointa dataa
+        introduction_1_odc_odbl: Open Data Commons Open Database -lisenssillä
+        introduction_1_osm_foundation: OpenStreetMap Foundation
+        introduction_2_html: OpenStreetMapin karttoja ja tietoja voi kopioida, levittää,
+          välittää ja mukauttaa, kunhan OpenStreetMap ja sen tekijät mainitaan. Jos
+          karttoja tai tietoja muutetaan tai kehitetään, niitä saa levittää vain samalla
+          lisenssillä. %{legal_code_link} mainitaan levittäjän oikeudet ja velvollisuudet.
+        introduction_2_legal_code: Lakitekstissä
+        introduction_3_html: Dokumentaatio on lisensoitu %{creative_commons_link}
+          -lisenssillä (CC BY-SA 2.0).
+        introduction_3_creative_commons: Creative Commons Nimeä-JaaSamoin 2.0
+        credit_title_html: OpenStreetMapin mainitseminen
+        credit_1_html: 'Kun käytät OpenStreetMap-tietoja, sinun on tehtävä nämä kaksi
+          asiaa:'
+        credit_2_2: Tehdä selväksi, että aineisto on saatavilla Open Database Lisenssillä.
+        credit_4_1_html: |-
+          Tehdäksesi selväksi, että aineisto on saatavilla Open Database Lisenssillä, voit linkittää %{this_copyright_page_link}. Jos linkkien käyttö ei ole mahdollista (esim. paperille tulostettu aineisto), suosittelemme ohjaamaan lukijat osoitteisiin openstreetmap.org ja opendatacommons.org.
+
+          Esimerkiksi tässä, tekijän nimi näkyy kartan alaosassa.
+        credit_4_1_this_copyright_page: tälle tekijänoikeussivulle
+        attribution_example:
+          alt: Esimerkki siitä, miten nimetä OpenStreetMap nettisivulla
+          title: Nimeämisesimerkki
+        more_title_html: Lisätietoja
+        more_1_1_osmf_licence_page: OSMF-lisenssisivu
+        more_2_1_html: Vaikka OpenStreetMap on avointa dataa, emme voi tarjota maksutonta
+          karttarajapintaa (API) kolmannen osapuolen kehittäjille. Tutustu %{api_usage_policy_link},
+          %{tile_usage_policy_link} ja %{nominatim_usage_policy_link}.
+        more_2_1_api_usage_policy: API:n käyttöehtoihin
+        more_2_1_tile_usage_policy: kartta-aineiston käyttöehtoihin
+        contributors_title_html: Tekijät
+        contributors_intro_html: |-
+          Tekijöinämme on tuhansia yksityishenkilöitä. Olemme myös sisällyttäneet
+          vapaasti lisensoitua dataa kansallisilta kartoitustoimistoilta
+          ja muista lähteistä, muun muassa:
+        contributors_at_credit_html: '%{austria}: Sisältää karttatietoja %{stadt_wien_link}
+          (%{cc_by_link}), %{land_vorarlberg_link} ja Land Tirolesta (%{cc_by_at_with_amendments_link})'
+        contributors_at_austria: Itävalta
+        contributors_at_stadt_wien: Stadt Wienistä
+        contributors_at_cc_by: CC BY -lisenssillä
+        contributors_at_land_vorarlberg: Land Vorarlbergistä
+        contributors_at_cc_by_at_with_amendments: CC-BY AT -lisenssillä tietyin muutoksin
+        contributors_au_australia: Australia
+        contributors_au_geoscape_australia: Geoscape Australia
+        contributors_ca_credit_html: |-
+          %{canada}: Sisältää karttatietoja GeoBasesta&reg;, GeoGratisista (&copy; Department of Natural
+          Resources Canada), CanVecista (&copy; Department of Natural
+          Resources Canada), ja StatCanista (Geography Division,
+          Statistics Canada).
+        contributors_ca_canada: Kanada
+        contributors_cz_czechia: Tšekki
+        contributors_fi_credit_html: '%{finland}: Sisältää karttatietoja Maanmittauslaitoksen
+          maastotietokannasta ja muista lähteistä %{nlsfi_license_link} mukaisesti.'
+        contributors_fi_finland: Suomi
+        contributors_fi_nlsfi_license: Maanmittauslaitoksen lisenssin
+        contributors_fr_credit_html: '%{france}: Sisältää karttatietoja Direction
+          Générale des Impôtsista.'
+        contributors_fr_france: Ranska
+        contributors_nl_credit_html: '%{netherlands}: Sisältää &copy; AND-karttatietoja
+          vuodelta 2007 (%{and_link})'
+        contributors_nl_netherlands: Alankomaat
+        contributors_nz_new_zealand: Uusi-Seelanti
+        contributors_nz_cc_by: CC BY 4.0
+        contributors_rs_serbia: Serbia
+        contributors_si_credit_html: '%{slovenia}: Sisältää %{gu_link} sekä %{mkgp_link}
+          tuottamia karttatietoja (Slovenian julkista karttamateriaalia).'
+        contributors_si_slovenia: Slovenia
+        contributors_si_gu: Maanmittaus- ja kartoitusviranomaisen
+        contributors_si_mkgp: Maatalous-, metsä- ja ruokaministeriön
+        contributors_es_spain: Espanja
+        contributors_es_cc_by: CC BY 4.0
+        contributors_za_credit_html: '%{south_africa}: Sisältää karttatietoja %{ngi_link},
+          kaikki oikeudet pidätetään.'
+        contributors_za_south_africa: Etelä-Afrikka
+        contributors_za_ngi: 'Chief Directorate: National Geo-Spatial Informationista'
+        contributors_gb_credit_html: '%{united_kingdom}: Sisältää Ordnance Surveyn
+          keräämiä karttatietoja &copy; Crown Copyright ja tietokantojen käyttöoikeuden
+          2010-2023.'
+        contributors_gb_united_kingdom: Yhdistynyt kuningaskunta
+        contributors_footer_2_html: |-
+          Tietojen sisältyminen OpenStreetMapiin ei tarkoita, että tietojen antaja
+          ottaa kantaa OpenStreetMapiin tai vastuuta tietojen oikeellisuudesta.
+        infringement_title_html: Tekijänoikeusloukkaus
+        infringement_1_html: |-
+          OpenStreetMapin kartoittajia muistutetaan, että kopioiminen tekijänoikeuksien alaisista teoksista
+          (esimerkiksi Google-kartoista tai paperikartoista) ilman tekijänoikeuden haltijan nimenomaista lupaa on kielletty.
+        infringement_2_1_html: Jos kuka tahansa OpenStreetMapin käyttäjä epäilee,
+          että karttatietoja on otettu luvattomasta lähteestä OSM:n karttatietoihin
+          tai sivustolle, siitä tulee tehdä %{takedown_procedure_link} tai %{online_filing_page_link}.
+        infringement_2_1_takedown_procedure: poistopyyntö
+        infringement_2_1_online_filing_page: ilmoittaa suoraan
+        trademarks_title: Tavaramerkit
+        trademarks_1_1_html: OpenStreetMap, suurennuslasilogo ja State of the Map
+          ovat OpenStreetMap-säätiön rekisteröityjä tavaramerkkejä.Jos sinulla on
+          kysyttävää merkkien käytöstä, tutustu %{trademark_policy_link}.
+        trademarks_1_1_trademark_policy: tavaramerkkikäytäntöömme
+    index:
+      js_1: Selain ei tue JavaScriptiä tai sen suorittaminen on estetty.
+      js_2: OpenStreetMap tarvitsee JavaScriptin liikuteltavaan karttaan.
+      permalink: Ikilinkki
+      shortlink: Lyhytosoite
+      createnote: Ilmoita karttavirheestä
+      license:
+        copyright: 'Tekijänoikeus: OpenStreetMapin tekijät, avoimella lisenssillä'
+      remote_failed: Muokkaus epäonnistui - varmista, että JOSM tai Merkaartor on
+        ladattu ja etähallinta-asetus on käytössä
+    edit:
+      not_public: Muokkauksesi eivät ole julkisia.
+      not_public_description_html: Et voi enää muokata karttaa ennen kuin vaihdat
+        muokkauksesi julkisiksi. Voit vaihtaa asetuksen %{user_page}-sivulta.
+      user_page_link: käyttäjätiedot
+      anon_edits_link_text: Perustelut (englanniksi) julkisuusvaatimukselle.
+      id_not_configured: iD-ohjelmaa ei ole asetettu
+      no_iframe_support: Käytössä oleva selain ei tue HTML-kehyksiä, joka vaaditaan
+        tämän toiminnon käyttämiseen.
+    export:
+      title: Alueen vienti
+      manually_select: Valitse pienempi alue
+      licence: Lisenssi
+      odbl: Open Data Commons Open Database -lisenssillä
+      too_large:
+        advice: 'Jos vientitoiminto ei toimi, kokeile myös seuraavia palveluja:'
+        body: 'Näin suurta aluetta ei voi viedä OpenStreetMap XML-tiedostona. Lähennä
+          karttaa tai valitse pienempi alue, tai vaihtoehtoisesti lataa tiedosto joltakin
+          seuraavista:'
+        planet:
+          title: Planet OSM
+          description: Säännöllisesti päivitettyjä kopioita täydellisestä OpenStreetMap-tietokannasta
+        overpass:
+          title: Overpass API
+          description: Lataa kartalle rajattu alue OpenStreetMapin varapalvelimelta
+        geofabrik:
+          title: Geofabrik-lataukset
+          description: Säännöllisesti päivitetyt otteet maanosista, maista ja valituista
+            kaupungeista
+        other:
+          title: Muut lähteet
+          description: Muut lähteet ovat esillä OpenStreetMap-wikissä
+      export_button: Vie
+    fixthemap:
+      title: Ilmoita ongelmasta / Korjaa karttaa
+      how_to_help:
+        title: Kuinka voin auttaa
+        join_the_community:
+          title: Liity yhteisöön
+          explanation_html: Jos olet huomannut ongelman kartassa, kuten puuttuvan
+            tien tai puuttuvan osoitteesi, paras tapa toimia on liittyä OpenStreetMap-yhteisöön
+            ja lisätä tai korjata kohta itse.
+      other_concerns:
+        title: Muut huolenaiheet
+    help:
+      title: Ohjekeskus
+      introduction: Ohjeita ja vinkkejä OpenStreetMapin käyttöön on saatavilla useista
+        eri lähteistä.
+      welcome:
+        url: /welcome
+        title: Tervetuloa OpenStreetMapiin
+        description: Opi OpenStreetMapin perusteet tällä helpolla aloitusoppaalla.
+      beginners_guide:
+        url: https://wiki.openstreetmap.org/wiki/Fi:Beginners%27_guide
+        title: Aloitusopas
+        description: Yhteisön ylläpitämä opas aloittelijoille.
+      help:
+        title: Apufoorumi
+        description: Etsi vastauksia tai esitä oma kysymyksesi OpenStreetMapin kysy-
+          ja vastaa -sivustolla. (englanninkielinen)
+      mailing_lists:
+        title: Postituslistat
+        description: Esitä kysymyksiä tai keskustele laajalti kiinnostavista aiheista
+          aiheita koskevilla tai alueellisilla sähköpostilistoilla.
+      community:
+        title: Yhteisön keskustelupalsta
+        description: Jaettu paikka OpenStreetMapiin liittyville keskusteluille.
+      irc:
+        title: IRC
+        description: Interaktiivinen chat monilla eri kielillä ja monista eri aiheista.
+      switch2osm:
+        title: switch2osm (Vaihda OSM:iin)
+        description: Auta yrityksiä ja organisaatioita vaihtamaan OpenStreetMapiin
+          pohjautuviin karttoihin ja muihin palveluihin.
+      welcomemat:
+        title: Järjestöille
+        description: Edustatko järjestöä, joka harkitsee OpenStreetMapin hyödyntämistä?
+          Tutustu ohjeistukseemme.
+      wiki:
+        url: https://wiki.openstreetmap.org/wiki/Fi:Main_Page
+        title: OpenStreetMap-wiki
+        description: Tutustu syvällisemmin OpenStreetMapiin wikikirjastossa. Osittain
+          englanninkielinen.
+    potlatch:
+      removed: OpenStreetMapin oletusmuokkausohjelmaksi on valittu Potlatch. Adoben
+        Flash Player -lisäosan tuki on päättynyt, minkä vuoksi Potlatch ei ole enää
+        saatavilla verkkoselaimessa.
+      desktop_application_html: Voit edelleen käyttää Potlatchia %{download_link}.
+      download: lataamalla työpöytäsovelluksen Macille ja Windowsille
+      id_editor_html: Vaihtoehtoisesti voit asettaa oletusmuokkaimeksi iD:n, joka
+        toimii verkkoselaimessasi kuten Potlatch aiemmin. %{change_preferences_link}.
+      change_preferences: Muuta asetuksiasi täällä
+    any_questions:
+      title: Kysyttävää?
+      get_help_here: Hae apua täältä
+    sidebar:
+      search_results: Hakutulokset
+      close: Sulje
+    search:
+      search: Haku
+      get_directions: Hae reittiohjeet
+      get_directions_title: Hae reittiohjeet kahden paikan välille
+      from: Lähtöpaikka
+      to: Määränpää
+      where_am_i: Mikä tämä paikka on?
+      where_am_i_title: Määrittää nykyisen sijainnin hakukoneella
+      submit_text: Hae
+      reverse_directions_text: Vastakkainen suunta
+    key:
+      table:
+        entry:
+          motorway: Moottoritie
+          main_road: Päätie
+          trunk: Valtatie
+          primary: Kantatie
+          secondary: Seututie
+          unclassified: Luokittelematon tie
+          track: Metsätie
+          bridleway: Ratsastustie
+          cycleway: Pyörätie
+          cycleway_national: Kansallinen pyörätie
+          cycleway_regional: Alueellinen pyörätie
+          cycleway_local: Paikallinen pyörätie
+          footway: Jalkakäytävä
+          rail: Junarata
+          subway: Metro
+          cable_car: Köysirata
+          chair_lift: tuolihissi
+          runway: Lentokentän kiitotie
+          taxiway: rullaustie
+          apron: Lentokentän asemataso
+          admin: Hallinnollinen raja
+          forest: Talousmetsä
+          wood: Metsä
+          golf: Golfkenttä
+          park: Puisto
+          common: Niitty
+          resident: Asuinalue
+          retail: Kaupallinen alue
+          industrial: Teollisuusalue
+          commercial: Toimistoalue
+          heathland: Kanervikko
+          lake: Järvi
+          reservoir: tekojärvi
+          farm: Maatila
+          brownfield: Purettujen rakennusten alue
+          cemetery: Hautausmaa
+          allotments: Siirtolapuutarha
+          pitch: Urheilukenttä
+          centre: Urheilukeskus
+          reserve: Luonnonsuojelualue
+          military: Sotilasalue
+          school: Koulu
+          university: yliopisto
+          building: Merkittävä rakennus
+          station: Rautatieasema
+          summit: Vuorenhuippu
+          peak: huippu
+          tunnel: Katkoviivallinen kehys = tunneli
+          bridge: Musta kehys = silta
+          private: Yksityinen
+          destination: Ei läpikulkua
+          construction: Rakenteilla olevia teitä
+          bicycle_shop: Pyöräkauppa
+          bicycle_parking: Pyöräparkki
+          toilets: Vessat
+    welcome:
+      title: Tervetuloa!
+      introduction: 'Tervetuloa OpenStreetMapiin: ilmaiseen ja vapaasti muokattavaan
+        maailmankarttaan. Rekisteröityminen on nyt suoritettu, joten olet valmis aloittamaan
+        kartan muokkaamisen. Tutustu ensin kuitenkin näihin perusasioihin.'
+      whats_on_the_map:
+        title: Kartan sisältö
+      basic_terms:
+        title: Käsitteitä ja termistöä
+        paragraph_1: OpenStreetMapissa käytetään paljon vain sille omaista termistöä.
+          Kun nämä sanat ovat hallinnassa, olet jo voiton puolella!
+        an_editor_html: '%{editor} on ohjelma tai verkkosivu jota voit käyttää kartan
+          muokkaamiseen.'
+        editor: Muokkain
+        node: piste
+        way: viiva
+      rules:
+        title: Pelisäännöt
+        imports: Tuonnit
+        automated_edits: Automatisoidut muokkaukset
+      start_mapping: Aloita kartan muokkaaminen
+      add_a_note:
+        title: Eikö muokkaaminen innosta? Ilmoita karttavirheistä!
+        para_1: Jos huomaat kartalla virheen, muttet halua korjata sitä itse, tee
+          siitä karttavirheilmoitus.
+    communities:
+      title: Yhteisöt
+      lede_text: |-
+        Ihmiset ympäri maailmaa käyttävät ja täydentävät OpenStreetMapia.
+        Vaikka monet osallistuvat yksilöinä, osa käyttäjistä on muodostanut yhteisöjä.
+        Näiden ryhmien koko vaihtelee ja ryhmien jäsenet saattavat kattaa joko pienen kylän tai useita alueita eri maista.
+        Ryhmät voivat olla muodollisia tai epävirallisia.
+      local_chapters:
+        title: Paikalliset osastot
+      other_groups:
+        title: Muut ryhmät
+        communities_wiki: Yhteisöjen wiki-sivu
+  traces:
+    visibility:
+      private: Yksityinen (vain pisteet ilman nimeä ja aikaleimoja)
+      public: Julkinen (näytetään jälkiluettelossa, mutta pisteet ilman nimeä ja aikaleimoja)
+      trackable: Jäljitettävissä (pisteet jaetaan järjestettynä aikaleimoineen, mutta
+        nimettömänä)
+      identifiable: Tunnistettavissa (näytetään jälkiluettelossa ja pisteet tunnistettavasti
+        järjestettynä aikaleimoineen)
+    new:
+      upload_trace: Tallenna GPS-jälki
+      visibility_help: Mitä tämä tarkoittaa?
+      visibility_help_url: https://wiki.openstreetmap.org/wiki/Fi:GPS-j%C3%A4lkien_julkisuus
+      help: Ohje
+      help_url: https://wiki.openstreetmap.org/wiki/Fi:Upload
+    create:
+      upload_trace: Lähetä GPS-jälki
+      trace_uploaded: GPX-tiedosto on tallennettu palvelimelle ja on jonossa tietokantaan
+        syötettäväksi. Yleensä tämä kestää noin puoli tuntia. Saat vielä sähköposti-ilmoituksen
+        asiasta.
+      upload_failed: GPX-tiedoston tallennus epäonnistui. Virheilmoitus on lähetetty
+        palvelun ylläpitäjälle. Yritä uudelleen.
+      traces_waiting:
+        one: Sinulla on %{count} jälki käsittelyjonossa odottamassa tallennusta tietokantaan.
+          Olisi huomaavaista jos odottaisit näiden valmistuvan ennen kuin lähetät
+          lisää jälkiä. Näin muidenkin käyttäjien lähettämät jäljet pääsevät aiemmin
+          tietokantaan.
+        other: Sinulla on %{count} jälkeä käsittelyjonossa odottamassa tallennusta
+          tietokantaan. Olisi huomaavaista jos odottaisit näiden valmistuvan ennen
+          kuin lähetät lisää jälkiä. Näin muidenkin käyttäjien lähettämät jäljet pääsevät
+          aiemmin tietokantaan.
+    edit:
+      cancel: Peruuta
+      title: Muokataan jälkeä %{name}
+      heading: Jäljen %{name} muokkaus
+      visibility_help: Mitä tämä tarkoittaa?
+    update:
+      updated: Jälki päivitetty
+    trace_optionals:
+      tags: Ominaisuustiedot
+    show:
+      title: Näytetään jälkeä %{name}
+      heading: Näytetään jälkeä %{name}
+      pending: ODOTTAA KÄSITTELYÄ
+      filename: 'Tiedostonimi:'
+      download: lataa
+      uploaded: 'Lähetetty:'
+      points: 'Pisteitä:'
+      start_coordinates: 'Alkupisteen koordinaatit:'
+      coordinates_html: '%{latitude}; %{longitude}'
+      map: kartalla
+      edit: muokkaa
+      owner: 'Käyttäjä:'
+      description: 'Kuvaus:'
+      tags: 'Ominaisuustiedot:'
+      none: Ei mitään
+      edit_trace: Muokkaa jäljen tietoja
+      delete_trace: Poista tämä jälki
+      trace_not_found: Jälkeä ei löydy!
+      visibility: 'Näkyvyys:'
+      confirm_delete: Poista tämä jälki?
+    trace_paging_nav:
+      older: Vanhat jäljet
+      newer: Uudet jäljet
+    trace:
+      pending: JONOSSA
+      count_points:
+        one: '%{count} piste'
+        other: '%{count} pistettä'
+      more: tiedot
+      trace_details: Näytä jäljen tiedot
+      view_map: Selaa karttaa
+      edit_map: Muokkaa karttaa
+      public: JULKINEN
+      identifiable: TUNNISTETTAVA
+      private: YKSITYINEN
+      trackable: SEURATTAVA
+      by: käyttäjältä
+      in: avainsanoilla
+    index:
+      public_traces: Julkiset GPS-jäljet
+      my_gps_traces: Omat GPS-jäljet
+      public_traces_from: Käyttäjän %{user} julkiset GPS-jäljet
+      description: Selaa viimeisimpiä GPS-jälkiä
+      tagged_with: ', joilla on tagi %{tags}'
+      empty_title: Täällä ei ole vielä mitään
+      empty_upload_html: '%{upload_link} tai lue lisää GPS-jäljityksestä %{wiki_link}.'
+      upload_new: Tallenna uusi jälki
+      wiki_page: wikissä
+      upload_trace: Lisää GPS-jälki
+      all_traces: Kaikki jäljet
+      my_traces: Omat jäljet
+      traces_from: Julkiset jäljet käyttäjältä %{user}
+      remove_tag_filter: Poista tunnistesuodatin
+    destroy:
+      scheduled_for_deletion: Jälki on poistojonossa.
+    make_public:
+      made_public: Jäljestä tehtiin julkinen
+    offline_warning:
+      message: GPX-tiedostojen tallennus ei ole tällä hetkellä käytettävissä
+    offline:
+      heading: GPX-jälkien tallennus ei ole käytettävissä
+      message: GPX-jälkien tallennusjärjestelmä ei ole tällä hetkellä käytettävissä
+    georss:
+      title: OpenStreetMapin GPS-jäljet
+    description:
+      description_with_count:
+        one: GPX-tiedosto, jossa on %{count} piste käyttäjältä %{user}
+        other: GPX-tiedosto, jossa on %{count} pistettä käyttäjältä %{user}
+      description_without_count: GPX-tiedosto käyttäjältä %{user}
+  application:
+    permission_denied: Sinulla ei ole oikeutta käyttää tätä toimintoa
+    require_cookies:
+      cookies_needed: Selaimen evästeet on otettu pois päältä - salli evästeiden käyttö
+        selaimessasi ennen jatkamista.
+    require_admin:
+      not_an_admin: Vain pääkäyttäjät voivat käyttää tätä toimintoa.
+    setup_user_auth:
+      blocked_zero_hour: Olet saanut kiireellisen viestin OpenStreetMapin verkkopalvelussa.
+        Viesti on luettava, ennen kuin karttaan voi tallentaa muutoksia.
+      blocked: Pääsysi APIin on estetty. Lisätietoja saat kirjautumalla web-käyttöliittymään.
+      need_to_see_terms: API:n käyttöoikeutesi on tilapäisesti hyllytetty. Kirjaudu
+        sisään verkkokäyttöliittymään nähdäksesi osallistujien ehdot. Niihin ei tarvitse
+        suostua, mutta ne täytyy lukea.
+    settings_menu:
+      account_settings: Käyttäjäasetukset
+      oauth1_settings: OAuth 1 -asetukset
+      oauth2_applications: OAuth 2 -sovellukset
+      oauth2_authorizations: OAuth 2 -käyttöoikeudet
+  oauth:
+    authorize:
+      title: Salli tilisi käyttö
+      request_access_html: Sovellus %{app_name} pyytää pääsyä käyttäjätiliisi %{user}.
+        Tarkasta oikeudet, jotka tahdot antaa sovellukselle. Voit valita mielestäsi
+        sopivat oikeudet.
+      allow_to: 'Salli asiakassovelluksen:'
+      allow_read_prefs: lukea käyttäjäsi asetuksia
+      allow_write_prefs: muokata käyttäjäsi asetuksia
+      allow_write_diary: kirjoita päiväkirjamerkintöjä, kommentoi ja löydä kavereita.
+      allow_write_api: muokata karttaa
+      allow_read_gpx: lukea yksityisiä GPS-jälkiäsi
+      allow_write_gpx: tallenna GPS-jälkiä.
+      allow_write_notes: Muokkaa karttailmoituksia.
+      grant_access: Myönnä oikeudet
+    authorize_success:
+      title: Valtuutuspyyntö hyväksytty
+      allowed_html: Sovellukselle %{app_name} on myönnetty käyttöoikeus käyttäjätiliisi.
+      verification: Vahvistuskoodi on %{code}.
+    authorize_failure:
+      title: Valtuutuspyyntö epäonnistui
+      denied: Sovelluksen %{app_name} käyttöoikeus käyttäjätiliisi on poistettu.
+      invalid: Tunnistuspoletti ei kelpaa.
+    revoke:
+      flash: Olet poistanut sovelluksen %{application} käyttöoikeudet
+    permissions:
+      missing: Et ole sallinut sovelluksen käyttöoikeutta tähän palveluun
+    scopes:
+      read_prefs: Käyttäjäasetusten käsittely
+      write_prefs: Käyttäjäasetusten muuttaminen
+      write_diary: Päiväkirjamerkintöjen luonti, kommentointi ja kavereiden lisääminen
+      write_api: Kartan muokkaaminen
+      read_gpx: Yksityisten GPS-jälkien käsittely
+      write_gpx: GPS-jälkien tallentaminen
+      write_notes: Karttailmoitusten muokkaaminen
+      read_email: Lue käyttäjän sähköpostiosoite
+      skip_authorization: Hyväksy hakemus automaattisesti
+  oauth_clients:
+    new:
+      title: Rekisteröi uusi sovellus
+    edit:
+      title: Muokkaa sovellustasi
+    show:
+      title: OAuth-tiedot sovellukselle %{app_name}
+      key: 'Kuluttajan avain:'
+      secret: 'Kuluttajan salaisuus:'
+      url: 'Pyynnön URL-poletti:'
+      access_url: 'Käyttöoikeuspoletin URL-osoite:'
+      authorize_url: 'Valtuuta URL-osoite:'
+      support_notice: Tuemme HMAC-SHA1 (suositeltu) ja RSA-SHA1 allekirjoituksia.
+      edit: Muokkaa yksityiskohtia
+      delete: Poista asiakas
+      confirm: Oletko varma?
+      requests: 'Pyydetään seuraavia oikeuksia käyttäjältä:'
+    index:
+      title: OAuth-asetukset
+      my_tokens: Valtuutetut sovellukset
+      list_tokens: 'Seuraavat sovellukset ovat käyttäneet tätä käyttäjätunnusta:'
+      application: Sovelluksen nimi
+      issued_at: Käytetty viimeksi
+      revoke: Peruuta!
+      my_apps: Itse kehittämäni sovellukset
+      no_apps_html: Oletko kehittänyt sovelluksen, jonka haluaisit käyttävän %{oauth}-kirjautumismenetelmää?
+        Sovellus on rekisteröitävä, ennen kuin se voi lähettää kirjautumispyyntöjä
+        palveluun.
+      oauth: OAuth
+      registered_apps: 'Seuraavat sovellukset käyttävät käyttäjätunnustasi:'
+      register_new: Rekisteröi sovelluksesi
+    form:
+      requests: 'Sovellus pyytää lupaa:'
+    not_found:
+      sorry: Valitettavasti tyyppiä %{type} ei löydy.
+    create:
+      flash: Tiedot on lähetetty hyväksyttäväksi.
+    update:
+      flash: Sovelluksen tiedot on päivitetty.
+    destroy:
+      flash: Sovelluksen käyttöoikeus on poistettu.
+  oauth2_applications:
+    index:
+      title: Omat asiakasohjelmistot
+      new: Rekisteröi uusi sovellus
+      name: Nimi
+      permissions: Käyttöoikeudet
+    application:
+      edit: Muokkaa
+      delete: Poista
+      confirm_delete: Poista tämä sovellus?
+    new:
+      title: Rekisteröi uusi sovellus
+    edit:
+      title: Muokkaa sovellustasi
+    show:
+      edit: Muokkaa
+      delete: Poista
+      confirm_delete: Poista tämä sovellus?
+      client_id: Asiakastunnus
+      client_secret_warning: Varmista, että tallennat tämän salaisuuden - et näe sitä
+        enää uudelleen
+      permissions: Oikeudet
+      redirect_uris: Uudelleenohjaa URI:t
+    not_found:
+      sorry: Valitettavasti sovellusta ei löytynyt.
+  oauth2_authorizations:
+    new:
+      title: Valtuutus vaaditaan
+      introduction: Haluatko valtuuttaa sovelluksen %{application} käyttää tiliäsi
+        seuraavin oikeuksin?
+      authorize: Valtuuta
+      deny: Kiellä
+    error:
+      title: Tapahtui virhe
+    show:
+      title: Valtuuskoodi
+  oauth2_authorized_applications:
+    index:
+      title: Valtuutetut sovellukset
+      application: Sovellus
+      permissions: Oikeudet
+      no_applications_html: '%{oauth2} -sovelluksille ei ole vielä myönnetty käyttöoikeuksia.'
+    application:
+      revoke: Peruuta
+      confirm_revoke: Perutaanko tämän sovelluksen pääsy?
+  users:
+    new:
+      title: Rekisteröidy
+      no_auto_account_create: Automaattinen käyttäjätunnuksen luonti ei ole juuri
+        nyt käytössä.
+      support: tuki
+      about:
+        header: Muokkaa vapaasti
+      display name description: Julkisesti näkyvä käyttäjänimi. Tätä voi myöhemmin
+        muuttaa asetuksista.
+      external auth: 'Kolmannen osapuolen todennus:'
+      use external auth: Kirjaudu toisen palvelun tunnuksilla
+      auth no password: Mikäli kirjaudut sisään kolmannen osapuolen palveluiden avulla,
+        sinun ei tarvitse luoda itsellesi salasanaa, mutta jotkin ylimääräiset työkalut
+        tai palvelimet voivat silti vaatia sitä.
+      continue: Rekisteröidy
+      terms accepted: Kiitos uusien osallistujaehtojen hyväksymisestä!
+      privacy_policy: tietosuojakäytäntö
+    terms:
+      title: Ehdot
+      heading: Ehdot
+      heading_ct: Osallistumisehdot
+      read and accept with tou: Lue osallistumis- ja käyttöehdot, valitse molemmat
+        valintaruudut ja napsauta sitten Jatka.
+      contributor_terms_explain: Tämä sopimus koskee jo tekemiäsi sekä tulevaisuudessa
+        tekemiäsi muokkauksia.
+      read_ct: Olen lukenut ja hyväksyn yllä olevat osallistumisehdot
+      tou_explain_html: Nämä %{tou_link} ohjaavat verkkosivuston ja muun OSMF:n tarjoaman
+        infrastruktuurin käyttöä. Napsauta linkkiä, lue ja suostu tekstin sisältöön.
+      read_tou: Olen lukenut ja hyväksynyt käyttöehdot
+      consider_pd: Edellisen lisäksi katson lisäyksieni olevan tekijänoikeudettomia
+        Public Domain -lisenssillä
+      consider_pd_why: Mikä tämä on?
+      consider_pd_why_url: https://www.osmfoundation.org/wiki/License/Why_would_I_want_my_contributions_to_be_public_domain
+      guidance_info_html: 'Vaihtoehtoisia lukutapoja: %{readable_summary_link} ja
+        %{informal_translations_link}'
+      readable_summary: selkokielinen yhteenveto (englanniksi)
+      informal_translations: epäviralliset käännökset
+      continue: Seuraava
+      declined: https://wiki.openstreetmap.org/wiki/Fi:Contributor_Terms_Declined
+      decline: En hyväksy
+      you need to accept or decline: Ennen jatkamista lue läpi osallistumisehdot ja
+        hyväksy tai hylkää se.
+      legale_select: 'Valitse asuinmaasi:'
+      legale_names:
+        france: Ranska
+        italy: Italia
+        rest_of_world: Muu maailma
+    terms_declined_flash:
+      terms_declined_link: tämä wikisivu
+      terms_declined_url: https://wiki.openstreetmap.org/wiki/Fi:Contributor_Terms_Declined
+    no_such_user:
+      title: Haettua käyttäjää ei ole olemassa
+      heading: Käyttäjää %{user} ei ole olemassa
+      body: Käyttäjää %{user} ei löytynyt. Tarkista oikeikirjoitus.
+      deleted: poistettu
+    show:
+      my diary: Oma päiväkirja
+      my edits: Omat muokkaukset
+      my traces: Omat jäljet
+      my notes: Omat karttailmoitukset
+      my messages: Viestit
+      my profile: Käyttäjäsivu
+      my settings: Käyttäjäasetukset
+      my comments: Omat kommentit
+      my_preferences: Asetukset
+      my_dashboard: Tapahtumat
+      blocks on me: Saadut estot
+      blocks by me: Tekemäni estot
+      edit_profile: Muokkaa profiilia
+      send message: Lähetä viesti
+      diary: Päiväkirja
+      edits: Muokkaukset
+      traces: Jäljet
+      notes: Karttailmoitukset
+      remove as friend: Poista kavereista
+      add as friend: Lisää kaveriksi
+      mapper since: 'Rekisteröitynyt:'
+      ct status: 'Osallistumisehdot:'
+      ct undecided: Ei valittu
+      ct declined: Hylätty
+      email address: 'Sähköpostiosoite:'
+      created from: 'Tekijä:'
+      status: 'Tila:'
+      spam score: 'Spam-pisteet:'
+      role:
+        administrator: Tämä käyttäjä on ylläpitäjä.
+        moderator: Tämä käyttäjä on moderaattori.
+        grant:
+          administrator: Myönnä ylläpitäjän oikeudet
+          moderator: Myönnä moderaattorin oikeudet
+        revoke:
+          administrator: Poista ylläpitäjän oikeudet
+          moderator: Poista moderaattorin oikeudet
+      block_history: Saadut estot
+      moderator_history: Tehdyt estot
+      comments: Kommentit
+      create_block: Estä tämä käyttäjä
+      activate_user: Aktivoi tämä käyttäjä
+      confirm_user: Vahvista tämä käyttäjä
+      unconfirm_user: Peru tämän käyttäjän vahvistus
+      unsuspend_user: Peru tämän käyttäjän jäädytys
+      hide_user: Piilota tämä käyttäjä
+      unhide_user: Poista käyttäjän piilottaminen
+      delete_user: Poista tämä käyttäjä
+      confirm: Vahvista
+      report: Ilmianna käyttäjä
+    go_public:
+      flash success: Kaikki tekemäsi muokkaukset ovat nyt julkisia.
+    index:
+      title: Käyttäjät
+      heading: Käyttäjät
+      showing:
+        one: Näytetään sivu %{page} (%{first_item}/%{items})
+        other: Näytetään sivu %{page} (%{first_item}-%{last_item} / %{items})
+      summary_html: '%{name} luotu %{date} osoitteesta %{ip_address}'
+      summary_no_ip_html: '%{name} luotu %{date}'
+      confirm: Vahvista valitut käyttäjät
+      hide: Piilota valitut käyttäjät
+      empty: Käyttäjiä ei löytynyt.
+    suspended:
+      title: Käyttäjätili jäädytetty
+      heading: Käyttäjätili jäädytetty
+      support: tuki
+      automatically_suspended: Valitettavasti tilisi on automaattisesti jäädytetty
+        epäilyttävän toiminnan vuoksi.
+    auth_failure:
+      connection_failed: Yhdistäminen todennuspalveluntarjoajaan epäonnistui
+      invalid_credentials: Virheelliset varmennustiedot
+      no_authorization_code: Ei käyttöoikeuskoodia
+      unknown_signature_algorithm: Tunnistamaton allekirjoitusalgoritmi
+      invalid_scope: Virheellinen ala
+      unknown_error: Todentaminen epäonnistui
+    auth_association:
+      heading: ID:täsi ei ole vielä liitetty OpenStreetMap-tiliisi.
+      option_1: 'Uusi OpenStreetMapin käyttäjä: luo käyttäjätunnus tällä lomakkeella.'
+      option_2: 'Nykyinen OpenStreetMapin käyttäjä: kirjaudu sisään käyttäjätunnuksella
+        ja salasanalla ja yhdistä tili käyttäjäasetuksissa.'
+  user_role:
+    filter:
+      not_a_role: Merkkijono '%{role}' ei ole kelvollinen rooli.
+      already_has_role: Käyttäjällä on jo rooli %{role}.
+      doesnt_have_role: Käyttäjällä ei ole roolia %{role}.
+      not_revoke_admin_current_user: Ei voida perua järjestelmänvalvojan roolia nykyiseltä
+        käyttäjältä.
+    grant:
+      title: Vahvista roolin myöntäminen
+      heading: Vahvista roolin myöntäminen
+      are_you_sure: Haluatko varmasti lisätä käyttäjän ”%{name}” ryhmään ”%{role}”?
+      confirm: Vahvista
+      fail: Roolin ”%{role}” myöntäminen käyttäjälle ”%{name}” epäonnistui. Tarkista
+        että käyttäjä ja rooli ovat molemmat kelvollisia.
+    revoke:
+      title: Vahvista roolin poistaminen
+      heading: Vahvista roolin poistaminen
+      are_you_sure: Haluatko varmasti poistaa käyttäjän ”%{name}” ryhmästä ”%{role}”?
+      confirm: Vahvista
+      fail: Ryhmän ”%{role}” poistaminen käyttäjältä ”%{name}” epäonnistui. Tarkista
+        että käyttäjä ja ryhmä ovat molemmat kelvollisia.
+  user_blocks:
+    model:
+      non_moderator_update: Sinun on oltava moderaattori luodaksesi tai muokataksesi
+        estoa.
+      non_moderator_revoke: Sinun on oltava moderaattori poistaaksesi eston.
+    not_found:
+      sorry: Estotunnusta %{id} ei löytynyt.
+      back: Takaisin hakemistoon
+    new:
+      title: Luodaan esto käyttäjälle %{name}
+      heading_html: Luodaan esto käyttäjälle %{name}
+      period: Kuinka kauan käyttäjä on estetty käyttämästä APIa. Esto alkaa heti.
+      back: Näytä kaikki estot
+    edit:
+      title: Käyttäjän %{name} esto
+      heading_html: Käyttäjän %{name} esto
+      period: Kuinka pitkäksi aikaa käyttäjää estetään käyttämästä APIa, laskettuna
+        tästä hetkestä.
+      show: Näytä tämä esto
+      back: Näytä kaikki estot
+    filter:
+      block_expired: Esto on jo vanhentunut, eikä sitä voi muokata.
+      block_period: Eston ajanjakson täytyy olla yksi pudotusvalikossa olevista arvoista.
+    create:
+      flash: Estettiin käyttäjä %{name}
+    update:
+      only_creator_can_edit: Vain tämän eston luonut moderaattori voi muokata sitä.
+      success: Esto päivitetty.
+    index:
+      title: Estetyt käyttäjät
+      heading: Luettelo käyttäjän estoista
+      empty: Ei estoja.
+    revoke:
+      title: Esto %{block_on} poistetaan
+      heading_html: Poistetaan käyttäjän %{block_on} esto, jonka oli tehnyt %{block_by}
+      time_future_html: Tämä esto päättyy %{time} kuluttua.
+      past_html: Tämä esto päättyi %{time} ja sitä ei voida poistaa.
+      confirm: Oletko varma, että haluat poistaa tämän eston?
+      revoke: Poista!
+      flash: Tämä esto on poistettu
+    helper:
+      time_future_html: Päättyy %{time} kuluttua.
+      until_login: Aktiivinen kunnes käyttäjä kirjautuu sisään.
+      time_future_and_until_login_html: Päättyy %{time} kuluttua ja käyttäjän kirjauduttua
+        sisään.
+      time_past_html: Päättyi %{time}.
+      block_duration:
+        hours:
+          one: '%{count} tunti'
+          other: '%{count} tuntia'
+        days:
+          one: '%{count} päivä'
+          other: '%{count} päivää'
+        weeks:
+          one: '%{count} viikko'
+          other: '%{count} viikkoa'
+        months:
+          one: '%{count} kuukausi'
+          other: '%{count} kuukautta'
+        years:
+          one: '%{count} vuosi'
+          other: '%{count} vuotta'
+    blocks_on:
+      title: Käyttäjän %{name} estot
+      heading_html: Käyttäjän %{name} estot
+      empty: Käyttäjää %{name} ei ole estetty.
+    blocks_by:
+      title: Käyttäjän %{name} tekemät estot
+      heading_html: Listaa käyttäjän %{name} tekemät estot
+      empty: '%{name} ei ole vielä tehnyt yhtään estoa.'
+    show:
+      title: '%{block_on} estetty käyttäjän %{block_by} toimesta'
+      heading_html: '%{block_on} estetty käyttäjän %{block_by} toimesta'
+      created: Luotu
+      duration: 'Kesto:'
+      status: Tila
+      show: Näytä
+      edit: Muokkaa
+      revoke: Estä!
+      confirm: Oletko varma?
+      reason: 'Syy estoon:'
+      back: Näytä kaikki estot
+      revoker: 'Estäjä:'
+      needs_view: Käyttäjän täytyy kirjautua sisään ennen kuin esto poistuu.
+    block:
+      not_revoked: (ei kumottu)
+      show: Näytä
+      edit: Muokkaa
+      revoke: Estä!
+    blocks:
+      display_name: Estetty käyttäjä
+      creator_name: Tekijä
+      reason: Eston syy
+      status: Tila
+      revoker_name: Eston tehnyt
+      showing_page: Sivu %{page}
+      next: Seuraava »
+      previous: « Edellinen
+  notes:
+    index:
+      title: Käyttäjän %{user} kommentoimat ja luomat huomautukset
+      heading: Käyttäjän %{user} karttailmoitukset
+      subheading_html: Käyttäjän %{user} %{commented} ja %{submitted} karttailmoitukset
+      subheading_submitted: luomat
+      subheading_commented: kommentoimat
+      no_notes: Ei muistiinpanoja
+      id: Tunniste
+      creator: Tekijä
+      description: Kuvaus
+      created_at: Luotu
+      last_changed: Viimeksi muutettu
+    show:
+      title: 'Karttailmoitus: %{id}'
+      description: Kuvaus
+      open_title: 'Ratkaisematon karttailmoitus #%{note_name}'
+      closed_title: 'Ratkaistu karttailmoitus #%{note_name}'
+      hidden_title: 'Piilotettu karttailmoitus #%{note_name}'
+      event_opened_by_html: Luonut %{user}, %{time_ago}
+      event_opened_by_anonymous_html: Luonut anonyymi käyttäjä, %{time_ago}
+      event_commented_by_html: Kommentti käyttäjältä %{user} %{time_ago}
+      event_closed_by_html: Ratkaissut %{user}, %{time_ago}
+      event_hidden_by_html: Piilottanut %{user}, %{time_ago}
+      report: ilmiantaa karttailmoituksen
+      anonymous_warning: Suhtaudu varauksella tunnistautumattomien käyttäjien karttailmoituksiin
+        ja kommentteihin.
+      hide: Piilota
+      resolve: Ratkaise
+      reactivate: Avaa uudelleen
+      comment_and_resolve: Kommentoi + ratkaise
+      comment: Kommentoi
+      report_link_html: Jos tämä karttailmoitus sisältää arkaluontoisia tietoja, jotka
+        on poistettava, voit %{link}.
+      other_problems_resolved: Kaikkiin muihin ongelmiin riittää ratkaisu.
+      disappear_date_html: Tämä ratkaistu karttailmoitus katoaa kartalta, kun on kulunut
+        %{disappear_in}.
+    new:
+      title: Uusi karttailmoitus
+      intro: Huomasitko virheen tai puuttuvan kohteen? Ilmoita siitä muille kartoittajille,
+        jolloin virhe voidaan korjata. Siirrä merkkipiste oikeaan kohtaan ja kirjoita
+        selite ongelmasta.
+      advice: Merkintä näkyy julkisesti kaikille, älä kirjoita henkilökohtaisia tietoja.
+        Aineistoa kehitetään palautteen perusteella, minkä takia älä käytä lähteenä
+        muita karttoja tai hakemistoja.
+      add: Lähetä ilmoitus
+  javascripts:
+    close: Sulje
+    share:
+      title: Jakaminen
+      cancel: Peruuta
+      image: Kartta kuvana
+      link: Linkki tai HTML-koodi
+      long_link: Linkki
+      short_link: Lyhyt linkki
+      geo_uri: Geo URI
+      embed: HTML-koodi
+      custom_dimensions: Rajaa alue itse
+      format: 'Tiedostomuoto:'
+      scale: 'Mittakaava:'
+      download: Lataa
+      short_url: Lyhyt osoite
+      include_marker: Lisää karttamerkki
+      center_marker: Keskitä kartta karttamerkkiin
+      paste_html: Upota karttaikkuna liittämällä tämä koodi verkkosivulle
+      view_larger_map: Näytä isommalla kartalla
+      only_standard_layer: Vain standardi kerros voidaan viedä kuvana
+    embed:
+      report_problem: Ilmoita ongelmasta
+    key:
+      title: Karttamerkinnät
+      tooltip: Merkkien selitykset
+      tooltip_disabled: Ei käytettävissä tässä karttanäkymässä
+    map:
+      zoom:
+        in: Lähennä
+        out: Loitonna
+      locate:
+        title: Näytä oma sijaintini
+        metersPopup:
+          one: Olet %{count} metrin etäisyydellä tästä pisteessä
+          other: Olet %{count} metrin etäisyydellä tästä pisteestä
+        feetPopup:
+          one: Olet %{count} jalan etäisyydellä tästä pisteestä
+          other: Olet %{count} jalan etäisyydellä tästä pisteestä
+      base:
+        standard: Perinteinen
+        cyclosm: CyclOSM
+        cycle_map: Pyöräilykartta
+        transport_map: Joukkoliikenne
+        hot: Humanitaarinen
+        opnvkarte: ÖPNVKarte
+      layers:
+        header: Karttanäkymä
+        notes: Karttailmoitukset
+        data: Kartta-aineisto
+        gps: Julkiset GPS-jäljet
+        overlays: Nämä toiminnot on tarkoitettu karttavirheiden korjaamiseen
+        title: Karttanäkymä
+      openstreetmap_contributors: OpenStreetMap-kartoittajat
+      make_a_donation: Lahjoita
+      website_and_api_terms: Verkkosivusto ja API-ehdot
+      cyclosm_credit: 'Laattojen tyyli: %{osm_france_link} ylläpitämä %{cyclosm_link}'
+      osm_france: OpenStreetMap Francen
+      thunderforest_credit: Laattojen tekijä %{thunderforest_link}
+      opnvkarte_credit: Laattojen tekijä %{memomaps_link}
+      hotosm_credit: 'Laattojen tyyli: %{osm_france_link} ylläpitämä %{hotosm_link}'
+    site:
+      edit_tooltip: Muokkaa karttaa
+      edit_disabled_tooltip: Lähennä karttaa ennen muokkaamisen aloittamista
+      createnote_tooltip: Ilmoita karttavirheestä
+      createnote_disabled_tooltip: Lähennä karttaa ennen karttavirheestä ilmoittamista.
+      map_notes_zoom_in_tooltip: Näytä karttailmoitukset lähentämällä karttaa
+      map_data_zoom_in_tooltip: Näytä kartta-aineisto lähentämällä karttaa
+      queryfeature_tooltip: Karttakohdeluettelo
+      queryfeature_disabled_tooltip: Näytä ominaisuusluettelo suurentamalla karttaa
+    changesets:
+      show:
+        comment: Kommentoi
+        subscribe: Tilaa
+        unsubscribe: Lopeta tilaus
+        hide_comment: piilota
+        unhide_comment: näytä
+    edit_help: Siirrä ja lähennä kartta muokattavaan paikkaan ja napsauta sitten tästä.
+    directions:
+      ascend: Nousu
+      engines:
+        fossgis_osrm_bike: Pyörällä (OSRM)
+        fossgis_osrm_car: Autolla (OSRM)
+        fossgis_osrm_foot: Kävellen (OSRM)
+        graphhopper_bicycle: Pyörällä (GraphHopper)
+        graphhopper_car: Autolla (GraphHopper)
+        graphhopper_foot: Kävellen (GraphHopper)
+        fossgis_valhalla_bicycle: Pyörällä (Valhalla)
+        fossgis_valhalla_car: Autolla (Valhalla)
+        fossgis_valhalla_foot: Kävellen (Valhalla)
+      descend: Lasku
+      directions: Reittiohjeet
+      distance: Etäisyys
+      distance_m: '%{distance} m'
+      distance_km: '%{distance} km'
+      errors:
+        no_route: Reittiä näiden paikkojen välille ei löytynyt.
+        no_place: Paikkaa '%{place}' ei löytynyt.
+      instructions:
+        continue_without_exit: Jatka tiellä %{name}
+        slight_right_without_exit: Kaarra oikealle tielle %{name}
+        offramp_right: Poistu tieltä rampille oikealle
+        offramp_right_with_exit: Poistu liittymästä %{exit} oikealle
+        offramp_right_with_exit_name: Poistu liittymästä %{exit} oikealle tielle %{name}
+        offramp_right_with_exit_directions: Poistu liittymästä %{exit} oikealle suuntaan
+          %{directions}
+        offramp_right_with_exit_name_directions: Poistu liittymästä %{exit} oikealle
+          tielle %{name} suuntaan %{directions}
+        offramp_right_with_name: Poistu oikealle liittymään tielle %{name}
+        offramp_right_with_directions: Käänny oikealle rampille suuntaan %{directions}
+        offramp_right_with_name_directions: Poistu tieltä oikealle tielle %{name}
+          suuntaan %{directions}
+        onramp_right_without_exit: Käänny oikealle liittymään tielle %{name}
+        onramp_right_with_directions: Käänny oikealle rampille suuntaan %{directions}
+        onramp_right_with_name_directions: Käänny vasemmalle rampille %{name} suuntaan
+          %{directions}
+        onramp_right_without_directions: Käänny oikealle rampille
+        onramp_right: Käänny oikealle rampille
+        endofroad_right_without_exit: Tienpäässä käänny oikealle tielle %{name}
+        merge_right_without_exit: Liity oikealle tielle %{name}
+        fork_right_without_exit: Liittymässä ryhmity oikealle suuntaan %{name}
+        turn_right_without_exit: Käänny oikealle tielle %{name}
+        sharp_right_without_exit: Käänny jyrkästi oikealle tielle %{name}
+        uturn_without_exit: Tee U-käännös tiellä %{name}
+        sharp_left_without_exit: Käänny jyrkästi vasemmalle tielle %{name}
+        turn_left_without_exit: Käänny vasemmalle tielle %{name}
+        offramp_left: Käänny vasemmalle rampille
+        offramp_left_with_exit: Poistu liittymästä %{exit} vasemmalle
+        offramp_left_with_exit_name: Poistu liittymästä %{exit} vasemmalle tielle
+          %{name}
+        offramp_left_with_exit_directions: Poistu liittymästä %{exit} vasemmalle suuntaan
+          %{directions}
+        offramp_left_with_exit_name_directions: Poistu liittymästä %{exit} vasemmalle
+          tielle %{name} suuntaan %{directions}
+        offramp_left_with_name: Poistu vasemmalle liittymään tielle %{name}
+        offramp_left_with_directions: Poistu liittymästä vasemmalle suuntaan %{directions}
+        offramp_left_with_name_directions: Poistu tieltä vasemmalle tielle %{name}
+          suuntaan %{directions}
+        onramp_left_without_exit: Käänny vasemmalle liittymään tielle %{name}
+        onramp_left_with_directions: Käänny vasemmalle rampille suuntaan %{directions}
+        onramp_left_with_name_directions: Käänny vasemmalle rampille %{name} suuntaan
+          %{directions}
+        onramp_left_without_directions: Käänny vasemmalle rampille
+        onramp_left: Käänny vasemmalle rampille
+        endofroad_left_without_exit: Tienpäässä käänny vasemmalle tielle %{name}
+        merge_left_without_exit: Liity vasemmalle tielle %{name}
+        fork_left_without_exit: Liittymässä ryhmity vasemmalle suuntaan %{name}
+        slight_left_without_exit: Kaarra vasemmalle tielle %{name}
+        via_point_without_exit: (reittipiste)
+        follow_without_exit: Seuraa tietä %{name}
+        roundabout_without_exit: Poistu liikenneympyrästä tielle %{name}
+        leave_roundabout_without_exit: Poistu liikenneympyrästä - %{name}
+        stay_roundabout_without_exit: Pysy liikenneympyrässä - %{name}
+        start_without_exit: Aloita tiellä %{name}
+        destination_without_exit: Olet saapunut perille
+        against_oneway_without_exit: Aja yksisuuntaista tietä %{name} väärään suuntaan
+        end_oneway_without_exit: Yksisuuntaisen tien %{name} pää
+        roundabout_with_exit: Liikenneympyrässä poistu %{exit} liittymästä tielle
+          %{name}
+        roundabout_with_exit_ordinal: Liikenneympyrässä poistu %{exit} liittymästä
+          tielle %{name}
+        exit_roundabout: Poistu liikenneympyrästä tielle %{name}
+        unnamed: nimetön tie
+        courtesy: Reittiohjeet tarjoaa %{link}
+        exit_counts:
+          first: ensimmäisestä
+          second: toisesta
+          third: "3."
+          fourth: "4."
+          fifth: "5."
+          sixth: "6."
+          seventh: "7."
+          eighth: "8."
+          ninth: "9."
+          tenth: "10."
+      time: Matka-aika
+    query:
+      node: Piste
+      way: Viiva
+      relation: Relaatio
+      nothing_found: Karttakohteita ei löytynyt
+      error: 'Yhteysvirhe palvelimeen %{server}: %{error}'
+      timeout: Yhteyden aikakatkaisu palvelimeen %{server}
+    context:
+      directions_from: Reittiohjeet täältä
+      directions_to: Reittiohjeet tänne
+      add_note: Ilmoita karttavirheestä
+      show_address: Näytä osoite
+      query_features: Lähistöllä
+      centre_map: Keskitä kartta
+  redactions:
+    edit:
+      heading: Muokkaa relaatiota
+      title: Muokkaa relaatiota
+    index:
+      empty: Ei ole näytettävää relaatiota
+      heading: Relaatioiden luettelo
+      title: Relaatioiden luettelo
+    new:
+      heading: Kirjoita tietoja uudesta laitoksesta
+      title: Luodaan uusi redaktio
+    show:
+      description: 'Kuvaus:'
+      heading: Näytetään redaktio ”%{title}”
+      title: Näytetään redaktio
+      user: 'Luoja:'
+      edit: Muokkaa tätä relaatiota
+      destroy: Poista tämä redaktio
+      confirm: Oletko varma?
+    create:
+      flash: Redaktio luotu.
+    update:
+      flash: Muutokset on tallennettu.
+    destroy:
+      not_empty: Redaktio ei ole tyhjä. Poista redaktiotiedot kaikista tähän redaktioon
+        liittyvistä versioista ennen sen tuhoamista.
+      flash: Redaktio tuhottu.
+      error: Relaatiota tuhottaessa tapahtui virhe.
+  validations:
+    leading_whitespace: tyhjää tilaa alussa
+    trailing_whitespace: tyhjää tilaa lopussa
+    invalid_characters: sisältää virheellisiä merkkejä
+    url_characters: sisältää erikoismerkkejä URL:ssa (%{characters})
+...

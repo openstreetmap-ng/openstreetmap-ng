@@ -1,0 +1,217 @@
+# Messages for Mara (Mara)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Laitei
+# Author: Reihpaleituh
+# Author: Teitei Para
+---
+mrh:
+  time:
+    formats:
+      friendly: '%e %B %Y at %H:%M'
+  helpers:
+    file:
+      prompt: File atly teh
+    submit:
+      diary_comment:
+        create: Rei baohpa
+      diary_entry:
+        create: Pazaw
+        update: Patheih
+      issue_comment:
+        create: Pachâna pie
+      message:
+        create: Paphao
+      client_application:
+        create: Register
+        update: Pasâh
+      oauth2_application:
+        create: Moh pangai
+        update: Patheih
+      redaction:
+        create: Redaction tao teih
+        update: Redaction pachô teih
+      trace:
+        create: Khâh
+        update: A pathlainazy pachô
+      user_block:
+        create: Block tao teih
+        update: Block pasâh teih
+  activerecord:
+    errors:
+      messages:
+        invalid_email_address: E-mail address phapa châ n'awpa ta a luah aw vei
+        email_address_not_routable: Chahlô thei vei
+    models:
+      acl: Patuna li pasaih
+      changeset: Changeset
+      changeset_tag: Changeset Tag
+      country: Râh
+      diary_comment: Dairi hmôna dâh
+      diary_entry: Dairy a ngiana
+      friend: Viasa
+      issue: Issue
+      language: Reihchâ
+      message: Mesei
+      node: Node
+      node_tag: Node Tag
+      old_node: Node Parohpa
+      old_node_tag: Node Parohpa Tag
+      old_relation: Azaona parohpa
+      old_relation_member: Azaona parohpa liata a hlaopa
+      old_relation_tag: Azaona Parohpa  Tag
+      old_way: Lâpi parohpa
+      old_way_node: Lâpi Parohpa Node
+      old_way_tag: Lâpi parohpaParohpa Tag
+      relation: Azaona
+      relation_member: Azaona liata a hlaopa
+      relation_tag: Azaona Tag
+      report: Chyh-ei chho
+      session: Session
+      trace: Trace
+      tracepoint: Trace Point
+      tracetag: Trace Tag
+      user: Hmâhtuhpa
+      user_preference: Hmâhtuhpa Khodâh
+      user_token: Nâma Token
+      way: Lâpi
+      way_node: Lâpi Node
+      way_tag: Lâpi Tag
+    attributes:
+      client_application:
+        name: Moh (A buhpa)
+        url: Application Tôhpipa URL (Âbyuh)
+        callback_url: URL Awheih
+        support_url: URL Deichhy
+        allow_read_prefs: âmo hmâhtuhpa khotlyna reih
+        allow_write_prefs: âmo hmâhtuhpa khotlyna panano
+        allow_write_diary: diary anawnazy, kawmezt tao la, viasazy tao teh
+        allow_write_api: râh nohthlahpa panano
+        allow_read_gpx: âmo paraive GPS pazinazy reih
+        allow_write_gpx: GPS pazinazy khâh teih
+        allow_write_notes: anawnazy panano
+      diary_comment:
+        body: Pôhpa
+      diary_entry:
+        user: Hmâhtuhpa
+        title: Athâtih
+        body: Achhôh bie
+        latitude: Latitude
+        longitude: Longitude
+        language_code: Reihchâ
+      doorkeeper/application:
+        name: Moh
+        redirect_uri: Riachakapa URIzy
+        scopes: Pasainazy
+      friend:
+        user: Hmâhtuhpa
+        friend: Viasa
+      trace:
+        user: Hmâhtuhpa
+        visible: Hmô theipa
+        name: Faih moh
+        size: Laichyhzie
+        latitude: Latitude
+        longitude: Longitude
+        public: Phuah
+        description: Palâsana
+        gpx_file: GPX Faih Khâh
+        visibility: Hmôtheina
+        tagstring: Tagzy
+      message:
+        sender: Paphaotuhpa
+        title: Athâtih
+        body: Pôhpa
+        recipient: Daotuhpa
+      redaction:
+        title: Chôtlâhpi
+        description: Palâsana
+      report:
+        category: Na report chhânapa sâ kha atlyh teh
+      user:
+        email: Email
+        active: Thathyu
+        display_name: Palâsapa Moh
+        description: Profile Palâsana
+        languages: Paphasapa Reihchâzy
+        preferred_editor: Paphasapa Taotuhpa
+        pass_crypt: Bieruchâ
+        pass_crypt_confirmation: Bieruchâ Apyh teh
+  datetime:
+    distance_in_words_ago:
+      about_x_hours:
+        one: about 1 hour ago
+        other: about %{count} hours ago
+      about_x_months:
+        one: about 1 month ago
+        other: about %{count} months ago
+      about_x_years:
+        one: about 1 year ago
+        other: about %{count} years ago
+      almost_x_years:
+        one: almost 1 year ago
+        other: almost %{count} years ago
+      half_a_minute: Mini sákha nah khophie nota
+      less_than_x_seconds:
+        one: less than 1 second ago
+        other: less than %{count} seconds ago
+      less_than_x_minutes:
+        one: less than a minute ago
+        other: less than %{count} minutes ago
+      over_x_years:
+        one: over 1 year ago
+        other: over %{count} years ago
+      x_seconds:
+        one: 1 second ago
+        other: '%{count} seconds ago'
+      x_minutes:
+        one: 1 minute ago
+        other: '%{count} minutes ago'
+      x_days:
+        one: 1 day ago
+        other: '%{count} days ago'
+      x_months:
+        one: 1 month ago
+        other: '%{count} months ago'
+      x_years:
+        one: 1 year ago
+        other: '%{count} years ago'
+  editor:
+    default: Default (currently %{name})
+    id:
+      name: iD
+  diary_entries:
+    form:
+      location: Ynasu
+      use_map_link: Râh nohthlahpa hmâh
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        shop:
+          baby_goods: Hawsaihpa Chhaichhizy
+          tea: Thopi daoh
+  user_mailer:
+    gpx_failure:
+      hi: '%{to_user} y,'
+    gpx_success:
+      hi: '%{to_user} y,'
+    note_comment_notification:
+      details_html: '%{url} liata hmô theipa a nawna thâtih hluh viapazy.'
+  shared:
+    markdown_help:
+      second: Sânona chhaichhi
+      link: Link
+      text: Châtlâh
+      image: Hmâthlâ
+      url: URL
+    richtext_field:
+      edit: Taopathi
+      preview: Moh chhili
+  traces:
+    index:
+      my_gps_traces: Keima GPS pheihniezy
+  javascripts:
+    map:
+      base:
+        cyclosm: CyclOSM
+...

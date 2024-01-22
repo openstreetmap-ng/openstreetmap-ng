@@ -1,0 +1,11 @@
+# Messages for Hiligaynon (Ilonggo)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Epeion
+---
+hil:
+  helpers:
+    submit:
+      issue_comment:
+        create: Mag commentar
+...

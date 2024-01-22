@@ -1,0 +1,12 @@
+# Messages for Batak Toba (Latin script) (Batak Toba)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: 27christian11
+---
+bbc-latn:
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        building:
+          barn: Sopo
+...

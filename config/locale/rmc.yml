@@ -1,0 +1,23 @@
+# Messages for Carpathian Romani (romaňi čhib)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Adehertogh
+---
+rmc:
+  activerecord:
+    models:
+      country: Them
+      language: Čhib
+  auth:
+    providers:
+      wikipedia: Wikipedija
+  api:
+    notes:
+      entry:
+        comment: Komentos
+  browse:
+    version: Verzija
+    changeset:
+      belongs_to: Autoris
+      discussion: Vakeriben
+...

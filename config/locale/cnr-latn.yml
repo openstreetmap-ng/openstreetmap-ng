@@ -1,0 +1,11 @@
+# Messages for crnogorski (crnogorski)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Ookuninusi
+---
+cnr-latn:
+  activerecord:
+    attributes:
+      friend:
+        user: Korisnik
+...

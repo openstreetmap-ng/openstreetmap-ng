@@ -1,0 +1,132 @@
+# Messages for Abkhazian (аԥсшәа)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Fraxinus.cs
+# Author: Pupsik-ipa
+# Author: Андрей
+---
+ab:
+  time:
+    formats:
+      friendly: '%e %B %Y  %H:%M аҟны'
+  helpers:
+    file:
+      prompt: Афаил алышәх
+    submit:
+      diary_comment:
+        create: Еиқәырхатәуп
+      diary_entry:
+        create: Акьыԥхьра
+        update: Ирҿыцтәуп
+  activerecord:
+    models:
+      changeset: Ариашарақәа рпакет
+      changeset_tag: Ариашарақәа рпакет атег
+      country: Атәыла
+      friend: Аҩыза
+      language: Абызшәа
+      node: Акәаԥ
+      node_tag: Акәаԥ атег
+      session: Асессиа
+      user: Ахархәаҩ
+      way: Аҵәаӷәа
+      way_node: Аҵәаӷәа акәаԥ
+      way_tag: Аҵәаӷәа атег
+    attributes:
+      diary_comment:
+        body: Атеқст
+      diary_entry:
+        user: Ахархәаҩ
+        title: Атема
+        language_code: Абызшәа
+      doorkeeper/application:
+        name: Ахьӡ
+      friend:
+        user: Ахархәаҩ
+        friend: Аҩыза
+      trace:
+        user: Ахархәаҩ
+        name: Афаил ахьӡ
+        size: Ашәагаа
+        description: Ахҳәаа
+      message:
+        title: Атема
+        body: Атеқст
+      user:
+        email: Email
+        active: Иактивуп
+        languages: Иеиӷьашьоу абызшәақәа
+        pass_crypt: Ажәамаӡа
+  editor:
+    id:
+      name: iD
+      description: iD (аредактор абраузер аҟны)
+  auth:
+    providers:
+      google: Google
+      facebook: Facebook
+      github: GitHub
+      wikipedia: Авикипедиа
+  browse:
+    created: Иаԥҵоуп
+    closed: Иаркуп
+    version: Аверсиа
+    anonymous: аноним
+    no_comment: (акомментари ыҟаӡам)
+    download_xml: Иҭыгатәуп XML
+    view_history: Иахәаԥштәуп Аҭоурых
+    location: Аҭыԥ
+    changeset:
+      title: 'Ариашарақәа рпакет: %{id}'
+      belongs_to: Автор
+      node: Акәаԥқәа (%{count})
+      node_paginated: Акәаԥқәа (%{x}-%{y} %{count}) аҟынтәи
+      way: Аҵәаӷәақәа (%{count})
+      way_paginated: Аҵәаӷәақәа (%{x}-%{y} %{count}) аҟынтәи
+      comment: Акомментари (%{count})
+      changesetxml: Ариашарақәа рпакет XML
+      osmchangexml: osmChange XML
+      feed:
+        title: Ариашарақәа рпакет %{id}
+        title_comment: Аришарақәа рпакет %{id} — %{comment}
+      discussion: Ахцәажәара
+    node:
+      title_html: 'Акәаԥ: %{name}'
+    way:
+      nodes: Акәаԥқәа
+    relation:
+      members: Алахәылақәа
+      members_count:
+        one: 1 алахәыла
+        other: '%{count} алахәылақәа'
+  dashboards:
+    popup:
+      friend: Аҩыза
+    show:
+      my friends: Сҩызақәа
+  diary_entries:
+    form:
+      location: Аҭыԥ
+  geocoder:
+    search_osm_nominatim:
+      prefix:
+        amenity:
+          hospital: Ахәшәтәырҭа
+          kindergarten: Ахәыҷбаҳча
+          language_school: Атәым бызшәақәа ршкол
+          library: Абиблиотека
+          monastery: Аберҭыԥ
+          police: Амилициа
+          post_office: Аԥошьҭа
+          prison: Абахҭа
+          restaurant: Аресторан
+          school: Ашкол
+          theatre: Атеатр
+          university: Ауниверситет
+  preferences:
+    edit:
+      cancel: Аԥыхра
+  profiles:
+    edit:
+      cancel: Аԥыхра
+...

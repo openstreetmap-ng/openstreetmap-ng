@@ -1,0 +1,30 @@
+# Messages for Nyungar (Nyunga)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Gnangarra
+---
+nys:
+  activerecord:
+    models:
+      country: Boodjar
+      user: Niall
+      user_preference: NIall Nidj-wer-nidja
+    attributes:
+      diary_entry:
+        user: Niall
+      friend:
+        user: Niall
+      trace:
+        user: Niall
+  changesets:
+    changesets:
+      user: Niall
+  layouts:
+    intro_2_create_account: Walbirniny niall gaduk
+  user_mailer:
+    note_comment_notification:
+      anonymous: Ngeern niall
+  users:
+    no_such_user:
+      title: Yuwart niall
+...

@@ -1,0 +1,12 @@
+# Messages for Kuanyama (Kwanyama)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Martin Hipangwa
+---
+kj:
+  site:
+    key:
+      table:
+        entry:
+          city: Oshilandopangelo
+...

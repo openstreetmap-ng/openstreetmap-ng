@@ -1,0 +1,42 @@
+# Messages for Chuvash (чӑвашла)
+# Exported from translatewiki.net
+# Export driver: phpyaml
+# Author: Chuvash2014
+# Author: Salam
+---
+cv:
+  activerecord:
+    models:
+      country: Ҫӗршыв
+      language: Чӗлхе
+      message: Ҫыру
+      user: Усӑҫ
+    attributes:
+      diary_entry:
+        user: Усă куракан
+        title: Пуҫелӗк
+        latitude: Анлӑх
+        longitude: Вӑрӑмлӑх
+        language_code: Чӗлхе
+      friend:
+        user: Усӑҫ
+      trace:
+        user: Усӑҫ
+        name: Ят
+        size: Виҫе
+        latitude: Анлӑх
+        longitude: Вӑрӑмлӑх
+        description: Ăнлантаркăч
+      message:
+        sender: Яракан
+        title: Пуҫелӗк
+        body: Текст
+        recipient: Илекен
+      user:
+        description: Ăнлантаркăч
+        languages: Чӗлхесем
+        pass_crypt: Вӑрттӑн сӑмах
+  messages:
+    messages_table:
+      date: Дата
+...
