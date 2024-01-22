@@ -6,13 +6,12 @@ from datetime import timedelta
 import anyio
 from anyio import CapacityLimiter, Path
 
-from app.config import CONFIG_DIR
+from app.config import LOCALE_DIR
 from app.lib.retry import retry
 from app.models.locale_name import LocaleName
 from app.utils import HTTP
 
-_locale_dir = CONFIG_DIR / 'locale'
-_download_dir = _locale_dir / 'download'
+_download_dir = LOCALE_DIR / 'download'
 _download_limiter = CapacityLimiter(8)  # max concurrent downloads
 
 
@@ -107,7 +106,7 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
 
-    await (_locale_dir / 'names.json').write_text(
+    await (LOCALE_DIR / 'names.json').write_text(
         json.dumps(
             [ln._asdict() for ln in locales_names],
             indent=2,
