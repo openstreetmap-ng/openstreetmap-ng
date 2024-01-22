@@ -121,6 +121,9 @@ def render(template_name: str, **template_data: dict) -> str:
     return _j2.get_template(template_name).render(**template_data)
 
 
+# TODO: client side
+# potentially https://www.i18next.com/translation-function/formatting#relativetime
+# or https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat
 def timeago(date: datetime, *, html: bool = False) -> str:
     """
     Get a human-readable time difference from the given date.

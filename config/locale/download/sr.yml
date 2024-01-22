@@ -1793,7 +1793,9 @@ sr:
           bus_stop: Аутобуска станица
           stop: Стоп
           bicycle_shop: Продавница бицикала
+          bicycle_rental: Изнајмљивање бицикала
           bicycle_parking: Паркинг за бицикле
+          bicycle_parking_small: Мали паркинг за бицикле
           toilets: Тоалети
     welcome:
       title: Добро дошли!

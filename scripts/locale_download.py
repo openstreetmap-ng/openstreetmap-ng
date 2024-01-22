@@ -11,7 +11,8 @@ from app.lib.retry import retry
 from app.models.locale_name import LocaleName
 from app.utils import HTTP
 
-_download_dir = CONFIG_DIR / 'locale'
+_locale_dir = CONFIG_DIR / 'locale'
+_download_dir = _locale_dir / 'download'
 _download_limiter = CapacityLimiter(8)  # max concurrent downloads
 
 
@@ -89,9 +90,7 @@ async def add_extra_locales_names(locales_names: list[LocaleName]):
 
 
 async def main():
-    # delete all existing locale files
-    async for p in _download_dir.glob('*.yml'):
-        await p.unlink(missing_ok=True)
+    await _download_dir.mkdir(parents=True, exist_ok=True)
 
     locales = await get_download_locales()
     locales_names: list[LocaleName] = []
@@ -108,7 +107,7 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
 
-    await (CONFIG_DIR / 'locales_names.json').write_text(
+    await (_locale_dir / 'names.json').write_text(
         json.dumps(
             [ln._asdict() for ln in locales_names],
             indent=2,

@@ -255,6 +255,11 @@
     "native": "\u043d\u043e\u0445\u0447\u0438\u0439\u043d"
   },
   {
+    "code": "ceb",
+    "english": "Cebuano",
+    "native": "Cebuano"
+  },
+  {
     "code": "ch",
     "english": "Chamorro",
     "native": "Chamoru"
@@ -1763,11 +1768,6 @@
     "code": "zgh",
     "english": "Standard Moroccan Tamazight",
     "native": "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c \u2d5c\u2d30\u2d4f\u2d30\u2d61\u2d30\u2d62\u2d5c"
-  },
-  {
-    "code": "zh",
-    "english": "Chinese",
-    "native": "\u4e2d\u6587"
   },
   {
     "code": "zh-CN",

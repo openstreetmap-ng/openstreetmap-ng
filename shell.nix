@@ -102,6 +102,16 @@ let
       alembic upgrade head
     '')
 
+    # -- Locale
+    (writeShellScriptBin "locale-clean" ''
+      rm -rf config/locale
+    '')
+    (writeShellScriptBin "locale-download" ''
+      set -e
+      locale-clean
+      python scripts/locale_download.py
+    '')
+
     # -- Docker (dev)
     (writeShellScriptBin "dev-start" ''
       [ -d data/pgadmin ] || install -d -o 5050 -g 5050 data/pgadmin
@@ -119,11 +129,6 @@ let
     '')
 
     # -- Misc
-    (writeShellScriptBin "download-locale" ''
-      set -e
-      echo "Downloading locale files"
-      python scripts/download_locale.py
-    '')
     (writeShellScriptBin "make-locale" ''
       set -e
       echo "Processing osm-community-index"
