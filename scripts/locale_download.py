@@ -86,7 +86,7 @@ async def add_extra_locales_names(locales_names: list[LocaleName]):
                 native=native_name,
             )
         )
-        print(f'[➕] {code!r}: {english_name} ({native_name})')
+        print(f'[➕] {code!r}: {english_name} ({native_name})')  # noqa: RUF001
 
 
 async def main():
