@@ -1,0 +1,53 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_comment": {
+        "body": "Tuango"
+      },
+      "diary_entry": {
+        "language_code": "Bahasa",
+        "title": "Subyek"
+      },
+      "friend": {
+        "friend": "Tamani"
+      },
+      "message": {
+        "body": "Tuango",
+        "sender": "Ta lolawo"
+      },
+      "trace": {
+        "name": "Tanggulo",
+        "public": "Tawu daata",
+        "size": "Tu'udu",
+        "visible": "O'oonto"
+      },
+      "user": {
+        "languages": "Bahasa"
+      }
+    },
+    "models": {
+      "country": "Lipu",
+      "friend": "Tamani",
+      "language": "Bahasa",
+      "message": "Tahuli",
+      "node": "Bonto",
+      "old_node": "Bonto panggola",
+      "old_way": "Dalalo panggola",
+      "way": "Dalalo"
+    }
+  },
+  "browse": {
+    "closed": "Hile'uta",
+    "created": "Pohutu"
+  },
+  "editor": {
+    "id": {
+      "name": "iD"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y at %H:%M"
+    }
+  }
+}

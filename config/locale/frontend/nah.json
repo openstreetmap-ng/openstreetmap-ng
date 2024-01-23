@@ -1,0 +1,172 @@
+{
+  "accounts": {
+    "edit": {
+      "title": "Ticpatlaz tlapōhualli"
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "user": "Tequihuihqui"
+      },
+      "friend": {
+        "user": "Tequihuihqui"
+      },
+      "trace": {
+        "name": "Tocaitl",
+        "user": "Tequihuihqui"
+      },
+      "user": {
+        "languages": "Tlahtōlli"
+      }
+    },
+    "models": {
+      "language": "Tlahtolli",
+      "user": "Tequihuihqui"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "discussion": "Zānīlli"
+    },
+    "version": "Machiyopohualiztli"
+  },
+  "changesets": {
+    "changesets": {
+      "user": "Tequihuihqui"
+    }
+  },
+  "diary_entries": {
+    "location": {
+      "edit": "Ticpatlaz"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "clock": "Tepoztlapōhualli",
+          "doctors": "Tītīcih",
+          "fountain": "Āmēyalli",
+          "place_of_worship": "Teōpancalli"
+        },
+        "highway": {
+          "road": "Ohtli",
+          "yes": "Ohtli"
+        },
+        "historic": {
+          "battlefield": "Tlachinōltēmpan",
+          "church": "Iglésia",
+          "house": "Calli"
+        },
+        "landuse": {
+          "forest": "Cuauhtlah",
+          "grass": "Zacatl",
+          "meadow": "Tlacellōtl",
+          "orchard": "Xococuauhtlah"
+        },
+        "leisure": {
+          "sauna": "Temāzcalli"
+        },
+        "mountain_pass": {
+          "yes": "Tepētozcatl"
+        },
+        "natural": {
+          "beach": "Xāllah",
+          "cave_entrance": "Ōztōtēntli",
+          "cliff": "Tepehxitl",
+          "forest": "Cuauhtlah",
+          "grassland": "Zacatlah",
+          "hill": "Tepētl",
+          "island": "Tlālhuāctli",
+          "land": "Tlālli",
+          "mud": "Zoquitl",
+          "peak": "Tzonyōtl",
+          "rock": "Texcalli",
+          "sand": "Xālli",
+          "spring": "Āmēyalco",
+          "stone": "Tetl",
+          "valley": "Ātlauhtli",
+          "volcano": "Tletepētl",
+          "water": "Ātl",
+          "wood": "Cuahuitl"
+        },
+        "place": {
+          "city": "Āltepētl",
+          "house": "Calli",
+          "houses": "Calli",
+          "island": "Tlālhuāctli"
+        }
+      },
+      "types": {
+        "cities": "Āltepēmeh"
+      }
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "update": "Ticpatlaz"
+      }
+    }
+  },
+  "layouts": {
+    "edit": "Xikpatla",
+    "history": "Tololli"
+  },
+  "notes": {
+    "index": {
+      "creator": "Chīuhqui"
+    }
+  },
+  "redactions": {
+    "show": {
+      "user": "Chīuhqui:"
+    }
+  },
+  "site": {
+    "help": {
+      "welcome": {
+        "url": "Ximopanolti"
+      }
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "forest": "Cuauhtlah",
+          "peak": "tzonyōtl",
+          "summit": "Tzonyōtl",
+          "wood": "Cuahuitl"
+        }
+      }
+    },
+    "search": {
+      "search": "Xiktemo"
+    }
+  },
+  "traces": {
+    "show": {
+      "edit": "ticpatlaz",
+      "filename": "Ihcuilōlli ītōcā:"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Ticpatlaz",
+      "show": "Xiknexti"
+    },
+    "blocks": {
+      "creator_name": "Chīuhqui"
+    },
+    "show": {
+      "edit": "Ticpatlaz",
+      "show": "Xiknexti"
+    }
+  },
+  "users": {
+    "show": {
+      "edits": "Patlaliztli",
+      "my edits": "Nopatlaliz"
+    }
+  }
+}

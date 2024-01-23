@@ -1,0 +1,12 @@
+{
+  "activerecord": {
+    "models": {
+      "language": "Toktok"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "discussion": "Tingting"
+    }
+  }
+}

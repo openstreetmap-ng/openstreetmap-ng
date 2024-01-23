@@ -1,0 +1,132 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "user": "Òjìème"
+      },
+      "friend": {
+        "user": "Òjìème"
+      },
+      "trace": {
+        "user": "Òjìème"
+      },
+      "user": {
+        "pass_crypt": "Okwúngáfè"
+      }
+    },
+    "errors": {
+      "messages": {
+        "display_name_is_user_n": "enweghị ike ịbụ user_n ma ọ bụrụ na n bụ njirimara njirimara gị"
+      }
+    },
+    "models": {
+      "user": "Òjìème"
+    }
+  },
+  "application": {
+    "setup_user_auth": {
+      "blocked_zero_hour": "I nwere ozi dị ngwangwa na OpenStreeMap website. I kwesịrị ịgụ ozi ahụ tupu i nwee ike debe mmezi gị ga."
+    }
+  },
+  "browse": {
+    "changeset": {
+      "discussion": "Nkpata okà"
+    },
+    "relation_member": {
+      "type": {
+        "way": "Uzor"
+      }
+    },
+    "view_history": "Lèe onye rụrụ ọrụ a"
+  },
+  "changesets": {
+    "changesets": {
+      "user": "Òjìème"
+    }
+  },
+  "diary_entries": {
+    "location": {
+      "edit": "Mèzi"
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "update": "Mèzi"
+      },
+      "diary_comment": {
+        "create": "Domá"
+      }
+    }
+  },
+  "javascripts": {
+    "share": {
+      "cancel": "Hapụ̀",
+      "link": "Òjikọ mà ọ̀ bụ̀ HTML",
+      "long_link": "Òjikọ"
+    }
+  },
+  "layouts": {
+    "edit": "Mèzi"
+  },
+  "messages": {
+    "message_summary": {
+      "destroy_button": "Kàcha"
+    },
+    "sent_message_summary": {
+      "destroy_button": "Kàcha"
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "Adreesị ozi ịntanetị"
+    }
+  },
+  "sessions": {
+    "new": {
+      "email or username": "Adreesị ozi-e ma ọ bụ Aha njirimara",
+      "password": "Okwúngáfè:"
+    }
+  },
+  "site": {
+    "edit": {
+      "user_page_link": "ihunde òjìème"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "bicycle_rental": "Mgbazinye ig"
+        }
+      }
+    },
+    "search": {
+      "search": "Tùwe"
+    },
+    "sidebar": {
+      "search_results": "Nchọfụ̀ta"
+    }
+  },
+  "traces": {
+    "show": {
+      "edit": "mèzi",
+      "map": "akààlà"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Mèzi"
+    },
+    "show": {
+      "edit": "Mèzi"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "Òjìème",
+      "title": "Òjìème"
+    },
+    "show": {
+      "edits": "Ḿmezi"
+    }
+  }
+}

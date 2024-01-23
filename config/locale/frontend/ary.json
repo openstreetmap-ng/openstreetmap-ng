@@ -1,0 +1,13 @@
+{
+  "html": {
+    "dir": "rtl"
+  },
+  "layouts": {
+    "help": "معاونة"
+  },
+  "traces": {
+    "new": {
+      "help": "معاونة"
+    }
+  }
+}

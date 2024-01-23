@@ -1,0 +1,31 @@
+{
+  "confirmations": {
+    "confirm": {
+      "button": "Takyachiy"
+    },
+    "confirm_email": {
+      "button": "Takyachiy"
+    }
+  },
+  "diary_entries": {
+    "diary_comment": {
+      "confirm": "Takyachiy"
+    }
+  },
+  "user_role": {
+    "grant": {
+      "confirm": "Takyachiy"
+    },
+    "revoke": {
+      "confirm": "Takyachiy"
+    }
+  },
+  "users": {
+    "show": {
+      "confirm": "Takyachiy"
+    },
+    "terms": {
+      "consider_pd": "Kay ñawpaq rimanakuyman yapaspa, rurasqaykunata Sapsi Chaskinancha nisqapi kayta hamut'anim"
+    }
+  }
+}

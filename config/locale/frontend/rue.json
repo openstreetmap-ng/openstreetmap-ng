@@ -1,0 +1,301 @@
+{
+  "activerecord": {
+    "attributes": {
+      "doorkeeper/application": {
+        "confidential": "Довірна аплікація?",
+        "name": "Имня",
+        "scopes": "Позволеня"
+      },
+      "user": {
+        "active": "Активный",
+        "email": "Е-мейл"
+      }
+    },
+    "errors": {
+      "messages": {
+        "invalid_email_address": "не упозірує ги читава е-мейлова адреса"
+      }
+    },
+    "help": {
+      "user": {
+        "new_email": "(ниґде ся ни укаже)"
+      }
+    },
+    "models": {
+      "changeset": "Зміны",
+      "country": "Держава",
+      "friend": "Цімбор",
+      "language": "Бесїда",
+      "message": "Уповістка",
+      "node": "Ґуз",
+      "user": "Хосновач"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "commented_at_by_html": "Убновлено {{when}} хосновачом {{user}}",
+        "commented_at_html": "Убновлено {{when}}",
+        "opened_at_by_html": "Вчинено {{when}} хосновачом {{user}}"
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "wikipedia": "Вікіпедія"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "changesetxml": "XML сада  змін",
+      "feed": {
+        "title": "Сада змін  {{id}}",
+        "title_comment": "Сада змін {{id}} — {{comment}}"
+      },
+      "osmchangexml": "osmChange XML",
+      "title": "Сада змін"
+    },
+    "containing_relation": {
+      "entry_html": "Звязок {{relation_name}}",
+      "entry_role_html": "Звязок {{relation_name}} (як {{relation_role}})"
+    },
+    "not_found": {
+      "sorry": "На жаль,  {{type}} з ідентіфікатором {{id}} не найдено.",
+      "type": {
+        "changeset": "сада змін",
+        "node": "узел",
+        "relation": "звязок",
+        "way": "лінія"
+      }
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} як {{role}}",
+      "type": {
+        "node": "Узел",
+        "relation": "Звязок",
+        "way": "Лінія"
+      }
+    },
+    "start_rjs": {
+      "load_data": "Награти дата",
+      "loading": "Награваня..."
+    },
+    "tag_details": {
+      "tags": "Значкы:",
+      "wiki_link": {
+        "key": "Сторінка вікі, што пописує значку {{key}}",
+        "tag": "Сторінка вікі, што пописує значку {{key}}={{value}}"
+      },
+      "wikipedia_link": "Статя {{page}} у Вікіпедії"
+    },
+    "timeout": {
+      "sorry": "На жаль, дата про {{type}} з ідентіфікатором {{id}}, ся начітавали дуже довго.",
+      "type": {
+        "changeset": "сада змін",
+        "node": "узел",
+        "relation": "звязок",
+        "way": "лінія"
+      }
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "button": "Підтвердити"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "half_a_minute": "пув минуты теперь"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "bank": "Банка",
+          "bar": "Бар",
+          "cafe": "Кафе",
+          "crematorium": "Крематорій",
+          "post_office": "Пошта",
+          "school": "Школа",
+          "toilets": "Тоалета"
+        },
+        "leisure": {
+          "garden": "Загорода",
+          "park": "Парк",
+          "stadium": "Штадіон"
+        },
+        "natural": {
+          "island": "Остров",
+          "tree": "Стром"
+        },
+        "place": {
+          "houses": "Будовы",
+          "island": "Остров",
+          "state": "Штат",
+          "town": "Місто"
+        },
+        "tourism": {
+          "bed_and_breakfast": "Ложко і фрыштик",
+          "chalet": "Велика хата",
+          "guest_house": "Пензіон",
+          "hotel": "Готел",
+          "motel": "Мотел",
+          "museum": "Музей",
+          "theme_park": "Тематічный парк",
+          "zoo": "Зоопарк"
+        }
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Уберіть файл"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Зареґістровати ся",
+        "update": "Убновити"
+      },
+      "diary_comment": {
+        "create": "Всокотити"
+      },
+      "diary_entry": {
+        "create": "Опубликовати",
+        "update": "Убновити"
+      },
+      "issue_comment": {
+        "create": "Додати коментарь"
+      },
+      "message": {
+        "create": "Загнати"
+      },
+      "oauth2_application": {
+        "create": "Реґістрація",
+        "update": "Убновити"
+      },
+      "redaction": {
+        "create": "Вчинити управленя",
+        "update": "Всокотити управленя"
+      },
+      "trace": {
+        "create": "Наладовати",
+        "update": "Всокотити зміны"
+      },
+      "user_block": {
+        "create": "Вчитити блок",
+        "update": "Убновити блок"
+      }
+    }
+  },
+  "oauth": {
+    "scopes": {
+      "write_api": "Измінити мапу",
+      "write_gpx": "Наладовати GPS-трекы"
+    }
+  },
+  "oauth2_applications": {
+    "application": {
+      "confirm_delete": "Удсторонити исю аплікацію?",
+      "edit": "Едітовати"
+    },
+    "index": {
+      "name": "Имня",
+      "new": "Зареґістровати нову аплікацію",
+      "permissions": "Позволеня"
+    },
+    "new": {
+      "title": "Зареґістровати нову аплікацію"
+    },
+    "show": {
+      "client_id": "клієнтовоє ID",
+      "confirm_delete": "Удсторонити исю аплікацію?",
+      "delete": "Истерти",
+      "edit": "Едітовати"
+    }
+  },
+  "oauth2_authorizations": {
+    "error": {
+      "title": "Стала ся хыба"
+    },
+    "new": {
+      "deny": "Удвернути"
+    }
+  },
+  "oauth2_authorized_applications": {
+    "index": {
+      "application": "Аплікація",
+      "permissions": "Позволеня"
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "Адреса електронічной пошты:"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "logout_button": "Одголосити",
+      "title": "Одголосити"
+    },
+    "new": {
+      "heading": "Приголошіня",
+      "login_button": "Приголошіня",
+      "title": "Приголошіня"
+    }
+  },
+  "site": {
+    "export": {
+      "licence": "Ліценція"
+    }
+  },
+  "traces": {
+    "new": {
+      "help": "Поміч"
+    },
+    "show": {
+      "download": "скачати",
+      "edit": "управити",
+      "map": "на мапі",
+      "owner": "Властник:"
+    },
+    "trace": {
+      "by": "Автор:",
+      "in": "у",
+      "more": "веце"
+    }
+  },
+  "user_role": {
+    "filter": {
+      "already_has_role": "Хоснователь уж ролю {{role}} має.",
+      "doesnt_have_role": "Хоснователь не має {{role}}.",
+      "not_a_role": "Рядок «{{role}}» не означує платну ролю."
+    },
+    "grant": {
+      "confirm": "Підтвердити"
+    },
+    "revoke": {
+      "confirm": "Підтвердити"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "Хоснователї"
+    },
+    "show": {
+      "add as friend": "Придати як приятеля",
+      "confirm": "Підтвердити",
+      "create_block": "Заблоковати того хоснователя",
+      "email address": "Адреса електронічной пошты:"
+    },
+    "suspended": {
+      "support": "пудпора"
+    },
+    "terms_declined_flash": {
+      "terms_declined_link": "исю сторунку вікі"
+    }
+  }
+}

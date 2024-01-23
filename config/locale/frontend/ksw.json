@@ -1,0 +1,18 @@
+{
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "tourism": {
+          "apartment": "မုၢ်နံၤဒိၣ်မုၢ်နံၤထီ အဖီၣ်မဲၣ် (Apartment)"
+        }
+      }
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "hide_comment": "ပာ်ဘၢ"
+      }
+    }
+  }
+}

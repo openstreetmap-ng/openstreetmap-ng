@@ -1,0 +1,313 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "Забон",
+        "user": "Корбар"
+      },
+      "friend": {
+        "friend": "Дӯст",
+        "user": "Корбар"
+      },
+      "message": {
+        "body": "Бадан",
+        "title": "Олот"
+      },
+      "trace": {
+        "description": "Тавсифот",
+        "latitude": "Арзи ҷуғрофӣ",
+        "longitude": "Тӯли ҷуғрофӣ",
+        "name": "Номи файл",
+        "public": "Нашрӣ",
+        "size": "Андоза",
+        "user": "Корбар",
+        "visible": "Намоён"
+      },
+      "user": {
+        "active": "Фаъол",
+        "description": "Тавсифот",
+        "email": "Почтаи электронӣ",
+        "languages": "Забонҳо",
+        "pass_crypt": "Гузарвожа"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "қобили масирёбӣ нест",
+        "invalid_email_address": "зоҳиран имайли муътабаре ворид накардаед"
+      }
+    },
+    "models": {
+      "acl": "Феҳристи контроли дастрасият",
+      "changeset": "Тағйиротҳо",
+      "changeset_tag": "Барчаспи тағйироти анчомшуда",
+      "country": "Даалат",
+      "diary_comment": "Назар ба рӯзнавишт",
+      "friend": "Дӯст",
+      "language": "Забон",
+      "message": "Паём",
+      "old_way": "Роҳи пешина",
+      "user": "Корбар",
+      "user_token": "Токени корбар",
+      "way": "Роҳ"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "opened_at_by_html": "Эҷодшуда {{when}} аз тарафи {{user}}",
+        "opened_at_html": "Эҷодшуда {{when}}"
+      },
+      "entry": {
+        "comment": "Шарҳ",
+        "full": "Навиштании пурра"
+      },
+      "rss": {
+        "title": "Навиштаҳои OpenSreetMap"
+      }
+    }
+  },
+  "browse": {
+    "anonymous": "гумном",
+    "changeset": {
+      "belongs_to": "Муаллиф",
+      "discussion": "Баҳс",
+      "join_discussion": "Вуруд шудан барои баҳснамоӣ"
+    },
+    "closed": "Пӯшида",
+    "created": "Эҷод шуд",
+    "location": "Мавқеъ:",
+    "no_comment": "(бе шарҳ)",
+    "not_found": {
+      "type": {
+        "way": "роҳ"
+      }
+    },
+    "part_of": "Қисме аз",
+    "relation_member": {
+      "type": {
+        "way": "Роҳ"
+      }
+    },
+    "start_rjs": {
+      "loading": "Дар ҳоли бор шудан…"
+    },
+    "tag_details": {
+      "wikidata_link": "Унсури {{page}} дар Викидода"
+    },
+    "version": "Нусха",
+    "view_details": "Дидани деталҳо",
+    "view_history": "Дидани таърих"
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Аноним"
+    },
+    "changeset_paging_nav": {
+      "next": "Баъдӣ »",
+      "previous": "« Қаблӣ"
+    },
+    "changesets": {
+      "area": "Минтақа",
+      "comment": "Шарҳ",
+      "user": "Корбар"
+    },
+    "index": {
+      "load_more": "Мутолиаи бештар"
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "latest_edit_html": "Охирин виоиш ({{ago}}):"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_one": "оиди 1 соат қабл",
+      "about_x_hours_other": "оиди {{count}} соат пеш"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Шарҳ",
+      "when": "Кай"
+    },
+    "form": {
+      "location": "Мавқеъ:",
+      "use_map_link": "истифодаи харита"
+    },
+    "location": {
+      "edit": "Вироиш",
+      "location": "Мавқеъ:",
+      "view": "Дидан"
+    },
+    "show": {
+      "login": "Вуруд ба систем"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "aeroway": {
+          "aerodrome": "Аэродром",
+          "runway": "Роҳи гузаштан",
+          "taxiway": "Роҳи таксӣ",
+          "terminal": "Терминал"
+        },
+        "amenity": {
+          "atm": "Банкомат",
+          "bank": "Бонк",
+          "bar": "Бар",
+          "cafe": "Қаҳвахона",
+          "car_wash": "Шустушӯи мошинҳо",
+          "casino": "Казино",
+          "cinema": "Синамо",
+          "clinic": "Беморхона (клиника)",
+          "college": "Коллеҷ",
+          "doctors": "Табибон",
+          "fast_food": "Тезтайёр",
+          "hospital": "Беморхонаи госпиталӣ",
+          "ice_cream": "Яхмос",
+          "kindergarten": "Майдончаи бозии кӯдакон",
+          "library": "Китобхона",
+          "nightclub": "Клуби шабона",
+          "police": "Полис",
+          "post_box": "Қуттии почта",
+          "post_office": "Маркази почта",
+          "public_building": "Бинои истиқоматӣ",
+          "restaurant": "Тарабхона",
+          "school": "Мактаб",
+          "social_centre": "Маркази иҷтимоӣ",
+          "studio": "Студия",
+          "swimming_pool": "Басейн",
+          "taxi": "Такси",
+          "theatre": "Театр",
+          "toilets": "Ҳоҷатхона",
+          "university": "Донишгоҳ"
+        },
+        "boundary": {
+          "national_park": "Парки миллӣ",
+          "protected_area": "Минтақаи ҳифзшуда"
+        },
+        "man_made": {
+          "tower": "Бино",
+          "water_tower": "Бинои об",
+          "water_well": "Хуб",
+          "water_works": "Обанбор",
+          "watermill": "Осиёби обӣ",
+          "windmill": "Осёби бодӣ",
+          "works": "Фабрика",
+          "yes": "Дастӣ-иҷрошуда"
+        },
+        "military": {
+          "airfield": "Фурӯдгоҳи низомӣ",
+          "barracks": "Подагон",
+          "bunker": "Бункер",
+          "yes": "Низомӣ"
+        },
+        "mountain_pass": {
+          "yes": "Гардана"
+        },
+        "place": {
+          "postcode": "Нишонаи почта"
+        },
+        "shop": {
+          "books": "Мағозаи китоб"
+        },
+        "waterway": {
+          "canal": "Канал",
+          "river": "Дарё"
+        }
+      }
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "create": "Регистр",
+        "update": "Вироиш"
+      },
+      "diary_comment": {
+        "create": "Захира"
+      },
+      "diary_entry": {
+        "create": "Нашр",
+        "update": "Азнав бор кардан"
+      },
+      "issue_comment": {
+        "create": "Иловаи шарҳ"
+      },
+      "message": {
+        "create": "Фиристодан"
+      },
+      "redaction": {
+        "create": "Эҷоди тағйирот",
+        "update": "Захираи тағйирот"
+      },
+      "trace": {
+        "create": "Боркунӣ",
+        "update": "Захиракунии тағйирот"
+      },
+      "user_block": {
+        "create": "Эҷоди масдудӣ",
+        "update": "Азнавсозии масдудӣ"
+      }
+    }
+  },
+  "messages": {
+    "messages_table": {
+      "from": "аз"
+    },
+    "sent_message_summary": {
+      "destroy_button": "Ҳазф кардан"
+    }
+  },
+  "notes": {
+    "new": {
+      "title": "Навиштании ҷадиде"
+    },
+    "show": {
+      "description": "Тавзеҳот"
+    }
+  },
+  "reports": {
+    "new": {
+      "categories": {
+        "note": {
+          "other_label": "Ғайра"
+        },
+        "user": {
+          "other_label": "Ғайра"
+        }
+      }
+    }
+  },
+  "site": {
+    "help": {
+      "help": {
+        "title": "Кумак дар Форум"
+      },
+      "welcome": {
+        "title": "Хуш омадед ба ХаритаиКушодаиКӯча"
+      }
+    },
+    "search": {
+      "search": "Ҷустуҷӯ"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y дар %H:%M"
+    }
+  },
+  "traces": {
+    "edit": {
+      "cancel": "Пӯшидан"
+    }
+  },
+  "user_blocks": {
+    "helper": {
+      "time_past_html": "Тамом шуд {{time}}"
+    }
+  }
+}

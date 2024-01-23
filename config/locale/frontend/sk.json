@@ -1,0 +1,3032 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "cancel": "Zrušiť",
+        "confirm_delete": "Ste si istý/á?",
+        "delete_account": "Odstrániť účet",
+        "delete_display_name": "Vaše zobrazované meno bude odstránené a môže byť znovu použité inými účtami (používateľmi).",
+        "delete_introduction": "Svoj účet v OpenStreetMap môžete zrušiť pomocou tlačidla nižšie. Prosím uvedomte si nasledovné podrobnosti:",
+        "delete_profile": "Vaše profilové informácie, váš avatar, popis a domovské miesto budú odstránené.",
+        "retain_caveats": "Niektoré informácie o vás však budú uchované v OpenStreetMap aj po vymazaní účtu:",
+        "retain_changeset_discussions": "Vaše prípadné diskusie k sadám zmien budú zachované.",
+        "retain_diary_entries": "Vaše záznam v denníku a komentáre k záznamom budú zachované, ale budú skryté.",
+        "retain_edits": "Vaše zmeny v mapovej databáze budú zachované.",
+        "retain_email": "Vaša emailová adresa bude uchovaná.",
+        "retain_notes": "Vaše mapové poznámky a komentáre budú zachované, ale skryté.",
+        "retain_traces": "Vaše odoslané stopy budú zachované.",
+        "title": "Odstrániť môj účet",
+        "warning": "Pozor! Odstránenie účtu je konečné a nie je možné ho vrátiť späť."
+      }
+    }
+  },
+  "accounts": {
+    "destroy": {
+      "success": "Účet bol odstránený."
+    },
+    "edit": {
+      "contributor terms": {
+        "agreed": "Súhlasili ste s novými Podmienkami prispievania.",
+        "agreed_with_pd": "Deklarovali ste tiež, že svoje úpravy považujete za slobodné dielo.",
+        "heading": "Podmienky prispievania",
+        "link text": "čo to znamená?",
+        "not yet agreed": "Zatiaľ ste neodsúhlasili nové Podmienky prispievania.",
+        "review link text": "Keď budete mať čas, pomocou tohoto odkazu si prosím prečítajte a odsúhlaste nové Podmienky prispievania."
+      },
+      "current email address": "Aktuálna e-mailová adresa",
+      "delete_account": "Odstrániť účet...",
+      "external auth": "Externá autentifikácia",
+      "my settings": "Moje nastavenia",
+      "openid": {
+        "link": "http://wiki.openstreetmap.org/wiki/CS:OpenID",
+        "link text": "čo to znamená?"
+      },
+      "public editing": {
+        "disabled": "Vypnutý a nemôže upravovať údaje, všetky predchádzajúce úpravy sú anonymné.",
+        "disabled link text": "prečo nemôžem upravovať?",
+        "enabled": "Zapnuté. Nie je anonym a môže upravovať údaje.",
+        "enabled link text": "čo to znamená?",
+        "heading": "Verejné editácie"
+      },
+      "save changes button": "Uložiť zmeny",
+      "title": "Upraviť účet"
+    },
+    "go_public": {
+      "heading": "Verejné úpravy",
+      "make_edits_public_button": "Zverejniť všetky moje úpravy"
+    },
+    "update": {
+      "success": "Používateľské údaje boli úspešne aktualizované.",
+      "success_confirm_needed": "Používateľské údaje boli úspešne aktualizované. Skontrolujte si e-mail, mala by Vám prísť výzva na potvrdenie novej e-mailovej adresy."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "čítať ich súkromné GPS stopy",
+        "allow_read_prefs": "čítať ich používateľské nastavenia",
+        "allow_write_api": "upravovať mapu",
+        "allow_write_diary": "vytvoriť položky denníka, komentovať a nadväzovať priateľstvá",
+        "allow_write_gpx": "nahrávať GPS stopy",
+        "allow_write_notes": "meniť poznámky",
+        "allow_write_prefs": "upraviť ich používateľské nastavenia",
+        "callback_url": "URL pre spätné volanie (callback)",
+        "name": "Meno (povinné)",
+        "support_url": "URL s podporou",
+        "url": "URL adresa hlavnej aplikácie (vyžaduje sa)"
+      },
+      "diary_comment": {
+        "body": "Text"
+      },
+      "diary_entry": {
+        "body": "Obsah",
+        "language_code": "Jazyk",
+        "latitude": "Zem. šírka",
+        "longitude": "Zem. dĺžka",
+        "title": "Predmet",
+        "user": "Používateľ"
+      },
+      "doorkeeper/application": {
+        "confidential": "Dôveryhodná aplikácia?",
+        "name": "Názov",
+        "redirect_uri": "URI pre presmerovanie",
+        "scopes": "Oprávnenia"
+      },
+      "friend": {
+        "friend": "Priateľ",
+        "user": "Používateľ"
+      },
+      "message": {
+        "body": "Text",
+        "recipient": "Príjemca",
+        "sender": "Odosielateľ",
+        "title": "Predmet"
+      },
+      "redaction": {
+        "description": "Popis",
+        "title": "Názov"
+      },
+      "report": {
+        "category": "Uveďte dôvod nahlásenia",
+        "details": "Prosím uveďte bližšie informácie o probléme (potrebné)."
+      },
+      "trace": {
+        "description": "Popis",
+        "gpx_file": "Nahrať GPX súbor",
+        "latitude": "Zem. šírka",
+        "longitude": "Zem. dĺžka",
+        "name": "Názov súboru",
+        "public": "Verejné",
+        "size": "Veľkosť",
+        "tagstring": "Značky",
+        "user": "Používateľ",
+        "visibility": "Viditeľnosť",
+        "visible": "Viditeľný"
+      },
+      "user": {
+        "active": "Aktívny",
+        "auth_provider": "Poskytovateľ overenia",
+        "auth_uid": "UID overenia",
+        "description": "Popis",
+        "display_name": "Zobrazované meno",
+        "email": "E-mail",
+        "email_confirmation": "Potvrdenie e-mailu",
+        "home_lat": "Zemepisná šírka",
+        "home_lon": "Zemepisná dĺžka",
+        "languages": "Preferované jazyky",
+        "new_email": "Nová e-mailová adresa",
+        "pass_crypt": "Heslo",
+        "pass_crypt_confirmation": "Potvrdenie hesla (ešte raz)",
+        "preferred_editor": "Preferovaný editor"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "nie je routovateľná",
+        "invalid_email_address": "nevyzerá ako platná e-mailová adresa"
+      }
+    },
+    "help": {
+      "doorkeeper/application": {
+        "confidential": "Aplikácia bude použitá tam, kde je možné zachovať dôvernosť tajomstva klienta (mobilné aplikácie a jednostránkové aplikácie nie sú dôveryhodné).",
+        "redirect_uri": "Každé URI uveďte na samostatnom riadku"
+      },
+      "trace": {
+        "tagstring": "oddelené čiarkou"
+      },
+      "user": {
+        "new_email": "(nikde se verejne nezobrazuje)"
+      },
+      "user_block": {
+        "needs_view": "Potrebuje sa používateľ prihlásiť pred tým, než bude tento blok vymazaný?",
+        "reason": "Dôvod, prečo je používateľ blokovaný. Buďte prosím vecný a popíšte čo najpodrobnejšie situáciu a nezabudnite, že správa bude verejne viditeľná. Majte na pamäti, že nie všetci používatelia rozumejú slangu komunity, skúste preto použiť pojmy zrozumiteľné aj pre laikov."
+      }
+    },
+    "models": {
+      "acl": "Zoznam prístupových práv",
+      "changeset": "Sada zmien",
+      "changeset_tag": "Značka sady zmien",
+      "country": "Krajina",
+      "diary_comment": "Komentár k denníku",
+      "diary_entry": "Záznam denníka",
+      "friend": "Priateľ",
+      "issue": "Problém",
+      "language": "Jazyk",
+      "message": "Správa",
+      "node": "Uzol",
+      "node_tag": "Značka uzlu",
+      "old_node": "Starý uzol",
+      "old_node_tag": "Stará značka uzlu",
+      "old_relation": "Stará relácia",
+      "old_relation_member": "Starý člen relácie",
+      "old_relation_tag": "Stará značka relácie",
+      "old_way": "Stará cesta",
+      "old_way_node": "Starý uzol cesty",
+      "old_way_tag": "Stará značka cesty",
+      "relation": "Relácia",
+      "relation_member": "Člen relácie",
+      "relation_tag": "Značka relácie",
+      "report": "Hlásenie",
+      "session": "Relácia",
+      "trace": "Stopa",
+      "tracepoint": "Bod stopy",
+      "tracetag": "Značka stopy",
+      "user": "Používateľ",
+      "user_preference": "Osobné nastavenia",
+      "user_token": "Používateľský token",
+      "way": "Cesta",
+      "way_node": "Bod cesty",
+      "way_tag": "Značka cesty"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "Vyriešené {{when}} používateľom {{user}}",
+        "closed_at_html": "Vyriešené {{when}}",
+        "commented_at_by_html": "Aktualizované {{when}} používateľom {{user}}",
+        "commented_at_html": "Aktualizované {{when}}",
+        "opened_at_by_html": "Vytvorené {{when}} používateľom {{user}}",
+        "opened_at_html": "Vytvorené {{when}}",
+        "reopened_at_by_html": "Opätovne aktivované {{when}} používateľom {{user}}",
+        "reopened_at_html": "Opätovne aktivované {{when}}"
+      },
+      "entry": {
+        "comment": "Komentár",
+        "full": "Celá poznámka"
+      },
+      "rss": {
+        "closed": "uzavretá poznámka (blízko k {{place}})",
+        "commented": "nový komentár (neďaleko {{place}})",
+        "description_area": "Zoznam poznámok nahlásených, komentovaných alebo uzavretých vo vašej oblasti [({{min_lat}}|{{min_lon}}) -- ({{max_lat}}|{{max_lon}})]",
+        "description_item": "RSS kanál k poznámke {{id}}",
+        "opened": "nová poznámka (blízko k {{place}})",
+        "reopened": "znovu aktivovaná poznámka (blízko k {{place}})",
+        "title": "Poznámky OpenStreetMap"
+      }
+    }
+  },
+  "application": {
+    "permission_denied": "Nemáte oprávnenie na prístup k tejto akcii",
+    "require_cookies": {
+      "cookies_needed": "Zdá sa, že máte zakázané cookies – povoľte prosím cookies vo vašom prehliadači a následne pokračujte."
+    },
+    "settings_menu": {
+      "account_settings": "Nastavenia účtu",
+      "oauth1_settings": "Nastavenia OAuth 1",
+      "oauth2_applications": "Aplikácie OAuth 2",
+      "oauth2_authorizations": "Autorizácie OAuth 2"
+    },
+    "setup_user_auth": {
+      "blocked": "Váš prístup do API bol zablokovaný. Prosím prihláste sa na webové rozhranie pre zistenie viac informácií.",
+      "blocked_zero_hour": "Na webstránke OpenStreetMap máte súrnu správu. Túto správu si musíte prečítať predtým než budete môcť uložiť zmeny.",
+      "need_to_see_terms": "Váš prístup k API je dočasne pozastavený. Prosím prihláste do webového rozhrania a prečítajte si Podmienky prispievania. Nie je nutné ich odsúhlasiť, musíte si ich ale zobraziť."
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "none": "Žiadna",
+      "openid": "OpenID",
+      "wikipedia": "Wikipédia"
+    }
+  },
+  "browse": {
+    "anonymous": "anonym",
+    "changeset": {
+      "belongs_to": "Autor",
+      "changesetxml": "XML sady zmien",
+      "comment": "Komentáre ({{count}})",
+      "comment_by_html": "Komentár od používateľa {{user}} {{time_ago}}",
+      "discussion": "Diskusia",
+      "feed": {
+        "title": "Sada zmien {{id}}",
+        "title_comment": "Sada zmien {{id}} - {{comment}}"
+      },
+      "hidden_comment_by_html": "Skrytý komentár od používateľa {{user}} {{time_ago}}",
+      "join_discussion": "Zapojte sa do diskusie",
+      "node": "Uzly ({{count}})",
+      "node_paginated": "Uzly ({{x}}–{{y}} z {{count}})",
+      "osmchangexml": "osmChange XML",
+      "relation": "Relácie ({{count}})",
+      "relation_paginated": "Relácie ({{x}}–{{y}} z {{count}})",
+      "still_open": "Sada zmien stále otvorená - diskusia bude otvorená, keď bude sada zmien uzatvorená.",
+      "title": "Sada zmien: {{id}}",
+      "way": "Cesty ({{count}})",
+      "way_paginated": "Cesty ({{x}}–{{y}} z {{count}})"
+    },
+    "closed": "Uzavreté",
+    "closed_ago_by_html": "Zatvorené {{time_ago}} používateľom {{user}}",
+    "closed_ago_html": "Zatvorené {{time_ago}}",
+    "containing_relation": {
+      "entry_html": "Relácia {{relation_name}}",
+      "entry_role_html": "Relácia {{relation_name}} (ako {{relation_role}})"
+    },
+    "created": "Vytvorené",
+    "created_ago_by_html": "Vytvorené {{time_ago}} používateľom {{user}}",
+    "created_ago_html": "Vytvorené {{time_ago}}",
+    "deleted_ago_by_html": "Odstránené {{time_ago}} používateľom {{user}}",
+    "download_xml": "Stiahnuť XML",
+    "edited_ago_by_html": "Upravené {{time_ago}} používateľom {{user}}",
+    "in_changeset": "Sada zmien",
+    "location": "Poloha:",
+    "no_comment": "(bez komentára)",
+    "node": {
+      "history_title_html": "História uzla: {{name}}",
+      "title_html": "Uzol: {{name}}"
+    },
+    "not_found": {
+      "sorry": "Ľutujeme, {{type}} #{{id}} nebolo možné nájsť.",
+      "title": "Nenájdené",
+      "type": {
+        "changeset": "počet zmien",
+        "node": "uzol",
+        "note": "poznámka",
+        "relation": "relácia",
+        "way": "cesta"
+      }
+    },
+    "part_of": "Súčasť",
+    "part_of_relations_few": "{{count}} relácie",
+    "part_of_relations_many": "{{count}} relácií",
+    "part_of_relations_one": "{{count}} relácia",
+    "part_of_relations_other": "{{count}} relácií",
+    "part_of_ways_few": "{{count}} cesty",
+    "part_of_ways_many": "{{count}} ciest",
+    "part_of_ways_one": "{{count}} cesta",
+    "part_of_ways_other": "{{count}} ciest",
+    "query": {
+      "enclosing": "Obklopujúce prvky",
+      "introduction": "Pre nájdenie okolitých prvkov kliknite na mapu.",
+      "nearby": "Okolité prvky",
+      "title": "Prieskum prvkov"
+    },
+    "redacted": {
+      "message_html": "Verzia {{version}} tohto objektu {{type}} nemôže byť zobrazená, pretože bola skrytá. Viac informácií nájdete na {{redaction_link}}.",
+      "redaction": "Revízia {{id}}",
+      "type": {
+        "node": "uzol",
+        "relation": "vzťah",
+        "way": "cesta"
+      }
+    },
+    "relation": {
+      "history_title_html": "História relácie: {{name}}",
+      "members": "Prvky",
+      "members_count_few": "{{count}} prvky",
+      "members_count_many": "{{count}} prvkov",
+      "members_count_one": "{{count}} prvok",
+      "members_count_other": "{{count}} prvkov",
+      "title_html": "Relácia: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} ako {{role}}",
+      "type": {
+        "node": "Uzol",
+        "relation": "Relácia",
+        "way": "Cesta"
+      }
+    },
+    "start_rjs": {
+      "feature_warning": "Načíta sa {{num_features}} funkcií, ktoré môžu spôsobiť, že váš prehliadač sa spomalí alebo prestane reagovať. Ste si istý, že chcete zobraziť tieto údaje?",
+      "load_data": "Načítať údaje",
+      "loading": "Nahrávanie..."
+    },
+    "tag_details": {
+      "colour_preview": "Náhľad farby {{colour_value}}",
+      "email_link": "E-mail {{email}}",
+      "tags": "Tagy",
+      "telephone_link": "Vytočiť {{phone_number}}",
+      "wiki_link": {
+        "key": "Stránka s popisom značky {{key}} na wiki",
+        "tag": "Stránka s popisom značky {{key}}={{value}} na wiki"
+      },
+      "wikidata_link": "Položka {{page}} na Wikidata",
+      "wikimedia_commons_link": "Položka {{page}} na Wikimedia Commons",
+      "wikipedia_link": "Článok {{page}} na Wikipédii"
+    },
+    "timeout": {
+      "sorry": "Ľutujeme, ale načítanie dát {{type}} číslo {{id}} trvalo príliš dlho",
+      "title": "Vypršal časový limit",
+      "type": {
+        "changeset": "sada zmien",
+        "node": "uzol",
+        "note": "poznámka",
+        "relation": "relácia",
+        "way": "cesta"
+      }
+    },
+    "version": "Verzia",
+    "view_details": "Zobraziť detaily",
+    "view_history": "Zobraziť históriu",
+    "way": {
+      "also_part_of_html_one": "súčasťou cesty {{related_ways}}",
+      "also_part_of_html_other": "súčasťou ciest {{related_ways}}",
+      "history_title_html": "História cesty: {{name}}",
+      "nodes": "Uzly",
+      "nodes_count_few": "{{count}} uzly",
+      "nodes_count_many": "{{count}} uzlov",
+      "nodes_count_one": "1 uzol",
+      "nodes_count_other": "{{count}} uzlov",
+      "title_html": "Cesta: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "comment": {
+      "comment": "Nový komentár k sade zmien #{{changeset_id}} od {{author}}",
+      "commented_at_by_html": "Upravené {{when}} používateľom {{user}}"
+    },
+    "comments": {
+      "comment": "Nový komentár k sade zmien #{{changeset_id}} od používateľa {{author}}"
+    },
+    "index": {
+      "title_all": "Diskusia k sade zmien OpenStreetMap",
+      "title_particular": "Diskusia k sade zmien OpenStreetMap #{{changeset_id}}"
+    },
+    "timeout": {
+      "sorry": "Ľutujeme, ale vami požadovaný zoznam komentárov k sade zmien sa načítaval príliš dlho."
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Anonym",
+      "no_edits": "(bez úprav)",
+      "view_changeset_details": "Zobraziť detaily sady zmien"
+    },
+    "changeset_paging_nav": {
+      "next": "Ďalšia »",
+      "previous": "« Predchádzajúca",
+      "showing_page": "Stránka {{page}}"
+    },
+    "changesets": {
+      "area": "Oblasť",
+      "comment": "Komentár",
+      "id": "ID",
+      "saved_at": "Uložené",
+      "user": "Používateľ"
+    },
+    "index": {
+      "empty": "Neboli nájdené žiadne sady zmien.",
+      "empty_area": "V tejto oblasti neexistujú žiadne sady zmien.",
+      "empty_user": "Tento používateľ nemá žiadne sady zmien.",
+      "load_more": "Načítať ďalšie",
+      "no_more": "Nie sú ďalšie sady zmien.",
+      "no_more_area": "Nie sú ďalšie sady zmien v tejto oblasti.",
+      "no_more_user": "Nie sú ďalšie sady zmien tohoto používateľa.",
+      "title": "Sady zmien",
+      "title_friend": "Sady zmien vašich priateľov",
+      "title_nearby": "Sady zmien používateľov v okolí",
+      "title_user": "Sady zmien používateľa {{user}}",
+      "title_user_link_html": "Sady zmien od {{user_link}}"
+    },
+    "timeout": {
+      "sorry": "Ľutujeme, ale vami požadovaný zoznam sád zmien sa načítaval príliš dlho."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "Toto používateľské konto už bolo potvrdené.",
+      "button": "Potvrdiť",
+      "heading": "Skontrolujte vašu emailovú adresu!",
+      "introduction_1": "Poslali sme vám potvrdzovací e-mail.",
+      "introduction_2": "Potvrďte svoje konto kliknutím na odkaz v e-maili a budete môcť začať mapovať.",
+      "press confirm button": "Stlačte tlačítko na potvrdenie dole, pre aktiváciu vášho účtu.",
+      "success": "Váš účet je založený, ďakujeme, že ste sa zapísali!",
+      "unknown token": "Zadaný potvrdzovací kód vypršal alebo neexistuje."
+    },
+    "confirm_email": {
+      "button": "Potvrdiť",
+      "failure": "E-mailová adresa bola už potvrdená s týmto znakom.",
+      "heading": "Potvrdiť zmenu e-mailovej adresy",
+      "press confirm button": "Stlačte potvrdzovacie tlačidlo nižšie a potvrďte svoju novú e-mailovú adresu.",
+      "success": "Potvrdená vaša e-mailová adresa, ďakujeme za registráciu!",
+      "unknown_token": "Zadaný potvrdzovací kód vypršal alebo neexistuje."
+    },
+    "confirm_resend": {
+      "failure": "Používateľ {{name}} neexistuje."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "vzdialený {{count}}km",
+      "latest_edit_html": "Posledné úpravy {{ago}}:",
+      "m away": "vzdialený {{count}}m"
+    },
+    "popup": {
+      "friend": "Priateľ",
+      "nearby mapper": "Používateľ v okolí",
+      "your location": "Vaša poloha"
+    },
+    "show": {
+      "edit_your_profile": "Upraviť váš profil",
+      "friends_changesets": "Prechádzať všetky sady zmien priateľov",
+      "friends_diaries": "Prechádzať všetky denníkové záznamy priateľov",
+      "my friends": "Moji priatelia",
+      "nearby users": "Ďalší používatelia v okolí",
+      "nearby_changesets": "Prechádzať všetky sady zmien používateľov v okolí",
+      "nearby_diaries": "Prechádzať všetky denníkové záznamy používateľov v okolí",
+      "no friends": "Ešte nemáte pridaných žiadnych priateľov.",
+      "no nearby users": "Nie je tu iný používateľ, ktorý priznáva mapovanie v okolí.",
+      "no_home_location_html": "{{edit_profile_link}} a nastavte svoju domovskú polohu, aby ste mohli vidieť používateľov vo vašom okolí.",
+      "title": "Moja nástenka"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_few": "pred približne {{count}} hodinami",
+      "about_x_hours_many": "pred približne {{count}} hodinami",
+      "about_x_hours_one": "pred približne {{count}} hodinou",
+      "about_x_hours_other": "pred približne {{count}} hodinami",
+      "about_x_months_few": "pred približne {{count}} mesiacmi",
+      "about_x_months_many": "pred približne {{count}} mesiacmi",
+      "about_x_months_one": "pred približne {{count}} mesiacom",
+      "about_x_months_other": "pred približne {{count}} mesiacmi",
+      "about_x_years_few": "pred približne {{count}} rokmi",
+      "about_x_years_many": "pred približne {{count}} rokmi",
+      "about_x_years_one": "pred približne {{count}} rokom",
+      "about_x_years_other": "pred približne {{count}} rokmi",
+      "almost_x_years_few": "pred takmer {{count}} rokmi",
+      "almost_x_years_many": "pred takmer {{count}} rokmi",
+      "almost_x_years_one": "pred takmer {{count}} rokom",
+      "almost_x_years_other": "pred takmer {{count}} rokmi",
+      "half_a_minute": "pred pol minútou",
+      "less_than_x_minutes_few": "pred menej ako {{count}} minútami",
+      "less_than_x_minutes_many": "pred menej ako {{count}} minútami",
+      "less_than_x_minutes_one": "pred menej ako {{count}} minútou",
+      "less_than_x_minutes_other": "pred menej ako {{count}} minútami",
+      "less_than_x_seconds_few": "pred menej ako {{count}} sekundami",
+      "less_than_x_seconds_many": "pred menej ako {{count}} sekundami",
+      "less_than_x_seconds_one": "pred menej ako {{count}} sekundou",
+      "less_than_x_seconds_other": "pred menej ako {{count}} sekundami",
+      "over_x_years_few": "pred viac ako {{count}} rokmi",
+      "over_x_years_many": "pred viac ako {{count}} rokmi",
+      "over_x_years_one": "pred viac ako {{count}} rokom",
+      "over_x_years_other": "pred viac ako {{count}} rokmi",
+      "x_days_few": "pred {{count}} dňami",
+      "x_days_many": "pred {{count}} dňami",
+      "x_days_one": "pred {{count}} dňom",
+      "x_days_other": "pred {{count}} dňami",
+      "x_minutes_few": "pred {{count}} minútami",
+      "x_minutes_many": "pred {{count}} minútami",
+      "x_minutes_one": "pred {{count}} minútou",
+      "x_minutes_other": "pred {{count}} minútami",
+      "x_months_few": "pred {{count}} mesiacmi",
+      "x_months_many": "pred {{count}} mesiacmi",
+      "x_months_one": "pred {{count}} mesiacom",
+      "x_months_other": "pred {{count}} mesiacmi",
+      "x_seconds_few": "pred {{count}} sekundami",
+      "x_seconds_many": "pred {{count}} sekundami",
+      "x_seconds_one": "pred {{count}} sekundou",
+      "x_seconds_other": "pred {{count}} sekundami",
+      "x_years_few": "pred {{count}} rokmi",
+      "x_years_many": "pred {{count}} rokmi",
+      "x_years_one": "pred {{count}} rokom",
+      "x_years_other": "pred {{count}} rokmi"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Komentár",
+      "heading": "Komentáre v denníku používateľa {{user}}",
+      "newer_comments": "Novšie komentáre",
+      "no_comments": "Žiadne komentáre k denníku",
+      "older_comments": "Staršie komentáre",
+      "post": "Príspevok",
+      "subheading_html": "Komentáre v denníku pridané používateľom {{user}}",
+      "title": "Komentáre k denníkom pridané používateľom {{user}}",
+      "when": "Kedy"
+    },
+    "diary_comment": {
+      "comment_from_html": "Komentár od používateľa {{link_user}} z {{comment_created_at}}",
+      "confirm": "Potvrdiť",
+      "hide_link": "Skryť tento komentár",
+      "report": "Nahlásiť tento komentár",
+      "unhide_link": "Odkryť tento komentár"
+    },
+    "diary_entry": {
+      "comment_count_few": "{{count}} komentáre",
+      "comment_count_many": "{{count}} komentárov}}",
+      "comment_count_one": "1 komentár",
+      "comment_count_other": "{{count}} komentárov",
+      "comment_link": "Komentár k záznamu",
+      "confirm": "Potvrdiť",
+      "edit_link": "Upraviť tento záznam",
+      "hide_link": "Skryť tento záznam",
+      "posted_by_html": "Napísal {{link_user}} {{created}} v jazyku {{language_link}}.",
+      "reply_link": "Poslať správu autorovi",
+      "report": "Nahlásiť tento záznam",
+      "unhide_link": "Odkryť tento záznam",
+      "updated_at_html": "Naposled upravené {{updated}}."
+    },
+    "edit": {
+      "marker_text": "Poloha k záznamu v denníku",
+      "title": "Upraviť záznam denníka"
+    },
+    "feed": {
+      "all": {
+        "description": "Nedávne položky denníkov používateľov OpenStreetMap",
+        "title": "Záznamy denníka OpenStreetMap"
+      },
+      "language": {
+        "description": "Nedávne záznamy v denníkoch používateľov OpenStreetMap v jazyku {{language_name}}",
+        "title": "Záznamy OpenStreetMap denníka v jazyku {{language_name}}"
+      },
+      "user": {
+        "description": "Nedávne záznamy OpenStreetMap denníka používateľa {{user}}",
+        "title": "Záznamy OpenStreetMap denníka používateľa {{user}}"
+      }
+    },
+    "form": {
+      "location": "Poloha",
+      "use_map_link": "Použiť mapu"
+    },
+    "index": {
+      "in_language_title": "Záznamy denníka v jazyku {{language}}",
+      "my_diary": "Môj denník",
+      "new": "Nový záznam denníka",
+      "new_title": "Napísať nový záznam do používateľského denníka",
+      "newer_entries": "Novšie záznamy",
+      "no_entries": "Žiadny záznam denníka",
+      "older_entries": "Staršie záznamy",
+      "recent_entries": "Nedávne záznamy denníka",
+      "title": "Denníky používateľov",
+      "title_friends": "Denníky priateľov",
+      "title_nearby": "Denníky používateľov v okolí",
+      "user_title": "Denník používateľa {{user}}"
+    },
+    "location": {
+      "edit": "Upraviť",
+      "location": "Poloha:",
+      "view": "Zobraziť"
+    },
+    "new": {
+      "title": "Nový záznam denníka"
+    },
+    "no_such_entry": {
+      "body": "Ľutujeme, položka denníka, alebo komentár s ID {{id}} neexistuje. Skontrolujte preklepy, prípadne ste možno klikli na nesprávny odkaz.",
+      "heading": "Záznam s ID {{id}} neexistuje",
+      "title": "Takýto záznam denníka neexistuje"
+    },
+    "show": {
+      "leave_a_comment": "Zanechať komentár",
+      "login": "Prihlásiť sa",
+      "login_to_leave_a_comment_html": "{{login_link}} pre zanechanie komentára",
+      "title": "Denník používateľa {{user}} | {{title}}",
+      "user_title": "Denník používateľa {{user}}"
+    }
+  },
+  "doorkeeper": {
+    "flash": {
+      "applications": {
+        "create": {
+          "notice": "Aplikácia bola zaregistrovaná."
+        }
+      }
+    }
+  },
+  "editor": {
+    "default": "Predvolený (v súčasnosti {{name}})",
+    "id": {
+      "description": "iD (editor v prehliadači)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "Diaľkové ovládanie (JOSM, Potlatch, Merkaartor)",
+      "name": "Diaľkové ovládanie"
+    }
+  },
+  "errors": {
+    "contact": {
+      "contact": "kontaktovať",
+      "contact_the_community_html": "Neváhajte {{contact_link}} komunitu OpenStreetMap, ak ste našli nefunkčný odkaz/chybu. Poznačte si presnú adresu URL vašej žiadosti."
+    },
+    "forbidden": {
+      "description": "Operácia, ktorú ste požadovali na serveri OpenStreetMap, je dostupná len pre administrátorov (HTTP 403)",
+      "title": "Zakázané"
+    },
+    "internal_server_error": {
+      "description": "Server OpenStreetMap narazil na neočakávaný stav, ktorý mu zabránil splniť požiadavku (HTTP 500)",
+      "title": "Chyba aplikácie"
+    },
+    "not_found": {
+      "description": "Nepodarilo sa nájsť súbor/adresár/operáciu API s týmto názvom na serveri OpenStreetMap (HTTP 404)",
+      "title": "Súbor nenájdený"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "Ste už priatelia s {{name}}.",
+      "button": "Pridať ako priateľa",
+      "failed": "Ľutujeme, nepodarilo sa pridať {{name}} ako priateľa.",
+      "heading": "Pridať používateľa {{user}} ako priateľa?",
+      "limit_exceeded": "V poslednej dobe ste pridali veľa priateľov. Pred nastavením ďalších priateľov prosím chvíľu počkajte.",
+      "success": "{{name}} je teraz váš priateľ!"
+    },
+    "remove_friend": {
+      "button": "Odobrať z priateľov",
+      "heading": "Odobrať používateľa {{user}} zo zoznamu priateľov?",
+      "not_a_friend": "{{name}} nie je nikto z vašich priateľov.",
+      "success": "{{name}} bol z vašich priateľov vymazaný."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Viac výsledkov",
+      "no_results": "Neboli nájdené žiadne výsledky"
+    },
+    "search": {
+      "title": {
+        "latlon": "Interné",
+        "osm_nominatim": "OpenStreetMap Nominatim",
+        "osm_nominatim_reverse": "OpenStreetMap Nominatim",
+        "results_from_html": "Výsledky z {{results_link}}"
+      }
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "Hranica časti obce",
+        "level11": "Hranica susedstva",
+        "level2": "Štátna hranica",
+        "level3": "Hranica regiónu",
+        "level4": "Hranica kraja (state)",
+        "level5": "Hranica regiónu",
+        "level6": "Hranica okresu (county)",
+        "level8": "Hranica mesta",
+        "level9": "Hranica obce"
+      },
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Lanovka",
+          "chair_lift": "Sedačková lanovka",
+          "drag_lift": "Vlek",
+          "gondola": "Kabínková lanovka",
+          "magic_carpet": "Lyžiarsky povrchový výťah",
+          "platter": "Tanierový vlek",
+          "pylon": "Stĺp",
+          "station": "Lanovková stanica",
+          "t-bar": "Kotva",
+          "yes": "Lanovka"
+        },
+        "aeroway": {
+          "aerodrome": "Aerodróm",
+          "airstrip": "Vzletová a pristávacia dráha",
+          "apron": "Letisková parkovacia plocha",
+          "gate": "Letisková brána pre pasažierov",
+          "hangar": "Hangár",
+          "helipad": "Heliport",
+          "holding_position": "Vyčkávacie miesto",
+          "navigationaid": "Letecké navigačné príslušenstvo",
+          "parking_position": "Parkovacie miesto",
+          "runway": "Vzletová a pristávacia dráha",
+          "taxilane": "Dopravný pruh pre taxi",
+          "taxiway": "Pojazdová dráha",
+          "terminal": "Letiskový terminál",
+          "windsock": "Veterný rukáv"
+        },
+        "amenity": {
+          "animal_boarding": "Nakladanie zvierat",
+          "animal_shelter": "Útulok pre zvieratá",
+          "arts_centre": "Kultúrne stredisko",
+          "atm": "Bankomat",
+          "bank": "Banka",
+          "bar": "Bar",
+          "bbq": "Miesto na grilovanie",
+          "bench": "Lavička",
+          "bicycle_parking": "Parkovisko bicyklov",
+          "bicycle_rental": "Požičovňa bicyklov",
+          "bicycle_repair_station": "Stanica na opravu bicyklov",
+          "biergarten": "Záhradná krčma",
+          "blood_bank": "Krvná banka",
+          "boat_rental": "Požičovňa lodí",
+          "brothel": "Nevestinec",
+          "bureau_de_change": "Zmenáreň",
+          "bus_station": "Autobusová stanica",
+          "cafe": "Kaviareň",
+          "car_rental": "Požičovňa áut",
+          "car_sharing": "Autopožičovňa",
+          "car_wash": "Autoumývareň",
+          "casino": "Kasíno",
+          "charging_station": "Nabíjacia stanica",
+          "childcare": "Starostlivosť o deti",
+          "cinema": "Kino",
+          "clinic": "Poliklinika",
+          "clock": "Hodiny",
+          "college": "Vysoká škola",
+          "community_centre": "Kultúrne stredisko",
+          "conference_centre": "Konferenčné centrum",
+          "courthouse": "Súd",
+          "crematorium": "Krematórium",
+          "dentist": "Zubár",
+          "doctors": "Lekár",
+          "drinking_water": "Pitná voda",
+          "driving_school": "Autoškola",
+          "embassy": "Veľvyslanectvo",
+          "events_venue": "Miesto pre podujatia",
+          "fast_food": "Rýchle občerstvenie",
+          "ferry_terminal": "Terminál trajektu",
+          "fire_station": "Požiarna stanica",
+          "food_court": "Food court",
+          "fountain": "Fontána",
+          "fuel": "Čerpacia stanica",
+          "gambling": "Hazardné hry",
+          "grave_yard": "Cintorín",
+          "grit_bin": "Nádoba na štrk",
+          "hospital": "Nemocnica",
+          "hunting_stand": "Poľovnícky posed",
+          "ice_cream": "Zmrzlina",
+          "internet_cafe": "Internetová kaviareň",
+          "kindergarten": "Materská škola",
+          "language_school": "Jazyková škola",
+          "library": "Knižnica",
+          "loading_dock": "Nakladací dok",
+          "love_hotel": "Hotel pre zamilovaných",
+          "marketplace": "Tržnica",
+          "mobile_money_agent": "Mobilný peňažný agent",
+          "monastery": "Kláštor",
+          "money_transfer": "Prevod peňazí",
+          "motorcycle_parking": "Parkovisko pre motocykle",
+          "music_school": "Hudobná škola",
+          "nightclub": "Nočný klub",
+          "nursing_home": "Sanatórium",
+          "parking": "Parkovisko",
+          "parking_entrance": "Vjazd na parkovisko",
+          "parking_space": "Parkovacie miesto",
+          "payment_terminal": "Platobný terminál",
+          "pharmacy": "lekáreň",
+          "place_of_worship": "Miesto pre bohoslužby",
+          "police": "Polícia",
+          "post_box": "Poštová schránka",
+          "post_office": "Pošta",
+          "prison": "Väzenie",
+          "pub": "Krčma",
+          "public_bath": "Verejné kúpele",
+          "public_bookcase": "Verejná knihovnička",
+          "public_building": "Verejná budova",
+          "recycling": "Recyklačné miesto",
+          "restaurant": "Reštaurácia",
+          "sanitary_dump_station": "Sanitárna skládka",
+          "school": "Škola",
+          "shelter": "Altánok",
+          "shower": "Sprchy",
+          "social_centre": "Komunitné centrum",
+          "social_facility": "Sociálne zariadenie",
+          "studio": "Ateliér",
+          "swimming_pool": "Plaváreň, kúpalisko",
+          "taxi": "Taxi",
+          "telephone": "Verejný telefón",
+          "theatre": "Divadlo",
+          "toilets": "WC",
+          "townhall": "Radnica",
+          "training": "Školiace zariadenie",
+          "university": "Univerzita",
+          "vehicle_inspection": "Stanica technickej kontroly",
+          "vending_machine": "Predajný automat",
+          "veterinary": "Veterinárna ordinácia",
+          "village_hall": "Spoločenská miestnosť",
+          "waste_basket": "Odpadkový kôš",
+          "waste_disposal": "Popolnica",
+          "waste_dump_site": "Skládka odpadu",
+          "water_point": "Vodný zdroj",
+          "watering_place": "Miesto na zavlažovanie",
+          "weighbridge": "Vážiaci most",
+          "yes": "Občianske vybavenie"
+        },
+        "boundary": {
+          "aboriginal_lands": "Pôda domorodcov",
+          "administrative": "Administratívna hranica",
+          "census": "Hranica pre potreby sčítania",
+          "national_park": "Národný park",
+          "political": "Hranica volebného okrsku",
+          "protected_area": "Chránená oblasť",
+          "yes": "Hranica"
+        },
+        "bridge": {
+          "aqueduct": "Akvadukt",
+          "boardwalk": "Promenáda",
+          "suspension": "Visutý most",
+          "swing": "Otočný most",
+          "viaduct": "Viadukt",
+          "yes": "Most"
+        },
+        "building": {
+          "apartment": "Apartmán",
+          "apartments": "Bytový dom",
+          "barn": "Stodola",
+          "bungalow": "Bungalov",
+          "cabin": "Chatka",
+          "chapel": "Kaplnka",
+          "church": "Kostol",
+          "civic": "Budova občianskej vybavenosti",
+          "college": "Budova vysokej školy",
+          "commercial": "Komerčné budovy",
+          "construction": "Budova vo výstavbe",
+          "detached": "Rodinný dom (samostatne stojaci)",
+          "dormitory": "Študentský domov",
+          "duplex": "Dvojdom",
+          "farm": "Hospodárska budova",
+          "farm_auxiliary": "Hospodárska budova",
+          "garage": "Garáž",
+          "garages": "Garáže",
+          "greenhouse": "Skleník",
+          "hangar": "Hangár",
+          "hospital": "Nemocničné budovy",
+          "hotel": "Hotel",
+          "house": "Dom",
+          "houseboat": "Hausbót",
+          "hut": "Chata",
+          "industrial": "Priemyselné budovy",
+          "kindergarten": "Materská škola",
+          "manufacture": "Výrobná budova",
+          "office": "Administratívna budova",
+          "public": "Verejná budova",
+          "residential": "Obytné budovy",
+          "retail": "Maloobchodné budovy",
+          "roof": "Strecha",
+          "ruins": "Zničená budova",
+          "school": "Škola",
+          "semidetached_house": "Dvojdom",
+          "service": "Technická budova",
+          "shed": "Kôlňa",
+          "stable": "Stajňa",
+          "static_caravan": "Príves",
+          "temple": "Budova chrámu",
+          "terrace": "Radová zástavba",
+          "train_station": "Železničná stanica",
+          "university": "Univerzitné budovy",
+          "warehouse": "Sklad",
+          "yes": "Budova"
+        },
+        "club": {
+          "scout": "Skautská základňa",
+          "sport": "Športový klub",
+          "yes": "Klub"
+        },
+        "craft": {
+          "beekeeper": "Včelár",
+          "blacksmith": "Kováč",
+          "brewery": "Pivovar",
+          "carpenter": "Tesár",
+          "caterer": "Catering",
+          "confectionery": "Cukrovinky",
+          "dressmaker": "Krajčír",
+          "electrician": "Elektrikár",
+          "electronics_repair": "Oprava elektroniky",
+          "gardener": "Záhradník",
+          "glaziery": "Sklenárstvo",
+          "handicraft": "Remeslo",
+          "painter": "Maliar",
+          "photographer": "Fotograf",
+          "plumber": "Inštalatér",
+          "roofer": "Pokrývač",
+          "sawmill": "Píla",
+          "shoemaker": "Obuvník",
+          "stonemason": "Kamenárstvo",
+          "tailor": "Krajčír",
+          "window_construction": "Montáž okien",
+          "winery": "Vináreň",
+          "yes": "Remeselná dielňa"
+        },
+        "emergency": {
+          "access_point": "Prístupový bod",
+          "ambulance_station": "Stanica záchrannej služby",
+          "assembly_point": "Miesto zhromaždenia",
+          "defibrillator": "Defibrilátor",
+          "fire_extinguisher": "Hasiaci prístroj",
+          "fire_water_pond": "Požiarna nádrž",
+          "landing_site": "Pristávacia plocha záchranky",
+          "life_ring": "Záchranný kruh",
+          "phone": "Núdzový telefón",
+          "siren": "Núdzová siréna"
+        },
+        "highway": {
+          "abandoned": "Zrušená cesta",
+          "bridleway": "Cesta pre kone",
+          "bus_guideway": "Bus so sprievodcom",
+          "bus_stop": "Zastávka autobusu",
+          "construction": "Cesta vo výstavbe",
+          "crossing": "Priechod",
+          "cycleway": "Cyklistický chodník",
+          "elevator": "Výťah",
+          "emergency_access_point": "Stanica prvej pomoci",
+          "footway": "Chodník",
+          "ford": "Brod",
+          "give_way": "Značka \"daj prednosť v jazde\"",
+          "living_street": "Obytná zóna",
+          "milestone": "Kilometrovník",
+          "motorway": "Diaľnica",
+          "motorway_junction": "Diaľničná križovatka",
+          "motorway_link": "Diaľničný privádzač",
+          "passing_place": "Výhybňa na ceste",
+          "path": "Nespevnený chodník",
+          "pedestrian": "Chodník pre chodcov",
+          "platform": "Nástupište",
+          "primary": "Cesta I. triedy",
+          "primary_link": "Cesta I. triedy",
+          "proposed": "Navrhovaná cesta",
+          "raceway": "Pretekárska dráha",
+          "residential": "Ulica v obytnej štvrti",
+          "rest_area": "Odpočívadlo",
+          "road": "Cesta",
+          "secondary": "Cesta II. triedy",
+          "secondary_link": "Cesta II. triedy",
+          "service": "Prístupová komunikácia",
+          "services": "Diaľničné odpočívadlo",
+          "speed_camera": "Radar",
+          "steps": "Schody",
+          "stop": "Značka \"STOP\"",
+          "street_lamp": "Pouličná lampa",
+          "tertiary": "Cesta III. triedy",
+          "tertiary_link": "Cesta III. triedy",
+          "track": "Lesná/poľná cesta",
+          "traffic_mirror": "Dopravné zrkadlo",
+          "traffic_signals": "Semafor",
+          "trunk": "Cesta pre motorové vozidlá",
+          "trunk_link": "Privádzač k ceste pre motorové vozidlá",
+          "turning_circle": "Miesto na otočenie",
+          "unclassified": "Neklasifikovaná cesta",
+          "yes": "Cesta"
+        },
+        "historic": {
+          "archaeological_site": "Archeologické nálezisko",
+          "battlefield": "Bojisko",
+          "boundary_stone": "Hraničný kameň",
+          "building": "Historická budova",
+          "bunker": "Bunker",
+          "castle": "Hrad",
+          "church": "Kostol",
+          "city_gate": "Mestská brána",
+          "citywalls": "Mestské hradby",
+          "fort": "Pevnosť",
+          "heritage": "Lokalita historického dedičstva",
+          "hollow_way": "Zatopená cesta",
+          "house": "Dom",
+          "manor": "Šľachtické sídlo",
+          "memorial": "Pomník",
+          "mine": "Baňa",
+          "monument": "Pamätník",
+          "roman_road": "Rímska cesta",
+          "ruins": "Ruina",
+          "stone": "Balvan",
+          "tomb": "Náhrobok",
+          "tower": "Veža",
+          "wayside_chapel": "Kaplnka pri ceste",
+          "wayside_cross": "Božie muky",
+          "wayside_shrine": "Malá kaplnka pri ceste",
+          "wreck": "Zrúcanina",
+          "yes": "Historické miesto"
+        },
+        "junction": {
+          "yes": "Križovatka"
+        },
+        "landuse": {
+          "allotments": "Záhradkárska osada",
+          "basin": "Vodná nádrž",
+          "brownfield": "Opustená priemyselná oblasť (brownfield)",
+          "cemetery": "Cintorín",
+          "commercial": "Obchodná štvrť",
+          "conservation": "Chránené územie",
+          "construction": "Stavenisko",
+          "farmland": "Poľnohospodárska pôda",
+          "farmyard": "Dvor",
+          "forest": "Les (udržiavaný)",
+          "garages": "Garáže",
+          "grass": "Tráva",
+          "greenfield": "Zelená plocha pre výstavbu",
+          "industrial": "Priemyselná oblasť",
+          "landfill": "Skládka odpadu",
+          "meadow": "Lúka",
+          "military": "Vojenský priestor",
+          "mine": "Baňa",
+          "orchard": "Sad",
+          "plant_nursery": "Lesná škôlka",
+          "quarry": "Lom",
+          "railway": "Železnica",
+          "recreation_ground": "Rekreačná oblasť",
+          "reservoir": "Zásobník na vodu",
+          "reservoir_watershed": "Povodie nádrže",
+          "residential": "Obytná oblasť",
+          "retail": "Maloobchodná zóna",
+          "village_green": "Verejná zeleň",
+          "vineyard": "Vinica",
+          "yes": "Využitie krajiny"
+        },
+        "leisure": {
+          "adult_gaming_centre": "Herňa",
+          "amusement_arcade": "Hrací automat",
+          "bandstand": "Hudobné pódium",
+          "beach_resort": "Plážové letovisko",
+          "bird_hide": "Vtáčia pozorovateľňa",
+          "bleachers": "Bielidlo",
+          "bowling_alley": "Bowlingová dráha",
+          "common": "Verejné priestranstvo",
+          "dance": "Tančiareň",
+          "dog_park": "Psí park",
+          "firepit": "Ohnisko",
+          "fishing": "Rybolov (športový)",
+          "fitness_centre": "Fitnescentrum",
+          "fitness_station": "Fitnes zastávka",
+          "garden": "Záhrada",
+          "golf_course": "Golfové ihrisko",
+          "horse_riding": "Jazdecké centrum",
+          "ice_rink": "Umelé klzisko",
+          "marina": "Prístav pre jachty",
+          "miniature_golf": "Mini golf",
+          "nature_reserve": "Prírodná rezervácia",
+          "outdoor_seating": "Vonkajšie posedenie",
+          "park": "Park",
+          "picnic_table": "Piknikový stôl",
+          "pitch": "Športové ihrisko",
+          "playground": "Detské ihrisko",
+          "recreation_ground": "Rekreačná oblasť",
+          "resort": "Letovisko",
+          "sauna": "Sauna",
+          "slipway": "Lodný sklz",
+          "sports_centre": "Športové stredisko",
+          "stadium": "Štadión",
+          "swimming_pool": "Plaváreň",
+          "track": "Bežecká dráha",
+          "water_park": "Aquapark",
+          "yes": "Voľný čas"
+        },
+        "man_made": {
+          "advertising": "Reklama",
+          "antenna": "Anténa",
+          "avalanche_protection": "Protilavínová ochrana",
+          "beacon": "Maják",
+          "beehive": "Včelí úľ",
+          "breakwater": "Vlnolam",
+          "bridge": "Most",
+          "bunker_silo": "Bunker",
+          "chimney": "Komín",
+          "clearcut": "Holorub",
+          "crane": "Žeriav",
+          "cross": "Kríž",
+          "embankment": "Násyp",
+          "flagpole": "Vlajkový stožiar",
+          "gasometer": "Plynojem",
+          "lighthouse": "Maják",
+          "manhole": "Vchod do kanála",
+          "mast": "Stožiar",
+          "mine": "Baňa",
+          "mineshaft": "Šachta bane",
+          "monitoring_station": "Monitorovacia stanica",
+          "petroleum_well": "Ropný vrt",
+          "pier": "Mólo",
+          "pipeline": "Vodovod",
+          "silo": "Silo",
+          "snow_cannon": "Snehové delo",
+          "snow_fence": "Protisnehový plot",
+          "storage_tank": "Skladovacia nádrž",
+          "street_cabinet": "Pouličná skrinka",
+          "surveillance": "Dohľad",
+          "telescope": "Teleskop",
+          "tower": "Veža",
+          "utility_pole": "Telefónny stĺp",
+          "wastewater_plant": "Čistička odpadových vôd",
+          "water_tap": "Vodovodný kohútik",
+          "water_tower": "Vodojem",
+          "water_well": "Studňa",
+          "water_works": "Vodáreň",
+          "watermill": "Vodný mlyn",
+          "windmill": "Veterný mlyn",
+          "works": "Továreň",
+          "yes": "Vytvorené človekom"
+        },
+        "military": {
+          "airfield": "Vojenské letisko",
+          "barracks": "Kasárne",
+          "bunker": "Bunker",
+          "checkpoint": "Kontrolný bod",
+          "trench": "Brázda",
+          "yes": "Armáda"
+        },
+        "mountain_pass": {
+          "yes": "Priesmyk"
+        },
+        "natural": {
+          "atoll": "Atol",
+          "bare_rock": "Holá skala",
+          "bay": "Zátoka, záliv",
+          "beach": "Pláž",
+          "cape": "Mys",
+          "cave_entrance": "Vstup do jaskyne",
+          "cliff": "Útes, kamenná stena",
+          "coastline": "Pobrežie",
+          "crater": "Kráter",
+          "dune": "Duna",
+          "fell": "Horská pastvina",
+          "fjord": "Fjord",
+          "forest": "Les (udržiavaný)",
+          "geyser": "Gejzír",
+          "glacier": "Ľadovec",
+          "grassland": "Trvalé trávne porasty",
+          "heath": "Vresovisko",
+          "hill": "Kopec",
+          "hot_spring": "Termálny prameň",
+          "island": "Ostrov",
+          "land": "Pevnina",
+          "marsh": "Bažina",
+          "moor": "Močiar",
+          "mud": "Bahno",
+          "peak": "Vrchol",
+          "point": "Bod",
+          "reef": "Bradlo, Skalisko",
+          "ridge": "Hrebeň",
+          "rock": "Skala",
+          "saddle": "Sedlo",
+          "sand": "Piesok",
+          "scree": "Sutina",
+          "scrub": "Krovie",
+          "spring": "Prameň",
+          "stone": "Balvan",
+          "strait": "Úžina",
+          "tree": "Strom",
+          "tree_row": "Stromoradie",
+          "tundra": "Tundra",
+          "valley": "Dolina",
+          "volcano": "Sopka",
+          "water": "Voda",
+          "wetland": "Mokrina",
+          "wood": "Les (neudržiavaný)",
+          "yes": "Prírodný prvok"
+        },
+        "office": {
+          "accountant": "Účtovník",
+          "administrative": "Administratíva",
+          "advertising_agency": "Reklamná agentúra",
+          "architect": "Architektonický ateliér",
+          "association": "Asociácia",
+          "company": "Súkromná firma",
+          "diplomatic": "Diplomatická kancelária",
+          "educational_institution": "Vzdelávacia inštitúcia",
+          "employment_agency": "Sprostredkovanie práce",
+          "energy_supplier": "Dodávateľ energií",
+          "estate_agent": "Realitná kancelária",
+          "financial": "Finančný úrad",
+          "government": "Vládny úrad",
+          "insurance": "Poisťovňa",
+          "it": "Počítačová kancelária",
+          "lawyer": "Právnická kancelária",
+          "logistics": "Kancelária prepravcu",
+          "newspaper": "Redakcia novín",
+          "ngo": "Mimovládna organizácia",
+          "notary": "Notár",
+          "religion": "Kancelária náboženskej organizácie",
+          "research": "Výskumná kancelária",
+          "tax_advisor": "Daňový poradca",
+          "telecommunication": "Telekomunikácie",
+          "travel_agent": "Cestovná kancelária",
+          "yes": "Úrad"
+        },
+        "place": {
+          "allotments": "Záhradkárska osada",
+          "archipelago": "Súostrovie",
+          "city": "Mesto nad 100 tis.",
+          "city_block": "Mestský blok",
+          "country": "Štát",
+          "county": "Okres",
+          "farm": "Farma",
+          "hamlet": "Osada do 200",
+          "house": "Budova",
+          "houses": "Budovy",
+          "island": "Ostrov",
+          "islet": "Ostrovček",
+          "isolated_dwelling": "Samota",
+          "locality": "Oblasť",
+          "municipality": "Obecný úrad",
+          "neighbourhood": "Štvrť",
+          "postcode": "PSČ",
+          "quarter": "Štvrť",
+          "region": "Región",
+          "sea": "More",
+          "square": "Námestie",
+          "state": "Štát",
+          "subdivision": "Pododdelenie",
+          "suburb": "Mestský obvod",
+          "town": "Mesto 10 tis.-100 tis.",
+          "village": "Obec 200-10 tis.",
+          "yes": "Miesto"
+        },
+        "railway": {
+          "abandoned": "Zrušená železničná trať",
+          "construction": "Železnica vo výstavbe",
+          "disused": "Nepoužívaná železnica",
+          "funicular": "Lanová dráha",
+          "halt": "Zastávka vlaku",
+          "junction": "Železničný uzol",
+          "level_crossing": "Železničný prejazd",
+          "light_rail": "Ľahká železnica",
+          "miniature": "Záhradná železnica",
+          "monorail": "Jednokoľajka",
+          "narrow_gauge": "Úzkokoľajná železnica",
+          "platform": "Železničné nástupište",
+          "preserved": "Historická železnica",
+          "proposed": "Navrhovaná železnica",
+          "spur": "Železničná vlečka",
+          "station": "Železničná stanica",
+          "stop": "Železničná zastávka",
+          "subway": "Metro",
+          "subway_entrance": "Vchod do metra",
+          "switch": "Železničná výhybka",
+          "tram": "Električka",
+          "tram_stop": "Zastávka električky",
+          "yard": "Železničné depo"
+        },
+        "shop": {
+          "alcohol": "Mimo povolenia",
+          "antiques": "Starožitnosti",
+          "art": "Obchod s umením",
+          "baby_goods": "Detský tovar",
+          "bag": "Kabelky",
+          "bakery": "Pekáreň",
+          "bathroom_furnishing": "Vybavenie kúpeľne",
+          "beauty": "Salón krásy",
+          "beverages": "Občerstvenie",
+          "bicycle": "Obchod s bicyklami",
+          "bookmaker": "Stávková kancelária",
+          "books": "Kníhkupectvo",
+          "boutique": "Butik",
+          "butcher": "Mäsiarstvo",
+          "car": "Predajňa automobilov",
+          "car_parts": "Mototechna",
+          "car_repair": "Autoservis",
+          "carpet": "Obchod s kobercami",
+          "charity": "Charitatívny obchod",
+          "cheese": "Obchod so syrmi",
+          "chemist": "Lekáreň",
+          "chocolate": "Predajňa čokolády",
+          "clothes": "Obchod s konfekciou",
+          "coffee": "Predajňa kávy",
+          "computer": "Obchod s počítačmi",
+          "confectionery": "Cukráreň",
+          "convenience": "Rozličný tovar",
+          "copyshop": "Copy centrum",
+          "cosmetics": "Parfuméria",
+          "deli": "Lahôdky",
+          "department_store": "Obchodný dom",
+          "discount": "Diskontná predajňa",
+          "doityourself": "Obchod pre kutilov",
+          "dry_cleaning": "Chemická čistiareň",
+          "electronics": "Elektro",
+          "erotic": "Erotický obchod",
+          "estate_agent": "Realitná kancelária",
+          "farm": "Poľnonákup",
+          "fashion": "Módny salón",
+          "florist": "Kvetinárstvo",
+          "food": "Obchod s potravinami",
+          "funeral_directors": "Pohrebníctvo",
+          "furniture": "Nábytok",
+          "garden_centre": "Záhradnícke centrum",
+          "general": "Zmiešaný tovar",
+          "gift": "Suveníry",
+          "greengrocer": "Obchod so zeleninou",
+          "grocery": "Potraviny",
+          "hairdresser": "Kaderníctvo,holičstvo",
+          "hardware": "Železiarstvo",
+          "hearing_aids": "Načúvacie prístroje",
+          "hifi": "Hi-Fi obchod",
+          "houseware": "Domáce potreby",
+          "ice_cream": "Zmrzlina",
+          "jewelry": "Zlatníctvo",
+          "kiosk": "Novinový stánok",
+          "laundry": "Práčovňa",
+          "lottery": "Lotéria",
+          "mall": "Pešia zóna",
+          "massage": "Masáž",
+          "mobile_phone": "Obchod s mobilnými telefónmi",
+          "motorcycle": "Motocyklový obchod",
+          "music": "Hudobniny",
+          "musical_instrument": "Hudobné nástroje",
+          "newsagent": "Novinový stánok",
+          "nutrition_supplements": "Doplnky výživy",
+          "optician": "Očná optika",
+          "organic": "Obchod so zdravou výživou",
+          "outdoor": "Turistický obchod",
+          "paint": "Farby-laky",
+          "pawnbroker": "Záložňa",
+          "perfumery": "Parfuméria",
+          "pet": "Chovprodukt",
+          "photo": "Fotokino",
+          "second_hand": "Bazár",
+          "shoes": "Obuv",
+          "sports": "Športový obchod",
+          "stationery": "Papierníctvo",
+          "supermarket": "Supermarket",
+          "tailor": "Krajčír",
+          "tobacco": "Trafika",
+          "toys": "Hračkárstvo",
+          "travel_agency": "Cestovná kancelária",
+          "tyres": "Pneuservis",
+          "vacant": "Prázdny obchod",
+          "variety_store": "Lacný tovar",
+          "video": "Videopožičovňa, predaj DVD",
+          "wine": "Vináreň",
+          "yes": "Obchod"
+        },
+        "tourism": {
+          "alpine_hut": "Vysokohorská chata",
+          "artwork": "Umelecké dielo",
+          "attraction": "Atrakcia",
+          "bed_and_breakfast": "Nocľah a raňajky",
+          "cabin": "Turistický zrub",
+          "camp_site": "Kemping",
+          "caravan_site": "Autokemping",
+          "chalet": "Veľká chata",
+          "gallery": "Galéria",
+          "guest_house": "Penzión",
+          "hostel": "Ubytovňa, internát",
+          "hotel": "Hotel",
+          "information": "Informácie",
+          "motel": "Motel",
+          "museum": "Múzeum",
+          "picnic_site": "Výletné miesto",
+          "theme_park": "Zábavný park",
+          "viewpoint": "Rozhľadňa, výhliadka",
+          "zoo": "Zoo"
+        },
+        "tunnel": {
+          "culvert": "Priepust",
+          "yes": "Tunel"
+        },
+        "waterway": {
+          "artificial": "Vodný kanál, prieplav",
+          "boatyard": "Lodenica",
+          "canal": "Kanál",
+          "dam": "Priehrada,hrádza",
+          "derelict_canal": "Opustený kanál",
+          "ditch": "Priekopa",
+          "dock": "Dok",
+          "drain": "Odvodňovací kanál",
+          "lock": "Plavebná komora",
+          "lock_gate": "Brána plavebnej komory",
+          "mooring": "Kotvisko",
+          "rapids": "Pereje",
+          "river": "Rieka",
+          "stream": "Potok",
+          "wadi": "Občasné riečisko(Vádí)",
+          "waterfall": "Vodopád",
+          "weir": "Splav",
+          "yes": "Vodná cesta"
+        }
+      },
+      "types": {
+        "cities": "Veľkomestá",
+        "places": "Miesta",
+        "towns": "Mestá"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Vybrať súbor"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Registrovať",
+        "update": "Aktualizovať"
+      },
+      "diary_comment": {
+        "create": "Komentár"
+      },
+      "diary_entry": {
+        "create": "Publikovať",
+        "update": "Aktualizovať"
+      },
+      "issue_comment": {
+        "create": "Pridať komentár"
+      },
+      "message": {
+        "create": "Odoslať"
+      },
+      "oauth2_application": {
+        "create": "Registrácia",
+        "update": "Aktualizovať"
+      },
+      "redaction": {
+        "create": "Vytvoriť revíziu",
+        "update": "Uložiť revíziu"
+      },
+      "trace": {
+        "create": "Nahrať",
+        "update": "Uložiť zmeny"
+      },
+      "user_block": {
+        "create": "Vytvoriť blok",
+        "update": "Aktualizácia bloku"
+      }
+    }
+  },
+  "issue_comments": {
+    "create": {
+      "comment_created": "Váš komentár bol úspešne ne vytvorený",
+      "issue_reassigned": "Váš komentár bol vytvorený a problém bol znova priradený"
+    }
+  },
+  "issues": {
+    "comments": {
+      "comment_from_html": "Komentár od používateľa {{user_link}} z {{comment_created_at}}"
+    },
+    "helper": {
+      "reportable_title": {
+        "diary_comment": "{{entry_title}}, komentár #{{comment_id}}",
+        "note": "Poznámka #{{note_id}}"
+      }
+    },
+    "index": {
+      "last_updated": "Posledná úprava",
+      "last_updated_time_ago_user_html": "{{time_ago}} používateľom {{user}}",
+      "link_to_reports": "Zobraziť hlásenia",
+      "not_updated": "Neaktualizované",
+      "reported_item": "Hlásená položka",
+      "reported_user": "Nahlásený používateľ",
+      "reports": "Hlásenia",
+      "reports_count_few": "{{count}} hlásenia}}",
+      "reports_count_many": "{{count}} hlásení}}",
+      "reports_count_one": "{{count}} hlásenie",
+      "reports_count_other": "{{count}} hlásení",
+      "search": "Hľadať",
+      "states": {
+        "ignored": "Ignorované",
+        "open": "Otvorené",
+        "resolved": "Vyriešené"
+      },
+      "status": "Stav",
+      "title": "Problémy",
+      "user_not_found": "Používateľ neexistuje"
+    },
+    "reports": {
+      "reported_by_html": "Nahlásené ako {{category}} používateľom {{user}} o {{updated_at}}"
+    },
+    "show": {
+      "comments_on_this_issue": "Komentáre k problému",
+      "ignore": "Ignorovať",
+      "last_resolved_at_html": "Naposledy vyriešené {{datetime}}",
+      "last_updated_at_html": "Naposledy aktualizované {{datetime}} používateľom {{displayname}}",
+      "new_reports": "Nové hlásenia",
+      "read_reports": "Prečítať hlásenia",
+      "reopen": "Znovu otvoriť",
+      "report_created_at_html": "Prvýkrát nahlásené {{datetime}}",
+      "reports_few": "{{count}} hlásenia",
+      "reports_many": "{{count}} hlásení",
+      "reports_of_this_issue": "Hlásenia o tomto probléme",
+      "reports_one": "{{count}} hlásenie",
+      "reports_other": "{{count}} hlásení",
+      "resolve": "Vyriešiť",
+      "title": "{{status}} Problém #{{issue_id}}"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "Okomentovať",
+        "hide_comment": "skryť",
+        "subscribe": "Odoberať",
+        "unhide_comment": "zobraziť",
+        "unsubscribe": "Zrušiť odoberanie"
+      }
+    },
+    "close": "Zavrieť",
+    "context": {
+      "add_note": "Pridať sem poznámku",
+      "centre_map": "Tu vycentrovať mapu",
+      "directions_from": "Navigovať odtiaľto",
+      "directions_to": "Navigovať sem",
+      "query_features": "Prieskum prvkov",
+      "show_address": "Zobraziť adresu"
+    },
+    "directions": {
+      "ascend": "Stúpanie",
+      "descend": "Klesanie",
+      "directions": "Trasa",
+      "distance": "Vzdialenosť",
+      "distance_km": "{{distance}}km",
+      "distance_m": "{{distance}}m",
+      "engines": {
+        "fossgis_osrm_bike": "Bicykel (OSRM)",
+        "fossgis_osrm_car": "Automobil (OSRM)",
+        "fossgis_osrm_foot": "Pešo (OSRM)",
+        "fossgis_valhalla_bicycle": "Bicykel (Valhalla)",
+        "fossgis_valhalla_car": "Automobil (Valhalla)",
+        "fossgis_valhalla_foot": "Pešo (Valhalla)",
+        "graphhopper_bicycle": "Bicykel (GraphHopper)",
+        "graphhopper_car": "Automobil (GraphHopper)",
+        "graphhopper_foot": "Pešo (GraphHopper)"
+      },
+      "errors": {
+        "no_place": "Ospravedlňujeme sa - nepodarilo sa nájsť '{{place}}'.",
+        "no_route": "Nepodarilo sa nájsť trasu medzi týmito miestami."
+      },
+      "instructions": {
+        "against_oneway_without_exit": "Choďte proti jednosmerke na {{name}}",
+        "continue_without_exit": "Pokračujte na {{name}}",
+        "courtesy": "Trasa získaná vďaka {{link}}",
+        "destination_without_exit": "Ste v cieli",
+        "end_oneway_without_exit": "Koniec jednosmernej cesty na {{name}}",
+        "endofroad_left_without_exit": "Na konci cesty odbočte vľavo na {{name}}",
+        "endofroad_right_without_exit": "Na konci cesty odbočte vpravo na {{name}}",
+        "exit_counts": {
+          "eighth": "8.",
+          "fifth": "5.",
+          "first": "1.",
+          "fourth": "4.",
+          "ninth": "9.",
+          "second": "2.",
+          "seventh": "7.",
+          "sixth": "6.",
+          "tenth": "10.",
+          "third": "3."
+        },
+        "exit_roundabout": "Opustite kruhový objazd na {{name}}",
+        "follow_without_exit": "Sledujte {{name}}",
+        "fork_left_without_exit": "Na rázcestí odbočte vľavo na {{name}}",
+        "fork_right_without_exit": "Na rázcestí odbočte vpravo na {{name}}",
+        "leave_roundabout_without_exit": "Opustite kruhový objazd - {{name}}",
+        "merge_left_without_exit": "Pripojte sa vľavo na {{name}}",
+        "merge_right_without_exit": "Pripojte sa vpravo na {{name}}",
+        "offramp_left": "Použite zjazd vľavo",
+        "offramp_left_with_directions": "Použite nájazd vľavo smerom k {{directions}}",
+        "offramp_left_with_exit": "Použite výjazd {{exit}} vľavo",
+        "offramp_left_with_exit_directions": "Použite výjazd {{exit}} vľavo smerom k {{directions}}",
+        "offramp_left_with_exit_name": "Použite výjazd {{exit}} vľavo na {{name}}",
+        "offramp_left_with_exit_name_directions": "Použite výjazd {{exit}} vľavo na {{name}}, smerom k {{directions}}",
+        "offramp_left_with_name": "Použite zjazd vľavo na {{name}}",
+        "offramp_left_with_name_directions": "Použite zjazd vľavo na {{name}}, smerom na {{directions}}",
+        "offramp_right": "Použite zjazd vpravo",
+        "offramp_right_with_directions": "Použite nájazd vpravo smerom k {{directions}}",
+        "offramp_right_with_exit": "Použite výjazd {{exit}} vpravo",
+        "offramp_right_with_exit_directions": "Použite výjazd {{exit}} vpravo smerom k {{directions}}",
+        "offramp_right_with_exit_name": "Použite výjazd {{exit}} vpravo na {{name}}",
+        "offramp_right_with_exit_name_directions": "Použite výjazd {{exit}} vpravo na {{name}}, smerom k {{directions}}",
+        "offramp_right_with_name": "Použite zjazd vpravo na {{name}}",
+        "offramp_right_with_name_directions": "Použite zjazd vpravo na {{name}}, smerom na {{directions}}",
+        "onramp_left": "Odbočte vľavo na nájazd",
+        "onramp_left_with_directions": "Odbočte vľavo na nájazd smerom na {{directions}}",
+        "onramp_left_with_name_directions": "Odbočte vľavo na nájazd na {{name}}, smerom na {{directions}}",
+        "onramp_left_without_directions": "Odbočte vľavo na nájazd",
+        "onramp_left_without_exit": "Odbočte vľavo na nájazd na {{name}}",
+        "onramp_right": "Odbočte vpravo na nájazd",
+        "onramp_right_with_directions": "Odbočte vpravo na nájazd smerom na {{directions}}",
+        "onramp_right_with_name_directions": "Odbočte vpravo na nájazd na {{name}}, smerom na {{directions}}",
+        "onramp_right_without_directions": "Odbočte vpravo na nájazd",
+        "onramp_right_without_exit": "Odbočte vpravo na nájazd na {{name}}",
+        "roundabout_with_exit": "Na kruhovom objazde použite výjazd {{exit}} na {{name}}",
+        "roundabout_with_exit_ordinal": "Na kruhovom objazde použite {{exit}} výjazd na {{name}}",
+        "roundabout_without_exit": "Z kruhového objazdu použite výjazd na {{name}}",
+        "sharp_left_without_exit": "Ostro doľava na {{name}}",
+        "sharp_right_without_exit": "Ostro doprava na {{name}}",
+        "slight_left_without_exit": "Mierne vľavo na {{name}}",
+        "slight_right_without_exit": "Mierne vpravo na {{name}}",
+        "start_without_exit": "Začnite na {{name}}",
+        "stay_roundabout_without_exit": "Zostaňte na kruhovom objazde - {{name}}",
+        "turn_left_without_exit": "Odbočte vľavo na {{name}}",
+        "turn_right_without_exit": "Odbočte vpravo na {{name}}",
+        "unnamed": "nepomenované",
+        "uturn_without_exit": "Otočte sa na {{name}}",
+        "via_point_without_exit": "(bod trasy)"
+      },
+      "time": "Čas"
+    },
+    "edit_help": "Posuňte mapu a priblížte ju na miesto, ktoré chcete upraviť, potom kliknite sem.",
+    "embed": {
+      "report_problem": "Nahlásiť problém"
+    },
+    "key": {
+      "title": "Legenda",
+      "tooltip": "Legenda",
+      "tooltip_disabled": "Legenda je dostupná nie je dostupná pre túto vrstvu"
+    },
+    "map": {
+      "andy_allan": "Andyho Allana",
+      "base": {
+        "cycle_map": "Cyklomapa",
+        "cyclosm": "CyclOSM",
+        "hot": "Humanitárna",
+        "opnvkarte": "ÖPNVKarte",
+        "standard": "Štandardná",
+        "transport_map": "Dopravná mapa"
+      },
+      "cyclosm_credit": "Štýl dlaždíc od {{cyclosm_link}} poskytuje {{osm_france_link}}",
+      "hotosm_credit": "Štýl dlaždíc od {{hotosm_link}} poskytuje {{osm_france_link}}",
+      "hotosm_name": "Humanitárneho tímu OpenStreetMap",
+      "layers": {
+        "data": "Mapové podklady",
+        "gps": "Verejné GPS stopy",
+        "header": "Mapové vrstvy",
+        "notes": "Poznámky k mape",
+        "overlays": "Zapnúť vrstvy pre ladenie mapy",
+        "title": "Vrstvy"
+      },
+      "locate": {
+        "feetPopup_few": "Ste menej než {{count}} stopy od tohto bodu",
+        "feetPopup_many": "Ste menej než {{count}} stôp od tohto bodu",
+        "feetPopup_one": "Ste menej než {{count}} stopu od tohto bodu",
+        "feetPopup_other": "Ste menej než {{count}} stôp od tohto bodu",
+        "metersPopup_few": "Ste menej než {{count}} metre od tohto bodu",
+        "metersPopup_many": "Ste menej než {{count}} metrov od tohto bodu",
+        "metersPopup_one": "Ste menej než {{count}} meter od tohto bodu",
+        "metersPopup_other": "Ste menej než {{count}} metrov od tohto bodu",
+        "title": "Zobraziť moju polohu"
+      },
+      "make_a_donation": "Pošlite príspevok",
+      "memomaps": "MeMoMaps",
+      "openstreetmap_contributors": "Prispievatelia OpenStreetMap",
+      "opnvkarte_credit": "Dlaždice s dovolením od {{memomaps_link}}",
+      "osm_france": "OpenStreetMap Francúzsko",
+      "thunderforest_credit": "Dlaždice s dovolením od {{thunderforest_link}}",
+      "website_and_api_terms": "Podmienky webstránky a API",
+      "zoom": {
+        "in": "Priblížiť",
+        "out": "Oddialiť"
+      }
+    },
+    "query": {
+      "error": "Chyba pri pripájaní k {{server}}: {{error}}",
+      "node": "Uzol",
+      "nothing_found": "Neboli nájdené žiadne objekty",
+      "relation": "Relácia",
+      "timeout": "Vypršal čas pri pripájaní k {{server}}",
+      "way": "Cesta"
+    },
+    "share": {
+      "cancel": "Zrušiť",
+      "center_marker": "Centrovať mapu na značku",
+      "custom_dimensions": "Nastaviť vlastné rozmery",
+      "download": "Stiahnuť",
+      "embed": "HTML",
+      "format": "Formát:",
+      "geo_uri": "Geo URI",
+      "image": "Obrázok",
+      "image_dimensions": "Obrázok bude zobrazovať štandardnú vrstvu s rozmermi {{width}} x {{height}}",
+      "include_marker": "Vrátane značky",
+      "link": "Odkaz alebo HTML",
+      "long_link": "Odkaz",
+      "only_standard_layer": "Ako obrázok je možné exportovať iba štandardnú vrstvu",
+      "paste_html": "HTML pre vloženie na webovú stránku",
+      "scale": "Mierka:",
+      "short_link": "Krátky odkaz",
+      "short_url": "Krátke URL",
+      "title": "Zdieľať",
+      "view_larger_map": "Zobraziť väčšiu mapu"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "Pre vloženie poznámky priblížte mapu",
+      "createnote_tooltip": "Pridať do mapy poznámku",
+      "edit_disabled_tooltip": "Pre editáciu priblížte mapu",
+      "edit_tooltip": "Upraviť mapu",
+      "map_data_zoom_in_tooltip": "Priblížením zobrazíte údaje mapy",
+      "map_notes_zoom_in_tooltip": "Priblížte mapu, aby ste videli poznámky",
+      "queryfeature_disabled_tooltip": "Pre prieskum prvkov priblížte",
+      "queryfeature_tooltip": "Prieskum prvkov"
+    }
+  },
+  "layouts": {
+    "about": "O projekte",
+    "communities": "Komunity",
+    "community": "Komunita",
+    "community_blogs": "Komunitné blogy",
+    "community_blogs_title": "Blogy členov komunity OpenStreetMap",
+    "copyright": "Autorské práva",
+    "data": "Údaje",
+    "donate": "Podporte OpenStreetMap {{link}} Fondu na obnovu hardwaru",
+    "edit": "Upraviť",
+    "edit_with": "Upraviť pomocou {{editor}}",
+    "export": "Export",
+    "export_data": "Export údajov",
+    "gps_traces": "GPS stopy",
+    "gps_traces_tooltip": "Správa GPS stôp",
+    "help": "Pomocník",
+    "history": "História",
+    "home": "Domov",
+    "hosting_partners_html": "Hosting podporuje {{ucl}}, {{fastly}}, {{bytemark}} a ďalší {{partners}}.",
+    "intro_2_create_account": "Založte si konto",
+    "intro_header": "Vitajte v OpenStreetMap!",
+    "intro_text": "OpenStreetMap je mapa sveta, vytvorené ľuďmi ako vy, voľne využiteľná pod slobodnou licenciou.",
+    "issues": "Problémy",
+    "learn_more": "Viac info",
+    "log_in": "Prihlásiť sa",
+    "logo": {
+      "alt_text": "Logo OpenStreetMap"
+    },
+    "logout": "Odhlásiť sa",
+    "make_a_donation": {
+      "text": "Darovanie",
+      "title": "Podporte OpenStreetMap finančným príspevkom"
+    },
+    "more": "Ďalšie",
+    "osm_offline": "OpenStreetMap databáza je teraz offline, zatiaľ čo potrebná údržba databázy naďalej prebieha.",
+    "osm_read_only": "OpenStreetMap databáza je teraz len v móde čítania (bez možnosti zapisovania), zatiaľ čo potrebná údržba databázy naďalej prebieha.",
+    "partners_bytemark": "Bytemark Hosting",
+    "partners_fastly": "Fastly",
+    "partners_partners": "partneri",
+    "partners_ucl": "UCL",
+    "sign_up": "Zaregistrujte sa",
+    "start_mapping": "Začať mapovať",
+    "tag_line": "Slobodná wiki-mapa sveta",
+    "tou": "Podmienky používania",
+    "user_diaries": "Denníky používateľov",
+    "user_diaries_tooltip": "Zobraziť denníky používateľov"
+  },
+  "messages": {
+    "create": {
+      "limit_exceeded": "V poslednej dobe ste poslali veľa správ. Pred rozosielaním ďalších prosím chvíľu počkajte.",
+      "message_sent": "Správa odoslaná"
+    },
+    "destroy": {
+      "destroyed": "Správa vymazaná"
+    },
+    "heading": {
+      "my_inbox": "Doručená pošta",
+      "my_outbox": "Odoslané"
+    },
+    "inbox": {
+      "messages": "Máte {{new_messages}} a {{old_messages}}",
+      "new_messages_few": "{{count}} nové správy",
+      "new_messages_one": "{{count}} novú správu",
+      "new_messages_other": "{{count}} nových správ",
+      "no_messages_yet_html": "Zatiaľ nemáte žiadne správy. Čo napr. kontaktovať {{people_mapping_nearby_link}}?",
+      "old_messages_few": "{{count}} staré správy",
+      "old_messages_one": "{{count}} starú správu",
+      "old_messages_other": "{{count}} starých správ",
+      "people_mapping_nearby": "používateľov v okolí",
+      "title": "Doručená pošta"
+    },
+    "mark": {
+      "as_read": "Správa označená ako prečítaná",
+      "as_unread": "Správa označená ako neprečítaná"
+    },
+    "message_summary": {
+      "destroy_button": "Zmazať",
+      "read_button": "Označiť ako prečítané",
+      "reply_button": "Odpovedať",
+      "unread_button": "Označiť ako neprečítané"
+    },
+    "messages_table": {
+      "date": "Dátum",
+      "from": "Od",
+      "subject": "Predmet",
+      "to": "Komu"
+    },
+    "new": {
+      "back_to_inbox": "Späť do prijatých správ",
+      "send_message_to_html": "Poslať novú správu používateľovi {{name}}",
+      "title": "Odoslať správu"
+    },
+    "no_such_message": {
+      "body": "Ľutujeme, neexistuje správa s takým ID.",
+      "heading": "Zadaná správa neexistuje",
+      "title": "Zadaná správa neexistuje"
+    },
+    "outbox": {
+      "messages_few": "Máte {{count}} odeslané správy",
+      "messages_one": "Máte {{count}} odoslanú správu",
+      "messages_other": "Máte {{count}} odoslaných správ",
+      "no_sent_messages_html": "Nemáte odoslané správy. Prečo ste sa nespojili s niekým z {{people_mapping_nearby_link}}?",
+      "people_mapping_nearby": "blízko mapujúci ľudia",
+      "title": "Odoslaná pošta"
+    },
+    "reply": {
+      "wrong_user": "Ste prihlásený ako „{{user}}“, ale správa, na ktorú chcete odpovedať, nebola odoslaná tomuto používateľovi. Ak na ňu chcete odpovedať, prihláste sa pod správnym kontom."
+    },
+    "sent_message_summary": {
+      "destroy_button": "Zmazať"
+    },
+    "show": {
+      "back": "Späť",
+      "destroy_button": "Zmazať",
+      "reply_button": "Odpovedať",
+      "title": "Čítať správu",
+      "unread_button": "Označiť ako neprečítané",
+      "wrong_user": "Ste prihlásený ako „{{user}}“, ale správa, ktorú si chcete prečítať, nie je ani od, ani pre tohoto používateľa. Ak si ju chcete prečítať, prihláste sa pod príslušným kontom."
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Vytvorené",
+      "creator": "Autor",
+      "description": "Popis",
+      "heading": "Poznámky používateľa {{user}}",
+      "id": "ID",
+      "last_changed": "Posledná zmena",
+      "no_notes": "Žiadne poznámky",
+      "subheading_html": "Poznámky vytvorené alebo komentované používateľom {{user}}",
+      "title": "Poznámky vytvorené alebo komentované používateľom {{user}}"
+    },
+    "new": {
+      "add": "Pridať poznámku",
+      "advice": "Vaša poznámka je verejná a môže slúžiť na úpravu mapy, preto nevkladajte žiadne osobné údaje ani informácie z máp alebo databáz chránených autorskými právami.",
+      "intro": "Zahliadli ste chybu alebo že niečo chýba? Dajte to vedieť ostatným používateľom, aby sme to mohli opraviť. Umiestnite značku na správnu pozíciu a zapíšte poznámku na vysvetlenie problému.",
+      "title": "Nová poznámka"
+    },
+    "show": {
+      "anonymous_warning": "Táto poznámka zahŕňa komentáre anonymných používateľov, ktoré by sa mali nezávisle preveriť.",
+      "closed_title": "Vyriešená chyba #{{note_name}}",
+      "comment": "Okomentovať",
+      "comment_and_resolve": "Okomentovať a vyriešiť",
+      "description": "Popis",
+      "disappear_date_html": "Táto vyriešená poznámka zmizne z mapy o {{disappear_in}}.",
+      "event_closed_by_anonymous_html": "Vyriešené anonymným používateľom {{time_ago}}",
+      "event_closed_by_html": "Vyriešené používateľom {{user}} {{time_ago}}",
+      "event_commented_by_anonymous_html": "Komentár od anonymného používateľa {{time_ago}}",
+      "event_commented_by_html": "Komentár od používateľa {{user}} {{time_ago}}",
+      "event_hidden_by_html": "Skryté používateľom {{user}} {{time_ago}}",
+      "event_opened_by_anonymous_html": "Vytvorené anonymným používateľom {{time_ago}}",
+      "event_opened_by_html": "Vytvorené používateľom {{user}} {{time_ago}}",
+      "event_reopened_by_anonymous_html": "Znovu aktivované anonymným používateľom {{time_ago}}",
+      "event_reopened_by_html": "Znovu aktivované používateľom {{user}} {{time_ago}}",
+      "hidden_title": "Skrytá poznámka {{note_name}}",
+      "hide": "Skryť",
+      "open_title": "Nevyriešená chyba #{{note_name}}",
+      "other_problems_resolve": "Pre všetky ostatné problémy s poznámkou, prosím vyriešte ju sami komentárom.",
+      "other_problems_resolved": "Pre všetky ostatné problémy je vyriešenie dostatočné.",
+      "reactivate": "Opätovne aktivovať",
+      "report": "nahlásiť túto poznámku",
+      "report_link_html": "Ak táto poznámka obsahuje citlivé údaje, ktoré by mali byť odstránené, môžete {{link}}.",
+      "resolve": "Vyriešiť",
+      "title": "Poznámka: {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_gpx": "čítať vaše súkromné GPS stopy.",
+      "allow_read_prefs": "čítať vaše osobné nastavenia.",
+      "allow_to": "Klientskej aplikácii umožniť:",
+      "allow_write_api": "upravovať mapu.",
+      "allow_write_diary": "vytvoriť položky denníka, poznámok a priateľov.",
+      "allow_write_gpx": "nahrať GPS stopy.",
+      "allow_write_notes": "meniť poznámky.",
+      "allow_write_prefs": "upraviť vaše osobné nastavenia.",
+      "grant_access": "Udeliť prístup",
+      "request_access_html": "Aplikácia {{app_name}} požaduje prístup k vášmu kontu ({{user}}). Vyberte si, či si želáte, aby mala aplikácia nasledujúce oprávnenie. Môžete zvoliť ľubovoľný počet oprávnení."
+    },
+    "authorize_failure": {
+      "denied": "Odopreli ste aplikácii {{app_name}} prístup k vášmu účtu."
+    },
+    "authorize_success": {
+      "allowed_html": "Udelili ste aplikácii {{app_name}} prístup k vášmu účtu.",
+      "verification": "Váš overovací kód je {{code}}."
+    },
+    "permissions": {
+      "missing": "Aplikácii ste nepovolili prístup k tejto funkcii"
+    },
+    "revoke": {
+      "flash": "Prístup pre aplikáciu {{application}} bol odvolaný."
+    },
+    "scopes": {
+      "skip_authorization": "Automaticky schváliť aplikáciu",
+      "write_api": "Upravovať mapu",
+      "write_notes": "Meniť poznámky",
+      "write_prefs": "Meniť osobné nastavenia"
+    }
+  },
+  "oauth2_applications": {
+    "application": {
+      "confirm_delete": "Odstrániť túto aplikáciu?"
+    },
+    "edit": {
+      "title": "Upraviť aplikáciu"
+    },
+    "index": {
+      "new": "Zaregistrovať novú aplikáciu",
+      "no_applications_html": "Máte nejakú aplikáciu, využívajúcu štandard {{oauth2}}, ktorá by s nami mala spolupracovať? Aplikáciu je potrebné najprv zaregistrovať, až potom bude môcť posielať OAuth požiadavky k tejto službe.",
+      "permissions": "Povolenia"
+    },
+    "new": {
+      "title": "Zaregistrovať novú aplikáciu"
+    },
+    "not_found": {
+      "sorry": "Ľutujeme, takúto aplikáciu sa nepodarilo nájsť."
+    },
+    "show": {
+      "confirm_delete": "Odstrániť túto aplikáciu?",
+      "permissions": "Povolenia"
+    }
+  },
+  "oauth2_authorizations": {
+    "new": {
+      "introduction": "Povoliť {{application}} prístup k vášmu účtu s nasledovnými oprávneniami?"
+    },
+    "show": {
+      "title": "Autorizačný kód"
+    }
+  },
+  "oauth2_authorized_applications": {
+    "application": {
+      "revoke": "Odobrať prístup"
+    },
+    "index": {
+      "application": "Aplikácia",
+      "no_applications_html": "Zatiaľ ste nepovolili žiadne {{oauth2}} aplikácie.",
+      "permissions": "Oprávnenia",
+      "title": "Moje autorizované aplikácie"
+    }
+  },
+  "oauth_clients": {
+    "create": {
+      "flash": "Uspešne registrované informácie"
+    },
+    "destroy": {
+      "flash": "Registrácia klientskej aplikácie bola zrušená"
+    },
+    "edit": {
+      "title": "Upraviť aplikáciu"
+    },
+    "form": {
+      "requests": "Žiadať používateľov o nasledujúce oprávnenia:"
+    },
+    "index": {
+      "application": "Názov aplikácie",
+      "issued_at": "Vydané",
+      "list_tokens": "Nasledovné tokeny boli vo vašom mene vydané aplikáciám:",
+      "my_apps": "Moje klientské aplikácie",
+      "my_tokens": "Moje autorizované aplikácie",
+      "no_apps_html": "Máte nejakú aplikáciu, využívajúcu štandard {{oauth}}, ktorá by s nami mala spolupracovať? Aplikáciu je potrebné najprv zaregistrovať, až potom sem bude môcť posielať OAuth požiadavky.",
+      "oauth": "OAuth",
+      "register_new": "Zaregistrovať aplikáciu",
+      "registered_apps": "Máte zaregistrované nasledujúce klientské aplikácie:",
+      "revoke": "Odvolať!",
+      "title": "Moje OAuth nastavenia"
+    },
+    "new": {
+      "title": "Registrácia novej aplikácie"
+    },
+    "not_found": {
+      "sorry": "Je nám ľúto, že {{type}} nemožno nájsť."
+    },
+    "show": {
+      "access_url": "Access Token URL:",
+      "authorize_url": "Authorise URL:",
+      "confirm": "Ste si istý?",
+      "delete": "Odstrániť klienta",
+      "edit": "Upraviť detaily",
+      "key": "Consumer Key:",
+      "requests": "Žiadam nasledujúce oprávnenia od používateľa:",
+      "secret": "Consumer Secret:",
+      "support_notice": "Podporujeme HMAC-SHA1 (odporúča sa) a podpisy RSA-SHA1.",
+      "title": "Podrobnosti OAuth pre {{app_name}}",
+      "url": "Request Token URL:"
+    },
+    "update": {
+      "flash": "Úspešne aktualizované informácie o klientovi"
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "Ľutujeme, túto e-mailovú adresu nie je možné nájsť.",
+      "notice email on way": "Škoda zabudnutého hesla :-( ale e-mail je už na ceste, takže si čoskoro budete môcť zvoliť nové."
+    },
+    "edit": {
+      "flash token bad": "Zodpovedajúci kód nebol nájdený, skontrolujte prípadne URL.",
+      "heading": "Resetnúť heslo pre {{user}}",
+      "reset": "Vynulovať heslo",
+      "title": "Resetnúť heslo"
+    },
+    "new": {
+      "email address": "E-mailová adresa:",
+      "heading": "Zabudli ste heslo?",
+      "help_text": "Vložte emailovú adresu, ktorú ste uviedli pri registrácii, pošleme vám odkaz, pomocou ktorého si budete môcť nastaviť nové heslo.",
+      "new password button": "Resetnúť heslo",
+      "title": "Stratené heslo"
+    },
+    "update": {
+      "flash changed": "Vaše heslo bolo zmenené."
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Zrušiť",
+      "save": "Aktualizovať preferencie",
+      "title": "Upraviť preferencie"
+    },
+    "show": {
+      "edit_preferences": "Upraviť preferencie",
+      "preferred_editor": "Preferovaný editor",
+      "preferred_languages": "Preferované jazyky",
+      "title": "Moje predvoľby"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Zrušiť",
+      "delete image": "Odstrániť aktuálny obrázok",
+      "gravatar": {
+        "gravatar": "Používať Gravatar",
+        "what_is_gravatar": "Čo je Gravatar?"
+      },
+      "home location": "Domovské miesto",
+      "image": "Obrázok",
+      "image size hint": "(najvhodnejšie sú štvorcové obrázky s veľkosťou najmenej 100×100)",
+      "keep image": "Ponechať aktuálny obrázok",
+      "new image": "Pridať obrázok:",
+      "no home location": "Nezadali ste svoje domovské miesto.",
+      "replace image": "Nahradiť aktuálny obrázok",
+      "save": "Aktualizovať profil",
+      "title": "Upraviť profil",
+      "update home location on click": "Aktualizovať domovské miesto kliknutím na mapu?"
+    },
+    "update": {
+      "failure": "Nepodarilo sa upraviť profil."
+    }
+  },
+  "redactions": {
+    "create": {
+      "flash": "Revízia vytvorená."
+    },
+    "destroy": {
+      "error": "Pri zrušení revízie sa vyskytla chyba.",
+      "flash": "Revízia zrušená.",
+      "not_empty": "Revízia nie je prázdna. Pred zrušením tejto revízie zrušte skrytie všetkých verzií patriacich do tejto revízie."
+    },
+    "edit": {
+      "heading": "Upraviť revíziu",
+      "title": "Upraviť revíziu"
+    },
+    "index": {
+      "empty": "Žiadne revízie na zobrazenie.",
+      "heading": "Zoznam revízií",
+      "title": "Zoznam revízií"
+    },
+    "new": {
+      "heading": "Zadajte informácie k novej revízii.",
+      "title": "Vytváranie nových revízií"
+    },
+    "show": {
+      "confirm": "Ste si istý?",
+      "description": "Popis:",
+      "destroy": "Odstrániť túto revíziu",
+      "edit": "Upraviť túto revíziu",
+      "heading": "Zobrazujem revíziu \"{{title}}\"",
+      "title": "Zobrazenie revízie",
+      "user": "Autor:"
+    },
+    "update": {
+      "flash": "Zmeny boli uložené."
+    }
+  },
+  "reports": {
+    "create": {
+      "provide_details": "Uveďte, prosím, potrebné detaily",
+      "successful_report": "Vaše hlásenie bolo prijaté"
+    },
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "offensive_label": "Tento komentár denníka je obscénny/urážlivý",
+          "other_label": "Iné",
+          "spam_label": "Tento komentár denníka je/obsahuje spam",
+          "threat_label": "Tento komentár denníka obsahuje vyhrážku"
+        },
+        "diary_entry": {
+          "offensive_label": "Tento záznam denníka je obscénny/urážlivý",
+          "other_label": "Iné",
+          "spam_label": "Tento záznam denníka je/obsahuje spam",
+          "threat_label": "Tento záznam denníka obsahuje vyhrážku"
+        },
+        "note": {
+          "abusive_label": "Tato poznámka je urážlivá",
+          "other_label": "Iné",
+          "personal_label": "Táto poznámka obsahuje osobné údaje",
+          "spam_label": "Tato poznámka je spam"
+        },
+        "user": {
+          "offensive_label": "Profil používateľa je obscénny alebo urážlivý",
+          "other_label": "Iné",
+          "spam_label": "Profil používateľa je alebo obsahuje spam",
+          "threat_label": "Používateľ sa v profile vyhráža",
+          "vandal_label": "Používateľ je vandal"
+        }
+      },
+      "disclaimer": {
+        "intro": "Pred nahlásením používateľa moderátorom sa prosím uistite, že",
+        "not_just_mistake": "Ste si istý, že sa nejedná iba o omyl",
+        "resolve_with_user": "Pokúsili ste sa problém vyriešiť priamo s používateľom, ktorého chcete nahlásiť.",
+        "unable_to_fix": "Nedokážete problém vyriešiť svojpomocne ani s pomocou ostatných používateľov"
+      },
+      "missing_params": "Nepodarilo sa vytvoriť nové hlásenie",
+      "title_html": "Nahlásiť {{link}}"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "heading": "Odhlásenie z OpenStreetMap",
+      "logout_button": "Odhlásenie",
+      "title": "Odhlásenie"
+    },
+    "new": {
+      "auth failure": "Ľutujeme, s uvedenými údajmi sa nie je možné prihlásiť.",
+      "auth_providers": {
+        "aol": {
+          "alt": "Prihlásenie sa pomocou AOL OpenID",
+          "title": "Prihlásenie sa pomocou AOL"
+        },
+        "facebook": {
+          "alt": "Prihlásenie sa pomocou účtu na Facebooku",
+          "title": "Prihlásenie sa pomocou Facebooku"
+        },
+        "github": {
+          "alt": "Prihlásiť sa pomocou účtu na GitHube",
+          "title": "Prihlásiť sa cez GitHub"
+        },
+        "google": {
+          "alt": "Prihlásenie sa pomocou Google OpenID",
+          "title": "Prihlásenie sa pomocou Google"
+        },
+        "microsoft": {
+          "alt": "Prihlásenie sa pomocou účtu Windows Live",
+          "title": "Prihlásenie sa pomocou Windows Live"
+        },
+        "openid": {
+          "alt": "Prihlásenie sa pomocou OpenID URL",
+          "title": "Prihlásenie sa pomocou OpenID"
+        },
+        "wikipedia": {
+          "title": "Prihlásiť sa pomocou Wikipédie"
+        },
+        "wordpress": {
+          "alt": "Prihlásenie sa pomocou Wordpress OpenID",
+          "title": "Prihlásenie sa pomocou Wordpress"
+        }
+      },
+      "email or username": "E-mailová adresa alebo prihlasovacie meno:",
+      "heading": "Prihlásenie",
+      "login_button": "Prihlásiť",
+      "lost password link": "Stratili ste heslo?",
+      "no account": "Nemáte konto?",
+      "openid_html": "{{logo}} OpenID:",
+      "openid_logo_alt": "Prihlásenie pomocou OpenID",
+      "password": "Heslo:",
+      "register now": "Zaregistrujte se",
+      "remember": "Zapamätať",
+      "title": "Prihlásiť sa",
+      "with external": "Prípadne použite na prihlásenie služby tretích strán:"
+    },
+    "suspended_flash": {
+      "contact_support_html": "Ak to chcete prediskutovať, kontaktujte {{support_link}}.",
+      "support": "podpora",
+      "suspended": "Ľutujeme, váš účet bol pozastavený z dôvodu podozrivej aktivity."
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "alt": "Alternatívny text",
+      "first": "Prvá položka",
+      "heading": "Nadpis",
+      "heading_html": "Formátovanie pomocou {{kramdown_link}}",
+      "headings": "Nadpisy",
+      "image": "Obrázok",
+      "link": "Odkaz",
+      "ordered": "Číslovaný zoznam",
+      "second": "Druhá položka",
+      "subheading": "Podnadpis",
+      "text": "Text",
+      "unordered": "Neusporiadaný zoznam",
+      "url": "URL"
+    },
+    "richtext_field": {
+      "edit": "Upraviť",
+      "preview": "Náhľad"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_1_html": "Komunita OpenStreetMap je rozmanitá, zanietená a každý deň sa rozrastá. Medzi našimi prispievateľmi nájdete amatérskych mapovačov, profesionálov z oblasti GIS, technikov spravujúcich servery OSM, humanitárnych pracovníkov mapujúcich oblasti zasiahnuté nešťastím a mnohých ďalších. \nAk sa chcete o komunite dozvedieť viac, prelistujte si {{osm_blog_link}}, {{user_diaries_link}}, {{community_blogs_link}} a webovú stránku {{osm_foundation_link}}.",
+      "community_driven_community_blogs": "komunitné blogy",
+      "community_driven_osm_blog": "OpenStreetMap Blog",
+      "community_driven_osm_foundation": "Nadácia OSM",
+      "community_driven_title": "Riadené komunitou",
+      "community_driven_user_diaries": "denníky používateľov",
+      "heading_html": "{{copyright}}prispievatelia {{br}} OpenStreetMap",
+      "lede_text": "OpenStreetMap tvorí komunita používateľov, ktorí pridávajú a udržiavajú údaje o cestách, turistických trasách, kaviarňach, železničných staniciach a mnohých ďalších miestach na celom svete.",
+      "legal_1_1_aup": "Pravidlám prijateľného používania",
+      "legal_1_1_html": "Tento web a mnoho ďalších súvisiacich služieb za komunitu oficiálne prevádzkuje {{openstreetmap_foundation_link}} (OSMF). Použitie všetkých služieb prevádzkovaných OSMF podlieha našim {{terms_of_use_link}}, {{aup_link}} a našim {{privacy_policy_link}}.",
+      "legal_1_1_openstreetmap_foundation": "Nadácia OpenStreetMap",
+      "legal_1_1_privacy_policy": "Pravidlám ochrany osobných údajov",
+      "legal_1_1_terms_of_use": "Podmienkam použitia",
+      "legal_2_1_contact_the_osmf": "kontaktujte OSMF",
+      "legal_2_1_html": "Prosím, {{contact_the_osmf_link}}\nak máte otázky týkajúce sa licencií, autorských práv alebo iné právne otázky.",
+      "legal_2_2_html": "OpenStreetMap, logo s lupou a \"State of the Map\" sú {{registered_trademarks_link}}.",
+      "legal_2_2_registered_trademarks": "registrované ochranné známky OSMF",
+      "legal_title": "Právne informácie",
+      "local_knowledge_html": "OpenStreetMap kladie dôraz na miestnu znalosť. Prispievatelia využívajú letecké snímky, GPS prístroje a klasické mapy, aby overili, že OSM sú presné a aktuálne.",
+      "local_knowledge_title": "Miestna znalosť",
+      "next": "Ďalej",
+      "open_data_1_html": "OpenStreetMap znamenajú {{open_data}}: môžete ich používať na ľubovoľný účel, pokiaľ uvediete ako autora OpenStreetMap a jeho prispievateľov. Ak dáta meníte alebo ich určitými spôsobmi rozširujete, výsledok môžete šíriť len pod rovnakou licenciou. Podrobnosti nájdete na stránke {{copyright_license_link}}.",
+      "open_data_copyright_license": "Autorské práva a licencie",
+      "open_data_open_data": "otvorené dáta",
+      "open_data_title": "Otvorené dáta",
+      "partners_title": "Partneri",
+      "used_by_html": "{{name}} poskytuje mapové dáta pre tisícky webových stránok, mobilných aplikácií a hardvérových zariadení"
+    },
+    "any_questions": {
+      "title": "Akékoľvek otázky?"
+    },
+    "communities": {
+      "lede_text": "Ľudia z celého sveta prispievajú do alebo používajú OpenStreetMap.\nZatiaľ čo mnohí sa zúčastňujú ako jednotlivci, iní vytvorili komunity.\nTieto skupiny majú rôznu veľkosť a predstavujú geografické oblasti od malých miest až po veľké regióny s viacerými krajinami.\nMôžu byť aj formálne alebo neformálne.",
+      "local_chapters": {
+        "about_text": "Miestne zastúpenia sú skupiny na úrovni krajiny alebo regiónu, ktoré podnikli formálny krok založenia neziskových právnických osôb. Predstavujú mapu oblasti a mapovateľov pri rokovaní s miestnou samosprávou, firmami a médiami. Vytvorili tiež pridruženie k OpenStreetMap Foundation (OSMF), čím získali prepojenie na právny a autorský riadiaci orgán.",
+        "list_text": "Nasledujúce komunity sú formálne založené ako miestne zastúpenie:",
+        "title": "Miestne zastúpenia"
+      },
+      "other_groups": {
+        "communities_wiki": "Wiki stránke o komunitách",
+        "other_groups_html": "Nie je potrebné formálne zakladať skupinu v rovnakom rozsahu ako miestne zastúpenia. V skutočnosti mnohé skupiny veľmi úspešne existujú ako neformálne zoskupenie ľudí alebo ako komunitná skupina. Ktokoľvek ich môže zostaviť alebo sa k nim pripojiť. Prečítajte si viac na {{communities_wiki_link}}.",
+        "title": "Iné skupiny"
+      },
+      "title": "Komunity"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "anglickým originálom",
+        "html": "V prípade rozporu medzi touto preloženou verziou a {{english_original_link}} má anglická stránka prednosť",
+        "title": "O tomto preklade"
+      },
+      "legal_babble": {
+        "attribution_example": {
+          "alt": "Príklad, ako uvádzať autorstvo OpenStreetMap na webovej stránke",
+          "title": "Príklad uvedenia autorstva"
+        },
+        "contributors_2_contributors_page": "Stránke prispievateľov",
+        "contributors_2_html": "Ďalšie podrobnosti o týchto a iných zdrojoch, ktoré boli použité na pomoc pri zlepšovaní OpenStreetMap, nájdete na {{contributors_page_link}} na OpenStreetMap Wiki.",
+        "contributors_at_austria": "Rakúsko",
+        "contributors_at_cc_by": "CC BY",
+        "contributors_at_stadt_wien": "Mesto Viedeň",
+        "contributors_au_australia": "Austrália",
+        "contributors_au_cc_licence": "Medzinárodná licencia Creative Commons Attribution 4.0 (CC BY 4.0)",
+        "contributors_ca_canada": "Kanada",
+        "contributors_es_cc_by": "CC BY 4.0",
+        "contributors_es_spain": "Španielsko",
+        "contributors_fi_finland": "Fínsko",
+        "contributors_footer_2_html": "  Zahrnutie dát do OpenStreetMap neznamená, že pôvodný poskytovateľ dát podporuje OpenStreetMap, ponúka akúkoľvek záruku, alebo prijíma akúkoľvek zodpovednosť.",
+        "contributors_fr_france": "Francúzsko",
+        "contributors_gb_united_kingdom": "Spojené kráľovstvo",
+        "contributors_intro_html": "Naši prispievatelia sú tisícky jednotlivcov. Máme aj dáta so slobodnou licenciou od národných geografických inštitúcií či iných zdrojov, medzi nimi:",
+        "contributors_nl_netherlands": "Holandsko",
+        "contributors_nz_cc_by": "CC BY 4.0",
+        "contributors_nz_new_zealand": "Nový Zéland",
+        "contributors_si_slovenia": "Slovinsko",
+        "contributors_title_html": "Naši prispievatelia",
+        "contributors_za_south_africa": "Južná Afrika",
+        "credit_1_html": "Kde používate údaje OpenStreetMap, musíte urobiť nasledujúce dve veci:",
+        "credit_2_1": "Vyjadrite uznanie autorstva OpenStreetMap zobrazením nášho oznámenia o autorských právach.",
+        "credit_2_2": "Jasne uveďte, že údaje sú dostupné pod licenciou Open Database License.",
+        "credit_3_attribution_guidelines": "Pokyny na uvádzanie pôvodu",
+        "credit_3_html": "Pre upozornenie o autorských právach máme rôzne požiadavky na to, ako by sa to malo zobrazovať, v závislosti od toho, ako používate naše údaje. Napríklad na to, ako zobraziť upozornenie o autorských právach, platia iné pravidlá v závislosti od toho, či ste vytvorili mapu na prehliadanie, tlačenú mapu alebo statický obrázok. Úplné podrobnosti o požiadavkách nájdete na stránke {{attribution_guidelines_link}}.",
+        "credit_4_1_html": "Aby bolo jasné, že údaje sú dostupné pod licenciou Open Database License, môžete odkazovať na {{this_copyright_page_link}}. Alternatívne a ako požiadavku, ak distribuujete OSM vo forme údajov, môžete menovať a odkazovať priamo na licenciu(e). V médiách, kde nie sú možné odkazy (napr. tlačené diela), odporúčame nasmerovať svojich čitateľov na openstreetmap.org (možno rozšírením 'OpenStreetMap' na túto úplnú adresu) a na opendatacommons.org. V nasledujúcom príklade sa uznanie autorstva zobrazuje v rohu mapy.",
+        "credit_4_1_this_copyright_page": "túto stránku o autorských právach",
+        "credit_title_html": "Ako uvádzať OpenStreetMap",
+        "infringement_1_html": "Prispievateľom OSM pripomíname, že by nikdy nemali pridávať dáta zo zdrojov chránených autorským právom (napr. Google Maps či tlačené mapy) bez výslovného súhlasu držiteľov práv.",
+        "infringement_2_1_html": "Ak si myslíte, že materiál chránený autorskými právami bol nevhodne pridaný do databázy OpenStreetMap alebo na túto stránku, pozrite si náš {{takedown_procedure_link}} alebo nahláste priamo na našej {{online_filing_page_link}}.",
+        "infringement_2_1_online_filing_page": "on-line nahlasovacej stránke",
+        "infringement_2_1_takedown_procedure": "postup na odstránenie",
+        "infringement_title_html": "Porušenie autorských práv",
+        "introduction_1_html": "OpenStreetMap{{registered_trademark_link}} sú {{open_data}}, ktoré licencované za podmienok \n{{odc_odbl_link}} (ODbL) poskytuje {{osm_foundation_link}} (OSMF).",
+        "introduction_1_odc_odbl": "Open Data Commons Open Database License",
+        "introduction_1_open_data": "otvorené dáta",
+        "introduction_1_osm_foundation": "Nadácia OpenStreetMap",
+        "introduction_2_html": "Môžete voľne kopírovať, distribuovať, prenášať a upravovať naše údaje pokiaľ uvediete ako zdroj OpenStreetMap a jej prispievateľov. Ak pozmeníte naše údaje alebo na nich budete stavať, môžete výsledok distribuovať iba na základe rovnakej licencie. Stránka \n{{legal_code_link}} vysvetľuje vaše práva a povinnosti.",
+        "introduction_2_legal_code": "právne náležitosti",
+        "introduction_3_creative_commons": "Creative Commons Attribution-ShareAlike 2.0",
+        "introduction_3_html": "Naša dokumentácia je licencovaná na základe licencie {{creative_commons_link}} (CC BY-SA 2.0).",
+        "more_1_1_html": "Prečítajte si viac o používaní našich údajov a o tom, ako nám pripísať autorstvo, na {{osmf_licence_page_link}}.",
+        "more_1_1_osmf_licence_page": "Licenčnej stránke OSMF",
+        "more_2_1_api_usage_policy": "Zásady používania API (aplikačného rozhrania)",
+        "more_2_1_html": "Hoci OpenStreetMap sú otvorené údaje, nemôžeme tretím stranám poskytnúť\nbezplatné mapové API. Pozrite si naše stránky {{api_usage_policy_link}}, {{tile_usage_policy_link}} a {{nominatim_usage_policy_link}}.",
+        "more_2_1_nominatim_usage_policy": "Pravidlá použitia Nominatim",
+        "more_2_1_tile_usage_policy": "Zásady používania dlaždíc",
+        "more_title_html": "Ďalšie informácie",
+        "title_html": "Autorské práva a licencia",
+        "trademarks_1_1_html": "OpenStreetMap, logo s lupou a \"State of the Map\" sú registrované ochranné známky nadácie OpenStreetMap. Ak máte otázky týkajúce sa používania známok, prosím pozrite naše {{trademark_policy_link}}.",
+        "trademarks_1_1_trademark_policy": "Zásady používania ochranných známok",
+        "trademarks_title": "Ochranné známky"
+      },
+      "native": {
+        "html": "Pozeráte si anglickú verziu stránky o autorských právach. Môžete sa vrátiť na {{native_link}} stránky alebo si prestať čítať o copyrightoch a {{mapping_link}}.",
+        "mapping_link": "začať mapovať",
+        "native_link": "slovenskú verziu",
+        "title": "O tejto stránke"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "Prečo to tak je?",
+      "id_not_configured": "iD zatiaľ nie je nakonfigurovaný",
+      "no_iframe_support": "Váš prehliadač nepodporuje vložené HTML rámy (iframes), ktoré sú pre túto funkciu nevyhnutné.",
+      "not_public": "Nemáte nastavené úpravy na verejné.",
+      "not_public_description_html": "Kým tak neurobíte, nemôžete ďalej editovať mapu. Svoje úpravy môžete nastaviť ako verejné na vašej {{user_page}}.",
+      "user_page_link": "stránke používateľa"
+    },
+    "export": {
+      "export_button": "Export",
+      "licence": "Licencia",
+      "licence_details_html": "Údaje OpenStreetMap sú licencované pod {{odbl_link}} (ODbL).",
+      "manually_select": "Manuálne vybrať inú oblasť",
+      "odbl": "Open Data Commons Open Database License",
+      "title": "Export",
+      "too_large_advice": "Ak tento export zlyhá, zvážte použitie niektorého z nasledovných zdrojov:",
+      "too_large_body": "Táto oblasť je príliš veľká pre export OpenStreetMap XML dát. Priblížte prosím mapu, alebo vyberte menšiu oblasť.",
+      "too_large_geofabrik": {
+        "description": "Pravidelne aktualizované extrakty svetadielov, krajín a vybraných miest",
+        "title": "Geofabrik na stiahnutie"
+      },
+      "too_large_other": {
+        "description": "Ďalšie zdroje sú uvedené na OpenStreetMap wiki",
+        "title": "Iné zdroje"
+      },
+      "too_large_overpass": {
+        "description": "Stiahnuť túto oblasť z repliky databázy OpenStreetMap",
+        "title": "Overpass API"
+      },
+      "too_large_planet": {
+        "description": "Pravidelne aktualizované kópie kompletnej databázy OpenStreetMap",
+        "title": "Planéta OSM"
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "explanation_html": "Ak ste si všimli problém s našimi mapovými údajmi, napríklad chýba cesta alebo vaša adresa, najlepší spôsob, ako postupovať, je pripojiť sa ku komunite OpenStreetMap a pridať alebo opraviť údaje sami.",
+          "title": "Pripojte sa ku komunite"
+        },
+        "title": "Ako pomôcť"
+      },
+      "other_concerns": {
+        "copyright": "stránka o autorských právach",
+        "working_group": "pracovná skupina OSMF"
+      },
+      "title": "Nahlásiť problém / Opraviť mapu"
+    },
+    "help": {
+      "beginners_guide": {
+        "description": "Komunitou spravovaná príručka pre začiatočníkov.",
+        "title": "Sprievodca pre začiatočníkov",
+        "url": "http://wiki.openstreetmap.org/wiki/Sk:Beginners%27_guide"
+      },
+      "community": {
+        "title": "Komunitné fórum"
+      },
+      "help": {
+        "description": "Spýtajte sa otázku alebo vyhľadajte odpovede na stránke otázok a odpovedí OpenStreetMap.",
+        "title": "Fórum pomoci"
+      },
+      "introduction": "OpenStreetMap ponúka niekoľko zdrojov, kde je možné získať informácie o projekte, spýtať sa rôzne otázky a spoločne diskutovať a dokumentovať témy týkajúce sa mapovania.",
+      "irc": {
+        "description": "Interaktívna diskusia v rôznych jazykoch na mnohé témy.",
+        "title": "IRC"
+      },
+      "mailing_lists": {
+        "description": "Spýtajte sa otázku alebo diskutuje zaujímavé témy v tematických alebo regionálnych emailových diskusných skupinách.",
+        "title": "E-mailové konferencie"
+      },
+      "switch2osm": {
+        "description": "Pomoc pre firmy a organizácie prechádzajúce na mapy alebo iné služby založené na OpenStreetMap.",
+        "title": "switch2osm"
+      },
+      "title": "Získanie pomoci",
+      "welcome": {
+        "description": "Začnite týmto rýchlym sprievodcom popisujúcim základy OpenStreetMap.",
+        "title": "Vitajte v OpenStreetMap",
+        "url": "/welcome"
+      },
+      "welcomemat": {
+        "description": "Ste v organizácii, ktorá má planý s OpenStreetMap? Nájdite čo potrebujete v uvítacom sprievodcovi.",
+        "title": "Pre organizácie"
+      },
+      "wiki": {
+        "description": "Podrobnú dokumentáciu OpenStreetMap nájdete na wiki.",
+        "title": "OpenStreetMap Wiki"
+      }
+    },
+    "index": {
+      "createnote": "Pridať poznámku",
+      "js_1": "Používate prehliadač bez podpory JavaScriptu, alebo máte JavaScript vypnutý.",
+      "js_2": "OpenStreetMap používa pre interaktívnu mapu JavaScript.",
+      "license": {
+        "copyright": "Chránené autorskými právami OpenStreetMap a prispievateľov pod slobodnou licenciou"
+      },
+      "permalink": "Trvalý odkaz",
+      "remote_failed": "Editácia sa nepodarila – skontrolujte, či je JOSM alebo Merkaartor spustený a je v ňom zapnutá funkcia Diaľkové ovládanie (Remote control)",
+      "shortlink": "Krátky odkaz"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "Administratívne hranice",
+          "allotments": "Záhradkárska kolónia",
+          "apron": "Letisková odbavovacia plocha",
+          "bicycle_parking": "Parkovanie pre bicykle",
+          "bicycle_shop": "Obchod s bicyklami",
+          "bridge": "Čireny obrys = most",
+          "bridleway": "Chodník pre kone",
+          "brownfield": "Zborenisko",
+          "building": "Významná budova",
+          "cable_car": "Lanovka",
+          "cemetery": "Cintorín",
+          "centre": "Športové centrum",
+          "chair_lift": "sedačková lanovka",
+          "commercial": "Komerčná oblasť",
+          "common": "Pastvina",
+          "construction": "Cesta vo výstavbe",
+          "cycleway": "Cyklotrasa",
+          "cycleway_local": "Miestna cyklotrasa",
+          "cycleway_national": "Národná cyklotrasa",
+          "cycleway_regional": "Regionálna cyklotrasa",
+          "destination": "Prejazd zakázaný",
+          "farm": "Farma",
+          "footway": "Chodník pre peších",
+          "forest": "Les (udržiavaný)",
+          "golf": "Golfové ihrisko",
+          "heathland": "Vresovisko",
+          "industrial": "Priemyselná oblasť",
+          "lake": "Jazero",
+          "main_road": "Hlavná cesta",
+          "military": "Vojenský priestor",
+          "motorway": "Diaľnica",
+          "park": "Park",
+          "peak": "vrchol",
+          "pitch": "Športové ihrisko",
+          "primary": "Cesta prvej triedy",
+          "private": "Súkromný prístup",
+          "rail": "Železnica",
+          "reserve": "Prírodná rezervácia",
+          "reservoir": "nádrž",
+          "resident": "Obytná oblasť",
+          "retail": "Nákupná oblasť",
+          "runway": "Letisková dráha",
+          "school": "Škola",
+          "secondary": "Cesta druhej triedy",
+          "station": "Železničná stanica",
+          "subway": "Metro",
+          "summit": "Vrchol",
+          "taxiway": "pojazdová dráha",
+          "toilets": "WC",
+          "track": "Lesná/poľná cesta",
+          "trunk": "Cesta pre motorové vozidlá",
+          "tunnel": "Čiarkovaný obrys = tunel",
+          "unclassified": "Neklasifikovaná cesta",
+          "university": "univerzita",
+          "wood": "Les (neudržiavaný)"
+        }
+      }
+    },
+    "search": {
+      "from": "Odkiaľ",
+      "get_directions": "Nájsť trasu",
+      "get_directions_title": "Vyhľadať trasu medzi dvoma bodmi",
+      "reverse_directions_text": "Obrátiť smer",
+      "search": "Hľadať",
+      "submit_text": "hľ.",
+      "to": "Kam",
+      "where_am_i": "Kde je toto?",
+      "where_am_i_title": "Opis aktuálnej polohy pomocou vyhľadávača"
+    },
+    "sidebar": {
+      "close": "Zavrieť",
+      "search_results": "Výsledky vyhľadávania"
+    },
+    "welcome": {
+      "add_a_note": {
+        "para_1": "Pokiaľ chcete len opraviť nejakú drobnosť a nemáte čas sa registrovať a učiť sa upravovať, môžete jednoducho pridať poznámku.",
+        "title": "Nie je čas upravovať? Pridajte poznámku!"
+      },
+      "basic_terms": {
+        "paragraph_1": "OpenStreetMap má svoj vlastný žargón. Tu je niekoľko kľúčových slov, ktoré vám prídu vhod.",
+        "title": "Základné pojmy pre mapovanie"
+      },
+      "introduction": "Vitajte na OpenStreetMap, slobodnej a upravovateľnej mape sveta. Teraz, keď ste zaregistrovaný, môžete začať mapovať. Tu je stručný prehľad najdôležitejších, ktoré potrebujete vedieť.",
+      "rules": {
+        "automated_edits": "Automatické úpravy",
+        "imports": "Importy (hromadné zadávanie)",
+        "para_1_html": "OpenStreetMap má len niekoľko formálnych pravidiel, ale očakávame, že všetci účastníci budú spolupracovať s komunitou a komunikovať s ňou. Ak zvažujete akékoľvek iné aktivity ako ručné úpravy, prečítajte si a dodržiavajte pokyny na {{imports_link}} a {{automated_edits_link}}.",
+        "title": "Pravidlá!"
+      },
+      "start_mapping": "Začať mapovať",
+      "title": "Vitajte!",
+      "whats_on_the_map": {
+        "title": "Čo patrí do mapy"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e. %B %Y o %H:%M"
+    }
+  },
+  "traces": {
+    "create": {
+      "trace_uploaded": "Váš GPX súbor bol uložený a čaká na zaradenie do databázy. Obvykle to netrvá viac než polhodinu. Po jeho zaradení dostanete potvrdzujúci e-mail.",
+      "traces_waiting": "Máte {{count}} stopy čakajúce na nahratie. Prosím zvážte toto čakanie, dokedy neukončíte nahrávanie niečoho iného, pokiaľ  nie je blok v rade pre iných užívateľov.",
+      "upload_trace": "Nahrať GPS stopu"
+    },
+    "description": {
+      "description_without_count": "GPX súbor od používateľa {{user}}"
+    },
+    "destroy": {
+      "scheduled_for_deletion": "Stopa plánovaná na vymazanie"
+    },
+    "edit": {
+      "cancel": "Zrušiť",
+      "heading": "Úprava stopy {{name}}",
+      "title": "Úprava stopy {{name}}",
+      "visibility_help": "čo má toto znamenať?"
+    },
+    "index": {
+      "all_traces": "Všetky stopy",
+      "description": "Prechádzať nedávno nahrané GPS stopy",
+      "my_traces": "Moje stopy",
+      "public_traces": "Verejné GPS stopy",
+      "public_traces_from": "Verejné GPS stopy od {{user}}",
+      "tagged_with": "označený s {{tags}}",
+      "upload_trace": "Nahrať stopu"
+    },
+    "make_public": {
+      "made_public": "Zverejnená stopa"
+    },
+    "new": {
+      "help": "Pomocník",
+      "help_url": "https://wiki.openstreetmap.org/wiki/Upload",
+      "upload_trace": "Nahrať GPS stopu",
+      "visibility_help": "čo toto znamená?"
+    },
+    "offline": {
+      "heading": "GPX úložisko je offline",
+      "message": "GPX úložisko a nahrávanie GPX súborov je momentálne nedostupné."
+    },
+    "offline_warning": {
+      "message": "Nahrávanie GPX súborov je momentálne nedostupné"
+    },
+    "show": {
+      "delete_trace": "Vymazať túto stopu",
+      "description": "Popis:",
+      "download": "stiahnuť",
+      "edit": "upraviť",
+      "edit_trace": "Upraviť túto stopu",
+      "filename": "Názov súboru:",
+      "heading": "Sledovanie stopy {{name}}",
+      "map": "mapa",
+      "none": "Žiadne",
+      "owner": "Vlastník:",
+      "pending": "NEVYRIEŠENÁ",
+      "points": "Bodov:",
+      "start_coordinates": "Začiatočná súradnica:",
+      "tags": "Tagy:",
+      "title": "Sledovanie stopy {{name}}",
+      "trace_not_found": "Stopa nenájdená!",
+      "uploaded": "Nahraté:",
+      "visibility": "Viditeľnosť:"
+    },
+    "trace": {
+      "by": "od",
+      "count_points_few": "{{count}} body}}",
+      "count_points_many": "{{count}} bodov}}",
+      "count_points_one": "{{count}} bod",
+      "count_points_other": "{{count}} bodov",
+      "edit_map": "Upraviť mapu",
+      "identifiable": "IDENTIFIKOVATEĽNÁ",
+      "in": "v",
+      "more": "viac",
+      "pending": "NEVYRIEŠENÉ",
+      "private": "SÚKROMNÁ",
+      "public": "VEREJNÁ",
+      "trace_details": "Zobraziť detaily stopy",
+      "trackable": "STOPOVATEĽNÁ",
+      "view_map": "Zobraziť mapu"
+    },
+    "trace_optionals": {
+      "tags": "Tagy"
+    },
+    "trace_paging_nav": {
+      "newer": "Novšie stopy",
+      "older": "Staršie stopy"
+    },
+    "visibility": {
+      "identifiable": "Identifikovateľné (zobrazené v zozname stôp, aj ako identifikovateľné, usporiadané body s časovou značkou)",
+      "private": "Súkromné (iba zdieľané ako anonymné, neusporiadané body)",
+      "public": "Verejné (zobrazené v prehľade stopy, aj ako anonymné, neusporiadané body)",
+      "trackable": "Zaznamenávané stopy (zdieľané iba ako anonymné, usporiadané body s časovými značkami)"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Upraviť",
+      "not_revoked": "(nezrušený)",
+      "revoke": "Odvolať!",
+      "show": "Zobraziť"
+    },
+    "blocks": {
+      "creator_name": "Tvorca",
+      "display_name": "Blokovaný používateľ",
+      "next": "Ďalšia stránka »",
+      "previous": "« Predchádzajúca stránka",
+      "reason": "Dôvod pre blokovanie",
+      "revoker_name": "Zrušil",
+      "showing_page": "Strana {{page}}",
+      "status": "Stav"
+    },
+    "blocks_by": {
+      "empty": "{{name}} ešte nikoho nezablokoval",
+      "heading_html": "Zoznam blokov od pre {{name}}",
+      "title": "Bloky od {{name}}"
+    },
+    "blocks_on": {
+      "empty": "{{name}} doteraz ešte nebol blokovaný.",
+      "heading_html": "Zoznam blokov používateľa {{name}}",
+      "title": "Bloky používateľa {{name}}"
+    },
+    "create": {
+      "flash": "Používateľ {{name}} bol zablokovaný."
+    },
+    "edit": {
+      "back": "Zobraziť všetky bloky",
+      "heading_html": "Editácia bloku na {{name}}",
+      "period": "Ako dlho (odteraz) bude používateľ zablokovaný pre používanie API.",
+      "show": "Zobraziť tento blok",
+      "title": "Editácia bloku na {{name}}"
+    },
+    "filter": {
+      "block_expired": "Blok už vypršal a nemôže byť upravený.",
+      "block_period": "Blokovacia doba musí byť jedna z hodnôt voliteľná v roletovom menu."
+    },
+    "helper": {
+      "block_duration": {
+        "days_few": "{{count}} dni",
+        "days_many": "{{count}} dní",
+        "days_one": "{{count}} deň",
+        "days_other": "{{count}} dní",
+        "hours_few": "{{count}} hodiny",
+        "hours_many": "{{count}} hodín",
+        "hours_one": "{{count}} hodina",
+        "hours_other": "{{count}} hodín",
+        "months_few": "pred {{count}} mesiace",
+        "months_many": "pred {{count}} mesiacov",
+        "months_one": "pred {{count}} mesiac",
+        "months_other": "pred {{count}} mesiacov",
+        "weeks_few": "{{count}} týždne",
+        "weeks_many": "{{count}} týždňov",
+        "weeks_one": "{{count}} týždeň",
+        "weeks_other": "{{count}} týždňov",
+        "years_few": "{{count}} roky",
+        "years_many": "{{count}} rokov",
+        "years_one": "{{count}} rok",
+        "years_other": "{{count}} rokov"
+      },
+      "time_future_and_until_login_html": "Končí o {{time}} a keď sa používateľ prihlási.",
+      "time_future_html": "Končí o {{time}}.",
+      "time_past_html": "Ukončené {{time}}.",
+      "until_login": "Aktívny až do prihlásenia používateľa."
+    },
+    "index": {
+      "empty": "Žiaden blok ešte nebol vytvorený.",
+      "heading": "Zoznam blokov používateľa",
+      "title": "Bloky používateľa"
+    },
+    "model": {
+      "non_moderator_revoke": "Musíte byť moderátorom na zrušenie bloku.",
+      "non_moderator_update": "Musí byť moderátorom na vytvorenie alebo aktualizáciu bloku."
+    },
+    "new": {
+      "back": "Zobraziť všetky bloky",
+      "heading_html": "Vytvorenie bloku na {{name}}",
+      "period": "Ako dlho (odteraz) bude používateľ zablokovaný pre používanie API.",
+      "title": "Vytváram blok na {{name}}"
+    },
+    "not_found": {
+      "back": "Naspäť na zoznam",
+      "sorry": "Ľutujeme, blok používateľa s ID {{id}} nebol nájdený."
+    },
+    "revoke": {
+      "confirm": "Ste si istí, že chcete zrušiť tento blok?",
+      "flash": "Tento blok bol zrušený.",
+      "heading_html": "Zrušenie bloku pre {{block_on}} od {{block_by}}",
+      "past_html": "Tento blok už skončil pred {{time}} a nemôže byť zrušený.",
+      "revoke": "Odvolať!",
+      "time_future_html": "Tento blok skončí v {{time}}.",
+      "title": "Zrušenie bloku pre {{block_on}}"
+    },
+    "show": {
+      "back": "Zobraziť všetky blokovania",
+      "confirm": "Ste si istý?",
+      "created": "Vytvorené:",
+      "duration": "Trvanie:",
+      "edit": "Upraviť",
+      "heading_html": "{{block_on}} zablokovaný používateľom {{block_by}}",
+      "needs_view": "Aby sa blok zmazal, požívateľ sa musí najprv prihlásiť.",
+      "reason": "Dôvod blokovania:",
+      "revoke": "Odvolať!",
+      "revoker": "Odvolal:",
+      "show": "Zobraziť",
+      "status": "Stav:",
+      "title": "{{block_on}} zablokovaný používateľom {{block_by}}"
+    },
+    "update": {
+      "only_creator_can_edit": "Iba moderátor, ktorý vytvoril tento blok, ho môže editovať.",
+      "success": "Blok je aktualizovaný."
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "commented": {
+        "commented_changeset": "{{commenter}} zanechal komentár o {{time}} k vami sledovanej sade zmien, ktorú vytvoril {{changeset_author}}",
+        "commented_changeset_html": "{{commenter}} zanechal komentár o {{time}} k vami sledovanej sade zmien, ktorú vytvoril {{changeset_author}}",
+        "partial_changeset_with_comment": "s popisom '{{changeset_comment}}'",
+        "partial_changeset_with_comment_html": "s popisom '{{changeset_comment}}'",
+        "partial_changeset_without_comment": "bez popisu",
+        "subject_other": "[OpenStreetMap] {{commenter}} pridal komentár k sade zmien, o ktorú sa zaujímate",
+        "subject_own": "[OpenStreetMap] {{commenter}} pridal komentár k vašej sade zmien",
+        "your_changeset": "{{commenter}} zanechal komentár o {{time}} k vašej sade zmien",
+        "your_changeset_html": "{{commenter}} zanechal komentár o {{time}} k vašej sade zmien,"
+      },
+      "details": "Viac podrobností o sade zmien môžete nájsť na adrese {{url}}.",
+      "greeting": "Ahoj,",
+      "hi": "Ahoj {{to_user}},",
+      "unsubscribe": "Ak už nechcete dostávať upozornenia pri zmenách v tejto sade zmien, navštívte {{url}} a kliknite na \"Zrušiť odoberanie\".",
+      "unsubscribe_html": "Ak už nechcete dostávať upozornenia pri zmenách v tejto sade zmien, navštívte {{url}} a kliknite na \"Zrušiť odoberanie\"."
+    },
+    "diary_comment_notification": {
+      "footer": "Môžete si tiež prečítať komentár na {{readurl}}, komentovať na {{commenturl}}, alebo odpovedať na {{replyurl}}",
+      "footer_html": "Komentár si môžete tiež prečítať na {{readurl}} a okomentovať ho na {{commenturl}}, alebo odpovedať autorovi na {{replyurl}}",
+      "header": "{{from_user}} okomentoval váš nedávny záznam v OpenStreetMap denníku s predmetom {{subject}}:",
+      "header_html": "{{from_user}} okomentova záznam v denníku OpenStreetmap s predmetom {{subject}}:",
+      "hi": "Ahoj {{to_user}},",
+      "subject": "[OpenStreetMap] {{user}} okomentoval záznam vo vašom denníku"
+    },
+    "email_confirm": {
+      "click_the_link": "Ak ste to boli vy, potvrďte prosím zmenu kliknutím na nasledovný odkaz.",
+      "greeting": "Ahoj,",
+      "hopefully_you": "Niekto (snáď vy) požiadal o zmenu e-mailovej adresy na serveri {{server_url}} na {{new_address}}.",
+      "subject": "[OpenStreetMap] Potvrďte svoju e-mailovú adresu"
+    },
+    "friendship_notification": {
+      "befriend_them": "Môžete ich tiež pridať ako priateľov na {{befriendurl}}.",
+      "befriend_them_html": "Môžete ho/ju tiež pridať ako priateľov na {{befriendurl}}.",
+      "had_added_you": "{{user}} vás pridal ako priateľa na OpenStreetMap.",
+      "hi": "Ahoj {{to_user}},",
+      "see_their_profile": "Jeho/jej profil si môžete pozrieť na {{userurl}}.",
+      "see_their_profile_html": "Jeho/jej profil si môžete pozrieť na {{userurl}}.",
+      "subject": "[OpenStreetMap] {{user}} vás pridal ako priateľa"
+    },
+    "gpx_failure": {
+      "failed_to_import": "sa nepodarilo naimportovať. Chybové hlásenie:",
+      "hi": "Ahoj {{to_user}},",
+      "subject": "[OpenStreetMap] Neúspešný import GPX"
+    },
+    "gpx_success": {
+      "hi": "Ahoj {{to_user}},",
+      "subject": "[OpenStreetMap] GPX import úspešný"
+    },
+    "lost_password": {
+      "click_the_link": "Ak ste to vy, kliknite prosím na odkaz nižšie pre obnovenie svojho hesla.",
+      "greeting": "Ahoj,",
+      "hopefully_you": "Niekto (snáď vy) požiadal o vygenerovanie nového hesla pre používateľa serveru openstreetmap.org s touto e-mailovou adresou.",
+      "subject": "[OpenStreetMap] Žiadosť o reset hesla"
+    },
+    "message_notification": {
+      "footer": "Správu si môžete prečítať aj na {{readurl}} a môžete odpovedať autorovi na {{replyurl}}",
+      "footer_html": "Správu si môžete prečítať aj na {{readurl}} a môžete odpovedať autorovi na {{replyurl}}",
+      "header": "{{from_user}} vám zaslal správu cez OpenStreetMap s predmetom {{subject}}:",
+      "header_html": "{{from_user}} vám zaslal správu cez OpenStreetMap s predmetom {{subject}}:",
+      "hi": "Ahoj {{to_user}},",
+      "subject": "[OpenStreetMap] {{message_title}}"
+    },
+    "note_comment_notification": {
+      "anonymous": "Anonymný používateľ",
+      "closed": {
+        "commented_note": "{{commenter}} vyriešil poznámku, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "commented_note_html": "{{commenter}} vyriešil poznámku, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} vyriešil poznámku, o ktorú sa zaujímate",
+        "subject_own": "[OpenStreetMap] {{commenter}} vyriešil vašu poznámku",
+        "your_note": "{{commenter}} vyriešil vašu poznámku blízko {{place}}.",
+        "your_note_html": "{{commenter}} vyriešil vašu poznámku blízko {{place}}."
+      },
+      "commented": {
+        "commented_note": "{{commenter}} zanechal komentár k poznámke, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "commented_note_html": "{{commenter}} zanechal komentár k poznámke, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} pridal komentár k poznámke, o ktorú sa zaujímate",
+        "subject_own": "[OpenStreetMap] {{commenter}} pridal komentár k vašej poznámke",
+        "your_note": "{{commenter}} zanechal komentár k vašej poznámke na mape blízko {{place}}.",
+        "your_note_html": "{{commenter}} zanechal komentár k vašej poznámke na mape blízko {{place}}."
+      },
+      "details": "Viac podrobností o poznámke môžete nájsť nájsť na {{url}}.",
+      "details_html": "Viac podrobností o poznámke môžete nájsť na adrese {{url}}.",
+      "greeting": "Ahoj,",
+      "reopened": {
+        "commented_note": "{{commenter}} znovu aktivoval poznámku, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "commented_note_html": "{{commenter}} znovu aktivoval poznámku, ktorú ste komentovali. Poznámka je blízko {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} znovu aktivoval poznámku, o ktorú sa zaujímate",
+        "subject_own": "[OpenStreetMap] {{commenter}} znovu aktivoval vašu poznámku",
+        "your_note": "{{commenter}} znovu aktivoval vašu poznámku blízko {{place}}.",
+        "your_note_html": "{{commenter}} znovu aktivoval vašu poznámku blízko {{place}}."
+      }
+    },
+    "signup_confirm": {
+      "confirm": "Predtým, než urobíme čokoľvek ďalšie, potrebujeme potvrdiť, že táto žiadosť prišla od vás. Ak je to tak, kliknutím na nasledovný odkaz potvrdíte svoje konto:",
+      "created": "Niekto (dúfame, že vy) si práve vytvoril konto na {{site_url}}.",
+      "greeting": "Ahoj!",
+      "subject": "[OpenStreetMap] Vitajte v OpenStreetMap",
+      "welcome": "Dovoľujeme si vás privítať a poskytnúť vám niektoré ďalšie informácie, ktoré vám pomôžu začať."
+    }
+  },
+  "user_role": {
+    "filter": {
+      "already_has_role": "Používateľ už má úlohu {{role}}.",
+      "doesnt_have_role": "Požívateľ nemá úlohu {{role}}.",
+      "not_a_role": "Reťazec `{{role}}' nemá platnú úlohu.",
+      "not_revoke_admin_current_user": "Rolu administrátora nie je možné odobrať aktuálne prihlásenému používateľovi."
+    },
+    "grant": {
+      "are_you_sure": "Naozaj chcete prideliť úlohu `{{role}}' pre používateľa `{{name}}'?",
+      "confirm": "Potvrdiť",
+      "fail": "Nemôžem prideliť úlohu `{{role}}' pre používateľa `{{name}}'. Prosím vybrať aby používateľ a úloha boli obe oprávnené.",
+      "heading": "Potvrdiť pridelenie funkcie",
+      "title": "Potvrdiť pridelenie funkcie"
+    },
+    "revoke": {
+      "are_you_sure": "Určite chcete zrušiť úlohu `{{role}}' používateľa `{{name}}'?",
+      "confirm": "Potvrdiť",
+      "fail": "Nemôžem zrušiť úlohu `{{role}}' od používateľa `{{name}}'. Prosím skontrolujte aby používateľ a úloha boli oprávnené.",
+      "heading": "Potvrdiť zrušenie funkcie",
+      "title": "Potvrdiť zrušenie funkcie"
+    }
+  },
+  "users": {
+    "auth_failure": {
+      "no_authorization_code": "Bez autorizačného kódu"
+    },
+    "go_public": {
+      "flash success": "Všetky vaše úpravy sú teraz verejné, a teraz máte povolenie na úpravu."
+    },
+    "index": {
+      "confirm": "Potvrdiť zvolených používateľov",
+      "empty": "Žiadni používatelia vyhovujúci podmienkam neboli nájdení",
+      "heading": "Používatelia",
+      "hide": "Skryť vybraných používateľov",
+      "showing_one": "Zobrazuje sa stránka {{page}} ({{first_item}} z {{items}})",
+      "showing_other": "Zobrazuje sa stránka {{page}} ({{first_item}}–{{last_item}} z {{items}})",
+      "summary_html": "{{name}} založené {{date}} z {{ip_address}}",
+      "summary_no_ip_html": "{{name}} založený {{date}}",
+      "title": "Používatelia"
+    },
+    "new": {
+      "about": {
+        "header": "Slobodné a upravovateľné"
+      },
+      "continue": "Zaregistrovať sa",
+      "display name description": "Vaše verejne zobrazené meno užívateľa. Môžete ho potom zmeniť v nastaveniach.",
+      "email_confirmation_help_html": "Vaša adresa sa nezobrazuje verejne, pre ďalšie informácie venujte pozornosť našim {{privacy_policy_link}}.",
+      "external auth": "Autentifikácia treťou stranou:",
+      "no_auto_account_create": "Bohužiaľ teraz nie sme schopný vytvoriť pre vás účet automaticky.",
+      "privacy_policy_title": "Pravidlá ochrany osobných údajov OSMF vrátane sekcie o e-mailových adresách",
+      "terms accepted": "Ďakujeme za odsúhlasenie nových podmienok prispievania!",
+      "title": "Zaregistrovať sa",
+      "use external auth": "Prípadne použite na prihlásenie služby tretích strán"
+    },
+    "no_such_user": {
+      "body": "Ľutujeme, používateľ {{user}} neexistuje. Prosím skontrolujte váš text, alebo ste možno klikli na nesprávny odkaz.",
+      "heading": "Používateľ {{user}} neexistuje",
+      "title": "Taký používateľ neexistuje"
+    },
+    "show": {
+      "activate_user": "Aktivovať tohoto používateľa",
+      "add as friend": "Pridať priateľa",
+      "block_history": "prijaté bloky",
+      "blocks by me": "Mnou udelené bloky",
+      "blocks on me": "Moje zablokovania",
+      "comments": "Komentáre",
+      "confirm": "Potvrdiť",
+      "confirm_user": "Potvrdiť tohoto používateľa",
+      "create_block": "Blokovať tohoto používateľa",
+      "created from": "Vytvorené od:",
+      "ct declined": "Odmietnuté",
+      "ct status": "Podmienky prispievania:",
+      "ct undecided": "Nerozhodnuté",
+      "delete_user": "Odstrániť tohoto používateľa",
+      "diary": "Denník",
+      "edit_profile": "Upraviť profil",
+      "edits": "Úpravy",
+      "email address": "Emailová adresa:",
+      "hide_user": "Skryť tohto používateľa",
+      "mapper since": "Mapuje od:",
+      "moderator_history": "odovzdané bloky",
+      "my comments": "Moje komentáre",
+      "my diary": "Môj denník",
+      "my edits": "Moje úpravy",
+      "my messages": "Moje správy",
+      "my notes": "Moje poznámky k mape",
+      "my profile": "Môj profil",
+      "my settings": "Moje nastavenia",
+      "my traces": "Moje stopy",
+      "my_dashboard": "Moja nástenka",
+      "my_preferences": "Moje predvoľby",
+      "notes": "Poznámky k mape",
+      "remove as friend": "Odstrániť z priateľov",
+      "report": "Nahlásiť tohto používateľa",
+      "role": {
+        "administrator": "Tento používateľ je administrátor",
+        "grant": {
+          "administrator": "Povoliť prístup administrátora",
+          "moderator": "Povoliť prístup moderátora"
+        },
+        "moderator": "Tento používateľ je moderátor",
+        "revoke": {
+          "administrator": "Zrušiť prístup administrátora",
+          "moderator": "Zrušiť prístup moderátora"
+        }
+      },
+      "send message": "Poslať správu",
+      "spam score": "Spam skóre:",
+      "status": "Stav:",
+      "traces": "Stopy",
+      "unhide_user": "Zobraziť tohoto používateľa"
+    },
+    "suspended": {
+      "heading": "Konto bolo pozastavené",
+      "title": "Konto bolo pozastavené"
+    },
+    "terms": {
+      "consider_pd": "Navyše k vyššie uvedenému vyhlasujem, že považujem svoje príspevky za slobodné dielo (Public Domain).",
+      "consider_pd_why": "čo to znamená?",
+      "continue": "Pokračovať",
+      "decline": "Nesúhlasím",
+      "heading": "Podmienky",
+      "heading_ct": "Podmienky prispievania",
+      "legale_names": {
+        "france": "Francúzsko",
+        "italy": "Taliansko",
+        "rest_of_world": "Zvyšok sveta"
+      },
+      "legale_select": "Zvoľte prosím svoju domovskú krajinu:",
+      "read and accept with tou": "Prečítajte si zmluvu s prispievateľom a podmienky používania, po dokončení začiarknite obe políčka a potom stlačte tlačidlo pokračovať.",
+      "read_tou": "Prečítal som si Podmienky používania a súhlasím s nimi",
+      "title": "Podmienky",
+      "you need to accept or decline": "Pre pokračovanie si prosím prečítajte a príjmite, alebo odmietnite nové Podmienky prispievania."
+    },
+    "terms_declined_flash": {
+      "terms_declined_link": "tejto wiki stránke"
+    }
+  },
+  "validations": {
+    "invalid_characters": "obsahuje nepovolené znaky",
+    "leading_whitespace": "obsahuje medzery na začiatku",
+    "trailing_whitespace": "obsahuje medzery na konci",
+    "url_characters": "obsahuje špeciálne znaky adresy URL ({{characters}})"
+  }
+}

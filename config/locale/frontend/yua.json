@@ -1,0 +1,11 @@
+{
+  "sessions": {
+    "new": {
+      "auth_providers": {
+        "github": {
+          "title": "Ooken yeetel Github"
+        }
+      }
+    }
+  }
+}

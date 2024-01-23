@@ -1,0 +1,14 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "title": "𐌿𐍆𐍅𐌰𐌿𐍂𐍀𐌰"
+      }
+    },
+    "models": {
+      "friend": "𐍆𐍂𐌹𐌾𐍉𐌽𐌳𐍃",
+      "language": "𐍂𐌰𐌶𐌳𐌰",
+      "message": "𐍅𐌰𐌿𐍂𐌳"
+    }
+  }
+}

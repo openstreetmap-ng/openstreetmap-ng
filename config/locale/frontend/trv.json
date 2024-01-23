@@ -1,0 +1,16 @@
+{
+  "diary_entries": {
+    "location": {
+      "view": "Qmita"
+    }
+  },
+  "layouts": {
+    "about": "Quri",
+    "history": "Endaan"
+  },
+  "site": {
+    "search": {
+      "search": "Miying"
+    }
+  }
+}

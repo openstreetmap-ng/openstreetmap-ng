@@ -1,0 +1,182 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_comment": {
+        "body": "ဇကုလိက်"
+      },
+      "diary_entry": {
+        "language_code": "အရေဝ်ဘာသာ",
+        "latitude": "လတ္တဳကျုတ်",
+        "longitude": "လောင်ဂျဳကျုတ်",
+        "title": "ပရူပရာ",
+        "user": "ညးလွပ်"
+      },
+      "friend": {
+        "friend": "သကအ်ရဲ",
+        "user": "ညးလွပ်"
+      },
+      "message": {
+        "body": "ဇကုလိက်",
+        "recipient": "ညးမဒုင်တဲ",
+        "sender": "ညးမပလံင်",
+        "title": "ပရူပရာ"
+      },
+      "trace": {
+        "description": "မဗမံက်ထ္ၜး",
+        "latitude": "လတ္တဳကျုတ်",
+        "longitude": "လောင်ဂျဳကျုတ်",
+        "name": "ယၟု",
+        "public": "ပတိတ်",
+        "size": "ဇမၞော်ဇြာက်",
+        "user": "ညးလွပ်",
+        "visible": "မဗဵုဂွံ"
+      },
+      "user": {
+        "active": "မချဳဓရာင်",
+        "description": "မဗမံက်ထ္ၜး",
+        "display_name": "ယၟု မဗမံက်ထ္ၜး",
+        "email": "အဳမေလ်",
+        "languages": "အရေဝ်ဘာသာဂမၠိုင်",
+        "pass_crypt": "မအက္ခရ်ဓလုက်"
+      }
+    },
+    "models": {
+      "acl": "လုပ် အပ္ဍဲ စရင်ဒၞာဲမထိင်ဒဝ်",
+      "changeset": "Changeset",
+      "changeset_tag": "Changeset Tag",
+      "country": "ဍုင်",
+      "diary_comment": "တင်မပါ်ပဲါ စၟတ်သမ္တီလၟေင်တ္ၚဲ",
+      "diary_entry": "ဂၠံင်လုပ် စၟတ်သမ္တီလၟေင်တ္ၚဲ",
+      "friend": "သကအ်ရဲ",
+      "language": "အရေဝ်ဘာသာ",
+      "message": "ပရိုင်မေတ်သုက်",
+      "node": "နောဒါ",
+      "node_tag": "တောဲ နောဒါ",
+      "old_node": "နောဒါတြေံ",
+      "old_node_tag": "တောဲ နောဒါတြေံ",
+      "old_relation": "ပရေင်ဆက်စၠောအ် တြေံ",
+      "old_relation_member": "ကောန်ဂကောံ ပရေင်ဆက်စၠောအ် တြေံ",
+      "old_relation_tag": "တောဲ ပရေင်ဆက်စၠောအ် တြေံ",
+      "old_way": "ဂံင် တြေံ",
+      "old_way_node": "နောဒါ ဂၠံင်တြေံ",
+      "old_way_tag": "တောဲ ဂၠံင်တြေံ",
+      "relation": "ပရေင်ဆက်စၠောအ်",
+      "relation_member": "ကောန်ဂကောံ ပရေင်ဆက်စၠောအ်",
+      "relation_tag": "တောဲ ပရေင်ဆက်စၠောအ်",
+      "session": "ကဏ္ဍ",
+      "trace": "ဗက်ဇိုင်",
+      "tracepoint": "ဗက်ဇိုင် ဒၞာဲ",
+      "tracetag": "တောဲ ဗက်ဇိုင်",
+      "user": "ညးလွပ်",
+      "user_preference": "မဒးဂၞပ်စိုတ် ညးလွပ်",
+      "user_token": "လက်သန် ညးလွပ်",
+      "way": "ဂၠံင်",
+      "way_node": "နောဒါ ဂၠံင်",
+      "way_tag": "တောဲ ဂၠံင်"
+    }
+  },
+  "application": {
+    "settings_menu": {
+      "account_settings": "ပလေဝ်ဒါန်အကံက်ဂမၠိုင်"
+    }
+  },
+  "browse": {
+    "anonymous": "ဟွံဗမံက်ယၟု",
+    "changeset": {
+      "belongs_to": "ကဝိ",
+      "changesetxml": "Changeset XML",
+      "comment": "တင်မကဵုစၟတ်ဂမၠိုင် ({{count}})",
+      "discussion": "သဳကၠဳ",
+      "feed": {
+        "title": "Changeset {{id}}",
+        "title_comment": "Changeset {{id}} - {{comment}}"
+      },
+      "join_discussion": "လုပ်လံက်အေန် သွက်ဂွံ ပါလုပ် ပ္ဍဲအရာ မချပ်ဂၞန်ပါ်ပဲါ",
+      "node": "နောဒါ ({{count}})",
+      "node_paginated": "နောဒါ ({{x}}-{{y}} of {{count}})",
+      "osmchangexml": "osmChange XML",
+      "relation": "ပရင်ဆက်စၠောအ်ဂမၠိုင် ({{count}})",
+      "relation_paginated": "ပရေင်ဆက်စၠောအ်ဂမၠိုင် ({{x}}-{{y}} of {{count}})",
+      "still_open": "Changeset ပံက်ဒၟံင်ဖိုဟ် - ပရေင်သဳကၠဳ ပံက်ကၠုင်ဏောင် အခိင်ကာလ changeset မကၟာတ်အာမ္ဂး၊၊",
+      "title": "Changeset: {{id}}",
+      "way": "ဂၠံင်ဂမၠိုင် ({{count}})",
+      "way_paginated": "ဂၠုင်ဂမၠိုင် ({{x}}-{{y}} of {{count}})"
+    },
+    "closed": "ကၟာတ်လဝ်",
+    "created": "ခၞံကၠောန်လဝ်တုဲ",
+    "download_xml": "တံင်လုပ်ကေတ် XML",
+    "in_changeset": "Changeset",
+    "location": "ဒၞာဲဌာန်ဒတန် -",
+    "no_comment": "(တင်မကဵုစၟတ် ဟွံမဲ)",
+    "node": {
+      "history_title_html": "လၟေင်အပြံင်အလှာဲ နောဒါ: {{name}}",
+      "title_html": "နောဒါ: {{name}}"
+    },
+    "part_of": "မွဲလစှ်ေ ကု",
+    "tag_details": {
+      "tags": "ယၟုလ္ၚဝ်ဂမၠိုင်"
+    },
+    "version": "မူ",
+    "view_details": "ထ္ၜး သောဲသောဲဗြောဲဗြောဲ",
+    "view_history": "ထ္ၜး လၟေင်အပြံင်အလှာဲ",
+    "way": {
+      "also_part_of_html_one": "ဂၠံင်မွဲလစှ်ေ {{related_ways}}",
+      "also_part_of_html_other": "ဂၠံင်မွဲလစှ်ေ{{related_ways}}",
+      "history_title_html": "လၟေင်အပြံင်အလှာဲ ဂၠံင် - {{name}}",
+      "nodes": "နောဒါဂမၠိုင်",
+      "title_html": "ဂၠံင်:- {{name}}"
+    }
+  },
+  "editor": {
+    "default": "Default (currently {{name}})",
+    "id": {
+      "description": "iD (in-browser editor)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "မထိင်ရပ် ဇမ္ၚောဲ (JOSM or Merkaartor)",
+      "name": "မထိင်ရပ် ဇမ္ၚောဲ"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "hide_comment": "ပၞုက်"
+      }
+    }
+  },
+  "notes": {
+    "index": {
+      "no_notes": "စရေင်ဟွံမွဲဂမၠိုင်"
+    },
+    "show": {
+      "hide": "ပၞုက်"
+    }
+  },
+  "shared": {
+    "richtext_field": {
+      "preview": "ဗဵုရံၚ်ဗီုပြၚ်"
+    }
+  },
+  "site": {
+    "key": {
+      "table": {
+        "entry": {
+          "bus": "ဗေါတ်",
+          "ferry": "ဂၠုၚ်ဂဒိုအ်",
+          "stop": "ဒေါအ်",
+          "tram": "ကွဳပၟတ်ဓာတ်",
+          "wood": "ဆု"
+        }
+      }
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "show": "ထ္ၜး"
+    },
+    "show": {
+      "show": "ထ္ၜး"
+    }
+  }
+}

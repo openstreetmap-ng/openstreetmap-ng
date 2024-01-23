@@ -1,0 +1,87 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "Ch’ab’äl",
+        "latitude": "Kojobʼalil",
+        "longitude": "Rukojolil",
+        "user": "Okisanel"
+      },
+      "friend": {
+        "friend": "Rachib’il",
+        "user": "Okisanel"
+      },
+      "trace": {
+        "user": "Okisanel"
+      },
+      "user": {
+        "email": "Taqoyaʼl",
+        "pass_crypt": "Ewa’etal"
+      }
+    },
+    "models": {
+      "friend": "Rachib’il",
+      "language": "Chʼabʼäl",
+      "message": "Taqonem",
+      "user": "Okisanel"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "belongs_to": "B’anoy"
+    },
+    "location": "K’ojolib’äl:"
+  },
+  "helpers": {
+    "submit": {
+      "diary_comment": {
+        "create": "Yakonïk"
+      }
+    }
+  },
+  "layouts": {
+    "help": "To’ïk"
+  },
+  "sessions": {
+    "new": {
+      "auth_providers": {
+        "aol": {
+          "title": "Okem pa AoL"
+        },
+        "facebook": {
+          "title": "Okem pa Facebook"
+        },
+        "github": {
+          "title": "Okem pa GitHub"
+        },
+        "google": {
+          "title": "Okem pa Google"
+        },
+        "microsoft": {
+          "title": "Okem pa Windows Live"
+        },
+        "openid": {
+          "title": "Okem pa OpenID"
+        },
+        "wikipedia": {
+          "title": "Okem pa Wiki"
+        },
+        "wordpress": {
+          "title": "Okem pa Wordpress"
+        }
+      },
+      "login_button": "Okïk",
+      "title": "Okïk"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%H:%M pa %d/%m/%Y"
+    }
+  },
+  "traces": {
+    "new": {
+      "help": "To’ïk"
+    }
+  }
+}

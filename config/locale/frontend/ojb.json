@@ -1,0 +1,78 @@
+{
+  "activerecord": {
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "ganoozh gaawiin miikana",
+        "invalid_email_address": "Gaawiin izhinaagozi anokii asab-ganoozh"
+      },
+      "models": {
+        "user_mute": {
+          "is_already_muted": "en' bangan"
+        }
+      }
+    },
+    "help": {
+      "user_block": {
+        "reason": "Onji-giba' ozhibii'ige. Danaadizi daga awibaa daa-giin, miizh akina mamizhim babaamaajimo, mikwendan akina agindamaage. Nisidotaagwad gaawiin akina apii aabaji' wigipiidiya-ikidowin aabaji' ingwana wendad ikidowin."
+      }
+    },
+    "models": {
+      "acl": "Dibendan Waabam Ozhibii'an-ginwaa"
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Onaabam biskiigin"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Daangigwanenan",
+        "update": "Ombi' oshki"
+      },
+      "diary_comment": {
+        "create": "Idan wegonen giin mikwendan"
+      },
+      "diary_entry": {
+        "create": "Ozhibii'an-gashkigwaason",
+        "update": "Oshki"
+      },
+      "issue_comment": {
+        "create": "Asigagindaaso idan wegonen giin mikwendan"
+      },
+      "message": {
+        "create": "Biminizhikaw"
+      },
+      "oauth2_application": {
+        "create": "Biindigeshkaa",
+        "update": "Ombi' oshki"
+      },
+      "redaction": {
+        "create": "Maajii makade-beshaa",
+        "update": "Ganawenim makade-beshaa"
+      },
+      "trace": {
+        "create": "Ombi' onashkina'",
+        "update": "Ganawenim aanji"
+      },
+      "user_block": {
+        "create": "Maajii giba'",
+        "update": "Ombi' oshki giba'"
+      }
+    }
+  },
+  "javascripts": {
+    "map": {
+      "base": {
+        "cyclosm": "Ditibiwebishkigan baakise miikana akii-mazina'igan"
+      }
+    },
+    "share": {
+      "image_dimensions": "Mazinaakizon naago' niizhoodenh biitooshin bindiig {{width}} x {{height}}"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y ayaan %H:%M"
+    }
+  }
+}

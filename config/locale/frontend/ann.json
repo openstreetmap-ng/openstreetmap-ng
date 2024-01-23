@@ -1,0 +1,29 @@
+{
+  "activerecord": {
+    "attributes": {
+      "user": {
+        "pass_crypt_confirmation": "Rọ ikọ-àtafia nye"
+      }
+    }
+  },
+  "diary_entries": {
+    "diary_entry": {
+      "reply_link": "Ria etip jet ogwu òge-ikpa"
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Gwak"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Gwak"
+    }
+  },
+  "user_mailer": {
+    "message_notification": {
+      "footer_html": "Owu môkọt ifuk etip yi me {{readurl}}; owu si môkọt iria etip inyi ogwu ògege me {{replyurl}}"
+    }
+  }
+}

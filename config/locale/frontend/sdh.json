@@ -1,0 +1,181 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "delete_account": "سڕینەگەێ حساو",
+        "title": "حساوەگەم بسڕەو"
+      }
+    }
+  },
+  "accounts": {
+    "edit": {
+      "contributor terms": {
+        "link text": "ئەیە چەس؟"
+      },
+      "delete_account": "سڕینەوەێ حساو...",
+      "save changes button": "پاشەکەفتکردن ئاڵشتکاریەگان"
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "user": "وەکاربەر"
+      },
+      "friend": {
+        "friend": "دووس",
+        "user": "وەکاربەر"
+      },
+      "trace": {
+        "name": "ناو پەڕگە",
+        "size": "ئەندازە",
+        "user": "وەکاربەر"
+      },
+      "user": {
+        "email": "ئیمەیل"
+      }
+    },
+    "models": {
+      "country": "وڵات",
+      "language": "زوان",
+      "message": "پەێام",
+      "node": "گریە",
+      "user": "وەکاربەر",
+      "user_preference": "هەڵوژیاێەیل وەکاربەر"
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "فەیسبووک",
+      "google": "گووگڵ"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "belongs_to": "نۊسەر"
+    },
+    "redacted": {
+      "type": {
+        "node": "گریە"
+      }
+    },
+    "relation": {
+      "members": "ئەندامەیل"
+    },
+    "relation_member": {
+      "type": {
+        "node": "گریە",
+        "way": "ڕێ"
+      }
+    },
+    "start_rjs": {
+      "load_data": "بارکردن داتا"
+    },
+    "timeout": {
+      "type": {
+        "node": "گریە",
+        "way": "ڕێ"
+      }
+    }
+  },
+  "changesets": {
+    "changesets": {
+      "area": "ناوچە",
+      "user": "وەکاربەر"
+    },
+    "index": {
+      "load_more": "فێشتر باربکە"
+    }
+  },
+  "dashboards": {
+    "popup": {
+      "friend": "دووس"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "when": "کەی"
+    },
+    "form": {
+      "location": "شوون"
+    },
+    "location": {
+      "edit": "دەسکاری",
+      "location": "شوون:"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "bank": "بانک",
+          "casino": "کازینۆ",
+          "cinema": "سینەما",
+          "doctors": "پزشکەیل",
+          "grave_yard": "گووڕستان",
+          "hospital": "نەخوەشخانە",
+          "pharmacy": "دەرمانخانە",
+          "place_of_worship": "پەرستگە",
+          "police": "پۆلیس",
+          "prison": "زندان",
+          "studio": "ستودیۆ",
+          "taxi": "تاکسی"
+        },
+        "building": {
+          "house": "ماڵ"
+        },
+        "craft": {
+          "gardener": "باخەوان",
+          "photographer": "وێنەگر"
+        },
+        "historic": {
+          "house": "ماڵ"
+        },
+        "landuse": {
+          "cemetery": "گووڕستان",
+          "forest": "دارستان"
+        },
+        "leisure": {
+          "park": "پارک"
+        },
+        "natural": {
+          "forest": "دارستان",
+          "tree": "دار",
+          "water": "ئاو",
+          "wood": "دارستان"
+        },
+        "place": {
+          "house": "ماڵ",
+          "houses": "ماڵەیل",
+          "region": "ناوچە"
+        }
+      }
+    }
+  },
+  "html": {
+    "dir": "rtl"
+  },
+  "javascripts": {
+    "share": {
+      "image": "وێنە"
+    }
+  },
+  "oauth2_applications": {
+    "index": {
+      "name": "ناو"
+    }
+  },
+  "site": {
+    "edit": {
+      "user_page_link": "پەڕەێ وەکاربەر"
+    },
+    "welcome": {
+      "title": "خوەش هاتی!"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "وەکاربەرەیل",
+      "title": "وەکاربەرەیل"
+    }
+  }
+}

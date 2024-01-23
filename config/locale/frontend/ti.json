@@ -1,0 +1,152 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "ቋንቋ",
+        "user": "ተጠቃሚ"
+      },
+      "friend": {
+        "user": "ተጠቃሚ"
+      },
+      "trace": {
+        "description": "መግለጺ",
+        "name": "ስም ፋይል",
+        "public": "ህዝባዊ",
+        "user": "ተጠቃሚ"
+      },
+      "user": {
+        "description": "መግለጺ",
+        "email": "ኢሜይል",
+        "home_lat": "ማእገር",
+        "home_lon": "ዝንግሪር",
+        "languages": "ቋንቋታት",
+        "pass_crypt": "ቃለ-ምስጢር"
+      }
+    },
+    "models": {
+      "country": "ሃገር",
+      "language": "ቋንቋ",
+      "message": "መልእኽቲ",
+      "user": "ተጠቃሚ"
+    }
+  },
+  "auth": {
+    "providers": {
+      "wikipedia": "ዊኪፐድያ"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "belongs_to": "ደራሲ",
+      "discussion": "ምይይጥ"
+    },
+    "closed": "ዝተዓጽወ",
+    "location": "ቦታ፦",
+    "version": "ሕታም"
+  },
+  "changesets": {
+    "changesets": {
+      "comment": "ርእይቶ",
+      "user": "ተጠቃሚ"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "ርእይቶ"
+    },
+    "diary_comment": {
+      "confirm": "ኣረጋግጽ"
+    },
+    "form": {
+      "location": "ቦታ"
+    },
+    "location": {
+      "edit": "ኣመዓራርይ",
+      "location": "ቦታ፦"
+    },
+    "show": {
+      "login": "ብመንነት እተው"
+    }
+  },
+  "geocoder": {
+    "results": {
+      "no_results": "ውጺኢታት ኣይተረኸቡን"
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "update": "ኣመዓራርይ"
+      },
+      "diary_comment": {
+        "create": "ኣቐምጥ"
+      },
+      "diary_entry": {
+        "update": "ኣሓድስ"
+      }
+    }
+  },
+  "notes": {
+    "show": {
+      "description": "መግለጺ"
+    }
+  },
+  "osm_community_index": {
+    "communities": {
+      "OSM-AR-geolibres": {
+        "name": "GeoLibres"
+      },
+      "OSM-PL-chapter": {
+        "name": "OpenStreetMap Poland"
+      },
+      "OSM-US": {
+        "name": "OpenStreetMap US"
+      },
+      "OSM-japan-website": {
+        "name": "OpenStreetMap Japan"
+      },
+      "be-chapter": {
+        "name": "OpenStreetMap Belgium"
+      },
+      "cd-chapter": {
+        "name": "OpenStreetMap RDC"
+      },
+      "czech-community": {
+        "name": "OpenStreetMap CZ"
+      },
+      "fr-chapter": {
+        "name": "OpenStreetMap France"
+      },
+      "ireland-chapter": {
+        "name": "OpenStreetMap Ireland"
+      },
+      "is-chapter": {
+        "name": "OpenStreetMap Iceland"
+      },
+      "it-chapter": {
+        "name": "OpenStreetMap Italy"
+      },
+      "kosovo-flossk": {
+        "name": "Free Libre Open Source Software Kosova (FLOSSK)"
+      },
+      "osgeo-oceania": {
+        "name": "OSGeo Oceania"
+      },
+      "osm-at": {
+        "name": "OpenStreetMap Austria"
+      },
+      "osm-de": {
+        "name": "OpenStreetMap Germany"
+      },
+      "sk-freemap": {
+        "name": "OpenStreetMap Freemap Slovakia"
+      },
+      "sosm": {
+        "name": "Swiss OpenStreetMap Association"
+      },
+      "uk-localchapter": {
+        "name": "OpenStreetMap UK"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "activerecord": {
+    "attributes": {
+      "trace": {
+        "gpx_file": "GPX файл тыроно",
+        "name": "Файл ним",
+        "tagstring": "Тодмостонъёс",
+        "visibility": "Адӟиськонэз"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Файл быръе"
+    }
+  },
+  "traces": {
+    "edit": {
+      "cancel": "Берланьтон"
+    }
+  }
+}

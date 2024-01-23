@@ -1,0 +1,34 @@
+{
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "name": "الاسم (فرص)"
+      },
+      "doorkeeper/application": {
+        "name": "الاسم"
+      },
+      "friend": {
+        "user": "المستخدم"
+      },
+      "trace": {
+        "user": "المستخدم"
+      }
+    }
+  },
+  "errors": {
+    "contact": {
+      "contact": "إتصال"
+    }
+  },
+  "javascripts": {
+    "directions": {
+      "distance_km": "{{distance}} كم",
+      "distance_m": "{{distance}} م"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y ف %H:%M"
+    }
+  }
+}

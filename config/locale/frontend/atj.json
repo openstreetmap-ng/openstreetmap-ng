@@ -1,0 +1,120 @@
+{
+  "activerecord": {
+    "attributes": {
+      "redaction": {
+        "description": "E witcikemakak"
+      },
+      "trace": {
+        "description": "E witcikemakak"
+      },
+      "user": {
+        "description": "E witcikemakak",
+        "email": "Matcetcicihikan"
+      }
+    }
+  },
+  "browse": {
+    "anonymous": "nama kiskeritakosiw ka ki masinahak"
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Nama kiskeritakosiw ka ki masinahak"
+    }
+  },
+  "diary_entries": {
+    "location": {
+      "edit": "Meckotcita",
+      "view": "Tapwatcike"
+    }
+  },
+  "javascripts": {
+    "directions": {
+      "time": "Tato tipahikaneak"
+    }
+  },
+  "layouts": {
+    "about": "Taci we otciparik"
+  },
+  "messages": {
+    "messages_table": {
+      "date": "Tatokonakisitc"
+    }
+  },
+  "notes": {
+    "index": {
+      "description": "E witcikemakak"
+    },
+    "show": {
+      "description": "E witcikemakak"
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "Pamikicikwepitcikan matcetcicihikan:"
+    }
+  },
+  "redactions": {
+    "show": {
+      "description": "E witcikemakak:"
+    }
+  },
+  "sessions": {
+    "new": {
+      "auth_providers": {
+        "aol": {
+          "title": "Posi AOL"
+        },
+        "facebook": {
+          "title": "Posi Facebook"
+        },
+        "github": {
+          "title": "Posi GitHub"
+        },
+        "google": {
+          "title": "Posi Google"
+        },
+        "microsoft": {
+          "title": "Posi Windows Live"
+        },
+        "openid": {
+          "title": "Posi OpenID"
+        },
+        "wikipedia": {
+          "title": "Posi Wikipetia"
+        },
+        "wordpress": {
+          "title": "Posi Wordpress"
+        }
+      },
+      "login_button": "Posi",
+      "title": "Posi"
+    }
+  },
+  "site": {
+    "search": {
+      "search": "Nantokaskeritcikatek"
+    },
+    "sidebar": {
+      "search_results": "Kaki nta kiskeritakok"
+    }
+  },
+  "traces": {
+    "show": {
+      "description": "E witcikemakak:",
+      "edit": "meckotcita"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Meckotcita"
+    },
+    "show": {
+      "edit": "Meckotcita"
+    }
+  },
+  "users": {
+    "show": {
+      "email address": "Pamikicikwepitcikan matcetcicihikan:"
+    }
+  }
+}

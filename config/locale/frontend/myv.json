@@ -1,0 +1,689 @@
+{
+  "accounts": {
+    "edit": {
+      "contributor terms": {
+        "link text": "те мезе?"
+      },
+      "my settings": "Монь аравтомат",
+      "openid": {
+        "link text": "те мезе?"
+      },
+      "public editing": {
+        "enabled link text": "те мезе?"
+      },
+      "save changes button": "Ванстомс полавтоматнень"
+    },
+    "go_public": {
+      "make_edits_public_button": "Весе витнеман-петнеман улест весенень неявикст"
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "diary_comment": {
+        "body": "Рунготекст"
+      },
+      "diary_entry": {
+        "language_code": "Кель",
+        "latitude": "Келезэ",
+        "longitude": "Кувалмозо",
+        "title": "Мезде",
+        "user": "Теиця"
+      },
+      "doorkeeper/application": {
+        "name": "Лемезэ"
+      },
+      "friend": {
+        "friend": "Ялга",
+        "user": "Теиця"
+      },
+      "message": {
+        "body": "Рунготекст",
+        "recipient": "Кинень кучомс",
+        "sender": "Кучицязо",
+        "title": "Мезде"
+      },
+      "redaction": {
+        "description": "Чарькодевтемгакс",
+        "title": "Конякс"
+      },
+      "trace": {
+        "description": "Чарькодевтемгакс",
+        "gpx_file": "Совавтомс GPX Файла",
+        "latitude": "Келезэ",
+        "longitude": "Кувалмозо",
+        "name": "Файлань лем",
+        "public": "Весень туртов",
+        "size": "Покшолмазо",
+        "tagstring": "Тэгензэ",
+        "user": "Теиця",
+        "visibility": "Неявомачи",
+        "visible": "Неяви"
+      },
+      "user": {
+        "description": "Профильсэ чарькодевтемгакс",
+        "email": "Е-сёрма",
+        "home_lat": "Келезэ",
+        "home_lon": "Кувалмозо",
+        "languages": "Эсеть келеть",
+        "pass_crypt": "салававал",
+        "pass_crypt_confirmation": "Кемекстык салававалот",
+        "preferred_editor": "Эсеть витнемка-петнемка"
+      }
+    },
+    "help": {
+      "trace": {
+        "tagstring": "ботпулосо явозь лемрисьме"
+      }
+    },
+    "models": {
+      "changeset": "Полавтовкспусмо",
+      "changeset_tag": "Полавтовкспусмонь тэг",
+      "country": "Мастор",
+      "friend": "Ялга",
+      "language": "Келезэ",
+      "message": "Пачтамнэ",
+      "relation": "Сюлмавкс",
+      "relation_member": "Сюлмавксонь ломань",
+      "relation_tag": "Сюлмавкстэг",
+      "session": "Промкс",
+      "trace": "Ки",
+      "user": "Теиця",
+      "user_preference": "Теицянь аравтомат",
+      "user_token": "Теицянь токен",
+      "way": "Черькс"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "{{user}} пекстызе {{when}}",
+        "closed_at_html": "Пекстазь {{when}}",
+        "commented_at_by_html": "{{user}} одкстомтызе {{when}}",
+        "commented_at_html": "Одкстомтозь {{when}}",
+        "opened_at_by_html": "{{user}} шкизе {{when}}",
+        "opened_at_html": "Шказь {{when}}",
+        "reopened_at_by_html": "{{user}} одов панжизе {{when}}",
+        "reopened_at_html": "Одов панжозь {{when}}"
+      },
+      "entry": {
+        "comment": "Мельполадкс"
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "github": "GitHub",
+      "wikipedia": "Википедия"
+    }
+  },
+  "browse": {
+    "anonymous": "лемтеме",
+    "changeset": {
+      "belongs_to": "Теицязо",
+      "changesetxml": "Полавтовкспусмо XML-сэ",
+      "feed": {
+        "title": "Полавтовкспусмо: {{id}}",
+        "title_comment": "Полавтовкспусмо {{id}} - {{comment}}"
+      },
+      "title": "Полавтовкспусмо: {{id}}"
+    },
+    "closed": "Пекстазь",
+    "containing_relation": {
+      "entry_html": "Сюлмавкс {{relation_name}}",
+      "entry_role_html": "Сюлмавкс {{relation_name}} (as {{relation_role}})"
+    },
+    "created": "Шказь-теезь",
+    "download_xml": "Таргамс XML",
+    "in_changeset": "Полавтовкспусмо",
+    "location": "Косо:",
+    "not_found": {
+      "sorry": "Кежеть иляст са, {{type}} #{{id}} а муеви.",
+      "type": {
+        "changeset": "полавтовкспусмо",
+        "relation": "Сюлмавкс"
+      }
+    },
+    "part_of": "Пельксэзэ",
+    "query": {
+      "nearby": "Малавикс уликсчить"
+    },
+    "redacted": {
+      "type": {
+        "relation": "Сюлмавкс"
+      }
+    },
+    "relation": {
+      "members": "Куронь ломанть"
+    },
+    "relation_member": {
+      "type": {
+        "relation": "Сюлмавкс"
+      }
+    },
+    "start_rjs": {
+      "load_data": "Таргамс дататнень",
+      "loading": "Тонгомазо моли…"
+    },
+    "tag_details": {
+      "tags": "Тэгензэ"
+    },
+    "timeout": {
+      "type": {
+        "changeset": "полавтовкспусмо",
+        "relation": "Сюлмавкс"
+      }
+    },
+    "version": "Версия",
+    "view_history": "Ваномс юронзо-путовксонзо"
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Лемтеме",
+      "no_edits": "(апак витне-петне)"
+    },
+    "changeset_paging_nav": {
+      "next": "Седе тов »",
+      "previous": "« Мекев"
+    },
+    "changesets": {
+      "saved_at": "Ванстозь",
+      "user": "Теиця"
+    },
+    "index": {
+      "empty": "Полавтовкспусмот а муевить.",
+      "empty_area": "Тияня полавтовкспусмот арасть.",
+      "empty_user": "Те теицянть полавтовкспусмонзо арасть.",
+      "no_more": "Лия полавтовкспусмот а муевить.",
+      "no_more_area": "Тияня лия полавтовкспусмот арасть.",
+      "no_more_user": "Те теицянть лия полавтовкспусмонзо арасть.",
+      "title": "Полавтовкспусмот"
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "button": "Кемекстамс"
+    },
+    "confirm_email": {
+      "button": "Кемекстамс"
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}} вайгельпень тарка",
+      "m away": "{{count}} метрань тарка"
+    },
+    "popup": {
+      "friend": "Ялга",
+      "nearby mapper": "Маласо картань теиця",
+      "your location": "Неень аштема таркат"
+    },
+    "show": {
+      "my friends": "Монь ялган"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "half_a_minute": "пель минутадо икеле"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Мельполадкс",
+      "newer_comments": "Седе од мельть-поладкст",
+      "older_comments": "Седе ташто мельть-поладкст",
+      "when": "Зярдо"
+    },
+    "diary_comment": {
+      "confirm": "Кемекстамс",
+      "hide_link": "Кекшик те арьсеманть",
+      "report": "Пеняцямс те арьсеманть лангс",
+      "unhide_link": "Саемс кекшемстэ те арьсеманть"
+    },
+    "diary_entry": {
+      "confirm": "Кемекстамс"
+    },
+    "form": {
+      "location": "Аштема тарка",
+      "use_map_link": "Нолдык тевс Картанть"
+    },
+    "location": {
+      "edit": "Витнемс-петнемс",
+      "location": "Косо:",
+      "view": "Невтемс"
+    },
+    "show": {
+      "leave_a_comment": "Кадт мельть-поладкст",
+      "login": "Совамо",
+      "login_to_leave_a_comment_html": "{{login_link}} мелень-поладксонь кадомга"
+    }
+  },
+  "doorkeeper": {
+    "flash": {
+      "applications": {
+        "create": {
+          "notice": "Программакерьксэсь сёрмадстозь."
+        }
+      }
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "button": "Саемс ялгакс",
+      "heading": "Саемс {{user}}-нь ялгакс?",
+      "success": "Ней {{name}} ялгат!"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "aeroway": {
+          "apron": "Икельгапаця",
+          "gate": "Ортат",
+          "hangar": "Ангар",
+          "terminal": "Терминал"
+        },
+        "amenity": {
+          "bank": "Банк",
+          "bar": "Бар",
+          "bbq": "Барбекю",
+          "bench": "Эзем",
+          "biergarten": "Пияпире",
+          "brothel": "Ардыварянь кудо",
+          "dentist": "Пеень врач",
+          "doctors": "Рачт",
+          "embassy": "Кучолкс кудо",
+          "fuel": "Уштомапель",
+          "grave_yard": "Калмозэрь",
+          "pharmacy": "Оптека",
+          "post_office": "Почта",
+          "prison": "Пекстамо кудо",
+          "school": "Школа",
+          "shower": "Душ",
+          "taxi": "Такси",
+          "theatre": "Театра",
+          "toilets": "Туалет",
+          "townhall": "Ош кудо",
+          "university": "Нюрситет"
+        },
+        "bridge": {
+          "yes": "Сэдь"
+        },
+        "building": {
+          "church": "Церкова"
+        },
+        "craft": {
+          "shoemaker": "Котань сустый",
+          "tailor": "Сустый"
+        },
+        "highway": {
+          "bus_stop": "Бузонь лотксема тарка",
+          "elevator": "Лифт",
+          "footway": "Ян",
+          "ford": "Келямо тарка",
+          "motorway": "Покш ки",
+          "path": "Яннэ",
+          "road": "Ки",
+          "steps": "Кузтемат",
+          "yes": "Ки"
+        },
+        "historic": {
+          "church": "Церкова",
+          "house": "Кудо",
+          "stone": "Кев"
+        },
+        "landuse": {
+          "cemetery": "Калмозэрь",
+          "forest": "Вирь",
+          "grass": "Пиже тикше",
+          "meadow": "Лём",
+          "orchard": "Умарьпире",
+          "railway": "Чугункань ки"
+        },
+        "leisure": {
+          "fishing": "Калонь кундсема тарка",
+          "garden": "Пире",
+          "park": "Парк",
+          "sauna": "Баня"
+        },
+        "man_made": {
+          "beehive": "Нешке",
+          "bridge": "Сэдь",
+          "mast": "Торзей",
+          "water_well": "Лисьма",
+          "watermill": "Ведькев",
+          "windmill": "Вармаведькев"
+        },
+        "natural": {
+          "cave_entrance": "Мода курго",
+          "coastline": "Иневедь чире",
+          "forest": "Вирь",
+          "hill": "Пандо",
+          "island": "Усия",
+          "land": "Мода",
+          "mud": "Рудаз",
+          "rock": "Кев",
+          "sand": "Човар",
+          "spring": "Лисьмапря",
+          "stone": "Кев",
+          "tree": "Чувто",
+          "volcano": "Тол пандо",
+          "water": "Ведь",
+          "wood": "Вирне"
+        },
+        "place": {
+          "city": "Ош",
+          "country": "Мастор",
+          "county": "Мастор",
+          "farm": "Хверма",
+          "hamlet": "Церковавтомо веле",
+          "house": "Кудо",
+          "houses": "Кудот",
+          "island": "Усия",
+          "islet": "Усиине",
+          "sea": "Иневедь",
+          "state": "Штат",
+          "town": "Ошкэ",
+          "village": "Веле",
+          "yes": "Тарка"
+        },
+        "railway": {
+          "tram": "Трамвай"
+        },
+        "shop": {
+          "books": "Кинигань лавка"
+        },
+        "tourism": {
+          "motel": "Валгонь кудо",
+          "museum": "Музей",
+          "zoo": "Зоопарк"
+        },
+        "waterway": {
+          "canal": "Канал",
+          "dam": "Сёлт",
+          "river": "Лей",
+          "stream": "Чудикерькс"
+        }
+      },
+      "types": {
+        "cities": "Ошт",
+        "places": "Таркат",
+        "towns": "Ошкэть"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Кочкамс файла"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Путомс регистрас",
+        "update": "Одкстомтомс"
+      },
+      "diary_comment": {
+        "create": "Ванстомс"
+      },
+      "diary_entry": {
+        "create": "Нолдамс ломань икелев",
+        "update": "Одкстомтомс"
+      },
+      "issue_comment": {
+        "create": "Поладомс мельть-арсемат"
+      },
+      "message": {
+        "create": "Кучомс"
+      },
+      "oauth2_application": {
+        "create": "Сёрмадстомс",
+        "update": "Одкстомтомс"
+      },
+      "redaction": {
+        "create": "Шкамс-теемс витнема-петнема",
+        "update": "Ванстомс витнема-петнема"
+      },
+      "trace": {
+        "create": "Тонгомс",
+        "update": "Ванстомс полавтоматнень"
+      }
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "hide_comment": "кекшемс",
+        "unhide_comment": "невтемс"
+      }
+    },
+    "close": "Пекстамс",
+    "directions": {
+      "descend": "Валгомс",
+      "distance": "Ютко",
+      "time": "Шказо"
+    },
+    "query": {
+      "relation": "Сюлмавкс",
+      "way": "Ки"
+    },
+    "share": {
+      "cancel": "Саемс мекев",
+      "download": "Таргамс",
+      "long_link": "Сюлмавома пе",
+      "title": "Явшемс"
+    }
+  },
+  "layouts": {
+    "edit": "Витнемс-петнемс",
+    "help": "Лезкс",
+    "log_in": "Совамс",
+    "logout": "Лисемс"
+  },
+  "messages": {
+    "heading": {
+      "my_inbox": "Монень сыця сёрмат"
+    },
+    "inbox": {
+      "title": "Сыця сёрмат"
+    },
+    "message_summary": {
+      "destroy_button": "Нардамс"
+    },
+    "messages_table": {
+      "date": "Чи-ков",
+      "subject": "Мезде"
+    },
+    "sent_message_summary": {
+      "destroy_button": "Нардамс"
+    },
+    "show": {
+      "back": "Мекев"
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Шказь-теезь",
+      "creator": "Шкицязо-теицязо",
+      "last_changed": "Меельцеде лиякстомтозь"
+    },
+    "show": {
+      "description": "Чарькодевтемгакс",
+      "hide": "Кекшемс"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_write_api": "лиякстомтомс картанть"
+    }
+  },
+  "redactions": {
+    "show": {
+      "description": "Чарькодевтемгакс:",
+      "user": "Шкицязо-теицязо:"
+    },
+    "update": {
+      "flash": "Лиякстомтоматне ванстозь."
+    }
+  },
+  "reports": {
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "other_label": "Лия"
+        },
+        "diary_entry": {
+          "other_label": "Лия"
+        },
+        "note": {
+          "other_label": "Лия"
+        },
+        "user": {
+          "other_label": "Лия"
+        }
+      }
+    }
+  },
+  "sessions": {
+    "new": {
+      "heading": "Совамо",
+      "lost password link": "Совамо валот ёмавтык?",
+      "title": "Совамо"
+    }
+  },
+  "site": {
+    "about": {
+      "next": "Седе тов"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "англань келень оригиналонзо",
+        "title": "Те ютавтомадонть"
+      }
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "common": "Вейсэнь",
+          "forest": "Вирь",
+          "lake": "Эрьке",
+          "motorway": "Кепедень ки",
+          "park": "Парк",
+          "peak": "тёкш",
+          "school": "Школа",
+          "subway": "Мода алгань ки",
+          "summit": "Тёкш",
+          "toilets": "Туалетт",
+          "university": "нюрситет"
+        }
+      }
+    },
+    "search": {
+      "search": "Вешнемс",
+      "where_am_i": "Те косо?"
+    },
+    "sidebar": {
+      "close": "Пекстамс"
+    },
+    "welcome": {
+      "rules": {
+        "title": "Правилат!"
+      },
+      "title": "Совак, инеське!",
+      "whats_on_the_map": {
+        "title": "Мезе картасонть"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y %H:%M чассто"
+    }
+  },
+  "traces": {
+    "new": {
+      "help": "Лезкс"
+    },
+    "show": {
+      "description": "Чарькодевтемгакс:",
+      "download": "таргамс",
+      "edit": "витнемс-петнемс",
+      "filename": "Файлань лемесь:",
+      "map": "карта",
+      "none": "Арась мезе невтемс",
+      "owner": "Азорозо:",
+      "tags": "Тегензэ:",
+      "uploaded": "Тонгозь:"
+    },
+    "trace_optionals": {
+      "tags": "Тэгензэ"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Витнемс-петнемс",
+      "show": "Невтемс"
+    },
+    "blocks": {
+      "creator_name": "Шкицязо-теицязо",
+      "next": "Седе тов »",
+      "previous": "« Мекев"
+    },
+    "helper": {
+      "time_past_html": "Прядовсь {{time}}"
+    },
+    "show": {
+      "created": "Шказь-теезь",
+      "edit": "Витнемс-петнемс"
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "greeting": "Шумбрачи,"
+    },
+    "email_confirm": {
+      "greeting": "Шумбрачи,"
+    },
+    "lost_password": {
+      "greeting": "Шумбрачи,"
+    },
+    "note_comment_notification": {
+      "greeting": "Шумбрачи,"
+    },
+    "signup_confirm": {
+      "greeting": "Кода тевтне?!"
+    }
+  },
+  "user_role": {
+    "grant": {
+      "confirm": "Кемекстамс"
+    },
+    "revoke": {
+      "confirm": "Кемекстамс"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "Теицятне",
+      "title": "Совицят"
+    },
+    "new": {
+      "title": "Шкамс совамо тарка"
+    },
+    "no_such_user": {
+      "title": "Истямо теиця арась"
+    },
+    "show": {
+      "add as friend": "Поладомс ялга",
+      "confirm": "Кемекстамс",
+      "edits": "витнемат-петнемат",
+      "my edits": "Мезе витнинь-петнинь",
+      "send message": "кучомс пачтямнэ"
+    },
+    "terms": {
+      "consider_pd_why": "те мезе?",
+      "continue": "Поладомс",
+      "legale_names": {
+        "france": "Хранция",
+        "italy": "Италия"
+      }
+    }
+  }
+}

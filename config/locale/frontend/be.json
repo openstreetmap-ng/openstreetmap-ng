@@ -1,0 +1,2657 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "title": "Выдаліць мой уліковы запіс",
+        "warning": "Увага! Працэс выдалення ўліковага запісу з'яўляецца канчатковым і не можа быць зменены."
+      }
+    }
+  },
+  "accounts": {
+    "edit": {
+      "contributor terms": {
+        "agreed": "Вы пагадзіліся на новыя ўмовы ўдзелу.",
+        "agreed_with_pd": "Вы таксама заявілі, што лічыце, што змены павінны знаходзіцца ў агульнай уласнасці.",
+        "heading": "Умовы ўдзелу:",
+        "link text": "што гэта?",
+        "not yet agreed": "Вы яшчэ не пагадзіліся на новыя ўмовы ўдзелу.",
+        "review link text": "Калі ласка, прайдзіце па гэтай спасылцы для Вашай зручнасці, каб разгледзець і прыняць новыя ўмовы ўдзелу."
+      },
+      "current email address": "Бягучы адрас электроннай пошты",
+      "external auth": "Знешняя Аўтэнтыфікацыя",
+      "my settings": "Мае налады",
+      "openid": {
+        "link text": "што гэта?"
+      },
+      "public editing": {
+        "disabled": "Адключана. Вы не можаце больш рэдагаваць, але ўсе ранейшыя змены ананімныя.",
+        "disabled link text": "чаму я не магу рэдагаваць?",
+        "enabled": "Уключана. Вы - не ананімны і можаце рэдагаваць дадзеныя.",
+        "enabled link text": "што гэта?",
+        "heading": "Агульнае рэдагаванне"
+      },
+      "save changes button": "Запісаць змены",
+      "title": "Рэдагаваць уліковы запіс"
+    },
+    "go_public": {
+      "heading": "Публічнае рэдагаванне:",
+      "make_edits_public_button": "Зрабіць усе мае змены публічнымі"
+    },
+    "update": {
+      "success": "Звесткі аб карыстальніку паспяхова абноўленыя.",
+      "success_confirm_needed": "Звесткі аб карыстальніку паспяхова абноўленыя. Праверце сваю эл.пошту, вам павінен прыйсці запыт на пацвярджэнне вашага новага адраса."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "чытаць прыватныя GPS-трэкі",
+        "allow_read_prefs": "чытаць параметры ўдзельніка",
+        "allow_write_api": "змяняць карту",
+        "allow_write_diary": "рабіць запісы ў дзённіку, каментаваць і заводзіць сяброў",
+        "allow_write_gpx": "загружаць GPS-трэкі",
+        "allow_write_notes": "змяняць нататкі",
+        "allow_write_prefs": "змяняць параметры ўдзельніка",
+        "callback_url": "URL-адрас зваротнага выкліку",
+        "name": "Імя (абявязкова)",
+        "support_url": "URL-адрас падтрымкі",
+        "url": "Галоўны URL-адрас дастасаваньня (абявязкова)"
+      },
+      "diary_comment": {
+        "body": "Тэкст"
+      },
+      "diary_entry": {
+        "body": "Змест",
+        "language_code": "Мова",
+        "latitude": "Шырата",
+        "longitude": "Даўгата",
+        "title": "Загаловак",
+        "user": "Карыстальнік"
+      },
+      "doorkeeper/application": {
+        "confidential": "Канфідэнцыяльны дадатак?",
+        "name": "Назва",
+        "redirect_uri": "Пераадрасаваныя URI",
+        "scopes": "Дазволы"
+      },
+      "friend": {
+        "friend": "Сябар",
+        "user": "Карыстальнік"
+      },
+      "message": {
+        "body": "Тэкст",
+        "recipient": "Каму",
+        "sender": "Ад",
+        "title": "Тэма"
+      },
+      "redaction": {
+        "description": "Апісанне",
+        "title": "Загаловак"
+      },
+      "report": {
+        "category": "Абярыце прычыну вашай скаргі:",
+        "details": "Просьба прадставіць некаторыя падрабязнасці аб праблеме (абавязкова)."
+      },
+      "trace": {
+        "description": "Апісанне",
+        "gpx_file": "Даслаць GPX-файл:",
+        "latitude": "Шырата",
+        "longitude": "Даўгата",
+        "name": "Назва",
+        "public": "Агульны",
+        "size": "Памер",
+        "tagstring": "Тэгі",
+        "user": "Карыстальнік",
+        "visibility": "Бачнасць",
+        "visible": "Бачны"
+      },
+      "user": {
+        "active": "Актыўны",
+        "auth_provider": "Аўтэнтыфікатар",
+        "auth_uid": "UID аўтэнтыфікацыі",
+        "description": "Апісанне",
+        "display_name": "Бачнае імя",
+        "email": "Электронная пошта",
+        "email_confirmation": "Пацверджанне электроннай пошты",
+        "home_lat": "Шырата",
+        "home_lon": "Даўгата",
+        "languages": "Пераважныя мовы",
+        "new_email": "Новы адрас электроннай пошты",
+        "pass_crypt": "Пароль",
+        "pass_crypt_confirmation": "Пацвердзіце пароль",
+        "preferred_editor": "Пераважны рэдактар"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "немагчыма пракласці маршрут",
+        "invalid_email_address": "не падобны на карэктны адрас электроннай пошты"
+      }
+    },
+    "help": {
+      "doorkeeper/application": {
+        "confidential": "Дадатак будзе выкарыстоўвацца там, дзе сакрэт кліента можа захоўвацца ў сакрэце (уласныя мабільныя дадаткі і аднастаронкавыя дадаткі не зʼяўляюцца канфідэнцыйнымі)",
+        "redirect_uri": "Выкарыстоўвайце адзін радок для URI"
+      },
+      "trace": {
+        "tagstring": "падзеленыя коскамі"
+      },
+      "user": {
+        "new_email": "(ніколі нікому не паказваецца)"
+      },
+      "user_block": {
+        "needs_view": "Ці трэба ўдзельніку ўвайсці ў сістэму, перад тым як блакіроўка будзе знята?",
+        "reason": "Прычына блакіроўкі ўдзельніка. Калі ласка, будзьце як мага больш спакойнымі і разважлівымі, расказвайце як мага больш дэталяў аб сітуацыі, памятаючы, што паведамленне будзе агульнадаступным. Майце на ўвазе, што не ўсе карыстальнікі разумеюць жаргон супольнасці, таму паспрабуйце не выкарыстоўваць прафесіяналізмы."
+      }
+    },
+    "models": {
+      "acl": "Спіс правоў доступу",
+      "changeset": "Пакет правак",
+      "changeset_tag": "Тэг пакета правак",
+      "country": "Краіна",
+      "diary_comment": "Каментар дзённіка",
+      "diary_entry": "Запіс дзённіка",
+      "friend": "Сябар",
+      "issue": "Праблема",
+      "language": "Мова",
+      "message": "Паведамленне",
+      "node": "Пункт",
+      "node_tag": "Тэг пункта",
+      "old_node": "Стары пункт",
+      "old_node_tag": "Стары тэг пункта",
+      "old_relation": "Старое дачыненне",
+      "old_relation_member": "Стары ўдзельнік дачынення",
+      "old_relation_tag": "Стары тэг дачынення",
+      "old_way": "Старая лінія",
+      "old_way_node": "Стары пункт лініі",
+      "old_way_tag": "Стары тэг лініі",
+      "relation": "Дачыненне",
+      "relation_member": "Удзельнік дачынення",
+      "relation_tag": "Тэг дачынення",
+      "report": "Справаздача",
+      "session": "Сеанс",
+      "trace": "След",
+      "tracepoint": "Пункт следу",
+      "tracetag": "Тэг следу",
+      "user": "Карыстальнік",
+      "user_preference": "Параметры ўдзельніка",
+      "user_token": "Токен карыстальніка",
+      "way": "Лінія",
+      "way_node": "Пункт лініі",
+      "way_tag": "Тэг лініі"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "Вырашаны {{when}} удзельнікам {{user}}",
+        "closed_at_html": "Вырашана {{when}}",
+        "commented_at_by_html": "Абноўлена {{when}} удзельнікам {{user}}",
+        "commented_at_html": "Абноўлена {{when}}",
+        "opened_at_by_html": "Створана {{when}} удзельнікам {{user}}",
+        "opened_at_html": "Створана {{when}}",
+        "reopened_at_by_html": "Пераадкрыта {{when}} удзельнікам {{user}}",
+        "reopened_at_html": "Пераадкрыта {{when}}"
+      },
+      "entry": {
+        "comment": "Каментар",
+        "full": "Тлумачэнне"
+      },
+      "rss": {
+        "closed": "закрытая заўвага (каля {{place}})",
+        "commented": "новы каментар (каля {{place}})",
+        "description_area": "Спіс заўваг створаных, пракаментаваных ці вырашаных у вашым рэгіёне [({{min_lat}}|{{min_lon}}) -- ({{max_lat}}|{{max_lon}})]",
+        "description_item": "RSS-стужка заўваг {{id}}",
+        "opened": "новая заўвага (каля {{place}})",
+        "reopened": "пераадкрытая заўвага (каля {{place}})",
+        "title": "Заўвагі OpenStreetMap"
+      }
+    }
+  },
+  "application": {
+    "permission_denied": "У вас няма правоў для выканання гэтага дзеяння",
+    "require_admin": {
+      "not_an_admin": "Вам неабходна быць адміністратарам для выканання гэтага дзеяння."
+    },
+    "require_cookies": {
+      "cookies_needed": "Здаецца, што ў Ва забароненыя cookies. Калі ласка, дазвольце іх ў Вашым браўзеры перад тым, як працягваць."
+    },
+    "setup_user_auth": {
+      "blocked": "Ваш доступ да API быў заблакаваны. Калі ласка, ўвайдзіце ў вэб-інтэрфейс, каб даведацца больш.",
+      "blocked_zero_hour": "У вас ёсць тэрміновае паведамленне на сайце OpenStreetMap. Вам трэба прачытаць паведамленне, перш чым вы зможаце захаваць вашы змены.",
+      "need_to_see_terms": "Ваш доступ да API часова прыпынены. Калі ласка, ўвайдзіце ў вэб-інтэрфейс для прагляду ўмоў удзелу. Вы не абавязаны пагаджацца, але вам варта праглядзець іх."
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "none": "Няма",
+      "openid": "OpenID",
+      "wikipedia": "Вікіпедыя"
+    }
+  },
+  "browse": {
+    "anonymous": "ананімны",
+    "changeset": {
+      "belongs_to": "Аўтар",
+      "changesetxml": "XML пакета правак",
+      "comment": "Каментары ({{count}})",
+      "discussion": "Абмеркаванне",
+      "feed": {
+        "title": "Набор змен {{id}}",
+        "title_comment": "Набор змен {{id}} - {{comment}}"
+      },
+      "join_discussion": "Увайдзіце ў сістэму, каб далучыцца да абмеркавання",
+      "node": "Пункты ({{count}})",
+      "node_paginated": "Пункты ({{x}}-{{y}} з {{count}})",
+      "osmchangexml": "osmChange XML",
+      "relation": "Дачыненні ({{count}})",
+      "relation_paginated": "Дачыненні ({{x}}-{{y}} з {{count}})",
+      "still_open": "Пакет правак яшчэ адкрыты. Абмеркаванне стане даступным, як толькі пакет правак закрыецца.",
+      "title": "Набор змен: {{id}}",
+      "way": "Лініі ({{count}})",
+      "way_paginated": "Лініі ({{x}}-{{y}} з {{count}})"
+    },
+    "closed": "Зачынены",
+    "containing_relation": {
+      "entry_html": "Дачыненне {{relation_name}}",
+      "entry_role_html": "Дачыненне {{relation_name}} (як {{relation_role}})"
+    },
+    "created": "Створаны",
+    "download_xml": "Спампаваць XML",
+    "in_changeset": "Пакет правак",
+    "location": "Месца:",
+    "no_comment": "(без каментароў)",
+    "node": {
+      "history_title_html": "Гісторыя пункта: {{name}}",
+      "title_html": "Пункт: {{name}}"
+    },
+    "not_found": {
+      "sorry": "Прабачце, {{type}} з нумарам {{id}} не знойдзены.",
+      "type": {
+        "changeset": "пакет правак",
+        "node": "пункт",
+        "note": "заўвага",
+        "relation": "дачыненне",
+        "way": "лінія"
+      }
+    },
+    "part_of": "Частка",
+    "query": {
+      "enclosing": "Навакольныя аб'екты",
+      "introduction": "Націсніце на карце, каб атрымаць звесткі пра аб’екты паблізу.",
+      "nearby": "Аб’екты паблізу",
+      "title": "Пошук аб’ектаў"
+    },
+    "redacted": {
+      "message_html": "Версія {{version}} гэтай {{type}} не можа быць паказаная, бо яна была адрэдагаваная. Глядзіце {{redaction_link}} для падрабязнасцяў.",
+      "redaction": "Рэдакцыя {{id}}",
+      "type": {
+        "node": "пункт",
+        "relation": "дачыненне",
+        "way": "лінія"
+      }
+    },
+    "relation": {
+      "history_title_html": "Гісторыя дачынення: {{name}}",
+      "members": "Удзельнікі",
+      "title_html": "Дачыненне: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} як {{role}}",
+      "type": {
+        "node": "Пункт",
+        "relation": "Дачыненне",
+        "way": "Лінія"
+      }
+    },
+    "start_rjs": {
+      "feature_warning": "Ідзе загрузка {{num_features}} функцый, што можа запаволіць ваш браўзер. Вы ўпэўнены, што жадаеце праглядзець гэтыя даныя?",
+      "load_data": "Загрузіць даныя",
+      "loading": "Загрузка..."
+    },
+    "tag_details": {
+      "colour_preview": "Прагляд колеру {{colour_value}}",
+      "tags": "Тэгі",
+      "telephone_link": "Патэлефанаваць {{phone_number}}",
+      "wiki_link": {
+        "key": "Вікі-старонка апісання тэгу {{key}}",
+        "tag": "Вікі-старонка апісання тэгу {{key}}={{value}}"
+      },
+      "wikidata_link": "Элемент {{page}} на Вікіданых",
+      "wikimedia_commons_link": "{{page}} ў Вікісховішчы",
+      "wikipedia_link": "Артыкул {{page}} на Вікіпедыі"
+    },
+    "timeout": {
+      "sorry": "Прабачце, атрыманне даных для {{type}} з ідэнтыфікатарам {{id}} заняла зашмат часу.",
+      "type": {
+        "changeset": "набор змен",
+        "node": "пункт",
+        "note": "заўвага",
+        "relation": "дачыненне",
+        "way": "лінія"
+      }
+    },
+    "version": "Версія",
+    "view_details": "Прагляд звестак",
+    "view_history": "Прагляд гісторыі",
+    "way": {
+      "also_part_of_html_one": "частка лініі {{related_ways}}",
+      "also_part_of_html_other": "частка ліній {{related_ways}}",
+      "history_title_html": "Гісторыя лініі: {{name}}",
+      "nodes": "Пункты",
+      "title_html": "Лінія: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "comment": {
+      "comment": "Новы каментар на пакет правак {{changeset_id}} ад {{author}}",
+      "commented_at_by_html": "Абноўлена {{when}} удзельнікам {{user}}"
+    },
+    "comments": {
+      "comment": "Новы каментар на пакет правак {{changeset_id}} ад {{author}}"
+    },
+    "index": {
+      "title_all": "Абмеркаванне пакета правак OpenStreetMap",
+      "title_particular": "Абмеркаванне пакета правак OpenStreetMap #{{changeset_id}}"
+    },
+    "timeout": {
+      "sorry": "Выбачайце, спіс набораў правак, што Вы запыталі, занадта вялікі для атрымання."
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Ананімны",
+      "no_edits": "(без змен)",
+      "view_changeset_details": "Падрабязней пра пакет правак"
+    },
+    "changeset_paging_nav": {
+      "next": "Далей »",
+      "previous": "« Назад",
+      "showing_page": "Старонка {{page}}"
+    },
+    "changesets": {
+      "area": "Мясцовасць",
+      "comment": "Каментар",
+      "id": "ID",
+      "saved_at": "Захаваны",
+      "user": "Карыстальнік"
+    },
+    "index": {
+      "empty": "Пакеты правак не знойдзены.",
+      "empty_area": "Няма пакетаў правак у гэтай вобласці.",
+      "empty_user": "Няма пакетаў правак ад гэтага карыстальніка.",
+      "load_more": "Загрузіць больш",
+      "no_more": "Больш ніякіх пакетаў правак не знойдзена.",
+      "no_more_area": "Больш няма пакетаў правак у гэтай вобласці.",
+      "no_more_user": "Больш няма пакетаў правак ад гэтага карыстальніка.",
+      "title": "Пакет правак",
+      "title_friend": "Пакеты правак ад вашых сяброў",
+      "title_nearby": "Пакеты правак ад карыстальнікаў паблізу",
+      "title_user": "Пакет правак ад {{user}}"
+    },
+    "timeout": {
+      "sorry": "Выбачайце, спіс набораў правак, што Вы запыталі, занадта вялікі для атрымання."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "Гэты ўліковы запіс ужо пацверджаны.",
+      "button": "Пацвердзіць",
+      "heading": "Праверце вашу электронную пошту!",
+      "introduction_1": "Мы адправілі вам ліст з пацверджаннем.",
+      "introduction_2": "Пацвердзіце Ваш уліковы запіс, націснуўшы на адпаведную спасылку ў лісце, і вы зможаце пачаць працаваць з картамі.",
+      "press confirm button": "Націсніце кнопку, каб актывізаваць уліковы запіс.",
+      "success": "Уліковы запіс пацверджаны, дзякуй за рэгістрацыю!",
+      "unknown token": "Тэрмін дзеяння кода пацверджання ўжо прайшоў ці ён не існуе."
+    },
+    "confirm_email": {
+      "button": "Пацвердзіць",
+      "failure": "Паштовы адрас ужо быў пацверджаны гэтым токенам.",
+      "heading": "Пацвердзіць змену паштовага адраса",
+      "press confirm button": "Націсніце кнопку, каб пацвердзіць ваш новы паштовы адрас.",
+      "success": "Змена вамі адраса электроннай пошты пацверджана!",
+      "unknown_token": "Тэрмін дзеяння кода пацверджання ўжо прайшоў ці ён не існуе."
+    },
+    "confirm_resend": {
+      "failure": "Карыстальнік {{name}} не знойдзены."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}} км ад вас",
+      "latest_edit_html": "Апошняе рэдагаванне ({{ago}}):",
+      "m away": "{{count}} м ад Вас"
+    },
+    "popup": {
+      "friend": "Сябар",
+      "nearby mapper": "Карыстальнік",
+      "your location": "Ваша месцазнаходжанне"
+    },
+    "show": {
+      "friends_changesets": "наборы зменаў сяброў",
+      "friends_diaries": "запісы дзёньнікаў сяброў",
+      "my friends": "Мае сябры",
+      "nearby users": "Карыстальнікі паблізу:",
+      "nearby_changesets": "наборы зменаў удзельнікаў паблізу",
+      "nearby_diaries": "запісы дзённікаў карыстальнікаў паблізу",
+      "no friends": "Вы пакуль не дадалі нікога ў сябры.",
+      "no nearby users": "Пакуль што няма карыстальнікаў, якія пазначылі сваё месцазнаходжанне паблізу."
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_few": "прыкладна {{count}} гадзіны таму",
+      "about_x_hours_many": "прыкладна {{count}} гадзін таму",
+      "about_x_hours_one": "прыкладна 1 гадзіну таму",
+      "about_x_hours_other": "прыкладна {{count}} гадзін(ы) таму",
+      "about_x_months_few": "прыкладна {{count}} месяцы таму",
+      "about_x_months_many": "прыкладна {{count}} месяцаў таму",
+      "about_x_months_one": "прыкладна 1 месяц таму",
+      "about_x_months_other": "прыкладна {{count}} месяцы(аў) таму",
+      "about_x_years_few": "прыкладна {{count}} гады таму",
+      "about_x_years_many": "прыкладна {{count}} гадоў таму",
+      "about_x_years_one": "прыкладна 1 год таму",
+      "about_x_years_other": "прыкладна {{count}} гады(оў) таму",
+      "almost_x_years_few": "амаль {{count}} гады таму",
+      "almost_x_years_many": "амаль {{count}} гадоў таму",
+      "almost_x_years_one": "амаль 1 год таму",
+      "almost_x_years_other": "амаль {{count}} гады(оў) таму",
+      "half_a_minute": "паўхвіліны таму",
+      "less_than_x_minutes_few": "менш за {{count}} хвіліны таму",
+      "less_than_x_minutes_many": "менш за {{count}} хвілін таму",
+      "less_than_x_minutes_one": "менш за хвіліну таму",
+      "less_than_x_minutes_other": "менш за {{count}} хвілін(ы) таму",
+      "less_than_x_seconds_few": "менш за {{count}} секунды таму",
+      "less_than_x_seconds_many": "менш за {{count}} секунд таму",
+      "less_than_x_seconds_one": "менш за секунду таму",
+      "less_than_x_seconds_other": "менш за {{count}} секунд(ы) таму",
+      "over_x_years_few": "больш за {{count}} гады таму",
+      "over_x_years_many": "больш за {{count}} гадоў таму",
+      "over_x_years_one": "больш за год таму",
+      "over_x_years_other": "больш за {{count}} гады(оў) таму",
+      "x_days_few": "{{count}} дні таму",
+      "x_days_many": "{{count}} дзён таму",
+      "x_days_one": "1 дзень таму",
+      "x_days_other": "{{count}} дзён таму",
+      "x_minutes_few": "{{count}} хвіліны таму",
+      "x_minutes_many": "{{count}} хвілін таму",
+      "x_minutes_one": "1 хвіліну таму",
+      "x_minutes_other": "{{count}} хвілін(ы) таму",
+      "x_months_few": "{{count}} месяцы таму",
+      "x_months_many": "{{count}} месяцаў таму",
+      "x_months_one": "1 месяц таму",
+      "x_months_other": "{{count}} месяцы(аў) таму",
+      "x_seconds_few": "{{count}} секунды таму",
+      "x_seconds_many": "{{count}} секунд таму",
+      "x_seconds_one": "1 секунду таму",
+      "x_seconds_other": "{{count}} секунд(ы) таму",
+      "x_years_few": "{{count}} гады таму",
+      "x_years_many": "{{count}} гадоў таму",
+      "x_years_one": "1 год таму",
+      "x_years_other": "{{count}} гады(оў) таму"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Каментар",
+      "newer_comments": "Навейшыя каментары",
+      "older_comments": "Старэйшыя каментары",
+      "post": "Апублікаваць",
+      "when": "Калі"
+    },
+    "diary_comment": {
+      "comment_from_html": "Каментар ад {{link_user}} у {{comment_created_at}}",
+      "confirm": "Пацвердзіць",
+      "hide_link": "Схаваць гэты каментар",
+      "report": "Паскардзіцца на гэты каментар",
+      "unhide_link": "Паказаць гэты каментарый"
+    },
+    "diary_entry": {
+      "comment_count_one": "1 каментар",
+      "comment_count_other": "Каментароў: {{count}}",
+      "comment_count_zero": "Каментароў няма",
+      "comment_link": "Каментаваць гэты запіс",
+      "confirm": "Пацвердзіць",
+      "edit_link": "Правіць гэты запіс",
+      "hide_link": "Схаваць гэты запіс",
+      "posted_by_html": "Апублікавана {{link_user}}, {{created}}, {{language_link}}",
+      "reply_link": "Адказаць на гэты запіс",
+      "report": "Паскардзіцца на гэты запіс",
+      "unhide_link": "Паказаць гэты запіс"
+    },
+    "edit": {
+      "marker_text": "Месцазнаходжанне запісу дзённіка",
+      "title": "Правіць запіс у дзённіку"
+    },
+    "feed": {
+      "all": {
+        "description": "Свежыя дзеннікавыя запісы карыстальнікаў OpenStreetMap",
+        "title": "Дзеннікавыя запісы OpenStreetMap"
+      },
+      "language": {
+        "description": "Свежыя запісы ў дзённіках карыстальнікаў OpenStreetMap на {{language_name}}",
+        "title": "Запісы ў дзённіку OpenStreetMap на {{language_name}}"
+      },
+      "user": {
+        "description": "Свежыя запісы ў дзённіку OpenStreetMap карыстальніка {{user}}",
+        "title": "Запісы ў дзённіку OpenStreetMap карыстальніка {{user}}"
+      }
+    },
+    "form": {
+      "location": "Месца:",
+      "use_map_link": "карыстацца картай"
+    },
+    "index": {
+      "in_language_title": "Дзённік запісаў на {{language}}",
+      "my_diary": "Мой дзённік",
+      "new": "Новы запіс дзённіку",
+      "new_title": "Напісаць у вашым дзённіку",
+      "newer_entries": "Навейшыя запісы",
+      "no_entries": "Няма запісаў",
+      "older_entries": "Даўнейшыя запісы",
+      "recent_entries": "Свежыя запісы ў дзённіку",
+      "title": "Дзённікі карыстальнікаў",
+      "title_friends": "Дзённікі сяброў",
+      "title_nearby": "Дзённікі карыстальнікаў паблізу",
+      "user_title": "Дзённік {{user}}"
+    },
+    "location": {
+      "edit": "Правіць",
+      "location": "Месца:",
+      "view": "Прагляд"
+    },
+    "new": {
+      "title": "Новы запіс дзённіку"
+    },
+    "no_such_entry": {
+      "body": "Прабачце, не існуе запісу ў дзённіку ці каментара з нумарам {{id}}. Праверце свой запыт, магчыма, вы перайшлі па неіснуючай спасылцы.",
+      "heading": "Няма запісу з нумарам: {{id}}",
+      "title": "Няма такіх запісаў у дзённіку"
+    },
+    "show": {
+      "leave_a_comment": "Пакінуць каментар",
+      "login": "Увайсці",
+      "login_to_leave_a_comment_html": "{{login_link}} каб пакінуць каментар",
+      "title": "Дзённік карыстальніка {{user}} | {{title}}",
+      "user_title": "Дзённік карыстальніка {{user}}"
+    }
+  },
+  "editor": {
+    "default": "Тыповы (зараз {{name}})",
+    "id": {
+      "description": "iD (браўзэрны рэдактар)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "вонкавага рэдактара (JOSM або Merkaartor)",
+      "name": "Вонкавы рэдактар"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "Вы ўжо сябруеце з {{name}}.",
+      "button": "Пасябраваць",
+      "failed": "Прабачце, немагчыма пасябраваць з {{name}}.",
+      "heading": "Пасябраваць з {{user}}?",
+      "success": "{{name}} пасябраваў з вамі."
+    },
+    "remove_friend": {
+      "button": "Выдаліць з сяброў",
+      "heading": "Перастаць сябраваць з {{user}}?",
+      "not_a_friend": "{{name}} не з’яўляецца вашым сябрам.",
+      "success": "{{name}} выдалены са спіса сяброў."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Больш вынікаў",
+      "no_results": "Нічога не знойдзена"
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "Мяжа прыгараду",
+        "level2": "Мяжа краіны",
+        "level4": "Мяжа сталіцы і абласцей",
+        "level5": "Мяжа рэгіёна",
+        "level6": "Мяжа райцэнтра і раёна",
+        "level8": "Мяжа горада",
+        "level9": "Мяжа раёну н/п"
+      },
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Лінная дарога",
+          "chair_lift": "Крэсельны пад'ёмнік",
+          "drag_lift": "Бугельны пад'ёмнік",
+          "gondola": "Лінная дарога",
+          "platter": "Бугельны пад'ёмнік",
+          "pylon": "Апора",
+          "station": "Станцыя канатнай дарогі",
+          "t-bar": "Т-вобразны пад'ёмнік"
+        },
+        "aeroway": {
+          "aerodrome": "Аэрадром",
+          "airstrip": "Узлётна-пасадачная паласа",
+          "apron": "Перон",
+          "gate": "Вароты",
+          "hangar": "Ангар",
+          "helipad": "Верталётная пляцоўка",
+          "holding_position": "Месца чакання",
+          "parking_position": "Месца паркоўкі",
+          "runway": "Узлётна-пасадачная паласа",
+          "taxiway": "Рулёжныя дарожкі",
+          "terminal": "Тэрмінал"
+        },
+        "amenity": {
+          "animal_shelter": "Прытулак для жывёл",
+          "arts_centre": "Цэнтр мастацтваў",
+          "atm": "Банкамат",
+          "bank": "Банк",
+          "bar": "Бар",
+          "bbq": "Барбекю",
+          "bench": "Лаўка",
+          "bicycle_parking": "Веласіпедная паркоўка",
+          "bicycle_rental": "Пракат ровараў",
+          "biergarten": "Рэстаранны падворак",
+          "boat_rental": "Пракат лодак",
+          "brothel": "Бардэль",
+          "bureau_de_change": "Абмен валют",
+          "bus_station": "Аўтобусны вакзал",
+          "cafe": "Кафэ",
+          "car_rental": "Пракат аўтамабіляў",
+          "car_sharing": "Каршэрынг",
+          "car_wash": "Аўтамыйка",
+          "casino": "Казіно",
+          "charging_station": "Зарадная станцыя",
+          "childcare": "Служба дагляду за дзецьмі",
+          "cinema": "Кіно",
+          "clinic": "Клініка",
+          "clock": "Гадзіннік",
+          "college": "Каледж",
+          "community_centre": "Грамадскі цэнтр",
+          "courthouse": "Суд",
+          "crematorium": "Крэматорый",
+          "dentist": "Стаматолагія",
+          "doctors": "Лекары",
+          "drinking_water": "Пітная вада",
+          "driving_school": "Аўташкола",
+          "embassy": "Амбасада",
+          "fast_food": "Фаст-Фуд",
+          "ferry_terminal": "Паромны тэрмінал",
+          "fire_station": "Пажарная станцыя",
+          "food_court": "Фуд-Корт",
+          "fountain": "Фантан",
+          "fuel": "АЗС",
+          "gambling": "Азартныя гульні",
+          "grave_yard": "Могілкі",
+          "grit_bin": "Кантэйнер з дарожным пасыпаннем",
+          "hospital": "Бальніца",
+          "hunting_stand": "Паляўнічая вежа",
+          "ice_cream": "Марозіва",
+          "kindergarten": "Дзіцячы садок",
+          "library": "Бібліятэка",
+          "marketplace": "Рыначная плошча",
+          "monastery": "Кляштар",
+          "motorcycle_parking": "Паркоўка для матацыклаў",
+          "nightclub": "Начны клуб",
+          "nursing_home": "Прыватная лякарня",
+          "parking": "Паркоўка",
+          "parking_entrance": "Заезд на паркоўку",
+          "parking_space": "Паркоўка",
+          "pharmacy": "Аптэка",
+          "place_of_worship": "Культавы будынак",
+          "police": "Паліцыя",
+          "post_box": "Паштовая скрыня",
+          "post_office": "Паштовае аддзяленне",
+          "prison": "Турма",
+          "pub": "Паб",
+          "public_building": "Грамадскі будынак",
+          "recycling": "Пункт перапрацоўкі",
+          "restaurant": "Рэстаран",
+          "school": "Школа",
+          "shelter": "Укрыццё",
+          "shower": "Душ",
+          "social_centre": "Сацыяльны цэнтр",
+          "social_facility": "Сацыяльны аб'ект",
+          "studio": "Студыя",
+          "swimming_pool": "Плавальны басейн",
+          "taxi": "Таксі",
+          "telephone": "Грамадскі тэлефон",
+          "theatre": "Тэатр",
+          "toilets": "Прыбіральні",
+          "townhall": "Ратуша",
+          "university": "Універсітэт",
+          "vending_machine": "Гандлёвы аўтамат",
+          "veterinary": "Ветэрынарная хірургія",
+          "village_hall": "Вясковая зала",
+          "waste_basket": "Кош для смецця",
+          "waste_disposal": "Смеццевы бак",
+          "water_point": "Вада"
+        },
+        "boundary": {
+          "administrative": "Адміністрацыйная мяжа",
+          "census": "Межы перапісу",
+          "national_park": "Нацыянальны парк",
+          "protected_area": "Абаронены раён"
+        },
+        "bridge": {
+          "aqueduct": "Акведук",
+          "boardwalk": "Тратуар",
+          "suspension": "Падвясны мост",
+          "swing": "Развадны мост",
+          "viaduct": "Віядук",
+          "yes": "Мост"
+        },
+        "building": {
+          "yes": "Будынак"
+        },
+        "craft": {
+          "brewery": "Бровар",
+          "carpenter": "Цясляр",
+          "electrician": "Электрык",
+          "gardener": "Садоўнік",
+          "painter": "Мастак",
+          "photographer": "Фатограф",
+          "plumber": "Сантэхнік",
+          "shoemaker": "Шавец",
+          "tailor": "Кравец",
+          "yes": "Майстэрня"
+        },
+        "emergency": {
+          "ambulance_station": "Станцыя хуткай медыцынскай дапамогі",
+          "assembly_point": "Месца збору",
+          "defibrillator": "Дэфібрылятар",
+          "landing_site": "Месца аварыйнай пасадкі",
+          "phone": "Тэлефон экстранай сувязі",
+          "water_tank": "Пажарны вадаём/рэзервуар"
+        },
+        "highway": {
+          "abandoned": "Занядбаная дарога",
+          "bridleway": "Дарога для коней",
+          "bus_guideway": "Рэйкавы аўтобус",
+          "bus_stop": "Аўтобусны прыпынак",
+          "construction": "Будаўніцтва дарогі",
+          "corridor": "Праход цераз будынак",
+          "cycleway": "Веласіпедная дарожка",
+          "elevator": "Ліфт",
+          "emergency_access_point": "Пункт хуткай дапамогі",
+          "footway": "Сцяжынка",
+          "ford": "Брод",
+          "give_way": "Знак \"Саступі дарогу\"",
+          "living_street": "Жылая вуліца",
+          "milestone": "Веха",
+          "motorway": "Аўтамагістраль",
+          "motorway_junction": "Аўтамабільная развязка",
+          "motorway_link": "Аўтамагістраль",
+          "passing_place": "Раз'язны шлях",
+          "path": "Сцежка",
+          "pedestrian": "Пешаходная дарожка",
+          "platform": "Платформа",
+          "primary": "Асноўная дарога",
+          "primary_link": "Першасная дарога",
+          "proposed": "Плануемая дарога",
+          "raceway": "Гоначная траса",
+          "residential": "Жылая вуліца",
+          "rest_area": "Зона адпачынку",
+          "road": "Дарога",
+          "secondary": "Другасная дарога",
+          "secondary_link": "Другасная дарога",
+          "service": "Службовая дарога",
+          "services": "Прыдарожны сэрвіс",
+          "speed_camera": "Фотарадар",
+          "steps": "Прыступкі",
+          "stop": "Знак СТОП",
+          "street_lamp": "Вулічны ліхтар",
+          "tertiary": "Троесная дарога",
+          "tertiary_link": "Трэцясная дарога",
+          "track": "Каляя",
+          "traffic_signals": "Святлафор",
+          "trunk": "Шаша",
+          "trunk_link": "Магістраль",
+          "turning_loop": "Разваротнае кальцо",
+          "unclassified": "Некласіфікаваная дарога",
+          "yes": "Дарога"
+        },
+        "historic": {
+          "archaeological_site": "Археалагічныя раскопы",
+          "battlefield": "Поле бою",
+          "boundary_stone": "Пагранічны камень",
+          "building": "Гістарычны будынак",
+          "bunker": "Бункер",
+          "castle": "Замак",
+          "church": "Царква",
+          "city_gate": "Гарадская брама",
+          "citywalls": "Гарадскія сцены",
+          "fort": "Форт",
+          "heritage": "Культурная спадчына",
+          "house": "Дом",
+          "manor": "Сядзіба",
+          "memorial": "Мемарыял",
+          "mine": "Шахта",
+          "mine_shaft": "Шахтавы стаўбур",
+          "monument": "Помнік",
+          "roman_road": "Рымская дарога",
+          "ruins": "Руіны",
+          "stone": "Камень",
+          "tomb": "Магіла",
+          "tower": "Вежа",
+          "wayside_cross": "Прыдарожны крыж",
+          "wayside_shrine": "Прыдарожная каплічка",
+          "wreck": "Месца аварыі",
+          "yes": "Гістарычнае месца"
+        },
+        "junction": {
+          "yes": "Перакрыжаванне"
+        },
+        "landuse": {
+          "allotments": "Сады-агароды",
+          "basin": "Вадаём",
+          "brownfield": "Ачышчанае месца для забудовы",
+          "cemetery": "Могілкі",
+          "commercial": "Камерцыйная зона",
+          "conservation": "Запаведнік",
+          "construction": "Будаўніцтва",
+          "farmland": "Сельскагаспадарчыя землі",
+          "farmyard": "Двор фермы",
+          "forest": "Лес",
+          "garages": "Гаражы",
+          "grass": "Трава",
+          "greenfield": "Новае месца для забудовы",
+          "industrial": "Прамысловая зона",
+          "landfill": "Звалка",
+          "meadow": "Луг",
+          "military": "Ваенная зона",
+          "mine": "Шахта",
+          "orchard": "Фруктовы сад",
+          "quarry": "Кар'ер",
+          "railway": "Чыгунка",
+          "recreation_ground": "Пляцоўка для гульняў",
+          "reservoir": "Вадасховішча",
+          "reservoir_watershed": "Водападзел вадасховішча",
+          "residential": "Жылы раён",
+          "retail": "Рознічны гандаль",
+          "village_green": "Вясковая паляна",
+          "vineyard": "Вінаграднік",
+          "yes": "Землекарыстанне"
+        },
+        "leisure": {
+          "beach_resort": "Пляжны курорт",
+          "bird_hide": "Засада",
+          "common": "Агульная зямля",
+          "dog_park": "Пляцоўка для сабак",
+          "firepit": "Кастрышча",
+          "fishing": "Раён рыбалоўства",
+          "fitness_centre": "Фітнес-Цэнтр",
+          "fitness_station": "Спартыўная пляцоўка",
+          "garden": "Сад",
+          "golf_course": "Поле для гольфа",
+          "horse_riding": "Верхавая язда",
+          "ice_rink": "Каток",
+          "marina": "Гавань для катэраў",
+          "miniature_golf": "Міні-Гольф",
+          "nature_reserve": "Запаведнік",
+          "park": "Парк",
+          "pitch": "Спартыўная пляцоўка",
+          "playground": "Дзіцячая пляцоўка",
+          "recreation_ground": "Зона адпачынку",
+          "resort": "Курорт",
+          "sauna": "Сауна",
+          "slipway": "Стапель",
+          "sports_centre": "Спартыўны цэнтр",
+          "stadium": "Стадыён",
+          "swimming_pool": "Плавальны басейн",
+          "track": "Бегавая дарожка",
+          "water_park": "Аквапарк",
+          "yes": "Забавы"
+        },
+        "man_made": {
+          "adit": "Штольня",
+          "beacon": "Бакен",
+          "beehive": "Борць",
+          "breakwater": "Хвалярэз",
+          "bridge": "Мост",
+          "bunker_silo": "Бункер",
+          "chimney": "Комін",
+          "crane": "Кран",
+          "dolphin": "Прычальная тумба",
+          "dyke": "Прыбярэжны насып",
+          "embankment": "Насып",
+          "flagpole": "Флагшток",
+          "gasometer": "Газгольдэр",
+          "groyne": "Буна",
+          "kiln": "Печ",
+          "lighthouse": "Маяк",
+          "mast": "Мачта",
+          "mine": "Шахта",
+          "mineshaft": "Шахтавы стаўбур",
+          "monitoring_station": "Станцыя назірання",
+          "petroleum_well": "Свідравіна",
+          "pier": "Пірс",
+          "pipeline": "Трубаправод",
+          "silo": "Сілас",
+          "storage_tank": "Крыты рэзервуар",
+          "surveillance": "Камера назірання",
+          "tower": "Вежа",
+          "wastewater_plant": "Станцыя ачысткі сцёкавых вод",
+          "water_tower": "Ваданапорная вежа",
+          "water_well": "Студня",
+          "water_works": "Водазабор",
+          "watermill": "Вадзяны млын",
+          "windmill": "Ветраны млын",
+          "works": "Фабрыка",
+          "yes": "Штучнае"
+        },
+        "military": {
+          "airfield": "Ваенны аэрадром",
+          "barracks": "Казармы",
+          "bunker": "Бункер",
+          "yes": "Ваенны"
+        },
+        "mountain_pass": {
+          "yes": "Перавал"
+        },
+        "natural": {
+          "bay": "Заліў",
+          "beach": "Пляж",
+          "cape": "Мыс",
+          "cave_entrance": "Уваход у пячору",
+          "cliff": "Мяжа скалы",
+          "crater": "Кратэр",
+          "dune": "Дзюна",
+          "fell": "Неапрацаваная зямля",
+          "fjord": "Фіёрд",
+          "forest": "Лес",
+          "geyser": "Гейзер",
+          "glacier": "Ляднік",
+          "grassland": "Луг",
+          "heath": "Здароўе",
+          "hill": "Пагорак",
+          "island": "Востраў",
+          "land": "Зямля",
+          "marsh": "Марш",
+          "moor": "Швартоўка",
+          "mud": "Бруд",
+          "peak": "Пік",
+          "point": "Кропка",
+          "reef": "Рыф",
+          "ridge": "Хрыбет",
+          "rock": "Скала",
+          "saddle": "Перавал",
+          "sand": "Пясок",
+          "scree": "Абсып",
+          "scrub": "Кустарнік",
+          "spring": "Крыніца",
+          "stone": "Камень",
+          "strait": "Праліў",
+          "tree": "Дрэва",
+          "valley": "Даліна",
+          "volcano": "Вулкан",
+          "water": "Вада",
+          "wetland": "Забалочаны ўчастак",
+          "wood": "Пушча"
+        },
+        "office": {
+          "accountant": "Бухгалтар",
+          "administrative": "Aдміністрацыя",
+          "architect": "Архітэктар",
+          "association": "Асацыяцыя",
+          "company": "Кампанія",
+          "educational_institution": "Адукацыйная ўстанова",
+          "employment_agency": "Агенцтва занятасці",
+          "estate_agent": "Агент па нерухомасці",
+          "government": "Дзяржаўная ўстанова",
+          "insurance": "Страхавая кантора",
+          "it": "IT-офіс",
+          "lawyer": "Юрыст",
+          "ngo": "Офіс НДА",
+          "telecommunication": "Аддзяленне сувязі",
+          "travel_agent": "Турыстычнае агенцтва",
+          "yes": "Офіс"
+        },
+        "place": {
+          "allotments": "Сады-агароды",
+          "city": "Горад",
+          "city_block": "Гарадскі квартал",
+          "country": "Краіна",
+          "county": "Акруга",
+          "farm": "Ферма",
+          "hamlet": "Паселішча",
+          "house": "Дом",
+          "houses": "Дамы",
+          "island": "Востраў",
+          "islet": "Астравок",
+          "isolated_dwelling": "Ізаляванае жыллё",
+          "locality": "Мясцовасць",
+          "municipality": "Муніцыпалітэт",
+          "neighbourhood": "Наваколле",
+          "postcode": "Паштовы індэкс",
+          "quarter": "Раён горада",
+          "region": "Рэгіен",
+          "sea": "Мора",
+          "square": "Плошча",
+          "state": "Дзяржава",
+          "subdivision": "Падраздзяленне",
+          "suburb": "Прыгарад",
+          "town": "Горад",
+          "village": "Вёска",
+          "yes": "Месца"
+        },
+        "railway": {
+          "abandoned": "Закінутая чыгунка",
+          "construction": "Будаўніцтва чыгункі",
+          "disused": "Закінутая чыгунка",
+          "funicular": "Фунікулер",
+          "halt": "Чыгуначны прыпынак",
+          "junction": "Чыгуначны вузел",
+          "level_crossing": "Чыгуначны пераезд",
+          "light_rail": "Хуткасны трамвай",
+          "miniature": "Мініятурная чыгунка",
+          "monorail": "Манарэйка",
+          "narrow_gauge": "Вузкакалейная чыгунка",
+          "platform": "Чыгуначная платформа",
+          "preserved": "Закансерваваная чыгунка",
+          "proposed": "Праектуемая чыгунка",
+          "spur": "Чыгуначнае разгалінаванне",
+          "station": "Чыгуначны вакзал",
+          "stop": "Чыгуначны прыпынак",
+          "subway": "Метро",
+          "subway_entrance": "Уваход у метро",
+          "switch": "Чыгуначная стрэлка",
+          "tram": "Трамвай",
+          "tram_stop": "Трамвайны прыпынак",
+          "yard": "Сартавальная станцыя"
+        },
+        "shop": {
+          "alcohol": "Алкагольная крама",
+          "antiques": "Антыкварыят",
+          "art": "Арт-Крама",
+          "bakery": "Пякарня",
+          "beauty": "Салон прыгажосці",
+          "beverages": "Крама напояў",
+          "bicycle": "Крама ровараў",
+          "bookmaker": "Букмекер",
+          "books": "Кнігарня",
+          "boutique": "Буцік",
+          "butcher": "Мяснік",
+          "car": "Аўтамабільная крама",
+          "car_parts": "Аўтазапчасткі",
+          "car_repair": "Рамонт аўтамабіляў",
+          "carpet": "Крама дываноў",
+          "charity": "Дабрачынная крама",
+          "chemist": "Аптэкар",
+          "clothes": "Крама вопраткі",
+          "computer": "Крама кампутарнай тэхнікі",
+          "confectionery": "Кандытарская крама",
+          "convenience": "Крама крокавай даступнасці",
+          "copyshop": "Капіравальны цэнтр",
+          "cosmetics": "Крама касметыкі",
+          "deli": "Гастраном",
+          "department_store": "Універмаг",
+          "discount": "Крама тавараў са зніжкай",
+          "doityourself": "Крама будаўнічых матэр'ялаў",
+          "dry_cleaning": "Хімчыстка",
+          "electronics": "Крама электронікі",
+          "estate_agent": "Агент па нерухомасці",
+          "farm": "Фермерская крама",
+          "fashion": "Крама моднай вопраткі",
+          "florist": "Фларыст",
+          "food": "Прадуктовая крама",
+          "funeral_directors": "Рытуальныя паслугі",
+          "furniture": "Мэбля",
+          "garden_centre": "Садовы цэнтр",
+          "general": "Універсам",
+          "gift": "Крама падарункаў",
+          "greengrocer": "Садавіна, гародніна",
+          "grocery": "Бакалея",
+          "hairdresser": "Цырульнік",
+          "hardware": "Гаспадарчая крама",
+          "hifi": "Аўдыётэхніка",
+          "houseware": "Крама посуду",
+          "interior_decoration": "Афармленне інтэр'еру",
+          "jewelry": "Ювелірная крама",
+          "kiosk": "Кіёск",
+          "kitchen": "Крама кухань",
+          "laundry": "Пральня",
+          "lottery": "Латарэя",
+          "mall": "Гандлёвы цэнтр",
+          "massage": "Паведамленне",
+          "mobile_phone": "Салон мабільнай сувязі",
+          "motorcycle": "Крама матацыклаў",
+          "music": "Музычная крама",
+          "newsagent": "Газетны кіёск",
+          "optician": "Оптыка",
+          "organic": "Арганічныя прадукты",
+          "outdoor": "Турыстычная крама",
+          "paint": "Крама мастака",
+          "pawnbroker": "Ламбард",
+          "pet": "Заалагічная крама",
+          "photo": "Фота майстэрня",
+          "seafood": "Морапрадукты",
+          "second_hand": "Крама патрыманых рэчаў",
+          "shoes": "Абутковая крама",
+          "sports": "Спартыўная крама",
+          "stationery": "Крама канцылярскіх тавараў",
+          "supermarket": "Супермаркет",
+          "tailor": "Кравец",
+          "ticket": "Каса",
+          "tobacco": "Тытунёвая крама",
+          "toys": "Крама цацак",
+          "travel_agency": "Турыстычнае агенцтва",
+          "tyres": "Крама шын",
+          "vacant": "Пустуючая крама",
+          "variety_store": "Крама адной цаны",
+          "video": "Відэа крама",
+          "wine": "Алкагольная крама",
+          "yes": "Крама"
+        },
+        "tourism": {
+          "alpine_hut": "Альпійская хатка",
+          "apartment": "Кватэра",
+          "artwork": "Інсталяцыя",
+          "attraction": "Цікавосць",
+          "bed_and_breakfast": "Ложак і сняданак",
+          "cabin": "Хаціна",
+          "camp_site": "Турбаза",
+          "caravan_site": "Пляцоўка для аўтадамоў",
+          "chalet": "Шале",
+          "gallery": "Галерэя",
+          "guest_house": "Гасцявы дом",
+          "hostel": "Хостэл",
+          "hotel": "Гатэль",
+          "information": "Інфармацыя",
+          "motel": "Матэль",
+          "museum": "Музей",
+          "picnic_site": "Месца для пікніка",
+          "theme_park": "Тэматычны парк",
+          "viewpoint": "Аглядальная пляцоўка",
+          "zoo": "Заапарк"
+        },
+        "tunnel": {
+          "building_passage": "Праезд цераз будынак",
+          "culvert": "Кульверт",
+          "yes": "Тунэль"
+        },
+        "waterway": {
+          "artificial": "Штучны вадацёк",
+          "boatyard": "Верфі",
+          "canal": "Канал",
+          "dam": "Плаціна",
+          "derelict_canal": "Перасохлы канал",
+          "ditch": "Роў",
+          "dock": "Док",
+          "drain": "Дрэнажны канал",
+          "lock": "Шлюз",
+          "lock_gate": "Вароты шлюза",
+          "mooring": "Якарная стаянка",
+          "rapids": "Парогі",
+          "river": "Рака",
+          "stream": "Струмень",
+          "wadi": "Сухое рэчышча",
+          "waterfall": "Вадаспад",
+          "weir": "Плаціна",
+          "yes": "Водны маршрут"
+        }
+      },
+      "types": {
+        "cities": "Гарады",
+        "places": "Месцы",
+        "towns": "Мястэчкі"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Абраць файл"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Зарэгістравацца",
+        "update": "Абнавіць"
+      },
+      "diary_comment": {
+        "create": "Каментаваць"
+      },
+      "diary_entry": {
+        "create": "Апублікаваць",
+        "update": "Абнавіць"
+      },
+      "issue_comment": {
+        "create": "Дадаць каментар"
+      },
+      "message": {
+        "create": "Даслаць"
+      },
+      "oauth2_application": {
+        "create": "Зарэгістравацца",
+        "update": "Абнавіць"
+      },
+      "redaction": {
+        "create": "Стварыць рэдакцыю",
+        "update": "Захаваць рэдакцыю"
+      },
+      "trace": {
+        "create": "Зацягнуць",
+        "update": "Запісаць змены"
+      },
+      "user_block": {
+        "create": "Стварыць блакіроўку",
+        "update": "Абнавіць блакіроўку"
+      }
+    }
+  },
+  "issue_comments": {
+    "create": {
+      "comment_created": "Ваш каментар быў паспяхова створаны"
+    }
+  },
+  "issues": {
+    "comments": {
+      "comment_from_html": "Каментарый ад {{user_link}} у {{comment_created_at}}",
+      "reassign_param": "Пераназначыць праблему?"
+    },
+    "helper": {
+      "reportable_title": {
+        "diary_comment": "{{entry_title}}, каментар #{{comment_id}}",
+        "note": "Заўвага #{{note_id}}"
+      }
+    },
+    "ignore": {
+      "ignored": "Статус праблемы быў зменены на «Праігнаравана»"
+    },
+    "index": {
+      "issues_not_found": "Няма такіх пытанняў",
+      "last_updated": "Апошняе змяненне",
+      "link_to_reports": "Глядзець скаргі",
+      "not_updated": "Не абнаўлялася",
+      "reported_item": "Скарга",
+      "reported_user": "Карыстальнік у скарзе",
+      "reports": "Скаргі",
+      "reports_count_one": "1 Скарга",
+      "reports_count_other": "{{count}} Скаргі",
+      "search": "Пошук",
+      "search_guidance": "Пошук праблем:",
+      "select_last_updated_by": "Выберыце апошняга абнавіўшага",
+      "select_status": "Абярыце статус",
+      "select_type": "Абярыце тып",
+      "states": {
+        "ignored": "Праігнаравана",
+        "open": "Адкрыта",
+        "resolved": "Вырашана"
+      },
+      "status": "Статус",
+      "title": "Праблемы",
+      "user_not_found": "Такога карыстальніка няма"
+    },
+    "reopen": {
+      "reopened": "Статус праблемы быў зменены на «Адкрыта»"
+    },
+    "reports": {
+      "reported_by_html": "Паведамлена як {{category}} удзельнікам {{user}} у {{updated_at}}"
+    },
+    "resolve": {
+      "resolved": "Статус праблемы быў зменены на «Вырашана»"
+    },
+    "show": {
+      "comments_on_this_issue": "Каментары па гэтай праблеме",
+      "ignore": "Ігнараваць",
+      "last_resolved_at_html": "Апошні раз вырашана {{datetime}}",
+      "last_updated_at_html": "Апошняе абнаўленне {{datetime}} карыстальнікам {{displayname}}",
+      "new_reports": "Новыя скаргі",
+      "no_other_issues": "Няма іншых праблем з гэтым карыстальнікам",
+      "other_issues_against_this_user": "Іншыя праблемы з гэтым карыстальнікам",
+      "read_reports": "Чытаць скаргі",
+      "reopen": "Пераадчыніць",
+      "report_created_at_html": "Упершыню паведамлена {{datetime}}",
+      "reports_of_this_issue": "Паведамленні па гэтай праблеме",
+      "reports_one": "1 паведамленне",
+      "reports_other": "{{count}} паведамленняў",
+      "reports_zero": "Няма паведамленняў",
+      "resolve": "Вырашыць",
+      "title": "{{status}} Праблема #{{issue_id}}"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "Каментаваць",
+        "hide_comment": "схаваць",
+        "subscribe": "Падпісацца",
+        "unhide_comment": "паказаць",
+        "unsubscribe": "Адпісацца"
+      }
+    },
+    "close": "Закрыць",
+    "context": {
+      "add_note": "Дадаць заўвагу тут",
+      "centre_map": "Цэнтраваць карту",
+      "directions_from": "Маршрут адсюль",
+      "directions_to": "Маршрут сюды",
+      "query_features": "Пошук аб’ектаў",
+      "show_address": "Паказаць адрас"
+    },
+    "directions": {
+      "ascend": "Угору",
+      "descend": "Уніз",
+      "directions": "Маршрут",
+      "distance": "Адлегласць",
+      "engines": {
+        "fossgis_osrm_bike": "Веласіпед (OSRM)",
+        "fossgis_osrm_car": "Аўтамабіль (OSRM)",
+        "fossgis_osrm_foot": "Пешаход (OSRM)",
+        "graphhopper_bicycle": "Веласіпед (GraphHopper)",
+        "graphhopper_car": "Аўтамабіль (GraphHopper)",
+        "graphhopper_foot": "Пешшу (GraphHopper)"
+      },
+      "errors": {
+        "no_place": "Прабачце - не магу знайсці гэта месца: {{place}}.",
+        "no_route": "Не атрымалася знайсці маршрут паміж двума гэтымі месцамі."
+      },
+      "instructions": {
+        "against_oneway_without_exit": "Рухайцеся супраць аднабаковага руху па {{name}}",
+        "continue_without_exit": "Працягвайце рух па {{name}}",
+        "courtesy": "Маршрут прадастаўлены {{link}}",
+        "destination_without_exit": "Вы прыбылі ў месца прызначэння",
+        "end_oneway_without_exit": "Канец аднабаковага руху на {{name}}",
+        "endofroad_left_without_exit": "У канцы дарогі павярніце налева на {{name}}",
+        "endofroad_right_without_exit": "У канцы дарогі павярніце направа на {{name}}",
+        "exit_counts": {
+          "eighth": "8-ы",
+          "fifth": "5-ы",
+          "first": "1-ы",
+          "fourth": "4-ы",
+          "ninth": "9-ы",
+          "second": "2-і",
+          "seventh": "7-ы",
+          "sixth": "6-ы",
+          "tenth": "10-ы",
+          "third": "3-і"
+        },
+        "exit_roundabout": "На кругавым руху павярніце на {{name}}",
+        "follow_without_exit": "Рухайцеся па {{name}}",
+        "fork_left_without_exit": "На развілцы павярніце налева на {{name}}",
+        "fork_right_without_exit": "На развілцы павярніце направа на {{name}}",
+        "leave_roundabout_without_exit": "Выехаць з кальца - {{name}}",
+        "merge_left_without_exit": "Перастройцеся ўлева на {{name}}",
+        "merge_right_without_exit": "Перастройцеся ўправа на {{name}}",
+        "offramp_left": "Павярніце на левы заезд",
+        "offramp_left_with_directions": "Павярніце на левы заезд у кірунку {{directions}}",
+        "offramp_left_with_exit": "Павярніце на з'езд {{exit}} злева",
+        "offramp_left_with_exit_directions": "Павярніце на з'езд {{exit}} злева ў кірунку {{directions}}",
+        "offramp_left_with_exit_name": "Павярніце на з'езд {{exit}} злева на {{name}}",
+        "offramp_left_with_exit_name_directions": "Павярніце на з'езд {{exit}} злева на {{name}} у кірунку {{directions}}",
+        "offramp_left_with_name": "Павярніце налева на з'езд да {{name}}",
+        "offramp_left_with_name_directions": "Павярніце на левы заезд на {{name}} у кірунку {{directions}}",
+        "offramp_right": "Павярніце на правы заезд",
+        "offramp_right_with_directions": "Павярніце на правы заезд у кірунку {{directions}}",
+        "offramp_right_with_exit": "Павярніце на з'езд {{exit}} справа",
+        "offramp_right_with_exit_directions": "Павярніце на з'езд {{exit}} справа ў кірунку {{directions}}",
+        "offramp_right_with_exit_name": "Павярніце на з'езд {{exit}} справа на {{name}}",
+        "offramp_right_with_exit_name_directions": "Павярніце на з'езд {{exit}} справа на {{name}} у кірунку {{directions}}",
+        "offramp_right_with_name": "Павярніце направа на з'езд да {{name}}",
+        "offramp_right_with_name_directions": "Павярніце на правы заезд на {{name}} у кірунку {{directions}}",
+        "onramp_left": "Павярніце на левы заезд",
+        "onramp_left_with_directions": "Павярніце на левы заезд у кірунку {{directions}}",
+        "onramp_left_with_name_directions": "Павярніце на левы заезд на {{name}} у кірунку {{directions}}",
+        "onramp_left_without_directions": "Павярніце на левы заезд",
+        "onramp_left_without_exit": "Павярніце налева на з'езд да {{name}}",
+        "onramp_right": "Павярніце направа на заезд",
+        "onramp_right_with_directions": "Павярніце на правы заезд у кірунку {{directions}}",
+        "onramp_right_with_name_directions": "Павярніце на правы заезд на {{name}} у кірунку {{directions}}",
+        "onramp_right_without_directions": "Павярніце направа на заезд",
+        "onramp_right_without_exit": "Павярніце направа на з'езд да {{name}}",
+        "roundabout_with_exit": "Пакіньце кальцавую развязку праз выезд {{exit}} на {{name}}",
+        "roundabout_with_exit_ordinal": "Пакіньце кальцавую развязку праз выезд {{exit}} на {{name}}",
+        "roundabout_without_exit": "На кругавым руху павярніце на {{name}}",
+        "sharp_left_without_exit": "Рэзка павярніце налева на {{name}}",
+        "sharp_right_without_exit": "Рэзка павярніце направа на {{name}}",
+        "slight_left_without_exit": "Плаўна павярніце налева на {{name}}",
+        "slight_right_without_exit": "Плаўна павярніце направа на {{name}}",
+        "start_without_exit": "Пачніце на {{name}}",
+        "stay_roundabout_without_exit": "Заставацца на кальцы - {{name}}",
+        "turn_left_without_exit": "Павярніце налева на {{name}}",
+        "turn_right_without_exit": "Павярніце направа на {{name}}",
+        "unnamed": "без назвы",
+        "uturn_without_exit": "Развярніцеся на {{name}}",
+        "via_point_without_exit": "(праз кропку)"
+      },
+      "time": "Час"
+    },
+    "edit_help": "Перамясціце карту і наблізце месца, якое вы хочаце рэдагаваць, затым націсніце тут.",
+    "embed": {
+      "report_problem": "Паведаміць аб праблеме"
+    },
+    "key": {
+      "title": "Умоўныя абазначэнні",
+      "tooltip": "Умоўныя абазначэнні",
+      "tooltip_disabled": "Умоўныя абазначэнні даступныя толькі для звычайнай карты"
+    },
+    "map": {
+      "base": {
+        "cycle_map": "Веласіпедная карта",
+        "hot": "Гуманітарная карта",
+        "opnvkarte": "ÖPNVKarte",
+        "standard": "Звычайная карта",
+        "transport_map": "Транспартная карта"
+      },
+      "layers": {
+        "data": "Даныя карт",
+        "gps": "Агульныя GPS-сляды",
+        "header": "Слаі карты",
+        "notes": "Заўвагі на карце",
+        "overlays": "Уключыць накладкі для ліквідацыі памылак карты",
+        "title": "Слаі"
+      },
+      "locate": {
+        "feetPopup_few": "Вы знаходзіцеся ў {{count}} футах ад гэтага пункту",
+        "feetPopup_many": "Вы знаходзіцеся ў {{count}} футах ад гэтага пункту",
+        "feetPopup_one": "Вы знаходзіцеся ў адным фуце ад гэтага пункту",
+        "feetPopup_other": "Вы знаходзіцеся ў {{count}} футах ад гэтага пункту",
+        "metersPopup_few": "Вы знаходзіцеся ў {{count}} метрах ад гэтага пункту",
+        "metersPopup_many": "Вы знаходзіцеся ў {{count}} метрах ад гэтага пункту",
+        "metersPopup_one": "Вы знаходзіцеся ў адным метры ад гэтага пункту",
+        "metersPopup_other": "Вы знаходзіцеся ў {{count}} метрах ад гэтага пункту",
+        "title": "Паказаць маё месцазнаходжанне"
+      },
+      "zoom": {
+        "in": "Павялічыць",
+        "out": "Паменшыць"
+      }
+    },
+    "query": {
+      "error": "Памылка сувязі з {{server}}: {{error}}",
+      "node": "Пункт",
+      "nothing_found": "Аб’екты не знойдзены",
+      "relation": "Дачыненне",
+      "timeout": "Тайм-аўт падключэння да {{server}}",
+      "way": "Лінія"
+    },
+    "share": {
+      "cancel": "Скасаваць",
+      "center_marker": "Цэнтраваць карту па маркеры",
+      "custom_dimensions": "Абраць памер уручную",
+      "download": "Спампаваць",
+      "embed": "HTML",
+      "format": "Фармат:",
+      "geo_uri": "Геа URI",
+      "image": "Выява",
+      "include_marker": "Дадаць маркер",
+      "link": "Спасылка ці HTML",
+      "long_link": "Спасылка",
+      "only_standard_layer": "Толькі стандартны пласт можа быць экспартаваны ў выглядзе выявы",
+      "paste_html": "Уставіць HTML для ўбудовы ў вэб-сайт",
+      "scale": "Маштаб:",
+      "short_link": "Кароткая спасылка",
+      "short_url": "Кароткі URL-адрас",
+      "title": "Падзяліцца",
+      "view_larger_map": "Праглядзець большую карту"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "Наблізце, каб дадаць заўвагу на карту",
+      "createnote_tooltip": "Дадаць заўвагу на карту",
+      "edit_disabled_tooltip": "Наблізце, каб рэдагаваць карту",
+      "edit_tooltip": "Рэдагаваць карту",
+      "map_data_zoom_in_tooltip": "Павялічце, каб убачыць картаграфічныя даныя",
+      "map_notes_zoom_in_tooltip": "Наблізце, каб убачыць заўвагі на карце",
+      "queryfeature_disabled_tooltip": "Наблізіцеся для пошуку аб'ектаў",
+      "queryfeature_tooltip": "Пошук аб’ектаў"
+    }
+  },
+  "layouts": {
+    "about": "Пра праект",
+    "community": "Супольнасьць",
+    "community_blogs": "Блогі супольнасці",
+    "community_blogs_title": "Блогі ўдзельнікаў супольнасці OpenStreetMap",
+    "copyright": "Аўтарскае права",
+    "data": "Даныя",
+    "donate": "Падтрымайце OpenStreetMap {{link}} у фонд абнаўлення тэхнікі.",
+    "edit": "Правіць",
+    "edit_with": "Правіць з дапамогаю {{editor}}",
+    "export": "Экспарт",
+    "export_data": "Экспарт даных",
+    "gps_traces": "GPS-сляды",
+    "gps_traces_tooltip": "Кіраваць GPS-слядамі",
+    "help": "Даведка",
+    "history": "Гісторыя",
+    "home": "Дамоў",
+    "hosting_partners_html": "Хостынг падтрымліваецца {{ucl}}, {{bytemark}}, і іншымі {{partners}}.",
+    "intro_2_create_account": "Стварыць уліковы запіс удзельніка",
+    "intro_header": "Вітаем у OpenStreetMap!",
+    "intro_text": "OpenStreetMap - гэта карта свету, створаная людзьмі, як вы, і бясплатная для выкарыстання на ўмовах адкрытай ліцэнзіі.",
+    "issues": "Праблемы",
+    "learn_more": "Даведацца больш",
+    "log_in": "Увайсці",
+    "logo": {
+      "alt_text": "Лагатып OpenStreetMap"
+    },
+    "logout": "Выйсці",
+    "make_a_donation": {
+      "text": "Зрабіць ахвяраванне",
+      "title": "Падтрымаць OpenStreetMap грашовым ахвяраваннем"
+    },
+    "more": "Больш падрабязна",
+    "osm_offline": "База дадзеных OpenStreetMap зараз па-за сецівам, таму што праходзіць неабходная тэхнічная праца.",
+    "osm_read_only": "База дадзеных OpenStreetMap зараз даступная толькі для чытання, таму што праходзіць неабходная тэхнічная праца.",
+    "partners_bytemark": "Bytemark Hosting",
+    "partners_partners": "партнёрамi",
+    "partners_ucl": "UCL",
+    "sign_up": "Зарэгістравацца",
+    "start_mapping": "Пачаць маляваць карту",
+    "tag_line": "Свабодная Wiki-карта свету",
+    "tou": "Умовы карыстання",
+    "user_diaries": "Дзённікі карыстальнікаў",
+    "user_diaries_tooltip": "Дзённікі карыстальнікаў"
+  },
+  "messages": {
+    "create": {
+      "limit_exceeded": "Вы адправілі шмат паведамленняў нядаўна. Калі ласка, пачакайце некаторы час, перш чым спрабаваць адаслаць наступныя.",
+      "message_sent": "Паведамленне адпраўлена"
+    },
+    "destroy": {
+      "destroyed": "Паведамленне выдалена"
+    },
+    "heading": {
+      "my_inbox": "Мае уваходныя"
+    },
+    "inbox": {
+      "messages": "У вас {{new_messages}} і {{old_messages}}",
+      "new_messages_one": "{{count}} новае паведамленне",
+      "new_messages_other": "{{count}} новых паведамленняў",
+      "no_messages_yet_html": "У вас пакуль няма паведамленняў. Чаму б не зкаардынавацца з  {{people_mapping_nearby_link}}?",
+      "old_messages_one": "{{count}} старое паведамленне",
+      "old_messages_other": "{{count}} старых паведамленняў",
+      "people_mapping_nearby": "людзьмі, што жывуць непадалёку",
+      "title": "Уваходныя"
+    },
+    "mark": {
+      "as_read": "Паведамленне адмечана прачытаным",
+      "as_unread": "Паведамленне адмечана нечытаным"
+    },
+    "message_summary": {
+      "destroy_button": "Выдаліць",
+      "read_button": "Адзначыць як прачытанае",
+      "reply_button": "Адказаць",
+      "unread_button": "Адзначыць як нечытанае"
+    },
+    "messages_table": {
+      "date": "Дата",
+      "from": "Ад",
+      "subject": "Тэма",
+      "to": "Каму"
+    },
+    "new": {
+      "back_to_inbox": "Вярнуцца да уваходных",
+      "send_message_to_html": "Даслаць новае паведамленне {{name}}",
+      "title": "Даслаць паведамленне"
+    },
+    "no_such_message": {
+      "body": "Шкада, паведамлення з гэтым ідэнтыфікатарам няма.",
+      "heading": "Няма такога паведамлення",
+      "title": "Няма такога паведамлення"
+    },
+    "outbox": {
+      "messages_one": "Вы адаслалі {{count}} паведамленне",
+      "messages_other": "Вы адаслалі {{count}} паведамленняў",
+      "no_sent_messages_html": "У вас пакуль няма дасланых паведамленняў. Чаму б не зкаардынавацца з {{people_mapping_nearby_link}}?",
+      "people_mapping_nearby": "людзьмі, што жывуць непадалёку",
+      "title": "Зыходныя"
+    },
+    "reply": {
+      "wrong_user": "Вы ўвайшлі ў сістэму як `{{user}}', але паведамленне, на якое Вы жадаеце адказаць, не было дасланае гэтаму карыстальніку. Калі ласка, увайдзіце як карыстальнік, адпаведна запыту, каб адказаць."
+    },
+    "sent_message_summary": {
+      "destroy_button": "Выдаліць"
+    },
+    "show": {
+      "back": "Назад",
+      "destroy_button": "Выдаліць",
+      "reply_button": "Адказаць",
+      "title": "Прачытаць паведамленне",
+      "unread_button": "Адзначыць, як непрачытанае",
+      "wrong_user": "Вы ўвайшлі ў сістэму як `{{user}}', але паведамленне, якое Вы жадаеце прачытаць, было дасланае не гэтым ці гэтаму карыстальніку. Калі ласка, увайдзіце як карыстальнік, адпаведна запыту, каб прачытаць."
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Створаны ў",
+      "creator": "Стваральнік",
+      "description": "Апісанне",
+      "heading": "Заўвагі {{user}}'а",
+      "id": "Id",
+      "last_changed": "Апошнія змены",
+      "subheading_html": "Заўвагі, створаныя ці пракаментаваныя {{user}}",
+      "title": "Заўвагі, створаныя ці пракаментаваныя {{user}}"
+    },
+    "new": {
+      "add": "Дадаць заўвагу",
+      "advice": "Ваша заўвага агульнадаступная і можа выкарыстоўвацца для абнаўлення карты, таму не ўводзьце асабістую інфармацыю або інфармацыю з абароненых аўтарскім правам карт або рэестраў.",
+      "intro": "Заўважылі памылку або чагосьці не стае? Дайце іншым удзельнікам магчымасць даведацца пра памылку і такім чынам мы выправім яе. Перамясціце маркер у патрэбную пазіцыю і напішыце заўвагу з тлумачэннем праблемы.",
+      "title": "Новая заўвага"
+    },
+    "show": {
+      "anonymous_warning": "Гэтая нататка змяшчае каментары ад ананімных карыстальнікаў, што павінны быць незалежна правераны.",
+      "closed_title": "Вырашаная заўвага #{{note_name}}",
+      "comment": "Каментаваць",
+      "comment_and_resolve": "Каментаваць і вырашыць",
+      "description": "Апісанне",
+      "hidden_title": "Схаваная заўвага #{{note_name}}",
+      "hide": "Схаваць",
+      "open_title": "Нявырашаная заўвага #{{note_name}}",
+      "reactivate": "Актываваць паўторна",
+      "report": "паскардзіцца на гэтую заўвагу",
+      "resolve": "Вырашыць",
+      "title": "Заўвага: {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_gpx": "чытаць уласныя GPS-сляды.",
+      "allow_read_prefs": "чытаць Вашыя налады карыстальніка.",
+      "allow_to": "Дазволіць кліенцкай праграме:",
+      "allow_write_api": "змяняць карту.",
+      "allow_write_diary": "ствараць запісы ў дзённіку, каментары і знаёміцца.",
+      "allow_write_gpx": "адаслаць GPS-сляды.",
+      "allow_write_notes": "змяняць заўвагі.",
+      "allow_write_prefs": "змяняць Вашыя налады ўдзельніка.",
+      "grant_access": "Прадастаўленне Доступу",
+      "request_access_html": "Праграма {{app_name}} запытвае доступ да Вашага уліковага запісу, {{user}}. Праверце калі ласка, ці хочаце Вы, каб праграма мела наступныя мажлівасці. Вы можаце абраць адну ці некалькі, як пажадаеце.",
+      "title": "Дазваленне на доступ да вашага ўліковага запісу"
+    },
+    "authorize_failure": {
+      "denied": "Вы скасавалі дастасаванню {{app_name}} доступ да вашага рахунка.",
+      "invalid": "Токен аўтарызацыі не сапраўдны.",
+      "title": "Не ўдалося выканаць запыт аўтарызацыі"
+    },
+    "authorize_success": {
+      "allowed_html": "Вы надалі дастасаванню {{app_name}} доступ да вашага рахунка.",
+      "title": "Запыт на аўтарызацыю дазволены",
+      "verification": "Праверачны код: {{code}}."
+    },
+    "permissions": {
+      "missing": "Вы не дазволілі праграме атрымаць доступ да гэтай функцыі"
+    },
+    "revoke": {
+      "flash": "Вы адклікалі токен для дастасавання {{application}}"
+    }
+  },
+  "oauth_clients": {
+    "create": {
+      "flash": "Інфармацыя паспяхова зарэгістраваная"
+    },
+    "destroy": {
+      "flash": "Знішчаная рэгістрацыя кліенцкага дастасавання"
+    },
+    "edit": {
+      "title": "Рэдагаваць Вашае дастасаванне"
+    },
+    "form": {
+      "requests": "Запытаць наступныя дазволы ад удзельніка:"
+    },
+    "index": {
+      "application": "Назва дастасаваньня",
+      "issued_at": "Выпісаны:",
+      "list_tokens": "Наступныя токены былі створаныя для дастасаванняў на Вашае імя:",
+      "my_apps": "Мае кліенцкія дастасаванні",
+      "my_tokens": "Мае аўтарызаваныя дастасаванні",
+      "no_apps_html": "Вы маеце дастасаванне, якое жадаеце зарэгістраваць для ўзаемадзеяння з намі праз стандарт {{oauth}}? Вам неабходна зарэгістраваць Вашае вэб-дастасаванне перад тым, як яно зможа зрабіць OAuth-запыты на гэты сервэр.",
+      "oauth": "OAuth",
+      "register_new": "Зарэгістраваць Вашае дастасаванне",
+      "registered_apps": "Вы маеце зарэгістраванымі наступныя кліенцкія дастасаванні:",
+      "revoke": "Адазваны!",
+      "title": "Мае падрабязнасці OAuth"
+    },
+    "new": {
+      "title": "Зарэгістраваць новае дастасаванне"
+    },
+    "not_found": {
+      "sorry": "Прабачце, немагчыма знайсці гэты {{type}}."
+    },
+    "show": {
+      "access_url": "URL-адрас ключа доступу:",
+      "authorize_url": "URL-адрас аўтарызацыі:",
+      "confirm": "Вы ўпэўненыя?",
+      "delete": "Выдаліць кліента",
+      "edit": "Рэдагаваць падрабязнасці",
+      "key": "Ключ спажыўца:",
+      "requests": "Запыт наступных дазволаў ад удзельніка:",
+      "secret": "Сакрэт спажыўца:",
+      "support_notice": "Мы падтрымліваем HMAC-SHA1 (рэкамендуецца) і подпісы RSA-SHA1.",
+      "title": "Падрабязнасьці OAuth для {{app_name}}",
+      "url": "URL-адрас токена запыта:"
+    },
+    "update": {
+      "flash": "Кліенцкая інфармацыя была абноўленая паспяхова"
+    }
+  },
+  "osm_community_index": {
+    "communities": {
+      "OSM-AR-geolibres": {
+        "name": "GeoLibres"
+      },
+      "OSM-PL-chapter": {
+        "name": "OpenStreetMap Poland"
+      },
+      "OSM-US": {
+        "name": "OpenStreetMap US"
+      },
+      "OSM-japan-website": {
+        "name": "OpenStreetMap Japan"
+      },
+      "be-chapter": {
+        "name": "OpenStreetMap Belgium"
+      },
+      "cd-chapter": {
+        "name": "OpenStreetMap RDC"
+      },
+      "czech-community": {
+        "name": "OpenStreetMap CZ"
+      },
+      "fr-chapter": {
+        "name": "OpenStreetMap France"
+      },
+      "ireland-chapter": {
+        "name": "OpenStreetMap Ireland"
+      },
+      "is-chapter": {
+        "name": "OpenStreetMap Iceland"
+      },
+      "it-chapter": {
+        "name": "OpenStreetMap Italy"
+      },
+      "kosovo-flossk": {
+        "name": "Free Libre Open Source Software Kosova (FLOSSK)"
+      },
+      "osgeo-oceania": {
+        "name": "OSGeo Oceania"
+      },
+      "osm-at": {
+        "name": "OpenStreetMap Austria"
+      },
+      "osm-de": {
+        "name": "OpenStreetMap Germany"
+      },
+      "sk-freemap": {
+        "name": "OpenStreetMap Freemap Slovakia"
+      },
+      "sosm": {
+        "name": "Swiss OpenStreetMap Association"
+      },
+      "uk-localchapter": {
+        "name": "OpenStreetMap UK"
+      }
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "Немагчыма знайсці гэтакі паштовы адрас, прабачце.",
+      "notice email on way": "Жаль, што вы яго згубілі :-( але ліст ужо адпраўлены, і вы хутка зможаце яго скінуць."
+    },
+    "edit": {
+      "flash token bad": "Не знайшоў такі токен, можа, праверце URL?",
+      "heading": "Скінуць пароль для {{user}}",
+      "reset": "Скінуць пароль:",
+      "title": "скінуць пароль"
+    },
+    "new": {
+      "email address": "Паштовы адрас:",
+      "heading": "Забылі пароль?",
+      "help_text": "Увядзіце адрас электроннай пошты, які Вы выкарыстоўвалі пры рэгістрацыі, і мы вышлем Вам спасылку, якую Вы зможаце выкарыстаць для змены паролю.",
+      "new password button": "Выслаць мне новы пароль",
+      "title": "згублены пароль"
+    },
+    "update": {
+      "flash changed": "Ваш пароль быў зменены."
+    }
+  },
+  "profiles": {
+    "edit": {
+      "delete image": "Выдаліць бягучую выяву",
+      "gravatar": {
+        "disabled": "Граватар быў адключаны.",
+        "enabled": "Паказ вашага Граватара быў уключаны.",
+        "gravatar": "Выкарыстоўваць Gravatar"
+      },
+      "home location": "Ваша месцазнаходжанне:",
+      "image": "Выява:",
+      "image size hint": "(найлепей пасуюць квадратныя выявы памерам 100×100)",
+      "keep image": "Захаваць бягучую выяву",
+      "new image": "Дадаць выяву",
+      "no home location": "Вы не выбралі вашае асноўнае месцазнаходжанне.",
+      "replace image": "Замяніць бягучую выяву",
+      "update home location on click": "Абнавіць каардэнаты, калі я пстрыкну па карце?"
+    }
+  },
+  "redactions": {
+    "create": {
+      "flash": "Рэдакцыя створана."
+    },
+    "destroy": {
+      "error": "Адбылася памылка пры знішчэнні гэтай рэдакцыі.",
+      "flash": "Рэдакцыя знішчана.",
+      "not_empty": "Рэдакцыя не пустая. Калі ласка, адмяніце ўсе версіі, якія адносяцца да гэтай рэдакцыі перад тым як яе знішчыць."
+    },
+    "edit": {
+      "heading": "Праўка рэдакцыі",
+      "title": "Праўка рэдакцыі"
+    },
+    "index": {
+      "empty": "Няма рэдакцый для прагляду.",
+      "heading": "Спіс рэдакцый",
+      "title": "Спіс рэдакцый"
+    },
+    "new": {
+      "heading": "Калі ласка, увядзіце інфармацыю для новай рэдакцыі",
+      "title": "Стварэнне новай рэдакцыі"
+    },
+    "show": {
+      "confirm": "Вы ўпэўненыя?",
+      "description": "Апісанне:",
+      "destroy": "Выдаліць гэтую рэдакцыю",
+      "edit": "Рэдагаваць гэтую рэдакцыю",
+      "heading": "Паказваецца рэдакцыя \"{{title}}\"",
+      "title": "Паказваецца рэдакцыя",
+      "user": "Стваральнік:"
+    },
+    "update": {
+      "flash": "Змены былі захаваныя."
+    }
+  },
+  "reports": {
+    "create": {
+      "provide_details": "Просьба падаць неабходныя звесткі",
+      "successful_report": "Ваша скарга была паспяхова зарэгістравана"
+    },
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "offensive_label": "Гэты каментар у дзённіку непрыстойны обо нецэнзурны",
+          "other_label": "Іншае",
+          "spam_label": "Гэты каментар у дзённіку з’яўляецца спамам ці змяшчае яго",
+          "threat_label": "Гэты каментар у дзённіку змяшчае пагрозу"
+        },
+        "diary_entry": {
+          "offensive_label": "Гэты дзённікавы запіс з’яўляецца непрыстойным або нецэнзурным",
+          "other_label": "Іншыя",
+          "spam_label": "Гэты дзённікавы запіс з’яўляецца або змяшчае спам",
+          "threat_label": "Гэты дзённікавы запіс змяшчае пагрозу"
+        },
+        "note": {
+          "abusive_label": "Гэта заўвага абразлівая",
+          "other_label": "Іншае",
+          "personal_label": "Гэтая заўвага змяшчае персанальныя даныя",
+          "spam_label": "Гэтая заўвага з’яўляецца спамам"
+        },
+        "user": {
+          "offensive_label": "Гэты профіль з’яўляецца непрыстойным або нецэнзурным",
+          "other_label": "Іншае",
+          "spam_label": "Профіль гэтага карыстальніка з’яўляецца спамам ці змяшчае яго",
+          "threat_label": "Профіль гэтага карыстальніка змяшчае пагрозу",
+          "vandal_label": "Гэты карыстальнік з’яўляецца вандалам"
+        }
+      },
+      "disclaimer": {
+        "intro": "Перад адпраўкай скаргі мадэратарам сайта, калі ласка, пераканайцеся, што:",
+        "not_just_mistake": "Вы ўпэўненыя, што праблема не проста памылка",
+        "resolve_with_user": "Вы ўжо спрабавалі вырашыць гэтую праблему з карыстальнікам",
+        "unable_to_fix": "Вы не можаце вырашыць праблему самастойна або з дапамогай вашых калег членаў супольнасці"
+      },
+      "missing_params": "Немагчыма стварыць новую скаргу",
+      "title_html": "Скарга {{link}}"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "heading": "Выйсці з OpenStreetMap",
+      "logout_button": "Выйсці",
+      "title": "Выйсці"
+    },
+    "new": {
+      "auth failure": "Прабачце, немагчыма увайсці з такім адрасам і паролем.",
+      "auth_providers": {
+        "aol": {
+          "alt": "Уваход праз AOL OpenID",
+          "title": "Уваход праз AOL"
+        },
+        "facebook": {
+          "alt": "Увайсці праз уліковы запіс Facebook",
+          "title": "Увайсці праз Facebook"
+        },
+        "github": {
+          "alt": "Увайсці праз уліковы запіс GitHub",
+          "title": "Уваход праз GitHub"
+        },
+        "google": {
+          "alt": "Уваход праз Google OpenID",
+          "title": "Уваход праз Google"
+        },
+        "microsoft": {
+          "alt": "Увайсці праз уліковы запіс Windows Live",
+          "title": "Увайсці праз Windows live"
+        },
+        "openid": {
+          "alt": "Уваход праз OpenID URL",
+          "title": "Уваход праз OpenID"
+        },
+        "wikipedia": {
+          "alt": "Уваход з выкарыстаннем уліковага запісу Вікіпедыі",
+          "title": "Увайсці праз Вікіпедыю"
+        },
+        "wordpress": {
+          "alt": "Уваход праз Wordpress OpenID",
+          "title": "Уваход праз Wordpress"
+        }
+      },
+      "email or username": "Пошта ці імя карыстальніка:",
+      "heading": "Уваход",
+      "login_button": "Увайсці",
+      "lost password link": "Згубілі пароль?",
+      "no account": "Не маеце асабістага рахунка?",
+      "openid_html": "{{logo}} OpenID:",
+      "openid_logo_alt": "Увайсці з дапамогай OpenID",
+      "password": "Пароль:",
+      "register now": "Зарэгістравацца зараз",
+      "remember": "Памятаць мяне",
+      "title": "Уваход",
+      "with external": "Для альтэрнатыўнага ўваходу, залагіньцеся цераз:"
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "image": "Выява",
+      "link": "Спасылка",
+      "subheading": "Падзагаловак",
+      "text": "Тэкст"
+    },
+    "richtext_field": {
+      "edit": "Правіць"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_title": "Развіваецца супольнасцю",
+      "lede_text": "OpenStreetMap створаны супольнасцю картографаў, якія дадаюць і падтрымліваюць дадзеныя аб дарогах, сцежках, кафэ, вакзалах і многіх іншых аб'ектах па ўсім свеце.",
+      "legal_title": "Прававыя пытанні",
+      "local_knowledge_html": "OpenStreetMap надае асаблівае значэнне веданню мясцовасці. Удзельнікі выкарыстоўваюць аэрафотаздымкі, GPS-прылады і нізкатэхналагічныя палявыя карты для праверкі таго, што дадзеныя OSM з'яўляюцца дакладнымі і актуальнымі.",
+      "local_knowledge_title": "Веданне мясцовасці",
+      "next": "Далей",
+      "open_data_title": "Адкрытыя даныя",
+      "partners_title": "Партнёры",
+      "used_by_html": "{{name}} забяспечвае картаграфічнымі дадзенымі тысячы сайтаў, мабільных праграм і прыстасаванняў"
+    },
+    "any_questions": {
+      "title": "Ёсць пытанні?"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "англійскім арыгіналам",
+        "html": "У выпадку супярэчнасці паміж гэтай перакладзенай старонкай і {{english_original_link}}, англійская старонка павінна мець прыярытэт",
+        "title": "Пра гэты пераклад"
+      },
+      "legal_babble": {
+        "attribution_example": {
+          "alt": "Прыклад таго, як трэба спасылацца на OpenStreetMap на старонцы",
+          "title": "Прыклад спасылкі"
+        },
+        "contributors_footer_2_html": "Уключэнне дадзеных у OpenStreetMap не азначае, што пастаўшчыкі пачатковых дадзеных\nякім-небудзь чынам падтрымліваюць OpenStreetMap, прадстаўляюць гарантыі, ці\nпрымаюць на сябе якую-небудзь адказнасць.",
+        "contributors_intro_html": "Нашымі ўдзельнікамі з'яўляюцца тысячы людзей. Мы таксама ўключаем дадзеныя ад нацыянальных картаграфічных агенцтваў, якія распаўсюджваюцца на ўмовах адкрытых ліцэнзій, сярод іх:",
+        "contributors_title_html": "Нашы ўдзельнікі",
+        "credit_1_html": "Мы патрабуем, каб выкарыстоўвалася спасылка &ldquo;&copy; OpenStreetMap\ncontributors&rdquo;.",
+        "credit_title_html": "Як спасылацца на OpenStreetMap",
+        "infringement_1_html": "Удзельнікі супольнасці OSM павінны заўсёды памятаць пра тое, што забараняецца дадаваць дадзеныя з любых абароненых аўтарскім правам крыніц (напрыклад, з Google Maps або з друкаваных карт) без дазволу праваўладальнікаў.",
+        "infringement_title_html": "Парушэнне аўтарскіх правоў",
+        "more_title_html": "Даведацца больш",
+        "title_html": "Аўтарскія правы і ліцэнзія"
+      },
+      "native": {
+        "html": "Вы праглядаеце англійскую версію старонкі пра аўтарскія правы. Вы можаце вярнуцца да {{native_link}} гэтай старонкі ці спыніць чытанне пра аўтарскія правы і {{mapping_link}}.",
+        "mapping_link": "пачаць маляваць карту",
+        "native_link": "беларуская версія",
+        "title": "Пра гэту старонку"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "Даведацца ў чым справа.",
+      "id_not_configured": "iD не быў настроены",
+      "no_iframe_support": "Ваш браўзер не падтрымлівае рамкі HTML, якія з’яўляюцца неабходнымі для гэтай функцыі.",
+      "not_public": "Вы не дазволілі зрабіць усе вашыя змены публічнымі.",
+      "not_public_description_html": "Вы больш не можаце рэдагаваць карту ў такім рэжыме. Вы можаце зрабіць Вашыя рэдагаваньні публічнымі на Вашай {{user_page}}.",
+      "user_page_link": "старонка карыстальніка"
+    },
+    "export": {
+      "export_button": "Экспарт",
+      "licence": "Ліцэнзія",
+      "manually_select": "Выбраць іншую мясцовасць",
+      "title": "Экспарт",
+      "too_large_advice": "Калі экспарт вышэй не атрымаўся, то разгледзьце магчымасць выкарыстання адной з наступных крыніц:",
+      "too_large_body": "Гэтая вобласць занадта вялікая, каб быць экспартаваная як OpenStreetMap XML-дадзеныя. Калі ласка, павялічце або абярыце меншую вобласць, альбо скарыстайцеся адной з крыніц, пералічаных ніжэй, для загрузкі вялікага аб'ему дадзеных.",
+      "too_large_geofabrik": {
+        "description": "Рэгулярна абнаўляемыя выбаркі кантынентаў, краін і асобных гарадоў",
+        "title": "Загрузкі Geofabrik"
+      },
+      "too_large_other": {
+        "description": "Дадатковыя крыніцы, пералічаныя на Вікі OpenStreetMap",
+        "title": "Іншыя крыніцы"
+      },
+      "too_large_overpass": {
+        "description": "Спампаваць абмежаваную гэтым прастакутнікам вобласць з люстэрка базы дадзеных OpenStreetMap",
+        "title": "Overpass API"
+      },
+      "too_large_planet": {
+        "description": "Рэгулярна абнаўляемыя копіі поўнай базы дадзеных OpenStreetMap",
+        "title": "Планета OSM"
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "explanation_html": "Калі вы заўважылі, недакладнасці ў нашых картаграфічных дадзеных, напрыклад дарога не пазначана ці ваш адрас, лепшы спосаб гэта выправіць - далучыцца да супольнасці OpenStreetMap і дадаць або выправіць дадзеныя самастойна.",
+          "title": "Далучыцца да супольнасці"
+        },
+        "title": "Як дапамагчы"
+      },
+      "other_concerns": {
+        "title": "Іншыя перасцярогі"
+      },
+      "title": "Паведаміць аб праблеме / Выправіць карту"
+    },
+    "help": {
+      "beginners_guide": {
+        "description": "Супольнасць падтрымлівае дапаможнік для пачаткоўцаў.",
+        "title": "Дапаможнік для пачаткоўцаў"
+      },
+      "help": {
+        "description": "Задайце пытанне або шукайце адказы на сайце пытанняў і адказаў OSM.",
+        "title": "Пытанні і адказы"
+      },
+      "introduction": "OpenStreetMap мае розныя рэсурсы для атрымання інфармацыі аб праекце, для задавання пытанняў і атрымання адказаў, для сумеснага абмеркавання і стварэння дакументацыі па картаграфаванні.",
+      "irc": {
+        "description": "Інтэрактыўны чат на розных мовах і на розныя тэмы.",
+        "title": "IRC"
+      },
+      "mailing_lists": {
+        "description": "Задайце пытанне ці далучыцеся да абмеркавання цікавых тэм на шырокім коле тэматычных або рэгіянальных спісаў рассылкі.",
+        "title": "Рассылкі"
+      },
+      "switch2osm": {
+        "description": "Дапамога кампаніям і арганізацыям у пераходзе на карты OpenStreetMap і іншыя паслугі.",
+        "title": "switch2osm"
+      },
+      "title": "Атрыманне дапамогі",
+      "welcome": {
+        "description": "Пачніце з гэтага кароткага кіраўніцтва, што ахоплівае асновы OpenStreetMap.",
+        "title": "Вітаем у OpenStreetMap",
+        "url": "/welcome"
+      },
+      "welcomemat": {
+        "description": "Вы з арганізацыі, якая хоча працаваць з OpenStreetMap? Азнаёмцеся з інфармацыяй у раздзеле Welcome Mat.",
+        "title": "Для арганізацый"
+      },
+      "wiki": {
+        "description": "Паглядзець вікі з падрабязнай дакументацыяй па OpenStreetMap",
+        "title": "Вікі OpenStreetMap"
+      }
+    },
+    "index": {
+      "createnote": "Дадаць заўвагу",
+      "js_1": "Вы карыстаецеся вандроўнікам без падтрымкі JavaScript.",
+      "js_2": "OpenStreetMap выкарыстоўвае JavaScript для адлюстравання карты на сайце.",
+      "license": {
+        "copyright": "Аўтарскія правы належаць OpenStreetMap і яго ўдзельнікам на ўмовах адкрытай ліцэнзіі."
+      },
+      "permalink": "Спасылка сюды",
+      "remote_failed": "Памылка рэдагавання. Упэўніцеся, што JOSM ці Merkaartor загружаныя і дазволеная магчымасць аддаленага кіравання",
+      "shortlink": "Кароткая"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "Адміністрацыйная мяжа",
+          "allotments": "Сады-агароды",
+          "apron": "Перон аэрапорта",
+          "bicycle_parking": "Паркоўка для ровараў",
+          "bicycle_shop": "Крама ровараў",
+          "bridge": "Мост (суцэльная лінія)",
+          "bridleway": "Дарога для коней",
+          "brownfield": "Ачышчаная пляцоўка для забудовы",
+          "building": "Значны будынак",
+          "bus": "Аўтобус",
+          "cable_car": "Канатная дарога",
+          "cemetery": "Могілкі",
+          "centre": "Спартыўны цэнтр",
+          "chair_lift": "Крэсельны пад'ёмнік",
+          "commercial": "Камерцыйная зона",
+          "common": "Агульныя",
+          "construction": "Дарогі ў стадыі будаўніцтва",
+          "cycleway": "Веласіпедная дарожка",
+          "cycleway_local": "Веладарожка мясцовага значэння",
+          "cycleway_national": "Нацыянальная веладарожка",
+          "cycleway_regional": "Рэгіянальная веладарожка",
+          "destination": "Мэтавы доступ",
+          "farm": "Ферма",
+          "footway": "Пешаходная дарожка",
+          "forest": "Лес",
+          "glacier": "Ляднік",
+          "golf": "Поле для гольфа",
+          "heathland": "Пустка",
+          "industrial": "Прамысловая зона",
+          "lake": "Возера",
+          "main_road": "Галоўная дарога",
+          "military": "Ваенная зона",
+          "motorway": "Аўтамагістраль",
+          "park": "Парк",
+          "peak": "пік",
+          "pitch": "Спартыўная пляцоўка",
+          "primary": "Асноўная дарога",
+          "private": "Прыватны доступ",
+          "rail": "Чыгунка",
+          "reserve": "Запаведнік",
+          "reservoir": "вадасховішча",
+          "resident": "Жылы раён",
+          "retail": "Гандлевая плошча",
+          "runway": "Узлетна-пасадачная паласа",
+          "school": "Школа",
+          "secondary": "Другасная дарога",
+          "station": "Чыгуначны вакзал",
+          "subway": "Метро",
+          "summit": "Вяршыня",
+          "taxiway": "рулёжная дарожка",
+          "toilets": "Прыбіральні",
+          "track": "Палявая дарога",
+          "train": "Цягнік",
+          "trolleybus": "Тралейбус",
+          "trunk": "Шаша",
+          "tunnel": "Тунэль (пункцірам)",
+          "unclassified": "Некласіфікаваная дарога",
+          "university": "універсітэт",
+          "wood": "пушча"
+        }
+      }
+    },
+    "search": {
+      "from": "Старт",
+      "get_directions": "Пракласці маршрут",
+      "get_directions_title": "Знайсці маршрут паміж двума пунктамі",
+      "reverse_directions_text": "Змяніць накірунак",
+      "search": "Пошук",
+      "submit_text": "Знайсці",
+      "to": "Фініш",
+      "where_am_i": "Дзе гэта?",
+      "where_am_i_title": "Апісаць бягучае месцазнаходжанне з дапамогай пошукавай сістэмы"
+    },
+    "sidebar": {
+      "close": "Закрыць",
+      "search_results": "Вынікі пошуку"
+    },
+    "welcome": {
+      "add_a_note": {
+        "para_1": "Калі трэба ўнесці дробнае ўдакладненне, дзеля якога не варта марнаваць час на рэгістрацыю і вывучэнне правілаў рэдагавання, раім проста дадаць заўвагу на карту.",
+        "title": "Няма часу на рэдагаванне? Дадайце заўвагу!"
+      },
+      "basic_terms": {
+        "paragraph_1": "OpenStreetMap мае свой ​​уласны жаргон. Вось некалькі ключавых слоў, якія могуць быць карыснымі.",
+        "title": "Невялікі слоўнік картографа"
+      },
+      "introduction": "Вітаем у OpenStreetMap, свабоднай і даступнай для рэдагавання карце свету. Зараз, калі вы ўвайшлі, усё гатова для пачатку рэдагавання. Вось кароткае кіраўніцтва па найважнейшым рэчам, якія вы павінны ведаць.",
+      "rules": {
+        "title": "Правілы!"
+      },
+      "start_mapping": "Пачаць маляваць карту",
+      "title": "Вітаем!",
+      "whats_on_the_map": {
+        "title": "Што змяшчае карта"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y у %H:%M"
+    }
+  },
+  "traces": {
+    "create": {
+      "trace_uploaded": "Ваш GPX-файл быў адасланы і чакае ўстаўкі ў базу дадзеных. Гэта звычайна робіцца не больш за паўгадзіны. Вы атрымаеце працверджанне аб заканчэнні працэсу па электроннай пошце.",
+      "traces_waiting": "У вас {{count}} след у чарзе. Калі ласка, пачакайце, пакуль яны будуць апрацаваныя, каб не блакірваць чаргу для астатніх карстальнікаў.",
+      "upload_failed": "На жаль, загрузка GPX не атрымалася. Адміністратар быў праінфармаваны пра памылку. Калі ласка, паспрабуйце яшчэ раз",
+      "upload_trace": "Адаслаць GPS-след"
+    },
+    "description": {
+      "description_with_count_one": "GPX-файл з {{count}} пунктам ад {{user}}",
+      "description_with_count_other": "GPX-файл з {{count}} пунктамі ад {{user}}",
+      "description_without_count": "GPX-файл ад {{user}}"
+    },
+    "destroy": {
+      "scheduled_for_deletion": "След запланаваны на выдаленне"
+    },
+    "edit": {
+      "heading": "Рэдагаванне следу {{name}}",
+      "title": "Рэдагаванне следу {{name}}",
+      "visibility_help": "што гэта значыць?"
+    },
+    "georss": {
+      "title": "GPS-сляды OpenStreetMap"
+    },
+    "index": {
+      "description": "Агляд нядаўна дададзеных GPS-слядоў",
+      "my_traces": "Мае GPS-сляды",
+      "public_traces": "Агульныя GPS-сляды",
+      "public_traces_from": "Агульныя GPS-сляды карыстальніка {{user}}",
+      "tagged_with": " з тэгамі: {{tags}}",
+      "upload_trace": "Адаслаць GPS-след"
+    },
+    "make_public": {
+      "made_public": "След апублікаваны"
+    },
+    "new": {
+      "help": "Даведка",
+      "help_url": "http://wiki.openstreetmap.org/wiki/RU:Upload",
+      "upload_trace": "Адаслаць GPS-след",
+      "visibility_help": "што гэта значыць?"
+    },
+    "offline": {
+      "heading": "Сховішча GPX-файлаў адключана",
+      "message": "Сховішча і сістэма загрузкі GPX-файлаў ў бягучы момант недаступныя"
+    },
+    "offline_warning": {
+      "message": "Сістэма загрузкі GPX-файлаў ў бягучы момант недаступная"
+    },
+    "show": {
+      "confirm_delete": "Выдаліць гэты след?",
+      "delete_trace": "Выдаліць гэты след",
+      "description": "Апісанне:",
+      "download": "спампаваць",
+      "edit": "правіць",
+      "edit_trace": "Рэдагаваць гэты след",
+      "filename": "Назва файла:",
+      "heading": "Прагляд следу {{name}}",
+      "map": "карта",
+      "none": "Няма",
+      "owner": "Уладальнік:",
+      "pending": "У ЧАРЗЕ",
+      "points": "Пункты:",
+      "start_coordinates": "Каардынаты пачатку:",
+      "tags": "Тэгі:",
+      "title": "Прагляд следу {{name}}",
+      "trace_not_found": "След не знойдзены!",
+      "uploaded": "Прысланы:",
+      "visibility": "Бачнасць:"
+    },
+    "trace": {
+      "by": "карыстальнікам",
+      "count_points_few": "{{count}} пункты",
+      "count_points_many": "{{count}} пунктаў",
+      "count_points_one": "1 пункт",
+      "count_points_other": "{{count}} пункты(аў)",
+      "edit_map": "Правіць карту",
+      "identifiable": "ІДЭНТЫФІКУЕМЫ",
+      "in": "у",
+      "more": "яшчэ",
+      "pending": "У ЧАРЗЕ",
+      "private": "ПРЫВАТНЫ",
+      "public": "ПУБЛІЧНЫ",
+      "trace_details": "Прагледзець уласцівасці следу",
+      "trackable": "TRACKABLE",
+      "view_map": "Прагледзець карту"
+    },
+    "trace_optionals": {
+      "tags": "Тэгі"
+    },
+    "trace_paging_nav": {
+      "newer": "Свежыя сляды",
+      "older": "Даўнейшыя сляды"
+    },
+    "update": {
+      "updated": "След абноўлены"
+    },
+    "visibility": {
+      "identifiable": "Ідэнтыфікуемы (паказваецца ў спісе слядоў як ідэнтыфікуемы са спарадкаванымі пунктамі і меткамі часу)",
+      "private": "Прыватны (ананімны з неспарадкаванымі пунктамі)",
+      "public": "Агульны (паказваецца ў спісе слядоў як ананімны з неспарадкаванымі пунктамі)",
+      "trackable": "Адсочвальны (ананімны са спарадкаванымі пунктамі і меткамі часу)"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Рэдагаваць",
+      "not_revoked": "(не адкліканы)",
+      "revoke": "Адазваць!",
+      "show": "Паказаць"
+    },
+    "blocks": {
+      "creator_name": "Стваральнік",
+      "display_name": "Заблакаваны карыстальнік",
+      "next": "Далей »",
+      "previous": "« Назад",
+      "reason": "Прычына блакіроўкі",
+      "revoker_name": "Адкліканы",
+      "showing_page": "Старонка {{page}}",
+      "status": "Статус"
+    },
+    "blocks_by": {
+      "empty": "{{name}} яшчэ не стварыў блакіровак.",
+      "heading_html": "Спіс блакіровак, якія стварыў {{name}}",
+      "title": "Блакіроўкі створаныя {{name}}"
+    },
+    "blocks_on": {
+      "empty": "{{name}} не быў яшчэ заблакіраваны.",
+      "heading_html": "Спіс блакіровак {{name}}",
+      "title": "Блакіроўкі для {{name}}"
+    },
+    "create": {
+      "flash": "Заблакіраваць удзельніка {{name}}."
+    },
+    "edit": {
+      "back": "Паказаць усе блакіроўкі",
+      "heading_html": "Рэдагаванне блакіроўкі для {{name}}",
+      "period": "Як доўга, пачынаючы з гэтага моманту, карыстальніку будзе заблакіраваны доступ да API.",
+      "show": "Паказаць гэтую блакіроўку",
+      "title": "Рэдагаванне блакіроўкі для {{name}}"
+    },
+    "filter": {
+      "block_expired": "Блакіроўка ўжо скончылася і не можа рэдагавацца.",
+      "block_period": "Час блакіроўкі павінен быць выбраны са значэнняў з разгортваемага спісу."
+    },
+    "helper": {
+      "block_duration": {
+        "days_few": "{{count}} дні",
+        "days_one": "1 дзень",
+        "days_other": "{{count}} дзён",
+        "hours_one": "1 гадзіна",
+        "hours_other": "{{count}} гадзін",
+        "months_few": "{{count}} месяцы",
+        "months_one": "1 месяц",
+        "months_other": "{{count}} месяцаў",
+        "weeks_few": "{{count}} тыдні",
+        "weeks_one": "1 тыдзень",
+        "weeks_other": "{{count}} тыдняў",
+        "years_few": "{{count}} гады",
+        "years_one": "1 год",
+        "years_other": "{{count}} гадоў"
+      },
+      "time_future_and_until_login_html": "Заканчваецца праз {{time}} і пасля таго, як карыстальнік увойдзе ў сістэму.",
+      "time_future_html": "Заканчваецца праз {{time}}.",
+      "time_past_html": "Скончылася {{time}}.",
+      "until_login": "Актыўная да моманту ўваходу ўдзельніка ў сістэму."
+    },
+    "index": {
+      "empty": "Блакіровак яшчэ не было.",
+      "heading": "Спіс блакіровак карыстальніка",
+      "title": "Блакіроўкі карыстальніка"
+    },
+    "model": {
+      "non_moderator_revoke": "Трэба быць мадэратарам, каб адклікаць блакіроўку.",
+      "non_moderator_update": "Трэба быць мадэратарам, каб стварыць ці зняць блакіроўку."
+    },
+    "new": {
+      "back": "Паказаць усе блакіроўкі",
+      "heading_html": "Стварэнне блакіроўкі для {{name}}",
+      "period": "Як доўга, пачынаючы з гэтага моманту, карыстальніку будзе заблакіраваны доступ да API.",
+      "title": "Стварэнне блакіроўкі для {{name}}"
+    },
+    "not_found": {
+      "back": "Вярнуцца да пераліку",
+      "sorry": "Прабачце, немагчыма знайсці блакіроўку ўдзельніка з ідэнтыфікатарам {{id}}."
+    },
+    "revoke": {
+      "confirm": "Вы ўпэўнены, што жадаеце адклікаць гэтую блакіроўку?",
+      "flash": "Гэтая блакіроўка была адклікана.",
+      "heading_html": "Зняць блакіроўку з {{block_on}}, створаную {{block_by}}",
+      "past_html": "Гэтая блакіроўка скончылася {{time}} і не можа быць цяпер адклікана.",
+      "revoke": "Адазваць!",
+      "time_future_html": "Гэтая блакіроўка скончыцца ў {{time}}.",
+      "title": "Зняць блакіроўку з {{block_on}}"
+    },
+    "show": {
+      "back": "Праглядзець усе блакіроўкі",
+      "confirm": "Вы ўпэўненыя?",
+      "created": "Створаны",
+      "edit": "Рэдагаваць",
+      "heading_html": "{{block_on}} заблакіраваны {{block_by}}",
+      "needs_view": "Удзельніку трэба ўвайсці ў сістэму, перад тым як гэтая блакіроўка будзе знята.",
+      "reason": "Прычына блакіроўкі:",
+      "revoke": "Адазваць!",
+      "revoker": "Адклікаўшы:",
+      "show": "Паказаць",
+      "status": "Статус",
+      "title": "{{block_on}} заблакіраваны {{block_by}}"
+    },
+    "update": {
+      "only_creator_can_edit": "Толькі мадэратар, які стварыў блакіроўку, можа яго рэдагаваць.",
+      "success": "Блакіроўка абноўлена."
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "commented": {
+        "commented_changeset": "{{commenter}}% у {{time}} пакінуў каментарый да набору змен ад {{changeset_author}}, за якім вы назіраеце",
+        "partial_changeset_with_comment": "з каментаром '{{changeset_comment}}'",
+        "partial_changeset_without_comment": "без каментароў",
+        "subject_other": "[OpenStreetMap] {{commenter}} пракаментаваў цікавы вам набор зменаў",
+        "subject_own": "[OpenStreetMap] {{commenter}} пракаментаваў адзін з вашых набораў зменаў",
+        "your_changeset": "{{commenter}} пакінуў каментарый на адзін з вашых набораў змен, створаных {{time}}"
+      },
+      "details": "Дадатковыя звесткі аб наборы зьменаў можна знайсці ў {{url}}.",
+      "greeting": "Прывітанне,",
+      "hi": "Прывітанне, {{to_user}},",
+      "unsubscribe": "Каб адпісацца ад абнаўленняў гэтага пакета правак наведайце {{url}} і націсніце кнопку \"Адпісацца\"."
+    },
+    "diary_comment_notification": {
+      "footer": "Вы можаце прагледзець каментар на {{readurl}} і пракаментаваць на {{commenturl}} ці адказаць на {{replyurl}}",
+      "header": "{{from_user}} пракаментаваў ваш запіс у дзённіку на OpenStreetMap з тэмай {{subject}}:",
+      "hi": "Вітанні, {{to_user}},",
+      "subject": "[OpenStreetMap] {{user}} пакінуў каментар у вашым дзённіку"
+    },
+    "email_confirm": {
+      "click_the_link": "Калі гэта вы, то перайдзіце па спасылцы, размешчанай ніжэй, каб пацвердзіць змену.",
+      "greeting": "Добры дзень,",
+      "hopefully_you": "Хтосьці (спадзяемся, што вы) жадае змяніць свой адрас электроннай пошты ў {{server_url}} на адрас: {{new_address}}.",
+      "subject": "[OpenStreetMap] Пацвердзіце ваш адрас электроннай пошты"
+    },
+    "friendship_notification": {
+      "befriend_them": "Вы таксама можаце пасябраваць з імі на {{befriendurl}}.",
+      "had_added_you": "{{user}} пасябраваў з Вамі на OpenStreetMap.",
+      "hi": "Прывітанне, {{to_user}},",
+      "see_their_profile": "Вы можаце прагледзець профіль на {{userurl}} і дадаць, як сябра, у адказ, калі хочаце.",
+      "subject": "[OpenStreetMap] {{user}} дадаў вас у спіс сваіх сяброў"
+    },
+    "gpx_failure": {
+      "failed_to_import": "збой імпарту. Адбылася памылка:",
+      "subject": "[OpenStreetMap] Збой імпарту GPX"
+    },
+    "gpx_success": {
+      "subject": "[OpenStreetMap] Паспяховы імпарт GPX"
+    },
+    "lost_password": {
+      "click_the_link": "Калі гэта вы, калі ласка, перайдзіце па спасылцы, паказанай ніжэй, каб змяніць ваш пароль.",
+      "greeting": "Добры дзень,",
+      "hopefully_you": "Хтосьці (спадзяемся, што вы) запытаў змену пароля для рахунка на openstreetmap.org, прывязанага да гэтага адраса электроннай пошты.",
+      "subject": "[OpenStreetMap] Запыт на змену пароля"
+    },
+    "message_notification": {
+      "footer_html": "Вы можаце таксама прачытаць паведамленне на {{readurl}}, і вы можаце адказаць на {{replyurl}}",
+      "header": "{{from_user}} адправіў вам паведамленне з тэмай {{subject}} праз OpenStreetMap:",
+      "hi": "Прывітанне, {{to_user}},"
+    },
+    "note_comment_notification": {
+      "anonymous": "Ананімны карыстальнік",
+      "closed": {
+        "commented_note": "{{commenter}} вырашыў заўвагу на карце, што вы каментавалі. Заўвага каля {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} вырашыў заўвагу, што можа быць вам цікава",
+        "subject_own": "[OpenStreetMap] {{commenter}} вырашыў адну з вашых заўваг",
+        "your_note": "{{commenter}} вырашыў адну з вашых заўваг на карце, каля {{place}}."
+      },
+      "commented": {
+        "commented_note": "{{commenter}} пракаменаваў заўвагу на карце, якую вы таксама каментавалі. Заўвага каля {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} пракаментаваў заўвагу, што можа быць вам цікава",
+        "subject_own": "[OpenStreetMap] {{commenter}} пракаментаваў адну з вашых заўваг",
+        "your_note": "{{commenter}} пракаментаваў адну з вашых заўваг на карце, каля {{place}}."
+      },
+      "details": "Больш падрабязна пра ўвагу можна прачытаць на {{url}}.",
+      "greeting": "Прывітанне,",
+      "reopened": {
+        "commented_note": "{{commenter}} пераадчыніў заўвагу на карце, якую вы каментавалі. Заўвага каля {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} пераадчыніў заўвагу, што можа быць вам цікава",
+        "subject_own": "[OpenStreetMap] {{commenter}} пераадчыніў адну з вашых заўваг",
+        "your_note": "{{commenter}} пераадчыніў адну з вашых заўваг на карце, каля {{place}}."
+      }
+    },
+    "signup_confirm": {
+      "confirm": "Перш чым мы зробім што-небудзь яшчэ, мы павінны пераканацца, што запыт паступіў ад Вас; і калі гэта былі Вы, націсніце на спасылку ніжэй, каб пацвердзіць Ваш уліковы запіс:",
+      "created": "Хтосьці (спадзяемся, што Вы) толькі што стварыў уліковы запіс на {{site_url}}.",
+      "greeting": "Прывітанне!",
+      "subject": "[OpenStreetMap] Сардэчна запрашаем у OpenStreetMap",
+      "welcome": "Пасля таго, як вы пацвердзіце свой уліковы запіс, мы дадзім Вам пачытаць дадатковую інфармацыю."
+    }
+  },
+  "user_role": {
+    "filter": {
+      "already_has_role": "Карыстальнік ужо мае ролю {{role}}.",
+      "doesnt_have_role": "Карыстальнік не мае ролі {{role}}.",
+      "not_a_role": "Радок «{{role}}» не з’яўляецца слушнай роляй.",
+      "not_revoke_admin_current_user": "Немагчыма адазваць ролю адміністратара для гэтага карыстальніка."
+    },
+    "grant": {
+      "are_you_sure": "Вы ўпэўнены, што жадаеце надаць ролю `{{role}}' удзельніку `{{name}}'?",
+      "confirm": "Пацвердзіць",
+      "fail": "Немагчыма надаць ролю `{{role}}' удзельніку `{{name}}'. Калі ласка, праверце каб удзельнік і роля былі слушнымі.",
+      "heading": "Пацвердзіць наданне ролі",
+      "title": "Пацвердзіць наданне ролі"
+    },
+    "revoke": {
+      "are_you_sure": "Вы ўпэўнены, што жадаеце адмяніць ролю `{{role}}' удзельніка `{{name}}'?",
+      "confirm": "Пацвердзіць",
+      "fail": "Немагчыма адмяніць ролю `{{role}}' удзельніка `{{name}}'. Калі ласка, праверце каб удзельнік і роля былі слушнымі.",
+      "heading": "Пацвердзіць адмену ролі",
+      "title": "Пацвердзіць адмену ролі"
+    }
+  },
+  "users": {
+    "auth_association": {
+      "heading": "Ваш ID пакуль што не звязаны з уліковым запісам OpenStreetMap.",
+      "option_1": "Калі вы пачатковец у ОСМ, калі ласка, стварыце новы ўліковы запіс скарыстаўшыся формай ніжэй.",
+      "option_2": "Калі ў вас ужо ёсць уліковы запіс, то вы можаце ўвайсці ў свой уліковы запіс, выкарыстоўваючы сваё імя ўдзельніка і пароль, і затым звязаць уліковы запіс з вашым ID у вашых наладах удзельніка."
+    },
+    "auth_failure": {
+      "connection_failed": "Злучэнне з крыніцай аўтэнтыфікацыі не атрымалася",
+      "invalid_credentials": "Памылковыя ўліковыя даныя для праверкі сапраўднасці",
+      "invalid_scope": "Няправільны дыяпазон",
+      "no_authorization_code": "Няма кода аўтарызацыі",
+      "unknown_signature_algorithm": "Невядомы алгарытм подпісу"
+    },
+    "go_public": {
+      "flash success": "Усе вашыя змены цяпер публічныя, і вам цяпер дазволена рэдагаванне"
+    },
+    "index": {
+      "confirm": "Пацвердзіць выбраных карыстальнікаў",
+      "empty": "Адпаведныя карыстальнікі не знойдзеныя",
+      "heading": "Удзельнікі",
+      "hide": "Схаваць выбраных карыстальнікаў",
+      "showing_one": "Старонка {{page}} ({{first_item}} з {{items}})",
+      "showing_other": "Старонка {{page}} ({{first_item}}-{{last_item}} з {{items}})",
+      "summary_html": "{{name}} створана з {{ip_address}} {{date}}",
+      "summary_no_ip_html": "{{name}} створаны {{date}}",
+      "title": "Удзельнікі"
+    },
+    "new": {
+      "about": {
+        "header": "Свабодная і даступная для рэдагавання"
+      },
+      "auth no password": "Пры выкарыстанні знешняй аўтэнтыфікацыі пароль не патрэбны, але для некаторых дадатковых інструментаў або сервераў ён усё яшчэ спатрэбіцца.",
+      "continue": "Зарэгістравацца",
+      "display name description": "Ваша імя, якое будзе бачнае ўсім. Вы можаце змяніць яго потым ў вашых параметрах.",
+      "external auth": "Аўтэнтыфікацыя праз:",
+      "no_auto_account_create": "На жаль, мы не можам стварыць для вас уліковы запіс аўтаматычна.",
+      "terms accepted": "Дзякуй за прыняцце новых умоў ўдзелу!",
+      "title": "Зарэгістравацца",
+      "use external auth": "Для альтэрнатыўнага ўваходу, залагіньцеся цераз:"
+    },
+    "no_such_user": {
+      "body": "Прабачце, карыстальнік {{user}} не знойдзены. Калі ласка, праверце свой правапіс, ці, магчыма, вам далі няправільную спасылку.",
+      "deleted": "выдалены",
+      "heading": "Карыстальнік {{user}} не існуе",
+      "title": "Няма такога карыстальніка"
+    },
+    "show": {
+      "activate_user": "Актываваць гэтага карыстальніка",
+      "add as friend": "Пасябраваць",
+      "block_history": "Дзейныя блакіроўкі",
+      "blocks by me": "Заблакавана мною",
+      "blocks on me": "Мае блакіроўкі",
+      "comments": "Каментары",
+      "confirm": "Пацвердзіць",
+      "confirm_user": "Пацвердзіць гэтага карыстальніка",
+      "create_block": "Заблакаваць гэтага карыстальніка",
+      "created from": "Створана з:",
+      "ct declined": "Адхіленыя",
+      "ct status": "Умовы ўдзелу:",
+      "ct undecided": "Нявырашана",
+      "delete_user": "Выдаліць гэтага карыстальніка",
+      "diary": "Дзённік",
+      "edits": "Змены",
+      "email address": "Адрас электроннай пошты:",
+      "hide_user": "Схаваць гэтага карыстальніка",
+      "mapper since": "Малюе карту з:",
+      "moderator_history": "Створаныя блакіроўкі",
+      "my comments": "Мае каментары",
+      "my diary": "Мой дзённік",
+      "my edits": "Мае змены",
+      "my messages": "Паведамленні",
+      "my notes": "Мае заўвагі",
+      "my profile": "Мой профіль",
+      "my settings": "Мае налады",
+      "my traces": "Мае сляды",
+      "notes": "Заўвагі на карце",
+      "remove as friend": "Выдаліць з сяброў",
+      "report": "Паскардзіцца на гэтага карыстальніка",
+      "role": {
+        "administrator": "Гэты карыстальнік з’яўляецца адміністратарам",
+        "grant": {
+          "administrator": "Надаць правы адміністратара",
+          "moderator": "Надаць правы мадэратара"
+        },
+        "moderator": "Гэты карыстальнік з’яўляецца мадэратарам",
+        "revoke": {
+          "administrator": "Адклікаць доступ з правамі адміністратара",
+          "moderator": "Скасаваць доступ мадэратара"
+        }
+      },
+      "send message": "Адаслаць паведамленне",
+      "spam score": "Адзнака спаму:",
+      "status": "Статус:",
+      "traces": "Сляды",
+      "unhide_user": "Паказаць гэтага карыстальніка"
+    },
+    "suspended": {
+      "heading": "Уліковы запіс прыпынены",
+      "title": "Уліковы запіс прыпынены"
+    },
+    "terms": {
+      "consider_pd": "У дадатак да прыведзенага пагаднення, я пацвярджаю, што мой уклад знаходзіцца ў грамадскім набытку",
+      "consider_pd_why": "што гэта?",
+      "consider_pd_why_url": "https://www.osmfoundation.org/wiki/License/Why_would_I_want_my_contributions_to_be_public_domain",
+      "continue": "Працягнуць",
+      "contributor_terms_explain": "Гэтае пагадненне регулюе ўмовы вашага існага і будучага ўкладу.",
+      "decline": "Адхіліць",
+      "heading": "Умовы",
+      "heading_ct": "Умовы ўдзелу",
+      "legale_names": {
+        "france": "Францыя",
+        "italy": "Італія",
+        "rest_of_world": "Астатні свет"
+      },
+      "legale_select": "Краіна пражывання:",
+      "read and accept with tou": "Калі ласка, азнаёмцеся з пагадненнем удзельнікаў і з умовамі карыстання, пасля чаго пастаўце абедзьве птушкі і націсніце кнопку \"Працягнуць\".",
+      "read_ct": "Я прачытаў і пагаджаюся з пагадненнем удзельнікаў.",
+      "read_tou": "Я згаджаюся з Умовамі выкарыстання",
+      "title": "Умовы",
+      "tou_explain_html": "{{tou_link}} кіруе сайтам і іншай інфраструктурай OSMF. Калі ласка, прайдзіце па спасылцы і азнаёмцеся з тэкстам.",
+      "you need to accept or decline": "Калі ласка, прачытайце, а потым згадзіцеся ці адхіліце новыя ўмовы супрацоўніцтва для працягу."
+    }
+  },
+  "validations": {
+    "invalid_characters": "змяшчае недапушчальныя сімвалы",
+    "leading_whitespace": "мае пачатковы прабел",
+    "trailing_whitespace": "мае канцавы прабел",
+    "url_characters": "змяшчае спецыяльныя сімвалы URL ({{characters}})"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "cancel": "Twa mu",
+        "confirm_delete": "Wogye di?",
+        "title": "Pepa me akount"
+      }
+    }
+  },
+  "accounts": {
+    "destroy": {
+      "success": "Akount no apepa"
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "E-mail Address"
+    }
+  },
+  "sessions": {
+    "new": {
+      "password": "Kukuwa mu ahyɛnsode"
+    }
+  }
+}

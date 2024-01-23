@@ -1,0 +1,164 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_comment": {
+        "body": "Атеқст"
+      },
+      "diary_entry": {
+        "language_code": "Абызшәа",
+        "title": "Атема",
+        "user": "Ахархәаҩ"
+      },
+      "doorkeeper/application": {
+        "name": "Ахьӡ"
+      },
+      "friend": {
+        "friend": "Аҩыза",
+        "user": "Ахархәаҩ"
+      },
+      "message": {
+        "body": "Атеқст",
+        "title": "Атема"
+      },
+      "trace": {
+        "description": "Ахҳәаа",
+        "name": "Афаил ахьӡ",
+        "size": "Ашәагаа",
+        "user": "Ахархәаҩ"
+      },
+      "user": {
+        "active": "Иактивуп",
+        "email": "Email",
+        "languages": "Иеиӷьашьоу абызшәақәа",
+        "pass_crypt": "Ажәамаӡа"
+      }
+    },
+    "models": {
+      "changeset": "Ариашарақәа рпакет",
+      "changeset_tag": "Ариашарақәа рпакет атег",
+      "country": "Атәыла",
+      "friend": "Аҩыза",
+      "language": "Абызшәа",
+      "node": "Акәаԥ",
+      "node_tag": "Акәаԥ атег",
+      "session": "Асессиа",
+      "user": "Ахархәаҩ",
+      "way": "Аҵәаӷәа",
+      "way_node": "Аҵәаӷәа акәаԥ",
+      "way_tag": "Аҵәаӷәа атег"
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "wikipedia": "Авикипедиа"
+    }
+  },
+  "browse": {
+    "anonymous": "аноним",
+    "changeset": {
+      "belongs_to": "Автор",
+      "changesetxml": "Ариашарақәа рпакет XML",
+      "comment": "Акомментари ({{count}})",
+      "discussion": "Ахцәажәара",
+      "feed": {
+        "title": "Ариашарақәа рпакет {{id}}",
+        "title_comment": "Аришарақәа рпакет {{id}} — {{comment}}"
+      },
+      "node": "Акәаԥқәа ({{count}})",
+      "node_paginated": "Акәаԥқәа ({{x}}-{{y}} {{count}}) аҟынтәи",
+      "osmchangexml": "osmChange XML",
+      "title": "Ариашарақәа рпакет: {{id}}",
+      "way": "Аҵәаӷәақәа ({{count}})",
+      "way_paginated": "Аҵәаӷәақәа ({{x}}-{{y}} {{count}}) аҟынтәи"
+    },
+    "closed": "Иаркуп",
+    "created": "Иаԥҵоуп",
+    "download_xml": "Иҭыгатәуп XML",
+    "location": "Аҭыԥ",
+    "no_comment": "(акомментари ыҟаӡам)",
+    "node": {
+      "title_html": "Акәаԥ: {{name}}"
+    },
+    "relation": {
+      "members": "Алахәылақәа",
+      "members_count_one": "1 алахәыла",
+      "members_count_other": "{{count}} алахәылақәа"
+    },
+    "version": "Аверсиа",
+    "view_history": "Иахәаԥштәуп Аҭоурых",
+    "way": {
+      "nodes": "Акәаԥқәа"
+    }
+  },
+  "dashboards": {
+    "popup": {
+      "friend": "Аҩыза"
+    },
+    "show": {
+      "my friends": "Сҩызақәа"
+    }
+  },
+  "diary_entries": {
+    "form": {
+      "location": "Аҭыԥ"
+    }
+  },
+  "editor": {
+    "id": {
+      "description": "iD (аредактор абраузер аҟны)",
+      "name": "iD"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "hospital": "Ахәшәтәырҭа",
+          "kindergarten": "Ахәыҷбаҳча",
+          "language_school": "Атәым бызшәақәа ршкол",
+          "library": "Абиблиотека",
+          "monastery": "Аберҭыԥ",
+          "police": "Амилициа",
+          "post_office": "Аԥошьҭа",
+          "prison": "Абахҭа",
+          "restaurant": "Аресторан",
+          "school": "Ашкол",
+          "theatre": "Атеатр",
+          "university": "Ауниверситет"
+        }
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Афаил алышәх"
+    },
+    "submit": {
+      "diary_comment": {
+        "create": "Еиқәырхатәуп"
+      },
+      "diary_entry": {
+        "create": "Акьыԥхьра",
+        "update": "Ирҿыцтәуп"
+      }
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Аԥыхра"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Аԥыхра"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y  %H:%M аҟны"
+    }
+  }
+}

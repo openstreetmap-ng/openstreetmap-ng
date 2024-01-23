@@ -1,0 +1,67 @@
+{
+  "activerecord": {
+    "models": {
+      "country": "Memleket",
+      "language": "Tĭl",
+      "message": "Qaber"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "cinema": "Deweran",
+          "clinic": "Klinika",
+          "clock": "Sáát",
+          "college": "Kolej",
+          "doctors": "Doktorlar",
+          "hospital": "Awuruwkana"
+        }
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Dosiya sayla"
+    },
+    "submit": {
+      "client_application": {
+        "update": "Ğañîlîk"
+      },
+      "diary_comment": {
+        "create": "Yorum"
+      },
+      "diary_entry": {
+        "create": "Yayînla",
+        "update": "Ğañîlîk"
+      },
+      "issue_comment": {
+        "create": "Yorum koşuw"
+      },
+      "message": {
+        "create": "Ğíber"
+      },
+      "oauth2_application": {
+        "update": "Ğañîlîk"
+      },
+      "trace": {
+        "update": "Deñíştírmelerdí sakla"
+      }
+    }
+  },
+  "site": {
+    "key": {
+      "table": {
+        "entry": {
+          "grass": "Ot",
+          "train": "Tren"
+        }
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y sáát %H:%M"
+    }
+  }
+}

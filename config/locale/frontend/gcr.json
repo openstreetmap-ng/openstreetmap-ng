@@ -1,0 +1,12 @@
+{
+  "activerecord": {
+    "attributes": {
+      "user": {
+        "languages": "Lanng"
+      }
+    }
+  },
+  "layouts": {
+    "community": "Kouminoté"
+  }
+}

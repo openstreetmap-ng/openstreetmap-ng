@@ -1,0 +1,221 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "confirm_delete": "શું તમે ચોક્કસ છો?"
+      }
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "ભાષા"
+      },
+      "friend": {
+        "friend": "મિત્ર",
+        "user": "સભ્ય"
+      },
+      "trace": {
+        "user": "સભ્ય"
+      },
+      "user": {
+        "email": "ઇમેઇલ"
+      }
+    },
+    "models": {
+      "acl": "ઍક્સેસ નિયંત્રણ સૂચી",
+      "changeset": "ફેરફારો",
+      "country": "દેશ",
+      "diary_comment": "ડાયરી ટિપ્પણી",
+      "diary_entry": "ડાયરી એન્ટ્રી",
+      "friend": "મિત્ર",
+      "language": "ભાષા",
+      "message": "સંદેશ",
+      "node": "નોડ",
+      "node_tag": "નોડ ટૅગ",
+      "old_node": "જૂના નોડ",
+      "old_node_tag": "જૂના નોડ ટૅગ",
+      "old_relation": "જૂના સંબંધ"
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "ફેસબુક",
+      "google": "ગૂગલ",
+      "microsoft": "વિન્ડોઝ લાઈવ",
+      "wikipedia": "વિકિપીડિયા"
+    }
+  },
+  "browse": {
+    "not_found": {
+      "type": {
+        "node": "નાકો",
+        "way": "માર્ગ"
+      }
+    },
+    "relation_member": {
+      "type": {
+        "relation": "સંબંધ",
+        "way": "માર્ગ"
+      }
+    },
+    "start_rjs": {
+      "load_data": "માહિતી ચડાવો",
+      "loading": "લવાઇ રહ્યું છે..."
+    },
+    "tag_details": {
+      "wikidata_link": "વિકિડેટા પર {{page}} વસ્તુ"
+    },
+    "timeout": {
+      "type": {
+        "node": "નાકો",
+        "way": "માર્ગ"
+      }
+    },
+    "view_history": "ઇતિહાસ જુઓ"
+  },
+  "changesets": {
+    "changesets": {
+      "id": "ID"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "x_days_one": "૧ દિવસ પહેલાં",
+      "x_days_other": "{{count}} દિવસો પહેલાં",
+      "x_months_one": "૧ મહિના પહેલાં",
+      "x_months_other": "{{count}} મહિનાઓ પહેલાં",
+      "x_years_one": "૧ વર્ષ પહેલાં",
+      "x_years_other": "{{count}} વર્ષો પહેલાં"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "atm": "એટીએમ",
+          "bus_station": "બસ સ્ટેશન",
+          "cinema": "સિનેમા",
+          "clock": "ઘડિયાળ",
+          "college": "કૉલેજ",
+          "drinking_water": "પીવાનું પાણી",
+          "grave_yard": "કબ્રસ્તાન",
+          "library": "પુસ્તકાલય",
+          "police": "પોલિસ",
+          "post_office": "પોસ્ટ ઓફિસ",
+          "prison": "જેલ",
+          "school": "શાળા",
+          "toilets": "શૌચાલય",
+          "university": "યુનિવર્સિટી"
+        },
+        "craft": {
+          "blacksmith": "લુહાર",
+          "carpenter": "સુથાર",
+          "gardener": "માળી",
+          "tailor": "દરજી"
+        },
+        "highway": {
+          "bus_stop": "બસ સ્ટોપ"
+        },
+        "military": {
+          "yes": "લશ્કર"
+        },
+        "office": {
+          "lawyer": "વકિલ"
+        },
+        "place": {
+          "country": "દેશ",
+          "town": "નગર",
+          "village": "ગામ"
+        }
+      }
+    }
+  },
+  "messages": {
+    "messages_table": {
+      "date": "તારીખ"
+    }
+  },
+  "notes": {
+    "show": {
+      "title": "નોંધ: {{id}}"
+    }
+  },
+  "osm_community_index": {
+    "communities": {
+      "OSM-AR-geolibres": {
+        "name": "GeoLibres"
+      },
+      "OSM-PL-chapter": {
+        "name": "OpenStreetMap Poland"
+      },
+      "OSM-US": {
+        "name": "OpenStreetMap US"
+      },
+      "OSM-japan-website": {
+        "name": "OpenStreetMap Japan"
+      },
+      "be-chapter": {
+        "name": "OpenStreetMap Belgium"
+      },
+      "cd-chapter": {
+        "name": "OpenStreetMap RDC"
+      },
+      "czech-community": {
+        "name": "OpenStreetMap CZ"
+      },
+      "fr-chapter": {
+        "name": "OpenStreetMap France"
+      },
+      "ireland-chapter": {
+        "name": "OpenStreetMap Ireland"
+      },
+      "is-chapter": {
+        "name": "OpenStreetMap Iceland"
+      },
+      "it-chapter": {
+        "name": "OpenStreetMap Italy"
+      },
+      "kosovo-flossk": {
+        "name": "Free Libre Open Source Software Kosova (FLOSSK)"
+      },
+      "osgeo-oceania": {
+        "name": "OSGeo Oceania"
+      },
+      "osm-at": {
+        "name": "OpenStreetMap Austria"
+      },
+      "osm-de": {
+        "name": "OpenStreetMap Germany"
+      },
+      "sk-freemap": {
+        "name": "OpenStreetMap Freemap Slovakia"
+      },
+      "sosm": {
+        "name": "Swiss OpenStreetMap Association"
+      },
+      "uk-localchapter": {
+        "name": "OpenStreetMap UK"
+      }
+    }
+  },
+  "site": {
+    "about": {
+      "legal_1_1_terms_of_use": "વપરાશની શરતો"
+    },
+    "copyright": {
+      "legal_babble": {
+        "contributors_ca_canada": "કેનેડા",
+        "contributors_fi_finland": "ફિનલેન્ડ",
+        "contributors_fr_france": "ફ્રાન્સ",
+        "contributors_gb_united_kingdom": "યુનાઈટેડ કિંગડમ",
+        "contributors_nz_new_zealand": "ન્યુઝીલેન્ડ"
+      }
+    }
+  },
+  "users": {
+    "new": {
+      "privacy_policy": "ગોપનિયતા નીતિ"
+    }
+  }
+}

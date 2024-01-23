@@ -1,0 +1,39 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "Lian"
+      },
+      "trace": {
+        "name": "Naran"
+      },
+      "user": {
+        "active": "Ativu",
+        "languages": "Lian sira"
+      }
+    },
+    "models": {
+      "language": "Lian"
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "update": "Edita"
+      }
+    }
+  },
+  "layouts": {
+    "edit": "Edita"
+  },
+  "traces": {
+    "show": {
+      "edit": "edita"
+    }
+  },
+  "users": {
+    "show": {
+      "edits": "edisaun"
+    }
+  }
+}

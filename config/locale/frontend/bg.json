@@ -1,0 +1,2399 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "cancel": "Отказ",
+        "confirm_delete": "Сигурни ли сте?",
+        "delete_account": "Изтриване на профила",
+        "delete_display_name": "Вашето потребителско име ще бъде премахнато и ще може да се използва отново от други потребители.",
+        "delete_introduction": "Можете да изтриете профила си в OpenStreetMap, като използвате бутона по-долу. Моля, обърнете внимание на следните подробности:",
+        "delete_profile": "Информацията от профила Ви, включително аватар, описание и местоположение на дома Ви, ще бъде премахната.",
+        "recent_editing_html": "Тъй като сте редактирали наскоро, Вашият акаунт в момента не може да бъде изтрит. Изтриването ще бъде възможно след {{time}}.",
+        "retain_caveats": "Въпреки това част от информацията за вас ще бъде запазена в OpenStreetMap, дори и след като профилът Ви бъде изтрит:",
+        "retain_changeset_discussions": "Обсъжданията на списъци от промени, ако има такива, ще бъдат запазени.",
+        "retain_diary_entries": "Вашите дневници и коментарите в дневниците, ако има такива, ще бъдат запазени, но скрити от останалите потребители.",
+        "retain_edits": "Вашите редакции в базата данни на картата, ако има такива, ще бъдат запазени.",
+        "retain_email": "Вашият имейл адрес ще бъде запазен.",
+        "retain_notes": "Вашите бележки към картата и коментарите към тях, ако има такива, ще бъдат запазени, но скрити от останалите потребители.",
+        "retain_traces": "Качените от Вас GPS следи, ако има такива, ще бъдат запазени.",
+        "title": "Изтриване на профила"
+      }
+    }
+  },
+  "accounts": {
+    "destroy": {
+      "success": "Профилът е изтрит."
+    },
+    "edit": {
+      "contributor terms": {
+        "agreed": "Приели сте новите условия за сътрудничество.",
+        "heading": "Условия за сътрудничество",
+        "link text": "Какво е това?",
+        "not yet agreed": "Все още не сте приели новите Условия за участие."
+      },
+      "current email address": "Текуща електронна поща",
+      "delete_account": "Изтриване на профила...",
+      "external auth": "Удостоверяване от външен източник",
+      "my settings": "Моите настройки",
+      "openid": {
+        "link text": "какво е това?"
+      },
+      "public editing": {
+        "disabled link text": "защо не мога да редактирам?",
+        "enabled": "Разрешено. Не е анонимно и можете да променяте данните.",
+        "enabled link text": "какво е това?"
+      },
+      "save changes button": "Запазване на промените",
+      "title": "Промяна на профил"
+    },
+    "go_public": {
+      "heading": "Обществено видимо редактиране",
+      "make_edits_public_button": "Всички мои промени да са публично достъпни"
+    },
+    "update": {
+      "success": "Сведенията за потребителя са успешно обновени.",
+      "success_confirm_needed": "Сведенията за потребителя са успешно обновени. Проверете електронната си поща за писмо, с което да потвърдите новия адрес."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "четете личните им GPS следи",
+        "allow_read_prefs": "прочетете потребителските предпочитания",
+        "allow_write_api": "промени картата",
+        "allow_write_diary": "създай дневник на бележките, коментарите и новите приятелства",
+        "allow_write_gpx": "качвате на GPS следи",
+        "allow_write_notes": "промени бележки",
+        "allow_write_prefs": "променете потребителските им предпочитания",
+        "name": "Име (задължително)",
+        "url": "Адрес на основното приложение (задължително)"
+      },
+      "diary_comment": {
+        "body": "Текст"
+      },
+      "diary_entry": {
+        "body": "Текст",
+        "language_code": "Език",
+        "latitude": "Географска ширина",
+        "longitude": "Географска дължина",
+        "title": "Тема",
+        "user": "Потребител"
+      },
+      "doorkeeper/application": {
+        "confidential": "Поверително приложение.",
+        "name": "Име",
+        "redirect_uri": "Пренасочващи URI",
+        "scopes": "Разрешения"
+      },
+      "friend": {
+        "friend": "Приятел",
+        "user": "Потребител"
+      },
+      "message": {
+        "body": "Текст",
+        "recipient": "Получател",
+        "sender": "Подател",
+        "title": "Тема"
+      },
+      "redaction": {
+        "description": "Описание",
+        "title": "Заглавие"
+      },
+      "report": {
+        "category": "Посочете причина за доклада",
+        "details": "Моля, опишете проблема в подробности (задължително)."
+      },
+      "trace": {
+        "description": "Описание",
+        "gpx_file": "Качване на GPX файл",
+        "latitude": "Географска ширина",
+        "longitude": "Географска дължина",
+        "name": "Име на файл",
+        "public": "Публичен",
+        "size": "Размер",
+        "tagstring": "Етикети",
+        "user": "Потребител",
+        "visibility": "Видимост",
+        "visible": "Видим"
+      },
+      "user": {
+        "active": "Активен",
+        "auth_provider": "Доставчик на автентикация",
+        "description": "Описание на профила",
+        "display_name": "Видимо потребителско име",
+        "email": "Електронна поща",
+        "email_confirmation": "Потвърждение по имейл",
+        "home_lat": "Географска ширина",
+        "home_lon": "Географска дължина",
+        "languages": "Предпочитани езици",
+        "new_email": "Нова електронна поща",
+        "pass_crypt": "Парола",
+        "pass_crypt_confirmation": "Потвърди парола",
+        "preferred_editor": "Предпочитан редактор"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "е недостъпен",
+        "invalid_email_address": "не изглежда действителен адрес на електронна поща"
+      }
+    },
+    "help": {
+      "trace": {
+        "tagstring": "разделени със запетая"
+      },
+      "user": {
+        "new_email": "(не се показва публично)"
+      }
+    },
+    "models": {
+      "acl": "Списък за контрол на достъпа",
+      "changeset": "Списък с промени",
+      "changeset_tag": "Етикет на списък с промени",
+      "country": "Държава",
+      "diary_comment": "Коментар към дневника",
+      "diary_entry": "Публикация в дневника",
+      "friend": "Приятел",
+      "issue": "Проблем",
+      "language": "Език",
+      "message": "Съобщение",
+      "node": "Възел",
+      "node_tag": "Етикет на възел",
+      "old_node": "Стар възел",
+      "old_node_tag": "Етикет на стар възел",
+      "old_relation": "Стара релация",
+      "old_relation_tag": "Стар свързващ таг",
+      "old_way": "Стар път",
+      "old_way_node": "Възел на стар път",
+      "old_way_tag": "Етикет на стар път",
+      "relation": "Релация",
+      "relation_member": "Член на релация",
+      "relation_tag": "Таг на релация",
+      "report": "Отчет",
+      "session": "Сесия",
+      "trace": "Следа",
+      "tracepoint": "Точка от следа",
+      "tracetag": "Етикет на следа",
+      "user": "Потребител",
+      "user_preference": "Потребителски настройки",
+      "way": "Път",
+      "way_node": "Възел на път",
+      "way_tag": "Етикет на път"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "Решена {{when}} от {{user}}",
+        "closed_at_html": "Решена {{when}}",
+        "commented_at_by_html": "Обновена {{when}} от {{user}}",
+        "commented_at_html": "Обновена {{when}}",
+        "opened_at_by_html": "Създадена {{when}} от {{user}}",
+        "opened_at_html": "Създадена {{when}}",
+        "reopened_at_by_html": "Повторно отворена {{when}} от {{user}}",
+        "reopened_at_html": "Повторно отворена {{when}}"
+      },
+      "entry": {
+        "comment": "Коментар",
+        "full": "Цялата бележка"
+      },
+      "rss": {
+        "closed": "закрита бележка (около {{place}})",
+        "commented": "нов коментар (в близост до {{place}})",
+        "description_area": "Списък с бележки, докладвани и коментирани в или близо до вашата територия [({{min_lat}}|{{min_lon}}) -- ({{max_lat}}|{{max_lon}})]",
+        "description_item": "Емисия на RSS за бележка {{id}}",
+        "opened": "нова бележка (в близост до {{place}})",
+        "reopened": "повторно отворена бележка (в близост до {{place}})",
+        "title": "Бележки на OpenStreetMap"
+      }
+    }
+  },
+  "application": {
+    "permission_denied": "Нямате разрешение за достъп до това действие",
+    "require_admin": {
+      "not_an_admin": "Трябва да сте админ за да извършите това действие"
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "microsoft": "Майкрософт",
+      "none": "Нищо",
+      "openid": "OpenID",
+      "wikipedia": "Уикипедия"
+    }
+  },
+  "browse": {
+    "anonymous": "анонимен",
+    "changeset": {
+      "belongs_to": "Автор",
+      "changesetxml": "XML на списъка с промени",
+      "comment": "Коментари ({{count}})",
+      "discussion": "Обсъждане",
+      "feed": {
+        "title": "Списък с промени {{id}}",
+        "title_comment": "Списък с промени {{id}} - {{comment}}"
+      },
+      "join_discussion": "Впишете се, за да се присъедините към обсъждането",
+      "node": "Възли ({{count}})",
+      "node_paginated": "Възли ({{x}}-{{y}} от общо {{count}})",
+      "osmchangexml": "osmChange XML",
+      "relation": "Релации ({{count}})",
+      "relation_paginated": "Релации({{x}}-{{y}} от {{count}})",
+      "still_open": "Списъкът с промени не е завършен - обсъждането ще започне след неговото завършване.",
+      "title": "Списък с промени: {{id}}",
+      "way": "Пътища ({{count}})",
+      "way_paginated": "Пътища ({{x}}-{{y}} от общо {{count}})"
+    },
+    "closed": "Затворена",
+    "closed_ago_by_html": "Затворен {{time_ago}} от {{user}}",
+    "closed_ago_html": "Затворен {{time_ago}}",
+    "containing_relation": {
+      "entry_html": "Релация {{relation_name}}",
+      "entry_role_html": "Релация {{relation_name}} (като {{relation_role}})"
+    },
+    "created": "Създадена",
+    "created_ago_by_html": "Създаден {{time_ago}} от {{user}}",
+    "download_xml": "Изтегляне на XML",
+    "edited_ago_by_html": "Редактирано {{time_ago}} от {{user}}",
+    "in_changeset": "Списък с промени",
+    "location": "Местоположение:",
+    "no_comment": "(без коментар)",
+    "node": {
+      "history_title_html": "История на възела: {{name}}",
+      "title_html": "Възел: {{name}}"
+    },
+    "not_found": {
+      "sorry": "Съжаляваме, {{type}} № {{id}} не е намерен.",
+      "type": {
+        "changeset": "списък с промени",
+        "node": "възел",
+        "note": "бележка",
+        "relation": "релация",
+        "way": "път"
+      }
+    },
+    "part_of": "Част от",
+    "query": {
+      "introduction": "Щракнете върху картата, за да търсите обекти в близост.",
+      "nearby": "Обекти в близост",
+      "title": "Търсене на обекти"
+    },
+    "redacted": {
+      "redaction": "Редакция {{id}}",
+      "type": {
+        "node": "възел",
+        "relation": "релация",
+        "way": "път"
+      }
+    },
+    "relation": {
+      "history_title_html": "Историята на релация: {{name}}",
+      "members": "Членове",
+      "title_html": "Релация: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} като {{role}}",
+      "type": {
+        "node": "Възел",
+        "relation": "Релация",
+        "way": "Път"
+      }
+    },
+    "start_rjs": {
+      "load_data": "Зареждане на данните",
+      "loading": "Зареждане…"
+    },
+    "tag_details": {
+      "colour_preview": "Преглед на цвета {{colour_value}}",
+      "tags": "Етикети",
+      "telephone_link": "Позвънете на {{phone_number}}",
+      "wiki_link": {
+        "key": "Страница с описание за {{key}} tag",
+        "tag": "Страница с описание за {{key}}={{value}} tag"
+      },
+      "wikidata_link": "Обектът {{page}} в Уикиданни",
+      "wikipedia_link": "Статията {{page}} в Уикипедия"
+    },
+    "timeout": {
+      "sorry": "Съжаляваме, данните за {{type}} със id {{id}}, отнемат твърде дълго да се получат.",
+      "type": {
+        "changeset": "списък с промени",
+        "node": "възел",
+        "note": "бележка",
+        "relation": "релация",
+        "way": "път"
+      }
+    },
+    "version": "Версия",
+    "view_details": "Показване на детайли",
+    "view_history": "Показване на историята",
+    "way": {
+      "also_part_of_html_one": "част от път {{related_ways}}",
+      "also_part_of_html_other": "част от пътища {{related_ways}}",
+      "history_title_html": "История на пътя: {{name}}",
+      "nodes": "Възли",
+      "title_html": "Път: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "comment": {
+      "comment": "Нов коментар към списък с промени № {{changeset_id}} на {{author}}",
+      "commented_at_by_html": "Обновен преди {{when}} от {{user}}"
+    },
+    "comments": {
+      "comment": "Нов коментар към списък с промени № {{changeset_id}} на {{author}}"
+    },
+    "index": {
+      "title_all": "Дискусия за промяна на OpenStreetMap",
+      "title_particular": "Разговор за промяната #{{changeset_id}} на OpenStreetMap"
+    },
+    "timeout": {
+      "sorry": "Съжаляваме, но списъка с коментарит по промените който заявихте се зарежда твърде дълго."
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Анонимен",
+      "no_edits": "(без промяна)",
+      "view_changeset_details": "Подробности за списъка с промени"
+    },
+    "changeset_paging_nav": {
+      "next": "Следваща »",
+      "previous": "« Предишна",
+      "showing_page": "Страница {{page}}"
+    },
+    "changesets": {
+      "area": "Област",
+      "comment": "Коментар",
+      "id": "ID",
+      "saved_at": "Записан на",
+      "user": "Потребител"
+    },
+    "index": {
+      "empty": "Няма списъци с промени.",
+      "empty_area": "Няма списъци с промени в този район.",
+      "empty_user": "Няма списъци с промени от потребителя.",
+      "load_more": "Зареждане на още",
+      "no_more": "Няма повече списъци с промени.",
+      "no_more_area": "Няма повече списъци с промени в този район.",
+      "no_more_user": "Няма повече списъци с промени от потребителя.",
+      "title": "Списък с промени",
+      "title_friend": "Списъци с промени на мои приятели",
+      "title_nearby": "Списъци с промени от потребители в близост",
+      "title_user": "Списък с промените на {{user}}"
+    },
+    "timeout": {
+      "sorry": "Съжаляваме, но списъка с промени който заявихте се зарежда твърде дълго."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "Този профил вече е бил потвърден.",
+      "button": "Потвърждаване",
+      "heading": "Проверете електронна си поща",
+      "introduction_1": "Изпратихме ви писмо за потвърждаване.",
+      "press confirm button": "Натиснете копчето за потвърждение отдолу, за да активирате профила си.",
+      "success": "Профилът е потвърден, благодарим за регистрацията!",
+      "unknown token": "Този код за потвърждение е изтекъл или не съществува."
+    },
+    "confirm_email": {
+      "button": "Потвърждаване",
+      "heading": "Потвърдете смяната на електронната поща",
+      "press confirm button": "Натиснете копчето отдолу, за да потвърдите новата си електронна поща.",
+      "success": "Промяната на електронна поща е потвърдена!",
+      "unknown_token": "Този код за потвърждение е изтекъл или не съществува."
+    },
+    "confirm_resend": {
+      "failure": "Потребителят {{name}} не е открит."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}} км от вас",
+      "latest_edit_html": "Последна промяна ({{ago}}):",
+      "m away": "{{count}} м от вас"
+    },
+    "popup": {
+      "friend": "Приятел",
+      "nearby mapper": "Картографи в близост",
+      "your location": "Моето местоположение"
+    },
+    "show": {
+      "edit_your_profile": "Редактиране на профила",
+      "my friends": "Моите приятели",
+      "nearby users": "Други потребители в близост",
+      "no friends": "Все още нямате добавени приятели.",
+      "no nearby users": "Все още няма други потребители, които картографират в близост."
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_one": "преди около час",
+      "about_x_hours_other": "преди около {{count}} часа",
+      "about_x_months_one": "преди около месец",
+      "about_x_months_other": "преди около {{count}} месеца",
+      "about_x_years_one": "преди около година",
+      "about_x_years_other": "преди около {{count}} години",
+      "almost_x_years_one": "преди почти година",
+      "almost_x_years_other": "преди почти {{count}} години",
+      "half_a_minute": "пред половин минута",
+      "less_than_x_minutes_one": "преди по-малко от минута",
+      "less_than_x_minutes_other": "преди по-малко от {{count}} минути",
+      "less_than_x_seconds_one": "преди около секунда",
+      "less_than_x_seconds_other": "преди около {{count}} секунди",
+      "over_x_years_one": "преди повече от година",
+      "over_x_years_other": "преди повече от {{count}} години",
+      "x_days_one": "преди ден",
+      "x_days_other": "преди {{count}} дена",
+      "x_minutes_one": "преди минута",
+      "x_minutes_other": "преди {{count}} минути",
+      "x_months_one": "преди месец",
+      "x_months_other": "преди {{count}} месеца",
+      "x_seconds_one": "преди секунда",
+      "x_seconds_other": "преди {{count}} секунди",
+      "x_years_one": "преди година",
+      "x_years_other": "преди {{count}} години"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Коментар",
+      "newer_comments": "По-нови коментари",
+      "no_comments": "Няма коментари в дневника",
+      "older_comments": "По-стари коментари",
+      "post": "Публикация",
+      "when": "Кога"
+    },
+    "diary_comment": {
+      "comment_from_html": "Коментар от {{link_user}} в {{comment_created_at}}",
+      "confirm": "Потвърждаване",
+      "hide_link": "Скриване на коментара",
+      "report": "Докладване на коментара",
+      "unhide_link": "Показване на коментара"
+    },
+    "diary_entry": {
+      "comment_count_one": "1 коментар",
+      "comment_count_other": "{{count}} коментара",
+      "comment_link": "Коментар към публикацията",
+      "confirm": "Потвърждаване",
+      "edit_link": "Променяне на публикацията",
+      "hide_link": "Скриване на публикацията",
+      "posted_by_html": "Написано от {{link_user}} на {{created}} на {{language_link}}.",
+      "reply_link": "Изпрати послание на автора",
+      "report": "Докладване на бележката",
+      "unhide_link": "Скриване на публикацията"
+    },
+    "edit": {
+      "marker_text": "Място на бележка от дневник",
+      "title": "Променяне на публикация в дневника"
+    },
+    "feed": {
+      "all": {
+        "title": "Записи в дневника на OpenStreetMap"
+      },
+      "user": {
+        "description": "Последни OpenStreetMap записи в дневника от {{user}}",
+        "title": "OpenStreetMap дневник записи за {{user}}"
+      }
+    },
+    "form": {
+      "location": "Местоположение",
+      "use_map_link": "Използвай карта"
+    },
+    "index": {
+      "in_language_title": "Записи на {{language}} в дневника",
+      "my_diary": "Моя дневник",
+      "new": "Нова публикация в дневника",
+      "new_title": "Нова публикация в моя дневник",
+      "newer_entries": "По-нови записи",
+      "no_entries": "Няма записи в дневника",
+      "older_entries": "По-стари записи",
+      "recent_entries": "Последни публикации в дневника",
+      "title": "Дневници на потребителите",
+      "title_friends": "Дневници на приятели",
+      "title_nearby": "Дневници на потребители в близост",
+      "user_title": "Дневник на {{user}}"
+    },
+    "location": {
+      "edit": "Променяне",
+      "location": "Местоположение:",
+      "view": "Преглеждане"
+    },
+    "new": {
+      "title": "Нова публикация в дневника"
+    },
+    "no_such_entry": {
+      "body": "Съжаляваме но в дневника няма запис или коментар със id {{id}}. Моля проверете написаното или може връзката която сте избрали да е грешна.",
+      "heading": "Няма бележка със id:{{id}}",
+      "title": "Няма такива публикации в дневника"
+    },
+    "show": {
+      "leave_a_comment": "Напишете коментар",
+      "login": "Влизане",
+      "login_to_leave_a_comment_html": "{{login_link}}, за да напишете коментар",
+      "title": "Дневникът на {{user}} | {{title}}",
+      "user_title": "Дневникът на {{user}}"
+    }
+  },
+  "editor": {
+    "default": "По подразбиране (в момента {{name}})",
+    "id": {
+      "description": "iD (браузърен редактор)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "дистанционно управление (JOSM, Potlatch или Merkaartor)",
+      "name": "дистанционно управление"
+    }
+  },
+  "errors": {
+    "contact": {
+      "contact": "контакт"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "Вие вече сте приятел с {{name}}.",
+      "button": "Добави като приятел",
+      "failed": "Съжаляваме, неуспешно добавяне на {{name}} като приятел.",
+      "heading": "Добави {{user}} като приятел?",
+      "success": "Сега сте приятели с {{name}}!"
+    },
+    "remove_friend": {
+      "button": "Премахване от приятели",
+      "heading": "Премахни {{user}} от приятели?",
+      "not_a_friend": "{{name}} не е между вашите приятели.",
+      "success": "{{name}} беше премахнат от списъка с приятелите."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Повече резултати",
+      "no_results": "Не бяха открити резултати"
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "Граница на предградията",
+        "level2": "Държавна граница",
+        "level4": "Държавна граница",
+        "level5": "Граница на региона",
+        "level6": "Областна граница",
+        "level8": "Граница на землище",
+        "level9": "Граница на селото"
+      },
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Кабинков лифт",
+          "chair_lift": "Седалков лифт",
+          "drag_lift": "Влек",
+          "gondola": "Лифт с Гондола",
+          "pylon": "Пилон",
+          "t-bar": "Седалков лифт"
+        },
+        "aeroway": {
+          "aerodrome": "Летище",
+          "apron": "Самолетна писта",
+          "gate": "Врата на летище",
+          "hangar": "Хангар",
+          "helipad": "Вертолетна площадка",
+          "runway": "Писта",
+          "taxilane": "Таксилента",
+          "taxiway": "Път за рулиране",
+          "terminal": "Летищен терминал"
+        },
+        "amenity": {
+          "animal_shelter": "Приют за животни",
+          "arts_centre": "Център на изкуствата",
+          "atm": "Банкомат",
+          "bank": "Банка",
+          "bar": "Бар",
+          "bbq": "Барбекю",
+          "bench": "Пейка",
+          "bicycle_parking": "Паркинг за велосипеди",
+          "bicycle_rental": "Велосипеди под наем",
+          "bicycle_repair_station": "Поправка на велосипеди",
+          "biergarten": "Бирария на открито",
+          "blood_bank": "Кръвна банка",
+          "boat_rental": "Наем на лодки",
+          "brothel": "Бордел",
+          "bureau_de_change": "Обменно бюро",
+          "bus_station": "Автогара",
+          "cafe": "Кафене",
+          "car_rental": "Коли под наем",
+          "car_sharing": "Съвместно пътуване",
+          "car_wash": "Автомивка",
+          "casino": "Казино",
+          "charging_station": "Зарядна станция",
+          "cinema": "Кино",
+          "clinic": "Поликлиника",
+          "clock": "Часовник",
+          "college": "Колеж",
+          "community_centre": "Обществен център",
+          "conference_centre": "Конферентен център",
+          "courthouse": "Съд",
+          "crematorium": "Крематориум",
+          "dentist": "Зъболекар",
+          "doctors": "Лекари",
+          "drinking_water": "Питейна вода",
+          "driving_school": "Автошкола",
+          "embassy": "Посолство",
+          "fast_food": "Заведения за бързо хранене",
+          "ferry_terminal": "Фериботен терминал",
+          "fire_station": "Пожарна станция",
+          "fountain": "Фонтан",
+          "fuel": "Бензиностанция",
+          "gambling": "Хазартни игри",
+          "grave_yard": "Гробище",
+          "hospital": "Болница",
+          "hunting_stand": "Ловна стоянка",
+          "ice_cream": "Сладолед",
+          "internet_cafe": "Интернет Кафе",
+          "kindergarten": "Детска градина",
+          "language_school": "Езиково училище",
+          "library": "Библиотека",
+          "loading_dock": "Товарна рампа",
+          "marketplace": "Пазар",
+          "monastery": "Манастир",
+          "money_transfer": "Паричен превод",
+          "motorcycle_parking": "Паркинг за мотоцикли",
+          "music_school": "Музикално училище",
+          "nightclub": "Нощен клуб",
+          "nursing_home": "Старчески дом",
+          "parking": "Паркинг",
+          "parking_entrance": "Вход на паркинг",
+          "parking_space": "Паркомясто",
+          "payment_terminal": "Платежен терминал",
+          "pharmacy": "Аптека",
+          "place_of_worship": "Място за поклонение",
+          "police": "Полиция",
+          "post_box": "Пощенска кутия",
+          "post_office": "Поща",
+          "prison": "Затвор",
+          "pub": "Кръчма",
+          "public_bath": "Обществена баня",
+          "public_building": "Обществена сграда",
+          "recycling": "Рециклиране",
+          "restaurant": "Ресторант",
+          "school": "Училище",
+          "shelter": "Подслон",
+          "shower": "Душ",
+          "social_centre": "Социален център",
+          "studio": "Студио",
+          "swimming_pool": "Плувен басейн",
+          "taxi": "Такси",
+          "telephone": "Телефон",
+          "theatre": "Театър",
+          "toilets": "Тоалетна",
+          "townhall": "Кметство",
+          "university": "Университет",
+          "vehicle_inspection": "Преглед на превозни средства",
+          "vending_machine": "Автомат",
+          "veterinary": "Ветеринарна клиника",
+          "village_hall": "Кметство",
+          "waste_basket": "Кошче за боклук",
+          "waste_disposal": "Контейнер за отпадъци",
+          "water_point": "Място за водопой"
+        },
+        "boundary": {
+          "administrative": "Административна граница",
+          "national_park": "Национален парк",
+          "protected_area": "Защитена зона",
+          "yes": "Граница"
+        },
+        "bridge": {
+          "aqueduct": "Акведукт",
+          "suspension": "Висящ мост",
+          "viaduct": "Виадукт",
+          "yes": "Мост"
+        },
+        "building": {
+          "apartment": "Апартамент",
+          "apartments": "Апартаменти",
+          "bungalow": "Бунгало",
+          "cabin": "Кабина",
+          "chapel": "Капела",
+          "church": "Църква",
+          "college": "Средно училище",
+          "commercial": "Търговска Сграда",
+          "construction": "Сграда в строеж",
+          "detached": "Самостоятелна къща",
+          "duplex": "Двойна къща",
+          "farm": "Ферма",
+          "farm_auxiliary": "Помощна къща във ферма",
+          "garage": "Гараж",
+          "garages": "Гаражи",
+          "greenhouse": "Оранжерия",
+          "hangar": "Хангар",
+          "hospital": "Болница",
+          "hotel": "Хотел",
+          "house": "Къща",
+          "hut": "Хижа",
+          "industrial": "Индустриална сграда",
+          "kindergarten": "Детска градина",
+          "manufacture": "Производствена сграда",
+          "office": "Офис Сграда",
+          "public": "Обществена сграда",
+          "residential": "Жилищна сграда",
+          "roof": "Покрив",
+          "school": "Училище",
+          "shed": "Навес",
+          "static_caravan": "Каравана",
+          "temple": "Храм",
+          "train_station": "Железопътна станция",
+          "university": "Университет",
+          "warehouse": "Склад",
+          "yes": "Сграда"
+        },
+        "club": {
+          "sport": "Спортен клуб",
+          "yes": "Клуб"
+        },
+        "craft": {
+          "blacksmith": "Ковач",
+          "brewery": "Пивоварна",
+          "carpenter": "Дърводелец",
+          "electrician": "Електротехник",
+          "electronics_repair": "Ремонт Електроника",
+          "gardener": "Градинар",
+          "handicraft": "Ръчна изработка",
+          "painter": "Художник",
+          "photographer": "Фотограф",
+          "plumber": "Водопроводчик",
+          "shoemaker": "Обущар",
+          "tailor": "Шивач",
+          "window_construction": "Изработка на прозорци",
+          "winery": "Винарна",
+          "yes": "Работилница"
+        },
+        "emergency": {
+          "access_point": "Точка за достъп",
+          "ambulance_station": "Станция за линейки",
+          "defibrillator": "Дефибрилатор",
+          "fire_extinguisher": "Пожарогасител",
+          "landing_site": "Място за аварийно приземяване",
+          "phone": "Телефон за спешни повиквания",
+          "water_tank": "Цистерна за спешни случаи"
+        },
+        "highway": {
+          "abandoned": "Изоставена магистрала",
+          "bridleway": "Конен път",
+          "bus_stop": "Автобусна спирка",
+          "construction": "Магистрала в строеж",
+          "corridor": "Коридор",
+          "cycleway": "Велосипедна пътека",
+          "elevator": "Асансьор",
+          "emergency_access_point": "Пункт за спешна помощ",
+          "footway": "Пешеходна пътека",
+          "ford": "Брод",
+          "give_way": "Знак без предимство",
+          "milestone": "Километричен камък",
+          "motorway": "Магистрала",
+          "motorway_junction": "Магистрален възел",
+          "motorway_link": "Скоростен път",
+          "passing_place": "Място за преминаване",
+          "path": "Пътека",
+          "pedestrian": "Пешеходна пътека",
+          "platform": "Платформа",
+          "primary": "Главен път",
+          "primary_link": "Главен път",
+          "proposed": "Предложен маршрут",
+          "raceway": "Състезателна писта",
+          "residential": "Жилищна улица",
+          "rest_area": "Зона за отдих",
+          "road": "Път",
+          "secondary": "Второстепенен път",
+          "secondary_link": "Второстепенен път",
+          "service": "Сервизен път",
+          "speed_camera": "Камера за контрол на скоростта",
+          "steps": "Стълбище",
+          "stop": "Знак Стоп",
+          "street_lamp": "Улична лампа",
+          "tertiary": "Третокласен път",
+          "tertiary_link": "Третокласен път",
+          "track": "Селски път",
+          "traffic_signals": "Светофар",
+          "trunk": "Междуградски път",
+          "trunk_link": "Междуградски път",
+          "turning_loop": "Обратен завой",
+          "unclassified": "Некласифициран път",
+          "yes": "Път"
+        },
+        "historic": {
+          "archaeological_site": "Разкопки",
+          "battlefield": "Бойно поле",
+          "boundary_stone": "Граничен камък",
+          "building": "Историческа сграда",
+          "bunker": "Бункер",
+          "castle": "Замък",
+          "church": "Църква",
+          "city_gate": "Градска порта",
+          "citywalls": "Градски стени",
+          "fort": "Форт",
+          "heritage": "Културно наследство",
+          "house": "Къща",
+          "manor": "Имение",
+          "memorial": "Мемориал",
+          "mine": "Рудник",
+          "mine_shaft": "Шахта на мина",
+          "monument": "Паметник",
+          "roman_road": "Римски път",
+          "ruins": "Развалини",
+          "stone": "Камък",
+          "tomb": "Гробница",
+          "tower": "Кула",
+          "wreck": "Потънал кораб",
+          "yes": "Историческо място"
+        },
+        "junction": {
+          "yes": "Кръстовище"
+        },
+        "landuse": {
+          "allotments": "Градини",
+          "aquaculture": "Рибарник",
+          "basin": "Басейн",
+          "brownfield": "Замърсена земя",
+          "cemetery": "Гробище",
+          "commercial": "Търговска зона",
+          "conservation": "Резерват",
+          "construction": "Строителен обект",
+          "farmland": "Обработваема земя",
+          "farmyard": "Стопански двор",
+          "forest": "Гора",
+          "garages": "Гаражи",
+          "grass": "Трева",
+          "greenfield": "Затревена земя",
+          "industrial": "Промишлена зона",
+          "landfill": "Сметище",
+          "meadow": "Ливада",
+          "military": "Военна зона",
+          "mine": "Рудник",
+          "orchard": "Овощна градина",
+          "quarry": "Каменоломна",
+          "railway": "Железница",
+          "reservoir": "Язовир",
+          "residential": "Жилищна зона",
+          "vineyard": "Лозя",
+          "yes": "Земеползване"
+        },
+        "leisure": {
+          "beach_resort": "Морски курорт",
+          "common": "Обществена земя",
+          "dance": "Зала за танци",
+          "dog_park": "Парк за кучета",
+          "firepit": "Огнище",
+          "fishing": "Място за риболов",
+          "fitness_centre": "Фитнес център",
+          "garden": "Градина",
+          "golf_course": "Игрище за голф",
+          "horse_riding": "Конна база",
+          "ice_rink": "Ледена пързалка",
+          "marina": "Пристанище за лодки",
+          "miniature_golf": "Мини-голф",
+          "nature_reserve": "Природен резерват",
+          "park": "Парк",
+          "picnic_table": "Маса за излет",
+          "pitch": "Спортна площадка",
+          "playground": "Детска площадка",
+          "resort": "Курорт",
+          "sauna": "Сауна",
+          "sports_centre": "Спортен център",
+          "stadium": "Стадион",
+          "swimming_pool": "Плувен басейн",
+          "water_park": "Аквапарк"
+        },
+        "man_made": {
+          "antenna": "Антена",
+          "beehive": "Кошер",
+          "bridge": "Мост",
+          "bunker_silo": "Бункер",
+          "chimney": "Комин",
+          "crane": "Кран",
+          "cross": "Кръст",
+          "flagpole": "Пилон",
+          "kiln": "Пещ",
+          "lighthouse": "Фар",
+          "manhole": "Шахта",
+          "mast": "Мачта",
+          "mine": "Рудник",
+          "mineshaft": "Шахта на мина",
+          "monitoring_station": "Наблюдателна станция",
+          "petroleum_well": "Петролен кладенец",
+          "pier": "Пирс",
+          "pipeline": "Тръбопровод",
+          "pumping_station": "Помпена станция",
+          "silo": "Силоз",
+          "snow_cannon": "Снежно оръдие",
+          "storage_tank": "Резервоар",
+          "surveillance": "Наблюдение",
+          "telescope": "Телескоп",
+          "tower": "Кула",
+          "wastewater_plant": "Пречиствателна станция",
+          "water_tower": "Водна кула",
+          "water_well": "Кладенец",
+          "watermill": "Воденица",
+          "windmill": "Вятърна мелница",
+          "works": "Фабрика"
+        },
+        "military": {
+          "airfield": "Военно летище",
+          "barracks": "Казарма",
+          "bunker": "Бункер",
+          "checkpoint": "Контролна точка",
+          "yes": "Военен"
+        },
+        "mountain_pass": {
+          "yes": "Планински проход"
+        },
+        "natural": {
+          "bay": "Залив",
+          "beach": "Плаж",
+          "cape": "Нос",
+          "cave_entrance": "Вход на пещера",
+          "cliff": "Скала",
+          "crater": "Кратер",
+          "dune": "Дюна",
+          "fjord": "Фиорд",
+          "forest": "Гора",
+          "geyser": "Гейзер",
+          "glacier": "Ледник",
+          "grassland": "Ливада",
+          "heath": "Здраве",
+          "hill": "Хълм",
+          "hot_spring": "Топъл извор",
+          "island": "Остров",
+          "land": "Земя",
+          "marsh": "Блато",
+          "mud": "Кал",
+          "peak": "Връх",
+          "point": "Точка",
+          "reef": "Риф",
+          "rock": "Скала",
+          "saddle": "Седловина",
+          "sand": "Пясък",
+          "spring": "Ручей",
+          "stone": "Камък",
+          "tree": "Дърво",
+          "tree_row": "Редица дървета",
+          "valley": "Долина",
+          "volcano": "Вулкан",
+          "water": "Вода",
+          "wetland": "Мочурище",
+          "wood": "Гора",
+          "yes": "Природен елемент"
+        },
+        "office": {
+          "accountant": "Счетоводител",
+          "administrative": "Администрация",
+          "advertising_agency": "Рекламна агенция",
+          "architect": "Архитект",
+          "association": "Асоциация",
+          "company": "Фирма",
+          "diplomatic": "Дипломатическа служба",
+          "educational_institution": "Образователна институция",
+          "employment_agency": "Агенцията по заетостта",
+          "estate_agent": "Агент по недвижими имоти",
+          "financial": "Финансова служба",
+          "government": "Правителствена служба",
+          "insurance": "Застрахователно бюро",
+          "it": "IT офис",
+          "lawyer": "Адвокат",
+          "ngo": "Офис на НПО",
+          "notary": "Нотариус",
+          "research": "Изследователски офис",
+          "travel_agent": "Туристическа агенция",
+          "yes": "Офис"
+        },
+        "place": {
+          "allotments": "Градини",
+          "city": "Град",
+          "country": "Държава",
+          "county": "Област",
+          "farm": "Ферма",
+          "hamlet": "Селце",
+          "house": "Къща",
+          "houses": "Къщи",
+          "island": "Остров",
+          "islet": "Островче",
+          "municipality": "Община",
+          "neighbourhood": "Квартал",
+          "postcode": "Пощенски код",
+          "quarter": "Квартал",
+          "region": "Регион",
+          "sea": "Море",
+          "square": "Площад",
+          "state": "Държава",
+          "subdivision": "Подразделение",
+          "suburb": "Предградие",
+          "town": "Град",
+          "village": "Село",
+          "yes": "Място"
+        },
+        "railway": {
+          "abandoned": "Изоставена ЖП линия",
+          "construction": "ЖП линия в строеж",
+          "disused": "Неизползвана ЖП линия",
+          "halt": "Железопътна спирка",
+          "junction": "Железопътен възел",
+          "level_crossing": "Прелез",
+          "light_rail": "Лека железница",
+          "miniature": "Теснолинейка",
+          "monorail": "Монорелсов  път",
+          "narrow_gauge": "Теснолинейка",
+          "platform": "Железопътна платформа",
+          "station": "Железопътна гара",
+          "stop": "Железопътна спирка",
+          "subway": "Метро",
+          "subway_entrance": "Вход към метростанция",
+          "tram": "Трамвай",
+          "tram_stop": "Трамвайна спирка"
+        },
+        "shop": {
+          "antiques": "Антики",
+          "art": "Магазин за изделия на изкуството",
+          "bakery": "Пекарна",
+          "beauty": "Салон за красота",
+          "beverages": "Магазин за напитки",
+          "bicycle": "Магазин за велосипеди",
+          "bookmaker": "Букмейкър",
+          "books": "Книжарница",
+          "boutique": "Бутик",
+          "butcher": "Месар",
+          "car": "Автосалон",
+          "car_parts": "Авточасти",
+          "car_repair": "Автосервиз",
+          "carpet": "Магазин за килими",
+          "chocolate": "Шоколад",
+          "clothes": "Магазин за дрехи",
+          "coffee": "Магазин за кафе",
+          "computer": "Магазин за компютри",
+          "cosmetics": "Козметика",
+          "curtain": "Магазин за завеси",
+          "deli": "Деликатесен магазин",
+          "department_store": "Универсален магазин",
+          "doityourself": "Магазин направи сам",
+          "dry_cleaning": "Химическо чистене",
+          "e-cigarette": "Магазин е-цигари",
+          "electronics": "Магазин за електроника",
+          "erotic": "Еротичен магазин",
+          "estate_agent": "Недвижими имоти",
+          "fabric": "Текстилен магазин",
+          "farm": "Фермерски магазин",
+          "fashion": "Бутик",
+          "fishing": "Рибарски магазин",
+          "florist": "Цветарски магазин",
+          "food": "Хранителни стоки",
+          "funeral_directors": "Погребална служба",
+          "furniture": "Мебели",
+          "garden_centre": "Градински център",
+          "general": "Смесен магазин",
+          "gift": "Магазин за подаръци",
+          "greengrocer": "Плод и зеленчук",
+          "grocery": "Магазин за хранителни стоки",
+          "hairdresser": "Фризьорски салон",
+          "hardware": "Железария",
+          "health_food": "Магазин Здравословна храна",
+          "hifi": "Аудиомагазин",
+          "houseware": "Домашни потреби",
+          "ice_cream": "Магазин за Сладолед",
+          "jewelry": "Бижутериен магазин",
+          "kitchen": "Кухненско оборудване",
+          "laundry": "Пералня",
+          "locksmith": "Ключар",
+          "lottery": "Лотария",
+          "mall": "Търговски център",
+          "massage": "Масаж",
+          "mobile_phone": "Магазин за мобилни телефони",
+          "motorcycle": "Магазин за Мотори и Мотоциклети",
+          "music": "Музикален магазин",
+          "musical_instrument": "Музикални Инструменти",
+          "newsagent": "Вестници и списания",
+          "optician": "Оптика",
+          "organic": "Магазин Органична храна",
+          "outdoor": "Туристически магазин",
+          "paint": "Бои и лакови",
+          "perfumery": "Парфюмерия",
+          "pet": "Магазин за домашни любимци",
+          "photo": "Фотомагазин",
+          "seafood": "Морска храна",
+          "second_hand": "Магазин Втора-ръка",
+          "shoes": "Магазин за обувки",
+          "sports": "Спортен магазин",
+          "stationery": "Канцеларски материали",
+          "supermarket": "Супермаркет",
+          "tailor": "Шивач",
+          "ticket": "Билетна каса",
+          "toys": "Магазин за играчки",
+          "travel_agency": "Туристическа агенция",
+          "tyres": "Автогуми",
+          "video": "Видеотека",
+          "video_games": "Магазин за видеоигри",
+          "wine": "Винарна",
+          "yes": "Магазин"
+        },
+        "tourism": {
+          "alpine_hut": "Планинска хижа",
+          "apartment": "Ваканционен апартамент",
+          "artwork": "Произведениe на изкуството",
+          "attraction": "Атракция",
+          "cabin": "Заслон",
+          "camp_site": "Лагер",
+          "caravan_site": "Къмпинг",
+          "chalet": "Бунгало",
+          "gallery": "Галерия",
+          "guest_house": "Къща за гости",
+          "hostel": "Хостел",
+          "hotel": "Хотел",
+          "information": "Информация",
+          "motel": "Мотел",
+          "museum": "Музей",
+          "picnic_site": "Място за пикник",
+          "theme_park": "Увеселителен парк",
+          "wilderness_hut": "Горска хижа",
+          "zoo": "Зологическа градина"
+        },
+        "tunnel": {
+          "building_passage": "Преминаване през сграда",
+          "yes": "Тунел"
+        },
+        "waterway": {
+          "canal": "Канал",
+          "dam": "Язовирна стена",
+          "dock": "Док",
+          "river": "Река",
+          "stream": "Поток",
+          "waterfall": "Водопад",
+          "yes": "Воден път"
+        }
+      },
+      "types": {
+        "cities": "Градове",
+        "places": "Места",
+        "towns": "Градове"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Избиране на файл"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Регистриране",
+        "update": "Обновяване"
+      },
+      "diary_comment": {
+        "create": "Коментиране"
+      },
+      "diary_entry": {
+        "create": "Публикуване",
+        "update": "Обновяване"
+      },
+      "issue_comment": {
+        "create": "Добавяне на коментар"
+      },
+      "message": {
+        "create": "Изпращане"
+      },
+      "oauth2_application": {
+        "create": "Регистриране",
+        "update": "Обновяване"
+      },
+      "redaction": {
+        "create": "Създаване на поправка",
+        "update": "Запазване на поправка"
+      },
+      "trace": {
+        "create": "Качване",
+        "update": "Запазване на промените"
+      },
+      "user_block": {
+        "create": "Създаване на блок",
+        "update": "Обновяване на блок"
+      }
+    }
+  },
+  "issue_comments": {
+    "create": {
+      "comment_created": "Коментарът е успешно създаден"
+    }
+  },
+  "issues": {
+    "comments": {
+      "comment_from_html": "Коментар от {{user_link}} в {{comment_created_at}}"
+    },
+    "helper": {
+      "reportable_title": {
+        "note": "Бележка № {{note_id}}"
+      }
+    },
+    "ignore": {
+      "ignored": "Проблема е променен на „Пропуснат“"
+    },
+    "index": {
+      "issues_not_found": "Не е открит такъв проблем",
+      "last_updated": "Последна промяна",
+      "last_updated_time_ago_user_html": "{{time_ago}} от {{user}}",
+      "link_to_reports": "Преглед на докладите",
+      "reported_item": "Докладван елемент",
+      "reported_user": "Докладван потребител",
+      "reports": "Доклади",
+      "reports_count_one": "{{count}} доклад",
+      "reports_count_other": "{{count}} доклада",
+      "search": "Търсене",
+      "search_guidance": "Търсете за проблеми:",
+      "select_last_updated_by": "Избери последно променен от",
+      "select_status": "Избери статус",
+      "select_type": "Избери тип",
+      "states": {
+        "ignored": "Пренебрегнат",
+        "open": "Отворен",
+        "resolved": "Решени"
+      },
+      "status": "Състояние",
+      "title": "Проблеми",
+      "user_not_found": "Потребителят не съществува"
+    },
+    "reopen": {
+      "reopened": "Проблема е променен на \"Отворен\""
+    },
+    "resolve": {
+      "resolved": "Състоянието на проблема е променен на „Решен“"
+    },
+    "show": {
+      "comments_on_this_issue": "Коментари за проблема",
+      "ignore": "Пропусни",
+      "last_resolved_at_html": "Последно решена на {{datetime}}",
+      "last_updated_at_html": "Последно актуализиран на {{datetime}} от {{displayname}}",
+      "new_reports": "Нови Доклади",
+      "no_other_issues": "Няма други проблеми срещу този потребител.",
+      "other_issues_against_this_user": "Други проблеми срещу този потребител",
+      "read_reports": "Прочети Отчети",
+      "reopen": "Отново отвори",
+      "report_created_at_html": "Първоначално докладван на {{datetime}}",
+      "reports_of_this_issue": "Сигнали за този Проблем",
+      "reports_one": "{{count}} доклад",
+      "reports_other": "{{count}} доклада",
+      "resolve": "Решаване",
+      "title": "{{status}} Проблем #{{issue_id}}"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "Коментиране",
+        "hide_comment": "скриване",
+        "subscribe": "Абониране",
+        "unhide_comment": "показване",
+        "unsubscribe": "Отписване"
+      }
+    },
+    "close": "Затваряне",
+    "context": {
+      "add_note": "Добавяне на бележка",
+      "centre_map": "Центриране на картата",
+      "directions_from": "Упътване от тук",
+      "directions_to": "Упътване до тук",
+      "query_features": "Търсене на обекти",
+      "show_address": "Показване на адреса"
+    },
+    "directions": {
+      "ascend": "Изкачване",
+      "descend": "Спускане",
+      "directions": "Упътване",
+      "distance": "Разстояние",
+      "engines": {
+        "fossgis_osrm_bike": "Велосипед (OSRM)",
+        "fossgis_osrm_car": "Автомобил (OSRM)",
+        "fossgis_osrm_foot": "Пешa (OSRM)",
+        "fossgis_valhalla_bicycle": "Велосипед (Valhalla)",
+        "fossgis_valhalla_car": "Автомобил (Valhalla)",
+        "fossgis_valhalla_foot": "Пеша (Valhalla)",
+        "graphhopper_bicycle": "Велосипед (GraphHopper)",
+        "graphhopper_car": "Автомобил (GraphHopper)",
+        "graphhopper_foot": "Пеша (GraphHopper)"
+      },
+      "errors": {
+        "no_route": "Път между тези две точки не може да бъде намерен."
+      },
+      "instructions": {
+        "continue_without_exit": "Продължете по {{name}}",
+        "courtesy": "Упътване благодарение на {{link}}",
+        "destination_without_exit": "Пристигнахте на местоназначението",
+        "endofroad_left_without_exit": "В края на пътя завийте наляво по {{name}}",
+        "endofroad_right_without_exit": "В края на пътя завийте надясно по {{name}}",
+        "exit_counts": {
+          "eighth": "осмия",
+          "fifth": "петия",
+          "first": "първия",
+          "fourth": "четвъртия",
+          "ninth": "деветия",
+          "second": "втория",
+          "seventh": "седмия",
+          "sixth": "шестия",
+          "tenth": "десетия",
+          "third": "третия"
+        },
+        "exit_roundabout": "Излезете от кръговото движение от {{name}}",
+        "follow_without_exit": "Следвайте {{name}}",
+        "fork_left_without_exit": "На разклона завийте наляво по {{name}}",
+        "fork_right_without_exit": "На разклона завийте надясно по {{name}}",
+        "leave_roundabout_without_exit": "Напуснете кръгово движение - {{name}}",
+        "merge_left_without_exit": "Навлезте наляво на {{name}}",
+        "merge_right_without_exit": "Навлезте надясно на {{name}}",
+        "offramp_left_with_exit": "Излезте от {{exit}} изход вляво",
+        "offramp_left_with_exit_directions": "Излезте от {{exit}} изход вляво към {{directions}}",
+        "offramp_left_with_exit_name": "Излезте от {{exit}} изход вляво на {{name}}",
+        "offramp_left_with_exit_name_directions": "Излезте от {{exit}} изход вляво на {{name}}, към {{directions}}",
+        "offramp_right_with_exit": "Излезте от {{exit}} изход вдясно",
+        "offramp_right_with_exit_directions": "Излезте от {{exit}} изход вдясно към {{directions}}",
+        "offramp_right_with_exit_name": "Излезте от {{exit}} изход вдясно на {{name}}",
+        "offramp_right_with_exit_name_directions": "Излезте от {{exit}} изход вдясно на {{name}}, към {{directions}}",
+        "roundabout_with_exit": "На кръговото движение излезте от {{exit}} изход към {{name}}",
+        "roundabout_with_exit_ordinal": "На кръговото движение вземете {{exit}} изход към {{name}}",
+        "roundabout_without_exit": "На кръговото движение излезте на {{name}}",
+        "sharp_left_without_exit": "Остър завой наляво по {{name}}",
+        "sharp_right_without_exit": "Остър завой надясно по {{name}}",
+        "slight_left_without_exit": "Лек завой наляво по {{name}}",
+        "slight_right_without_exit": "Лек завой надясно по {{name}}",
+        "start_without_exit": "Тръгнете от {{name}}",
+        "stay_roundabout_without_exit": "Останете в кръговото движение - {{name}}",
+        "turn_left_without_exit": "Завийте наляво по {{name}}",
+        "turn_right_without_exit": "Завийте надясно по {{name}}",
+        "unnamed": "неименуван път",
+        "uturn_without_exit": "Обратен завой по {{name}}",
+        "via_point_without_exit": "(през точката)"
+      },
+      "time": "Време"
+    },
+    "embed": {
+      "report_problem": "Докладване за проблем"
+    },
+    "key": {
+      "title": "Легенда",
+      "tooltip": "Легенда",
+      "tooltip_disabled": "Легендата не е достъпна за този слой"
+    },
+    "map": {
+      "base": {
+        "cycle_map": "Колоездачна карта",
+        "hot": "Хуманитарна карта",
+        "standard": "Стандартна карта",
+        "transport_map": "Транспортна карта"
+      },
+      "layers": {
+        "data": "Данни",
+        "gps": "Публични следи от GPS",
+        "header": "Слоеве на картата",
+        "notes": "Бележки",
+        "overlays": "Слоеве за отстраняване на грешки",
+        "title": "Слоеве"
+      },
+      "locate": {
+        "title": "Моето местоположение"
+      },
+      "zoom": {
+        "in": "Приближаване",
+        "out": "Отдалечаване"
+      }
+    },
+    "query": {
+      "node": "Възел",
+      "relation": "Релация",
+      "way": "Път"
+    },
+    "share": {
+      "cancel": "Отказ",
+      "center_marker": "Центриране на маркера",
+      "custom_dimensions": "Размер по избор",
+      "download": "Изтегляне",
+      "embed": "HTML",
+      "format": "Формат:",
+      "geo_uri": "Geo URI",
+      "image": "Изображение",
+      "include_marker": "Добавяне на маркер",
+      "link": "Препратка или код",
+      "long_link": "Препратка",
+      "only_standard_layer": "Само стандартния слой може да бъде изнесен като изображение",
+      "scale": "Мащаб:",
+      "short_link": "Кратка препратка",
+      "short_url": "Къс адрес",
+      "title": "Споделяне",
+      "view_larger_map": "Преглед на по-голяма карта"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "Увеличете за добавяне на бележка",
+      "createnote_tooltip": "Добавяне на бележка на картата",
+      "edit_disabled_tooltip": "Увеличете за редактиране на картата",
+      "edit_tooltip": "Променяне на картата",
+      "map_data_zoom_in_tooltip": "Увеличете за подробности",
+      "map_notes_zoom_in_tooltip": "Увеличете за преглед на бележките",
+      "queryfeature_disabled_tooltip": "Увеличете за търсене на обекти",
+      "queryfeature_tooltip": "Търсене на обекти"
+    }
+  },
+  "layouts": {
+    "about": "За проекта",
+    "communities": "Общности",
+    "community": "Общност",
+    "copyright": "Авторски права",
+    "data": "Данни",
+    "edit": "Променяне",
+    "edit_with": "Променяне с {{editor}}",
+    "export": "Експортиране",
+    "export_data": "Експортиране на данни",
+    "gps_traces": "Следи от GPS",
+    "gps_traces_tooltip": "Управление на следи от GPS",
+    "help": "Помощ",
+    "history": "История",
+    "home": "Моят дом",
+    "hosting_partners_html": "Хостингът се поддържа от {{ucl}}, {{fastly}}, {{bytemark}} и други {{partners}}.",
+    "intro_2_create_account": "Създаване на сметка",
+    "intro_header": "Добре дошли в OpenStreetMap!",
+    "intro_text": "OpenStreetMap е карта на света създадена от хора като вас, за свободно ползване и под отворен лиценз.",
+    "issues": "Проблеми",
+    "learn_more": "Научете повече",
+    "log_in": "Влизане",
+    "logo": {
+      "alt_text": "Лого на OpenStreetMap"
+    },
+    "logout": "Излизане",
+    "make_a_donation": {
+      "text": "Направете дарение",
+      "title": "Подкрепете OpenStreetMap с парично дарение"
+    },
+    "more": "Още",
+    "osm_offline": "Базата на данни на  OpenStreetMap в момента е изключена докато се извършва необходима поддръжка.",
+    "partners_bytemark": "Bytemark",
+    "partners_partners": "партньори",
+    "partners_ucl": "UCL",
+    "sign_up": "Регистриране",
+    "start_mapping": "Картографиране",
+    "tag_line": "Свободна Wiki-карта на света",
+    "tou": "Условия за ползване",
+    "user_diaries": "Потребителски дневници",
+    "user_diaries_tooltip": "Дневници на потребители"
+  },
+  "messages": {
+    "create": {
+      "message_sent": "Съобщението е изпратено"
+    },
+    "destroy": {
+      "destroyed": "Съобщението беше изтрито"
+    },
+    "heading": {
+      "my_inbox": "Входяща кутия",
+      "my_outbox": "Изходяща кутия"
+    },
+    "inbox": {
+      "messages": "Имате {{new_messages}} и {{old_messages}}",
+      "new_messages_one": "{{count}} ново съобщение",
+      "new_messages_other": "{{count}} нови съобщения",
+      "no_messages_yet_html": "Все още нямате никакви съобщения. Не искате ли да се свържете с други {{people_mapping_nearby_link}}?",
+      "old_messages_one": "{{count}} прочетено съобщение",
+      "old_messages_other": "{{count}} прочетени съобщения",
+      "people_mapping_nearby": "картографи в близост",
+      "title": "Входящи"
+    },
+    "mark": {
+      "as_read": "Съобщението е отбелязано като прочетено",
+      "as_unread": "Съобщението е отбелязано като непрочетено"
+    },
+    "message_summary": {
+      "destroy_button": "Изтриване",
+      "read_button": "Отбелязване като прочетено",
+      "reply_button": "Отговор",
+      "unread_button": "Отбелязване като непрочетено"
+    },
+    "messages_table": {
+      "actions": "Действия",
+      "date": "Дата",
+      "from": "От",
+      "subject": "Тема",
+      "to": "До"
+    },
+    "new": {
+      "back_to_inbox": "Обратно към входящата поща",
+      "send_message_to_html": "Изпращане ново съобщение на {{name}}",
+      "title": "Изпращане на съобщение"
+    },
+    "no_such_message": {
+      "body": "Съжаляваме но няма съобщение със това id.",
+      "heading": "Няма такова съобщение",
+      "title": "Няма такова съобщение"
+    },
+    "outbox": {
+      "actions": "Действия",
+      "messages_one": "Изпратили сте {{count}} съобщение",
+      "messages_other": "Изпратили сте {{count}} съобщения",
+      "no_sent_messages_html": "Все още нямате никакви съобщения. Не искате ли да се свържете с други {{people_mapping_nearby_link}}?",
+      "people_mapping_nearby": "картографи в близост",
+      "title": "Изходящи"
+    },
+    "reply": {
+      "wrong_user": "Вие сте влезли като `{{user}}' но съобщението на което искате да отговорите не е изпратено на този потребител. Моля влезте като правилния потребител за да можете да отговорите."
+    },
+    "sent_message_summary": {
+      "destroy_button": "Изтриване"
+    },
+    "show": {
+      "back": "Назад",
+      "destroy_button": "Изтриване",
+      "reply_button": "Отговор",
+      "title": "Прочетете съобщението",
+      "unread_button": "Отбелязване като непрочетено"
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Създадена на",
+      "creator": "Автор",
+      "description": "Описание",
+      "heading": "Бележките на {{user}}",
+      "id": "Идентификатор",
+      "last_changed": "Последна промяна",
+      "no_notes": "Няма бележки",
+      "subheading_commented": "коментирани",
+      "subheading_html": "Бележки {{submitted}} или {{commented}} от {{user}}",
+      "subheading_submitted": "добавени",
+      "title": "Бележки създадени или с коментар от {{user}}"
+    },
+    "new": {
+      "add": "Добавяне на бележка",
+      "advice": "Бележката Ви е публична и може да бъде използвана за актуализиране на картата, така че не въвеждайте лична информация или информация от карти или списъци с указатели, защитени с авторски права.",
+      "intro": "Забелязали сте грешка или нещо липсващо? Уведомете другите картографи, за да можем да го поправим. Преместете маркера на правилната позиция и напишете бележка, за да обясните проблема.",
+      "title": "Нова бележка"
+    },
+    "show": {
+      "anonymous_warning": "Бележката е от анонимен потребител и съдържа твърдения, които трябва да бъдат проверени.",
+      "closed_title": "Решена бележка № {{note_name}}",
+      "comment": "Коментиране",
+      "comment_and_resolve": "Коментиране и решаване",
+      "description": "Описание",
+      "event_opened_by_html": "Създадена от {{user}} {{time_ago}}",
+      "hidden_title": "Скрита бележка № {{note_name}}",
+      "hide": "Скриване",
+      "open_title": "Нерешена бележка № {{note_name}}",
+      "other_problems_resolve": "За всички други проблеми с бележката, моля, разрешете ги с коментар.",
+      "reactivate": "Повторно отваряне",
+      "report": "докладване",
+      "report_link_html": "Ако тази бележка съдържа поверителна информация, която трябва да бъде премахната, можете да я {{link}}.",
+      "resolve": "Решаване",
+      "title": "Бележка № {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_gpx": "прочети вашите лични GPS следи.",
+      "allow_read_prefs": "прочетете вашите потребителски предпочитания",
+      "allow_to": "Позволи приложението на клиента да:",
+      "allow_write_api": "промени картата.",
+      "allow_write_diary": "създай дневник на бележките, коментарите и новите приятелства",
+      "allow_write_gpx": "Качване на GPS следи.",
+      "allow_write_notes": "променяне на бележки.",
+      "allow_write_prefs": "променете вашите потребителски предпочитания.",
+      "grant_access": "Позволи достъп"
+    },
+    "authorize_failure": {
+      "title": "Искането за достъп не успя"
+    },
+    "authorize_success": {
+      "allowed_html": "Вие позволихте на приложение {{app_name}} достъп до вашия профил.",
+      "title": "Искането за достъп е разрешено",
+      "verification": "Верификационния код е {{code}}."
+    },
+    "revoke": {
+      "flash": "Анулирахте удостоверяването на {{application}}"
+    },
+    "scopes": {
+      "write_api": "Промени картата",
+      "write_diary": "Създай дневник на бележките, коментарите и новите приятелства",
+      "write_notes": "Промени бележки",
+      "write_prefs": "Променете потребителски предпочитания"
+    }
+  },
+  "oauth_clients": {
+    "index": {
+      "application": "Име на приложението",
+      "issued_at": "Упълномощено на",
+      "list_tokens": "Следните токени са издадени на приложения от ваше име:",
+      "my_apps": "Мои клиентски приложения",
+      "my_tokens": "Упълномощени от мен приложения",
+      "oauth": "OAuth",
+      "register_new": "Регистриране на приложение",
+      "revoke": "Анулиране!",
+      "title": "Мои данни за OAuth"
+    },
+    "show": {
+      "confirm": "Сигурен ли сте?",
+      "delete": "Изтриване Клиент",
+      "edit": "Редакция детайли",
+      "key": "Клиентски ключ:",
+      "secret": "Клиентски секрет:"
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "Съжаляваме, но този електронен адрес не е намерен."
+    },
+    "edit": {
+      "heading": "Смени Парола за {{user}}",
+      "reset": "Нулиране на парола",
+      "title": "Възстановяване на парола"
+    },
+    "new": {
+      "email address": "Електронна поща:",
+      "heading": "Забравена парола?",
+      "help_text": "Въведете имейл адреса, който сте използвали при регистрацията, и ние ще Ви изпратим връзка, която можете да използвате, за да промените паролата си.",
+      "new password button": "Нова парола",
+      "title": "Възстановяване на парола"
+    },
+    "update": {
+      "flash changed": "Паролата е променена успешно."
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Отказ",
+      "save": "Запазване на предпочитанията"
+    },
+    "show": {
+      "edit_preferences": "Редактиране на предпочитанията",
+      "preferred_editor": "Предпочитан редактор",
+      "preferred_languages": "Предпочитани езици",
+      "title": "Предпочитания"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Отказ",
+      "delete image": "Премахване на текущото изображение",
+      "gravatar": {
+        "gravatar": "Използване на Gravatar"
+      },
+      "home location": "Моето местоположение",
+      "image": "Изображение",
+      "image size hint": "(най-подходящо е квадратно изображение с мин. размер 100×100)",
+      "keep image": "Запазване на текущото изображение",
+      "new image": "Добавяне на изображение",
+      "no home location": "Не сте избрали своето местоположение.",
+      "replace image": "Заменяне на текущото изображение",
+      "title": "Редактиране на профила",
+      "update home location on click": "Променяне на моето местоположение при избиране от картата"
+    },
+    "update": {
+      "failure": "Неуспешно обновление на профила.",
+      "success": "Профилът е обновен."
+    }
+  },
+  "redactions": {
+    "create": {
+      "flash": "Поправката е създадена."
+    },
+    "edit": {
+      "heading": "Промяна на поправката",
+      "title": "Промяна на поправката"
+    },
+    "index": {
+      "heading": "Списък с поправки",
+      "title": "Списък с поправки"
+    },
+    "show": {
+      "confirm": "Сигурни ли сте?",
+      "description": "Описание:",
+      "destroy": "Премахване на поправката",
+      "edit": "Промяна на поправката",
+      "user": "Създател:"
+    },
+    "update": {
+      "flash": "Промените са запазени."
+    }
+  },
+  "reports": {
+    "create": {
+      "provide_details": "Моля допълнете с необходимите подробности",
+      "successful_report": "Вашия сигнал е регистриран успешно"
+    },
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "offensive_label": "Този коментар в дневника е вредна/заплашителна",
+          "other_label": "Друго",
+          "spam_label": "Този коментар от дневник е/съдържа спам",
+          "threat_label": "Този коментар от дневник е заплаха"
+        },
+        "diary_entry": {
+          "offensive_label": "Този запис в дневника е вредна/заплашителна",
+          "other_label": "Друго",
+          "spam_label": "Този запис от дневник е/съдържа спам",
+          "threat_label": "Този запис от дневник съдържа заплаха"
+        },
+        "note": {
+          "abusive_label": "Бележката е обидна",
+          "other_label": "Друго",
+          "personal_label": "Бележката съдържа лични данни",
+          "spam_label": "Бележката е спам"
+        },
+        "user": {
+          "offensive_label": "Този потребителски профил е обиден/непристоен",
+          "other_label": "Друго",
+          "spam_label": "Този потребителски профил е/съдържа спам",
+          "threat_label": "Този потребителски профил съдържа заплаха",
+          "vandal_label": "Този потребител е вандал"
+        }
+      },
+      "disclaimer": {
+        "intro": "Преди да изпратите репорта си към страницата на модераторите моля проверете дали:",
+        "not_just_mistake": "Сигурни ли сте че проблема не е просто грешка",
+        "resolve_with_user": "Вече сте опитали да решите проблема с дадения потребител"
+      },
+      "missing_params": "Не може да бъде създаден нов доклад",
+      "title_html": "Докладване на {{link}}"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "heading": "Изход от OpenStreetMap",
+      "logout_button": "Изход",
+      "title": "Изход"
+    },
+    "new": {
+      "auth failure": "Съжаляваме, но не можете да влезете с тези данни.",
+      "auth_providers": {
+        "aol": {
+          "alt": "Влизане с OpenID от AOL",
+          "title": "Влизане с AOL"
+        },
+        "facebook": {
+          "alt": "Влизане със сметка на Facebook",
+          "title": "Влизане с Facebook"
+        },
+        "github": {
+          "alt": "Влизане със сметка в GitHub",
+          "title": "Влизане с GitHub"
+        },
+        "google": {
+          "alt": "Влизане с OpenID на Google",
+          "title": "Влизане с Гугъл"
+        },
+        "microsoft": {
+          "alt": "Влизане със сметка на Майкрософт",
+          "title": "Влизане с Майкрософт"
+        },
+        "openid": {
+          "alt": "Влизане с адрес на OpenID",
+          "title": "Влизане с OpenID"
+        },
+        "wikipedia": {
+          "alt": "Влизане със сметка от Уикипедия",
+          "title": "Влизане с Уикипедия"
+        },
+        "wordpress": {
+          "alt": "Влизане с OpenID от Wordpress",
+          "title": "Влизане с Wordpress"
+        }
+      },
+      "email or username": "Електронна поща или потребителско име:",
+      "heading": "Влизане",
+      "login_button": "Влизане",
+      "lost password link": "Забравена парола?",
+      "no account": "Нямате сметка?",
+      "openid_html": "{{logo}} OpenID:",
+      "openid_logo_alt": "Влизане с OpenID",
+      "password": "Парола:",
+      "register now": "Регистрирайте се",
+      "remember": "Запомняне",
+      "title": "Влизане",
+      "with external": "Или използвайте удостоверяване от външен източник:"
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "alt": "Алтернативен текст",
+      "first": "Първи елемент",
+      "headings": "Заглавия",
+      "image": "Изображение",
+      "link": "Препратка",
+      "ordered": "Подреден списък",
+      "second": "Втори елемент",
+      "subheading": "Подзаглавие",
+      "text": "Текст"
+    },
+    "richtext_field": {
+      "edit": "Редактиране",
+      "preview": "Предварителен преглед"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_1_html": "Общността на OpenStreetMap е разнообразна, страстна и се разраства всеки ден. Сред нашите сътрудници са ентусиасти картографи, специалисти по ГИС, инженери, които управляват сървърите на OSM, хуманитарни работници, които картографират райони, засегнати от бедствия, и много други. За да научите повече за общността, вижте {{osm_blog_link}}, {{user_diaries_link}}, {{community_blogs_link}} и {{osm_foundation_link}}.",
+      "community_driven_community_blogs": "блогове на общността",
+      "community_driven_title": "Водени от общността",
+      "community_driven_user_diaries": "потребителските дневници",
+      "lede_text": "OpenStreetMap е създадена от общност от картографи, които предоставят и поддържат данни за пътища, пътеки, кафенета, железопътни гари и много други по целия свят.",
+      "legal_1_1_html": "Този сайт и много други свързани с него услуги се управляват официално от\n{{openstreetmap_foundation_link}} (OSMF)\nот името на общността. Използването на всички услуги, управлявани от OSMF, е предмет на\nна нашите {{terms_of_use_link}}, {{aup_link}} и нашата {{privacy_policy_link}}.",
+      "legal_2_1_contact_the_osmf": "свържете се с OSMF",
+      "legal_2_1_html": "Моля, {{contact_the_osmf_link}} ако имате въпроси, свързани с лицензирането, авторските права или други правни въпроси.",
+      "legal_2_2_html": "OpenStreetMap, логото с лупа и State of the Map са {{registered_trademarks_link}}.",
+      "legal_2_2_registered_trademarks": "регистрирани търговски марки на OSMF",
+      "legal_title": "Правни въпроси",
+      "local_knowledge_html": "OpenStreetMap набляга на местните познания. Сътрудниците използват въздушни снимки, GPS устройства и нискотехнологични полеви карти, за да проверят дали OSM е точна и актуална.",
+      "local_knowledge_title": "Местно познание",
+      "next": "Напред",
+      "open_data_1_html": "OpenStreetMap е {{open_data}}: Вие сте свободни да я използвате за всякакви цели стига да посочите OpenStreetMap и нейните сътрудници. Ако промените или надграждате данните по определен начин, можете да разпространявате резултата само под същия лиценз. За подробности вижте {{copyright_license_link}}.",
+      "open_data_open_data": "отворени данни",
+      "open_data_title": "Отворени данни",
+      "partners_title": "Партньори",
+      "used_by_html": "{{name}} осигурява картографски данни на хиляди страници, мобилни приложения и устройства"
+    },
+    "any_questions": {
+      "title": "Въпроси?"
+    },
+    "communities": {
+      "lede_text": "Хора от цял свят допринасят за OpenStreetMap или я използват. Много от тях участват индивидуално, а други са създали общности. Тези групи са с различна големина и представляват географски райони от малки градове до големи региони с много държави. Те също така могат да бъдат официални или неофициални.",
+      "local_chapters": {
+        "about_text": "Местните клонове са групи на национално или регионално ниво, които са предприели формалните стъпки за създаване на юридически лица с нестопанска цел. Те представляват картата и картографите на района в отношенията с местните власти, бизнеса и медиите. Те също така са създали връзка с фондацията OpenStreetMap (OSMF), което им дава възможност да се свържат с юридическия орган, управляващ авторските права.",
+        "list_text": "Следните общности са официално създадени като местни клонове:",
+        "title": "Местни клонове"
+      },
+      "other_groups": {
+        "other_groups_html": "Не е необходимо да се създава официална група в същата степен като местните клонове. Всъщност много групи съществуват много успешно като неформално събиране на хора или като общностна група. Всеки може да ги създаде или да се присъедини към тях. Прочетете повече на {{communities_wiki_link}}.",
+        "title": "Други групи"
+      },
+      "title": "Общности"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "оригиналът на английски",
+        "html": "В случай на противоречие между тази преведена страница и {{english_original_link}}, страницата на английски ще е с приоритет",
+        "title": "За този превод"
+      },
+      "legal_babble": {
+        "contributors_title_html": "Нашите сътрудници",
+        "credit_title_html": "Как да кредитирате OpenStreetMap",
+        "infringement_title_html": "Нарушаване на авторските права",
+        "more_title_html": "Открийте повече",
+        "title_html": "Авторски права и лиценз"
+      },
+      "native": {
+        "html": "Гледате версията на английски език на страницата за авторските права. Може да се върнете на {{native_link}} на страницата или да спрете да четете за авторските права и да започнете да {{mapping_link}}.",
+        "mapping_link": "картографирате",
+        "native_link": "българската версия",
+        "title": "За тази страница"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "Разберете защо е така.",
+      "id_not_configured": "iD не е настроен",
+      "not_public": "Не сте посочили вашите редакции да бъдат публични.",
+      "user_page_link": "Потребителска страница"
+    },
+    "export": {
+      "export_button": "Експортиране",
+      "licence": "Лиценз",
+      "manually_select": "Ръчно избиране на друга област",
+      "title": "Експортиране",
+      "too_large_advice": "Ако експортирането по-горе не сработи, моля, използвайте един от следните източници:",
+      "too_large_geofabrik": {
+        "title": "Geofabrik Downloads"
+      },
+      "too_large_other": {
+        "title": "Други източници"
+      },
+      "too_large_overpass": {
+        "title": "Overpass API"
+      },
+      "too_large_planet": {
+        "title": "Planet OSM"
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "explanation_html": "Ако сте забелязали проблем с нашите картографски данни, например липсва път или вашият адрес, най-добрият начин да продължите е да се присъедините към общността на OpenStreetMap и да добавите или поправите данните сами.",
+          "title": "Присъединете са към общността"
+        },
+        "title": "Как да помогна"
+      },
+      "other_concerns": {
+        "title": "Други съображения"
+      },
+      "title": "Докладвай проблем/Коригирай картата"
+    },
+    "help": {
+      "beginners_guide": {
+        "description": "Ръководство за начинаещи, поддържано от общността.",
+        "title": "Наръчник за начинаещи"
+      },
+      "community": {
+        "description": "Споделено място за разговори за OpenStreetMap.",
+        "title": "Форум на общността"
+      },
+      "help": {
+        "description": "Задайте въпрос или потърсете отговори в сайта за въпроси и отговори на OpenStreetMap.",
+        "title": "Форум за поддръжка"
+      },
+      "introduction": "OpenStreetMap разполага с няколко ресурса за запознаване с проекта, задаване и отговаряне на въпроси, както и за съвместно обсъждане и документиране на теми, свързани с картографирането.",
+      "irc": {
+        "description": "Интерактивен чат на много различни езици и по много теми.",
+        "title": "IRC"
+      },
+      "mailing_lists": {
+        "description": "Задайте въпрос или дискутирайте интересни теми в широк спектър от тематични и регионални пощенски списъци.",
+        "title": "Пощенски списъци"
+      },
+      "switch2osm": {
+        "description": "Помощ за компании и организации, които преминават към карти и други услуги, базирани на OpenStreetMap.",
+        "title": "switch2osm"
+      },
+      "title": "Получаване на помощ",
+      "welcome": {
+        "description": "Започнете с това кратко ръководство, обхващащо основите на OpenStreetMap.",
+        "title": "Добре дошли в OpenStreetMap",
+        "url": "/welcome"
+      },
+      "welcomemat": {
+        "description": "Вие сте от организация, която иска да работи с OpenStreetMap? Ще получите необходимата информация на началната страница.",
+        "title": "За организации"
+      },
+      "wiki": {
+        "description": "Разгледайте уикито за подробна документация за OpenStreetMap.",
+        "title": "Уики на OpenStreetMap"
+      }
+    },
+    "index": {
+      "createnote": "Добавяне на бележка",
+      "js_2": "OpenStreetMap използва JavaScript за своята статична карта.",
+      "permalink": "Постоянна връзка",
+      "shortlink": "Къса връзка"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "Административна граница",
+          "allotments": "Градини",
+          "apron": "Летищен перон",
+          "bicycle_parking": "Паркинг на велосипеди",
+          "bicycle_shop": "Магазин за велосипеди",
+          "bridge": "Мост (плътна линия)",
+          "bridleway": "Конен път",
+          "brownfield": "Място за строеж",
+          "building": "Значима сграда",
+          "cable_car": "Кабинков лифт",
+          "cemetery": "Гробище",
+          "centre": "Спортен център",
+          "chair_lift": "седалков лифт",
+          "commercial": "Търговска зона",
+          "common": "Обща",
+          "construction": "Пътища в изграждане",
+          "cycleway": "Велосипедна пътека",
+          "cycleway_local": "Локална велосипедна алея",
+          "cycleway_national": "Национална велосипедна алея",
+          "cycleway_regional": "Регионална велосипедна алея",
+          "farm": "Ферма",
+          "footway": "Пътека",
+          "forest": "Гора",
+          "golf": "Игрище за голф",
+          "heathland": "Пустош",
+          "industrial": "Промишлена зона",
+          "lake": "Езеро",
+          "main_road": "Главен път",
+          "military": "Военна зона",
+          "motorway": "Магистрала",
+          "park": "Парк",
+          "peak": "връх",
+          "pitch": "Спортна площадка",
+          "primary": "Главен път",
+          "private": "Частен достъп",
+          "rail": "Железен път",
+          "reserve": "Природен резерват",
+          "reservoir": "язовир",
+          "resident": "Жилищна зона",
+          "retail": "Търговска зона",
+          "runway": "Летищна писта",
+          "school": "Училище",
+          "secondary": "Второстепенен път",
+          "station": "Железопътна гара",
+          "subway": "Метро",
+          "summit": "Било",
+          "taxiway": "път за рулиране",
+          "toilets": "Тоалетни",
+          "track": "Полски път",
+          "trunk": "Междуградски път",
+          "tunnel": "Тунел (пунктирана линия)",
+          "unclassified": "Некласифициран път",
+          "university": "Университет",
+          "wood": "Дървета"
+        }
+      }
+    },
+    "search": {
+      "from": "От",
+      "get_directions": "Упътване",
+      "get_directions_title": "Намерете маршрут между две точки",
+      "reverse_directions_text": "Обръщане на посоката",
+      "search": "Търсене",
+      "submit_text": "Напред",
+      "to": "До",
+      "where_am_i": "Къде е това?",
+      "where_am_i_title": "Описване на текущото местоположение с помощта на търсещата машина"
+    },
+    "sidebar": {
+      "close": "Затваряне",
+      "search_results": "Резултати от търсенето"
+    },
+    "welcome": {
+      "add_a_note": {
+        "para_1": "Ако искате само да поправите нещо малко и нямате време да се регистрирате и да се научите да редактирате, можете да добавите бележка.",
+        "title": "Нямате време да правите промени? Добавете бележка!"
+      },
+      "basic_terms": {
+        "a_node_html": "С {{node}} се означава точка на картата, например ресторант или дърво.",
+        "a_way_html": "С {{way}} се означава линия или площ, например автомобилен път, поток, езеро или сграда.",
+        "an_editor_html": "С {{editor}} се означава програма или уебсайт, който можете да използвате, за да редактирате картата.",
+        "node": "възел",
+        "paragraph_1": "OpenStreetMap има свой собствен жаргон. Ето няколко ключови думи, които ще Ви бъдат полезни.",
+        "title": "Основни картографски термини",
+        "way": "път"
+      },
+      "introduction": "Добре дошли в OpenStreetMap, безплатната и редактируема карта на света. Сега, след като сте се регистрирали, сте готови да започнете да картографирате. Предлагаме ви кратко ръководство с най-важните неща, които трябва да знаете.",
+      "rules": {
+        "automated_edits": "автоматизирани редакции",
+        "para_1_html": "OpenStreetMap има малко официални правила, но очакваме всички участници да си сътрудничат и да комуникират с общността. Ако обмисляте някакви дейности,\nразлични от ръчно редактиране, моля, прочетете и следвайте указанията на\n{{imports_link}} и {{automated_edits_link}}.",
+        "title": "Правилата!"
+      },
+      "start_mapping": "Картографиране",
+      "title": "Добре дошли!",
+      "whats_on_the_map": {
+        "doesnt": "не",
+        "off_the_map_html": "Това, което {{doesnt}} включва, са данни, основани на мнения, като рейтинги, исторически или хипотетични характеристики и данни от източници, защитени с авторски права. Освен ако не разполагате със специални разрешение, не копирайте от онлайн или хартиени карти.",
+        "on_the_map_html": "OpenStreetMap е място за картографиране на неща, които са едновременно {{real_and_current}} - тя включва милиони сгради, пътища и други подробности за местата. Можете да картографирате каквито реални характеристики са ви интересни.",
+        "real_and_current": "реални и текущи",
+        "title": "Какво има на картата"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y в %H:%M"
+    }
+  },
+  "traces": {
+    "create": {
+      "traces_waiting_one": "Имате {{count}} чакащи за качване следа. Съветваме ви да я изчакате да завърши преди да качвате нови, за да не запълните опашката, на която чакат още потребители.",
+      "traces_waiting_other": "Имате {{count}} чакащи за качване следи.Съветваме ви да ги изчакате да завършат преди да качвате нови, за да не запълните опашката, на която чакат още потребители.",
+      "upload_trace": "Качване на следи от GPS"
+    },
+    "description": {
+      "description_with_count_one": "файл от GPX с {{count}} точка от {{user}}",
+      "description_with_count_other": "файл от GPX с {{count}} точки от {{user}}",
+      "description_without_count": "Файл на GPX от {{user}}"
+    },
+    "edit": {
+      "cancel": "Отказ",
+      "heading": "Редактиране трасе {{name}}",
+      "title": "Редактиране трасе {{name}}",
+      "visibility_help": "какво означава това?"
+    },
+    "georss": {
+      "title": "OpenStreetMap GPS трасета"
+    },
+    "index": {
+      "my_traces": "Моите следи",
+      "public_traces": "Публични следи от GPS",
+      "public_traces_from": "Публични следи от GPS от потребител {{user}}",
+      "tagged_with": "с етикет {{tags}}",
+      "upload_trace": "Качване на следи от GPS"
+    },
+    "new": {
+      "help": "Помощ",
+      "help_url": "https://wiki.openstreetmap.org/wiki/Upload",
+      "upload_trace": "Качване на следи от GPS",
+      "visibility_help": "какво означава това?"
+    },
+    "show": {
+      "confirm_delete": "Изтрий това трасе?",
+      "coordinates_html": "{{latitude}}; {{longitude}}",
+      "delete_trace": "Изтрий това трасе",
+      "description": "Описание:",
+      "download": "изтегляне",
+      "edit": "променяне",
+      "edit_trace": "Променяне на следата",
+      "filename": "Име на файл:",
+      "map": "карта",
+      "none": "Няма",
+      "owner": "Собственик:",
+      "pending": "Обработва се",
+      "points": "Точки:",
+      "start_coordinates": "Начални координати:",
+      "tags": "Етикети:",
+      "trace_not_found": "Следата не е открита!",
+      "uploaded": "Качено на:",
+      "visibility": "Видимост:"
+    },
+    "trace": {
+      "by": "от",
+      "count_points_one": "{{count}} точка",
+      "count_points_other": "{{count}} точки",
+      "edit_map": "Редактиране на картата",
+      "in": "в",
+      "more": "още",
+      "pending": "Обработва се",
+      "private": "ЧАСТНО",
+      "public": "ПУБЛИЧНО",
+      "trackable": "ПРОСЛЕДИМО",
+      "view_map": "Вижте на картата"
+    },
+    "trace_optionals": {
+      "tags": "Етикети"
+    },
+    "trace_paging_nav": {
+      "newer": "По-нови следи",
+      "older": "По-стари следи"
+    },
+    "update": {
+      "updated": "Трасето е обновено"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Редактиране"
+    },
+    "blocks": {
+      "creator_name": "Създател",
+      "display_name": "Блокиран потребител",
+      "next": "Следваща »",
+      "previous": "« Предишна",
+      "reason": "Причина за блокиране",
+      "showing_page": "Страница {{page}}",
+      "status": "Състояние"
+    },
+    "edit": {
+      "heading_html": "Промяна на блокирането на {{name}}",
+      "title": "Промяна на блокирането на {{name}}"
+    },
+    "filter": {
+      "block_expired": "Блокирането вече е изтекло и не може да се редактира."
+    },
+    "helper": {
+      "block_duration": {
+        "days_one": "{{count}} ден",
+        "days_other": "{{count}} дена",
+        "hours_one": "{{count}} час",
+        "hours_other": "{{count}} часа",
+        "months_one": "{{count}} месец",
+        "months_other": "{{count}} месеца",
+        "weeks_one": "{{count}} седмица",
+        "weeks_other": "{{count}} седмици",
+        "years_one": "{{count}} година",
+        "years_other": "{{count}} години"
+      },
+      "time_future_html": "Изтича след {{time}}."
+    },
+    "new": {
+      "back": "Виж всички блокирания"
+    },
+    "not_found": {
+      "back": "Обратно към индекс"
+    },
+    "revoke": {
+      "revoke": "Анулиране!"
+    },
+    "show": {
+      "confirm": "Сигурни ли сте?",
+      "created": "Създадена:",
+      "duration": "Продължителност:",
+      "edit": "Променяне",
+      "reason": "Причина за анулиране:",
+      "revoke": "Анулиране!",
+      "show": "Показване",
+      "status": "Състояние:"
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "commented": {
+        "commented_changeset": "{{commenter}} е оставил коментар в {{time}} към промените, които наблюдавате, създадени от {{changeset_author}}",
+        "partial_changeset_with_comment": "с коментар „{{changeset_comment}}“",
+        "partial_changeset_without_comment": "без коментар"
+      },
+      "greeting": "Здравейте,",
+      "hi": "Здравейте {{to_user}},"
+    },
+    "diary_comment_notification": {
+      "hi": "Здравейте {{to_user}},"
+    },
+    "email_confirm": {
+      "click_the_link": "Ако това сте Вие, моля, посетете препратката за потвърждение на промяната.",
+      "greeting": "Здравейте,",
+      "hopefully_you": "Някой (надяваме се Вие) желае да промени адреса на електронната си поща намиращ се на {{server_url}} с адрес: {{new_address}}.",
+      "subject": "[OpenStreetMap] Потвърждаване на адрес за електронна поща"
+    },
+    "friendship_notification": {
+      "befriend_them": "Можете да ги добавите като приятел на {{befriendurl}}.",
+      "had_added_you": "{{user}} ви добави като приятел на OpenStreetMap.",
+      "hi": "Здравейте {{to_user}},",
+      "see_their_profile": "Можете да видите профила му на {{userurl}}.",
+      "subject": "[OpenStreetMap] {{user}} ви добави като приятел"
+    },
+    "gpx_failure": {
+      "failed_to_import": "не е внесен. Това е грешката:",
+      "subject": "[OpenStreetMap] Грешка при внасяне на GPX"
+    },
+    "gpx_success": {
+      "hi": "Здравейте {{to_user}},",
+      "subject": "[OpenStreetMap] GPX импорта е успешен"
+    },
+    "lost_password": {
+      "click_the_link": "Ако това сте Вие, моля, посетете препратката за промяна на паролата.",
+      "greeting": "Здравейте,",
+      "hopefully_you": "Някой (надяваме се Вие) е поискал промяна на паролата на сметка в openstreetmap.org свързана този адрес на електронна поща.",
+      "subject": "[OpenStreetMap] Заявка за промяна на парола"
+    },
+    "message_notification": {
+      "hi": "Здравейте {{to_user}},"
+    },
+    "note_comment_notification": {
+      "anonymous": "Анонимен потребител",
+      "closed": {
+        "subject_own": "[OpenStreetMap] {{commenter}} е решил една от бележките ви",
+        "your_note": "{{commenter}} е решил една от бележките ви към картата в близост до {{place}}."
+      },
+      "commented": {
+        "subject_other": "[OpenStreetMap] {{commenter}} коментира бележка, от която се интересувате",
+        "subject_own": "[OpenStreetMap] {{commenter}} е коментирал на една от вашите бележки"
+      },
+      "details": "Повече детайли за бележката можете да намерите на {{url}}.",
+      "greeting": "Здравейте,",
+      "reopened": {
+        "subject_own": "[OpenStreetMap] {{commenter}} повторно е отворил една от бележките ви",
+        "your_note": "{{commenter}} повторно е отворил една от бележките ви към картата в близост до {{place}}."
+      }
+    },
+    "signup_confirm": {
+      "confirm": "Най-напред трябва да потвърдите, че вие сте дали заявката. Ако това сте Вие, моля, посетете препратката за потвърждение на сметката:",
+      "created": "Някой (надяваме се вие), току-що създаде сметка в {{site_url}}.",
+      "greeting": "Здравейте!",
+      "subject": "[OpenStreetMap] Добре дошли в OpenStreetMap",
+      "welcome": "След като потвърдите ще ви изпратим още повече информация как да започнете."
+    }
+  },
+  "user_mutes": {
+    "index": {
+      "table": {
+        "thead": {
+          "actions": "Действия"
+        }
+      }
+    }
+  },
+  "user_role": {
+    "grant": {
+      "confirm": "Потвърждаване"
+    },
+    "revoke": {
+      "confirm": "Потвърждаване"
+    }
+  },
+  "users": {
+    "index": {
+      "empty": "Не са открити съвпадащи профили",
+      "heading": "Потребители",
+      "hide": "Скрий избраните потребители",
+      "showing_one": "Страница {{page}} ({{first_item}} от {{items}})",
+      "showing_other": "Страница {{page}} ({{first_item}}-{{last_item}} от {{items}})",
+      "summary_no_ip_html": "{{name}} създадено на {{date}}",
+      "title": "Потребители"
+    },
+    "new": {
+      "about": {
+        "header": "Безплатна и достъпна за редактиране",
+        "paragraph_1": "За разлика от други карти, OpenStreetMap е изцяло създадена от хора като Вас и е безплатна за всеки, който иска да я поправи, актуализира, изтегли и използва."
+      },
+      "continue": "Регистриране",
+      "external auth": "Удостоверяване от външен източник:",
+      "terms accepted": "Благодарим Ви, че приемате новите условия за сътрудничество!",
+      "title": "Регистриране",
+      "use external auth": "Или използвайте удостоверяване от външен източник"
+    },
+    "no_such_user": {
+      "deleted": "изтрито",
+      "heading": "Потребителят {{user}} не съществува",
+      "title": "Няма такъв потребител"
+    },
+    "show": {
+      "activate_user": "Активирай този Потребител",
+      "add as friend": "Добавяне в приятели",
+      "block_history": "Активни блокирания",
+      "blocks by me": "Блокирани от мен",
+      "blocks on me": "Блокирани от мен",
+      "comments": "Коментари",
+      "confirm": "Потвърдете",
+      "confirm_user": "Потвърди този Потребител",
+      "create_block": "Блокиране на този потребител",
+      "create_mute": "Заглушаване на потребителя",
+      "created from": "Създадена от:",
+      "ct declined": "Отхвърлени",
+      "ct status": "Условия за сътрудничество:",
+      "ct undecided": "Неопределени",
+      "delete_user": "Изтриване на този потребител",
+      "diary": "Дневник",
+      "edit_profile": "Редактиране на профила",
+      "edits": "Промени",
+      "email address": "Електронна поща:",
+      "hide_user": "Скрий този Потребител",
+      "mapper since": "Картограф от:",
+      "moderator_history": "Блокирания",
+      "my comments": "Моите коментари",
+      "my diary": "Моя дневник",
+      "my edits": "Мои промени",
+      "my messages": "Съобщения",
+      "my notes": "Моите бележки",
+      "my profile": "Профил",
+      "my settings": "Настройки",
+      "my traces": "Моите следи",
+      "my_preferences": "Предпочитания",
+      "notes": "Бележки",
+      "remove as friend": "Премахване от приятели",
+      "report": "Докладване на потребителя",
+      "role": {
+        "administrator": "Този потребител е администратор",
+        "grant": {
+          "administrator": "Позволи администраторски достъп",
+          "moderator": "Позволи модераторски достъп"
+        },
+        "moderator": "Този потребител е модератор"
+      },
+      "send message": "Изпратете съобщение",
+      "spam score": "Оценка за спам:",
+      "status": "Състояние:",
+      "traces": "Следи",
+      "unhide_user": "Разкрий този потребител"
+    },
+    "suspended": {
+      "support": "поддръжка"
+    },
+    "terms": {
+      "consider_pd_why": "какво е това?",
+      "continue": "Продължаване",
+      "decline": "Отхвърли",
+      "heading": "Условия",
+      "heading_ct": "Условия за сътрудничество",
+      "legale_names": {
+        "france": "Франция",
+        "italy": "Италия",
+        "rest_of_world": "В останалата част на света"
+      },
+      "legale_select": "Държава на пребиваване:",
+      "title": "Условия",
+      "you need to accept or decline": "За да продължите, моля, прочетете, а след това се съгласете или откажете новите условия за сътрудничество."
+    }
+  },
+  "validations": {
+    "invalid_characters": "съдържа невалидни символи",
+    "leading_whitespace": "има водещи интервали",
+    "trailing_whitespace": "има интервал в края"
+  }
+}

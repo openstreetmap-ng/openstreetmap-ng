@@ -1,0 +1,1615 @@
+{
+  "accounts": {
+    "edit": {
+      "contributor terms": {
+        "link text": "हे काय आहे?"
+      },
+      "current email address": "वर्तमान ईमेल पत्ता",
+      "my settings": "माझ्या मांडण्या",
+      "openid": {
+        "link text": "हे काय आहे?"
+      },
+      "public editing": {
+        "disabled link text": "मी संपादन कां करू शकत नाही?",
+        "enabled link text": "हे काय आहे?"
+      },
+      "save changes button": "बदल जतन करा",
+      "title": "खाते संपादा"
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "वैयक्तिक GPS आनुरेखा वाचा",
+        "allow_read_prefs": "वापरकर्त्याच्या पसंती वाचा",
+        "allow_write_api": "नकाशात बदल करा",
+        "allow_write_gpx": "GPS अनुरेख चढवा",
+        "allow_write_notes": "टीपा बदला",
+        "allow_write_prefs": "वापरकर्त्याच्या पसंती बदला",
+        "name": "नाव (आवश्यक)",
+        "url": "मुख्य ऍप्लिकेशन URL (आवश्यक)"
+      },
+      "diary_comment": {
+        "body": "मायना"
+      },
+      "diary_entry": {
+        "language_code": "भाषा",
+        "latitude": "अक्षांश",
+        "longitude": "रेखांश",
+        "title": "विषय",
+        "user": "सदस्य"
+      },
+      "doorkeeper/application": {
+        "name": "नाव"
+      },
+      "friend": {
+        "friend": "मित्र",
+        "user": "सदस्य"
+      },
+      "message": {
+        "body": "मायना",
+        "recipient": "प्राप्तकर्ता",
+        "sender": "प्रेषक",
+        "title": "विषय"
+      },
+      "redaction": {
+        "description": "वर्णन",
+        "title": "शीर्षक"
+      },
+      "trace": {
+        "description": "वर्णन",
+        "gpx_file": "GPX फाईल चढावा",
+        "latitude": "अक्षांश",
+        "longitude": "रेखांश",
+        "name": "नाव",
+        "public": "सार्वजनिक",
+        "size": "आकार",
+        "tagstring": "खूणपताका:",
+        "user": "सदस्य",
+        "visibility": "दृश्यता:",
+        "visible": "दृश्य"
+      },
+      "user": {
+        "active": "सक्रिय",
+        "description": "वर्णन",
+        "display_name": "दर्शवायचे नाव",
+        "email": "ई-मेल",
+        "home_lat": "अक्षांश:",
+        "home_lon": "रेखांश:",
+        "languages": "पसंतीच्या भाषा",
+        "new_email": "नवीन ईमेल पत्ता",
+        "pass_crypt": "परवलीचा शब्द",
+        "pass_crypt_confirmation": "परवलीचा शब्द पुन्हा लिहा:",
+        "preferred_editor": "पसंतीचे संपादक"
+      }
+    },
+    "errors": {
+      "messages": {
+        "invalid_email_address": "वैध ईमेल पत्ता वाटत नाही."
+      }
+    },
+    "help": {
+      "trace": {
+        "tagstring": "स्वल्पविरामाने परिसीमित"
+      }
+    },
+    "models": {
+      "acl": "पोहोच नियंत्रण यादी",
+      "changeset": "बदलसंच",
+      "changeset_tag": "बदलसंचाची खूणपताका",
+      "country": "देश",
+      "diary_comment": "रोजनिशी अभिप्राय",
+      "diary_entry": "रोजनिशीतील नोंद",
+      "friend": "मित्र",
+      "issue": "मुद्दा",
+      "language": "भाषा",
+      "message": "संदेश",
+      "node": "गाठ",
+      "node_tag": "गाठीची खूणपताका",
+      "old_node": "जुनी गाठ",
+      "old_node_tag": "जून्या गाठीची खूणपताका",
+      "old_relation": "जुना संबंध",
+      "old_relation_member": "संबंधाचा जुना सदस्य",
+      "old_relation_tag": "जून्या संबंधाची खूणपताका",
+      "old_way": "जुना मार्ग",
+      "old_way_node": "मार्गातील जुनी गाठ",
+      "old_way_tag": "जून्या मार्गाची खूणपताका",
+      "relation": "संबंध",
+      "relation_member": "संबंधाचा सदस्य",
+      "relation_tag": "संबंधाची खूणपताका",
+      "report": "अहवाल",
+      "session": "सत्र",
+      "trace": "अनुरेख",
+      "tracepoint": "अनुरेख बिंदू",
+      "tracetag": "अनुरेख खूणपताका",
+      "user": "सदस्य",
+      "user_preference": "सदस्याची पसंती",
+      "user_token": "सदस्य बिल्ला",
+      "way": "मार्ग",
+      "way_node": "मार्गातील गाठ",
+      "way_tag": "मार्ग खूणपताका"
+    }
+  },
+  "api": {
+    "notes": {
+      "entry": {
+        "comment": "टिप्पणी"
+      }
+    }
+  },
+  "application": {
+    "settings_menu": {
+      "account_settings": "खाते मांडण्या",
+      "oauth1_settings": "OAuth 1 मांडण्या"
+    }
+  },
+  "auth": {
+    "providers": {
+      "wikipedia": "विकिपीडिया"
+    }
+  },
+  "browse": {
+    "anonymous": "अनामिक",
+    "changeset": {
+      "belongs_to": "लेखक",
+      "changesetxml": "बदलसंच XML",
+      "feed": {
+        "title": "बदलसंच {{id}}",
+        "title_comment": "बदलसंच {{id}} - {{comment}}"
+      },
+      "join_discussion": "चर्चेत सहभागी होण्यासाठी सनोंद प्रवेश करा",
+      "node": "गाठी ({{count}})",
+      "node_paginated": "गाठी ({{x}}-{{y}}, {{count}} पैकी)",
+      "osmchangexml": "osmChange XML",
+      "relation": "संबंध ({{count}})",
+      "relation_paginated": "संबंध ({{x}}-{{y}}, {{count}} पैकी)",
+      "title": "बदलसंच: {{id}}",
+      "way": "मार्ग ({{count}})",
+      "way_paginated": "मार्ग ({{x}}-{{y}}, {{count}} पैकी)"
+    },
+    "closed": "बंद केले",
+    "containing_relation": {
+      "entry_html": "संबंध {{relation_name}}",
+      "entry_role_html": "संबंध {{relation_name}} ({{relation_role}} म्हणून)"
+    },
+    "created": "बनविले",
+    "download_xml": "XML उतरवा",
+    "in_changeset": "बदलसंच",
+    "location": "ठिकाण:",
+    "no_comment": "(वर्णन नाही)",
+    "node": {
+      "history_title_html": "गाठीचा इतिहास: {{name}}",
+      "title_html": "गाठ: {{name}}"
+    },
+    "not_found": {
+      "sorry": "क्षमा असावी, {{type}} #{{id}} सापडले नाही.",
+      "type": {
+        "changeset": "चा बदलसंच सापडला",
+        "node": "गाठ",
+        "relation": "संबंध",
+        "way": "मार्ग"
+      }
+    },
+    "part_of": "चा भाग",
+    "part_of_relations_one": "{{count}} संबंध",
+    "part_of_relations_other": "{{count}} संबंध",
+    "part_of_ways_one": "{{count}} मार्ग",
+    "part_of_ways_other": "{{count}} मार्ग",
+    "query": {
+      "title": "वस्तूंची विचारणा"
+    },
+    "redacted": {
+      "message_html": "या {{type}}ची आवृत्ती क्र. {{version}} दाखविली जाऊ शकत नाही कारण तिचे लोपन करण्यात आले आहे. कृपया तपशीलासाठी {{redaction_link}} पहा.",
+      "redaction": "लोपन {{id}}",
+      "type": {
+        "node": "गाठी",
+        "relation": "संबंध",
+        "way": "मार्ग"
+      }
+    },
+    "relation": {
+      "history_title_html": "संबंधाचा इतिहास: {{name}}",
+      "members": "सदस्य",
+      "title_html": "संबंध: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}}, {{role}} म्हणून",
+      "type": {
+        "node": "गाठ",
+        "relation": "संबंध",
+        "way": "मार्ग"
+      }
+    },
+    "start_rjs": {
+      "feature_warning": "{{num_features}} प्रारुपाचे प्रभारण करीत आहे ज्याने आपला न्याहाळक मंद अथवा प्रतिसादशून्य होईल.आपणास खात्री आहे काय की आपणास डाटा दर्शवायचा आहे.",
+      "load_data": "डाटाचे भारण करा",
+      "loading": "प्रभारण करीत आहे"
+    },
+    "tag_details": {
+      "tags": "खूणपताका",
+      "wiki_link": {
+        "key": "{{key}} खूणपताकेसाठी विकी वर्णन पान",
+        "tag": "{{key}}={{value}} खूणपताकेसाठी विकी वर्णन पान"
+      },
+      "wikipedia_link": "विकिपिडियावरील {{page}} हा लेख"
+    },
+    "timeout": {
+      "sorry": "क्षमा असावी, {{id}}असलेला {{type}}चा डाटा मिळविण्यास फार वेळ लागला.",
+      "type": {
+        "changeset": "बदलसंच",
+        "node": "गाठी",
+        "relation": "संबंध",
+        "way": "मार्ग"
+      }
+    },
+    "version": "आवृत्ती",
+    "view_details": "तपशील पहा",
+    "view_history": "इतिहास पहा",
+    "way": {
+      "also_part_of_html_one": "{{related_ways}} मार्गाचा भाग",
+      "also_part_of_html_other": "{{related_ways}} मार्गांचा भाग",
+      "history_title_html": "मार्गाचा इतिहास: {{name}}",
+      "nodes": "गाठी",
+      "title_html": "मार्ग: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "index": {
+      "title_all": "OpenStreetMap बदलसंच चर्चा",
+      "title_particular": "OpenStreetMap बदलसंच #{{changeset_id}} चर्चा"
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "अनामिक",
+      "no_edits": "(संपादने नाहीत)",
+      "view_changeset_details": "बदलसंचाचा तपशील पहा"
+    },
+    "changeset_paging_nav": {
+      "next": "पुढील »",
+      "previous": "« मागील",
+      "showing_page": "लेख {{page}}"
+    },
+    "changesets": {
+      "area": "क्षेत्र",
+      "comment": "टिप्पणी",
+      "id": "ओळखसंख्या (आयडी)",
+      "saved_at": "ला जतन केले",
+      "user": "सदस्य"
+    },
+    "index": {
+      "empty": "बदलसंच सापडले नाहीत.",
+      "empty_area": "या भागात बदलसंच नाहीत.",
+      "empty_user": "या सदस्याचे बदलसंच नाहीत.",
+      "load_more": "अधिक प्रभारण करा",
+      "no_more": "अधिक बदलसंच सापडले नाहीत.",
+      "no_more_area": "या भागात अधिक बदलसंच नाहीत.",
+      "no_more_user": "या सदस्याचे अधिक बदलसंच नाहीत.",
+      "title": "बदलसंच",
+      "title_friend": "आपल्या मित्रांचे बदलसंच",
+      "title_nearby": "जवळपासच्या सदस्यांचे बदलसंच",
+      "title_user": "{{user}}चे बदलसंच"
+    },
+    "timeout": {
+      "sorry": "क्षमा असावी, आपण मागितलेली बदलसंचाची यादी मिळविण्यास फार वेळ लागला."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "या खात्याची आधीच निश्चिती झाली आहे.",
+      "button": "खात्री करा",
+      "heading": "आपले विपत्र तपासा!",
+      "introduction_1": "आम्ही आपणास निश्चितीकरणास विपत्र पाठविले आहे.",
+      "introduction_2": "विपत्रातील दुव्यावर टिचकी मारुन आपली खातेनिश्चिती करा व आपण नकाशा काढणे सुरु करु शकता.",
+      "unknown token": "तो निश्चिती संकेत कालबाह्य झाला आहे किंवा अस्तित्वात नाही."
+    },
+    "confirm_email": {
+      "heading": "ईमेल पत्त्यातील बदलाची पुष्टी करा"
+    },
+    "confirm_resend": {
+      "failure": "सदस्य {{name}} सापडला नाही."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}} कि.मी. दूर",
+      "latest_edit_html": "नवीनतम संपादन {{ago}}:",
+      "m away": "{{count}} मी. दूर"
+    },
+    "popup": {
+      "friend": "मित्र",
+      "nearby mapper": "जवळपासचे नकाशाकार",
+      "your location": "आपले ठिकाण"
+    },
+    "show": {
+      "friends_changesets": "मित्रांचे बदलसंच",
+      "friends_diaries": "मित्रांच्या अनुदिनीतील नोंदी",
+      "my friends": "माझे मित्र",
+      "nearby users": "जवळपासचे इतर सदस्य",
+      "nearby_changesets": "जवळपासच्या सदस्यांचे बदलसंच",
+      "nearby_diaries": "जवळपासच्या सदस्यांच्या अनुदिनीतील नोंदी",
+      "title": "माझे फलक"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_one": "सुमारे {{count}} तासापूर्वी",
+      "about_x_hours_other": "सुमारे {{count}} तासांपूर्वी",
+      "about_x_months_one": "सुमारे {{count}} महिन्यापूर्वी",
+      "about_x_months_other": "सुमारे {{count}} महिन्यांपूर्वी",
+      "about_x_years_one": "सुमारे {{count}} वर्षापूर्वी",
+      "about_x_years_other": "सुमारे {{count}} वर्षांपूर्वी",
+      "almost_x_years_one": "जवळजवळ {{count}} वर्षापूर्वी",
+      "almost_x_years_other": "जवळजवळ {{count}} वर्षांपूर्वी",
+      "half_a_minute": "अर्ध्या मिनिटापूर्वी",
+      "less_than_x_minutes_one": "गेल्या {{count}} मिनिटात",
+      "less_than_x_minutes_other": "गेल्या {{count}} मिनिटांत",
+      "over_x_years_one": "{{count}} वर्षापेक्षापुर्वी",
+      "over_x_years_other": "{{count}} वर्षांपेक्षापुर्वी",
+      "x_days_one": "{{count}} दिवसापूर्वी",
+      "x_days_other": "{{count}} दिवसांपूर्वी",
+      "x_minutes_one": "{{count}} मिनिटापूर्वी",
+      "x_minutes_other": "{{count}} मिनिटांपूर्वी",
+      "x_months_one": "{{count}} महिन्यापूर्वी",
+      "x_months_other": "{{count}} महिन्यांपूर्वी",
+      "x_years_one": "{{count}} वर्षापूर्वी",
+      "x_years_other": "{{count}} वर्षांपूर्वी"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "टिप्पणी",
+      "newer_comments": "नवे अभिप्राय",
+      "older_comments": "जुन्या टिप्पण्या",
+      "post": "पाठवा",
+      "when": "कधी"
+    },
+    "diary_comment": {
+      "comment_from_html": "{{link_user}}कडून {{comment_created_at}}ला अभिप्राय",
+      "confirm": "खात्री करा",
+      "hide_link": "हा अभिप्राय लपवा"
+    },
+    "diary_entry": {
+      "comment_count_one": "{{count}} comment",
+      "comment_count_other": "{{count}} अभिप्राय",
+      "comment_count_zero": "अभिप्राय नाहीत",
+      "comment_link": "या नोंदीवर अभिप्राय लिहा",
+      "confirm": "खात्री करा",
+      "edit_link": "ही नोंद संपादा",
+      "hide_link": "ही नोंद लपवा",
+      "posted_by_html": "{{link_user}}ने {{created}} ला {{language_link}} भाषेत लिहीले",
+      "reply_link": "या नोंदीस उत्तर द्या"
+    },
+    "edit": {
+      "marker_text": "रोजनिशीतील नोंदीचे ठिकाण",
+      "title": "रोजनिशीतील नोंद संपादा"
+    },
+    "feed": {
+      "all": {
+        "description": "ओपनस्ट्रीटमॅप सदस्यांकडून अलीकडील अनुदिनी-नोंदी",
+        "title": "ओपनस्ट्रीटमॅप अनुदिनीतील नोंदी"
+      },
+      "language": {
+        "description": "ओपनस्ट्रीटमॅप सदस्यांकडून {{language_name}} भाषेतील अलीकडील अनुदिनी-नोंदी",
+        "title": "{{language_name}} भाषेतील ओपनस्ट्रीटमॅप अनुदिनीतील नोंदी"
+      },
+      "user": {
+        "description": "{{user}}कडून अलीकडील ओपनस्ट्रीटमॅप रोजनिशी-नोंदी",
+        "title": "{{user}}कडून ओपनस्ट्रीटमॅप रोजनिशी-नोंदी"
+      }
+    },
+    "form": {
+      "location": "ठिकाण:",
+      "use_map_link": "नकाशा वापरा"
+    },
+    "index": {
+      "in_language_title": "{{language}} भाषेतील अनुदिनीतील नोंदी",
+      "new": "अनुदिनीत नवी नोंद",
+      "new_title": "आपल्या अनुदिनीत नवी नोंद लिहा",
+      "newer_entries": "नव्या नोंदी",
+      "no_entries": "रिक्त अनुदिनी",
+      "older_entries": "जुन्या नोंदी",
+      "recent_entries": "रोजनिशीतील अलीकडील नोंदी",
+      "title": "सदस्यांच्या अनुदिनी",
+      "title_friends": "मित्रांच्या अनुदिनी",
+      "title_nearby": "जवळपासच्या सदस्यांच्या अनुदिनी",
+      "user_title": "{{user}}ची अनुदिनी"
+    },
+    "location": {
+      "edit": "संपादन करा",
+      "location": "ठिकाण:",
+      "view": "पहा"
+    },
+    "new": {
+      "title": "अनुदिनीत नवी नोंद"
+    },
+    "no_such_entry": {
+      "body": "क्षमा असावी, {{id}} क्रमांकाची रोजनिशीतील नोंद किंवा अभिप्राय अस्तित्वात नाही. कृपया आपले वर्णलेखन तपासा, किंवा कदाचित आपण चुकीच्या दुव्यावर टिचकी दिली असेल.",
+      "heading": "{{id}} क्रमांकाची नोंद अस्तित्वात नाही",
+      "title": "रोजनिशीत अशी नोंद नाही"
+    },
+    "show": {
+      "leave_a_comment": "टिप्पणी टाका",
+      "login": "सनोंद-प्रवेश करा",
+      "login_to_leave_a_comment_html": "टिप्प्णी लिहिण्यासाठी {{login_link}}",
+      "title": "{{user}}ची रोजनिशी | {{title}}",
+      "user_title": "{{user}}ची रोजनिशी"
+    }
+  },
+  "editor": {
+    "default": "सामान्यतः (सध्या {{name}})",
+    "id": {
+      "description": "iD (न्याहाळकात चालणारा संपादक)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "सुदूर नियंत्रण (JOSM अथवा Merkaartor)",
+      "name": "सुदूर नियंत्रण"
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "अधिक निकाल",
+      "no_results": "परिणाम सापडले नाही"
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "उपनगर सिमा",
+        "level2": "देशसीमा",
+        "level4": "राज्य सिमा",
+        "level5": "प्रांत सिमा",
+        "level6": "प्रांत सिमा",
+        "level8": "शहर सिमा",
+        "level9": "खेडे सिमा"
+      },
+      "prefix": {
+        "aerialway": {
+          "chair_lift": "खुर्ची उद्वाहन",
+          "drag_lift": "खेच उद्वाहन",
+          "station": "रज्जुमार्ग स्थानक"
+        },
+        "aeroway": {
+          "aerodrome": "विमानतळ",
+          "apron": "भरणतळ",
+          "gate": "द्वार",
+          "helipad": "हेलिपॅड",
+          "runway": "धावपट्टी",
+          "taxiway": "विमानखेचमार्ग",
+          "terminal": "अग्र"
+        },
+        "amenity": {
+          "arts_centre": "कलाकेंद्र",
+          "atm": "एटीएम",
+          "bank": "बँक",
+          "bar": "मद्यगृह",
+          "bbq": "बार्बेक्यू",
+          "bench": "बाकडे",
+          "bicycle_parking": "सायकलतळ",
+          "bicycle_rental": "भाड्याने सायकल",
+          "biergarten": "बीअर बगिचा",
+          "brothel": "वेश्यागृह",
+          "bureau_de_change": "चलन विनिमय",
+          "bus_station": "बस स्थानक",
+          "cafe": "कॅफे",
+          "car_rental": "भाड्याने कार",
+          "car_sharing": "कार सहभागिता",
+          "car_wash": "कार धुण्याची जागा",
+          "casino": "जुगारगृह",
+          "charging_station": "प्रभारण स्थानक",
+          "cinema": "चित्रपटगृह",
+          "clinic": "चिकित्सालय",
+          "college": "महाविद्यालय",
+          "community_centre": "समाज भवन",
+          "courthouse": "न्यायमंदिर",
+          "crematorium": "दहनभूमी",
+          "dentist": "दंतवैद्य",
+          "doctors": "डॉक्टर",
+          "drinking_water": "पिण्याचे पाणी",
+          "driving_school": "चालन-शाळा",
+          "embassy": "दूतावास",
+          "fast_food": "जलदान्न",
+          "ferry_terminal": "होडी अग्र",
+          "fire_station": "अग्निशमन केंद्र",
+          "food_court": "भोजन आवार",
+          "fountain": "कारंजे",
+          "fuel": "इंधन",
+          "grave_yard": "दफनभूमी",
+          "hospital": "रुग्णालय",
+          "hunting_stand": "मचाण",
+          "ice_cream": "आईसक्रिम",
+          "kindergarten": "बालवाडी",
+          "library": "ग्रंथालय",
+          "marketplace": "बाजार",
+          "nightclub": "रात्री क्लब",
+          "nursing_home": "शुश्रुषागृह",
+          "parking": "वाहनतळ",
+          "pharmacy": "औषधालय",
+          "place_of_worship": "पूजास्थान",
+          "police": "पोलिस",
+          "post_box": "टपालपेटी",
+          "post_office": "टपाल कार्यालय",
+          "prison": "कारागृह",
+          "pub": "मद्यपानगृह",
+          "public_building": "सार्वजनिक इमारत",
+          "recycling": "पुनश्चक्रण केंद्र",
+          "restaurant": "उपाहारगृह",
+          "school": "शाळा",
+          "shelter": "आश्रयस्थान",
+          "shower": "तुषारक",
+          "social_centre": "समाज केंद्र",
+          "social_facility": "सामाजिक सुविधा",
+          "studio": "कलागृह",
+          "swimming_pool": "जलतरण तलाव",
+          "taxi": "टॅक्सी",
+          "telephone": "सार्वजनिक दूरध्वनी",
+          "theatre": "नाट्यगृह",
+          "toilets": "स्वच्छतागृह",
+          "townhall": "नगरभवन",
+          "university": "विद्यापीठ",
+          "vending_machine": "विक्रययंत्र",
+          "veterinary": "पशू शल्यक्रिया",
+          "village_hall": "गाव सभागृह",
+          "waste_basket": "कचरा टोपली",
+          "yes": "सुविधा"
+        },
+        "boundary": {
+          "administrative": "प्रशासकीय सीमा",
+          "census": "जनगणना सीमा",
+          "national_park": "राष्ट्रीय उद्यान",
+          "protected_area": "संरक्षित क्षेत्र",
+          "yes": "सीमा"
+        },
+        "bridge": {
+          "aqueduct": "जलसेतू",
+          "suspension": "टांगलेला पूल",
+          "swing": "झुलता पूल",
+          "viaduct": "उंच पूल",
+          "yes": "पूल"
+        },
+        "building": {
+          "bungalow": "बंगला",
+          "college": "महाविद्यालय इमारत",
+          "house": "घर",
+          "kindergarten": "बालवाडी इमारत",
+          "roof": "छत",
+          "yes": "इमारत"
+        },
+        "emergency": {
+          "phone": "संकटकालीन दूरध्वनी"
+        },
+        "highway": {
+          "bridleway": "अश्वमार्ग",
+          "bus_guideway": "गायडेड बस लेन",
+          "bus_stop": "बस थांबा",
+          "construction": "निर्माणाधीन महामार्ग",
+          "cycleway": "सायकल मार्ग",
+          "emergency_access_point": "आकस्मिक पोहोच बिंदू",
+          "footway": "पदपथ",
+          "ford": "पाय-उतार",
+          "living_street": "निवासी रस्ता",
+          "milestone": "मैलदगड",
+          "motorway": "मोटारमार्ग",
+          "motorway_junction": "मोटारमार्ग जंक्शन",
+          "motorway_link": "मोटारमार्ग रस्ता",
+          "path": "पथ",
+          "pedestrian": "पादचारी मार्ग",
+          "platform": "ओटा",
+          "primary": "प्राथमिक रस्ता",
+          "primary_link": "प्राथमिक रस्ता",
+          "proposed": "प्रस्तावित रस्ता",
+          "raceway": "शर्यतमार्ग",
+          "residential": "निवासी",
+          "rest_area": "आरामक्षेत्र",
+          "road": "रस्ता",
+          "secondary": "माध्यमिक रस्ता",
+          "secondary_link": "माध्यमिक रस्ता",
+          "service": "सेवा मार्ग",
+          "services": "मोटरमार्ग सेवा",
+          "speed_camera": "गतीनोंद कॅमेरा",
+          "steps": "पायऱ्या",
+          "street_lamp": "पथ दिवा",
+          "track": "वाट",
+          "trunk": "महामार्ग",
+          "trunk_link": "महामार्ग",
+          "unclassified": "अवर्गीकृत रस्ता"
+        },
+        "historic": {
+          "archaeological_site": "पुरातत्त्व स्थळ",
+          "battlefield": "युद्धक्षेत्र",
+          "boundary_stone": "सिमांकन दगड",
+          "building": "इमारत",
+          "castle": "गढी",
+          "church": "चर्च",
+          "citywalls": "शहराच्या भिंती",
+          "fort": "किल्ला",
+          "house": "घर",
+          "manor": "हवेली",
+          "memorial": "स्मारक",
+          "mine": "खाण",
+          "monument": "स्मारक",
+          "ruins": "भग्नावशेष",
+          "tomb": "थडगे",
+          "tower": "मनोरा",
+          "wayside_shrine": "मार्गालगतचे देवालय",
+          "wreck": "भग्नावशेष"
+        },
+        "landuse": {
+          "allotments": "वाटप",
+          "basin": "खोरे",
+          "cemetery": "दफनभूमी",
+          "commercial": "वाणिज्यिक क्षेत्र",
+          "conservation": "संधारण",
+          "construction": "बांधकाम",
+          "farmland": "शेतजमीन",
+          "farmyard": "शेतमैदान",
+          "forest": "वन",
+          "garages": "गॅरेजेस",
+          "grass": "गवत",
+          "industrial": "औद्योगिक क्षेत्र",
+          "landfill": "भराव",
+          "meadow": "कुरण",
+          "military": "सैनिकी क्षेत्र",
+          "mine": "खाण",
+          "orchard": "फळबाग",
+          "quarry": "खुली खाण",
+          "railway": "लोहमार्ग",
+          "recreation_ground": "मैदान",
+          "reservoir": "जलाशय",
+          "reservoir_watershed": "जलाशयाचे पाणलोट क्षेत्र",
+          "residential": "निवासी क्षेत्र",
+          "retail": "विक्री",
+          "village_green": "गावहिरवळ",
+          "vineyard": "द्राक्षमळा"
+        },
+        "leisure": {
+          "bird_hide": "पक्षी आश्रयस्थान",
+          "common": "सार्वजनिक जागा",
+          "fishing": "मासेमारी क्षेत्र",
+          "fitness_station": "व्यायामस्थानक",
+          "garden": "बगीचा",
+          "golf_course": "गोल्फ कोर्स",
+          "marina": "नौकातळ",
+          "nature_reserve": "अभयारण्य",
+          "park": "उद्यान",
+          "pitch": "पटांगण",
+          "playground": "क्रीडांगण",
+          "recreation_ground": "करमणुक मैदान",
+          "sauna": "सॉना",
+          "slipway": "सरकमार्ग",
+          "sports_centre": "क्रीडाकेंद्र",
+          "stadium": "क्रीडागार",
+          "swimming_pool": "जलतरण तलाव",
+          "track": "धाव मार्ग",
+          "water_park": "जलोद्यान"
+        },
+        "military": {
+          "airfield": "लष्करी विमानतळ",
+          "barracks": "बराकी",
+          "bunker": "विवर"
+        },
+        "mountain_pass": {
+          "yes": "खिंड"
+        },
+        "natural": {
+          "bay": "खाडी",
+          "beach": "किनारा",
+          "cape": "भूशिर",
+          "cave_entrance": "गुंफा प्रवेश",
+          "cliff": "कडा",
+          "crater": "विवर",
+          "dune": "धन्व",
+          "fell": "वृक्ष तोड",
+          "forest": "वन",
+          "geyser": "उष्ण झरा",
+          "glacier": "हिमनदी",
+          "grassland": "गवताळ प्रदेश",
+          "heath": "माळरान",
+          "hill": "टेकडी",
+          "island": "बेट",
+          "land": "जमीन",
+          "marsh": "पाणथळ",
+          "moor": "जीर्ण जमिन",
+          "mud": "चिखल",
+          "peak": "शिखर",
+          "point": "बिंदू",
+          "reef": "प्रवाली",
+          "ridge": "पर्वतरांग",
+          "rock": "खडक",
+          "scree": "पायथा दगड",
+          "scrub": "खुरटी झाडी",
+          "spring": "झरा",
+          "stone": "दगड",
+          "strait": "सामुद्रधुनी",
+          "tree": "झाड",
+          "valley": "दरी",
+          "volcano": "ज्वालामुखी",
+          "water": "पाणी",
+          "wetland": "आर्द्र जमिन",
+          "wood": "जंगल"
+        },
+        "office": {
+          "accountant": "लेखापाल",
+          "architect": "वास्तुविशारद",
+          "company": "कंपनी",
+          "employment_agency": "सेवायोजन केंद्र",
+          "estate_agent": "स्थावर अभिकर्ता",
+          "government": "शासकीय कार्यालय",
+          "insurance": "विमा कार्यालय",
+          "lawyer": "वकील",
+          "ngo": "अशासकीय संस्थेचे कार्यालय",
+          "telecommunication": "दूरसंचार कार्यालय",
+          "travel_agent": "प्रवास अभिकरण",
+          "yes": "कार्यालय"
+        },
+        "place": {
+          "city": "शहर",
+          "country": "देश",
+          "county": "तालुका",
+          "farm": "मळा",
+          "hamlet": "वाडी",
+          "house": "घर",
+          "houses": "घरे",
+          "island": "बेट",
+          "islet": "द्वीपक",
+          "isolated_dwelling": "विलग रहिवास",
+          "locality": "मोहल्ला",
+          "municipality": "नगरपालिका",
+          "neighbourhood": "परिसर",
+          "postcode": "पोस्टसंकेत",
+          "region": "प्रांत",
+          "sea": "समुद्र",
+          "state": "राज्य",
+          "subdivision": "उपविभाग",
+          "suburb": "उपनगर",
+          "town": "गाव",
+          "village": "खेडे"
+        },
+        "railway": {
+          "abandoned": "त्यक्त लोहमार्ग",
+          "construction": "निर्माणाधीन लोहमार्ग",
+          "disused": "अनुपयोगीत रेल्वे",
+          "funicular": "रज्जुलोहमार्ग",
+          "halt": "रेल्वे स्थानक",
+          "junction": "लोहमार्ग संधिस्थान",
+          "level_crossing": "समतल मार्गपारण",
+          "light_rail": "हलकी रेल्वे",
+          "miniature": "लघु रेल",
+          "monorail": "एकरुळी",
+          "narrow_gauge": "नॅरो गेज रेल्वे",
+          "platform": "रेल्वे फलाट",
+          "preserved": "संरक्षित लोहमार्ग",
+          "proposed": "प्रस्तावित लोहमार्ग",
+          "spur": "लोहमार्ग फाटा",
+          "station": "रेल्वे स्थानक",
+          "stop": "रेल्वे थांबा",
+          "subway": "मेट्रो स्थानक",
+          "subway_entrance": "भूयारी स्थानक प्रवेश",
+          "switch": "रेल्वे बिंदू",
+          "tram": "ट्राममार्ग",
+          "tram_stop": "ट्राम स्थानक",
+          "yard": "रेल्वे आवार"
+        },
+        "shop": {
+          "alcohol": "परवानाबाह्य",
+          "antiques": "पुरावस्तु",
+          "art": "कला दुकान",
+          "bakery": "बेकरी",
+          "beauty": "प्रसाधन दुकान",
+          "beverages": "पेय दुकान",
+          "bicycle": "सायकल दुकान",
+          "books": "पुस्तकालय",
+          "boutique": "बुटिक",
+          "butcher": "खाटीक",
+          "car": "कार दुकान",
+          "car_parts": "कार सुटेभाग",
+          "car_repair": "कार दुरुस्ती",
+          "carpet": "गालिचाचे दुकान",
+          "charity": "धर्मदाय दुकान",
+          "chemist": "औषधविक्रेता",
+          "clothes": "कपडा दुकान",
+          "computer": "संगणक दुकान",
+          "confectionery": "मिठाई दुकान",
+          "convenience": "सोईस्कर माल दुकान",
+          "copyshop": "वही दुकान",
+          "cosmetics": "सौंदर्यप्रसाधनांचे दुकान",
+          "department_store": "एकछत्री भांडार",
+          "discount": "सवलतवस्तू दुकान",
+          "doityourself": "स्वतः करा",
+          "dry_cleaning": "ड्रायक्लिनींग",
+          "electronics": "ईलेक्ट्रॉनिक्स दुकान",
+          "estate_agent": "स्थावर अभिकर्ता",
+          "farm": "शेत दुकान",
+          "fashion": "फॅशन दुकान",
+          "florist": "फुलविक्रेता",
+          "food": "भोजन दुकान",
+          "funeral_directors": "मयत निर्देशक",
+          "furniture": "उपस्कर",
+          "garden_centre": "बगिचा केंद्र",
+          "general": "फुटकळ दुकान",
+          "gift": "भेटवस्तु दुकान",
+          "greengrocer": "भाजीविक्रेता",
+          "grocery": "किराणा दुकान",
+          "hairdresser": "केशकर्तनालय",
+          "hardware": "हार्डवेअर भांडार",
+          "jewelry": "आभूषण दुकान",
+          "kiosk": "टपरी",
+          "laundry": "धुलाई केंद्र",
+          "mall": "मॉल",
+          "mobile_phone": "भ्रमणध्वनी दुकान",
+          "motorcycle": "मोटरसायकल दुकान",
+          "music": "संगीत दुकान",
+          "newsagent": "बातमी अभिकर्ता",
+          "optician": "चश्मेवाला",
+          "organic": "सेंद्रिय अन्नदुकान",
+          "outdoor": "खुले दुकान",
+          "pet": "पाळीवप्राणी दुकान",
+          "photo": "फोटो दुकान",
+          "second_hand": "वापरलेल्या वस्तूंचे दुकान",
+          "shoes": "जोडे दुकान",
+          "sports": "क्रिडा दुकान",
+          "stationery": "लेखनसामग्री दुकान",
+          "supermarket": "सुपरमार्केट",
+          "tailor": "शिंपी",
+          "toys": "खेळणी दुकान",
+          "travel_agency": "प्रवास अभिकरण",
+          "video": "व्हीडियो दुकान",
+          "wine": "परवानाबाह्य",
+          "yes": "दुकान"
+        },
+        "tourism": {
+          "alpine_hut": "पर्वतीय झोपडी",
+          "artwork": "कलाकृति",
+          "attraction": "आकर्षण",
+          "bed_and_breakfast": "निद्रा व अल्पाहार",
+          "cabin": "चौकी",
+          "camp_site": "पडाव स्थळ",
+          "caravan_site": "काफिला स्थळ",
+          "guest_house": "अतिथिभवन",
+          "hostel": "वसतीगृह",
+          "hotel": "हॉटेल",
+          "information": "माहिती",
+          "motel": "मोटेल",
+          "museum": "वस्तुसंग्रहालय",
+          "picnic_site": "सहल स्थान",
+          "theme_park": "सूत्र उद्यान",
+          "viewpoint": "देखावाबिंदू",
+          "zoo": "प्राणीसंग्रहालय"
+        },
+        "tunnel": {
+          "culvert": "छोटा पूल",
+          "yes": "बोगदा"
+        },
+        "waterway": {
+          "artificial": "कृत्रिम जलमार्ग",
+          "boatyard": "नौकाबांधणी",
+          "canal": "कालवा",
+          "dam": "धरण",
+          "derelict_canal": "त्यक्त कालवा",
+          "ditch": "चर",
+          "dock": "गोदी",
+          "drain": "जलनिष्कास",
+          "lock": "जलपाश",
+          "lock_gate": "जलपाशद्वार",
+          "mooring": "नौबंध",
+          "rapids": "जलदधारा",
+          "river": "नदी",
+          "stream": "प्रवाह",
+          "wadi": "मरुघळ",
+          "waterfall": "धबधबा",
+          "weir": "बंधारा"
+        }
+      },
+      "types": {
+        "cities": "शहरे",
+        "places": "ठिकाणे",
+        "towns": "गावे"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "फाईल निवडा"
+    },
+    "submit": {
+      "client_application": {
+        "create": "नोंदणी करा",
+        "update": "अद्ययावत करा"
+      },
+      "diary_comment": {
+        "create": "टिप्पणी"
+      },
+      "diary_entry": {
+        "create": "प्रकाशित करा",
+        "update": "अद्ययावत करा"
+      },
+      "issue_comment": {
+        "create": "टिपण्णी जोडा"
+      },
+      "message": {
+        "create": "पाठवा"
+      },
+      "oauth2_application": {
+        "create": "नोंदणी",
+        "update": "अद्ययावत करा"
+      },
+      "trace": {
+        "create": "चढवा",
+        "update": "जतन करा"
+      }
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "टिप्पणी"
+      }
+    },
+    "close": "बंद करा",
+    "context": {
+      "add_note": "येथे टीप जोडा",
+      "centre_map": "नकाशा येथे केंद्रित करा",
+      "directions_from": "येथून दिशानिर्देश",
+      "directions_to": "येथे दिशानिर्देश",
+      "query_features": "वस्तूंची विचारणा",
+      "show_address": "पत्ते दाखवा"
+    },
+    "directions": {
+      "instructions": {
+        "offramp_left_with_exit": "उजवीकडील {{exit}}ने बाहेर पडा",
+        "offramp_left_with_exit_directions": "{{directions}}कडे जाताना {{exit}}ने बाहेर पडा",
+        "offramp_left_with_exit_name": "{{name}}वर उजवीकडे {{exit}} कडून बाहेर पडा",
+        "offramp_left_with_exit_name_directions": "{{directions}}कडे जाताना {{name}}वर {{exit}}ने बाहेर पडा",
+        "offramp_right_with_exit": "उजवीकडील {{exit}}ने बाहेर पडा",
+        "offramp_right_with_exit_directions": "{{directions}}कडे जाता उजवीकडून {{exit}}वर बाहेर पडा.",
+        "offramp_right_with_exit_name": "{{name}}वर उजवीकडे {{exit}} कडून बाहेर पडा",
+        "offramp_right_with_exit_name_directions": "{{directions}}कडे जाताना {{name}}वर {{exit}}ने बाहेर पडा"
+      }
+    },
+    "embed": {
+      "report_problem": "समस्या कळवा"
+    },
+    "map": {
+      "base": {
+        "cycle_map": "सायकल नकाशा",
+        "transport_map": "परिवहन नकाशा"
+      },
+      "layers": {
+        "data": "नकाशावरील माहिती",
+        "gps": "सार्वजनिक GPS अनुरेख",
+        "header": "नकाशाचे स्तर",
+        "notes": "नकाशावरील टीपा",
+        "overlays": "नकाशाच्या समस्यानिवारणासाठी आच्छादन सक्षम करा",
+        "title": "स्तर"
+      },
+      "locate": {
+        "title": "माझे ठिकाण दाखवा"
+      }
+    },
+    "query": {
+      "node": "गाठ",
+      "relation": "संबंध"
+    },
+    "share": {
+      "cancel": "रद्द करा",
+      "custom_dimensions": "पारंपारीक मोजमाप स्थापा",
+      "download": "अधिभारण करा",
+      "embed": "HTML",
+      "image": "चित्र",
+      "link": "दुवा किंवा HTML",
+      "long_link": "दुवा",
+      "scale": "प्रमाण:",
+      "short_link": "लघुदुवा",
+      "short_url": "लघु-URL",
+      "title": "सहभाग करा",
+      "view_larger_map": "मोठा नकाशा पहा"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "नकाशावर टीप जोडण्यासाठी झूम करा",
+      "createnote_tooltip": "नकाशावर टीप जोडा",
+      "edit_tooltip": "नकाशा संपादा",
+      "queryfeature_disabled_tooltip": "वस्तूंची विचारणा करण्यासाठी झूम करा",
+      "queryfeature_tooltip": "वस्तूंची विचारणा"
+    }
+  },
+  "layouts": {
+    "about": "आमच्याबद्दल",
+    "communities": "समुदाय",
+    "community": "समुदाय",
+    "community_blogs": "अनुदिनी",
+    "community_blogs_title": "ओपनस्ट्रीटमॅप समुदायाच्या सदस्यांच्या अनुदिनी",
+    "copyright": "प्रताधिकार",
+    "data": "माहिती",
+    "donate": "हार्डवेअर अपग्रेड फंडमध्ये योगदानाने{{link}} ओपनस्ट्रीटमॅपला साहाय्य करा.",
+    "edit": "संपादन करा",
+    "edit_with": "{{editor}} वापरून संपादन करा",
+    "export": "निर्यात",
+    "export_data": "माहिती निर्यात",
+    "gps_traces": "GPS अनुरेख",
+    "help": "साहाय्य",
+    "history": "इतिहास",
+    "home": "स्वगृह स्थानावर जा",
+    "intro_2_create_account": "सदस्यखाते तयार करा",
+    "intro_header": "ओपनस्ट्रीटमॅपवर स्वागत आहे!",
+    "intro_text": "ओपनस्ट्रीटमॅप हा जगाचा नकाशा आहे, जो आपल्यासारख्या लोकांनी तयार केला आहे, व जो खुल्या परवान्यांतर्गत वापरास मुक्त आहे.",
+    "learn_more": "अधिक जाणून घ्या",
+    "log_in": "सनोंद-प्रवेश",
+    "logo": {
+      "alt_text": "ओपनस्ट्रीटमॅप संकेतचित्र"
+    },
+    "logout": "सनोंद-निर्गम",
+    "make_a_donation": {
+      "text": "देणगी द्या",
+      "title": "आर्थिक देणगी देऊन  करुन ओपनस्ट्रीटमॅपला  साहाय्य करा."
+    },
+    "more": "अधिक",
+    "osm_offline": "डाटाबेसचे आवश्यक देखरेखीचे काम असल्यामुळे ओपनस्ट्रीटमॅप डाटाबेस ही जालावेगळी करण्यात आलेली आहे.",
+    "osm_read_only": "डाटाबेसचे आवश्यक देखरेखीचे काम असल्यामुळे, ओपनस्ट्रीटमॅप डाटाबेस ही सध्या फक्त वाचू शकता येणार आहे.",
+    "partners_bytemark": "बाईटमार्क होस्टिंग",
+    "partners_partners": "भागीदार",
+    "partners_ucl": "UCL VR सेंटर",
+    "sign_up": "नोंदणी करा",
+    "start_mapping": "नकाशा आरेखन सुरु करा",
+    "tag_line": "मुक्त विकि जागतिक नकाशा",
+    "user_diaries": "सदस्य अनुदिनी",
+    "user_diaries_tooltip": "सदस्य अनुदिनी पहा"
+  },
+  "messages": {
+    "create": {
+      "limit_exceeded": "आपण नुकतेच अनेक संदेश पाठविले, अधिक पाठविण्यापूर्वी अंमळ थांबा.",
+      "message_sent": "संदेश पाठविला"
+    },
+    "destroy": {
+      "destroyed": "संदेश वगळला"
+    },
+    "heading": {
+      "my_inbox": "माझी अंतर्पेटी"
+    },
+    "inbox": {
+      "messages": "आपल्यासाठी {{new_messages}} आणि {{old_messages}} आहेत",
+      "new_messages_one": "{{count}} नवा संदेश",
+      "new_messages_other": "{{count}} नवे संदेश",
+      "no_messages_yet_html": "आपल्यासाठी अद्याप संदेश नाहीत. {{people_mapping_nearby_link}} संपर्क साधावा काय?",
+      "old_messages_one": "{{count}} जुना संदेश",
+      "old_messages_other": "{{count}} जुने संदेश",
+      "people_mapping_nearby": "जवळपासच्या इतर नकाशाकारांशी",
+      "title": "अंतर्पेटी"
+    },
+    "mark": {
+      "as_read": "संदेश वाचला आहे अशी खूण केली",
+      "as_unread": "संदेश वाचला नाही अशी खूण केली"
+    },
+    "message_summary": {
+      "destroy_button": "वगळा",
+      "read_button": "वाचले अशी खूण करा",
+      "reply_button": "उत्तर",
+      "unread_button": "न वाचलेले अशी खूण करा"
+    },
+    "messages_table": {
+      "date": "दिनांक",
+      "from": "पासून",
+      "subject": "विषय",
+      "to": "प्रति"
+    },
+    "new": {
+      "back_to_inbox": "अंतर्पेटीकडे परत",
+      "send_message_to_html": "{{name}}ला नवीन संदेश पाठवा",
+      "title": "संदेश पाठवा"
+    },
+    "no_such_message": {
+      "body": "त्या ओळखणीचा कोणताही संदेश नाही",
+      "heading": "असा कोणताही संदेश नाही",
+      "title": "असा कोणताही संदेश नाही"
+    },
+    "outbox": {
+      "messages_one": "आपण पाठविलेला {{count}} संदेश",
+      "messages_other": "आपण पाठविलेले {{count}} संदेश",
+      "no_sent_messages_html": "आपण अद्याप कुठलेही संदेश पाठविलेले नाहीत. {{people_mapping_nearby_link}} संपर्क साधावा काय?",
+      "people_mapping_nearby": "जवळपासच्या इतर नकाशाकारांशी",
+      "title": "बाह्यपेटी"
+    },
+    "reply": {
+      "wrong_user": "आपण '{{user}}' म्हणून दाखल झालेले आहात, पण आपण ज्या संदेशास उत्तर देऊ इच्छिता, तो संदेश वेगळ्या सदस्यास पाठविण्यात आला आहे. कृपया उत्तर देण्यासाठी बरोबर सदस्य म्हणून दाखल व्हा."
+    },
+    "sent_message_summary": {
+      "destroy_button": "वगळा"
+    },
+    "show": {
+      "back": "परत जा",
+      "reply_button": "उत्तर",
+      "title": "संदेश वाचा",
+      "unread_button": "न वाचलेले अशी खूण करा",
+      "wrong_user": "आपण '{{user}}' म्हणून दाखल झालेले आहात, पण आपण जो संदेश वाचू इच्छिता, तो संदेश वेगळ्या सदस्यास पाठविण्यात आला आहे. कृपया संदेश वाचण्यासाठी बरोबर सदस्य म्हणून दाखल व्हा."
+    }
+  },
+  "notes": {
+    "new": {
+      "add": "टीप जोडा",
+      "intro": "काही चूक आढळली किंवा काही हरपले आहे काय? इतर नकाशाकारांना ते कळु द्या म्हणजे ते आम्ही ठिकठाक करु. मार्करला अचूक स्थानी न्या व ती समस्या समजवण्यास एक सूचना टंका. (कृपया येथे काही वैयक्तिक माहिती टाकू नका.)",
+      "title": "नवी टीप"
+    },
+    "show": {
+      "closed_title": "निराकरण झालेली टीप #{{note_name}}",
+      "description": "वर्णन:",
+      "hidden_title": "लपविलेली टीप #{{note_name}}",
+      "open_title": "निराकरण न झालेली टीप #{{note_name}}",
+      "resolve": "निराकरण करा",
+      "title": "टीप: {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_write_gpx": "GPS अनुरेख चढवा"
+    },
+    "scopes": {
+      "write_gpx": "GPS अनुरेख चढवा"
+    }
+  },
+  "oauth_clients": {
+    "edit": {
+      "title": "अनुप्रयोग संपादा"
+    },
+    "form": {
+      "requests": "सदस्याकडून खालील परवानग्यांची मागणी करा:"
+    },
+    "index": {
+      "register_new": "आपल्या अनुप्रयोगाची नोंदणी करा",
+      "title": "माझे OAuth तपशील"
+    },
+    "new": {
+      "title": "नवीन अनुप्रयोगाची नोंदणी करा"
+    },
+    "show": {
+      "access_url": "प्रवेश बिल्ला URL:",
+      "confirm": "नक्की आहात?",
+      "edit": "तपशील संपादा",
+      "key": "उपभोक्ता किल्ली:",
+      "secret": "उपभोक्ता गुपित:",
+      "title": "{{app_name}}साठी OAuth तपशील",
+      "url": "विनंती बिल्ला URL:"
+    }
+  },
+  "passwords": {
+    "edit": {
+      "heading": "{{user}}साठी परवलीचा शब्द पुनर्स्थापित करा",
+      "reset": "परवलीचा शब्द पुनर्स्थापित करा",
+      "title": "परवलीचा शब्द पुनर्स्थापित करा"
+    },
+    "new": {
+      "email address": "विपत्र पत्ता:",
+      "heading": "परवलीचा शब्द विसरला?",
+      "new password button": "परवलीचा शब्द पुनर्स्थापित करा"
+    },
+    "update": {
+      "flash changed": "आपला परवलीचा शब्द बदलण्यात आला आहे."
+    }
+  },
+  "preferences": {
+    "edit": {
+      "save": "पसंती अद्ययावत करा"
+    },
+    "show": {
+      "edit_preferences": "पसंती संपादन",
+      "preferred_editor": "पसंतीचे संपादक",
+      "title": "माझे प्राधान्ये"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "delete image": "वर्तमान चित्र काढून टाका",
+      "gravatar": {
+        "gravatar": "Gravatar वापरा"
+      },
+      "image": "चित्र:",
+      "image size hint": "(किमान १००x१०० आकाराची चौरस चित्रे उत्तम)",
+      "keep image": "वर्तमान चित्र राखा",
+      "new image": "चित्र जोडा",
+      "replace image": "वर्तमान चित्र बदला",
+      "title": "रूपरेखा संपादा"
+    }
+  },
+  "redactions": {
+    "show": {
+      "confirm": "नक्की आहात?",
+      "description": "वर्णन:",
+      "user": "निर्माता:"
+    },
+    "update": {
+      "flash": "बदल जतन केले."
+    }
+  },
+  "sessions": {
+    "new": {
+      "email or username": "विपत्रपत्ता किंवा सदस्यनाव:",
+      "heading": "सनोंद प्रवेश करा",
+      "login_button": "सनोंद प्रवेश करा",
+      "lost password link": "परवलीचा शब्द विसरलात?",
+      "no account": "आपले खाते नाही?",
+      "password": "परवलीचा शब्द:",
+      "register now": "आत्ता नोंदणी करा",
+      "remember": "माझी आठवण ठेवा",
+      "title": "सनोंद प्रवेश करा"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_title": "समाजातर्फे चालविलेले",
+      "lede_text": "OpenStreetMap हा मानचित्रकारांनी उभारलेला एक प्रकल्प आहे ज्यात जगभरातील रस्ते, पायवाट, कॅफे, रेल्वे स्थानक व इतर बऱ्याच गोष्टींचा डेटा योगदानातून तयार व व्यवस्थापित केला जातो.",
+      "local_knowledge_html": "OpenStreetMap स्थानिक ज्ञानावर भर देते. OSM अचूक आणि अद्ययावत असल्याची पडताळणी करण्यासाठी योगदानकर्ते उपग्रह प्रतिमा, GPS उपकरणे व सामान्य क्षेत्र नकाशे वापरतात.",
+      "local_knowledge_title": "स्थानिक ज्ञान",
+      "next": "पुढील",
+      "open_data_title": "मुक्त माहिती",
+      "partners_title": "भागीदार",
+      "used_by_html": "{{name}} हजारो संकेतस्थळे, मोबाइल अॅप्स आणि हार्डवेअर उपकरणांसाठी नकाशा डेटा प्रदान करते"
+    },
+    "any_questions": {
+      "title": "काही प्रश्न?"
+    },
+    "communities": {
+      "title": "समुदाय"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "मूळ इंग्लिश",
+        "html": "या भाषांतरीत पानाच्या व {{english_original_link}} यादरम्यान काही वादाचा प्रसंग उद्भवल्यास, मूळ इंग्लिश पानास प्राथमिकता राहील.",
+        "title": "या भाषांतराबद्दल"
+      },
+      "legal_babble": {
+        "contributors_intro_html": "आमचे योगदानकर्ते हे हजारोंच्या संख्येतील व्यक्ति आहेत.आम्ही मुक्त परवान्यांतर्गत असलेला डाटा हा राष्ट्रीय नकाशा संस्थेंकडून व त्यातील इतर स्रोतांतून घेऊन त्याचा अंतर्भाव करतो:",
+        "contributors_title_html": "आमचे योगदाते",
+        "credit_1_html": "&ldquo;&copy; OpenStreetMap\ncontributors&rdquo; असे श्रेय तुम्हाला दर्शवणे आवश्यक आहे.",
+        "credit_title_html": "ओपनस्ट्रीटमॅपला श्रेय कसे द्यावे",
+        "infringement_1_html": "OSM योगदानकर्त्यांना कोणत्याही प्रतीलीपी अधिकार राखवलेल्या (उदा. Google नकाशे किंवा मुद्रित नकाशे अश्या) स्त्रोतांमधून कोणतीही माहिती प्रतीलिपी अधिकार धारकांच्या स्पष्ट परवानगीशिवाय जोडू नये याची आठवण करून दिली जाते.",
+        "infringement_title_html": "प्रताधिकार भंग",
+        "more_title_html": "अधिक शोध",
+        "title_html": "प्रताधिकार व परवाना"
+      },
+      "native": {
+        "html": "आपण या प्रताधिकार पानाची इंग्लिश आवृत्ती पहात आहात. आपण या पानाच्या {{native_link}}कडे परत जाऊ शकता, किंवा प्रताधिकाराबद्दल वाचणे थांबवून {{mapping_link}} सुरु करू शकता.",
+        "mapping_link": "नकाशा आरेखन",
+        "native_link": "मराठी आवृत्ती",
+        "title": "या पानाबद्दल"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "असे का आहे ते जाणून घ्या.",
+      "not_public": "आपण आपली संपादने सार्वजनिक ठेवलेली नाहित.",
+      "not_public_description_html": "नकाशा संपादण्यासाठी संपादने सार्वजनिक असणे आवश्यक आहे. आपण आपल्या {{user_page}}वरून ती सार्वजनिक ठेवू शकता.",
+      "user_page_link": "सदस्य पाना"
+    },
+    "export": {
+      "export_button": "निर्यात",
+      "licence": "परवाना",
+      "manually_select": "वेगळे क्षेत्र निवडा",
+      "title": "निर्यात",
+      "too_large_advice": "जर वरील निर्यात करण्यास अपयश आले, तर कृपया खालील स्रोत वापरण्याचा विचार करा :",
+      "too_large_body": "हे क्षेत्र OpenStreetMap XML Data म्हणून निर्यात करण्यास खूपच मोठे आहे.कृपया लहान करा किंवा लहान क्षेत्र निवडा किंवा मोठ्या प्रमाणात डाटाचे अधिभारणासाठी खालील यादी केलेल्या स्रोतांपैकी एकाचा वापर करा.",
+      "too_large_geofabrik": {
+        "description": "नियमितपणे अद्ययावत केले जाणारे खंड, देश, व निवडक शहरांचे उतारे",
+        "title": "जियोफेब्रिक अधिभारण"
+      },
+      "too_large_other": {
+        "description": "ओपनस्ट्रीटमॅप विकीवर सूचीबद्ध अतिरिक्त स्रोत",
+        "title": "इतर स्रोत"
+      },
+      "too_large_overpass": {
+        "description": "ओपनस्ट्रीटमॅप प्रतिमा डाटाबेसमधून  बंधनपेटीचे(बाउंडिंग बॉक्स) अधिभारण करा",
+        "title": "API टाळा"
+      },
+      "too_large_planet": {
+        "description": "संपूर्ण ओपनस्ट्रीटमॅप डाटाबेसच्या नियमित अद्यतन केलेल्या प्रती",
+        "title": "प्लॅनेट OSM"
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "title": "समाजास जुळा"
+        },
+        "title": "मदत कशी करावी"
+      },
+      "title": "समस्या नोंदवा/नकाशा नीयत करा"
+    },
+    "help": {
+      "help": {
+        "description": "OSMच्या प्रश्नोत्तरासाठीच्या संकेतस्थळावर प्रश्न विचारा किंवा उत्तरे शोधा.",
+        "title": "help.openstreetmap.org"
+      },
+      "title": "साहाय्य मिळविणे",
+      "welcome": {
+        "title": "ओएसएम वर स्वागत आहे",
+        "url": "/welcome"
+      },
+      "wiki": {
+        "description": "सखोल OSM प्रलेखनासाठी विकी वाचा.",
+        "title": "wiki.openstreetmap.org"
+      }
+    },
+    "index": {
+      "createnote": "टीप जोडा",
+      "js_1": "आपण जावास्क्रीप्ट चालवू न शकणारा न्याहाळक वापरत आहात, किंवा जावास्क्रीप्ट निष्क्रिय आहे.",
+      "js_2": "ओपनस्ट्रीटमॅप सरकत्या नकाशासाठी जावास्क्रीप्टचा वापर करते.",
+      "license": {
+        "copyright": "प्रताधिकार ओपनस्ट्रीटमॅप आणि योगदाते, खुल्या परवान्यांतर्गत"
+      },
+      "permalink": "शाश्वत दुवा",
+      "remote_failed": "संपादन अयशस्वी - JOSM किंवा Merkaartor चालू केले आहे आणि रिमोट निरंत्रण पर्याय सक्षम असल्याची खात्री करा",
+      "shortlink": "लघुदुवा"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "प्रशासकीय सीमा",
+          "allotments": "वाटप",
+          "apron": "विमानतळावरील भरणतळ",
+          "bicycle_shop": "सायकल दुकान",
+          "bridge": "काळी कड = पूल",
+          "bridleway": "अश्वमार्ग",
+          "building": "महत्वपूर्ण इमारत",
+          "cable_car": "रज्जुमार्ग",
+          "cemetery": "दफनभूमी",
+          "centre": "क्रीडाकेंद्र",
+          "chair_lift": "खुर्ची उद्वाहन",
+          "commercial": "वाणिज्यिक क्षेत्र",
+          "common": "सार्वजनिक जमीन",
+          "construction": "निर्माणाधीन रस्ते",
+          "cycleway": "सायकल मार्ग",
+          "destination": "केवळ गंतव्यासाठी प्रवेश",
+          "farm": "मळा",
+          "footway": "पदपथ",
+          "forest": "वन",
+          "golf": "गोल्फ कोर्स",
+          "industrial": "औद्योगिक क्षेत्र",
+          "lake": "तलाव",
+          "military": "लष्करी क्षेत्र",
+          "motorway": "द्रुतगतीमार्ग",
+          "park": "उद्यान",
+          "peak": "शिखर",
+          "pitch": "खेळमैदान",
+          "primary": "प्राथमिक रस्ता",
+          "private": "खाजगी प्रवेश",
+          "rail": "लोहमार्ग",
+          "reserve": "अभयारण्य",
+          "reservoir": "जलाशय",
+          "resident": "निवासी क्षेत्र",
+          "retail": "विक्री क्षेत्र",
+          "runway": "विमानतळ धावपट्टी",
+          "school": "शाळा",
+          "secondary": "दुय्यम रस्ता",
+          "station": "रेल्वे स्थानक",
+          "subway": "मेट्रो",
+          "summit": "शिखर",
+          "taxiway": "खेचमार्ग",
+          "toilets": "स्वच्छतागृह",
+          "track": "वाट",
+          "trunk": "महामार्ग",
+          "tunnel": "तुटक कड = बोगदा",
+          "unclassified": "अवर्गीकृत रस्ता",
+          "university": "विद्यापीठ",
+          "wood": "जंगल"
+        }
+      }
+    },
+    "search": {
+      "from": "पासून",
+      "reverse_directions_text": "दिशा उलटावा",
+      "search": "शोधा",
+      "submit_text": "जा",
+      "to": "पर्यंत",
+      "where_am_i": "मी कुठे आहे?"
+    },
+    "sidebar": {
+      "close": "बंद करा",
+      "search_results": "शोध निकाल"
+    },
+    "welcome": {
+      "add_a_note": {
+        "para_1": "जर आपणास काही छोटेसेच ठिक करुन हवे आहे व आपल्यापाशी प्रवेशाचा व संपादन शिकण्यास वेळ नाही\n\nतर एक टिप्पणी जोडणे सोपे आहे.",
+        "title": "संपादन करण्यास वेळ नाही?टिप्पणी जोडा!"
+      },
+      "basic_terms": {
+        "a_node_html": "{{node}} हा नकाशावरील एक बिंदू आहे, जसे की एक रेस्टॉरंट किंवा झाड.",
+        "a_tag_html": "{{tag}} हा गाठ किंवा मार्गाविषयीचा थोडासा डेटा आहे, जसे की रेस्टॉरंटचे नाव किंवा रस्त्याची गती मर्यादा.",
+        "node": "गाठ",
+        "paragraph_1": "ओपनस्ट्रीटमॅपची स्वतःची एक बोली आहे. हे काही प्रमुख शब्द आहेत जे कामी येतील.",
+        "title": "नकाशा आरेखनासाठीच्या मूलभूत संज्ञा"
+      },
+      "start_mapping": "नकाशा आरेखन सुरु करा",
+      "title": "सुस्वागतम्‌!",
+      "whats_on_the_map": {
+        "title": "नकाशावर काय आहे"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y, %H:%M ला"
+    }
+  },
+  "traces": {
+    "create": {
+      "trace_uploaded": "तुमची GPX फाईल चढवली गेली आहे आणि डेटाबेसमध्ये समाविष्ट होण्याची प्रतीक्षा करत आहे. हे सहसा अर्ध्या तासात होईल आणि पूर्ण झाल्यावर तुम्हाला एक ईमेल पाठवला जाईल.",
+      "upload_trace": "GPS अनुरेख चढवा"
+    },
+    "edit": {
+      "heading": "अनुरेख {{name}} संपादन",
+      "title": "अनुरेख {{name}} संपादन",
+      "visibility_help": "ह्याचा अर्थ काय?"
+    },
+    "georss": {
+      "title": "OpenStreetMap GPS अनुरेखा"
+    },
+    "index": {
+      "all_traces": "सर्व अनुरेख",
+      "description": "अलीकडील चढवलेल्या GPS रेखा न्याहाळा",
+      "my_gps_traces": "माझ्या GPS अनुरेखा",
+      "my_traces": "माझे अनुरेख",
+      "public_traces": "सार्वजनिक GPS अनुरेख",
+      "public_traces_from": "{{user}} कडून सार्वजनिक GPS अनुरेखा",
+      "upload_trace": "अनुरेख चढवा"
+    },
+    "new": {
+      "help": "साहाय्य",
+      "upload_trace": "GPS अनुरेख चढवा",
+      "visibility_help": "ह्याचा अर्थ काय?"
+    },
+    "show": {
+      "delete_trace": "हा अनुरेख वगळा",
+      "description": "वर्णन:",
+      "download": "अधिभारण करा",
+      "edit": "संपादन",
+      "edit_trace": "हा अनुरेख संपादा",
+      "filename": "संचिकानाम:",
+      "map": "नकाशा",
+      "none": "काहीही नाही",
+      "owner": "मालक:",
+      "pending": "प्रलंबित",
+      "points": "बिंदू:",
+      "tags": "खूणपताका:",
+      "trace_not_found": "अनुरेख आढळला नाही!",
+      "uploaded": "अपभारण केले:",
+      "visibility": "दृश्यता:"
+    },
+    "trace": {
+      "by": "तर्फे",
+      "count_points": "{{count}} बिंदू",
+      "edit_map": "नकाशा संपादा",
+      "identifiable": "ओळखण्याजोगी",
+      "in": "आत",
+      "more": "अधिक",
+      "pending": "प्रलंबित",
+      "private": "खाजगी",
+      "public": "सार्वजनिक",
+      "trace_details": "अनुरेखाचा तपशील पहा",
+      "trackable": "मागोव्याजोगा",
+      "view_map": "नकाशा पहा"
+    },
+    "trace_optionals": {
+      "tags": "खूणपताका"
+    },
+    "trace_paging_nav": {
+      "newer": "नवे अनुरेख",
+      "older": "जुने अनुरेख"
+    },
+    "visibility": {
+      "identifiable": "ओळखण्याजोगी (अनुरेख यादीत दिसणारे व ओळखण्याजोगी, वेळशिक्क्यांसहित क्रमित बिंदू)",
+      "private": "खाजगी (फक्त अनामिक म्हणून सामायिक केलेले, अक्रमित बिंदू)",
+      "public": "सार्वजनिक (अनुरेख सूचीमध्ये अनामिक, अक्रमित बिंदू म्हणून दर्शविलेले)",
+      "trackable": "मागोव्याजोगा (फक्त अनामिक म्हणून सामायिक केलेले, वेळशिक्क्यांसहित क्रमित बिंदू)"
+    }
+  },
+  "user_blocks": {
+    "blocks": {
+      "next": "पुढील »",
+      "previous": "« मागील",
+      "showing_page": "पान {{page}}"
+    },
+    "helper": {
+      "block_duration": {
+        "days_one": "{{count}} दिवस",
+        "days_other": "{{count}} दिवस",
+        "hours_one": "{{count}} तास",
+        "hours_other": "{{count}} तास",
+        "months_one": "{{count}} महिना",
+        "months_other": "{{count}} महिने",
+        "years_one": "{{count}} वर्ष",
+        "years_other": "{{count}} वर्षे"
+      }
+    }
+  },
+  "user_mailer": {
+    "diary_comment_notification": {
+      "subject": "[OpenStreetMap] {{user}}ने एका अनुदिनीतील नोंदीवर अभिप्राय दिला"
+    },
+    "email_confirm": {
+      "click_the_link": "जर ते आपणच असाल,तर बदलांची खात्री करण्यास खालील दुवा टिचका.",
+      "greeting": "नमस्कार,",
+      "subject": "[OpenStreetMap] तुमच्या ईमेल पत्त्याची पुष्टी करा"
+    },
+    "gpx_description": {
+      "description_with_tags_html": "{{trace_description}} वर्णन असलेली व \"{{tags}}\" खुणपताके असलेली आपली GPX फाईल {{trace_name}}"
+    },
+    "gpx_success": {
+      "loaded_one": "संभाव्य {{count}} बिंदूपैकी {{trace_points}} बिंदूसह यशस्वीरित्या चढवली गेली.",
+      "loaded_other": "संभाव्य {{count}} बिंदूंपैकी {{trace_points}} बिंदूंसह यशस्वीरित्या चढवली गेली.",
+      "subject": "[OpenStreetMap] GPX आयात यशस्वी"
+    },
+    "lost_password": {
+      "click_the_link": "जर ते आपणच असाल,तर परवलीचा शब्द पुनर्स्थापन करण्यास खालील दुवा टिचका.",
+      "greeting": "नमस्कार,",
+      "subject": "[OpenStreetMap] परवलीचा शब्द पुनर्स्थापन विनंती"
+    },
+    "message_notification": {
+      "footer_html": "आपण {{readurl}} येथेही संदेश वाचू शकता, आणि {{replyurl}} येथे उत्तर देऊ शकता",
+      "header": "{{from_user}}ने ओपनस्ट्रीटमॅपद्वारे आपल्याला {{subject}} अशा विषयाचा संदेश पाठविला"
+    },
+    "note_comment_notification": {
+      "anonymous": "एक अनामिक सदस्य",
+      "details": "{{url}} येथे टीपेबद्दल अधिक तपशील मिळू शकेल.",
+      "greeting": "नमस्कार,"
+    },
+    "signup_confirm": {
+      "greeting": "नमस्कार!",
+      "welcome": "आपण खातेनिश्चिती केल्यावर,सुरुवात करण्यास आम्ही आपणास अधिकची माहिती देउ"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "सदस्य",
+      "showing_one": "पान {{page}} ({{first_item}}, {{items}} पैकी)",
+      "showing_other": "पान {{page}} ({{first_item}}-{{last_item}}, {{items}}पैकी)",
+      "title": "सदस्य"
+    },
+    "new": {
+      "about": {
+        "header": "मुक्त व संपादण्याजोगा"
+      },
+      "continue": "नोंदणी करा",
+      "title": "नोंदणी करा"
+    },
+    "no_such_user": {
+      "body": "क्षमा असावी, {{user}} नामक सदस्य अस्तित्वात नाही. कृपया आपले वर्णलेखन तपासा, किंवा कदाचित आपण चुकीच्या दुव्यावर टिचकी दिली असेल.",
+      "heading": "सदस्य {{user}} अस्तित्वात नाही",
+      "title": "असा सदस्य अस्तित्वात नाही"
+    },
+    "show": {
+      "add as friend": "मित्र जोडा",
+      "blocks by me": "माझ्याकडून निर्बंध",
+      "blocks on me": "माझ्यावरील निर्बंध",
+      "ct declined": "अमान्य",
+      "ct status": "योगदात्यांसाठी अटी:",
+      "ct undecided": "अनिर्णीत",
+      "diary": "अनुदिनी",
+      "edit_profile": "रूपरेखा संपादा",
+      "edits": "संपादने",
+      "email address": "ईमेल पत्ता:",
+      "mapper since": "ह्या दिनांकपासून मानचित्रकार:",
+      "my comments": "माझे अभिप्राय",
+      "my diary": "माझी अनुदिनी",
+      "my edits": "माझी संपादने",
+      "my messages": "माझे संदेश",
+      "my notes": "माझ्या टीपा",
+      "my profile": "माझी रूपरेखा",
+      "my settings": "माझ्या मांडण्या",
+      "my traces": "माझे अनुरेख",
+      "my_dashboard": "माझे फलक",
+      "my_preferences": "माझे प्राधान्ये",
+      "notes": "नकाशावरील टीपा",
+      "report": "या वापरकर्त्याची तक्रार करा",
+      "send message": "संदेश पाठवा",
+      "status": "स्थिती:",
+      "traces": "अनुरेख"
+    },
+    "terms": {
+      "consider_pd_why": "हे काय आहे?",
+      "decline": "अमान्य",
+      "heading": "योगदात्यांसाठी अटी",
+      "legale_names": {
+        "france": "फ्रान्स",
+        "italy": "इटली",
+        "rest_of_world": "उर्वरित जग"
+      },
+      "legale_select": "राहण्याचा देश:",
+      "title": "योगदात्यांसाठी अटी"
+    }
+  }
+}

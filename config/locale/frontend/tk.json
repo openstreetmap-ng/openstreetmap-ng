@@ -1,0 +1,540 @@
+{
+  "activerecord": {
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "yzygiderli däl",
+        "invalid_email_address": "dogry e-poçta salgysy ýaly görünmeýär"
+      }
+    },
+    "models": {
+      "acl": "Giriş dolandyryş sanawy",
+      "changeset": "Üýtgeşiklik",
+      "changeset_tag": "Üýtgetme belligi",
+      "country": "Ýurt",
+      "diary_comment": "Gündelik düşündiriş",
+      "diary_entry": "Gündelik giriş",
+      "friend": "Dost",
+      "issue": "Mesele",
+      "language": "Dil",
+      "message": "Habar",
+      "node": "Düwün",
+      "node_tag": "Düwün belligi",
+      "old_node": "Köne düwün",
+      "old_node_tag": "Köne düwün belligi",
+      "old_relation": "Köne gatnaşyk",
+      "old_relation_member": "Köne gatnaşyk agzasy",
+      "old_relation_tag": "Köne gatnaşyk belligi",
+      "old_way": "Köne ýol",
+      "old_way_node": "Köne ýol düwmesi",
+      "old_way_tag": "Köne ýol belligi",
+      "relation": "Gatnaşyk",
+      "relation_member": "Gatnaşyk agzasy",
+      "relation_tag": "Gatnaşyk belligi",
+      "report": "Hasabat beriň",
+      "session": "Sessiýa",
+      "trace": "Yz",
+      "tracepoint": "Yz nokady",
+      "tracetag": "Yz belligi",
+      "user": "Ulanyjy",
+      "user_preference": "Ulanyjy ileri tutmasy",
+      "user_token": "Ulanyjy belligi"
+    }
+  },
+  "api": {
+    "notes": {
+      "entry": {
+        "comment": "Teswir"
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "wikipedia": "Wikipediýa"
+    }
+  },
+  "errors": {
+    "contact": {
+      "contact": "kontakt"
+    }
+  },
+  "geocoder": {
+    "search": {
+      "title": {
+        "latlon": "Içerki"
+      }
+    },
+    "search_osm_nominatim": {
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Tanap yoly gatnadyjysy",
+          "yes": "Howa ýoly"
+        },
+        "aeroway": {
+          "airstrip": "Howa gatnawy",
+          "apron": "Howa menzili",
+          "gate": "Aeroport derwezesi",
+          "holding_position": "Positionerleşýän ýeri",
+          "navigationaid": "Awiasiýa nawigasiýa kömegi",
+          "parking_position": "Awtoulag duralgasy",
+          "runway": "Uçuş-gonuş zolagy",
+          "taxiway": "Taksi ýoly",
+          "terminal": "Aeroport terminaly"
+        },
+        "amenity": {
+          "animal_boarding": "Haýwanlara münmek",
+          "animal_shelter": "Haýwanlaryň gaçybatalgasy",
+          "arts_centre": "Sungat merkezi",
+          "atm": "Bankomat",
+          "bank": "Bank",
+          "bar": "Bar",
+          "bbq": "BBQ",
+          "bench": "Oturgyç",
+          "bicycle_parking": "Tigir duralgasy",
+          "biergarten": "Piwo bagy",
+          "brothel": "Jelephana",
+          "bureau_de_change": "Üýtgeşiklik býurosy",
+          "bus_station": "Awtobus duralgasy",
+          "cafe": "Kafe",
+          "car_rental": "Awtoulag kärendesi",
+          "car_sharing": "Awtoulag paýlaşmagy",
+          "car_wash": "Awtoulag ýuwmak",
+          "casino": "Kazino",
+          "charging_station": "Zarýad beriş stansiýasy",
+          "childcare": "Çaga seretmek",
+          "cinema": "Kino",
+          "clinic": "Klinika",
+          "clock": "Sagat",
+          "college": "Kollej",
+          "community_centre": "Jemgyýet merkezi",
+          "conference_centre": "Maslahat merkezi",
+          "courthouse": "Kazyýet binasy",
+          "crematorium": "Krematoriýa",
+          "dentist": "Diş lukmany",
+          "doctors": "Lukmanlar",
+          "drinking_water": "Içimlik suw",
+          "driving_school": "Sürüji mekdebi",
+          "embassy": "Ilçihana",
+          "events_venue": "Çäreleriň geçiriljek ýeri",
+          "fast_food": "Çalt nahar",
+          "ferry_terminal": "Parom terminaly",
+          "food_court": "Azyk kazyýeti",
+          "fountain": "Çeşme",
+          "fuel": "Ingangyç guýulýan stansiýa",
+          "gambling": "Humar oýunlary",
+          "grave_yard": "Mazar howly",
+          "hospital": "Keselhana",
+          "hunting_stand": "Aw duralgasy",
+          "ice_cream": "Dondurma",
+          "internet_cafe": "Internet kafesi",
+          "kindergarten": "Çagalar bagy",
+          "language_school": "Dil mekdebi",
+          "library": "Kitaphana",
+          "loading_dock": "Dok ýüklemek",
+          "marketplace": "Bazar",
+          "mobile_money_agent": "Jübi pul serişdesi",
+          "monastery": "Monastyr",
+          "money_transfer": "Pul geçirmek",
+          "music_school": "Aýdym-saz mekdebi",
+          "nightclub": "Gije kluby",
+          "nursing_home": "Garrylar öýi",
+          "parking": "Awtoulag duralgasy",
+          "parking_entrance": "Awtoulag duralgasy",
+          "parking_space": "Awtoulag duralgasy",
+          "payment_terminal": "Töleg terminaly",
+          "pharmacy": "Dermanhana",
+          "place_of_worship": "Ybadat mekany",
+          "police": "Polisiýa",
+          "post_box": "Poçta gutusy",
+          "post_office": "Poçta bölümi",
+          "prison": "Türme",
+          "public_bath": "Jemgyýetçilik hammam",
+          "public_bookcase": "Jemgyýetçilik kitapçasy",
+          "public_building": "Jemgyýetçilik binasy",
+          "recycling": "Gaýtadan işlemek nokady",
+          "restaurant": "Restoran",
+          "sanitary_dump_station": "Arassaçylyk zyňylyşy",
+          "school": "Mekdep",
+          "shelter": "Başpena",
+          "shower": "Duş",
+          "social_centre": "Sosial merkez",
+          "social_facility": "Durmuş üpjünçiligi",
+          "studio": "Studiýa",
+          "swimming_pool": "Basseýn",
+          "taxi": "Taksi",
+          "telephone": "Jemgyýetçilik telefony",
+          "theatre": "Teatr",
+          "toilets": "Hajathana",
+          "townhall": "Şäher häkimligi",
+          "training": "Okuw jaýy",
+          "university": "Uniwersitet",
+          "vehicle_inspection": "Awtoulag barlagy",
+          "vending_machine": "Söwda enjamy",
+          "veterinary": "Weterinariýa hirurgiýasy",
+          "village_hall": "Oba zaly",
+          "waste_basket": "Galyndy sebedi",
+          "waste_disposal": "Galyndylary zyňmak",
+          "waste_dump_site": "Galyndylary taşlaýan ýer",
+          "water_point": "Suw nokady",
+          "watering_place": "Suwarylýan ýer"
+        },
+        "boundary": {
+          "administrative": "Administratiw serhet",
+          "census": "Ilat ýazuwy serhedi",
+          "national_park": "Milli seýilgäh",
+          "political": "Saýlaw serhedi",
+          "protected_area": "Gorag meýdany",
+          "yes": "Serhet"
+        },
+        "bridge": {
+          "aqueduct": "Suw geçiriji"
+        },
+        "building": {
+          "apartment": "Kwartira",
+          "apartments": "Kwartira",
+          "barn": "Ammar",
+          "cabin": "Kabin",
+          "chapel": "Çapel",
+          "church": "Buthana binasy",
+          "civic": "Jemgyýetçilik binasy",
+          "college": "Kollej binasy",
+          "commercial": "Söwda binasy",
+          "construction": "Gurluşyk astyndaky bina",
+          "detached": "Aýry-aýry jaý",
+          "farm": "Fermer öýi",
+          "farm_auxiliary": "Kömekçi ferma jaýy",
+          "greenhouse": "Teplisa",
+          "hospital": "Keselhananyň binasy",
+          "hotel": "Myhmanhana binasy",
+          "house": "Jaý",
+          "kindergarten": "Çagalar bagy",
+          "manufacture": "Önümçilik binasy",
+          "office": "Ofis binasy",
+          "public": "Jemgyýetçilik binasy",
+          "residential": "Identaşaýyş jaýy",
+          "retail": "Bölek satuw binasy",
+          "roof": "Dam",
+          "ruins": "Weýran edilen bina",
+          "school": "Mekdep binasy",
+          "semidetached_house": "Idarym öý",
+          "service": "Hyzmat binasy",
+          "stable": "Durnuk",
+          "static_caravan": "Kerwen",
+          "temple": "Ybadathana binasy",
+          "terrace": "Teras binasy",
+          "train_station": "Otly bekedi",
+          "university": "Uniwersitet binasy",
+          "warehouse": "Ammar",
+          "yes": "Bina"
+        },
+        "club": {
+          "sport": "Sport kluby",
+          "yes": "Klub"
+        },
+        "craft": {
+          "beekeeper": "Aryçy",
+          "blacksmith": "Demirçi",
+          "brewery": "Piwo",
+          "carpenter": "Halyçy",
+          "caterer": "Naharhana",
+          "confectionery": "Konditer önümleri",
+          "dressmaker": "Geýim öndüriji",
+          "electrician": "Elektrikçi",
+          "electronics_repair": "Elektroniki abatlaýyş",
+          "gardener": "Bagban",
+          "glaziery": "Aýna",
+          "handicraft": "Senetçilik",
+          "metal_construction": "Metal gurluşykçy",
+          "painter": "Suratkeş",
+          "photographer": "Suratçy",
+          "plumber": "Suw geçiriji",
+          "roofer": "Dam",
+          "shoemaker": "Aýakgapçy",
+          "tailor": "Tikinçi",
+          "window_construction": "Penjiräniň gurluşygy",
+          "yes": "Hünär dükany"
+        },
+        "emergency": {
+          "access_point": "Giriş nokady",
+          "ambulance_station": "Tiz kömek stansiýasy",
+          "assembly_point": "Gurnama nokady",
+          "landing_site": "Gyssagly gonuş meýdançasy",
+          "life_ring": "Gyssagly durmuş jaňy",
+          "phone": "Gyssagly telefon",
+          "siren": "Gyssagly Siren",
+          "suction_point": "Gyssagly kömek nokady",
+          "water_tank": "Gyssagly suw çüýşesi"
+        },
+        "highway": {
+          "abandoned": "Taşlanan awtoulag ýoly",
+          "bus_guideway": "Awtobus ýoly",
+          "bus_stop": "Awtobus duralgasy",
+          "construction": "Gurulýan awtoulag ýoly",
+          "corridor": "Koridor",
+          "crossing": "Geçiş",
+          "cycleway": "Sikl ýoly",
+          "emergency_access_point": "Gyssagly kömek nokady",
+          "emergency_bay": "Gyssagly kömek aýlagy",
+          "footway": "Pyýada ýol",
+          "milestone": "Çelgisi",
+          "motorway": "Awtoulag ýoly",
+          "motorway_junction": "Awtoulag ýoly",
+          "motorway_link": "Awtoulag ýoly",
+          "passing_place": "Geçýän ýeri",
+          "path": "Ýol",
+          "pedestrian": "Pyýada ýoly",
+          "platform": "Platforma",
+          "primary": "Esasy ýol",
+          "primary_link": "Esasy ýol",
+          "proposed": "Teklip edilýän ýol",
+          "raceway": "Awtoulag ýoly",
+          "residential": "Identaşaýyş ýoly",
+          "rest_area": "Dynç meýdany",
+          "secondary": "Ikinji ýol",
+          "secondary_link": "Ikinji ýol",
+          "service": "Hyzmat ýoly",
+          "services": "Awtoulag ýollary hyzmatlary",
+          "speed_camera": "Tiz kamera",
+          "steps": "Dimler",
+          "stop": "Belligi bes et",
+          "street_lamp": "Köçe çyrasy",
+          "tertiary": "Üçünji ýol",
+          "tertiary_link": "Üçünji ýol",
+          "traffic_mirror": "Ulag aýnasy",
+          "traffic_signals": "Ulag signallary",
+          "trunk": "Magistral ýoly",
+          "trunk_link": "Magistral ýoly",
+          "turning_circle": "Aýlanma tegelegi",
+          "turning_loop": "Aýlaw",
+          "unclassified": "Bölünmedik ýol"
+        },
+        "historic": {
+          "aircraft": "Taryhy uçar",
+          "archaeological_site": "Arheologiki ýadygärlik",
+          "battlefield": "Söweş meýdany",
+          "bomb_crater": "Taryhy bomba krateri",
+          "boundary_stone": "Serhet daşy",
+          "building": "Taryhy bina",
+          "bunker": "Bunker",
+          "cannon": "Taryhy top",
+          "castle": "Gala",
+          "charcoal_pile": "Taryhy kömür üýşmesi",
+          "church": "Buthana",
+          "city_gate": "Şäher derwezesi",
+          "citywalls": "Şäher diwarlary",
+          "heritage": "Miras ýeri",
+          "hollow_way": "Boş ýol",
+          "house": "Jaý",
+          "milestone": "Taryhy tapgyr",
+          "monument": "Umentadygärlik",
+          "railway": "Taryhy demir ýol",
+          "roman_road": "Rim ýoly",
+          "ruins": "Harabalyklar",
+          "tomb": "Mazar",
+          "tower": "Minara",
+          "wayside_chapel": "Wayside Chapel"
+        },
+        "junction": {
+          "yes": "Çatryk"
+        },
+        "landuse": {
+          "allotments": "Bölümler",
+          "aquaculture": "Suw hojalygy",
+          "basin": "Basseýn",
+          "commercial": "Söwda meýdany",
+          "conservation": "Gorag meýdançasy",
+          "construction": "Gurluşyk meýdany",
+          "farmland": "Ekin meýdanlary",
+          "farmyard": "Fermer hojalygy",
+          "forest": "Tokaý",
+          "grass": "Ot",
+          "industrial": "Senagat meýdany",
+          "meadow": "Çemenlik",
+          "military": "Harby sebit",
+          "orchard": "Bag",
+          "plant_nursery": "Ösümlik çagalar bagy",
+          "quarry": "Karýer",
+          "railway": "Demir ýol"
+        },
+        "place": {
+          "city_block": "Şäher bloky",
+          "country": "Ýurt",
+          "county": "Ýurt",
+          "house": "Jaý",
+          "houses": "Jaýlar",
+          "island": "Ada",
+          "state": "Döwlet",
+          "town": "Şäher",
+          "village": "Oba"
+        },
+        "shop": {
+          "books": "Kitap dükany",
+          "garden_centre": "Bag merkezi",
+          "music": "Aýdym-saz dükany",
+          "musical_instrument": "Saz gurallary",
+          "pet": "Haýwanat dükany"
+        }
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Faýl saýlaň"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Hasaba al",
+        "update": "Täzele"
+      },
+      "diary_comment": {
+        "create": "Ýazdyr"
+      },
+      "diary_entry": {
+        "create": "Neşir et",
+        "update": "Täzele"
+      },
+      "issue_comment": {
+        "create": "Teswir goşuň"
+      },
+      "message": {
+        "create": "Iber"
+      },
+      "oauth2_application": {
+        "create": "Hasaba al",
+        "update": "Täzele"
+      },
+      "redaction": {
+        "create": "Redaksiýa dörediň",
+        "update": "Redaksiýany ýazdyryň"
+      },
+      "trace": {
+        "create": "Ýükle",
+        "update": "Üýtgeşmeleri ýazdyr"
+      },
+      "user_block": {
+        "create": "Blok dörediň",
+        "update": "Bloky täzeläň"
+      }
+    }
+  },
+  "javascripts": {
+    "map": {
+      "hotosm_name": "Gumanitar OpenStreetMap topary",
+      "make_a_donation": "Bagyşlaň",
+      "osm_france": "OpenStreetMap Fransiýa"
+    }
+  },
+  "notes": {
+    "show": {
+      "report": "bu belligi habar beriň"
+    }
+  },
+  "osm_community_index": {
+    "communities": {
+      "OSM-AR-geolibres": {
+        "name": "GeoLibres"
+      },
+      "OSM-PL-chapter": {
+        "name": "OpenStreetMap Poland"
+      },
+      "OSM-US": {
+        "name": "OpenStreetMap US"
+      },
+      "OSM-japan-website": {
+        "name": "OpenStreetMap Japan"
+      },
+      "be-chapter": {
+        "name": "OpenStreetMap Belgium"
+      },
+      "cd-chapter": {
+        "name": "OpenStreetMap RDC"
+      },
+      "czech-community": {
+        "name": "OpenStreetMap CZ"
+      },
+      "fr-chapter": {
+        "name": "OpenStreetMap France"
+      },
+      "ireland-chapter": {
+        "name": "OpenStreetMap Ireland"
+      },
+      "is-chapter": {
+        "name": "OpenStreetMap Iceland"
+      },
+      "it-chapter": {
+        "name": "OpenStreetMap Italy"
+      },
+      "kosovo-flossk": {
+        "name": "Free Libre Open Source Software Kosova (FLOSSK)"
+      },
+      "osgeo-oceania": {
+        "name": "OSGeo Oceania"
+      },
+      "osm-at": {
+        "name": "OpenStreetMap Austria"
+      },
+      "osm-de": {
+        "name": "OpenStreetMap Germany"
+      },
+      "sk-freemap": {
+        "name": "OpenStreetMap Freemap Slovakia"
+      },
+      "sosm": {
+        "name": "Swiss OpenStreetMap Association"
+      },
+      "uk-localchapter": {
+        "name": "OpenStreetMap UK"
+      }
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_community_blogs": "jemgyýetçilik bloglary",
+      "legal_1_1_privacy_policy": "Gizlinlik syýasaty",
+      "legal_1_1_terms_of_use": "Ulanyş şertleri"
+    },
+    "copyright": {
+      "legal_babble": {
+        "contributors_at_austria": "Awstriýa",
+        "contributors_au_australia": "Awstraliýa",
+        "contributors_es_spain": "Ispaniýa",
+        "contributors_nl_netherlands": "Gollandiýa",
+        "contributors_si_slovenia": "Sloweniýa"
+      }
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "park": "Seýilgäh",
+          "school": "Mekdep",
+          "toilets": "Hajathana",
+          "wood": "Agaç"
+        }
+      }
+    },
+    "welcome": {
+      "title": "Hoş geldiňiz!"
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "greeting": "Salam,"
+    },
+    "note_comment_notification": {
+      "greeting": "Salam,"
+    }
+  },
+  "users": {
+    "new": {
+      "privacy_policy": "gizlinlik syýasaty"
+    },
+    "terms": {
+      "legale_names": {
+        "france": "Fransiýa",
+        "italy": "Italiýa",
+        "rest_of_world": "Dünýäniň galan ýerleri"
+      }
+    }
+  }
+}

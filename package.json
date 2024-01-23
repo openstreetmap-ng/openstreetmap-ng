@@ -5,6 +5,7 @@
     "@rapideditor/rapid": "github:facebook/Rapid#release",
     "bootstrap": "^5.3.2",
     "i18next": "^23.7.18",
+    "i18next-http-backend": "^2.4.2",
     "iD": "github:openstreetmap/iD#release",
     "leaflet": "^1.8.0",
     "leaflet.locatecontrol": "^0.79.0",

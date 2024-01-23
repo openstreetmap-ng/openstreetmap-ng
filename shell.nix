@@ -106,15 +106,21 @@ let
     (writeShellScriptBin "locale-clean" ''
       rm -rf config/locale
     '')
-    (writeShellScriptBin "locale-download" ''
+    (writeShellScriptBin "locale-download-postprocess" ''
       set -e
       rm -rf config/locale/download
       python scripts/locale_download.py
+      locale-postprocess
     '')
     (writeShellScriptBin "locale-postprocess" ''
       set -e
       rm -rf config/locale/postprocess
       python scripts/locale_postprocess.py
+    '')
+    (writeShellScriptBin "locale-make-frontend" ''
+      set -e
+      rm -rf config/locale/frontend
+      python scripts/locale_make_frontend.py
     '')
 
     # -- Wiki-tags

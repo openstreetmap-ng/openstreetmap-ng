@@ -1,0 +1,10 @@
+{
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_write_api": "মানচিত্রগ পতা",
+        "name": "নাঙহান (লাগতই)"
+      }
+    }
+  }
+}

@@ -1,0 +1,459 @@
+{
+  "accounts": {
+    "edit": {
+      "title": "Rävvdada kåntåv"
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "Giella",
+        "title": "Ábnas",
+        "user": "Adnej"
+      },
+      "doorkeeper/application": {
+        "name": "Namma"
+      },
+      "friend": {
+        "friend": "Vienak",
+        "user": "Adnej"
+      },
+      "message": {
+        "body": "Sisadno",
+        "title": "Ábnas"
+      },
+      "trace": {
+        "name": "Fijjlanamma",
+        "size": "Sturrudak",
+        "tagstring": "Mierka",
+        "user": "Adnej"
+      },
+      "user": {
+        "email": "E-påsstå",
+        "new_email": "Åđđå e-påsståadrässa:",
+        "pass_crypt": "Biessambáhko"
+      }
+    },
+    "models": {
+      "country": "Lánnda",
+      "friend": "Vienak",
+      "language": "Giella",
+      "message": "Sárdnom",
+      "user": "Adnej"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "opened_at_html": "Älgij {{when}}"
+      },
+      "rss": {
+        "title": "OpenStreetMap-notáhta"
+      }
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "openid": "OpenID",
+      "wikipedia": "Wikipedia"
+    }
+  },
+  "browse": {
+    "changeset": {
+      "belongs_to": "Tjállej",
+      "discussion": "Ságastallam"
+    },
+    "download_xml": "Lässti XML vulus",
+    "not_found": {
+      "type": {
+        "note": "notáhtta"
+      }
+    },
+    "start_rjs": {
+      "load_data": "Lässti dáhtájt",
+      "loading": "Lässti..."
+    },
+    "tag_details": {
+      "tags": "Mierka"
+    },
+    "version": "Versjuvdna",
+    "view_history": "Vuoseda histurjav"
+  },
+  "changesets": {
+    "changesets": {
+      "area": "Guavvdo",
+      "id": "ID",
+      "saved_at": "Vurrkim",
+      "user": "Adnej"
+    },
+    "index": {
+      "load_more": "Lässti ienabuv"
+    }
+  },
+  "dashboards": {
+    "popup": {
+      "friend": "Vienak"
+    },
+    "show": {
+      "my friends": "Muv vienaga"
+    }
+  },
+  "diary_entries": {
+    "form": {
+      "use_map_link": "Ane kártav"
+    },
+    "location": {
+      "edit": "Rävvdada",
+      "view": "Vuoseda"
+    }
+  },
+  "editor": {
+    "id": {
+      "name": "iD"
+    }
+  },
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "bank": "Báŋŋka",
+          "bench": "Bäŋŋka",
+          "bus_station": "Bussastasjuvdna",
+          "cafe": "Kafea",
+          "clock": "Klåhkkå",
+          "college": "Allaskåvvlå",
+          "dentist": "Bádnedálkodäjje",
+          "doctors": "Dåktår",
+          "drinking_water": "Juhkamtjáhtse",
+          "fast_food": "Åsstobäbbmo",
+          "hospital": "Sjkäbbtjaståhpo",
+          "internet_cafe": "Internähttakafea",
+          "language_school": "Giellaskåvvlå",
+          "library": "Girrjevuarrká",
+          "music_school": "Musijjkaskåvvlå",
+          "nursing_home": "Vuorrasijhäjbma",
+          "post_office": "Påsståkontuvvra",
+          "school": "Skåvvlå",
+          "toilets": "Dássa",
+          "university": "Universitähtta"
+        },
+        "boundary": {
+          "national_park": "Nasjonálpárrka"
+        },
+        "bridge": {
+          "yes": "Råvve"
+        },
+        "building": {
+          "barn": "Láđđo",
+          "church": "Girrko",
+          "college": "Allaskåvvlåbiŋnik",
+          "roof": "Táhkka",
+          "school": "Skåvvlåbiŋnik",
+          "train_station": "Tågåstasjuvdnabiŋnik",
+          "university": "Universitähttabiŋnik"
+        },
+        "highway": {
+          "bus_stop": "Bussaginudak",
+          "road": "Viega",
+          "yes": "Viega"
+        },
+        "historic": {
+          "castle": "Slåhttå",
+          "church": "Girrko",
+          "railway": "Histurjalatj ruävvdeviega",
+          "stone": "Gäđđge"
+        },
+        "landuse": {
+          "railway": "Ruävvdeviega"
+        },
+        "leisure": {
+          "nature_reserve": "Natuvvrareserváhtta",
+          "park": "Párrka",
+          "sauna": "Basstu"
+        },
+        "man_made": {
+          "bridge": "Råvve",
+          "pier": "Kájja",
+          "water_well": "Bruddne"
+        },
+        "natural": {
+          "bay": "Luakkta",
+          "coastline": "Mierragádde",
+          "fjord": "Vuodna",
+          "forest": "Mähttse",
+          "glacier": "Jiegŋa",
+          "island": "Suolo",
+          "land": "Iednam",
+          "spring": "Ája",
+          "stone": "Gäđđge",
+          "strait": "Tjålbme",
+          "tree": "Muorra",
+          "tundra": "Duoddar",
+          "water": "Tjáhtse"
+        },
+        "place": {
+          "city": "Stáđđa",
+          "country": "Lánnda",
+          "county": "Lánnda",
+          "island": "Suolo",
+          "municipality": "Kommuvdna",
+          "postcode": "Påsstånummir",
+          "sea": "Sievva"
+        },
+        "railway": {
+          "disused": "Ij adnám ruävvdeviega",
+          "halt": "Tågåginudak",
+          "preserved": "Várrjaluvvum ruävvdeviega",
+          "station": "Tågåstasjuvdna"
+        },
+        "shop": {
+          "bakery": "Bähkkumståhpo",
+          "books": "Girrjebuvvda",
+          "cheese": "Vuasstábuvvda",
+          "clothes": "Gárrvobuvvda",
+          "computer": "Dáhtorbuvvda",
+          "confectionery": "Njállgabuvvda",
+          "curtain": "Gardijdnabuvvda",
+          "food": "Bäbbmobuvvda",
+          "gift": "Skäŋŋkabuvvda",
+          "organic": "Ekolågålatj bäbbmobuvvda",
+          "stationery": "Báhperbuvvda",
+          "ticket": "Biljähttabuvvda",
+          "toys": "Ståhkåmåbmebuvvda",
+          "video": "Videobuvvda",
+          "wine": "Vijdnabuvvda",
+          "yes": "Åsestimbuvvda"
+        },
+        "tourism": {
+          "museum": "Musea"
+        },
+        "waterway": {
+          "river": "Iedno",
+          "stream": "jåhkå"
+        }
+      },
+      "types": {
+        "cities": "Stáđa"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Vällji fijlav"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Registreri"
+      },
+      "diary_comment": {
+        "create": "Vurrki"
+      },
+      "message": {
+        "create": "Säddi"
+      },
+      "oauth2_application": {
+        "create": "Registreri"
+      },
+      "trace": {
+        "create": "Lässti bajás",
+        "update": "Vurrki rävvdadimijt"
+      }
+    }
+  },
+  "issues": {
+    "index": {
+      "search": "Åtså"
+    }
+  },
+  "javascripts": {
+    "share": {
+      "long_link": "Liŋŋka"
+    }
+  },
+  "layouts": {
+    "about": "Birra",
+    "data": "Dáhtá",
+    "edit": "Rävvdada",
+    "help": "Vähkke",
+    "history": "Histurrja",
+    "intro_2_create_account": "Álge adnejkåntåv",
+    "log_in": "Luggi sisa",
+    "logout": "Luggi ulgus",
+    "partners_ucl": "UCL"
+  },
+  "messages": {
+    "message_summary": {
+      "destroy_button": "Gádoda",
+      "reply_button": "Svärru"
+    },
+    "messages_table": {
+      "date": "Bäjjve",
+      "from": "Rájest",
+      "subject": "Ábnas"
+    },
+    "new": {
+      "title": "Säddi sárdnomav"
+    },
+    "sent_message_summary": {
+      "destroy_button": "Gádoda"
+    },
+    "show": {
+      "destroy_button": "Gádoda",
+      "reply_button": "Svärru"
+    }
+  },
+  "oauth2_applications": {
+    "application": {
+      "delete": "Gádodit",
+      "edit": "Rävvdadit"
+    },
+    "index": {
+      "name": "Namma",
+      "permissions": "Låhpe"
+    },
+    "show": {
+      "delete": "Gádoda",
+      "edit": "Rävvdada"
+    }
+  },
+  "oauth2_authorized_applications": {
+    "index": {
+      "permissions": "Låhpe"
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "E-påsståadrässa:"
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Buŧŧki"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Buŧŧki",
+      "delete image": "Gádoda dálátj gåvåv",
+      "gravatar": {
+        "gravatar": "Ane Gravatar'av",
+        "what_is_gravatar": "Mij lä Gravatar?"
+      },
+      "image": "Gåvvå",
+      "title": "Rävvdada profijlav"
+    }
+  },
+  "reports": {
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "other_label": "Ietjá"
+        },
+        "diary_entry": {
+          "other_label": "Ietjá"
+        },
+        "note": {
+          "other_label": "Ietjá"
+        },
+        "user": {
+          "other_label": "Ietjá"
+        }
+      }
+    }
+  },
+  "sessions": {
+    "new": {
+      "password": "Biessambáhko:"
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "url": "URL"
+    },
+    "richtext_field": {
+      "edit": "Rävvdada",
+      "preview": "Åvvdåvuosedibme"
+    }
+  },
+  "site": {
+    "about": {
+      "next": "Maŋep"
+    },
+    "edit": {
+      "user_page_link": "adnejbielle"
+    },
+    "export": {
+      "licence": "Lisännsa"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "bicycle_shop": "Syhkkilbuvvda",
+          "lake": "Jávvre",
+          "park": "Párrka",
+          "rail": "Ruävvdeviega",
+          "reserve": "Natuvvrareserváhtta",
+          "school": "Skåvvlå",
+          "station": "Tågåstasjuvdna",
+          "toilets": "Dássa",
+          "university": "universitähtta"
+        }
+      }
+    },
+    "welcome": {
+      "title": "Burist båhtem!"
+    }
+  },
+  "traces": {
+    "edit": {
+      "cancel": "Buŧŧki"
+    },
+    "new": {
+      "help": "Vähkke"
+    },
+    "show": {
+      "download": "lässti vulus",
+      "edit": "rävvdada",
+      "filename": "Fijjlanamma:",
+      "map": "kárrta",
+      "tags": "Mierka:",
+      "uploaded": "Lässtim bajás:"
+    },
+    "trace": {
+      "edit_map": "Rävvdada kártav",
+      "more": "ienap",
+      "view_map": "Vuoseda kártav"
+    },
+    "trace_optionals": {
+      "tags": "Mierka"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Rävvdada",
+      "show": "Vuoseda"
+    },
+    "show": {
+      "created": "Állgám:",
+      "edit": "Rävvdada",
+      "show": "Vuoseda"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "Adneja",
+      "title": "Adneja"
+    },
+    "show": {
+      "delete_user": "Gádoda dáv adnejav",
+      "diary": "Bäjjvegirrje",
+      "edit_profile": "Rävvdada profijlav",
+      "edits": "Rävvdadime",
+      "hide_user": "Tjiega dáv adnejav",
+      "send message": "Säddi sárdnomav"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "언어"
+      },
+      "user": {
+        "languages": "언어"
+      }
+    },
+    "models": {
+      "language": "언어"
+    }
+  },
+  "site": {
+    "copyright": {
+      "native": {
+        "native_link": "조선말 판본"
+      }
+    }
+  }
+}

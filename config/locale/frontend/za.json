@@ -1,0 +1,12 @@
+{
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "update": "Gaij"
+      },
+      "diary_entry": {
+        "update": "Swnggaep"
+      }
+    }
+  }
+}

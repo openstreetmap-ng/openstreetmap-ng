@@ -1,0 +1,17 @@
+{
+  "helpers": {
+    "submit": {
+      "diary_entry": {
+        "update": "روزآمدسازی"
+      }
+    }
+  },
+  "html": {
+    "dir": "rtl"
+  },
+  "javascripts": {
+    "share": {
+      "image_dimensions": "عیس استاندارد نشون داده ایبوی وا {{width}} x {{height}}"
+    }
+  }
+}

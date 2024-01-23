@@ -1,0 +1,43 @@
+{
+  "activerecord": {
+    "models": {
+      "language": "Lengoua"
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Chouèsir un fichiér"
+    },
+    "submit": {
+      "client_application": {
+        "create": "S’enscrire",
+        "update": "Betar a jorn"
+      },
+      "diary_comment": {
+        "create": "Encenevar"
+      },
+      "diary_entry": {
+        "create": "Publeyér",
+        "update": "Betar a jorn"
+      },
+      "issue_comment": {
+        "create": "Apondre un comentèro"
+      },
+      "message": {
+        "create": "Mandar"
+      },
+      "oauth2_application": {
+        "update": "Betar a jorn"
+      }
+    }
+  },
+  "layouts": {
+    "help": "Éde",
+    "logout": "Sè dèbranchiér"
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y a %H:%M"
+    }
+  }
+}

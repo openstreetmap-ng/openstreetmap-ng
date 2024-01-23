@@ -1,0 +1,15 @@
+{
+  "layouts": {
+    "about": "Quanto a"
+  },
+  "traces": {
+    "show": {
+      "edit": "edición"
+    }
+  },
+  "users": {
+    "show": {
+      "edits": "edicions"
+    }
+  }
+}

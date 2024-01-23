@@ -1,0 +1,3208 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "cancel": "Peruuta",
+        "confirm_delete": "Oletko varma?",
+        "delete_account": "Poista käyttäjä",
+        "delete_display_name": "Näyttönimesi poistetaan, ja muut tilit voivat käyttää sitä uudelleen.",
+        "delete_introduction": "Voit poistaa OpenStreetMap-tilisi alla olevalla painikkeella. Huomioi seuraavat asiat:",
+        "delete_profile": "Käyttäjätietosi, avatar, kuvaus ja kotisijainti mukaan lukien poistetaan.",
+        "retain_caveats": "Vaikka tilisi poistetaan, joitain sinuun liittyviä tietoja säilytetään OpenStreetMapissa:",
+        "retain_diary_entries": "Päiväkirjamerkintäsi ja päiväkirjakommenttisi, jos sellaisia on, säilytetään, mutta piilotetaan näkyviltä.",
+        "retain_edits": "Mahdolliset karttatietokantaan tekemäsi muutokset säilytetään.",
+        "retain_email": "Sähköpostiosoitteesi säilytetään.",
+        "retain_traces": "Lähettämäsi jäljet, jos sellaisia on, säilytetään.",
+        "title": "Poista käyttäjäni",
+        "warning": "Varoitus! Käyttäjän poistaminen on lopullinen, eikä sitä voi peruuttaa."
+      }
+    }
+  },
+  "accounts": {
+    "destroy": {
+      "success": "Käyttäjä poistettu."
+    },
+    "edit": {
+      "contributor terms": {
+        "agreed": "Olet hyväksynyt osallistumisehdot.",
+        "agreed_with_pd": "Olet myös ilmaissut muokkaustesi olevan tekijänoikeudesta vapaita (Public Domain).",
+        "heading": "Osallistumisehdot",
+        "link text": "Mitä tämä tarkoittaa?",
+        "not yet agreed": "Et ole vielä hyväksynyt osallistumisehtoja.",
+        "review link text": "Lue ja hyväksy uudistuneet osallistumisehdot napsauttamalla tätä linkkiä."
+      },
+      "current email address": "Nykyinen sähköpostiosoite",
+      "delete_account": "Poista käyttäjä...",
+      "external auth": "Kolmannen osapuolen tunnukset kirjautuessa",
+      "my settings": "Käyttäjäasetukset",
+      "openid": {
+        "link": "https://wiki.openstreetmap.org/wiki/Fi:OpenID",
+        "link text": "Mitä tämä tarkoittaa?"
+      },
+      "public editing": {
+        "disabled": "Ei. Karttatietojen muokkaus estetty. Aiemmat karttamuutokset anonyymejä.",
+        "disabled link text": "Miksen voi enää muokata karttaa?",
+        "enabled": "Kyllä. Karttatietojen muokkaus sallittu.",
+        "enabled link text": "Mitä tämä tarkoittaa?",
+        "heading": "Julkinen muokkaus"
+      },
+      "save changes button": "Tallenna muutokset",
+      "title": "Asetusten muokkaus"
+    },
+    "go_public": {
+      "currently_not_public": "Tällä hetkellä muokkauksesi ovat anonyymejä, eivätkä ihmiset voi lähettää sinulle viestejä tai nähdä sijaintiasi. Napsauta alla olevaa painiketta nähdäksesi, mitä olet muokannut, ja anna ihmisten ottaa sinuun yhteyttä verkkosivuston kautta.",
+      "heading": "Muokkaukset julkisia",
+      "make_edits_public_button": "Tee muokkauksistani julkisia"
+    },
+    "update": {
+      "success": "Käyttäjätietojen muutokset on tallennettu.",
+      "success_confirm_needed": "Käyttäjätietojen muutokset on tallennettu. Vahvista uusi sähköpostiosoite siihen lähetettyjen ohjeiden mukaisesti."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "päästä yksityisiin GPS-jälkiin",
+        "allow_read_prefs": "päästä käyttäjäasetuksiin",
+        "allow_write_api": "muokata karttaa",
+        "allow_write_diary": "lisätä päiväkirjamerkintöjä, kommentteja ja kavereita",
+        "allow_write_gpx": "tallentaa GPS-jälkiä",
+        "allow_write_notes": "muokata karttailmoituksia",
+        "allow_write_prefs": "muokata käyttäjäasetuksia",
+        "callback_url": "Takaisinsoiton verkko-osoite",
+        "name": "Nimi (pakollinen)",
+        "support_url": "Tuen osoite (URL)",
+        "url": "Pääsovelluksen URL-osoite (pakollinen)"
+      },
+      "diary_comment": {
+        "body": "Leipäteksti"
+      },
+      "diary_entry": {
+        "body": "Sisältö",
+        "language_code": "Kieli",
+        "latitude": "Leveyspiiri",
+        "longitude": "Pituuspiiri",
+        "title": "Aihe",
+        "user": "Käyttäjä"
+      },
+      "doorkeeper/application": {
+        "confidential": "Korkean tietoturvariskin sovellus",
+        "name": "Nimi",
+        "redirect_uri": "Uudelleenohjaa URI:t",
+        "scopes": "Käyttöoikeudet"
+      },
+      "friend": {
+        "friend": "Kaveri",
+        "user": "Käyttäjä"
+      },
+      "message": {
+        "body": "Viesti",
+        "recipient": "Vastaanottaja",
+        "sender": "Lähettäjä",
+        "title": "Aihe"
+      },
+      "redaction": {
+        "description": "Kuvaus",
+        "title": "Otsikko"
+      },
+      "report": {
+        "category": "Valitse ilmiannon syy",
+        "details": "Kuvaile ongelmaa (pakollinen)"
+      },
+      "trace": {
+        "description": "Kuvaus",
+        "gpx_file": "Tallenna GPX-tiedosto",
+        "latitude": "Leveyspiiri",
+        "longitude": "Pituuspiiri",
+        "name": "Tiedostonimi",
+        "public": "Julkinen",
+        "size": "Koko",
+        "tagstring": "Ominaisuustiedot",
+        "user": "Käyttäjä",
+        "visibility": "Näkyvyys",
+        "visible": "Näkyvissä"
+      },
+      "user": {
+        "active": "Aktivoitu",
+        "auth_provider": "Todennuksen tarjoaja",
+        "auth_uid": "Todennus-UID",
+        "description": "Henkilökuvaus",
+        "display_name": "Näyttönimi",
+        "email": "Sähköpostiosoite",
+        "email_confirmation": "Sähköpostin varmistus",
+        "home_lat": "Leveyspiiri",
+        "home_lon": "Pituuspiiri",
+        "languages": "Kielet",
+        "new_email": "Uusi sähköpostiosoite",
+        "pass_crypt": "Salasana",
+        "pass_crypt_confirmation": "Vahvista salasana",
+        "preferred_editor": "Ensisijainen muokkausohjelma"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "reittiohjeet eivät ole saatavilla",
+        "invalid_email_address": "\"%s\" ei näytä olevan kelvollinen sähköpostiosoite."
+      }
+    },
+    "help": {
+      "doorkeeper/application": {
+        "confidential": "Sovellusta käytettäessä ei voida taata käyttäjätietojen tietoturvaa (natiivit mobiilisovellukset ja yhden sivun sovellukset eivät ole korkean tietoturvariskin sovelluksia)",
+        "redirect_uri": "Käytä yhtä riviä URI:a kohden"
+      },
+      "trace": {
+        "tagstring": "pilkuilla eroteltu lista"
+      },
+      "user": {
+        "new_email": "(ei näy muille)"
+      },
+      "user_block": {
+        "needs_view": "Pitääkö tämän käyttäjän kirjautua sisään ennen kuin esto poistetaan?",
+        "reason": "Syy käyttäjän estoon. Ole mahdollisimman rauhallinen ja asiallinen ja kuvaile tilannetta mahdollisimman yksityiskohtaisesti. Pidä mielessä, että viesti tulee olemaan julkisesti näkyvillä. Muista myös, että kaikki käyttäjät eivät ymmärrä yhteisön erikoissanastoa, joten pyri sen sijaan käyttämään yleiskielen käsitteitä."
+      }
+    },
+    "models": {
+      "acl": "Pääsyoikeuslista",
+      "changeset": "Muutoskokoelma",
+      "changeset_tag": "Muutoskokoelman tunniste",
+      "country": "Maa",
+      "diary_comment": "Päiväkirjakommentti",
+      "diary_entry": "Päiväkirjamerkintä",
+      "friend": "Kaveri",
+      "issue": "Ongelma",
+      "language": "Kieli",
+      "message": "Viesti",
+      "node": "Piste",
+      "node_tag": "Pisteen tunniste",
+      "old_node": "Vanha piste",
+      "old_node_tag": "Vanha pisteen tunniste",
+      "old_relation": "Vanha relaatio",
+      "old_relation_member": "Vanha relaation jäsen",
+      "old_relation_tag": "Vanha relaation tunniste",
+      "old_way": "Vanha viiva",
+      "old_way_node": "Vanha viiva piste",
+      "old_way_tag": "Viivan vanha tunniste",
+      "relation": "Relaatio",
+      "relation_member": "Relaation jäsen",
+      "relation_tag": "Relaation tunniste",
+      "report": "Raportti",
+      "session": "Istunto",
+      "trace": "Jälki",
+      "tracepoint": "Jälkipiste",
+      "tracetag": "Jäljen tagi",
+      "user": "Käyttäjä",
+      "user_preference": "Käyttäjän asetus",
+      "user_token": "Käyttäjän poletti",
+      "way": "Viiva",
+      "way_node": "Viivan piste",
+      "way_tag": "Viivan tagi"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "{{user}} ratkaissut {{when}}",
+        "closed_at_html": "Ratkaistu {{when}}",
+        "commented_at_by_html": "{{user}} päivittänyt {{when}}",
+        "commented_at_html": "Päivitetty {{when}}",
+        "opened_at_by_html": "{{user}} luonut {{when}}",
+        "opened_at_html": "Luotu {{when}}",
+        "reopened_at_by_html": "{{user}} aktivoinut uudelleen {{when}}",
+        "reopened_at_html": "Avattu uudelleen {{when}}"
+      },
+      "entry": {
+        "comment": "Kommentti",
+        "full": "Koko karttailmoitus"
+      },
+      "rss": {
+        "closed": "suljettu karttailmoitus (lähellä paikkaa {{place}})",
+        "commented": "uusi kommentti (lähellä kohdetta {{place}})",
+        "description_area": "Luettelo raportoiduista, kommentoiduista tai suljetuista huomautuksista omalla alueellasi [( {{min_lat}}|{{min_lon}})--( {{max_lat}}|{{max_lon}})]",
+        "description_item": "Karttailmoituksen {{id}} RSS-syöte",
+        "opened": "uusi huomautus (lähellä kohdetta {{place}})",
+        "reopened": "uudelleenavattu karttailmoitus (lähellä paikka {{place}})",
+        "title": "OpenStreetMapin karttailmoitukset"
+      }
+    }
+  },
+  "application": {
+    "permission_denied": "Sinulla ei ole oikeutta käyttää tätä toimintoa",
+    "require_admin": {
+      "not_an_admin": "Vain pääkäyttäjät voivat käyttää tätä toimintoa."
+    },
+    "require_cookies": {
+      "cookies_needed": "Selaimen evästeet on otettu pois päältä - salli evästeiden käyttö selaimessasi ennen jatkamista."
+    },
+    "settings_menu": {
+      "account_settings": "Käyttäjäasetukset",
+      "oauth1_settings": "OAuth 1 -asetukset",
+      "oauth2_applications": "OAuth 2 -sovellukset",
+      "oauth2_authorizations": "OAuth 2 -käyttöoikeudet"
+    },
+    "setup_user_auth": {
+      "blocked": "Pääsysi APIin on estetty. Lisätietoja saat kirjautumalla web-käyttöliittymään.",
+      "blocked_zero_hour": "Olet saanut kiireellisen viestin OpenStreetMapin verkkopalvelussa. Viesti on luettava, ennen kuin karttaan voi tallentaa muutoksia.",
+      "need_to_see_terms": "API:n käyttöoikeutesi on tilapäisesti hyllytetty. Kirjaudu sisään verkkokäyttöliittymään nähdäksesi osallistujien ehdot. Niihin ei tarvitse suostua, mutta ne täytyy lukea."
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "none": "Ei mitään",
+      "openid": "OpenID",
+      "wikipedia": "Wikipedia"
+    }
+  },
+  "browse": {
+    "anonymous": "tuntematon",
+    "changeset": {
+      "belongs_to": "Lähettäjä",
+      "changesetxml": "Muutoskokoelman XML",
+      "comment": "Kommentit ({{count}})",
+      "comment_by_html": "Kommentti käyttäjältä {{user}}, {{time_ago}}",
+      "discussion": "Keskustelu",
+      "feed": {
+        "title": "Muutoskokoelma {{id}}",
+        "title_comment": "Muutoskokoelma {{id}} - {{comment}}"
+      },
+      "hidden_comment_by_html": "Piilotettu kommentti käyttäjältä {{user}} {{time_ago}}",
+      "join_discussion": "Kirjaudu sisään osallistuaksesi keskusteluun",
+      "node": "Pisteet ({{count}})",
+      "node_paginated": "Pisteet ({{x}}-{{y}} / {{count}})",
+      "osmchangexml": "osmChange XML",
+      "relation": "Relaatiot ({{count}})",
+      "relation_paginated": "Relaatiot ({{x}}-{{y}} / {{count}})",
+      "still_open": "Muutoskokoelma on edelleen avoimena - keskustelu avataan heti kun muutoskokoelma on suljettu.",
+      "title": "Muutoskokoelma: {{id}}",
+      "way": "Reitit ({{count}})",
+      "way_paginated": "Reitit ({{x}}-{{y}} of {{count}})"
+    },
+    "closed": "Suljettu",
+    "closed_ago_by_html": "Sulkenut {{user}}, {{time_ago}}",
+    "closed_ago_html": "Suljettu {{time_ago}}",
+    "containing_relation": {
+      "entry_html": "Relaatio {{relation_name}}",
+      "entry_role_html": "Relaatio {{relation_name}} (rooli {{relation_role}})"
+    },
+    "created": "Luotu",
+    "created_ago_by_html": "Luonut {{user}}, {{time_ago}}",
+    "created_ago_html": "Luotu {{time_ago}}",
+    "deleted_ago_by_html": "Poistanut {{user}}, {{time_ago}}",
+    "download_xml": "Lataa XML-tiedostona",
+    "edited_ago_by_html": "Muokannut {{time_ago}} {{user}}",
+    "in_changeset": "Muutoskokoelma",
+    "location": "Sijainti:",
+    "no_comment": "(ei kommenttia)",
+    "node": {
+      "history_title_html": "Pisteen {{name}} historia",
+      "title_html": "Piste: {{name}}"
+    },
+    "not_found": {
+      "sorry": "Pahoittelemme, {{type}} #{{id}} ei pystytty löytämään.",
+      "title": "Ei löytynyt",
+      "type": {
+        "changeset": "muutoskokoelma",
+        "node": "Pistettä",
+        "note": "merkintä",
+        "relation": "Relaatiota",
+        "way": "Polkua"
+      }
+    },
+    "part_of": "Osana seuraavia",
+    "part_of_relations_one": "{{count}} relaatio",
+    "part_of_relations_other": "{{count}} relaatiota",
+    "part_of_ways_one": "{{count}} viiva",
+    "part_of_ways_other": "{{count}} viivaa",
+    "query": {
+      "enclosing": "Ympäröivät karttakohteet",
+      "introduction": "Napsauta karttaa löytääksesi lähistön karttakohteita.",
+      "nearby": "Lähistön karttakohteet",
+      "title": "Ominaisuuskysely"
+    },
+    "redacted": {
+      "message_html": "Tämän {{type}}-tyypin versiota {{version}} ei voi näyttää koska se on relaatoitu. Katso lisätietoja {{redaction_link}}.",
+      "redaction": "Redaktio {{id}}",
+      "type": {
+        "node": "piste",
+        "relation": "relaatio",
+        "way": "polku"
+      }
+    },
+    "relation": {
+      "history_title_html": "Relaation {{name}} historia",
+      "members": "Jäsenet",
+      "members_count_one": "{{count}} jäsen",
+      "members_count_other": "{{count}} jäsentä",
+      "title_html": "Relaatio: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} roolissa {{role}}",
+      "type": {
+        "node": "Piste",
+        "relation": "Relaatio",
+        "way": "Polku"
+      }
+    },
+    "start_rjs": {
+      "feature_warning": "Ladataan {{num_features}} ominaisuutta, mikä saatta hidastaa tai kaataa verkkoselaimen. Haluatko varmasti näyttää nämä tiedot?",
+      "load_data": "Lataa tiedot",
+      "loading": "Ladataan tietoja..."
+    },
+    "tag_details": {
+      "colour_preview": "Värin {{colour_value}} esikatselu",
+      "email_link": "Sähköposti {{email}}",
+      "tags": "Ominaisuustiedot",
+      "telephone_link": "Soita {{phone_number}}",
+      "wiki_link": {
+        "key": "Wikisivu avaimelle {{key}}",
+        "tag": "Wikisivu tietueelle {{key}}={{value}}"
+      },
+      "wikidata_link": "{{page}} Wikidatassa",
+      "wikimedia_commons_link": "{{page}} Wikimedia Commonsissa",
+      "wikipedia_link": "Artikkeli {{page}} Wikipediassa"
+    },
+    "timeout": {
+      "sorry": "Pahoittelut, tietojen hakeminen (kohde {{type}}:{{id}}) kesti liian kauan.",
+      "title": "Aikakatkaisu",
+      "type": {
+        "changeset": "muutoskokoelma",
+        "node": "piste",
+        "note": "merkintä",
+        "relation": "relaatio",
+        "way": "polku"
+      }
+    },
+    "version": "Versio",
+    "view_details": "Näytä tiedot",
+    "view_history": "Näytä historia",
+    "way": {
+      "also_part_of_html_one": "osana viivaa {{related_ways}}",
+      "also_part_of_html_other": "osana viivoja {{related_ways}}",
+      "history_title_html": "Viivan {{name}} historia",
+      "nodes": "Pisteet",
+      "nodes_count_one": "{{count}} piste",
+      "nodes_count_other": "{{count}} pistettä",
+      "title_html": "Viiva: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "comment": {
+      "comment": "Käyttäjä {{author}} kommentoi muutoskokoelmaa #{{changeset_id}}",
+      "commented_at_by_html": "{{user}} päivittänyt {{when}}"
+    },
+    "comments": {
+      "comment": "Uusi kommentti käyttäjän {{author}} muutoskokoelmassa #{{changeset_id}}"
+    },
+    "index": {
+      "title_all": "Keskustelu OpenStreetMapin muutoskokoelmasta",
+      "title_particular": "OpenStreetMap muutoskokoelma #{{changeset_id}} keskustelu"
+    },
+    "timeout": {
+      "sorry": "Valitettavasti pyytämäsi muutoskokoelmien kommenttien hakeminen kesti liian kauan."
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Tuntematon",
+      "no_edits": "(ei muokkauksia)",
+      "view_changeset_details": "Näytä muutoskokoelman tarkemmat tiedot"
+    },
+    "changeset_paging_nav": {
+      "next": "Seuraava »",
+      "previous": "« Edellinen",
+      "showing_page": "Sivu {{page}}"
+    },
+    "changesets": {
+      "area": "Alue",
+      "comment": "Kommentti",
+      "id": "Tunniste",
+      "saved_at": "Tallennettu",
+      "user": "Käyttäjä"
+    },
+    "index": {
+      "empty": "Muutosryhmiä ei löytynyt.",
+      "empty_area": "Ei muutosryhmiä tällä alueella.",
+      "empty_user": "Tämä käyttäjä ei ole tehnyt muutosryhmiä.",
+      "load_more": "Lataa lisää",
+      "no_more": "Ei löytynyt enempää muutosryhmiä.",
+      "no_more_area": "Ei muita muutosryhmiä tällä alueella.",
+      "no_more_user": "Ei muita muutosryhmiä tällä käyttäjällä.",
+      "title": "Muutoskokoelmat",
+      "title_friend": "Kaverien muutoskokoelmat",
+      "title_nearby": "Lähellä olevien käyttäjien muutoskokoelmat",
+      "title_user": "Käyttäjän {{user}} muutoskokoelmat",
+      "title_user_link_html": "Käyttäjän {{user_link}} muutoskokoelmat"
+    },
+    "timeout": {
+      "sorry": "Valitettavasti pyytämäsi muutoskokoelmien listan hakeminen kesti liian kauan."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "Tämä tunnus on jo vahvistettu.",
+      "button": "Vahvista",
+      "click_here": "napsauta tästä",
+      "heading": "Tarkista sähköpostisi!",
+      "introduction_1": "Vahvistusviesti lähetetty.",
+      "introduction_2": "Aktivoi tili napsauttamalla vahvistustilissä olevaa linkkiä, minkä jälkeen voit aloittaa kartan muokkaamisen!",
+      "press confirm button": "Aktivoi uusi käyttäjätunnuksesi valitsemalla Vahvista.",
+      "resend_html": "Jos haluat, että lähetämme vahvistussähköpostin uudelleen, {{reconfirm_link}}.",
+      "success": "Käyttäjätunnuksesi on nyt vahvistettu.",
+      "unknown token": "Vahvistuskoodi on vanhentunut tai sitä ei ole."
+    },
+    "confirm_email": {
+      "button": "Vahvista",
+      "failure": "Tällä tunnisteella on jo vahvistettu sähköpostiosoite.",
+      "heading": "Vahvista sähköpostiosoitteen muutos",
+      "press confirm button": "Varmenna sähköpostiosoitteesi valitsemalla Vahvista.",
+      "success": "Sähköpostiosoitteesi muutos on nyt vahvistettu!",
+      "unknown_token": "Vahvistuskoodi on vanhentunut tai sitä ei ole."
+    },
+    "confirm_resend": {
+      "failure": "Käyttäjää {{name}} ei löytynyt."
+    },
+    "resend_success_flash": {
+      "confirmation_sent": "Olemme lähettäneet uuden vahvistusviestin osoitteeseen {{email}}. Vahvistettuasi käyttäjätunnuksesi voit aloittaa kartoittamisen."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}} kilometrin päässä",
+      "latest_edit_html": "Viimeisin muutos ({{ago}}):",
+      "m away": "{{count}} metrin päässä"
+    },
+    "popup": {
+      "friend": "Kaveri",
+      "nearby mapper": "Lähellä oleva kartoittaja",
+      "your location": "Oma sijaintisi"
+    },
+    "show": {
+      "edit_your_profile": "Muokkaa profiiliasi",
+      "friends_changesets": "kaverien muutoskokoelmat",
+      "friends_diaries": "kaverien päiväkirjamerkinnät",
+      "my friends": "Kaverit",
+      "nearby users": "Muut lähialueen käyttäjät",
+      "nearby_changesets": "lähialueen käyttäjien muutoskokoelmat",
+      "nearby_diaries": "lähialueen käyttäjien päiväkirjamerkinnät",
+      "no friends": "Sinulla ei ole vielä kavereita.",
+      "no nearby users": "Valitun sijainnin lähellä ei ole tiedossa muita käyttäjiä.",
+      "no_home_location_html": "{{edit_profile_link}} ja aseta kotisijaintisi, jotta näet lähellä olevat käyttäjät.",
+      "title": "Tapahtumat"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_one": "noin {{count}} tunti sitten",
+      "about_x_hours_other": "noin {{count}} tuntia sitten",
+      "about_x_months_one": "noin {{count}} kuukausi sitten",
+      "about_x_months_other": "noin {{count}} kuukautta sitten",
+      "about_x_years_one": "noin {{count}} vuosi sitten",
+      "about_x_years_other": "noin {{count}} vuotta sitten",
+      "almost_x_years_one": "lähes {{count}} vuosi sitten",
+      "almost_x_years_other": "lähes {{count}} vuotta sitten",
+      "half_a_minute": "puoli minuuttia sitten",
+      "less_than_x_minutes_one": "vähemmän kuin {{count}} minuutti sitten",
+      "less_than_x_minutes_other": "vähemmän kuin {{count}} minuuttia sitten",
+      "less_than_x_seconds_one": "vähemmän kuin {{count}} sekuntia sitten",
+      "less_than_x_seconds_other": "vähemmän kuin {{count}} sekuntia sitten",
+      "over_x_years_one": "yli {{count}} vuosi sitten",
+      "over_x_years_other": "yli {{count}} vuotta sitten",
+      "x_days_one": "{{count}} päivä sitten",
+      "x_days_other": "{{count}} päivää sitten",
+      "x_minutes_one": "{{count}} minuutti sitten",
+      "x_minutes_other": "{{count}} minuuttia sitten",
+      "x_months_one": "{{count}} kuukausi sitten",
+      "x_months_other": "{{count}} kuukautta sitten",
+      "x_seconds_one": "{{count}} sekunti sitten",
+      "x_seconds_other": "{{count}} sekuntia sitten",
+      "x_years_one": "{{count}} vuosi sitten",
+      "x_years_other": "{{count}} vuotta sitten"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Kommentti",
+      "heading": "Päiväkirjamerkinnät käyttäjältä {{user}}",
+      "newer_comments": "Uudemmat kommentit",
+      "no_comments": "Ei päiväkirjamerkintöjä",
+      "older_comments": "Vanhemmat kommentit",
+      "post": "Kommentti",
+      "subheading_html": "Käyttäjän {{user}} lisäämät päiväkirjamerkinnät",
+      "title": "Käyttäjän {{user}} lisäämät päiväkirjamerkinnät",
+      "when": "Päiväys"
+    },
+    "diary_comment": {
+      "comment_from_html": "Kommentti käyttäjältä {{link_user}} {{comment_created_at}}",
+      "confirm": "Vahvista",
+      "hide_link": "Piilota tämä kommentti",
+      "report": "Ilmianna kommentti",
+      "unhide_link": "Poista kommentin piilottaminen"
+    },
+    "diary_entry": {
+      "comment_count_one": "{{count}} kommentti",
+      "comment_count_other": "{{count}} kommenttia",
+      "comment_link": "Kommentoi tätä kirjoitusta",
+      "confirm": "Vahvista",
+      "edit_link": "Muokkaa päiväkirjamerkintää",
+      "hide_link": "Piilota tämä merkintä",
+      "no_comments": "Ei kommentteja",
+      "posted_by_html": "Käyttäjä {{link_user}} kirjoitti tämän {{created}} kielellä {{language_link}}.",
+      "reply_link": "Lähetä viesti tekijälle",
+      "report": "Ilmianna julkaisu",
+      "unhide_link": "Poista merkinnän piilottaminen",
+      "updated_at_html": "Päivitetty viimeksi {{updated}}."
+    },
+    "edit": {
+      "marker_text": "Päiväkirjamerkinnän sijainti",
+      "title": "Muokkaa päiväkirjamerkintää"
+    },
+    "feed": {
+      "all": {
+        "description": "Tuoreimmat OpenStreetMapin käyttäjien päiväkirjamerkinnät",
+        "title": "OpenStreetMap-päiväkirjamerkinnät"
+      },
+      "language": {
+        "description": "Viimeisimmät päiväkirjamerkinnät OpenStreetMapin käyttäjiltä kielellä {{language_name}}",
+        "title": "OpenStreetMap-päiväkirjamerkinnät kielellä {{language_name}}"
+      },
+      "user": {
+        "description": "Tuoreimmat OpenStreetMapin päiväkirjamerkinnät käyttäjältä {{user}}",
+        "title": "Käyttäjän {{user}} OpenStreetMap-päiväkirjamerkinnät"
+      }
+    },
+    "form": {
+      "location": "Sijainti",
+      "use_map_link": "Käytä karttaa"
+    },
+    "index": {
+      "in_language_title": "Päiväkirjamerkinnät kielellä {{language}}",
+      "my_diary": "Päiväkirjani",
+      "new": "Lisää päiväkirjamerkintä",
+      "new_title": "Kirjoita uusi merkintä käyttäjän päiväkirjaani",
+      "newer_entries": "Uudempia...",
+      "no_entries": "Päiväkirjassa ei ole merkintöjä.",
+      "older_entries": "Vanhempia...",
+      "recent_entries": "Uusimmat päiväkirjamerkinnät",
+      "title": "Käyttäjien päiväkirjamerkinnät",
+      "title_friends": "Kaverien päiväkirjat",
+      "title_nearby": "Lähellä olevien käyttäjien päiväkirjat",
+      "user_title": "Käyttäjän {{user}} päiväkirja"
+    },
+    "location": {
+      "edit": "Muokkaa",
+      "location": "Sijainti:",
+      "view": "Näytä"
+    },
+    "new": {
+      "title": "Uusi päiväkirjamerkintä"
+    },
+    "no_such_entry": {
+      "body": "Tunnuksella {{id}} ei ole päiväkirjamerkintää. Joko saamasi linkki oli virheellinen tai kirjoitit sen väärin.",
+      "heading": "Tunnuksella {{id}} ei ole päiväkirjamerkintää.",
+      "title": "Päiväkirjamerkintää ei ole"
+    },
+    "show": {
+      "leave_a_comment": "Kommentoi tätä kirjoitusta",
+      "login": "Kirjaudu sisään",
+      "login_to_leave_a_comment_html": "{{login_link}} kommentoidaksesi",
+      "title": "Käyttäjän {{user}} päiväkirja | {{title}}",
+      "user_title": "Käyttäjän {{user}} päiväkirja"
+    }
+  },
+  "doorkeeper": {
+    "flash": {
+      "applications": {
+        "create": {
+          "notice": "Sovellus rekisteröity."
+        }
+      }
+    }
+  },
+  "editor": {
+    "default": "Oletus (tällä hetkellä {{name}})",
+    "id": {
+      "description": "iD (selainkäyttöinen muokkain)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "Kauko-ohjaus (JOSM, Potlatch tai Merkaartor)",
+      "name": "Kauko-ohjaus"
+    }
+  },
+  "errors": {
+    "contact": {
+      "contact": "Ota yhteyttä",
+      "contact_the_community_html": "{{contact_link}} OpenStreetMap-yhteisöön, jos olet löytänyt rikkinäisen linkin / virheen. Kirjoita muistiin pyyntösi tarkka URL-osoite."
+    },
+    "forbidden": {
+      "description": "OpenStreetMap-palvelimella pyytämäsi toiminto on vain järjestelmänvalvojien käytettävissä (HTTP 403)",
+      "title": "Kielletty"
+    },
+    "internal_server_error": {
+      "description": "OpenStreetMap-palvelin kohtasi odottamattoman tilanteen, joka esti sitä täyttämästä pyyntöä (HTTP 500)",
+      "title": "Sovellusvirhe"
+    },
+    "not_found": {
+      "title": "Tiedostoa ei löydy"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "{{name}} on jo kaverisi.",
+      "button": "Lisää kaveriksi",
+      "failed": "Käyttäjää {{name}} ei voitu lisätä kaverilistaasi.",
+      "heading": "Lisätäänkö {{user}} kaveriksi?",
+      "success": "{{name}} on nyt kaverisi."
+    },
+    "remove_friend": {
+      "button": "Poista kaveri",
+      "heading": "Poistetaanko kaveri {{user}}?",
+      "not_a_friend": "{{name}} ei ole enää kaverisi.",
+      "success": "{{name}} poistettiin kaverilistastasi."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Lisää tuloksia",
+      "no_results": "Ei hakutuloksia"
+    },
+    "search": {
+      "title": {
+        "latlon": "Sisäinen",
+        "results_from_html": "Tulokset kohteesta {{results_link}}"
+      }
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "Asuinalueen raja",
+        "level11": "Naapuruston raja",
+        "level2": "Valtion raja",
+        "level3": "Alueraja",
+        "level4": "Osavaltion raja",
+        "level5": "Alueen raja",
+        "level6": "Maakunnan raja",
+        "level7": "Kunnanraja",
+        "level8": "Kunnan raja",
+        "level9": "Kylän raja"
+      },
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Köysirata",
+          "chair_lift": "Tuolihissi",
+          "drag_lift": "Vetohissi",
+          "gondola": "Gondolihissi",
+          "magic_carpet": "Mattohissi",
+          "platter": "Hiihtohissi",
+          "pylon": "Pylväs",
+          "station": "Ilmarata-asema",
+          "t-bar": "Ankkurihissi",
+          "yes": "Ilmarata"
+        },
+        "aeroway": {
+          "aerodrome": "Lentokenttä",
+          "airstrip": "Kiitorata",
+          "apron": "Lentoaseman asemataso",
+          "gate": "Lentoaseman portti",
+          "hangar": "Hangaari",
+          "helipad": "Helikopterikenttä",
+          "holding_position": "Odotuspaikka",
+          "navigationaid": "Ilmailunavigointituki",
+          "parking_position": "Parkkialue",
+          "runway": "Kiitorata",
+          "taxilane": "Taksikaista",
+          "taxiway": "Rullaustie",
+          "terminal": "Lentoaseman terminaali",
+          "windsock": "Tuulipussi"
+        },
+        "amenity": {
+          "animal_boarding": "Lemmikkihoitola",
+          "animal_shelter": "Eläinsuoja",
+          "arts_centre": "Taidekeskus",
+          "atm": "Pankkiautomaatti",
+          "bank": "Pankki",
+          "bar": "Baari",
+          "bbq": "Grillauskatos",
+          "bench": "Penkki",
+          "bicycle_parking": "Pyöräparkki",
+          "bicycle_rental": "Pyörävuokraamo",
+          "bicycle_repair_station": "Pyöränkorjauspiste",
+          "biergarten": "Terassi",
+          "blood_bank": "Veripalvelu",
+          "boat_rental": "Venevuokraamo",
+          "brothel": "Bordelli",
+          "bureau_de_change": "Rahanvaihto",
+          "bus_station": "Linja-autoasema",
+          "cafe": "Kahvila",
+          "car_rental": "Autovuokraamo",
+          "car_sharing": "Kimppakyyti",
+          "car_wash": "Autopesu",
+          "casino": "Kasino",
+          "charging_station": "Latausasema",
+          "childcare": "Lastenhoito",
+          "cinema": "Elokuvateatteri",
+          "clinic": "Klinikka",
+          "clock": "Kello",
+          "college": "Oppilaitos",
+          "community_centre": "Yhteisökeskus",
+          "conference_centre": "Konferenssikeskus",
+          "courthouse": "Oikeustalo",
+          "crematorium": "Krematorio",
+          "dentist": "Hammaslääkäri",
+          "doctors": "Lääkäreitä",
+          "drinking_water": "Juomavesi",
+          "driving_school": "Autokoulu",
+          "embassy": "Lähetystö",
+          "events_venue": "Tapahtumakeskus",
+          "fast_food": "Pikaruokaravintola",
+          "ferry_terminal": "Lauttaterminaali",
+          "fire_station": "Paloasema",
+          "food_court": "Elintarviketori",
+          "fountain": "Lähde",
+          "fuel": "Huoltoasema",
+          "gambling": "Uhkapelaus",
+          "grave_yard": "Hautausmaa",
+          "grit_bin": "Hiekka-astia",
+          "hospital": "Sairaala",
+          "hunting_stand": "Metsästyslava",
+          "ice_cream": "Jäätelö",
+          "internet_cafe": "Internet-kahvila",
+          "kindergarten": "Päiväkoti",
+          "language_school": "Kielikoulu",
+          "library": "Kirjasto",
+          "loading_dock": "Lastauslaituri",
+          "love_hotel": "Rakkaushotelli",
+          "marketplace": "Tori",
+          "mobile_money_agent": "Mobiiliraha-agentti",
+          "monastery": "Luostari",
+          "money_transfer": "Rahansiirto",
+          "motorcycle_parking": "Moottoripyöräpysäköinti",
+          "music_school": "Musiikkikoulu",
+          "nightclub": "Yökerho",
+          "nursing_home": "Hoitokoti",
+          "parking": "Parkkipaikka",
+          "parking_entrance": "Pysäköintialueen sisäänkäynti",
+          "parking_space": "Parkkipaikka",
+          "payment_terminal": "Maksupääte",
+          "pharmacy": "Apteekki",
+          "place_of_worship": "Kirkko, temppeli, pyhä paikka",
+          "police": "Poliisi",
+          "post_box": "Kirjelaatikko",
+          "post_office": "Postitoimisto",
+          "prison": "Vankila",
+          "pub": "Pubi",
+          "public_bath": "Uimahalli",
+          "public_bookcase": "Julkinen kirjahylly",
+          "public_building": "Julkinen rakennus",
+          "ranger_station": "Metsänvartijan tupa",
+          "recycling": "Kierrätyspaikka",
+          "restaurant": "Ravintola",
+          "sanitary_dump_station": "Septitankin tyhjennyspiste",
+          "school": "Koulu",
+          "shelter": "Katos",
+          "shower": "Suihku",
+          "social_centre": "Sosiaalikeskus",
+          "social_facility": "Sosiaalilaitos",
+          "studio": "Studio",
+          "swimming_pool": "Uima-allas",
+          "taxi": "Taksi",
+          "telephone": "Puhelinkoppi",
+          "theatre": "Teatteri",
+          "toilets": "WC",
+          "townhall": "Kaupungintalo",
+          "training": "Koulutuslaitos",
+          "university": "Yliopisto",
+          "vehicle_inspection": "Katsastus",
+          "vending_machine": "Myyntiautomaatti",
+          "veterinary": "Eläinlääkäri",
+          "village_hall": "Kyläkoti",
+          "waste_basket": "Roskakori",
+          "waste_disposal": "Jätehuolto",
+          "waste_dump_site": "Kaatopaikka",
+          "water_point": "vesipiste",
+          "watering_place": "Juottopaikka",
+          "weighbridge": "Vaaka-asema",
+          "yes": "Palvelu"
+        },
+        "boundary": {
+          "aboriginal_lands": "Alkuperäisasukkaiden maa-alue",
+          "administrative": "Hallinnollinen raja",
+          "census": "Väestönlaskenta-alueen raja",
+          "national_park": "Kansallispuisto",
+          "political": "Vaalipiirin raja",
+          "protected_area": "Suojelualue",
+          "yes": "Raja"
+        },
+        "bridge": {
+          "aqueduct": "Akvedukti",
+          "boardwalk": "Laudoitettu polku",
+          "suspension": "Riippusilta",
+          "swing": "Kääntösilta",
+          "viaduct": "Maasilta",
+          "yes": "Silta"
+        },
+        "building": {
+          "apartment": "Asuinkerrostalo",
+          "apartments": "Kerrostalo",
+          "barn": "Lato",
+          "bungalow": "Bungalow",
+          "cabin": "Mökki",
+          "chapel": "Kappeli",
+          "church": "Kirkkorakennus",
+          "civic": "Julkinen rakennus",
+          "college": "Yliopistorakennus",
+          "commercial": "Liikerakennus",
+          "construction": "Rakenteilla oleva rakennus",
+          "detached": "Omakotitalo",
+          "dormitory": "Asuntola",
+          "duplex": "Paritalo",
+          "farm": "Maalaistalo",
+          "garage": "Autotalli",
+          "garages": "Autotalleja",
+          "greenhouse": "Kasvihuone",
+          "hangar": "Hangaari",
+          "hospital": "Sairaalarakennus",
+          "hotel": "Hotellirakennus",
+          "house": "Talo",
+          "houseboat": "Asuntovene",
+          "hut": "Maja",
+          "industrial": "Teollisuusrakennus",
+          "kindergarten": "Päiväkotirakennus",
+          "manufacture": "Tehdasrakennus",
+          "office": "Toimistorakennus",
+          "public": "Julkinen rakennus",
+          "residential": "Asuinrakennus",
+          "retail": "Liikerakennus",
+          "roof": "Katto",
+          "ruins": "Raunioitunut rakennus",
+          "school": "Koulurakennus",
+          "semidetached_house": "Paritalo",
+          "service": "Palvelurakennus",
+          "shed": "Vaja",
+          "stable": "Talli",
+          "static_caravan": "Karavaani",
+          "temple": "Temppelirakennus",
+          "terrace": "Rivitalo",
+          "train_station": "Rautatieasema",
+          "university": "Yliopistorakennus",
+          "warehouse": "Varasto",
+          "yes": "Rakennus"
+        },
+        "club": {
+          "scout": "Partioryhmän tukikohta",
+          "sport": "Urheiluseura",
+          "yes": "Klubi"
+        },
+        "craft": {
+          "beekeeper": "Mehiläishoitaja",
+          "blacksmith": "Sepän paja",
+          "brewery": "Panimo",
+          "carpenter": "Puuseppä",
+          "caterer": "Pitopalvelu",
+          "confectionery": "Makeiset",
+          "dressmaker": "Ompelija",
+          "electrician": "Sähköasentaja",
+          "electronics_repair": "Elektroniikkahuolto",
+          "gardener": "Puutarhuri",
+          "glaziery": "Lasitusliike",
+          "handicraft": "Käsityöt",
+          "hvac": "Ilmastointiliike",
+          "metal_construction": "Metallirakentaja",
+          "painter": "Taidemaalari",
+          "photographer": "Valokuvaaja",
+          "plumber": "Putkimies",
+          "roofer": "Kattoliike",
+          "sawmill": "Sahalaitos",
+          "shoemaker": "Suutari",
+          "stonemason": "Kivenhakkaaja",
+          "tailor": "Räätäli",
+          "window_construction": "Ikkunoiden valmistaminen",
+          "winery": "Viinitila",
+          "yes": "Käsityömyymälä"
+        },
+        "emergency": {
+          "access_point": "Tukiasema",
+          "ambulance_station": "Ensihoitoasema",
+          "assembly_point": "kohtaamispaikka",
+          "defibrillator": "Defibrillaattori",
+          "fire_extinguisher": "Palosammutin",
+          "landing_site": "Hätälaskualue",
+          "life_ring": "Pelastusrengas",
+          "phone": "Hätäpuhelin",
+          "siren": "Väestöhälytin",
+          "water_tank": "hätävesitankki"
+        },
+        "highway": {
+          "abandoned": "Hylätty valtatie",
+          "bridleway": "Ratsastustie",
+          "bus_guideway": "Ohjattu linja-autokaista",
+          "bus_stop": "Bussipysäkki",
+          "construction": "Rakenteilla oleva tie",
+          "corridor": "käytävä",
+          "crossing": "Suojatie",
+          "cycleway": "Pyörätie",
+          "elevator": "Hissi",
+          "emergency_access_point": "Hätätilapaikka",
+          "emergency_bay": "Hätäpysähdyspaikka",
+          "footway": "Polku",
+          "ford": "Kahluupaikka",
+          "give_way": "kärkikolmio",
+          "living_street": "Asuinkatu",
+          "milestone": "Virstanpylväs",
+          "motorway": "Moottoritie",
+          "motorway_junction": "Moottoritien liittymä",
+          "motorway_link": "Moottoritie",
+          "passing_place": "ohituspaikka",
+          "path": "Polku",
+          "pedestrian": "Jalkakäytävä",
+          "platform": "Asemalaituri",
+          "primary": "Kantatie",
+          "primary_link": "Kantatie",
+          "proposed": "Suunnitteilla oleva tie",
+          "raceway": "Kilparata",
+          "residential": "Asuinkatu",
+          "rest_area": "Lepoalue",
+          "road": "Tie",
+          "secondary": "Seututie",
+          "secondary_link": "Seututie",
+          "service": "Huoltotie",
+          "services": "Moottoritiepalvelut",
+          "speed_camera": "Nopeuskamera",
+          "steps": "Portaat",
+          "stop": "Stopmerkki",
+          "street_lamp": "Katuvalaisin",
+          "tertiary": "Yhdystie",
+          "tertiary_link": "Yhdystie",
+          "track": "Metsätie",
+          "traffic_mirror": "Liikennepeili",
+          "traffic_signals": "Liikennevalot",
+          "trunk": "Valtatie",
+          "trunk_link": "Valtatie",
+          "turning_circle": "Kääntöpaikka",
+          "turning_loop": "Kääntöpaikka",
+          "unclassified": "Luokittelematon tie",
+          "yes": "Tie"
+        },
+        "historic": {
+          "aircraft": "Historiallinen lentokone",
+          "archaeological_site": "Arkeologinen kohde",
+          "battlefield": "Taistelukenttä",
+          "bomb_crater": "Historiallinen pommikraatteri",
+          "boundary_stone": "Rajakivi",
+          "building": "Historiallinen rakennus",
+          "bunker": "Bunkkeri",
+          "cannon": "Historiallinen tykki",
+          "castle": "Linna",
+          "charcoal_pile": "Historiallinen puuhiilikasa",
+          "church": "Kirkko",
+          "city_gate": "Kaupungin portti",
+          "citywalls": "Kaupunginmuurit",
+          "fort": "Linnake",
+          "heritage": "Perintökohde",
+          "house": "Talo",
+          "manor": "Kartano",
+          "memorial": "Muistomerkki",
+          "milestone": "Historiallinen virstanpylväs",
+          "mine": "Kaivos",
+          "mine_shaft": "kaivostunneli",
+          "monument": "Muistomerkki",
+          "railway": "Historiallinen rautatie",
+          "roman_road": "Roomalainen tie",
+          "ruins": "Rauniot",
+          "rune_stone": "Riimukivi",
+          "stone": "Kivi",
+          "tomb": "Hautakammio",
+          "tower": "Torni",
+          "wayside_chapel": "Tienvarsikappeli",
+          "wayside_cross": "Tieristi",
+          "wayside_shrine": "Tienvarsialttari",
+          "wreck": "Hylky",
+          "yes": "historiallinen paikka"
+        },
+        "junction": {
+          "yes": "Risteys"
+        },
+        "landuse": {
+          "allotments": "Siirtolapuutarha",
+          "aquaculture": "Vesiviljely",
+          "basin": "Syvänne",
+          "brownfield": "Purettujen rakennusten alue",
+          "cemetery": "Hautausmaa",
+          "commercial": "Kaupallinen alue",
+          "conservation": "Suojelualue",
+          "construction": "Rakennustyömaa",
+          "farmland": "Viljelysmaa",
+          "farmyard": "Maatilan piha",
+          "forest": "Talousmetsä",
+          "garages": "Autotalleja",
+          "grass": "Nurmikko",
+          "greenfield": "Viheralue",
+          "industrial": "Teollisuusalue",
+          "landfill": "Kaatopaikka",
+          "meadow": "Niitty",
+          "military": "Sotilasalue",
+          "mine": "Kaivos",
+          "orchard": "Puutarha",
+          "plant_nursery": "Taimitarha",
+          "quarry": "Avolouhos",
+          "railway": "Rautatie",
+          "recreation_ground": "Virkistysalue",
+          "religious": "Uskonnollisen toiminnan alue",
+          "reservoir": "Tekojärvi",
+          "reservoir_watershed": "Tekoaltaan vedenjakaja",
+          "residential": "Asuinalue",
+          "retail": "Vähittäiskauppa-alue",
+          "village_green": "Puisto",
+          "vineyard": "Viinitarha",
+          "yes": "Maankäyttö"
+        },
+        "leisure": {
+          "adult_gaming_centre": "Pelikeskus aikuisille",
+          "amusement_arcade": "Pelihalli",
+          "bandstand": "Musiikkipaviljonki",
+          "beach_resort": "Rantakohde",
+          "bird_hide": "Linnunpesä",
+          "bleachers": "Katsomo",
+          "bowling_alley": "Keilahalli",
+          "common": "Yhteinen maa",
+          "dance": "Tanssisali",
+          "dog_park": "Koirapuisto",
+          "firepit": "Tulentekopaikka",
+          "fishing": "Kalastusalue",
+          "fitness_centre": "Kuntoilukeskus",
+          "fitness_station": "Kuntosali",
+          "garden": "Puutarha",
+          "golf_course": "Golf-kenttä",
+          "horse_riding": "Ratsastuskeskus",
+          "ice_rink": "Luistelurata",
+          "marina": "Huvivenesatama",
+          "miniature_golf": "Minigolf",
+          "nature_reserve": "Luonnonsuojelualue",
+          "park": "Puisto",
+          "picnic_table": "Piknikpöytä",
+          "pitch": "Urheilukenttä",
+          "playground": "Leikkikenttä",
+          "recreation_ground": "Virkistysalue",
+          "resort": "Oleskelupaikka",
+          "sauna": "Sauna",
+          "slipway": "Vesillelaskuramppi",
+          "sports_centre": "Urheilukeskus",
+          "stadium": "Stadioni",
+          "swimming_pool": "Uima-allas",
+          "track": "Juoksurata",
+          "water_park": "Vesipuisto",
+          "yes": "Vapaa-aika"
+        },
+        "man_made": {
+          "adit": "Suuaukko",
+          "advertising": "Mainonta",
+          "antenna": "Antenni",
+          "beacon": "Majakka",
+          "beam": "Palkki",
+          "beehive": "ampiaispesä",
+          "breakwater": "Aallonmurtaja",
+          "bridge": "Silta",
+          "bunker_silo": "Bunkkeri",
+          "cairn": "Kiviröykkiö",
+          "chimney": "piippu",
+          "clearcut": "Avohakkuualue",
+          "communications_tower": "Linkkitorni",
+          "crane": "Nosturi",
+          "cross": "Risti",
+          "dolphin": "Kiinnityspaikka",
+          "dyke": "Pato",
+          "embankment": "Maavalli",
+          "flagpole": "Lipputanko",
+          "gasometer": "Kaasusäiliö",
+          "groyne": "Suojavalli",
+          "kiln": "Kalkkiuuni",
+          "lighthouse": "Majakka",
+          "manhole": "Katukaivo",
+          "mast": "Masto",
+          "mine": "Kaivos",
+          "mineshaft": "kaivostunneli",
+          "monitoring_station": "Valvonta-asema",
+          "petroleum_well": "Öljynporauslautta",
+          "pier": "Laituri",
+          "pipeline": "Putkisto",
+          "pumping_station": "Pumppuasema",
+          "reservoir_covered": "Katettu vesisäiliö",
+          "silo": "Siilo",
+          "snow_cannon": "Lumitykki",
+          "snow_fence": "Lumiaita",
+          "storage_tank": "Varastosäiliö",
+          "street_cabinet": "Jakokaappi",
+          "surveillance": "vartiointi",
+          "telescope": "Teleskooppi",
+          "tower": "Torni",
+          "wastewater_plant": "Jätevesilaitos",
+          "water_tap": "Vesihana",
+          "water_tower": "Vesitorni",
+          "water_well": "Kaivo",
+          "water_works": "Vedenpuhdistuslaitos",
+          "watermill": "Vesimylly",
+          "windmill": "Tuulimylly",
+          "works": "Tehdas",
+          "yes": "ihmisen tekemä"
+        },
+        "military": {
+          "airfield": "Sotilaskenttä",
+          "barracks": "Kasarmi",
+          "bunker": "Bunkkeri",
+          "checkpoint": "Tarkastuspiste",
+          "trench": "Juoksuhauta",
+          "yes": "armeija"
+        },
+        "mountain_pass": {
+          "yes": "Vuoristosola"
+        },
+        "natural": {
+          "atoll": "Atolli",
+          "bare_rock": "Avokallio",
+          "bay": "Lahti",
+          "beach": "Hiekkaranta",
+          "cape": "Niemi",
+          "cave_entrance": "Luolan sisäänkäynti",
+          "cliff": "Jyrkänne",
+          "coastline": "Rantaviiva",
+          "crater": "Kraatteri",
+          "dune": "Dyyni",
+          "fell": "Tunturi",
+          "fjord": "Vuono",
+          "forest": "Metsä",
+          "geyser": "Geysir",
+          "glacier": "Jäätikkö",
+          "grassland": "Ruohomaa",
+          "heath": "Nummi",
+          "hill": "Mäki",
+          "hot_spring": "Kuuma lähde",
+          "island": "Saari",
+          "isthmus": "Kannas",
+          "land": "Maa",
+          "marsh": "Suo",
+          "moor": "Nummi",
+          "mud": "Muta",
+          "peak": "Huippu",
+          "peninsula": "Niemimaa",
+          "point": "Niemi",
+          "reef": "Riutta",
+          "ridge": "Harju",
+          "rock": "Kivi",
+          "saddle": "Satula",
+          "sand": "Hiekka",
+          "scree": "Kivikko",
+          "scrub": "Pensaikko",
+          "shingle": "Pirunpelto",
+          "spring": "Lähde",
+          "stone": "Kivi",
+          "strait": "Salmi",
+          "tree": "Puu",
+          "tree_row": "Puurivi",
+          "tundra": "Tundra",
+          "valley": "Laakso",
+          "volcano": "Tulivuori",
+          "water": "Vesi",
+          "wetland": "Kosteikko",
+          "wood": "Metsä"
+        },
+        "office": {
+          "accountant": "Kirjanpitäjä",
+          "administrative": "Hallinto",
+          "advertising_agency": "Mainostoimisto",
+          "architect": "Arkkitehti",
+          "association": "Yhdistys",
+          "company": "Yritys",
+          "diplomatic": "Diplomaattinen edustusto",
+          "educational_institution": "Oppilaitos",
+          "employment_agency": "Työnvälitystoimisto",
+          "energy_supplier": "Energiantoimittajan toimisto",
+          "estate_agent": "Kiinteistönvälittäjä",
+          "financial": "Rahoitusalan toimisto",
+          "government": "Virasto",
+          "insurance": "Vakuutusyhtiö",
+          "it": "IT-toimisto",
+          "lawyer": "Asianajotoimisto",
+          "logistics": "Logistiikkatoimisto",
+          "newspaper": "Sanomalehtitoimisto",
+          "ngo": "Kansalaisjärjestö",
+          "notary": "Notaari",
+          "religion": "Uskonnollinen toimisto",
+          "research": "Tutkimuslaitoksen toimisto",
+          "tax_advisor": "Veroasiantuntija",
+          "telecommunication": "Tietoliikenneyritys",
+          "travel_agent": "Matkatoimisto",
+          "yes": "Toimisto"
+        },
+        "place": {
+          "allotments": "Siirtolapuutarha",
+          "archipelago": "Saaristo",
+          "city": "Kaupunki",
+          "city_block": "kortteli",
+          "country": "Maa",
+          "county": "Piirikunta",
+          "farm": "Maatila",
+          "hamlet": "Pieni kylä",
+          "house": "Talo",
+          "houses": "Taloja",
+          "island": "Saari",
+          "islet": "Saareke",
+          "isolated_dwelling": "Erakkomaja",
+          "locality": "Paikkakunta",
+          "municipality": "Kunta",
+          "neighbourhood": "Naapurusto",
+          "plot": "Maapalsta",
+          "postcode": "Postinumero",
+          "quarter": "Kortteli",
+          "region": "Alue",
+          "sea": "Meri",
+          "square": "Neliö",
+          "state": "Osavaltio",
+          "subdivision": "Naapurusto",
+          "suburb": "Lähiö",
+          "town": "Kaupunki",
+          "village": "Kylä",
+          "yes": "Paikka"
+        },
+        "railway": {
+          "abandoned": "Hylätty rautatie",
+          "buffer_stop": "Päätepuskin",
+          "construction": "Rakenteilla oleva rautatie",
+          "disused": "Käyttämätön rautatie",
+          "funicular": "Funikulaari",
+          "halt": "Seisake",
+          "junction": "Rautatien risteys",
+          "level_crossing": "Tasoristeys",
+          "light_rail": "Pikaraitiotie",
+          "miniature": "Pienoisrautatie",
+          "monorail": "Yksikiskoinen raide",
+          "narrow_gauge": "Kapearaiteinen rautatie",
+          "platform": "Asemalaituri",
+          "preserved": "Museorautatie",
+          "proposed": "Suunnitteilla oleva rautatie",
+          "rail": "Raide",
+          "spur": "Pistoraide",
+          "station": "Rautatieasema",
+          "stop": "Rautatieseisake",
+          "subway": "Metro",
+          "subway_entrance": "Metron sisäänkäynti",
+          "switch": "Ratavaihde",
+          "tram": "Raitiotie",
+          "tram_stop": "Raitiovaunupysäkki",
+          "turntable": "Kääntöpöytä",
+          "yard": "Ratapiha"
+        },
+        "shop": {
+          "agrarian": "Maatalouskauppa",
+          "alcohol": "Alkoholikauppa",
+          "antiques": "Antiikkia",
+          "appliance": "Kodinkonekauppa",
+          "art": "Taidekauppa",
+          "baby_goods": "Lastentarvikekauppa",
+          "bag": "Laukkukauppa",
+          "bakery": "Leipomo",
+          "bathroom_furnishing": "Kylpyhuonemyymälä",
+          "beauty": "Kosmetiikkakauppa",
+          "bed": "Sänky- ja vuodevaatekauppa",
+          "beverages": "Juomakauppa",
+          "bicycle": "Polkupyöräkauppa",
+          "bookmaker": "kirjanmerkki",
+          "books": "Kirjakauppa",
+          "boutique": "Puoti",
+          "butcher": "Lihakauppa",
+          "car": "Autokauppa",
+          "car_parts": "Auton osia",
+          "car_repair": "Autokorjaamo",
+          "carpet": "Mattokauppa",
+          "charity": "Hyväntekeväisyyskauppa",
+          "cheese": "Juustokauppa",
+          "chemist": "Apteekki",
+          "chocolate": "Suklaa",
+          "clothes": "Vaatekauppa",
+          "coffee": "Kahvila",
+          "computer": "Tietokonekauppa",
+          "confectionery": "Makeiskauppa",
+          "convenience": "Lähikauppa",
+          "copyshop": "Kopiointipalvelu",
+          "cosmetics": "Kosmetiikkakauppa",
+          "craft": "Askartelukauppa",
+          "curtain": "Verholiike",
+          "dairy": "Maitotuotekauppa",
+          "deli": "Herkkukauppa",
+          "department_store": "Tavaratalo",
+          "discount": "Alennusmyymälä",
+          "doityourself": "Tee-se-itse -kauppa",
+          "dry_cleaning": "Kuivapesula",
+          "e-cigarette": "Sähkötupakkakauppa",
+          "electronics": "Elektroniikkakauppa",
+          "erotic": "Seksikauppa",
+          "estate_agent": "Kiinteistönvälittäjä",
+          "fabric": "Kangaskauppa",
+          "farm": "Maatalouskauppa",
+          "fashion": "Muotikauppa",
+          "fishing": "Kalastustarvikekauppa",
+          "florist": "Kukkakauppa",
+          "food": "Ruokakauppa",
+          "frame": "Kehysliike",
+          "funeral_directors": "Hautausurakoitsija",
+          "furniture": "Huonekaluliike",
+          "garden_centre": "Puutarhakeskus",
+          "gas": "Huoltoasema",
+          "general": "Sekatavarakauppa",
+          "gift": "Lahjakauppa",
+          "greengrocer": "Vihanneskauppa",
+          "grocery": "Ruokakauppa",
+          "hairdresser": "Kampaamo",
+          "hardware": "Rautakauppa",
+          "health_food": "Terveysruokakauppa",
+          "hearing_aids": "Kuulokojeliike",
+          "herbalist": "Luontaistuotekauppias",
+          "hifi": "Hi-Fi-kauppa",
+          "houseware": "Taloustavaraliike",
+          "ice_cream": "Jäätelökauppa",
+          "interior_decoration": "Kodinsisustus",
+          "jewelry": "Korukauppa",
+          "kiosk": "Kioski",
+          "kitchen": "Keittiöliike",
+          "laundry": "Pesula",
+          "locksmith": "Lukkoseppä",
+          "lottery": "Lotto",
+          "mall": "Ostoskeskus",
+          "massage": "hieronta",
+          "medical_supply": "Lääketieteellisten tarvikkeiden kauppa",
+          "mobile_phone": "Matkapuhelinkauppa",
+          "money_lender": "Rahanlainaaja",
+          "motorcycle": "Moottoripyöräkauppa",
+          "motorcycle_repair": "Moottoripyöräkorjaamo",
+          "music": "Musiikkikauppa",
+          "musical_instrument": "Soitinliike",
+          "newsagent": "Lehtikioski",
+          "nutrition_supplements": "Lisäravinnekauppa",
+          "optician": "Optikko",
+          "organic": "Luomukauppa",
+          "outdoor": "Ulkoiluvälinekauppa",
+          "paint": "Maalikauppa",
+          "pastry": "Konditoria",
+          "pawnbroker": "Panttilainaamo",
+          "perfumery": "Hajuvesiliike",
+          "pet": "Eläinkauppa",
+          "pet_grooming": "Trimmaamo",
+          "photo": "Valokuvausliike",
+          "seafood": "Meriruoka",
+          "second_hand": "Osto- ja myyntiliike",
+          "sewing": "Ompelutarvikeliike",
+          "shoes": "Kenkäkauppa",
+          "sports": "Urheilukauppa",
+          "stationery": "Paperikauppa",
+          "storage_rental": "Pienvarasto",
+          "supermarket": "Supermarketti",
+          "tailor": "Räätäli",
+          "tattoo": "Tatuointiliike",
+          "tea": "Teekauppa",
+          "ticket": "Lippupiste",
+          "tobacco": "Tupakkakauppa",
+          "toys": "Lelukauppa",
+          "travel_agency": "Matkatoimisto",
+          "tyres": "Rengaskauppa",
+          "vacant": "Avoin kauppa",
+          "variety_store": "Tavaratalo",
+          "video": "Videokauppa",
+          "video_games": "Videopelikauppa",
+          "wholesale": "Tukkukauppa",
+          "wine": "Viinikauppa",
+          "yes": "Kauppa"
+        },
+        "tourism": {
+          "alpine_hut": "Alppimaja",
+          "apartment": "Lomahuoneisto",
+          "artwork": "Taideteos",
+          "attraction": "Nähtävyys",
+          "bed_and_breakfast": "Aamiaismajoitus",
+          "cabin": "Turistimökki",
+          "camp_pitch": "Telttapaikka",
+          "camp_site": "Leirintäalue",
+          "caravan_site": "Leirintäalue",
+          "chalet": "Alppimaja",
+          "gallery": "Galleria",
+          "guest_house": "Vierasmaja",
+          "hostel": "Hostelli",
+          "hotel": "Hotelli",
+          "information": "Infopiste",
+          "motel": "Motelli",
+          "museum": "Museo",
+          "picnic_site": "Piknik-paikka",
+          "theme_park": "Teemapuisto",
+          "viewpoint": "Näköalapaikka",
+          "wilderness_hut": "Erämaamökki",
+          "zoo": "Eläintarha"
+        },
+        "tunnel": {
+          "building_passage": "Läpikäytävä",
+          "culvert": "Siltarumpu",
+          "yes": "Tunneli"
+        },
+        "waterway": {
+          "artificial": "Kanava",
+          "boatyard": "Telakka",
+          "canal": "Kanaali",
+          "dam": "Pato",
+          "derelict_canal": "Hylätty kanava",
+          "ditch": "Oja",
+          "dock": "Märkätelakka",
+          "drain": "Oja",
+          "lock": "Sulku",
+          "lock_gate": "Sulkuportti",
+          "mooring": "Rantautumispaikka",
+          "rapids": "Koski",
+          "river": "Joki",
+          "stream": "Puro",
+          "wadi": "Vadi",
+          "waterfall": "Vesiputous",
+          "weir": "Pato",
+          "yes": "Vesistö"
+        }
+      },
+      "types": {
+        "cities": "Kaupungit",
+        "places": "Paikat",
+        "towns": "Kylät"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Valitse tiedosto"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Rekisteröi",
+        "update": "Päivitä"
+      },
+      "diary_comment": {
+        "create": "Kommentoi"
+      },
+      "diary_entry": {
+        "create": "Julkaise",
+        "update": "Päivitä"
+      },
+      "issue_comment": {
+        "create": "Lisää kommentti"
+      },
+      "message": {
+        "create": "Lähetä"
+      },
+      "oauth2_application": {
+        "create": "Rekisteröidy",
+        "update": "Päivitä"
+      },
+      "redaction": {
+        "create": "Luo redaktio",
+        "update": "Tallenna redaktio"
+      },
+      "trace": {
+        "create": "Lataa",
+        "update": "Tallenna muutokset"
+      },
+      "user_block": {
+        "create": "Luo esto",
+        "update": "Päivitä esto"
+      }
+    }
+  },
+  "issue_comments": {
+    "create": {
+      "comment_created": "Kommentti jätetty",
+      "issue_reassigned": "Kommenttisi luotiin ja tapaus määritettiin uudelleen"
+    }
+  },
+  "issues": {
+    "comments": {
+      "comment_from_html": "Kommentti käyttäjältä {{user_link}} {{comment_created_at}}",
+      "reassign_param": "Haluatko määrittää tapauksen tilan uudelleen?"
+    },
+    "helper": {
+      "reportable_title": {
+        "diary_comment": "{{entry_title}}, kommenttitunnus {{comment_id}}",
+        "note": "Karttailmoitustunnus {{note_id}}"
+      }
+    },
+    "ignore": {
+      "ignored": "Tapaus on merkitty aiheettomaksi"
+    },
+    "index": {
+      "issues_not_found": "Tapahtumia ei löytynyt",
+      "last_updated": "Päivitetty",
+      "last_updated_time_ago_user_html": "{{time_ago}}, {{user}}",
+      "link_to_reports": "Näytä ilmiannot",
+      "not_updated": "Ei päivitetty",
+      "reported_item": "Ilmiannettu kohde",
+      "reported_user": "Ilmiannettu",
+      "reports": "Ilmiannot",
+      "reports_count_one": "{{count}} ilmoitus",
+      "reports_count_other": "{{count}} ilmiantoa",
+      "search": "Etsi",
+      "search_guidance": "Etsi tapauksia:",
+      "select_last_updated_by": "Valitse viimeisin päivittäjä",
+      "select_status": "Valitse tila",
+      "select_type": "Valitse tyyppi",
+      "states": {
+        "ignored": "Aiheeton",
+        "open": "Käsittelyssä",
+        "resolved": "Ratkaistu"
+      },
+      "status": "Tila",
+      "title": "Tapaukset",
+      "user_not_found": "Käyttäjää ei löydy"
+    },
+    "reopen": {
+      "reopened": "Tapaus on merkitty käsittelyssä olevaksi"
+    },
+    "reports": {
+      "reported_by_html": "Käyttäjä {{user}} ilmiantanut merkinnällä {{category}} {{updated_at}}"
+    },
+    "resolve": {
+      "resolved": "Tapaus on merkitty ratkaistuksi"
+    },
+    "show": {
+      "comments_on_this_issue": "Tapauksen kommentit",
+      "ignore": "Merkitse aiheettomaksi",
+      "last_resolved_at_html": "Ratkaistu {{datetime}}",
+      "last_updated_at_html": "Viimeisin käsittelijä {{displayname}} {{datetime}}",
+      "new_reports": "Uudet ilmiannot",
+      "no_other_issues": "Ei muita tähän käyttäjään kohdistuvia ilmiantoja.",
+      "no_reports": "Ei ilmiantoja",
+      "other_issues_against_this_user": "Muut tähän käyttäjään kohdistetut ilmiannot",
+      "read_reports": "Lue ilmiantoja",
+      "reopen": "Avaa uudelleen",
+      "report_created_at_html": "Ilmoitettu ensimmäisen kerran {{datetime}}",
+      "reports_of_this_issue": "Ilmianna tapahtuma",
+      "reports_one": "{{count}} ilmianto",
+      "reports_other": "{{count}} ilmiantoa",
+      "resolve": "Ratkaise",
+      "title": "{{status}} Tapaus #{{issue_id}}"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "Kommentoi",
+        "hide_comment": "piilota",
+        "subscribe": "Tilaa",
+        "unhide_comment": "näytä",
+        "unsubscribe": "Lopeta tilaus"
+      }
+    },
+    "close": "Sulje",
+    "context": {
+      "add_note": "Ilmoita karttavirheestä",
+      "centre_map": "Keskitä kartta",
+      "directions_from": "Reittiohjeet täältä",
+      "directions_to": "Reittiohjeet tänne",
+      "query_features": "Lähistöllä",
+      "show_address": "Näytä osoite"
+    },
+    "directions": {
+      "ascend": "Nousu",
+      "descend": "Lasku",
+      "directions": "Reittiohjeet",
+      "distance": "Etäisyys",
+      "distance_km": "{{distance}} km",
+      "distance_m": "{{distance}} m",
+      "engines": {
+        "fossgis_osrm_bike": "Pyörällä (OSRM)",
+        "fossgis_osrm_car": "Autolla (OSRM)",
+        "fossgis_osrm_foot": "Kävellen (OSRM)",
+        "fossgis_valhalla_bicycle": "Pyörällä (Valhalla)",
+        "fossgis_valhalla_car": "Autolla (Valhalla)",
+        "fossgis_valhalla_foot": "Kävellen (Valhalla)",
+        "graphhopper_bicycle": "Pyörällä (GraphHopper)",
+        "graphhopper_car": "Autolla (GraphHopper)",
+        "graphhopper_foot": "Kävellen (GraphHopper)"
+      },
+      "errors": {
+        "no_place": "Paikkaa '{{place}}' ei löytynyt.",
+        "no_route": "Reittiä näiden paikkojen välille ei löytynyt."
+      },
+      "instructions": {
+        "against_oneway_without_exit": "Aja yksisuuntaista tietä {{name}} väärään suuntaan",
+        "continue_without_exit": "Jatka tiellä {{name}}",
+        "courtesy": "Reittiohjeet tarjoaa {{link}}",
+        "destination_without_exit": "Olet saapunut perille",
+        "end_oneway_without_exit": "Yksisuuntaisen tien {{name}} pää",
+        "endofroad_left_without_exit": "Tienpäässä käänny vasemmalle tielle {{name}}",
+        "endofroad_right_without_exit": "Tienpäässä käänny oikealle tielle {{name}}",
+        "exit_counts": {
+          "eighth": "8.",
+          "fifth": "5.",
+          "first": "ensimmäisestä",
+          "fourth": "4.",
+          "ninth": "9.",
+          "second": "toisesta",
+          "seventh": "7.",
+          "sixth": "6.",
+          "tenth": "10.",
+          "third": "3."
+        },
+        "exit_roundabout": "Poistu liikenneympyrästä tielle {{name}}",
+        "follow_without_exit": "Seuraa tietä {{name}}",
+        "fork_left_without_exit": "Liittymässä ryhmity vasemmalle suuntaan {{name}}",
+        "fork_right_without_exit": "Liittymässä ryhmity oikealle suuntaan {{name}}",
+        "leave_roundabout_without_exit": "Poistu liikenneympyrästä - {{name}}",
+        "merge_left_without_exit": "Liity vasemmalle tielle {{name}}",
+        "merge_right_without_exit": "Liity oikealle tielle {{name}}",
+        "offramp_left": "Käänny vasemmalle rampille",
+        "offramp_left_with_directions": "Poistu liittymästä vasemmalle suuntaan {{directions}}",
+        "offramp_left_with_exit": "Poistu liittymästä {{exit}} vasemmalle",
+        "offramp_left_with_exit_directions": "Poistu liittymästä {{exit}} vasemmalle suuntaan {{directions}}",
+        "offramp_left_with_exit_name": "Poistu liittymästä {{exit}} vasemmalle tielle {{name}}",
+        "offramp_left_with_exit_name_directions": "Poistu liittymästä {{exit}} vasemmalle tielle {{name}} suuntaan {{directions}}",
+        "offramp_left_with_name": "Poistu vasemmalle liittymään tielle {{name}}",
+        "offramp_left_with_name_directions": "Poistu tieltä vasemmalle tielle {{name}} suuntaan {{directions}}",
+        "offramp_right": "Poistu tieltä rampille oikealle",
+        "offramp_right_with_directions": "Käänny oikealle rampille suuntaan {{directions}}",
+        "offramp_right_with_exit": "Poistu liittymästä {{exit}} oikealle",
+        "offramp_right_with_exit_directions": "Poistu liittymästä {{exit}} oikealle suuntaan {{directions}}",
+        "offramp_right_with_exit_name": "Poistu liittymästä {{exit}} oikealle tielle {{name}}",
+        "offramp_right_with_exit_name_directions": "Poistu liittymästä {{exit}} oikealle tielle {{name}} suuntaan {{directions}}",
+        "offramp_right_with_name": "Poistu oikealle liittymään tielle {{name}}",
+        "offramp_right_with_name_directions": "Poistu tieltä oikealle tielle {{name}} suuntaan {{directions}}",
+        "onramp_left": "Käänny vasemmalle rampille",
+        "onramp_left_with_directions": "Käänny vasemmalle rampille suuntaan {{directions}}",
+        "onramp_left_with_name_directions": "Käänny vasemmalle rampille {{name}} suuntaan {{directions}}",
+        "onramp_left_without_directions": "Käänny vasemmalle rampille",
+        "onramp_left_without_exit": "Käänny vasemmalle liittymään tielle {{name}}",
+        "onramp_right": "Käänny oikealle rampille",
+        "onramp_right_with_directions": "Käänny oikealle rampille suuntaan {{directions}}",
+        "onramp_right_with_name_directions": "Käänny vasemmalle rampille {{name}} suuntaan {{directions}}",
+        "onramp_right_without_directions": "Käänny oikealle rampille",
+        "onramp_right_without_exit": "Käänny oikealle liittymään tielle {{name}}",
+        "roundabout_with_exit": "Liikenneympyrässä poistu {{exit}} liittymästä tielle {{name}}",
+        "roundabout_with_exit_ordinal": "Liikenneympyrässä poistu {{exit}} liittymästä tielle {{name}}",
+        "roundabout_without_exit": "Poistu liikenneympyrästä tielle {{name}}",
+        "sharp_left_without_exit": "Käänny jyrkästi vasemmalle tielle {{name}}",
+        "sharp_right_without_exit": "Käänny jyrkästi oikealle tielle {{name}}",
+        "slight_left_without_exit": "Kaarra vasemmalle tielle {{name}}",
+        "slight_right_without_exit": "Kaarra oikealle tielle {{name}}",
+        "start_without_exit": "Aloita tiellä {{name}}",
+        "stay_roundabout_without_exit": "Pysy liikenneympyrässä - {{name}}",
+        "turn_left_without_exit": "Käänny vasemmalle tielle {{name}}",
+        "turn_right_without_exit": "Käänny oikealle tielle {{name}}",
+        "unnamed": "nimetön tie",
+        "uturn_without_exit": "Tee U-käännös tiellä {{name}}",
+        "via_point_without_exit": "(reittipiste)"
+      },
+      "time": "Matka-aika"
+    },
+    "edit_help": "Siirrä ja lähennä kartta muokattavaan paikkaan ja napsauta sitten tästä.",
+    "embed": {
+      "report_problem": "Ilmoita ongelmasta"
+    },
+    "key": {
+      "title": "Karttamerkinnät",
+      "tooltip": "Merkkien selitykset",
+      "tooltip_disabled": "Ei käytettävissä tässä karttanäkymässä"
+    },
+    "map": {
+      "base": {
+        "cycle_map": "Pyöräilykartta",
+        "cyclosm": "CyclOSM",
+        "hot": "Humanitaarinen",
+        "opnvkarte": "ÖPNVKarte",
+        "standard": "Perinteinen",
+        "transport_map": "Joukkoliikenne"
+      },
+      "cyclosm_credit": "Laattojen tyyli: {{osm_france_link}} ylläpitämä {{cyclosm_link}}",
+      "hotosm_credit": "Laattojen tyyli: {{osm_france_link}} ylläpitämä {{hotosm_link}}",
+      "layers": {
+        "data": "Kartta-aineisto",
+        "gps": "Julkiset GPS-jäljet",
+        "header": "Karttanäkymä",
+        "notes": "Karttailmoitukset",
+        "overlays": "Nämä toiminnot on tarkoitettu karttavirheiden korjaamiseen",
+        "title": "Karttanäkymä"
+      },
+      "locate": {
+        "feetPopup_one": "Olet {{count}} jalan etäisyydellä tästä pisteestä",
+        "feetPopup_other": "Olet {{count}} jalan etäisyydellä tästä pisteestä",
+        "metersPopup_one": "Olet {{count}} metrin etäisyydellä tästä pisteessä",
+        "metersPopup_other": "Olet {{count}} metrin etäisyydellä tästä pisteestä",
+        "title": "Näytä oma sijaintini"
+      },
+      "make_a_donation": "Lahjoita",
+      "openstreetmap_contributors": "OpenStreetMap-kartoittajat",
+      "opnvkarte_credit": "Laattojen tekijä {{memomaps_link}}",
+      "osm_france": "OpenStreetMap Francen",
+      "thunderforest_credit": "Laattojen tekijä {{thunderforest_link}}",
+      "website_and_api_terms": "Verkkosivusto ja API-ehdot",
+      "zoom": {
+        "in": "Lähennä",
+        "out": "Loitonna"
+      }
+    },
+    "query": {
+      "error": "Yhteysvirhe palvelimeen {{server}}: {{error}}",
+      "node": "Piste",
+      "nothing_found": "Karttakohteita ei löytynyt",
+      "relation": "Relaatio",
+      "timeout": "Yhteyden aikakatkaisu palvelimeen {{server}}",
+      "way": "Viiva"
+    },
+    "share": {
+      "cancel": "Peruuta",
+      "center_marker": "Keskitä kartta karttamerkkiin",
+      "custom_dimensions": "Rajaa alue itse",
+      "download": "Lataa",
+      "embed": "HTML-koodi",
+      "format": "Tiedostomuoto:",
+      "geo_uri": "Geo URI",
+      "image": "Kartta kuvana",
+      "include_marker": "Lisää karttamerkki",
+      "link": "Linkki tai HTML-koodi",
+      "long_link": "Linkki",
+      "only_standard_layer": "Vain standardi kerros voidaan viedä kuvana",
+      "paste_html": "Upota karttaikkuna liittämällä tämä koodi verkkosivulle",
+      "scale": "Mittakaava:",
+      "short_link": "Lyhyt linkki",
+      "short_url": "Lyhyt osoite",
+      "title": "Jakaminen",
+      "view_larger_map": "Näytä isommalla kartalla"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "Lähennä karttaa ennen karttavirheestä ilmoittamista.",
+      "createnote_tooltip": "Ilmoita karttavirheestä",
+      "edit_disabled_tooltip": "Lähennä karttaa ennen muokkaamisen aloittamista",
+      "edit_tooltip": "Muokkaa karttaa",
+      "map_data_zoom_in_tooltip": "Näytä kartta-aineisto lähentämällä karttaa",
+      "map_notes_zoom_in_tooltip": "Näytä karttailmoitukset lähentämällä karttaa",
+      "queryfeature_disabled_tooltip": "Näytä ominaisuusluettelo suurentamalla karttaa",
+      "queryfeature_tooltip": "Karttakohdeluettelo"
+    }
+  },
+  "layouts": {
+    "about": "Tietoja",
+    "communities": "Yhteisöt",
+    "community": "Yhteisö",
+    "community_blogs": "Yhteisöblogit",
+    "community_blogs_title": "OpenStreetMap-yhteisön jäsenten blogit",
+    "copyright": "Tekijänoikeudet",
+    "data": "Tiedot",
+    "donate": "Tue OpenStreetMapia {{link}} laitteistopäivitysrahastoon.",
+    "edit": "Muokkaa",
+    "edit_with": "Muokkaa: {{editor}}",
+    "export": "Vienti",
+    "export_data": "Vie tiedostona",
+    "gps_traces": "GPS-jäljet",
+    "gps_traces_tooltip": "Hallitse GPS-jälkiä",
+    "help": "Ohje",
+    "history": "Historia",
+    "home": "Siirry kotipaikkaan",
+    "hosting_partners_html": "Palvelinkapasiteettia meille tarjoaa {{ucl}}, {{fastly}}, {{bytemark}} ja muut {{partners}}.",
+    "intro_2_create_account": "luomalla ensin käyttäjätunnuksen",
+    "intro_header": "Tervetuloa OpenStreetMapiin!",
+    "intro_text": "OpenStreetMap on vapaaehtoisten luoma maailmankartta, jota voi käyttää vapaasti avoimella lisenssillä.",
+    "issues": "Ilmiannot",
+    "learn_more": "Lisätietoja",
+    "log_in": "Kirjaudu sisään",
+    "logo": {
+      "alt_text": "OpenStreetMap-logo"
+    },
+    "logout": "Kirjaudu ulos",
+    "make_a_donation": {
+      "text": "Lahjoita",
+      "title": "Tue OpenStreetMapia rahallisella lahjoituksella."
+    },
+    "more": "Lisää",
+    "osm_offline": "OpenStreetMapin tietokanta ei toistaiseksi ole käytettävissä välttämättömien ylläpitotöiden takia.",
+    "osm_read_only": "OpenStreetMapin tietokantaa ei toistaiseksi voi muokata välttämättömien ylläpitotöiden takia.",
+    "partners_bytemark": "Bytemark Hosting",
+    "partners_fastly": "Fastly",
+    "partners_partners": "kumppanimme",
+    "partners_ucl": "UCL",
+    "sign_up": "Rekisteröidy",
+    "start_mapping": "Liity mukaan",
+    "tag_line": "Avoin wikimaailmankartta",
+    "tou": "Käyttöehdot",
+    "user_diaries": "Päiväkirjamerkinnät",
+    "user_diaries_tooltip": "Näytä käyttäjän päiväkirjat"
+  },
+  "messages": {
+    "create": {
+      "limit_exceeded": "Olet lähettänyt runsaasti viestejä lyhyessä ajassa. Odota hetki ennen kuin yrität lähettää lisää.",
+      "message_sent": "Viesti on lähetetty."
+    },
+    "destroy": {
+      "destroyed": "Viesti on poistettu."
+    },
+    "heading": {
+      "my_inbox": "Saapuneet",
+      "my_outbox": "Lähetetyt"
+    },
+    "inbox": {
+      "messages": "Kansiossa on {{new_messages}} ja {{old_messages}}.",
+      "new_messages_one": "{{count}} lukematon viesti",
+      "new_messages_other": "{{count}} lukematonta viestiä",
+      "no_messages_yet_html": "Ei viestejä. {{people_mapping_nearby_link}}",
+      "old_messages_one": "{{count}} luettu viesti",
+      "old_messages_other": "{{count}} luettua viestiä",
+      "people_mapping_nearby": "Lähiseudun kartoittajat",
+      "title": "Saapuneet"
+    },
+    "mark": {
+      "as_read": "Viesti on merkitty luetuksi.",
+      "as_unread": "Viesti on merkitty lukemattomaksi."
+    },
+    "message_summary": {
+      "destroy_button": "Poista",
+      "read_button": "Merkitse luetuksi",
+      "reply_button": "Vastaa",
+      "unread_button": "Merkitse lukemattomaksi"
+    },
+    "messages_table": {
+      "date": "Päiväys",
+      "from": "Lähettäjä",
+      "subject": "Otsikko",
+      "to": "Vastaanottaja"
+    },
+    "new": {
+      "back_to_inbox": "Takaisin saapuneisiin",
+      "send_message_to_html": "Lähetä viesti käyttäjälle {{name}}",
+      "title": "Lähetä viesti"
+    },
+    "no_such_message": {
+      "body": "Valitettavasti tällä ID-tunnuksella ei ole viestiä.",
+      "heading": "Ei sellaista viestiä",
+      "title": "Ei sellaista viestiä"
+    },
+    "outbox": {
+      "messages_one": "Kansiossa on {{count}} lähetetty viesti.",
+      "messages_other": "Kansiossa on {{count}} lähetettyä viestiä.",
+      "no_sent_messages_html": "Et ole lähettänyt vielä viestejä. Miksi et ottaisi yhteyttä joihinkin {{people_mapping_nearby_link}}?",
+      "people_mapping_nearby": "lähellä kartoittaviin käyttäjiin",
+      "title": "Lähetetyt"
+    },
+    "reply": {
+      "wrong_user": "Olet kirjautunut sisään tunnuksella `{{user}}' mutta viestiä, johon tahdot vastata, ei ole lähetetty kyseiselle käyttäjälle. Ole hyvä ja kirjaudu sisään oikealla käyttäjätunnuksella vastataksesi."
+    },
+    "sent_message_summary": {
+      "destroy_button": "Poista"
+    },
+    "show": {
+      "back": "Takaisin",
+      "destroy_button": "Poista",
+      "reply_button": "Vastaa",
+      "title": "Lue viesti",
+      "unread_button": "Merkitse lukemattomaksi",
+      "wrong_user": "Olet kirjautunut sisään tunnuksella `{{user}}' mutta viestiä, jonka tahdot lukea, ei ole lähetetty kyseiselle käyttäjälle. Ole hyvä ja kirjaudu sisään oikealla käyttäjätunnukselle lukeaksesi sen."
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Luotu",
+      "creator": "Tekijä",
+      "description": "Kuvaus",
+      "heading": "Käyttäjän {{user}} karttailmoitukset",
+      "id": "Tunniste",
+      "last_changed": "Viimeksi muutettu",
+      "no_notes": "Ei muistiinpanoja",
+      "subheading_commented": "kommentoimat",
+      "subheading_html": "Käyttäjän {{user}} {{commented}} ja {{submitted}} karttailmoitukset",
+      "subheading_submitted": "luomat",
+      "title": "Käyttäjän {{user}} kommentoimat ja luomat huomautukset"
+    },
+    "new": {
+      "add": "Lähetä ilmoitus",
+      "advice": "Merkintä näkyy julkisesti kaikille, älä kirjoita henkilökohtaisia tietoja. Aineistoa kehitetään palautteen perusteella, minkä takia älä käytä lähteenä muita karttoja tai hakemistoja.",
+      "intro": "Huomasitko virheen tai puuttuvan kohteen? Ilmoita siitä muille kartoittajille, jolloin virhe voidaan korjata. Siirrä merkkipiste oikeaan kohtaan ja kirjoita selite ongelmasta.",
+      "title": "Uusi karttailmoitus"
+    },
+    "show": {
+      "anonymous_warning": "Suhtaudu varauksella tunnistautumattomien käyttäjien karttailmoituksiin ja kommentteihin.",
+      "closed_title": "Ratkaistu karttailmoitus #{{note_name}}",
+      "comment": "Kommentoi",
+      "comment_and_resolve": "Kommentoi + ratkaise",
+      "description": "Kuvaus",
+      "disappear_date_html": "Tämä ratkaistu karttailmoitus katoaa kartalta, kun on kulunut {{disappear_in}}.",
+      "event_closed_by_html": "Ratkaissut {{user}}, {{time_ago}}",
+      "event_commented_by_html": "Kommentti käyttäjältä {{user}} {{time_ago}}",
+      "event_hidden_by_html": "Piilottanut {{user}}, {{time_ago}}",
+      "event_opened_by_anonymous_html": "Luonut anonyymi käyttäjä, {{time_ago}}",
+      "event_opened_by_html": "Luonut {{user}}, {{time_ago}}",
+      "hidden_title": "Piilotettu karttailmoitus #{{note_name}}",
+      "hide": "Piilota",
+      "open_title": "Ratkaisematon karttailmoitus #{{note_name}}",
+      "other_problems_resolved": "Kaikkiin muihin ongelmiin riittää ratkaisu.",
+      "reactivate": "Avaa uudelleen",
+      "report": "ilmiantaa karttailmoituksen",
+      "report_link_html": "Jos tämä karttailmoitus sisältää arkaluontoisia tietoja, jotka on poistettava, voit {{link}}.",
+      "resolve": "Ratkaise",
+      "title": "Karttailmoitus: {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_gpx": "lukea yksityisiä GPS-jälkiäsi",
+      "allow_read_prefs": "lukea käyttäjäsi asetuksia",
+      "allow_to": "Salli asiakassovelluksen:",
+      "allow_write_api": "muokata karttaa",
+      "allow_write_diary": "kirjoita päiväkirjamerkintöjä, kommentoi ja löydä kavereita.",
+      "allow_write_gpx": "tallenna GPS-jälkiä.",
+      "allow_write_notes": "Muokkaa karttailmoituksia.",
+      "allow_write_prefs": "muokata käyttäjäsi asetuksia",
+      "grant_access": "Myönnä oikeudet",
+      "request_access_html": "Sovellus {{app_name}} pyytää pääsyä käyttäjätiliisi {{user}}. Tarkasta oikeudet, jotka tahdot antaa sovellukselle. Voit valita mielestäsi sopivat oikeudet.",
+      "title": "Salli tilisi käyttö"
+    },
+    "authorize_failure": {
+      "denied": "Sovelluksen {{app_name}} käyttöoikeus käyttäjätiliisi on poistettu.",
+      "invalid": "Tunnistuspoletti ei kelpaa.",
+      "title": "Valtuutuspyyntö epäonnistui"
+    },
+    "authorize_success": {
+      "allowed_html": "Sovellukselle {{app_name}} on myönnetty käyttöoikeus käyttäjätiliisi.",
+      "title": "Valtuutuspyyntö hyväksytty",
+      "verification": "Vahvistuskoodi on {{code}}."
+    },
+    "permissions": {
+      "missing": "Et ole sallinut sovelluksen käyttöoikeutta tähän palveluun"
+    },
+    "revoke": {
+      "flash": "Olet poistanut sovelluksen {{application}} käyttöoikeudet"
+    },
+    "scopes": {
+      "read_email": "Lue käyttäjän sähköpostiosoite",
+      "read_gpx": "Yksityisten GPS-jälkien käsittely",
+      "read_prefs": "Käyttäjäasetusten käsittely",
+      "skip_authorization": "Hyväksy hakemus automaattisesti",
+      "write_api": "Kartan muokkaaminen",
+      "write_diary": "Päiväkirjamerkintöjen luonti, kommentointi ja kavereiden lisääminen",
+      "write_gpx": "GPS-jälkien tallentaminen",
+      "write_notes": "Karttailmoitusten muokkaaminen",
+      "write_prefs": "Käyttäjäasetusten muuttaminen"
+    }
+  },
+  "oauth2_applications": {
+    "application": {
+      "confirm_delete": "Poista tämä sovellus?",
+      "delete": "Poista",
+      "edit": "Muokkaa"
+    },
+    "edit": {
+      "title": "Muokkaa sovellustasi"
+    },
+    "index": {
+      "name": "Nimi",
+      "new": "Rekisteröi uusi sovellus",
+      "permissions": "Käyttöoikeudet",
+      "title": "Omat asiakasohjelmistot"
+    },
+    "new": {
+      "title": "Rekisteröi uusi sovellus"
+    },
+    "not_found": {
+      "sorry": "Valitettavasti sovellusta ei löytynyt."
+    },
+    "show": {
+      "client_id": "Asiakastunnus",
+      "client_secret_warning": "Varmista, että tallennat tämän salaisuuden - et näe sitä enää uudelleen",
+      "confirm_delete": "Poista tämä sovellus?",
+      "delete": "Poista",
+      "edit": "Muokkaa",
+      "permissions": "Oikeudet",
+      "redirect_uris": "Uudelleenohjaa URI:t"
+    }
+  },
+  "oauth2_authorizations": {
+    "error": {
+      "title": "Tapahtui virhe"
+    },
+    "new": {
+      "authorize": "Valtuuta",
+      "deny": "Kiellä",
+      "introduction": "Haluatko valtuuttaa sovelluksen {{application}} käyttää tiliäsi seuraavin oikeuksin?",
+      "title": "Valtuutus vaaditaan"
+    },
+    "show": {
+      "title": "Valtuuskoodi"
+    }
+  },
+  "oauth2_authorized_applications": {
+    "application": {
+      "confirm_revoke": "Perutaanko tämän sovelluksen pääsy?",
+      "revoke": "Peruuta"
+    },
+    "index": {
+      "application": "Sovellus",
+      "no_applications_html": "{{oauth2}} -sovelluksille ei ole vielä myönnetty käyttöoikeuksia.",
+      "permissions": "Oikeudet",
+      "title": "Valtuutetut sovellukset"
+    }
+  },
+  "oauth_clients": {
+    "create": {
+      "flash": "Tiedot on lähetetty hyväksyttäväksi."
+    },
+    "destroy": {
+      "flash": "Sovelluksen käyttöoikeus on poistettu."
+    },
+    "edit": {
+      "title": "Muokkaa sovellustasi"
+    },
+    "form": {
+      "requests": "Sovellus pyytää lupaa:"
+    },
+    "index": {
+      "application": "Sovelluksen nimi",
+      "issued_at": "Käytetty viimeksi",
+      "list_tokens": "Seuraavat sovellukset ovat käyttäneet tätä käyttäjätunnusta:",
+      "my_apps": "Itse kehittämäni sovellukset",
+      "my_tokens": "Valtuutetut sovellukset",
+      "no_apps_html": "Oletko kehittänyt sovelluksen, jonka haluaisit käyttävän {{oauth}}-kirjautumismenetelmää? Sovellus on rekisteröitävä, ennen kuin se voi lähettää kirjautumispyyntöjä palveluun.",
+      "oauth": "OAuth",
+      "register_new": "Rekisteröi sovelluksesi",
+      "registered_apps": "Seuraavat sovellukset käyttävät käyttäjätunnustasi:",
+      "revoke": "Peruuta!",
+      "title": "OAuth-asetukset"
+    },
+    "new": {
+      "title": "Rekisteröi uusi sovellus"
+    },
+    "not_found": {
+      "sorry": "Valitettavasti tyyppiä {{type}} ei löydy."
+    },
+    "show": {
+      "access_url": "Käyttöoikeuspoletin URL-osoite:",
+      "authorize_url": "Valtuuta URL-osoite:",
+      "confirm": "Oletko varma?",
+      "delete": "Poista asiakas",
+      "edit": "Muokkaa yksityiskohtia",
+      "key": "Kuluttajan avain:",
+      "requests": "Pyydetään seuraavia oikeuksia käyttäjältä:",
+      "secret": "Kuluttajan salaisuus:",
+      "support_notice": "Tuemme HMAC-SHA1 (suositeltu) ja RSA-SHA1 allekirjoituksia.",
+      "title": "OAuth-tiedot sovellukselle {{app_name}}",
+      "url": "Pyynnön URL-poletti:"
+    },
+    "update": {
+      "flash": "Sovelluksen tiedot on päivitetty."
+    }
+  },
+  "osm_community_index": {
+    "communities": {
+      "OSM-AR-geolibres": {
+        "name": "GeoLibres"
+      },
+      "OSM-PL-chapter": {
+        "name": "OpenStreetMap Poland"
+      },
+      "OSM-US": {
+        "name": "OpenStreetMap US"
+      },
+      "OSM-japan-website": {
+        "name": "OpenStreetMap Japan"
+      },
+      "be-chapter": {
+        "name": "OpenStreetMap Belgium"
+      },
+      "cd-chapter": {
+        "name": "OpenStreetMap RDC"
+      },
+      "czech-community": {
+        "name": "OpenStreetMap CZ"
+      },
+      "fr-chapter": {
+        "name": "OpenStreetMap France"
+      },
+      "ireland-chapter": {
+        "name": "OpenStreetMap Ireland"
+      },
+      "is-chapter": {
+        "name": "OpenStreetMap Iceland"
+      },
+      "it-chapter": {
+        "name": "OpenStreetMap Italy"
+      },
+      "kosovo-flossk": {
+        "name": "Free Libre Open Source Software Kosova (FLOSSK)"
+      },
+      "osgeo-oceania": {
+        "name": "OSGeo Oceania"
+      },
+      "osm-at": {
+        "name": "OpenStreetMap Austria"
+      },
+      "osm-de": {
+        "name": "OpenStreetMap Germany"
+      },
+      "sk-freemap": {
+        "name": "OpenStreetMap Freemap Slovakia"
+      },
+      "sosm": {
+        "name": "Swiss OpenStreetMap Association"
+      },
+      "uk-localchapter": {
+        "name": "OpenStreetMap UK"
+      }
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "Annettu sähköpostiosoite ei ole käytössä.",
+      "notice email on way": "Salasanan palautusohjeet on lähetetty annettuun sähköpostiosoitteeseen."
+    },
+    "edit": {
+      "flash token bad": "Tuntematon tunniste. Tarkista että URL on sama kuin postissasi.",
+      "heading": "Vaihda käyttäjän {{user}} salasana",
+      "reset": "Vaihda salasana",
+      "title": "Salasanan vaihto"
+    },
+    "new": {
+      "email address": "Sähköpostiosoite:",
+      "heading": "Unohditko salasanasi?",
+      "help_text": "Kirjoita alapuolelle kirjautumissähköpostiosoitteesi. Osoitteeseen lähetetään salasanan palautusohjeet.",
+      "new password button": "Lähetä salasanan palautusohjeet",
+      "title": "Unohtunut salasana"
+    },
+    "update": {
+      "flash changed": "Salasanasi on vaihdettu."
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Peruuta",
+      "save": "Päivitä asetukset",
+      "title": "Muokkaa asetuksia"
+    },
+    "show": {
+      "edit_preferences": "Muokkaa asetuksia",
+      "preferred_editor": "Ensisijainen muokkain",
+      "preferred_languages": "Ensisijaiset kielet",
+      "title": "Asetukset"
+    },
+    "update": {
+      "failure": "Asetuksia ei voida päivittää."
+    },
+    "update_success_flash": {
+      "message": "Asetukset päivitetty."
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Peruuta",
+      "delete": "Poista",
+      "delete image": "Poista nykyinen kuva",
+      "gravatar": {
+        "disabled": "Gravatar on poistettu käytöstä.",
+        "enabled": "Gravatarisi näyttäminen on otettu käyttöön.",
+        "gravatar": "Käytä Gravataria",
+        "what_is_gravatar": "Mikä on Gravatar?"
+      },
+      "home location": "Kotipaikka",
+      "image": "Kuva",
+      "image size hint": "(parhaat kuvat ovat neliönmuotoisia, joiden koko on vähintään 100x100)",
+      "keep image": "Säilytä nykyinen kuva",
+      "new image": "Lisää kuva",
+      "no home location": "Kotipaikkaa ei ole vielä määritetty.",
+      "replace image": "Korvaa nykyinen kuva",
+      "save": "Päivitä profiili",
+      "show": "Näytä",
+      "title": "Muokkaa profiilia",
+      "undelete": "Peruuta poistaminen",
+      "update home location on click": "Päivitä kotipaikka karttaa napsauttaessa"
+    },
+    "update": {
+      "failure": "Profiilia ei voitu päivittää.",
+      "success": "Profiili päivitetty."
+    }
+  },
+  "redactions": {
+    "create": {
+      "flash": "Redaktio luotu."
+    },
+    "destroy": {
+      "error": "Relaatiota tuhottaessa tapahtui virhe.",
+      "flash": "Redaktio tuhottu.",
+      "not_empty": "Redaktio ei ole tyhjä. Poista redaktiotiedot kaikista tähän redaktioon liittyvistä versioista ennen sen tuhoamista."
+    },
+    "edit": {
+      "heading": "Muokkaa relaatiota",
+      "title": "Muokkaa relaatiota"
+    },
+    "index": {
+      "empty": "Ei ole näytettävää relaatiota",
+      "heading": "Relaatioiden luettelo",
+      "title": "Relaatioiden luettelo"
+    },
+    "new": {
+      "heading": "Kirjoita tietoja uudesta laitoksesta",
+      "title": "Luodaan uusi redaktio"
+    },
+    "show": {
+      "confirm": "Oletko varma?",
+      "description": "Kuvaus:",
+      "destroy": "Poista tämä redaktio",
+      "edit": "Muokkaa tätä relaatiota",
+      "heading": "Näytetään redaktio ”{{title}}”",
+      "title": "Näytetään redaktio",
+      "user": "Luoja:"
+    },
+    "update": {
+      "flash": "Muutokset on tallennettu."
+    }
+  },
+  "reports": {
+    "create": {
+      "provide_details": "Täydennä puuttuvat tiedot",
+      "successful_report": "Ilmianto on rekisteröity"
+    },
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "offensive_label": "Päiväkirjamerkinnän kommentti on hyökkäävä",
+          "other_label": "Muu",
+          "spam_label": "Päiväkirjamerkinnän kommentti on roskapostia",
+          "threat_label": "Päiväkirjamerkinnän kommentti sisältää uhkauksia"
+        },
+        "diary_entry": {
+          "offensive_label": "Päiväkirjamerkintä on hyökkäävä",
+          "other_label": "Muu",
+          "spam_label": "Päiväkirjamerkintä on roskapostia",
+          "threat_label": "Päiväkirjamerkintä sisältää uhkauksia"
+        },
+        "note": {
+          "abusive_label": "Karttailmoitus on loukkaava",
+          "other_label": "Muu",
+          "personal_label": "Karttailmoitus sisältää henkilökohtaisia tietoja",
+          "spam_label": "Karttailmoitus on roskapostia"
+        },
+        "user": {
+          "offensive_label": "Käyttäjäsivu on hyökkäävä",
+          "other_label": "Muu",
+          "spam_label": "Tämä käyttäjäsivu on roskapostia",
+          "threat_label": "Käyttäjäsivu sisältää uhkauksia",
+          "vandal_label": "Käyttäjä harrastaa ilkivaltaa"
+        }
+      },
+      "disclaimer": {
+        "intro": "Varmista ennen ilmiantoa seuraavat asiat:",
+        "not_just_mistake": "Ongelma ei ole vain väärinkäsitys",
+        "resolve_with_user": "Kyseinen käyttäjä ei ole ollut halukas yhteistyöhön",
+        "unable_to_fix": "Et voi ratkaista ongelmaa itse tai muun yhteisön tuella"
+      },
+      "missing_params": "Ilmoituksen luominen epäonnistui",
+      "title_html": "Ilmianna {{link}}"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "heading": "Kirjaudu ulos OpenStreetMapista",
+      "logout_button": "Kirjaudu ulos",
+      "title": "Kirjaudu ulos"
+    },
+    "new": {
+      "auth failure": "Kirjautuminen epäonnistui.",
+      "auth_providers": {
+        "aol": {
+          "alt": "Kirjaudu käyttämällä AOL OpenID -tunnustasi",
+          "title": "Kirjaudu AOL:n avulla"
+        },
+        "facebook": {
+          "alt": "Kirjaudu käyttämällä Facebook-tunnustasi",
+          "title": "Kirjaudu Facebookin avulla"
+        },
+        "github": {
+          "alt": "Kirjaudu käyttämällä GitHub-tiliäsi",
+          "title": "Kirjaudu GitHubin avulla"
+        },
+        "google": {
+          "alt": "Kirjaudu käyttämällä Google OpenID-tunnustasi",
+          "title": "Kirjaudu käyttämällä Google-tunnustasi"
+        },
+        "microsoft": {
+          "alt": "Kirjaudu sisään Microsoft-tililläsi",
+          "title": "Kirjaudu Microsoft-tilin avulla"
+        },
+        "openid": {
+          "alt": "Kirjaudu sisään OpenID-osoitteella",
+          "title": "Kirjaudu sisään OpenID:llä"
+        },
+        "wikipedia": {
+          "alt": "Kirjaudu sisään Wikipedia-tunnuksella",
+          "title": "Kirjaudu sisään Wikipedialla"
+        },
+        "wordpress": {
+          "alt": "Kirjaudu käyttämällä Wordpress OpenID -tunnustasi",
+          "title": "Kirjaudu WordPressin avulla"
+        }
+      },
+      "email or username": "Sähköpostiosoite tai käyttäjätunnus:",
+      "heading": "Kirjaudu",
+      "login_button": "Kirjaudu sisään",
+      "lost password link": "Unohditko salasanasi?",
+      "no account": "Eikö sinulla vielä ole käyttäjätunnusta?",
+      "openid_html": "{{logo}} OpenID:",
+      "openid_logo_alt": "Kirjaudu sisään OpenID-tunnuksella",
+      "password": "Salasana:",
+      "register now": "Rekisteröidy",
+      "remember": "Pidä minut sisäänkirjautuneena",
+      "title": "Kirjautumissivu",
+      "with external": "Voit myös kirjautua jonkun muun palvelun tunnuksilla:"
+    },
+    "suspended_flash": {
+      "contact_support_html": "Ota yhteyttä {{support_link}}, jos haluat keskustella tästä.",
+      "support": "tuki",
+      "suspended": "Valitettavasti tilisi on jäädytetty epäilyttävän toiminnan vuoksi."
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "alt": "Vaihtoehtoinen teksti",
+      "first": "Ensimmäinen tuote",
+      "heading": "Otsikko",
+      "headings": "Otsikot",
+      "image": "Kuva",
+      "link": "Linkki",
+      "ordered": "Järjestetty luettelo",
+      "second": "Toinen kohta",
+      "subheading": "Alaotsikko",
+      "text": "Teksti",
+      "unordered": "Järjestämätön luettelo",
+      "url": "URL"
+    },
+    "richtext_field": {
+      "edit": "Muokkaa",
+      "preview": "Esikatsele"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_1_html": "OpenStreetMap-yhteisö on monipuolinen, intohimoinen ja kasvaa joka päivä. Yhteisöön kuuluu harrastajakartoittajia, GIS-ammattilaisia, järjestelmää ylläpitäviä insinöörejä, humanitaarisia auttajia, jotka kartoittavat katastrofin kärsineitä alueita sekä monia muita. Lisätietoja yhteisöstä saa lukemalla {{osm_blog_link}}, {{user_diaries_link}}, {{community_blogs_link}} ja {{osm_foundation_link}} verkkosivua.",
+      "community_driven_community_blogs": "yhteisöblogeja",
+      "community_driven_osm_blog": "OpenStreetMap-blogia",
+      "community_driven_osm_foundation": "OSM-säätiön",
+      "community_driven_title": "Yhteisön voima",
+      "community_driven_user_diaries": "käyttäjien päiväkirjoja",
+      "heading_html": "{{copyright}}OpenStreetMap {{br}} kartoittajat",
+      "lede_text": "OpenStreetMapia rakentavat vapaaehtoiset yhteisön jäsenet, jotka tuottavat ja ylläpitävät karttatietoja teistä, rautateistä, kahviloista, rautatieasemista ja monista muista kohteista kaikkialla maailmassa.",
+      "legal_1_1_aup": "sallitun käytön käytäntöjä",
+      "legal_1_1_html": "Tämä sivusto ja monet siihen liittyvät palvelut ovat muodollisesti {{openstreetmap_foundation_link}} (OSMF) hallinnoimia OSM-yhteisön puolesta. Kaikkien OSMF:n hallinnoimien palveluiden käyttöön sovelletaan {{terms_of_use_link}}, {{aup_link}} ja {{privacy_policy_link}} (saatavilla vain englanniksi).",
+      "legal_1_1_openstreetmap_foundation": "OpenStreetMap-säätiön",
+      "legal_1_1_privacy_policy": "tietosuojakäytäntöä",
+      "legal_1_1_terms_of_use": "käyttöehtoja",
+      "legal_2_1_contact_the_osmf": "OSM-säätiöön",
+      "legal_2_1_html": "Ota yhteyttä {{contact_the_osmf_link}}, jos sinulla on kysymyksiä lisenssoinnista, tekijänoikeuksista tai muista oikeudellisista kysymyksistä.",
+      "legal_2_2_html": "OpenStreetMap, suurennuslasilogo ja State of the Map ovat {{registered_trademarks_link}}.",
+      "legal_2_2_registered_trademarks": "OSM-säätiön rekisteröityjä tuotemerkkejä",
+      "legal_title": "Lakitekninen jako",
+      "local_knowledge_html": "OpenStreetMapissa korostuu paikallistuntemus. Kartoittajat käyttävät ilmakuvia, GPS-paikantamia ja jalkautumista pitääkseen OpenStreetMap-kartan ajan tasalla.",
+      "local_knowledge_title": "Paikallistuntemus",
+      "next": "Seuraava",
+      "open_data_1_html": "OpenStreetMap on {{open_data}}: palvelua saa käyttää vapaasti mihin tahansa, kunhan OpenStreetMap tekijöineen mainitaan. Jos palvelua kehitetään tai muuunnellaan, sitä saa levittää eteenpäin vain samalla lisenssillä. Lisätietoja on {{copyright_license_link}} -sivulla.",
+      "open_data_copyright_license": "Tekijänoikeudet ja lisenssi",
+      "open_data_open_data": "avointa dataa",
+      "open_data_title": "Avoin data",
+      "partners_title": "Kumppanit",
+      "used_by_html": "Tuhannet verkkosivustot, mobiilisovellukset ja laitteistot käyttävät {{name}}-karttaa"
+    },
+    "any_questions": {
+      "get_help_here": "Hae apua täältä",
+      "title": "Kysyttävää?"
+    },
+    "communities": {
+      "lede_text": "Ihmiset ympäri maailmaa käyttävät ja täydentävät OpenStreetMapia.\nVaikka monet osallistuvat yksilöinä, osa käyttäjistä on muodostanut yhteisöjä.\nNäiden ryhmien koko vaihtelee ja ryhmien jäsenet saattavat kattaa joko pienen kylän tai useita alueita eri maista.\nRyhmät voivat olla muodollisia tai epävirallisia.",
+      "local_chapters": {
+        "title": "Paikalliset osastot"
+      },
+      "other_groups": {
+        "communities_wiki": "Yhteisöjen wiki-sivu",
+        "title": "Muut ryhmät"
+      },
+      "title": "Yhteisöt"
+    },
+    "copyright": {
+      "foreign": {
+        "english_link": "englanninenkielisen alkuperäisversion",
+        "html": "Jos tämän käännetyn sivun ja {{english_original_link}} välillä on eroja, englanninkielinen sivu on aina etusijalla.",
+        "title": "Tietoja tästä käännöksestä"
+      },
+      "legal_babble": {
+        "attribution_example": {
+          "alt": "Esimerkki siitä, miten nimetä OpenStreetMap nettisivulla",
+          "title": "Nimeämisesimerkki"
+        },
+        "contributors_at_austria": "Itävalta",
+        "contributors_at_cc_by": "CC BY -lisenssillä",
+        "contributors_at_cc_by_at_with_amendments": "CC-BY AT -lisenssillä tietyin muutoksin",
+        "contributors_at_credit_html": "{{austria}}: Sisältää karttatietoja {{stadt_wien_link}} ({{cc_by_link}}), {{land_vorarlberg_link}} ja Land Tirolesta ({{cc_by_at_with_amendments_link}})",
+        "contributors_at_land_vorarlberg": "Land Vorarlbergistä",
+        "contributors_at_stadt_wien": "Stadt Wienistä",
+        "contributors_au_australia": "Australia",
+        "contributors_au_geoscape_australia": "Geoscape Australia",
+        "contributors_ca_canada": "Kanada",
+        "contributors_ca_credit_html": "{{canada}}: Sisältää karttatietoja GeoBasesta&reg;, GeoGratisista (&copy; Department of Natural\nResources Canada), CanVecista (&copy; Department of Natural\nResources Canada), ja StatCanista (Geography Division,\nStatistics Canada).",
+        "contributors_cz_czechia": "Tšekki",
+        "contributors_es_cc_by": "CC BY 4.0",
+        "contributors_es_spain": "Espanja",
+        "contributors_fi_credit_html": "{{finland}}: Sisältää karttatietoja Maanmittauslaitoksen maastotietokannasta ja muista lähteistä {{nlsfi_license_link}} mukaisesti.",
+        "contributors_fi_finland": "Suomi",
+        "contributors_fi_nlsfi_license": "Maanmittauslaitoksen lisenssin",
+        "contributors_footer_2_html": "Tietojen sisältyminen OpenStreetMapiin ei tarkoita, että tietojen antaja\nottaa kantaa OpenStreetMapiin tai vastuuta tietojen oikeellisuudesta.",
+        "contributors_fr_credit_html": "{{france}}: Sisältää karttatietoja Direction Générale des Impôtsista.",
+        "contributors_fr_france": "Ranska",
+        "contributors_gb_credit_html": "{{united_kingdom}}: Sisältää Ordnance Surveyn keräämiä karttatietoja &copy; Crown Copyright ja tietokantojen käyttöoikeuden 2010-2023.",
+        "contributors_gb_united_kingdom": "Yhdistynyt kuningaskunta",
+        "contributors_intro_html": "Tekijöinämme on tuhansia yksityishenkilöitä. Olemme myös sisällyttäneet\nvapaasti lisensoitua dataa kansallisilta kartoitustoimistoilta\nja muista lähteistä, muun muassa:",
+        "contributors_nl_credit_html": "{{netherlands}}: Sisältää &copy; AND-karttatietoja vuodelta 2007 ({{and_link}})",
+        "contributors_nl_netherlands": "Alankomaat",
+        "contributors_nz_cc_by": "CC BY 4.0",
+        "contributors_nz_new_zealand": "Uusi-Seelanti",
+        "contributors_rs_serbia": "Serbia",
+        "contributors_si_credit_html": "{{slovenia}}: Sisältää {{gu_link}} sekä {{mkgp_link}} tuottamia karttatietoja (Slovenian julkista karttamateriaalia).",
+        "contributors_si_gu": "Maanmittaus- ja kartoitusviranomaisen",
+        "contributors_si_mkgp": "Maatalous-, metsä- ja ruokaministeriön",
+        "contributors_si_slovenia": "Slovenia",
+        "contributors_title_html": "Tekijät",
+        "contributors_za_credit_html": "{{south_africa}}: Sisältää karttatietoja {{ngi_link}}, kaikki oikeudet pidätetään.",
+        "contributors_za_ngi": "Chief Directorate: National Geo-Spatial Informationista",
+        "contributors_za_south_africa": "Etelä-Afrikka",
+        "credit_1_html": "Kun käytät OpenStreetMap-tietoja, sinun on tehtävä nämä kaksi asiaa:",
+        "credit_2_2": "Tehdä selväksi, että aineisto on saatavilla Open Database Lisenssillä.",
+        "credit_4_1_html": "Tehdäksesi selväksi, että aineisto on saatavilla Open Database Lisenssillä, voit linkittää {{this_copyright_page_link}}. Jos linkkien käyttö ei ole mahdollista (esim. paperille tulostettu aineisto), suosittelemme ohjaamaan lukijat osoitteisiin openstreetmap.org ja opendatacommons.org.\n\nEsimerkiksi tässä, tekijän nimi näkyy kartan alaosassa.",
+        "credit_4_1_this_copyright_page": "tälle tekijänoikeussivulle",
+        "credit_title_html": "OpenStreetMapin mainitseminen",
+        "infringement_1_html": "OpenStreetMapin kartoittajia muistutetaan, että kopioiminen tekijänoikeuksien alaisista teoksista\n(esimerkiksi Google-kartoista tai paperikartoista) ilman tekijänoikeuden haltijan nimenomaista lupaa on kielletty.",
+        "infringement_2_1_html": "Jos kuka tahansa OpenStreetMapin käyttäjä epäilee, että karttatietoja on otettu luvattomasta lähteestä OSM:n karttatietoihin tai sivustolle, siitä tulee tehdä {{takedown_procedure_link}} tai {{online_filing_page_link}}.",
+        "infringement_2_1_online_filing_page": "ilmoittaa suoraan",
+        "infringement_2_1_takedown_procedure": "poistopyyntö",
+        "infringement_title_html": "Tekijänoikeusloukkaus",
+        "introduction_1_html": "OpenStreetMap{{registered_trademark_link}} on {{open_data}}, jonka {{osm_foundation_link}} (OSMF) on lisensoinut {{odc_odbl_link}} (ODbL).",
+        "introduction_1_odc_odbl": "Open Data Commons Open Database -lisenssillä",
+        "introduction_1_open_data": "avointa dataa",
+        "introduction_1_osm_foundation": "OpenStreetMap Foundation",
+        "introduction_2_html": "OpenStreetMapin karttoja ja tietoja voi kopioida, levittää, välittää ja mukauttaa, kunhan OpenStreetMap ja sen tekijät mainitaan. Jos karttoja tai tietoja muutetaan tai kehitetään, niitä saa levittää vain samalla lisenssillä. {{legal_code_link}} mainitaan levittäjän oikeudet ja velvollisuudet.",
+        "introduction_2_legal_code": "Lakitekstissä",
+        "introduction_3_creative_commons": "Creative Commons Nimeä-JaaSamoin 2.0",
+        "introduction_3_html": "Dokumentaatio on lisensoitu {{creative_commons_link}} -lisenssillä (CC BY-SA 2.0).",
+        "more_1_1_osmf_licence_page": "OSMF-lisenssisivu",
+        "more_2_1_api_usage_policy": "API:n käyttöehtoihin",
+        "more_2_1_html": "Vaikka OpenStreetMap on avointa dataa, emme voi tarjota maksutonta karttarajapintaa (API) kolmannen osapuolen kehittäjille. Tutustu {{api_usage_policy_link}}, {{tile_usage_policy_link}} ja {{nominatim_usage_policy_link}}.",
+        "more_2_1_tile_usage_policy": "kartta-aineiston käyttöehtoihin",
+        "more_title_html": "Lisätietoja",
+        "title_html": "Tekijänoikeus ja lisenssi",
+        "trademarks_1_1_html": "OpenStreetMap, suurennuslasilogo ja State of the Map ovat OpenStreetMap-säätiön rekisteröityjä tavaramerkkejä.Jos sinulla on kysyttävää merkkien käytöstä, tutustu {{trademark_policy_link}}.",
+        "trademarks_1_1_trademark_policy": "tavaramerkkikäytäntöömme",
+        "trademarks_title": "Tavaramerkit"
+      },
+      "native": {
+        "html": "Tällä sivulla on alkuperäinen englanninkielinen versio tekijäoikeuksista. Saatavilla on myös {{native_link}}. Voit myös lopettaa tekijänoikeuksien lukemisen ja {{mapping_link}}.",
+        "mapping_link": "aloittaa kartoituksen",
+        "native_link": "suomenkielinen versio",
+        "title": "Tietoja sivusta"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "Perustelut (englanniksi) julkisuusvaatimukselle.",
+      "id_not_configured": "iD-ohjelmaa ei ole asetettu",
+      "no_iframe_support": "Käytössä oleva selain ei tue HTML-kehyksiä, joka vaaditaan tämän toiminnon käyttämiseen.",
+      "not_public": "Muokkauksesi eivät ole julkisia.",
+      "not_public_description_html": "Et voi enää muokata karttaa ennen kuin vaihdat muokkauksesi julkisiksi. Voit vaihtaa asetuksen {{user_page}}-sivulta.",
+      "user_page_link": "käyttäjätiedot"
+    },
+    "export": {
+      "export_button": "Vie",
+      "licence": "Lisenssi",
+      "manually_select": "Valitse pienempi alue",
+      "odbl": "Open Data Commons Open Database -lisenssillä",
+      "title": "Alueen vienti",
+      "too_large_advice": "Jos vientitoiminto ei toimi, kokeile myös seuraavia palveluja:",
+      "too_large_body": "Näin suurta aluetta ei voi viedä OpenStreetMap XML-tiedostona. Lähennä karttaa tai valitse pienempi alue, tai vaihtoehtoisesti lataa tiedosto joltakin seuraavista:",
+      "too_large_geofabrik": {
+        "description": "Säännöllisesti päivitetyt otteet maanosista, maista ja valituista kaupungeista",
+        "title": "Geofabrik-lataukset"
+      },
+      "too_large_other": {
+        "description": "Muut lähteet ovat esillä OpenStreetMap-wikissä",
+        "title": "Muut lähteet"
+      },
+      "too_large_overpass": {
+        "description": "Lataa kartalle rajattu alue OpenStreetMapin varapalvelimelta",
+        "title": "Overpass API"
+      },
+      "too_large_planet": {
+        "description": "Säännöllisesti päivitettyjä kopioita täydellisestä OpenStreetMap-tietokannasta",
+        "title": "Planet OSM"
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "explanation_html": "Jos olet huomannut ongelman kartassa, kuten puuttuvan tien tai puuttuvan osoitteesi, paras tapa toimia on liittyä OpenStreetMap-yhteisöön ja lisätä tai korjata kohta itse.",
+          "title": "Liity yhteisöön"
+        },
+        "title": "Kuinka voin auttaa"
+      },
+      "other_concerns": {
+        "title": "Muut huolenaiheet"
+      },
+      "title": "Ilmoita ongelmasta / Korjaa karttaa"
+    },
+    "help": {
+      "beginners_guide": {
+        "description": "Yhteisön ylläpitämä opas aloittelijoille.",
+        "title": "Aloitusopas",
+        "url": "https://wiki.openstreetmap.org/wiki/Fi:Beginners%27_guide"
+      },
+      "community": {
+        "description": "Jaettu paikka OpenStreetMapiin liittyville keskusteluille.",
+        "title": "Yhteisön keskustelupalsta"
+      },
+      "help": {
+        "description": "Etsi vastauksia tai esitä oma kysymyksesi OpenStreetMapin kysy- ja vastaa -sivustolla. (englanninkielinen)",
+        "title": "Apufoorumi"
+      },
+      "introduction": "Ohjeita ja vinkkejä OpenStreetMapin käyttöön on saatavilla useista eri lähteistä.",
+      "irc": {
+        "description": "Interaktiivinen chat monilla eri kielillä ja monista eri aiheista.",
+        "title": "IRC"
+      },
+      "mailing_lists": {
+        "description": "Esitä kysymyksiä tai keskustele laajalti kiinnostavista aiheista aiheita koskevilla tai alueellisilla sähköpostilistoilla.",
+        "title": "Postituslistat"
+      },
+      "switch2osm": {
+        "description": "Auta yrityksiä ja organisaatioita vaihtamaan OpenStreetMapiin pohjautuviin karttoihin ja muihin palveluihin.",
+        "title": "switch2osm (Vaihda OSM:iin)"
+      },
+      "title": "Ohjekeskus",
+      "welcome": {
+        "description": "Opi OpenStreetMapin perusteet tällä helpolla aloitusoppaalla.",
+        "title": "Tervetuloa OpenStreetMapiin",
+        "url": "/welcome"
+      },
+      "welcomemat": {
+        "description": "Edustatko järjestöä, joka harkitsee OpenStreetMapin hyödyntämistä? Tutustu ohjeistukseemme.",
+        "title": "Järjestöille"
+      },
+      "wiki": {
+        "description": "Tutustu syvällisemmin OpenStreetMapiin wikikirjastossa. Osittain englanninkielinen.",
+        "title": "OpenStreetMap-wiki",
+        "url": "https://wiki.openstreetmap.org/wiki/Fi:Main_Page"
+      }
+    },
+    "index": {
+      "createnote": "Ilmoita karttavirheestä",
+      "js_1": "Selain ei tue JavaScriptiä tai sen suorittaminen on estetty.",
+      "js_2": "OpenStreetMap tarvitsee JavaScriptin liikuteltavaan karttaan.",
+      "license": {
+        "copyright": "Tekijänoikeus: OpenStreetMapin tekijät, avoimella lisenssillä"
+      },
+      "permalink": "Ikilinkki",
+      "remote_failed": "Muokkaus epäonnistui - varmista, että JOSM tai Merkaartor on ladattu ja etähallinta-asetus on käytössä",
+      "shortlink": "Lyhytosoite"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "Hallinnollinen raja",
+          "allotments": "Siirtolapuutarha",
+          "apron": "Lentokentän asemataso",
+          "bicycle_parking": "Pyöräparkki",
+          "bicycle_shop": "Pyöräkauppa",
+          "bridge": "Musta kehys = silta",
+          "bridleway": "Ratsastustie",
+          "brownfield": "Purettujen rakennusten alue",
+          "building": "Merkittävä rakennus",
+          "cable_car": "Köysirata",
+          "cemetery": "Hautausmaa",
+          "centre": "Urheilukeskus",
+          "chair_lift": "tuolihissi",
+          "commercial": "Toimistoalue",
+          "common": "Niitty",
+          "construction": "Rakenteilla olevia teitä",
+          "cycleway": "Pyörätie",
+          "cycleway_local": "Paikallinen pyörätie",
+          "cycleway_national": "Kansallinen pyörätie",
+          "cycleway_regional": "Alueellinen pyörätie",
+          "destination": "Ei läpikulkua",
+          "farm": "Maatila",
+          "footway": "Jalkakäytävä",
+          "forest": "Talousmetsä",
+          "golf": "Golfkenttä",
+          "heathland": "Kanervikko",
+          "industrial": "Teollisuusalue",
+          "lake": "Järvi",
+          "main_road": "Päätie",
+          "military": "Sotilasalue",
+          "motorway": "Moottoritie",
+          "park": "Puisto",
+          "peak": "huippu",
+          "pitch": "Urheilukenttä",
+          "primary": "Kantatie",
+          "private": "Yksityinen",
+          "rail": "Junarata",
+          "reserve": "Luonnonsuojelualue",
+          "reservoir": "tekojärvi",
+          "resident": "Asuinalue",
+          "retail": "Kaupallinen alue",
+          "runway": "Lentokentän kiitotie",
+          "school": "Koulu",
+          "secondary": "Seututie",
+          "station": "Rautatieasema",
+          "subway": "Metro",
+          "summit": "Vuorenhuippu",
+          "taxiway": "rullaustie",
+          "toilets": "Vessat",
+          "track": "Metsätie",
+          "trunk": "Valtatie",
+          "tunnel": "Katkoviivallinen kehys = tunneli",
+          "unclassified": "Luokittelematon tie",
+          "university": "yliopisto",
+          "wood": "Metsä"
+        }
+      }
+    },
+    "potlatch": {
+      "change_preferences": "Muuta asetuksiasi täällä",
+      "desktop_application_html": "Voit edelleen käyttää Potlatchia {{download_link}}.",
+      "download": "lataamalla työpöytäsovelluksen Macille ja Windowsille",
+      "id_editor_html": "Vaihtoehtoisesti voit asettaa oletusmuokkaimeksi iD:n, joka toimii verkkoselaimessasi kuten Potlatch aiemmin. {{change_preferences_link}}.",
+      "removed": "OpenStreetMapin oletusmuokkausohjelmaksi on valittu Potlatch. Adoben Flash Player -lisäosan tuki on päättynyt, minkä vuoksi Potlatch ei ole enää saatavilla verkkoselaimessa."
+    },
+    "search": {
+      "from": "Lähtöpaikka",
+      "get_directions": "Hae reittiohjeet",
+      "get_directions_title": "Hae reittiohjeet kahden paikan välille",
+      "reverse_directions_text": "Vastakkainen suunta",
+      "search": "Haku",
+      "submit_text": "Hae",
+      "to": "Määränpää",
+      "where_am_i": "Mikä tämä paikka on?",
+      "where_am_i_title": "Määrittää nykyisen sijainnin hakukoneella"
+    },
+    "sidebar": {
+      "close": "Sulje",
+      "search_results": "Hakutulokset"
+    },
+    "welcome": {
+      "add_a_note": {
+        "para_1": "Jos huomaat kartalla virheen, muttet halua korjata sitä itse, tee siitä karttavirheilmoitus.",
+        "title": "Eikö muokkaaminen innosta? Ilmoita karttavirheistä!"
+      },
+      "basic_terms": {
+        "an_editor_html": "{{editor}} on ohjelma tai verkkosivu jota voit käyttää kartan muokkaamiseen.",
+        "editor": "Muokkain",
+        "node": "piste",
+        "paragraph_1": "OpenStreetMapissa käytetään paljon vain sille omaista termistöä. Kun nämä sanat ovat hallinnassa, olet jo voiton puolella!",
+        "title": "Käsitteitä ja termistöä",
+        "way": "viiva"
+      },
+      "introduction": "Tervetuloa OpenStreetMapiin: ilmaiseen ja vapaasti muokattavaan maailmankarttaan. Rekisteröityminen on nyt suoritettu, joten olet valmis aloittamaan kartan muokkaamisen. Tutustu ensin kuitenkin näihin perusasioihin.",
+      "rules": {
+        "automated_edits": "Automatisoidut muokkaukset",
+        "imports": "Tuonnit",
+        "title": "Pelisäännöt"
+      },
+      "start_mapping": "Aloita kartan muokkaaminen",
+      "title": "Tervetuloa!",
+      "whats_on_the_map": {
+        "title": "Kartan sisältö"
+      }
+    }
+  },
+  "time": {
+    "formats": {
+      "blog": "%e. %Bta %Y",
+      "friendly": "%e. %Bta %Y klo %H.%M"
+    }
+  },
+  "traces": {
+    "create": {
+      "trace_uploaded": "GPX-tiedosto on tallennettu palvelimelle ja on jonossa tietokantaan syötettäväksi. Yleensä tämä kestää noin puoli tuntia. Saat vielä sähköposti-ilmoituksen asiasta.",
+      "traces_waiting_one": "Sinulla on {{count}} jälki käsittelyjonossa odottamassa tallennusta tietokantaan. Olisi huomaavaista jos odottaisit näiden valmistuvan ennen kuin lähetät lisää jälkiä. Näin muidenkin käyttäjien lähettämät jäljet pääsevät aiemmin tietokantaan.",
+      "traces_waiting_other": "Sinulla on {{count}} jälkeä käsittelyjonossa odottamassa tallennusta tietokantaan. Olisi huomaavaista jos odottaisit näiden valmistuvan ennen kuin lähetät lisää jälkiä. Näin muidenkin käyttäjien lähettämät jäljet pääsevät aiemmin tietokantaan.",
+      "upload_failed": "GPX-tiedoston tallennus epäonnistui. Virheilmoitus on lähetetty palvelun ylläpitäjälle. Yritä uudelleen.",
+      "upload_trace": "Lähetä GPS-jälki"
+    },
+    "description": {
+      "description_with_count_one": "GPX-tiedosto, jossa on {{count}} piste käyttäjältä {{user}}",
+      "description_with_count_other": "GPX-tiedosto, jossa on {{count}} pistettä käyttäjältä {{user}}",
+      "description_without_count": "GPX-tiedosto käyttäjältä {{user}}"
+    },
+    "destroy": {
+      "scheduled_for_deletion": "Jälki on poistojonossa."
+    },
+    "edit": {
+      "cancel": "Peruuta",
+      "heading": "Jäljen {{name}} muokkaus",
+      "title": "Muokataan jälkeä {{name}}",
+      "visibility_help": "Mitä tämä tarkoittaa?"
+    },
+    "georss": {
+      "title": "OpenStreetMapin GPS-jäljet"
+    },
+    "index": {
+      "all_traces": "Kaikki jäljet",
+      "description": "Selaa viimeisimpiä GPS-jälkiä",
+      "empty_title": "Täällä ei ole vielä mitään",
+      "empty_upload_html": "{{upload_link}} tai lue lisää GPS-jäljityksestä {{wiki_link}}.",
+      "my_gps_traces": "Omat GPS-jäljet",
+      "my_traces": "Omat jäljet",
+      "public_traces": "Julkiset GPS-jäljet",
+      "public_traces_from": "Käyttäjän {{user}} julkiset GPS-jäljet",
+      "remove_tag_filter": "Poista tunnistesuodatin",
+      "tagged_with": ", joilla on tagi {{tags}}",
+      "traces_from": "Julkiset jäljet käyttäjältä {{user}}",
+      "upload_new": "Tallenna uusi jälki",
+      "upload_trace": "Lisää GPS-jälki",
+      "wiki_page": "wikissä"
+    },
+    "make_public": {
+      "made_public": "Jäljestä tehtiin julkinen"
+    },
+    "new": {
+      "help": "Ohje",
+      "help_url": "https://wiki.openstreetmap.org/wiki/Fi:Upload",
+      "upload_trace": "Tallenna GPS-jälki",
+      "visibility_help": "Mitä tämä tarkoittaa?",
+      "visibility_help_url": "https://wiki.openstreetmap.org/wiki/Fi:GPS-j%C3%A4lkien_julkisuus"
+    },
+    "offline": {
+      "heading": "GPX-jälkien tallennus ei ole käytettävissä",
+      "message": "GPX-jälkien tallennusjärjestelmä ei ole tällä hetkellä käytettävissä"
+    },
+    "offline_warning": {
+      "message": "GPX-tiedostojen tallennus ei ole tällä hetkellä käytettävissä"
+    },
+    "show": {
+      "confirm_delete": "Poista tämä jälki?",
+      "coordinates_html": "{{latitude}}; {{longitude}}",
+      "delete_trace": "Poista tämä jälki",
+      "description": "Kuvaus:",
+      "download": "lataa",
+      "edit": "muokkaa",
+      "edit_trace": "Muokkaa jäljen tietoja",
+      "filename": "Tiedostonimi:",
+      "heading": "Näytetään jälkeä {{name}}",
+      "map": "kartalla",
+      "none": "Ei mitään",
+      "owner": "Käyttäjä:",
+      "pending": "ODOTTAA KÄSITTELYÄ",
+      "points": "Pisteitä:",
+      "start_coordinates": "Alkupisteen koordinaatit:",
+      "tags": "Ominaisuustiedot:",
+      "title": "Näytetään jälkeä {{name}}",
+      "trace_not_found": "Jälkeä ei löydy!",
+      "uploaded": "Lähetetty:",
+      "visibility": "Näkyvyys:"
+    },
+    "trace": {
+      "by": "käyttäjältä",
+      "count_points_one": "{{count}} piste",
+      "count_points_other": "{{count}} pistettä",
+      "edit_map": "Muokkaa karttaa",
+      "identifiable": "TUNNISTETTAVA",
+      "in": "avainsanoilla",
+      "more": "tiedot",
+      "pending": "JONOSSA",
+      "private": "YKSITYINEN",
+      "public": "JULKINEN",
+      "trace_details": "Näytä jäljen tiedot",
+      "trackable": "SEURATTAVA",
+      "view_map": "Selaa karttaa"
+    },
+    "trace_optionals": {
+      "tags": "Ominaisuustiedot"
+    },
+    "trace_paging_nav": {
+      "newer": "Uudet jäljet",
+      "older": "Vanhat jäljet"
+    },
+    "update": {
+      "updated": "Jälki päivitetty"
+    },
+    "visibility": {
+      "identifiable": "Tunnistettavissa (näytetään jälkiluettelossa ja pisteet tunnistettavasti järjestettynä aikaleimoineen)",
+      "private": "Yksityinen (vain pisteet ilman nimeä ja aikaleimoja)",
+      "public": "Julkinen (näytetään jälkiluettelossa, mutta pisteet ilman nimeä ja aikaleimoja)",
+      "trackable": "Jäljitettävissä (pisteet jaetaan järjestettynä aikaleimoineen, mutta nimettömänä)"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Muokkaa",
+      "not_revoked": "(ei kumottu)",
+      "revoke": "Estä!",
+      "show": "Näytä"
+    },
+    "blocks": {
+      "creator_name": "Tekijä",
+      "display_name": "Estetty käyttäjä",
+      "next": "Seuraava »",
+      "previous": "« Edellinen",
+      "reason": "Eston syy",
+      "revoker_name": "Eston tehnyt",
+      "showing_page": "Sivu {{page}}",
+      "status": "Tila"
+    },
+    "blocks_by": {
+      "empty": "{{name}} ei ole vielä tehnyt yhtään estoa.",
+      "heading_html": "Listaa käyttäjän {{name}} tekemät estot",
+      "title": "Käyttäjän {{name}} tekemät estot"
+    },
+    "blocks_on": {
+      "empty": "Käyttäjää {{name}} ei ole estetty.",
+      "heading_html": "Käyttäjän {{name}} estot",
+      "title": "Käyttäjän {{name}} estot"
+    },
+    "create": {
+      "flash": "Estettiin käyttäjä {{name}}"
+    },
+    "edit": {
+      "back": "Näytä kaikki estot",
+      "heading_html": "Käyttäjän {{name}} esto",
+      "period": "Kuinka pitkäksi aikaa käyttäjää estetään käyttämästä APIa, laskettuna tästä hetkestä.",
+      "show": "Näytä tämä esto",
+      "title": "Käyttäjän {{name}} esto"
+    },
+    "filter": {
+      "block_expired": "Esto on jo vanhentunut, eikä sitä voi muokata.",
+      "block_period": "Eston ajanjakson täytyy olla yksi pudotusvalikossa olevista arvoista."
+    },
+    "helper": {
+      "block_duration": {
+        "days_one": "{{count}} päivä",
+        "days_other": "{{count}} päivää",
+        "hours_one": "{{count}} tunti",
+        "hours_other": "{{count}} tuntia",
+        "months_one": "{{count}} kuukausi",
+        "months_other": "{{count}} kuukautta",
+        "weeks_one": "{{count}} viikko",
+        "weeks_other": "{{count}} viikkoa",
+        "years_one": "{{count}} vuosi",
+        "years_other": "{{count}} vuotta"
+      },
+      "time_future_and_until_login_html": "Päättyy {{time}} kuluttua ja käyttäjän kirjauduttua sisään.",
+      "time_future_html": "Päättyy {{time}} kuluttua.",
+      "time_past_html": "Päättyi {{time}}.",
+      "until_login": "Aktiivinen kunnes käyttäjä kirjautuu sisään."
+    },
+    "index": {
+      "empty": "Ei estoja.",
+      "heading": "Luettelo käyttäjän estoista",
+      "title": "Estetyt käyttäjät"
+    },
+    "model": {
+      "non_moderator_revoke": "Sinun on oltava moderaattori poistaaksesi eston.",
+      "non_moderator_update": "Sinun on oltava moderaattori luodaksesi tai muokataksesi estoa."
+    },
+    "new": {
+      "back": "Näytä kaikki estot",
+      "heading_html": "Luodaan esto käyttäjälle {{name}}",
+      "period": "Kuinka kauan käyttäjä on estetty käyttämästä APIa. Esto alkaa heti.",
+      "title": "Luodaan esto käyttäjälle {{name}}"
+    },
+    "not_found": {
+      "back": "Takaisin hakemistoon",
+      "sorry": "Estotunnusta {{id}} ei löytynyt."
+    },
+    "revoke": {
+      "confirm": "Oletko varma, että haluat poistaa tämän eston?",
+      "flash": "Tämä esto on poistettu",
+      "heading_html": "Poistetaan käyttäjän {{block_on}} esto, jonka oli tehnyt {{block_by}}",
+      "past_html": "Tämä esto päättyi {{time}} ja sitä ei voida poistaa.",
+      "revoke": "Poista!",
+      "time_future_html": "Tämä esto päättyy {{time}} kuluttua.",
+      "title": "Esto {{block_on}} poistetaan"
+    },
+    "show": {
+      "back": "Näytä kaikki estot",
+      "confirm": "Oletko varma?",
+      "created": "Luotu",
+      "duration": "Kesto:",
+      "edit": "Muokkaa",
+      "heading_html": "{{block_on}} estetty käyttäjän {{block_by}} toimesta",
+      "needs_view": "Käyttäjän täytyy kirjautua sisään ennen kuin esto poistuu.",
+      "reason": "Syy estoon:",
+      "revoke": "Estä!",
+      "revoker": "Estäjä:",
+      "show": "Näytä",
+      "status": "Tila",
+      "title": "{{block_on}} estetty käyttäjän {{block_by}} toimesta"
+    },
+    "update": {
+      "only_creator_can_edit": "Vain tämän eston luonut moderaattori voi muokata sitä.",
+      "success": "Esto päivitetty."
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "commented": {
+        "commented_changeset": "{{commenter}} jätti {{time}} kommentin kartan muutoskokoelmaan jota katselet jonka on luonut {{changeset_author}}",
+        "commented_changeset_html": "{{commenter}} kommentoi {{time}} tarkastelemaasi muutoskokoelmaa, jonka muokkaaja on {{changeset_author}}",
+        "partial_changeset_with_comment": "seuraavasti: \"{{changeset_comment}}\"",
+        "partial_changeset_with_comment_html": "seuraavasti: \"{{changeset_comment}}\"",
+        "partial_changeset_without_comment": "ei kommenttia",
+        "subject_other": "[OpenStreetMap] {{commenter}} on kommentoinut sinua kiinnostavaa muutoskokoelmaa",
+        "subject_own": "[OpenStreetMap] {{commenter}} on kommentoinut muutoskokoelmaasi",
+        "your_changeset": "{{commenter}} kommentoi {{time}} muutoskokoelmaasi",
+        "your_changeset_html": "{{commenter}} kommentoi muutoskokoelmaasi {{time}}"
+      },
+      "details": "Lisätietoja muutoskokoelmasta: {{url}}",
+      "details_html": "Lisätietoja muutoskokoelmasta: {{url}}",
+      "greeting": "Hei,",
+      "hi": "Hei {{to_user}}!",
+      "unsubscribe": "Peru tämän muutoskokoelman sähköposti-ilmoitukset siirtymällä osoitteeseen {{url}} ja napsauttamalla Lopeta tilaus.",
+      "unsubscribe_html": "Peru tämän muutoskokoelman sähköposti-ilmoitukset siirtymällä osoitteeseen {{url}} ja napsauttamalla Lopeta tilaus."
+    },
+    "diary_comment_notification": {
+      "footer": "Lue kommentti sivulla {{readurl}}. Jatkokommentin voi lähettää sivulla {{commenturl}} tai lähettää viestin tekijälle sivulla {{replyurl}}.",
+      "header": "{{from_user}} kommentoi kirjoittamaasi päiväkirjamerkintää OpenStreetMapissa otsikolla {{subject}}:",
+      "header_html": "{{from_user}} on kommentoinut OpenStreetMap-päiväkirjamerkintää otsikolla {{subject}}:",
+      "hi": "Hei {{to_user}}!",
+      "subject": "[OpenStreetMap] {{user}} on lisännyt kommentin päiväkirjamerkintääsi"
+    },
+    "email_confirm": {
+      "click_the_link": "Jos tämä olet sinä, napsauta linkkiä alla vahvistaaksesi muutoksen.",
+      "greeting": "Hei,",
+      "hopefully_you": "Joku (toivottavasti sinä) haluaa vaihtaa sähköpostiosoitteen palvelimella {{server_url}} osoitteeksi {{new_address}}",
+      "subject": "[OpenStreetMap] Vahvista sähköpostiosoitteesi"
+    },
+    "friendship_notification": {
+      "befriend_them": "Voit myös lisätä lähettäjän kaveriksi osoitteessa {{befriendurl}}.",
+      "befriend_them_html": "Voit myös lisätä lähettäjän kaveriksi osoitteessa {{befriendurl}}.",
+      "had_added_you": "Käyttäjä {{user}} lisäsi sinut kaverikseen OpenStreetMapissa.",
+      "hi": "Hei {{to_user}}!",
+      "see_their_profile": "Voit tutustua hänen käyttäjäsivuunsa osoitteessa {{userurl}}.",
+      "see_their_profile_html": "Tutustu hänen käyttäjäsivuunsa osoitteessa {{userurl}}.",
+      "subject": "[OpenStreetMap] {{user}} lisäsi sinut kaverikseen"
+    },
+    "gpx_failure": {
+      "failed_to_import": "epäonnistui tuoda. Tässä virhe:",
+      "hi": "Hei {{to_user}}!",
+      "subject": "[OpenStreetMap] GPX-tuonti epäonnistui"
+    },
+    "gpx_success": {
+      "hi": "Hei {{to_user}}!",
+      "subject": "[OpenStreetMap] GPX-tuonti onnistui"
+    },
+    "lost_password": {
+      "click_the_link": "Jos tämä olet sinä, napsauta linkkiä alla nollataksesi salasanasi.",
+      "greeting": "Hei,",
+      "hopefully_you": "Joku (mahdollisesti sinä) on pyytänyt tähän sähköpostiosoitteeseen rekisteröidyn openstreetmap.org-tunnuksen salasanan vaihtoa.",
+      "subject": "[OpenStreetMap] Salasanan vaihtopyyntö"
+    },
+    "message_notification": {
+      "footer_html": "Lue viesti osoitteessa {{readurl}} ja lähetä viesti tekijälle osoitteessa {{replyurl}}.",
+      "header": "{{from_user}} on lähettänyt sinulle viestin OpenStreetMapissa otsikkolla {{subject}}:",
+      "header_html": "{{from_user}} on lähettänyt sinulle viestin OpenStreetMapissa otsikolla {{subject}}:",
+      "hi": "Hei {{to_user}}!",
+      "subject": "[OpenStreetMap] {{message_title}}"
+    },
+    "note_comment_notification": {
+      "anonymous": "Tuntematon käyttäjä",
+      "closed": {
+        "commented_note": "{{commenter}} on ratkaissut karttailmoituksen, jota olet kommentoinut. Merkintä on lähellä paikkaa {{place}}.",
+        "commented_note_html": "{{commenter}} on ratkaissut kommentoimasi karttailmoituksen lähellä paikkaa {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} on ratkaissut sinua kiinnostavan karttailmoituksen",
+        "subject_own": "[OpenStreetMap] {{commenter}} on ratkaissut karttailmoituksesi",
+        "your_note": "{{commenter}} on ratkaissut lähettämäsi karttailmoituksen lähellä paikkaa {{place}}.",
+        "your_note_html": "{{commenter}} on ratkaissut lähettämäsi karttailmoituksen lähellä paikkaa {{place}}."
+      },
+      "commented": {
+        "commented_note": "{{commenter}} on kommentoinut yhtä kommentoimaasi merkintää. Merkintä on lähellä paikkaa {{place}}.",
+        "commented_note_html": "{{commenter}} on kommentoinut kommentoimaasi karttailmoitusta, joka on lähellä paikkaa {{place}}.",
+        "subject_other": "[OpenStreetMap] {{commenter}} on kommentoinut sinua kiinnostavaa merkintää",
+        "subject_own": "[OpenStreetMap] {{commenter}} on kommentoinut merkintääsi",
+        "your_note": "{{commenter}} on kommentoinut yhtä merkinnöistäsi lähellä paikkaa {{place}}.",
+        "your_note_html": "{{commenter}} on kommentoinut karttailmoitustasi lähellä paikkaa {{place}}."
+      },
+      "details": "Lisätietoja merkinnästä löytyy osoitteesta {{url}}.",
+      "details_html": "Lisätietoja karttailmoituksesta löytyy osoitteesta {{url}}.",
+      "greeting": "Hei!",
+      "reopened": {
+        "commented_note": "{{commenter}} on aktivoinut karttailmoituksen uudelleen. Tämä viesti lähetetään siksi, että olet kommentoinut tätä karttailmoitusta, joka on lähellä paikkaa {{place}}.",
+        "commented_note_html": "{{commenter}} on aktivoinut kommentoimasi karttailmoituksen lähellä paikkaa {{place}} uudelleen.",
+        "subject_other": "[OpenStreetMap] {{commenter}} on avannut karttailmoituksen uudelleen",
+        "subject_own": "[OpenStreetMap] {{commenter}} on avannut karttamerkintäsi uudelleen",
+        "your_note": "{{commenter}} on avannut karttamerkinnän uudelleen lähellä paikkaa {{place}}.",
+        "your_note_html": "{{commenter}} on avannut karttamerkintäsi lähellä paikkaa {{place}} uudelleen."
+      }
+    },
+    "signup_confirm": {
+      "confirm": "Jos olet luonut tämän käyttäjätilin, vahvista se napsauttamalla tätä linkkiä:",
+      "created": "Joku (toivottavasti sinä) on luonut käyttäjätunnuksen osoitteessa {{site_url}}.",
+      "greeting": "Hei!",
+      "subject": "[OpenStreetMap] Tervetuloa OpenStreetMapiin",
+      "welcome": "Käyttäjätilin vahvistamisen jälkeen haluaisimme kertoa joitain hyödyllisiä asioita, jotta pääset alkuun."
+    }
+  },
+  "user_role": {
+    "filter": {
+      "already_has_role": "Käyttäjällä on jo rooli {{role}}.",
+      "doesnt_have_role": "Käyttäjällä ei ole roolia {{role}}.",
+      "not_a_role": "Merkkijono '{{role}}' ei ole kelvollinen rooli.",
+      "not_revoke_admin_current_user": "Ei voida perua järjestelmänvalvojan roolia nykyiseltä käyttäjältä."
+    },
+    "grant": {
+      "are_you_sure": "Haluatko varmasti lisätä käyttäjän ”{{name}}” ryhmään ”{{role}}”?",
+      "confirm": "Vahvista",
+      "fail": "Roolin ”{{role}}” myöntäminen käyttäjälle ”{{name}}” epäonnistui. Tarkista että käyttäjä ja rooli ovat molemmat kelvollisia.",
+      "heading": "Vahvista roolin myöntäminen",
+      "title": "Vahvista roolin myöntäminen"
+    },
+    "revoke": {
+      "are_you_sure": "Haluatko varmasti poistaa käyttäjän ”{{name}}” ryhmästä ”{{role}}”?",
+      "confirm": "Vahvista",
+      "fail": "Ryhmän ”{{role}}” poistaminen käyttäjältä ”{{name}}” epäonnistui. Tarkista että käyttäjä ja ryhmä ovat molemmat kelvollisia.",
+      "heading": "Vahvista roolin poistaminen",
+      "title": "Vahvista roolin poistaminen"
+    }
+  },
+  "users": {
+    "auth_association": {
+      "heading": "ID:täsi ei ole vielä liitetty OpenStreetMap-tiliisi.",
+      "option_1": "Uusi OpenStreetMapin käyttäjä: luo käyttäjätunnus tällä lomakkeella.",
+      "option_2": "Nykyinen OpenStreetMapin käyttäjä: kirjaudu sisään käyttäjätunnuksella ja salasanalla ja yhdistä tili käyttäjäasetuksissa."
+    },
+    "auth_failure": {
+      "connection_failed": "Yhdistäminen todennuspalveluntarjoajaan epäonnistui",
+      "invalid_credentials": "Virheelliset varmennustiedot",
+      "invalid_scope": "Virheellinen ala",
+      "no_authorization_code": "Ei käyttöoikeuskoodia",
+      "unknown_error": "Todentaminen epäonnistui",
+      "unknown_signature_algorithm": "Tunnistamaton allekirjoitusalgoritmi"
+    },
+    "go_public": {
+      "flash success": "Kaikki tekemäsi muokkaukset ovat nyt julkisia."
+    },
+    "index": {
+      "confirm": "Vahvista valitut käyttäjät",
+      "empty": "Käyttäjiä ei löytynyt.",
+      "heading": "Käyttäjät",
+      "hide": "Piilota valitut käyttäjät",
+      "showing_one": "Näytetään sivu {{page}} ({{first_item}}/{{items}})",
+      "showing_other": "Näytetään sivu {{page}} ({{first_item}}-{{last_item}} / {{items}})",
+      "summary_html": "{{name}} luotu {{date}} osoitteesta {{ip_address}}",
+      "summary_no_ip_html": "{{name}} luotu {{date}}",
+      "title": "Käyttäjät"
+    },
+    "new": {
+      "about": {
+        "header": "Muokkaa vapaasti"
+      },
+      "auth no password": "Mikäli kirjaudut sisään kolmannen osapuolen palveluiden avulla, sinun ei tarvitse luoda itsellesi salasanaa, mutta jotkin ylimääräiset työkalut tai palvelimet voivat silti vaatia sitä.",
+      "continue": "Rekisteröidy",
+      "display name description": "Julkisesti näkyvä käyttäjänimi. Tätä voi myöhemmin muuttaa asetuksista.",
+      "external auth": "Kolmannen osapuolen todennus:",
+      "no_auto_account_create": "Automaattinen käyttäjätunnuksen luonti ei ole juuri nyt käytössä.",
+      "privacy_policy": "tietosuojakäytäntö",
+      "support": "tuki",
+      "terms accepted": "Kiitos uusien osallistujaehtojen hyväksymisestä!",
+      "title": "Rekisteröidy",
+      "use external auth": "Kirjaudu toisen palvelun tunnuksilla"
+    },
+    "no_such_user": {
+      "body": "Käyttäjää {{user}} ei löytynyt. Tarkista oikeikirjoitus.",
+      "deleted": "poistettu",
+      "heading": "Käyttäjää {{user}} ei ole olemassa",
+      "title": "Haettua käyttäjää ei ole olemassa"
+    },
+    "show": {
+      "activate_user": "Aktivoi tämä käyttäjä",
+      "add as friend": "Lisää kaveriksi",
+      "block_history": "Saadut estot",
+      "blocks by me": "Tekemäni estot",
+      "blocks on me": "Saadut estot",
+      "comments": "Kommentit",
+      "confirm": "Vahvista",
+      "confirm_user": "Vahvista tämä käyttäjä",
+      "create_block": "Estä tämä käyttäjä",
+      "created from": "Tekijä:",
+      "ct declined": "Hylätty",
+      "ct status": "Osallistumisehdot:",
+      "ct undecided": "Ei valittu",
+      "delete_user": "Poista tämä käyttäjä",
+      "diary": "Päiväkirja",
+      "edit_profile": "Muokkaa profiilia",
+      "edits": "Muokkaukset",
+      "email address": "Sähköpostiosoite:",
+      "hide_user": "Piilota tämä käyttäjä",
+      "mapper since": "Rekisteröitynyt:",
+      "moderator_history": "Tehdyt estot",
+      "my comments": "Omat kommentit",
+      "my diary": "Oma päiväkirja",
+      "my edits": "Omat muokkaukset",
+      "my messages": "Viestit",
+      "my notes": "Omat karttailmoitukset",
+      "my profile": "Käyttäjäsivu",
+      "my settings": "Käyttäjäasetukset",
+      "my traces": "Omat jäljet",
+      "my_dashboard": "Tapahtumat",
+      "my_preferences": "Asetukset",
+      "notes": "Karttailmoitukset",
+      "remove as friend": "Poista kavereista",
+      "report": "Ilmianna käyttäjä",
+      "role": {
+        "administrator": "Tämä käyttäjä on ylläpitäjä.",
+        "grant": {
+          "administrator": "Myönnä ylläpitäjän oikeudet",
+          "moderator": "Myönnä moderaattorin oikeudet"
+        },
+        "moderator": "Tämä käyttäjä on moderaattori.",
+        "revoke": {
+          "administrator": "Poista ylläpitäjän oikeudet",
+          "moderator": "Poista moderaattorin oikeudet"
+        }
+      },
+      "send message": "Lähetä viesti",
+      "spam score": "Spam-pisteet:",
+      "status": "Tila:",
+      "traces": "Jäljet",
+      "unconfirm_user": "Peru tämän käyttäjän vahvistus",
+      "unhide_user": "Poista käyttäjän piilottaminen",
+      "unsuspend_user": "Peru tämän käyttäjän jäädytys"
+    },
+    "suspended": {
+      "automatically_suspended": "Valitettavasti tilisi on automaattisesti jäädytetty epäilyttävän toiminnan vuoksi.",
+      "heading": "Käyttäjätili jäädytetty",
+      "support": "tuki",
+      "title": "Käyttäjätili jäädytetty"
+    },
+    "terms": {
+      "consider_pd": "Edellisen lisäksi katson lisäyksieni olevan tekijänoikeudettomia Public Domain -lisenssillä",
+      "consider_pd_why": "Mikä tämä on?",
+      "consider_pd_why_url": "https://www.osmfoundation.org/wiki/License/Why_would_I_want_my_contributions_to_be_public_domain",
+      "continue": "Seuraava",
+      "contributor_terms_explain": "Tämä sopimus koskee jo tekemiäsi sekä tulevaisuudessa tekemiäsi muokkauksia.",
+      "decline": "En hyväksy",
+      "declined": "https://wiki.openstreetmap.org/wiki/Fi:Contributor_Terms_Declined",
+      "guidance_info_html": "Vaihtoehtoisia lukutapoja: {{readable_summary_link}} ja {{informal_translations_link}}",
+      "heading": "Ehdot",
+      "heading_ct": "Osallistumisehdot",
+      "informal_translations": "epäviralliset käännökset",
+      "legale_names": {
+        "france": "Ranska",
+        "italy": "Italia",
+        "rest_of_world": "Muu maailma"
+      },
+      "legale_select": "Valitse asuinmaasi:",
+      "read and accept with tou": "Lue osallistumis- ja käyttöehdot, valitse molemmat valintaruudut ja napsauta sitten Jatka.",
+      "read_ct": "Olen lukenut ja hyväksyn yllä olevat osallistumisehdot",
+      "read_tou": "Olen lukenut ja hyväksynyt käyttöehdot",
+      "readable_summary": "selkokielinen yhteenveto (englanniksi)",
+      "title": "Ehdot",
+      "tou_explain_html": "Nämä {{tou_link}} ohjaavat verkkosivuston ja muun OSMF:n tarjoaman infrastruktuurin käyttöä. Napsauta linkkiä, lue ja suostu tekstin sisältöön.",
+      "you need to accept or decline": "Ennen jatkamista lue läpi osallistumisehdot ja hyväksy tai hylkää se."
+    },
+    "terms_declined_flash": {
+      "terms_declined_link": "tämä wikisivu",
+      "terms_declined_url": "https://wiki.openstreetmap.org/wiki/Fi:Contributor_Terms_Declined"
+    }
+  },
+  "validations": {
+    "invalid_characters": "sisältää virheellisiä merkkejä",
+    "leading_whitespace": "tyhjää tilaa alussa",
+    "trailing_whitespace": "tyhjää tilaa lopussa",
+    "url_characters": "sisältää erikoismerkkejä URL:ssa ({{characters}})"
+  }
+}

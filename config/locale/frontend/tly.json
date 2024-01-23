@@ -1,0 +1,330 @@
+{
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "name": "Nom (Tələb kardə)"
+      },
+      "diary_comment": {
+        "body": "Mətn"
+      },
+      "diary_entry": {
+        "language_code": "Zıvon",
+        "latitude": "Hevüji",
+        "title": "Myžor",
+        "user": "Ištirokəkə"
+      },
+      "friend": {
+        "friend": "Düst",
+        "user": "Ištirokəkə"
+      },
+      "message": {
+        "body": "Mətn",
+        "sender": "Әвғанд",
+        "title": "Myžor"
+      },
+      "trace": {
+        "description": "Təsvir",
+        "latitude": "Hevüji",
+        "name": "Nom",
+        "size": "Pamjə",
+        "tagstring": "Нышонон:",
+        "user": "Ištirokəkə"
+      },
+      "user": {
+        "description": "Təsvir",
+        "email": "E-nomə",
+        "languages": "Zıvonon",
+        "pass_crypt": "Parol"
+      }
+    },
+    "models": {
+      "country": "Kišvər",
+      "friend": "Düst",
+      "language": "Zıvon",
+      "old_way": "Kána Ro",
+      "user": "Ištirokəkə",
+      "way": "Ro",
+      "way_tag": "Roə Nişon"
+    }
+  },
+  "browse": {
+    "not_found": {
+      "type": {
+        "way": "ro"
+      }
+    },
+    "redacted": {
+      "type": {
+        "way": "ro"
+      }
+    },
+    "relation_member": {
+      "type": {
+        "way": "Ro"
+      }
+    },
+    "start_rjs": {
+      "load_data": "Мәлумот бо жәј",
+      "loading": "Бо карде..."
+    },
+    "tag_details": {
+      "email_link": "Enomə {{email}}"
+    },
+    "timeout": {
+      "type": {
+        "way": "ro"
+      }
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "no_edits": "(дәгишон нин)"
+    },
+    "changeset_paging_nav": {
+      "next": "Esənə →",
+      "previous": "← Навынәни",
+      "showing_page": "Səhifə {{page}}"
+    },
+    "changesets": {
+      "id": "İD",
+      "user": "Ištirokəkə"
+    }
+  },
+  "dashboards": {
+    "popup": {
+      "friend": "Düst"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "when": "Кејнә"
+    },
+    "diary_comment": {
+      "confirm": "Təsdiğ"
+    },
+    "location": {
+      "edit": "Дәгиши"
+    }
+  },
+  "doorkeeper": {
+    "scopes": {
+      "phone": "Šymə telefoni numrə vinde"
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Һәниән нәтиҹә",
+      "no_results": "Һичи пәјдо быәни"
+    },
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "drinking_water": "Peşumə Ov",
+          "library": "Kitobxonə",
+          "music_school": "Musiği Məktəb",
+          "parking": "Mandəco",
+          "toilets": "Lınqəro"
+        },
+        "club": {
+          "yes": "Klub"
+        },
+        "emergency": {
+          "access_point": "Dəşəcoi Noxtə",
+          "ambulance_station": "Çı təciliyə tibbi koməki məntəğə"
+        },
+        "historic": {
+          "house": "Кә"
+        },
+        "landuse": {
+          "forest": "Vişə",
+          "orchard": "Ләлгылә боғ",
+          "village_green": "Havzə Di"
+        },
+        "leisure": {
+          "garden": "Боғ"
+        },
+        "natural": {
+          "forest": "Vişə",
+          "land": "Zəmin",
+          "peak": "Банди бәш",
+          "spring": "Һони",
+          "stone": "Sığ",
+          "tree": "Do",
+          "volcano": "Вәшәбанд"
+        },
+        "place": {
+          "city": "Шәһр",
+          "country": "Kišvər",
+          "house": "Кә",
+          "houses": "Кәон",
+          "sea": "Dıyo",
+          "village": "Di"
+        },
+        "railway": {
+          "halt": "Ғәтәри мандәҹо"
+        },
+        "shop": {
+          "books": "Kitobə dükon",
+          "tea": "Çay Vıjor"
+        },
+        "tourism": {
+          "information": "Məlumot"
+        },
+        "waterway": {
+          "river": "Ru"
+        }
+      },
+      "types": {
+        "places": "Вырон"
+      }
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "create": "Ǧejdijot",
+        "update": "Tojə karde"
+      },
+      "diary_entry": {
+        "update": "Bıxovın"
+      },
+      "message": {
+        "create": "Vyǧandej"
+      },
+      "oauth2_application": {
+        "update": "Bıxovın"
+      }
+    }
+  },
+  "layouts": {
+    "community": "Ҹәмјәт",
+    "edit": "Sərost bykə",
+    "export": "İxroc",
+    "help": "Koməq",
+    "history": "Torix",
+    "home": "әсосә сәһифә",
+    "logout": "Beši",
+    "partners_bytemark": "Bytemark Hosting",
+    "sign_up": "ғејдијот",
+    "tag_line": "Дынјо Озодә Вики Хәритә"
+  },
+  "messages": {
+    "message_summary": {
+      "destroy_button": "Mole"
+    },
+    "messages_table": {
+      "subject": "Myžor"
+    }
+  },
+  "notes": {
+    "show": {
+      "description": "Təsvir"
+    }
+  },
+  "oauth_clients": {
+    "edit": {
+      "title": "Sərosti bıkə şımə aplikasiya"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "image": "Şəkl:",
+      "new image": "Şəkl ziyod kardə"
+    }
+  },
+  "redactions": {
+    "show": {
+      "user": "Офәјә быә:"
+    },
+    "update": {
+      "flash": "Дәгишон огәтә быән."
+    }
+  },
+  "sessions": {
+    "suspended_flash": {
+      "support": "dastək"
+    }
+  },
+  "site": {
+    "export": {
+      "export_button": "İxroc",
+      "licence": "Lisenzijə",
+      "title": "İxroc"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "forest": "Vişə",
+          "lake": "Гол",
+          "school": "Məktəb"
+        }
+      }
+    },
+    "search": {
+      "submit_text": "Dəvardej"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y %H:%M"
+    }
+  },
+  "traces": {
+    "new": {
+      "help": "Koməq"
+    },
+    "show": {
+      "description": "Təsvir:",
+      "edit": "sərost bıkə",
+      "filename": "Faylinom:",
+      "map": "xəritə",
+      "none": "Ne",
+      "owner": "Сојб:",
+      "tags": "Tegon:"
+    },
+    "trace": {
+      "by": "Мыәллиф:",
+      "edit_map": "Xəritə dəqiş karde",
+      "in": "бә",
+      "view_map": "Tamşo kardə bə Xəritə"
+    },
+    "trace_optionals": {
+      "tags": "Tegon:"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Sərost bykə"
+    },
+    "blocks": {
+      "creator_name": "Мыәллиф",
+      "showing_page": "Səhifə {{page}}"
+    }
+  },
+  "user_mailer": {
+    "diary_comment_notification": {
+      "hi": "Səlom {{to_user}},"
+    },
+    "email_confirm": {
+      "greeting": "Səlom,"
+    },
+    "lost_password": {
+      "greeting": "Səlom,"
+    },
+    "message_notification": {
+      "hi": "Səlom {{to_user}},"
+    }
+  },
+  "users": {
+    "index": {
+      "heading": "İştirakəkon",
+      "title": "İştirakəkon"
+    },
+    "new": {
+      "continue": "Дәвом кардеј"
+    },
+    "show": {
+      "my settings": "чымы кукон"
+    }
+  }
+}

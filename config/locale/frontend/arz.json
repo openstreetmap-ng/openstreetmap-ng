@@ -1,0 +1,1210 @@
+{
+  "accounts": {
+    "edit": {
+      "my settings": "إعداداتي",
+      "public editing": {
+        "disabled": "مُعطل ولا يمكن تعديل البيانات، جميع التعديلات السابقه مجهوله الهويه.",
+        "disabled link text": "لماذا لا أستطيع التعديل؟",
+        "enabled": "مفعّل. غير مجهول ويمكنك تعديل البيانات.",
+        "enabled link text": "ما هذا؟",
+        "heading": "تعديل عام"
+      },
+      "save changes button": "حفظ التغييرات",
+      "title": "عدّل الحساب"
+    },
+    "go_public": {
+      "heading": "تعديل عام:",
+      "make_edits_public_button": "اجعل جميع تعديلاتى عامة"
+    },
+    "update": {
+      "success": "تم تحديث معلومات المستخدم بنجاح.",
+      "success_confirm_needed": "تم تحديث معلومات المستخدم بنجاح. تحقق من بريدك الإلكترونى لمذكره تأكيد العنوان الإلكترونى الجديد."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "callback_url": "رابط الرد",
+        "support_url": "رابط الدعم"
+      },
+      "diary_comment": {
+        "body": "نص الرسالة"
+      },
+      "diary_entry": {
+        "language_code": "اللغة",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "title": "العنوان",
+        "user": "المستخدم"
+      },
+      "friend": {
+        "friend": "صديق",
+        "user": "المستخدم"
+      },
+      "message": {
+        "body": "نص الرسالة",
+        "recipient": "المستلم",
+        "sender": "المرسل",
+        "title": "العنوان"
+      },
+      "trace": {
+        "description": "الوصف",
+        "gpx_file": "ابلود فايل GPX:",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "name": "الاسم",
+        "public": "عام",
+        "size": "الحجم",
+        "tagstring": "الوسوم",
+        "user": "المستخدم",
+        "visibility": "الرؤية",
+        "visible": "ظاهر"
+      },
+      "user": {
+        "active": "نشط",
+        "description": "الوصف",
+        "display_name": "الاسم الظاهر",
+        "email": "البريد الإلكتروني",
+        "home_lat": "خط العرض:",
+        "home_lon": "خط الطول:",
+        "languages": "اللغات",
+        "pass_crypt": "كلمه المرور"
+      }
+    },
+    "help": {
+      "trace": {
+        "tagstring": "محدد بفواصل"
+      },
+      "user": {
+        "new_email": "(لا يظهر علنًا)"
+      },
+      "user_block": {
+        "needs_view": "هل يحتاج المستخدم لتسجيل الدخول قبل أن يتم مسح هذه العرقلة؟"
+      }
+    },
+    "models": {
+      "acl": "قائمه تحكم الوصول",
+      "changeset": "حزمه التغييرات",
+      "changeset_tag": "سمه حزمه التغييرات",
+      "country": "بلد",
+      "diary_comment": "تعليق يومية",
+      "diary_entry": "مدخله يومية",
+      "friend": "صديق",
+      "language": "اللغة",
+      "message": "الرسالة",
+      "node": "عقدة",
+      "node_tag": "سمه عقدة",
+      "old_node": "عقده قديمة",
+      "old_node_tag": "سمه عقده قديمة",
+      "old_relation": "علاقه قديمة",
+      "old_relation_member": "عضو علاقه قديم",
+      "old_relation_tag": "سمه علاقه قديمة",
+      "old_way": "طريق قديم",
+      "old_way_node": "عقده طريق قديمة",
+      "old_way_tag": "سمه طريق قديمة",
+      "relation": "علاقة",
+      "relation_member": "عضو علاقة",
+      "relation_tag": "سمه علاقة",
+      "session": "جلسة",
+      "trace": "أثر",
+      "tracepoint": "نقطه أثر",
+      "tracetag": "سمه الأثر",
+      "user": "المستخدم",
+      "user_preference": "تفضيل المستخدم",
+      "user_token": "معلومات مستخدم",
+      "way": "طريق",
+      "way_node": "عقده طريق",
+      "way_tag": "سمه طريق"
+    }
+  },
+  "application": {
+    "require_cookies": {
+      "cookies_needed": "يبدو أن الكوكيز عندك معطله - يرجى تفعيل الكوكيز فى متصفحك قبل المتابعه."
+    },
+    "setup_user_auth": {
+      "blocked": "لقد تم عرقله وصولك إلى الـ API. يرجى تسجيل الدخول من صفحه الموقع لمعرفه المزيد."
+    }
+  },
+  "browse": {
+    "changeset": {
+      "changesetxml": "حزمه التغييرات إكس إم إل",
+      "feed": {
+        "title": "حزمه التغييرات {{id}}",
+        "title_comment": "حزمه التغييرات {{id}} - {{comment}}"
+      },
+      "osmchangexml": "osmChange XML",
+      "title": "حزمه التغييرات: {{id}}"
+    },
+    "containing_relation": {
+      "entry_html": "العلاقه {{relation_name}}",
+      "entry_role_html": "العلاقه {{relation_name}} (كــ {{relation_role}})"
+    },
+    "not_found": {
+      "sorry": "عفوًا، لم يتم العثور على {{type}} بالمعرّف {{id}}.",
+      "type": {
+        "changeset": "حزمه التغييرات",
+        "node": "عقدة",
+        "relation": "علاقة",
+        "way": "طريق"
+      }
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} كــ {{role}}",
+      "type": {
+        "node": "عقدة",
+        "relation": "علاقة",
+        "way": "طريق"
+      }
+    },
+    "start_rjs": {
+      "load_data": "تحميل البيانات",
+      "loading": "تحميل..."
+    },
+    "tag_details": {
+      "tags": "الوسوم"
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "مجهول",
+      "no_edits": "(لا تعديلات)",
+      "view_changeset_details": "اعرض تفاصيل حزمه التغييرات"
+    },
+    "changeset_paging_nav": {
+      "next": "التالى »",
+      "previous": "«السابق",
+      "showing_page": "الصفحه {{page}}"
+    },
+    "changesets": {
+      "area": "منطقة",
+      "comment": "التعليق",
+      "id": "المعرّف",
+      "saved_at": "حُفظ في",
+      "user": "المستخدم"
+    },
+    "index": {
+      "title": "حزم التغييرات",
+      "title_user": "حزم التغييرات بواسطه {{user}}"
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "button": "أكّد",
+      "heading": "راجع ايميلك!",
+      "press confirm button": "اضغط على زر التأكيد أدناه لتنشيط حسابك.",
+      "success": "تم تأكيد حسابك، شكرًا للاشتراك!"
+    },
+    "confirm_email": {
+      "button": "أكّد",
+      "failure": "عنوان بريد إلكترونى تم تفعيله مسبقًا بهذه البيانات.",
+      "heading": "أكّد تغيير عنوان البريد الإلكتروني",
+      "press confirm button": "اضغط على زر تأكيد أدناه لتأكيد عنوان بريدك الإلكترونى الجديد.",
+      "success": "تم تأكيد تغيير عنوان بريدك الإلكترونى!"
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "على بعد {{count}}كم",
+      "m away": "على بعد {{count}}متر"
+    },
+    "popup": {
+      "nearby mapper": "مخطط بالجوار",
+      "your location": "موقعك"
+    },
+    "show": {
+      "nearby users": "مستخدمين بالجوار:",
+      "no friends": "لم تقم بإضافه أى أصدقاء بعد.",
+      "no nearby users": "لا يوجد بعد مستخدمين أفصحوا عن تخطيطهم بالجوار."
+    }
+  },
+  "diary_entries": {
+    "diary_comment": {
+      "comment_from_html": "تعليق من {{link_user}}  فى {{comment_created_at}}",
+      "confirm": "أكّد",
+      "hide_link": "اخفِ هذا التعليق"
+    },
+    "diary_entry": {
+      "comment_count_few": "{{count}} تعليقات",
+      "comment_count_one": "تعليق واحد",
+      "comment_count_other": "{{count}} تعليق",
+      "comment_count_two": "تعليقان",
+      "comment_count_zero": "لا تعليق",
+      "comment_link": "علّق على هذه المدخلة",
+      "confirm": "أكّد",
+      "edit_link": "عدّل هذه المدخلة",
+      "hide_link": "اخفِ هذه المدخلة",
+      "posted_by_html": "أُرسل بواسطه {{link_user}} فى {{created}} باللغه {{language_link}}",
+      "reply_link": "رد على هذه المدخلة"
+    },
+    "edit": {
+      "marker_text": "موقع مدخله اليومية",
+      "title": "عدل المدخله بتاعه اليوميه"
+    },
+    "feed": {
+      "all": {
+        "description": "المدخلات الحديثه فى يوميه مستخدمى خريطه الشارع المفتوحة",
+        "title": "مدخلات اليوميه فى خريطه الشارع المفتوحة"
+      },
+      "language": {
+        "description": "المدخلات الحديثه فى يوميه مستخدمى خريطه الشارع المفتوحه باللغه {{language_name}}",
+        "title": "مدخلات يوميه خريطه الشارع المفتوحه باللغه {{language_name}}"
+      },
+      "user": {
+        "description": "المدخلات الحديثه فى يوميه خريطه الشارع المفتوحه بواسطه المستخدم {{user}}",
+        "title": "مدخلات يوميه خريطه الشارع المفتوحه للمستخدم {{user}}"
+      }
+    },
+    "form": {
+      "location": "الموقع:",
+      "use_map_link": "استخدم الخريطة"
+    },
+    "index": {
+      "in_language_title": "مدخلات اليوميه باللغه {{language}}",
+      "new": "مدخله يوميه جديدة",
+      "new_title": "اكتب مدخله يوميه جديده فى يوميتك",
+      "newer_entries": "المدخلات الأحدث",
+      "no_entries": "لا يوجد مدخلات يومية",
+      "older_entries": "المدخلات الأقدم",
+      "recent_entries": "المدخلات اليوميه الحديثة:",
+      "title": "يوميات المستخدمين",
+      "user_title": "يوميه {{user}}"
+    },
+    "new": {
+      "title": "مدخله يوميه جديدة"
+    },
+    "no_such_entry": {
+      "body": "عذرًا، لا يوجد مدخله يوميه أو تعليق بالمعرّف {{id}}. يرجى تدقيق التهجئه، أو ربما يكون الرابط الذى تم النقر عليه خاطئ.",
+      "heading": "لا يوجد مدخله بالمعرّف: {{id}}",
+      "title": "مدخله يوميه غير موجودة"
+    },
+    "show": {
+      "leave_a_comment": "اترك تعليقًا",
+      "login": "تسجيل الدخول",
+      "login_to_leave_a_comment_html": "{{login_link}} لترك تعليق",
+      "title": "يوميات اليوزر {{user}} | {{title}}",
+      "user_title": "يوميه {{user}}"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "حاليًا أنت و {{name}} أصدقاء.",
+      "failed": "عفوًا، تعذر إضافه {{name}} كصديق.",
+      "success": "{{name}} الآن صديقك!"
+    },
+    "remove_friend": {
+      "not_a_friend": "{{name}} ليس من أحد أصدقائك.",
+      "success": "تم إزاله {{name}} من قائمه أصدقائك."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "no_results": "لم يتم العثور على نتائج"
+    },
+    "search_osm_nominatim": {
+      "prefix": {
+        "amenity": {
+          "arts_centre": "مركز فني/ثقافي",
+          "atm": "صراف آلي",
+          "bank": "مصرف",
+          "bar": "حانة",
+          "bench": "مقعد",
+          "bicycle_parking": "موقف دراجات",
+          "bicycle_rental": "تأجير دراجة",
+          "brothel": "بيت دعارة",
+          "bureau_de_change": "مكتب صرافة",
+          "bus_station": "محطه حافلات",
+          "cafe": "مقهى",
+          "car_rental": "تأجير سيارات",
+          "car_sharing": "مشاركه سيارات",
+          "car_wash": "غسيل سيارات",
+          "casino": "نادى قمار",
+          "cinema": "سينما",
+          "clinic": "عيادة",
+          "college": "كلّية",
+          "community_centre": "مركز اجتماع",
+          "courthouse": "محكمة",
+          "crematorium": "محرقه جثث",
+          "dentist": "طبيب أسنان",
+          "doctors": "أطباء",
+          "drinking_water": "مياه عذبة",
+          "driving_school": "مدرسه تعليم قيادة",
+          "embassy": "سفارة",
+          "fast_food": "وجبات سريعة",
+          "ferry_terminal": "مرسى عبّارة",
+          "fire_station": "فوج إطفاء",
+          "fountain": "نافورة",
+          "fuel": "وقود",
+          "grave_yard": "مقبرة",
+          "hospital": "مستشفى",
+          "hunting_stand": "مربط للصيد",
+          "ice_cream": "مثلجات",
+          "kindergarten": "حضانه أطفال",
+          "library": "مكتبة",
+          "marketplace": "سوق",
+          "nightclub": "نادى ليلي",
+          "nursing_home": "دار رعايه مسنين/معاقين",
+          "parking": "موقف سيارات",
+          "pharmacy": "صيدلية",
+          "place_of_worship": "معبد",
+          "police": "شرطة",
+          "post_box": "صندوق بريد",
+          "post_office": "مكتب بريد",
+          "prison": "سجن",
+          "pub": "حانة",
+          "public_building": "مبنى عام",
+          "recycling": "نقطه إعاده تصنيع",
+          "restaurant": "مطعم",
+          "school": "مدرسة",
+          "shelter": "ملجأ",
+          "studio": "ستوديو",
+          "taxi": "سياره أجرة",
+          "telephone": "هاتف عمومي",
+          "theatre": "مسرح",
+          "toilets": "مراحيض",
+          "townhall": "مبنى بلدية",
+          "university": "جامعة",
+          "vending_machine": "آله بيع",
+          "veterinary": "جراحه بيطرية",
+          "waste_basket": "سله نفايات"
+        },
+        "boundary": {
+          "administrative": "حدود إدارية"
+        },
+        "building": {
+          "apartments": "مجموعه شقق",
+          "chapel": "معبد/مصلى",
+          "church": "كنيسة",
+          "commercial": "مبنى تجاري",
+          "dormitory": "عنبر نوم",
+          "farm": "مبنى مزرعة",
+          "garage": "مرآب",
+          "hospital": "مبنى مستشفى",
+          "hotel": "فندق",
+          "house": "منزل",
+          "industrial": "مبنى صناعي",
+          "office": "مبنى مكتب",
+          "public": "مبنى عام",
+          "residential": "مبنى سكني",
+          "school": "مبنى مدرسة",
+          "terrace": "صف منازل",
+          "train_station": "محطه قطار",
+          "university": "مبنى جامعة",
+          "yes": "مبنى"
+        },
+        "highway": {
+          "bridleway": "مسلك خيول",
+          "bus_stop": "موقف نزول/صعود من/إلى حافلات",
+          "construction": "طريق سريع قيد الإنشاء",
+          "cycleway": "مسار دراجات",
+          "emergency_access_point": "نقطه دخول طوارئ",
+          "footway": "ممر للمشاة",
+          "living_street": "شارع سكني",
+          "motorway": "طريق سريع",
+          "motorway_junction": "تقاطع طرقات سريعة",
+          "motorway_link": "طريق سريع",
+          "path": "مسار",
+          "pedestrian": "شارع أولوى للمشاة",
+          "platform": "منصة",
+          "primary": "طريق أولي",
+          "primary_link": "طريق أولي",
+          "raceway": "حلبه سباق",
+          "residential": "طريق سكني",
+          "road": "طريق",
+          "secondary": "طريق ثانوي",
+          "secondary_link": "طريق ثانوي",
+          "service": "طريق خدمة",
+          "services": "خدمات الطرق السريعة",
+          "steps": "درج",
+          "tertiary": "طريق فرعي",
+          "track": "مسار",
+          "trunk": "طريق رئيسي",
+          "trunk_link": "طريق رئيسي",
+          "unclassified": "طريق غير مصنّف"
+        },
+        "historic": {
+          "archaeological_site": "موقع أثري",
+          "battlefield": "ساحه معركة",
+          "boundary_stone": "حجر/صخره تعليم حدود",
+          "building": "مبنى",
+          "castle": "قلعة",
+          "church": "كنيسة",
+          "house": "منزل",
+          "manor": "عزبة",
+          "memorial": "نصب تذكاري",
+          "mine": "منجم",
+          "monument": "ضريح",
+          "ruins": "أطلال",
+          "tower": "برج",
+          "wayside_shrine": "مزار جانب طريق",
+          "wreck": "حطام"
+        },
+        "landuse": {
+          "allotments": "حصص سكنية",
+          "basin": "حوض",
+          "cemetery": "مقبرة",
+          "commercial": "منطقه تجارية",
+          "construction": "ورشه بناء",
+          "farmland": "أرض زراعية",
+          "farmyard": "فناء مزرعة",
+          "forest": "غابة",
+          "grass": "عشب",
+          "industrial": "منطقه صناعية",
+          "landfill": "مكب نفايات",
+          "meadow": "مرج",
+          "military": "منطقه عسكرية",
+          "mine": "منجم",
+          "quarry": "كسّارة",
+          "railway": "سكه حديدية",
+          "recreation_ground": "ميدان ألعاب",
+          "reservoir": "خزان",
+          "residential": "منطقه سكنية",
+          "retail": "بيع بالمفرق",
+          "vineyard": "كرم عنب"
+        },
+        "leisure": {
+          "beach_resort": "شاطئ منتجع",
+          "common": "أرض مشاع",
+          "fishing": "منطقه صيد سمك",
+          "garden": "حديقة",
+          "golf_course": "ملعب غولف",
+          "ice_rink": "حلبه تزلج على الجليد",
+          "marina": "مارينا",
+          "miniature_golf": "جولف مصغر",
+          "nature_reserve": "محميه طبيعية",
+          "park": "منتزه",
+          "pitch": "ملعب رياضي",
+          "playground": "ملعب",
+          "recreation_ground": "ميدان ألعاب",
+          "slipway": "مزلقة",
+          "sports_centre": "مركز رياضي",
+          "stadium": "مدرج ألعاب رياضية",
+          "swimming_pool": "بركه سباحة",
+          "track": "مضمار سباق",
+          "water_park": "منتزه ألعاب مائية"
+        },
+        "natural": {
+          "bay": "خليج",
+          "beach": "شاطئ",
+          "cape": "رأس (أرض داخله فى البحر(",
+          "cave_entrance": "مدخل كهف",
+          "cliff": "جرف",
+          "coastline": "خط ساحلي",
+          "crater": "فوهه بركان",
+          "fell": "منحدر",
+          "fjord": "مضيق بحري",
+          "geyser": "نافوره ماء حار",
+          "glacier": "نهر/بحر جليدي",
+          "heath": "أرض بور",
+          "hill": "تلة",
+          "island": "جزيرة",
+          "land": "أرض",
+          "moor": "أرض جرداء",
+          "mud": "وحل",
+          "peak": "ذروة",
+          "point": "نقطة",
+          "reef": "سلسله صخور قرب سطح الماء",
+          "rock": "صخرة",
+          "scree": "أرض حصاة",
+          "scrub": "أشجار منخفضة",
+          "spring": "نبع",
+          "strait": "مضيق جبلي",
+          "tree": "شجرة",
+          "valley": "وادي",
+          "volcano": "بركان",
+          "water": "ماء",
+          "wetland": "أرض رطبة",
+          "wood": "حرج"
+        },
+        "place": {
+          "city": "مدينة",
+          "country": "دولة",
+          "county": "مقاطعة",
+          "farm": "مزرعة",
+          "hamlet": "كفر",
+          "house": "منزل",
+          "houses": "منازل",
+          "island": "جزيرة",
+          "islet": "جزيره صغيرة",
+          "locality": "محلة",
+          "municipality": "بلدية",
+          "postcode": "الرمز البريدي",
+          "region": "منطقة",
+          "sea": "بحر",
+          "state": "ولاية",
+          "subdivision": "التقسيم الفرعي",
+          "suburb": "ضاحية",
+          "town": "بلدة",
+          "village": "قرية"
+        },
+        "railway": {
+          "abandoned": "سكه حديد مهجورة",
+          "construction": "سكه حديديه تحت الإنشاء",
+          "disused": "سكه حديد مهجورة",
+          "halt": "موقف قطار",
+          "junction": "تقاطع سكك حديدية",
+          "level_crossing": "تقاطع سكك حديدية",
+          "monorail": "قطار ذات سكه حديد واحدة",
+          "platform": "رصيف محطه قطار",
+          "station": "محطه قطار",
+          "subway": "محطه مترو الأنفاق",
+          "subway_entrance": "مدخل مترو",
+          "tram_stop": "موقف ترام",
+          "yard": "فناء سكه حديد"
+        },
+        "shop": {
+          "art": "متجر فن",
+          "bakery": "مخبز",
+          "beauty": "صالون تجميل",
+          "beverages": "متجر مشروبات",
+          "bicycle": "متجر دراجات",
+          "books": "متجر كتب",
+          "butcher": "جزار",
+          "car": "متجر سيارات",
+          "car_parts": "قطع غيار سيارات",
+          "car_repair": "مرآب سيارات",
+          "carpet": "معرض سجاد",
+          "charity": "متجر جمعيه خيرية",
+          "chemist": "صيدلي",
+          "clothes": "متجر ألبسة",
+          "computer": "متجر كمبيوتر",
+          "confectionery": "متجر الحلويات",
+          "convenience": "متجر للأغراض اليومية",
+          "cosmetics": "بائع مستحضرات تجميل",
+          "department_store": "متجر متعدد الأقسام",
+          "doityourself": "براعه منزلية",
+          "dry_cleaning": "تنظيف جاف",
+          "electronics": "متجر إلكترونيات",
+          "estate_agent": "وكيل عقاري",
+          "farm": "متجر منتوجات زراعية",
+          "fashion": "متجر أزياء",
+          "florist": "بائع زهور",
+          "food": "دكان مأكولات",
+          "funeral_directors": "وكلاء ترتيبات جنازة",
+          "furniture": "أثاث",
+          "general": "متجر عام",
+          "gift": "متجر هدايا",
+          "grocery": "بقالة",
+          "hairdresser": "مزين/مصفف شعر",
+          "hardware": "متجر عتاد",
+          "jewelry": "متجر مجوهرات",
+          "kiosk": "كشك",
+          "laundry": "مصبغة",
+          "mall": "مركز تسوق",
+          "mobile_phone": "متجر هواتف محمولة",
+          "motorcycle": "متجر دراجات نارية",
+          "music": "متجر موسيقى",
+          "newsagent": "وكاله أنباء",
+          "optician": "نظاراتي",
+          "organic": "متجر أغذيه عضوية",
+          "outdoor": "متجر للنشاطات الخارجية",
+          "pet": "متجر حيوانات أليفة",
+          "photo": "متجر صور",
+          "shoes": "متجر أحذية",
+          "sports": "متجر رياضة",
+          "stationery": "محل قرطاسية",
+          "supermarket": "سوبرماركت",
+          "toys": "متجر ألعاب",
+          "travel_agency": "وكاله سفر",
+          "video": "متجر فيديو"
+        },
+        "tourism": {
+          "alpine_hut": "كوخ جبلي",
+          "artwork": "عمل فني",
+          "attraction": "معلم سياحي",
+          "bed_and_breakfast": "سرير وفطار",
+          "cabin": "حُجره أو مقصورة",
+          "camp_site": "موقع تخييم",
+          "caravan_site": "موقع قافلة",
+          "chalet": "شاليه",
+          "guest_house": "بيت ضيافة",
+          "hostel": "سكن شباب",
+          "hotel": "فندق",
+          "information": "معلومات",
+          "motel": "نُزل",
+          "museum": "متحف",
+          "picnic_site": "موقع بيك نيك",
+          "theme_park": "حديقه ملاهي",
+          "viewpoint": "موقع كاشف",
+          "zoo": "حديقه حيوانات"
+        },
+        "waterway": {
+          "boatyard": "حوض سفن",
+          "canal": "قناة",
+          "dam": "سدّ",
+          "ditch": "خندق",
+          "dock": "مرسى",
+          "drain": "مسرب",
+          "lock": "قفل",
+          "rapids": "منحدرات نهرية",
+          "river": "نهر",
+          "stream": "جدول",
+          "wadi": "وادي",
+          "waterfall": "شلال"
+        }
+      },
+      "types": {
+        "cities": "مدن",
+        "places": "أماكن",
+        "towns": "بلدات"
+      }
+    }
+  },
+  "helpers": {
+    "submit": {
+      "client_application": {
+        "create": "سجِّل",
+        "update": "عدّل"
+      },
+      "diary_comment": {
+        "create": "حفظ"
+      },
+      "message": {
+        "create": "أرسل"
+      },
+      "trace": {
+        "create": "ارفع",
+        "update": "حفظ التغييرات"
+      },
+      "user_block": {
+        "create": "إنشاء العرقلة",
+        "update": "حدّث العرقلة"
+      }
+    }
+  },
+  "html": {
+    "dir": "rtl"
+  },
+  "javascripts": {
+    "map": {
+      "base": {
+        "cycle_map": "خريطه للدراجات"
+      }
+    }
+  },
+  "layouts": {
+    "donate": "ادعم خريطه الشارع المفتوحه ب{{link}} لتمويل ترقيه العتاد.",
+    "edit": "عدّل هذه الخريطة",
+    "export": "صدِّر",
+    "gps_traces": "آثار جى بى أس",
+    "gps_traces_tooltip": "اتحكم فى اثار GPS",
+    "history": "تاريخ",
+    "home": "روح للصفحه الرئيسيه",
+    "log_in": "تسجيل الدخول",
+    "logo": {
+      "alt_text": "شعار خريطه الشارع المفتوحة"
+    },
+    "logout": "خروج",
+    "make_a_donation": {
+      "text": "تبرع",
+      "title": "ادعم خريطه الشارع المفتوحه بهبه نقدية"
+    },
+    "osm_offline": "حاليًا قاعده بيانات خريطه الشارع المفتوحه مغلقه بينما يتم الانتهاء من أعمال الصيانه الأساسيه لقاعده البيانات.",
+    "osm_read_only": "حاليًا قاعده بيانات خريطه الشارع المفتوحه فى وضع القراءه بينما يتم الانتهاء من أعمال الصيانه الأساسيه لقاعده البيانات.",
+    "sign_up": "اعمل حساب",
+    "tag_line": "ويكى خريطه العالم الحرة",
+    "user_diaries": "يوميات المستخدمين",
+    "user_diaries_tooltip": "اعرض يوميات المستخدمين"
+  },
+  "messages": {
+    "create": {
+      "limit_exceeded": "لقد أرسلت الكثير من الرسائل مؤخرًا. الرجاء الانتظار بعض الوقت قبل أن تحاول إرسال المزيد.",
+      "message_sent": "تم إرسال الرسالة"
+    },
+    "destroy": {
+      "destroyed": "حُذفت الرسالة"
+    },
+    "heading": {
+      "my_inbox": "الوارد"
+    },
+    "inbox": {
+      "no_messages_yet_html": "لا يوجد لديك رسائل بعد. لماذا لا تقوم بالاتصال مع بعض {{people_mapping_nearby_link}}؟",
+      "people_mapping_nearby": "مخططون فى جواري",
+      "title": "الوارد"
+    },
+    "mark": {
+      "as_read": "عُلّمت الرساله مقروءة",
+      "as_unread": "عُلّمت الرساله كغير مقروءة"
+    },
+    "message_summary": {
+      "destroy_button": "احذف",
+      "read_button": "علّم كمقروءة",
+      "reply_button": "رد",
+      "unread_button": "علّم كغير مقروءة"
+    },
+    "messages_table": {
+      "date": "التاريخ",
+      "from": "من",
+      "subject": "الموضوع",
+      "to": "إلى"
+    },
+    "new": {
+      "back_to_inbox": "العوده إلى صندوق الوارد",
+      "send_message_to_html": "أرسل رساله جديده إلى {{name}}",
+      "title": "أرسل رسالة"
+    },
+    "outbox": {
+      "no_sent_messages_html": "لا يوجد لديك رسائل مرسله بعد. لماذا لا تقوم بالاتصال مع بعض {{people_mapping_nearby_link}}؟",
+      "people_mapping_nearby": "مخططون فى جواري",
+      "title": "صندوق الصادر"
+    },
+    "sent_message_summary": {
+      "destroy_button": "احذف"
+    },
+    "show": {
+      "reply_button": "رد",
+      "title": "اقرأ الرسالة",
+      "unread_button": "علّم كغير مقروءة"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_gpx": "قراءه آثار جى بى أس الخاصه بك.",
+      "allow_read_prefs": "يقرأ تفضيلات المستخدم.",
+      "allow_to": "اسمح للتطبيق بأن:",
+      "allow_write_api": "يعدّل الخريطه.",
+      "allow_write_diary": "إنشاء مدخلات يوميه، تعليقات وإضافه أصدقاء.",
+      "allow_write_gpx": "ارفع آثار GPS.",
+      "allow_write_prefs": "عدّل تفضيلات المستخدم.",
+      "request_access_html": "التطبيق {{app_name}} يطلب الوصول إلى حسابك. يرجى التحقق ما إذا كنت تريد أن يكون للتطبيق هذه القدرات. يمكن أن تختار ما تشاء."
+    }
+  },
+  "oauth_clients": {
+    "create": {
+      "flash": "تم تسجيل المعلومات بنجاح"
+    },
+    "destroy": {
+      "flash": "دمّر تسجيل التطبيق"
+    },
+    "edit": {
+      "title": "عدّل تطبيقك"
+    },
+    "form": {
+      "requests": "اطلب الصلاحيات التاليه من المستخدم:"
+    },
+    "index": {
+      "application": "اسم التطبيق",
+      "issued_at": "أُصدِر في",
+      "list_tokens": "التصاريح الصادره باسمك للتطبيقات التالية:",
+      "my_apps": "تطبيقاتي",
+      "my_tokens": "تطبيقاتى المصرحة",
+      "no_apps_html": "هل لديك تطبيق تود أن تسجله للاستخدام معنا من خلال {{oauth}} القياسي؟ يجب عليك أن تسجل تطبيق الويب الخاص قبل أن يتمكن من تقديم طلبات OAuth لهذه الخدمه.",
+      "register_new": "سجِّل تطبيقك",
+      "registered_apps": "لديك التطبيقات المسجله التالية:",
+      "revoke": "ابطل!",
+      "title": "تفاصيل OAuth الخاص بي"
+    },
+    "new": {
+      "title": "سجِّل تطبيق جديد"
+    },
+    "not_found": {
+      "sorry": "عذرًا، لم يتم العثور على تلك {{type}}."
+    },
+    "show": {
+      "authorize_url": "رابط التصريح:",
+      "edit": "عدّل التفاصيل",
+      "requests": "طلب الصلاحيات التاليه من المستخدم:",
+      "support_notice": "نحن ندعم HMAC-SHA1 (مستحسن) وكذلك النص العادى فى وضع ssl.",
+      "title": "تفاصيل OAuth للتطبيق {{app_name}}",
+      "url": "رابط الطلب:"
+    },
+    "update": {
+      "flash": "تم تحديث معلومات العميل بنجاح"
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "تعذّر إيجاد عنوان البريد الإلكترونى، نحن آسفون.",
+      "notice email on way": "نأسف لأنك أضعتها :-( ولكن هناك رساله إلكترونيه فى طريقها إليك ستمكنك من إعاده تعيينها قريبًا."
+    },
+    "edit": {
+      "flash token bad": "لم تجد تلك المعلومات، تحقق من الرابط ربما؟",
+      "heading": "إعاده تعيين كلمه المرور {{user}}",
+      "reset": "إعاده ضبط كلمه المرور",
+      "title": "إعاده ضبط كلمه المرور"
+    },
+    "new": {
+      "email address": "عنوان البريد الإلكتروني:",
+      "heading": "أنسيت كلمه المرور؟",
+      "help_text": "أدخل عنوان البريد الإلكترونى الذى استخدمته للتسجيل ، وسوف نرسل عليه رابط يمكنك استخدامه لإعاده تعيين كلمه المرور.",
+      "new password button": "إعاده ضبط كلمه المرور",
+      "title": "نسيان كلمه المرور"
+    },
+    "update": {
+      "flash changed": "كلمه المرور الخاصه بك قد تغيرت."
+    }
+  },
+  "profiles": {
+    "edit": {
+      "home location": "موقع المنزل:",
+      "no home location": "لم تدخل موقع منزلك.",
+      "update home location on click": "حدّث موقع المنزل عندما أنقر على الخريطة؟"
+    }
+  },
+  "sessions": {
+    "new": {
+      "auth failure": "آسف، لا يمكن الدخول بتلك التفاصيل.",
+      "email or username": "عنوان البريد الإلكترونى أو اسم المستخدم:",
+      "heading": "ولوج",
+      "login_button": "لُج",
+      "lost password link": "أنسيت كلمه المرور؟",
+      "password": "كلمه المرور:",
+      "title": "ولوج"
+    }
+  },
+  "site": {
+    "edit": {
+      "anon_edits_link_text": "ابحث عن السبب لماذا هو هذا الحال.",
+      "not_public": "لم تقم بتعيين تعديلاتك لتظهر بشكل علنى.",
+      "not_public_description_html": "أنت لم تعد قادر على تعديل الخريطه إلا إذا قمت بذلك. يمكنك تعيين تعديلاتك لتظهر بشكل علنى من حسابك {{user_page}}.",
+      "user_page_link": "صفحه مستخدم"
+    },
+    "export": {
+      "export_button": "صدِّر",
+      "licence": "الرخصة",
+      "manually_select": "اختر يدويًا منطقه أخرى"
+    },
+    "index": {
+      "js_1": "أنت إما تستخدم متصفح لا يدعم جافا سكريبت، أو أنك عطلت استعمال جافا سكريبت.",
+      "js_2": "خريطه الشارع المفتوحه تستخدم جافا سكريبت لخريطتها المنزلقه.",
+      "permalink": "وصله دائمة",
+      "shortlink": "وصله قصيرة"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "حدود إدارية",
+          "allotments": "حصص سكنية",
+          "apron": "ساحه مطار",
+          "bridleway": "مسلك خيول",
+          "building": "مبنى كبير",
+          "cemetery": "مقبرة",
+          "centre": "مركز رياضي",
+          "commercial": "منطقه تجارية",
+          "common": "شائع",
+          "construction": "الطرق تحت الإنشاء",
+          "cycleway": "طريق دراجات",
+          "farm": "أرض زراعية",
+          "footway": "طريق مشاة",
+          "forest": "غابة",
+          "golf": "ملعب غولف",
+          "industrial": "منطقه صناعية",
+          "lake": "بحيرة",
+          "military": "منطقه عسكرية",
+          "motorway": "طريق سريع",
+          "park": "منتزه",
+          "peak": "ذروة",
+          "pitch": "ملعب رياضي",
+          "primary": "طريق رئيسي",
+          "private": "استخدام خصوصي",
+          "rail": "سكه حديدية",
+          "reserve": "محميه طبيعية",
+          "reservoir": "خزان",
+          "resident": "منطقه سكنية",
+          "retail": "منطقه بيع بالمفرق",
+          "runway": "مدرج مطار للإقلاع/الهبوط",
+          "school": "مدرسة",
+          "secondary": "طريق ثانوي",
+          "station": "محطه قطار",
+          "subway": "قطار الأنفاق",
+          "summit": "قمة",
+          "taxiway": "مدرج مطار لمناورات الطائرات",
+          "track": "مسار",
+          "trunk": "طريق رئيسي",
+          "unclassified": "طريق غير مصنّف",
+          "university": "جامعة",
+          "wood": "غابة"
+        }
+      }
+    },
+    "search": {
+      "search": "بحث",
+      "submit_text": "اذهب",
+      "where_am_i": "أين أنا؟",
+      "where_am_i_title": "صِف الموقع الحالى باستخدام محرك البحث"
+    },
+    "sidebar": {
+      "close": "أغلق",
+      "search_results": "نتائج البحث"
+    }
+  },
+  "traces": {
+    "create": {
+      "trace_uploaded": "لقد تم تحميل ملفك الجى بى إكس ويتنظر الإدراج فى قاعده البيانات. وهذا يحدث عادًه خلال نصف ساعه، وسيتم إرسال رساله إلكترونيه لك عند الانتهاء.",
+      "traces_waiting": "لديك {{count}} أثر فى انتظار التحميل. يرجى مراعاه الانتظار قبل تحميل أكثر من ذلك، بحيث تتجنب إعاقه طابور التحميل لباقى المستخدمين.",
+      "upload_trace": "ارفع أثر جى بى إس"
+    },
+    "destroy": {
+      "scheduled_for_deletion": "تم جدوله الأثر للحذف"
+    },
+    "edit": {
+      "heading": "تعديل الأثر {{name}}",
+      "title": "تعديل الأثر {{name}}",
+      "visibility_help": "ماذا يعنى هذا؟"
+    },
+    "index": {
+      "public_traces": "آثار جى بى إس عمومية",
+      "public_traces_from": "آثار جى بى إس عموميه من {{user}}",
+      "tagged_with": " موسوم مع {{tags}}"
+    },
+    "make_public": {
+      "made_public": "تم جعل الأثر عمومي"
+    },
+    "new": {
+      "help": "المساعدة",
+      "visibility_help": "ماذا يعنى هذا؟"
+    },
+    "offline": {
+      "heading": "مخزن جى بى إكس غير متصل",
+      "message": "مخزن ونظام رفع ملفات جى بى إكس غير متاح حاليًا."
+    },
+    "offline_warning": {
+      "message": "نظام رفع ملفات جى بى إكس غير متاح حاليًا"
+    },
+    "show": {
+      "delete_trace": "احذف هذا الأثر",
+      "description": "الوصف:",
+      "download": "نزّل",
+      "edit": "عدّل",
+      "edit_trace": "عدّل هذا الأثر",
+      "filename": "اسم الملف:",
+      "heading": "عرض الأثر {{name}}",
+      "map": "خريطة",
+      "none": "لا يوجد",
+      "owner": "المالك:",
+      "pending": "فى الانتظار",
+      "points": "النقاط:",
+      "start_coordinates": "إحداثيات البدء:",
+      "tags": "الوسوم:",
+      "title": "عرض الأثر {{name}}",
+      "trace_not_found": "لم يتم العثور على الأثر!",
+      "uploaded": "تم الرفع في:",
+      "visibility": "الرؤية:"
+    },
+    "trace": {
+      "by": "بواسطة",
+      "count_points": "{{count}} نقطة",
+      "edit_map": "عدّل الخريطة",
+      "in": "في",
+      "more": "المزيد",
+      "pending": "فى الانتظار",
+      "private": "خاص",
+      "public": "عام",
+      "trace_details": "اعرض تفاصيل الأثر",
+      "view_map": "اعرض الخريطة"
+    },
+    "trace_optionals": {
+      "tags": "الوسوم"
+    },
+    "visibility": {
+      "identifiable": "محدد الهويه (يظهر فى قائمه الآثار محدد الهويه والنقاط مرتبه زمنيًا)",
+      "private": "خصوصى (يظهر كمجهول الهويه ونقاط غير مرتبة)",
+      "public": "عمومى (يظهر فى قائمه الآثار مجهول الهويه ونقاط غير مرتبة)",
+      "trackable": "تعقبى (يظهر كمجهول الهويه ونقاط مرتبه زمنيًا)"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "عدّل",
+      "not_revoked": "(لم تلغ)",
+      "revoke": "ابطل!",
+      "show": "اعرض"
+    },
+    "blocks": {
+      "creator_name": "المنشئ",
+      "display_name": "مستخدم معرقل",
+      "reason": "السبب للعرقلة",
+      "revoker_name": "مُبطل بواسطة",
+      "status": "الحالة"
+    },
+    "blocks_by": {
+      "empty": "{{name}} لم يقم بعد بأى عرقلة",
+      "heading_html": "لائحه العرقلات بواسطه {{name}}",
+      "title": "العرقلات بواسطه {{name}}"
+    },
+    "blocks_on": {
+      "empty": "{{name}} لم يتم عرقلته بعد.",
+      "heading_html": "لائحه العرقلات على {{name}}",
+      "title": "العرقلات على {{name}}"
+    },
+    "create": {
+      "flash": "أُنشىء عرقله على المستخدم {{name}}."
+    },
+    "edit": {
+      "back": "اعرض كل العرقلات",
+      "heading_html": "تعديل العرقله على {{name}}",
+      "period": "ماهى المده بدءًا من الآن، سيتم عرقله المستخدم من الـ API.",
+      "show": "اعرض هذه العرقلة",
+      "title": "تعديل العرقله على {{name}}"
+    },
+    "filter": {
+      "block_expired": "العرقله قد انتهت ولا يمكن تعديلها.",
+      "block_period": "فتره العرقله يجب أن تكون واحده من القيم الاختياريه فى القائمه المنسدله."
+    },
+    "helper": {
+      "block_duration": {
+        "hours_few": "{{count}} ساعات",
+        "hours_one": "ساعه واحد",
+        "hours_other": "{{count}} ساعة",
+        "hours_two": "ساعتين"
+      },
+      "time_future_html": "ينتهى فى {{time}}.",
+      "time_past_html": "انتهى منذ {{time}}.",
+      "until_login": "نشط حتى يقوم المستخدم بتسجيل الدخول."
+    },
+    "index": {
+      "empty": "لم يتم إنشاء عرقلات حتى الآن.",
+      "heading": "لائحه بعرقلات المستخدم",
+      "title": "عرقلات المستخدم"
+    },
+    "model": {
+      "non_moderator_revoke": "يجب أن تكون وسيط لإبطال عرقله.",
+      "non_moderator_update": "يجب أن تكون وسيط لإنشاء أو تحديث عرقله."
+    },
+    "new": {
+      "back": "اعرض كل العرقلات",
+      "heading_html": "إنشاء عرقله على {{name}}",
+      "period": "ماهى المده بدءًا من الآن، سيتم عرقله المستخدم من الـ API.",
+      "title": "إنشاء عرقله على {{name}}"
+    },
+    "not_found": {
+      "back": "العوده إلى الفهرس",
+      "sorry": "عفوًا، لم يتم العثور على عرقله المستخدم بالمعرّف {{id}}."
+    },
+    "revoke": {
+      "confirm": "هل أنت متأكد أنك ترغب فى إبطال هذه العرقله ؟",
+      "flash": "تم إبطال هذه العرقله.",
+      "heading_html": "إبطال العرقله على {{block_on}} بواسطه {{block_by}}",
+      "past_html": "هذه العرقله انتهت منذ {{time}} ولا يمكن إبطالها الآن.",
+      "revoke": "ابطل!",
+      "time_future_html": "هذه العرقله ستنتهى فى {{time}}.",
+      "title": "إبطال العرقله على {{block_on}}"
+    },
+    "show": {
+      "back": "اعرض كل العرقلات",
+      "confirm": "هل أنت متأكد؟",
+      "edit": "عدّل",
+      "heading_html": "{{block_on}} عُرقل بواسطه {{block_by}}",
+      "needs_view": "المستخدم يحتاج لتسجيل الدخول قبل أن يتم مسح هذه العرقله.",
+      "reason": "سبب العرقلة:",
+      "revoke": "ابطل!",
+      "revoker": "المبطل:",
+      "show": "اعرض",
+      "status": "الحالة",
+      "title": "{{block_on}} عُرقل بواسطه {{block_by}}"
+    },
+    "update": {
+      "only_creator_can_edit": "فقط الوسيط الذى قام بإنشاء هذه العرقله يمكنه تعديلها.",
+      "success": "تم تحديث العرقله."
+    }
+  },
+  "user_mailer": {
+    "diary_comment_notification": {
+      "footer": "يمكنك أيضًا قراءه التعليق على {{readurl}} ويمكنك التعليق على {{commenturl}} أو الرد على {{replyurl}}",
+      "header": "{{from_user}} علّق على مدخلتك اليوميه الحديثه فى خريطه الشارع المفتوحه بالعنوان {{subject}}:",
+      "hi": "مرحبًا {{to_user}}،",
+      "subject": "[خريطه الشارع المفتوحة] {{user}} أضاف تعليقًا على مدخلتك فى اليومية"
+    },
+    "email_confirm": {
+      "click_the_link": "إذا كان هذا هو أنت، يرجى الضغط على الرابط أدناه لتأكيد التغيير.",
+      "greeting": "تحياتى،",
+      "subject": "[خريطه الشارع المفتوحة] أكّد عنوان بريدك الإلكتروني"
+    },
+    "friendship_notification": {
+      "had_added_you": "{{user}} قام بإضافتك كصديق على خريطه الشارع المفتوحه.",
+      "see_their_profile": "يمكنك أن تشاهد ملفه الشخصى على {{userurl}} وإضافته كصديق أيضًا إن كنت ترغب فى ذلك.",
+      "subject": "[خريطه الشارع المفتوحة] {{user}} أضافك كصديق."
+    },
+    "gpx_failure": {
+      "failed_to_import": "فشل الاستيراد. الخطأ هو:",
+      "subject": "[خريطه الشارع المفتوحة] فشل استيراد جى بى إكس"
+    },
+    "gpx_success": {
+      "subject": "[خريطه الشارع المفتوحة] نجاح استيراد جى بى إكس"
+    },
+    "lost_password": {
+      "click_the_link": "إذا كان هذا هو أنت، يرجى الضغط على الرابط أدناه لإعاده تعيين كلمه المرور.",
+      "greeting": "مرحبًا،",
+      "subject": "[خريطه الشارع المفتوحة] طلب إعاده تعيين كلمه المرور"
+    },
+    "message_notification": {
+      "header": "{{from_user}} قام بإرسال رساله لك عبر خريطه الشارع المفتوحه بالعنوان {{subject}}:",
+      "hi": "مرحبًا {{to_user}}،"
+    },
+    "signup_confirm": {
+      "subject": "[خريطه الشارع المفتوحه] اهلا بيك فى اوبن ستريت ماب"
+    }
+  },
+  "user_role": {
+    "filter": {
+      "already_has_role": "لدى المستخدم الدور  {{role}} سابقًا",
+      "doesnt_have_role": "ليس للمستخدم الدور {{role}}.",
+      "not_a_role": "السلسله `{{role}}' ليست دور صالح."
+    },
+    "grant": {
+      "are_you_sure": "هل أنت متأكد من أنك تريد منح الدور `{{role}}' إلى المستخدم `{{name}}'؟",
+      "confirm": "أكّد",
+      "fail": "لا يمكن منح الدور '{{role}}' للمستخدم '{{name}}'. يرجى التحقق من أن المستخدم والدور كلاهما صحيحين.",
+      "heading": "تأكيد منح الدور",
+      "title": "تأكيد منح الدور"
+    },
+    "revoke": {
+      "are_you_sure": "هل أنت متأكد من أنك تريد إبطال الدور `{{role}}' من المستخدم `{{name}}'؟",
+      "confirm": "أكّد",
+      "fail": "لا يمكن إبطال الدور '{{role}}' من المستخدم '{{name}}'. يرجى التحقق من أن المستخدم والدور كلاهما صحيحين.",
+      "heading": "تأكيد إلغاء الدور",
+      "title": "تأكيد إلغاء الدور"
+    }
+  },
+  "users": {
+    "go_public": {
+      "flash success": "جميع تعديلاتك الآن عامه، ومسموح لك بالتعديل الآن."
+    },
+    "new": {
+      "display name description": "اسم المستخدم الخاص بك الظاهر علنًا. يمكنك تغيير هذه التفضيلات فى وقت لاحق.",
+      "no_auto_account_create": "للأسف نحن غير قادرين فى الوقت الحالى على إنشاء حساب لك تلقائيًا.",
+      "title": "اعمل حساب"
+    },
+    "no_such_user": {
+      "body": "عذرًا، لا يوجد مستخدم بالاسم {{user}}. يرجى تدقيق الاسم، أو ربما يكون الرابط الذى تم النقر عليه خاطئ.",
+      "heading": "المستخدم {{user}} غير موجود",
+      "title": "مستخدم غير موجود"
+    },
+    "show": {
+      "activate_user": "نشّط هذا المستخدم",
+      "add as friend": "أضف كصديق",
+      "block_history": "اعرض العرقلات الواصلة",
+      "blocks by me": "العرقلات بواسطتي",
+      "blocks on me": "العرقلات علي",
+      "confirm": "أكّد",
+      "create_block": "منع هذا المستخدم",
+      "created from": "أُنشىء من:",
+      "delete_user": "احذف هذا المستخدم",
+      "diary": "يومية",
+      "edits": "مساهمات",
+      "email address": "عنوان البريد الإلكتروني:",
+      "hide_user": "اخفِ هذا المستخدم",
+      "mapper since": "مُخطط منذ:",
+      "moderator_history": "اعرض العرقلات المعطات",
+      "my diary": "يوميتي",
+      "my edits": "مساهمات",
+      "my settings": "إعداداتي",
+      "my traces": "آثاري",
+      "remove as friend": "أزل كصديق",
+      "role": {
+        "administrator": "هذا المستخدم إداري",
+        "grant": {
+          "administrator": "منح وصول إداري",
+          "moderator": "منح وصول وسيط"
+        },
+        "moderator": "هذا المستخدم وسيط",
+        "revoke": {
+          "administrator": "ابطل وصول إداري",
+          "moderator": "ابطل وصول وسيط"
+        }
+      },
+      "send message": "أرسل رسالة",
+      "traces": "آثار",
+      "unhide_user": "أظهر هذا المستخدم"
+    }
+  }
+}

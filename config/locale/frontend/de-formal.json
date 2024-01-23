@@ -1,0 +1,42 @@
+{
+  "changesets": {
+    "index": {
+      "title_friend": "Änderungssätze Ihrer Freunde"
+    }
+  },
+  "dashboards": {
+    "show": {
+      "friends_changesets": "Alle Änderungssätze Ihrer Freunde durchsuchen"
+    }
+  },
+  "layouts": {
+    "intro_2_create_account": "Erstellen Sie ein Benutzerkonto"
+  },
+  "messages": {
+    "inbox": {
+      "messages": "Sie haben {{new_messages}} und {{old_messages}}"
+    },
+    "outbox": {
+      "messages_one": "Sie haben eine Nachricht gesendet",
+      "messages_other": "Sie haben {{count}} Nachrichten gesendet"
+    }
+  },
+  "redactions": {
+    "show": {
+      "confirm": "Sind Sie sicher?"
+    }
+  },
+  "sessions": {
+    "new": {
+      "no account": "Sie haben noch kein Benutzerkonto?"
+    }
+  },
+  "site": {
+    "copyright": {
+      "legal_babble": {
+        "contributors_intro_html": "Die von uns verwendete Lizenz CC BY-SA verlangt, dass Sie &bdquo;in dem betreffenden Medium in angemessener Weise, auf die ursprünglichen Bearbeiter hinweisen.&ldquo; Einige an OpenStreetMap Mitwirkende verlangen keine über den Vermerk &bdquo;OpenStreetMap und Mitwirkende&ldquo; hinausgehende Hinweise. Wo allerdings Daten von nationalen Kartografierungsinstitutionen oder aus anderen umfangreichen Quellen einbezogen wurden, ist es sinnvoll, deren Lizenzhinweise direkt wiederzugeben oder auf diese auf dieser Website zu verlinken.",
+        "credit_1_html": "Sofern Sie Bilder von OpenStreetMap verwenden, so ist mindestens &bdquo;&copy; OpenStreetMap und Mitwirkende, CC BY-SA&ldquo; als Quelle anzugeben. Werden hingegen ausschließlich Geodaten genutzt, so ist mindestens &bdquo;Geodaten &copy; OpenStreetMap und Mitwirkende, CC BY-SA&ldquo; anzugeben."
+      }
+    }
+  }
+}

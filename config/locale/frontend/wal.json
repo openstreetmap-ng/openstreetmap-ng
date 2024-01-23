@@ -1,0 +1,67 @@
+{
+  "accounts": {
+    "go_public": {
+      "currently_not_public": "Ha'i ne harumati ne sunttaa bessokkona hegaassi asay niyo kiitaa yeddanawu woykko ne beettiyoosaa be'anawu danddayenna. Ne harummidoogaa asay be'anawunne nenaara weebisaytiyan gayttanawu garssaara de'iya butoniya bocha."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "click_here": "Hagan bocha"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "x_years_other": "issi={{count}} layttaappe kase "
+    }
+  },
+  "site": {
+    "any_questions": {
+      "get_help_here": "Maaduwaa hagaappe demma"
+    },
+    "copyright": {
+      "legal_babble": {
+        "contributors_at_austria": "Awustiraaliyaa",
+        "contributors_at_cc_by": "Hagan CC",
+        "contributors_au_australia": "Awustiraaliyaa",
+        "contributors_ca_canada": "Kanaadaa",
+        "contributors_es_ign": "IGN",
+        "contributors_es_spain": "Ispeene",
+        "contributors_fi_finland": "Finlandde",
+        "contributors_fr_france": "Faransaaye",
+        "contributors_nl_netherlands": "Hoolandde",
+        "contributors_nz_cc_by": "CC HAGAAN 4.0",
+        "contributors_nz_new_zealand": "Niw Ziilandde",
+        "contributors_si_mkgp": "Goshshaa, Woraanne Kattaa Moconaa",
+        "contributors_si_slovenia": "Slooveeniyaa",
+        "contributors_za_south_africa": "Tohossa Afriqqaa",
+        "introduction_2_legal_code": "seeraa maxaafaa",
+        "more_2_1_api_usage_policy": "API Go'etaa Polisiya",
+        "trademarks_1_1_trademark_policy": "Zal\"e malaataa polisiya",
+        "trademarks_title": "Zal\"e malaatata"
+      }
+    },
+    "fixthemap": {
+      "other_concerns": {
+        "copyright": "duuqqiyo maataa sinttaa"
+      }
+    },
+    "welcome": {
+      "add_a_note": {
+        "the_map": "Karttaa"
+      },
+      "rules": {
+        "imports": "Gelidaageeta"
+      }
+    }
+  },
+  "traces": {
+    "index": {
+      "empty_title": "Hagan aybiika baawa"
+    }
+  },
+  "users": {
+    "terms": {
+      "readable_summary": "asan nabbabettiyaa xaaxi waaxuwaa"
+    }
+  }
+}

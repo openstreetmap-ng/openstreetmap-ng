@@ -1,0 +1,2451 @@
+{
+  "account": {
+    "deletions": {
+      "show": {
+        "delete_account": "Skrap my rekening",
+        "delete_introduction": "U kan jou OpenStreetMap-rekening skrap deur die knoppie hieronder te druk. Let sseblief op na die volgende besonderhede:",
+        "delete_profile": "Jou profielinligting sowel as jou avatar en tuisligging sal geskrap word.",
+        "retain_caveats": "Sommige inligting oor jou sal egter behou word op OpenStreetMap behou word, selfs nadat jou rekening geskrap is.",
+        "retain_diary_entries": "Jou dagboekinskrywings en dagboekopmerkings, indien enige, sl behou word, maar versteek word,",
+        "title": "Skrap my rekening"
+      }
+    }
+  },
+  "accounts": {
+    "edit": {
+      "contributor terms": {
+        "heading": "Bydraervoorwaardes",
+        "link text": "wat is dié?"
+      },
+      "current email address": "Huidige e-posadres",
+      "external auth": "Ekserne veriviering.",
+      "my settings": "My instellings",
+      "public editing": {
+        "disabled link text": "hoekom kan ek nie redigeer nie?",
+        "enabled": "Geaktiveer. Nie anoniem nie en kan data redigeer.",
+        "enabled link text": "wat is dié?",
+        "heading": "Openbare redigerings"
+      },
+      "save changes button": "Stoor Wysigings",
+      "title": "Redigeer rekening"
+    },
+    "go_public": {
+      "heading": "Openbare redigerings",
+      "make_edits_public_button": "Stel al my wysigings openbaar"
+    },
+    "update": {
+      "success": "Gebruikersbesonderhede suksesvol bygewerk."
+    }
+  },
+  "activerecord": {
+    "attributes": {
+      "client_application": {
+        "allow_read_gpx": "lees hul privaat GPS-spore",
+        "allow_read_prefs": "hul gebruikersvoorkeure lees",
+        "allow_write_api": "die kaart wysig",
+        "allow_write_diary": "skep dagboekinskrywings, lewer kommentaar en ontmoet vriende",
+        "allow_write_gpx": "laai GPS-spore op",
+        "allow_write_notes": "notas wysig",
+        "allow_write_prefs": "hul gebruikersvoorkeure wysig",
+        "callback_url": "Callback-URL",
+        "name": "Naam (verplig)",
+        "support_url": "Ondersteunings-URL",
+        "url": "Hoof-URL van program (verplig)"
+      },
+      "diary_comment": {
+        "body": "Teks"
+      },
+      "diary_entry": {
+        "language_code": "Taal",
+        "latitude": "Breedtegraad",
+        "longitude": "Lengtegraad",
+        "title": "Onderwerp",
+        "user": "Gebruiker"
+      },
+      "doorkeeper/application": {
+        "confidential": "Vertroulike aansoek",
+        "name": "Naam",
+        "scopes": "Regte"
+      },
+      "friend": {
+        "friend": "Vriend",
+        "user": "Gebruiker"
+      },
+      "message": {
+        "body": "Teks",
+        "recipient": "Ontvanger",
+        "sender": "Sender",
+        "title": "Onderwerp"
+      },
+      "redaction": {
+        "description": "Beskrywing",
+        "title": "Titel"
+      },
+      "report": {
+        "category": "Kies 'n rede vir u verslag:",
+        "details": "Verskaf asseblief meer besonderhede oor die probleem (verlang)."
+      },
+      "trace": {
+        "description": "Beskrywing",
+        "gpx_file": "Laai GPX-lêer op:",
+        "latitude": "Breedtegraad",
+        "longitude": "Lengtegraad",
+        "name": "Lêernaam",
+        "public": "Publiek",
+        "size": "Grootte",
+        "tagstring": "Merkers",
+        "user": "Gebruiker",
+        "visibility": "Sigbaarheid:",
+        "visible": "Sigbaar"
+      },
+      "user": {
+        "active": "Bedrywig",
+        "auth_provider": "Verifikasie verskaffer",
+        "auth_uid": "Verifikasie UID",
+        "description": "Profielbeskrywing:",
+        "display_name": "Skermnaam",
+        "email": "E-pos",
+        "email_confirmation": "E-posbevestiging",
+        "home_lat": "Breedtegraad:",
+        "home_lon": "Lengtegraad:",
+        "languages": "Voorkeurtale:",
+        "new_email": "Nuwe e-posadres:",
+        "pass_crypt": "Wagwoord",
+        "pass_crypt_confirmation": "Bevestig wagwoord",
+        "preferred_editor": "Voorkeurprogram vir kaart redigering"
+      }
+    },
+    "errors": {
+      "messages": {
+        "email_address_not_routable": "is nie aanstuurbaar nie",
+        "invalid_email_address": "dit lyk nie of dit 'n geldige e-posadres is nie"
+      }
+    },
+    "help": {
+      "doorkeeper/application": {
+        "confidential": "Die toepassing sal gebruik word as die klient se geheime vertroulik gehou kan word (inheemse mobiele toepassings en enkelbladsy-toepassings is nie vertroilik nie.",
+        "redirect_uri": "Gebruik een reel per URI"
+      },
+      "trace": {
+        "tagstring": "komma afgebaken"
+      },
+      "user": {
+        "new_email": "(word nooit openbaar vertoon nie)"
+      },
+      "user_block": {
+        "needs_view": "Moet die gebruiker aanmeld voordat dié versperring verwyder word?",
+        "reason": "Die red hoekom die gebruiker geblokkeer word. Bly kalm en redelik en gee soveel moontlike details oor die situasie. Dié berig is vir enigiemand sigbaar. Hou in gedagte dat nie alle gebruikers die gemeenskapsterme begryp nie, sp probeer leketaal gebruik sover moontlik."
+      }
+    },
+    "models": {
+      "acl": "Toegangsbeheerlys",
+      "changeset": "Wysigingstel",
+      "changeset_tag": "Wysigingstel-merker",
+      "country": "Land",
+      "diary_comment": "Dagboekopmerking",
+      "diary_entry": "Dagboekinskrywing",
+      "friend": "Vriend",
+      "issue": "Probleem",
+      "language": "Taal",
+      "message": "Boodskap",
+      "node": "Knooppunt",
+      "node_tag": "Knooppuntmerker",
+      "old_node": "Ou Knooppunt",
+      "old_node_tag": "Ou knooppuntmerker",
+      "old_relation": "Ou Verband",
+      "old_relation_member": "Ou Verbandslid",
+      "old_relation_tag": "Ou Verbandsmerker",
+      "old_way": "Ou weg",
+      "old_way_node": "Ou weg-knooppunt",
+      "old_way_tag": "Ou weg-merker",
+      "relation": "Verband",
+      "relation_member": "Verbandslid",
+      "relation_tag": "Verbandsmerker",
+      "report": "Rapporteer",
+      "session": "Sessie",
+      "trace": "Spoor",
+      "tracepoint": "Natrekpunt",
+      "tracetag": "Natrekmerker",
+      "user": "Gebruiker",
+      "user_preference": "Gebruikersvoorkeure",
+      "user_token": "Gebruikerskoepon",
+      "way": "Weg",
+      "way_node": "Weg-knooppunt",
+      "way_tag": "Weg-merker"
+    }
+  },
+  "api": {
+    "notes": {
+      "comment": {
+        "closed_at_by_html": "{{when}} deur {{user}} opgelos",
+        "closed_at_html": "Opgelos {{when}}",
+        "commented_at_by_html": "{{when}} deur {{user}} opgedateer",
+        "commented_at_html": "{{when}} opgedateer",
+        "opened_at_by_html": "{{when}} deur {{user}} geskep",
+        "opened_at_html": "{{when}} geskep",
+        "reopened_at_by_html": "{{when}} deur {{user}} geheraktiveer",
+        "reopened_at_html": "{{when}} heraktiveer"
+      },
+      "entry": {
+        "comment": "Kommentaar",
+        "full": "Volle nota"
+      },
+      "rss": {
+        "closed": "geslote nota (naby {{place}})",
+        "commented": "nuwe opmerking (naby {{place}})",
+        "description_area": "'N lys met notas, gerapporteer, opmerkings of geslote in u omgewing [({{min_lat}}|{{min_lon}})--({{max_lat}}|{{max_lon}})]",
+        "description_item": "'N RSS-voer vir nota {{id}}",
+        "opened": "nuwe nota (naby {{place}})",
+        "reopened": "heraktiveerde nota (naby {{place}})",
+        "title": "OpenStreetMap-notas"
+      }
+    }
+  },
+  "application": {
+    "settings_menu": {
+      "account_settings": "Rekeninginstellings",
+      "oauth1_settings": "OAuth 1 instellings",
+      "oauth2_applications": "OAuth 2 programme"
+    }
+  },
+  "auth": {
+    "providers": {
+      "facebook": "Facebook",
+      "github": "GitHub",
+      "google": "Google",
+      "none": "Geen",
+      "openid": "OpenID",
+      "wikipedia": "Wikipedia"
+    }
+  },
+  "browse": {
+    "anonymous": "anoniem",
+    "changeset": {
+      "belongs_to": "Skrywer",
+      "changesetxml": "Wysigingstel XML",
+      "comment": "Kommentaar ({{count}})",
+      "discussion": "Bespreking",
+      "feed": {
+        "title": "Wysigingstel {{id}}",
+        "title_comment": "Wysigingstel {{id}} - {{comment}}"
+      },
+      "join_discussion": "Meld aan en gesels saam",
+      "node": "Knooppunte ({{count}})",
+      "node_paginated": "Knooppunte ({{x}}-{{y}} van {{count}})",
+      "osmchangexml": "osmWysiging XML",
+      "relation": "Verwantskappe ({{count}})",
+      "relation_paginated": "Verwantskappe ({{x}}-{{y}} of {{count}})",
+      "still_open": "Wysigingstel is steeds oop - bespreking sal oopmaak sodra die wysigingstel gesluit is.",
+      "title": "Wysigingstel: {{id}}",
+      "way": "Weë ({{count}})",
+      "way_paginated": "Weë ({{x}}-{{y}} van {{count}})"
+    },
+    "closed": "Gesluit",
+    "containing_relation": {
+      "entry_html": "Verwantskap {{relation_name}}",
+      "entry_role_html": "Verwantskap {{relation_name}} (as {{relation_role}})"
+    },
+    "created": "Geskep",
+    "download_xml": "Laai XML af",
+    "in_changeset": "Wysigingstel",
+    "location": "Ligging:",
+    "no_comment": "(geen kommentaar)",
+    "node": {
+      "history_title_html": "Knooppuntgeskiedenis: {{name}}",
+      "title_html": "Knooppunt: {{name}}"
+    },
+    "not_found": {
+      "sorry": "Jammer, {{type}} #{{id}} kon nie gevind word.",
+      "title": "Kon nie gevind word",
+      "type": {
+        "changeset": "wysigingstel",
+        "node": "knooppunt",
+        "note": "nota",
+        "relation": "verwantskap",
+        "way": "weg"
+      }
+    },
+    "part_of": "Deel van",
+    "part_of_relations_one": "1 verhouding",
+    "part_of_relations_other": "{{count}} verhoudings",
+    "part_of_ways_one": "1 weg",
+    "part_of_ways_other": "{{count}} weë",
+    "query": {
+      "enclosing": "Omsluitende bakens",
+      "introduction": "Klik op die kaart om bakens naby te ontdek.",
+      "nearby": "Bakens naby",
+      "title": "Soek bakens op"
+    },
+    "redacted": {
+      "message_html": "Weergawe {{version}} van hierdie {{type}} kan nie vertoon word nie, synde dit geredigeer is. Raadpleeg asseblief {{redaction_link}} vir besonderhede.",
+      "redaction": "Redaksie {{id}}",
+      "type": {
+        "node": "knooppunt",
+        "relation": "verband",
+        "way": "weg"
+      }
+    },
+    "relation": {
+      "history_title_html": "Verwantskapgeskiedenis: {{name}}",
+      "members": "Lede",
+      "members_count_one": "1 lid",
+      "members_count_other": "{{count}} lede",
+      "title_html": "Verwantskap: {{name}}"
+    },
+    "relation_member": {
+      "entry_role_html": "{{type}} {{name}} as {{role}}",
+      "type": {
+        "node": "Knooppunt",
+        "relation": "Verwantskap",
+        "way": "Weg"
+      }
+    },
+    "start_rjs": {
+      "feature_warning": "Laai tans {{num_features}} kenmerke wat u internetblaaier kan vertraag of laat hang. Is u seker u wil hierdie data vertoon?",
+      "load_data": "Laai data",
+      "loading": "Laai tans…"
+    },
+    "tag_details": {
+      "colour_preview": "Kleur {{colour_value}}-voorskou",
+      "tags": "Merkers",
+      "telephone_link": "Skakel {{phone_number}}",
+      "wiki_link": {
+        "key": "Die wiki-beskrywingsblad vir merker {{key}}",
+        "tag": "Die wikibeskrywingsblad vir die merker {{key}}={{value}}"
+      },
+      "wikidata_link": "Die item {{page}} op Wikidata",
+      "wikimedia_commons_link": "Die item {{page}} op Wikimedia Commons",
+      "wikipedia_link": "Die bladsy {{page}} op Wikipedia"
+    },
+    "timeout": {
+      "sorry": "Jammer, die gegewens vir die {{type}} met die id {{id}} neem te lank om op te soek.",
+      "title": "Tydlimiet oorskry",
+      "type": {
+        "changeset": "wysigingstel",
+        "node": "knooppunt",
+        "note": "nota",
+        "relation": "verband",
+        "way": "weg"
+      }
+    },
+    "version": "Weergawe",
+    "view_details": "Bekyk detail",
+    "view_history": "Beskou geskiedenis",
+    "way": {
+      "also_part_of_html_one": "gedeelte van weg {{related_ways}}",
+      "also_part_of_html_other": "gedeelte van weë {{related_ways}}",
+      "history_title_html": "Weggeskiedenis: {{name}}",
+      "nodes": "Knooppunte",
+      "nodes_count_one": "1 nodus",
+      "nodes_count_other": "{{count}} nodusse",
+      "title_html": "Weg: {{name}}"
+    }
+  },
+  "changeset_comments": {
+    "comment": {
+      "comment": "Nuwe opmerking oor wysigingstel #{{changeset_id}} deur {{author}}",
+      "commented_at_by_html": "{{when}} gelede deur {{user}} opgedateer"
+    },
+    "comments": {
+      "comment": "Nuwe opmerking oor wysigingstel #{{changeset_id}} deur {{author}}"
+    },
+    "index": {
+      "title_all": "OpenStreetMap bespreking oor wysigingstelle",
+      "title_particular": "OpenStreetMap wysigingstel #{{changeset_id}} bespreking"
+    },
+    "timeout": {
+      "sorry": "Jammer, die lys met kommentaar wat u versoek het, het te lank geneem om op te spoor."
+    }
+  },
+  "changesets": {
+    "changeset": {
+      "anonymous": "Anoniem",
+      "no_edits": "(geen wysigings)",
+      "view_changeset_details": "Beskou die wysigingstel se besonderhede"
+    },
+    "changeset_paging_nav": {
+      "next": "Volgende »",
+      "previous": "« Vorige",
+      "showing_page": "Bladsy {{page}}"
+    },
+    "changesets": {
+      "area": "Gebied",
+      "comment": "Kommentaar",
+      "id": "ID",
+      "saved_at": "Gestoor op",
+      "user": "Gebruiker"
+    },
+    "index": {
+      "empty": "Geen wysigingstelle gevind nie.",
+      "empty_area": "Geen wysigingstelle in hierdie gebied.",
+      "empty_user": "Geen wysigingstelle deur hierdie gebruiker.",
+      "load_more": "Laai nog",
+      "no_more": "Geen meer wysigingstelle gevind nie.",
+      "no_more_area": "Geen wysigingstelle in hierdie gebied nie.",
+      "no_more_user": "Geen ander wysigingstelle deur hierdie gebruiker nie.",
+      "title": "Wysigingstelle",
+      "title_friend": "Wysigingstelle deur my vriende",
+      "title_nearby": "Veranderings deur gebruikers naby",
+      "title_user": "Veranderings deur {{user}}"
+    },
+    "timeout": {
+      "sorry": "Jammer, die lys wysigingstelle wat u versoek het, neem lank om uit te haal."
+    }
+  },
+  "confirmations": {
+    "confirm": {
+      "already active": "Hierdie rekening is reeds bevestig.",
+      "button": "Bevestig",
+      "heading": "Gaan u e-pos na!",
+      "introduction_1": "Ons het u 'n e-pos ter bevestiging getuur.",
+      "introduction_2": "Klik op die skakel in die e-pos en bevestig u rekening, dan sal u kan karteer.",
+      "press confirm button": "Klik 'bevestig' hieronder om u rekening te aktiveer.",
+      "success": "U rekening is bevestig. Dankie dat u aangeteken het!",
+      "unknown token": "Die bevestigingskode het reeds verval of bestaan nie."
+    },
+    "confirm_email": {
+      "button": "Bevestig",
+      "heading": "Bevestig 'n verandering van e-posadres",
+      "press confirm button": "Klik op die volgende knoppie om u e-posadres te bevestig.",
+      "success": "Die verandering van u e-posadres is bevestig!"
+    },
+    "confirm_resend": {
+      "failure": "Die gebruiker {{name}} is nie gevind nie."
+    }
+  },
+  "dashboards": {
+    "contact": {
+      "km away": "{{count}}km vêr",
+      "latest_edit_html": "Meest onlangse wysiging ({{ago}}):",
+      "m away": "{{count}}m vêr"
+    },
+    "popup": {
+      "friend": "Vriend",
+      "nearby mapper": "Nabygeleë karteerder",
+      "your location": "U ligging"
+    },
+    "show": {
+      "edit_your_profile": "Wysig u profiel",
+      "friends_changesets": "Wysigingstelle deur my vriende",
+      "my friends": "My vriende",
+      "nearby users": "Ander gebruikers naby",
+      "nearby_changesets": "gebruikerswysigingstelle naby",
+      "no friends": "U het nog geen vriende bygevoeg nie.",
+      "no nearby users": "Daar is nog geen ander gebruikers wat sê dat hulle in die nabye omgewing karteer nie.",
+      "title": "My paneelbord"
+    }
+  },
+  "datetime": {
+    "distance_in_words_ago": {
+      "about_x_hours_one": "ongeveer 1 uur gelede",
+      "about_x_hours_other": "ongeveer {{count}} uur gelede",
+      "about_x_months_one": "ongeveer een maand gelede",
+      "about_x_months_other": "ongeveer {{count}} maande gelede",
+      "about_x_years_one": "ongeveer een jaar gelede",
+      "about_x_years_other": "ongeveer {{count}} jaar gelede",
+      "almost_x_years_one": "byna 1 jaar gelede",
+      "almost_x_years_other": "byna {{count}} jaar gelede",
+      "half_a_minute": "'n halwe minuut gelede",
+      "less_than_x_minutes_one": "minder as 'n minuut gelede",
+      "less_than_x_minutes_other": "minder as {{count}} minute gelede",
+      "less_than_x_seconds_one": "minder as 1 sekonde gelede",
+      "less_than_x_seconds_other": "minder as {{count}} sekondes gelede",
+      "over_x_years_one": "meer as 1 jaar gelede",
+      "over_x_years_other": "meer as {{count}} jaar gelede",
+      "x_days_one": "1 dag gelede",
+      "x_days_other": "{{count}} dae gelede",
+      "x_minutes_one": "1 minuut gelede",
+      "x_minutes_other": "{{count}} minute gelede",
+      "x_months_one": "1 maand gelede",
+      "x_months_other": "{{count}} maande gelede",
+      "x_seconds_one": "1 sekonde gelede",
+      "x_seconds_other": "{{count}} sekondes gelede",
+      "x_years_one": "1 jaar gelede",
+      "x_years_other": "{{count}} jaar gelede"
+    }
+  },
+  "diary_entries": {
+    "comments": {
+      "comment": "Kommentaar",
+      "newer_comments": "Nuwer kommentaar",
+      "no_comments": "Geen dagboekkommentaar",
+      "older_comments": "Ouer Kommentaar",
+      "post": "Inskrywing",
+      "when": "Wanneer"
+    },
+    "diary_comment": {
+      "comment_from_html": "Kommentaar van {{link_user}} op {{comment_created_at}}",
+      "confirm": "Bevestig",
+      "hide_link": "Steek hierdie kommentaar weg",
+      "report": "Rapporteer hierdie kommentaar",
+      "unhide_link": "Onthul hierdie opmerking"
+    },
+    "diary_entry": {
+      "comment_count_one": "{{count}} opmerking",
+      "comment_count_other": "{{count}} opmerkings",
+      "comment_count_zero": "Geen opmerkings",
+      "comment_link": "Lewer hierop kommentaar",
+      "confirm": "Bekragtig",
+      "edit_link": "Redigeer hierdie inskrywing",
+      "hide_link": "Steek dié inskrywing weg",
+      "posted_by_html": "Plasing deur {{link_user}} op {{created}} in {{language_link}}.",
+      "reply_link": "Stuur 'n boodskap aan die outeur",
+      "report": "Rapporteer hierdie inskrywing",
+      "unhide_link": "Onthul hierdie inskrywing",
+      "updated_at_html": "Laas opgedateer op {{updated}}."
+    },
+    "edit": {
+      "marker_text": "Ligging van dagboekinskrywing",
+      "title": "Wysig dagboekinskrywing"
+    },
+    "feed": {
+      "all": {
+        "description": "Onlangse dagboekinskrywings van OpenStreetMap-gebruikers",
+        "title": "OpenStreetMap-dagboekinskrywings"
+      },
+      "language": {
+        "description": "Onlangse dagboekinskrywings van OpenStreetMap-gebruikers in {{language_name}}",
+        "title": "OpenStreetMap dagboekinskrywings in {{language_name}}"
+      },
+      "user": {
+        "description": "Onlangse OpenStreetMap-dagboekinskrywings van {{user}}",
+        "title": "OpenStreetMap-dagboekinskrywings vir {{user}}"
+      }
+    },
+    "form": {
+      "location": "Ligging:",
+      "use_map_link": "Kies op kaart"
+    },
+    "index": {
+      "in_language_title": "Dagboekinkrywings in {{language}}",
+      "my_diary": "My Dagboek",
+      "new": "Nuwe dagboekinskrywing",
+      "new_title": "Maak 'n nuwe inskrywing in jou dagboek",
+      "newer_entries": "Jonger inskrywings",
+      "no_entries": "Geen dagboekinskrywings nie",
+      "older_entries": "Vorige Inskrywings",
+      "recent_entries": "Onlangse dagboekinskrywings",
+      "title": "Gebruikersdagboeke",
+      "title_friends": "Dagboeke van vriende",
+      "title_nearby": "Gebruikers in die omgewing se dagboeke",
+      "user_title": "{{user}} se dagboek"
+    },
+    "location": {
+      "edit": "Wysig",
+      "location": "Ligging:",
+      "view": "Beskou"
+    },
+    "new": {
+      "title": "Nuwe dagboekinskrywing"
+    },
+    "no_such_entry": {
+      "body": "Jammer, geen dagboekinskrywing of kommentaar met die id {{id}} bestaan nie. Gaan u spelling na, of u het moontlik op 'n foutiewe skakel geklik.",
+      "heading": "Geen inskrywing met die id: {{id}}",
+      "title": "Geen só 'n dagboekinskrywing"
+    },
+    "show": {
+      "leave_a_comment": "Lewer kommentaar",
+      "login": "Meld aan",
+      "login_to_leave_a_comment_html": "{{login_link}} om kommentaar te lewer",
+      "title": "{{user}} se dagboek | {{title}}",
+      "user_title": "{{user}} se dagboek"
+    }
+  },
+  "doorkeeper": {
+    "flash": {
+      "applications": {
+        "create": {
+          "notice": "Program geregistreer."
+        }
+      }
+    }
+  },
+  "editor": {
+    "default": "Verstek (tans {{name}})",
+    "id": {
+      "description": "iD (aanlynredigeerder)",
+      "name": "iD"
+    },
+    "remote": {
+      "description": "Afstandsbeheer (JOSM, Potlatch, Merkaartor)",
+      "name": "Afstandsbeheer"
+    }
+  },
+  "friendships": {
+    "make_friend": {
+      "already_a_friend": "U is reeds met {{name}} bevriend.",
+      "button": "As vriend byvoeg",
+      "failed": "Jammer, kon nie {{name}} as 'n vriend byvoeg nie.",
+      "heading": "{{user}} as vriend toevoeg?",
+      "limit_exceeded": "U het onlangs baie vriendskapsversoeke gestuur. Wag 'n tyd voordat u nuwe versoeke probeer stuur.",
+      "success": "{{name}} is nou u vriend!"
+    },
+    "remove_friend": {
+      "button": "Verwyder as vriend",
+      "heading": "{{user}} as vriend verwyder?",
+      "not_a_friend": "{{name}} is nie een van u vriende nie.",
+      "success": "{{name}} is uit u vriendekring verwyder."
+    }
+  },
+  "geocoder": {
+    "results": {
+      "more_results": "Nog resultate",
+      "no_results": "Geen resultate gevind nie"
+    },
+    "search_osm_nominatim": {
+      "admin_levels": {
+        "level10": "Voorstedelike grens",
+        "level11": "Buurtgrens",
+        "level2": "Landgrens",
+        "level3": "Streeksgrens",
+        "level4": "Staatsgrens",
+        "level5": "Streekgrens",
+        "level6": "Countygrens",
+        "level7": "Munisipale grens",
+        "level8": "Stadsgrens",
+        "level9": "Dorpsgrens"
+      },
+      "prefix": {
+        "aerialway": {
+          "cable_car": "Sweefspoor",
+          "chair_lift": "Stoelhyser",
+          "drag_lift": "Sleephysbak",
+          "gondola": "Gondel hysbak",
+          "magic_carpet": "Towertapythyser",
+          "platter": "Platter hysbak",
+          "pylon": "Spantoring",
+          "station": "Lugwegstasie",
+          "t-bar": "T-bar hysbak",
+          "yes": "Kabelbaan"
+        },
+        "aeroway": {
+          "aerodrome": "Vliegveld",
+          "airstrip": "Landingstrook",
+          "apron": "Laaiblad",
+          "gate": "Hek",
+          "hangar": "Loods",
+          "helipad": "Helikopterplatform",
+          "holding_position": "Hou posisie",
+          "navigationaid": "Lugvaartnavigasiehulp",
+          "parking_position": "Parkeerplek",
+          "runway": "Aanloopbaan",
+          "taxilane": "Taxibaan",
+          "taxiway": "Rybaan",
+          "terminal": "Terminaal",
+          "windsock": "Windkous"
+        },
+        "amenity": {
+          "animal_boarding": "Dierehotel",
+          "animal_shelter": "Dierebeskerming",
+          "arts_centre": "Kunssentrum",
+          "atm": "OTM",
+          "bank": "Bank",
+          "bar": "Kroeg",
+          "bbq": "Braai",
+          "bench": "Bankie",
+          "bicycle_parking": "Fietsparkering",
+          "bicycle_rental": "Fietshuur",
+          "bicycle_repair_station": "Fietsherstelstasie",
+          "biergarten": "Biertuin",
+          "blood_bank": "Bloedbank",
+          "boat_rental": "Boothuur",
+          "brothel": "Bordeel",
+          "bureau_de_change": "Wisselkantoor",
+          "bus_station": "Busstasie",
+          "cafe": "Kafee",
+          "car_rental": "Motorhuur",
+          "car_sharing": "Saam-ry",
+          "car_wash": "Karwas",
+          "casino": "Dobbelhuis",
+          "charging_station": "Herlaaistasie",
+          "childcare": "Kindersorg",
+          "cinema": "Rolprentteater",
+          "clinic": "Kliniek",
+          "clock": "Klok",
+          "college": "Kollege",
+          "community_centre": "Gemeenskapsentrum",
+          "conference_centre": "Konverensiesentrum",
+          "courthouse": "Hof",
+          "crematorium": "Krematorium",
+          "dentist": "Tandarts",
+          "doctors": "Dokter",
+          "drinking_water": "Drinkwater",
+          "driving_school": "Bestuurskool",
+          "embassy": "Ambassade",
+          "events_venue": "Onthaallokaal",
+          "fast_food": "Kitskos",
+          "ferry_terminal": "Pontterminaal",
+          "fire_station": "Brandweerstasie",
+          "food_court": "Kosgebied",
+          "fountain": "Fontein",
+          "fuel": "Brandstof",
+          "gambling": "Dobbelary",
+          "grave_yard": "Begraafplaas",
+          "grit_bin": "Grit bin",
+          "hospital": "Hospitaal",
+          "hunting_stand": "Jagtoring",
+          "ice_cream": "Roomys",
+          "internet_cafe": "Internetkafee",
+          "kindergarten": "Kleuterskool",
+          "language_school": "Taalskool",
+          "library": "Biblioteek",
+          "loading_dock": "Laaistasie",
+          "marketplace": "Markplein",
+          "mobile_money_agent": "Mobiele betalingagent",
+          "monastery": "Monnikeklooster",
+          "motorcycle_parking": "Motorfietsparkering",
+          "music_school": "Musiekskool",
+          "nightclub": "Nagklub",
+          "nursing_home": "Verpleging- en versorgingshuis",
+          "parking": "Parkering",
+          "parking_entrance": "Parkeeringang",
+          "parking_space": "Parkeerplek",
+          "payment_terminal": "Betaalautomaat",
+          "pharmacy": "Apteek",
+          "place_of_worship": "Plek van aanbidding",
+          "police": "Polisie",
+          "post_box": "Posbus",
+          "post_office": "Poskantoor",
+          "prison": "Tronk",
+          "pub": "Kroeg",
+          "public_bath": "Openbare bad",
+          "public_bookcase": "Ruilboekrak",
+          "public_building": "Openbare gebou",
+          "ranger_station": "Veldwagtershut",
+          "recycling": "Herwinningspunt",
+          "restaurant": "Restaurant",
+          "sanitary_dump_station": "Sanitêre stortstasie",
+          "school": "Skool",
+          "shelter": "Skuiling",
+          "shower": "Stort",
+          "social_centre": "Maatskaplike sentrum",
+          "social_facility": "Sosiale fasiliteit",
+          "studio": "Ateljee",
+          "swimming_pool": "Swembad",
+          "taxi": "Taxi",
+          "telephone": "Openbare telefoon",
+          "theatre": "Teater",
+          "toilets": "Toilette",
+          "townhall": "Stadsaal",
+          "training": "Opleidingsfasiliteit",
+          "university": "Universiteit",
+          "vehicle_inspection": "Voertuiginspeksie",
+          "vending_machine": "Verkoopmasjien",
+          "veterinary": "Veearts",
+          "village_hall": "Dorpsaal",
+          "waste_basket": "Snippermandjie",
+          "waste_disposal": "Stortingsterrein",
+          "waste_dump_site": "Afvalstortterrein",
+          "water_point": "Waterpunt",
+          "watering_place": "Drinkplek",
+          "weighbridge": "Weegbrug",
+          "yes": "Infrastruktuur"
+        },
+        "boundary": {
+          "aboriginal_lands": "Reservaat",
+          "administrative": "Administratiewe grens",
+          "census": "Sensusgrens",
+          "national_park": "Nasionale park",
+          "political": "Kiesgrens",
+          "protected_area": "Beskermingsgebied",
+          "yes": "Grens"
+        },
+        "bridge": {
+          "aqueduct": "Waterbrug",
+          "boardwalk": "Plankenweg",
+          "suspension": "Hangbrug",
+          "swing": "Swaaibrug",
+          "viaduct": "Viaduk",
+          "yes": "Brug"
+        },
+        "building": {
+          "apartment": "Woonstel",
+          "apartments": "Woonstelle",
+          "barn": "Skuur",
+          "bungalow": "Kothuis",
+          "cabin": "Blokhut",
+          "chapel": "Kapel",
+          "church": "Kerkgebou",
+          "civic": "Openbare gebou",
+          "college": "Kollegegebou",
+          "commercial": "Kommersiële gebou",
+          "construction": "Gebou in aanbou",
+          "detached": "Alleenstaande woning",
+          "dormitory": "Studentehuis",
+          "duplex": "Duplekshuis",
+          "farm": "Plaashuis",
+          "farm_auxiliary": "Hulpplaashuis",
+          "garage": "Garage",
+          "garages": "Vulstasies",
+          "greenhouse": "Kweekhuis",
+          "hangar": "Loods",
+          "hospital": "Hospitaalgebou",
+          "hotel": "Hotelgebou",
+          "house": "Huis",
+          "houseboat": "Huisboot",
+          "hut": "Hut",
+          "industrial": "Industriële gebou",
+          "kindergarten": "Kleuterskoolgebou",
+          "manufacture": "Produksiegebou",
+          "office": "Kantoorgebou",
+          "public": "Openbare gebou",
+          "residential": "Residensiële gebou",
+          "retail": "Kleinhandel-gebou",
+          "roof": "Dak",
+          "ruins": "Vervalle gebou",
+          "school": "Skoolgebou",
+          "semidetached_house": "Halfgekoppelde huis",
+          "service": "Diensgebou",
+          "shed": "Skuur",
+          "stable": "Stalle",
+          "static_caravan": "Karavaan",
+          "temple": "Tempelgebou",
+          "terrace": "Terrasgebou",
+          "train_station": "Spoorwegstasiegebou",
+          "university": "Universiteitsgebou",
+          "warehouse": "Pakhuis",
+          "yes": "Gebou"
+        },
+        "club": {
+          "sport": "Sportklub",
+          "yes": "Klub"
+        },
+        "craft": {
+          "beekeeper": "Byeboer",
+          "blacksmith": "Smid",
+          "brewery": "Brouery",
+          "carpenter": "Skrynwerker",
+          "caterer": "Spysenier",
+          "confectionery": "Lekkergoed",
+          "dressmaker": "Kleremaker",
+          "electrician": "Elektrisiën",
+          "electronics_repair": "Elektronieseherstel",
+          "gardener": "Tuinier",
+          "glaziery": "Glaswerk",
+          "handicraft": "Handwerk",
+          "hvac": "Verwarming/ventilasie",
+          "metal_construction": "Metaalwerk",
+          "painter": "Verwer",
+          "photographer": "Fotograaf",
+          "plumber": "Loodgieter",
+          "roofer": "Dakdekker",
+          "sawmill": "Saagmeule",
+          "shoemaker": "Skoenmaker",
+          "stonemason": "Klipkapper",
+          "tailor": "Snyer",
+          "window_construction": "Vensterraamwerk",
+          "winery": "Wynboer",
+          "yes": "Handwerkwinkel"
+        },
+        "emergency": {
+          "access_point": "Reddingsdienstoegangspunt",
+          "ambulance_station": "Ambulansstasie",
+          "assembly_point": "Vergaderingspunt",
+          "defibrillator": "Defibrillator",
+          "fire_extinguisher": "Brandblusser",
+          "fire_water_pond": "Bluswaterdam",
+          "landing_site": "Noodlandingsplek",
+          "life_ring": "Reddingsboei",
+          "phone": "Noodtelefoon",
+          "siren": "Noodsirene",
+          "suction_point": "Bluswateropsuigpunt",
+          "water_tank": "Noodwatertenk"
+        },
+        "highway": {
+          "abandoned": "Verlate weg",
+          "bridleway": "Ruiterpad",
+          "bus_guideway": "Toegewyde busbaan",
+          "bus_stop": "Bushalte",
+          "construction": "Weg in aanbou",
+          "corridor": "Korridor",
+          "crossing": "Kruis",
+          "cycleway": "Fietspad",
+          "elevator": "Hysbak",
+          "emergency_access_point": "Noodtoeganspunt",
+          "emergency_bay": "Noodstopplek",
+          "footway": "Voetpad",
+          "ford": "Drif",
+          "give_way": "Toegeeteken",
+          "milestone": "Mylpaal",
+          "motorway": "Snelweg",
+          "motorway_junction": "Snelwegkruising",
+          "motorway_link": "Motorweg",
+          "passing_place": "Verbygaanplek",
+          "path": "Pad",
+          "pedestrian": "Voetgangersweg",
+          "platform": "Platform",
+          "primary": "Primêre weg",
+          "primary_link": "Primêre weg",
+          "proposed": "Voorgestelde weg",
+          "raceway": "Renbaan",
+          "residential": "Residensiële weg",
+          "rest_area": "Rusgebied",
+          "road": "Weg",
+          "secondary": "Sekondêre weg",
+          "secondary_link": "Sekondêre weg",
+          "service": "Diensweg",
+          "services": "Snelwegdienste",
+          "speed_camera": "Snelheidskamera",
+          "steps": "Trappe",
+          "stop": "Stopteken",
+          "street_lamp": "Straatlig",
+          "tertiary": "Tersiêre weg",
+          "tertiary_link": "Tersiêre pad",
+          "track": "Spoor",
+          "traffic_mirror": "Verkeerspieël",
+          "traffic_signals": "Verkeerstekens",
+          "trailhead": "Wandelvertrekpunt",
+          "trunk": "Hoofweg",
+          "trunk_link": "Hoofroete",
+          "turning_loop": "Draailus",
+          "unclassified": "Ongeklassifiseerde weg",
+          "yes": "Weg"
+        },
+        "historic": {
+          "aircraft": "Historiese vliegtuig",
+          "archaeological_site": "Argeologiese terrein",
+          "battlefield": "Slagveld",
+          "bomb_crater": "Historiese bomkrater",
+          "boundary_stone": "Grenspaal",
+          "building": "Historiese gebou",
+          "bunker": "Bomskuiling",
+          "cannon": "Historiese kanon",
+          "castle": "Kasteel",
+          "church": "Kerk",
+          "city_gate": "Stadspoort",
+          "citywalls": "Stadsmure",
+          "fort": "Fort",
+          "heritage": "Erfenisterrein",
+          "house": "Huis",
+          "manor": "Landhuis",
+          "memorial": "Gedenkteken",
+          "milestone": "Historiese mylpaal",
+          "mine": "Myn",
+          "mine_shaft": "Mynskag",
+          "monument": "Monument",
+          "railway": "Historiese spoorweg",
+          "roman_road": "Romeinse weg",
+          "ruins": "Ruïnes",
+          "stone": "Steen",
+          "tomb": "Graf",
+          "tower": "Toring",
+          "wayside_chapel": "Wegkapel",
+          "wayside_cross": "Wegkruis",
+          "wayside_shrine": "Wegaltaar",
+          "wreck": "Wrak",
+          "yes": "Historiese terrein"
+        },
+        "junction": {
+          "yes": "Verkeerskruising"
+        },
+        "landuse": {
+          "allotments": "Volkstuine",
+          "aquaculture": "Akwakultuur",
+          "basin": "Kom",
+          "cemetery": "Begraafplaas",
+          "commercial": "Handelsgebied",
+          "conservation": "Natuurbewaring",
+          "construction": "In aanbou",
+          "farmland": "Landbougrond",
+          "farmyard": "Plaaswerf",
+          "forest": "Woud",
+          "garages": "Vulstasies",
+          "grass": "Gras",
+          "industrial": "Nywerheidsgebied",
+          "landfill": "Stortingsterrein",
+          "meadow": "Weiland",
+          "military": "Militêre gebied",
+          "mine": "Myn",
+          "orchard": "Vrugteboord",
+          "plant_nursery": "Kwekery",
+          "quarry": "Steengroef",
+          "railway": "Spoorweg",
+          "recreation_ground": "Ontspanningsterrein",
+          "reservoir": "Reservoir",
+          "residential": "Woongebied",
+          "retail": "Kleinhandel",
+          "village_green": "Braak",
+          "vineyard": "Wingerd",
+          "yes": "Landgebruik"
+        },
+        "leisure": {
+          "adult_gaming_centre": "Spelsentrum vir volwassenes",
+          "amusement_arcade": "Arkadesaal",
+          "beach_resort": "Strandoord",
+          "bird_hide": "Voëlkykhuisie",
+          "bleachers": "Paviljoen",
+          "common": "Gemeenskaplike land",
+          "dance": "Danssaal",
+          "dog_park": "Hondepark",
+          "firepit": "Vuurgat",
+          "fishing": "Visvanggebied",
+          "fitness_centre": "Fiksheidsentrum",
+          "fitness_station": "Fiksheidstasie",
+          "garden": "Tuin",
+          "golf_course": "Gholfbaan",
+          "horse_riding": "Perdry",
+          "ice_rink": "Ysskaatsbaan",
+          "marina": "Marina",
+          "miniature_golf": "Mini-gholf",
+          "nature_reserve": "Natuurreservaat",
+          "park": "Park",
+          "picnic_table": "Piekniektafel",
+          "pitch": "Sportveld",
+          "playground": "Speelgrond",
+          "recreation_ground": "Ontspanningsterrein",
+          "resort": "Oord",
+          "sauna": "Sauna",
+          "slipway": "Glybaan",
+          "sports_centre": "Sportsentrum",
+          "stadium": "Stadion",
+          "swimming_pool": "Swembad",
+          "track": "Atletiekbaan",
+          "water_park": "Waterspeelpark",
+          "yes": "Vrye tyd"
+        },
+        "man_made": {
+          "adit": "Horisontale skag",
+          "advertising": "Reklame",
+          "antenna": "Antenna",
+          "avalanche_protection": "Sneeustortingbeskerming",
+          "beacon": "Baken",
+          "beam": "Balk",
+          "beehive": "Byekorf",
+          "breakwater": "Golfbreker",
+          "bridge": "Brug",
+          "bunker_silo": "Bunker",
+          "cairn": "Steenhoop",
+          "chimney": "Skoorsteen",
+          "communications_tower": "Antennatoring",
+          "crane": "Kraan",
+          "cross": "Kruis",
+          "dolphin": "Meerpaal",
+          "dyke": "Dyk",
+          "embankment": "Wal",
+          "flagpole": "Vlagpaal",
+          "groyne": "Krip",
+          "kiln": "Oond",
+          "lighthouse": "Vuurtoring",
+          "manhole": "Mangat",
+          "mast": "Mas",
+          "mine": "Myn",
+          "mineshaft": "Mynskag",
+          "monitoring_station": "Moniteringstasie",
+          "petroleum_well": "Oliebron",
+          "pier": "Pier",
+          "pipeline": "Pyplyn",
+          "pumping_station": "Pompstasie",
+          "reservoir_covered": "Bedekte Reservoir",
+          "silo": "Silo",
+          "snow_cannon": "Sneeukanon",
+          "storage_tank": "Opgaartenk",
+          "surveillance": "Toesig",
+          "telescope": "Teleskoop",
+          "tower": "Toring",
+          "wastewater_plant": "Rioolaanleg",
+          "water_tap": "Waterkraan",
+          "water_tower": "Watertoring",
+          "water_well": "Put",
+          "water_works": "Waterwerke",
+          "watermill": "Watermeul",
+          "windmill": "Windmeul",
+          "works": "Fabriek",
+          "yes": "Mensgemaak"
+        },
+        "military": {
+          "airfield": "Miliêre vliegveld",
+          "barracks": "Barakke",
+          "bunker": "Bomskuiling",
+          "trench": "Loopgraaf",
+          "yes": "Militêre"
+        },
+        "mountain_pass": {
+          "yes": "Bergpas"
+        },
+        "natural": {
+          "atoll": "Atol",
+          "bare_rock": "Kaal rots",
+          "bay": "Baai",
+          "beach": "Strand",
+          "cape": "Kaap",
+          "cave_entrance": "Grotingang",
+          "cliff": "Krans",
+          "coastline": "Kuslyn",
+          "crater": "Krater",
+          "dune": "Duin",
+          "fell": "Heuwel",
+          "fjord": "Fjord",
+          "forest": "Woud",
+          "geyser": "Geiser",
+          "glacier": "Gletser",
+          "grassland": "Grasland",
+          "heath": "Heide",
+          "hill": "Heuwel",
+          "hot_spring": "Warmwaterbron",
+          "island": "Eiland",
+          "land": "Land",
+          "marsh": "Moeras",
+          "moor": "Vleiland",
+          "mud": "Modder",
+          "peak": "Piek",
+          "peninsula": "Skiereiland",
+          "point": "Punt",
+          "reef": "Rif",
+          "ridge": "Bergrif",
+          "rock": "Rots",
+          "saddle": "Saal",
+          "sand": "Sand",
+          "scree": "Berghellingspuin",
+          "scrub": "Struikgewas",
+          "spring": "Bron",
+          "stone": "Steen",
+          "strait": "Seestraat",
+          "tree": "Boom",
+          "tree_row": "Bomery",
+          "valley": "Vallei",
+          "volcano": "Vuurspuwende berg",
+          "water": "Water",
+          "wetland": "Vleiland",
+          "wood": "Bos",
+          "yes": "Natuurlike baken"
+        },
+        "office": {
+          "accountant": "Boekhouer",
+          "administrative": "Administrasie",
+          "advertising_agency": "Advetensieagentskap",
+          "architect": "Argitek",
+          "association": "Vereniging",
+          "company": "Maatskappy",
+          "diplomatic": "Diplomatiekekantoor",
+          "educational_institution": "Opvoedkundige instelling",
+          "employment_agency": "Werksagentskap",
+          "energy_supplier": "Energieverskafferkantoor",
+          "estate_agent": "Eiendomsagent",
+          "financial": "Finansieële kantoor",
+          "government": "Regeringskantoor",
+          "insurance": "Versekeringskantoor",
+          "it": "IT-kantoor",
+          "lawyer": "Prokureur",
+          "logistics": "Logistieke kantoor",
+          "newspaper": "Koerant kantoor",
+          "ngo": "NRO-kantoor",
+          "notary": "Notaris",
+          "religion": "Godsdienskantoor",
+          "research": "Navorsingskantoor",
+          "tax_advisor": "Belastingadviseur",
+          "telecommunication": "Telekommunikasiekantoor",
+          "travel_agent": "Reisagent",
+          "yes": "Kantoor"
+        },
+        "place": {
+          "allotments": "Toekennings",
+          "archipelago": "Argipel",
+          "city": "Stad",
+          "city_block": "Stadsblok",
+          "country": "Land",
+          "county": "Distrik",
+          "farm": "Plaas",
+          "hamlet": "Gehuggie",
+          "house": "Huis",
+          "houses": "Huise",
+          "island": "Eiland",
+          "islet": "Eilandjie",
+          "isolated_dwelling": "Afgeleë blyplek",
+          "locality": "Ligging",
+          "municipality": "Munisipaliteit",
+          "neighbourhood": "Woonbuurt",
+          "postcode": "Poskode",
+          "quarter": "Wyk",
+          "region": "Streek",
+          "sea": "See",
+          "square": "Plein",
+          "state": "Staat",
+          "subdivision": "Onderverdeling",
+          "suburb": "Voorstad",
+          "town": "Dorp",
+          "village": "Gehug",
+          "yes": "Plek"
+        },
+        "railway": {
+          "abandoned": "Verlate spoorweg",
+          "construction": "Spoor in aanbou",
+          "disused": "Spoorweg in onbruik",
+          "funicular": "Kabelspoorweg",
+          "halt": "Treinhalte",
+          "junction": "Spoorwegkruising",
+          "level_crossing": "Spooroorgang",
+          "light_rail": "Ligte spoor",
+          "miniature": "Miniatuur spoorweg",
+          "monorail": "Monospoor",
+          "narrow_gauge": "Smalspoorweg",
+          "platform": "Spoorwegperron",
+          "preserved": "Historiese spoorweg",
+          "proposed": "Voorgestelde spoorlyn",
+          "rail": "Spoorweg",
+          "spur": "Spoorweg spur",
+          "station": "Spoorwegstasie",
+          "stop": "Spoorweghalte",
+          "subway": "Ondergrondse spoorweg",
+          "subway_entrance": "Ondergrondse spoorwegingang",
+          "switch": "Spoorwegpunte",
+          "tram": "Tremspoor",
+          "tram_stop": "Tremhalte",
+          "yard": "Spoorwegterrein"
+        },
+        "shop": {
+          "agrarian": "Landbouwinkel",
+          "alcohol": "Drankwinkel",
+          "antiques": "Antiek",
+          "appliance": "Toestellewinkel",
+          "art": "Kunswinkel",
+          "baby_goods": "Babaware",
+          "bakery": "Bakkery",
+          "beauty": "Skoonheidswinkel",
+          "beverages": "Drankgoedwinkel",
+          "bicycle": "Fietswinkel",
+          "bookmaker": "Beroepswedder",
+          "books": "Boekwinkel",
+          "boutique": "Boutique",
+          "butcher": "Slagter",
+          "car": "Motorhandelaar",
+          "car_parts": "Motoronderdele",
+          "car_repair": "Motorherstel",
+          "carpet": "Tapytwinkel",
+          "charity": "Liefdadigheidswinkel",
+          "cheese": "Kaaswinkel",
+          "chemist": "Apteek",
+          "chocolate": "Sjokolade",
+          "clothes": "Klerewinkel",
+          "coffee": "Koffiewinkel",
+          "computer": "Rekenaarwinkel",
+          "confectionery": "Lekkergoedwinkel",
+          "convenience": "Geriefswinkel",
+          "copyshop": "Fotostaatwinkel",
+          "cosmetics": "Kosmetiekwinkel",
+          "deli": "Deli",
+          "department_store": "Afdelingswinkel",
+          "discount": "Afslagwinkel",
+          "doityourself": "Doen-Dit-Self-winkel",
+          "dry_cleaning": "Droogskoonmaker",
+          "electronics": "Elektronikawinkel",
+          "erotic": "Erotiese winkel",
+          "estate_agent": "Eiendomsagent",
+          "fabric": "Lapwinkel",
+          "farm": "Plaaswinkel",
+          "fashion": "Modewinkel",
+          "fishing": "Hengel gereedskap winkel",
+          "florist": "Bloemiste",
+          "food": "Koswinkel",
+          "frame": "Raamwerk winkel",
+          "funeral_directors": "Begrafnisondernemer",
+          "furniture": "Meubels",
+          "garden_centre": "Tuinsentrum",
+          "gas": "Gaswinkel",
+          "general": "Algemene handelaar",
+          "gift": "Geskenkewinkel",
+          "greengrocer": "Groentewinkel",
+          "grocery": "Kruidenierswinkel",
+          "hairdresser": "Haarkapper",
+          "hardware": "Hardewarewinkel",
+          "health_food": "Gesondheidswinkel",
+          "hearing_aids": "Gehoortoestelle",
+          "hifi": "Hoëtrou",
+          "houseware": "Huisraadwinkel",
+          "ice_cream": "Roomyswinkel",
+          "interior_decoration": "Binnenshuise versiering",
+          "jewelry": "Juwelierswinkel",
+          "kiosk": "Kiosk",
+          "kitchen": "Kombuiswinkel",
+          "laundry": "Wassery",
+          "locksmith": "Slotmaker",
+          "lottery": "Lotery",
+          "mall": "Winkelsentrum",
+          "massage": "Masseer",
+          "mobile_phone": "Selfoonwinkel",
+          "money_lender": "Geldlener",
+          "motorcycle": "Motorfietswinkel",
+          "motorcycle_repair": "Motorfiets werkswinkel",
+          "music": "Musiekwinkel",
+          "musical_instrument": "Musiekinstrumente",
+          "newsagent": "Nuusagent",
+          "optician": "Oogkundige",
+          "organic": "Organiesekoswinkel",
+          "outdoor": "Buitelugwinkel",
+          "paint": "Verfwinkel",
+          "pawnbroker": "Pandhandelaar",
+          "pet": "Troeteldierwinkel",
+          "photo": "Fotowinkel",
+          "seafood": "Seekos",
+          "second_hand": "Tweedehandswinkel",
+          "sewing": "Naaiwinkel",
+          "shoes": "Skoenwinkel",
+          "sports": "Sportwinkel",
+          "stationery": "Skryfbehoeftewinkel",
+          "supermarket": "Supermark",
+          "tailor": "Snyer",
+          "tattoo": "Tatoeëerder",
+          "tea": "Teewinkel",
+          "ticket": "Kaartjiewinkel",
+          "tobacco": "Tabakwinkel",
+          "toys": "Speelgoedwinkel",
+          "travel_agency": "Reisagent",
+          "tyres": "Bandwinkel",
+          "vacant": "Vakante winkel",
+          "variety_store": "Verskeidenheidswinkel",
+          "video": "Videowinkel",
+          "wholesale": "Groothandel",
+          "wine": "Wynwinkel",
+          "yes": "Winkel"
+        },
+        "tourism": {
+          "alpine_hut": "Berghut",
+          "apartment": "Vakansiewoonstel",
+          "artwork": "Kunswerk",
+          "attraction": "Trekpleister",
+          "bed_and_breakfast": "Bed en Ontbyt",
+          "cabin": "Hut",
+          "camp_site": "Kampterrein",
+          "caravan_site": "Karavaanpark",
+          "chalet": "Chalet",
+          "gallery": "Galery",
+          "guest_house": "Gastehuis",
+          "hostel": "Jeugherberg",
+          "hotel": "Hotel",
+          "information": "Inligting",
+          "motel": "Motel",
+          "museum": "Museum",
+          "picnic_site": "Piekniekplek",
+          "theme_park": "Pretpark",
+          "viewpoint": "Uitkykpunt",
+          "wilderness_hut": "Wildernishut",
+          "zoo": "Dieretuin"
+        },
+        "tunnel": {
+          "building_passage": "Geboudeurgang",
+          "culvert": "Duiksloot",
+          "yes": "Tonnel"
+        },
+        "waterway": {
+          "artificial": "Kunsmatige waterweg",
+          "boatyard": "Skeepswerf",
+          "canal": "Kanaal",
+          "dam": "Dam",
+          "derelict_canal": "Verlate kanaal",
+          "ditch": "Sloot",
+          "dock": "Dokke",
+          "drain": "Afvoerkanaal",
+          "lock": "Sluis",
+          "lock_gate": "Sluisdeur",
+          "mooring": "Kaai",
+          "rapids": "Stroomversnelling",
+          "river": "Rivier",
+          "stream": "Stroom",
+          "wadi": "Droë woestynrivierbedding",
+          "waterfall": "Waterval",
+          "weir": "Stuwal",
+          "yes": "Waterweg"
+        }
+      },
+      "types": {
+        "cities": "Stede",
+        "places": "Plekke",
+        "towns": "Dorpe"
+      }
+    }
+  },
+  "helpers": {
+    "file": {
+      "prompt": "Kies leer"
+    },
+    "submit": {
+      "client_application": {
+        "create": "Registreer",
+        "update": "Opdateer"
+      },
+      "diary_comment": {
+        "create": "Voeg opmerking by"
+      },
+      "diary_entry": {
+        "create": "Publiseer",
+        "update": "Opdateer"
+      },
+      "issue_comment": {
+        "create": "Lewer kommentaar"
+      },
+      "message": {
+        "create": "Stuur"
+      },
+      "oauth2_application": {
+        "create": "Registreer",
+        "update": "Opdateer"
+      },
+      "redaction": {
+        "create": "Skep redaksie",
+        "update": "Stoor redaksie"
+      },
+      "trace": {
+        "create": "Laai op",
+        "update": "Stoor wysigings"
+      },
+      "user_block": {
+        "create": "Skep versperring",
+        "update": "Werk versperring by"
+      }
+    }
+  },
+  "html": {
+    "dir": "ltr"
+  },
+  "issue_comments": {
+    "create": {
+      "comment_created": "U opmerking is suksesvol geskep"
+    }
+  },
+  "issues": {
+    "comments": {
+      "comment_from_html": "Kommentaar van {{user_link}} op {{comment_created_at}}",
+      "reassign_param": "Ken die probleem weer toe?"
+    },
+    "helper": {
+      "reportable_title": {
+        "diary_comment": "{{entry_title}}, kommentaar #{{comment_id}}",
+        "note": "Nota #{{note_id}}"
+      }
+    },
+    "ignore": {
+      "ignored": "Probleemstatus is op 'Geïgnoreer' gestel"
+    },
+    "index": {
+      "issues_not_found": "Geen sulke probleme gevind nie",
+      "last_updated": "Laas opgedateer",
+      "link_to_reports": "Beskou verslae",
+      "not_updated": "Nie opgedateer nie",
+      "reported_item": "Gerapporteerde item",
+      "reported_user": "Gerapporteerde gebruiker",
+      "reports": "Berigte",
+      "reports_count_one": "1 verslag",
+      "reports_count_other": "{{count}} verslae",
+      "search": "Soek",
+      "search_guidance": "Deursoek probleme:",
+      "select_last_updated_by": "Kies Laas opgedateer deur",
+      "select_status": "Kies Status",
+      "select_type": "Kies Tipe",
+      "states": {
+        "ignored": "Geïgnoreer",
+        "open": "Oop",
+        "resolved": "Opgelos"
+      },
+      "status": "Status",
+      "title": "Probleme",
+      "user_not_found": "Gebruiker bestaan nie"
+    },
+    "reopen": {
+      "reopened": "Probleemstatus is op 'Oop' gestel"
+    },
+    "reports": {
+      "reported_by_html": "As {{category}} gerapporteer deur {{user}} op {{updated_at}}"
+    },
+    "resolve": {
+      "resolved": "Probleemstatus is op 'Opgelos' gestel"
+    },
+    "show": {
+      "comments_on_this_issue": "Kommentaar oor dié probleem",
+      "ignore": "Ignoreer",
+      "last_resolved_at_html": "Laas geregmaak op {{datetime}}",
+      "last_updated_at_html": "Laaste opgedateer op {{datetime}} deur {{displayname}}",
+      "new_reports": "Nuwe verslae",
+      "no_other_issues": "Geen ander probleme teen hierdie gebruiker nie.",
+      "other_issues_against_this_user": "Ander probleme teen hierdie gebruiker",
+      "read_reports": "Lees verslae",
+      "reopen": "Heropen",
+      "report_created_at_html": "Eerste vermelding op {{datetime}}",
+      "reports_of_this_issue": "Verslae van hierdie probleem",
+      "resolve": "Los op",
+      "title": "{{status}} Probleem #{{issue_id}}"
+    }
+  },
+  "javascripts": {
+    "changesets": {
+      "show": {
+        "comment": "Reageer",
+        "hide_comment": "versteek",
+        "subscribe": "Skryf in",
+        "unhide_comment": "bring weer aan die lig",
+        "unsubscribe": "Kanselleer subskripsie"
+      }
+    },
+    "close": "Sluit",
+    "context": {
+      "add_note": "Voeg 'n nota hier by",
+      "centre_map": "Sentreer kaart hier",
+      "directions_from": "Ringtingaanwysings vanaf hier",
+      "directions_to": "Ringtingaanwysings hierheen",
+      "query_features": "Soek bakens op",
+      "show_address": "Wys adres"
+    },
+    "directions": {
+      "distance": "Afstand",
+      "engines": {
+        "fossgis_osrm_car": "Kar (OSRM)",
+        "graphhopper_bicycle": "Fiets (GraphHopper)",
+        "graphhopper_car": "Kar (GraphHopper)"
+      },
+      "instructions": {
+        "continue_without_exit": "Gaan voort op {{name}}",
+        "courtesy": "Aanwysings danksy {{link}}"
+      },
+      "time": "Tyd"
+    },
+    "embed": {
+      "report_problem": "Rapporteer 'n probleem"
+    },
+    "key": {
+      "title": "Kaartsleutel",
+      "tooltip": "Kaartsleutel"
+    },
+    "map": {
+      "base": {
+        "cycle_map": "Fietskaart"
+      },
+      "layers": {
+        "data": "Kaartdata",
+        "notes": "Kaartnotas"
+      },
+      "locate": {
+        "title": "Wys my ligging"
+      },
+      "zoom": {
+        "in": "Zoem in",
+        "out": "Zoem uit"
+      }
+    },
+    "query": {
+      "node": "Knooppunt",
+      "nothing_found": "Geen bakens gevind nie",
+      "relation": "Verwantskap",
+      "way": "Weg"
+    },
+    "share": {
+      "cancel": "Kanselleer",
+      "download": "Laai af",
+      "embed": "HTML",
+      "format": "Formaat:",
+      "image": "Beeld",
+      "link": "Skakel of HTML",
+      "long_link": "Skakel",
+      "only_standard_layer": "Slegs die standaardlaag kan as ’n beeld uitgevoer word",
+      "paste_html": "Plak HTML om in die webblad te versteek",
+      "scale": "Skaal:",
+      "short_link": "Kort skakel",
+      "title": "Deel"
+    },
+    "site": {
+      "createnote_disabled_tooltip": "Zoem in om 'n nota by die kaart te voeg",
+      "createnote_tooltip": "Voeg 'n nota by die kaart",
+      "edit_disabled_tooltip": "Zoem in om die kaart te wysig",
+      "edit_tooltip": "Wysig die kaart",
+      "map_data_zoom_in_tooltip": "Zoem in om kaartdata te sien",
+      "map_notes_zoom_in_tooltip": "Zoem in om kaartnotas te sien",
+      "queryfeature_disabled_tooltip": "Zoem in om bakens te zoek",
+      "queryfeature_tooltip": "Soek bakens op"
+    }
+  },
+  "layouts": {
+    "about": "Aangaande",
+    "community": "Gemeenskap",
+    "community_blogs": "Gemeenskapblogs",
+    "copyright": "Kopiereg",
+    "data": "Data",
+    "donate": "Ondersteun OpenStreetMap deur aan die Fonds vir hardwareopgradering te {{link}}.",
+    "edit": "Wysig",
+    "edit_with": "Redigeer met {{editor}}",
+    "export": "Voer uit",
+    "export_data": "Voer data uit",
+    "gps_traces": "GPS-spore",
+    "gps_traces_tooltip": "Bestuur GPS-spore",
+    "help": "Hulp",
+    "history": "Geskiedenis",
+    "home": "Na tuisligging gaan",
+    "intro_2_create_account": "Skep 'n gebruikerrekening",
+    "intro_header": "Welkom by OpenStreetMap!",
+    "intro_text": "OpenStreetMap is wêreldkaart deur gewone mense geskep. Die gebruik daarvan is gratis en val onder 'n oop-lisensie.",
+    "issues": "Probleme",
+    "learn_more": "Meer inligting",
+    "log_in": "Meld aan",
+    "logo": {
+      "alt_text": "OpenStreetMap-embleem"
+    },
+    "logout": "Meld af",
+    "make_a_donation": {
+      "text": "Skenk aan die projek",
+      "title": "Ondersteun OpenStreetMap met 'n geldelike skenking"
+    },
+    "more": "Meer",
+    "osm_offline": "Die OpenStreetMap-databasis is tans vanlyn terwyl noodsaaklike onderhoud gedoen word.",
+    "osm_read_only": "Die OpenStreetMap-databasis kan tans slegs gelees word terwyl noodsaaklike onderhoud gedoen word.",
+    "partners_bytemark": "Bytemark Hosting",
+    "partners_fastly": "Fastly",
+    "partners_partners": "vennote",
+    "sign_up": "Registreer",
+    "start_mapping": "Begin karteer",
+    "tag_line": "Die Vrye Wiki-Wêreldkaart",
+    "tou": "Gebruiksvoorwaardes",
+    "user_diaries": "Gebruikersdagboeke",
+    "user_diaries_tooltip": "Wys gebruikersdagboeke"
+  },
+  "messages": {
+    "create": {
+      "message_sent": "Boodskap is gestuur"
+    },
+    "destroy": {
+      "destroyed": "Boodskap is verwyder"
+    },
+    "heading": {
+      "my_inbox": "My in-vakkie",
+      "my_outbox": "My uit-vakkie"
+    },
+    "inbox": {
+      "no_messages_yet_html": "U het nog geen boodskappe nie. Waarom tree u nie met sommige van die {{people_mapping_nearby_link}} in verbinding nie?",
+      "people_mapping_nearby": "nabygeleë karteerders",
+      "title": "In-vakkie"
+    },
+    "mark": {
+      "as_read": "Boodskap as gelees gemerk",
+      "as_unread": "Boodskap as ongelees gemerk"
+    },
+    "message_summary": {
+      "destroy_button": "Skrap",
+      "read_button": "Merk as gelees",
+      "reply_button": "Beantwoord",
+      "unread_button": "Merk as ongelees"
+    },
+    "messages_table": {
+      "date": "Datum",
+      "from": "Van",
+      "subject": "Onderwerp",
+      "to": "Aan"
+    },
+    "new": {
+      "back_to_inbox": "Terug na in-vakkie",
+      "send_message_to_html": "Stuur 'n nuwe boodskap aan {{name}}",
+      "title": "Stuur boodskap"
+    },
+    "no_such_message": {
+      "heading": "Geen so 'n boodskap nie",
+      "title": "Geen so 'n boodskap nie"
+    },
+    "outbox": {
+      "no_sent_messages_html": "U het nog geen boodskappe gestuur nie. Waarom tree u nie met sommige van die {{people_mapping_nearby_link}} in verbinding nie?",
+      "people_mapping_nearby": "nabygeleë karteerders",
+      "title": "Uit-vakkie"
+    },
+    "sent_message_summary": {
+      "destroy_button": "Skrap"
+    },
+    "show": {
+      "back": "Terug",
+      "destroy_button": "Skrap",
+      "reply_button": "Beantwoord",
+      "title": "Lees boodskap",
+      "unread_button": "Merk as ongelees"
+    }
+  },
+  "notes": {
+    "index": {
+      "created_at": "Geskep op",
+      "heading": "Notas van {{user}}",
+      "id": "Id",
+      "last_changed": "Laas gewysig",
+      "no_notes": "Geen notas"
+    },
+    "new": {
+      "add": "Voeg nota by",
+      "title": "Nuwe nota"
+    },
+    "show": {
+      "closed_title": "Opgeloste nota #{{note_name}}",
+      "comment": "Reageer",
+      "description": "Beskrywing",
+      "hidden_title": "Verborge nota #{{note_name}}",
+      "hide": "Versteek",
+      "open_title": "Onopgeloste nota #{{note_name}}",
+      "report": "Rapporteer hierdie nota",
+      "title": "Nota: {{id}}"
+    }
+  },
+  "oauth": {
+    "authorize": {
+      "allow_read_prefs": "u gebruikersvoorkeure lees.",
+      "allow_to": "Sta die kliëntprogram toe om:",
+      "allow_write_api": "die kaart wysig.",
+      "allow_write_diary": "skep dagboekinskrywings, lewer kommentaar en ontmoet vriende.",
+      "allow_write_gpx": "laai GPS-spore op.",
+      "allow_write_notes": "notas wysig.",
+      "allow_write_prefs": "jou gebruikersvoorkeure wysig.",
+      "grant_access": "Verleen toegang"
+    },
+    "authorize_failure": {
+      "denied": "U het die program {{app_name}} toegang tot u rekening geweier.",
+      "invalid": "Die magtigingsteken is ongeldig.",
+      "title": "Magtigingsversoek het misluk"
+    },
+    "authorize_success": {
+      "allowed_html": "U het die program {{app_name}} toegang tot u rekening verleen.",
+      "title": "Magtigingsversoek toegestaan",
+      "verification": "Die bevestigingskode is {{code}}"
+    },
+    "permissions": {
+      "missing": "U het nie die program toegang tot hierdie fasiliteit verleen nie."
+    },
+    "revoke": {
+      "flash": "U het die teken vir {{application}} teruggetrek."
+    },
+    "scopes": {
+      "read_prefs": "Gebruikersvoorkeure lees",
+      "write_api": "Die kaart wysig",
+      "write_diary": "skep dagboekinskrywings, lewer kommentaar en ontmoet vriende",
+      "write_gpx": "Laai GPS-spore op",
+      "write_notes": "Notas wysig",
+      "write_prefs": "Gebruikersvoorkeure wysig"
+    }
+  },
+  "oauth2_applications": {
+    "application": {
+      "confirm_delete": "Diehier program verwyder?",
+      "delete": "Skrap",
+      "edit": "Wysig"
+    },
+    "edit": {
+      "title": "Redigeer u program"
+    },
+    "index": {
+      "name": "Naam",
+      "permissions": "Regte"
+    },
+    "new": {
+      "title": "Registreer 'n nuwe toepassing"
+    },
+    "not_found": {
+      "sorry": "Jammer, die program kon nie gevind word."
+    },
+    "show": {
+      "confirm_delete": "Diehier program verwyder?",
+      "delete": "Skrap",
+      "edit": "Wysig",
+      "permissions": "Regte"
+    }
+  },
+  "oauth2_authorized_applications": {
+    "application": {
+      "revoke": "Herroep toegang"
+    },
+    "index": {
+      "permissions": "Regte"
+    }
+  },
+  "oauth_clients": {
+    "edit": {
+      "title": "Redigeer u program"
+    },
+    "form": {
+      "requests": "Versoek die volgende regte van die gebruiker:"
+    },
+    "index": {
+      "application": "Programnaam",
+      "issued_at": "Uitgereik op",
+      "my_apps": "My kliëntprogramme",
+      "oauth": "OAuth",
+      "register_new": "Registreer u program",
+      "revoke": "Herroep!",
+      "title": "My OAuth-gegewens"
+    },
+    "new": {
+      "title": "Registreer 'n nuwe toepassing"
+    },
+    "not_found": {
+      "sorry": "Jammer, die {{type}} kon nie gevind word."
+    },
+    "show": {
+      "access_url": "Toegangsteken-URL:",
+      "authorize_url": "Magtig URL:",
+      "confirm": "Is u seker?",
+      "edit": "Redigeer besonderhede",
+      "requests": "Versoek die volgende regte van die gebruiker:",
+      "secret": "Verbruikersgeheim:",
+      "title": "OAuth-besonderhede vir {{app_name}}",
+      "url": "Versoek teken-URL"
+    }
+  },
+  "passwords": {
+    "create": {
+      "notice email cannot find": "E-posadres is ongelukkig onverkrygbaar, jammer."
+    },
+    "edit": {
+      "heading": "Herstel wagwoord vir {{user}}",
+      "reset": "Herstel wagwoord",
+      "title": "Herstel wagwoord"
+    },
+    "new": {
+      "email address": "E-posadres:",
+      "heading": "Wagwoord vergeet?",
+      "new password button": "Herstel wagwoord",
+      "title": "Wagwoord verloor"
+    },
+    "update": {
+      "flash changed": "U wagwoord is gewysig."
+    }
+  },
+  "preferences": {
+    "edit": {
+      "cancel": "Kanselleer",
+      "save": "Opdateer voorkeure"
+    },
+    "show": {
+      "edit_preferences": "Wysig voorkeure",
+      "title": "My voorkeure"
+    }
+  },
+  "profiles": {
+    "edit": {
+      "cancel": "Kanselleer",
+      "home location": "Tuisligging",
+      "image": "Beeld",
+      "keep image": "Hou die huidige beeld",
+      "new image": "Voeg 'n beeld by",
+      "no home location": "U het nog geen tuisligging ingelees nie.",
+      "replace image": "Vervang die huidige beeld",
+      "save": "Opdateer profiel",
+      "title": "Wysig profiel",
+      "update home location on click": "Werk tuisligging by wanneer ek op die kaart klik?"
+    },
+    "update": {
+      "success": "Profiel opgedateer."
+    }
+  },
+  "redactions": {
+    "create": {
+      "flash": "Redaksie geskep."
+    },
+    "edit": {
+      "heading": "Redigeer redaksie"
+    },
+    "index": {
+      "heading": "Lys van redaksies",
+      "title": "Lys van redaksies"
+    },
+    "show": {
+      "confirm": "Is u seker?",
+      "edit": "Redigeer hierdie redaksie"
+    },
+    "update": {
+      "flash": "Wysigings gestoor."
+    }
+  },
+  "reports": {
+    "create": {
+      "provide_details": "Verskaf asseblief die vereiste besonderhede",
+      "successful_report": "U verslag is suksesvol geregistreer"
+    },
+    "new": {
+      "categories": {
+        "diary_comment": {
+          "offensive_label": "Hierdie kommentaar op die dagboek is obseen/afstootlik",
+          "other_label": "Ander",
+          "spam_label": "Hierdie kommentaar op die dagboek is/bevat strooipos",
+          "threat_label": "Hierdie dagboekinskrywing bevat 'n bedreiging"
+        },
+        "diary_entry": {
+          "offensive_label": "Hierdie dagboekinskrywing is obseen/aanstootlik",
+          "other_label": "Ander",
+          "spam_label": "Hierdie dagboekinskrywing is/bevat strooipos",
+          "threat_label": "Hierdie dagboekinskrywing bevat 'n bedreiging"
+        },
+        "note": {
+          "abusive_label": "Dié nota is beledigend",
+          "other_label": "Ander",
+          "personal_label": "Dié opmerking bevat persoonlike gegewens",
+          "spam_label": "Dié nota is spam"
+        },
+        "user": {
+          "offensive_label": "Dié gebruikersprofiel is onwelvoeglik / aanstootgewend",
+          "other_label": "Ander",
+          "spam_label": "Dié gebruikersprofiel is / bevat spam",
+          "threat_label": "Dié gebruikersprofiel bevat 'n bedreiging",
+          "vandal_label": "Dié gebruiker is 'n vandaal"
+        }
+      },
+      "disclaimer": {
+        "intro": "Voordat u die verslag aan die moderator van die werf stuur, moet u eers seker maak van die volgende:",
+        "not_just_mistake": "U weet dat die probleem nie net 'n fout is nie",
+        "resolve_with_user": "U het reeds probeer om die probleem met die betrokke gebruiker op te los",
+        "unable_to_fix": "U kan nie die probleem self of met die hulp van u mede-gemeenskapslede oplos nie"
+      },
+      "missing_params": "Kan nie 'n nuwe verslag skep nie",
+      "title_html": "Rapporteer {{link}}"
+    }
+  },
+  "sessions": {
+    "destroy": {
+      "heading": "Meld van OpenStreetMap af",
+      "logout_button": "Teken af",
+      "title": "Teken af"
+    },
+    "new": {
+      "auth failure": "Jammer, kon nie met hierdie inligting aanmeld nie.",
+      "auth_providers": {
+        "aol": {
+          "alt": "Meld aan met ’n AOL-OpenID",
+          "title": "Meld aan met AOL"
+        },
+        "facebook": {
+          "alt": "Meld aan met ’n Facebook-rekening",
+          "title": "Meld aan met Facebook"
+        },
+        "github": {
+          "alt": "Meld aan met ’n GitHub-rekening",
+          "title": "Meld aan met GitHub"
+        },
+        "google": {
+          "alt": "Meld aan met 'n Google-OpenID",
+          "title": "Meld aan met Google"
+        },
+        "microsoft": {
+          "alt": "Meld aan met ’n Windows Live-rekening",
+          "title": "Meld aan met Windows Live"
+        },
+        "openid": {
+          "alt": "Meld aan met 'n OpenID-URL",
+          "title": "Meld aan met OpenID"
+        },
+        "wikipedia": {
+          "alt": "Meld aan met ’n Wikipedia-rekening",
+          "title": "Meld aan met Wikipedia"
+        },
+        "wordpress": {
+          "alt": "Meld aan met ’n Wordpress-OpenID",
+          "title": "Meld aan met Wordpress"
+        }
+      },
+      "email or username": "E-posadres of gebruikernaam:",
+      "heading": "Meld aan",
+      "login_button": "Meld aan",
+      "lost password link": "Wagwoord vergeet?",
+      "no account": "Nog nie geregistreer nie?",
+      "openid_logo_alt": "Meld aan met 'n OpenID",
+      "password": "Wagwoord:",
+      "register now": "Registreer nou",
+      "remember": "Onthou my",
+      "title": "Meld aan",
+      "with external": "Gebruik andersins ’n derde party om mee aan te meld:"
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "heading": "Opskrif",
+      "headings": "Opskrifte",
+      "image": "Beeld",
+      "link": "Skakel",
+      "text": "Teks",
+      "url": "URL"
+    },
+    "richtext_field": {
+      "edit": "Wysig",
+      "preview": "Voorskou"
+    }
+  },
+  "site": {
+    "about": {
+      "community_driven_title": "Gemeenskapsgedrewe",
+      "legal_title": "Regsaspekte",
+      "local_knowledge_title": "Plaaslike kennis",
+      "next": "Volgende",
+      "open_data_title": "Open Data",
+      "partners_title": "Vennote"
+    },
+    "any_questions": {
+      "title": "Enige vrae?"
+    },
+    "copyright": {
+      "foreign": {
+        "title": "Aangaande dié vertaling"
+      },
+      "legal_babble": {
+        "contributors_title_html": "Ons bydraers",
+        "credit_title_html": "Hoe om na OpenStreetMap te verwys",
+        "infringement_title_html": "Kopieregoortreding",
+        "title_html": "Kopiereg en lisensie"
+      },
+      "native": {
+        "mapping_link": "begin karteer",
+        "native_link": "Afrikaanse weergawe",
+        "title": "Aangaande dié blad"
+      }
+    },
+    "edit": {
+      "anon_edits_link_text": "Lees waarom dit so is.",
+      "user_page_link": "gebruikersbladsy"
+    },
+    "export": {
+      "export_button": "Voer uit",
+      "licence": "Lisensie",
+      "manually_select": "Kies self 'n ander area",
+      "title": "Voer Uit",
+      "too_large": {
+        "advice": "As die uitvoering hierbo misluk, oorweeg gerus een van die volgende bronne:",
+        "body": "Hierdie gebied is te groot om as OpenStreenMap XML-data uitgevoer te word. Zoem in of kies 'n kleiner gebied. Wend andersins een van die bronne hieronder aan om massas data af te laai.",
+        "planet": {
+          "title": "Planeet OSM"
+        }
+      }
+    },
+    "fixthemap": {
+      "how_to_help": {
+        "join_the_community": {
+          "title": "Sluit by die gemeenskap aan"
+        },
+        "title": "Hoe om te help"
+      },
+      "other_concerns": {
+        "title": "Ander aangeleenthede"
+      },
+      "title": "Rapporteer 'n probleem / Corrigeer die kaart"
+    },
+    "help": {
+      "beginners_guide": {
+        "title": "Gids vir beginners"
+      },
+      "help": {
+        "title": "Help Forum"
+      },
+      "irc": {
+        "title": "IRC"
+      },
+      "mailing_lists": {
+        "title": "Poslyste"
+      },
+      "switch2osm": {
+        "title": "switch2osm"
+      },
+      "welcome": {
+        "title": "Welkom by OpenStreetMap",
+        "url": "/welcome"
+      },
+      "wiki": {
+        "title": "OpenStreetMap-wiki"
+      }
+    },
+    "index": {
+      "createnote": "Voeg 'n nota by",
+      "permalink": "Perma-skakel",
+      "shortlink": "Kortskakel"
+    },
+    "key": {
+      "table": {
+        "entry": {
+          "admin": "Administratiewe grens",
+          "allotments": "Volkstuine",
+          "apron": "Lughaweplatform",
+          "bicycle_parking": "Fietsparkering",
+          "bicycle_shop": "Fietswinkel",
+          "bridge": "Swart omhulsel = brug",
+          "bridleway": "Ruiterpad",
+          "brownfield": "Braakveldterrein",
+          "building": "Betekenisvolle gebou",
+          "cable_car": "Sweefspoor",
+          "cemetery": "Begraafplaas",
+          "centre": "Sportsentrum",
+          "chair_lift": "stoelhyser",
+          "commercial": "Handelsgebied",
+          "common": "Gemeen",
+          "construction": "Wege in aanbou",
+          "cycleway": "Fietspad",
+          "cycleway_national": "Nasionale fietsroete",
+          "destination": "Bestemmingsverkeer",
+          "farm": "Plaas",
+          "footway": "Voetpad",
+          "forest": "Woud",
+          "golf": "Gholfbaan",
+          "heathland": "Heide",
+          "industrial": "Nywerheidsgebied",
+          "lake": "Meer",
+          "main_road": "Hoofweg",
+          "military": "Militêre gebied",
+          "motorway": "Snelweg",
+          "park": "Park",
+          "peak": "piek",
+          "pitch": "Sportveld",
+          "primary": "Primêre weg",
+          "private": "Privaat toegang",
+          "rail": "Spoorweg",
+          "reserve": "Natuurreservaat",
+          "reservoir": "reservoir",
+          "resident": "Woongebied",
+          "retail": "Kleinhandel-gebied",
+          "runway": "Aanloopbaan",
+          "school": "Skool",
+          "secondary": "Sekondêre pad",
+          "station": "Spoorwegstasie",
+          "subway": "Ondergrondse spoorweg",
+          "summit": "Piek",
+          "taxiway": "vliegtuigrybaan",
+          "toilets": "Toilette",
+          "track": "Spoor",
+          "trunk": "Hoofroete",
+          "tunnel": "Strepieomhulsel = tonnel",
+          "unclassified": "Ongeklassifiseerde weg",
+          "university": "universiteit",
+          "wood": "Bos"
+        }
+      }
+    },
+    "search": {
+      "from": "Van",
+      "get_directions": "Kry rigtingaanwysings",
+      "get_directions_title": "Kry rigtingaanwysings tussen twee punte",
+      "search": "Soek",
+      "submit_text": "Soek",
+      "to": "Na",
+      "where_am_i": "Waar is dié?"
+    },
+    "sidebar": {
+      "close": "Sluit",
+      "search_results": "Soekuitslae"
+    },
+    "welcome": {
+      "add_a_note": {
+        "title": "Geen tyd om te redigeer nie? Voeg 'n nota by!"
+      },
+      "basic_terms": {
+        "paragraph_1": "OpenStreetMap bevat 'n gedeelte van ons eie vakbegrippe. Hier is 'n paar wat handig te pas sal kom.",
+        "title": "Grondliggende terme vir kartering"
+      },
+      "rules": {
+        "title": "Reëls!"
+      },
+      "start_mapping": "Begin karteer",
+      "title": "Welkom!"
+    }
+  },
+  "time": {
+    "formats": {
+      "friendly": "%e %B %Y om %H:%M"
+    }
+  },
+  "traces": {
+    "create": {
+      "upload_trace": "Laai GPS-spore op"
+    },
+    "destroy": {
+      "scheduled_for_deletion": "Spoor is vir verwydering geoormerk"
+    },
+    "edit": {
+      "cancel": "Kanselleer",
+      "heading": "Wysig spoor {{name}}",
+      "title": "Redigeer tans spoor {{name}}",
+      "visibility_help": "wat beteken dit?"
+    },
+    "index": {
+      "my_traces": "My Spore",
+      "public_traces": "Openbare GPS-spore",
+      "public_traces_from": "Openbare GPS-spore van {{user}}",
+      "tagged_with": "gemerk met {{tags}}",
+      "traces_from": "Openbare spore van {{user}}",
+      "upload_trace": "Laai 'n GPS-spoor op"
+    },
+    "make_public": {
+      "made_public": "Spoor is openbaar gemaak"
+    },
+    "new": {
+      "help": "Hulp",
+      "upload_trace": "Laai GPS-spore op",
+      "visibility_help": "wat beteken dit?"
+    },
+    "show": {
+      "confirm_delete": "Hierdie spoor verwyder?",
+      "coordinates_html": "{{latitude}}; {{longitude}}",
+      "delete_trace": "Verwyder hierdie spoor",
+      "description": "Beskrywing:",
+      "download": "laai af",
+      "edit": "redigeer",
+      "edit_trace": "Wysig hierdie spoor",
+      "filename": "Lêernaam:",
+      "heading": "Besigtig spoor {{name}}",
+      "map": "kaart",
+      "none": "Geen",
+      "owner": "Eienaar:",
+      "pending": "HANGEND",
+      "points": "Punte:",
+      "start_coordinates": "Beginkoördinaat:",
+      "tags": "Merkers:",
+      "title": "Beskou spoor {{name}}",
+      "trace_not_found": "Spoor onverkrygbaar!",
+      "uploaded": "Opgelaai:",
+      "visibility": "Sigbaarheid:"
+    },
+    "trace": {
+      "by": "deur",
+      "count_points": "{{count}} punte",
+      "edit_map": "Redigeer kaart",
+      "identifiable": "IDENTIFISEERBAAR",
+      "in": "in",
+      "more": "meer",
+      "pending": "HANGEND",
+      "private": "PRIVAAT",
+      "public": "OPENBAAR",
+      "trace_details": "Wys besonderhede van die spoor",
+      "view_map": "Wys kaart"
+    },
+    "trace_optionals": {
+      "tags": "Merkers"
+    },
+    "update": {
+      "updated": "Spore opgedateer"
+    }
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Redigeer",
+      "not_revoked": "(nie herroep nie)",
+      "revoke": "Herroep!",
+      "show": "Wys"
+    },
+    "blocks": {
+      "creator_name": "Skepper",
+      "display_name": "Versperde gebruiker",
+      "next": "Volgende »",
+      "previous": "« Vorige",
+      "reason": "Rede vir die versperring",
+      "revoker_name": "Herroep deur",
+      "showing_page": "Bladsy {{page}}",
+      "status": "Status"
+    },
+    "blocks_by": {
+      "empty": "{{name}} het nog niemand versper nie.",
+      "heading_html": "Lys van versperrings deur {{name}}",
+      "title": "Versperrings deur {{name}}"
+    },
+    "blocks_on": {
+      "empty": "{{name}} is nog nooit versper nie.",
+      "heading_html": "Lys van versperrings teen {{name}}",
+      "title": "Versperrings op {{name}}"
+    },
+    "create": {
+      "flash": "Het gebruiker {{name}} versper."
+    },
+    "edit": {
+      "back": "Wys alle versperrings",
+      "heading_html": "Redigeer versperring op {{name}}",
+      "show": "Wys dié versperring",
+      "title": "Redigeer versperring op {{name}}"
+    },
+    "helper": {
+      "block_duration": {
+        "days_one": "1 dag",
+        "days_other": "{{count}} dae",
+        "hours_one": "1 uur",
+        "hours_other": "{{count}} ure",
+        "months_one": "1 maand",
+        "months_other": "{{count}} maande",
+        "weeks_one": "1 week",
+        "weeks_other": "{{count}} weke"
+      },
+      "time_future_html": "Tyd oor {{time}} verstreke.",
+      "time_past_html": "Tyd is {{time}} gelede verstreke.",
+      "until_login": "Aktief totdat die gebruiker aanmeld."
+    },
+    "index": {
+      "empty": "Niemand is nog versper nie.",
+      "heading": "Lys van gebruikersversperrings",
+      "title": "Gebruikerversperrings"
+    },
+    "new": {
+      "back": "Wys alle versperrings",
+      "heading_html": "Skep versperring op {{name}}"
+    },
+    "not_found": {
+      "back": "Terug na die register",
+      "sorry": "Jammer, die gebruiker met ID {{id}} kon nie gevind word."
+    },
+    "revoke": {
+      "confirm": "Wil u definitief hierdie versperring herroep?",
+      "flash": "Hierdie versperring is herroep.",
+      "revoke": "Herroep!",
+      "time_future_html": "Diehier versperring sal tyd oor {{time}} verstreke."
+    },
+    "show": {
+      "back": "Wys alle versperrings",
+      "confirm": "Is u seker?",
+      "created": "Geskep:",
+      "edit": "Redigeer",
+      "heading_html": "{{block_on}} is deur {{block_by}} versper",
+      "needs_view": "Die gebruiker moet aanmeld alvorens hierdie versperring verwyder sal word.",
+      "reason": "Rede agter die versperring:",
+      "revoke": "Herroep!",
+      "revoker": "Herroep deur:",
+      "show": "Wys",
+      "status": "Status",
+      "title": "{{block_on}} is deur {{block_by}} versper"
+    },
+    "update": {
+      "success": "Versperring bygewerk."
+    }
+  },
+  "user_mailer": {
+    "changeset_comment_notification": {
+      "commented": {
+        "partial_changeset_with_comment": "met kommentaar '{{changeset_comment}}'",
+        "partial_changeset_with_comment_html": "met kommentaar '{{changeset_comment}}'"
+      },
+      "greeting": "Hallo,",
+      "hi": "Hallo {{to_user}},"
+    },
+    "diary_comment_notification": {
+      "header": "{{from_user}} het kommentaar op die OpenStreetMap-dagboekinskrywing met die tema {{subject}} gelewer:",
+      "hi": "Hallo {{to_user}},",
+      "subject": "[OpenStreetMap] {{user}} het kommentaar op 'n dagboekinskrywing gelewer"
+    },
+    "email_confirm": {
+      "greeting": "Hallo,",
+      "subject": "[OpenStreetMap] Bevestig u e-posadres"
+    },
+    "friendship_notification": {
+      "hi": "Hallo {{to_user}},",
+      "subject": "[OpenStreetMap] {{user}} het u as 'n vriend bygevoeg"
+    },
+    "gpx_failure": {
+      "hi": "Hallo {{to_user}},"
+    },
+    "gpx_success": {
+      "hi": "Hallo {{to_user}},"
+    },
+    "lost_password": {
+      "click_the_link": "As dit u is, klik die onderstaande skakel om u wagwoord te herstel.",
+      "greeting": "Hallo,",
+      "subject": "[OpenStreetMap] Versoek om wagwoord te herstel"
+    },
+    "message_notification": {
+      "hi": "Hallo {{to_user}},",
+      "subject": "[OpenStreetMap] {{message_title}}"
+    },
+    "note_comment_notification": {
+      "anonymous": "'n Anonieme gebruiker",
+      "greeting": "Hallo,"
+    },
+    "signup_confirm": {
+      "confirm": "Voordat ons iets doen, moet ons bevestig dat u dié versoek gerig het. Indien wel, klik op die skakel hier onder om u rekenening te bevestig.",
+      "created": "Iemand (hopelik u) het pas 'n rekening op {{site_url}} geskep.",
+      "greeting": "Hallo!",
+      "subject": "[OpenStreetMap] Welkom by OpenStreetMap",
+      "welcome": "Nadat u u rekening bevestig het, bied ons u graag  addisionele inligting sodat u kan wegtrek."
+    }
+  },
+  "user_role": {
+    "grant": {
+      "confirm": "Bevestig",
+      "heading": "Bevestig toekenning van rol",
+      "title": "Bevestig toekenning van rol"
+    },
+    "revoke": {
+      "confirm": "Bevestig",
+      "heading": "Bevestig herroeping van rol",
+      "title": "Bevestig herroeping van rol"
+    }
+  },
+  "users": {
+    "auth_failure": {
+      "no_authorization_code": "Geen matigingskode"
+    },
+    "index": {
+      "confirm": "Bevestig geselekteerde gebruikers",
+      "empty": "Geen gebruikers gevind nie",
+      "heading": "Gebruikers",
+      "hide": "Versteek verkose gebruikers",
+      "showing_one": "Bladsy {{page}} ({{first_item}} van {{items}})",
+      "showing_other": "Bladsy {{page}} ({{first_item}}-{{last_item}} van {{items}})",
+      "summary_html": "{{name}} geskep vanaf {{ip_address}} op {{date}}",
+      "summary_no_ip_html": "{{name}} geskep op {{date}}",
+      "title": "Gebruikers"
+    },
+    "new": {
+      "about": {
+        "header": "Gratis en redigeerbaar"
+      },
+      "continue": "Meld aan",
+      "display name description": "U gebruikernaam wat openbaar verskyn. U kan dit wel later nog onder voorkeure wysig.",
+      "terms accepted": "Dankie dat u die nuwe bydraerooreenkoms aanvaar het!",
+      "title": "Meld aan",
+      "use external auth": "Gebruik andersins 'n derde party om mee aan te meld"
+    },
+    "no_such_user": {
+      "body": "Daar is geen gebruiker met die naam {{user}} nie. Gaan die spelling na, of u het moontlik op 'n foutiewe skakel geklik.",
+      "deleted": "Geskrap",
+      "heading": "Die gebruiker {{user}} bestaan nie",
+      "title": "Geen so 'n gebruiker nie"
+    },
+    "show": {
+      "activate_user": "Aktiveer hierdie gebruiker",
+      "add as friend": "Voeg by as vriend",
+      "block_history": "Aktiewe Versperrings",
+      "blocks by me": "Versperrings deur u",
+      "blocks on me": "Versperrings vir u",
+      "comments": "Kommentaar",
+      "confirm": "Bevestig",
+      "confirm_user": "Bevestig dié gebruiker",
+      "create_block": "Versper hierdie gebruiker",
+      "created from": "Geskep vanaf:",
+      "ct status": "Bydraervoorwaardes:",
+      "delete_user": "Skrap dié Gebruiker",
+      "diary": "Dagboek",
+      "edit_profile": "Wysig profiel",
+      "edits": "Wysigings",
+      "email address": "E-posadres:",
+      "hide_user": "Versteek hierdie gebruiker",
+      "mapper since": "Karteerder sedert:",
+      "moderator_history": "Uitgevoerde Versperrings",
+      "my comments": "My kommentaar",
+      "my diary": "My Dagboek",
+      "my edits": "My Wysigings",
+      "my notes": "My notas",
+      "my profile": "My profiel",
+      "my settings": "My Instellings",
+      "my traces": "My Spore",
+      "my_dashboard": "My paneelbord",
+      "my_preferences": "My voorkeure",
+      "notes": "Kaartnotas",
+      "remove as friend": "Verwyder as vriend",
+      "report": "Rapporteer hierdie gebruiker",
+      "role": {
+        "administrator": "Hierdie gebruiker is 'n administrateur",
+        "grant": {
+          "administrator": "Ken adminregte toe",
+          "moderator": "Ken moderatorregte toe"
+        },
+        "moderator": "Hierdie gebruiker is 'n moderator",
+        "revoke": {
+          "administrator": "Herroep adminregte",
+          "moderator": "Herroep moderatorregte"
+        }
+      },
+      "send message": "Stuur boodskap",
+      "spam score": "SPAM-telling:",
+      "status": "Status:",
+      "traces": "Spore",
+      "unhide_user": "Wys hierdie gebruiker"
+    },
+    "terms": {
+      "continue": "Gaan voort",
+      "decline": "Weier",
+      "heading": "Voorwaardes",
+      "heading_ct": "Bydraervoorwaardes",
+      "legale_names": {
+        "france": "Frankryk",
+        "italy": "Italië",
+        "rest_of_world": "Die res van die wêreld"
+      },
+      "title": "Voorwaardes"
+    },
+    "terms_declined_flash": {
+      "terms_declined_link": "diehier wiki-bladsy"
+    }
+  }
+}

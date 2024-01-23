@@ -1,0 +1,25 @@
+{
+  "geocoder": {
+    "search_osm_nominatim": {
+      "prefix": {
+        "natural": {
+          "atoll": "Odolgeengoo",
+          "peninsula": "Edegoo"
+        },
+        "place": {
+          "archipelago": "Tudoola"
+        }
+      }
+    }
+  },
+  "messages": {
+    "heading": {
+      "my_outbox": "Aldulaaba Kiyya"
+    }
+  },
+  "traces": {
+    "edit": {
+      "cancel": "Dhiisi"
+    }
+  }
+}

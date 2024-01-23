@@ -1,0 +1,20 @@
+{
+  "activerecord": {
+    "errors": {
+      "messages": {
+        "display_name_is_user_n": "dili mahimong user_n gawas kung n ang imong user id"
+      }
+    }
+  },
+  "passwords": {
+    "new": {
+      "email address": "Address sa Email"
+    }
+  },
+  "sessions": {
+    "new": {
+      "email or username": "Email Address o Username",
+      "password": "Password"
+    }
+  }
+}

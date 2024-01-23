@@ -1,0 +1,115 @@
+{
+  "activerecord": {
+    "errors": {
+      "models": {
+        "user_mute": {
+          "is_already_muted": "A pugum Yu mɛ"
+        }
+      }
+    }
+  },
+  "application": {
+    "settings_menu": {
+      "muted_users": "Yu tuntuneba"
+    }
+  },
+  "dashboards": {
+    "show": {
+      "title": "Ma Dasibɔɔde"
+    }
+  },
+  "messages": {
+    "heading": {
+      "muted_messages": "Yu lahebaari"
+    },
+    "message_summary": {
+      "unmute_button": "Vi'e siŋɛ puan daka la puan"
+    },
+    "messages_table": {
+      "actions": "Tuna bii ita"
+    },
+    "muted": {
+      "messages_one": "{{count}} muted message",
+      "messages_other": "You have {{count}} muted messages",
+      "title": "Yu lahebaari"
+    },
+    "outbox": {
+      "actions": "Tuna bii ita"
+    },
+    "unmute": {
+      "error": "Lahebaari la ka ta'am siŋɛ puan daka la puan",
+      "notice": "Lahebaari la nyaa siŋɛ puan daka la puan"
+    }
+  },
+  "notes": {
+    "show": {
+      "log_in_to_comment": "Mɛ puan LA fu pa'asɛ fu puti'irɛ gulesegɔ wa puan"
+    }
+  },
+  "oauth": {
+    "scopes": {
+      "read_email": "Kaanlɛ yusa imeeli adɛresi",
+      "write_redactions": "Girego yɛsega mapi deeta"
+    }
+  },
+  "shared": {
+    "markdown_help": {
+      "codeblock": "Ba gu cooti la mɛ"
+    }
+  },
+  "site": {
+    "key": {
+      "table": {
+        "entry": {
+          "capital": "Nyu'ɔ",
+          "chair_lift": "Kuka gɔbega",
+          "city": "Tinkatɛ",
+          "cycleway_mtb": "'Mountain bike route'",
+          "hospital": "Dɔgeta yire",
+          "meadow": "Muurɔ zi'an",
+          "peak": "'Peak'",
+          "pedestrian": "Sinɛ zi'an",
+          "reservoir": "Lɔgerɔ ga'a zi'an bii mɔgerɛ",
+          "taxiway": "Tagezi zi'an",
+          "university": "Yunivɛsiti",
+          "vineyard": "'Vineyard'",
+          "wood": "Dɔɔ"
+        }
+      }
+    }
+  },
+  "user_mutes": {
+    "create": {
+      "error": "{{name}} ka ta'am yu. {{full_message}}.",
+      "notice": "Fu yu {{name}}."
+    },
+    "destroy": {
+      "error": "Tuntuna la ka nyaŋɛ yo'e amiŋa. N beleni mɛ malum zigɛ bisɛ",
+      "notice": "Fu yo'e {{name}}."
+    },
+    "index": {
+      "my_muted_users": "Man tuntuneba sɛba n yu",
+      "table": {
+        "tbody": {
+          "send_message": "Dikɛ lahebaari la ta'asɛ",
+          "unmute": "Yo'e"
+        },
+        "thead": {
+          "actions": "Tuna bii ita",
+          "muted_user": "Tuntuneba sɛba n yu"
+        }
+      },
+      "title": "Yu tuntuneba",
+      "user_mute_admins_and_moderators": "Fu ta'am you fire la duma la sɛba n biseri la dee ba lahebaari duma man ta'am yu",
+      "user_mute_explainer": "Tuntuna mina ti ba yu lahebaari ni siŋɛ la a ma'a puan daka la puan dee fu me man nyɛ imeeli lahebaari yelesum la",
+      "you_have_muted_n_users_one": "You have muted {{count}} User",
+      "you_have_muted_n_users_other": "You have muted {{count}} users"
+    }
+  },
+  "users": {
+    "show": {
+      "create_mute": "Yu Tuntuna kana",
+      "destroy_mute": "Yo'e Tuntuna kana"
+    }
+  }
+}

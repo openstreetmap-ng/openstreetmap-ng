@@ -1,0 +1,73 @@
+{
+  "activerecord": {
+    "attributes": {
+      "diary_entry": {
+        "language_code": "Kieli",
+        "latitude": "Levehyš",
+        "longitude": "Pituš",
+        "title": "Aihe",
+        "user": "Käyttäjä"
+      },
+      "friend": {
+        "friend": "Yštävä",
+        "user": "Käyttäjä"
+      },
+      "message": {
+        "body": "Teksti",
+        "recipient": "Vaštahottaja",
+        "sender": "Työntäjä",
+        "title": "Aihe"
+      },
+      "trace": {
+        "description": "Kuvauš",
+        "latitude": "Levehyš",
+        "longitude": "Pituš",
+        "name": "Nimi",
+        "public": "Julkini",
+        "size": "Koko",
+        "user": "Käyttäjä",
+        "visible": "Näkyvyš"
+      },
+      "user": {
+        "active": "Aktiivini",
+        "description": "Kuvauš",
+        "display_name": "Näytön nimi",
+        "email": "Šähköpošti",
+        "languages": "Kielet",
+        "pass_crypt": "Šalašana"
+      }
+    },
+    "models": {
+      "changeset": "Muutoškokoelma",
+      "changeset_tag": "Muutoškokoelman tagi",
+      "country": "Mua",
+      "diary_comment": "Päiväkirjakommentti",
+      "diary_entry": "Päiväkirjamerkintä",
+      "friend": "Yštävä",
+      "language": "Kieli",
+      "message": "Viesti",
+      "node": "Piste",
+      "node_tag": "Pistehen tagi",
+      "old_node": "Vanha poste",
+      "old_node_tag": "Vanha pistehen tagi",
+      "old_relation": "Vanha šuhteh",
+      "old_relation_member": "Vanha šuhtehen jäšen",
+      "old_relation_tag": "Vanha šuhtehen tagi",
+      "session": "Iššunto",
+      "user": "Käyttäjä"
+    }
+  },
+  "editor": {
+    "default": "Oletuš (tällä hetkellä {{name}})"
+  },
+  "user_blocks": {
+    "block": {
+      "edit": "Kohentele"
+    }
+  },
+  "users": {
+    "show": {
+      "edits": "Kohennukšet"
+    }
+  }
+}
