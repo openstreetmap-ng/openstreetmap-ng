@@ -11,6 +11,7 @@ from sqlalchemy.orm import load_only
 
 from app.db import DB
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
@@ -19,7 +20,6 @@ from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
-from app.utils import utcnow
 
 # TODO 0.7 don't reuse placeholder ids for simplicity
 

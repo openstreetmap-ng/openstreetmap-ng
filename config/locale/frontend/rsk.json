@@ -1,9 +1,1 @@
-{
-  "account": {
-    "deletions": {
-      "show": {
-        "confirm_delete": "Сиґурни сце?"
-      }
-    }
-  }
-}
+{"account":{"deletions":{"show":{"confirm_delete":"Сиґурни сце?"}}}}

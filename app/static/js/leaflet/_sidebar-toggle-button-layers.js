@@ -1,9 +1,9 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
+import { getMapBaseLayerId } from "../_map-utils.js"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_params.js"
 import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
-import { getLatLngBoundsSize, getMapBaseLayerId } from "./_utils.js"
 
 const minimapZoomOut = 2
 

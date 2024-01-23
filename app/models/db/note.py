@@ -8,6 +8,7 @@ from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config import APP_URL
+from app.lib.date_utils import utcnow
 from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
@@ -15,7 +16,6 @@ from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry_type import PointType
 from app.models.note_status import NoteStatus
-from app.utils import utcnow
 
 
 # TODO: ensure updated at on members

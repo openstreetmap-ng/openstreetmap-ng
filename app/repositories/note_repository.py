@@ -6,11 +6,11 @@ from sqlalchemy import func, null, select
 
 from app.db import DB
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import utcnow
 from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
-from app.utils import utcnow
 
 
 class NoteRepository:

@@ -19,7 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.config import APP_URL, DEFAULT_LANGUAGE
+from app.config import APP_URL
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
@@ -39,7 +39,6 @@ from app.models.db.cache_entry import CacheEntry
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry_type import PointType
-from app.models.locale_name import LocaleName
 from app.models.scope import ExtendedScope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole

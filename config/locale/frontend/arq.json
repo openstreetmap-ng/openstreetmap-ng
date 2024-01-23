@@ -1,13 +1,1 @@
-{
-  "activerecord": {
-    "models": {
-      "country": "بلاد"
-    }
-  },
-  "html": {
-    "dir": "rtl"
-  },
-  "layouts": {
-    "home": "روح لل پاجة اللولانيّة"
-  }
-}
+{"activerecord":{"models":{"country":"بلاد"}},"html":{"dir":"rtl"},"layouts":{"home":"روح لل پاجة اللولانيّة"}}

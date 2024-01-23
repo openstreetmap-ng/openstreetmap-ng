@@ -1,14 +1,1 @@
-{
-  "activerecord": {
-    "attributes": {
-      "trace": {
-        "size": "Grösse"
-      }
-    }
-  },
-  "browse": {
-    "query": {
-      "enclosing": "Einschliessende Objekte"
-    }
-  }
-}
+{"activerecord":{"attributes":{"trace":{"size":"Grösse"}}},"browse":{"query":{"enclosing":"Einschliessende Objekte"}}}

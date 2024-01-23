@@ -7,6 +7,7 @@ i18next.use(HttpApi).init({
     fallbackLng: languages.slice(-1)[0], // last language is always the default language
     supportedLngs: languages,
     backend: {
+        // TODO: hash per locale file
         loadPath: `/static-locale/${localeVersion}/{{lng}}.json`,
         requestOptions: {
             mode: "no-cors",

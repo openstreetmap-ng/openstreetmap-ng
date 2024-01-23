@@ -8,6 +8,7 @@ from pydantic import PositiveInt
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
+from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.joinedload_context import joinedload_context
@@ -23,7 +24,6 @@ from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
-from app.utils import parse_date
 
 router = APIRouter()
 

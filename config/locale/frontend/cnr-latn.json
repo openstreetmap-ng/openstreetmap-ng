@@ -1,9 +1,1 @@
-{
-  "activerecord": {
-    "attributes": {
-      "friend": {
-        "user": "Korisnik"
-      }
-    }
-  }
-}
+{"activerecord":{"attributes":{"friend":{"user":"Korisnik"}}}}

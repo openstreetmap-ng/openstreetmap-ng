@@ -2,13 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from app.utils import (
-    extend_query_params,
-    format_iso_date,
-    format_sql_date,
-    parse_date,
-    unicode_normalize,
-)
+from app.utils import extend_query_params, unicode_normalize
 
 pytestmark = pytest.mark.anyio
 

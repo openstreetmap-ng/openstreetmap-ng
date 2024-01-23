@@ -9,7 +9,7 @@ import cython
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
-from app.utils import format_iso_date, utcnow
+from app.lib.date_utils import format_iso_date, utcnow
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, floor

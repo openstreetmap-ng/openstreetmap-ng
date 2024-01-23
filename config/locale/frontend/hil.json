@@ -1,9 +1,1 @@
-{
-  "helpers": {
-    "submit": {
-      "issue_comment": {
-        "create": "Mag commentar"
-      }
-    }
-  }
-}
+{"helpers":{"submit":{"issue_comment":{"create":"Mag commentar"}}}}

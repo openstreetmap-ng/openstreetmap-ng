@@ -5,8 +5,9 @@ from uuid import UUID
 
 import msgspec
 
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER, utcnow
+from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
 class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):

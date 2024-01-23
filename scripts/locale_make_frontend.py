@@ -56,7 +56,7 @@ async def convert_style():
         await (_frontend_dir / path.name).write_bytes(
             orjson.dumps(
                 data,
-                option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
+                option=orjson.OPT_SORT_KEYS,
             )
         )
         print(f'[✅] {path.stem!r}: converted style')

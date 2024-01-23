@@ -1,13 +1,1 @@
-{
-  "layouts": {
-    "partners_ucl": "UCL"
-  },
-  "profiles": {
-    "edit": {
-      "gravatar": {
-        "disabled": "Gravatar अक्षम अरियो।",
-        "enabled": "तमरा Gravatarओ दृश्य सक्षम अरियो।"
-      }
-    }
-  }
-}
+{"layouts":{"partners_ucl":"UCL"},"profiles":{"edit":{"gravatar":{"disabled":"Gravatar अक्षम अरियो।","enabled":"तमरा Gravatarओ दृश्य सक्षम अरियो।"}}}}

@@ -6,12 +6,12 @@ from shapely import Point
 
 from app.config import API_URL
 from app.format06.geometry_mixin import Geometry06Mixin
+from app.lib.date_utils import format_sql_date
 from app.lib.format_style_context import format_style
 from app.lib.translation import render
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.format_style import FormatStyle
-from app.utils import format_sql_date
 
 
 # this is faster than using `shapely.geometry.mapping`.

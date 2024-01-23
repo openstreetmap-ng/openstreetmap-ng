@@ -1,4 +1,4 @@
-import { Context } from "@rapideditor/rapid"
+import "@rapideditor/rapid"
 import { apiUrl, primaryLanguage, rapidVersion } from "./_params.js"
 
 const rapidContainer = document.querySelector(".rapid-container")
@@ -6,7 +6,7 @@ if (rapidContainer) {
     const params = rapidContainer.dataset
 
     // Create and configure app context
-    const ctx = new Context()
+    const ctx = new window.Rapid.Context()
     ctx.preauth = {
         url: parent.location.origin,
         apiUrl: apiUrl,
@@ -20,8 +20,8 @@ if (rapidContainer) {
 
     ctx.containerNode = rapidContainer
     ctx.assetPath = `/static-rapid/${rapidVersion}/`
+    ctx.locale = primaryLanguage
     ctx.embed(true)
-    ctx.locale(primaryLanguage)
 
     ctx.initAsync().then(() => {
         const map = ctx.systems.map

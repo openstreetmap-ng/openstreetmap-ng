@@ -81,7 +81,7 @@ SMTP_SECURE = os.getenv('SMTP_SECURE', '0' if SMTP_PORT == 25 else '1').strip().
 SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else ''
 SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else ''
 
-LOCALE_FRONTEND_VERSION = directory_hash(LOCALE_DIR / 'frontend')
+LOCALE_FRONTEND_VERSION = directory_hash(LOCALE_DIR / 'frontend', strict=False)
 ID_VERSION = get_yarn_lock_version('iD')
 RAPID_VERSION = get_yarn_lock_version('@rapideditor/rapid')
 

@@ -8,13 +8,13 @@ from shapely import Point
 from shapely.ops import unary_union
 
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_type import ElementType
 from app.models.typed_element_ref import TypedElementRef
 from app.repositories.element_repository import ElementRepository
-from app.utils import utcnow
 
 
 class OptimisticDiffPrepare:

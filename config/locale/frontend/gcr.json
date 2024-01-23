@@ -1,12 +1,1 @@
-{
-  "activerecord": {
-    "attributes": {
-      "user": {
-        "languages": "Lanng"
-      }
-    }
-  },
-  "layouts": {
-    "community": "Kouminoté"
-  }
-}
+{"activerecord":{"attributes":{"user":{"languages":"Lanng"}}},"layouts":{"community":"Kouminoté"}}

@@ -1,12 +1,1 @@
-{
-  "site": {
-    "key": {
-      "table": {
-        "entry": {
-          "hospital": "Lamin pongusapan",
-          "pedestrian": "Wayaan mamanau gakod"
-        }
-      }
-    }
-  }
-}
+{"site":{"key":{"table":{"entry":{"hospital":"Lamin pongusapan","pedestrian":"Wayaan mamanau gakod"}}}}}

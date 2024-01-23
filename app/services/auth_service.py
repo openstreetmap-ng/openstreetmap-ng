@@ -9,6 +9,7 @@ from sqlalchemy import update
 from app.config import SECRET
 from app.db import DB
 from app.lib.crypto import hash_bytes
+from app.lib.date_utils import utcnow
 from app.lib.email import validate_email
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
@@ -22,7 +23,6 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.user_token_session_repository import UserTokenSessionRepository
 from app.services.cache_service import CacheService
 from app.services.oauth1_nonce_service import OAuth1NonceService
-from app.utils import utcnow
 
 _cache_context = 'FastPassword'
 

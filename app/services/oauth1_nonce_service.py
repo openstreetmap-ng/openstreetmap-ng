@@ -5,11 +5,11 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from app.db import DB
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH1_TIMESTAMP_VALIDITY
 from app.models.db.oauth1_nonce import OAuth1Nonce
 from app.models.validating.oauth1_nonce import OAuth1NonceValidating
-from app.utils import utcnow
 
 
 class OAuth1NonceService:

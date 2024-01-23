@@ -5,8 +5,8 @@ from fastapi import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.note_mixin import NoteExceptionsMixin
+from app.lib.date_utils import format_iso_date
 from app.limits import NOTE_QUERY_AREA_MAX_SIZE
-from app.utils import format_iso_date
 
 
 class NoteExceptions06Mixin(NoteExceptionsMixin):

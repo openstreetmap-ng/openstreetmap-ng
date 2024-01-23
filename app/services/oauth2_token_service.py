@@ -6,6 +6,7 @@ from sqlalchemy import null, select
 from app.db import DB
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
@@ -14,7 +15,7 @@ from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from app.models.scope import Scope
 from app.repositories.oauth2_application_repository import OAuth2ApplicationRepository
 from app.repositories.oauth2_token_repository import OAuth2TokenRepository
-from app.utils import extend_query_params, utcnow
+from app.utils import extend_query_params
 
 
 class OAuth2TokenService:

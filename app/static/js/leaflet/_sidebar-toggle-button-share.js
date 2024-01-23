@@ -1,10 +1,10 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { getGeoUri, getMapEmbedHtml, getMapShortUrl, getMapUrl } from "../_utils.js"
+import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl, getMapUrl } from "../_map-utils.js"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
-import { getMapBaseLayer, getMarkerIcon } from "./_utils.js"
+import { getMarkerIcon } from "./_utils.js"
 
 export const getShareSidebarToggleButton = () => {
     const control = getSidebarToggleButton("share", "javascripts.share.title")
@@ -53,7 +53,7 @@ export const getShareSidebarToggleButton = () => {
         }
 
         const updateGeoUri = () => {
-            const geoUri = getGeoUri(map)
+            const geoUri = getMapGeoUri(map)
             geoUriLink.href = geoUri
             geoUriLink.textContent = geoUri
         }

@@ -87,7 +87,7 @@ L.Control.ButtonContainer = L.Control.extend({
     },
 })
 
-L.LocationFilter = L.Class.extend({
+const LocationFilter = L.Class.extend({
     includes: L.Mixin.Events,
 
     options: {
@@ -484,4 +484,4 @@ L.LocationFilter = L.Class.extend({
     },
 })
 
-export const getLocationFilter = (options) => new L.LocationFilter(options)
+export const getLocationFilter = (options) => new LocationFilter(options)

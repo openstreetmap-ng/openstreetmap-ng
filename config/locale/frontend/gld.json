@@ -1,14 +1,1 @@
-{
-  "geocoder": {
-    "search_osm_nominatim": {
-      "prefix": {
-        "natural": {
-          "atoll": "Атолл"
-        },
-        "place": {
-          "archipelago": "Боачансал"
-        }
-      }
-    }
-  }
-}
+{"geocoder":{"search_osm_nominatim":{"prefix":{"natural":{"atoll":"Атолл"},"place":{"archipelago":"Боачансал"}}}}}

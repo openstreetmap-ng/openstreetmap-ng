@@ -1,9 +1,1 @@
-{
-  "profiles": {
-    "edit": {
-      "gravatar": {
-        "enabled": "Your Gravatar can be shown now."
-      }
-    }
-  }
-}
+{"profiles":{"edit":{"gravatar":{"enabled":"Your Gravatar can be shown now."}}}}

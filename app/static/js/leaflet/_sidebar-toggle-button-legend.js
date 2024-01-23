@@ -1,6 +1,6 @@
 import i18next from "i18next"
+import { getMapBaseLayerId } from "../_map-utils.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
-import { getMapBaseLayerId } from "./_utils.js"
 
 const precomputeMaxZoom = 25
 

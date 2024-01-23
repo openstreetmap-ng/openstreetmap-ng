@@ -1,13 +1,1 @@
-{
-  "application": {
-    "settings_menu": {
-      "account_settings": "Настройки аккаꙋнта"
-    }
-  },
-  "dashboards": {
-    "show": {
-      "edit_your_profile": "Ⱃⰵⰴⰰⰽⱅⰹⱃⱁⰲⰰⱅⱐ ⱂⱃⱁⱇⰹⰾⱐ",
-      "no_home_location_html": "{{edit_profile_link}}​ и҆​ ᲂукажите своѐ дома́шнее местоплаженїе что́бы ви́дѣть ближа́йшихъ пользователей."
-    }
-  }
-}
+{"application":{"settings_menu":{"account_settings":"Настройки аккаꙋнта"}},"dashboards":{"show":{"edit_your_profile":"Ⱃⰵⰴⰰⰽⱅⰹⱃⱁⰲⰰⱅⱐ ⱂⱃⱁⱇⰹⰾⱐ","no_home_location_html":"{{edit_profile_link}}​ и҆​ ᲂукажите своѐ дома́шнее местоплаженїе что́бы ви́дѣть ближа́йшихъ пользователей."}}}

@@ -1,9 +1,1 @@
-{
-  "javascripts": {
-    "changesets": {
-      "show": {
-        "hide_comment": "नुकाबौ"
-      }
-    }
-  }
-}
+{"javascripts":{"changesets":{"show":{"hide_comment":"नुकाबौ"}}}}

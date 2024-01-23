@@ -18,13 +18,13 @@ from app.config import (
     SMTP_USER,
 )
 from app.db import DB
+from app.lib.date_utils import utcnow
 from app.lib.translation import render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User
 from app.models.mail_from_type import MailFromType
 from app.services.user_token_email_reply_service import EmailReplyService
-from app.utils import utcnow
 
 
 def _validate_smtp_config():

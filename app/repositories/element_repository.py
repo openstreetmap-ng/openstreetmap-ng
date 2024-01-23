@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONPATH
 from sqlalchemy.orm import load_only
 
 from app.db import DB
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
@@ -15,7 +16,6 @@ from app.models.db.element import Element
 from app.models.element_type import ElementType
 from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
-from app.utils import utcnow
 
 
 class ElementRepository:

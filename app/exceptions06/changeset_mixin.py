@@ -5,7 +5,7 @@ from fastapi import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.changeset_mixin import ChangesetExceptionsMixin
-from app.utils import format_iso_date
+from app.lib.date_utils import format_iso_date
 
 
 class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):

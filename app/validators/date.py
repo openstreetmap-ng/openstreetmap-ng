@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import PlainValidator
 
-from app.utils import parse_date
+from app.lib.date_utils import parse_date
 
 
 def validate_date(value: str | None) -> datetime | None:

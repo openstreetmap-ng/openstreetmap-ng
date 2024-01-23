@@ -5,9 +5,9 @@ from sqlalchemy.orm import load_only
 
 from app.db import DB
 from app.lib.crypto import hash_bytes
+from app.lib.date_utils import utcnow
 from app.limits import CACHE_DEFAULT_EXPIRE
 from app.models.db.cache_entry import CacheEntry
-from app.utils import utcnow
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough
 
