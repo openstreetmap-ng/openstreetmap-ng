@@ -5,11 +5,16 @@ from datetime import datetime
 from functools import lru_cache
 from gettext import GNUTranslations, translation
 
-import arrow
+import cython
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, LOCALE_DOMAIN
 from app.utils import format_iso_date, utcnow
+
+if cython.compiled:
+    from cython.cimports.libc.math import ceil, floor
+else:
+    from math import ceil, floor
 
 _j2 = Environment(
     loader=FileSystemLoader('templates'),
@@ -86,31 +91,13 @@ def t(message: str, **kwargs) -> str:
     return trans.gettext(message).format(**kwargs)
 
 
-def nt(singular: str, plural: str, n: int, **kwargs) -> str:
+def nt(message: str, count: int, **kwargs) -> str:
     """
     Get the translation for the given message, with pluralization.
     """
 
     trans: GNUTranslations = _context_trans.get()
-    return trans.ngettext(singular, plural, n).format(**kwargs)
-
-
-def pt(context: str, message: str, **kwargs) -> str:
-    """
-    Get the translation for the given message, with context.
-    """
-
-    trans: GNUTranslations = _context_trans.get()
-    return trans.pgettext(context, message).format(**kwargs)
-
-
-def npt(context: str, singular: str, plural: str, n: int, **kwargs) -> str:
-    """
-    Get the translation for the given message, with context and pluralization.
-    """
-
-    trans: GNUTranslations = _context_trans.get()
-    return trans.npgettext(context, singular, plural, n).format(**kwargs)
+    return trans.ngettext(message, message, count).format(count=count, **kwargs)
 
 
 def render(template_name: str, **template_data: dict) -> str:
@@ -121,9 +108,6 @@ def render(template_name: str, **template_data: dict) -> str:
     return _j2.get_template(template_name).render(**template_data)
 
 
-# TODO: client side
-# potentially https://www.i18next.com/translation-function/formatting#relativetime
-# or https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat
 def timeago(date: datetime, *, html: bool = False) -> str:
     """
     Get a human-readable time difference from the given date.
@@ -137,27 +121,54 @@ def timeago(date: datetime, *, html: bool = False) -> str:
     '<time datetime="2021-12-31T15:30:45Z" title="31 December 2021 at 15:30">an hour ago</time>'
     """
 
-    now = utcnow()
-    locale = primary_translation_language()
-    ago = arrow.get(date).humanize(now, locale=locale)
+    total_seconds: cython.double = (utcnow() - date).total_seconds()
+
+    if total_seconds < 1:
+        # less than 1 second ago
+        ago = nt('datetime.distance_in_words_ago.less_than_x_seconds', 1)
+    elif total_seconds < 30:
+        # X seconds ago
+        ago = nt('datetime.distance_in_words_ago.x_seconds', ceil(total_seconds))
+    elif total_seconds < 45:
+        # half a minute ago
+        ago = t('datetime.distance_in_words_ago.half_a_minute')
+    elif total_seconds < 60:
+        # less than a minute ago
+        ago = nt('datetime.distance_in_words_ago.less_than_x_minutes', 1)
+    elif total_seconds < 3600:
+        # X minutes ago
+        ago = nt('datetime.distance_in_words_ago.x_minutes', floor(total_seconds / 60))
+    elif total_seconds < (3600 * 24):
+        # about X hours ago
+        ago = nt('datetime.distance_in_words_ago.about_x_hours', floor(total_seconds / 3600))
+    elif total_seconds < (3600 * 24 * 30):
+        # X days ago
+        ago = nt('datetime.distance_in_words_ago.x_days', floor(total_seconds / (3600 * 24)))
+    elif total_seconds < (3600 * 24 * 330):
+        # X months ago
+        ago = nt('datetime.distance_in_words_ago.x_months', floor(total_seconds / (3600 * 24 * 30)))
+    else:
+        if total_seconds % (3600 * 24 * 365) < (3600 * 24 * 330):
+            # X years ago
+            ago = nt('datetime.distance_in_words_ago.x_years', floor(total_seconds / (3600 * 24 * 365)))
+        else:
+            # almost X years ago
+            ago = nt('datetime.distance_in_words_ago.almost_x_years', ceil(total_seconds / (3600 * 24 * 365)))
 
     if html:
-        datetime_ = format_iso_date(date)
-        title = date.strftime('%d %B %Y at %H:%M')
-        return f'<time datetime="{datetime_}" title="{title}">{ago}</time>'
+        iso_date = format_iso_date(date)
+
+        # backwards compatibility: remove leading zero from day
+        friendly_format = t('time.formats.friendly').replace('%e', '%-d')
+        friendly_date = date.strftime(friendly_format)
+
+        return f'<time datetime="{iso_date}" title="{friendly_date}">{ago}</time>'
     else:
         return ago
 
 
 # configure template globals
-_j2.globals.update(
-    t=t,
-    nt=nt,
-    pt=pt,
-    npt=npt,
-)
+_j2.globals.update(t=t, nt=nt)
 
 # configure template filters
-_j2.filters.update(
-    timeago=timeago,
-)
+_j2.filters.update(timeago=timeago)
