@@ -9,7 +9,7 @@ from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user
 from app.lib.locale import normalize_locale
 from app.lib.translation import translation_context
-from app.limits import LANGUAGE_CODE_MAX_LENGTH
+from app.limits import LANGUAGE_CODE_MAX_LENGTH, LANGUAGE_CODES_LIMIT
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
@@ -72,7 +72,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     # sort by q-factor, descending
     temp.sort(reverse=True)
 
-    return tuple(lang for _, lang in temp)
+    return tuple({lang for _, lang in temp})[:LANGUAGE_CODES_LIMIT]
 
 
 class TranslationMiddleware(BaseHTTPMiddleware):

@@ -29,6 +29,7 @@ from app.lib.rich_text_mixin import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
     LANGUAGE_CODE_MAX_LENGTH,
+    LANGUAGE_CODES_LIMIT,
     USER_DESCRIPTION_MAX_LENGTH,
     USER_LANGUAGES_LIMIT,
 )
@@ -184,12 +185,15 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
         languages = (normalize_locale(t, raise_on_not_found=False) for t in languages)
         languages = (t for t in languages if t)
-        self.languages = tuple(set(languages))
+        self.languages = tuple(set(languages))[:LANGUAGE_CODES_LIMIT]
 
     @property
     def languages_valid(self) -> Sequence[str]:
         """
         Get the user's languages that are supported by the application.
+
+        >>> user.languages_valid
+        ['en', 'pl']
         """
 
         return tuple(filter(lambda v: is_valid_locale(v), self.languages))
@@ -198,6 +202,9 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     def changeset_max_size(self) -> int:
         """
         Get the maximum changeset size for this user.
+
+        >>> user.changeset_max_size
+        10_000
         """
 
         return UserRole.get_changeset_max_size(self.roles)

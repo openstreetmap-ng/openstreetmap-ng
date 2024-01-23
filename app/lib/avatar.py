@@ -14,6 +14,9 @@ class Avatar:
     def get_url(avatar_type: AvatarType, avatar_id: str | int) -> str:
         """
         Get the url of the avatar image.
+
+        >>> Avatar.get_url(AvatarType.custom, '123456')
+        '/api/web/avatar/custom/123456'
         """
 
         if avatar_type == AvatarType.default:
