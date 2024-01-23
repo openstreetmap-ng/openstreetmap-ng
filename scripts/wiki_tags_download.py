@@ -25,7 +25,7 @@ async def get_sitemap_links() -> Sequence[str]:
 
 
 @retry(timedelta(minutes=1))
-async def download_and_extract_keys(sitemap_url: str) -> Sequence[tuple[str | None, str]]:
+async def download_and_extract_keys(sitemap_url: str) -> Sequence[tuple[str, str]]:
     async with _download_limiter:
         r = await HTTP.get(sitemap_url)
         r.raise_for_status()
@@ -34,9 +34,12 @@ async def download_and_extract_keys(sitemap_url: str) -> Sequence[tuple[str | No
     result = []
 
     for match in re.finditer(r'/(?:(?P<locale>[\w-]+):)?Key:(?P<key>.*?)</loc>', text):
-        locale: str | None = match.group('locale')
-        if locale:
-            locale = unquote_plus(locale)
+        locale: str = match.group('locale') or ''
+        locale = unquote_plus(locale)
+
+        # skip talk pages
+        if locale.startswith(('Talk', 'Proposal')) or locale.endswith(('_talk', '_proposal')):
+            continue
 
         key: str = match.group('key')
         key = unquote_plus(key)
@@ -58,14 +61,14 @@ async def main():
         for url in urls:
             tg.start_soon(process_sitemap_url, url)
 
-    result: dict[str, list[str]] = {}
+    result: dict[str, set[str]] = {}
 
     for locale, key in locale_keys:
-        result.setdefault(key, []).append(locale)
+        result.setdefault(key, set()).add(locale)
 
     await (CONFIG_DIR / 'wiki_tags.json').write_bytes(
         orjson.dumps(
-            result,
+            {k: sorted(v) for k, v in result.items()},
             option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
         )
     )
