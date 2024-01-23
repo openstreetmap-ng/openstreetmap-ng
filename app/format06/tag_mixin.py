@@ -4,7 +4,7 @@ from app.lib.format_style_context import format_is_json
 from app.models.validating.tags import TagsValidating
 
 
-class Tags06Mixin:
+class Tag06Mixin:
     @staticmethod
     def encode_tags(tags: dict) -> Sequence[dict] | dict:
         """
@@ -47,4 +47,4 @@ class Tags06Mixin:
         {'a': '1', 'b': '2'}
         """
 
-        return TagsValidating(tags=Tags06Mixin.decode_tags_unsafe(tags)).tags
+        return TagsValidating(tags=Tag06Mixin.decode_tags_unsafe(tags)).tags

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 import cython
 
 from app.format06.geometry_mixin import Geometry06Mixin
-from app.format06.tags_mixin import Tags06Mixin
+from app.format06.tag_mixin import Tag06Mixin
 from app.lib.auth_context import auth_user
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import XAttr
@@ -130,7 +130,7 @@ class Element06Mixin:
                     '@uid': element.user_id,
                     '@user': element.user.display_name,
                     '@visible': element.visible,
-                    'tag': Tags06Mixin.encode_tags(element.tags),
+                    'tag': Tag06Mixin.encode_tags(element.tags),
                     **({'nd': _encode_nodes(element.members)} if element_type == ElementType.way else {}),
                     **({'member': _encode_members(element.members)} if element_type == ElementType.relation else {}),
                 }
@@ -165,7 +165,7 @@ class Element06Mixin:
                 typed_id=data.get('@id'),
                 version=data.get('@version', 0) + 1,
                 visible=data.get('@visible', True),
-                tags=Tags06Mixin.decode_tags_unsafe(data.get('tag', ())),
+                tags=Tag06Mixin.decode_tags_unsafe(data.get('tag', ())),
                 point=Geometry06Mixin.decode_point_unsafe(data),
                 members=members,
             ).to_orm_dict()

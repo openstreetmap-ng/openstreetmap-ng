@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 import cython
 
-from app.format06.tags_mixin import Tags06Mixin
+from app.format06.tag_mixin import Tag06Mixin
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import XAttr
 from app.models.db.changeset import Changeset
@@ -78,7 +78,7 @@ class Changeset06Mixin:
                     **boundary_dict,
                     '@comments_count': len(changeset.comments),
                     '@changes_count': changeset.size,
-                    'tag': Tags06Mixin.encode_tags(changeset.tags),
+                    'tag': Tag06Mixin.encode_tags(changeset.tags),
                     **(
                         {
                             'discussion': {

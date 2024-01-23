@@ -108,8 +108,14 @@ let
     '')
     (writeShellScriptBin "locale-download" ''
       set -e
-      locale-clean
+      rm -rf config/locale/download
       python scripts/locale_download.py
+    '')
+
+    # -- Wiki-tags
+    (writeShellScriptBin "wiki-tags-download" ''
+      set -e
+      python scripts/wiki_tags_download.py
     '')
 
     # -- Docker (dev)

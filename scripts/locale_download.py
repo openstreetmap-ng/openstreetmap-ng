@@ -1,9 +1,9 @@
-import json
 import re
 from collections.abc import Sequence
 from datetime import timedelta
 
 import anyio
+import orjson
 from anyio import CapacityLimiter, Path
 
 from app.config import LOCALE_DIR
@@ -70,7 +70,7 @@ async def download_locale(locale: str) -> LocaleName | None:
 
 async def add_extra_locales_names(locales_names: list[LocaleName]):
     buffer = await (Path(__file__).parent / 'extra_locales_names.json').read_bytes()
-    extra_locales_names: dict[str, dict] = json.loads(buffer)
+    extra_locales_names: dict[str, dict] = orjson.loads(buffer)
 
     for ln in locales_names:
         extra_locales_names.pop(ln.code, None)
@@ -106,10 +106,10 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
 
-    await (LOCALE_DIR / 'names.json').write_text(
-        json.dumps(
+    await (LOCALE_DIR / 'names.json').write_bytes(
+        orjson.dumps(
             [ln._asdict() for ln in locales_names],
-            indent=2,
+            option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
         )
     )
 
