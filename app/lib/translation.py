@@ -8,7 +8,7 @@ from gettext import GNUTranslations, translation
 import cython
 from jinja2 import Environment, FileSystemLoader
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, LOCALE_DOMAIN
+from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
 from app.utils import format_iso_date, utcnow
 
 if cython.compiled:
@@ -33,7 +33,7 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
 
     return translation(
-        domain=LOCALE_DOMAIN,
+        domain='default',
         localedir=LOCALE_DIR,
         languages=languages,
     )

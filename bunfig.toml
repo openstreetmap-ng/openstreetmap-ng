@@ -1,1 +1,4 @@
 telemetry = false
+
+[install.lockfile]
+print = "yarn"
