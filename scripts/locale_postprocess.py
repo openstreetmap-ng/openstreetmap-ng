@@ -1,5 +1,4 @@
 import pathlib
-import pickle
 
 import anyio
 import orjson
