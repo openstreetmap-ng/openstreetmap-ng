@@ -370,20 +370,6 @@ files = [
 cryptography = "*"
 
 [[package]]
-name = "babel"
-version = "2.14.0"
-description = "Internationalization utilities"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "Babel-2.14.0-py3-none-any.whl", hash = "sha256:efb1a25b7118e67ce3a259bed20545c29cb68be8ad2c784c83689981b7a57287"},
-    {file = "Babel-2.14.0.tar.gz", hash = "sha256:6919867db036398ba21eb5c7a0f6b28ab8cbc3ae7a73a44ebe34ae74a4e7d363"},
-]
-
-[package.extras]
-dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
-
-[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -3244,4 +3230,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "a68380b5867289ff4de8abda0ae38727c3172ce3b4c997697203b18b13d68786"
+content-hash = "b13ce1ffbd6ea731b6297d148d8a56924d76c606cf5590f6658c31d3ceb8f76a"
