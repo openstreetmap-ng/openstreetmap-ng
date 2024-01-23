@@ -1,4 +1,5 @@
 import { Tooltip } from "bootstrap"
+import i18next from "i18next"
 import * as L from "leaflet"
 
 /**
@@ -34,7 +35,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
         label.htmlFor = input.id
 
         const tooltip = new Tooltip(label, {
-            title: I18n.t(tooltipTitle),
+            title: i18next.t(tooltipTitle),
             placement: "left",
         })
 

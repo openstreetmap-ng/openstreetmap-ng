@@ -1,3 +1,6 @@
+import "./_i18n.js"
+
+import i18next from "i18next"
 import * as L from "leaflet"
 import { qsParse } from "./_qs.js"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
@@ -21,7 +24,7 @@ const getFixTheMapLink = (lon, lat, zoom) => {
     return `https://www.openstreetmap.org/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoom}`
 }
 
-const reportProblemText = I18n.t("javascripts.embed.report_problem")
+const reportProblemText = i18next.t("javascripts.embed.report_problem")
 
 const searchParams = qsParse(location.search.substring(1))
 

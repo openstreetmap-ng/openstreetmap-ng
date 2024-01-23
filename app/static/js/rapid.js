@@ -1,5 +1,5 @@
 import { Context } from "@rapideditor/rapid"
-import { apiUrl, primaryLanguage } from "./_params.js"
+import { apiUrl, primaryLanguage, rapidVersion } from "./_params.js"
 
 const rapidContainer = document.querySelector(".rapid-container")
 if (rapidContainer) {
@@ -19,7 +19,7 @@ if (rapidContainer) {
     }
 
     ctx.containerNode = rapidContainer
-    ctx.assetPath = `static-rapid/${params.version}/`
+    ctx.assetPath = `/static-rapid/${rapidVersion}/`
     ctx.embed(true)
     ctx.locale(primaryLanguage)
 

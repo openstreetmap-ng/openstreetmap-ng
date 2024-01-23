@@ -1,5 +1,5 @@
 import { coreContext } from "iD"
-import { apiUrl, primaryLanguage } from "./_params.js"
+import { apiUrl, idVersion, primaryLanguage } from "./_params.js"
 import { throttle } from "./_utils.js"
 
 const idContainer = document.querySelector(".id-container")
@@ -22,7 +22,7 @@ if (idContainer) {
 
     const id = ctx
         .embed(true)
-        .assetPath(`static-id/${params.version}/`)
+        .assetPath(`/static-id/${idVersion}/`)
         .locale(primaryLanguage)
         .containerNode(idContainer)
         .init()

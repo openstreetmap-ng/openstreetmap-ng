@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import { getObjectRequestUrl } from "./_api.js"
 import { qsStringify } from "./_qs.js"
 import "./_types.js"
@@ -70,7 +71,7 @@ const remoteEdit = (button, bounds, object = null) => {
         .catch((error) => {
             if (error.name === "AbortError") return
             console.error(error)
-            alert(I18n.t("site.index.remote_failed"))
+            alert(i18next.t("site.index.remote_failed"))
         })
         .finally(() => {
             button.disabled = false

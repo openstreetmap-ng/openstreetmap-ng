@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import * as L from "leaflet"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
@@ -17,7 +18,7 @@ if (useMapContainer) {
 
     const markerFactory = (latLng) =>
         L.marker(latLng, { icon: getMarkerIcon("red", true) })
-            .bindPopup(I18n.t("diary_entries.edit.marker_text"))
+            .bindPopup(i18next.t("diary_entries.edit.marker_text"))
             .addTo(map)
 
     // On map click, update the coordinates and move the marker

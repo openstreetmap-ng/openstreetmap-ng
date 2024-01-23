@@ -1,4 +1,5 @@
 import { Tooltip } from "bootstrap"
+import i18next from "i18next"
 import * as L from "leaflet"
 
 const minZoom = 12
@@ -19,7 +20,7 @@ export const getNewNoteControl = () => {
             if (!button.disabled) {
                 button.disabled = true
                 tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.createnote_disabled_tooltip"),
+                    ".tooltip-inner": i18next.t("javascripts.site.createnote_disabled_tooltip"),
                 })
             }
         } else {
@@ -27,7 +28,7 @@ export const getNewNoteControl = () => {
             if (button.disabled) {
                 button.disabled = false
                 tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.createnote_tooltip"),
+                    ".tooltip-inner": i18next.t("javascripts.site.createnote_tooltip"),
                 })
             }
         }
@@ -45,7 +46,7 @@ export const getNewNoteControl = () => {
         button.innerHTML = "<span class='icon note'></span>"
 
         const tooltip = new Tooltip(button, {
-            title: I18n.t("javascripts.site.createnote_tooltip"),
+            title: i18next.t("javascripts.site.createnote_tooltip"),
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })

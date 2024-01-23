@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import * as L from "leaflet"
 import { getGeoUri, getMapEmbedHtml, getMapShortUrl, getMapUrl } from "../_utils.js"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
@@ -137,7 +138,7 @@ export const getShareSidebarToggleButton = () => {
 
             const originalInner = exportButton.innerHTML
             exportButton.disabled = true
-            exportButton.textContent = I18n.t("javascripts.share.exporting")
+            exportButton.textContent = i18next.t("javascripts.share.exporting")
 
             try {
                 // Get export params from the form

@@ -1,4 +1,5 @@
 import { Tooltip } from "bootstrap"
+import i18next from "i18next"
 import * as L from "leaflet"
 
 // TODO: is that even necessary?
@@ -42,7 +43,7 @@ export const getZoomControl = () => {
         zoomInButton.innerHTML = "<span class='icon zoomin'></span>"
 
         const zoomInTooltip = new Tooltip(zoomInButton, {
-            title: I18n.t("javascripts.map.zoom.in"),
+            title: i18next.t("javascripts.map.zoom.in"),
             placement: "left",
         })
 
@@ -51,7 +52,7 @@ export const getZoomControl = () => {
         zoomOutButton.innerHTML = "<span class='icon zoomout'></span>"
 
         const zoomOutTooltip = new Tooltip(zoomOutButton, {
-            title: I18n.t("javascripts.map.zoom.out"),
+            title: i18next.t("javascripts.map.zoom.out"),
             placement: "left",
         })
 

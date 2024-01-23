@@ -1,4 +1,5 @@
 import { Tooltip } from "bootstrap"
+import i18next from "i18next"
 import * as L from "leaflet"
 
 const minZoom = 14
@@ -19,7 +20,7 @@ export const getQueryFeaturesControl = () => {
             if (!button.disabled) {
                 button.disabled = true
                 tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.queryfeature_disabled_tooltip"),
+                    ".tooltip-inner": i18next.t("javascripts.site.queryfeature_disabled_tooltip"),
                 })
             }
         } else {
@@ -27,7 +28,7 @@ export const getQueryFeaturesControl = () => {
             if (button.disabled) {
                 button.disabled = false
                 tooltip.setContent({
-                    ".tooltip-inner": I18n.t("javascripts.site.queryfeature_tooltip"),
+                    ".tooltip-inner": i18next.t("javascripts.site.queryfeature_tooltip"),
                 })
             }
         }
@@ -45,7 +46,7 @@ export const getQueryFeaturesControl = () => {
         button.innerHTML = "<span class='icon query'></span>"
 
         const tooltip = new Tooltip(button, {
-            title: I18n.t("javascripts.site.queryfeature_tooltip"),
+            title: i18next.t("javascripts.site.queryfeature_tooltip"),
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })

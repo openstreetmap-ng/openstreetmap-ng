@@ -1,3 +1,5 @@
+import i18next from "i18next"
+
 const abortControllers = new Map()
 
 /**
@@ -48,7 +50,7 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
         previewBtn.disabled = true
         sourceTextArea.classList.add("d-none")
         previewDiv.classList.remove("d-none")
-        previewDiv.innerHTML = I18n.t("shared.richtext_field.loading")
+        previewDiv.innerHTML = i18next.t("shared.richtext_field.loading")
 
         const formData = new FormData()
         formData.append("text", sourceTextArea.value)

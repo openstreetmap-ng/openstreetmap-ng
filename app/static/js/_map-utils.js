@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import * as L from "leaflet"
 import { getLastMapState, setLastMapState } from "./_local-storage.js"
 import { countryBounds, homePoint } from "./_params.js"
@@ -409,7 +410,7 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const small = document.createElement("small")
     const link = document.createElement("a")
     link.href = getMapUrl(map, markerLatLng)
-    link.textContent = I18n.t("javascripts.share.view_larger_map")
+    link.textContent = i18next.t("javascripts.share.view_larger_map")
     small.appendChild(link)
     container.appendChild(small)
 

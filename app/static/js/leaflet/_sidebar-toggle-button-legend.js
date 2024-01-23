@@ -1,3 +1,4 @@
+import i18next from "i18next"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getMapBaseLayerId } from "./_utils.js"
 
@@ -41,14 +42,14 @@ export const getLegendSidebarToggleButton = () => {
                 if (input.disabled) {
                     input.disabled = false
                     tooltip.setContent({
-                        ".tooltip-inner": I18n.t("javascripts.key.tooltip"),
+                        ".tooltip-inner": i18next.t("javascripts.key.tooltip"),
                     })
                 }
             } else {
                 if (!input.disabled) {
                     input.disabled = true
                     tooltip.setContent({
-                        ".tooltip-inner": I18n.t("javascripts.key.tooltip_disabled"),
+                        ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
                     })
                 }
 

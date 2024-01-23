@@ -16,11 +16,32 @@ export const apiUrl = config.apiUrl
 export const idUrl = config.idUrl
 
 /**
+ * ID editor version
+ * @type {string}
+ * @example "abc123"
+ */
+export const idVersion = config.idVersion
+
+/**
  * Rapid editor base URL
  * @type {string}
  * @example "https://rapid.openstreetmap.org"
  */
 export const rapidUrl = config.rapidUrl
+
+/**
+ * Rapid editor version
+ * @type {string}
+ * @example "abc123"
+ */
+export const rapidVersion = config.rapidVersion
+
+/**
+ * Locale version
+ * @type {string}
+ * @example "abc123"
+ */
+export const localeVersion = config.localeVersion
 
 /**
  * User preferred languages
@@ -35,7 +56,6 @@ export const languages = config.languages
  * @example "en"
  */
 export const primaryLanguage = languages[0]
-// TODO: py, only existing/installed locales
 
 /**
  * Optional user home location point (JSON-encoded)

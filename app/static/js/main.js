@@ -1,3 +1,5 @@
+import "./_i18n.js"
+
 import { homePoint } from "./_params.js"
 import { Router } from "./_router.js"
 import { configureActionSidebars } from "./controllers/_action-sidebar.js"
