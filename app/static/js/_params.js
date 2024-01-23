@@ -37,11 +37,11 @@ export const rapidUrl = config.rapidUrl
 export const rapidVersion = config.rapidVersion
 
 /**
- * Locale version
- * @type {string}
- * @example "abc123"
+ * Locale hash map
+ * @type {object}
+ * @example {"en":"f40fd5bd91bde9c9",...}
  */
-export const localeVersion = config.localeVersion
+export const localeHashMap = config.localeHashMap
 
 /**
  * User preferred languages

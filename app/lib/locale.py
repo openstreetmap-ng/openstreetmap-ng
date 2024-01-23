@@ -25,6 +25,11 @@ def _get_locales_names() -> tuple[LocaleName, ...]:
 
 
 @cython.cfunc
+def _get_frontend_locale_hash_map() -> dict[str, str]:
+    return orjson.loads(pathlib.Path(LOCALE_DIR / 'frontend_hash_map.json').read_bytes())
+
+
+@cython.cfunc
 def _normalize(code: str) -> str:
     code = code.casefold()  # lowercase
     code = _non_alpha_re.sub('-', code)  # remove non-alpha characters
@@ -48,6 +53,8 @@ for code in _locales:
 _locales_names = _get_locales_names()
 logging.info('Loaded %d locales names', len(_locales_names))
 
+_frontend_locale_hash_map = _get_frontend_locale_hash_map()
+
 
 def is_valid_locale(code: str) -> bool:
     """
@@ -62,13 +69,13 @@ def is_valid_locale(code: str) -> bool:
     return code in _locales
 
 
-def normalize_locale_case(code: str, *, raise_on_not_found: bool = False) -> str:
+def normalize_locale(code: str, *, raise_on_not_found: bool = False) -> str:
     """
     Normalize locale code case.
 
-    >>> normalize_locale_case('EN')
+    >>> normalize_locale('EN')
     'en'
-    >>> normalize_locale_case('NonExistent', raise_on_not_found=True)
+    >>> normalize_locale('NonExistent', raise_on_not_found=True)
     KeyError: 'NonExistent'
     """
 
@@ -93,3 +100,14 @@ def get_all_locales_names() -> Sequence[LocaleName]:
     """
 
     return _locales_names
+
+
+def get_frontend_locale_hash_map() -> dict[str, str]:
+    """
+    Get frontend hash map.
+
+    >>> get_frontend_locale_hash_map()
+    {'en': 'f40fd5bd91bde9c9', ...}
+    """
+
+    return _frontend_locale_hash_map

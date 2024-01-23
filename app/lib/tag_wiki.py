@@ -5,7 +5,7 @@ import cython
 import orjson
 
 from app.config import CONFIG_DIR, DEFAULT_LANGUAGE
-from app.lib.locale import normalize_locale_case
+from app.lib.locale import normalize_locale
 from app.lib.translation import translation_languages
 
 
@@ -13,8 +13,7 @@ from app.lib.translation import translation_languages
 def _get_wiki_tags() -> dict[str, frozenset[str]]:
     data: dict[str, Sequence[str]] = orjson.loads(pathlib.Path(CONFIG_DIR / 'wiki_tags.json').read_bytes())
     return {
-        k: frozenset(normalize_locale_case(v, raise_on_not_found=True) if v else DEFAULT_LANGUAGE)
-        for k, v in data.items()
+        k: frozenset(normalize_locale(v, raise_on_not_found=True) if v else DEFAULT_LANGUAGE) for k, v in data.items()
     }
 
 

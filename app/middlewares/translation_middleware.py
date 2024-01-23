@@ -7,7 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user
-from app.lib.locale import normalize_locale_case
+from app.lib.locale import normalize_locale
 from app.lib.translation import translation_context
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 
@@ -52,7 +52,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
         # normalize language case and check if it's supported
         else:
             try:
-                lang = normalize_locale_case(lang, raise_on_not_found=True)
+                lang = normalize_locale(lang, raise_on_not_found=True)
             except KeyError:
                 logging.debug('Unknown accept language %r', lang)
                 continue

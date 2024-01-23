@@ -23,7 +23,7 @@ from app.config import APP_URL
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.locale import is_valid_locale, normalize_locale_case
+from app.lib.locale import is_valid_locale, normalize_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.rich_text_mixin import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
@@ -182,7 +182,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     def languages_str(self, s: str) -> None:
         languages = s.split()
         languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
-        languages = (normalize_locale_case(t, raise_on_not_found=False) for t in languages)
+        languages = (normalize_locale(t, raise_on_not_found=False) for t in languages)
         languages = (t for t in languages if t)
         self.languages = tuple(set(languages))
 
