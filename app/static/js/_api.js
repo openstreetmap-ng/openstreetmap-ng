@@ -1,4 +1,4 @@
-import { apiUrl } from "./_params.js"
+import { apiUrl } from "./_config.js"
 import "./_types.js"
 
 /**

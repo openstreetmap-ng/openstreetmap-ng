@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import HttpApi from "i18next-http-backend"
-import { languages, localeHashMap, primaryLanguage } from "./_params.js"
+import { languages, localeHashMap, primaryLanguage } from "./_config.js"
 
 i18next.use(HttpApi).init({
     lng: primaryLanguage,

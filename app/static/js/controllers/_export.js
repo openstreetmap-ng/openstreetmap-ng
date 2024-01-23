@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { mapQueryAreaMaxSize } from "../_params.js"
+import { mapQueryAreaMaxSize } from "../_config.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude, zoomPrecision } from "../_utils.js"
 import { getLocationFilter } from "../leaflet/_location-filter.js"

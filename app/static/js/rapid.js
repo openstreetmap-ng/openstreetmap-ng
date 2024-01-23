@@ -1,5 +1,5 @@
 import "@rapideditor/rapid"
-import { apiUrl, primaryLanguage, rapidVersion } from "./_params.js"
+import { apiUrl, primaryLanguage, rapidVersion } from "./_config.js"
 
 const rapidContainer = document.querySelector(".rapid-container")
 if (rapidContainer) {

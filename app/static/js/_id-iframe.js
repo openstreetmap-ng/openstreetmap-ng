@@ -1,5 +1,5 @@
+import { idUrl } from "./_config.js"
 import { getInitialMapState, parseMapState } from "./_map-utils.js"
-import { idUrl } from "./_params.js"
 import { qsParse, qsStringify } from "./_qs.js"
 
 const idIframe = document.querySelector(".id-iframe")

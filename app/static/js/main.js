@@ -1,6 +1,6 @@
 import "./_i18n.js"
 
-import { homePoint } from "./_params.js"
+import { homePoint } from "./_config.js"
 import { Router } from "./_router.js"
 import { configureActionSidebars } from "./controllers/_action-sidebar.js"
 import { getExportController } from "./controllers/_export.js"

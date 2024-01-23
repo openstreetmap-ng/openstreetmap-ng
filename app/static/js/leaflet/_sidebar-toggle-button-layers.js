@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
+import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config.js"
 import { getMapBaseLayerId } from "../_map-utils.js"
-import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_params.js"
 import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 

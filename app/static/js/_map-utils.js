@@ -1,7 +1,7 @@
 import i18next from "i18next"
 import * as L from "leaflet"
+import { countryBounds, homePoint } from "./_config.js"
 import { getLastMapState, setLastMapState } from "./_local-storage.js"
-import { countryBounds, homePoint } from "./_params.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
 import "./_types.js"

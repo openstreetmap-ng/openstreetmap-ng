@@ -1,5 +1,5 @@
 import { coreContext } from "iD"
-import { apiUrl, idVersion, primaryLanguage } from "./_params.js"
+import { apiUrl, idVersion, primaryLanguage } from "./_config.js"
 import { throttle } from "./_utils.js"
 
 const idContainer = document.querySelector(".id-container")

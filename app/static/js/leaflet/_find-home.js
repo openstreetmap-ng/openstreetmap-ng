@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { homePoint } from "../_params.js"
+import { homePoint } from "../_config.js"
 import { getMarkerIcon } from "./_utils.js"
 
 /**
