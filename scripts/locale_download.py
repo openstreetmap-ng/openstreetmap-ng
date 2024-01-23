@@ -57,7 +57,7 @@ async def download_locale(locale: str) -> LocaleName | None:
     elif locale == 'en' or locale == 'en-US':
         raise RuntimeError('This script assumes en-GB is the universal english')
 
-    filepath = _download_dir / f'{locale}.yml'
+    filepath = _download_dir / f'{locale}.yaml'
     await filepath.write_bytes(r.content)
     print(f'[✅] {locale!r}: {english_name} ({native_name})')
 

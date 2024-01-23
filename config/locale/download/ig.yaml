@@ -5,6 +5,7 @@
 # Author: Edith Nwobu
 # Author: Excel mimi
 # Author: Nma jeni
+# Author: PreshBliss
 # Author: Ukabia
 ---
 ig:
@@ -64,6 +65,10 @@ ig:
       search_results: Nchọfụ̀ta
     search:
       search: Tùwe
+    key:
+      table:
+        entry:
+          bicycle_rental: Mgbazinye ig
   traces:
     show:
       map: akààlà

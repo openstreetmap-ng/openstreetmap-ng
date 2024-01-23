@@ -7,12 +7,12 @@
   {
     "code": "ab",
     "english": "Abkhazian",
-    "native": "\u0430\u0525\u0441\u0448\u04d9\u0430"
+    "native": "аԥсшәа"
   },
   {
     "code": "acm",
     "english": "Iraqi Arabic",
-    "native": "\u0639\u0631\u0627\u0642\u064a"
+    "native": "عراقي"
   },
   {
     "code": "ae",
@@ -42,22 +42,22 @@
   {
     "code": "aln",
     "english": "Gheg Albanian",
-    "native": "Geg\u00eb"
+    "native": "Gegë"
   },
   {
     "code": "am",
     "english": "Amharic",
-    "native": "\u12a0\u121b\u122d\u129b"
+    "native": "አማርኛ"
   },
   {
     "code": "an",
     "english": "Aragonese",
-    "native": "aragon\u00e9s"
+    "native": "aragonés"
   },
   {
     "code": "ang",
     "english": "Old English",
-    "native": "\u00c6nglisc"
+    "native": "Ænglisc"
   },
   {
     "code": "ann",
@@ -67,37 +67,37 @@
   {
     "code": "anp",
     "english": "Angika",
-    "native": "\u0905\u0902\u0917\u093f\u0915\u093e"
+    "native": "अंगिका"
   },
   {
     "code": "ar",
     "english": "Arabic",
-    "native": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"
+    "native": "العربية"
   },
   {
     "code": "arc",
     "english": "Aramaic",
-    "native": "\u0710\u072a\u0721\u071d\u0710"
+    "native": "ܐܪܡܝܐ"
   },
   {
     "code": "arq",
     "english": "Algerian Arabic",
-    "native": "\u062c\u0627\u0632\u0627\u064a\u0631\u064a\u0629"
+    "native": "جازايرية"
   },
   {
     "code": "ary",
     "english": "Moroccan Arabic",
-    "native": "\u0627\u0644\u062f\u0627\u0631\u062c\u0629"
+    "native": "الدارجة"
   },
   {
     "code": "arz",
     "english": "Egyptian Arabic",
-    "native": "\u0645\u0635\u0631\u0649"
+    "native": "مصرى"
   },
   {
     "code": "as",
     "english": "Assamese",
-    "native": "\u0985\u09b8\u09ae\u09c0\u09af\u09bc\u09be"
+    "native": "অসমীয়া"
   },
   {
     "code": "ast",
@@ -112,7 +112,7 @@
   {
     "code": "av",
     "english": "Avaric",
-    "native": "\u0410\u0432\u0430\u0440"
+    "native": "Авар"
   },
   {
     "code": "ay",
@@ -122,17 +122,17 @@
   {
     "code": "az",
     "english": "Azerbaijani",
-    "native": "az\u0259rbaycanca"
+    "native": "azərbaycanca"
   },
   {
     "code": "azb",
     "english": "South Azerbaijani",
-    "native": "\u062a\u06c6\u0631\u06a9\u062c\u0647"
+    "native": "تۆرکجه"
   },
   {
     "code": "ba",
     "english": "Bashkir",
-    "native": "\u0431\u0430\u0448\u04a1\u043e\u0440\u0442\u0441\u0430"
+    "native": "башҡортса"
   },
   {
     "code": "ban",
@@ -152,7 +152,7 @@
   {
     "code": "bcc",
     "english": "Southern Balochi",
-    "native": "\u062c\u0647\u0644\u0633\u0631\u06cc \u0628\u0644\u0648\u0686\u06cc"
+    "native": "جهلسری بلوچی"
   },
   {
     "code": "bcl",
@@ -162,27 +162,27 @@
   {
     "code": "be",
     "english": "Belarusian",
-    "native": "\u0431\u0435\u043b\u0430\u0440\u0443\u0441\u043a\u0430\u044f"
+    "native": "беларуская"
   },
   {
     "code": "be-Tarask",
     "english": "Belarusian",
-    "native": "Tara\u0161kievica orthography"
+    "native": "Taraškievica orthography"
   },
   {
     "code": "bg",
     "english": "Bulgarian",
-    "native": "\u0431\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438"
+    "native": "български"
   },
   {
     "code": "bgn",
     "english": "Western Balochi",
-    "native": "\u0631\u0648\u0686 \u06a9\u067e\u062a\u06cc\u0646 \u0628\u0644\u0648\u0686\u06cc"
+    "native": "روچ کپتین بلوچی"
   },
   {
     "code": "bh",
     "english": "Bihari",
-    "native": "\u092d\u094b\u091c\u092a\u0941\u0930\u0940"
+    "native": "भोजपुरी"
   },
   {
     "code": "bi",
@@ -197,7 +197,7 @@
   {
     "code": "blk",
     "english": "Pa'O",
-    "native": "\u1015\u1021\u102d\u102f\u101d\u103a\u108f\u1018\u102c\u108f\u101e\u102c\u108f"
+    "native": "ပအိုဝ်ႏဘာႏသာႏ"
   },
   {
     "code": "bm",
@@ -207,22 +207,22 @@
   {
     "code": "bn",
     "english": "Bangla",
-    "native": "\u09ac\u09be\u0982\u09b2\u09be"
+    "native": "বাংলা"
   },
   {
     "code": "bo",
     "english": "Tibetan",
-    "native": "\u0f56\u0f7c\u0f51\u0f0b\u0f61\u0f72\u0f42"
+    "native": "བོད་ཡིག"
   },
   {
     "code": "bpy",
     "english": "Bishnupriya",
-    "native": "\u09ac\u09bf\u09b7\u09cd\u09a3\u09c1\u09aa\u09cd\u09b0\u09bf\u09af\u09bc\u09be \u09ae\u09a3\u09bf\u09aa\u09c1\u09b0\u09c0"
+    "native": "বিষ্ণুপ্রিয়া মণিপুরী"
   },
   {
     "code": "bqi",
     "english": "Bakhtiari",
-    "native": "\u0628\u062e\u062a\u06cc\u0627\u0631\u06cc"
+    "native": "بختیاری"
   },
   {
     "code": "br",
@@ -242,7 +242,7 @@
   {
     "code": "ca",
     "english": "Catalan",
-    "native": "catal\u00e0"
+    "native": "català"
   },
   {
     "code": "cak",
@@ -252,7 +252,7 @@
   {
     "code": "ce",
     "english": "Chechen",
-    "native": "\u043d\u043e\u0445\u0447\u0438\u0439\u043d"
+    "native": "нохчийн"
   },
   {
     "code": "ceb",
@@ -272,7 +272,7 @@
   {
     "code": "ckb",
     "english": "Central Kurdish",
-    "native": "\u06a9\u0648\u0631\u062f\u06cc"
+    "native": "کوردی"
   },
   {
     "code": "cnr-latn",
@@ -287,7 +287,7 @@
   {
     "code": "cr",
     "english": "Cree",
-    "native": "\u14c0\u1426\u1403\u152d\u140d\u140f\u1423"
+    "native": "ᓀᐦᐃᔭᐍᐏᐣ"
   },
   {
     "code": "crh-latn",
@@ -297,27 +297,27 @@
   {
     "code": "crh-ro",
     "english": "Dobrujan Tatar",
-    "native": "tatar\u015fa"
+    "native": "tatarşa"
   },
   {
     "code": "cs",
     "english": "Czech",
-    "native": "\u010de\u0161tina"
+    "native": "čeština"
   },
   {
     "code": "csb",
     "english": "Kashubian",
-    "native": "kasz\u00ebbsczi"
+    "native": "kaszëbsczi"
   },
   {
     "code": "cu",
     "english": "Church Slavic",
-    "native": "\u0441\u043b\u043e\u0432\u0463\u043d\u044c\u0441\u043a\u044a / \u2c14\u2c0e\u2c11\u2c02\u2c21\u2c10\u2c20\u2c14\u2c0d\u2c1f"
+    "native": "словѣньскъ / ⰔⰎⰑⰂⰡⰐⰠⰔⰍⰟ"
   },
   {
     "code": "cv",
     "english": "Chuvash",
-    "native": "\u0447\u04d1\u0432\u0430\u0448\u043b\u0430"
+    "native": "чӑвашла"
   },
   {
     "code": "cy",
@@ -372,22 +372,22 @@
   {
     "code": "dty",
     "english": "Doteli",
-    "native": "\u0921\u094b\u091f\u0947\u0932\u0940"
+    "native": "डोटेली"
   },
   {
     "code": "dv",
     "english": "Divehi",
-    "native": "\u078b\u07a8\u0788\u07ac\u0780\u07a8\u0784\u07a6\u0790\u07b0"
+    "native": "ދިވެހިބަސް"
   },
   {
     "code": "dz",
     "english": "Dzongkha",
-    "native": "\u0f47\u0f7c\u0f44\u0f0b\u0f41"
+    "native": "ཇོང་ཁ"
   },
   {
     "code": "ee",
     "english": "Ewe",
-    "native": "E\u028begbe"
+    "native": "Eʋegbe"
   },
   {
     "code": "egl",
@@ -397,7 +397,7 @@
   {
     "code": "el",
     "english": "Greek",
-    "native": "\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac"
+    "native": "Ελληνικά"
   },
   {
     "code": "en",
@@ -412,7 +412,7 @@
   {
     "code": "es",
     "english": "Spanish",
-    "native": "espa\u00f1ol"
+    "native": "español"
   },
   {
     "code": "es-formal",
@@ -432,12 +432,12 @@
   {
     "code": "ext",
     "english": "Extremaduran",
-    "native": "estreme\u00f1u"
+    "native": "estremeñu"
   },
   {
     "code": "fa",
     "english": "Persian",
-    "native": "\u0641\u0627\u0631\u0633\u06cc"
+    "native": "فارسی"
   },
   {
     "code": "ff",
@@ -452,7 +452,7 @@
   {
     "code": "fit",
     "english": "Tornedalen Finnish",
-    "native": "me\u00e4nkieli"
+    "native": "meänkieli"
   },
   {
     "code": "fj",
@@ -462,17 +462,17 @@
   {
     "code": "fo",
     "english": "Faroese",
-    "native": "f\u00f8royskt"
+    "native": "føroyskt"
   },
   {
     "code": "fr",
     "english": "French",
-    "native": "fran\u00e7ais"
+    "native": "français"
   },
   {
     "code": "frc",
     "english": "Cajun French",
-    "native": "fran\u00e7ais cadien"
+    "native": "français cadien"
   },
   {
     "code": "frp",
@@ -502,17 +502,17 @@
   {
     "code": "gcf",
     "english": "Guadeloupean Creole",
-    "native": "kr\u00e9y\u00f2l Gwadloup"
+    "native": "kréyòl Gwadloup"
   },
   {
     "code": "gcr",
     "english": "Guianan Creole",
-    "native": "kriy\u00f2l gwiyannen"
+    "native": "kriyòl gwiyannen"
   },
   {
     "code": "gd",
     "english": "Scottish Gaelic",
-    "native": "G\u00e0idhlig"
+    "native": "Gàidhlig"
   },
   {
     "code": "gl",
@@ -522,17 +522,17 @@
   {
     "code": "gld",
     "english": "Nanai",
-    "native": "\u043d\u0430\u0304\u043d\u0438"
+    "native": "на̄ни"
   },
   {
     "code": "glk",
     "english": "Gilaki",
-    "native": "\u06af\u06cc\u0644\u06a9\u06cc"
+    "native": "گیلکی"
   },
   {
     "code": "gn",
     "english": "Guarani",
-    "native": "Ava\u00f1e'\u1ebd"
+    "native": "Avañe'ẽ"
   },
   {
     "code": "gor",
@@ -542,12 +542,12 @@
   {
     "code": "got",
     "english": "Gothic",
-    "native": "\ud800\udf32\ud800\udf3f\ud800\udf44\ud800\udf39\ud800\udf43\ud800\udf3a"
+    "native": "𐌲𐌿𐍄𐌹𐍃𐌺"
   },
   {
     "code": "grc",
     "english": "Ancient Greek",
-    "native": "\u1f08\u03c1\u03c7\u03b1\u03af\u03b1 \u1f11\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u1f74"
+    "native": "Ἀρχαία ἑλληνικὴ"
   },
   {
     "code": "gsw",
@@ -557,7 +557,7 @@
   {
     "code": "gu",
     "english": "Gujarati",
-    "native": "\u0a97\u0ac1\u0a9c\u0ab0\u0abe\u0aa4\u0ac0"
+    "native": "ગુજરાતી"
   },
   {
     "code": "gur",
@@ -582,12 +582,12 @@
   {
     "code": "he",
     "english": "Hebrew",
-    "native": "\u05e2\u05d1\u05e8\u05d9\u05ea"
+    "native": "עברית"
   },
   {
     "code": "hi",
     "english": "Hindi",
-    "native": "\u0939\u093f\u0928\u094d\u0926\u0940"
+    "native": "हिन्दी"
   },
   {
     "code": "hil",
@@ -597,7 +597,7 @@
   {
     "code": "hno",
     "english": "Northern Hindko",
-    "native": "\u06c1\u0646\u062f\u06a9\u0648"
+    "native": "ہندکو"
   },
   {
     "code": "ho",
@@ -617,7 +617,7 @@
   {
     "code": "ht",
     "english": "Haitian Creole",
-    "native": "Krey\u00f2l ayisyen"
+    "native": "Kreyòl ayisyen"
   },
   {
     "code": "hu",
@@ -627,12 +627,12 @@
   {
     "code": "hy",
     "english": "Armenian",
-    "native": "\u0570\u0561\u0575\u0565\u0580\u0565\u0576"
+    "native": "հայերեն"
   },
   {
     "code": "hyw",
     "english": "Western Armenian",
-    "native": "\u0531\u0580\u0565\u0582\u0574\u057f\u0561\u0570\u0561\u0575\u0565\u0580\u0567\u0576"
+    "native": "Արեւմտահայերէն"
   },
   {
     "code": "hz",
@@ -667,12 +667,12 @@
   {
     "code": "ii",
     "english": "Sichuan Yi",
-    "native": "\ua187\ua259"
+    "native": "ꆇꉙ"
   },
   {
     "code": "ik",
     "english": "Inupiaq",
-    "native": "I\u00f1upiak"
+    "native": "Iñupiak"
   },
   {
     "code": "ilo",
@@ -682,7 +682,7 @@
   {
     "code": "inh",
     "english": "Ingush",
-    "native": "\u0433\u04c0\u0430\u043b\u0433\u04c0\u0430\u0439"
+    "native": "гӀалгӀай"
   },
   {
     "code": "io",
@@ -692,7 +692,7 @@
   {
     "code": "is",
     "english": "Icelandic",
-    "native": "\u00edslenska"
+    "native": "íslenska"
   },
   {
     "code": "it",
@@ -702,12 +702,12 @@
   {
     "code": "iu",
     "english": "Inuktitut",
-    "native": "\u1403\u14c4\u1483\u144e\u1450\u1466/inuktitut"
+    "native": "ᐃᓄᒃᑎᑐᑦ/inuktitut"
   },
   {
     "code": "ja",
     "english": "Japanese",
-    "native": "\u65e5\u672c\u8a9e"
+    "native": "日本語"
   },
   {
     "code": "jv",
@@ -717,7 +717,7 @@
   {
     "code": "ka",
     "english": "Georgian",
-    "native": "\u10e5\u10d0\u10e0\u10d7\u10e3\u10da\u10d8"
+    "native": "ქართული"
   },
   {
     "code": "kaa",
@@ -747,17 +747,17 @@
   {
     "code": "khw",
     "english": "Khowar",
-    "native": "\u06a9\u06be\u0648\u0627\u0631"
+    "native": "کھوار"
   },
   {
     "code": "ki",
     "english": "Kikuyu",
-    "native": "G\u0129k\u0169y\u0169"
+    "native": "Gĩkũyũ"
   },
   {
     "code": "kiu",
     "english": "Kirmanjki",
-    "native": "K\u0131rmancki"
+    "native": "Kırmancki"
   },
   {
     "code": "kj",
@@ -767,12 +767,12 @@
   {
     "code": "kjp",
     "english": "Eastern Pwo",
-    "native": "\u1016\u1060\u102f\u1036\u101c\u102d\u1000\u103a"
+    "native": "ဖၠုံလိက်"
   },
   {
     "code": "kk",
     "english": "Kazakh",
-    "native": "\u049a\u0430\u0437\u0430\u049b\u0448\u0430"
+    "native": "Қазақша"
   },
   {
     "code": "kk-arab",
@@ -792,17 +792,17 @@
   {
     "code": "km",
     "english": "Khmer",
-    "native": "\u1797\u17b6\u179f\u17b6\u1781\u17d2\u1798\u17c2\u179a"
+    "native": "ភាសាខ្មែរ"
   },
   {
     "code": "kn",
     "english": "Kannada",
-    "native": "\u0c95\u0ca8\u0ccd\u0ca8\u0ca1"
+    "native": "ಕನ್ನಡ"
   },
   {
     "code": "ko",
     "english": "Korean",
-    "native": "\ud55c\uad6d\uc5b4"
+    "native": "한국어"
   },
   {
     "code": "ko-kp",
@@ -812,7 +812,7 @@
   {
     "code": "koi",
     "english": "Komi-Permyak",
-    "native": "\u043f\u0435\u0440\u0435\u043c \u043a\u043e\u043c\u0438"
+    "native": "перем коми"
   },
   {
     "code": "kr",
@@ -822,7 +822,7 @@
   {
     "code": "krc",
     "english": "Karachay-Balkar",
-    "native": "\u043a\u044a\u0430\u0440\u0430\u0447\u0430\u0439-\u043c\u0430\u043b\u043a\u044a\u0430\u0440"
+    "native": "къарачай-малкъар"
   },
   {
     "code": "krl",
@@ -832,7 +832,7 @@
   {
     "code": "ks",
     "english": "Kashmiri",
-    "native": "(\u0643\u0634\u0645\u064a\u0631\u064a)"
+    "native": "(كشميري)"
   },
   {
     "code": "ks-arab",
@@ -847,12 +847,12 @@
   {
     "code": "ksw",
     "english": "S'gaw Karen",
-    "native": "\u1005\u103e\u102e\u1064"
+    "native": "စှီၤ"
   },
   {
     "code": "ku",
     "english": "Kurdish",
-    "native": "Kurd\u00ee / \u0643\u0648\u0631\u062f\u06cc"
+    "native": "Kurdî / كوردی"
   },
   {
     "code": "ku-Latn",
@@ -866,13 +866,13 @@
   },
   {
     "code": "kus",
-    "english": "K\u028bsaal",
-    "native": "K\u028bsaal"
+    "english": "Kʋsaal",
+    "native": "Kʋsaal"
   },
   {
     "code": "kv",
     "english": "Komi",
-    "native": "\u041a\u043e\u043c\u0438"
+    "native": "Коми"
   },
   {
     "code": "kw",
@@ -882,7 +882,7 @@
   {
     "code": "ky",
     "english": "Kyrgyz",
-    "native": "\u043a\u044b\u0440\u0433\u044b\u0437\u0447\u0430"
+    "native": "кыргызча"
   },
   {
     "code": "la",
@@ -892,12 +892,12 @@
   {
     "code": "lb",
     "english": "Luxembourgish",
-    "native": "L\u00ebtzebuergesch"
+    "native": "Lëtzebuergesch"
   },
   {
     "code": "lez",
     "english": "Lezghian",
-    "native": "\u043b\u0435\u0437\u0433\u0438"
+    "native": "лезги"
   },
   {
     "code": "lfn",
@@ -917,7 +917,7 @@
   {
     "code": "lki",
     "english": "Laki",
-    "native": "\u0644\u06d5\u06a9\u06cc"
+    "native": "لەکی"
   },
   {
     "code": "lld",
@@ -932,27 +932,27 @@
   {
     "code": "ln",
     "english": "Lingala",
-    "native": "ling\u00e1la"
+    "native": "lingála"
   },
   {
     "code": "lo",
     "english": "Lao",
-    "native": "\u0ea5\u0eb2\u0ea7"
+    "native": "ລາວ"
   },
   {
     "code": "lrc",
     "english": "Northern Luri",
-    "native": "\u0644\u06ca\u0631\u06cc \u0634\u0648\u0645\u0627\u0644\u06cc"
+    "native": "لۊری شومالی"
   },
   {
     "code": "lt",
     "english": "Lithuanian",
-    "native": "lietuvi\u0173"
+    "native": "lietuvių"
   },
   {
     "code": "ltg",
     "english": "Latgalian",
-    "native": "latga\u013cu"
+    "native": "latgaļu"
   },
   {
     "code": "lu",
@@ -962,17 +962,17 @@
   {
     "code": "luz",
     "english": "Southern Luri",
-    "native": "\u0644\u0626\u0631\u06cc \u062f\u0648\u0659\u0645\u06cc\u0646\u06cc"
+    "native": "لئری دوٙمینی"
   },
   {
     "code": "lv",
     "english": "Latvian",
-    "native": "latvie\u0161u"
+    "native": "latviešu"
   },
   {
     "code": "lzh",
     "english": "Literary Chinese",
-    "native": "\u6587\u8a00"
+    "native": "文言"
   },
   {
     "code": "lzz",
@@ -982,12 +982,12 @@
   {
     "code": "mai",
     "english": "Maithili",
-    "native": "\u092e\u0948\u0925\u093f\u0932\u0940"
+    "native": "मैथिली"
   },
   {
     "code": "mey",
-    "english": "\u0627\u0644\u062d\u0633\u0627\u0646\u064a\u0629",
-    "native": "\u0627\u0644\u062d\u0633\u0627\u0646\u064a\u0629"
+    "english": "الحسانية",
+    "native": "الحسانية"
   },
   {
     "code": "mg",
@@ -997,52 +997,52 @@
   {
     "code": "mh",
     "english": "Marshallese",
-    "native": "Kajin M\u0327aje\u013c"
+    "native": "Kajin M̧ajeļ"
   },
   {
     "code": "mi",
     "english": "Maori",
-    "native": "M\u0101ori"
+    "native": "Māori"
   },
   {
     "code": "mk",
     "english": "Macedonian",
-    "native": "\u043c\u0430\u043a\u0435\u0434\u043e\u043d\u0441\u043a\u0438"
+    "native": "македонски"
   },
   {
     "code": "ml",
     "english": "Malayalam",
-    "native": "\u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02"
+    "native": "മലയാളം"
   },
   {
     "code": "mn",
     "english": "Mongolian",
-    "native": "\u041c\u043e\u043d\u0433\u043e\u043b"
+    "native": "Монгол"
   },
   {
     "code": "mnc",
     "english": "Manchu",
-    "native": "\u182e\u1820\u1828\u1835\u1860 \u1864\u1873\u1830\u1860\u1828"
+    "native": "ᠮᠠᠨᠵᡠ ᡤᡳᠰᡠᠨ"
   },
   {
     "code": "mni",
     "english": "Manipuri",
-    "native": "\uabc3\uabe4\uabc7\uabe9 \uabc2\uabe3\uabdf"
+    "native": "ꯃꯤꯇꯩ ꯂꯣꯟ"
   },
   {
     "code": "mnw",
     "english": "Mon",
-    "native": "\u1018\u102c\u101e\u102c\u1019\u1014\u103a"
+    "native": "ဘာသာမန်"
   },
   {
     "code": "mo",
     "english": "Moldovan",
-    "native": "\u043c\u043e\u043b\u0434\u043e\u0432\u0435\u043d\u044f\u0441\u043a\u044d"
+    "native": "молдовеняскэ"
   },
   {
     "code": "mr",
     "english": "Marathi",
-    "native": "\u092e\u0930\u093e\u0920\u0940"
+    "native": "मराठी"
   },
   {
     "code": "mrh",
@@ -1067,17 +1067,17 @@
   {
     "code": "my",
     "english": "Burmese",
-    "native": "\u1019\u103c\u1014\u103a\u1019\u102c\u1018\u102c\u101e\u102c"
+    "native": "မြန်မာဘာသာ"
   },
   {
     "code": "myv",
     "english": "Erzya",
-    "native": "\u044d\u0440\u0437\u044f\u043d\u044c"
+    "native": "эрзянь"
   },
   {
     "code": "mzn",
     "english": "Mazanderani",
-    "native": "\u0645\u0627\u0632\u0650\u0631\u0648\u0646\u06cc"
+    "native": "مازِرونی"
   },
   {
     "code": "na",
@@ -1086,8 +1086,8 @@
   },
   {
     "code": "nah",
-    "english": "N\u0101huatl",
-    "native": "N\u0101huatl"
+    "english": "Nāhuatl",
+    "native": "Nāhuatl"
   },
   {
     "code": "nap",
@@ -1096,8 +1096,8 @@
   },
   {
     "code": "nb",
-    "english": "Norwegian Bokm\u00e5l",
-    "native": "norsk bokm\u00e5l"
+    "english": "Norwegian Bokmål",
+    "native": "norsk bokmål"
   },
   {
     "code": "nd",
@@ -1107,12 +1107,12 @@
   {
     "code": "nds",
     "english": "Low German",
-    "native": "Plattd\u00fc\u00fctsch"
+    "native": "Plattdüütsch"
   },
   {
     "code": "ne",
     "english": "Nepali",
-    "native": "\u0928\u0947\u092a\u093e\u0932\u0940"
+    "native": "नेपाली"
   },
   {
     "code": "ng",
@@ -1136,13 +1136,13 @@
   },
   {
     "code": "no",
-    "english": "Norwegian (bokm\u00e5l)\u202c",
-    "native": "\u202aNorsk (bokm\u00e5l)\u202c"
+    "english": "Norwegian (bokmål)‬",
+    "native": "‪Norsk (bokmål)‬"
   },
   {
     "code": "nqo",
-    "english": "N\u2019Ko",
-    "native": "\u07d2\u07de\u07cf"
+    "english": "N’Ko",
+    "native": "ߒߞߏ"
   },
   {
     "code": "nr",
@@ -1152,7 +1152,7 @@
   {
     "code": "nv",
     "english": "Navajo",
-    "native": "Din\u00e9 bizaad"
+    "native": "Diné bizaad"
   },
   {
     "code": "ny",
@@ -1172,7 +1172,7 @@
   {
     "code": "oj",
     "english": "Ojibwa",
-    "native": "\u140a\u14c2\u1511\u14c8\u142f\u14a7\u140e\u14d0"
+    "native": "ᐊᓂᔑᓈᐯᒧᐎᓐ"
   },
   {
     "code": "ojb",
@@ -1192,17 +1192,17 @@
   {
     "code": "or",
     "english": "Odia",
-    "native": "\u0b13\u0b21\u0b3c\u0b3f\u0b06"
+    "native": "ଓଡ଼ିଆ"
   },
   {
     "code": "os",
     "english": "Ossetic",
-    "native": "\u0438\u0440\u043e\u043d"
+    "native": "ирон"
   },
   {
     "code": "pa",
     "english": "Punjabi",
-    "native": "\u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40"
+    "native": "ਪੰਜਾਬੀ"
   },
   {
     "code": "pam",
@@ -1217,7 +1217,7 @@
   {
     "code": "pcm",
     "english": "Nigerian Pidgin",
-    "native": "Naij\u00e1"
+    "native": "Naijá"
   },
   {
     "code": "pdc",
@@ -1227,12 +1227,12 @@
   {
     "code": "pfl",
     "english": "Palatine German",
-    "native": "P\u00e4lzisch"
+    "native": "Pälzisch"
   },
   {
     "code": "pi",
     "english": "Pali",
-    "native": "\u092a\u093e\u093f\u0934"
+    "native": "पािऴ"
   },
   {
     "code": "pl",
@@ -1242,27 +1242,27 @@
   {
     "code": "pnb",
     "english": "Western Punjabi",
-    "native": "\u067e\u0646\u062c\u0627\u0628\u06cc"
+    "native": "پنجابی"
   },
   {
     "code": "ps",
     "english": "Pashto",
-    "native": "\u067e\u069a\u062a\u0648"
+    "native": "پښتو"
   },
   {
     "code": "pt",
     "english": "Brazilian Portuguese",
-    "native": "portugu\u00eas do Brasil"
+    "native": "português do Brasil"
   },
   {
     "code": "pt-BR",
     "english": "Brazilian Portuguese",
-    "native": "Portugu\u00eas do Brasil"
+    "native": "Português do Brasil"
   },
   {
     "code": "pt-PT",
     "english": "Portuguese",
-    "native": "portugu\u00eas"
+    "native": "português"
   },
   {
     "code": "qu",
@@ -1277,7 +1277,7 @@
   {
     "code": "rmc",
     "english": "Carpathian Romani",
-    "native": "roma\u0148i \u010dhib"
+    "native": "romaňi čhib"
   },
   {
     "code": "rn",
@@ -1287,32 +1287,32 @@
   {
     "code": "ro",
     "english": "Romanian",
-    "native": "rom\u00e2n\u0103"
+    "native": "română"
   },
   {
     "code": "roa-tara",
     "english": "Tarantino",
-    "native": "tarand\u00edne"
+    "native": "tarandíne"
   },
   {
     "code": "rsk",
     "english": "Pannonian Rusyn",
-    "native": "\u0440\u0443\u0441\u043a\u0438"
+    "native": "руски"
   },
   {
     "code": "ru",
     "english": "Russian",
-    "native": "\u0440\u0443\u0441\u0441\u043a\u0438\u0439"
+    "native": "русский"
   },
   {
     "code": "rue",
     "english": "Rusyn",
-    "native": "\u0440\u0443\u0441\u0438\u043d\u044c\u0441\u043a\u044b\u0439"
+    "native": "русиньскый"
   },
   {
     "code": "rup",
     "english": "Aromanian",
-    "native": "arm\u00e3neashti"
+    "native": "armãneashti"
   },
   {
     "code": "rw",
@@ -1322,17 +1322,17 @@
   {
     "code": "sa",
     "english": "Sanskrit",
-    "native": "\u0938\u0902\u0938\u094d\u0915\u0943\u0924\u092e\u094d"
+    "native": "संस्कृतम्"
   },
   {
     "code": "sah",
     "english": "Yakut",
-    "native": "\u0441\u0430\u0445\u0430 \u0442\u044b\u043b\u0430"
+    "native": "саха тыла"
   },
   {
     "code": "sat",
     "english": "Santali",
-    "native": "\u1c65\u1c5f\u1c71\u1c5b\u1c5f\u1c72\u1c64"
+    "native": "ᱥᱟᱱᱛᱟᱲᱤ"
   },
   {
     "code": "sc",
@@ -1352,27 +1352,27 @@
   {
     "code": "sd",
     "english": "Sindhi",
-    "native": "\u0633\u0646\u068c\u064a"
+    "native": "سنڌي"
   },
   {
     "code": "sdh",
     "english": "Southern Kurdish",
-    "native": "\u06a9\u0648\u0631\u062f\u06cc \u062e\u0648\u0627\u0631\u06af"
+    "native": "کوردی خوارگ"
   },
   {
     "code": "se",
     "english": "Northern Sami",
-    "native": "davvis\u00e1megiella"
+    "native": "davvisámegiella"
   },
   {
     "code": "sg",
     "english": "Sango",
-    "native": "S\u00e4ng\u00f6"
+    "native": "Sängö"
   },
   {
     "code": "sh",
     "english": "Serbo-Croatian",
-    "native": "srpskohrvatski / \u0441\u0440\u043f\u0441\u043a\u043e\u0445\u0440\u0432\u0430\u0442\u0441\u043a\u0438"
+    "native": "srpskohrvatski / српскохрватски"
   },
   {
     "code": "shi-latn",
@@ -1382,7 +1382,7 @@
   {
     "code": "shn",
     "english": "Shan",
-    "native": "\u107d\u1083\u1087\u101e\u1083\u1087\u1010\u1086\u1038"
+    "native": "ၽႃႇသႃႇတႆး"
   },
   {
     "code": "shy-latn",
@@ -1392,7 +1392,7 @@
   {
     "code": "si",
     "english": "Sinhala",
-    "native": "\u0dc3\u0dd2\u0d82\u0dc4\u0dbd"
+    "native": "සිංහල"
   },
   {
     "code": "simple",
@@ -1402,12 +1402,12 @@
   {
     "code": "sje",
     "english": "Pite Sami",
-    "native": "bidums\u00e1megiella"
+    "native": "bidumsámegiella"
   },
   {
     "code": "sk",
     "english": "Slovak",
-    "native": "sloven\u010dina"
+    "native": "slovenčina"
   },
   {
     "code": "skr-arab",
@@ -1417,7 +1417,7 @@
   {
     "code": "sl",
     "english": "Slovenian",
-    "native": "sloven\u0161\u010dina"
+    "native": "slovenščina"
   },
   {
     "code": "sm",
@@ -1427,17 +1427,17 @@
   {
     "code": "smj",
     "english": "Lule Sami",
-    "native": "julevs\u00e1megiella"
+    "native": "julevsámegiella"
   },
   {
     "code": "smn",
     "english": "Inari Sami",
-    "native": "anar\u00e2\u0161kiel\u00e2"
+    "native": "anarâškielâ"
   },
   {
     "code": "sms",
     "english": "Skolt Sami",
-    "native": "nu\u00f5rtts\u00e4\u00e4\u02b9m\u01e9i\u00f5ll"
+    "native": "nuõrttsääʹmǩiõll"
   },
   {
     "code": "sn",
@@ -1482,7 +1482,7 @@
   {
     "code": "sty",
     "english": "Siberian Tatar",
-    "native": "\u0441\u0435\u0431\u0435\u0440\u0442\u0430\u0442\u0430\u0440"
+    "native": "себертатар"
   },
   {
     "code": "su",
@@ -1502,12 +1502,12 @@
   {
     "code": "syl",
     "english": "Sylheti",
-    "native": "\ua80d\ua824\ua81f\ua810\ua824"
+    "native": "ꠍꠤꠟꠐꠤ"
   },
   {
     "code": "szl",
     "english": "Silesian",
-    "native": "\u015bl\u016fnski"
+    "native": "ślůnski"
   },
   {
     "code": "szy",
@@ -1517,7 +1517,7 @@
   {
     "code": "ta",
     "english": "Tamil",
-    "native": "\u0ba4\u0bae\u0bbf\u0bb4\u0bcd"
+    "native": "தமிழ்"
   },
   {
     "code": "tay",
@@ -1527,12 +1527,12 @@
   {
     "code": "tcy",
     "english": "Tulu",
-    "native": "\u0ca4\u0cc1\u0cb3\u0cc1"
+    "native": "ತುಳು"
   },
   {
     "code": "te",
     "english": "Telugu",
-    "native": "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41"
+    "native": "తెలుగు"
   },
   {
     "code": "tet",
@@ -1542,7 +1542,7 @@
   {
     "code": "tg",
     "english": "Tajik",
-    "native": "\u0422\u043e\u04b7\u0438\u043a\u04e3"
+    "native": "Тоҷикӣ"
   },
   {
     "code": "tg-cyrl",
@@ -1552,22 +1552,22 @@
   {
     "code": "th",
     "english": "Thai",
-    "native": "\u0e44\u0e17\u0e22"
+    "native": "ไทย"
   },
   {
     "code": "ti",
     "english": "Tigrinya",
-    "native": "\u1275\u130d\u122d\u129b"
+    "native": "ትግርኛ"
   },
   {
     "code": "tig",
     "english": "Tigre",
-    "native": "\u1275\u130d\u122b\u12ed\u1275\u200e"
+    "native": "ትግራይት‎"
   },
   {
     "code": "tk",
     "english": "Turkmen",
-    "native": "T\u00fcrkmen\u00e7e"
+    "native": "Türkmençe"
   },
   {
     "code": "tl",
@@ -1577,7 +1577,7 @@
   {
     "code": "tly",
     "english": "Talysh",
-    "native": "tol\u0131\u015fi"
+    "native": "tolışi"
   },
   {
     "code": "tn",
@@ -1597,7 +1597,7 @@
   {
     "code": "tr",
     "english": "Turkish",
-    "native": "T\u00fcrk\u00e7e"
+    "native": "Türkçe"
   },
   {
     "code": "trv",
@@ -1627,27 +1627,27 @@
   {
     "code": "ty",
     "english": "Tahitian",
-    "native": "Reo M\u0101`ohi"
+    "native": "Reo Mā`ohi"
   },
   {
     "code": "tyv",
     "english": "Tuvinian",
-    "native": "\u0442\u044b\u0432\u0430 \u0434\u044b\u043b"
+    "native": "тыва дыл"
   },
   {
     "code": "tzm",
     "english": "Central Atlas Tamazight",
-    "native": "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c"
+    "native": "ⵜⴰⵎⴰⵣⵉⵖⵜ"
   },
   {
     "code": "udm",
     "english": "Udmurt",
-    "native": "\u0443\u0434\u043c\u0443\u0440\u0442"
+    "native": "удмурт"
   },
   {
     "code": "ug",
     "english": "Uighur",
-    "native": "Uyghurche\u200e / \u0626\u06c7\u064a\u063a\u06c7\u0631\u0686\u06d5"
+    "native": "Uyghurche‎ / ئۇيغۇرچە"
   },
   {
     "code": "ug-arab",
@@ -1657,17 +1657,17 @@
   {
     "code": "uk",
     "english": "Ukrainian",
-    "native": "\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430"
+    "native": "українська"
   },
   {
     "code": "ur",
     "english": "Urdu",
-    "native": "\u0627\u0631\u062f\u0648"
+    "native": "اردو"
   },
   {
     "code": "uz",
     "english": "Uzbek",
-    "native": "o\u02bbzbekcha / \u045e\u0437\u0431\u0435\u043a\u0447\u0430"
+    "native": "oʻzbekcha / ўзбекча"
   },
   {
     "code": "ve",
@@ -1677,27 +1677,27 @@
   {
     "code": "vec",
     "english": "Venetian",
-    "native": "v\u00e8neto"
+    "native": "vèneto"
   },
   {
     "code": "vep",
     "english": "Veps",
-    "native": "veps\u00e4n kel\u2019"
+    "native": "vepsän kel’"
   },
   {
     "code": "vi",
     "english": "Vietnamese",
-    "native": "Ti\u1ebfng Vi\u1ec7t"
+    "native": "Tiếng Việt"
   },
   {
     "code": "vo",
-    "english": "Volap\u00fck",
-    "native": "Volap\u00fck"
+    "english": "Volapük",
+    "native": "Volapük"
   },
   {
     "code": "vro",
-    "english": "V\u00f5ro",
-    "native": "v\u00f5ro"
+    "english": "Võro",
+    "native": "võro"
   },
   {
     "code": "wa",
@@ -1727,7 +1727,7 @@
   {
     "code": "xal",
     "english": "Kalmyk",
-    "native": "\u0445\u0430\u043b\u044c\u043c\u0433"
+    "native": "хальмг"
   },
   {
     "code": "xh",
@@ -1737,17 +1737,17 @@
   {
     "code": "xmf",
     "english": "Mingrelian",
-    "native": "\u10db\u10d0\u10e0\u10d2\u10d0\u10da\u10e3\u10e0\u10d8"
+    "native": "მარგალური"
   },
   {
     "code": "yi",
     "english": "Yiddish",
-    "native": "\u05d9\u05d9\u05b4\u05d3\u05d9\u05e9"
+    "native": "ייִדיש"
   },
   {
     "code": "yo",
     "english": "Yoruba",
-    "native": "Yor\u00f9b\u00e1"
+    "native": "Yorùbá"
   },
   {
     "code": "yua",
@@ -1767,12 +1767,12 @@
   {
     "code": "zgh",
     "english": "Standard Moroccan Tamazight",
-    "native": "\u2d5c\u2d30\u2d4e\u2d30\u2d63\u2d49\u2d56\u2d5c \u2d5c\u2d30\u2d4f\u2d30\u2d61\u2d30\u2d62\u2d5c"
+    "native": "ⵜⴰⵎⴰⵣⵉⵖⵜ ⵜⴰⵏⴰⵡⴰⵢⵜ"
   },
   {
     "code": "zh-CN",
     "english": "Simplified Chinese",
-    "native": "\u4e2d\u6587\uff08\u7b80\u4f53\uff09"
+    "native": "中文（简体）"
   },
   {
     "code": "zh-HK",
@@ -1782,7 +1782,7 @@
   {
     "code": "zh-TW",
     "english": "Traditional Chinese",
-    "native": "\u4e2d\u6587\uff08\u7e41\u9ad4\uff09"
+    "native": "中文（繁體）"
   },
   {
     "code": "zu",

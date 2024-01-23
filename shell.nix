@@ -111,6 +111,11 @@ let
       rm -rf config/locale/download
       python scripts/locale_download.py
     '')
+    (writeShellScriptBin "locale-postprocess" ''
+      set -e
+      rm -rf config/locale/postprocess
+      python scripts/locale_postprocess.py
+    '')
 
     # -- Wiki-tags
     (writeShellScriptBin "wiki-tags-download" ''

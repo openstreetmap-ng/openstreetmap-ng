@@ -44,6 +44,9 @@ cy:
       messages:
         invalid_email_address: nid yw'n ymddangos ei fod yn gyfeiriad e-bost dilys
         email_address_not_routable: nid yw'n gyrchadwy
+      models:
+        user_mute:
+          is_already_muted: wedi anwybyddu yn barod
     models:
       acl: Rhestr Rheoli Mynediad
       changeset: Grŵp newid
@@ -63,8 +66,8 @@ cy:
       old_relation_member: Aelod o Hen Berthynas
       old_relation_tag: Tag Hen Berthynas
       old_way: Hen Lwybr
-      old_way_node: Nod Hen Ffordd
-      old_way_tag: Tag Hen Ffordd
+      old_way_node: Hen Nod Llwybr
+      old_way_tag: Tag Hen Lwybr
       relation: Perthynas
       relation_member: Aelod Perthynol
       relation_tag: Tag Perthynas
@@ -271,6 +274,8 @@ cy:
         reopened_at_by_html: Wedi ailgychwyn %{when} gan %{user}
       rss:
         title: Nodiadau OpenStreetMap
+        description_area: Rhestr o nodiadau, adroddwyd, gyda sylwadau, neu wedi cau
+          yn eich ardal [(%{min_lat}|%{min_lon}) -- (%{max_lat}|%{max_lon})]
         description_item: Ffrwd RSS ar gyfer nodyn %{id}
         opened: Nodyn newydd (ger %{place})
         commented: Sylw newydd (ger %{place})
@@ -295,6 +300,7 @@ cy:
           yn cael eu cadw.
         retain_changeset_discussions: Bydd eich trafodaethau grwpiau newid, os ydynt
           yn bodoli, yn cael eu cadw.
+        retain_email: Bydd eich cyfeiriad e-bost yn cael ei gadw.
         confirm_delete: Ydych chi'n siŵr?
         cancel: Canslo
   accounts:
@@ -397,8 +403,12 @@ cy:
         many: '%{count} nod'
         other: '%{count} nod'
       also_part_of_html:
-        one: rhan o'r ffordd %{related_ways}
-        other: rhan o'r ffyrdd %{related_ways}
+        zero: rhan o lwybr %{related_ways}
+        one: rhan o lwybr %{related_ways}
+        two: rhan o lwybr %{related_ways}
+        few: rhan o lwybr %{related_ways}
+        many: rhan o lwybr %{related_ways}
+        other: rhan o lwybr %{related_ways}
     relation:
       title_html: 'Perthynas: %{name}'
       history_title_html: 'Hanes y Perthynas: %{name}'
@@ -908,7 +918,7 @@ cy:
           motorway_link: Ffordd Traffordd
           passing_place: Lle Pasio
           path: Llwybr
-          pedestrian: Llwybr Cerddwyr
+          pedestrian: Stryd Gerddwyr
           platform: Platfform
           primary: Priffordd
           primary_link: Priffordd
@@ -952,6 +962,7 @@ cy:
           citywalls: Waliau Ddinas
           fort: Caer
           heritage: Safle Dreftadaeth
+          hollow_way: Ceuffordd
           house: Tŷ
           manor: Maenor
           memorial: Cofeb
@@ -963,8 +974,9 @@ cy:
           stone: Carreg
           tomb: Beddrod
           tower: Tŵr
-          wayside_cross: Croes Min Ffordd
-          wayside_shrine: Cysegrfa Min Ffordd
+          wayside_chapel: Capel Min y Ffordd
+          wayside_cross: Croes Min y Ffordd
+          wayside_shrine: Cysegrfa Min y Ffordd
           wreck: Llongddrylliad
           "yes": Safle Hanesyddol
         junction:
@@ -1029,6 +1041,7 @@ cy:
           water_park: Parc Dŵr
           "yes": Hamdden
         man_made:
+          adit: Adit
           advertising: Hysbysebu
           antenna: Antena
           beacon: Goleufa
@@ -1098,6 +1111,7 @@ cy:
           moor: Gwaun
           mud: Mwd
           peak: Copa
+          peninsula: Penrhyn
           point: Pwynt
           reef: Riff
           ridge: Cefn
@@ -1622,9 +1636,11 @@ cy:
     new:
       title: Ailosod cyfrinair
       heading: Wedi anghofio'ch cyfrinair?
-      email address: 'Cyfeiriad e-bost:'
+      email address: Cyfeiriad E-bost
       new password button: Ailosod cyfrinair
     create:
+      notice email on way: Sori eich bod wedi ei golli :-( ond mae e-bost ar y ffordd
+        er mwyn ichi ei ailosod yn fuan.
       notice email cannot find: Methwyd dod o hyd i'r cyfeiriad ebost yno.
     edit:
       title: Ailosod cyfrinair
@@ -1673,8 +1689,8 @@ cy:
     new:
       title: Mewngofnodi
       heading: Mewngofnodi
-      email or username: 'Cyfeiriad e-bost neu enw defnyddiwr:'
-      password: 'Cyfrinair:'
+      email or username: Cyfeiriad E-Bost neu Enw Defnyddiwr
+      password: Cyfrinair
       openid_html: '%{logo} OpenID:'
       remember: Cofiwch fi
       lost password link: Wedi anghofio eich cyfrinair?
@@ -1716,9 +1732,12 @@ cy:
       support: cymorth
   shared:
     markdown_help:
+      heading_html: Wedi'i ddosrannu gyda %{kramdown_link}
       headings: Penawdau
       heading: Pennawd
       subheading: Is-bennawd
+      unordered: Rhestr heb ei threfnu
+      ordered: Rhestr wedi'i threfnu
       first: Eitem gyntaf
       second: Ail eitem
       link: Dolen
@@ -1918,6 +1937,7 @@ cy:
           primary: Priffordd
           secondary: Ffordd eilaidd
           unclassified: Ffordd annosbarthedig
+          pedestrian: Llwybr cerddwyr
           track: Trac
           bridleway: Llwybr ceffylau
           cycleway: Llwybr beiciau
@@ -1962,6 +1982,7 @@ cy:
           scrubland: Prysgoed
           lake: Llyn
           reservoir: Cronfa Ddŵr
+          intermittent_water: Dŵr ysbeidiol
           glacier: Rhewlif
           reef: Riff
           wetland: Gwlyptir
@@ -1971,6 +1992,7 @@ cy:
           allotments: Rhandiroedd
           pitch: Cae chwaraeon
           centre: Canolfan chwaraeon
+          beach: Traeth
           reserve: Gwarchodfa natur
           military: Ardal filwrol
           school: Ysgol
@@ -2013,8 +2035,8 @@ cy:
         an_editor_html: Mae %{editor} yn rhaglen neu wefan y gallwch chi ei defnyddio
           i olygu'r map.
         a_node_html: Mae %{node} yn bwynt ar y map, fel bwyty neu goeden.
-        a_way_html: Mae %{way} yn llinell neu ardal fel ffordd, nant, llyn neu adeilad.
-        a_tag_html: Mae %{tag} yn cynnwys data am nod neu ffordd, fel enw bwyty neu
+        a_way_html: Mae %{way} yn llinell neu ardal, fel ffordd, nant, llyn neu adeilad.
+        a_tag_html: Mae %{tag} yn cynnwys data am nod neu lwybr, fel enw bwyty neu
           derfyn cyflymder ffordd.
         editor: golygydd
         node: nod
@@ -2025,6 +2047,7 @@ cy:
         imports: Mewnforion
         automated_edits: Golygiadau Awtomatig
       start_mapping: Dechrau Mapio
+      continue_authorization: Parhau Awdurdodi
       add_a_note:
         title: Dim amser i olygu? Ychwanegwch nodyn!
         the_map: map
@@ -2203,14 +2226,20 @@ cy:
       client_id: ID Cleient
       client_secret: Cyfrinach Cleient
       permissions: Caniatadau
+      redirect_uris: Ailgyfeirio URIs
   oauth2_authorizations:
     new:
       authorize: Awdurdodi
       deny: Gwrthod
+    show:
+      title: Cod awdurdodi
   oauth2_authorized_applications:
     index:
+      title: Fy Apiau Awdurdodedig
       application: Ap
       permissions: Caniatadau
+    application:
+      revoke: Dirymu mynediad
   users:
     new:
       title: Cofrestru
@@ -2339,6 +2368,8 @@ cy:
       heading: Rhestr o flociau defnyddwyr
       empty: Dim blociau eto.
     revoke:
+      revoke: Dad-flocio!
+    revoke_all:
       revoke: Dad-flocio!
     helper:
       time_future_html: Yn dod i ben mewn %{time}.
@@ -2570,6 +2601,8 @@ cy:
         stay_roundabout_without_exit: Aros ar gylchfan - %{name}
         start_without_exit: Dechreuwch ar %{name}
         destination_without_exit: Wedi cyrraedd cyrchfan
+        against_oneway_without_exit: Mynd yn erbyn unffordd ar %{name}
+        end_oneway_without_exit: Diwedd unffordd ar %{name}
         exit_roundabout: Gadael y gylchfan i %{name}
         unnamed: ffordd heb enw
         courtesy: Cyfarwyddiadau trwy garedigrwydd %{link}

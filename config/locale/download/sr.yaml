@@ -254,6 +254,7 @@ sr:
       delete_account: Брисање налога...
     go_public:
       heading: Јавно уређивање
+      find_out_why: сазнајте зашто
       make_edits_public_button: Нека све моје измене буду јавне
     update:
       success_confirm_needed: Подаци о кориснику су успешно ажурирани. Проверите имејл
@@ -617,11 +618,13 @@ sr:
           toilets: Тоалет
           townhall: Градска скупштина
           university: Универзитет
+          vehicle_inspection: Технички преглед
           vending_machine: Аутомат
           veterinary: Ветеринарска клиника
           village_hall: Сеоска месна заједница
           waste_basket: Корпа за отпатке
           waste_disposal: Контејнер
+          waste_dump_site: Депонија
         boundary:
           administrative: Административна граница
           census: Пописна граница
@@ -690,6 +693,7 @@ sr:
           brewery: Пивара
           carpenter: Столар
           confectionery: Кондитор
+          dressmaker: Кројач
           electrician: Електричар
           electronics_repair: Поправка електронике
           gardener: Баштован
@@ -791,6 +795,7 @@ sr:
           "yes": Раскрсница
         landuse:
           allotments: Парцеле
+          aquaculture: Рибњак
           basin: Басен
           brownfield: Запуштена локација
           cemetery: Гробље
@@ -1105,6 +1110,7 @@ sr:
           tyres: Продавница гума
           vacant: Упражњен локал
           video: Видеотека
+          video_games: Продавница видео-игара
           wine: Винарија
           "yes": Продавница
         tourism:
@@ -1470,6 +1476,8 @@ sr:
     update:
       flash changed: Ваша лозинка је промењена.
   preferences:
+    show:
+      title: Моја подешавања
     edit:
       cancel: Откажи
   profiles:
@@ -1745,6 +1753,8 @@ sr:
           rail: Железничка пруга
           train: Воз
           subway: Подземна железница
+          ferry: Трајект
+          tram: Трамвај
           trolleybus: Тролејбус
           bus: Аутобус
           cable_car: Жичара
@@ -1758,7 +1768,9 @@ sr:
           vineyard: Виноград
           forest: Шума
           wood: Шума
+          grass: Трава
           meadow: Ливада
+          sand: Песак
           golf: Голф терен
           park: Парк
           common: Пољана
@@ -1769,6 +1781,7 @@ sr:
           heathland: Пустош
           lake: Језеро
           reservoir: Резервоар
+          glacier: Глечер
           farm: Фарма
           brownfield: Грађевинско земљиште
           cemetery: Гробље
@@ -1808,6 +1821,7 @@ sr:
         title: Основни картографски термини
         paragraph_1: ОпенСтритМап има свој жаргон. Ево пар кључних речи које могу
           да буду корисне.
+        tag: ознака
       rules:
         title: Правила!
         automated_edits: Аутоматизоване измене

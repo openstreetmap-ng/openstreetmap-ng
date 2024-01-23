@@ -118,4 +118,10 @@ dag:
     new:
       email or username: Yimail adrɛɛri bee ŋunsuyuli
       password: Paswɛdi
+  site:
+    key:
+      table:
+        entry:
+          bicycle_rental: Chɛchɛ zaŋ haai
+          bicycle_parking_small: Chɛchɛ bihi zalibu
 ...
