@@ -38,7 +38,7 @@ from app.lib.xmltodict import XAttr, XMLToDict
         ),
     ],
 )
-def test_parse(input, output):
+def test_xml_parse(input, output):
     assert XMLToDict.parse(input) == output
 
 
@@ -57,7 +57,7 @@ def test_parse(input, output):
         ),
     ],
 )
-def test_parse_sequence(input, output):
+def test_xml_parse_sequence(input, output):
     assert XMLToDict.parse(input, sequence=True) == output
 
 
@@ -68,10 +68,10 @@ def test_parse_sequence(input, output):
         (b'<root><key1 attr="1"/><key2>text</key2><key2 attr="2">text2</key2></root>'),
     ],
 )
-def test_parse_compare_pypi(input):
-    output = XMLToDict.parse(input)
+def test_xml_parse_compare_pypi(input):
+    parsed = XMLToDict.parse(input)
     expected = xmltodict.parse(input, force_list=XMLToDict.force_list)
-    assert output == expected
+    assert parsed == expected
 
 
 @pytest.mark.parametrize(
@@ -122,20 +122,22 @@ def test_parse_compare_pypi(input):
         ),
     ],
 )
-def test_unparse(input, output):
+def test_xml_unparse(input, output):
     assert XMLToDict.unparse(input) == output
 
 
-def test_unparse_xattr():
-    assert (
-        XMLToDict.unparse({'root': {XAttr('test', custom_xml='test_xml'): 'test_value'}})
-        == "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
-    )
+def test_xml_unparse_xattr():
+    unparsed = XMLToDict.unparse({'root': {XAttr('test', custom_xml='test_xml'): 'test_value'}})
+    expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
+    assert unparsed == expected
 
 
-def test_unparse_invalid_multi_root():
-    pytest.raises(ValueError, XMLToDict.unparse, {'root1': {}, 'root2': {}})
+def test_xml_unparse_invalid_multi_root():
+    with pytest.raises(ValueError):
+        XMLToDict.unparse({'root1': {}, 'root2': {}})
 
 
-def test_unparse_empty():
-    assert XMLToDict.unparse({'root': []}) == "<?xml version='1.0' encoding='UTF-8'?>\n<root/>"
+def test_xml_unparse_empty():
+    unparsed = XMLToDict.unparse({'root': []})
+    expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root/>"
+    assert unparsed == expected

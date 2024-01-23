@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 import pytest
 
 from app.utils import extend_query_params, unicode_normalize
@@ -24,11 +22,31 @@ def test_unicode_normalize(text, expected):
 @pytest.mark.parametrize(
     ('uri', 'params', 'expected'),
     [
-        ('http://example.com/', {}, 'http://example.com/'),
-        ('http://example.com', {'key': 'value'}, 'http://example.com?key=value'),
-        ('http://example.com/', {'key1': 'value1', 'key2': 'value2'}, 'http://example.com/?key1=value1&key2=value2'),
-        ('http://example.com/?key1=value1', {'key2': 'value2'}, 'http://example.com/?key1=value1&key2=value2'),
-        ('http://example.com/?key1=value1', {'key1': 'new_value1'}, 'http://example.com/?key1=value1&key1=new_value1'),
+        (
+            'http://example.com/',
+            {},
+            'http://example.com/',
+        ),
+        (
+            'http://example.com',
+            {'key': 'value'},
+            'http://example.com?key=value',
+        ),
+        (
+            'http://example.com/',
+            {'key1': 'value1', 'key2': 'value2'},
+            'http://example.com/?key1=value1&key2=value2',
+        ),
+        (
+            'http://example.com/?key1=value1',
+            {'key2': 'value2'},
+            'http://example.com/?key1=value1&key2=value2',
+        ),
+        (
+            'http://example.com/?key1=value1',
+            {'key1': 'new_value1'},
+            'http://example.com/?key1=value1&key1=new_value1',
+        ),
         (
             'http://example.com/',
             {'key with space': 'value with space'},

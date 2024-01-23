@@ -68,4 +68,5 @@ def test_parse_bbox(bbox, polygon):
     ],
 )
 def test_parse_bbox_invalid(bbox):
-    pytest.raises(Exception, parse_bbox, bbox)
+    with pytest.raises(Exception):
+        parse_bbox(bbox)

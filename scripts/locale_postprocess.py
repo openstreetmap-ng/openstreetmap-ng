@@ -1,4 +1,5 @@
 import pathlib
+import pickle
 
 import anyio
 import orjson
@@ -43,7 +44,7 @@ def convert_variable_format(data: dict):
 async def convert_yaml_to_json():
     async for path in _download_dir.glob('*.yaml'):
         with pathlib.Path(path).open('rb') as f:
-            data = yaml.safe_load(f)
+            data: dict = yaml.safe_load(f)
 
         # strip first level of nesting
         data = next(iter(data.values()))
@@ -51,12 +52,8 @@ async def convert_yaml_to_json():
         trim_values(data)
         convert_variable_format(data)
 
-        await (_postprocess_dir / f'{path.stem}.json').write_bytes(
-            orjson.dumps(
-                data,
-                option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
-            )
-        )
+        buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
+        await (_postprocess_dir / f'{path.stem}.json').write_bytes(buffer)
         print(f'[✅] {path.stem!r}: converted to json')
 
 
@@ -104,6 +101,9 @@ async def extend_local_chapters():
         with pathlib.Path(locale_path).open('rb') as f:
             locale_data: dict = yaml.safe_load(f)
 
+        # strip first level of nesting
+        locale_data = next(iter(locale_data.values()))
+
         postprocess_data: dict = orjson.loads(await postprocess_locale_path.read_bytes())
         postprocess_data.setdefault('osm_community_index', {})
         postprocess_data['osm_community_index'].setdefault('communities', {})
@@ -111,6 +111,7 @@ async def extend_local_chapters():
 
         for community in communities:
             community_id: str = community['id']
+
             strings = locale_data.get(community_id, {})
             strings['name'] = resolve_community_name(community, locale_data)
 

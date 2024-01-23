@@ -19,7 +19,7 @@ else:
 _locale_dir = LOCALE_DIR / 'gnu'
 
 _j2 = Environment(
-    loader=FileSystemLoader('templates'),
+    loader=FileSystemLoader('app/templates'),
     autoescape=True,
     auto_reload=False,
 )

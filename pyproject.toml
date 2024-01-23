@@ -29,7 +29,7 @@ lxml = "^5.0.1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "^0.18.5"
 networkx = "^3.2.1"
-orjson = "^3.9.10"
+orjson = "3.9.10"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
 psycopg2-binary = "^2.9.9"
