@@ -15,7 +15,7 @@ class OAuth2:
         Raises exception if the request is not OAuth2 valid.
         """
 
-        authorization = request.headers.get('authorization')
+        authorization = request.headers.get('Authorization')
 
         if not authorization:
             raise_for().oauth2_bearer_missing()

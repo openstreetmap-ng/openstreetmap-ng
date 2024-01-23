@@ -86,7 +86,7 @@ class TranslationMiddleware(BaseHTTPMiddleware):
         if (user := auth_user()) and user.languages:
             languages = user.languages
         else:
-            accept_language = request.headers.get('accept-language', '')
+            accept_language = request.headers.get('Accept-Language', '')
             languages = _parse_accept_language(accept_language)
 
         with translation_context(languages):

@@ -68,7 +68,7 @@ class AuthService:
                     SECRET,
                     user.password_hashed,
                     basic_request.client.host,
-                    basic_request.headers.get('user-agent', ''),
+                    basic_request.headers.get('User-Agent', ''),
                     password,
                 )
             )
@@ -160,7 +160,7 @@ class AuthService:
         Raises `OAuthError` if the request is an invalid OAuth request.
         """
 
-        authorization = request.headers.get('authorization')
+        authorization = request.headers.get('Authorization')
 
         if not authorization:
             # oauth1 requests may use query params or body params

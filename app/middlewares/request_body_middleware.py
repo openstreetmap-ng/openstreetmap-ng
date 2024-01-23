@@ -24,7 +24,7 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
-        content_encoding = request.headers.get('content-encoding')
+        content_encoding = request.headers.get('Content-Encoding')
 
         # check size with compression
         if content_encoding and (decompressor := _decompress_map.get(content_encoding)):

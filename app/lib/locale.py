@@ -2,6 +2,7 @@ import logging
 import pathlib
 from collections.abc import Sequence
 
+import cython
 import orjson
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
@@ -9,11 +10,13 @@ from app.limits import LANGUAGE_CODE_MAX_LENGTH
 from app.models.locale_name import LocaleName
 
 
-def _get_locales():
+@cython.cfunc
+def _get_locales() -> frozenset[str]:
     return frozenset(p.stem for p in pathlib.Path(LOCALE_DIR / 'backend').iterdir() if p.is_dir())
 
 
-def _get_locales_names():
+@cython.cfunc
+def _get_locales_names() -> tuple[LocaleName, ...]:
     data = orjson.loads(pathlib.Path(LOCALE_DIR / 'names.json').read_bytes())
     return tuple(sorted((LocaleName(**d) for d in data), key=lambda v: v.code))
 

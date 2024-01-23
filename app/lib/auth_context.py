@@ -40,7 +40,7 @@ async def auth_context(request: Request):
 
     # api endpoints support basic auth and oauth
     if request.url.path.startswith(('/api/0.6/', '/api/0.7/')):
-        authorization = request.headers.get('authorization')
+        authorization = request.headers.get('Authorization')
         scheme, param = get_authorization_scheme_param(authorization)
         scheme = scheme.lower()
 
