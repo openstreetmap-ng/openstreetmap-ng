@@ -8,7 +8,7 @@ from app.limits import REQUEST_PATH_QUERY_MAX_LENGTH
 
 class RequestUrlMiddleware(BaseHTTPMiddleware):
     """
-    Limit request URL length.
+    Limit requests url length.
     """
 
     async def dispatch(self, request: Request, call_next):

@@ -23,7 +23,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
 
     Asterisk (*) is replaced with the default language.
 
-    Returns a tuple of the languages, from most to least preferred.
+    Returns a tuple of valid languages, from most to least preferred.
 
     >>> _parse_accept_language('en-US,pl;q=0.8,es;q=0.9,*;q=0.5')
     ('en-US', 'es', 'pl', 'en')
@@ -77,7 +77,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
 
 class TranslationMiddleware(BaseHTTPMiddleware):
     """
-    Wrap request in translation context.
+    Wrap requests in translation context.
     """
 
     async def dispatch(self, request: Request, call_next):

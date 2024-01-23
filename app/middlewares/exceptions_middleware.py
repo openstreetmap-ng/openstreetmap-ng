@@ -9,7 +9,7 @@ from app.lib.exceptions_context import exceptions_context
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):
     """
-    Wrap request in exceptions context.
+    Wrap requests in exceptions context.
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:

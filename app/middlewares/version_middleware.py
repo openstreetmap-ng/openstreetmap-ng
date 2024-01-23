@@ -6,7 +6,7 @@ from app.config import VERSION
 
 class VersionMiddleware(BaseHTTPMiddleware):
     """
-    Add X-Version header to response.
+    Add X-Version header to responses.
     """
 
     async def dispatch(self, request: Request, call_next):

@@ -1,6 +1,7 @@
 import gzip
 import logging
 import zlib
+from collections.abc import Callable
 
 import brotlicffi
 import cython
@@ -12,30 +13,50 @@ from app.lib.naturalsize import naturalsize
 from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
 
+@cython.cfunc
+def _decompress_deflate(buffer: bytes) -> bytes:
+    return zlib.decompress(buffer, -zlib.MAX_WBITS)
+
+
+@cython.cfunc
+def _decompress_gzip(buffer: bytes) -> bytes:
+    return gzip.decompress(buffer)
+
+
+@cython.cfunc
+def _decompress_brotli(buffer: bytes) -> bytes:
+    return brotlicffi.decompress(buffer)
+
+
+def _get_decompressor(content_encoding: str) -> Callable[[bytes], bytes] | None:
+    if content_encoding == '':
+        return None
+
+    if content_encoding == 'deflate':
+        return _decompress_deflate
+    if content_encoding == 'gzip':
+        return _decompress_gzip
+    if content_encoding == 'br':
+        return _decompress_brotli
+
+    return None
+
+
 class RequestBodyMiddleware(BaseHTTPMiddleware):
     """
-    Decompress request body and limit its size.
+    Decompress requests bodies and check their size.
     """
 
     async def dispatch(self, request: Request, call_next):
-        # map of content-encoding to decompression function
-        _decompress_map = {
-            'deflate': lambda buffer: zlib.decompress(buffer, -zlib.MAX_WBITS),
-            'gzip': lambda buffer: gzip.decompress(buffer),
-            'br': lambda buffer: brotlicffi.decompress(buffer),
-        }
-
+        content_encoding = request.headers.get('Content-Encoding')
         max_compressed_size: cython.int = HTTP_COMPRESSED_BODY_MAX_SIZE
         max_body_size: cython.int = HTTP_BODY_MAX_SIZE
-
-        content_encoding = request.headers.get('Content-Encoding')
+        input_size: cython.int = 0
+        chunks = []
 
         # check size with compression
-        if content_encoding and (decompressor := _decompress_map.get(content_encoding)):
-            logging.debug('Decompressing %r content-encoding', content_encoding)
-
-            input_size: cython.int = 0
-            chunks = []
+        if decompressor := _get_decompressor(content_encoding):
+            logging.debug('Decompressing %r request encoding', content_encoding)
 
             async for chunk in request.stream():
                 input_size += len(chunk)
@@ -53,9 +74,6 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
 
         # check size without compression
         else:
-            input_size: cython.int = 0
-            chunks = []
-
             async for chunk in request.stream():
                 input_size += len(chunk)
                 if input_size > max_body_size:

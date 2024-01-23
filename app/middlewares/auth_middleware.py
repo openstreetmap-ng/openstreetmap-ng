@@ -7,7 +7,7 @@ from app.lib.auth_context import auth_context
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """
-    Wrap request in auth context.
+    Wrap requests in auth context.
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:

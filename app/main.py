@@ -9,8 +9,9 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 
 import app.lib.cython_detect  # DO NOT REMOVE
-from app.config import HTTPS_ONLY, NAME, SECRET
+from app.config import HTTPS_ONLY, NAME, SECRET, TEST_ENV
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
+from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_url_middleware import RequestUrlMiddleware
 from app.responses.osm_response import OSMResponse
@@ -34,5 +35,8 @@ app.add_middleware(
 app.add_middleware(RequestBodyMiddleware)
 app.add_middleware(RequestUrlMiddleware)
 app.add_middleware(ExceptionMiddleware)
+
+if TEST_ENV:
+    app.add_middleware(ProfilerMiddleware)
 
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
