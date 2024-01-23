@@ -40,4 +40,4 @@ if TEST_ENV:
     app.add_middleware(ProfilerMiddleware)
 
 app.mount('/static', StaticFiles(directory='app/static'), name='static')
-app.mount('/static-locale', StaticFiles(directory=str(LOCALE_DIR / 'frontend')), name='static-locale')
+app.mount('/static-locale', StaticFiles(directory=str(LOCALE_DIR / 'i18next')), name='static-locale')

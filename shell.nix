@@ -117,10 +117,34 @@ let
       rm -rf config/locale/postprocess
       python scripts/locale_postprocess.py
     '')
-    (writeShellScriptBin "locale-make-frontend" ''
+    (writeShellScriptBin "locale-make-i18next" ''
       set -e
-      rm -rf config/locale/frontend
-      python scripts/locale_make_frontend.py
+      rm -rf config/locale/i18next
+      python scripts/locale_make_i18next.py
+    '')
+    (writeShellScriptBin "locale-make-gnu" ''
+      set -e
+      rm -rf config/locale/gnu
+      mkdir -p config/locale/gnu
+
+      for file in $(find config/locale/postprocess -type f); do
+        locale=$(basename "$file" .json)
+        echo "Converting '$locale'"
+        mkdir -p "config/locale/gnu/$locale/LC_MESSAGES"
+        bun run i18next-conv \
+          --quiet \
+          --language "$locale" \
+          --source config/locale/i18next/$locale-*.json \
+          --target "config/locale/gnu/$locale/LC_MESSAGES/messages.po" \
+          --keyseparator "." \
+          --ctxSeparator "__" \
+          --compatibilityJSON "v4"
+      done
+
+      for file in $(find config/locale/gnu -type f -name messages.po); do
+        echo "Compiling $file"
+        msgfmt "$file" --output-file "''${file%.po}.mo";
+      done
     '')
 
     # -- Wiki-tags
@@ -146,22 +170,6 @@ let
     '')
 
     # -- Misc
-    (writeShellScriptBin "make-locale" ''
-      set -e
-      echo "Processing osm-community-index"
-      python scripts/make_locale_oci.py
-
-      echo "Merging .po files"
-      for file in $(find config/locale -type f -name out-osm-0-all.po); do
-        locale_dir=$(dirname "$file")
-        msgcat --use-first "$file" "$locale_dir/oci.po" | sed 's/%{/{/g' > "$locale_dir/combined.po"
-      done
-
-      echo "Compiling .po files"
-      for file in $(find config/locale -type f -name combined.po); do
-        msgfmt "$file" -o "''${file%.po}.mo";
-      done
-    '')
     (writeShellScriptBin "docker-build-push" ''
       set -e
       cython-clean && cython-build

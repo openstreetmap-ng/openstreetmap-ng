@@ -6,6 +6,7 @@ i18next.use(HttpApi).init({
     lng: primaryLanguage,
     fallbackLng: languages.slice(-1)[0],
     supportedLngs: languages,
+    contextSeparator: "__",
     backend: {
         loadPath: (lngs, namespaces) => {
             const [locale] = lngs

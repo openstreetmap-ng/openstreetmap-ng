@@ -11,7 +11,24 @@ _download_dir = LOCALE_DIR / 'download'
 _postprocess_dir = LOCALE_DIR / 'postprocess'
 
 
-def convert_variable_format(data: dict) -> dict:
+def trim_values(data: dict):
+    """
+    Trim all string values.
+    """
+
+    for key, value in data.items():
+        if isinstance(value, dict):
+            trim_values(value)
+        elif isinstance(value, str):
+            value = value.strip()
+            while value.startswith('\\n'):
+                value = value[2:]
+            while value.endswith('\\n'):
+                value = value[:-2]
+            data[key] = value.strip()
+
+
+def convert_variable_format(data: dict):
     """
     Convert %{variable} to {variable} in all strings.
     """
@@ -31,6 +48,7 @@ async def convert_yaml_to_json():
         # strip first level of nesting
         data = next(iter(data.values()))
 
+        trim_values(data)
         convert_variable_format(data)
 
         await (_postprocess_dir / f'{path.stem}.json').write_bytes(

@@ -29,7 +29,7 @@ def is_browser_supported(user_agent: str) -> bool:
     major_version: cython.int = int(match['major_version'])
 
     # current target is es2020
-    # see: https://www.w3schools.com/Js/js_2020.asp
+    # see https://www.w3schools.com/Js/js_2020.asp
     if name == 'Chrome':
         return major_version >= 85
     elif name == 'Firefox':

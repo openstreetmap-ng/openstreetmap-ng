@@ -16,6 +16,8 @@ if cython.compiled:
 else:
     from math import ceil, floor
 
+_locale_dir = LOCALE_DIR / 'gnu'
+
 _j2 = Environment(
     loader=FileSystemLoader('templates'),
     autoescape=True,
@@ -33,8 +35,8 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
 
     return translation(
-        domain='default',
-        localedir=LOCALE_DIR,
+        domain='messages',
+        localedir=_locale_dir,
         languages=languages,
     )
 
@@ -48,7 +50,7 @@ def translation_context(languages: Sequence[str]):
     """
 
     # always use default translation language
-    languages = tuple(*languages, DEFAULT_LANGUAGE)
+    languages = (*languages, DEFAULT_LANGUAGE)
 
     trans = _get_translation(languages)
     token_langs = _context_langs.set(languages)

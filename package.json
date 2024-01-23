@@ -13,9 +13,10 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
+    "bun-types": "latest",
+    "i18next-conv": "^14.0.0",
     "onchange": "^7.1.0",
-    "postcss-cli": "^11.0.0",
-    "bun-types": "latest"
+    "postcss-cli": "^11.0.0"
   },
   "scripts": {
     "prefix:css": "postcss src/static/css/**/*.css --use autoprefixer --replace --no-map",

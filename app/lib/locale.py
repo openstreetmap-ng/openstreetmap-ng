@@ -14,19 +14,14 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _get_locales() -> frozenset[str]:
-    return frozenset(p.stem for p in pathlib.Path(LOCALE_DIR / 'backend').iterdir() if p.is_dir())
+def _get_i18next_locale_hash_map() -> dict[str, str]:
+    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next_hash_map.json').read_bytes())
 
 
 @cython.cfunc
 def _get_locales_names() -> tuple[LocaleName, ...]:
     data = orjson.loads(pathlib.Path(LOCALE_DIR / 'names.json').read_bytes())
     return tuple(sorted((LocaleName(**d) for d in data), key=lambda v: v.code))
-
-
-@cython.cfunc
-def _get_frontend_locale_hash_map() -> dict[str, str]:
-    return orjson.loads(pathlib.Path(LOCALE_DIR / 'frontend_hash_map.json').read_bytes())
 
 
 @cython.cfunc
@@ -37,7 +32,9 @@ def _normalize(code: str) -> str:
     return code
 
 
-_locales = _get_locales()
+_i18next_locale_hash_map = _get_i18next_locale_hash_map()
+
+_locales = frozenset(_i18next_locale_hash_map.keys())
 _locales_normalized_map = {_normalize(k): k for k in _locales}
 logging.info('Loaded %d locales', len(_locales))
 
@@ -52,8 +49,6 @@ for code in _locales:
 
 _locales_names = _get_locales_names()
 logging.info('Loaded %d locales names', len(_locales_names))
-
-_frontend_locale_hash_map = _get_frontend_locale_hash_map()
 
 
 def is_valid_locale(code: str) -> bool:
@@ -91,6 +86,17 @@ def normalize_locale(code: str, *, raise_on_not_found: bool = False) -> str:
         return _locales_normalized_map.get(normalized, code)
 
 
+def get_all_installed_locales() -> frozenset[str]:
+    """
+    Get all installed locales.
+
+    >>> get_all_installed_locales()
+    frozenset({'en', 'pl', ...})
+    """
+
+    return _locales
+
+
 def get_all_locales_names() -> Sequence[LocaleName]:
     """
     Get all locales names sorted by code.
@@ -102,12 +108,12 @@ def get_all_locales_names() -> Sequence[LocaleName]:
     return _locales_names
 
 
-def get_frontend_locale_hash_map() -> dict[str, str]:
+def get_i18next_locale_hash_map() -> dict[str, str]:
     """
-    Get frontend hash map.
+    Get i18next hash map.
 
-    >>> get_frontend_locale_hash_map()
+    >>> get_i18next_locale_hash_map()
     {'en': 'f40fd5bd91bde9c9', ...}
     """
 
-    return _frontend_locale_hash_map
+    return _i18next_locale_hash_map
