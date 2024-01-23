@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import re
 from collections.abc import Sequence
 
 import cython
@@ -8,6 +9,8 @@ import orjson
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 from app.models.locale_name import LocaleName
+
+_non_alpha_re = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
@@ -21,8 +24,16 @@ def _get_locales_names() -> tuple[LocaleName, ...]:
     return tuple(sorted((LocaleName(**d) for d in data), key=lambda v: v.code))
 
 
+@cython.cfunc
+def _normalize(code: str) -> str:
+    code = code.casefold()  # lowercase
+    code = _non_alpha_re.sub('-', code)  # remove non-alpha characters
+    code = code.strip('-')  # remove leading and trailing dashes
+    return code
+
+
 _locales = _get_locales()
-_locales_lower_map = {k.casefold(): k for k in _locales}
+_locales_normalized_map = {_normalize(k): k for k in _locales}
 logging.info('Loaded %d locales', len(_locales))
 
 # check that default locale exists
@@ -38,6 +49,19 @@ _locales_names = _get_locales_names()
 logging.info('Loaded %d locales names', len(_locales_names))
 
 
+def is_valid_locale(code: str) -> bool:
+    """
+    Check if the locale code is valid.
+
+    >>> is_valid_locale('en')
+    True
+    >>> is_valid_locale('NonExistent')
+    False
+    """
+
+    return code in _locales
+
+
 def normalize_locale_case(code: str, *, raise_on_not_found: bool = False) -> str:
     """
     Normalize locale code case.
@@ -48,13 +72,16 @@ def normalize_locale_case(code: str, *, raise_on_not_found: bool = False) -> str
     KeyError: 'NonExistent'
     """
 
+    # skip if already normalized
     if code in _locales:
         return code
 
+    normalized = _normalize(code)
+
     if raise_on_not_found:
-        return _locales_lower_map[code.casefold()]
+        return _locales_normalized_map[normalized]
     else:
-        return _locales_lower_map.get(code.casefold(), code)
+        return _locales_normalized_map.get(normalized, code)
 
 
 def get_all_locales_names() -> Sequence[LocaleName]:

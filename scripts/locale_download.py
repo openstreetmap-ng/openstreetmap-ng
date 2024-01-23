@@ -19,7 +19,7 @@ async def get_download_locales() -> Sequence[str]:
     r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations?group=out-osm-site')
     r.raise_for_status()
     matches = re.finditer(r"<option value='([\w-]+)'>\1 - ", r.text)
-    return [match.group(1) for match in matches]
+    return [match[1] for match in matches]
 
 
 @retry(timedelta(minutes=1))
@@ -35,15 +35,15 @@ async def download_locale(locale: str) -> LocaleName | None:
         print(f'[❔] {locale!r}: missing translation')
         return None
 
-    locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition).group(1)
+    locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)[1]
 
     if locale == 'x-invalidLanguageCode':
         print(f'[❔] {locale!r}: invalid language code')
         return None
 
     match = re.match(r'# Messages for (.+?) \((.+?)\)', r.text)
-    english_name = match.group(1).strip()
-    native_name = match.group(2).strip()
+    english_name = match[1].strip()
+    native_name = match[2].strip()
 
     if english_name == 'Message documentation':
         print(f'[❔] {locale!r}: not a language')

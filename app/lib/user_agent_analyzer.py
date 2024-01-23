@@ -25,8 +25,8 @@ def is_browser_supported(user_agent: str) -> bool:
     if not match:
         return True
 
-    name = match.group('name')
-    major_version: cython.int = int(match.group('major_version'))
+    name = match['name']
+    major_version: cython.int = int(match['major_version'])
 
     # current target is es2020
     # see: https://www.w3schools.com/Js/js_2020.asp

@@ -19,7 +19,7 @@ async def get_sitemap_links() -> Sequence[str]:
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
     matches = re.finditer(r'https://wiki.openstreetmap.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text)
-    result = [match.group(0) for match in matches]
+    result = [match[0] for match in matches]
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
 
@@ -34,14 +34,14 @@ async def download_and_extract_keys(sitemap_url: str) -> Sequence[tuple[str, str
     result = []
 
     for match in re.finditer(r'/(?:(?P<locale>[\w-]+):)?Key:(?P<key>.*?)</loc>', text):
-        locale: str = match.group('locale') or ''
+        locale: str = match['locale'] or ''
         locale = unquote_plus(locale)
 
         # skip talk pages
         if locale.startswith(('Talk', 'Proposal')) or locale.endswith(('_talk', '_proposal')):
             continue
 
-        key: str = match.group('key')
+        key: str = match['key']
         key = unquote_plus(key)
 
         result.append((locale, key))

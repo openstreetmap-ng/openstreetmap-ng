@@ -1,8 +1,7 @@
 import logging
 import re
-from collections.abc import Sequence
-from functools import lru_cache
 
+import cython
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -17,9 +16,8 @@ from app.limits import LANGUAGE_CODE_MAX_LENGTH
 _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
-# TODO: is cache any good here?
-@lru_cache(maxsize=128)
-def _parse_accept_language(accept_language: str) -> Sequence[str]:
+@cython.cfunc
+def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     """
     Parse the accept language header.
 
@@ -36,6 +34,7 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
         return (DEFAULT_LANGUAGE,)
 
     temp: list[tuple[float, str]] = []
+    language_code_max_length: cython.int = LANGUAGE_CODE_MAX_LENGTH
 
     # process accept language codes
     for match in _accept_language_re.finditer(accept_language):
@@ -43,7 +42,7 @@ def _parse_accept_language(accept_language: str) -> Sequence[str]:
         q = match['q']
 
         # skip weird accept language codes
-        if (lang_len := len(lang)) > LANGUAGE_CODE_MAX_LENGTH:
+        if (lang_len := len(lang)) > language_code_max_length:
             logging.debug('Accept language code is too long %d', lang_len)
             continue
 
@@ -82,10 +81,11 @@ class TranslationMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
-        # check user's preferred languages before parsing the accept language header
-        if (user := auth_user()) and user.languages:
-            languages = user.languages
-        else:
+        # prefer user languages
+        languages = user.languages_valid if (user := auth_user()) else ()
+
+        # fallback to accept language header
+        if not languages:
             accept_language = request.headers.get('Accept-Language', '')
             languages = _parse_accept_language(accept_language)
 

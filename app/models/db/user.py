@@ -23,7 +23,7 @@ from app.config import APP_URL, DEFAULT_LANGUAGE
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.locale import normalize_locale_case
+from app.lib.locale import is_valid_locale, normalize_locale_case
 from app.lib.password_hash import PasswordHash
 from app.lib.rich_text_mixin import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
@@ -188,23 +188,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         self.languages = tuple(set(languages))
 
     @property
-    def preferred_diary_language(self) -> str:
+    def languages_valid(self) -> Sequence[str]:
         """
-        Get the user's preferred diary language code.
-
-        >>> user.preferred_diary_language
-        'en'
+        Get the user's languages that are supported by the application.
         """
 
-        # return the first valid language
-        for code in self.languages:
-            try:
-                return normalize_locale_case(code, raise_on_not_found=True)
-            except KeyError:
-                continue
-
-        # fallback to default
-        return DEFAULT_LANGUAGE
+        return tuple(filter(lambda v: is_valid_locale(v), self.languages))
 
     @property
     def changeset_max_size(self) -> int:
