@@ -3,7 +3,7 @@
 let
   # Currently using nixpkgs-23.11-darwin
   # Get latest hashes from https://status.nixos.org/
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d2003f2223cbb8cd95134e4a0541beea215c1073.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/55437b635379c606bb001f12f6073db6b3bf8683.tar.gz") { };
 
   libraries' = with pkgs; [
     # Base libraries
