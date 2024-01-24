@@ -1,16 +1,24 @@
 import logging
+import pathlib
 from html import escape
 
 import bleach
 import cython
+import orjson
 from markdown_it import MarkdownIt
 
-from app.models.db.cache_entry import CacheEntry
+from app.config import CONFIG_DIR
+from app.models.cache_entry import CacheEntry
 from app.models.text_format import TextFormat
 from app.services.cache_service import CacheService
 
-_md = MarkdownIt(options_update={'typographer': True})
-_md.enable(['replacements', 'smartquotes'])
+
+@cython.cfunc
+def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    data: dict = orjson.loads(pathlib.Path(CONFIG_DIR / 'rich_text.json').read_bytes())
+    allowed_tags = frozenset(data['allowed_tags'])
+    allowed_attributes = {k: frozenset(v) for k, v in data['allowed_attributes'].items()}
+    return allowed_tags, allowed_attributes
 
 
 @cython.cfunc
@@ -20,7 +28,13 @@ def _cache_context(text_format: TextFormat) -> str:
 
 @cython.cfunc
 def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
-    return attr in _allowed_attributes[None] or attr in _allowed_attributes.get(tag, ())
+    return attr in _allowed_attributes[''] or attr in _allowed_attributes.get(tag, ())
+
+
+_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
+
+_md = MarkdownIt(options_update={'typographer': True})
+_md.enable(['replacements', 'smartquotes'])
 
 
 @cython.cfunc
@@ -68,121 +82,7 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
         return _process(text, text_format)
 
     # accelerate cache lookup by id if available
-    if cache_id:
+    if cache_id is not None:
         return await CacheService.get_one_by_id(cache_id, factory)
     else:
         return await CacheService.get_one_by_key(text, _cache_context(text_format), factory)
-
-
-_allowed_tags = frozenset(
-    {
-        'a',
-        'abbr',
-        'acronym',
-        'address',
-        'aside',
-        'audio',
-        'b',
-        'bdi',
-        'bdo',
-        'blockquote',
-        'br',
-        'caption',
-        'center',
-        'cite',
-        'code',
-        'col',
-        'colgroup',
-        'data',
-        'del',
-        'details',
-        'dd',
-        'dfn',
-        'div',
-        'dl',
-        'dt',
-        'em',
-        'figcaption',
-        'figure',
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'hgroup',
-        'hr',
-        'i',
-        'img',
-        'ins',
-        'kbd',
-        'li',
-        'mark',
-        'ol',
-        'p',
-        'picture',
-        'pre',
-        'q',
-        'rp',
-        'rt',
-        'ruby',
-        's',
-        'samp',
-        'section',
-        'small',
-        'source',
-        'span',
-        'strike',
-        'strong',
-        'sub',
-        'summary',
-        'sup',
-        'table',
-        'tbody',
-        'td',
-        'tfoot',
-        'th',
-        'thead',
-        'time',
-        'title',
-        'tr',
-        'track',
-        'u',
-        'ul',
-        'var',
-        'video',
-        'wbr',
-    }
-)
-
-_allowed_attributes = {
-    # None extends to all tags
-    None: {
-        'dir',
-        'hidden',
-        'id',
-        'lang',
-        'tabindex',
-        'title',
-        'translate',
-    },
-    'a': {'href', 'hreflang', 'referrerpolicy', 'type'},
-    'audio': {'controls', 'loop', 'muted', 'src'},
-    'blockquote': {'cite'},
-    'col': {'span'},
-    'colgroup': {'span'},
-    'data': {'value'},
-    'del': {'cite', 'datetime'},
-    'details': {'open'},
-    'img': {'alt', 'src'},
-    'ins': {'cite', 'datetime'},
-    'li': {'value'},
-    'ol': {'reversed', 'start', 'type'},
-    'q': {'cite'},
-    'source': {'sizes', 'src', 'srcset', 'type'},
-    'td': {'colspan', 'headers', 'rowspan'},
-    'th': {'abbr', 'colspan', 'headers', 'rowspan', 'scope'},
-    'time': {'datetime', 'pubdate'},
-    'track': {'default', 'kind', 'label', 'src', 'srclang'},
-    'video': {'controls', 'loop', 'muted', 'poster', 'src'},
-}

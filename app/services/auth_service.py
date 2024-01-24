@@ -9,12 +9,12 @@ from sqlalchemy import update
 from app.config import SECRET
 from app.db import db
 from app.lib.crypto import hash_bytes
-from app.lib.date_utils import utcnow
+from app.lib.date_utils import format_iso_date, utcnow
 from app.lib.email import validate_email
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
-from app.limits import USER_TOKEN_SESSION_EXPIRE
+from app.limits import FAST_PASSWORD_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -67,6 +67,7 @@ class AuthService:
                 (
                     SECRET,
                     user.password_hashed,
+                    format_iso_date(user.password_changed_at),
                     basic_request.client.host,
                     basic_request.headers.get('User-Agent', ''),
                     password,
@@ -79,9 +80,7 @@ class AuthService:
                 ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
                 return 'OK' if ph_valid else ''
 
-            # TODO: FAST_PASSWORD_CACHE_EXPIRE
-            # TODO: expire on pass change
-            cache = await CacheService.get_one_by_key(key, _cache_context, factory)
+            cache = await CacheService.get_one_by_key(key, _cache_context, factory, ttl=FAST_PASSWORD_CACHE_EXPIRE)
         else:
             cache = None
 

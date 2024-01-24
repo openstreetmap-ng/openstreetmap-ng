@@ -16,5 +16,5 @@ async def preview(
     text_format: Annotated[TextFormat, Form()],
     _: Annotated[User, web_user()],
 ) -> str:
-    cache = await rich_text(text, None, text_format)
-    return cache.value
+    cache_entry = await rich_text(text, None, text_format)
+    return cache_entry.value

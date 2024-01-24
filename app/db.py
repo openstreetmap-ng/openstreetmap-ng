@@ -10,7 +10,7 @@ _redis_pool = ConnectionPool().from_url(REDIS_URL)
 
 @asynccontextmanager
 async def redis():
-    async with Redis(connection_pool=_redis_pool, protocol=3) as r:
+    async with Redis(connection_pool=_redis_pool) as r:
         yield r
 
 

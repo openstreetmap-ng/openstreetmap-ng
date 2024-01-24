@@ -1,13 +1,10 @@
 from collections.abc import Awaitable, Callable
+from datetime import timedelta
 
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import load_only
-
-from app.db import db
+from app.db import redis
 from app.lib.crypto import hash_bytes
-from app.lib.date_utils import utcnow
 from app.limits import CACHE_DEFAULT_EXPIRE
-from app.models.db.cache_entry import CacheEntry
+from app.models.cache_entry import CacheEntry
 
 # NOTE: ideally we would use Redis for caching, but for now this will be good enough
 
@@ -18,32 +15,37 @@ def _hash_key(key: str, context: str) -> bytes:
 
 class CacheService:
     @staticmethod
-    async def get_one_by_id(cache_id: bytes, factory: Callable[[], Awaitable[str]]) -> str:
+    async def get_one_by_id(
+        cache_id: bytes,
+        factory: Callable[[], Awaitable[str]],
+        *,
+        ttl: timedelta = CACHE_DEFAULT_EXPIRE,
+    ) -> CacheEntry:
         """
         Get a value from the cache by id.
 
         If the value is not in the cache, call the async factory to generate it.
         """
 
-        async with db() as session:
-            entry = await session.get(CacheEntry, cache_id, options=[load_only(CacheEntry.value, raiseload=True)])
+        cache_id_str = cache_id.hex()
 
-            if not entry:
+        async with redis() as conn:
+            value: str | None = await conn.get(cache_id_str)
+
+            if value is None:
                 value = await factory()
-                entry = CacheEntry(
-                    id=cache_id,
-                    value=value,
-                    expires_at=utcnow() + CACHE_DEFAULT_EXPIRE,
-                )
+                await conn.set(cache_id_str, value, ex=ttl.total_seconds(), nx=True)
 
-                stmt = insert(CacheEntry).values(entry).on_conflict_do_nothing(index_elements=[CacheEntry.id])
-
-                await session.execute(stmt)
-
-            return entry.value
+        return CacheEntry(id=cache_id, value=value)
 
     @staticmethod
-    async def get_one_by_key(key: str, context: str, factory: Callable[[], Awaitable[str]]) -> str:
+    async def get_one_by_key(
+        key: str,
+        context: str,
+        factory: Callable[[], Awaitable[str]],
+        *,
+        ttl: timedelta = CACHE_DEFAULT_EXPIRE,
+    ) -> CacheEntry:
         """
         Get a value from the cache by key string.
 
@@ -53,4 +55,5 @@ class CacheService:
         """
 
         cache_id = _hash_key(key, context)
-        return await CacheService.get_one_by_id(cache_id, factory)
+
+        return await CacheService.get_one_by_id(cache_id, factory, ttl=ttl)
