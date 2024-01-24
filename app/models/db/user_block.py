@@ -8,8 +8,8 @@ from app.lib.crypto import HASH_SIZE
 from app.lib.date_utils import utcnow
 from app.lib.rich_text_mixin import RichTextMixin
 from app.limits import USER_BLOCK_BODY_MAX_LENGTH
+from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
-from app.models.db.cache_entry import CacheEntry
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
@@ -30,13 +30,7 @@ class UserBlock(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
-    body_rich: Mapped[CacheEntry | None] = relationship(
-        CacheEntry,
-        primaryjoin=CacheEntry.id == body_rich_hash,
-        viewonly=True,
-        default=None,
-        lazy='raise',
-    )
+    body_rich: CacheEntry | None = None
 
     # defaults
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)

@@ -6,8 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.lib.crypto import HASH_SIZE
 from app.lib.rich_text_mixin import RichTextMixin
 from app.limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
+from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
-from app.models.db.cache_entry import CacheEntry
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
@@ -24,13 +24,7 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
-    body_rich: Mapped[CacheEntry | None] = relationship(
-        CacheEntry,
-        primaryjoin=CacheEntry.id == body_rich_hash,
-        viewonly=True,
-        default=None,
-        lazy='raise',
-    )
+    body_rich: CacheEntry | None = None
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
 

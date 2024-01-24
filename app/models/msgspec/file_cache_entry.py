@@ -5,7 +5,7 @@ import msgspec
 from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
-class FileCacheEntry(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
+class FileCacheEntry(msgspec.Struct, omit_defaults=True):
     version: int = 1
     expires_at: int | None
     data: bytes

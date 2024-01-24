@@ -35,8 +35,8 @@ from app.limits import (
 )
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
+from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
-from app.models.db.cache_entry import CacheEntry
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry_type import PointType
@@ -69,13 +69,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
     description_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
-    description_rich: Mapped[CacheEntry | None] = relationship(
-        CacheEntry,
-        primaryjoin=CacheEntry.id == description_rich_hash,
-        viewonly=True,
-        default=None,
-        lazy='raise',
-    )
+    description_rich: CacheEntry | None = None
     editor: Mapped[Editor | None] = mapped_column(Enum(Editor), nullable=True, default=None)
     avatar_type: Mapped[AvatarType] = mapped_column(Enum(AvatarType), nullable=False, default=AvatarType.default)
     avatar_id: Mapped[str | None] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=True, default=None)
