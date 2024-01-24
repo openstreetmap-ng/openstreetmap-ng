@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -17,7 +17,7 @@ class ChangesetCommentService:
         """
 
         try:
-            async with DB() as session:
+            async with db() as session:
                 changeset = await session.get(
                     Changeset,
                     changeset_id,
@@ -43,7 +43,7 @@ class ChangesetCommentService:
         Unsubscribe current user from changeset discussion.
         """
 
-        async with DB() as session:
+        async with db() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -70,7 +70,7 @@ class ChangesetCommentService:
         Comment on a changeset.
         """
 
-        async with DB() as session:
+        async with db() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -101,7 +101,7 @@ class ChangesetCommentService:
         Delete any changeset comment.
         """
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             comment = await session.get(
                 ChangesetComment,
                 comment_id,

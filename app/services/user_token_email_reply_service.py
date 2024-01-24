@@ -1,7 +1,7 @@
 import secrets
 
 from app.config import SMTP_MESSAGES_FROM_HOST
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user, manual_auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -26,7 +26,7 @@ class UserTokenEmailReplyService:
         token_b = secrets.token_bytes(32)
         token_hashed = hash_bytes(token_b, context=None)
 
-        async with DB() as session:
+        async with db() as session:
             token = UserTokenEmailReply(
                 user_id=replying_user_id,
                 token_hashed=token_hashed,

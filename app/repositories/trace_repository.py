@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import func, select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -20,7 +20,7 @@ class TraceRepository:
         Raises if the trace is not visible to the current user.
         """
 
-        async with DB() as session:
+        async with db() as session:
             trace = await session.get(Trace, trace_id, options=[get_joinedload()])
 
         if not trace:
@@ -55,7 +55,7 @@ class TraceRepository:
         Find traces by user id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Trace)
                 .options(get_joinedload())
@@ -76,7 +76,7 @@ class TraceRepository:
         Count traces by user id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(func.count()).select_from(
                 select(Trace).where(
                     Trace.user_id == user_id,

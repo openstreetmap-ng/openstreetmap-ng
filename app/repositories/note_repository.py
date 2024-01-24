@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from shapely import Polygon
 from sqlalchemy import func, null, select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.joinedload_context import get_joinedload
@@ -32,7 +32,7 @@ class NoteRepository:
         Find notes by query.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(Note).options(get_joinedload()).join(NoteComment)
             where_and = [Note.visible_to(auth_user())]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at

@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from shapely import Point
 from sqlalchemy import func, null, select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.joinedload_context import get_joinedload
 from app.limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
@@ -17,7 +17,7 @@ class UserRepository:
         Find a user by id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             return await session.get(User, user_id, options=[get_joinedload()])
 
     @staticmethod
@@ -26,7 +26,7 @@ class UserRepository:
         Find a user by display name.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(User)
                 .options(get_joinedload())
@@ -43,7 +43,7 @@ class UserRepository:
         Find a user by email.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(User)
                 .options(get_joinedload())
@@ -60,7 +60,7 @@ class UserRepository:
         Find users by ids.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(User)
                 .options(get_joinedload())
@@ -86,7 +86,7 @@ class UserRepository:
 
         point_wkt = point.wkt
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(User)
                 .options(get_joinedload())

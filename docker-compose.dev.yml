@@ -1,8 +1,21 @@
 version: "3"
 
 services:
-  db:
-    image: postgis/postgis:16-3.4-alpine
+  redis:
+    image: docker.io/library/redis:7.2.4-alpine
+
+    ports:
+      - 127.0.0.1:6379:6379
+
+    volumes:
+      - ./data/redis:/data
+
+    configs:
+      - source: redis.conf
+        target: /usr/local/etc/redis/redis.conf
+
+  pg:
+    image: docker.io/postgis/postgis:16-3.4-alpine
 
     environment:
       POSTGRES_USER: postgres
@@ -14,10 +27,10 @@ services:
       - 127.0.0.1:5432:5432
 
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/pg:/var/lib/postgresql/data
 
   pgAdmin:
-    image: dpage/pgadmin4
+    image: docker.io/dpage/pgadmin4
 
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@osm.org
@@ -38,6 +51,19 @@ services:
         target: /pgadmin4/servers.json
 
 configs:
+  redis.conf:
+    content: |
+      # authentication
+      requirepass redis
+
+      # no persistence
+      save ""
+      appendonly no
+
+      # automatically delete keys
+      maxmemory 128mb
+      maxmemory-policy allkeys-lru
+
   servers.json:
     content: |
       {
@@ -45,7 +71,7 @@ configs:
           "1": {
             "Name": "openstreetmap",
             "Group": "Servers",
-            "Host": "db",
+            "Host": "pg",
             "Port": 5432,
             "MaintenanceDB": "postgres",
             "Username": "postgres",

@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import load_only
 
-from app.db import DB
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.limits import CACHE_DEFAULT_EXPIRE
@@ -25,7 +25,7 @@ class CacheService:
         If the value is not in the cache, call the async factory to generate it.
         """
 
-        async with DB() as session:
+        async with db() as session:
             entry = await session.get(CacheEntry, cache_id, options=[load_only(CacheEntry.value, raiseload=True)])
 
             if not entry:

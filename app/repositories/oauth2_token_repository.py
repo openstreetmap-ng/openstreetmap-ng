@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import null, select
 
-from app.db import DB
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.limits import FIND_LIMIT
 from app.models.db.oauth2_token import OAuth2Token
@@ -17,7 +17,7 @@ class OAuth2TokenRepository:
 
         token_hashed = hash_bytes(token_str, context=None)
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(OAuth2Token).where(
                 OAuth2Token.token_hashed == token_hashed,
                 OAuth2Token.authorized_at != null(),
@@ -36,7 +36,7 @@ class OAuth2TokenRepository:
         Find all authorized OAuth2 tokens for a user-application pair.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(OAuth2Token)
                 .where(

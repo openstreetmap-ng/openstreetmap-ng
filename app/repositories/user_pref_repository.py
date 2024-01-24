@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.user_pref import UserPref
 
@@ -14,7 +14,7 @@ class UserPrefRepository:
         Find a user preference by app id and key.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(UserPref)
                 .where(
@@ -33,7 +33,7 @@ class UserPrefRepository:
         Find all user preferences by app id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(UserPref).where(
                 UserPref.user_id == auth_user().id,
                 UserPref.app_id == app_id,

@@ -1,6 +1,6 @@
 import secrets
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -20,7 +20,7 @@ class UserTokenEmailChangeService:
         token_b = secrets.token_bytes(32)
         token_hashed = hash_bytes(token_b, context=None)
 
-        async with DB() as session:
+        async with db() as session:
             token = UserTokenEmailChange(
                 user_id=user.id,
                 token_hashed=token_hashed,

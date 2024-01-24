@@ -4,7 +4,7 @@ from datetime import datetime
 from shapely import Polygon
 from sqlalchemy import func, null, select
 
-from app.db import DB
+from app.db import db
 from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
 from app.models.db.changeset import Changeset
@@ -26,7 +26,7 @@ class ChangesetRepository:
         Find changesets by query.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(Changeset).options(get_joinedload())
             where_and = []
 
@@ -59,7 +59,7 @@ class ChangesetRepository:
         Count changesets by user id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(func.count()).select_from(
                 select(Changeset).where(
                     Changeset.user_id == user_id,

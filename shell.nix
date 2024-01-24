@@ -178,7 +178,7 @@ let
     '')
     (writeShellScriptBin "dev-clean" ''
       dev-stop
-      rm -rf data/db data/pgadmin
+      rm -rf data/redis data/pg data/pgadmin
     '')
 
     # -- Misc

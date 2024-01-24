@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.db import DB
+from app.db import db
 from app.models.db.oauth2_application import OAuth2Application
 
 
@@ -11,7 +11,7 @@ class OAuth2ApplicationRepository:
         Find an OAuth2 application by id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             return await session.get(OAuth2Application, app_id)
 
     @staticmethod
@@ -20,7 +20,7 @@ class OAuth2ApplicationRepository:
         Find an OAuth2 application by client id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(OAuth2Application).where(OAuth2Application.client_id == client_id)
 
             return await session.scalar(stmt)

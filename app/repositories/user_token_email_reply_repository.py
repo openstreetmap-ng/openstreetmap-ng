@@ -4,7 +4,7 @@ from hmac import compare_digest
 
 from sqlalchemy import func, select
 
-from app.db import DB
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -27,7 +27,7 @@ class UserTokenEmailReplyRepository:
             logging.debug('Invalid reply_address format %r', reply_address)
             return None
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(UserTokenEmailReply).where(
                 UserTokenEmailReply.id == token_struct.id,
                 UserTokenEmailReply.expires_at > func.now(),

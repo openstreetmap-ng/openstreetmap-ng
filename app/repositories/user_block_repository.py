@@ -1,6 +1,6 @@
 from sqlalchemy import false, func, select
 
-from app.db import DB
+from app.db import db
 from app.models.db.user_block import UserBlock
 
 
@@ -13,7 +13,7 @@ class UserBlockRepository:
         Returns a tuple of (total, active).
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(func.count())
                 .select_from(
@@ -42,7 +42,7 @@ class UserBlockRepository:
         Returns a tuple of (total, active).
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(func.count())
                 .select_from(

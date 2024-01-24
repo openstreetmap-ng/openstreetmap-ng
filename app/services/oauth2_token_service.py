@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import null, select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -80,7 +80,7 @@ class OAuth2TokenService:
         authorization_code = secrets.token_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with DB() as session:
+        async with db() as session:
             token = OAuth2Token(
                 user_id=user_id,
                 application_id=app.id,
@@ -115,7 +115,7 @@ class OAuth2TokenService:
 
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             stmt = (
                 select(OAuth2Token)
                 .where(

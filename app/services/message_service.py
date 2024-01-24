@@ -1,4 +1,4 @@
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.models.db.message import Message
 
@@ -10,7 +10,7 @@ class MessageService:
         Send a message to a user.
         """
 
-        async with DB() as session:
+        async with db() as session:
             session.add(
                 Message(
                     from_user_id=auth_user().id,

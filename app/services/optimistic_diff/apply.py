@@ -9,7 +9,7 @@ from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
-from app.db import DB
+from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -40,7 +40,7 @@ class OptimisticDiffApply:
         prepare.applied = True
         assigned_ref_map: dict[TypedElementRef, Sequence[Element]] = None
 
-        async with DB() as session, session.begin(), anyio.create_task_group() as tg:
+        async with db() as session, session.begin(), anyio.create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
             await session.execute(f'LOCK TABLE {Changeset.__tablename__}, {Element.__tablename__} IN EXCLUSIVE MODE')
 

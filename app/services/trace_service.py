@@ -6,7 +6,7 @@ import anyio
 from anyio import to_thread
 from fastapi import UploadFile
 
-from app.db import DB
+from app.db import db
 from app.format06 import Format06
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -140,7 +140,7 @@ class TraceService:
         trace.image_id = image_id
         trace.icon_id = icon_id
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             session.add(trace)
 
         return trace
@@ -160,7 +160,7 @@ class TraceService:
         Update a trace.
         """
 
-        async with DB() as session:
+        async with db() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if not trace:
@@ -179,7 +179,7 @@ class TraceService:
         Delete a trace.
         """
 
-        async with DB() as session:
+        async with db() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if not trace:

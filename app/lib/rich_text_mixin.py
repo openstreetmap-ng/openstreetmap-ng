@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import anyio
 from sqlalchemy import update
 
-from app.db import DB
+from app.db import db
 from app.lib.rich_text import rich_text
 from app.models.text_format import TextFormat
 
@@ -31,7 +31,7 @@ class RichTextMixin:
 
             # assign new hash if changed
             if text_rich_hash != cache.id:
-                async with DB() as session:
+                async with db() as session:
                     cls = type(self)
                     stmt = (
                         update(cls)

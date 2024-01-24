@@ -3,7 +3,7 @@ from shapely import Point
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -26,7 +26,7 @@ class NoteService:
             user_id = None
             user_ip = request.client.host
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             note = Note(
                 point=point,
                 comments=[
@@ -51,7 +51,7 @@ class NoteService:
 
         current_user = auth_user()
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             stmt = (
                 select(Note)
                 .options(

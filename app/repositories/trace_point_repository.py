@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from shapely import Polygon
 from sqlalchemy import func, select
 
-from app.db import DB
+from app.db import db
 from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
 from app.models.db.trace_ import Trace
@@ -24,7 +24,7 @@ class TracePointRepository:
         Find trace points by geometry.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(TracePoint)
                 .options(get_joinedload())

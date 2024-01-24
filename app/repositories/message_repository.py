@@ -1,6 +1,6 @@
 from sqlalchemy import false, func, select
 
-from app.db import DB
+from app.db import db
 from app.models.db.message import Message
 
 
@@ -13,7 +13,7 @@ class MessageRepository:
         Returns a tuple of (total, unread).
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(func.count())
                 .select_from(
@@ -42,7 +42,7 @@ class MessageRepository:
         Count sent messages by user id.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(func.count()).select_from(
                 select(Message).where(
                     Message.from_user_id == user_id,

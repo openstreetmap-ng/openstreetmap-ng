@@ -3,7 +3,7 @@ from hmac import compare_digest
 
 from sqlalchemy import func, select
 
-from app.db import DB
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -16,7 +16,7 @@ class UserTokenSessionRepository:
         Find a user session token by token struct.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(UserTokenSession).where(
                 UserTokenSession.id == token_struct.id,
                 UserTokenSession.expires_at > func.now(),  # TODO: expires at check

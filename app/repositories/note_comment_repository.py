@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from shapely import Polygon
 from sqlalchemy import func, select
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.joinedload_context import get_joinedload
 from app.limits import FIND_LIMIT
@@ -22,7 +22,7 @@ class NoteCommentRepository:
         Find note comments by query.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(NoteComment).options(get_joinedload()).join(Note)
             where_and = [Note.visible_to(auth_user())]
 

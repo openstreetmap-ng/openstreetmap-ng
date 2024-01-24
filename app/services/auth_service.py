@@ -7,7 +7,7 @@ from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy import update
 
 from app.config import SECRET
-from app.db import DB
+from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.email import validate_email
@@ -99,7 +99,7 @@ class AuthService:
         if ph and ph.rehash_needed:
             new_hash = ph.hash(password)
 
-            async with DB() as session:
+            async with db() as session:
                 stmt = (
                     update(User)
                     .where(User.id == user.id, User.password_hashed == user.password_hashed)
@@ -123,7 +123,7 @@ class AuthService:
         token_b = secrets.token_bytes(32)
         token_hashed = hash_bytes(token_b, context=None)
 
-        async with DB() as session:
+        async with db() as session:
             token = UserTokenSession(
                 user_id=user_id,
                 token_hashed=token_hashed,

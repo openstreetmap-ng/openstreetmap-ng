@@ -17,7 +17,7 @@ from app.config import (
     SMTP_SECURE,
     SMTP_USER,
 )
-from app.db import DB
+from app.db import db
 from app.lib.date_utils import utcnow
 from app.lib.translation import render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
@@ -117,7 +117,7 @@ class MailService:
         with translation_context(to_user.languages):
             body = render(template_name, **template_data)
 
-        async with DB() as session:
+        async with db() as session:
             mail = Mail(
                 from_user_id=from_user.id if from_user else None,
                 from_type=from_type,
@@ -137,7 +137,7 @@ class MailService:
         Process the next scheduled mail.
         """
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             now = utcnow()
             stmt = (
                 select(Mail)

@@ -3,7 +3,7 @@ import logging
 from fastapi import UploadFile
 from sqlalchemy import func
 
-from app.db import DB
+from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.email import validate_email_deliverability
 from app.lib.message_collector import MessageCollector
@@ -29,7 +29,7 @@ class UserService:
         Update user's about me.
         """
 
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             user = await session.get(User, auth_user().id, with_for_update=True)
 
             if user.description != description:
@@ -64,7 +64,7 @@ class UserService:
             avatar_id = None
 
         # update user data
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             user = await session.get(User, current_user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
@@ -130,7 +130,7 @@ class UserService:
         password_hashed = current_user.password_hasher.hash(new_password)
 
         # update user data
-        async with DB() as session, session.begin():
+        async with db() as session, session.begin():
             user = await session.get(User, current_user.id, with_for_update=True)
             user.password_hashed = password_hashed
             user.password_changed_at = func.now()

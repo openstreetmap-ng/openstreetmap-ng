@@ -7,7 +7,7 @@ from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
 from sqlalchemy.orm import load_only
 
-from app.db import DB
+from app.db import db
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -27,7 +27,7 @@ class ElementRepository:
         Returns 0 if no elements exist for the given type.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(load_only(Element.typed_id, raiseload=True))
@@ -45,7 +45,7 @@ class ElementRepository:
         Find the latest element.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = select(Element).options(get_joinedload()).order_by(Element.id.desc()).limit(1)
             return await session.scalar(stmt)
 
@@ -65,7 +65,7 @@ class ElementRepository:
         if not versioned_refs:
             return ()
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(get_joinedload())
@@ -96,7 +96,7 @@ class ElementRepository:
         Get elements by the typed ref.
         """
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(get_joinedload())
@@ -136,7 +136,7 @@ class ElementRepository:
         point_in_time = utcnow()
         recurse_way_refs = tuple(ref for ref in typed_refs if ref.type == ElementType.way) if recurse_ways else ()
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(get_joinedload())
@@ -258,7 +258,7 @@ class ElementRepository:
         # TODO: point in time
         point_in_time = utcnow()
 
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(get_joinedload())
@@ -316,7 +316,7 @@ class ElementRepository:
             nodes_limit += 1
 
         # find all the matching nodes
-        async with DB() as session:
+        async with db() as session:
             stmt = (
                 select(Element)
                 .options(get_joinedload())
