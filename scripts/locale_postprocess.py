@@ -11,9 +11,14 @@ from app.config import LOCALE_DIR
 
 _download_dir = pathlib.Path(LOCALE_DIR / 'download')
 _postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
+_extra_locale_en_path = pathlib.Path(__file__).parent / 'extra_locale_en.yaml'
 
 
 def needs_processing(locale: str) -> bool:
+    # always process english for simplicity
+    if locale == 'en':
+        return True
+
     source_path = _download_dir / f'{locale}.yaml'
     target_path = _postprocess_dir / f'{locale}.json'
 
@@ -153,12 +158,25 @@ def postprocess():
         if local_chapters := local_chapters_map.get(locale):
             deep_dict_update(data, local_chapters)
 
+        # apply extra overrides
+        if locale == 'en':
+            with _extra_locale_en_path.open('rb') as f:
+                extra_data: dict | None = yaml.safe_load(f)
+            if extra_data:
+                deep_dict_update(data, extra_data)
+
         buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
         target_path = _postprocess_dir / f'{locale}.json'
         target_path.write_bytes(buffer)
 
-        stat = source_path.stat()
-        os.utime(target_path, (stat.st_atime, stat.st_mtime))
+        # consider mtime of override files
+        if locale == 'en':
+            stat1 = source_path.stat()
+            stat2 = _extra_locale_en_path.stat()
+            os.utime(target_path, (max(stat1.st_atime, stat2.st_atime), max(stat1.st_mtime, stat2.st_mtime)))
+        else:
+            stat = source_path.stat()
+            os.utime(target_path, (stat.st_atime, stat.st_mtime))
 
 
 async def main():
