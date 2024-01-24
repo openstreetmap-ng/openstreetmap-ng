@@ -147,16 +147,16 @@ let
         fi
       done
     '')
-    (writeShellScriptBin "locale-local-pipeline" ''
+    (writeShellScriptBin "locale-pipeline" ''
       set -e
       locale-postprocess
       locale-make-i18next
       locale-make-gnu
     '')
-    (writeShellScriptBin "locale-remote-pipeline" ''
+    (writeShellScriptBin "locale-pipeline-extended" ''
       set -e
       locale-download
-      locale-local-pipeline
+      locale-pipeline
     '')
 
     # -- Wiki-tags
