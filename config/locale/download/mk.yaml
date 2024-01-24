@@ -443,6 +443,15 @@ mk:
       introduction: Стиснете на картата за да ги најдете елементите во близина.
       nearby: Елементи во близина
       enclosing: Обиколни елементи
+  old_nodes:
+    not_found:
+      sorry: 'За жал, не го најдов јазолот #%{id} верзија %{version}.'
+  old_ways:
+    not_found:
+      sorry: 'За жал, не го најдов патот #%{id} верзија %{version}.'
+  old_relations:
+    not_found:
+      sorry: 'За жал, не го најдов односот #%{id} верзија %{version}.'
   changesets:
     changeset_paging_nav:
       showing_page: Страница %{page}
@@ -1891,7 +1900,7 @@ mk:
       heading: Најава
       email or username: Е-пошта или корисничко име
       password: Лозинка
-      openid_html: '%{logo} OpenID:'
+      openid_html: '%{logo} OpenID'
       remember: Запомни ме
       lost password link: Ја заборавивте лозинката?
       login_button: Најава

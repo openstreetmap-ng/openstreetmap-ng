@@ -1,14 +1,91 @@
+import os
 import pathlib
 
 import anyio
 import orjson
 import yaml
-from anyio import Path
+from fastapi.utils import deep_dict_update
+from tqdm import tqdm
 
 from app.config import LOCALE_DIR
 
-_download_dir = LOCALE_DIR / 'download'
-_postprocess_dir = LOCALE_DIR / 'postprocess'
+_download_dir = pathlib.Path(LOCALE_DIR / 'download')
+_postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
+
+
+def needs_processing(locale: str) -> bool:
+    source_path = _download_dir / f'{locale}.yaml'
+    target_path = _postprocess_dir / f'{locale}.json'
+
+    if not source_path.is_file():
+        return False
+    if not target_path.is_file():
+        return True
+
+    return source_path.stat().st_mtime > target_path.stat().st_mtime
+
+
+def resolve_community_name(community: dict, locale: dict) -> str:
+    """
+    Resolve the translated name for a community.
+    """
+
+    # if theres an explicitly translated name then use that
+    if translated := locale.get(community['id'], {}).get('name'):
+        return translated
+
+    # if not, then look up the default translated name for this type of community, and interpolate the template
+    if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) and (
+        community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))
+    ):
+        template: str
+        community_name: str
+        return template.format(community=community_name)
+
+    # otherwise fall back to the english resource name
+    if translated := community['strings'].get('name'):
+        return translated
+
+    # finally use the english community name
+    return community['strings']['community']
+
+
+def extract_local_chapters_map() -> dict[str, dict]:
+    package_dir = pathlib.Path('node_modules/osm-community-index')
+    resources = (package_dir / 'dist/resources.min.json').read_bytes()
+    communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
+
+    # filter only local chapters
+    communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
+    result = {}
+
+    for source_path in tqdm(tuple((package_dir / 'i18n').glob('*.yaml')), desc='Processing local chapters'):
+        locale = source_path.stem.replace('_', '-')
+
+        if not needs_processing(locale):
+            continue
+
+        with source_path.open('rb') as f:
+            source_data: dict = yaml.safe_load(f)
+
+        # strip first level of nesting
+        source_data = next(iter(source_data.values()))
+
+        communities_data = {}
+        result[locale] = {'osm_community_index': {'communities': communities_data}}
+
+        for community in communities:
+            community_id: str = community['id']
+
+            strings = source_data.get(community_id, {})
+            strings['name'] = resolve_community_name(community, source_data)
+
+            if community_id in communities_data:
+                raise ValueError(f'Duplicate community id {community_id!r}')
+
+            communities_data[community_id] = strings
+
+    return result
 
 
 def trim_values(data: dict):
@@ -53,9 +130,16 @@ def convert_format_format(data: dict):
             data[key] = value.replace('%e', '%-d')
 
 
-async def convert_yaml_to_json():
-    async for path in _download_dir.glob('*.yaml'):
-        with pathlib.Path(path).open('rb') as f:
+def postprocess():
+    local_chapters_map = extract_local_chapters_map()
+
+    for source_path in tqdm(tuple(_download_dir.glob('*.yaml')), desc='Postprocessing'):
+        locale = source_path.stem
+
+        if not needs_processing(locale):
+            continue
+
+        with source_path.open('rb') as f:
             data: dict = yaml.safe_load(f)
 
         # strip first level of nesting
@@ -65,87 +149,21 @@ async def convert_yaml_to_json():
         convert_variable_format(data)
         convert_format_format(data)
 
+        # apply local chapter overrides
+        if local_chapters := local_chapters_map.get(locale):
+            deep_dict_update(data, local_chapters)
+
         buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
-        await (_postprocess_dir / f'{path.stem}.json').write_bytes(buffer)
-        print(f'[✅] {path.stem!r}: converted to json')
+        target_path = _postprocess_dir / f'{locale}.json'
+        target_path.write_bytes(buffer)
 
-
-def resolve_community_name(community: dict, locale: dict) -> str:
-    """
-    Resolve the translated name for a community.
-    """
-
-    # if theres an explicitly translated name then use that
-    if translated := locale.get(community['id'], {}).get('name'):
-        return translated
-
-    # if not, then look up the default translated name for this type of community, and interpolate the template
-    if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) and (
-        community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))
-    ):
-        template: str
-        community_name: str
-        return template.format(community=community_name)
-
-    # otherwise fall back to the english resource name
-    if translated := community['strings'].get('name'):
-        return translated
-
-    # finally use the english community name
-    return community['strings']['community']
-
-
-async def extend_local_chapters():
-    package_dir = Path('node_modules/osm-community-index')
-    resources = await (package_dir / 'dist/resources.min.json').read_bytes()
-    communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
-
-    # filter only local chapters
-    communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
-
-    async for locale_path in (package_dir / 'i18n').glob('*.yaml'):
-        locale_name = locale_path.stem.replace('_', '-')
-        postprocess_locale_path = _postprocess_dir / f'{locale_name}.json'
-
-        if not await postprocess_locale_path.is_file():
-            print(f'[❔] {locale_name!r}: missing postprocess file')
-            continue
-
-        with pathlib.Path(locale_path).open('rb') as f:
-            locale_data: dict = yaml.safe_load(f)
-
-        # strip first level of nesting
-        locale_data = next(iter(locale_data.values()))
-
-        postprocess_data: dict = orjson.loads(await postprocess_locale_path.read_bytes())
-        postprocess_data.setdefault('osm_community_index', {})
-        postprocess_data['osm_community_index'].setdefault('communities', {})
-        communities_data = postprocess_data['osm_community_index']['communities']
-
-        for community in communities:
-            community_id: str = community['id']
-
-            strings = locale_data.get(community_id, {})
-            strings['name'] = resolve_community_name(community, locale_data)
-
-            if community_id in communities_data:
-                raise ValueError(f'Duplicate community id {community_id!r}')
-
-            communities_data[community_id] = strings
-
-        await postprocess_locale_path.write_bytes(
-            orjson.dumps(
-                postprocess_data,
-                option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
-            )
-        )
-        print(f'[✅] {locale_name!r}: extended {len(communities)} local chapters')
+        stat = source_path.stat()
+        os.utime(target_path, (stat.st_atime, stat.st_mtime))
 
 
 async def main():
-    await _postprocess_dir.mkdir(parents=True, exist_ok=True)
-    await convert_yaml_to_json()
-    await extend_local_chapters()
+    _postprocess_dir.mkdir(parents=True, exist_ok=True)
+    postprocess()
 
 
 if __name__ == '__main__':

@@ -107,43 +107,44 @@ let
       rm -rf config/locale
     '')
     (writeShellScriptBin "locale-download" ''
-      set -e
-      rm -rf config/locale/download
       python scripts/locale_download.py
     '')
     (writeShellScriptBin "locale-postprocess" ''
-      set -e
-      rm -rf config/locale/postprocess
       python scripts/locale_postprocess.py
     '')
     (writeShellScriptBin "locale-make-i18next" ''
-      set -e
       rm -rf config/locale/i18next
       python scripts/locale_make_i18next.py
     '')
     (writeShellScriptBin "locale-make-gnu" ''
       set -e
-      rm -rf config/locale/gnu
       mkdir -p config/locale/gnu
 
-      for file in $(find config/locale/i18next -type f); do
-        stem=$(basename "$file" .json)
+      for source_file in $(find config/locale/i18next -type f); do
+        stem=$(basename "$source_file" .json)
         locale=''${stem::-17}
-        target="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
+        target_file="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
+        target_file_bin="''${target_file%.po}.mo"
 
-        mkdir -p "$(dirname "$target")"
+        if [ ! -f "$target_file_bin" ] || [ "$source_file" -nt "$target_file_bin" ]; then
+          mkdir -p "$(dirname "$target_file")"
 
-        bun run i18next-conv \
-          --quiet \
-          --language "$locale" \
-          --source "$file" \
-          --target "$target" \
-          --keyseparator "." \
-          --ctxSeparator "__" \
-          --compatibilityJSON "v4"
+          bun run i18next-conv \
+            --quiet \
+            --language "$locale" \
+            --source "$source_file" \
+            --target "$target_file" \
+            --keyseparator "." \
+            --ctxSeparator "__" \
+            --compatibilityJSON "v4"
 
-        msgfmt "$target" --output-file "''${target%.po}.mo";
-        echo "[✅] '$locale': converted to gnu"
+          msgfmt "$target_file" --output-file "$target_file_bin";
+
+          # preserve original timestamps
+          touch -r "$source_file" "$target_file" "$target_file_bin"
+
+          echo "[✅] $locale"
+        fi
       done
     '')
     (writeShellScriptBin "locale-local-pipeline" ''

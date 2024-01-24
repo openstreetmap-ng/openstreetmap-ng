@@ -1,12 +1,15 @@
+import os
+import pathlib
 from hashlib import sha256
 
 import anyio
 import orjson
+from tqdm import tqdm
 
 from app.config import LOCALE_DIR
 
-_postprocess_dir = LOCALE_DIR / 'postprocess'
-_out_dir = LOCALE_DIR / 'i18next'
+_postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
+_i18next_dir = pathlib.Path(LOCALE_DIR / 'i18next')
 
 
 def convert_variable_format(data: dict):
@@ -48,29 +51,29 @@ def convert_plural_format(data: dict):
         data.pop(k)
 
 
-async def convert_style():
-    async for path in _postprocess_dir.glob('*.json'):
-        locale = path.stem
-        data = orjson.loads(await path.read_bytes())
+def convert():
+    for source_path in tqdm(tuple(_postprocess_dir.glob('*.json')), desc='Converting to i18next format'):
+        locale = source_path.stem
+
+        data = orjson.loads(source_path.read_bytes())
 
         convert_variable_format(data)
         convert_plural_format(data)
 
-        buffer = orjson.dumps(
-            data,
-            option=orjson.OPT_SORT_KEYS,
-        )
+        buffer = orjson.dumps(data, option=orjson.OPT_SORT_KEYS)
 
         file_hash = sha256(buffer).hexdigest()[:16]
         file_name = f'{locale}-{file_hash}.json'
+        target_path = _i18next_dir / file_name
+        target_path.write_bytes(buffer)
 
-        await (_out_dir / file_name).write_bytes(buffer)
-        print(f'[✅] {locale!r}: saved as {file_name!r}')
+        stat = source_path.stat()
+        os.utime(target_path, (stat.st_atime, stat.st_mtime))
 
 
 async def main():
-    await _out_dir.mkdir(parents=True, exist_ok=True)
-    await convert_style()
+    _i18next_dir.mkdir(parents=True, exist_ok=True)
+    convert()
 
 
 if __name__ == '__main__':

@@ -32,13 +32,13 @@ async def download_locale(locale: str) -> LocaleName | None:
 
     content_disposition = r.headers.get('Content-Disposition')
     if content_disposition is None:
-        print(f'[❔] {locale!r}: missing translation')
+        # missing translation
         return None
 
     locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)[1]
 
     if locale == 'x-invalidLanguageCode':
-        print(f'[❔] {locale!r}: invalid language code')
+        print(f'[❔] {locale}: invalid language code')
         return None
 
     match = re.match(r'# Messages for (.+?) \((.+?)\)', r.text)
@@ -46,7 +46,7 @@ async def download_locale(locale: str) -> LocaleName | None:
     native_name = match[2].strip()
 
     if english_name == 'Message documentation':
-        print(f'[❔] {locale!r}: not a language')
+        print(f'[❔] {locale}: not a language')
         return None
 
     # treat en-GB as universal english
@@ -57,9 +57,13 @@ async def download_locale(locale: str) -> LocaleName | None:
     elif locale == 'en' or locale == 'en-US':
         raise RuntimeError('This script assumes en-GB is the universal english')
 
-    filepath = _download_dir / f'{locale}.yaml'
-    await filepath.write_bytes(r.content)
-    print(f'[✅] {locale!r}: {english_name} ({native_name})')
+    target_path = _download_dir / f'{locale}.yaml'
+
+    if not await target_path.is_file() or (await target_path.read_bytes()) != r.content:
+        await target_path.write_bytes(r.content)
+        print(f'[✅] Updated: {locale}')
+    else:
+        print(f'[✅] Already up-to-date: {locale}')
 
     return LocaleName(
         code=locale,
@@ -85,7 +89,7 @@ async def add_extra_locales_names(locales_names: list[LocaleName]):
                 native=native_name,
             )
         )
-        print(f'[➕] {code!r}: {english_name} ({native_name})')  # noqa: RUF001
+        print(f'[➕] Added extra name: {code}')  # noqa: RUF001
 
 
 async def main():
@@ -106,12 +110,8 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
 
-    await (LOCALE_DIR / 'names.json').write_bytes(
-        orjson.dumps(
-            [ln._asdict() for ln in locales_names],
-            option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
-        )
-    )
+    buffer = orjson.dumps([ln._asdict() for ln in locales_names], option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
+    await (LOCALE_DIR / 'names.json').write_bytes(buffer)
 
 
 if __name__ == '__main__':

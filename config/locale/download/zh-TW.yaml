@@ -460,6 +460,15 @@ zh-TW:
       introduction: 點選地圖以尋找附近的圖徵
       nearby: 附近圖徵
       enclosing: 區域內圖徵
+  old_nodes:
+    not_found:
+      sorry: '很抱歉，無法找到版本 %{version} 的節點 #%{id}。'
+  old_ways:
+    not_found:
+      sorry: 很抱歉，找不到版本 %{version} 的路徑 %{id}。
+  old_relations:
+    not_found:
+      sorry: '很抱歉，找不到版本 %{version} 的關聯 #%{id}。'
   changesets:
     changeset_paging_nav:
       showing_page: 第 %{page} 頁
@@ -1837,7 +1846,7 @@ zh-TW:
       heading: 登入
       email or username: 電子郵件地址或使用者名稱
       password: 密碼
-      openid_html: '%{logo} OpenID：'
+      openid_html: '%{logo} OpenID'
       remember: 記住我
       lost password link: 忘記您的密碼？
       login_button: 登入

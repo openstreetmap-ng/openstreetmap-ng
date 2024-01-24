@@ -176,7 +176,55 @@ sr:
         new_email: (никада се не приказује јавно)
   datetime:
     distance_in_words_ago:
+      about_x_hours:
+        one: пре око %{count} сата
+        few: пре око %{count} сата
+        other: пре око %{count} сати
+      about_x_months:
+        one: око %{count} месец
+        few: око %{count} месеца
+        other: '[око %{count} месеци'
+      about_x_years:
+        one: пре око %{count} године
+        few: пре око %{count} године
+        other: пре око %{count} година
+      almost_x_years:
+        one: скоро %{count} године
+        few: скоро %{count} године
+        other: скоро %{count} година
       half_a_minute: пре пола минута
+      less_than_x_seconds:
+        one: пре мање од %{count} секунде
+        few: пре мање од %{count} секунде
+        other: пре мање од %{count} секунди
+      less_than_x_minutes:
+        one: мање од %{count} минута
+        few: мање од %{count} минута
+        other: мање од %{count} минута
+      over_x_years:
+        one: пре више од %{count} године
+        few: пре више од %{count} године
+        other: пре више од %{count} година
+      x_seconds:
+        one: '%{count} секунде'
+        few: '%{count} секунде'
+        other: '%{count} секунди'
+      x_minutes:
+        one: пре %{count} минут
+        few: пре %{count} минута
+        other: пре %{count} минута
+      x_days:
+        one: '%{count} дан'
+        few: '%{count} дана'
+        other: '%{count} дана'
+      x_months:
+        one: пре %{count} месец
+        few: пре %{count} месеца
+        other: пре %{count} месеци
+      x_years:
+        one: '%{count} године'
+        few: '%{count} године'
+        other: '%{count} година'
   printable_name:
     with_version: '%{id}, вер. %{version}'
   editor:
@@ -284,6 +332,8 @@ sr:
       relation: Односи (%{count})
       relation_paginated: Односи (%{x}-%{y} од %{count})
       comment: Коментари (%{count})
+      hidden_comment_by_html: Сакривени коментар корисника %{user} %{time_ago}
+      comment_by_html: '%{user} коментарисао(ла) пре %{time_ago}'
       changesetxml: XML скуп промена
       osmchangexml: osmChange XML
       feed:
@@ -1360,7 +1410,7 @@ sr:
         subject_other: '[OpenStreetMap] %{commenter} је коментарисао о чејнџсету за
           који сте заинтересовани'
         your_changeset: '%{commenter} је оставио коментар на једном од Ваших чејнџсетова
-          у %{time}'
+          %{time}'
         commented_changeset: '%{commenter} је у %{time} оставио коментар на чејнџсету
           мапе који надгледате и који је направио %{changeset_author}'
         partial_changeset_with_comment: са коментаром „%{changeset_comment}”
@@ -1510,7 +1560,7 @@ sr:
       heading: Пријава
       email or username: Имејл адреса или корисничко име
       password: Лозинка
-      openid_html: '%{logo} OpenID:'
+      openid_html: '%{logo} OpenID'
       remember: Запамти ме
       lost password link: Заборавили сте лозинку?
       login_button: Пријави ме

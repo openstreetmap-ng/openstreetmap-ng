@@ -122,6 +122,7 @@ dag:
     key:
       table:
         entry:
+          school: Shikuru
           bicycle_rental: Chɛchɛ zaŋ haai
           bicycle_parking_small: Chɛchɛ bihi zalibu
 ...

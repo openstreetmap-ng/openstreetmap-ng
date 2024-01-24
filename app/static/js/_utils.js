@@ -72,5 +72,6 @@ export const throttle = (func, delay) => {
 // as we don't distinguish between en, en-GB, en-US, etc.
 // Perhaps, it could be configured in the settings?
 // For now, don't support imperial units.
+// Also, such simple startsWith check is bug-prone:
 // export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
 export const isMetricUnit = true
