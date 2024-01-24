@@ -13,11 +13,11 @@ from app.models.tag_format import TagFormat
             (),
         ),
         (
-            '#ff0000;invalid;aliceblue',
+            '#ff0000;invalid;AliceBlue',
             (
                 TagFormatTuple(TagFormat.color, '#ff0000', '#ff0000'),
                 TagFormatTuple(TagFormat.default, 'invalid', 'invalid'),
-                TagFormatTuple(TagFormat.color, 'aliceblue', 'aliceblue'),
+                TagFormatTuple(TagFormat.color, 'AliceBlue', 'AliceBlue'),
             ),
         ),
         (
@@ -78,7 +78,11 @@ def test_tag_format_phone(value, output):
                 TagFormatTuple(TagFormat.url, 'https://www.openstreetmap.org', 'https://www.openstreetmap.org'),
                 TagFormatTuple(TagFormat.default, 'ftp://www.openstreetmap.org', 'ftp://www.openstreetmap.org'),
             ),
-        )
+        ),
+        (
+            'HTTPS://WWW.OSM.ORG',
+            (TagFormatTuple(TagFormat.url, 'HTTPS://WWW.OSM.ORG', 'HTTPS://WWW.OSM.ORG'),),
+        ),
     ],
 )
 def test_tag_format_url(value, output):
@@ -126,7 +130,7 @@ def test_tag_format_wikipedia_lang(value, output):
         ),
         (
             'q123',
-            (TagFormatTuple(TagFormat.default, 'q123', 'q123'),),
+            (TagFormatTuple(TagFormat.url, 'q123', 'https://www.wikidata.org/entity/q123?uselang=pl'),),
         ),
     ],
 )
@@ -144,7 +148,7 @@ def test_tag_format_wikidata(value, output):
         ),
         (
             'file:Test',
-            (TagFormatTuple(TagFormat.default, 'file:Test', 'file:Test'),),
+            (TagFormatTuple(TagFormat.url, 'file:Test', 'https://commons.wikimedia.org/wiki/file:Test?uselang=pl'),),
         ),
         (
             'Category:Test',

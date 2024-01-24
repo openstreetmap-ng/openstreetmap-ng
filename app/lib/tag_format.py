@@ -1,8 +1,10 @@
+import pathlib
 import re
 from collections.abc import Sequence
 from typing import NamedTuple
 
 import cython
+import orjson
 import phonenumbers
 from phonenumbers import (
     NumberParseException,
@@ -13,6 +15,7 @@ from phonenumbers import (
     is_valid_number,
 )
 
+from app.config import CONFIG_DIR
 from app.lib.email import validate_email
 from app.lib.translation import primary_translation_language
 from app.models.tag_format import TagFormat
@@ -24,30 +27,15 @@ class TagFormatTuple(NamedTuple):
     data: str
 
 
-@cython.cfunc
-def _get_key_parts(key: str, *, maxsplit: cython.int) -> list[str]:
-    """
-    Split a key into parts using ':' as a separator.
-    """
-
-    return key.split(':', maxsplit=maxsplit)
-
-
-@cython.cfunc
-def _get_values(value: str, *, maxsplit: cython.int) -> list[str]:
-    """
-    Split a value into parts using ';' as a separator.
-    """
-
-    return value.split(';', maxsplit=maxsplit)
-
-
 # TODO: 0.7 official reserved tag characters
 
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys
 _wiki_lang_re = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
 _wiki_lang_value_re = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<value>.+)$')
+
+# source: https://www.w3.org/TR/css-color-3/#svg-color
+_w3c_colors = frozenset(orjson.loads(pathlib.Path(CONFIG_DIR / 'w3c_colors.json').read_bytes()))
 
 
 def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
@@ -75,71 +63,43 @@ def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
     max_values: cython.int = 8
     default_result = (TagFormatTuple(TagFormat.default, value, value),)
 
-    key_parts = _get_key_parts(key, maxsplit=max_key_parts)
+    # split a:b:c keys into ['a', 'b', 'c']
+    key_parts = key.split(':', maxsplit=max_key_parts)
 
     # skip unexpectedly long sequences
     if len(key_parts) > max_key_parts:
         return default_result
 
-    key_parts = frozenset(key_parts)
-
-    for check_key, format_values in (
-        (_is_color_key, _format_color),
-        (_is_email_key, _format_email),
-        (_is_phone_key, _format_phone),
-        (_is_url_key, _format_url),
-        (_is_wikipedia_key, _format_wikipedia),
-        (_is_wikidata_key, _format_wikidata),
-        (_is_wikimedia_commons_key, _format_wikimedia_commons),
-    ):
-        if not check_key(key_parts):
-            continue
-
-        values = _get_values(value, maxsplit=max_values)
+    # iterate over each supported key format
+    for key_format_key in _key_format_map_keys.intersection(key_parts):
+        # split a;b;c values into ['a', 'b', 'c']
+        values = value.split(';', maxsplit=max_values)
 
         # skip unexpectedly long sequences
         if len(values) > max_values:
             return default_result
 
-        return format_values(key_parts, values)
+        return _key_format_map[key_format_key](key_parts, values)
 
     return default_result
 
 
 @cython.cfunc
-def _is_color_key(key_parts: frozenset[str]) -> cython.char:
-    return 'colour' in key_parts
-
-
-@cython.cfunc
-def _is_hex_color(s: str) -> cython.char:
+def _is_color_string(s: str) -> cython.char:
+    # hex or w3c color name
     return (
         len(s) in (4, 7)
         and s[0] == '#'
         and all(('0' <= c <= '9') or ('A' <= c <= 'F') or ('a' <= c <= 'f') for c in s[1:])
-    )
+    ) or s.lower() in _w3c_colors
 
 
 @cython.cfunc
-def _is_w3c_color(s: str) -> cython.char:
-    return s.lower() in _w3c_colors
-
-
-@cython.cfunc
-def _format_color(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_color(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def format_value(s: str) -> TagFormatTuple:
-        return (
-            TagFormatTuple(TagFormat.color, s, s)
-            if (_is_hex_color(s) or _is_w3c_color(s))
-            else TagFormatTuple(TagFormat.default, s, s)
-        )
+        return TagFormatTuple(TagFormat.color, s, s) if _is_color_string(s) else TagFormatTuple(TagFormat.default, s, s)
 
     return tuple(format_value(s) for s in values)
-
-
-@cython.cfunc
-def _is_email_key(key_parts: frozenset[str]) -> cython.char:
-    return 'email' in key_parts
 
 
 @cython.cfunc
@@ -152,7 +112,7 @@ def _is_email_string(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_email(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_email(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def format_value(s: str) -> TagFormatTuple:
         return (
             TagFormatTuple(TagFormat.email, s, f'mailto:{s}')
@@ -164,12 +124,7 @@ def _format_email(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple,
 
 
 @cython.cfunc
-def _is_phone_key(key_parts: frozenset[str]) -> cython.char:
-    return key_parts.intersection(('phone', 'fax'))
-
-
-@cython.cfunc
-def _format_phone(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_phone(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def get_phone_info(s: str) -> PhoneNumber | None:
         try:
             info = phonenumbers.parse(s, None)
@@ -195,17 +150,12 @@ def _format_phone(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple,
 
 
 @cython.cfunc
-def _is_url_key(key_parts: frozenset[str]) -> cython.char:
-    return key_parts.intersection(('url', 'website'))
-
-
-@cython.cfunc
 def _is_url_string(s: str) -> cython.char:
-    return s.startswith(('https://', 'http://'))
+    return s.lower().startswith(('https://', 'http://'))
 
 
 @cython.cfunc
-def _format_url(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_url(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     def format_value(s: str) -> TagFormatTuple:
         return TagFormatTuple(TagFormat.url, s, s) if _is_url_string(s) else TagFormatTuple(TagFormat.default, s, s)
 
@@ -213,12 +163,7 @@ def _format_url(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, .
 
 
 @cython.cfunc
-def _is_wikipedia_key(key_parts: frozenset[str]) -> cython.char:
-    return 'wikipedia' in key_parts
-
-
-@cython.cfunc
-def _format_wikipedia(key_parts: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikipedia(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     # always default to english
     key_lang = 'en'
     user_lang = primary_translation_language()
@@ -258,17 +203,12 @@ def _format_wikipedia(key_parts: frozenset[str], values: list[str]) -> tuple[Tag
 
 
 @cython.cfunc
-def _is_wikidata_key(key_parts: frozenset[str]) -> cython.char:
-    return 'wikidata' in key_parts
-
-
-@cython.cfunc
 def _is_wiki_id(s: str) -> cython.char:
-    return len(s) >= 2 and s[0] == 'Q' and ('1' <= s[1] <= '9') and all('0' <= c <= '9' for c in s[2:])
+    return len(s) >= 2 and (s[0] == 'Q' or s[0] == 'q') and ('1' <= s[1] <= '9') and all('0' <= c <= '9' for c in s[2:])
 
 
 @cython.cfunc
-def _format_wikidata(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikidata(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     user_lang = primary_translation_language()
 
     def format_value(s: str) -> TagFormatTuple:
@@ -282,18 +222,12 @@ def _format_wikidata(_: frozenset[str], values: list[str]) -> tuple[TagFormatTup
 
 
 @cython.cfunc
-def _is_wikimedia_commons_key(key_parts: frozenset[str]) -> cython.char:
-    return 'wikimedia_commons' in key_parts
-
-
-@cython.cfunc
 def _is_wikimedia_entry(s: str) -> cython.char:
-    # intentionally don't support lowercase to promote consistency
-    return s.startswith(('File:', 'Category:'))
+    return s.lower().startswith(('file:', 'category:'))
 
 
 @cython.cfunc
-def _format_wikimedia_commons(_: frozenset[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikimedia_commons(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
     user_lang = primary_translation_language()
 
     def format_value(s: str) -> TagFormatTuple:
@@ -306,155 +240,16 @@ def _format_wikimedia_commons(_: frozenset[str], values: list[str]) -> tuple[Tag
     return tuple(format_value(s) for s in values)
 
 
-# source: https://www.w3.org/TR/css-color-3/#svg-color
-_w3c_colors = frozenset(
-    (
-        'aliceblue',
-        'antiquewhite',
-        'aqua',
-        'aquamarine',
-        'azure',
-        'beige',
-        'bisque',
-        'black',
-        'blanchedalmond',
-        'blue',
-        'blueviolet',
-        'brown',
-        'burlywood',
-        'cadetblue',
-        'chartreuse',
-        'chocolate',
-        'coral',
-        'cornflowerblue',
-        'cornsilk',
-        'crimson',
-        'cyan',
-        'darkblue',
-        'darkcyan',
-        'darkgoldenrod',
-        'darkgray',
-        'darkgrey',
-        'darkgreen',
-        'darkkhaki',
-        'darkmagenta',
-        'darkolivegreen',
-        'darkorange',
-        'darkorchid',
-        'darkred',
-        'darksalmon',
-        'darkseagreen',
-        'darkslateblue',
-        'darkslategray',
-        'darkslategrey',
-        'darkturquoise',
-        'darkviolet',
-        'deeppink',
-        'deepskyblue',
-        'dimgray',
-        'dimgrey',
-        'dodgerblue',
-        'firebrick',
-        'floralwhite',
-        'forestgreen',
-        'fuchsia',
-        'gainsboro',
-        'ghostwhite',
-        'gold',
-        'goldenrod',
-        'gray',
-        'grey',
-        'green',
-        'greenyellow',
-        'honeydew',
-        'hotpink',
-        'indianred',
-        'indigo',
-        'ivory',
-        'khaki',
-        'lavender',
-        'lavenderblush',
-        'lawngreen',
-        'lemonchiffon',
-        'lightblue',
-        'lightcoral',
-        'lightcyan',
-        'lightgoldenrodyellow',
-        'lightgray',
-        'lightgrey',
-        'lightgreen',
-        'lightpink',
-        'lightsalmon',
-        'lightseagreen',
-        'lightskyblue',
-        'lightslategray',
-        'lightslategrey',
-        'lightsteelblue',
-        'lightyellow',
-        'lime',
-        'limegreen',
-        'linen',
-        'magenta',
-        'maroon',
-        'mediumaquamarine',
-        'mediumblue',
-        'mediumorchid',
-        'mediumpurple',
-        'mediumseagreen',
-        'mediumslateblue',
-        'mediumspringgreen',
-        'mediumturquoise',
-        'mediumvioletred',
-        'midnightblue',
-        'mintcream',
-        'mistyrose',
-        'moccasin',
-        'navajowhite',
-        'navy',
-        'oldlace',
-        'olive',
-        'olivedrab',
-        'orange',
-        'orangered',
-        'orchid',
-        'palegoldenrod',
-        'palegreen',
-        'paleturquoise',
-        'palevioletred',
-        'papayawhip',
-        'peachpuff',
-        'peru',
-        'pink',
-        'plum',
-        'powderblue',
-        'purple',
-        'red',
-        'rosybrown',
-        'royalblue',
-        'saddlebrown',
-        'salmon',
-        'sandybrown',
-        'seagreen',
-        'seashell',
-        'sienna',
-        'silver',
-        'skyblue',
-        'slateblue',
-        'slategray',
-        'slategrey',
-        'snow',
-        'springgreen',
-        'steelblue',
-        'tan',
-        'teal',
-        'thistle',
-        'tomato',
-        'turquoise',
-        'violet',
-        'wheat',
-        'white',
-        'whitesmoke',
-        'yellow',
-        'yellowgreen',
-    )
-)
+_key_format_map = {
+    'colour': _format_color,
+    'email': _format_email,
+    'phone': _format_phone,
+    'fax': _format_phone,
+    'url': _format_url,
+    'website': _format_url,
+    'wikipedia': _format_wikipedia,
+    'wikidata': _format_wikidata,
+    'wikimedia_commons': _format_wikimedia_commons,
+}
+
+_key_format_map_keys = frozenset(_key_format_map.keys())

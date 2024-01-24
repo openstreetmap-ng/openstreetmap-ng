@@ -36,6 +36,11 @@ def test_translate_local_chapter():
         assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Polska'
 
 
+def test_translate_missing():
+    with translation_context(['pl']):
+        assert t('missing_translation_key') == 'missing_translation_key'
+
+
 def test_render():
     with translation_context(['en']):
         assert render('test.jinja2').strip() == 'half a minute ago'

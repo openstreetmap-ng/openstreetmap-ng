@@ -93,6 +93,7 @@ target-version = "py312"
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
+  "ARG001", # unused-function-argument
   "S101", # assert
   "PT011", # pytest-raises-too-broad
   "W191", # tab-indentation
@@ -194,7 +195,7 @@ extend-ignore-names = ["ET"]
 max-args = 10
 
 [tool.pytest.ini_options]
-addopts = "-ra --quiet --cov app --cov-report xml --disable-pytest-warnings"
+addopts = "-ra --quiet --disable-pytest-warnings"
 minversion = "6.0"
 testpaths = [
   "tests",

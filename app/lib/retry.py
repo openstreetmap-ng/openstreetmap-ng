@@ -7,7 +7,7 @@ import anyio
 import cython
 
 
-def retry(timeout: timedelta | None, *, sleep_init: float = 1, sleep_limit: float = 300):
+def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: float = 300):
     """
     Decorator to retry a function.
 

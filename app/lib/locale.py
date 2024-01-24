@@ -15,7 +15,11 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 @cython.cfunc
 def _get_i18next_locale_hash_map() -> dict[str, str]:
-    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next_hash_map.json').read_bytes())
+    result = {}
+    for p in pathlib.Path(LOCALE_DIR / 'i18next').glob('*.json'):
+        locale, _, file_hash = p.stem.rpartition('-')
+        result[locale] = file_hash
+    return result
 
 
 @cython.cfunc

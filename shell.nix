@@ -106,11 +106,10 @@ let
     (writeShellScriptBin "locale-clean" ''
       rm -rf config/locale
     '')
-    (writeShellScriptBin "locale-download-postprocess" ''
+    (writeShellScriptBin "locale-download" ''
       set -e
       rm -rf config/locale/download
       python scripts/locale_download.py
-      locale-postprocess
     '')
     (writeShellScriptBin "locale-postprocess" ''
       set -e
@@ -127,24 +126,36 @@ let
       rm -rf config/locale/gnu
       mkdir -p config/locale/gnu
 
-      for file in $(find config/locale/postprocess -type f); do
-        locale=$(basename "$file" .json)
-        echo "Converting '$locale'"
-        mkdir -p "config/locale/gnu/$locale/LC_MESSAGES"
+      for file in $(find config/locale/i18next -type f); do
+        stem=$(basename "$file" .json)
+        locale=''${stem::-17}
+        target="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
+
+        mkdir -p "$(dirname "$target")"
+
         bun run i18next-conv \
           --quiet \
           --language "$locale" \
-          --source config/locale/i18next/$locale-*.json \
-          --target "config/locale/gnu/$locale/LC_MESSAGES/messages.po" \
+          --source "$file" \
+          --target "$target" \
           --keyseparator "." \
           --ctxSeparator "__" \
           --compatibilityJSON "v4"
-      done
 
-      for file in $(find config/locale/gnu -type f -name messages.po); do
-        echo "Compiling $file"
-        msgfmt "$file" --output-file "''${file%.po}.mo";
+        msgfmt "$target" --output-file "''${target%.po}.mo";
+        echo "[✅] '$locale': converted to gnu"
       done
+    '')
+    (writeShellScriptBin "locale-local-pipeline" ''
+      set -e
+      locale-postprocess
+      locale-make-i18next
+      locale-make-gnu
+    '')
+    (writeShellScriptBin "locale-remote-pipeline" ''
+      set -e
+      locale-download
+      locale-local-pipeline
     '')
 
     # -- Wiki-tags
@@ -180,7 +191,7 @@ let
       bun run watch:sass
     '')
     (writeShellScriptBin "watch-test" ''
-      ptw --now .
+      ptw --now . --cov app --cov-report xml
     '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)

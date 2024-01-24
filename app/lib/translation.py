@@ -159,11 +159,7 @@ def timeago(date: datetime, *, html: bool = False) -> str:
 
     if html:
         iso_date = format_iso_date(date)
-
-        # backwards compatibility: remove leading zero from day
-        friendly_format = t('time.formats.friendly').replace('%e', '%-d')
-        friendly_date = date.strftime(friendly_format)
-
+        friendly_date = date.strftime(t('time.formats.friendly'))
         return f'<time datetime="{iso_date}" title="{friendly_date}">{ago}</time>'
     else:
         return ago

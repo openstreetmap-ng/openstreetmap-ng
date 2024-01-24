@@ -14,6 +14,7 @@ from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_url_middleware import RequestUrlMiddleware
+from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.responses.osm_response import OSMResponse
 
 app = FastAPI(
@@ -37,6 +38,7 @@ app.add_middleware(RequestUrlMiddleware)
 app.add_middleware(ExceptionMiddleware)
 
 if TEST_ENV:
+    app.add_middleware(RuntimeMiddleware)
     app.add_middleware(ProfilerMiddleware)
 
 app.mount('/static', StaticFiles(directory='app/static'), name='static')

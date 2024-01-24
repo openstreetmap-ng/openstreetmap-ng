@@ -49,8 +49,6 @@ def convert_plural_format(data: dict):
 
 
 async def convert_style():
-    hash_map: dict[str, str] = {}
-
     async for path in _postprocess_dir.glob('*.json'):
         locale = path.stem
         data = orjson.loads(await path.read_bytes())
@@ -63,19 +61,11 @@ async def convert_style():
             option=orjson.OPT_SORT_KEYS,
         )
 
-        buffer_hash = sha256(buffer).hexdigest()[:16]
-        file_name = f'{locale}-{buffer_hash}.json'
-        hash_map[locale] = buffer_hash
+        file_hash = sha256(buffer).hexdigest()[:16]
+        file_name = f'{locale}-{file_hash}.json'
 
         await (_out_dir / file_name).write_bytes(buffer)
         print(f'[✅] {locale!r}: saved as {file_name!r}')
-
-    await (LOCALE_DIR / 'i18next_hash_map.json').write_bytes(
-        orjson.dumps(
-            hash_map,
-            option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
-        )
-    )
 
 
 async def main():

@@ -2,11 +2,14 @@ import logging
 import os
 import pathlib
 import re
+import sys
 from hashlib import sha256
 
 from anyio import Path
 
 from app.lib.yarn_lock import get_yarn_lock_version
+
+sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
 
 
 def _path(s: str) -> Path:
@@ -20,9 +23,6 @@ def _path(s: str) -> Path:
 
 
 VERSION = '0.7.0'
-if VERSION.count('.') != 2:
-    raise ValueError('VERSION must be in the format "x.y.z"')
-
 VERSION_DATE = ''
 if VERSION_DATE:
     VERSION += f'.{VERSION_DATE}'

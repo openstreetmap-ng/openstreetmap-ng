@@ -40,6 +40,19 @@ def convert_variable_format(data: dict):
             data[key] = value.replace('%{', '{')
 
 
+def convert_format_format(data: dict):
+    """
+    Convert %e to %-d in all strings.
+    """
+    # backwards compatibility: remove leading zero from day
+
+    for key, value in data.items():
+        if isinstance(value, dict):
+            convert_format_format(value)
+        elif isinstance(value, str):
+            data[key] = value.replace('%e', '%-d')
+
+
 async def convert_yaml_to_json():
     async for path in _download_dir.glob('*.yaml'):
         with pathlib.Path(path).open('rb') as f:
@@ -50,6 +63,7 @@ async def convert_yaml_to_json():
 
         trim_values(data)
         convert_variable_format(data)
+        convert_format_format(data)
 
         buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
         await (_postprocess_dir / f'{path.stem}.json').write_bytes(buffer)
