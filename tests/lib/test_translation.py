@@ -31,9 +31,18 @@ def test_primary_translation_language():
         assert primary_translation_language() == 'pl'
 
 
-def test_translate_local_chapter():
-    with translation_context(['pl']):
-        assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Polska'
+def test_translate_local_chapter_nested():
+    with translation_context(['en']):
+        with translation_context(['pl']):
+            assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Polska'
+
+        assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Poland'
+
+        with translation_context(['pl']):
+            assert t('osm_community_index.communities.OSM-PL-chapter.name') == 'OpenStreetMap Polska'
+
+    with pytest.raises(LookupError):
+        t('osm_community_index.communities.OSM-PL-chapter.name')
 
 
 def test_translate_missing():
@@ -43,9 +52,9 @@ def test_translate_missing():
 
 def test_render():
     with translation_context(['en']):
-        assert render('test.jinja2').strip() == 'half a minute ago'
+        assert render('TODO.jinja2').strip() == 'half a minute ago'
     with translation_context(['pl']):
-        assert render('test.jinja2').strip() != 'half a minute ago'
+        assert render('TODO.jinja2').strip() != 'half a minute ago'
 
 
 @pytest.mark.parametrize(
