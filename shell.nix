@@ -80,6 +80,7 @@ let
     gcc
     gettext
     dart-sass
+    inotify-tools
 
     # Scripts
     # -- Cython
@@ -119,6 +120,7 @@ let
     (writeShellScriptBin "locale-make-gnu" ''
       set -e
       mkdir -p config/locale/gnu
+      echo "Converting to GNU gettext format"
 
       for source_file in $(find config/locale/i18next -type f); do
         stem=$(basename "$source_file" .json)
@@ -153,7 +155,7 @@ let
       locale-make-i18next
       locale-make-gnu
     '')
-    (writeShellScriptBin "locale-pipeline-extended" ''
+    (writeShellScriptBin "locale-pipeline-with-download" ''
       set -e
       locale-download
       locale-pipeline
@@ -193,6 +195,13 @@ let
     '')
     (writeShellScriptBin "watch-test" ''
       ptw --now . --cov app --cov-report xml
+    '')
+    (writeShellScriptBin "watch-locale" ''
+      set -e
+      locale-pipeline
+      while inotifywait -e close_write config/locale/extra_en.yaml; do
+        locale-pipeline
+      done
     '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
