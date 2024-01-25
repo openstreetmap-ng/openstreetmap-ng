@@ -1,5 +1,10 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" height="100px"> OpenStreetMap-NG
 
+![Python version](https://shields.monicz.dev/badge/python-v3.12-blue)
+[![Project license](https://shields.monicz.dev/github/license/Zaczero/openstreetmap-ng)](https://github.com/Zaczero/openstreetmap-ng/blob/main/LICENSE)
+[![Support my work](https://shields.monicz.dev/badge/%E2%99%A5%EF%B8%8F%20Support%20my%20work-purple)](https://monicz.dev/#support-my-work)
+[![GitHub repo stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
+
 Welcome to the next generation of OpenStreetMap, an improved website and API developed in Python!
 
 🚧 **Active development alert**: Please note that this project is in a very active development. Code is continuously evolving, and significant changes are happening daily. As a result, **I am not currently accepting pull requests**.
@@ -25,19 +30,21 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Migration of API 0.6
 - [ ] Migration of redactions
 - [ ] Migration of rate limiting
-- [ ] Migration of history RSS feed
+- [ ] Migration of changeset history RSS feed
 - [x] Improved GPX traces processing
 - [15%] Migration of website API
-- [x] Migration of the stylesheets
-- [75%] Migration of the scripts
-- [5%] Migration of the templates
+- [x] Migration and refactoring of stylesheets
+- [80%] Migration and refactoring of scripts
+- [5%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
+- [x] Development translation overrides
 - [ ] Anti-vandalism stage 1
-- [ ] Paginations and limits
+- [x] Redis in-memory caching
+- [10%] Pagination and limits
 - [ ] Deprecation of OAuth 1.0 warning
-- [50%] User permalinks
-- [50%] Proxy for Amazon requests (better privacy)
-- [50%] Addition of Rapid editor
+- [x] User permalinks
+- [x] Proxy for Amazon requests (better privacy)
+- [x] Addition of Rapid editor
 - [ ] Ability to rotate OAuth keys
 - [ ] Scheduled account delete
 - [ ] Identification of anonymous note users
@@ -47,6 +54,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] 2FA and U2F support
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
+- **And a lot more...** :-)!
 
 **📅 Expected feature parity by:** 2023-12-16 \
 (delayed, new ETA soon, [read more here](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/61))
