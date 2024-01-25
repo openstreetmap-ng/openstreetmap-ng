@@ -1,3 +1,5 @@
+import { routerNavigate } from "./_router.js"
+
 const actionSidebars = document.querySelectorAll(".action-sidebar")
 const searchForms = document.querySelectorAll(".action-sidebar .search-form")
 const routingForms = document.querySelectorAll(".action-sidebar .routing-form")
@@ -15,6 +17,8 @@ export const getActionSidebar = (className) => document.querySelector(`.action-s
  * @returns {void}
  */
 export const switchActionSidebar = (className) => {
+    console.debug("Switching action sidebar to", className)
+
     // Reset all search and routing forms
     for (const searchForm of searchForms) searchForm.reset()
     for (const routingForm of routingForms) routingForm.reset()
@@ -27,12 +31,11 @@ export const switchActionSidebar = (className) => {
 
 /**
  * Configure action sidebars
- * @param {object} router Router object
  * @returns {void}
  */
-export const configureActionSidebars = (router) => {
+export const configureActionSidebars = () => {
     // On sidebar close button click, navigate to index
-    const onSidebarCloseClick = () => router.navigate("/")
+    const onSidebarCloseClick = () => routerNavigate("/")
     for (const sidebarCloseButton of document.querySelectorAll(".sidebar-close-btn")) {
         sidebarCloseButton.addEventListener("click", onSidebarCloseClick)
     }

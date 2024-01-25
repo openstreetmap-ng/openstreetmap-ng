@@ -1,6 +1,13 @@
 import { Route } from "./_route.js"
 import "./_types.js"
 
+let routes
+let currentPath
+let currentRoute
+
+// Find the first route that matches a path
+const findRoute = (path) => routes.find((route) => route.match(path))
+
 /**
  * Remove trailing slash from a string
  * @param {string} str Input string
@@ -12,42 +19,39 @@ import "./_types.js"
 const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? removeTrailingSlash(str.slice(0, -1)) : str)
 
 /**
- * Create a router object
+ * Navigate to a path and return true if successful
+ * @param {string} newPath Path to navigate to
+ * @returns {void}
+ * @example
+ * routerNavigate("/way/1234")
+ * // => true
+ */
+export const routerNavigate = (newPath) => {
+    const newRoute = findRoute(newPath)
+    if (!newRoute) throw new Error(`No route found for path: ${newPath}`)
+
+    // Unload the current route
+    if (currentRoute) currentRoute.unload({ sameRoute: newRoute === currentRoute })
+
+    // Push the new history state
+    history.pushState(null, "", newPath + location.hash)
+
+    // Load the new route
+    currentPath = newPath
+    currentRoute = newRoute
+    currentRoute.load(currentPath, { source: "script" })
+}
+
+/**
+ * Configure the router
  * @param {Map<string, object>} pathControllerMap Mapping of path regex patterns to controller objects
  */
-export const Router = (pathControllerMap) => {
-    const routes = [...pathControllerMap.entries()].map(([path, controller]) => Route(path, controller))
+export const configureRouter = (pathControllerMap) => {
+    routes = [...pathControllerMap.entries()].map(([path, controller]) => Route(path, controller))
     console.debug(`Loaded ${routes.length} routes`)
 
-    // Find the first route that matches a path
-    const findRoute = (path) => routes.find((route) => route.match(path))
-
-    let currentPath = removeTrailingSlash(location.pathname) + location.search
-    let currentRoute = findRoute(currentPath)
-
-    /**
-     * Navigate to a path and return true if successful
-     * @param {string} newPath Path to navigate to
-     * @returns {void}
-     * @example
-     * router.navigate("/way/1234")
-     * // => true
-     */
-    const navigate = (newPath) => {
-        const newRoute = findRoute(newPath)
-        if (!newRoute) throw new Error(`No route found for path: ${newPath}`)
-
-        // Unload the current route
-        if (currentRoute) currentRoute.unload({ sameRoute: newRoute === currentRoute })
-
-        // Push the new history state
-        history.pushState(null, "", newPath + location.hash)
-
-        // Load the new route
-        currentPath = newPath
-        currentRoute = newRoute
-        currentRoute.load(currentPath, { source: "script" })
-    }
+    currentPath = removeTrailingSlash(location.pathname) + location.search
+    currentRoute = findRoute(currentPath)
 
     /**
      * Handle browser navigation events
@@ -96,7 +100,7 @@ export const Router = (pathControllerMap) => {
 
         // Attempt to navigate and prevent default if successful
         const newPath = removeTrailingSlash(target.pathname) + target.search
-        if (navigate(newPath)) {
+        if (routerNavigate(newPath)) {
             event.preventDefault()
         }
     }
@@ -107,7 +111,4 @@ export const Router = (pathControllerMap) => {
 
     // Initial load
     if (currentRoute) currentRoute.load(currentPath, { source: "init" })
-
-    // Return Router object
-    return { navigate }
 }

@@ -1,10 +1,11 @@
 import "./_i18n.js"
 
+import { configureActionSidebars } from "./_action-sidebar.js"
 import { homePoint } from "./_config.js"
-import { Router } from "./_router.js"
-import { configureActionSidebars } from "./controllers/_action-sidebar.js"
+import { configureRouter } from "./_router.js"
 import { getExportController } from "./controllers/_export.js"
 import { getIndexController } from "./controllers/_index.js"
+import { getNewNoteController } from "./controllers/_new-note.js"
 import { configureFindHomeButton } from "./leaflet/_find-home.js"
 import { getMainMap } from "./leaflet/_map.js"
 
@@ -18,7 +19,7 @@ if (homePoint) {
     if (findHomeButton) configureFindHomeButton(map, findHomeButton)
 }
 
-const router = Router(
+configureRouter(
     new Map([
         ["/", getIndexController()],
         ["/export", getExportController(map)],
@@ -26,7 +27,7 @@ const router = Router(
         ["/search", null], // TODO: search
         ["/query", null], // TODO: query
         ["(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<display_name>[^/]+)/history)", null], // TODO: history
-        ["/note/new", null], // TODO: new note
+        ["/note/new", getNewNoteController(map)],
         ["/note/(?<id>\\d+)", null], // TODO: note
         ["/changeset/(?<id>\\d+)", null], // TODO: changeset
         ["/(?<type>node|way|relation)/(?<id>\\d+)", null], // TODO: browse
@@ -34,4 +35,4 @@ const router = Router(
     ]),
 )
 
-configureActionSidebars(router)
+configureActionSidebars()

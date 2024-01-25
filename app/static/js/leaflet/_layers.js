@@ -109,11 +109,14 @@ const NoteLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "N",
         layerId: "notes",
-        style: {
-            weight: 2.5,
-            radius: 20,
-            fillOpacity: 0.5,
-            color: "#FF6200",
+        styles: {
+            halo: {
+                weight: 2.5,
+                radius: 20,
+                fillOpacity: 0.5,
+                color: "#FF6200",
+                interactive: false,
+            },
         },
     },
 })

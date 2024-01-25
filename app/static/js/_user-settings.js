@@ -1,8 +1,8 @@
-import { initializeStandardForm } from "./_standard-form.js"
+import { configureStandardForm } from "./_standard-form.js"
 
 const userSettingsForm = document.querySelector(".user-settings-form")
 if (userSettingsForm) {
-    initializeStandardForm(userSettingsForm)
+    configureStandardForm(userSettingsForm)
 
     const avatarFileRadio = userSettingsForm.querySelector(".avatar-file-radio")
     const avatarFileInput = userSettingsForm.querySelector(".avatar-file-input")

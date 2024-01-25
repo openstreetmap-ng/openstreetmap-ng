@@ -8,7 +8,7 @@ import { Alert } from "bootstrap"
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const initializeStandardForm = (form, { successCallback = null }) => {
+export const configureStandardForm = (form, { successCallback = null }) => {
     console.debug("Initializing standard form", form)
 
     const submitElements = form.querySelectorAll("[type=submit]")

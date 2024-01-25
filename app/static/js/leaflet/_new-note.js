@@ -45,6 +45,8 @@ export const getNewNoteControl = () => {
         button.className = "control-button"
         button.innerHTML = "<span class='icon note'></span>"
 
+        // TODO: button event route, active state
+
         const tooltip = new Tooltip(button, {
             title: i18next.t("javascripts.site.createnote_tooltip"),
             placement: "left",

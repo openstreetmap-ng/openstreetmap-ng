@@ -1,5 +1,5 @@
+import { switchActionSidebar } from "../_action-sidebar.js"
 import { getPageTitle } from "../_title.js"
-import { switchActionSidebar } from "./_action-sidebar.js"
 
 /**
  * Create a new index controller
