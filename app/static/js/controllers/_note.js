@@ -33,6 +33,8 @@ export const getNoteController = (map) => {
         const closedAt = params.closedAt
         const isOpen = closedAt === null
 
+        // TODO: focus on marker if it's offscreen
+
         // Display marker and halo
         let center = L.latLng(lat, lon)
 
