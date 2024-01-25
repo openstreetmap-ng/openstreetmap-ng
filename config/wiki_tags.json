@@ -7312,6 +7312,10 @@
   "monorail": [
     ""
   ],
+  "monument": [
+    "",
+    "RU"
+  ],
   "monument:genesis": [
     "",
     "DE"
@@ -7555,6 +7559,7 @@
     "DE",
     "ES",
     "JA",
+    "Pl",
     "RU"
   ],
   "museum_type": [
@@ -7740,6 +7745,9 @@
   "name:br": [
     "",
     "FR"
+  ],
+  "name:brh": [
+    ""
   ],
   "name:bru": [
     ""
@@ -8477,6 +8485,9 @@
     ""
   ],
   "name:qu": [
+    ""
+  ],
+  "name:rgn": [
     ""
   ],
   "name:right": [

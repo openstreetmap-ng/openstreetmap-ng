@@ -209,8 +209,6 @@ as:
       tooltip: মেপৰ চাবি
       tooltip_disabled: এই লেয়াৰৰ বাবে মেপৰ চাবি উপলব্ধ নহয়
     map:
-      base:
-        opnvkarte: ÖPNVKarte
       layers:
         header: মেপৰ লেয়াৰ
         notes: মেপৰ টোকা

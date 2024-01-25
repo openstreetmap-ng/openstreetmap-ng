@@ -512,7 +512,6 @@ sms:
     map:
       base:
         cyclosm: CyclOSM
-        opnvkarte: ÖPNVKarte
     changesets:
       show:
         comment: Kommentââʹst

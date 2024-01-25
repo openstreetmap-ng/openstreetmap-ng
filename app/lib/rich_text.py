@@ -8,6 +8,7 @@ import orjson
 from markdown_it import MarkdownIt
 
 from app.config import CONFIG_DIR
+from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.models.cache_entry import CacheEntry
 from app.models.text_format import TextFormat
 from app.services.cache_service import CacheService
@@ -83,6 +84,6 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
 
     # accelerate cache lookup by id if available
     if cache_id is not None:
-        return await CacheService.get_one_by_id(cache_id, factory)
+        return await CacheService.get_one_by_id(cache_id, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
     else:
-        return await CacheService.get_one_by_key(text, _cache_context(text_format), factory)
+        return await CacheService.get_one_by_key(text, _cache_context(text_format), factory, ttl=RICH_TEXT_CACHE_EXPIRE)

@@ -3141,7 +3141,6 @@ id:
         transport_map: Peta Transportasi
         tracestracktop_topo: Tracestrack Topo
         hot: Kemanusiaan
-        opnvkarte: ÖPNVKarte
       layers:
         header: Layer Peta
         notes: Catatan Peta
@@ -3156,8 +3155,6 @@ id:
       osm_france: OpenStreetMap France
       thunderforest_credit: Kotak peta oleh %{thunderforest_link}
       andy_allan: Andy Allan
-      opnvkarte_credit: Kotak peta oleh %{memomaps_link}
-      memomaps: MeMoMaps
       tracestrack_credit: Kotak peta oleh %{tracestrack_link}
       hotosm_credit: Desain kotak peta oleh %{hotosm_link}, diproses oleh %{osm_france_link}
       hotosm_name: Humanitarian OpenStreetMap Team

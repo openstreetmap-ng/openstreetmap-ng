@@ -11,14 +11,22 @@ from app.config import LOCALE_DIR
 
 _download_dir = pathlib.Path(LOCALE_DIR / 'download')
 _postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
-_extra_locale_en_path = pathlib.Path(__file__).parent / 'extra_locale_en.yaml'
+_locale_extra_en_path = pathlib.Path(LOCALE_DIR / 'extra_en.yaml')
+
+
+def get_source_mtime(locale: str) -> float:
+    source_path = _download_dir / f'{locale}.yaml'
+
+    if locale == 'en':
+        stat1 = source_path.stat()
+        stat2 = _locale_extra_en_path.stat()
+        return max(stat1.st_mtime, stat2.st_mtime)
+    else:
+        stat = source_path.stat()
+        return stat.st_mtime
 
 
 def needs_processing(locale: str) -> bool:
-    # always process english for simplicity
-    if locale == 'en':
-        return True
-
     source_path = _download_dir / f'{locale}.yaml'
     target_path = _postprocess_dir / f'{locale}.json'
 
@@ -27,7 +35,7 @@ def needs_processing(locale: str) -> bool:
     if not target_path.is_file():
         return True
 
-    return source_path.stat().st_mtime > target_path.stat().st_mtime
+    return get_source_mtime(locale) > target_path.stat().st_mtime
 
 
 def resolve_community_name(community: dict, locale: dict) -> str:
@@ -56,6 +64,10 @@ def resolve_community_name(community: dict, locale: dict) -> str:
 
 
 def extract_local_chapters_map() -> dict[str, dict]:
+    """
+    Returns a mapping of locale to locale overrides.
+    """
+
     package_dir = pathlib.Path('node_modules/osm-community-index')
     resources = (package_dir / 'dist/resources.min.json').read_bytes()
     communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
@@ -160,7 +172,7 @@ def postprocess():
 
         # apply extra overrides
         if locale == 'en':
-            with _extra_locale_en_path.open('rb') as f:
+            with _locale_extra_en_path.open('rb') as f:
                 extra_data: dict | None = yaml.safe_load(f)
             if extra_data:
                 deep_dict_update(data, extra_data)
@@ -169,14 +181,8 @@ def postprocess():
         target_path = _postprocess_dir / f'{locale}.json'
         target_path.write_bytes(buffer)
 
-        # consider mtime of override files
-        if locale == 'en':
-            stat1 = source_path.stat()
-            stat2 = _extra_locale_en_path.stat()
-            os.utime(target_path, (max(stat1.st_atime, stat2.st_atime), max(stat1.st_mtime, stat2.st_mtime)))
-        else:
-            stat = source_path.stat()
-            os.utime(target_path, (stat.st_atime, stat.st_mtime))
+        mtime = get_source_mtime(locale)
+        os.utime(target_path, (mtime, mtime))
 
 
 async def main():

@@ -2926,7 +2926,6 @@ zh-TW:
         transport_map: 交通運輸地圖
         tracestracktop_topo: 蹤跡地圖地形
         hot: 人道救援
-        opnvkarte: 公共交通地圖
       layers:
         header: 地圖圖層
         notes: 地圖註記
@@ -2941,8 +2940,6 @@ zh-TW:
       osm_france: OpenStreetMap 法國
       thunderforest_credit: '%{thunderforest_link} 提供的圖磚'
       andy_allan: Andy Allan
-      opnvkarte_credit: '%{memomaps_link} 提供的圖磚'
-      memomaps: MeMoMaps
       tracestrack_credit: '%{tracestrack_link} 提供的圖磚'
       tracestrack: 蹤跡地圖
       hotosm_credit: 由 %{osm_france_link} 代管的 %{hotosm_link} 所提供圖磚樣式

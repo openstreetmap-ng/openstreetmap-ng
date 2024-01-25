@@ -4,7 +4,7 @@ from datetime import timedelta
 
 import anyio
 import orjson
-from anyio import CapacityLimiter, Path
+from anyio import CapacityLimiter
 
 from app.config import LOCALE_DIR
 from app.lib.retry import retry
@@ -13,6 +13,8 @@ from app.utils import HTTP
 
 _download_dir = LOCALE_DIR / 'download'
 _download_limiter = CapacityLimiter(8)  # max concurrent downloads
+_extra_names_path = LOCALE_DIR / 'extra_names.json'
+_names_path = LOCALE_DIR / 'names.json'
 
 
 async def get_download_locales() -> Sequence[str]:
@@ -73,7 +75,7 @@ async def download_locale(locale: str) -> LocaleName | None:
 
 
 async def add_extra_locales_names(locales_names: list[LocaleName]):
-    buffer = await (Path(__file__).parent / 'extra_locales_names.json').read_bytes()
+    buffer = await _extra_names_path.read_bytes()
     extra_locales_names: dict[str, dict] = orjson.loads(buffer)
 
     for ln in locales_names:
@@ -111,7 +113,7 @@ async def main():
     locales_names.sort(key=lambda v: v.code)
 
     buffer = orjson.dumps([ln._asdict() for ln in locales_names], option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
-    await (LOCALE_DIR / 'names.json').write_bytes(buffer)
+    await _names_path.write_bytes(buffer)
 
 
 if __name__ == '__main__':

@@ -104,7 +104,7 @@ let
 
     # -- Locale
     (writeShellScriptBin "locale-clean" ''
-      rm -rf config/locale
+      rm -rf config/locale/*/
     '')
     (writeShellScriptBin "locale-download" ''
       python scripts/locale_download.py

@@ -100,6 +100,15 @@ dag:
   datetime:
     distance_in_words_ago:
       half_a_minute: Minti pirigili saha
+  old_nodes:
+    not_found:
+      sorry: 'Gaafara, din''to #%{id} yaɣili ŋɔ %{version} bi tooi nya.'
+  old_ways:
+    not_found:
+      sorry: 'Gaafara, soli #%{id} yaɣili ŋɔ %{version} bi tooi nya.'
+  old_relations:
+    not_found:
+      sorry: 'Gaafara, biɛhigu #%{id} yaɣili ŋɔ %{version} bi tooi nya.'
   geocoder:
     search_osm_nominatim:
       prefix:
@@ -118,6 +127,7 @@ dag:
     new:
       email or username: Yimail adrɛɛri bee ŋunsuyuli
       password: Paswɛdi
+      openid_html: '%{logo} yoomiID'
   site:
     key:
       table:

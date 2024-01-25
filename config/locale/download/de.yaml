@@ -3303,7 +3303,6 @@ de:
         transport_map: Verkehrskarte
         tracestracktop_topo: Tracestrack Topo
         hot: Humanitär
-        opnvkarte: ÖPNVKarte
       layers:
         header: Kartenebenen
         notes: Hinweise/Fehlermeldungen
@@ -3318,8 +3317,6 @@ de:
       osm_france: OpenStreetMap Frankreich
       thunderforest_credit: Kacheln mit freundlicher Genehmigung von %{thunderforest_link}
       andy_allan: Andy Allan
-      opnvkarte_credit: Kacheln mit freundlicher Genehmigung von %{memomaps_link}
-      memomaps: MeMoMaps
       tracestrack_credit: Kacheln mit freundlicher Genehmigung von %{tracestrack_link}
       hotosm_credit: Kachelstil von %{hotosm_link}, gehostet von %{osm_france_link}
       hotosm_name: Humanitäres OpenStreetMap Team

@@ -181,50 +181,50 @@ sr:
         few: пре око %{count} сата
         other: пре око %{count} сати
       about_x_months:
-        one: око %{count} месец
-        few: око %{count} месеца
-        other: '[око %{count} месеци'
+        one: пре око %{count} месец
+        few: пре око %{count} месеца
+        other: пре око %{count} месеци
       about_x_years:
         one: пре око %{count} године
         few: пре око %{count} године
         other: пре око %{count} година
       almost_x_years:
-        one: скоро %{count} године
-        few: скоро %{count} године
-        other: скоро %{count} година
+        one: пре скоро %{count} године
+        few: пре скоро %{count} године
+        other: пре скоро %{count} година
       half_a_minute: пре пола минута
       less_than_x_seconds:
         one: пре мање од %{count} секунде
         few: пре мање од %{count} секунде
         other: пре мање од %{count} секунди
       less_than_x_minutes:
-        one: мање од %{count} минута
-        few: мање од %{count} минута
-        other: мање од %{count} минута
+        one: пре мање од %{count} минута
+        few: пре мање од %{count} минута
+        other: пре мање од %{count} минута
       over_x_years:
         one: пре више од %{count} године
         few: пре више од %{count} године
         other: пре више од %{count} година
       x_seconds:
-        one: '%{count} секунде'
-        few: '%{count} секунде'
-        other: '%{count} секунди'
+        one: пре %{count} секунде
+        few: пре %{count} секунде
+        other: пре %{count} секунди
       x_minutes:
         one: пре %{count} минут
         few: пре %{count} минута
         other: пре %{count} минута
       x_days:
-        one: '%{count} дан'
-        few: '%{count} дана'
-        other: '%{count} дана'
+        one: пре %{count} дан
+        few: пре %{count} дана
+        other: пре %{count} дана
       x_months:
         one: пре %{count} месец
         few: пре %{count} месеца
         other: пре %{count} месеци
       x_years:
-        one: '%{count} године'
-        few: '%{count} године'
-        other: '%{count} година'
+        one: пре %{count} године
+        few: пре %{count} године
+        other: пре %{count} година
   printable_name:
     with_version: '%{id}, вер. %{version}'
   editor:
@@ -1446,6 +1446,7 @@ sr:
       messages: Имате %{new_messages} и %{old_messages}
       new_messages:
         one: '%{count} нова порука'
+        few: '%{count} нове поруке'
         other: '%{count} нових порука'
       old_messages:
         one: '%{count} стара порука'

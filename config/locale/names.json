@@ -832,7 +832,7 @@
   {
     "code": "ks",
     "english": "Kashmiri",
-    "native": "(كشميري)"
+    "native": "كشميري"
   },
   {
     "code": "ks-arab",
@@ -1721,8 +1721,8 @@
   },
   {
     "code": "wuu-hans",
-    "english": "Wu Chinese",
-    "native": "Simplified"
+    "english": "Wu",
+    "native": "Simplified Han script"
   },
   {
     "code": "xal",
@@ -1757,7 +1757,7 @@
   {
     "code": "yue-hant",
     "english": "Cantonese",
-    "native": "Traditional"
+    "native": "Traditional Han script"
   },
   {
     "code": "za",

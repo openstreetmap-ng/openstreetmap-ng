@@ -3143,7 +3143,6 @@ mk:
         transport_map: Сообраќајна
         tracestracktop_topo: Tracestrack Топо
         hot: Хуманитарна
-        opnvkarte: ÖPNVKarte
       layers:
         header: Слоеви на картата
         notes: Белешки на картата
@@ -3158,8 +3157,6 @@ mk:
       osm_france: OpenStreetMap Франција
       thunderforest_credit: Полињата се доставени од %{thunderforest_link}
       andy_allan: Енди Алан
-      opnvkarte_credit: Полињата се доставени од %{memomaps_link}
-      memomaps: MeMoMaps
       tracestrack_credit: Полињата се доставени од %{tracestrack_link}
       hotosm_credit: Стилот на полињата е од %{hotosm_link} вдомен од %{osm_france_link}
       hotosm_name: Екипа на Хуманитарната OpenStreetMap

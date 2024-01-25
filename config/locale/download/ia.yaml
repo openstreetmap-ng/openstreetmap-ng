@@ -3159,7 +3159,6 @@ ia:
         transport_map: Carta de transporto
         tracestracktop_topo: Tracestrack Topo
         hot: Humanitario
-        opnvkarte: ÖPNVKarte
       layers:
         header: Stratos de carta
         notes: Notas de carta
@@ -3174,8 +3173,6 @@ ia:
       osm_france: OpenStreetMap Francia
       thunderforest_credit: Tegulas fornite per %{thunderforest_link}
       andy_allan: Andy Allan
-      opnvkarte_credit: Tegulas fornite per %{memomaps_link}
-      memomaps: MeMoMaps
       tracestrack_credit: Tegulas fornite per %{tracestrack_link}
       hotosm_credit: Stilo de tegulas per %{hotosm_link} albergate per %{osm_france_link}
       hotosm_name: le Equipa Humanitari de OpenStreetMap

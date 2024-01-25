@@ -529,8 +529,6 @@ zgh:
         out: ⵙⵉⵎⵥⵉⵢ
       locate:
         title: ⵙⴽⵏ ⴰⴷⵖⴰⵔ ⵉⵏⵓ
-      base:
-        opnvkarte: ÖPNVKarte
     site:
       edit_tooltip: ⵙⵏⴼⵍ ⵜⴰⴽⴰⵕⴹⴰ
       edit_disabled_tooltip: ⵙⵎⵖⵕ ⵉ ⵓⵙⵏⴼⵍ ⵏ ⵜⴽⴰⵕⴹⴰ
