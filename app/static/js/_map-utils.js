@@ -282,23 +282,33 @@ export const getInitialMapState = (map = null) => {
         }
     }
 
-    // 5. Use the last location from local storage
+    // 5. Use the position from lat/lon search parameters
+    if (searchParams.lon && searchParams.lat) {
+        const lon = parseFloat(searchParams.lon)
+        const lat = parseFloat(searchParams.lat)
+        const zoom = parseInt(searchParams.zoom ?? 12, 10)
+        if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
+            return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
+        }
+    }
+
+    // 6. Use the last location from local storage
     if (lastState) return lastState
 
-    // 6. Use the user home location
+    // 7. Use the user home location
     if (homePoint) {
         const [lon, lat] = homePoint
         const zoom = 15 // Home zoom defaults to 15
         return { lon, lat, zoom, layersCode: "" }
     }
 
-    // 7. Use the user's country bounds
+    // 8. Use the user's country bounds
     if (countryBounds) {
         const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
         return { lon, lat, zoom, layersCode: "" }
     }
 
-    // 8. Use the default location
+    // 9. Use the default location
     return {
         lon: 0,
         lat: 30,

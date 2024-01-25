@@ -1,9 +1,11 @@
 import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { getMapState, setMapState } from "../_map-utils.js"
+import { qsParse } from "../_qs.js"
 import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
+import { isLatitude, isLongitude } from "../_utils.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 
@@ -60,7 +62,18 @@ export const getNewNoteController = (map) => {
             document.title = getPageTitle(sidebarTitle)
 
             if (!marker) {
-                const center = map.getCenter()
+                let center = map.getCenter()
+
+                // Allow default location setting via URL search parameters
+                const searchParams = qsParse(location.search.substring(1))
+                if (searchParams.lon && searchParams.lat) {
+                    const lon = parseFloat(searchParams.lon)
+                    const lat = parseFloat(searchParams.lat)
+
+                    if (isLongitude(lon) && isLatitude(lat)) {
+                        center = L.latLng(lat, lon)
+                    }
+                }
 
                 marker = L.marker(center, {
                     icon: getMarkerIcon("new", false),
