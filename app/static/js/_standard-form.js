@@ -148,6 +148,9 @@ export const configureStandardForm = (form, { successCallback = null }) => {
         fetch(form.action, {
             method: form.method,
             body: new FormData(form),
+            mode: "same-origin",
+            cache: "no-store",
+            priority: "high",
         })
             .then(async (resp) => {
                 const data = await resp.json()

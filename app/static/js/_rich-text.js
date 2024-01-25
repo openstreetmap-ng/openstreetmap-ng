@@ -59,7 +59,10 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
         fetch("/api/web/rich_text/preview", {
             method: "POST",
             body: formData,
+            mode: "same-origin",
+            cache: "no-store",
             signal: abortController.signal,
+            priority: "high",
         })
             .then(async (resp) => {
                 previewDiv.innerHTML = await resp.text()

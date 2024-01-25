@@ -57,6 +57,7 @@ const remoteEdit = (button, bounds, object = null) => {
         mode: "no-cors",
         credentials: "omit",
         cache: "no-store",
+        priority: "high",
     })
         .then(() => {
             // Optionally import note
@@ -65,11 +66,11 @@ const remoteEdit = (button, bounds, object = null) => {
                     mode: "no-cors",
                     credentials: "omit",
                     cache: "no-store",
+                    priority: "high",
                 })
             }
         })
         .catch((error) => {
-            if (error.name === "AbortError") return
             console.error(error)
             alert(i18next.t("site.index.remote_failed"))
         })

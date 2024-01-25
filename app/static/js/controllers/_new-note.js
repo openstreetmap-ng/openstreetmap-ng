@@ -15,7 +15,7 @@ import { getMarkerIcon } from "../leaflet/_utils.js"
  * @returns {object} Controller
  */
 export const getNewNoteController = (map) => {
-    const sidebar = getActionSidebar("export")
+    const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
     const lonInput = form.querySelector("input[name=lon]")
@@ -61,20 +61,20 @@ export const getNewNoteController = (map) => {
             switchActionSidebar("new-note")
             document.title = getPageTitle(sidebarTitle)
 
-            if (!marker) {
-                let center = map.getCenter()
+            let center = map.getCenter()
 
-                // Allow default location setting via URL search parameters
-                const searchParams = qsParse(location.search.substring(1))
-                if (searchParams.lon && searchParams.lat) {
-                    const lon = parseFloat(searchParams.lon)
-                    const lat = parseFloat(searchParams.lat)
+            // Allow default location setting via URL search parameters
+            const searchParams = qsParse(location.search.substring(1))
+            if (searchParams.lon && searchParams.lat) {
+                const lon = parseFloat(searchParams.lon)
+                const lat = parseFloat(searchParams.lat)
 
-                    if (isLongitude(lon) && isLatitude(lat)) {
-                        center = L.latLng(lat, lon)
-                    }
+                if (isLongitude(lon) && isLatitude(lat)) {
+                    center = L.latLng(lat, lon)
                 }
+            }
 
+            if (!marker) {
                 marker = L.marker(center, {
                     icon: getMarkerIcon("new", false),
                     draggable: true,
@@ -86,7 +86,7 @@ export const getNewNoteController = (map) => {
                 marker.addEventListener("dragstart", onMarkerDragStart)
                 marker.addEventListener("dragend", onMarkerDragEnd)
             } else {
-                marker.setLatLng(map.getCenter())
+                marker.setLatLng(center)
             }
 
             map.addLayer(marker)

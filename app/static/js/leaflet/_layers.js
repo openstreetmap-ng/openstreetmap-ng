@@ -115,6 +115,7 @@ const NoteLayer = L.FeatureGroup.extend({
                 radius: 20,
                 fillOpacity: 0.5,
                 color: "#FF6200",
+                keyboard: false,
                 interactive: false,
             },
         },
