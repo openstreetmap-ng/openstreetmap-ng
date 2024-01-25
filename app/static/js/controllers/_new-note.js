@@ -22,6 +22,7 @@ export const getNewNoteController = (map) => {
     const latInput = form.querySelector("input[name=lat]")
 
     let halo = null
+    let marker = null
 
     // On marker drag start, remove the halo
     const onMarkerDragStart = () => {
@@ -84,13 +85,14 @@ export const getNewNoteController = (map) => {
             })
 
             // Listen for events
-            const marker = halo.marker
+            marker = halo.marker
             marker.addEventListener("dragstart", onMarkerDragStart)
             marker.addEventListener("dragend", onMarkerDragEnd)
         },
         unload: () => {
             focusMapObject(map, null)
             halo = null
+            marker = null
         },
     }
 }
