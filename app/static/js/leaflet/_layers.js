@@ -109,16 +109,6 @@ const NoteLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "N",
         layerId: "notes",
-        styles: {
-            halo: {
-                weight: 2.5,
-                radius: 20,
-                fillOpacity: 0.5,
-                color: "#FF6200",
-                keyboard: false,
-                interactive: false,
-            },
-        },
     },
 })
 
@@ -150,6 +140,15 @@ export const DataLayer = L.FeatureGroup.extend({
                 color: "#FF9500",
                 opacity: 1,
                 fillOpacity: 0,
+                keyboard: false,
+                interactive: false,
+            },
+            noteHalo: {
+                weight: 2.5,
+                radius: 20,
+                fillOpacity: 0.5,
+                color: "#FF6200",
+                keyboard: false,
                 interactive: false,
             },
         },
@@ -173,8 +172,16 @@ export const DataLayer = L.FeatureGroup.extend({
                     break
                 case "note": {
                     const latLng = L.latLng(feature.lat, feature.lon)
-                    layer = L.circleMarker(latLng, this.options.styles.object)
-                    layer.marker = L.marker(latLng, { icon: getMarkerIcon(feature.icon, false) })
+                    const interactive = feature.interactive !== undefined ? Boolean(feature.interactive) : true
+                    const draggable = Boolean(feature.draggable)
+                    layer = L.circleMarker(latLng, this.options.styles.noteHalo)
+                    layer.marker = L.marker(latLng, {
+                        icon: getMarkerIcon(feature.icon, false),
+                        keyboard: interactive,
+                        interactive: interactive,
+                        draggable: draggable,
+                        autoPan: draggable,
+                    })
                     markers.push(layer.marker)
                     break
                 }

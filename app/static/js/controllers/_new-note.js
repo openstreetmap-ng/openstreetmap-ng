@@ -6,8 +6,8 @@ import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
-import { getOverlayLayerById } from "../leaflet/_layers.js"
-import { getMarkerIcon } from "../leaflet/_utils.js"
+import { DataLayer, getOverlayLayerById } from "../leaflet/_layers.js"
+import { focusMapObject } from "../leaflet/_map-focus.js"
 
 /**
  * Create a new new note controller
@@ -21,13 +21,11 @@ export const getNewNoteController = (map) => {
     const lonInput = form.querySelector("input[name=lon]")
     const latInput = form.querySelector("input[name=lat]")
 
-    // Null values until initialized
-    let marker = null
     let halo = null
 
     // On marker drag start, remove the halo
     const onMarkerDragStart = () => {
-        map.removeLayer(halo)
+        halo.setStyle({ opacity: 0 })
     }
 
     // On marker drag end, update the form's coordinates and add the halo
@@ -37,7 +35,7 @@ export const getNewNoteController = (map) => {
         latInput.value = latLng.lat
 
         halo.setLatLng(latLng)
-        map.addLayer(halo)
+        halo.setStyle(DataLayer.options.styles.noteHalo)
     }
 
     // On success callback, enable notes layer and navigate to the new note
@@ -74,29 +72,25 @@ export const getNewNoteController = (map) => {
                 }
             }
 
-            if (!marker) {
-                marker = L.marker(center, {
-                    icon: getMarkerIcon("new", false),
-                    draggable: true,
-                    autoPan: true,
-                })
+            if (halo) console.warn("Halo already exists")
 
-                halo = L.circleMarker(center, getOverlayLayerById("notes").options.styles.halo)
+            halo = focusMapObject(map, {
+                type: "note",
+                id: null,
+                lon: center.lng,
+                lat: center.lat,
+                icon: "new",
+                draggable: true,
+            })
 
-                marker.addEventListener("dragstart", onMarkerDragStart)
-                marker.addEventListener("dragend", onMarkerDragEnd)
-            } else {
-                marker.setLatLng(center)
-            }
-
-            map.addLayer(marker)
-
-            // Initial update to set the inputs and add the halo
-            onMarkerDragEnd()
+            // Listen for events
+            const marker = halo.marker
+            marker.addEventListener("dragstart", onMarkerDragStart)
+            marker.addEventListener("dragend", onMarkerDragEnd)
         },
         unload: () => {
-            map.removeLayer(marker)
-            map.removeLayer(halo)
+            focusMapObject(map, null)
+            halo = null
         },
     }
 }

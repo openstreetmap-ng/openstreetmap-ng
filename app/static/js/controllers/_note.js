@@ -1,8 +1,7 @@
 import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
-import { getOverlayLayerById } from "../leaflet/_layers.js"
-import { getMarkerIcon } from "../leaflet/_utils.js"
+import { focusMapObject } from "../leaflet/_map-focus.js"
 import { getBaseFetchController } from "./_base_fetch.js"
 
 /**
@@ -11,11 +10,6 @@ import { getBaseFetchController } from "./_base_fetch.js"
  * @returns {object} Controller
  */
 export const getNoteController = (map) => {
-    // Null values until initialized
-    // Marker is always removed because it changes depending on open/closed
-    let marker = null
-    let halo = null
-
     const onLoaded = (sidebarContent) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
@@ -33,28 +27,20 @@ export const getNoteController = (map) => {
         const closedAt = params.closedAt
         const isOpen = closedAt === null
 
-        // TODO: focus on marker if it's offscreen
-
-        // Display marker and halo
-        let center = L.latLng(lat, lon)
-
-        // Marker is always removed because it changes depending on open/closed
-        if (marker) console.warn("Marker already exists")
-
-        marker = L.marker(center, {
-            icon: getMarkerIcon(isOpen ? "open" : "closed", false),
-            keyboard: false,
+        focusMapObject(map, {
+            type: "note",
+            id: paramsId,
+            lon: lon,
+            lat: lat,
+            icon: isOpen ? "open" : "closed",
             interactive: false,
         })
 
-        if (!halo) {
-            halo = L.circleMarker(center, getOverlayLayerById("notes").options.styles.halo)
-        } else {
-            halo.setLatLng(center)
+        // Focus on the note if it's offscreen
+        const latLng = L.latLng(lat, lon)
+        if (!map.getBounds().contains(latLng)) {
+            map.panTo(latLng, { animate: false })
         }
-
-        map.addLayer(halo)
-        map.addLayer(marker)
 
         // On success callback, reload the note
         const onFormSuccess = () => {
@@ -76,12 +62,7 @@ export const getNoteController = (map) => {
     }
 
     base.unload = () => {
-        // Remove marker and halo only if successfully created
-        if (marker) {
-            map.removeLayer(marker)
-            map.removeLayer(halo)
-            marker = null
-        }
+        focusMapObject(map, null)
         baseUnload()
     }
 

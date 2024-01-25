@@ -47,7 +47,9 @@
  * @property {number} id Object id
  * @property {number} lon Object longitude
  * @property {number} lat Object latitude
- * @property {string} icon Icon theme
+ * @property {string} icon Marker icon name
+ * @property {boolean|undefined} draggable Optional draggable flag for the marker
+ * @property {boolean|undefined} interactive Optional interactive flag for the marker
  */
 
 /**
