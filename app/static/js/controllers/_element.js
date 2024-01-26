@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { getPageTitle } from "../_title.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_forus-layer.js"
 import { isInterestingNode } from "../leaflet/_layers.js"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_map-focus.js"
 import { getBaseFetchController } from "./_base_fetch.js"
 
 /**
@@ -26,7 +26,7 @@ export const getElementController = (map) => {
         const elements = params.elements
 
         // Not all elements are focusable (e.g., non-latest ways and relations)
-        if (elements.length !== 0) {
+        if (elements.length) {
             // Initialize ref map for quick lookup
             const refMap = {
                 node: new Map(),
@@ -108,7 +108,7 @@ export const getElementController = (map) => {
             const mainElement = refMap[mainElementType].get(mainElementId)
             const parsedElements = parseElement(mainElement)
 
-            if (parsedElements.length !== 0) {
+            if (parsedElements.length) {
                 const layers = focusManyMapObjects(map, parsedElements)
 
                 // Get union bounds

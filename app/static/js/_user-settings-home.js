@@ -1,9 +1,9 @@
 import * as L from "leaflet"
 import { zoomPrecision } from "./_utils.js"
+import { getGeolocateControl } from "./leaflet/_geolocate-control.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
-import { getLocateControl } from "./leaflet/_locate.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
-import { getZoomControl } from "./leaflet/_zoom.js"
+import { getZoomControl } from "./leaflet/_zoom-control.js"
 
 const defaultHomeZoom = 12
 
@@ -31,7 +31,7 @@ if (userSettingsForm) {
 
     // Add custom zoom and location controls
     map.addControl(getZoomControl())
-    map.addControl(getLocateControl())
+    map.addControl(getGeolocateControl())
 
     // Null value until the marker is initialized
     let marker = null

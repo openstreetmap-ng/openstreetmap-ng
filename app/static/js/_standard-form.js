@@ -184,7 +184,7 @@ export const configureStandardForm = (form, { successCallback = null }) => {
                 if (resp.ok && successCallback) successCallback(data)
             })
             .catch((error) => {
-                console.error(error)
+                console.error("Failed to submit standard form", error)
                 handleFormFeedback("error", error.message)
             })
             .finally(() => {

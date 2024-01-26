@@ -1,5 +1,5 @@
 import i18next from "i18next"
-import { getObjectRequestUrl } from "./_api.js"
+import { getObjectRequestUrl } from "./_api06.js"
 import { qsStringify } from "./_qs.js"
 import "./_types.js"
 
@@ -71,7 +71,7 @@ const remoteEdit = (button, bounds, object = null) => {
             }
         })
         .catch((error) => {
-            console.error(error)
+            console.error("Failed to edit remotely", error)
             alert(i18next.t("site.index.remote_failed"))
         })
         .finally(() => {

@@ -6,8 +6,8 @@ import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
+import { focusMapObject, focusStyles } from "../leaflet/_forus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
-import { focusMapObject, focusStyles } from "../leaflet/_map-focus.js"
 
 /**
  * Create a new new note controller
@@ -39,15 +39,8 @@ export const getNewNoteController = (map) => {
         halo.setStyle(focusStyles.noteHalo)
     }
 
-    // On success callback, enable notes layer and navigate to the new note
+    // On success callback, navigate to the new note
     const onFormSuccess = (data) => {
-        const state = getMapState(map)
-        const notesLayerCode = getOverlayLayerById("notes").options.layerCode
-        if (!state.layersCode.includes(notesLayerCode)) {
-            state.layersCode += notesLayerCode
-            setMapState(map, state)
-        }
-
         routerNavigate(`/note/${data.noteId}`)
     }
 
@@ -88,6 +81,14 @@ export const getNewNoteController = (map) => {
             marker = halo.marker
             marker.addEventListener("dragstart", onMarkerDragStart)
             marker.addEventListener("dragend", onMarkerDragEnd)
+
+            // Enable notes layer to prevent duplicates
+            const state = getMapState(map)
+            const notesLayerCode = getOverlayLayerById("notes").options.layerCode
+            if (!state.layersCode.includes(notesLayerCode)) {
+                state.layersCode += notesLayerCode
+                setMapState(map, state)
+            }
         },
         unload: () => {
             focusMapObject(map, null)

@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
-import { focusMapObject } from "../leaflet/_map-focus.js"
+import { focusMapObject } from "../leaflet/_forus-layer.js"
 import { getBaseFetchController } from "./_base_fetch.js"
 
 const _emptyTags = new Map()

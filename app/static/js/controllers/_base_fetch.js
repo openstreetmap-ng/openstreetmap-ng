@@ -45,8 +45,7 @@ export const getBaseFetchController = (className, { loadedCallback = null }) => 
                 })
                 .catch((error) => {
                     if (error.name === "AbortError") return
-
-                    console.error(error)
+                    console.error("Failed to fetch sidebar", error)
                     alert(error.message)
                 })
         },

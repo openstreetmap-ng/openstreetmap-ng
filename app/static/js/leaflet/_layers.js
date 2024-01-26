@@ -274,7 +274,7 @@ const overlayLayerIdMap = [GPS, NoteLayer, DataLayer, FocusLayer].reduce((map, l
 /**
  * Get overlay layer instance by id
  * @param {string} layerId Layer id
- * @returns {L.Layer} Layer instance
+ * @returns {L.Layer|L.FeatureGroup} Layer instance
  */
 export const getOverlayLayerById = (layerId) => overlayLayerIdMap.get(layerId)
 

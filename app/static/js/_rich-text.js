@@ -69,8 +69,7 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
-
-                console.error(error)
+                console.error("Failed to fetch rich text preview", error)
                 previewDiv.innerHTML = error.message
                 // TODO: standard alert
             })

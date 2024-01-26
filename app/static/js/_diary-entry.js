@@ -3,7 +3,7 @@ import * as L from "leaflet"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
-import { getZoomControl } from "./leaflet/_zoom.js"
+import { getZoomControl } from "./leaflet/_zoom-control.js"
 
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {

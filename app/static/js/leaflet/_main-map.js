@@ -3,14 +3,15 @@ import { getInitialMapState, getMapState, parseMapState, setMapState } from "../
 import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
-import { getLocateControl } from "./_locate.js"
-import { getNewNoteControl } from "./_new-note.js"
-import { getQueryFeaturesControl } from "./_query-features.js"
+import { getGeolocateControl } from "./_geolocate-control.js"
+import { getNewNoteControl } from "./_new-note-control.js"
+import { configureNotesLayer } from "./_notes-layer.js"
+import { getQueryFeaturesControl } from "./_query-features-control.js"
 import { getLayersSidebarToggleButton } from "./_sidebar-toggle-button-layers.js"
 import { getLegendSidebarToggleButton } from "./_sidebar-toggle-button-legend.js"
 import { getShareSidebarToggleButton } from "./_sidebar-toggle-button-share.js"
 import { getMarkerIcon } from "./_utils.js"
-import { getZoomControl } from "./_zoom.js"
+import { getZoomControl } from "./_zoom-control.js"
 
 // TODO: map.invalidateSize({ pan: false }) on sidebar-content
 
@@ -32,12 +33,15 @@ export const getMainMap = (container) => {
 
     // Add custom controls
     map.addControl(getZoomControl())
-    map.addControl(getLocateControl())
+    map.addControl(getGeolocateControl())
     map.addControl(getLayersSidebarToggleButton())
     map.addControl(getLegendSidebarToggleButton())
     map.addControl(getShareSidebarToggleButton())
     map.addControl(getNewNoteControl())
     map.addControl(getQueryFeaturesControl())
+
+    // Configure map handlers
+    configureNotesLayer(map)
 
     // Add optional map marker
     const searchParams = qsParse(location.search.substring(1))

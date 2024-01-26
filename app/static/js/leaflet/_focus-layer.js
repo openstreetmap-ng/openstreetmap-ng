@@ -26,8 +26,6 @@ export const focusStyles = {
     },
 }
 
-let focusLayer = null
-
 /**
  * Focus an object on the map and return its layer.
  * To unfocus, pass null as the object.
@@ -52,22 +50,20 @@ export const focusMapObject = (map, object) => {
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects) => {
+    const layer = getOverlayLayerById("focus")
+
     // Always clear the focus layer
-    if (focusLayer) {
-        focusLayer.clearLayers()
-    }
+    layer.clearLayers()
 
     // If there are no objects to focus, remove the focus layer
-    if (objects.length === 0) {
-        if (focusLayer) {
-            map.removeLayer(focusLayer)
+    if (!objects.length) {
+        if (map.hasLayer(layer)) {
+            map.removeLayer(layer)
 
             // Trigger the overlayremove event
             // https://leafletjs.com/reference.html#map-overlayremove
             // https://leafletjs.com/reference.html#layerscontrolevent
-            map.fire("overlayremove", { layer: focusLayer, name: focusLayer.options.layerId })
-
-            focusLayer = null
+            map.fire("overlayremove", { layer: layer, name: layer.options.layerId })
         }
 
         return []
@@ -75,15 +71,14 @@ export const focusManyMapObjects = (map, objects) => {
 
     // TODO: z-index
     // Create the focus layer if it doesn't exist
-    if (!focusLayer) {
-        focusLayer = getOverlayLayerById("focus")
-        map.addLayer(focusLayer)
+    if (!map.hasLayer(layer)) {
+        map.addLayer(layer)
 
         // Trigger the overlayadd event
         // https://leafletjs.com/reference.html#map-overlayadd
         // https://leafletjs.com/reference.html#layerscontrolevent
-        map.fire("overlayadd", { layer: focusLayer, name: focusLayer.options.layerId })
+        map.fire("overlayadd", { layer: layer, name: layer.options.layerId })
     }
 
-    return addGroupFeatures(focusLayer, objects, focusStyles)
+    return addGroupFeatures(layer, objects, focusStyles)
 }

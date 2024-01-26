@@ -85,7 +85,7 @@ const setMapLayersCode = (map, layersCode) => {
     }
 
     // Add default base layer if no base layer is present
-    if (baseLayers.length === 0) {
+    if (!baseLayers.length) {
         const layerId = getLayerIdByCode("")
         layersIds.add(layerId)
         const layer = getBaseLayerById(layerId)

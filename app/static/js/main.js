@@ -9,8 +9,8 @@ import { getExportController } from "./controllers/_export.js"
 import { getIndexController } from "./controllers/_index.js"
 import { getNewNoteController } from "./controllers/_new-note.js"
 import { getNoteController } from "./controllers/_note.js"
-import { configureFindHomeButton } from "./leaflet/_find-home.js"
-import { getMainMap } from "./leaflet/_map.js"
+import { configureFindHomeButton } from "./leaflet/_find-home-button.js"
+import { getMainMap } from "./leaflet/_main-map.js"
 
 const mapContainer = document.querySelector(".map-container")
 const map = getMainMap(mapContainer.querySelector(".main-map"))

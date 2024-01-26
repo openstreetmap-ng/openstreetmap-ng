@@ -6,7 +6,7 @@ import { isMetricUnit } from "../_utils.js"
 // TODO: import (S)CSS?
 // TODO: tooltip
 
-export const getLocateControl = (options) => {
+export const getGeolocateControl = (options) => {
     const control = L.control.locate(
         Object.assign(
             {
