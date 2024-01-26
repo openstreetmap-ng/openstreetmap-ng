@@ -33,16 +33,16 @@ class Changeset06Mixin:
         {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
         """
 
-        if changeset.boundary:
-            minx, miny, maxx, maxy = changeset.boundary.bounds
-            boundary_dict = {
+        if changeset.bounds:
+            minx, miny, maxx, maxy = changeset.bounds.bounds
+            bounds_dict = {
                 XAttr('minlon', custom_xml='min_lon'): minx,
                 XAttr('minlat', custom_xml='min_lat'): miny,
                 XAttr('maxlon', custom_xml='max_lon'): maxx,
                 XAttr('maxlat', custom_xml='max_lat'): maxy,
             }
         else:
-            boundary_dict = {}
+            bounds_dict = {}
 
         # TODO: comments service
         comments = []
@@ -56,7 +56,7 @@ class Changeset06Mixin:
                 'open': not changeset.closed_at,
                 'uid': changeset.user_id,
                 'user': changeset.user.display_name,
-                **boundary_dict,
+                **bounds_dict,
                 'comments_count': len(changeset.comments),
                 'changes_count': changeset.size,
                 'tags': changeset.tags,
@@ -75,7 +75,7 @@ class Changeset06Mixin:
                     '@open': not changeset.closed_at,
                     '@uid': changeset.user_id,
                     '@user': changeset.user.display_name,
-                    **boundary_dict,
+                    **bounds_dict,
                     '@comments_count': len(changeset.comments),
                     '@changes_count': changeset.size,
                     'tag': Tag06Mixin.encode_tags(changeset.tags),

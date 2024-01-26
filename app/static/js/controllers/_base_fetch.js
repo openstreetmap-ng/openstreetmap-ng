@@ -50,6 +50,8 @@ export const getBaseFetchController = (className, { loadedCallback = null }) => 
                     alert(error.message)
                 })
         },
-        unload: () => {},
+        unload: () => {
+            // do nothing
+        },
     }
 }

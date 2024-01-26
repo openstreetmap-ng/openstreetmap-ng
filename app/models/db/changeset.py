@@ -29,7 +29,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    boundary: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, default=None)
+    bounds: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, default=None)
 
     # relationships (avoid circular imports)
     if TYPE_CHECKING:
@@ -101,8 +101,8 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         self.closed_at = now or func.now()
         return True
 
-    def union_boundary(self, geometry: BaseGeometry) -> None:
-        if not self.boundary:
-            self.boundary = box(*geometry.bounds)
+    def union_bounds(self, geometry: BaseGeometry) -> None:
+        if not self.bounds:
+            self.bounds = box(*geometry.bounds)
         else:
-            self.boundary = box(*self.boundary.union(geometry).bounds)
+            self.bounds = box(*self.bounds.union(geometry).bounds)

@@ -415,10 +415,10 @@ class OptimisticDiffPrepare:
                     # log warning as this should not happen
                     logging.warning('Node %r has no point', element.typed_id)
 
-            # update changeset boundary if any points
+            # update changeset bounds if any points
             if points:
                 changeset = await self._get_changeset(changeset_id)
-                changeset.union_boundary(unary_union(points))
+                changeset.union_bounds(unary_union(points))
 
         # start task for each changeset
         async with anyio.create_task_group() as tg:

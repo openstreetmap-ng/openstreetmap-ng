@@ -44,6 +44,7 @@ export const focusManyMapObjects = (map, objects) => {
     } else {
         focusLayer = focusLayerFactory()
         map.addLayer(focusLayer)
+        // TODO: z-index
     }
 
     return focusLayer.addData(objects)
