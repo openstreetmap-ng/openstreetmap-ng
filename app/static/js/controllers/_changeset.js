@@ -4,6 +4,8 @@ import { getPageTitle } from "../_title.js"
 import { focusMapObject } from "../leaflet/_map-focus.js"
 import { getBaseFetchController } from "./_base_fetch.js"
 
+const _emptyTags = new Map()
+
 /**
  * Create a new changeset controller
  * @param {L.Map} map Leaflet map
@@ -29,7 +31,7 @@ export const getChangesetController = (map) => {
             focusMapObject(map, {
                 type: "changeset",
                 id: paramsId,
-                tags: new Map(), // currently unused
+                tags: _emptyTags, // currently unused
                 bounds: bounds,
             })
 

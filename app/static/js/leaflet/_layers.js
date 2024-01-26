@@ -189,7 +189,7 @@ export const DataLayer = L.FeatureGroup.extend({
                     layer = L.circleMarker(L.latLng(feature.lat, feature.lon), this.options.styles.object)
                     break
                 case "way": {
-                    const latLngs = feature.nodes.map((node) => L.latLng(node.lat, node.lon))
+                    const latLngs = feature.members.map((node) => L.latLng(node.lat, node.lon))
                     if (this.isWayArea(feature)) {
                         // is "area"
                         latLngs.pop() // remove last == first
@@ -201,7 +201,8 @@ export const DataLayer = L.FeatureGroup.extend({
                     break
                 }
                 default:
-                    throw new Error(`Unsupported feature type: ${feature.type}`)
+                    console.error(`Unsupported feature type: ${feature.type}`)
+                    continue
             }
 
             layer.feature = feature
@@ -218,31 +219,14 @@ export const DataLayer = L.FeatureGroup.extend({
     },
 
     /**
-     * Parse features from the given XML string
-     * @param {string} xml XML string
-     * @returns {OSMObject[]} Array of features
-     */
-    parseFeaturesFromXML: function (xml) {
-        const changesets = getChangesets(xml)
-        const nodesMap = getNodesMap(xml)
-        const ways = getWays(xml, nodesMap)
-        const relations = getRelations(xml, nodesMap, ways)
-
-        const interestingNodes = [...nodesMap.values()].filter((node) => this.isInterestingNode(node, ways, relations))
-
-        const features = [...changesets, ...ways, ...interestingNodes]
-        return features
-    },
-
-    /**
      * Check if the given way is considered an area
      * @param {OSMWay} way Way
      * @returns {boolean} True if the way is an area
      */
     isWayArea: function (way) {
-        if (way.nodes.length <= 2) return false
+        if (way.members.length <= 2) return false
 
-        const isClosedWay = way.nodes[0].id === way.nodes[way.nodes.length - 1].id
+        const isClosedWay = way.members[0].id === way.members[way.members.length - 1].id
         if (!isClosedWay) return false
 
         const areaTagsSet = this.options.areaTagsSet
@@ -252,121 +236,25 @@ export const DataLayer = L.FeatureGroup.extend({
 
         return false
     },
-
-    /**
-     * Check if the given node is interesting to display
-     * @param {OSMNode} node Node
-     * @param {OSMWay[]} ways Ways
-     * @param {OSMRelation[]} relations Relations
-     * @returns {boolean} True if the node is interesting
-     */
-    isInterestingNode: (node, ways, relations) => {
-        // TODO: this could be optimized with set
-        const usedInWay = ways.some((way) => way.nodes.includes(node))
-        if (!usedInWay) return true
-
-        const usedInRelation = relations.some((relation) => relation.members.includes(node))
-        if (!usedInRelation) return true
-
-        const hasTags = node.tags.size > 0
-        return hasTags
-    },
 })
 
 /**
- * Parse changesets from the given XML string
- * @param {string} xml XML string
- * @returns {OSMChangeset[]} Array of changesets
+ * Check if the given node is interesting to display
+ * @param {OSMNode} node Node
+ * @param {Set<string>} membersSet Set of all members in "n123" format
+ * @returns {boolean} True if the node is interesting
  */
-const getChangesets = (xml) => {
-    return [...xml.getElementsByTagName("changeset")].map((cs) => ({
-        type: "changeset",
-        id: parseInt(cs.getAttribute("id"), 10),
-        tags: getTagsMap(cs),
-        // Empty changesets have no bounds
-        bounds: cs.hasAttribute("min_lat")
-            ? [
-                  parseFloat(cs.getAttribute("min_lat")),
-                  parseFloat(cs.getAttribute("min_lon")),
-                  parseFloat(cs.getAttribute("max_lat")),
-                  parseFloat(cs.getAttribute("max_lon")),
-              ]
-            : null,
-    }))
-}
+export const isInterestingNode = (node, membersSet) => {
+    if (node.type !== "node") {
+        console.error(`Invalid node type: ${node.type}`)
+        return true
+    }
 
-/**
- * Parse nodes map from the given XML string
- * @param {string} xml XML string
- * @returns {Map<number, OSMNode>} Nodes map
- */
-const getNodesMap = (xml) => {
-    return [...xml.getElementsByTagName("node")].reduce((map, node) => {
-        const id = parseInt(node.getAttribute("id"), 10)
-        map.set(id, {
-            type: "node",
-            id: id,
-            version: parseInt(node.getAttribute("version"), 10),
-            tags: getTagsMap(node),
-            lon: parseFloat(node.getAttribute("lon")),
-            lat: parseFloat(node.getAttribute("lat")),
-        })
-        return map
-    }, new Map())
-}
+    const isMember = membersSet.has(`n${node.id}`)
+    if (!isMember) return true
 
-/**
- * Parse ways from the given XML string
- * @param {string} xml XML string
- * @param {Map<number, OSMNode>} nodesMap Nodes map
- * @returns {OSMWay[]} Array of ways
- */
-const getWays = (xml, nodesMap) => {
-    return [...xml.getElementsByTagName("way")].map((way) => {
-        return {
-            type: "way",
-            id: way.getAttribute("id"),
-            version: parseInt(way.getAttribute("version"), 10),
-            tags: getTagsMap(way),
-            nodes: [...way.getElementsByTagName("nd")].map((nd) => nodesMap.get(parseInt(nd.getAttribute("ref"), 10))),
-        }
-    })
-}
-
-/**
- * Parse relations from the given XML string
- * @param {string} xml XML string
- * @param {Map<number, OSMNode>} nodesMap Nodes map
- * @returns {OSMRelation[]} Array of relations
- */
-const getRelations = (xml, nodesMap) => {
-    return [...xml.getElementsByTagName("relation")].map((rel) => {
-        return {
-            id: rel.getAttribute("id"),
-            type: "relation",
-            members: [...rel.getElementsByTagName("member")].map((member) => {
-                // Member ways and relations are not currently used, ignore them
-                const memberType = member.getAttribute("type")
-                if (memberType !== "node") return null
-
-                const memberRef = parseInt(member.getAttribute("ref"), 10)
-                return nodesMap.get(memberRef)
-            }),
-            tags: getTagsMap(rel),
-        }
-    })
-}
-
-/**
- * Parse tags from the given XML element
- * @param {Element} element XML element
- * @returns {Map<string, string>} Tags map
- */
-const getTagsMap = (element) => {
-    return [...element.getElementsByTagName("tag")].reduce(
-        (map, tag) => map.set(tag.getAttribute("k"), tag.getAttribute("v")),
-        new Map(),
-    )
+    const hasTags = node.tags.size > 0
+    return hasTags
 }
 
 const BASE_LAYER_ID_MAP = [StandardLayer, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
@@ -413,6 +301,10 @@ const CODE_ID_MAP = [...BASE_LAYER_ID_MAP.values(), ...OVERLAY_LAYER_ID_MAP.valu
  * // => "standard"
  */
 export const getLayerIdByCode = (layerCode) => {
-    if (layerCode.length > 1) throw new Error(`Invalid layer code: ${layerCode}`)
+    if (layerCode.length > 1) {
+        console.error(`Invalid layer code: ${layerCode}`)
+        return getLayerIdByCode("")
+    }
+
     return CODE_ID_MAP.get(layerCode)
 }

@@ -14,6 +14,7 @@
  * @property {Map<string, string>} tags Object tags
  * @property {number} lon Object longitude
  * @property {number} lat Object latitude
+ * @property {string|undefined} role Optional member role
  */
 
 /**
@@ -22,14 +23,8 @@
  * @property {number} id Object id
  * @property {string} version Object version
  * @property {Map<string, string>} tags Object tags
- * @property {OSMNode[]} nodes Object nodes
- */
-
-/**
- * @typedef {object} OSMRelationMember
- * @property {string} type Member type, can be "node", "way", or "relation"
- * @property {number} ref Member reference
- * @property {string} role Member role
+ * @property {OSMNode[]} members Object members (nodes)
+ * @property {string|undefined} role Optional member role
  */
 
 /**
@@ -38,7 +33,8 @@
  * @property {number} id Object id
  * @property {string} version Object version
  * @property {Map<string, string>} tags Object tags
- * @property {OSMRelationMember[]} members Object members
+ * @property {OSMNode[]|OSMWay[]|OSMRelation[]} members Object members
+ * @property {string|undefined} role Optional member role
  */
 
 /**
