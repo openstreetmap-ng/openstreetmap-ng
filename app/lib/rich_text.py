@@ -24,7 +24,7 @@ def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozen
 
 @cython.cfunc
 def _cache_context(text_format: TextFormat) -> str:
-    return f'RichText_{text_format.value}'
+    return f'RichText:{text_format.value}'
 
 
 @cython.cfunc
@@ -82,8 +82,10 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
     async def factory() -> str:
         return _process(text, text_format)
 
+    context = _cache_context(text_format)
+
     # accelerate cache lookup by id if available
     if cache_id is not None:
-        return await CacheService.get_one_by_id(cache_id, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
+        return await CacheService.get_one_by_id(cache_id, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
     else:
-        return await CacheService.get_one_by_key(text, _cache_context(text_format), factory, ttl=RICH_TEXT_CACHE_EXPIRE)
+        return await CacheService.get_one_by_key(text, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)

@@ -6,17 +6,12 @@ from app.lib.crypto import hash_bytes
 from app.limits import CACHE_DEFAULT_EXPIRE
 from app.models.cache_entry import CacheEntry
 
-# NOTE: ideally we would use Redis for caching, but for now this will be good enough
-
-
-def _hash_key(key: str, context: str) -> bytes:
-    return hash_bytes(key, context=context)
-
 
 class CacheService:
     @staticmethod
     async def get_one_by_id(
         cache_id: bytes,
+        context: str,
         factory: Callable[[], Awaitable[str]],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
@@ -27,14 +22,14 @@ class CacheService:
         If the value is not in the cache, call the async factory to generate it.
         """
 
-        cache_id_str = cache_id.hex()
+        redis_key = f'{context}:{cache_id.hex()}'
 
         async with redis() as conn:
-            value: str | None = await conn.get(cache_id_str)
+            value: str | None = await conn.get(redis_key)
 
             if value is None:
                 value = await factory()
-                await conn.set(cache_id_str, value, ex=ttl.total_seconds(), nx=True)
+                await conn.set(redis_key, value, ex=ttl.total_seconds(), nx=True)
 
         return CacheEntry(id=cache_id, value=value)
 
@@ -54,6 +49,6 @@ class CacheService:
         If the value is not in the cache, call the async factory to generate it.
         """
 
-        cache_id = _hash_key(key, context)
+        cache_id = hash_bytes(key, context=None)
 
-        return await CacheService.get_one_by_id(cache_id, factory, ttl=ttl)
+        return await CacheService.get_one_by_id(cache_id, context, factory, ttl=ttl)
