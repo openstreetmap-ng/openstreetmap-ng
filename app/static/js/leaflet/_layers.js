@@ -3,6 +3,7 @@ import "../_types.js"
 import { getMarkerIcon } from "./_utils.js"
 
 // There is no point to keep these secret, they are a part of the frontend code
+// It's on the tile server to secure against abuse
 const thunderforestApiKey = "6e5478c8a4f54c779f85573c0e399391"
 const tracestrackApiKey = "383118983d4a867dd2d367451720d724"
 
@@ -17,6 +18,7 @@ const defaultLayer = L.TileLayer.extend({
     },
 })
 
+// TODO: translations
 const StandardLayer = defaultLayer.extend({
     options: {
         url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -112,131 +114,120 @@ const NoteLayer = L.FeatureGroup.extend({
     },
 })
 
-export const DataLayer = L.FeatureGroup.extend({
+const DataLayer = L.FeatureGroup.extend({
     options: {
         layerCode: "D",
         layerId: "data",
-        areaTagsSet: new Set([
-            "area",
-            "building",
-            "leisure",
-            "tourism",
-            "ruins",
-            "historic",
-            "landuse",
-            "military",
-            "natural",
-            "sport",
-        ]),
-        styles: {
-            object: {
-                color: "#FF6200",
-                weight: 4,
-                opacity: 1,
-                fillOpacity: 0.5,
-            },
-            changeset: {
-                weight: 4,
-                color: "#FF9500",
-                opacity: 1,
-                fillOpacity: 0,
-                keyboard: false,
-                interactive: false,
-            },
-            noteHalo: {
-                weight: 2.5,
-                radius: 20,
-                fillOpacity: 0.5,
-                color: "#FF6200",
-                keyboard: false,
-                interactive: false,
-            },
-        },
-    },
-
-    /**
-     * Add data to the layer
-     * @param {OSMObject[]} features Array of features
-     * @returns {L.Layer[]} Array of added layers
-     */
-    addData: function (features) {
-        const featureLayers = []
-        const markers = []
-
-        for (const feature of features) {
-            let layer
-
-            switch (feature.type) {
-                case "changeset":
-                    layer = L.rectangle(feature.bounds ?? [0, 0, 0, 0], this.options.styles.changeset)
-                    break
-                case "note": {
-                    const latLng = L.latLng(feature.lat, feature.lon)
-                    const interactive = feature.interactive !== undefined ? Boolean(feature.interactive) : true
-                    const draggable = Boolean(feature.draggable)
-                    layer = L.circleMarker(latLng, this.options.styles.noteHalo)
-                    layer.marker = L.marker(latLng, {
-                        icon: getMarkerIcon(feature.icon, false),
-                        keyboard: interactive,
-                        interactive: interactive,
-                        draggable: draggable,
-                        autoPan: draggable,
-                    })
-                    markers.push(layer.marker)
-                    break
-                }
-                case "node":
-                    layer = L.circleMarker(L.latLng(feature.lat, feature.lon), this.options.styles.object)
-                    break
-                case "way": {
-                    const latLngs = feature.members.map((node) => L.latLng(node.lat, node.lon))
-                    if (this.isWayArea(feature)) {
-                        // is "area"
-                        latLngs.pop() // remove last == first
-                        layer = L.polygon(latLngs, this.options.styles.object)
-                    } else {
-                        // is way
-                        layer = L.polyline(latLngs, this.options.styles.object)
-                    }
-                    break
-                }
-                default:
-                    console.error(`Unsupported feature type: ${feature.type}`)
-                    continue
-            }
-
-            layer.feature = feature
-            this.addLayer(layer)
-            featureLayers.push(layer)
-        }
-
-        // Render icons on top of the feature layers
-        for (const marker of markers) {
-            this.addLayer(marker)
-        }
-
-        return featureLayers
-    },
-
-    /**
-     * Check if the given way is considered an area
-     * @param {OSMWay} way Way
-     * @returns {boolean} True if the way is an area
-     */
-    isWayArea: function (way) {
-        if (way.members.length <= 2) return false
-
-        const isClosedWay = way.members[0].id === way.members[way.members.length - 1].id
-        if (!isClosedWay) return false
-
-        const areaTagsSet = this.options.areaTagsSet
-        for (const tagKey of way.tags.keys()) {
-            if (areaTagsSet.has(tagKey)) return true
-        }
-
-        return false
     },
 })
+
+const FocusLayer = L.FeatureGroup.extend({
+    options: {
+        inaccessible: true,
+        layerCode: "", // This layer is not possible to toggle manually
+        layerId: "focus",
+    },
+})
+
+/**
+ * Add features to the feature group layer
+ * @param {L.FeatureGroup} featureGroup Feature group layer
+ * @param {OSMObject[]} features Array of features
+ * @param {object} styles Styles
+ * @param {object} styles.changeset Changeset style
+ * @param {object} styles.element Element style
+ * @param {object} styles.noteHalo Note halo style
+ * @returns {L.Layer[]} Array of added layers
+ */
+export const addGroupFeatures = (featureGroup, features, styles) => {
+    const featureLayers = []
+    const markers = []
+
+    for (const feature of features) {
+        let layer
+
+        switch (feature.type) {
+            case "changeset":
+                layer = L.rectangle(feature.bounds ?? [0, 0, 0, 0], styles.changeset)
+                break
+            case "note": {
+                const latLng = L.latLng(feature.lat, feature.lon)
+                const interactive = feature.interactive !== undefined ? Boolean(feature.interactive) : true
+                const draggable = Boolean(feature.draggable)
+                layer = L.circleMarker(latLng, styles.noteHalo)
+                layer.marker = L.marker(latLng, {
+                    icon: getMarkerIcon(feature.icon, false),
+                    keyboard: interactive,
+                    interactive: interactive,
+                    draggable: draggable,
+                    autoPan: draggable,
+                })
+                markers.push(layer.marker)
+                break
+            }
+            case "node":
+                layer = L.circleMarker(L.latLng(feature.lat, feature.lon), styles.object)
+                break
+            case "way": {
+                const latLngs = feature.members.map((node) => L.latLng(node.lat, node.lon))
+                if (isWayArea(feature)) {
+                    // is "area"
+                    latLngs.pop() // remove last == first
+                    layer = L.polygon(latLngs, styles.object)
+                } else {
+                    // is way
+                    layer = L.polyline(latLngs, styles.object)
+                }
+                break
+            }
+            default:
+                console.error(`Unsupported feature type: ${feature.type}`)
+                continue
+        }
+
+        layer.feature = feature
+        featureGroup.addLayer(layer)
+        featureLayers.push(layer)
+    }
+
+    // Render icons on top of the feature layers
+    for (const marker of markers) {
+        featureGroup.addLayer(marker)
+    }
+
+    return featureLayers
+}
+
+const areaTagsSet = new Set([
+    "area",
+    "building",
+    "leisure",
+    "tourism",
+    "ruins",
+    "historic",
+    "landuse",
+    "military",
+    "natural",
+    "sport",
+])
+
+/**
+ * Check if the given way is considered an area
+ * @param {OSMWay} way Way
+ * @returns {boolean} True if the way is an area
+ */
+const isWayArea = (way) => {
+    if (way.members.length <= 2) return false
+
+    const isClosedWay = way.members[0].id === way.members[way.members.length - 1].id
+    if (!isClosedWay) return false
+
+    for (const tagKey of way.tags.keys()) {
+        if (areaTagsSet.has(tagKey)) return true
+    }
+
+    return false
+}
 
 /**
  * Check if the given node is interesting to display
@@ -257,7 +248,7 @@ export const isInterestingNode = (node, membersSet) => {
     return hasTags
 }
 
-const BASE_LAYER_ID_MAP = [StandardLayer, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
+const baseLayerIdMap = [StandardLayer, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
     (map, layer) => map.set(layer.options.layerId, new layer()),
     new Map(),
 )
@@ -267,9 +258,9 @@ const BASE_LAYER_ID_MAP = [StandardLayer, CyclOSM, CycleMap, TransportMap, Trace
  * @param {string} layerId Layer id
  * @returns {L.TileLayer} Layer instance
  */
-export const getBaseLayerById = (layerId) => BASE_LAYER_ID_MAP.get(layerId)
+export const getBaseLayerById = (layerId) => baseLayerIdMap.get(layerId)
 
-const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((map, layer) => {
+const overlayLayerIdMap = [GPS, NoteLayer, DataLayer, FocusLayer].reduce((map, layer) => {
     const instance = new layer()
     map.set(layer.options.layerId, instance)
     if (layer.options.legacyLayerIds) {
@@ -285,10 +276,10 @@ const OVERLAY_LAYER_ID_MAP = [GPS, NoteLayer, DataLayer].reduce((map, layer) => 
  * @param {string} layerId Layer id
  * @returns {L.Layer} Layer instance
  */
-export const getOverlayLayerById = (layerId) => OVERLAY_LAYER_ID_MAP.get(layerId)
+export const getOverlayLayerById = (layerId) => overlayLayerIdMap.get(layerId)
 
-const CODE_ID_MAP = [...BASE_LAYER_ID_MAP.values(), ...OVERLAY_LAYER_ID_MAP.values()].reduce(
-    (map, layer) => map.set(layer.options.layerCode, layer.options.layerId),
+const layerCodeIdMap = [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()].reduce(
+    (map, layer) => (layer.options.inaccessible ? map : map.set(layer.options.layerCode, layer.options.layerId)),
     new Map(),
 )
 
@@ -306,5 +297,5 @@ export const getLayerIdByCode = (layerCode) => {
         return getLayerIdByCode("")
     }
 
-    return CODE_ID_MAP.get(layerCode)
+    return layerCodeIdMap.get(layerCode)
 }

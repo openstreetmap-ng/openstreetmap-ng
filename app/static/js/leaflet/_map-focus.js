@@ -1,19 +1,32 @@
 import * as L from "leaflet"
 import "../_types.js"
-import { DataLayer } from "./_layers.js"
+import { addGroupFeatures, getOverlayLayerById } from "./_layers.js"
+
+export const focusStyles = {
+    changeset: {
+        color: "#FF9500",
+        weight: 4,
+        opacity: 1,
+        fillOpacity: 0,
+        interactive: false,
+    },
+    element: {
+        color: "#FF6200",
+        weight: 4,
+        opacity: 1,
+        fillOpacity: 0.5,
+        interactive: false,
+    },
+    noteHalo: {
+        radius: 20,
+        color: "#FF6200",
+        weight: 2.5,
+        fillOpacity: 0.5,
+        interactive: false,
+    },
+}
 
 let focusLayer = null
-
-/**
- * Create a new layer for focusing on a single object
- * @returns {DataLayer} The new layer
- */
-const focusLayerFactory = () => {
-    const layer = new DataLayer()
-    layer.options.layerCode = ""
-    layer.options.layerId = "focus"
-    return layer
-}
 
 /**
  * Focus an object on the map and return its layer.
@@ -39,13 +52,38 @@ export const focusMapObject = (map, object) => {
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects) => {
+    // Always clear the focus layer
     if (focusLayer) {
         focusLayer.clearLayers()
-    } else {
-        focusLayer = focusLayerFactory()
-        map.addLayer(focusLayer)
-        // TODO: z-index
     }
 
-    return focusLayer.addData(objects)
+    // If there are no objects to focus, remove the focus layer
+    if (objects.length === 0) {
+        if (focusLayer) {
+            map.removeLayer(focusLayer)
+
+            // Trigger the overlayremove event
+            // https://leafletjs.com/reference.html#map-overlayremove
+            // https://leafletjs.com/reference.html#layerscontrolevent
+            map.fire("overlayremove", { layer: focusLayer, name: focusLayer.options.layerId })
+
+            focusLayer = null
+        }
+
+        return []
+    }
+
+    // TODO: z-index
+    // Create the focus layer if it doesn't exist
+    if (!focusLayer) {
+        focusLayer = getOverlayLayerById("focus")
+        map.addLayer(focusLayer)
+
+        // Trigger the overlayadd event
+        // https://leafletjs.com/reference.html#map-overlayadd
+        // https://leafletjs.com/reference.html#layerscontrolevent
+        map.fire("overlayadd", { layer: focusLayer, name: focusLayer.options.layerId })
+    }
+
+    return addGroupFeatures(focusLayer, objects, focusStyles)
 }

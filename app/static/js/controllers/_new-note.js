@@ -6,8 +6,8 @@ import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
-import { DataLayer, getOverlayLayerById } from "../leaflet/_layers.js"
-import { focusMapObject } from "../leaflet/_map-focus.js"
+import { getOverlayLayerById } from "../leaflet/_layers.js"
+import { focusMapObject, focusStyles } from "../leaflet/_map-focus.js"
 
 /**
  * Create a new new note controller
@@ -36,7 +36,7 @@ export const getNewNoteController = (map) => {
         latInput.value = latLng.lat
 
         halo.setLatLng(latLng)
-        halo.setStyle(DataLayer.options.styles.noteHalo)
+        halo.setStyle(focusStyles.noteHalo)
     }
 
     // On success callback, enable notes layer and navigate to the new note
