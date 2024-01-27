@@ -163,7 +163,6 @@ let
 
     # -- Wiki-tags
     (writeShellScriptBin "wiki-tags-download" ''
-      set -e
       python scripts/wiki_tags_download.py
     '')
 
@@ -193,11 +192,10 @@ let
     (writeShellScriptBin "watch-sass" ''
       bun run watch:sass
     '')
-    (writeShellScriptBin "watch-test" ''
+    (writeShellScriptBin "watch-tests" ''
       ptw --now . --cov app --cov-report xml
     '')
     (writeShellScriptBin "watch-locale" ''
-      set -e
       locale-pipeline
       while inotifywait -e close_write config/locale/extra_en.yaml; do
         locale-pipeline
