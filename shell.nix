@@ -233,6 +233,7 @@ let
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
+    export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
     export RAPID_URL="http://127.0.0.1:3000"
 
     if [ -f .env ]; then

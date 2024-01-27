@@ -35,8 +35,9 @@ export const switchActionSidebar = (className) => {
  */
 export const configureActionSidebars = () => {
     // On sidebar close button click, navigate to index
-    const onSidebarCloseClick = () => routerNavigate("/")
+    const onCloseButtonClick = () => routerNavigate("/")
+
     for (const sidebarCloseButton of document.querySelectorAll(".sidebar-close-btn")) {
-        sidebarCloseButton.addEventListener("click", onSidebarCloseClick)
+        sidebarCloseButton.addEventListener("click", onCloseButtonClick)
     }
 }

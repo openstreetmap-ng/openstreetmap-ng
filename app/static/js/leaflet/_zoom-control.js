@@ -3,12 +3,13 @@ import i18next from "i18next"
 import * as L from "leaflet"
 
 // TODO: is that even necessary?
+const shiftAccel = 3
 
 export const getZoomControl = () => {
     const control = new L.Control()
 
     // On zoom change, disable/enable specific buttons
-    const onZoomChange = () => {
+    const onMapZoomChange = () => {
         const map = control.map
         const zoomInButton = control.zoomInButton
         const zoomOutButton = control.zoomOutButton
@@ -60,12 +61,12 @@ export const getZoomControl = () => {
         container.appendChild(zoomInButton)
         container.appendChild(zoomOutButton)
 
-        const onZoomIn = (e) => {
-            map.zoomIn(e.shiftKey ? 3 : 1)
+        const onZoomInButtonClick = (e) => {
+            map.zoomIn(e.shiftKey ? shiftAccel : 1)
         }
 
-        const onZoomOut = (e) => {
-            map.zoomOut(e.shiftKey ? 3 : 1)
+        const onZoomOutButtonClick = (e) => {
+            map.zoomOut(e.shiftKey ? shiftAccel : 1)
         }
 
         control.zoomInButton = zoomInButton
@@ -75,12 +76,12 @@ export const getZoomControl = () => {
         control.map = map
 
         // Listen for events
-        zoomInButton.addEventListener("click", onZoomIn)
-        zoomOutButton.addEventListener("click", onZoomOut)
-        map.addEventListener("zoomend zoomlevelschange", onZoomChange)
+        zoomInButton.addEventListener("click", onZoomInButtonClick)
+        zoomOutButton.addEventListener("click", onZoomOutButtonClick)
+        map.addEventListener("zoomend zoomlevelschange", onMapZoomChange)
 
         // Initial update to set button states
-        onZoomChange()
+        onMapZoomChange()
 
         return container
     }

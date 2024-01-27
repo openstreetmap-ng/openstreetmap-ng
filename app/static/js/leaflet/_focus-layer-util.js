@@ -1,6 +1,7 @@
 import * as L from "leaflet"
 import "../_types.js"
-import { addGroupFeatures, getOverlayLayerById } from "./_layers.js"
+import { getOverlayLayerById } from "./_layers.js"
+import { renderObjects } from "./_object-render.js"
 
 export const focusStyles = {
     changeset: {
@@ -21,6 +22,7 @@ export const focusStyles = {
         radius: 20,
         color: "#FF6200",
         weight: 2.5,
+        opacity: 1,
         fillOpacity: 0.5,
         interactive: false,
     },
@@ -31,15 +33,15 @@ export const focusStyles = {
  * To unfocus, pass null as the object.
  * @param {L.Map} map Leaflet map
  * @param {OSMObject|null} object Object to focus
- * @returns {L.Layer|null} The layer of the focused object
+ * @returns {L.Layer[]} The layers of the focused object
  */
 export const focusMapObject = (map, object) => {
     if (object) {
-        return focusManyMapObjects(map, [object])[0]
+        return focusManyMapObjects(map, [object])
     }
 
     focusManyMapObjects(map, [])
-    return null
+    return []
 }
 
 /**
@@ -80,5 +82,5 @@ export const focusManyMapObjects = (map, objects) => {
         map.fire("overlayadd", { layer: layer, name: layer.options.layerId })
     }
 
-    return addGroupFeatures(layer, objects, focusStyles)
+    return renderObjects(layer, objects, focusStyles)
 }

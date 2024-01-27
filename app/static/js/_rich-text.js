@@ -26,28 +26,28 @@ const abortRequest = (source, newController = false) => {
 
 for (const container of document.querySelectorAll(".rich-text-container")) {
     // Discover all required elements
-    const editBtn = container.querySelector(".edit-btn")
-    const previewBtn = container.querySelector(".preview-btn")
+    const editButton = container.querySelector(".edit-btn")
+    const previewButton = container.querySelector(".preview-btn")
     const sourceTextArea = container.querySelector(".rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
 
     // On edit button click, abort any requests and show the source textarea
-    editBtn.addEventListener("click", () => {
+    const onEditButtonClick = () => {
         abortRequest(sourceTextArea)
 
-        editBtn.disabled = true
-        previewBtn.disabled = false
+        editButton.disabled = true
+        previewButton.disabled = false
         sourceTextArea.classList.remove("d-none")
         previewDiv.classList.add("d-none")
         previewDiv.innerHTML = ""
-    })
+    }
 
     // On preview button click, abort any requests and fetch the preview
-    previewBtn.addEventListener("click", () => {
+    const onPreviewButtonClick = () => {
         const abortController = abortRequest(sourceTextArea, true)
 
-        editBtn.disabled = false
-        previewBtn.disabled = true
+        editButton.disabled = false
+        previewButton.disabled = true
         sourceTextArea.classList.add("d-none")
         previewDiv.classList.remove("d-none")
         previewDiv.innerHTML = i18next.t("shared.richtext_field.loading")
@@ -73,5 +73,9 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
                 previewDiv.innerHTML = error.message
                 // TODO: standard alert
             })
-    })
+    }
+
+    // Listen for events
+    editButton.addEventListener("click", onEditButtonClick)
+    previewButton.addEventListener("click", onPreviewButtonClick)
 }

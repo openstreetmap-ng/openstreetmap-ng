@@ -69,7 +69,7 @@ if (userSettingsForm) {
     }
 
     // On delete click, remember restore point, remove coordinates and toggle buttons visibility
-    const onDeleteClick = () => {
+    const onDeleteButtonClick = () => {
         map.removeLayer(marker)
         marker = null
         restorePoint = {
@@ -83,7 +83,7 @@ if (userSettingsForm) {
     }
 
     // On restore click, restore coordinates and toggle buttons visibility
-    const onRestoreClick = () => {
+    const onRestoreButtonClick = () => {
         onMapClick({ latlng: L.latLng(restorePoint.lat, restorePoint.lon) })
         restorePoint = null
         deleteButton.classList.remove("d-none")
@@ -92,6 +92,6 @@ if (userSettingsForm) {
 
     // Listen for events
     map.addEventListener("click", onMapClick)
-    deleteButton.addEventListener("click", onDeleteClick)
-    restoreButton.addEventListener("click", onRestoreClick)
+    deleteButton.addEventListener("click", onDeleteButtonClick)
+    restoreButton.addEventListener("click", onRestoreButtonClick)
 }

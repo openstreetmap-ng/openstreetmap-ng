@@ -34,6 +34,7 @@ export const getBaseFetchController = (className, { loadedCallback = null }) => 
             onSidebarLoading()
 
             fetch(url, {
+                method: "GET",
                 mode: "same-origin",
                 cache: "no-store",
                 signal: abortController.signal,

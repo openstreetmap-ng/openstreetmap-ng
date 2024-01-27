@@ -46,9 +46,8 @@ export const configureNotesLayer = (map) => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
 
-        const url = `/api/0.6/notes.json?bbox=${minLon},${minLat},${maxLon},${maxLat}`
-
-        fetch(url, {
+        fetch(`/api/0.6/notes.json?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
+            method: "GET",
             mode: "same-origin",
             cache: "no-store", // request params are too volatile to cache
             signal: abortController.signal,
@@ -80,7 +79,7 @@ export const configureNotesLayer = (map) => {
 
                 const layer = getOverlayLayerById("notes")
                 layer.clearLayers()
-                layer.addLayer(L.featureGroup(markers))
+                if (markers.length) layer.addLayer(L.layerGroup(markers))
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
@@ -114,6 +113,7 @@ export const configureNotesLayer = (map) => {
         getOverlayLayerById("notes").clearLayers()
     }
 
+    // Listen for events
     map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
     map.addEventListener("overlayadd", onOverlayAdd)
     map.addEventListener("overlayremove", onOverlayRemove)

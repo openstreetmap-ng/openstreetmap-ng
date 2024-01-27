@@ -6,7 +6,7 @@ import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
-import { focusMapObject, focusStyles } from "../leaflet/_forus-layer.js"
+import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 
 /**
@@ -36,7 +36,7 @@ export const getNewNoteController = (map) => {
         latInput.value = latLng.lat
 
         halo.setLatLng(latLng)
-        halo.setStyle(focusStyles.noteHalo)
+        halo.setStyle({ opacity: focusStyles.noteHalo.opacity })
     }
 
     // On success callback, navigate to the new note
@@ -75,7 +75,7 @@ export const getNewNoteController = (map) => {
                 lat: center.lat,
                 icon: "new",
                 draggable: true,
-            })
+            })[0]
 
             // Listen for events
             marker = halo.marker

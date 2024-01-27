@@ -33,7 +33,17 @@ export const qsParse = (qs) => {
  * qsStringify({ foo: "bar", baz: "qux" })
  * // => "foo=bar&baz=qux"
  */
-export const qsStringify = (obj) => {
+export const qsStringify = (obj) => qsEncode(obj).toString()
+
+/**
+ * Encode an object into a URLSearchParams object
+ * @param {object} obj Object to encode
+ * @returns {URLSearchParams} Encoded query string
+ * @example
+ * qsEncode({ foo: "bar", baz: "qux" })
+ * // => URLSearchParams { "foo" => "bar", "baz" => "qux" }
+ */
+export const qsEncode = (obj) => {
     const params = new URLSearchParams()
 
     for (const [key, value] of Object.entries(obj)) {
@@ -47,5 +57,5 @@ export const qsStringify = (obj) => {
         }
     }
 
-    return params.toString()
+    return params
 }

@@ -1,8 +1,8 @@
 import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
-import { focusMapObject } from "../leaflet/_forus-layer.js"
-import { getBaseFetchController } from "./_base_fetch.js"
+import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { getBaseFetchController } from "./_base-fetch.js"
 
 /**
  * Create a new note controller

@@ -9,7 +9,7 @@ const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
     const lonInput = useMapContainer.querySelector("input[name=longitude]")
     const latInput = useMapContainer.querySelector("input[name=latitude]")
-    const useMapBtn = useMapContainer.querySelector(".use-map-btn")
+    const useMapButton = useMapContainer.querySelector(".use-map-btn")
     const mapDiv = useMapContainer.querySelector(".leaflet-container")
 
     // Null values until the map/marker is initialized
@@ -37,8 +37,8 @@ if (useMapContainer) {
     }
 
     // On "Use Map" button click, show the map and hide the button
-    useMapBtn.addEventListener("click", () => {
-        useMapBtn.classList.add("d-none")
+    const onUseMapButtonClick = () => {
+        useMapButton.classList.add("d-none")
         mapDiv.classList.remove("d-none")
         const params = mapDiv.dataset
 
@@ -75,5 +75,8 @@ if (useMapContainer) {
 
         map.setView(center, params.zoom)
         map.addEventListener("click", onMapClick)
-    })
+    }
+
+    // Listen for events
+    useMapButton.addEventListener("click", onUseMapButtonClick)
 }

@@ -1,8 +1,8 @@
 import * as L from "leaflet"
+import { parseElements } from "../_format07.js"
 import { getPageTitle } from "../_title.js"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_forus-layer.js"
-import { isInterestingNode } from "../leaflet/_layers.js"
-import { getBaseFetchController } from "./_base_fetch.js"
+import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { getBaseFetchController } from "./_base-fetch.js"
 
 /**
  * Create a new element controller
@@ -26,100 +26,15 @@ export const getElementController = (map) => {
         const elements = params.elements
 
         // Not all elements are focusable (e.g., non-latest ways and relations)
-        if (elements.length) {
-            // Initialize ref map for quick lookup
-            const refMap = {
-                node: new Map(),
-                way: new Map(),
-                relation: new Map(),
-            }
+        if (elements?.length) {
+            const elementMap = parseElements(elements)
+            const mainElement = elementMap[mainElementType].get(mainElementId)
+            const layers = focusMapObject(map, mainElement)
+            const layersBounds = L.featureGroup(layers).getBounds()
 
-            for (const element of elements) {
-                refMap[element.type].set(element.id, element)
-            }
-
-            // Resolve members by their ref
-            const resolveMembers = (members) => [...members].map((ref) => refMap[ref.type].get(ref.id))
-
-            // Set of all members in "n123" format
-            const membersSet = new Set(
-                [...refMap.way.values(), ...refMap.relation.values()].flatMap((object) =>
-                    object.members.map((member) => `${member.type[0]}${member.id}`),
-                ),
-            )
-
-            // Set of all parsed elements in "n123" format
-            const parsedElementsSet = new Set()
-
-            /**
-             * Parse a simple OSMObject representation into a list of valid OSMObjects
-             * @param {OSMObject|object} element Simple OSMObject representation
-             * @returns {OSMObject[]} List of OSMObjects
-             */
-            const parseElement = (element) => {
-                const elementType = element.type
-                const elementId = element.id
-
-                // Prevent infinite recursion and duplicate elements
-                const elementKey = `${elementType[0]}${elementId}`
-                if (parsedElementsSet.has(elementKey)) return []
-                parsedElementsSet.add(elementKey)
-
-                if (elementType === "node") {
-                    const tags = element.tags
-                    const lon = element.lon
-                    const lat = element.lat
-
-                    const node = {
-                        type: elementType,
-                        id: elementId,
-                        version: 0, // currently unused
-                        tags: tags,
-                        lon: lon,
-                        lat: lat,
-                    }
-
-                    // Filter out boring nodes
-                    return isInterestingNode(node, membersSet) ? [node] : []
-                }
-                if (elementType === "way") {
-                    const tags = element.tags
-                    const members = resolveMembers(element.members)
-                    return [
-                        {
-                            type: elementType,
-                            id: elementId,
-                            version: 0, // currently unused
-                            tags: tags,
-                            members: members,
-                        },
-                        ...members.flatMap((member) => parseElement(member)),
-                    ]
-                }
-                if (elementType === "relation") {
-                    const members = resolveMembers(element.members)
-                    return members.flatMap((member) => parseElement(member))
-                }
-
-                console.error(`Unsupported element type: ${elementType}`)
-                return []
-            }
-
-            const mainElement = refMap[mainElementType].get(mainElementId)
-            const parsedElements = parseElement(mainElement)
-
-            if (parsedElements.length) {
-                const layers = focusManyMapObjects(map, parsedElements)
-
-                // Get union bounds
-                const layersBounds = layers.reduce((bounds, layer) => {
-                    return bounds !== null ? bounds.extend(layer.getBounds()) : layer.getBounds()
-                }, null)
-
-                // Focus on the elements if they're offscreen
-                if (!map.getBounds().contains(layersBounds)) {
-                    map.fitBounds(layersBounds, { animate: false })
-                }
+            // Focus on the elements if they're offscreen
+            if (!map.getBounds().contains(layersBounds)) {
+                map.fitBounds(layersBounds, { animate: false })
             }
         }
     }

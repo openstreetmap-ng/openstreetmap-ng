@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import { getObjectRequestUrl } from "./_api06.js"
-import { qsStringify } from "./_qs.js"
+import { qsEncode } from "./_qs.js"
 import "./_types.js"
 
 const remoteEditHost = "http://127.0.0.1:8111"
@@ -53,7 +53,9 @@ const remoteEdit = (button, bounds, object = null) => {
     // Disable button while loading
     button.disabled = true
 
-    fetch(`${remoteEditHost}/load_and_zoom?${qsStringify(loadQuery)}`, {
+    fetch(`${remoteEditHost}/load_and_zoom`, {
+        method: "GET",
+        body: qsEncode(loadQuery),
         mode: "no-cors",
         credentials: "omit",
         cache: "no-store",
@@ -62,7 +64,9 @@ const remoteEdit = (button, bounds, object = null) => {
         .then(() => {
             // Optionally import note
             if (object && object.type === "note") {
-                return fetch(`${remoteEditHost}/import?${qsStringify({ url: getObjectRequestUrl(object) })}`, {
+                return fetch(`${remoteEditHost}/import`, {
+                    method: "GET",
+                    body: qsEncode({ url: getObjectRequestUrl(object) }),
                     mode: "no-cors",
                     credentials: "omit",
                     cache: "no-store",
@@ -85,7 +89,7 @@ const remoteEdit = (button, bounds, object = null) => {
  * @returns {void}
  */
 export const configureRemoteEditButton = (button) => {
-    const onClick = () => {
+    const onButtonClick = () => {
         const data = button.dataset.remoteEdit
         if (!data) {
             console.error("Missing remote edit data")
@@ -98,5 +102,5 @@ export const configureRemoteEditButton = (button) => {
     }
 
     // Listen for events
-    button.addEventListener("click", onClick)
+    button.addEventListener("click", onButtonClick)
 }

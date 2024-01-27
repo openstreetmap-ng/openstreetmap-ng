@@ -15,7 +15,7 @@ export const configureFindHomeButton = (map, button) => {
     let marker = null
 
     // On click, create a marker and zoom to it
-    const onClick = () => {
+    const onButtonClick = () => {
         if (!marker) {
             marker = L.marker(latLng, {
                 icon: getMarkerIcon("blue-home", true),
@@ -30,5 +30,5 @@ export const configureFindHomeButton = (map, button) => {
     }
 
     // Listen for events
-    button.addEventListener("click", onClick)
+    button.addEventListener("click", onButtonClick)
 }

@@ -20,7 +20,7 @@ const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? remo
 
 /**
  * Navigate to a path and return true if successful
- * @param {string} newPath Path to navigate to
+ * @param {string} newPath Path to navigate to, including search
  * @returns {void}
  * @example
  * routerNavigate("/way/1234")
@@ -80,12 +80,12 @@ export const configureRouter = (pathControllerMap) => {
      * @param {PointerEvent} event Click event
      * @returns {void}
      */
-    const onClick = (event) => {
+    const onWindowClick = (event) => {
         // Skip if default prevented
         if (event.defaultPrevented) return
 
         // Skip if not left click or modified click
-        if (event.button !== 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        if (!event.isPrimary || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
         // Skip if target is not an anchor
         const target = event.target
@@ -107,7 +107,7 @@ export const configureRouter = (pathControllerMap) => {
 
     // Listen for events
     window.addEventListener("popstate", onBrowserNavigation)
-    window.addEventListener("click", onClick)
+    window.addEventListener("click", onWindowClick)
 
     // Initial load
     if (currentRoute) currentRoute.load(currentPath, { source: "init" })

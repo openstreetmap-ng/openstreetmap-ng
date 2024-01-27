@@ -15,6 +15,7 @@
  * @property {number} lon Object longitude
  * @property {number} lat Object latitude
  * @property {string|undefined} role Optional member role
+ * @property {boolean|undefined} interesting Optional interesting flag for the renderer
  */
 
 /**

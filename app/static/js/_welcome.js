@@ -49,16 +49,19 @@ if (noteIcon) {
             location = "/?edit_help=1"
         }
 
-        if (navigator.geolocation) {
-            startButton.addEventListener("click", (e) => {
-                e.preventDefault()
-                startButton.disabled = true
-                startButton.addClass("loading")
-                navigator.geolocation.getCurrentPosition(onGeolocationSuccess, onGeolocationFailure, {
-                    maximumAge: 28800_000, // 8 hours
-                    timeout: 10_000, // 10 seconds
-                })
+        const onStartButtonGeolocationClick = (e) => {
+            e.preventDefault()
+            startButton.disabled = true
+            startButton.addClass("loading")
+            navigator.geolocation.getCurrentPosition(onGeolocationSuccess, onGeolocationFailure, {
+                maximumAge: 28800_000, // 8 hours
+                timeout: 10_000, // 10 seconds
             })
+        }
+
+        if (navigator.geolocation) {
+            // Listen for events
+            startButton.addEventListener("click", onStartButtonGeolocationClick)
         } else {
             // If navigator.geolocation is not supported, redirect to /?edit_help=1
             startButton.setAttribute("href", "/?edit_help=1")

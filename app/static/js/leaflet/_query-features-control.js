@@ -55,6 +55,8 @@ export const getQueryFeaturesControl = () => {
         control.tooltip = tooltip
         control.map = map
 
+        // TODO: active state, handle click on map, precision!
+
         // Listen for events
         map.addEventListener("zoomend", onZoomEnd)
 

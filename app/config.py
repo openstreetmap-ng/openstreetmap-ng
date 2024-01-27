@@ -43,6 +43,7 @@ SECRET = os.environ['SECRET']
 APP_URL = os.environ['APP_URL'].rstrip('/')
 API_URL = os.environ['API_URL'].rstrip('/')
 ID_URL = os.environ['ID_URL'].rstrip('/')
+OVERPASS_INTERPRETER_URL = os.environ['OVERPASS_INTERPRETER_URL'].rstrip('/')
 RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 
 # Configuration (optional)
