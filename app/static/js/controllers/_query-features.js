@@ -151,7 +151,13 @@ export const getQueryFeaturesController = (map) => {
                 .catch((error) => {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch nearby features", error)
-                    alert(error.message)
+                    // TODO: nicer error html
+                    onSidebarNearbyLoaded(
+                        i18next.t("javascripts.query.error", {
+                            server: "OpenStreetMap",
+                            error: error.message,
+                        }),
+                    )
                 })
 
             // Fetch enclosing features
@@ -169,7 +175,12 @@ export const getQueryFeaturesController = (map) => {
                 .catch((error) => {
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch enclosing features", error)
-                    alert(error.message)
+                    onSidebarEnclosingLoaded(
+                        i18next.t("javascripts.query.error", {
+                            server: "OpenStreetMap",
+                            error: error.message,
+                        }),
+                    )
                 })
         },
         unload: () => {

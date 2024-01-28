@@ -15,20 +15,6 @@
             .appendTo($li);
         }
       }
-
-      if (results.remark) {
-        $("<li>")
-          .addClass("query-result list-group-item")
-          .text(I18n.t("javascripts.query.error", { server: url, error: results.remark }))
-          .appendTo($ul);
-      }
-
-      if ($ul.find("li").length === 0) {
-        $("<li>")
-          .addClass("query-result list-group-item")
-          .text(I18n.t("javascripts.query.nothing_found"))
-          .appendTo($ul);
-      }
     },
   }));
 }
