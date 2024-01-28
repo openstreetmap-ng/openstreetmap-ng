@@ -42,8 +42,10 @@ export const getNoteController = (map) => {
             map.panTo(latLng, { animate: false })
         }
 
-        // On success callback, reload the note
+        // On success callback, reload the note and simulate map move (reload notes layer)
+        // TODO: test if reload notes layer works
         const onFormSuccess = () => {
+            map.panTo(map.getCenter(), { animate: false })
             base.unload()
             base.load({ id: paramsId })
         }

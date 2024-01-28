@@ -39,8 +39,9 @@ export const getNewNoteController = (map) => {
         halo.setStyle({ opacity: focusStyles.noteHalo.opacity })
     }
 
-    // On success callback, navigate to the new note
+    // On success callback, navigate to the new note and simulate map move (reload notes layer)
     const onFormSuccess = (data) => {
+        map.panTo(map.getCenter(), { animate: false })
         routerNavigate(`/note/${data.noteId}`)
     }
 
