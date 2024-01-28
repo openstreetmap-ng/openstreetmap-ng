@@ -370,7 +370,7 @@ export const getMapShortUrl = (map, showMarker = false) => {
         host = location.host
     }
 
-    if (Object.keys(params).length > 0) {
+    if (Object.keys(params).length) {
         return `${protocol}//${host}/go/${code}?${qsStringify(params)}`
     }
 

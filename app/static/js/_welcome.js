@@ -39,7 +39,7 @@ if (noteIcon) {
             params.lat = position.coords.latitude
             params.zoom = 17
 
-            if (Object.keys(startParams).length > 0) startHref += `?${qsStringify(startParams)}`
+            if (Object.keys(startParams).length) startHref += `?${qsStringify(startParams)}`
             startHref += encodeMapState(params)
             location = startHref
         }
@@ -68,7 +68,7 @@ if (noteIcon) {
         }
     } else {
         // If location was provided, redirect to /edit with the provided coordinates
-        if (Object.keys(startParams).length > 0) startHref += `?${qsStringify(startParams)}`
+        if (Object.keys(startParams).length) startHref += `?${qsStringify(startParams)}`
         startHref += encodeMapState(params)
         startButton.setAttribute("href", startHref)
     }

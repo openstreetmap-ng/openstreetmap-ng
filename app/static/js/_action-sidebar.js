@@ -1,4 +1,4 @@
-import { routerNavigate } from "./_router.js"
+import { routerNavigate } from "./index/_router.js"
 
 const actionSidebars = document.querySelectorAll(".action-sidebar")
 const searchForms = document.querySelectorAll(".action-sidebar .search-form")

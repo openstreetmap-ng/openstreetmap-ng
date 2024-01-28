@@ -2,12 +2,12 @@ import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { getMapState, setMapState } from "../_map-utils.js"
 import { qsParse } from "../_qs.js"
-import { routerNavigate } from "../_router.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
+import { routerNavigate } from "./_router.js"
 
 /**
  * Create a new new note controller

@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { noteQueryAreaMaxSize } from "../_config.js"
-import { routerNavigate } from "../_router.js"
 import "../_types.js"
+import { routerNavigate } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
 import { getLatLngBoundsSize, getMarkerIcon } from "./_utils.js"
 

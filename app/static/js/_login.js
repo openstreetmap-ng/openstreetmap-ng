@@ -1,7 +1,7 @@
 import { qsParse } from "./_qs.js"
 
 const refererInputs = document.querySelectorAll(".login-referer")
-if (refererInputs.length > 0) {
+if (refererInputs.length) {
     // Attach refer from query string and hash
     // TODO: ensure starts with '/'
     const params = qsParse(location.search.substring(1))

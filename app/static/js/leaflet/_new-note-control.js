@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
-import { routerNavigate } from "../_router.js"
+import { routerNavigate } from "../index/_router.js"
 
 const minZoom = 12
 

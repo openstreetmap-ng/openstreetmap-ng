@@ -1,5 +1,5 @@
+import "../_types.js"
 import { Route } from "./_route.js"
-import "./_types.js"
 
 let routes
 let currentPath
