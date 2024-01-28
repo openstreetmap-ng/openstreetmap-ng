@@ -1,9 +1,9 @@
 { isDevelopment ? true }:
 
 let
-  # Currently using nixpkgs-23.11-darwin
-  # Get latest hashes from https://status.nixos.org/
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/55437b635379c606bb001f12f6073db6b3bf8683.tar.gz") { };
+  # Currently using nixpkgs-unstable
+  # Update with `update-nixpkgs` command
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4fddc9be4eaf195d631333908f2a454b03628ee5.tar.gz") { };
 
   libraries' = with pkgs; [
     # Base libraries
@@ -19,18 +19,14 @@ let
     coreutils
     zstd
     bun
-    python311Packages.supervisor
+    python312Packages.supervisor
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
     redis
 
     # Scripts
     # -- Misc
     (writeShellScriptBin "make-version" ''
-      sed \
-        --in-place \
-        --regexp-extended \
-        "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" \
-        "app/config.py"
+      sed -iE "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" app/config.py
     '')
     (writeShellScriptBin "make-bundle" ''
       dir="app/static/js"
@@ -175,9 +171,11 @@ let
       set -e
       [ -d data/postgres ] || \
         initdb -D data/postgres \
+          --no-instructions \
           --locale=C.UTF-8 \
           --encoding=UTF8 \
           --text-search-config=pg_catalog.simple \
+          --auth=password \
           --username=postgres \
           --pwfile=<(echo postgres)
       mkdir -p data/supervisor
@@ -207,17 +205,18 @@ let
       dev-stop
       rm -rf data/postgres
     '')
-    (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
-    (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
-    (writeShellScriptBin "dev-logs-supervisord" "tail -f data/supervisor/supervisord.log")
     (writeShellScriptBin "dev-pgadmin" "xdg-open http://127.0.0.1:5050")
+    (writeShellScriptBin "dev-pgadmin-logs" "tail -f data/supervisor/pgadmin.log")
+    (writeShellScriptBin "dev-postgres-logs" "tail -f data/supervisor/postgres.log")
+    (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
+    (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
 
     # -- Misc
-    (writeShellScriptBin "docker-build-push" ''
+    (writeShellScriptBin "update-nixpkgs" ''
       set -e
-      cython-clean && cython-build
-      if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
-      docker push $(docker load < "$(nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
+      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
+      sed -iE "s|/nixpkgs/archive/\S+?\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
+      echo "Nixpkgs updated to $hash"
     '')
     (writeShellScriptBin "watch-sass" "bun run watch:sass")
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
@@ -226,6 +225,12 @@ let
       while inotifywait -e close_write config/locale/extra_en.yaml; do
         locale-pipeline
       done
+    '')
+    (writeShellScriptBin "docker-build-push" ''
+      set -e
+      cython-clean && cython-build
+      if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
+      docker push $(docker load < "$(nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
     '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
