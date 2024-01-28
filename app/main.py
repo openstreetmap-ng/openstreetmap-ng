@@ -1,3 +1,5 @@
+import gc
+from contextlib import asynccontextmanager
 from datetime import timedelta
 
 from fastapi import FastAPI
@@ -17,9 +19,19 @@ from app.middlewares.request_url_middleware import RequestUrlMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.responses.osm_response import OSMResponse
 
+
+@asynccontextmanager
+async def lifespan():
+    # freeze all gc objects before starting the server for improved performance
+    gc.collect()
+    gc.freeze()
+    yield
+
+
 app = FastAPI(
     title=NAME,
     default_response_class=OSMResponse,
+    lifespan=lifespan,
 )
 
 app.add_middleware(VersionMiddleware)

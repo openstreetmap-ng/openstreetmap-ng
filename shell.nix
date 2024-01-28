@@ -19,6 +19,9 @@ let
     coreutils
     zstd
     bun
+    python311Packages.supervisor
+    (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
+    redis
 
     # Scripts
     # -- Misc
@@ -81,6 +84,7 @@ let
     gettext
     dart-sass
     inotify-tools
+    pgadmin4-desktopmode
 
     # Scripts
     # -- Cython
@@ -166,35 +170,57 @@ let
       python scripts/wiki_tags_download.py
     '')
 
-    # -- Docker (dev)
+    # -- Supervisor
     (writeShellScriptBin "dev-start" ''
-      [ -d data/pgadmin ] || install -d -o 5050 -g 5050 data/pgadmin
-      docker compose -f docker-compose.dev.yml up -d
+      set -e
+      [ -d data/postgres ] || \
+        initdb -D data/postgres \
+          --locale=C.UTF-8 \
+          --encoding=UTF8 \
+          --text-search-config=pg_catalog.simple \
+          --username=postgres \
+          --pwfile=<(echo postgres)
+      mkdir -p data/supervisor
+      supervisord -c config/supervisord.conf
+      echo "Supervisor started"
     '')
     (writeShellScriptBin "dev-stop" ''
-      docker compose -f docker-compose.dev.yml down
+      set -e
+      if [ -f data/supervisor/supervisord.pid ]; then
+        kill -INT $(cat data/supervisor/supervisord.pid)
+        echo "Supervisor stopped"
+      else
+        echo "Supervisor is not running"
+      fi
     '')
-    (writeShellScriptBin "dev-logs" ''
-      docker compose -f docker-compose.dev.yml logs -f
+    (writeShellScriptBin "dev-restart" ''
+      set -e
+      if [ -f data/supervisor/supervisord.pid ]; then
+        kill -HUP $(cat data/supervisor/supervisord.pid)
+        echo "Supervisor restarted"
+      else
+        dev-start
+      fi
     '')
     (writeShellScriptBin "dev-clean" ''
+      set -e
       dev-stop
-      rm -rf data/redis data/pg data/pgadmin
+      rm -rf data/postgres
     '')
+    (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
+    (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
+    (writeShellScriptBin "dev-logs-supervisord" "tail -f data/supervisor/supervisord.log")
+    (writeShellScriptBin "dev-pgadmin" "xdg-open http://127.0.0.1:5050")
 
     # -- Misc
     (writeShellScriptBin "docker-build-push" ''
       set -e
       cython-clean && cython-build
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
-      docker push $(docker load < "$(sudo nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
+      docker push $(docker load < "$(nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
     '')
-    (writeShellScriptBin "watch-sass" ''
-      bun run watch:sass
-    '')
-    (writeShellScriptBin "watch-tests" ''
-      ptw --now . --cov app --cov-report xml
-    '')
+    (writeShellScriptBin "watch-sass" "bun run watch:sass")
+    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "watch-locale" ''
       locale-pipeline
       while inotifywait -e close_write config/locale/extra_en.yaml; do
@@ -203,9 +229,6 @@ let
     '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
-    '')
-    (writeShellScriptBin "open-pgadmin" ''
-      xdg-open http://127.0.0.1:5433
     '')
   ];
 
@@ -225,6 +248,7 @@ let
     export LD_LIBRARY_PATH="${lib.makeLibraryPath libraries'}"
 
     # Development environment variables
+    export TZ="UTC"
     export SECRET="development-secret"
     export TEST_ENV=1
     export HTTPS_ONLY=0

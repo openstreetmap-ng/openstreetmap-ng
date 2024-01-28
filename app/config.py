@@ -10,6 +10,7 @@ from anyio import Path
 from app.lib.yarn_lock import get_yarn_lock_version
 
 sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
+# TODO: gc threshold + debug
 
 
 def _path(s: str) -> Path:
@@ -60,9 +61,9 @@ LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@localhost/openstreetmap')
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@127.0.0.1/postgres')
 RAPID_ASSETS_DIR = _path(os.getenv('RAPID_ASSETS_DIR', 'node_modules/@rapideditor/rapid/dist'))
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost?password=redis&protocol=3')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1?password=redis&protocol=3')
 SMTP_HOST = os.getenv('SMTP_HOST', '127.0.0.1')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 25))
 SMTP_USER = os.getenv('SMTP_USER', None)
