@@ -2,7 +2,7 @@
 
 let
   # Currently using nixpkgs-unstable
-  # Update with `update-nixpkgs` command
+  # Update with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4fddc9be4eaf195d631333908f2a454b03628ee5.tar.gz") { };
 
   libraries' = with pkgs; [
@@ -205,19 +205,13 @@ let
       dev-stop
       rm -rf data/postgres
     '')
-    (writeShellScriptBin "dev-pgadmin" "xdg-open http://127.0.0.1:5050")
     (writeShellScriptBin "dev-pgadmin-logs" "tail -f data/supervisor/pgadmin.log")
+    (writeShellScriptBin "dev-pgadmin-open" "xdg-open http://127.0.0.1:5050")
     (writeShellScriptBin "dev-postgres-logs" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
     (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
 
-    # -- Misc
-    (writeShellScriptBin "update-nixpkgs" ''
-      set -e
-      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
-      sed -iE "s|/nixpkgs/archive/\S+?\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
-      echo "Nixpkgs updated to $hash"
-    '')
+    # -- Watchers
     (writeShellScriptBin "watch-sass" "bun run watch:sass")
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "watch-locale" ''
@@ -225,6 +219,14 @@ let
       while inotifywait -e close_write config/locale/extra_en.yaml; do
         locale-pipeline
       done
+    '')
+
+    # -- Misc
+    (writeShellScriptBin "nixpkgs-update" ''
+      set -e
+      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
+      sed -iE "s|/nixpkgs/archive/\S+?\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
+      echo "Nixpkgs updated to $hash"
     '')
     (writeShellScriptBin "docker-build-push" ''
       set -e
