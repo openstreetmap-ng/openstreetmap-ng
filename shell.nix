@@ -79,7 +79,6 @@ let
     gettext
     dart-sass
     inotify-tools
-    pgadmin4-desktopmode
 
     # Scripts
     # -- Cython
@@ -87,6 +86,7 @@ let
       python setup.py build_ext --inplace --parallel $(nproc --all)
     '')
     (writeShellScriptBin "cython-clean" ''
+      shopt -s globstar
       rm -rf build/ app/{exceptions,exceptions06,format06,format07,lib,middlewares,responses}/**/*{.c,.html,.so}
     '')
 
@@ -204,8 +204,6 @@ let
       dev-stop
       rm -rf data/postgres
     '')
-    (writeShellScriptBin "dev-pgadmin-logs" "tail -f data/supervisor/pgadmin.log")
-    (writeShellScriptBin "dev-pgadmin-open" "xdg-open http://127.0.0.1:5050")
     (writeShellScriptBin "dev-postgres-logs" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
     (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")

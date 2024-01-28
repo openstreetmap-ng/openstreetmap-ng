@@ -1,6 +1,7 @@
 import logging
 from urllib.parse import urlencode
 
+import orjson
 from httpx import HTTPError
 from shapely.geometry import Point
 
@@ -23,8 +24,8 @@ class Nominatim:
         path = '/reverse?' + urlencode(
             {
                 'format': 'jsonv2',
-                'lon': point.x,
-                'lat': point.y,
+                'lon': f'{point.x:.7f}',
+                'lat': f'{point.y:.7f}',
                 'zoom': zoom,
                 'accept-language': primary_translation_language(),
             }
@@ -34,7 +35,7 @@ class Nominatim:
             logging.debug('Nominatim cache miss for path %r', path)
             r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_TIMEOUT.total_seconds())
             r.raise_for_status()
-            data = await r.json()
+            data = orjson.loads(r.content)
             return data['display_name']
 
         try:

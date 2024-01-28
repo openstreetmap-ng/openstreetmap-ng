@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from operator import itemgetter
 from typing import Self
 
 from argon2 import PasswordHasher
@@ -30,7 +29,7 @@ class UserRole(BaseEnum):
 
         if not roles:
             roles = [None]
-        return max((_password_hasher[r] for r in roles), key=itemgetter(0))[1]
+        return max((_password_hasher[r] for r in roles), key=lambda x: x[0])[1]
 
 
 _changeset_max_size = {
