@@ -1,9 +1,9 @@
 { isDevelopment ? true }:
 
 let
-  # Currently using nixpkgs-unstable
+  # Currently using nixpkgs-23.11-darwin
   # Update with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4fddc9be4eaf195d631333908f2a454b03628ee5.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9658699e3ab26e6f499c95e2e9093819cac777b3.tar.gz") { };
 
   libraries' = with pkgs; [
     # Base libraries
@@ -19,14 +19,13 @@ let
     coreutils
     zstd
     bun
-    python312Packages.supervisor
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
     redis
 
     # Scripts
     # -- Misc
     (writeShellScriptBin "make-version" ''
-      sed -iE "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" app/config.py
+      sed -i -E "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" app/config.py
     '')
     (writeShellScriptBin "make-bundle" ''
       dir="app/static/js"
@@ -224,15 +223,15 @@ let
     # -- Misc
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
-      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
-      sed -iE "s|/nixpkgs/archive/\S+?\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
+      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-23.11-darwin | cut -f 1)
+      sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
       echo "Nixpkgs updated to $hash"
     '')
     (writeShellScriptBin "docker-build-push" ''
       set -e
       cython-clean && cython-build
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
-      docker push $(docker load < "$(nix-build --no-out-link)" | sed -En 's/Loaded image: (\S+)/\1/p')
+      docker push $(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')
     '')
     (writeShellScriptBin "load-osm" ''
       python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)

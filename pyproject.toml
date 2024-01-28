@@ -47,6 +47,7 @@ rfc3986 = "^2.0.0"
 setuptools = "^69.0.3"
 shapely = "^2.0.2"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
+supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "^0.25.0"}
 
