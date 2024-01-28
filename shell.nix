@@ -25,7 +25,7 @@ let
     # Scripts
     # -- Misc
     (writeShellScriptBin "make-version" ''
-      sed -i -E "s|VERSION = '([0-9.]+)'|VERSION = '\1.$(date +%y%m%d)'|g" app/config.py
+      sed -i -E "s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|" app/config.py
     '')
     (writeShellScriptBin "make-bundle" ''
       dir="app/static/js"
