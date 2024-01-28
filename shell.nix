@@ -162,8 +162,8 @@ let
     '')
 
     # -- Wiki-tags
-    (writeShellScriptBin "wiki-tags-download" ''
-      python scripts/wiki_tags_download.py
+    (writeShellScriptBin "wiki-tags-update" ''
+      python scripts/wiki_tags_update.py
     '')
 
     # -- Supervisor

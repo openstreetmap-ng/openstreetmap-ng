@@ -21,13 +21,13 @@ def _get_yarn_lock_versions() -> dict[str, str]:
 _yarn_lock_versions = _get_yarn_lock_versions()
 
 
-def get_yarn_lock_version(name: str) -> str:
+def yarn_lock_version(name: str) -> str:
     """
     Get the version of a package from yarn.lock.
 
-    >>> get_yarn_lock_version('i18next-http-backend')
+    >>> yarn_lock_version('i18next-http-backend')
     '2.4.2'
-    >>> get_yarn_lock_version('iD')
+    >>> yarn_lock_version('iD')
     '60eb7d7'
     """
 

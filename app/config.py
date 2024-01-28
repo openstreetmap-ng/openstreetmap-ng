@@ -7,7 +7,7 @@ from hashlib import sha256
 
 from anyio import Path
 
-from app.lib.yarn_lock import get_yarn_lock_version
+from app.lib.yarn_lock_version import yarn_lock_version
 
 sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
 # TODO: gc threshold + debug
@@ -83,8 +83,8 @@ SMTP_SECURE = os.getenv('SMTP_SECURE', '0' if SMTP_PORT == 25 else '1').strip().
 SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else ''
 SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else ''
 
-ID_VERSION = get_yarn_lock_version('iD')
-RAPID_VERSION = get_yarn_lock_version('@rapideditor/rapid')
+ID_VERSION = yarn_lock_version('iD')
+RAPID_VERSION = yarn_lock_version('@rapideditor/rapid')
 
 # Synchronously create directories if missing
 pathlib.Path(FILE_CACHE_DIR).mkdir(parents=True, exist_ok=True)

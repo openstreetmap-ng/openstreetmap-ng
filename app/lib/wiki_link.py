@@ -20,17 +20,17 @@ def _get_wiki_tags() -> dict[str, frozenset[str]]:
 _wiki_tags = _get_wiki_tags()
 
 
-def tag_wiki(key: str) -> str | None:
+def wiki_link(tag_key: str) -> str | None:
     """
     Return a link to the wiki page for the given tag key.
 
     Returns None if the key is not recognized.
 
-    >>> tag_wiki('colour')
+    >>> wiki_link('colour')
     'https://wiki.openstreetmap.org/wiki/Key:colour?uselang=en'
     """
 
-    locales = _wiki_tags.get(key)
+    locales = _wiki_tags.get(tag_key)
 
     if not locales:
         return None
@@ -44,9 +44,9 @@ def tag_wiki(key: str) -> str | None:
         if user_lang not in locales:
             continue
         if user_lang == DEFAULT_LANGUAGE:
-            return f'https://wiki.openstreetmap.org/wiki/Key:{key}?uselang={primary_lang}'
+            return f'https://wiki.openstreetmap.org/wiki/Key:{tag_key}?uselang={primary_lang}'
         else:
             user_lang_case = user_lang.title()
-            return f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:Key:{key}?uselang={primary_lang}'
+            return f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:Key:{tag_key}?uselang={primary_lang}'
 
     return None
