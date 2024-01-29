@@ -15,6 +15,9 @@ from app.models.geometry_type import PointType
 from app.models.scope import ExtendedScope
 from app.models.trace_visibility import TraceVisibility
 
+if TYPE_CHECKING:
+    from app.models.db.trace_point import TracePoint
+
 
 class Trace(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'trace'
@@ -35,9 +38,6 @@ class Trace(Base.Sequential, CreatedAtMixin):
     tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False, default=())
 
     # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from app.models.db.trace_point import TracePoint
-
     # TODO: cascade delete + files delete
     # TODO: limit size points
     points: Mapped[list['TracePoint']] = relationship(

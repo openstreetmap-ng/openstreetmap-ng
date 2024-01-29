@@ -13,7 +13,7 @@ class TracePoint(Base.UUID):
     __tablename__ = 'trace_point'
 
     trace_id: Mapped[int] = mapped_column(ForeignKey(Trace.id), nullable=False)
-    trace: Mapped[Trace] = relationship(back_populates='trace_points', lazy='raise')
+    trace: Mapped[Trace] = relationship(back_populates='points', lazy='raise')
     track_idx: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     captured_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     point: Mapped[Point] = mapped_column(PointType, nullable=False)

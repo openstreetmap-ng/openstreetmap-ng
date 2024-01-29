@@ -12,12 +12,15 @@ from app.models.db.user import User
 from app.models.oauth2_application_type import OAuth2ApplicationType
 from app.models.scope import Scope
 
+if TYPE_CHECKING:
+    from app.models.db.oauth2_token import OAuth2Token
+
 
 class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth2_application'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(back_populates='oauth2_applications', lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise')
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     client_id: Mapped[str] = mapped_column(Unicode(50), nullable=False)
     client_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
@@ -26,9 +29,6 @@ class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     redirect_uris: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False)
 
     # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from app.models.db.oauth2_token import OAuth2Token
-
     oauth2_tokens: Mapped[list['OAuth2Token']] = relationship(
         back_populates='application',
         lazy='raise',

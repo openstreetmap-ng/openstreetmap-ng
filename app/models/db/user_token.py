@@ -16,7 +16,8 @@ class UserToken(Base.UUID, CreatedAtMixin):
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
+    # requires @declared_attr since it is __abstract__
     @declared_attr
     @classmethod
     def user(cls) -> Mapped[User]:
-        return relationship(User, lazy='joined')
+        return relationship(User, foreign_keys=(cls.user_id,), lazy='joined')

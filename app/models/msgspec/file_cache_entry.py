@@ -6,13 +6,10 @@ from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
 class FileCacheEntry(msgspec.Struct, omit_defaults=True):
-    version: int = 1
     expires_at: int | None
     data: bytes
 
-    def __init__(self, expires_at: int | None, data: bytes):
-        self.expires_at = expires_at
-        self.data = data
+    version: int = 1
 
     def to_bytes(self) -> bytes:
         """

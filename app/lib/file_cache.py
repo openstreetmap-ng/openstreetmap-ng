@@ -65,7 +65,7 @@ class FileCache:
 
         path = await self._get_path(key)
         expires_at = int(time.time() + ttl.total_seconds()) if ttl else None
-        entry = FileCacheEntry(expires_at, data)
+        entry = FileCacheEntry(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
 
         temp_name = f'.{randbytes(16).hex()}.tmp'

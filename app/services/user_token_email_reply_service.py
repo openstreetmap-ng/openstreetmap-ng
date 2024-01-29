@@ -2,7 +2,7 @@ import secrets
 
 from app.config import SMTP_MESSAGES_FROM_HOST
 from app.db import db
-from app.lib.auth_context import auth_user, manual_auth_context
+from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -23,8 +23,8 @@ class UserTokenEmailReplyService:
         Replying user can use this token to send a message to the current user.
         """
 
-        token_b = secrets.token_bytes(32)
-        token_hashed = hash_bytes(token_b, context=None)
+        token_bytes = secrets.token_bytes(32)
+        token_hashed = hash_bytes(token_bytes, context=None)
 
         async with db() as session:
             token = UserTokenEmailReply(
@@ -37,7 +37,7 @@ class UserTokenEmailReplyService:
 
             session.add(token)
 
-        return UserTokenStruct(token.id, token_b)
+        return UserTokenStruct(id=token.id, token=token_bytes)
 
     @staticmethod
     async def create_address(replying_user_id: int, source_type: MailFromType) -> str:

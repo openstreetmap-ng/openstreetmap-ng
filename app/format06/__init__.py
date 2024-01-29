@@ -17,7 +17,6 @@ class Format06(
     OsmChange06Mixin,
     Tag06Mixin,
     Trace06Mixin,
-    Trace06Mixin,
     User06Mixin,
 ):
     ...

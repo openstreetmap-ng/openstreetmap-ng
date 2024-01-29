@@ -146,15 +146,6 @@ class TraceService:
         return trace
 
     @staticmethod
-    async def get_file(file_id: str) -> bytes:
-        """
-        Get the trace file by id.
-        """
-
-        buffer = await TRACES_STORAGE.load(file_id)
-        return await TraceFile.zstd_decompress_if_needed(buffer, file_id)
-
-    @staticmethod
     async def update(trace_id: int, new_trace: Trace) -> None:
         """
         Update a trace.

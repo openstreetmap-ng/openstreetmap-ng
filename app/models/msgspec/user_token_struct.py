@@ -9,13 +9,10 @@ from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
 class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
-    version: int = 1
     id: int | UUID
     token: bytes
 
-    def __init__(self, id: int | UUID, token: bytes):
-        self.id = id
-        self.token = token
+    version: int = 1
 
     def __str__(self) -> str:
         """

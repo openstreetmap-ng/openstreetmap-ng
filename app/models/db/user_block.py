@@ -21,11 +21,9 @@ class UserBlock(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(
-        back_populates='user_blocks_given', foreign_keys=[from_user_id], lazy='raise'
-    )
+    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise')
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(back_populates='user_blocks_received', foreign_keys=[to_user_id], lazy='raise')
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise')
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
@@ -35,7 +33,7 @@ class UserBlock(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     # defaults
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     revoked_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True, default=None)
-    revoked_user: Mapped[User | None] = relationship(foreign_keys=[revoked_user_id], lazy='raise')
+    revoked_user: Mapped[User | None] = relationship(foreign_keys=(revoked_user_id,), lazy='raise')
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

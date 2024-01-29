@@ -1,7 +1,7 @@
 from fastapi import Request
 
 from app.db import db
-from app.lib.auth_context import auth_user, manual_auth_context
+from app.lib.auth_context import auth_context, auth_user, manual_auth_context
 from app.lib.email import validate_email_deliverability
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
@@ -61,7 +61,7 @@ class UserSignupService:
             )
             session.add(user)
 
-        with manual_auth_context(user):
+        with auth_context(user, scopes=()):
             await UserSignupService.send_confirm_email()
 
         return await AuthService.create_session(user.id)

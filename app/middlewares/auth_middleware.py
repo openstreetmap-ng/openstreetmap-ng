@@ -3,6 +3,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from app.lib.auth_context import auth_context
+from app.services.auth_service import AuthService
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -11,5 +12,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        async with auth_context(request):
+        user, scopes = await AuthService.authenticate_request(request)
+        with auth_context(user, scopes):
             return await super().dispatch(request, call_next)

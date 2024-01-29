@@ -8,7 +8,7 @@ class ElementType(BaseEnum):
     way = 'way'
     relation = 'relation'
 
-    @classmethod
+    @staticmethod
     def from_str(cls, s: str) -> Self:
         """
         Get the element type from the given string.

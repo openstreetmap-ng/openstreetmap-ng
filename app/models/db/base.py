@@ -19,13 +19,13 @@ class Base:
     class Sequential(NoID):
         __abstract__ = True
 
-        id: Mapped[int] = mapped_column(BigInteger, nullable=False, primary_key=True)
+        id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False, primary_key=True)
 
     class UUID(NoID):
         __abstract__ = True
 
         # TODO: sortable like timeflake or ulid if needed?
-        id: Mapped[UUID] = mapped_column(Uuid, nullable=False, primary_key=True, default_factory=uuid4)
+        id: Mapped[UUID] = mapped_column(Uuid, init=False, nullable=False, primary_key=True, default_factory=uuid4)
 
     class Validating(BaseModel, ABC):
         # use_enum_values=True is unpredictable

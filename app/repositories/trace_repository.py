@@ -6,9 +6,10 @@ from app.db import db
 from app.lib.auth_context import auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
-from app.lib.tracks import Tracks
+from app.lib.trace_file import TraceFile
 from app.limits import FIND_LIMIT
 from app.models.db.trace_ import Trace
+from app.storage import TRACES_STORAGE
 
 
 class TraceRepository:
@@ -41,8 +42,9 @@ class TraceRepository:
         """
 
         trace = await TraceRepository.get_one_by_id(trace_id)
+        buffer = await TRACES_STORAGE.load(trace.file_id)
+        file = await TraceFile.zstd_decompress_if_needed(buffer, trace.file_id)
         filename = trace.name
-        file = await Tracks.get_file(trace.file_id)
         return filename, file
 
     @staticmethod

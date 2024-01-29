@@ -2,10 +2,10 @@ from typing import Annotated
 
 from annotated_types import Interval
 from pydantic import AllowInfNan
-from serializers.geometry import GeometrySerializer
 from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 
+from app.serializers.geometry import GeometrySerializer
 from app.validators.geometry import GeometryValidator
 
 Geometry = Annotated[

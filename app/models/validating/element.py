@@ -3,7 +3,7 @@ from typing import Self
 
 from pydantic import PositiveInt, model_validator
 
-from app.limits import ELEMENT_RELATION_MAX_MEMBERS, ELEMENT_WAY_MAX_NODES
+from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
 from app.models.element_member import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.geometry import PointGeometry
@@ -39,8 +39,8 @@ class ElementValidating(TagsValidating):
             raise ValueError('Way cannot have coordinates')
         if self.visible and not self.members:
             raise ValueError('Way must have at least one member')
-        if len(self.members) > ELEMENT_WAY_MAX_NODES:
-            raise ValueError(f'Way cannot have more than {ELEMENT_WAY_MAX_NODES} members')
+        if len(self.members) > ELEMENT_WAY_MEMBERS_LIMIT:
+            raise ValueError(f'Way cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
         if any(member.role for member in self.members):
             raise ValueError('Way cannot have members with roles')
         if any(member.type != ElementType.node for member in self.members):
@@ -58,8 +58,8 @@ class ElementValidating(TagsValidating):
         # TODO: 0.7
         # if self.visible and not self.members:
         #     raise ValueError('Relation must have at least one member')
-        if len(self.members) > ELEMENT_RELATION_MAX_MEMBERS:
-            raise ValueError(f'Relation cannot have more than {ELEMENT_RELATION_MAX_MEMBERS} members')
+        if len(self.members) > ELEMENT_RELATION_MEMBERS_LIMIT:
+            raise ValueError(f'Relation cannot have more than {ELEMENT_RELATION_MEMBERS_LIMIT} members')
 
         return self
 

@@ -45,6 +45,9 @@ from app.models.text_format import TextFormat
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
 
+if TYPE_CHECKING:
+    from app.models.db.user_block import UserBlock
+
 
 class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'user'
@@ -76,31 +79,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
 
     # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from app.models.db.oauth1_application import OAuth1Application
-        from app.models.db.oauth2_application import OAuth2Application
-        from app.models.db.user_block import UserBlock
-
-    oauth1_applications: Mapped[list['OAuth1Application']] = relationship(
-        back_populates='user',
-        order_by='OAuth1Application.id.asc()',
-        lazy='raise',
-    )
-    oauth2_applications: Mapped[list['OAuth2Application']] = relationship(
-        back_populates='user',
-        order_by='OAuth2Application.id.asc()',
-        lazy='raise',
-    )
-    user_blocks_given: Mapped[list['UserBlock']] = relationship(
-        back_populates='from_user',
-        order_by='UserBlock.id.desc()',
-        lazy='raise',
-    )
-    user_blocks_received: Mapped[list['UserBlock']] = relationship(
-        back_populates='to_user',
-        order_by='UserBlock.id.desc()',
-        lazy='raise',
-    )
     active_user_blocks_received: Mapped[list['UserBlock']] = relationship(
         back_populates='to_user',
         order_by='UserBlock.id.desc()',

@@ -22,8 +22,8 @@ class UserTokenAccountConfirmService:
         Create a new user account confirmation token.
         """
 
-        token_b = secrets.token_bytes(32)
-        token_hashed = hash_bytes(token_b, context=None)
+        token_bytes = secrets.token_bytes(32)
+        token_hashed = hash_bytes(token_bytes, context=None)
 
         async with db() as session:
             token = UserTokenAccountConfirm(
@@ -34,7 +34,7 @@ class UserTokenAccountConfirmService:
 
             session.add(token)
 
-        return UserTokenStruct(token.id, token_b)
+        return UserTokenStruct(id=token.id, token=token_bytes)
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
