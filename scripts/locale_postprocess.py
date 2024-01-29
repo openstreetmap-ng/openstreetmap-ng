@@ -82,8 +82,7 @@ def extract_local_chapters_map() -> dict[str, dict]:
         if not needs_processing(locale):
             continue
 
-        with source_path.open('rb') as f:
-            source_data: dict = yaml.safe_load(f)
+        source_data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
 
         # strip first level of nesting
         source_data = next(iter(source_data.values()))
@@ -156,8 +155,7 @@ def postprocess():
         if not needs_processing(locale):
             continue
 
-        with source_path.open('rb') as f:
-            data: dict = yaml.safe_load(f)
+        data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
 
         # strip first level of nesting
         data = next(iter(data.values()))
@@ -171,11 +169,8 @@ def postprocess():
             deep_dict_update(data, local_chapters)
 
         # apply extra overrides
-        if locale == 'en':
-            with _locale_extra_en_path.open('rb') as f:
-                extra_data: dict | None = yaml.safe_load(f)
-            if extra_data:
-                deep_dict_update(data, extra_data)
+        if locale == 'en' and (extra_data := yaml.load(_locale_extra_en_path.read_bytes(), yaml.CSafeLoader)):
+            deep_dict_update(data, extra_data)
 
         buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
         target_path = _postprocess_dir / f'{locale}.json'

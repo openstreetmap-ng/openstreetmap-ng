@@ -10,6 +10,7 @@ let
     stdenv.cc.cc.lib
     file.out
     libxml2.out
+    libyaml.out
     zlib.out
   ];
 
@@ -87,7 +88,19 @@ let
     '')
     (writeShellScriptBin "cython-clean" ''
       shopt -s globstar
-      rm -rf build/ app/{exceptions,exceptions06,format06,format07,lib,middlewares,responses}/**/*{.c,.html,.so}
+      rm -rf build/
+      dirs=(
+        app/exceptions
+        app/exceptions06
+        app/format06
+        app/format07
+        app/lib
+        app/middlewares
+        app/responses
+      )
+      for dir in "''${dirs[@]}"; do
+        rm -rf "$dir"/**/*{.c,.html,.so}
+      done
     '')
 
     # -- Alembic
@@ -252,6 +265,7 @@ let
     export LD_LIBRARY_PATH="${lib.makeLibraryPath libraries'}"
 
     # Development environment variables
+    export PYTHONNOUSERSITE=1
     export TZ="UTC"
     export SECRET="development-secret"
     export TEST_ENV=1

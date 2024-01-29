@@ -19,6 +19,5 @@ def get_legal(locale: str) -> dict:
     """
 
     logging.info('Loading legal for %s', locale)
-
-    with pathlib.Path(LEGAL_DIR / f'{locale}.yml').open() as f:
-        return yaml.safe_load(f)
+    path = LEGAL_DIR / f'{locale}.yml'
+    return yaml.load(path.read_bytes(), yaml.CSafeLoader)
