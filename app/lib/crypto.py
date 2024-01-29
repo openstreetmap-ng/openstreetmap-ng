@@ -71,14 +71,14 @@ def encrypt(s: str) -> bytes:
     return nonce_bytes + cipher_text_bytes
 
 
-def decrypt(b: bytes) -> str:
+def decrypt(buffer: bytes) -> str:
     """
     Decrypt a buffer using XChaCha20.
 
     Expects a buffer of the nonce and cipher text.
     """
 
-    nonce_bytes = b[:24]
-    cipher_text_bytes = b[24:]
+    nonce_bytes = buffer[:24]
+    cipher_text_bytes = buffer[24:]
     cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
     return cipher.decrypt(cipher_text_bytes).decode()

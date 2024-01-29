@@ -103,7 +103,7 @@ class User06Mixin:
                     **({XAttr('pd'): user.consider_public_domain} if access_private else {}),
                 },
                 'img': {XAttr('href'): user.avatar_url},
-                'roles': [role.value for role in user.roles],
+                'roles': tuple(role.value for role in user.roles),
                 'changesets': {XAttr('count'): changesets_count},
                 'traces': {XAttr('count'): traces_count},
                 'blocks': {

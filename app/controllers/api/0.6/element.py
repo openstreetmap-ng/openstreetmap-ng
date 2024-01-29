@@ -45,7 +45,7 @@ async def element_create(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    assigned_ref_map = await OptimisticDiff([element]).run()
+    assigned_ref_map = await OptimisticDiff((element,)).run()
     return next(iter(assigned_ref_map.values()))[0].typed_id
 
 
@@ -57,7 +57,7 @@ async def element_read_latest(
     typed_id: PositiveInt,
 ) -> dict:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    elements = await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)
+    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)
     element = elements[0] if elements else None
 
     if not element:
@@ -77,7 +77,7 @@ async def element_read_version(
     version: PositiveInt,
 ) -> dict:
     versioned_ref = VersionedElementRef(type=type, typed_id=typed_id, version=version)
-    elements = await ElementRepository.get_many_by_versioned_refs([versioned_ref])
+    elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=None)
 
     if not elements:
         raise_for().element_not_found(versioned_ref)
@@ -105,7 +105,7 @@ async def element_update(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    await OptimisticDiff([element]).run()
+    await OptimisticDiff((element,)).run()
     return element.version
 
 
@@ -130,7 +130,7 @@ async def element_delete(
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
-    await OptimisticDiff([element]).run()
+    await OptimisticDiff((element,)).run()
     return element.version
 
 
@@ -159,11 +159,14 @@ async def elements_read_many(
     ways: Annotated[str | None, Query(None)],
     relations: Annotated[str | None, Query(None)],
 ) -> Sequence[dict]:
-    query = {
-        ElementType.node: nodes,
-        ElementType.way: ways,
-        ElementType.relation: relations,
-    }[type]
+    if type == ElementType.node:
+        query = nodes
+    elif type == ElementType.way:
+        query = ways
+    elif type == ElementType.relation:
+        query = relations
+    else:
+        raise NotImplementedError(f'Unsupported element type {type!r}')
 
     if not query:
         raise HTTPException(
@@ -235,7 +238,7 @@ async def element_full(
     typed_id: PositiveInt,
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    elements = await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)
+    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)
     element = elements[0] if elements else None
 
     if not element:

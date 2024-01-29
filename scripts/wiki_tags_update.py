@@ -19,7 +19,7 @@ async def get_sitemap_links() -> Sequence[str]:
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
     matches = re.finditer(r'https://wiki.openstreetmap.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text)
-    result = [match[0] for match in matches]
+    result = tuple(match[0] for match in matches)
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
 

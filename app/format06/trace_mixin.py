@@ -95,9 +95,9 @@ class Trace06Mixin:
 
         for trk in tracks:
             trk: dict
-            for track_idx, trkseg in enumerate(trk.get('trkseg', []), track_idx_start):
+            for track_idx, trkseg in enumerate(trk.get('trkseg', ()), track_idx_start):
                 trkseg: dict
-                for trkpt in trkseg.get('trkpt', []):
+                for trkpt in trkseg.get('trkpt', ()):
                     trkpt: dict
 
                     result.append(

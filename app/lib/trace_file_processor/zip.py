@@ -34,7 +34,7 @@ class ZipFileProcessor(TraceFileProcessor):
             nonlocal result_size
 
             async with await anyio.open_process(
-                ['unzip', '-p', '-', filename],
+                ('unzip', '-p', '-', filename),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             ) as process:

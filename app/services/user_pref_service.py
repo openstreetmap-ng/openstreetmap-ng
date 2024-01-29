@@ -34,7 +34,7 @@ class UserPrefService:
                     value=pref.value,
                 )
                 .on_conflict_do_update(
-                    index_elements=[UserPref.user_id, UserPref.app_id, UserPref.key],
+                    index_elements=(UserPref.user_id, UserPref.app_id, UserPref.key),
                     set_={UserPref.value: pref.value},
                 )
             )
@@ -57,7 +57,7 @@ class UserPrefService:
             stmt = (
                 insert(UserPref)
                 .values(
-                    [
+                    tuple(
                         {
                             'user_id': pref.user_id,
                             'app_id': pref.app_id,
@@ -65,10 +65,10 @@ class UserPrefService:
                             'value': pref.value,
                         }
                         for pref in prefs
-                    ]
+                    )
                 )
                 .on_conflict_do_update(
-                    index_elements=[UserPref.user_id, UserPref.app_id, UserPref.key],
+                    index_elements=(UserPref.user_id, UserPref.app_id, UserPref.key),
                     set_={UserPref.value: UserPref.value},
                 )
             )

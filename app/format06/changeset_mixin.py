@@ -45,7 +45,7 @@ class Changeset06Mixin:
             bounds_dict = {}
 
         # TODO: comments service
-        comments = []
+        comments = ()
 
         if format_is_json():
             return {

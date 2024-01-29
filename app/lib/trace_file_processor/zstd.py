@@ -24,7 +24,7 @@ class ZstdFileProcessor(CompressionFileProcessor):
     async def compress(cls, buffer: bytes) -> bytes:
         buffer_size = len(buffer)
         level = next(filter(lambda max_size, _: buffer_size <= max_size, TRACE_FILE_COMPRESS_ZSTD_LEVEL))[1]
-        command = ['zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', len(buffer)]
+        command = ('zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', len(buffer))
 
         async with await anyio.open_process(
             command,

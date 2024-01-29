@@ -88,7 +88,7 @@ async def note_read(
     note_id: PositiveInt,
 ) -> dict:
     with joinedload_context(Note.comments, NoteComment.body_rich):
-        notes = await NoteRepository.find_many_by_query(note_ids=[note_id], limit=None)
+        notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=None)
 
     if not notes:
         raise_for().note_not_found(note_id)
@@ -292,9 +292,9 @@ async def notes_query(
 ) -> Sequence[dict]:
     # small logical optimization
     if from_ and to and from_ >= to:  # invalid date range
-        return Format06.encode_notes([])
+        return Format06.encode_notes(())
     if q is not None and not q.strip():  # provided empty q
-        return Format06.encode_notes([])
+        return Format06.encode_notes(())
 
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
 

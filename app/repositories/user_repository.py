@@ -18,7 +18,7 @@ class UserRepository:
         """
 
         async with db() as session:
-            return await session.get(User, user_id, options=[get_joinedload()])
+            return await session.get(User, user_id, options=(get_joinedload(),))
 
     @staticmethod
     async def find_one_by_display_name(display_name: str) -> User | None:

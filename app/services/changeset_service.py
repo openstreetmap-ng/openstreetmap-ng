@@ -34,7 +34,7 @@ class ChangesetService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[get_joinedload()],
+                options=(get_joinedload(),),
                 with_for_update=True,
             )
 
@@ -59,7 +59,7 @@ class ChangesetService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[get_joinedload()],
+                options=(get_joinedload(),),
                 with_for_update=True,
             )
 

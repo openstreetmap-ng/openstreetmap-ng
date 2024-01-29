@@ -44,7 +44,7 @@ async def changeset_create(
         raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
-        tags = Format06.decode_tags_and_validate(data.get('tag', []))
+        tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
@@ -64,7 +64,7 @@ async def changeset_read(
 
     with joinedload_context(Changeset.comments, ChangesetComment.user) if include_discussion else nullcontext():
         changesets = await ChangesetRepository.find_many_by_query(
-            changeset_ids=[changeset_id],
+            changeset_ids=(changeset_id,),
             limit=None,
         )
 
@@ -87,12 +87,12 @@ async def changeset_update(
         raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/changeset element.")
 
     try:
-        tags = Format06.decode_tags_and_validate(data.get('tag', []))
+        tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
         raise_for().bad_xml(type.value, xml, str(e))
 
     changeset = await ChangesetService.update_tags(changeset_id, tags)
-    return Format06.encode_changesets([changeset])
+    return Format06.encode_changesets((changeset,))
 
 
 @router.post('/changeset/{changeset_id}/upload', response_class=DiffResultResponse)
@@ -102,7 +102,7 @@ async def changeset_upload(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     xml = (await request.body()).decode()
-    data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', [])
+    data: Sequence[dict] = XMLToDict.parse(xml, sequence=True).get('osmChange', ())
 
     if not data:
         raise_for().bad_xml(type.value, xml, "XML doesn't contain an /osmChange element.")
@@ -131,7 +131,7 @@ async def changeset_download(
 ) -> Sequence:
     with joinedload_context(Changeset.elements):
         changesets = await ChangesetRepository.find_many_by_query(
-            changeset_ids=[changeset_id],
+            changeset_ids=(changeset_id,),
             limit=None,
         )
 
@@ -156,7 +156,7 @@ async def changesets_query(
 ) -> Sequence[dict]:
     # small logical optimization
     if open and closed:
-        return Format06.encode_changesets([])
+        return Format06.encode_changesets(())
 
     geometry = parse_bbox(bbox) if bbox else None
 

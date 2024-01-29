@@ -426,7 +426,7 @@ def element_icon(element: Element) -> tuple[str, str] | tuple[None, None]:
         if icon := key_config.get(key_value):
             return icon, f'{key}={key_value}'
 
-    # 1. check tag-specific configuration (value == None)
+    # 2. check tag-specific configuration (value == None)
     for key in matched_keys:
         key_config = _config[key]
 

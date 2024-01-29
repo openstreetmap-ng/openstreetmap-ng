@@ -35,7 +35,7 @@ def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
 _allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
 
 _md = MarkdownIt(options_update={'typographer': True})
-_md.enable(['replacements', 'smartquotes'])
+_md.enable(('replacements', 'smartquotes'))
 
 
 @cython.cfunc
@@ -57,13 +57,13 @@ def _process(text: str, text_format: TextFormat) -> str:
 
     text_ = bleach.linkify(
         text_,
-        skip_tags=[  # tags not to linkify in
+        skip_tags=(  # tags not to linkify in
             'code',
             'kbd',
             'pre',
             'samp',
             'var',
-        ],
+        ),
         parse_email=True,
     )
 

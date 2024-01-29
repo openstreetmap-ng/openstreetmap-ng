@@ -21,10 +21,10 @@ class ChangesetCommentService:
                 changeset = await session.get(
                     Changeset,
                     changeset_id,
-                    options=[
+                    options=(
                         joinedload(Changeset.changeset_subscription_users),
                         get_joinedload(),
-                    ],
+                    ),
                 )
 
                 if not changeset:
@@ -47,10 +47,10 @@ class ChangesetCommentService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[
+                options=(
                     joinedload(Changeset.changeset_subscription_users),
                     get_joinedload(),
-                ],
+                ),
             )
 
             if not changeset:
@@ -74,10 +74,10 @@ class ChangesetCommentService:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
-                options=[
+                options=(
                     joinedload(Changeset.comments),
                     get_joinedload(),
-                ],
+                ),
             )
 
             if not changeset:
@@ -117,7 +117,7 @@ class ChangesetCommentService:
             changeset = await session.get(
                 Changeset,
                 comment.changeset_id,
-                options=[get_joinedload()],
+                options=(get_joinedload(),),
             )
 
         return changeset

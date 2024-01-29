@@ -21,7 +21,7 @@ class TraceRepository:
         """
 
         async with db() as session:
-            trace = await session.get(Trace, trace_id, options=[get_joinedload()])
+            trace = await session.get(Trace, trace_id, options=(get_joinedload(),))
 
         if not trace:
             raise_for().trace_not_found(trace_id)

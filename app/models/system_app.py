@@ -20,20 +20,20 @@ class SystemApp(StrEnum):
         """
 
         if app == cls.id:  # noqa: SIM114
-            return [
+            return (
                 Scope.read_prefs,
                 Scope.write_prefs,
                 Scope.write_api,
                 Scope.read_gpx,
                 Scope.write_notes,
-            ]
+            )
         elif app == cls.rapid:
-            return [
+            return (
                 Scope.read_prefs,
                 Scope.write_prefs,
                 Scope.write_api,
                 Scope.read_gpx,
                 Scope.write_notes,
-            ]
+            )
         else:
             raise NotImplementedError(f'Unsupported system app {app!r}')

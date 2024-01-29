@@ -18,12 +18,12 @@ from app.models.user_role import UserRole
 
 router = APIRouter()
 
-_legacy_imagery_blacklist = [
+_legacy_imagery_blacklist = (
     '.*\\.google(apis)?\\..*/.*',
     'http://xdworld\\.vworld\\.kr:8080/.*',
     '.*\\.here\\.com[/:].*',
     '.*\\.mapy\\.cz.*',
-]
+)
 
 
 @router.get('/capabilities')
@@ -77,7 +77,7 @@ async def legacy_capabilities() -> dict:
         },
         'policy': {
             'imagery': {
-                'blacklist': [{XAttr('regex'): entry} for entry in _legacy_imagery_blacklist],
+                'blacklist': tuple({XAttr('regex'): entry} for entry in _legacy_imagery_blacklist),
             },
         },
     }

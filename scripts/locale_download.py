@@ -21,7 +21,7 @@ async def get_download_locales() -> Sequence[str]:
     r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations?group=out-osm-site')
     r.raise_for_status()
     matches = re.finditer(r"<option value='([\w-]+)'>\1 - ", r.text)
-    return [match[1] for match in matches]
+    return tuple(match[1] for match in matches)
 
 
 @retry(timedelta(minutes=1))
@@ -112,7 +112,10 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
 
-    buffer = orjson.dumps([ln._asdict() for ln in locales_names], option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
+    buffer = orjson.dumps(
+        tuple(ln._asdict() for ln in locales_names),
+        option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
+    )
     await _names_path.write_bytes(buffer)
 
 

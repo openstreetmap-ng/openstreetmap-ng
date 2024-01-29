@@ -243,7 +243,7 @@ class OptimisticDiffPrepare:
 
         if typed_ref.typed_id < 0:
             raise_for().element_not_found(typed_ref)
-        if not (elements := await ElementRepository.get_many_latest_by_typed_refs([typed_ref], limit=None)):
+        if not (elements := await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)):
             raise_for().element_not_found(typed_ref)
 
         element = elements[0]
@@ -305,7 +305,7 @@ class OptimisticDiffPrepare:
         if element.typed_id > 0:
             negative_refs = self._reference_override[(element.typed_ref, False)]
             parents = await ElementRepository.get_many_parents_by_typed_refs(
-                [element.typed_ref],
+                (element.typed_ref,),
                 limit=len(negative_refs) + 1,
             )
             parent_refs = {e.typed_ref for e in parents}

@@ -31,13 +31,13 @@ class MessageCollector:
 
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            detail=[
+            detail=(
                 {
                     'type': 'error',
-                    'loc': [None, field],
+                    'loc': (None, field),
                     'msg': message,
-                }
-            ],
+                },
+            ),
         )
 
     @property
@@ -47,15 +47,15 @@ class MessageCollector:
         """
 
         return {
-            'detail': [
+            'detail': tuple(
                 {
                     'type': severity,
-                    'loc': [None, field],
+                    'loc': (None, field),
                     'msg': message,
                 }
                 for field, messages in self._messages.items()
                 for severity, message in messages
-            ]
+            )
         }
 
 

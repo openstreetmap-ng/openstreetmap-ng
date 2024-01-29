@@ -13,4 +13,4 @@ class XmlFileProcessor(TraceFileProcessor):
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         logging.debug('Trace %r uncompressed size is %s', cls.media_type, naturalsize(len(buffer)))
-        return [buffer]
+        return (buffer,)

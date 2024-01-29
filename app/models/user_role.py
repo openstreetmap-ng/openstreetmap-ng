@@ -18,7 +18,7 @@ class UserRole(BaseEnum):
         """
 
         if not roles:
-            roles = [None]
+            roles = (None,)
         return max(_changeset_max_size[r] for r in roles)
 
     @staticmethod
@@ -28,7 +28,7 @@ class UserRole(BaseEnum):
         """
 
         if not roles:
-            roles = [None]
+            roles = (None,)
         return max((_password_hasher[r] for r in roles), key=lambda x: x[0])[1]
 
 
