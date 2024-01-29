@@ -1,7 +1,7 @@
 import logging
-import secrets
 import time
 from datetime import timedelta
+from random import randbytes
 
 from anyio import Path
 
@@ -68,7 +68,7 @@ class FileCache:
         entry = FileCacheEntry(expires_at, data)
         entry_bytes = entry.to_bytes()
 
-        temp_name = f'.{secrets.token_urlsafe(16)}.tmp'
+        temp_name = f'.{randbytes(16).hex()}.tmp'
         temp_path = path.with_name(temp_name)
 
         async with await temp_path.open('xb') as f:
