@@ -4,6 +4,7 @@ import { configureActionSidebars } from "./_action-sidebar.js"
 import { homePoint } from "./_config.js"
 import { getChangesetController } from "./index/_changeset.js"
 import { getChangesetsHistoryController } from "./index/_changesets-history.js"
+import { getElementHistoryController } from "./index/_element-history.js"
 import { getElementController } from "./index/_element.js"
 import { getExportController } from "./index/_export.js"
 import { getIndexController } from "./index/_index.js"
@@ -39,7 +40,7 @@ configureRouter(
         ["/note/(?<id>\\d+)", getNoteController(map)],
         ["/changeset/(?<id>\\d+)", getChangesetController(map)],
         ["/(?<type>node|way|relation)/(?<id>\\d+)(?:/history/(?<version>\\d+))?", getElementController(map)],
-        ["/(?<type>node|way|relation)/(?<id>\\d+)/history", null], // TODO: history
+        ["/(?<type>node|way|relation)/(?<id>\\d+)/history", getElementHistoryController(map)],
     ]),
 )
 

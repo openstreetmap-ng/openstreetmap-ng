@@ -58,13 +58,13 @@ class Nominatim:
             return f'{point.y:.3f}, {point.x:.3f}'
 
     @staticmethod
-    async def search(*, q: str, viewbox: Polygon | None) -> Sequence[TypedElementRef]:
+    async def search(*, q: str, bbox: Polygon | None = None) -> Sequence[TypedElementRef]:
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
                 'q': q,
                 'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in viewbox.bounds)} if viewbox else {}),
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bbox.bounds)} if bbox else {}),
                 'accept-language': primary_translation_language(),
             }
         )

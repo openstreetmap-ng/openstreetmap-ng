@@ -5,16 +5,15 @@ import { focusMapObject } from "../leaflet/_focus-layer-util.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
 /**
- * Create a new element controller
+ * Create a new element history controller
  * @param {L.Map} map Leaflet map
  * @returns {object} Controller
  */
-export const getElementController = (map) => {
+export const getElementHistoryController = (map) => {
     const onLoaded = (sidebarContent) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        // TODO: (version X) in title
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -33,18 +32,19 @@ export const getElementController = (map) => {
             const layersBounds = L.featureGroup(layers).getBounds()
 
             // Focus on the elements if they're offscreen
+            // TODO: padding
             if (!map.getBounds().contains(layersBounds)) {
                 map.fitBounds(layersBounds, { animate: false })
             }
         }
     }
 
-    const base = getBaseFetchController("element", onLoaded)
+    const base = getBaseFetchController("element-history", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 
-    base.load = ({ type, id, version }) => {
-        const url = `/api/web/partial/element/${type}/${id}${version ? `/version/${version}` : ""}`
+    base.load = ({ type, id }) => {
+        const url = `/api/web/partial/element/${type}/${id}/history`
         baseLoad({ url })
     }
 
