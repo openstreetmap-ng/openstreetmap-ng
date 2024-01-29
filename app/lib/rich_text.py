@@ -89,3 +89,13 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
         return await CacheService.get_one_by_cache_id(cache_id, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
     else:
         return await CacheService.get_one_by_key(text, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
+
+
+def rich_text_without_cache(text: str, text_format: TextFormat) -> str:
+    """
+    Get a rich text from text and format.
+
+    This function does not use cache and is synchronous.
+    """
+
+    return _process(text, text_format)

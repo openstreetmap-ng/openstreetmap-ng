@@ -1,23 +1,36 @@
 import logging
 import pathlib
-from functools import cache
 
-import yaml
+import cython
 
 from app.config import LEGAL_DIR
+from app.lib.rich_text import rich_text_without_cache
+from app.models.text_format import TextFormat
 
 
-@cache
-def get_legal(locale: str) -> dict:
+@cython.cfunc
+def _get_legal_data() -> dict[str, str]:
+    result = {}
+
+    for path in pathlib.Path(LEGAL_DIR).glob('*.md'):
+        locale = path.stem
+        logging.info('Loading legal document for %s', locale)
+        html = rich_text_without_cache(path.read_text(), TextFormat.markdown)
+        result[locale] = html
+
+    return result
+
+
+_legal_data = _get_legal_data()
+
+
+def get_legal_terms(locale: str) -> str:
     """
-    Get legal information for a locale.
+    Get legal terms for a locale as HTML.
 
     >>> get_legal('GB')
-    {'intro': '...', 'next_with_decline': '...', ...}
+    '<p>Thank you for your interest in contributing...</p>'
     >>> get_legal('NonExistent')
-    FileNotFoundError: [Errno 2] No such file or directory: 'config/legal/NonExistent.yml'
+    KeyError: 'NonExistent'
     """
-
-    logging.info('Loading legal for %s', locale)
-    path = LEGAL_DIR / f'{locale}.yml'
-    return yaml.load(path.read_bytes(), yaml.CSafeLoader)
+    return _legal_data[locale]

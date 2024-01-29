@@ -33,31 +33,3 @@ function loadMore(e) {
     updateMap();
   });
 }
-
-
-function updateMap() {
-  changesets = $("[data-changeset]").map(function (index, element) {
-    return $(element).data("changeset");
-  }).get().filter(function (changeset) {
-    return changeset.bbox;
-  });
-
-  updateBounds();
-
-  if (window.location.pathname !== "/history") {
-    var bounds = group.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds);
-  }
-}
-
-page.load = function () {
-  map.addLayer(group);
-
-  if (window.location.pathname === "/history") {
-    map.on("moveend", update);
-  }
-
-  map.on("zoomend", updateBounds);
-
-  update();
-};

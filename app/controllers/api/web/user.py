@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Query
 
 from app.lib.auth_context import web_user
-from app.lib.legal import get_legal
+from app.lib.legal import get_legal_terms
 from app.lib.translation import render
 from app.models.auth_provider import AuthProvider
 from app.models.db.user import User
@@ -28,7 +28,7 @@ async def terms(
     locale: Annotated[str, Query(regex=r'^(FR|GB|IT)$')],
 ) -> str:
     # TODO: fix: Please read the following terms and conditions carefully and click either the 'Accept' or 'Decline' button at the bottom to continue.
-    document = get_legal(locale)
+    document = get_legal_terms(locale)
     return render('api/web/terms.jinja2', document=document)
 
 
