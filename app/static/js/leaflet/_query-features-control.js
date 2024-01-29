@@ -1,8 +1,7 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
-
-const minZoom = 14
+import { queryFeaturesMinZoom } from "./_context-menu.js"
 
 export const getQueryFeaturesControl = () => {
     const control = new L.Control()
@@ -16,7 +15,7 @@ export const getQueryFeaturesControl = () => {
         const currentZoom = map.getZoom()
 
         // Enable/disable buttons based on current zoom level
-        if (currentZoom < minZoom) {
+        if (currentZoom < queryFeaturesMinZoom) {
             if (!button.disabled) {
                 button.disabled = true
                 tooltip.setContent({

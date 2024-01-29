@@ -18,7 +18,7 @@ const existingScript = document.getElementsByTagName("script")[0]
 existingScript.parentNode.insertBefore(newScript, existingScript)
 
 // TODO: matomogoal meta[name=matomo-goal] trackGoal
-// map.on("layeradd", function (e) {
+// map.addEventListener("layeradd", function (e) {
 //     if (e.layer.options) {
 //         var goal = OSM.MATOMO.goals[e.layer.options.keyid]
 

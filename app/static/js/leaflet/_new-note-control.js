@@ -2,8 +2,7 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { routerNavigate } from "../index/_router.js"
-
-const minZoom = 12
+import { newNoteMinZoom } from "./_context-menu.js"
 
 export const getNewNoteControl = () => {
     const control = new L.Control()
@@ -17,7 +16,7 @@ export const getNewNoteControl = () => {
         const currentZoom = map.getZoom()
 
         // Enable/disable buttons based on current zoom level
-        if (currentZoom < minZoom) {
+        if (currentZoom < newNoteMinZoom) {
             if (!button.disabled) {
                 button.disabled = true
                 tooltip.setContent({

@@ -3,6 +3,7 @@ import { getInitialMapState, getMapState, parseMapState, setMapState } from "../
 import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
+import { configureContextMenu } from "./_context-menu.js"
 import { getGeolocateControl } from "./_geolocate-control.js"
 import { getNewNoteControl } from "./_new-note-control.js"
 import { configureNotesLayer } from "./_notes-layer.js"
@@ -42,6 +43,7 @@ export const getMainMap = (container) => {
 
     // Configure map handlers
     configureNotesLayer(map)
+    configureContextMenu(map)
 
     // Add optional map marker
     const searchParams = qsParse(location.search.substring(1))
