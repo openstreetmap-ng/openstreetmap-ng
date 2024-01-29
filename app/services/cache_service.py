@@ -9,7 +9,7 @@ from app.models.cache_entry import CacheEntry
 
 class CacheService:
     @staticmethod
-    async def get_one_by_id(
+    async def get_one_by_cache_id(
         cache_id: bytes,
         context: str,
         factory: Callable[[], Awaitable[str]],
@@ -51,4 +51,4 @@ class CacheService:
 
         cache_id = hash_bytes(key, context=None)
 
-        return await CacheService.get_one_by_id(cache_id, context, factory, ttl=ttl)
+        return await CacheService.get_one_by_cache_id(cache_id, context, factory, ttl=ttl)

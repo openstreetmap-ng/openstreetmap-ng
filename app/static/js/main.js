@@ -3,6 +3,7 @@ import "./_i18n.js"
 import { configureActionSidebars } from "./_action-sidebar.js"
 import { homePoint } from "./_config.js"
 import { getChangesetController } from "./index/_changeset.js"
+import { getChangesetsHistoryController } from "./index/_changesets-history.js"
 import { getElementController } from "./index/_element.js"
 import { getExportController } from "./index/_export.js"
 import { getIndexController } from "./index/_index.js"
@@ -30,7 +31,10 @@ configureRouter(
         ["/directions", null], // TODO: directions
         ["/search", null], // TODO: search
         ["/query", getQueryFeaturesController(map)],
-        ["(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<display_name>[^/]+)/history)", null], // TODO: history
+        [
+            "(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<displayName>[^/]+)/history)",
+            getChangesetsHistoryController(map),
+        ],
         ["/note/new", getNewNoteController(map)],
         ["/note/(?<id>\\d+)", getNoteController(map)],
         ["/changeset/(?<id>\\d+)", getChangesetController(map)],

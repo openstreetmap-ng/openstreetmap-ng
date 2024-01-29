@@ -6,10 +6,11 @@ import { renderObjects } from "./_object-render.js"
 export const focusStyles = {
     changeset: {
         color: "#FF9500",
-        weight: 4,
+        weight: 2,
         opacity: 1,
+        fillColor: "#FFFFAF",
         fillOpacity: 0,
-        interactive: false,
+        interactive: true,
     },
     element: {
         color: "#FF6200",

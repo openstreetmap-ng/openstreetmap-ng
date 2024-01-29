@@ -4,7 +4,8 @@
     .result-action {
         cursor: pointer;
 
-        &:hover {
+        &:hover,
+        &.hover {
             background: $list-highlight;
         }
 

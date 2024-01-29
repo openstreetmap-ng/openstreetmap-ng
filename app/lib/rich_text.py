@@ -86,6 +86,6 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
 
     # accelerate cache lookup by id if available
     if cache_id is not None:
-        return await CacheService.get_one_by_id(cache_id, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
+        return await CacheService.get_one_by_cache_id(cache_id, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
     else:
         return await CacheService.get_one_by_key(text, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
