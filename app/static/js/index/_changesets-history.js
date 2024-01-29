@@ -6,7 +6,6 @@ import { getBaseFetchController } from "./_base-fetch.js"
 // TODO: always show close button, even when loading
 // TODO: ensure no empty changesets are returned
 // TODO: load more button
-// TODO: update on map move/zoom change
 
 const minBoundsSizePx = 20
 
@@ -120,8 +119,9 @@ export const getChangesetsHistoryController = (map) => {
     const base = getBaseFetchController("changesets-history", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
+    let lastLoadOptions
 
-    base.load = ({ scope = null, displayName = null }) => {
+    base.load = ({ scope, displayName }) => {
         let url
 
         if (scope === "nearby") {
@@ -134,6 +134,7 @@ export const getChangesetsHistoryController = (map) => {
             url = "/api/web/partial/changeset/history"
         }
 
+        lastLoadOptions = { scope, displayName }
         baseLoad({ url })
     }
 
@@ -141,6 +142,18 @@ export const getChangesetsHistoryController = (map) => {
         focusMapObject(map, null)
         baseUnload()
     }
+
+    /**
+     * On map update, reload the changesets history
+     * @returns {void}
+     */
+    const onMapZoomOrMoveEnd = () => {
+        base.unload()
+        base.load(lastLoadOptions)
+    }
+
+    // Listen for events
+    map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
 
     return base
 }
