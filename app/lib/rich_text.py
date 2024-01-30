@@ -22,6 +22,25 @@ def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozen
     return allowed_tags, allowed_attributes
 
 
+_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
+_global_allowed_attributes = _allowed_attributes['']
+
+_linkify_skip_tags = (
+    'code',
+    'kbd',
+    'pre',
+    'samp',
+    'var',
+)
+
+_md = MarkdownIt(options_update={'typographer': True})
+_md.enable(('replacements', 'smartquotes'))
+
+# read property once for performance
+_format_markdown = TextFormat.markdown
+_format_plain = TextFormat.plain
+
+
 @cython.cfunc
 def _cache_context(text_format: TextFormat) -> str:
     return f'RichText:{text_format.value}'
@@ -29,20 +48,23 @@ def _cache_context(text_format: TextFormat) -> str:
 
 @cython.cfunc
 def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
-    return attr in _allowed_attributes[''] or attr in _allowed_attributes.get(tag, ())
+    # check global allowed attributes
+    if attr in _global_allowed_attributes:
+        return True
 
+    # check tag-specific allowed attributes
+    allowed_attributes = _allowed_attributes.get(tag)
+    if allowed_attributes is not None:
+        return attr in allowed_attributes
 
-_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
-
-_md = MarkdownIt(options_update={'typographer': True})
-_md.enable(('replacements', 'smartquotes'))
+    return False
 
 
 @cython.cfunc
 def _process(text: str, text_format: TextFormat) -> str:
     logging.debug('Processing rich text %r', text_format)
 
-    if text_format == TextFormat.markdown:
+    if text_format == _format_markdown:
         text_ = _md.render(text)
         text_ = bleach.clean(
             text_,
@@ -50,20 +72,14 @@ def _process(text: str, text_format: TextFormat) -> str:
             attributes=_is_allowed_attribute,
             strip=True,
         )
-    elif text_format == TextFormat.plain:
+    elif text_format == _format_plain:
         text_ = escape(text)
     else:
         raise NotImplementedError(f'Unsupported rich text format {text_format!r}')
 
     text_ = bleach.linkify(
         text_,
-        skip_tags=(  # tags not to linkify in
-            'code',
-            'kbd',
-            'pre',
-            'samp',
-            'var',
-        ),
+        skip_tags=_linkify_skip_tags,
         parse_email=True,
     )
 

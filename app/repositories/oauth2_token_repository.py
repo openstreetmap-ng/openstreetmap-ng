@@ -4,7 +4,6 @@ from sqlalchemy import null, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
-from app.limits import FIND_LIMIT
 from app.models.db.oauth2_token import OAuth2Token
 
 
@@ -30,7 +29,7 @@ class OAuth2TokenRepository:
         user_id: int,
         app_id: int,
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[OAuth2Token]:
         """
         Find all authorized OAuth2 tokens for a user-application pair.

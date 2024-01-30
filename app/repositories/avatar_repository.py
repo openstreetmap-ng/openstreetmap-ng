@@ -12,7 +12,7 @@ class AvatarRepository:
 
         user = await UserRepository.find_one_by_id(user_id)
 
-        if not user:
+        if user is None:
             raise_for().user_not_found(user_id)
 
         file = await GRAVATAR_STORAGE.load(user.email)

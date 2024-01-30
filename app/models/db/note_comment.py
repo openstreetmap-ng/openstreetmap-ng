@@ -25,10 +25,9 @@ class NoteComment(Base.UUID, CreatedAtMixin, RichTextMixin):
     user: Mapped[User | None] = relationship(lazy='raise')
     user_ip: Mapped[IPv4Address | IPv6Address | None] = mapped_column(INET, nullable=True)
     note_id: Mapped[int] = mapped_column(ForeignKey(Note.id), nullable=False)
-    note: Mapped[Note] = relationship(back_populates='comments', lazy='raise')
     event: Mapped[NoteEvent] = mapped_column(Enum(NoteEvent), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
     body_rich: CacheEntry | None = None
 
     @validates('body')

@@ -30,12 +30,12 @@ class UserTokenEmailReplyRepository:
         async with db() as session:
             stmt = select(UserTokenEmailReply).where(
                 UserTokenEmailReply.id == token_struct.id,
-                UserTokenEmailReply.expires_at > func.now(),
+                UserTokenEmailReply.expires_at > func.statement_timestamp(),
             )
 
             token = await session.scalar(stmt)
 
-        if not token:
+        if token is None:
             return None
 
         token_hashed = hash_bytes(token_struct.token, context=None)

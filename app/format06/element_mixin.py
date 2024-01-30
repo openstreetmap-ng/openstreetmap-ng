@@ -150,9 +150,9 @@ class Element06Mixin:
         data: dict
 
         # decode members from either nd or member
-        if data_nodes := data.get('nd'):
+        if (data_nodes := data.get('nd')) is not None:
             members = _decode_nodes_unsafe(data_nodes)
-        elif data_members := data.get('member'):
+        elif (data_members := data.get('member')) is not None:
             members = _decode_members_unsafe(data_members)
         else:
             members = ()

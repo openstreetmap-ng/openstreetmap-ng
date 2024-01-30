@@ -47,7 +47,7 @@ class Trace06Mixin:
                         {
                             'name': trace.name,
                             'desc': trace.description,
-                            **({'url': url} if url else {}),
+                            **({'url': url} if url is not None else {}),
                             'trkseg': trk_trksegs,
                         }
                     )
@@ -104,7 +104,9 @@ class Trace06Mixin:
                         TracePoint(
                             **TracePointValidating(
                                 track_idx=track_idx,
-                                captured_at=datetime.fromisoformat(time) if (time := trkpt.get('time')) else None,
+                                captured_at=datetime.fromisoformat(time)
+                                if (time := trkpt.get('time')) is not None
+                                else None,
                                 point=Geometry06Mixin.decode_point_unsafe(trkpt),
                                 elevation=trkpt.get('ele'),
                             ).to_orm_dict()

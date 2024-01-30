@@ -17,7 +17,7 @@ class OAuth2:
 
         authorization = request.headers.get('Authorization')
 
-        if not authorization:
+        if authorization is None:
             raise_for().oauth2_bearer_missing()
 
         scheme, param = get_authorization_scheme_param(authorization)

@@ -20,10 +20,9 @@ class Report(Base.UUID, CreatedAtMixin, RichTextMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='raise')
     issue_id: Mapped[int] = mapped_column(ForeignKey(Issue.id), nullable=False)
-    issue: Mapped[Issue] = relationship(lazy='raise')
     category: Mapped[ReportCategory] = mapped_column(Enum(ReportCategory), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
     body_rich: CacheEntry | None = None
 
     @validates('body')

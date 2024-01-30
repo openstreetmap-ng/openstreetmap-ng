@@ -55,7 +55,7 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
         chunks = []
 
         # check size with compression
-        if decompressor := _get_decompressor(content_encoding):
+        if (decompressor := _get_decompressor(content_encoding)) is not None:
             logging.debug('Decompressing %r request encoding', content_encoding)
 
             async for chunk in request.stream():

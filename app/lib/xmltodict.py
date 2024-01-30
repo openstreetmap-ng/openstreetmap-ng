@@ -155,7 +155,7 @@ def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: c
             parsed.append((k, v))
 
         # merge with existing value
-        elif parsed_v := parsed_children.get(k):
+        elif (parsed_v := parsed_children.get(k)) is not None:
             if isinstance(parsed_v, list):
                 parsed_v.append(v)
             else:
@@ -192,7 +192,7 @@ def _strip_namespace(tag: str) -> str:
 
 @cython.cfunc
 def _postprocessor(key: str, value):
-    if call := _value_postprocessor.get(key):
+    if (call := _value_postprocessor.get(key)) is not None:
         return call(value)
     else:
         return value

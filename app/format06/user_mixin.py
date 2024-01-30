@@ -40,7 +40,7 @@ class User06Mixin:
         """
 
         current_user = auth_user()
-        access_private: cython.char = current_user and current_user.id == user.id
+        access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
 
         changesets_count: cython.int = 0
         traces_count: cython.int = 0

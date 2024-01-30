@@ -57,10 +57,10 @@ async def element_read_latest(
     typed_id: PositiveInt,
 ) -> dict:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)
+    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=1)
     element = elements[0] if elements else None
 
-    if not element:
+    if element is None:
         raise_for().element_not_found(typed_ref)
     if not element.visible:
         raise HTTPException(status.HTTP_410_GONE)
@@ -77,7 +77,7 @@ async def element_read_version(
     version: PositiveInt,
 ) -> dict:
     versioned_ref = VersionedElementRef(type=type, typed_id=typed_id, version=version)
-    elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=None)
+    elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=1)
 
     if not elements:
         raise_for().element_not_found(versioned_ref)
@@ -193,8 +193,9 @@ async def elements_read_many(
 
     elements = await ElementRepository.find_many_by_refs(query, limit=None)
 
-    if not all(elements):
-        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    for element in elements:
+        if element is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     return Format06.encode_elements(elements)
 
@@ -208,7 +209,7 @@ async def element_parent_relations(
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
     elements = await ElementRepository.get_many_parents_by_typed_refs(
-        [typed_ref],
+        (typed_ref,),
         parent_type=ElementType.relation,
         limit=None,
     )
@@ -223,7 +224,7 @@ async def element_parent_ways(
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=ElementType.node, typed_id=typed_id)
     elements = await ElementRepository.get_many_parents_by_typed_refs(
-        [typed_ref],
+        (typed_ref,),
         parent_type=ElementType.way,
         limit=None,
     )
@@ -238,16 +239,20 @@ async def element_full(
     typed_id: PositiveInt,
 ) -> Sequence[dict]:
     typed_ref = TypedElementRef(type=type, typed_id=typed_id)
-    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)
-    element = elements[0] if elements else None
+    elements = await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=1)
 
-    if not element:
+    if not elements:
         raise_for().element_not_found(typed_ref)
+
+    element = elements[0]
+
     if not element.visible:
         raise HTTPException(status.HTTP_410_GONE)
 
+    typed_refs = tuple(member.typed_ref for member in element.members)
+
     elements = await ElementRepository.get_many_latest_by_typed_refs(
-        tuple(member.typed_ref for member in element.members),
+        typed_refs,
         recurse_ways=True,
         limit=None,
     )

@@ -4,37 +4,40 @@ from typing import TYPE_CHECKING
 import anyio
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import DateTime, ForeignKey, Integer, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import ForeignKey, Integer, func
+from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config import APP_URL
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry_type import PolygonType
+
+if TYPE_CHECKING:
+    from app.models.db.element import Element
 
 # TODO: 0.7 180th meridian ?
 
 
-class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
+class Changeset(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'changeset'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
+    user: Mapped[User | None] = relationship(lazy='raise')
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     # TODO: normalize unicode, check unicode, check length
 
     # defaults
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-    size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    bounds: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, default=None)
+    # updated_at without server_onupdate (optimistic update manages it)
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(True), nullable=False, server_default=func.statement_timestamp()
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+    size: Mapped[int] = mapped_column(Integer, nullable=False, server_default='0')
+    bounds: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, server_default=None)
 
     # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from app.models.db.element import Element
-
     elements: Mapped[list['Element']] = relationship(
         back_populates='changeset',
         order_by='Element.id.asc()',
@@ -93,16 +96,16 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Returns `True` if the changeset was closed.
         """
 
-        if self.closed_at:
+        if self.closed_at is not None:
             return False
         if self._size < self.max_size:
             return False
 
-        self.closed_at = now or func.now()
+        self.closed_at = now or func.statement_timestamp()
         return True
 
     def union_bounds(self, geometry: BaseGeometry) -> None:
-        if not self.bounds:
+        if self.bounds is None:
             self.bounds = box(*geometry.bounds)
         else:
             self.bounds = box(*self.bounds.union(geometry).bounds)

@@ -25,7 +25,7 @@ class GravatarStorage(StorageBase):
     async def load(self, email: str) -> bytes:
         key = md5(email.lower()).hexdigest()  # noqa: S324
 
-        if data := await self._fc.get(key):
+        if (data := await self._fc.get(key)) is not None:
             return data
 
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')

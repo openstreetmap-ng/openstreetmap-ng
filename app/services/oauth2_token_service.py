@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import null, select
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -44,7 +44,7 @@ class OAuth2TokenService:
 
         app = await OAuth2ApplicationRepository.find_by_client_id(client_id)
 
-        if not app:
+        if app is None:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
@@ -80,7 +80,7 @@ class OAuth2TokenService:
         authorization_code = secrets.token_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with db() as session:
+        async with db_autocommit() as session:
             token = OAuth2Token(
                 user_id=user_id,
                 application_id=app.id,
@@ -96,11 +96,9 @@ class OAuth2TokenService:
         if token.is_oob:
             return f'oob;{authorization_code}'
 
-        params = {
-            'code': authorization_code,
-        }
+        params = {'code': authorization_code}
 
-        if state:
+        if state is not None:
             params['state'] = state
 
         return extend_query_params(redirect_uri, params)
@@ -115,7 +113,7 @@ class OAuth2TokenService:
 
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             stmt = (
                 select(OAuth2Token)
                 .where(
@@ -127,12 +125,12 @@ class OAuth2TokenService:
 
             token = await session.scalar(stmt)
 
-            if not token:
+            if token is None:
                 raise_for().oauth_bad_user_token()
 
             try:
                 if token.code_challenge_method is None:
-                    if verifier:
+                    if verifier is not None:
                         raise_for().oauth2_challenge_method_not_set()
                 elif token.code_challenge_method == OAuth2CodeChallengeMethod.plain:
                     if token.code_challenge != verifier:

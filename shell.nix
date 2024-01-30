@@ -104,7 +104,7 @@ let
     '')
 
     # -- Alembic
-    (writeShellScriptBin "alembic-revision" ''
+    (writeShellScriptBin "alembic-migration" ''
       name=$1
       if [ -z "$name" ]; then
         read -p "Database migration name: " name
@@ -267,14 +267,16 @@ let
     # Development environment variables
     export PYTHONNOUSERSITE=1
     export TZ="UTC"
-    export SECRET="development-secret"
+
     export TEST_ENV=1
     export HTTPS_ONLY=0
+    export POSTGRES_LOG=1
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
     export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
     export RAPID_URL="http://127.0.0.1:3000"
+    export SECRET="development-secret"
 
     if [ -f .env ]; then
       echo "Loading .env file"

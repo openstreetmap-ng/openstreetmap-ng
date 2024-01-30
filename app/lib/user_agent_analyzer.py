@@ -22,7 +22,7 @@ def is_browser_supported(user_agent: str) -> bool:
     match = _user_agent_re.search(user_agent)
 
     # support unknown user agents
-    if not match:
+    if match is None:
         return True
 
     name = match['name']

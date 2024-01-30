@@ -22,9 +22,10 @@ from app.responses.osm_response import OSMResponse
 
 @asynccontextmanager
 async def lifespan():
-    # freeze all gc objects before starting the server for improved performance
+    # freeze all gc objects before starting for improved performance
     gc.collect()
     gc.freeze()
+
     yield
 
 

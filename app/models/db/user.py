@@ -8,7 +8,6 @@ from shapely.geometry import Point
 from sqlalchemy import (
     ARRAY,
     Boolean,
-    DateTime,
     Enum,
     LargeBinary,
     Unicode,
@@ -16,7 +15,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config import APP_URL
@@ -28,6 +27,7 @@ from app.lib.password_hash import PasswordHash
 from app.lib.rich_text_mixin import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
+    DISPLAY_NAME_MAX_LENGTH,
     LANGUAGE_CODE_MAX_LENGTH,
     LANGUAGE_CODES_LIMIT,
     USER_DESCRIPTION_MAX_LENGTH,
@@ -54,7 +54,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('description', TextFormat.markdown),)
 
     email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
-    display_name: Mapped[str] = mapped_column(Unicode, nullable=False)
+    display_name: Mapped[str] = mapped_column(Unicode(DISPLAY_NAME_MAX_LENGTH), nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
@@ -66,17 +66,23 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
 
     # defaults
-    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=func.now())
-    password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, default=None)
-    consider_public_domain: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, default=())
-    description: Mapped[str] = mapped_column(UnicodeText, nullable=False, default='')
-    description_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True), nullable=True, server_default=func.statement_timestamp()
+    )
+    password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, server_default=None)
+    consider_public_domain: Mapped[bool | None] = mapped_column(Boolean, nullable=True, server_default=None)
+    roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, server_default='{}')
+    description: Mapped[str] = mapped_column(UnicodeText, nullable=False, server_default='')
+    description_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE), nullable=True, server_default=None
+    )
     description_rich: CacheEntry | None = None
-    editor: Mapped[Editor | None] = mapped_column(Enum(Editor), nullable=True, default=None)
-    avatar_type: Mapped[AvatarType] = mapped_column(Enum(AvatarType), nullable=False, default=AvatarType.default)
-    avatar_id: Mapped[str | None] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=True, default=None)
-    home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, default=None)
+    editor: Mapped[Editor | None] = mapped_column(Enum(Editor), nullable=True, server_default=None)
+    avatar_type: Mapped[AvatarType] = mapped_column(
+        Enum(AvatarType), nullable=False, server_default=AvatarType.default.value
+    )
+    avatar_id: Mapped[str | None] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=True, server_default=None)
+    home_point: Mapped[Point | None] = mapped_column(PointType, nullable=True, server_default=None)
 
     # relationships (avoid circular imports)
     active_user_blocks_received: Mapped[list['UserBlock']] = relationship(
@@ -202,4 +208,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             return Avatar.get_url(self.avatar_type, self.avatar_id)
 
     async def home_distance_to(self, point: Point | None) -> float | None:
-        return haversine_distance(self.home_point, point) if self.home_point and point else None
+        if point is None or self.home_point is None:
+            return None
+
+        return haversine_distance(self.home_point, point)

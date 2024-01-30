@@ -25,7 +25,7 @@ async def _encode_note(
     fe.updated(note.updated_at)
     fe.geo.point(f'{note.point.y} {note.point.x}')
 
-    if user := note.comments[0].user:
+    if (user := note.comments[0].user) is not None:
         fe.author(name=user.display_name, uri=user.permalink)
         fe.dc.creator(user.display_name)
 
@@ -72,7 +72,7 @@ async def _encode_note_comment(
     fe.published(comment.created_at)
     fe.geo.point(f'{point.y} {point.x}')
 
-    if user := comment.user:
+    if (user := comment.user) is not None:
         fe.author(name=user.display_name, uri=user.permalink)
         fe.dc.creator(user.display_name)
 

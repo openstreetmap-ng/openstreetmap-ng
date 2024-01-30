@@ -51,7 +51,7 @@ class Nominatim:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None
 
-        if display_name:
+        if display_name is not None:
             return display_name
         else:
             # always succeed, return coordinates as a fallback
@@ -64,7 +64,7 @@ class Nominatim:
                 'format': 'jsonv2',
                 'q': q,
                 'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bbox.bounds)} if bbox else {}),
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bbox.bounds)} if bbox is not None else {}),
                 'accept-language': primary_translation_language(),
             }
         )
@@ -84,5 +84,6 @@ class Nominatim:
                 typed_id=osm_id,
             )
             for result in results
-            if (osm_type := result.get('osm_type')) and (osm_id := result.get('osm_id'))
+            # some results are abstract and have no osm_type/osm_id
+            if (osm_type := result.get('osm_type')) is not None and (osm_id := result.get('osm_id')) is not None
         )

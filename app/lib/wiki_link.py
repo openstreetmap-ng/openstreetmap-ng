@@ -32,7 +32,7 @@ def wiki_link(tag_key: str) -> str | None:
 
     locales = _wiki_tags.get(tag_key)
 
-    if not locales:
+    if locales is None:
         return None
 
     user_langs = translation_languages()

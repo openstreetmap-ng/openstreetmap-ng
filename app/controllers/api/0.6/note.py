@@ -49,6 +49,7 @@ async def _resolve_rich_texts(notes_or_comments: Sequence[Note | NoteComment] | 
     if not notes_or_comments:
         return
 
+    # ensure it's a sequence
     if isinstance(notes_or_comments, Note | NoteComment):
         notes_or_comments = (notes_or_comments,)
 
@@ -88,7 +89,7 @@ async def note_read(
     note_id: PositiveInt,
 ) -> dict:
     with joinedload_context(Note.comments, NoteComment.body_rich):
-        notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=None)
+        notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
 
     if not notes:
         raise_for().note_not_found(note_id)
@@ -175,7 +176,7 @@ async def notes_feed(
     request: Request,
     bbox: Annotated[str | None, Query(None, min_length=1)],
 ) -> Sequence[dict]:
-    if bbox:
+    if bbox is not None:
         geometry = parse_bbox(bbox)
 
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
@@ -291,25 +292,25 @@ async def notes_query(
     limit: Annotated[PositiveInt, Query(NOTE_QUERY_DEFAULT_LIMIT, le=NOTE_QUERY_LEGACY_MAX_LIMIT)],
 ) -> Sequence[dict]:
     # small logical optimization
-    if from_ and to and from_ >= to:  # invalid date range
+    if (from_ is not None) and (to is not None) and (from_ >= to):  # invalid date range
         return Format06.encode_notes(())
-    if q is not None and not q.strip():  # provided empty q
+    if (q is not None) and (not q.strip()):  # provided empty q
         return Format06.encode_notes(())
 
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
 
-    if display_name:
+    if display_name is not None:
         user = await UserRepository.find_one_by_display_name(display_name)
-        if not user:
+        if user is None:
             raise_for().user_not_found_bad_request(display_name)
-    elif user_id:
+    elif user_id is not None:
         user = await UserRepository.find_one_by_id(user_id)
-        if not user:
+        if user is None:
             raise_for().user_not_found_bad_request(user_id)
     else:
         user = None
 
-    if bbox:
+    if bbox is not None:
         geometry = parse_bbox(bbox)
 
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
@@ -320,7 +321,7 @@ async def notes_query(
     with joinedload_context(Note.comments, NoteComment.body_rich):
         notes = await NoteRepository.find_many_by_query(
             text=q,
-            user_id=user.id if user else None,
+            user_id=user.id if user is not None else None,
             max_closed_for=max_closed_for,
             geometry=geometry,
             date_from=from_,
@@ -338,7 +339,7 @@ async def notes_query(
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
 
-        if geometry:
+        if geometry is not None:
             min_lon, min_lat, max_lon, max_lat = geometry.bounds
             fg.subtitle(
                 t('api.notes.rss.description_area').format(

@@ -11,7 +11,7 @@ class Geometry06Mixin:
         {'@lon': 1, '@lat': 2}
         """
 
-        if not point:
+        if point is None:
             return {}
 
         return {

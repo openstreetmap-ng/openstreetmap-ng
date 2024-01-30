@@ -458,12 +458,6 @@ app/static/js/bundle-*
 temp
 tmp
 
-# Planet files
-*.osm
-*.br
-*.bz2
-*.pbf
-
 # Data files
 /data
 

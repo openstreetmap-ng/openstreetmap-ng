@@ -60,13 +60,10 @@ async def changeset_read(
     include_discussion: Annotated[str | None, Query(None)],
 ) -> dict:
     # treat any non-empty string as True
-    include_discussion = bool(include_discussion)
+    include_discussion: bool = bool(include_discussion)
 
     with joinedload_context(Changeset.comments, ChangesetComment.user) if include_discussion else nullcontext():
-        changesets = await ChangesetRepository.find_many_by_query(
-            changeset_ids=(changeset_id,),
-            limit=None,
-        )
+        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
@@ -130,10 +127,7 @@ async def changeset_download(
     changeset_id: PositiveInt,
 ) -> Sequence:
     with joinedload_context(Changeset.elements):
-        changesets = await ChangesetRepository.find_many_by_query(
-            changeset_ids=(changeset_id,),
-            limit=None,
-        )
+        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
@@ -154,13 +148,17 @@ async def changesets_query(
     bbox: Annotated[str | None, Query(None, min_length=1)],
     limit: Annotated[int, Query(CHANGESET_QUERY_DEFAULT_LIMIT, gt=0, le=CHANGESET_QUERY_MAX_LIMIT)],
 ) -> Sequence[dict]:
+    # treat any non-empty string as True
+    open: bool = bool(open)
+    closed: bool = bool(closed)
+
     # small logical optimization
     if open and closed:
         return Format06.encode_changesets(())
 
-    geometry = parse_bbox(bbox) if bbox else None
+    geometry = parse_bbox(bbox) if bbox is not None else None
 
-    if changesets:
+    if changesets is not None:
         parts = (c.strip() for c in changesets.split(','))
         parts = (c for c in parts if c and c.isdigit())
         changeset_ids = {int(c) for c in parts}
@@ -169,19 +167,21 @@ async def changesets_query(
     else:
         changeset_ids = None
 
-    if display_name and user_id:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
+    display_name_provided = display_name is not None
+    user_id_provided = user_id is not None
 
-    if display_name:
+    if display_name_provided and user_id_provided:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
+    if display_name_provided:
         user = await UserRepository.find_one_by_display_name(display_name)
-        if not user:
+        if user is None:
             raise_for().user_not_found_bad_request(display_name)
-    elif user_id:
+    elif user_id_provided:
         user = await UserRepository.find_one_by_id(user_id)
-        if not user:
+        if user is None:
             raise_for().user_not_found_bad_request(user_id)
 
-    if time:
+    if time is not None:
         try:
             if ',' in time:
                 parts = time.split(',', maxsplit=1)
@@ -201,7 +201,7 @@ async def changesets_query(
 
     changesets = await ChangesetRepository.find_many_by_query(
         changeset_ids=changeset_ids,
-        user_id=user.id if user else None,
+        user_id=user.id if user is not None else None,
         created_before=created_before,
         closed_after=closed_after,
         is_open=True if open else (False if closed else None),

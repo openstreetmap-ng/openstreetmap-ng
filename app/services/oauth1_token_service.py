@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import func, null, select
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
@@ -25,7 +25,7 @@ class OAuth1TokenService:
 
         app = await OAuth1ApplicationRepository.find_by_consumer_key(consumer_key)
 
-        if not app:
+        if app is None:
             raise_for().oauth_bad_app_token()
 
         token_str = secrets.token_urlsafe(32)
@@ -35,17 +35,17 @@ class OAuth1TokenService:
         callback_url = callback_url_param or app.callback_url
 
         # oob requests don't contain a callback url
-        if callback_url[:3].lower() == 'oob':
+        if callback_url is not None and callback_url[:3].lower() == 'oob':
             callback_url = None
 
         # validate the callback url
-        if callback_url:
+        if callback_url is not None:
             try:
                 URLValidator.validate(callback_url)
             except Exception:
                 raise_for().oauth_bad_redirect_uri()
 
-        async with db() as session:
+        async with db_autocommit() as session:
             session.add(
                 OAuth1Token(
                     user_id=None,
@@ -83,7 +83,7 @@ class OAuth1TokenService:
 
         token_hashed = hash_bytes(token_str, context=None)
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             stmt = (
                 select(OAuth1Token)
                 .where(
@@ -95,7 +95,7 @@ class OAuth1TokenService:
 
             token = await session.scalar(stmt)
 
-            if not token:
+            if token is None:
                 raise_for().oauth_bad_user_token()
             if not set(scopes).issubset(token.application.scopes):
                 raise_for().oauth_bad_scopes()
@@ -126,7 +126,7 @@ class OAuth1TokenService:
 
         token_hashed = hash_bytes(token_str, context=None)
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             stmt = (
                 select(OAuth1Token)
                 .where(
@@ -139,7 +139,7 @@ class OAuth1TokenService:
 
             token = await session.scalar(stmt)
 
-            if not token:
+            if token is None:
                 raise_for().oauth_bad_user_token()
 
             try:
@@ -156,7 +156,7 @@ class OAuth1TokenService:
 
             token.token_hashed = token_hashed
             token.key_secret = token_secret
-            token.authorized_at = func.now()
+            token.authorized_at = func.statement_timestamp()
             token.verifier = None
 
         return {

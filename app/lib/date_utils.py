@@ -11,7 +11,10 @@ def format_iso_date(date: datetime | None) -> str:
     '2021-12-31T15:30:45Z'
     """
 
-    return date.strftime('%Y-%m-%dT%H:%M:%SZ') if date else 'None'
+    if date is None:
+        return 'None'
+
+    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def format_sql_date(date: datetime | None) -> str:
@@ -22,7 +25,10 @@ def format_sql_date(date: datetime | None) -> str:
     '2021-12-31 15:30:45 UTC'
     """
 
-    return date.strftime('%Y-%m-%d %H:%M:%S UTC') if date else 'None'
+    if date is None:
+        return 'None'
+
+    return date.strftime('%Y-%m-%d %H:%M:%S UTC')
 
 
 def utcnow() -> datetime:
@@ -45,4 +51,9 @@ def parse_date(s: str) -> datetime:
 
     # TODO: support timezones
     date = dateutil.parser.parse(s, ignoretz=False)
-    return date.replace(tzinfo=UTC) if date.tzinfo is None else date
+
+    # ensure timezone is set
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=UTC)
+
+    return date

@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Path, Request, status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL
-from app.lib.shortlink import ShortLink
+from app.lib.shortlink import shortlink_decode
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def go(
     """
 
     try:
-        lon, lat, z = ShortLink.decode(code)
+        lon, lat, z = shortlink_decode(code)
     except Exception as e:
         raise HTTPException(status.HTTP_404_NOT_FOUND) from e
 

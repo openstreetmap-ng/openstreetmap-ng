@@ -1,7 +1,7 @@
 from fastapi import Request
 
-from app.db import db
-from app.lib.auth_context import auth_context, auth_user, manual_auth_context
+from app.db import db_autocommit
+from app.lib.auth_context import auth_context, auth_user
 from app.lib.email import validate_email_deliverability
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
@@ -48,7 +48,7 @@ class UserSignupService:
         languages = translation_languages()
 
         # create user
-        async with db() as session:
+        async with db_autocommit() as session:
             user = User(
                 email=email,
                 display_name=display_name,

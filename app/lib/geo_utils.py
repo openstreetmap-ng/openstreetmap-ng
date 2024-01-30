@@ -76,7 +76,10 @@ def parse_bbox(s: str) -> Polygon:
 
     try:
         parts = s.strip().split(',', maxsplit=3)
-        minx, miny, maxx, maxy = map(float, parts)
+        minx: cython.double = float(parts[0])
+        miny: cython.double = float(parts[1])
+        maxx: cython.double = float(parts[2])
+        maxy: cython.double = float(parts[3])
     except Exception:
         raise_for().bad_bbox(s)
     if minx > maxx:

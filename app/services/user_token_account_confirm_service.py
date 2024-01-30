@@ -2,7 +2,7 @@ import secrets
 
 from sqlalchemy import delete, update
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -25,7 +25,7 @@ class UserTokenAccountConfirmService:
         token_bytes = secrets.token_bytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
-        async with db() as session:
+        async with db_autocommit() as session:
             token = UserTokenAccountConfirm(
                 user_id=auth_user().id,
                 token_hashed=token_hashed,
@@ -44,11 +44,20 @@ class UserTokenAccountConfirmService:
 
         token = await UserTokenAccountConfirmRepository.find_one_by_token_struct(token_struct)
 
-        if not token:
+        if token is None:
             raise_for().bad_user_token_struct()
 
-        # NOTE: potential timing attack, but the impact is negligible
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
+            # prevent timing attacks
+            session.connection(execution_options={'isolation_level': 'SERIALIZABLE'})
+
+            stmt = delete(UserTokenAccountConfirm).where(
+                UserTokenAccountConfirm.id == token_struct.id,
+            )
+
+            if (await session.execute(stmt)).rowcount != 1:
+                raise_for().bad_user_token_struct()
+
             stmt = (
                 update(User)
                 .where(
@@ -56,12 +65,6 @@ class UserTokenAccountConfirmService:
                     User.status == UserStatus.pending,
                 )
                 .values({User.status: UserStatus.active})
-            )
-
-            await session.execute(stmt)
-
-            stmt = delete(UserTokenAccountConfirm).where(
-                UserTokenAccountConfirm.id == token_struct.id,
             )
 
             await session.execute(stmt)

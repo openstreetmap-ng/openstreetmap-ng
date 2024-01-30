@@ -33,7 +33,7 @@ class TarFileProcessor(TraceFileProcessor):
                 file = archive.extractfile(member)
 
                 # skip directories
-                if not file:
+                if file is None:
                     continue
 
                 result[i] = file.read()

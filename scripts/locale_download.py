@@ -101,7 +101,7 @@ async def main():
     locales_names: list[LocaleName] = []
 
     async def process_locale(locale: str):
-        if locale_name := await download_locale(locale):
+        if (locale_name := await download_locale(locale)) is not None:
             locales_names.append(locale_name)
 
     async with anyio.create_task_group() as tg:

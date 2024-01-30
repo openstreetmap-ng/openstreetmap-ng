@@ -7,7 +7,6 @@ from app.lib.auth_context import auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
 from app.lib.trace_file import TraceFile
-from app.limits import FIND_LIMIT
 from app.models.db.trace_ import Trace
 from app.storage import TRACES_STORAGE
 
@@ -24,7 +23,7 @@ class TraceRepository:
         async with db() as session:
             trace = await session.get(Trace, trace_id, options=(get_joinedload(),))
 
-        if not trace:
+        if trace is None:
             raise_for().trace_not_found(trace_id)
         if not trace.visible_to(*auth_user_scopes()):
             raise_for().trace_access_denied(trace_id)
@@ -51,7 +50,7 @@ class TraceRepository:
     async def find_many_by_user_id(
         user_id: int,
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Trace]:
         """
         Find traces by user id.

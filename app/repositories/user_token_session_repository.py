@@ -19,12 +19,12 @@ class UserTokenSessionRepository:
         async with db() as session:
             stmt = select(UserTokenSession).where(
                 UserTokenSession.id == token_struct.id,
-                UserTokenSession.expires_at > func.now(),  # TODO: expires at check
+                UserTokenSession.expires_at > func.statement_timestamp(),  # TODO: expires at check
             )
 
             token = await session.scalar(stmt)
 
-        if not token:
+        if token is None:
             return None
 
         token_hashed = hash_bytes(token_struct.token, context=None)
@@ -33,4 +33,4 @@ class UserTokenSessionRepository:
             logging.debug('Invalid session token for id %r', token_struct.id)
             return None
 
-        return token.user
+        return token

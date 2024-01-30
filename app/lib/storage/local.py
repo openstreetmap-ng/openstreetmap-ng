@@ -22,10 +22,10 @@ class LocalStorage(StorageBase):
         Path('.../context/file_key.png')
         """
 
-        dir_path = FILE_STORE_DIR / self._context
+        dir_path: Path = FILE_STORE_DIR / self._context
         await dir_path.mkdir(parents=True, exist_ok=True)
 
-        full_path = dir_path / key
+        full_path: Path = dir_path / key
         return full_path
 
     async def load(self, key: str) -> bytes:

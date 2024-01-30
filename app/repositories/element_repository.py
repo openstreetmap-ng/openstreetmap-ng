@@ -11,7 +11,7 @@ from app.db import db
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
-from app.limits import FIND_LIMIT, MAP_QUERY_LEGACY_NODES_LIMIT
+from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.element_type import ElementType
 from app.models.typed_element_ref import TypedElementRef
@@ -37,7 +37,7 @@ class ElementRepository:
             )
 
             element = await session.scalar(stmt)
-            return element.typed_id if element else 0
+            return element.typed_id if element is not None else 0
 
     @staticmethod
     async def find_one_latest() -> Element | None:
@@ -53,7 +53,7 @@ class ElementRepository:
     async def get_many_by_versioned_refs(
         versioned_refs: Sequence[VersionedElementRef],
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Element]:
         """
         Get elements by the versioned refs.
@@ -90,7 +90,7 @@ class ElementRepository:
     async def get_many_by_typed_ref(
         typed_ref: TypedElementRef,
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Element]:
         """
         Get elements by the typed ref.
@@ -117,7 +117,7 @@ class ElementRepository:
         typed_refs: Sequence[TypedElementRef],
         *,
         recurse_ways: bool = False,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Element]:
         """
         Get elements by the typed refs.
@@ -188,7 +188,7 @@ class ElementRepository:
     async def find_many_by_refs(
         refs: Sequence[VersionedElementRef | TypedElementRef],
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Element | None]:
         """
         Get elements by the ref strings.
@@ -229,7 +229,7 @@ class ElementRepository:
         def result_d_gen():
             for i, ref in enumerate(refs):
                 element = ref_map.get(ref)
-                yield (element.id, element) if element else (-i, None)
+                yield (element.id, element) if element is not None else (-i, None)
 
         result_d = dict(result_d_gen()).values()
 
@@ -246,7 +246,7 @@ class ElementRepository:
         parent_type: ElementType | None = None,
         *,
         after: int | None = None,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Element]:
         """
         Get elements that reference the given elements.
@@ -291,7 +291,7 @@ class ElementRepository:
     async def find_many_by_query(
         geometry: Polygon,
         *,
-        nodes_limit: int | None = FIND_LIMIT,
+        nodes_limit: int | None,
         legacy_nodes_limit: bool = False,
     ) -> Sequence[Element]:
         """
@@ -313,7 +313,7 @@ class ElementRepository:
         if legacy_nodes_limit:
             if nodes_limit != MAP_QUERY_LEGACY_NODES_LIMIT:
                 raise ValueError('limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is enabled')
-            nodes_limit += 1
+            nodes_limit += 1  # to detect limit exceeded
 
         # find all the matching nodes
         async with db() as session:
@@ -366,7 +366,7 @@ class ElementRepository:
                 ways_member_refs = tuple(member.typed_ref for way in ways for member in way.members)
                 ways_nodes = await ElementRepository.get_many_latest_by_typed_refs(
                     ways_member_refs,
-                    limit=None,
+                    limit=len(ways_member_refs),
                 )
 
                 if ways_nodes:

@@ -51,7 +51,7 @@ class PasswordHash:
             return compare_digest(password_hashed, valid_hash)
 
         # pbkdf2 (deprecated)
-        if salt and '!' in salt:
+        if salt is not None and '!' in salt:
             password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = salt.split('!')
             iterations = int(iterations_)

@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, SmallInteger, UnicodeText
+from sqlalchemy import Enum, ForeignKey, SmallInteger, UnicodeText
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.db.base import Base
@@ -23,5 +24,5 @@ class Mail(Base.UUID, CreatedAtMixin):
     priority: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     # defaults
-    processing_counter: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
-    processing_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    processing_counter: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default='0')
+    processing_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)

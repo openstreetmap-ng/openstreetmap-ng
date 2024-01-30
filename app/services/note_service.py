@@ -3,7 +3,7 @@ from shapely import Point
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -19,14 +19,14 @@ class NoteService:
         Create a note.
         """
 
-        if user := auth_user():
+        if (user := auth_user()) is not None:
             user_id = user.id
             user_ip = None
         else:
             user_id = None
             user_ip = request.client.host
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             note = Note(
                 point=point,
                 comments=[
@@ -51,7 +51,7 @@ class NoteService:
 
         current_user = auth_user()
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             stmt = (
                 select(Note)
                 .options(
@@ -67,32 +67,32 @@ class NoteService:
 
             note = await session.scalar(stmt)
 
-            if not note:
+            if note is None:
                 raise_for().note_not_found(note_id)
 
             if event == NoteEvent.closed:
-                if note.closed_at:
+                if note.closed_at is not None:
                     raise_for().note_closed(note_id, note.closed_at)
 
-                note.closed_at = func.now()
+                note.closed_at = func.statement_timestamp()
 
             elif event == NoteEvent.reopened:
                 # unhide
-                if note.hidden_at:
+                if note.hidden_at is not None:
                     note.hidden_at = None
                 # reopen
                 else:
-                    if not note.closed_at:
+                    if note.closed_at is None:
                         raise_for().note_open(note_id)
 
                     note.closed_at = None
 
             elif event == NoteEvent.commented:
-                if note.closed_at:
+                if note.closed_at is not None:
                     raise_for().note_closed(note_id, note.closed_at)
 
             elif event == NoteEvent.hidden:
-                note.hidden_at = func.now()
+                note.hidden_at = func.statement_timestamp()
 
             else:
                 raise RuntimeError(f'Unsupported comment event {event!r}')

@@ -4,7 +4,7 @@ from datetime import datetime
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH1_TIMESTAMP_VALIDITY
@@ -48,7 +48,7 @@ class OAuth1NonceService:
 
         # TODO: normalize unicode globally?
         try:
-            async with db() as session:
+            async with db_autocommit() as session:
                 session.add(nonce)
         except IntegrityError:
             logging.debug('OAuth nonce already spent (%r, %r)', nonce_str, timestamp)

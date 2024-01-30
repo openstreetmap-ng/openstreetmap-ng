@@ -4,6 +4,7 @@ from app.models.db.element import Element
 from app.models.element_type import ElementType
 
 # map[tag_key][tag_value_or_type] = icon
+# TODO: in file
 _config: dict[str, dict] = {
     'aeroway': {
         'aerodrome': 'aeroway_airport.webp',
@@ -393,7 +394,7 @@ for key_config in _config.values():
 
 
 # TODO: deleted objects use previous tagging
-def element_icon(element: Element) -> tuple[str, str] | tuple[None, None]:
+def feature_icon(element: Element) -> tuple[str, str] | tuple[None, None]:
     """
     Get the filename and title of the icon for an element.
 
@@ -416,25 +417,27 @@ def element_icon(element: Element) -> tuple[str, str] | tuple[None, None]:
 
     # 1. check value-specific configuration
     for key in matched_keys:
-        key_value = tags[key]
-        key_config = _config[key]
+        key_value: str = tags[key]
+        key_config: dict[str | None, str] | dict[ElementType, dict[str | None, str]] = _config[key]
+        type_config: dict[str | None, str] | None = key_config.get(element_type)
 
         # prefer type-specific configuration
-        if icon := key_config.get(element_type, {}).get(key_value):
+        if (type_config is not None) and (icon := type_config.get(key_value)) is not None:
             return icon, f'{key}={key_value}'
 
-        if icon := key_config.get(key_value):
+        if (icon := key_config.get(key_value)) is not None:
             return icon, f'{key}={key_value}'
 
     # 2. check tag-specific configuration (value == None)
     for key in matched_keys:
-        key_config = _config[key]
+        key_config: dict[str | None, str] | dict[ElementType, dict[str | None, str]] = _config[key]
+        type_config: dict[str | None, str] | None = key_config.get(element_type)
 
         # prefer type-specific configuration
-        if icon := key_config.get(element_type, {}).get(None):
+        if (type_config is not None) and (icon := type_config.get(None)) is not None:
             return icon, key
 
-        if icon := key_config.get(None):
+        if (icon := key_config.get(None)) is not None:
             return icon, key
 
     return None, None

@@ -5,7 +5,6 @@ from sqlalchemy import func, select
 
 from app.db import db
 from app.lib.joinedload_context import get_joinedload
-from app.limits import FIND_LIMIT
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
@@ -17,7 +16,7 @@ class TracePointRepository:
     async def find_many_by_geometry(
         geometry: Polygon,
         *,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
         legacy_offset: int | None = None,
     ) -> Sequence[TracePoint]:
         """

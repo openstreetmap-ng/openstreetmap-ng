@@ -19,12 +19,12 @@ class UserTokenAccountConfirmRepository:
         async with db() as session:
             stmt = select(UserTokenAccountConfirm).where(
                 UserTokenAccountConfirm.id == token_struct.id,
-                UserTokenAccountConfirm.expires_at > func.now(),  # TODO: expires at check
+                UserTokenAccountConfirm.expires_at > func.statement_timestamp(),  # TODO: expires at check
             )
 
             token = await session.scalar(stmt)
 
-        if not token:
+        if token is None:
             return None
 
         token_hashed = hash_bytes(token_struct.token, context=None)
@@ -33,4 +33,4 @@ class UserTokenAccountConfirmRepository:
             logging.debug('Invalid account confirmation token for id %r', token_struct.id)
             return None
 
-        return token.user
+        return token

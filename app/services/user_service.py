@@ -3,7 +3,7 @@ import logging
 from fastapi import UploadFile
 from sqlalchemy import func
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.email import validate_email_deliverability
 from app.lib.message_collector import MessageCollector
@@ -29,7 +29,7 @@ class UserService:
         Update user's about me.
         """
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             user = await session.get(User, auth_user().id, with_for_update=True)
 
             if user.description != description:
@@ -58,25 +58,25 @@ class UserService:
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
         # handle custom avatar
-        if avatar_type == AvatarType.custom:
+        if avatar_type == AvatarType.custom and avatar_file is not None:
             avatar_id = await AvatarService.upload(avatar_file)
         else:
             avatar_id = None
 
         # update user data
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             user = await session.get(User, current_user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
             user.languages_str = languages
             user.home_point = home_point
 
-            if avatar_type:
+            if avatar_type is not None:
                 user.avatar_type = avatar_type
                 user.avatar_id = avatar_id
 
         # cleanup old avatar
-        if avatar_type and current_user.avatar_id:
+        if avatar_type is not None and current_user.avatar_id:
             await AvatarService.delete_by_id(current_user.avatar_id)
 
     @staticmethod
@@ -130,10 +130,10 @@ class UserService:
         password_hashed = current_user.password_hasher.hash(new_password)
 
         # update user data
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             user = await session.get(User, current_user.id, with_for_update=True)
             user.password_hashed = password_hashed
-            user.password_changed_at = func.now()
+            user.password_changed_at = func.statement_timestamp()
             user.password_salt = None
 
         collector.success(None, t('user.password_changed'))

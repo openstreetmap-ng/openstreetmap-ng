@@ -44,19 +44,18 @@ def resolve_community_name(community: dict, locale: dict) -> str:
     """
 
     # if theres an explicitly translated name then use that
-    if translated := locale.get(community['id'], {}).get('name'):
+    if (translated := locale.get(community['id'], {}).get('name')) is not None:
         return translated
 
     # if not, then look up the default translated name for this type of community, and interpolate the template
-    if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) and (
-        community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))
-    ):
-        template: str
-        community_name: str
-        return template.format(community=community_name)
+    if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:  # noqa: SIM102
+        if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
+            template: str
+            community_name: str
+            return template.format(community=community_name)
 
     # otherwise fall back to the english resource name
-    if translated := community['strings'].get('name'):
+    if (translated := community['strings'].get('name')) is not None:
         return translated
 
     # finally use the english community name
@@ -165,7 +164,7 @@ def postprocess():
         convert_format_format(data)
 
         # apply local chapter overrides
-        if local_chapters := local_chapters_map.get(locale):
+        if (local_chapters := local_chapters_map.get(locale)) is not None:
             deep_dict_update(data, local_chapters)
 
         # apply extra overrides

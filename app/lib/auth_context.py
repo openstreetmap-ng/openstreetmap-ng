@@ -63,7 +63,7 @@ def _get_user(require_scopes: SecurityScopes) -> User:
     user, user_scopes = auth_user_scopes()
 
     # user must be authenticated
-    if not user:
+    if user is None:
         raise_for().unauthorized(request_basic_auth=True)
 
     # and have the required scopes

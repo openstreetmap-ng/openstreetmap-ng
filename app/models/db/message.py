@@ -25,13 +25,13 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
     to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise')
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
     body_rich: CacheEntry | None = None
 
     # defaults
-    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    from_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    to_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
+    from_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
+    to_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
@@ -47,7 +47,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
         subject = mail.get('Subject')
 
-        if not subject:
+        if subject is None:
             raise ValueError('Message has no subject')
 
         def get_body(part: EmailMessage) -> str | None:
@@ -64,12 +64,12 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
         if mail.is_multipart():
             body = None
             for part in mail.iter_parts():
-                if body := get_body(part):
+                if (body := get_body(part)) is not None:
                     break
         else:
             body = get_body(mail)
 
-        if not body:
+        if body is None:
             raise ValueError('Message has no body')
 
         return cls(

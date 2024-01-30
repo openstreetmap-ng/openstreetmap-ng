@@ -35,7 +35,7 @@ async def gpx_create(
     public: Annotated[int, Form(0, deprecated=True)],
     _: Annotated[User, api_user(Scope.write_gpx)],
 ) -> int:
-    if not visibility:
+    if visibility is None:
         visibility = TraceVisibility.public if public else TraceVisibility.private
 
     trace = await Tracks.process_upload(file, description, tags, visibility)

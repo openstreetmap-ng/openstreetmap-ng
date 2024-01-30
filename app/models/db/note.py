@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
 
 import anyio
 from shapely import Point
-from sqlalchemy import ColumnElement, DateTime, null, true
+from sqlalchemy import ColumnElement, null, true
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_method
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.config import APP_URL
 from app.lib.date_utils import utcnow
@@ -26,18 +26,8 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     point: Mapped[Point] = mapped_column(PointType, nullable=False)
 
     # defaults
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-    hidden_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
-
-    # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from app.models.db.note_comment import NoteComment
-
-    comments: Mapped[list['NoteComment']] = relationship(
-        back_populates='note',
-        order_by='NoteComment.created_at.asc()',
-        lazy='raise',
-    )
+    closed_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+    hidden_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
 
     @property
     def freshly_closed_duration(self) -> timedelta | None:
@@ -48,7 +38,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:
-        if user and user.is_moderator:
+        if user is not None and user.is_moderator:
             return True
 
         return self.hidden_at is None
@@ -56,7 +46,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     @visible_to.expression
     @classmethod
     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
-        if user and user.is_moderator:
+        if user is not None and user.is_moderator:
             return true()
 
         return cls.hidden_at == null()

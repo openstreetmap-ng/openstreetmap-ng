@@ -1,60 +1,92 @@
+import csv
+import gc
 import pathlib
 
 import anyio
-import lxml.etree as ET
-from shapely import Point
+from sqlalchemy import select, text
 
+from app.config import PRELOAD_DIR
+from app.db import db_autocommit
 from app.models.db import *  # noqa: F403
+from app.models.db.changeset import Changeset
 from app.models.db.element import Element
-from app.models.element_member import ElementMemberRef
-from app.models.element_type import ElementType
+from app.models.db.user import User
 
 
 async def main():
-    preload_path = pathlib.Path(__file__).parent.parent / 'preload.osm'
-    if not preload_path.is_file():
-        raise FileNotFoundError('File not found: ' + preload_path)
+    # freeze all gc objects before starting for improved performance
+    gc.collect()
+    gc.freeze()
+    gc.disable()
 
-    with preload_path.open('rb') as f:
-        context = ET.iterparse(f)
-        elem: ET.ElementBase
-        temp_tags = {}
-        temp_members = []
+    input_user_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
+    if not input_user_path.is_file():
+        raise FileNotFoundError(f'File not found: {input_user_path}')
 
-        # tag {'k': 'historic', 'v': 'memorial'}
-        # node {'id': '2', 'version': '20', 'timestamp': '2017-05-12T20:38:36Z', 'uid': '362126', 'user': 'Зелёный Кошак', 'changeset': '48634891', 'lat': '59.7718083', 'lon': '30.3260539'}
+    input_changeset_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
+    if not input_changeset_path.is_file():
+        raise FileNotFoundError(f'File not found: {input_changeset_path}')
 
-        for _, elem in context:
-            if elem.tag == 'tag':
-                temp_tags[elem.attrib['k']] = elem.attrib['v']
-            elif elem.tag in ('nd', 'member'):
-                temp_members.append(
-                    ElementMemberRef(
-                        type=ElementType.from_str(elem.attrib['type']),
-                        typed_id=int(elem.attrib['ref']),
-                        role=elem.attrib.get('role', ''),
-                    )
-                )
-            elif elem.tag in ('node', 'way', 'relation'):
-                # TODO: create user, changeset
-                if elem.tag == 'node' and (lon := elem.attrib.get('lon')) and (lat := elem.attrib.get('lat')):
-                    point = Point(float(lon), float(lat))
-                else:
-                    point = None
+    input_element_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
+    if not input_element_path.is_file():
+        raise FileNotFoundError(f'File not found: {input_element_path}')
 
-                element = Element(
-                    user_id=int(elem.attrib['uid']),
-                    changeset_id=int(elem.attrib['changeset']),
-                    type=ElementType.from_str(elem.tag),
-                    typed_id=int(elem.attrib['id']),
-                    version=int(elem.attrib['version']),
-                    visible=elem.attrib.get('visible', 'true') == 'true',
-                    tags=temp_tags,
-                    point=point,
-                    members=temp_members,
-                )
-                temp_tags = {}
-                temp_members = []
+    async with db_autocommit() as session:
+        if await session.scalar(select(Element).limit(1)):
+            if input('Database is not empty. Truncate? (y/N): ').lower() == 'y':
+                print('Truncating...')
+            else:
+                print('Aborted.')
+                return
+
+        # disable triggers (constraints) for faster import
+        # await session.execute(text('SET session_replication_role TO replica'))
+        await session.execute(
+            text(f'TRUNCATE "{Element.__tablename__}", "{Changeset.__tablename__}", "{User.__tablename__}" CASCADE')
+        )
+
+        print('Populating user table...')
+        with input_user_path.open(newline='') as f:
+            columns = next(iter(csv.reader(f)))
+            columns = tuple(f'"{c}"' for c in columns)
+
+        await session.execute(
+            text(
+                f'COPY "{User.__tablename__}" ({", ".join(columns)}) '
+                f"FROM '{input_user_path.absolute()}' "
+                f'(FORMAT CSV, FREEZE, HEADER TRUE)'
+            ),
+        )
+
+        print('Populating changeset table...')
+        with input_changeset_path.open(newline='') as f:
+            columns = next(iter(csv.reader(f)))
+            columns = tuple(f'"{c}"' for c in columns)
+
+        await session.execute(
+            text(
+                f'COPY "{Changeset.__tablename__}" ({", ".join(columns)}) '
+                f"FROM '{input_changeset_path.absolute()}' "
+                f'(FORMAT CSV, FREEZE, HEADER TRUE)'
+            ),
+        )
+
+        print('Populating element table...')
+        with input_element_path.open(newline='') as f:
+            columns = next(iter(csv.reader(f)))
+            columns = tuple(f'"{c}"' for c in columns)
+
+        await session.execute(
+            text(
+                f'COPY "{Element.__tablename__}" ({", ".join(columns)}) '
+                f"FROM '{input_element_path.absolute()}' "
+                f'(FORMAT CSV, FREEZE, HEADER TRUE)'
+            ),
+        )
+
+        print('Done.')
+
+        await session.execute(text('SET session_replication_role TO default'))
 
 
 if __name__ == '__main__':

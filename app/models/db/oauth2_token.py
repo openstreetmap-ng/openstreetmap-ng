@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Unicode
+from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
@@ -18,7 +19,7 @@ class OAuth2Token(Base.UUID, CreatedAtMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='joined')
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
-    application: Mapped[OAuth2Application] = relationship(back_populates='oauth2_tokens', lazy='joined')
+    application: Mapped[OAuth2Application] = relationship(lazy='joined')
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)
@@ -28,7 +29,7 @@ class OAuth2Token(Base.UUID, CreatedAtMixin):
     code_challenge: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
-    authorized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    authorized_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
 
     @property
     def scopes_str(self) -> str:

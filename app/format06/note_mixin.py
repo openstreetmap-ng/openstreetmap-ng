@@ -76,7 +76,7 @@ class Note06Mixin:
                         }
                     ),
                     'date_created': format_sql_date(note.created_at),
-                    **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at else {}),
+                    **({'closed_at': format_sql_date(note.closed_at)} if note.closed_at is not None else {}),
                     'status': note.status.value,
                     'comments': tuple(_encode_note_comment(comment) for comment in note.comments),
                 },
@@ -103,7 +103,7 @@ class Note06Mixin:
                             }
                         ),
                         'date_created': format_sql_date(note.created_at),
-                        **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at else {}),
+                        **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at is not None else {}),
                         'status': note.status.value,
                     },
                 }
@@ -125,7 +125,7 @@ class Note06Mixin:
                         }
                     ),
                     'date_created': format_sql_date(note.created_at),
-                    **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at else {}),
+                    **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at is not None else {}),
                     'status': note.status.value,
                     'comments': {
                         'comment': tuple(_encode_note_comment(comment) for comment in note.comments),

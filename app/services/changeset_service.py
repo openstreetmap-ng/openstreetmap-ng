@@ -1,6 +1,6 @@
 from sqlalchemy import func
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -14,7 +14,7 @@ class ChangesetService:
         Create a new changeset.
         """
 
-        async with db() as session:
+        async with db_autocommit() as session:
             changeset = Changeset(
                 user_id=auth_user().id,
                 tags=tags,
@@ -30,7 +30,7 @@ class ChangesetService:
         Update changeset tags.
         """
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -38,11 +38,11 @@ class ChangesetService:
                 with_for_update=True,
             )
 
-            if not changeset:
+            if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
             if changeset.user_id != auth_user().id:
                 raise_for().changeset_access_denied()
-            if changeset.closed_at:
+            if changeset.closed_at is not None:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
             changeset.tags = tags
@@ -55,7 +55,7 @@ class ChangesetService:
         Close a changeset.
         """
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -63,13 +63,13 @@ class ChangesetService:
                 with_for_update=True,
             )
 
-            if not changeset:
+            if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
             if changeset.user_id != auth_user().id:
                 raise_for().changeset_access_denied()
-            if changeset.closed_at:
+            if changeset.closed_at is not None:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
-            changeset.closed_at = func.now()
+            changeset.closed_at = func.statement_timestamp()
 
         return changeset

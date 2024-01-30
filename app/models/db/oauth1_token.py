@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, LargeBinary, Unicode
+from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
@@ -19,7 +20,7 @@ class OAuth1Token(Base.UUID, CreatedAtMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='joined')
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id), nullable=False)
-    application: Mapped[OAuth1Application] = relationship(back_populates='oauth1_tokens', lazy='joined')
+    application: Mapped[OAuth1Application] = relationship(lazy='joined')
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
     # token_secret encryption is redundant, key is already hashed
     token_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)
@@ -28,7 +29,7 @@ class OAuth1Token(Base.UUID, CreatedAtMixin):
     verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
-    authorized_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    authorized_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
 
     @property
     def scopes_str(self) -> str:

@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from app.db import db
+from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
@@ -17,7 +17,7 @@ class ChangesetCommentService:
         """
 
         try:
-            async with db() as session:
+            async with db_autocommit() as session:
                 changeset = await session.get(
                     Changeset,
                     changeset_id,
@@ -27,7 +27,7 @@ class ChangesetCommentService:
                     ),
                 )
 
-                if not changeset:
+                if changeset is None:
                     raise_for().changeset_not_found(changeset_id)
 
                 changeset.changeset_subscription_users.append(auth_user())
@@ -43,7 +43,7 @@ class ChangesetCommentService:
         Unsubscribe current user from changeset discussion.
         """
 
-        async with db() as session:
+        async with db_autocommit() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -53,7 +53,7 @@ class ChangesetCommentService:
                 ),
             )
 
-            if not changeset:
+            if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
 
         # TODO: will this work?
@@ -70,7 +70,7 @@ class ChangesetCommentService:
         Comment on a changeset.
         """
 
-        async with db() as session:
+        async with db_autocommit() as session:
             changeset = await session.get(
                 Changeset,
                 changeset_id,
@@ -80,9 +80,11 @@ class ChangesetCommentService:
                 ),
             )
 
-            if not changeset:
+            # TODO: with_for_update=True
+
+            if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
-            if not changeset.closed_at:
+            if changeset.closed_at is None:
                 raise_for().changeset_not_closed(changeset_id)
 
             changeset.comments.append(
@@ -101,14 +103,14 @@ class ChangesetCommentService:
         Delete any changeset comment.
         """
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             comment = await session.get(
                 ChangesetComment,
                 comment_id,
                 with_for_update=True,
             )
 
-            if not comment:
+            if comment is None:
                 raise_for().changeset_comment_not_found(comment_id)
 
             await session.delete(comment)

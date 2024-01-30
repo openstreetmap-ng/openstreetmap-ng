@@ -9,7 +9,7 @@ from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
-from app.db import db
+from app.db import db_autocommit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -40,7 +40,7 @@ class OptimisticDiffApply:
         prepare.applied = True
         assigned_ref_map: dict[TypedElementRef, Sequence[Element]] = None
 
-        async with db() as session, session.begin(), anyio.create_task_group() as tg:
+        async with db_autocommit() as session, anyio.create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
             await session.execute(f'LOCK TABLE {Changeset.__tablename__}, {Element.__tablename__} IN EXCLUSIVE MODE')
 
@@ -78,7 +78,7 @@ class OptimisticDiffApply:
         """
 
         element = await ElementRepository.find_one_latest()
-        if not element:
+        if element is None:
             return
         if element.created_at > self._now:
             logging.error(
@@ -98,7 +98,7 @@ class OptimisticDiffApply:
         """
 
         latest = await Element.find_one_by_typed_ref(element.typed_ref)
-        if not latest:
+        if latest is None:
             raise RuntimeError(f'Element {element.typed_ref} does not exist')
         if latest.version != element.version:
             raise OptimisticDiffError(
@@ -176,7 +176,6 @@ class OptimisticDiffApply:
         for element in reversed(elements):
             element_versioned_ref: VersionedElementRef = element.versioned_ref
             element.created_at = now
-            element.updated_at = now
 
             # process superseded elements (local)
             try:
@@ -240,7 +239,7 @@ class OptimisticDiffApply:
                 continue
 
             # check for existing assigned id
-            if assigned_id := assigned_typed_id_map.get(element.typed_ref):
+            if (assigned_id := assigned_typed_id_map.get(element.typed_ref)) is not None:
                 element.typed_id = assigned_id
                 continue
 

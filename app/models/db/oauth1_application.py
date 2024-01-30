@@ -1,4 +1,3 @@
-from typing import TYPE_CHECKING
 
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -27,15 +26,6 @@ class OAuth1Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
     application_url: Mapped[str] = mapped_column(Unicode, nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
-
-    # relationships (avoid circular imports)
-    if TYPE_CHECKING:
-        from oauth1_token import OAuth1Token
-
-    oauth1_tokens: Mapped[list['OAuth1Token']] = relationship(
-        back_populates='application',
-        lazy='raise',
-    )
 
     @updating_cached_property('consumer_secret_encrypted')
     def consumer_secret(self) -> str:

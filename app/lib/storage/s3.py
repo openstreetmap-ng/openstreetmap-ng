@@ -21,7 +21,7 @@ class S3Storage(StorageBase):
         self._fc = FileCache(context)
 
     async def load(self, key: str) -> bytes:
-        if data := await self._fc.get(key):
+        if (data := await self._fc.get(key)) is not None:
             return data
 
         async with _s3.client('s3') as s3:

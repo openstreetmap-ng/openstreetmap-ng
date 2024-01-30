@@ -29,10 +29,10 @@ class FileCache:
         d1 = key[:1]
         d2 = key[1:3]
 
-        dir_path = self._base_dir / d1 / d2
+        dir_path: Path = self._base_dir / d1 / d2
         await dir_path.mkdir(parents=True, exist_ok=True)
 
-        full_path = dir_path / key
+        full_path: Path = dir_path / key
         return full_path
 
     async def get(self, key: str) -> bytes | None:
@@ -50,7 +50,7 @@ class FileCache:
 
         entry = FileCacheEntry.from_bytes(entry_bytes)
 
-        if entry.expires_at and entry.expires_at < int(time.time()):
+        if entry.expires_at is not None and entry.expires_at < int(time.time()):
             logging.debug('Cache miss for %r', key)
             await path.unlink(missing_ok=True)
             return None
@@ -64,7 +64,7 @@ class FileCache:
         """
 
         path = await self._get_path(key)
-        expires_at = int(time.time() + ttl.total_seconds()) if ttl else None
+        expires_at = int(time.time() + ttl.total_seconds()) if ttl is not None else None
         entry = FileCacheEntry(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
 

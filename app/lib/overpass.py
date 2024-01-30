@@ -15,6 +15,7 @@ from app.utils import HTTP
 _cache_context = 'Overpass'
 
 
+@cython.cfunc
 def _get_bounds_size(element: dict) -> float:
     bounds: dict = element['bounds']
     minlon: cython.double = bounds['minlon']

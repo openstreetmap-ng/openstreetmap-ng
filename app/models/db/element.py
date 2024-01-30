@@ -2,8 +2,8 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.updating_cached_property import updating_cached_property
@@ -22,8 +22,8 @@ from app.models.versioned_element_ref import VersionedElementRef
 class Element(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'element'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
+    user: Mapped[User | None] = relationship(lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(back_populates='elements', lazy='raise')
     type: Mapped[ElementType] = mapped_column(Enum(ElementType), nullable=False)
@@ -35,7 +35,7 @@ class Element(Base.Sequential, CreatedAtMixin):
     members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
 
     # defaults
-    superseded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    superseded_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
 
     __table_args__ = (UniqueConstraint(type, typed_id, version),)
 

@@ -98,7 +98,9 @@ class OptimisticDiffPrepare:
                 if not prev.visible and not element.visible:
                     raise_for().element_already_deleted(element.versioned_ref)
 
-                if prev.created_at and prev.created_at > (now := utcnow()):
+                now = utcnow()
+
+                if prev.created_at > now:
                     logging.error(
                         'Element %r/%r was created in the future: %r > %r',
                         prev.type,
@@ -136,16 +138,16 @@ class OptimisticDiffPrepare:
         Get the changeset from the local state or the database if not found.
         """
 
-        if changeset := self.changeset_state.get(changeset_id):
+        if (changeset := self.changeset_state.get(changeset_id)) is not None:
             return changeset
 
         changeset = await Changeset.find_one_by_id(changeset_id)
 
-        if not changeset:
+        if changeset is None:
             raise_for().changeset_not_found(changeset_id)
         if changeset.user_id != auth_user().id:
             raise_for().changeset_access_denied()
-        if changeset.closed_at:
+        if changeset.closed_at is not None:
             raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
         self.changeset_state[changeset_id] = changeset
@@ -197,7 +199,7 @@ class OptimisticDiffPrepare:
         if not typed_refs:
             return
 
-        elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=None)
+        elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=len(typed_refs))
 
         # check if all elements exist
         if len(elements) != len(typed_refs):
@@ -218,7 +220,7 @@ class OptimisticDiffPrepare:
         if self._last_id is not None:
             raise RuntimeError('Cannot fetch last id when already fetched')
 
-        if element := await ElementRepository.find_one_latest():
+        if (element := await ElementRepository.find_one_latest()) is not None:
             if element.created_at > (now := utcnow()):
                 logging.error(
                     'Element %r/%r was created in the future: %r > %r',
@@ -238,12 +240,12 @@ class OptimisticDiffPrepare:
         Get the latest element from the local state or the database if not found.
         """
 
-        if elements := self.element_state.get(typed_ref):
+        if (elements := self.element_state.get(typed_ref)) is not None:
             return elements[-1]
 
         if typed_ref.typed_id < 0:
             raise_for().element_not_found(typed_ref)
-        if not (elements := await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=None)):
+        if not (elements := await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=1)):
             raise_for().element_not_found(typed_ref)
 
         element = elements[0]
@@ -255,11 +257,11 @@ class OptimisticDiffPrepare:
         Update the local element state with the new element.
         """
 
-        # if history exists, append to it
-        if elements := self.element_state.get(element.typed_ref):
+        if (elements := self.element_state.get(element.typed_ref)) is not None:
+            # if history exists, append to it
             elements.append(element)
-        # otherwise, create a new history
         else:
+            # otherwise, create a new history
             self.element_state[element.typed_ref] = [element]
 
     def _update_reference_override(self, prev: Element | None, element: Element) -> None:
@@ -267,7 +269,7 @@ class OptimisticDiffPrepare:
         Update the local reference overrides.
         """
 
-        prev_refs = prev.references if prev else frozenset()
+        prev_refs = prev.references if prev is not None else frozenset()
         next_refs = element.references
         typed_ref = element.typed_ref
 
@@ -337,9 +339,9 @@ class OptimisticDiffPrepare:
 
         bbox_info = self._changeset_bbox_info[element.changeset_id]
 
-        if element.point:
+        if element.point is not None:
             bbox_info.add(element.point)
-        if prev and prev.point:
+        if (prev is not None) and (prev.point is not None):
             bbox_info.add(prev.point)
 
     def _push_bbox_way_info(self, prev: Element | None, element: Element) -> None:
@@ -350,11 +352,11 @@ class OptimisticDiffPrepare:
         """
 
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        pref_refs = prev.members if prev else ()
+        pref_refs = prev.members if prev is not None else ()
         next_refs = element.members
 
         for typed_ref in {e.typed_ref for e in chain(pref_refs, next_refs)}:
-            if elements := self.element_state.get(typed_ref):
+            if (elements := self.element_state.get(typed_ref)) is not None:
                 bbox_info.add(elements[-1].point)
             else:
                 bbox_info.add(typed_ref)
@@ -367,11 +369,11 @@ class OptimisticDiffPrepare:
         """
 
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        prev_refs = frozenset(prev.members if prev else ())
+        prev_refs = frozenset(prev.members) if prev is not None else frozenset()
         next_refs = frozenset(element.members)
         changed_refs = prev_refs ^ next_refs
         contains_relation = any(ref.type == ElementType.relation for ref in changed_refs)
-        tags_changed = not prev or prev.tags != element.tags
+        tags_changed = prev is None or prev.tags != element.tags
 
         # get full geometry or changed geometry
         diff_refs = (prev_refs | next_refs) if (tags_changed or contains_relation) else (changed_refs)
@@ -380,7 +382,7 @@ class OptimisticDiffPrepare:
             if typed_ref.type == ElementType.relation:
                 continue
 
-            if elements := self.element_state.get(typed_ref):
+            if (elements := self.element_state.get(typed_ref)) is not None:
                 bbox_info.add(elements[-1].point)
             else:
                 bbox_info.add(typed_ref)
@@ -409,7 +411,7 @@ class OptimisticDiffPrepare:
             )
 
             for element in elements:
-                if element.point:
+                if element.point is not None:
                     points.add(element.point)
                 elif element.type == ElementType.node:
                     # log warning as this should not happen

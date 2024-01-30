@@ -6,7 +6,6 @@ from sqlalchemy import func, null, select
 
 from app.db import db
 from app.lib.joinedload_context import get_joinedload
-from app.limits import FIND_LIMIT
 from app.models.db.changeset import Changeset
 
 
@@ -20,7 +19,7 @@ class ChangesetRepository:
         closed_after: datetime | None = None,
         is_open: bool | None = None,
         geometry: Polygon | None = None,
-        limit: int | None = FIND_LIMIT,
+        limit: int | None,
     ) -> Sequence[Changeset]:
         """
         Find changesets by query.
@@ -32,18 +31,18 @@ class ChangesetRepository:
 
             if changeset_ids:
                 where_and.append(Changeset.id.in_(changeset_ids))
-            if user_id:
+            if user_id is not None:
                 where_and.append(Changeset.user_id == user_id)
-            if created_before:
+            if created_before is not None:
                 where_and.append(Changeset.created_at < created_before)
-            if closed_after:
+            if closed_after is not None:
                 where_and.append(Changeset.closed_at >= closed_after)
             if is_open is not None:
                 if is_open:
                     where_and.append(Changeset.closed_at == null())
                 else:
                     where_and.append(Changeset.closed_at != null())
-            if geometry:
+            if geometry is not None:
                 where_and.append(func.ST_Intersects(Changeset.bounds, geometry.wkt))
 
             if where_and:

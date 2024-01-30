@@ -19,9 +19,8 @@ class DiaryComment(Base.UUID, CreatedAtMixin, RichTextMixin):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='raise')
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
-    diary: Mapped[Diary] = relationship(lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
     body_rich: CacheEntry | None = None
 
     @validates('body')

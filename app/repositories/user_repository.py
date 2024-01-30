@@ -6,7 +6,7 @@ from sqlalchemy import func, null, select
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.joinedload_context import get_joinedload
-from app.limits import NEARBY_USERS_LIMIT, NEARBY_USERS_RADIUS_METERS
+from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.user import User
 
 
@@ -76,7 +76,7 @@ class UserRepository:
         point: Point,
         *,
         max_distance: float = NEARBY_USERS_RADIUS_METERS,
-        limit: int | None = NEARBY_USERS_LIMIT,
+        limit: int | None,
     ) -> Sequence[User]:
         """
         Find nearby users.
@@ -110,7 +110,7 @@ class UserRepository:
 
         user = auth_user()
 
-        if user:
+        if user is not None:
             # check if the name is unchanged
             if user.display_name == display_name:
                 return True
@@ -132,7 +132,7 @@ class UserRepository:
 
         user = auth_user()
 
-        if user:
+        if user is not None:
             # check if the email is unchanged
             if user.email == email:
                 return True

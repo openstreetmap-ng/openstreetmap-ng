@@ -17,7 +17,7 @@ from app.config import (
     SMTP_SECURE,
     SMTP_USER,
 )
-from app.db import db
+from app.db import db_autocommit
 from app.lib.date_utils import utcnow
 from app.lib.translation import render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
@@ -54,11 +54,12 @@ else:
 
 
 async def _send_smtp(mail: Mail) -> None:
-    if not mail.to_user:
-        logging.info('Discarding mail %r to user %d (not found)', mail.id, mail.to_user_id)
-        return
+    # TODO: deleted users
+    # if not mail.to_user:
+    #     logging.info('Discarding mail %r to user %d (not found)', mail.id, mail.to_user_id)
+    #     return
 
-    if mail.from_type != MailFromType.system and not mail.from_user:
+    if mail.from_type != MailFromType.system and mail.from_user is None:
         logging.info('Discarding mail %r from user %d (not found)', mail.id, mail.from_user_id)
         return
 
@@ -117,9 +118,9 @@ class MailService:
         with translation_context(to_user.languages):
             body = render(template_name, **template_data)
 
-        async with db() as session:
+        async with db_autocommit() as session:
             mail = Mail(
-                from_user_id=from_user.id if from_user else None,
+                from_user_id=from_user.id if from_user is not None else None,
                 from_type=from_type,
                 to_user_id=to_user.id,
                 subject=subject,
@@ -137,7 +138,7 @@ class MailService:
         Process the next scheduled mail.
         """
 
-        async with db() as session, session.begin():
+        async with db_autocommit() as session:
             now = utcnow()
             stmt = (
                 select(Mail)
@@ -159,7 +160,7 @@ class MailService:
             mail = await session.scalar(stmt)
 
             # nothing to do
-            if not mail:
+            if mail is None:
                 return
 
             try:
@@ -174,7 +175,7 @@ class MailService:
                 expires_at = mail.created_at + MAIL_UNPROCESSED_EXPIRE
                 processing_at = now + timedelta(minutes=mail.processing_counter**MAIL_UNPROCESSED_EXPONENT)
 
-                if expires_at < processing_at:
+                if expires_at <= processing_at:
                     logging.warning(
                         'Expiring unprocessed mail %r, created at: %r',
                         mail.id,

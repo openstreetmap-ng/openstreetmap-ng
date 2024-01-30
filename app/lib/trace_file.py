@@ -42,7 +42,7 @@ class TraceFile:
             logging.debug('Trace file layer %d is %r', layer, content_type)
 
             # get the appropriate processor
-            if not (processor := _trace_file_processors.get(content_type)):
+            if (processor := _trace_file_processors.get(content_type)) is None:
                 raise_for().trace_file_unsupported_format(content_type)
 
             result = await processor.decompress(buffer)

@@ -34,6 +34,8 @@ _legacy_imagery_blacklist = (
 @router.get('/0.6/capabilities.json')
 async def legacy_capabilities() -> dict:
     user = auth_user()
+    changeset_max_size = user.changeset_max_size if (user is not None) else UserRole.get_changeset_max_size(())
+
     return {
         'api': {
             'version': {
@@ -45,7 +47,7 @@ async def legacy_capabilities() -> dict:
                 XAttr('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
             },
             'changesets': {
-                XAttr('maximum_elements'): user.changeset_max_size if user else UserRole.get_changeset_max_size(()),
+                XAttr('maximum_elements'): changeset_max_size,
                 XAttr('default_query_limit'): CHANGESET_QUERY_DEFAULT_LIMIT,
                 XAttr('maximum_query_limit'): CHANGESET_QUERY_MAX_LIMIT,
             },

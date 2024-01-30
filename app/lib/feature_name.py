@@ -14,11 +14,13 @@ def _feature_prefix_administrative(tags: dict[str, str]) -> str:
     'Country Boundary'
     """
 
-    if (admin_level_str := tags.get('admin_level')) and len(admin_level_str) <= 2:
+    # if admin_level is present, use it to be more specific
+    admin_level_value = tags.get('admin_level')
+    if admin_level_value and len(admin_level_value) <= 2:
         admin_level: cython.int
 
         try:
-            admin_level = int(admin_level_str)
+            admin_level = int(admin_level_value)
         except ValueError:
             admin_level = 0
 
@@ -80,9 +82,11 @@ def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
                 continue
             message = f'geocoder.search_osm_nominatim.prefix.{key}.yes'
             if _t(message) != message:
+                # provide automatic feature prefix for unknown tags
+                # e.g. amenity=cooking_school -> 'Cooking school'
                 return value.capitalize().replace('_', ' ')
 
-    # type generic translations
+    # type-generic translations
     if type == ElementType.node:
         return t('javascripts.query.node')
     elif type == ElementType.way:
