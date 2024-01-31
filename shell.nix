@@ -3,7 +3,7 @@
 let
   # Currently using nixpkgs-23.11-darwin
   # Update with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9658699e3ab26e6f499c95e2e9093819cac777b3.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a0b900ff0150057e6d564ff3cd2b3ac9cd1eec1.tar.gz") { };
 
   libraries' = with pkgs; [
     # Base libraries
@@ -36,7 +36,7 @@ let
         -type f \
         -name "bundle-*")
 
-      # Delete existing bundles
+      # delete existing bundles
       [ -z "$bundle_paths" ] || rm $bundle_paths
 
       src_paths=$(find "$dir" \
@@ -117,15 +117,9 @@ let
     '')
 
     # -- Locale
-    (writeShellScriptBin "locale-clean" ''
-      rm -rf config/locale/*/
-    '')
-    (writeShellScriptBin "locale-download" ''
-      python scripts/locale_download.py
-    '')
-    (writeShellScriptBin "locale-postprocess" ''
-      python scripts/locale_postprocess.py
-    '')
+    (writeShellScriptBin "locale-clean" "rm -rf config/locale/*/")
+    (writeShellScriptBin "locale-download" "python scripts/locale_download.py")
+    (writeShellScriptBin "locale-postprocess" "python scripts/locale_postprocess.py")
     (writeShellScriptBin "locale-make-i18next" ''
       rm -rf config/locale/i18next
       python scripts/locale_make_i18next.py
@@ -135,7 +129,7 @@ let
       mkdir -p config/locale/gnu
       echo "Converting to GNU gettext format"
 
-      for source_file in $(find config/locale/i18next -type f); do
+      for source_file in config/locale/i18next/*.json; do
         stem=$(basename "$source_file" .json)
         locale=''${stem::-17}
         target_file="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
@@ -175,9 +169,7 @@ let
     '')
 
     # -- Wiki-tags
-    (writeShellScriptBin "wiki-tags-update" ''
-      python scripts/wiki_tags_update.py
-    '')
+    (writeShellScriptBin "wiki-tags-update" "python scripts/wiki_tags_update.py")
 
     # -- Supervisor
     (writeShellScriptBin "dev-start" ''
@@ -223,8 +215,9 @@ let
     (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
 
     # -- Preload
-    (writeShellScriptBin "db-preload-convert" "python scripts/db_preload_convert.py")
-    (writeShellScriptBin "db-preload-merge" ''
+    (writeShellScriptBin "preload-clean" "rm -rf data/preload")
+    (writeShellScriptBin "preload-convert" "python scripts/preload_convert.py")
+    (writeShellScriptBin "preload-merge" ''
       set -e
       if [ ! -f data/preload/element.csv.0 ]; then
         echo "ERROR: No preload files found"
@@ -232,12 +225,23 @@ let
       fi
       mv data/preload/element.csv.0 data/preload/element.csv
       for file in $(ls data/preload/element.csv.* | sort -t '.' -k 3 -n); do
-        echo "Merging $file"
+        echo "Merging $file..."
         cat "$file" >> data/preload/element.csv
         rm "$file"
       done
     '')
-    (writeShellScriptBin "db-preload-load" "python scripts/db_preload_load.py")
+    (writeShellScriptBin "preload-compress" ''
+      set -e
+      for file in data/preload/*.csv; do
+        zstd \
+          --force \
+          --compress -19 \
+          --threads "$(( $(nproc) * 2 ))" \
+          "$file" \
+          -o "$file.zstd"
+      done
+    '')
+    (writeShellScriptBin "preload-load" "python scripts/preload_load.py")
 
     # -- Watchers
     (writeShellScriptBin "watch-sass" "bun run watch:sass")
@@ -261,9 +265,6 @@ let
       cython-clean && cython-build
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
       docker push $(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')
-    '')
-    (writeShellScriptBin "load-osm" ''
-      python scripts/load_osm.py $(find . -maxdepth 1 -name '*.osm' -print -quit)
     '')
   ];
 
