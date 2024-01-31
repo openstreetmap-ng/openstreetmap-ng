@@ -190,7 +190,10 @@ let
     (writeShellScriptBin "dev-stop" ''
       set -e
       if [ -f data/supervisor/supervisord.pid ]; then
-        kill -INT $(cat data/supervisor/supervisord.pid)
+        pid=$(cat data/supervisor/supervisord.pid)
+        kill -INT "$pid"
+        echo "Supervisor stopping..."
+        while $(kill -0 "$pid" 2> /dev/null); do sleep 0.1; done
         echo "Supervisor stopped"
       else
         echo "Supervisor is not running"
