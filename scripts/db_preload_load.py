@@ -40,7 +40,9 @@ async def main():
                 return
 
         # disable triggers (constraints) for faster import
-        # await session.execute(text('SET session_replication_role TO replica'))
+        await session.execute(text('SET session_replication_role TO replica'))
+
+        # copy requires truncate
         await session.execute(
             text(f'TRUNCATE "{Element.__tablename__}", "{Changeset.__tablename__}", "{User.__tablename__}" CASCADE')
         )
@@ -84,7 +86,7 @@ async def main():
             ),
         )
 
-        print('Done.')
+        print('Done')
 
         await session.execute(text('SET session_replication_role TO default'))
 

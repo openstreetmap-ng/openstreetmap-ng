@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from types import GenericAlias
-from typing import Self
+from typing import Any, Self
 
 _not_found = object()
 
@@ -25,7 +25,7 @@ class updating_cached_property:  # noqa: N801
         self._func = func
         return self
 
-    def __set_name__(self, owner: type, name: str) -> None:
+    def __set_name__(self, owner: Any, name: str) -> None:
         if self._set_attr_name is None:
             if self._watch_attr_name == name:
                 raise TypeError(

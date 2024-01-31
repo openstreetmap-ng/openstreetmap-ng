@@ -222,6 +222,23 @@ let
     (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
     (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
 
+    # -- Preload
+    (writeShellScriptBin "db-preload-convert" "python scripts/db_preload_convert.py")
+    (writeShellScriptBin "db-preload-merge" ''
+      set -e
+      if [ ! -f data/preload/element.csv.0 ]; then
+        echo "ERROR: No preload files found"
+        exit 1
+      fi
+      mv data/preload/element.csv.0 data/preload/element.csv
+      for file in $(ls data/preload/element.csv.* | sort -t '.' -k 3 -n); do
+        echo "Merging $file"
+        cat "$file" >> data/preload/element.csv
+        rm "$file"
+      done
+    '')
+    (writeShellScriptBin "db-preload-load" "python scripts/db_preload_load.py")
+
     # -- Watchers
     (writeShellScriptBin "watch-sass" "bun run watch:sass")
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
