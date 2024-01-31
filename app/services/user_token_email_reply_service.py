@@ -10,7 +10,6 @@ from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.mail_from_type import MailFromType
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.repositories.user_repository import UserRepository
 from app.repositories.user_token_email_reply_repository import UserTokenEmailReplyRepository
 from app.services.message_service import MessageService
 

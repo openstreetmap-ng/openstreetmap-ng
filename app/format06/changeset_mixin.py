@@ -4,7 +4,7 @@ import cython
 
 from app.format06.tag_mixin import Tag06Mixin
 from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 
@@ -17,10 +17,16 @@ def _encode_changeset_comment(comment: ChangesetComment) -> dict:
     """
 
     return {
-        XAttr('id'): comment.id,
-        XAttr('date'): comment.created_at,
-        XAttr('uid'): comment.user_id,
-        XAttr('user'): comment.user.display_name,
+        xattr('id'): comment.id,
+        xattr('date'): comment.created_at,
+        **(
+            {
+                xattr('uid'): comment.user_id,
+                xattr('user'): comment.user.display_name,
+            }
+            if comment.user_id is not None
+            else {}
+        ),
         'text': comment.body,
     }
 
@@ -34,12 +40,16 @@ class Changeset06Mixin:
         """
 
         if changeset.bounds:
-            minx, miny, maxx, maxy = changeset.bounds.bounds
+            bounds = changeset.bounds.bounds
+            minx = bounds[0]
+            miny = bounds[1]
+            maxx = bounds[2]
+            maxy = bounds[3]
             bounds_dict = {
-                XAttr('minlon', custom_xml='min_lon'): minx,
-                XAttr('minlat', custom_xml='min_lat'): miny,
-                XAttr('maxlon', custom_xml='max_lon'): maxx,
-                XAttr('maxlat', custom_xml='max_lat'): maxy,
+                xattr('minlon', custom_xml='min_lon'): minx,
+                xattr('minlat', custom_xml='min_lat'): miny,
+                xattr('maxlon', custom_xml='max_lon'): maxx,
+                xattr('maxlat', custom_xml='max_lat'): maxy,
             }
         else:
             bounds_dict = {}
@@ -53,9 +63,15 @@ class Changeset06Mixin:
                 'id': changeset.id,
                 'created_at': changeset.created_at,
                 **({'closed_at': changeset.closed_at} if changeset.closed_at is not None else {}),
-                'open': not changeset.closed_at,
-                'uid': changeset.user_id,
-                'user': changeset.user.display_name,
+                'open': changeset.closed_at is None,
+                **(
+                    {
+                        'uid': changeset.user_id,
+                        'user': changeset.user.display_name,
+                    }
+                    if changeset.user_id is not None
+                    else {}
+                ),
                 **bounds_dict,
                 'comments_count': len(changeset.comments),
                 'changes_count': changeset.size,
@@ -73,18 +89,20 @@ class Changeset06Mixin:
                     '@created_at': changeset.created_at,
                     **({'@closed_at': changeset.closed_at} if changeset.closed_at is not None else {}),
                     '@open': changeset.closed_at is None,
-                    '@uid': changeset.user_id,
-                    '@user': changeset.user.display_name,
+                    **(
+                        {
+                            '@uid': changeset.user_id,
+                            '@user': changeset.user.display_name,
+                        }
+                        if changeset.user_id is not None
+                        else {}
+                    ),
                     **bounds_dict,
                     '@comments_count': len(changeset.comments),
                     '@changes_count': changeset.size,
                     'tag': Tag06Mixin.encode_tags(changeset.tags),
                     **(
-                        {
-                            'discussion': {
-                                'comment': tuple(_encode_changeset_comment(comment) for comment in comments),
-                            }
-                        }
+                        {'discussion': {'comment': tuple(_encode_changeset_comment(comment) for comment in comments)}}
                         if comments
                         else {}
                     ),
@@ -106,6 +124,7 @@ class Changeset06Mixin:
         else:
             return {
                 'changeset': tuple(
-                    Changeset06Mixin.encode_changeset(changeset)['changeset'] for changeset in changesets
+                    Changeset06Mixin.encode_changeset(changeset)['changeset']  #
+                    for changeset in changesets
                 )
             }

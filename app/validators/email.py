@@ -1,6 +1,7 @@
 import logging
 from functools import partial
 
+from annotated_types import Predicate
 from anyio import to_thread
 from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
@@ -49,3 +50,6 @@ async def validate_email_deliverability(email: str) -> None:
     except EmailNotValidError as e:
         logging.debug('Received invalid email address (dns check) %r', email)
         raise ValueError('Invalid email address') from e
+
+
+EmailStrValidator = Predicate(lambda s: validate_email(s))

@@ -2,20 +2,20 @@ from fastapi import Request
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_context, auth_user
-from app.lib.email import validate_email_deliverability
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t, translation_languages
 from app.models.db.user import User
 from app.models.mail_from_type import MailFromType
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.models.str import EmailStr, PasswordStr, UserNameStr
+from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
 from app.services.mail_service import MailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.utils import parse_request_ip
+from app.validators.email import validate_email_deliverability
 
 
 class UserSignupService:
@@ -24,7 +24,7 @@ class UserSignupService:
         request: Request,
         collector: MessageCollector,
         *,
-        display_name: UserNameStr,
+        display_name: DisplayNameStr,
         email: EmailStr,
         password: PasswordStr,
     ) -> UserTokenStruct:

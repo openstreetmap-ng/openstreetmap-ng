@@ -11,6 +11,13 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
 
+# read property once for performance
+_event_opened = NoteEvent.opened
+_event_closed = NoteEvent.closed
+_event_reopened = NoteEvent.reopened
+_event_commented = NoteEvent.commented
+_event_hidden = NoteEvent.hidden
+
 
 async def _encode_note(
     fg: FeedGenerator,
@@ -20,7 +27,13 @@ async def _encode_note(
     fe = fg.add_entry(order='append')
     fe.guid(f'{API_URL}/api/0.6/notes/{note.id}', permalink=True)
     fe.link(href=note.permalink)
-    fe.content(render('api/0.6/note_comments_rss.jinja2', comments=note.comments), type='CDATA')
+    fe.content(
+        render(
+            'api/0.6/note_comments_rss.jinja2',
+            comments=note.comments,
+        ),
+        type='CDATA',
+    )
     fe.published(note.created_at)
     fe.updated(note.updated_at)
     fe.geo.point(f'{note.point.y} {note.point.x}')
@@ -39,11 +52,9 @@ async def _encode_note(
         fe.title(t('api.notes.rss.opened', place=place))
     else:
         for comment in reversed(note.comments):
-            # skip hide events
-            if comment.event == NoteEvent.hidden:
-                continue
-
-            if comment.event == NoteEvent.closed:
+            if comment.event == _event_hidden:
+                continue  # skip hide events
+            if comment.event == _event_closed:
                 fe.title(t('api.notes.rss.closed', place=place))
             else:
                 fe.title(t('api.notes.rss.commented', place=place))
@@ -82,18 +93,20 @@ async def _encode_note_comment(
     # reverse geocode the note point
     place = await Nominatim.reverse_name(point, 14)
 
-    if comment.event == NoteEvent.opened:
+    comment_event = comment.event
+
+    if comment_event == _event_opened:
         fe.title(t('api.notes.rss.opened', place=place))
-    elif comment.event == NoteEvent.closed:
+    elif comment_event == _event_closed:
         fe.title(t('api.notes.rss.closed', place=place))
-    elif comment.event == NoteEvent.reopened:
+    elif comment_event == _event_reopened:
         fe.title(t('api.notes.rss.reopened', place=place))
-    elif comment.event == NoteEvent.commented:
+    elif comment_event == _event_commented:
         fe.title(t('api.notes.rss.commented', place=place))
-    elif comment.event == NoteEvent.hidden:
+    elif comment_event == _event_hidden:
         fe.title(t('api.notes.rss.hidden', place=place))
     else:
-        raise NotImplementedError(f'Unsupported note event {comment.event!r}')
+        raise NotImplementedError(f'Unsupported note event {comment_event!r}')
 
 
 class NoteRSS06Mixin:

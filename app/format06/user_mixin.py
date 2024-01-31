@@ -7,7 +7,7 @@ from app.format06.geometry_mixin import Geometry06Mixin
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 from app.models.db.user import User
 from app.models.db.user_pref import UserPref
 from app.models.validating.user_pref import UserPrefValidating
@@ -42,15 +42,15 @@ class User06Mixin:
         current_user = auth_user()
         access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
 
-        changesets_count: cython.int = 0
-        traces_count: cython.int = 0
-        block_received_count: cython.int = 0
-        block_received_active_count: cython.int = 0
-        block_issued_count: cython.int = 0
-        block_issued_active_count: cython.int = 0
-        messages_received_count: cython.int = 0
-        messages_received_unread_count: cython.int = 0
-        messages_sent_count: cython.int = 0
+        changesets_count = 0
+        traces_count = 0
+        block_received_count = 0
+        block_received_active_count = 0
+        block_issued_count = 0
+        block_issued_active_count = 0
+        messages_received_count = 0
+        messages_received_unread_count = 0
+        messages_sent_count = 0
 
         async def changesets_count_task() -> None:
             nonlocal changesets_count
@@ -94,26 +94,26 @@ class User06Mixin:
 
         return {
             'user': {
-                XAttr('id'): user.id,
-                XAttr('display_name'): user.display_name,
-                XAttr('account_created'): user.created_at,
+                xattr('id'): user.id,
+                xattr('display_name'): user.display_name,
+                xattr('account_created'): user.created_at,
                 'description': user.description,
                 ('contributor_terms' if format_is_json() else 'contributor-terms'): {
-                    XAttr('agreed'): True,
-                    **({XAttr('pd'): user.consider_public_domain} if access_private else {}),
+                    xattr('agreed'): True,
+                    **({xattr('pd'): user.consider_public_domain} if access_private else {}),
                 },
-                'img': {XAttr('href'): user.avatar_url},
+                'img': {xattr('href'): user.avatar_url},
                 'roles': tuple(role.value for role in user.roles),
-                'changesets': {XAttr('count'): changesets_count},
-                'traces': {XAttr('count'): traces_count},
+                'changesets': {xattr('count'): changesets_count},
+                'traces': {xattr('count'): traces_count},
                 'blocks': {
                     'received': {
-                        XAttr('count'): block_received_count,
-                        XAttr('active'): block_received_active_count,
+                        xattr('count'): block_received_count,
+                        xattr('active'): block_received_active_count,
                     },
                     'issued': {
-                        XAttr('count'): block_issued_count,
-                        XAttr('active'): block_issued_active_count,
+                        xattr('count'): block_issued_count,
+                        xattr('active'): block_issued_active_count,
                     },
                 },
                 # private section
@@ -123,7 +123,7 @@ class User06Mixin:
                             {
                                 'home': {
                                     **Geometry06Mixin.encode_point(user.home_point),
-                                    XAttr('zoom'): 15,  # Default home zoom level
+                                    xattr('zoom'): 15,  # default home zoom level
                                 }
                             }
                             if user.home_point
@@ -132,10 +132,10 @@ class User06Mixin:
                         'languages': _encode_languages(user.languages),
                         'messages': {
                             'received': {
-                                XAttr('count'): messages_received_count,
-                                XAttr('unread'): messages_received_unread_count,
+                                xattr('count'): messages_received_count,
+                                xattr('unread'): messages_received_unread_count,
                             },
-                            'sent': {XAttr('count'): messages_sent_count},
+                            'sent': {xattr('count'): messages_sent_count},
                         },
                     }
                     if access_private
@@ -220,12 +220,11 @@ class User06Mixin:
 
         seen_keys: set[str] = set()
 
+        # check for duplicate keys
         for pref in prefs:
             key: str = pref['@k']
-
             if key in seen_keys:
                 raise_for().pref_duplicate_key(key)
-
             seen_keys.add(key)
 
         return tuple(User06Mixin.decode_user_preference(pref) for pref in prefs)

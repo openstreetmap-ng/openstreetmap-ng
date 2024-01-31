@@ -1,12 +1,10 @@
-from datetime import timedelta
-
 import aioboto3
 
 from app.lib.file_cache import FileCache
 from app.lib.storage.base import StorageBase
+from app.limits import S3_CACHE_EXPIRE
 
 _s3 = aioboto3.Session()
-_local_cache_ttl = timedelta(days=1)
 
 
 class S3Storage(StorageBase):
@@ -15,6 +13,8 @@ class S3Storage(StorageBase):
 
     Uses FileCache for local caching.
     """
+
+    __slots__ = ('_context', '_fc')
 
     def __init__(self, context: str):
         super().__init__(context)
@@ -27,7 +27,7 @@ class S3Storage(StorageBase):
         async with _s3.client('s3') as s3:
             data = await (await s3.get_object(Bucket=self._context, Key=key))['Body'].read()
 
-        await self._fc.set(key, data, ttl=_local_cache_ttl)
+        await self._fc.set(key, data, ttl=S3_CACHE_EXPIRE)
         return data
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:

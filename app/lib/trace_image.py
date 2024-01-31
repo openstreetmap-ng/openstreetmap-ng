@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Sequence
 from io import BytesIO
+from typing import Final
 
 import cython
 from anyio import to_thread
@@ -18,8 +19,8 @@ else:
 
 
 class TraceImage:
-    image_suffix = '.webp'
-    icon_suffix = '.webp'
+    image_suffix: Final[str] = '.webp'
+    icon_suffix: Final[str] = '.webp'
 
     @staticmethod
     async def generate_async(points: Sequence[TracePoint]) -> tuple[bytes, bytes]:

@@ -6,13 +6,13 @@ from itertools import batched, islice
 
 import anyio
 import lxml.etree as ET
+import orjson
 from shapely import Point
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.models.element_member import ElementMemberRef
 from app.models.element_type import ElementType
-from app.utils import MSGSPEC_JSON_ENCODER
 
 
 async def main():
@@ -103,9 +103,9 @@ async def main():
                             elem.attrib['id'],  # typed_id
                             elem.attrib['version'],  # version
                             elem.attrib.get('visible', 'true') == 'true',  # visible
-                            MSGSPEC_JSON_ENCODER.encode(temp_tags).decode(),  # tags
+                            orjson.dumps(temp_tags).decode(),  # tags
                             point.wkt if point is not None else None,  # point
-                            MSGSPEC_JSON_ENCODER.encode(temp_members).decode(),  # members
+                            orjson.dumps(temp_members).decode(),  # members
                             datetime.fromisoformat(elem.attrib['timestamp']),  # created_at
                         )
                     )

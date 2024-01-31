@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 import xmltodict
 
-from app.lib.xmltodict import XAttr, XMLToDict
+from app.lib.xmltodict import XMLToDict, xattr
 
 
 @pytest.mark.parametrize(
@@ -127,7 +127,7 @@ def test_xml_unparse(input, output):
 
 
 def test_xml_unparse_xattr():
-    unparsed = XMLToDict.unparse({'root': {XAttr('test', custom_xml='test_xml'): 'test_value'}})
+    unparsed = XMLToDict.unparse({'root': {xattr('test', custom_xml='test_xml'): 'test_value'}})
     expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
     assert unparsed == expected
 

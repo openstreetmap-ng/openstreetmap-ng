@@ -7,11 +7,16 @@ from app.format06.geometry_mixin import Geometry06Mixin
 from app.format06.tag_mixin import Tag06Mixin
 from app.lib.auth_context import auth_user
 from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 from app.models.db.element import Element
 from app.models.element_member import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.validating.element import ElementValidating
+
+# read property once for performance
+_type_node = ElementType.node
+_type_way = ElementType.way
+_type_relation = ElementType.relation
 
 
 @cython.cfunc
@@ -41,7 +46,7 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
 
     return tuple(
         ElementMemberRef(
-            type=ElementType.node,
+            type=_type_node,
             typed_id=int(node['@ref']),
             role='',
         )
@@ -64,9 +69,9 @@ def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
 
     return tuple(
         {
-            XAttr('type'): member.type.value,
-            XAttr('ref'): member.typed_id,
-            XAttr('role'): member.role,
+            xattr('type'): member.type.value,
+            xattr('ref'): member.typed_id,
+            xattr('role'): member.role,
         }
         for member in members
     )
@@ -104,50 +109,72 @@ class Element06Mixin:
         # read property once for performance
         element_type = element.type
 
+        is_node: cython.char = element_type == _type_node
+        is_way: cython.char = not is_node and element_type == _type_way
+        is_relation: cython.char = not is_node and not is_way
+
         if format_is_json():
             return {
                 'type': element_type.value,
                 'id': element.typed_id,
-                **(Geometry06Mixin.encode_point(element.point) if element_type == ElementType.node else {}),
+                **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                 'version': element.version,
                 'timestamp': element.created_at,
                 'changeset': element.changeset_id,
-                'uid': element.user_id,
-                'user': element.user.display_name,
+                **(
+                    {
+                        'uid': element.user_id,
+                        'user': element.user.display_name,
+                    }
+                    if element.user_id is not None
+                    else {}
+                ),
                 'visible': element.visible,
                 'tags': element.tags,
-                **({'nodes': _encode_nodes(element.members)} if element_type == ElementType.way else {}),
-                **({'members': _encode_members(element.members)} if element_type == ElementType.relation else {}),
+                **({'nodes': _encode_nodes(element.members)} if is_way else {}),
+                **({'members': _encode_members(element.members)} if is_relation else {}),
             }
         else:
             return {
                 element_type.value: {
                     '@id': element.typed_id,
-                    **(Geometry06Mixin.encode_point(element.point) if element_type == ElementType.node else {}),
+                    **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                     '@version': element.version,
                     '@timestamp': element.created_at,
                     '@changeset': element.changeset_id,
-                    '@uid': element.user_id,
-                    '@user': element.user.display_name,
+                    **(
+                        {
+                            '@uid': element.user_id,
+                            '@user': element.user.display_name,
+                        }
+                        if element.user_id is not None
+                        else {}
+                    ),
                     '@visible': element.visible,
                     'tag': Tag06Mixin.encode_tags(element.tags),
-                    **({'nd': _encode_nodes(element.members)} if element_type == ElementType.way else {}),
-                    **({'member': _encode_members(element.members)} if element_type == ElementType.relation else {}),
+                    **({'nd': _encode_nodes(element.members)} if is_way else {}),
+                    **({'member': _encode_members(element.members)} if is_relation else {}),
                 }
             }
 
     @staticmethod
-    def decode_element(element: dict, changeset_id: int | None) -> Element:
+    def decode_element(element: dict, *, changeset_id: int | None) -> Element:
         """
-        If `changeset_id` is `None`, it will be extracted from the element data.
+        If `changeset_id` is None, it will be extracted from the element data.
         """
 
-        if len(element) != 1:
-            raise ValueError(f'Expected one root element, got {len(element)}')
+        element_len = len(element)
+        if element_len != 1:
+            raise ValueError(f'Expected one root element, got {element_len}')
 
         type, data = next(iter(element.items()))
         type = ElementType.from_str(type)
         data: dict
+
+        if (data_tags := data.get('tag')) is not None:  # noqa: SIM108
+            tags = Tag06Mixin.decode_tags_unsafe(data_tags)
+        else:
+            tags = {}
 
         # decode members from either nd or member
         if (data_nodes := data.get('nd')) is not None:
@@ -165,7 +192,7 @@ class Element06Mixin:
                 typed_id=data.get('@id'),
                 version=data.get('@version', 0) + 1,
                 visible=data.get('@visible', True),
-                tags=Tag06Mixin.decode_tags_unsafe(data.get('tag', ())),
+                tags=tags,
                 point=Geometry06Mixin.decode_point_unsafe(data),
                 members=members,
             ).to_orm_dict()
@@ -186,6 +213,7 @@ class Element06Mixin:
         else:
             result: dict[str, list[dict]] = defaultdict(list)
 
+            # merge elements of same type together
             for element in elements:
                 result[element.type.value].append(Element06Mixin.encode_element(element))
 

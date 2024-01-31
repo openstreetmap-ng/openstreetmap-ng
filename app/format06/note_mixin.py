@@ -14,11 +14,12 @@ from app.models.db.note_comment import NoteComment
 from app.models.format_style import FormatStyle
 
 
-# this is faster than using `shapely.geometry.mapping`.
 @cython.cfunc
 def _mapping_point(p: Point) -> dict:
     """
     Convert a Shapely point to a GeoJSON-like dict.
+
+    This method is more efficient than using `shapely.geometry.mapping`.
 
     >>> _mapping_point(Point(1, 2))
     {'type': 'Point', 'coordinates': (1, 2)}
@@ -39,8 +40,14 @@ def _encode_note_comment(comment: NoteComment) -> dict:
 
     return {
         'date': format_sql_date(comment.created_at),
-        'uid': comment.user_id,
-        'user': comment.user.display_name,
+        **(
+            {
+                'uid': comment.user_id,
+                'user': comment.user.display_name,
+            }
+            if comment.user_id is not None
+            else {}
+        ),
         'user_url': comment.user.permalink,
         'action': comment.event.value,
         'text': comment.body,
@@ -69,7 +76,7 @@ class Note06Mixin:
                         {
                             'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.json',
                         }
-                        if note.closed_at
+                        if note.closed_at is not None
                         else {
                             'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.json',
                             'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.json',
@@ -96,7 +103,7 @@ class Note06Mixin:
                             {
                                 'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.gpx',
                             }
-                            if note.closed_at
+                            if note.closed_at is not None
                             else {
                                 'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.gpx',
                                 'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.gpx',
@@ -127,9 +134,7 @@ class Note06Mixin:
                     'date_created': format_sql_date(note.created_at),
                     **({'date_closed': format_sql_date(note.closed_at)} if note.closed_at is not None else {}),
                     'status': note.status.value,
-                    'comments': {
-                        'comment': tuple(_encode_note_comment(comment) for comment in note.comments),
-                    },
+                    'comments': {'comment': tuple(_encode_note_comment(comment) for comment in note.comments)},
                 }
             }
 

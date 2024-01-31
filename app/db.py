@@ -2,11 +2,11 @@ from collections.abc import Generator
 from contextlib import asynccontextmanager
 from typing import Any
 
+import orjson
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL
-from app.utils import MSGSPEC_JSON_DECODER, MSGSPEC_JSON_ENCODER
 
 _redis_pool = ConnectionPool().from_url(REDIS_URL)
 
@@ -21,8 +21,8 @@ _db_engine = create_async_engine(
     POSTGRES_URL,
     echo=POSTGRES_LOG,
     echo_pool=POSTGRES_LOG,
-    json_deserializer=MSGSPEC_JSON_DECODER.decode,
-    json_serializer=lambda x: MSGSPEC_JSON_ENCODER.encode(x).decode(),
+    json_deserializer=orjson.loads,
+    json_serializer=lambda x: orjson.dumps(x).decode(),
     query_cache_size=512,
 )
 

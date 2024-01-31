@@ -1,4 +1,5 @@
-import typing
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import orjson
 from fastapi import Response
@@ -36,44 +37,50 @@ _gpx_attributes = {
     '@xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
 }
 
+# read property once for performance
+_style_json = FormatStyle.json
+_style_xml = FormatStyle.xml
+_style_rss = FormatStyle.rss
+_style_gpx = FormatStyle.gpx
+
 
 class OSMResponse(Response):
     xml_root = 'osm'
 
-    def render(self, content: typing.Any) -> bytes:
+    def render(self, content: Any) -> bytes:
         style = format_style()
 
         # set content type
         self.media_type = FormatStyle.media_type(style)
 
-        if style == FormatStyle.json:
-            if isinstance(content, dict):
+        if style == _style_json:
+            if isinstance(content, Mapping):
                 content |= _json_attributes
             else:
                 raise ValueError(f'Invalid json content type {type(content)}')
 
             return orjson.dumps(content, option=orjson.OPT_NAIVE_UTC | orjson.OPT_UTC_Z)
 
-        elif style == FormatStyle.xml:
-            if isinstance(content, dict):
+        elif style == _style_xml:
+            if isinstance(content, Mapping):
                 content = {self.xml_root: _xml_attributes | content}
-            elif isinstance(content, list | tuple):
+            elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {self.xml_root: (*_xml_attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')
 
             return XMLToDict.unparse(content, raw=True)
 
-        elif style == FormatStyle.rss:
+        elif style == _style_rss:
             if not isinstance(content, str):
                 raise ValueError(f'Invalid rss content type {type(content)}')
 
             return content.encode()
 
-        elif style == FormatStyle.gpx:
-            if isinstance(content, dict):
+        elif style == _style_gpx:
+            if isinstance(content, Mapping):
                 content = {self.xml_root: _gpx_attributes | content}
-            elif isinstance(content, list | tuple):
+            elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {self.xml_root: (*_gpx_attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')

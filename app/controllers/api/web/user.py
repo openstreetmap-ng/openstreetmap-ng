@@ -8,7 +8,7 @@ from app.lib.translation import render
 from app.models.auth_provider import AuthProvider
 from app.models.db.user import User
 from app.models.editor import Editor
-from app.models.str import EmptyEmailStr, EmptyPasswordStr, UserNameStr
+from app.models.str import DisplayNameStr, EmptyEmailStr, EmptyPasswordStr
 from app.repositories.user_repository import UserRepository
 from app.services.user_service import UserService
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix='/user')
 
 @router.get('/display_name_available')
 async def display_name_available(
-    display_name: Annotated[UserNameStr, Query()],
+    display_name: Annotated[DisplayNameStr, Query()],
 ) -> bool:
     return await UserRepository.check_display_name_available(display_name)
 
@@ -36,7 +36,7 @@ async def terms(
 # TODO: captcha
 @router.post('/settings')
 async def update_settings(
-    display_name: Annotated[UserNameStr, Form()],
+    display_name: Annotated[DisplayNameStr, Form()],
     new_email: Annotated[EmptyEmailStr, Form()],
     new_password: Annotated[EmptyPasswordStr, Form()],
     auth_provider: Annotated[AuthProvider | None, Form()],

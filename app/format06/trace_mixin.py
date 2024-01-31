@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 
+import cython
 from shapely import Point
 
 from app.format06.geometry_mixin import Geometry06Mixin
@@ -27,18 +28,21 @@ class Trace06Mixin:
         trk_trksegs = []
         trk_trkseg_trkpts = []
 
-        last_trk_id: int | None = None
-        last_trkseg_id: int | None = None
+        last_trk_id: cython.int = 0
+        last_trkseg_id: cython.int = 0
 
         for tp in trace_points:
             trace = tp.trace
 
             # if trace is available via api, encode full information
             if trace.timestamps_via_api:
+                trace_id: cython.int = trace.id
+                track_idx: cython.int = tp.track_idx
+
                 # handle track change
-                if last_trk_id != trace.id:
+                if last_trk_id != trace_id:
                     if trace.visibility == TraceVisibility.identifiable:
-                        url = f'/user/permalink/{trace.user_id}/traces/{trace.id}'
+                        url = f'/user/permalink/{trace.user_id}/traces/{trace_id}'
                     else:
                         url = None
 
@@ -51,20 +55,20 @@ class Trace06Mixin:
                             'trkseg': trk_trksegs,
                         }
                     )
-                    last_trk_id = trace.id
-                    last_trkseg_id = None
+                    last_trk_id = trace_id
+                    last_trkseg_id = 0
 
                 # handle track segment change
-                if last_trkseg_id != tp.track_idx:
+                if last_trkseg_id != track_idx:
                     trk_trkseg_trkpts = []
                     trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
-                    last_trkseg_id = tp.track_idx
+                    last_trkseg_id = track_idx
 
                 # add point
                 trk_trkseg_trkpts.append(
                     {
                         **Geometry06Mixin.encode_point(tp.point),
-                        **({'ele': tp.elevation} if tp.elevation is not None else {}),
+                        **({'ele': tp.elevation} if (tp.elevation is not None) else {}),
                         'time': tp.captured_at,
                     }
                 )
@@ -72,13 +76,13 @@ class Trace06Mixin:
             # otherwise, encode only coordinates
             else:
                 # handle track and track segment change
-                if last_trk_id is not None or last_trkseg_id is not None:
+                if last_trk_id > 0 or last_trkseg_id > 0:
                     trk_trksegs = []
                     trks.append({'trkseg': trk_trksegs})
                     trk_trkseg_trkpts = []
                     trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
-                    last_trk_id = None
-                    last_trkseg_id = None
+                    last_trk_id = 0
+                    last_trkseg_id = 0
 
                 trk_trkseg_trkpts.append(Geometry06Mixin.encode_point(tp.point))
 

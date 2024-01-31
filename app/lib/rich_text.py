@@ -36,10 +36,6 @@ _linkify_skip_tags = (
 _md = MarkdownIt(options_update={'typographer': True})
 _md.enable(('replacements', 'smartquotes'))
 
-# read property once for performance
-_format_markdown = TextFormat.markdown
-_format_plain = TextFormat.plain
-
 
 @cython.cfunc
 def _cache_context(text_format: TextFormat) -> str:
@@ -64,7 +60,7 @@ def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
 def _process(text: str, text_format: TextFormat) -> str:
     logging.debug('Processing rich text %r', text_format)
 
-    if text_format == _format_markdown:
+    if text_format == TextFormat.markdown:
         text_ = _md.render(text)
         text_ = bleach.clean(
             text_,
@@ -72,7 +68,7 @@ def _process(text: str, text_format: TextFormat) -> str:
             attributes=_is_allowed_attribute,
             strip=True,
         )
-    elif text_format == _format_plain:
+    elif text_format == TextFormat.plain:
         text_ = escape(text)
     else:
         raise NotImplementedError(f'Unsupported rich text format {text_format!r}')

@@ -13,10 +13,17 @@ from app.lib.translation import translation_languages
 def _get_wiki_tags() -> dict[str, frozenset[str]]:
     data: dict[str, Sequence[str]] = orjson.loads(pathlib.Path(CONFIG_DIR / 'wiki_tags.json').read_bytes())
     return {
-        k: frozenset(normalize_locale(v, raise_on_not_found=True) if v else DEFAULT_LANGUAGE) for k, v in data.items()
+        tag: frozenset(
+            normalize_locale(locale, raise_on_not_found=True)  #
+            if locale
+            else DEFAULT_LANGUAGE
+            for locale in locales
+        )
+        for tag, locales in data.items()
     }
 
 
+# mapping of tag keys, to a set of locales that have a wiki page
 _wiki_tags = _get_wiki_tags()
 
 
@@ -32,6 +39,7 @@ def wiki_link(tag_key: str) -> str | None:
 
     locales = _wiki_tags.get(tag_key)
 
+    # if the tag key is not recognized, return None
     if locales is None:
         return None
 

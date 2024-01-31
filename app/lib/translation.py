@@ -90,16 +90,18 @@ def t(message: str, **kwargs) -> str:
     """
 
     trans: GNUTranslations = _context_trans.get()
-    return trans.gettext(message).format(**kwargs)
+    translated = trans.gettext(message)
+    return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
 
-def nt(message: str, count: int, **kwargs) -> str:
+def nt(message: str, count: float, **kwargs) -> str:
     """
     Get the translation for the given message, with pluralization.
     """
 
     trans: GNUTranslations = _context_trans.get()
-    return trans.ngettext(message, message, count).format(count=count, **kwargs)
+    translated = trans.ngettext(message, message, count)
+    return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)
 
 
 def render(template_name: str, **template_data: dict) -> str:

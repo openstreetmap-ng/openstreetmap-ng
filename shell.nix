@@ -97,6 +97,7 @@ let
         app/lib
         app/middlewares
         app/responses
+        app/validators
       )
       for dir in "''${dirs[@]}"; do
         rm -rf "$dir"/**/*{.c,.html,.so}

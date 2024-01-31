@@ -1,4 +1,3 @@
-from datetime import timedelta
 from hashlib import md5
 
 from fastapi import status
@@ -6,9 +5,8 @@ from fastapi import status
 from app.lib.avatar import Avatar
 from app.lib.file_cache import FileCache
 from app.lib.storage.base import StorageBase
+from app.limits import GRAVATAR_CACHE_EXPIRE
 from app.utils import HTTP
-
-_local_cache_ttl = timedelta(days=1)
 
 
 class GravatarStorage(StorageBase):
@@ -17,6 +15,8 @@ class GravatarStorage(StorageBase):
 
     Uses FileCache for local caching.
     """
+
+    __slots__ = ('_context', '_fc')
 
     def __init__(self, context: str = 'gravatar'):
         super().__init__(context)
@@ -37,5 +37,5 @@ class GravatarStorage(StorageBase):
             data = r.content
             data = Avatar.normalize_image(data)
 
-        await self._fc.set(key, data, ttl=_local_cache_ttl)
+        await self._fc.set(key, data, ttl=GRAVATAR_CACHE_EXPIRE)
         return data

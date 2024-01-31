@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query
 from app.format06 import Format06
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.repositories.element_repository import ElementRepository
 
@@ -29,14 +29,18 @@ async def map_read(
         legacy_nodes_limit=True,
     )
 
-    minx, miny, maxx, maxy = geometry.bounds
+    bounds = geometry.bounds
+    minx = bounds[0]
+    miny = bounds[1]
+    maxx = bounds[2]
+    maxy = bounds[3]
 
     return {
         'bounds': {
-            XAttr('minlon'): minx,
-            XAttr('minlat'): miny,
-            XAttr('maxlon'): maxx,
-            XAttr('maxlat'): maxy,
+            xattr('minlon'): minx,
+            xattr('minlat'): miny,
+            xattr('maxlon'): maxx,
+            xattr('maxlat'): maxy,
         },
         **Format06.encode_elements(elements),
     }

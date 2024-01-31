@@ -1,5 +1,6 @@
 import gzip
 import re
+from collections import defaultdict
 from collections.abc import Sequence
 from datetime import timedelta
 from urllib.parse import unquote_plus
@@ -61,10 +62,10 @@ async def main():
         for url in urls:
             tg.start_soon(process_sitemap_url, url)
 
-    result: dict[str, set[str]] = {}
+    result: dict[str, set[str]] = defaultdict(set)
 
     for locale, key in locale_keys:
-        result.setdefault(key, set()).add(locale)
+        result[key].add(locale)
 
     await (CONFIG_DIR / 'wiki_tags.json').write_bytes(
         orjson.dumps(

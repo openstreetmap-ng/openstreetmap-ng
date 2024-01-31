@@ -170,8 +170,9 @@ class OptimisticDiffPrepare:
             if not changeset.increase_size(increase_size):
                 raise_for().changeset_too_big(changeset.size + increase_size)
 
-        # map changeset id to elements
         changeset_id_element_map = defaultdict(list)
+
+        # map changeset id to elements
         for element in self.elements:
             changeset_id_element_map[element.changeset_id].append(element)
 

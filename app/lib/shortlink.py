@@ -11,9 +11,9 @@ def shortlink_encode(lon: float, lat: float, zoom: int) -> str:
     Encode a coordinate pair and zoom level into a shortlink code.
     """
 
-    x: cython.int = int((lon + 180) * 11930464.711111112)  # (2 ** 32) / 360
-    y: cython.int = int((lat + 90) * 23860929.422222223)  # (2 ** 32) / 180
-    c: cython.int = 0
+    x: cython.uint = int((lon + 180) * 11930464.711111112)  # (2 ** 32) / 360
+    y: cython.uint = int((lat + 90) * 23860929.422222223)  # (2 ** 32) / 180
+    c: cython.ulonglong = 0
     i: cython.int
 
     for i in range(31, -1, -1):
@@ -41,8 +41,8 @@ def shortlink_decode(s: str) -> tuple[float, float, int]:
     Returns a tuple of (lon, lat, z).
     """
 
-    x: cython.int = 0
-    y: cython.int = 0
+    x: cython.uint = 0
+    y: cython.uint = 0
     z: cython.int = 0
     z_offset: cython.int = 0
 

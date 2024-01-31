@@ -2,6 +2,7 @@ import logging
 import subprocess
 
 import anyio
+import cython
 
 from app.lib.naturalsize import naturalsize
 from app.lib.trace_file_processor.base import CompressionFileProcessor
@@ -15,6 +16,13 @@ from app.utils import raise_if_program_unavailable
 raise_if_program_unavailable('zstd')
 
 
+@cython.cfunc
+def _get_compression_level(buffer_size: int) -> int:
+    for max_size, level in TRACE_FILE_COMPRESS_ZSTD_LEVEL:
+        if buffer_size <= max_size:
+            return level
+
+
 class ZstdFileProcessor(CompressionFileProcessor):
     media_type = 'application/zstd'
     command = ('zstd', '-d', '-c')
@@ -22,9 +30,9 @@ class ZstdFileProcessor(CompressionFileProcessor):
 
     @classmethod
     async def compress(cls, buffer: bytes) -> bytes:
-        buffer_size = len(buffer)
-        level = next(filter(lambda max_size, _: buffer_size <= max_size, TRACE_FILE_COMPRESS_ZSTD_LEVEL))[1]
-        command = ('zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', len(buffer))
+        buffer_len = len(buffer)
+        level = _get_compression_level(buffer_len)
+        command = ('zstd', '-c', f'-{level}', f'-T{TRACE_FILE_COMPRESS_ZSTD_THREADS}', '--stream-size', buffer_len)
 
         async with await anyio.open_process(
             command,

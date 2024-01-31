@@ -28,8 +28,8 @@ def _decompress_brotli(buffer: bytes) -> bytes:
     return brotlicffi.decompress(buffer)
 
 
-def _get_decompressor(content_encoding: str) -> Callable[[bytes], bytes] | None:
-    if content_encoding == '':
+def _get_decompressor(content_encoding: str | None) -> Callable[[bytes], bytes] | None:
+    if content_encoding is None:
         return None
 
     if content_encoding == 'deflate':
@@ -48,7 +48,7 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
-        content_encoding = request.headers.get('Content-Encoding')
+        content_encoding: str | None = request.headers.get('Content-Encoding')
         max_compressed_size: cython.int = HTTP_COMPRESSED_BODY_MAX_SIZE
         max_body_size: cython.int = HTTP_BODY_MAX_SIZE
         input_size: cython.int = 0

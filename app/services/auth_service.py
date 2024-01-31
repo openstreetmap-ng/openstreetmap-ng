@@ -11,7 +11,6 @@ from app.config import SECRET
 from app.db import db_autocommit
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import format_iso_date, utcnow
-from app.lib.email import validate_email
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
@@ -24,6 +23,7 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.user_token_session_repository import UserTokenSessionRepository
 from app.services.cache_service import CacheService
 from app.services.oauth1_nonce_service import OAuth1NonceService
+from app.validators.email import validate_email
 
 _cache_context = 'FastPassword'
 

@@ -42,7 +42,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
         q = match['q']
 
         # skip weird accept language codes
-        lang_len: cython.int = len(lang)
+        lang_len = len(lang)
         if lang_len > language_code_max_length:
             logging.debug('Accept language code is too long %d', lang_len)
             continue
@@ -73,7 +73,20 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     # sort by q-factor, descending
     temp.sort(reverse=True)
 
-    return tuple({lang for _, lang in temp})[:LANGUAGE_CODES_LIMIT]
+    # remove duplicates and preserve order
+    result = []
+    result_set = set()
+    languages_codes_limit: cython.int = LANGUAGE_CODES_LIMIT
+
+    for _, lang in temp:
+        if lang not in result_set:
+            result.append(lang)
+            result_set.add(lang)
+
+            if len(result) >= languages_codes_limit:
+                break
+
+    return tuple(result)
 
 
 class TranslationMiddleware(BaseHTTPMiddleware):
@@ -83,12 +96,13 @@ class TranslationMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         # prefer user languages
-        languages = user.languages_valid if (user := auth_user()) is not None else ()
+        user = auth_user()
+        languages = user.languages_valid if (user is not None) else ()
 
         # fallback to accept language header
         if not languages:
             accept_language = request.headers.get('Accept-Language')
-            languages = _parse_accept_language(accept_language) if accept_language is not None else ()
+            languages = _parse_accept_language(accept_language) if (accept_language is not None) else ()
 
         with translation_context(languages):
             return await call_next(request)

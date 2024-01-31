@@ -22,13 +22,14 @@ class ZipFileProcessor(TraceFileProcessor):
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         with zipfile.ZipFile(BytesIO(buffer)) as archive:
             filenames = archive.namelist()
-            logging.debug('Trace %r archive contains %d files', cls.media_type, len(filenames))
+            filenames_len = len(filenames)
+            logging.debug('Trace %r archive contains %d files', cls.media_type, filenames_len)
 
-        if len(filenames) > TRACE_FILE_ARCHIVE_MAX_FILES:
+        if filenames_len > TRACE_FILE_ARCHIVE_MAX_FILES:
             raise_for().trace_file_archive_too_many_files()
 
-        result = [None] * len(filenames)
-        result_size = 0
+        result = [None] * filenames_len
+        result_size: cython.int = 0
 
         async def read_file(i: cython.int, filename: bytes) -> None:
             nonlocal result_size
@@ -54,5 +55,5 @@ class ZipFileProcessor(TraceFileProcessor):
             for i, filename in enumerate(filenames):
                 tg.start_soon(read_file, i, filename)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(result_size))
         return result

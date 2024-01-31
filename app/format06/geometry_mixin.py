@@ -1,6 +1,6 @@
 from shapely import Point
 
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 
 
 class Geometry06Mixin:
@@ -15,8 +15,8 @@ class Geometry06Mixin:
             return {}
 
         return {
-            XAttr('lon'): point.x,
-            XAttr('lat'): point.y,
+            xattr('lon'): point.x,
+            xattr('lat'): point.y,
         }
 
     @staticmethod

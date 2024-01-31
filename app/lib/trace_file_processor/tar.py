@@ -21,12 +21,13 @@ class TarFileProcessor(TraceFileProcessor):
         # r: opens for reading exclusively without compression (safety check)
         with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
             members = archive.getmembers()
-            logging.debug('Trace %r archive contains %d files', cls.media_type, len(members))
+            members_len = len(members)
+            logging.debug('Trace %r archive contains %d files', cls.media_type, members_len)
 
-            if len(members) > TRACE_FILE_ARCHIVE_MAX_FILES:
+            if members_len > TRACE_FILE_ARCHIVE_MAX_FILES:
                 raise_for().trace_file_archive_too_many_files()
 
-            result = [None] * len(members)
+            result = [None] * members_len
             i: cython.int
 
             for i, member in enumerate(members):

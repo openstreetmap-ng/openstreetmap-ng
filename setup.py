@@ -17,6 +17,7 @@ dirs = [
     'app/lib',
     'app/middlewares',
     'app/responses',
+    'app/validators',
 ]
 
 paths = [p for d in dirs for p in Path(d).rglob('*.py')]

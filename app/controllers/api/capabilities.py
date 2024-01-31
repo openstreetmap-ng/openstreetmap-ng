@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.lib.auth_context import auth_user
-from app.lib.xmltodict import XAttr
+from app.lib.xmltodict import xattr
 from app.limits import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
     CHANGESET_QUERY_MAX_LIMIT,
@@ -40,46 +40,46 @@ async def legacy_capabilities() -> dict:
         'api': {
             'version': {
                 # legacy capabilities endpoint only supports 0.6
-                XAttr('minimum'): '0.6',
-                XAttr('maximum'): '0.6',
+                xattr('minimum'): '0.6',
+                xattr('maximum'): '0.6',
             },
             'area': {
-                XAttr('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
+                xattr('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
             },
             'changesets': {
-                XAttr('maximum_elements'): changeset_max_size,
-                XAttr('default_query_limit'): CHANGESET_QUERY_DEFAULT_LIMIT,
-                XAttr('maximum_query_limit'): CHANGESET_QUERY_MAX_LIMIT,
+                xattr('maximum_elements'): changeset_max_size,
+                xattr('default_query_limit'): CHANGESET_QUERY_DEFAULT_LIMIT,
+                xattr('maximum_query_limit'): CHANGESET_QUERY_MAX_LIMIT,
             },
             'note_area': {
-                XAttr('maximum'): NOTE_QUERY_AREA_MAX_SIZE,
+                xattr('maximum'): NOTE_QUERY_AREA_MAX_SIZE,
             },
             'notes': {
-                XAttr('default_query_limit'): NOTE_QUERY_DEFAULT_LIMIT,
-                XAttr('maximum_query_limit'): NOTE_QUERY_LEGACY_MAX_LIMIT,
+                xattr('default_query_limit'): NOTE_QUERY_DEFAULT_LIMIT,
+                xattr('maximum_query_limit'): NOTE_QUERY_LEGACY_MAX_LIMIT,
             },
             'relationmembers': {
-                XAttr('maximum'): ELEMENT_RELATION_MAX_MEMBERS,
+                xattr('maximum'): ELEMENT_RELATION_MAX_MEMBERS,
             },
             'status': {
                 # this is overly complicated, just check HTTP_503_SERVICE_UNAVAILABLE
-                XAttr('database'): 'online',
-                XAttr('api'): 'online',
-                XAttr('gpx'): 'online',
+                xattr('database'): 'online',
+                xattr('api'): 'online',
+                xattr('gpx'): 'online',
             },
             'timeout': {
-                XAttr('seconds'): 'TODO',  # TODO: timeout
+                xattr('seconds'): 'TODO',  # TODO: timeout
             },
             'tracepoints': {
-                XAttr('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,
+                xattr('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,
             },
             'waynodes': {
-                XAttr('maximum'): ELEMENT_WAY_MAX_NODES,
+                xattr('maximum'): ELEMENT_WAY_MAX_NODES,
             },
         },
         'policy': {
             'imagery': {
-                'blacklist': tuple({XAttr('regex'): entry} for entry in _legacy_imagery_blacklist),
+                'blacklist': tuple({xattr('regex'): entry} for entry in _legacy_imagery_blacklist),
             },
         },
     }

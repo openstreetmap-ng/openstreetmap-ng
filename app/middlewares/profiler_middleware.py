@@ -1,3 +1,4 @@
+import cython
 from fastapi import Request
 from pyinstrument import Profiler
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -11,16 +12,14 @@ class ProfilerMiddleware(BaseHTTPMiddleware):
 
     # https://pyinstrument.readthedocs.io/en/latest/guide.html#profile-a-web-request-in-fastapi
     async def dispatch(self, request: Request, call_next):
-        query_params = request.query_params
-        profile = bool(query_params.get('profile', False))
+        profile: cython.char = 'profile' in request.query_params
 
         if not profile:
             return await call_next(request)
-
-        timeline = bool(query_params.get('timeline', False))
 
         profiler = Profiler()
         profiler.start()
         await call_next(request)
         profiler.stop()
-        return HTMLResponse(profiler.output_html(timeline=timeline))
+
+        return HTMLResponse(profiler.output_html())

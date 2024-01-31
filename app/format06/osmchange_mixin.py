@@ -1,10 +1,17 @@
 from collections.abc import Sequence
 
+import cython
+
 from app.format06.element_mixin import Element06Mixin
 from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
 from app.models.osmchange_action import OSMChangeAction
 from app.models.typed_element_ref import TypedElementRef
+
+# read property once for performance
+_action_create_value = OSMChangeAction.create.value
+_action_modify_value = OSMChangeAction.modify.value
+_action_delete_value = OSMChangeAction.delete.value
 
 
 class OsmChange06Mixin:
@@ -22,14 +29,15 @@ class OsmChange06Mixin:
         """
 
         result = [None] * len(elements)
+        i: cython.int
 
-        for i, element in len(elements):
+        for i, element in enumerate(elements):
             if element.version == 1:
-                action = OSMChangeAction.create.value
+                action = _action_create_value
             elif element.visible:
-                action = OSMChangeAction.modify.value
+                action = _action_modify_value
             else:
-                action = OSMChangeAction.delete.value
+                action = _action_delete_value
 
             result[i] = (action, Element06Mixin.encode_element(element))
 
@@ -48,26 +56,29 @@ class OsmChange06Mixin:
         """
 
         result = [None] * len(elements)
+        i: cython.int
 
         for i, (action, element_dict) in enumerate(elements):
-            if len(element_dict) != 1:
-                raise ValueError(f'Expected one element in {action!r}, got {len(element_dict)}')
+            element_dict_len = len(element_dict)
+            if element_dict_len != 1:
+                raise ValueError(f'Expected one element in {action!r}, got {element_dict_len}')
 
-            element = Element06Mixin.decode_element(element_dict, changeset_id)
+            element = Element06Mixin.decode_element(element_dict, changeset_id=changeset_id)
 
-            if action == OSMChangeAction.create.value:
+            if action == _action_create_value:
                 if element.id > 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
-                if element.version > 1:
-                    element.version = 1
-            elif action == OSMChangeAction.modify.value:
+                element.version = 1
+
+            elif action == _action_modify_value:
                 if element.version < 2:
                     raise_for().diff_update_bad_version(element.versioned_ref)
-            elif action == OSMChangeAction.delete.value:
+
+            elif action == _action_delete_value:
                 if element.version < 2:
                     raise_for().diff_update_bad_version(element.versioned_ref)
-                if element.visible:
-                    element.visible = False
+                element.visible = False
+
             else:
                 raise_for().diff_unsupported_action(action)
 

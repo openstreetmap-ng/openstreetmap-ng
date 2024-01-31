@@ -32,7 +32,7 @@ def format_style_context(request: Request):
     else:
         style = _style_json
 
-    _, _, extension = request_path.rpartition('.')
+    extension = request_path.rpartition('.')[2]
 
     # overrides
     if extension == 'json':
