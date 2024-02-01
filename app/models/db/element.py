@@ -19,9 +19,10 @@ from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 
 
-class Element(Base.Sequential, CreatedAtMixin):
+class Element(Base.NoID, CreatedAtMixin):
     __tablename__ = 'element'
 
+    sequence_id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False, primary_key=True)
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
     user: Mapped[User | None] = relationship(lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)

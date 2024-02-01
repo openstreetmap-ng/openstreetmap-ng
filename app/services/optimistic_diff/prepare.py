@@ -55,7 +55,7 @@ class OptimisticDiffPrepare:
     For example, `(way/1, False)` = `{node/1, node/2}` means that way/1 no longer references node/1 and node/2 locally.
     """
 
-    _last_id: int
+    _last_sequence_id: int
 
     def __init__(self, elements: Sequence[Element]) -> None:
         self.applied = False
@@ -65,7 +65,7 @@ class OptimisticDiffPrepare:
         self.element_state = {}
         self.reference_check_state = {}
         self._reference_override = defaultdict(set)
-        self._last_id = None
+        self._last_sequence_id = None
 
     async def prepare(self) -> None:
         """
@@ -80,7 +80,7 @@ class OptimisticDiffPrepare:
             tg.start_soon(self._preload_elements)
 
             # assign last element id
-            tg.start_soon(self._assign_last_id_and_check_time_integrity)
+            tg.start_soon(self._assign_last_sequence_id_and_check_time_integrity)
 
         for element in self.elements:
             if element.version == 1:
@@ -213,12 +213,12 @@ class OptimisticDiffPrepare:
         for typed_ref, element in zip(typed_refs, elements, strict=True):
             self.element_state[typed_ref] = [element]
 
-    async def _assign_last_id_and_check_time_integrity(self) -> None:
+    async def _assign_last_sequence_id_and_check_time_integrity(self) -> None:
         """
-        Assign the last element id and check the time integrity.
+        Remember the last sequence id and check the time integrity.
         """
 
-        if self._last_id is not None:
+        if self._last_sequence_id is not None:
             raise RuntimeError('Cannot fetch last id when already fetched')
 
         if (element := await ElementRepository.find_one_latest()) is not None:
@@ -232,9 +232,9 @@ class OptimisticDiffPrepare:
                 )
                 raise_for().time_integrity()
 
-            self._last_id = element.id
+            self._last_sequence_id = element.sequence_id
         else:
-            self._last_id = 0
+            self._last_sequence_id = 0
 
     async def _get_latest_element(self, typed_ref: TypedElementRef) -> Element:
         """
@@ -316,8 +316,12 @@ class OptimisticDiffPrepare:
                 raise_for().element_in_use(element.versioned_ref, refs)
 
             # remember the last referencing element id for the future reference check
-            referenced_by_last_id = max(chain((self._last_id,), (e.id for e in parents)))
-            self.reference_check_state.setdefault(element.typed_ref, referenced_by_last_id)
+            referenced_by_last_sequence_id = self.reference_check_state.get(element.typed_ref, self._last_sequence_id)
+
+            for parent in parents:
+                referenced_by_last_sequence_id = max(referenced_by_last_sequence_id, parent.sequence_id)
+
+            self.reference_check_state[element.typed_ref] = referenced_by_last_sequence_id
 
     def _push_bbox_info(self, prev: Element | None, element: Element) -> None:
         """

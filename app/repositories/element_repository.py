@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from itertools import islice
 
 import anyio
 from shapely import Polygon
@@ -42,11 +41,11 @@ class ElementRepository:
     @staticmethod
     async def find_one_latest() -> Element | None:
         """
-        Find the latest element.
+        Find the latest element (one with the highest sequence_id).
         """
 
         async with db() as session:
-            stmt = select(Element).options(get_joinedload()).order_by(Element.id.desc()).limit(1)
+            stmt = select(Element).options(get_joinedload()).order_by(Element.sequence_id.desc()).limit(1)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -191,9 +190,9 @@ class ElementRepository:
         limit: int | None,
     ) -> Sequence[Element | None]:
         """
-        Get elements by the ref strings.
+        Get elements by the versioned or typed refs.
 
-        Results are ordered by the given type_strs and don't include duplicates.
+        Results are returned in the same order as the refs but the duplicates are skipped.
         """
 
         # small optimization
@@ -203,6 +202,7 @@ class ElementRepository:
         versioned_refs = []
         typed_refs = []
 
+        # organize refs by kind
         for ref in refs:
             if isinstance(ref, VersionedElementRef):
                 versioned_refs.append(ref)
@@ -225,18 +225,22 @@ class ElementRepository:
             if typed_refs:
                 tg.start_soon(typed_task)
 
-        # efficiently deduplicate results, preserving order
-        def result_d_gen():
-            for i, ref in enumerate(refs):
-                element = ref_map.get(ref)
-                yield (element.id, element) if element is not None else (-i, None)
+        # deduplicate results and preserve order
+        seen_sequence_id = set()
+        result = []
 
-        result_d = dict(result_d_gen()).values()
+        for ref in refs:
+            element = ref_map.get(ref)
 
-        if limit is not None:  # noqa: SIM108
-            result = tuple(islice(result_d, limit))
-        else:
-            result = tuple(result_d)
+            if element is not None:
+                if element.sequence_id in seen_sequence_id:
+                    continue
+                seen_sequence_id.add(element.sequence_id)
+
+            result.append(element)
+
+        if limit is not None:
+            return result[:limit]
 
         return result
 
@@ -245,7 +249,7 @@ class ElementRepository:
         member_refs: Sequence[TypedElementRef],
         parent_type: ElementType | None = None,
         *,
-        after: int | None = None,
+        after_sequence_id: int | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
         """
@@ -280,8 +284,8 @@ class ElementRepository:
 
             if parent_type is not None:
                 stmt = stmt.where(Element.type == parent_type)
-            if after is not None:
-                stmt = stmt.where(Element.id > after)
+            if after_sequence_id is not None:
+                stmt = stmt.where(Element.sequence_id > after_sequence_id)
             if limit is not None:
                 stmt = stmt.limit(limit)
 
@@ -376,4 +380,4 @@ class ElementRepository:
             tg.start_soon(fetch_parents, nodes_typed_refs, ElementType.relation)
 
         # deduplicate results, preserving order
-        return tuple({element.id: element for elements in result_sequences for element in elements}.values())
+        return tuple({element.sequence_id: element for elements in result_sequences for element in elements}.values())

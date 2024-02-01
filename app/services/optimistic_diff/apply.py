@@ -112,7 +112,11 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is.
         """
 
-        if parents := await ElementRepository.get_many_parents_by_typed_refs([element.typed_ref], after=after, limit=1):
+        if parents := await ElementRepository.get_many_parents_by_typed_refs(
+            (element.typed_ref,),
+            after_sequence_id=after,
+            limit=1,
+        ):
             raise OptimisticDiffError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
 
     async def _update_changesets(

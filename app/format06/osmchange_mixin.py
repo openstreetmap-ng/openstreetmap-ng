@@ -66,7 +66,7 @@ class OsmChange06Mixin:
             element = Element06Mixin.decode_element(element_dict, changeset_id=changeset_id)
 
             if action == _action_create_value:
-                if element.id > 0:
+                if element.typed_id > 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
                 element.version = 1
 
