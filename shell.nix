@@ -110,10 +110,10 @@ let
       if [ -z "$name" ]; then
         read -p "Database migration name: " name
       fi
-      alembic revision --autogenerate --message "$name"
+      alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (writeShellScriptBin "alembic-upgrade" ''
-      alembic upgrade head
+      alembic -c config/alembic.ini upgrade head
     '')
 
     # -- Locale
