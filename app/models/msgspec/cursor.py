@@ -11,10 +11,9 @@ from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
 class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
+    version: int
     id: int | UUID  # fallback to 0 on None
     time: datetime | None
-
-    version: int = 1
 
     def __str__(self) -> str:
         """
@@ -22,6 +21,14 @@ class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, arr
         """
 
         return urlsafe_b64encode(MSGSPEC_MSGPACK_ENCODER.encode(self)).decode()
+
+    @classmethod
+    def v1(cls, id: int | UUID, *, time: datetime | None = None) -> Self:
+        """
+        Create a cursor with version 1.
+        """
+
+        return cls(version=1, id=id, time=time)
 
     @classmethod
     def from_str(cls, s: str, *, expire: timedelta | None = None) -> Self:

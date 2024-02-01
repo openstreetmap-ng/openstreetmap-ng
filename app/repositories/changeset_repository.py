@@ -60,9 +60,7 @@ class ChangesetRepository:
 
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(Changeset).where(
-                    Changeset.user_id == user_id,
-                )
+                select(Changeset).where(Changeset.user_id == user_id)  #
             )
 
             return await session.scalar(stmt)

@@ -195,7 +195,7 @@ class AuthService:
 
             # TODO: test token.id assigned
 
-        return UserTokenStruct(id=token.id, token=token_bytes)
+        return UserTokenStruct.v1(id=token.id, token=token_bytes)
 
     @staticmethod
     async def authenticate_session(token_struct: UserTokenStruct) -> User | None:

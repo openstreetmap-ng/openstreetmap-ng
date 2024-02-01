@@ -9,10 +9,10 @@ from sqlalchemy import (
     ARRAY,
     Boolean,
     Enum,
+    Index,
     LargeBinary,
     Unicode,
     UnicodeText,
-    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
@@ -94,8 +94,8 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     __table_args__ = (
-        UniqueConstraint(email),
-        UniqueConstraint(display_name),
+        Index('user_email_idx', 'email', unique=True),
+        Index('user_display_name_idx', 'display_name', unique=True),
     )
 
     @validates('languages')

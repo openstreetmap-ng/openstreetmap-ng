@@ -4,7 +4,7 @@ from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
-from sqlalchemy import BigInteger, Uuid, func
+from sqlalchemy import BigInteger, Identity, Uuid, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
 from app.utils import unicode_normalize
@@ -21,6 +21,8 @@ class Base:
 
         id: Mapped[int] = mapped_column(
             BigInteger,
+            # always=False: during future migration, ids will be set explicitly
+            Identity(always=False, minvalue=1),
             init=False,
             nullable=False,
             primary_key=True,

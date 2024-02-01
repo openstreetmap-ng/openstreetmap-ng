@@ -34,7 +34,7 @@ class UserTokenAccountConfirmService:
 
             session.add(token)
 
-        return UserTokenStruct(id=token.id, token=token_bytes)
+        return UserTokenStruct.v1(id=token.id, token=token_bytes)
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:
@@ -49,7 +49,7 @@ class UserTokenAccountConfirmService:
 
         async with db_autocommit() as session:
             # prevent timing attacks
-            session.connection(execution_options={'isolation_level': 'SERIALIZABLE'})
+            session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
 
             stmt = delete(UserTokenAccountConfirm).where(
                 UserTokenAccountConfirm.id == token_struct.id,

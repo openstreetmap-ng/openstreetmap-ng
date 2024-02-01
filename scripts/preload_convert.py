@@ -11,12 +11,9 @@ from typing import NamedTuple
 import anyio
 import lxml.etree as ET
 import orjson
-from shapely import Point
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
-from app.models.element_member import ElementMemberRef
-from app.models.element_type import ElementType
 
 input_path = pathlib.Path(PRELOAD_DIR / 'preload.osm')
 if not input_path.is_file():
@@ -26,7 +23,7 @@ output_user_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
 output_changeset_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
 output_element_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
 
-buffering = 2 * 1024 * 1024  # 2 MB
+buffering = 8 * 1024 * 1024  # 8 MB
 batch_size = 100_000
 
 # freeze all gc objects before starting for improved performance
@@ -128,19 +125,19 @@ def element_worker(
                     temp_tags[elem.attrib['k']] = elem.attrib['v']
                 elif elem.tag == 'nd':
                     temp_members.append(
-                        ElementMemberRef(
-                            type=ElementType.way,
-                            id=int(elem.attrib['ref']),
-                            role='',
-                        )
+                        {
+                            'type': 'way',
+                            'id': elem.attrib['ref'],
+                            'role': '',
+                        }
                     )
                 elif elem.tag == 'member':
                     temp_members.append(
-                        ElementMemberRef(
-                            type=ElementType.from_str(elem.attrib['type']),
-                            id=int(elem.attrib['ref']),
-                            role=elem.attrib['role'],
-                        )
+                        {
+                            'type': elem.attrib['type'],
+                            'id': elem.attrib['ref'],
+                            'role': elem.attrib['role'],
+                        }
                     )
                 elif elem.tag in ('node', 'way', 'relation'):
                     if (
@@ -148,7 +145,7 @@ def element_worker(
                         and (lon := elem.attrib.get('lon')) is not None
                         and (lat := elem.attrib.get('lat')) is not None
                     ):
-                        point = Point(float(lon), float(lat))
+                        point = f'POINT ({lon} {lat})'
                     else:
                         point = None
 
@@ -166,7 +163,7 @@ def element_worker(
                             elem.attrib['version'],  # version
                             elem.attrib.get('visible', 'true') == 'true',  # visible
                             orjson.dumps(temp_tags).decode(),  # tags
-                            point.wkt if point is not None else None,  # point
+                            point,  # point
                             orjson.dumps(temp_members).decode(),  # members
                             datetime.fromisoformat(elem.attrib['timestamp']),  # created_at
                         )

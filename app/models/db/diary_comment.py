@@ -12,7 +12,7 @@ from app.models.db.user import User
 from app.models.text_format import TextFormat
 
 
-class DiaryComment(Base.UUID, CreatedAtMixin, RichTextMixin):
+class DiaryComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'diary_comment'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 

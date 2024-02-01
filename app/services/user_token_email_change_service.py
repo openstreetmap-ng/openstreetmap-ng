@@ -31,4 +31,4 @@ class UserTokenEmailChangeService:
 
             session.add(token)
 
-        return UserTokenStruct(id=token.id, token=token_bytes)
+        return UserTokenStruct.v1(id=token.id, token=token_bytes)

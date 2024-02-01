@@ -8,5 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 # TODO: created_at not reliable to diff by when transaction?
 class CreatedAtMixin:
     created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(True), nullable=False, server_default=func.statement_timestamp()
+        TIMESTAMP(True),
+        init=False,
+        nullable=False,
+        server_default=func.statement_timestamp(),
     )

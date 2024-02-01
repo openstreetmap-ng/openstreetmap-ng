@@ -5,11 +5,10 @@ import msgspec
 from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
-class FileCacheEntry(msgspec.Struct, omit_defaults=True):
+class FileCacheMeta(msgspec.Struct, omit_defaults=True):
+    version: int
     expires_at: int | None
     data: bytes
-
-    version: int = 1
 
     def to_bytes(self) -> bytes:
         """
@@ -17,6 +16,14 @@ class FileCacheEntry(msgspec.Struct, omit_defaults=True):
         """
 
         return MSGSPEC_MSGPACK_ENCODER.encode(self)
+
+    @classmethod
+    def v1(cls, expires_at: int | None, data: bytes) -> Self:
+        """
+        Create a file cache meta struct with version 1.
+        """
+
+        return cls(version=1, expires_at=expires_at, data=data)
 
     @classmethod
     def from_bytes(cls, buffer: bytes) -> Self:

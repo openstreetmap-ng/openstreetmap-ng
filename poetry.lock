@@ -195,6 +195,28 @@ typing-extensions = ">=4"
 tz = ["backports.zoneinfo"]
 
 [[package]]
+name = "alembic-utils"
+version = "0.8.2"
+description = "A sqlalchemy/alembic extension for migrating procedures and views"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "alembic_utils-0.8.2.tar.gz", hash = "sha256:d7b3f179dd750a4d457f298642871e36fd85e20af97cf526df86fbc5ebecfd3a"},
+]
+
+[package.dependencies]
+alembic = ">=1.9"
+flupy = "*"
+parse = ">=1.8.4"
+sqlalchemy = ">=1.4"
+typing_extensions = "*"
+
+[package.extras]
+dev = ["black", "mkdocs", "mypy", "pre-commit", "psycopg2-binary", "pylint", "pytest", "pytest-cov"]
+docs = ["mkautodoc", "mkdocs", "pygments", "pymdown-extensions"]
+nvim = ["neovim", "python-language-server"]
+
+[[package]]
 name = "annotated-types"
 version = "0.6.0"
 description = "Reusable constraint types to use with typing.Annotated"
@@ -929,6 +951,22 @@ files = [
 [package.dependencies]
 lxml = "*"
 python-dateutil = "*"
+
+[[package]]
+name = "flupy"
+version = "1.2.0"
+description = "Method chaining built on generators"
+optional = false
+python-versions = "*"
+files = [
+    {file = "flupy-1.2.0.tar.gz", hash = "sha256:12487a008e9744cd35d0f6ea3cfa06f4b2b27cb138bf57d0788f5c26e57afe69"},
+]
+
+[package.dependencies]
+typing_extensions = "*"
+
+[package.extras]
+dev = ["black", "mypy", "pre-commit", "pylint", "pytest", "pytest-benchmark", "pytest-cov"]
 
 [[package]]
 name = "frozenlist"
@@ -1808,6 +1846,17 @@ python-versions = ">=3.7"
 files = [
     {file = "packaging-23.2-py3-none-any.whl", hash = "sha256:8c491190033a9af7e1d931d0b5dacc2ef47509b34dd0de67ed209b5203fc88c7"},
     {file = "packaging-23.2.tar.gz", hash = "sha256:048fb0e9405036518eaaf48a55953c750c11e1a1b68e0dd1a9d62ed0c092cfc5"},
+]
+
+[[package]]
+name = "parse"
+version = "1.20.1"
+description = "parse() is the opposite of format()"
+optional = false
+python-versions = "*"
+files = [
+    {file = "parse-1.20.1-py2.py3-none-any.whl", hash = "sha256:76ddd5214255ae711db4c512be636151fbabaa948c6f30115aecc440422ca82c"},
+    {file = "parse-1.20.1.tar.gz", hash = "sha256:09002ca350ad42e76629995f71f7b518670bcf93548bdde3684fd55d2be51975"},
 ]
 
 [[package]]
@@ -3247,4 +3296,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "88c2c4db9ea26ebaf9e1da42b718fc092558bc22691dd4a705deeb18666c5b2f"
+content-hash = "be793c22bb3b683b219032ef21576296c1821273eca7d76d0d061033d95d0222"

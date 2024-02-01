@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
-from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy import Computed, Enum, ForeignKey, LargeBinary, UnicodeText
+from sqlalchemy.dialects.postgresql import INET, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config import APP_URL
@@ -17,7 +17,7 @@ from app.models.note_event import NoteEvent
 from app.models.text_format import TextFormat
 
 
-class NoteComment(Base.UUID, CreatedAtMixin, RichTextMixin):
+class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'note_comment'
     __rich_text_fields__ = (('body', TextFormat.plain),)
 
@@ -29,6 +29,12 @@ class NoteComment(Base.UUID, CreatedAtMixin, RichTextMixin):
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
     body_rich: CacheEntry | None = None
+    body_tsvector: Mapped = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('simple', body)", persisted=True),
+        init=False,
+        nullable=False,
+    )
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

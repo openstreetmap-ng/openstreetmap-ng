@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -11,8 +11,7 @@ from app.models.db.base import Base
 from app.models.db.changeset import Changeset
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
-from app.models.element_member import ElementMemberRef
-from app.models.element_member_type import ElementMemberRefType
+from app.models.element_member_ref import ElementMemberRef, ElementMemberRefJSONB
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.geometry_type import PointType
@@ -22,23 +21,28 @@ from app.models.versioned_element_ref import VersionedElementRef
 class Element(Base.NoID, CreatedAtMixin):
     __tablename__ = 'element'
 
-    sequence_id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False, primary_key=True)
+    sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(always=True, minvalue=1), init=False, nullable=False)
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(lazy='raise')
+    user: Mapped[User | None] = relationship(init=False, lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
-    changeset: Mapped[Changeset] = relationship(back_populates='elements', lazy='raise')
+    changeset: Mapped[Changeset] = relationship(init=False, back_populates='elements', lazy='raise')
     type: Mapped[ElementType] = mapped_column(Enum(ElementType), nullable=False)
     id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
-    members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefType, nullable=False)
+    members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefJSONB, nullable=False)
 
     # defaults
-    superseded_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+    superseded_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
-    __table_args__ = (UniqueConstraint(type, id, version),)
+    __table_args__ = (PrimaryKeyConstraint(type, id, version, name='element_pkey'),)
 
     @validates('id')
     def validate_id(self, _: str, value: int):

@@ -10,7 +10,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import Text
-import app.models.element_member_type
+import app.models.element_member_ref
 import app.models.geometry_type
 ${imports if imports else ""}
 

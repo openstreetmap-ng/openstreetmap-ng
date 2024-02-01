@@ -9,10 +9,9 @@ from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
 
 
 class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
+    version: int
     id: int | UUID
     token: bytes
-
-    version: int = 1
 
     def __str__(self) -> str:
         """
@@ -20,6 +19,14 @@ class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=
         """
 
         return urlsafe_b64encode(MSGSPEC_MSGPACK_ENCODER.encode(self)).decode()
+
+    @classmethod
+    def v1(cls, id: int | UUID, token: bytes) -> Self:
+        """
+        Create a user token struct with version 1.
+        """
+
+        return cls(version=1, id=id, token=token)
 
     @classmethod
     def from_str(cls, s: str) -> Self:

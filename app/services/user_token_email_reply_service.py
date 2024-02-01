@@ -37,7 +37,7 @@ class UserTokenEmailReplyService:
 
             session.add(token)
 
-        return UserTokenStruct(id=token.id, token=token_bytes)
+        return UserTokenStruct.v1(id=token.id, token=token_bytes)
 
     @staticmethod
     async def create_address(replying_user_id: int, source_type: MailFromType) -> str:

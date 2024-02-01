@@ -10,7 +10,7 @@ from app.models.db.trace_ import Trace
 from app.models.geometry_type import PointType
 
 
-class TracePoint(Base.UUID):
+class TracePoint(Base.Sequential):
     __tablename__ = 'trace_point'
 
     trace_id: Mapped[int] = mapped_column(ForeignKey(Trace.id), nullable=False)

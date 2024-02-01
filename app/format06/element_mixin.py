@@ -9,7 +9,7 @@ from app.lib.auth_context import auth_user
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import xattr
 from app.models.db.element import Element
-from app.models.element_member import ElementMemberRef
+from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.validating.element import ElementValidating
 

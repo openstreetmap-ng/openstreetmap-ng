@@ -2,6 +2,8 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from alembic_utils.pg_extension import PGExtension
+from alembic_utils.replaceable_entity import register_entities
 from geoalchemy2 import alembic_helpers
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -9,6 +11,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import POSTGRES_URL
 from app.models.db import *  # noqa: F403
 from app.models.db.base import Base
+
+# register extensions
+register_entities((PGExtension(schema='public', signature='postgis'),))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

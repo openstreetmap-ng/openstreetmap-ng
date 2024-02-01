@@ -11,6 +11,7 @@ version = "0.0.0"
 aioboto3 = "^12.1.0"
 aiosmtplib = "^3.0.1"
 alembic = "^1.13.1"
+alembic-utils = "^0.8.2"
 anyio = "^4.2.0"
 argon2-cffi = "^23.1.0"
 asyncpg = "^0.29.0"
@@ -98,6 +99,7 @@ target-version = "py312"
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
   "ARG001", # unused-function-argument
+  "ARG002", # unused-method-argument
   "S101", # assert
   "PT011", # pytest-raises-too-broad
   "W191", # tab-indentation

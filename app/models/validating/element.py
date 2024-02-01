@@ -4,7 +4,7 @@ from typing import Self
 from pydantic import PositiveInt, model_validator
 
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
-from app.models.element_member import ElementMemberRef
+from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.geometry import PointGeometry
 from app.models.validating.tags import TagsValidating

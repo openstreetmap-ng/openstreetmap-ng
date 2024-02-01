@@ -3,7 +3,7 @@ import gc
 import pathlib
 
 import anyio
-from sqlalchemy import select, text
+from sqlalchemy import Index, select, text
 
 from app.config import PRELOAD_DIR
 from app.db import db_autocommit
@@ -14,11 +14,6 @@ from app.models.db.user import User
 
 
 async def main():
-    # freeze all gc objects before starting for improved performance
-    gc.collect()
-    gc.freeze()
-    gc.disable()
-
     input_user_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
     if not input_user_path.is_file():
         raise FileNotFoundError(f'File not found: {input_user_path}')
@@ -36,11 +31,18 @@ async def main():
             if input('Database is not empty. Truncate? (y/N): ').lower() == 'y':
                 print('Truncating...')
             else:
-                print('Aborted.')
+                print('Aborted')
                 return
 
-        # disable triggers (constraints) for faster import
+        print('Disabling triggers')
         await session.execute(text('SET session_replication_role TO replica'))
+
+        # discover indexes on the element table
+        indexes = [arg for arg in Element.__table_args__ if isinstance(arg, Index)]
+
+        for index in indexes:
+            print(f'Dropping index {index.name!r}')
+            index.drop(session.bind)
 
         # copy requires truncate
         await session.execute(
@@ -86,9 +88,14 @@ async def main():
             ),
         )
 
-        print('Done')
+        for index in indexes:
+            print(f'Recreating index {index.name!r}...')
+            index.create(session.bind)
 
+        print('Re-enabling triggers')
         await session.execute(text('SET session_replication_role TO default'))
+
+        print('Done! Done! Done!')
 
 
 if __name__ == '__main__':

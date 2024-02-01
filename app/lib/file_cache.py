@@ -7,7 +7,7 @@ from anyio import Path
 
 from app.config import FILE_CACHE_DIR
 from app.lib.crypto import hash_hex
-from app.models.msgspec.file_cache_entry import FileCacheEntry
+from app.models.msgspec.file_cache_meta import FileCacheMeta
 
 
 class FileCache:
@@ -48,7 +48,7 @@ class FileCache:
             logging.debug('Cache miss for %r', key)
             return None
 
-        entry = FileCacheEntry.from_bytes(entry_bytes)
+        entry = FileCacheMeta.from_bytes(entry_bytes)
 
         if entry.expires_at is not None and entry.expires_at < int(time.time()):
             logging.debug('Cache miss for %r', key)
@@ -65,7 +65,7 @@ class FileCache:
 
         path = await self._get_path(key)
         expires_at = int(time.time() + ttl.total_seconds()) if ttl is not None else None
-        entry = FileCacheEntry(expires_at=expires_at, data=data)
+        entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
 
         temp_name = f'.{randbytes(16).hex()}.tmp'
