@@ -62,7 +62,7 @@ class Overpass:
         return tuple(
             Element(
                 type=ElementType.from_str(element['type']),
-                typed_id=element['id'],
+                id=element['id'],
                 tags=element['tags'],
             )
             for element in elements

@@ -5,8 +5,8 @@ import cython
 from app.format06.element_mixin import Element06Mixin
 from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
+from app.models.element_ref import ElementRef
 from app.models.osmchange_action import OSMChangeAction
-from app.models.typed_element_ref import TypedElementRef
 
 # read property once for performance
 _action_create_value = OSMChangeAction.create.value
@@ -19,8 +19,8 @@ class OsmChange06Mixin:
     def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
         """
         >>> encode_osmchange([
-        ...     Element(type=ElementType.node, typed_id=1, version=1, ...),
-        ...     Element(type=ElementType.way, typed_id=2, version=2, ...)
+        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type=ElementType.way, id=2, version=2, ...)
         ... ])
         [
             ('create', {'node': [{'@id': 1, '@version': 1, ...}]}),
@@ -66,7 +66,7 @@ class OsmChange06Mixin:
             element = Element06Mixin.decode_element(element_dict, changeset_id=changeset_id)
 
             if action == _action_create_value:
-                if element.typed_id > 0:
+                if element.id > 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
                 element.version = 1
 
@@ -87,12 +87,12 @@ class OsmChange06Mixin:
         return result
 
     @staticmethod
-    def encode_diff_result(assigned_ref_map: dict[TypedElementRef, Sequence[Element]]) -> Sequence[tuple]:
+    def encode_diff_result(assigned_ref_map: dict[ElementRef, Sequence[Element]]) -> Sequence[tuple]:
         """
         >>> encode_diff_result({
-        ...     TypedElementRef(type=ElementType.node, typed_id=-1): [
-        ...         Element(type=ElementType.node, typed_id=1, version=1, ...),
-        ...         Element(type=ElementType.node, typed_id=1, version=2, ...),
+        ...     TypedElementRef(type=ElementType.node, id=-1): [
+        ...         Element(type=ElementType.node, id=1, version=1, ...),
+        ...         Element(type=ElementType.node, id=1, version=2, ...),
         ...     ],
         ... })
         [
@@ -101,15 +101,22 @@ class OsmChange06Mixin:
         ]
         """
 
-        return tuple(
-            (
-                typed_ref.type.value,
-                {
-                    '@old_id': typed_ref.typed_id,
-                    '@new_id': element.typed_id,
-                    '@new_version': element.version,
-                },
-            )
-            for typed_ref, elements in assigned_ref_map.items()
-            for element in elements
-        )
+        result = []
+
+        for element_ref, elements in assigned_ref_map.items():
+            type_str = element_ref.type.value
+            old_id = element_ref.id
+
+            for element in elements:
+                result.append(  # noqa: PERF401
+                    (
+                        type_str,
+                        {
+                            '@old_id': old_id,
+                            '@new_id': element.id,
+                            '@new_version': element.version,
+                        },
+                    )
+                )
+
+        return result

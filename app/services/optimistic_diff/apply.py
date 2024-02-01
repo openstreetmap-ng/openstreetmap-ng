@@ -15,8 +15,8 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
-from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
@@ -27,18 +27,18 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 class OptimisticDiffApply:
     _now: datetime
 
-    async def apply(self, prepare: OptimisticDiffPrepare) -> dict[TypedElementRef, Sequence[Element]]:
+    async def apply(self, prepare: OptimisticDiffPrepare) -> dict[ElementRef, Sequence[Element]]:
         """
         Apply the optimistic update.
 
-        Returns a dict, mapping original typed refs to the new elements.
+        Returns a dict, mapping original element refs to the new elements.
         """
 
         if prepare.applied:
             raise RuntimeError(f'{self.__class__.__qualname__} was reused on the same prepare instance')
 
         prepare.applied = True
-        assigned_ref_map: dict[TypedElementRef, Sequence[Element]] = None
+        assigned_ref_map: dict[ElementRef, Sequence[Element]] = None
 
         async with db_autocommit() as session, anyio.create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
@@ -51,8 +51,8 @@ class OptimisticDiffApply:
             tg.start_soon(self._check_time_integrity)
 
             # check if the elements are still the latest version
-            for typed_ref, elements in prepare.element_state.items():
-                if typed_ref.typed_id > 0:
+            for element_ref, elements in prepare.element_state.items():
+                if element_ref.id > 0:
                     tg.start_soon(self._check_element_is_latest, elements[0])  # check the oldest element
 
             # check if the elements are not referenced by any *new* elements
@@ -84,7 +84,7 @@ class OptimisticDiffApply:
             logging.error(
                 'Element %r/%r was created in the future: %r > %r',
                 element.type,
-                element.typed_id,
+                element.id,
                 element.created_at,
                 self._now,
             )
@@ -97,12 +97,16 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is not.
         """
 
-        latest = await Element.find_one_by_typed_ref(element.typed_ref)
-        if latest is None:
-            raise RuntimeError(f'Element {element.typed_ref} does not exist')
+        many_latest = await ElementRepository.get_many_latest_by_element_refs((element.element_ref,), limit=1)
+
+        if not many_latest:
+            raise RuntimeError(f'Element {element.element_ref} does not exist')
+
+        latest = many_latest[0]
+
         if latest.version != element.version:
             raise OptimisticDiffError(
-                f'Element {element.typed_ref} is not the latest version ({latest.version} != {element.version})'
+                f'Element {element.element_ref} is not the latest version ({latest.version} != {element.version})'
             )
 
     async def _check_element_not_referenced(self, element: Element, after: int) -> None:
@@ -112,12 +116,12 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is.
         """
 
-        if parents := await ElementRepository.get_many_parents_by_typed_refs(
-            (element.typed_ref,),
+        if parents := await ElementRepository.get_many_parents_by_element_refs(
+            (element.element_ref,),
             after_sequence_id=after,
             limit=1,
         ):
-            raise OptimisticDiffError(f'Element {element.typed_ref} is referenced by {parents[0].typed_ref}')
+            raise OptimisticDiffError(f'Element {element.element_ref} is referenced by {parents[0].element_ref}')
 
     async def _update_changesets(
         self,
@@ -158,20 +162,20 @@ class OptimisticDiffApply:
         self,
         elements: Sequence[Element],
         session: AsyncSession,
-    ) -> dict[TypedElementRef, Sequence[Element]]:
+    ) -> dict[ElementRef, Sequence[Element]]:
         """
         Update the element table by creating new revisions.
 
-        Returns a dict, mapping original typed refs to the new elements.
+        Returns a dict, mapping original element refs to the new elements.
         """
 
-        assigned_ref_map: dict[TypedElementRef, list[Element]] = defaultdict(list)
+        assigned_ref_map: dict[ElementRef, list[Element]] = defaultdict(list)
 
         # remember old refs before assigning ids
         for element in elements:
-            assigned_ref_map[element.typed_ref].append(element)
+            assigned_ref_map[element.element_ref].append(element)
 
-        await self._assign_typed_ids(elements)
+        await self._assign_ids(elements)
 
         # process superseded elements and update the timestamps
         superseded_refs: set[VersionedElementRef] = set()
@@ -200,7 +204,7 @@ class OptimisticDiffApply:
                     or_(
                         and_(
                             Element.type == versioned_ref.type,
-                            Element.typed_id == versioned_ref.typed_id,
+                            Element.id == versioned_ref.id,
                             Element.version == versioned_ref.version,
                         )
                         for versioned_ref in superseded_refs
@@ -217,45 +221,59 @@ class OptimisticDiffApply:
 
         return assigned_ref_map
 
-    async def _assign_typed_ids(self, elements: Sequence[Element]) -> None:
+    async def _assign_ids(self, elements: Sequence[Element]) -> None:
         """
-        Assign typed ids to the elements and update their members.
+        Assign ids to the elements placeholders and update their members.
         """
 
-        next_typed_id_map: dict[ElementType, int] = {}
-        assigned_typed_id_map: dict[TypedElementRef, int] = {}
+        type_next_id_map: dict[ElementType, int] = {}
 
-        async def assign_last_typed_id(type: ElementType) -> None:
-            if any(e.typed_id < 0 and e.type == type for e in elements):
-                next_typed_id_map[type] = (await ElementRepository.get_last_typed_id_by_type(type)) + 1
+        async def type_next_id_task(type: ElementType) -> None:
+            if any(e.id < 0 and e.type == type for e in elements):
+                type_next_id_map[type] = (await ElementRepository.get_last_id_by_type(type)) + 1
+
+        seen_types: set[ElementType] = set()
+        max_seen_types = len(ElementType)
 
         async with anyio.create_task_group() as tg:
-            for type in ElementType:
-                tg.start_soon(assign_last_typed_id, type)
+            for element in elements:
+                element_type = element.type
+                if element_type in seen_types:
+                    continue
+
+                seen_types.add(element_type)
+                tg.start_soon(type_next_id_task, element_type)
+
+                if len(seen_types) == max_seen_types:
+                    break
 
         # small optimization, skip if no elements needing assignment
-        if not next_typed_id_map:
+        if not type_next_id_map:
             return
 
-        # assign typed ids
+        # assign ids
+        assigned_id_map: dict[ElementRef, int] = {}
+
         for element in elements:
-            if element.typed_id > 0:
+            if element.id > 0:
                 continue
 
             # check for existing assigned id
-            if (assigned_id := assigned_typed_id_map.get(element.typed_ref)) is not None:
-                element.typed_id = assigned_id
+            if (assigned_id := assigned_id_map.get(element.element_ref)) is not None:
+                element.id = assigned_id
                 continue
 
             # assign new id
-            assigned_id = next_typed_id_map[element.type]
-            next_typed_id_map[element.type] += 1
-            element.typed_id = assigned_id
-            assigned_typed_id_map[element.typed_ref] = assigned_id
+            assigned_id = type_next_id_map[element.type]
+            type_next_id_map[element.type] += 1
+            element.id = assigned_id
+            assigned_id_map[element.element_ref] = assigned_id
 
         # update element members
         for element in elements:
             element.members = tuple(
-                replace(member, typed_id=assigned_typed_id_map[member.typed_ref]) if member.typed_id < 0 else member
-                for member in element.members
+                replace(member_ref, id=assigned_id_map[member_ref.element_ref])
+                if member_ref.id < 0  #
+                else member_ref
+                for member_ref in element.members
             )

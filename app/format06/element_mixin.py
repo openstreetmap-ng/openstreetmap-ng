@@ -23,16 +23,16 @@ _type_relation = ElementType.relation
 def _encode_nodes(nodes: Sequence[ElementMemberRef]) -> tuple[dict | int, ...]:
     """
     >>> _encode_nodes([
-    ...     ElementMember(type=ElementType.node, typed_id=1, role=''),
-    ...     ElementMember(type=ElementType.node, typed_id=2, role=''),
+    ...     ElementMemberRef(type=ElementType.node, id=1, role=''),
+    ...     ElementMemberRef(type=ElementType.node, id=2, role=''),
     ... ])
     [{'@ref': 1}, {'@ref': 2}]
     """
 
     if format_is_json():
-        return tuple(node.typed_id for node in nodes)
+        return tuple(node.id for node in nodes)
     else:
-        return tuple({'@ref': node.typed_id} for node in nodes)
+        return tuple({'@ref': node.id} for node in nodes)
 
 
 @cython.cfunc
@@ -41,13 +41,13 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
     This method does not validate the input data.
 
     >>> _decode_nodes_unsafe([{'@ref': '1'}])
-    [ElementMember(type=ElementType.node, typed_id=1, role='')]
+    [ElementMemberRef(type=ElementType.node, id=1, role='')]
     """
 
     return tuple(
         ElementMemberRef(
             type=_type_node,
-            typed_id=int(node['@ref']),
+            id=int(node['@ref']),
             role='',
         )
         for node in nodes
@@ -58,8 +58,8 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
 def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
     """
     >>> _encode_members([
-    ...     ElementMember(type=ElementType.node, typed_id=1, role='a'),
-    ...     ElementMember(type=ElementType.way, typed_id=2, role='b'),
+    ...     ElementMemberRef(type=ElementType.node, id=1, role='a'),
+    ...     ElementMemberRef(type=ElementType.way, id=2, role='b'),
     ... ])
     [
         {'@type': 'node', '@ref': 1, '@role': 'a'},
@@ -70,7 +70,7 @@ def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
     return tuple(
         {
             xattr('type'): member.type.value,
-            xattr('ref'): member.typed_id,
+            xattr('ref'): member.id,
             xattr('role'): member.role,
         }
         for member in members
@@ -85,13 +85,13 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, .
     >>> _decode_members_unsafe([
     ...     {'@type': 'node', '@ref': '1', '@role': 'a'},
     ... ])
-    [ElementMember(type=ElementType.node, typed_id=1, role='a')]
+    [ElementMemberRef(type=ElementType.node, id=1, role='a')]
     """
 
     return tuple(
         ElementMemberRef(
             type=ElementType.from_str(member['@type']),
-            typed_id=int(member['@ref']),
+            id=int(member['@ref']),
             role=member['@role'],
         )
         for member in members
@@ -102,7 +102,7 @@ class Element06Mixin:
     @staticmethod
     def encode_element(element: Element) -> dict:
         """
-        >>> encode_element(Element(type=ElementType.node, typed_id=1, version=1, ...))
+        >>> encode_element(Element(type=ElementType.node, id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
         """
 
@@ -116,7 +116,7 @@ class Element06Mixin:
         if format_is_json():
             return {
                 'type': element_type.value,
-                'id': element.typed_id,
+                'id': element.id,
                 **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                 'version': element.version,
                 'timestamp': element.created_at,
@@ -137,7 +137,7 @@ class Element06Mixin:
         else:
             return {
                 element_type.value: {
-                    '@id': element.typed_id,
+                    '@id': element.id,
                     **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                     '@version': element.version,
                     '@timestamp': element.created_at,
@@ -189,7 +189,7 @@ class Element06Mixin:
                 user_id=auth_user().id,
                 changeset_id=changeset_id or data.get('@changeset'),
                 type=type,
-                typed_id=data.get('@id'),
+                id=data.get('@id'),
                 version=data.get('@version', 0) + 1,
                 visible=data.get('@visible', True),
                 tags=tags,
@@ -202,8 +202,8 @@ class Element06Mixin:
     def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
         """
         >>> encode_elements([
-        ...     Element(type=ElementType.node, typed_id=1, version=1, ...),
-        ...     Element(type=ElementType.way, typed_id=2, version=1,
+        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type=ElementType.way, id=2, version=1,
         ... ])
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
         """

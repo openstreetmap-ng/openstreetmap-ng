@@ -5,13 +5,13 @@ from typing import NoReturn
 from fastapi import status
 
 from app.exceptions.api_error import APIError
-from app.models.typed_element_ref import TypedElementRef
+from app.models.element_ref import ElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 
 
 class ElementExceptionsMixin:
     @abstractmethod
-    def element_not_found(self, element_ref: VersionedElementRef | TypedElementRef) -> NoReturn:
+    def element_not_found(self, element_ref: VersionedElementRef | ElementRef) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
@@ -35,9 +35,9 @@ class ElementExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def element_member_not_found(self, initiator_ref: VersionedElementRef, member_ref: TypedElementRef) -> NoReturn:
+    def element_member_not_found(self, initiator_ref: VersionedElementRef, member_ref: ElementRef) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[TypedElementRef]) -> NoReturn:
+    def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[ElementRef]) -> NoReturn:
         raise NotImplementedError

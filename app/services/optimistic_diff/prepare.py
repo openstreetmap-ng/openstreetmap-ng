@@ -12,9 +12,14 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
-from app.models.typed_element_ref import TypedElementRef
 from app.repositories.element_repository import ElementRepository
+
+# read property once for performance
+_type_node = ElementType.node
+_type_way = ElementType.way
+_type_relation = ElementType.relation
 
 
 class OptimisticDiffPrepare:
@@ -33,22 +38,22 @@ class OptimisticDiffPrepare:
     Local changeset state, mapping from id to the changeset.
     """
 
-    _changeset_bbox_info: dict[int, set[Point | TypedElementRef]]
+    _changeset_bbox_info: dict[int, set[Point | ElementRef]]
     """
     Changeset bbox info, mapping from changeset id to the list of points and element refs.
     """
 
-    element_state: dict[TypedElementRef, list[Element]]
+    element_state: dict[ElementRef, list[Element]]
     """
     Local element state, mapping from element ref to that elements history (from oldest to newest).
     """
 
-    reference_check_state: dict[TypedElementRef, tuple[Element, int]]
+    reference_check_state: dict[ElementRef, tuple[Element, int]]
     """
     Local reference check state, mapping from element ref to that element and the last referencing element id.
     """
 
-    _reference_override: dict[tuple[TypedElementRef, bool], set[TypedElementRef]]
+    _reference_override: dict[tuple[ElementRef, bool], set[ElementRef]]
     """
     Local reference override, mapping from (element ref, override) tuple to the set of referenced element refs.
 
@@ -87,11 +92,11 @@ class OptimisticDiffPrepare:
                 # action: create
                 prev = None
 
-                if element.typed_id >= 0:
+                if element.id >= 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
             else:
                 # action: modify | delete
-                prev = await self._get_latest_element(element.typed_ref)
+                prev = await self._get_latest_element(element.element_ref)
 
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element.versioned_ref, prev.version)
@@ -104,7 +109,7 @@ class OptimisticDiffPrepare:
                     logging.error(
                         'Element %r/%r was created in the future: %r > %r',
                         prev.type,
-                        prev.typed_id,
+                        prev.id,
                         prev.created_at,
                         now,
                     )
@@ -117,8 +122,8 @@ class OptimisticDiffPrepare:
             async with anyio.create_task_group() as tg:
                 # check if all referenced elements are visible
                 # TODO: check only added members?
-                for typed_ref in (e.typed_ref for e in element.members):
-                    tg.start_soon(self._check_member_visible, element, typed_ref)
+                for element_ref in (e.element_ref for e in element.members):
+                    tg.start_soon(self._check_member_visible, element, element_ref)
 
                 # if deleted, check if not referenced by other elements
                 if not element.visible and prev and prev.visible:
@@ -193,25 +198,25 @@ class OptimisticDiffPrepare:
         if self.element_state:
             raise RuntimeError('Cannot preload elements when local state is not empty')
 
-        # only preload elements that exist in the database (positive typed_id)
-        typed_refs = {e.typed_ref for e in self.elements if e.typed_id > 0}
+        # only preload elements that exist in the database (positive id)
+        element_refs = {e.element_ref for e in self.elements if e.id > 0}
 
         # small optimization
-        if not typed_refs:
+        if not element_refs:
             return
 
-        elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=len(typed_refs))
+        elements = await ElementRepository.get_many_latest_by_element_refs(element_refs, limit=len(element_refs))
 
         # check if all elements exist
-        if len(elements) != len(typed_refs):
+        if len(elements) != len(element_refs):
             for element in elements:
-                typed_refs.remove(element.typed_ref)
+                element_refs.remove(element.element_ref)
 
-            raise_for().element_not_found(next(iter(typed_refs)))
+            raise_for().element_not_found(next(iter(element_refs)))
 
-        # if yes, push them to the local state
-        for typed_ref, element in zip(typed_refs, elements, strict=True):
-            self.element_state[typed_ref] = [element]
+        # if they do, push them to the local state
+        for element_ref, element in zip(element_refs, elements, strict=True):
+            self.element_state[element_ref] = [element]
 
     async def _assign_last_sequence_id_and_check_time_integrity(self) -> None:
         """
@@ -226,7 +231,7 @@ class OptimisticDiffPrepare:
                 logging.error(
                     'Element %r/%r was created in the future: %r > %r',
                     element.type,
-                    element.typed_id,
+                    element.id,
                     element.created_at,
                     now,
                 )
@@ -236,21 +241,24 @@ class OptimisticDiffPrepare:
         else:
             self._last_sequence_id = 0
 
-    async def _get_latest_element(self, typed_ref: TypedElementRef) -> Element:
+    async def _get_latest_element(self, element_ref: ElementRef) -> Element:
         """
         Get the latest element from the local state or the database if not found.
         """
 
-        if (elements := self.element_state.get(typed_ref)) is not None:
+        # check if exists in local state
+        if (elements := self.element_state.get(element_ref)) is not None:
             return elements[-1]
 
-        if typed_ref.typed_id < 0:
-            raise_for().element_not_found(typed_ref)
-        if not (elements := await ElementRepository.get_many_latest_by_typed_refs((typed_ref,), limit=1)):
-            raise_for().element_not_found(typed_ref)
+        # fetch from database if id is valid
+        if element_ref.id < 0:
+            raise_for().element_not_found(element_ref)
+        if not (elements := await ElementRepository.get_many_latest_by_element_refs((element_ref,), limit=1)):
+            raise_for().element_not_found(element_ref)
 
+        # update local state
         element = elements[0]
-        self.element_state[typed_ref] = [element]
+        self.element_state[element_ref] = [element]
         return element
 
     def _push_element_state(self, element: Element) -> None:
@@ -258,12 +266,12 @@ class OptimisticDiffPrepare:
         Update the local element state with the new element.
         """
 
-        if (elements := self.element_state.get(element.typed_ref)) is not None:
+        if (elements := self.element_state.get(element.element_ref)) is not None:
             # if history exists, append to it
             elements.append(element)
         else:
             # otherwise, create a new history
-            self.element_state[element.typed_ref] = [element]
+            self.element_state[element.element_ref] = [element]
 
     def _update_reference_override(self, prev: Element | None, element: Element) -> None:
         """
@@ -272,28 +280,31 @@ class OptimisticDiffPrepare:
 
         prev_refs = prev.references if prev is not None else frozenset()
         next_refs = element.references
-        typed_ref = element.typed_ref
+
+        # read property once for performance
+        element_ref = element.element_ref
 
         # remove old references
         for ref in prev_refs - next_refs:
-            self._reference_override[(ref, True)].discard(typed_ref)
-            self._reference_override[(ref, False)].add(typed_ref)
+            self._reference_override[(ref, True)].discard(element_ref)
+            self._reference_override[(ref, False)].add(element_ref)
+
         # add new references
         for ref in next_refs - prev_refs:
-            self._reference_override[(ref, True)].add(typed_ref)
-            self._reference_override[(ref, False)].discard(typed_ref)
+            self._reference_override[(ref, True)].add(element_ref)
+            self._reference_override[(ref, False)].discard(element_ref)
 
-    async def _check_member_visible(self, initiator: Element, typed_ref: TypedElementRef) -> None:
+    async def _check_member_visible(self, initiator: Element, element_ref: ElementRef) -> None:
         """
         Check if the member exists and is visible.
         """
 
         try:
-            if not (await self._get_latest_element(typed_ref)).visible:
+            if not (await self._get_latest_element(element_ref)).visible:
                 raise Exception
         except Exception:
             # convert all exceptions to element member not found
-            raise_for().element_member_not_found(initiator.versioned_ref, typed_ref)
+            raise_for().element_member_not_found(initiator.versioned_ref, element_ref)
 
     async def _check_element_not_referenced(self, element: Element) -> None:
         """
@@ -301,38 +312,38 @@ class OptimisticDiffPrepare:
         """
 
         # check if not referenced by local state
-        if refs := self._reference_override[(element.typed_ref, True)]:
+        if refs := self._reference_override[(element.element_ref, True)]:
             raise_for().element_in_use(element.versioned_ref, refs)
 
         # check if not referenced by database elements (only existing elements)
-        if element.typed_id > 0:
-            negative_refs = self._reference_override[(element.typed_ref, False)]
-            parents = await ElementRepository.get_many_parents_by_typed_refs(
-                (element.typed_ref,),
+        if element.id > 0:
+            negative_refs = self._reference_override[(element.element_ref, False)]
+            parents = await ElementRepository.get_many_parents_by_element_refs(
+                (element.element_ref,),
                 limit=len(negative_refs) + 1,
             )
-            parent_refs = {e.typed_ref for e in parents}
+            parent_refs = {e.element_ref for e in parents}
             if refs := (parent_refs - negative_refs):
                 raise_for().element_in_use(element.versioned_ref, refs)
 
             # remember the last referencing element id for the future reference check
-            referenced_by_last_sequence_id = self.reference_check_state.get(element.typed_ref, self._last_sequence_id)
+            referenced_by_last_sequence_id = self.reference_check_state.get(element.element_ref, self._last_sequence_id)
 
             for parent in parents:
                 referenced_by_last_sequence_id = max(referenced_by_last_sequence_id, parent.sequence_id)
 
-            self.reference_check_state[element.typed_ref] = referenced_by_last_sequence_id
+            self.reference_check_state[element.element_ref] = referenced_by_last_sequence_id
 
     def _push_bbox_info(self, prev: Element | None, element: Element) -> None:
         """
         Push bbox info for later processing.
         """
 
-        if element.type == ElementType.node:
+        if element.type == _type_node:
             self._push_bbox_node_info(prev, element)
-        elif element.type == ElementType.way:
+        elif element.type == _type_way:
             self._push_bbox_way_info(prev, element)
-        elif element.type == ElementType.relation:
+        elif element.type == _type_relation:
             self._push_bbox_relation_info(prev, element)
         else:
             raise NotImplementedError(f'Unsupported element type {element.type!r}')
@@ -360,11 +371,11 @@ class OptimisticDiffPrepare:
         pref_refs = prev.members if prev is not None else ()
         next_refs = element.members
 
-        for typed_ref in {e.typed_ref for e in chain(pref_refs, next_refs)}:
-            if (elements := self.element_state.get(typed_ref)) is not None:
+        for element_ref in {e.element_ref for e in chain(pref_refs, next_refs)}:
+            if (elements := self.element_state.get(element_ref)) is not None:
                 bbox_info.add(elements[-1].point)
             else:
-                bbox_info.add(typed_ref)
+                bbox_info.add(element_ref)
 
     def _push_bbox_relation_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -377,40 +388,39 @@ class OptimisticDiffPrepare:
         prev_refs = frozenset(prev.members) if prev is not None else frozenset()
         next_refs = frozenset(element.members)
         changed_refs = prev_refs ^ next_refs
-        contains_relation = any(ref.type == ElementType.relation for ref in changed_refs)
+        contains_relation = any(ref.type == _type_relation for ref in changed_refs)
         tags_changed = prev is None or prev.tags != element.tags
 
         # get full geometry or changed geometry
         diff_refs = (prev_refs | next_refs) if (tags_changed or contains_relation) else (changed_refs)
 
-        for typed_ref in (e.typed_ref for e in diff_refs):
-            if typed_ref.type == ElementType.relation:
+        for element_ref in (e.element_ref for e in diff_refs):
+            if element_ref.type == _type_relation:
                 continue
-
-            if (elements := self.element_state.get(typed_ref)) is not None:
+            if (elements := self.element_state.get(element_ref)) is not None:
                 bbox_info.add(elements[-1].point)
             else:
-                bbox_info.add(typed_ref)
+                bbox_info.add(element_ref)
 
     async def _update_changeset_boundaries(self) -> None:
         """
         Update changeset boundaries using the bbox info.
         """
 
-        async def task(changeset_id: int, bbox_info: set[Point | TypedElementRef]) -> None:
+        async def task(changeset_id: int, bbox_info: set[Point | ElementRef]) -> None:
             points = set()
-            typed_refs = set()
+            element_refs = set()
 
-            # split bbox info into points and typed refs
+            # organize bbox info into points and element refs
             for point_or_ref in bbox_info:
                 if isinstance(point_or_ref, Point):
                     points.add(point_or_ref)
                 else:
-                    typed_refs.add(point_or_ref)
+                    element_refs.add(point_or_ref)
 
-            # get points for typed refs
-            elements = await ElementRepository.get_many_latest_by_typed_refs(
-                typed_refs,
+            # get points for element refs
+            elements = await ElementRepository.get_many_latest_by_element_refs(
+                element_refs,
                 recurse_ways=True,
                 limit=None,
             )
@@ -418,9 +428,9 @@ class OptimisticDiffPrepare:
             for element in elements:
                 if element.point is not None:
                     points.add(element.point)
-                elif element.type == ElementType.node:
+                elif element.type == _type_node:
                     # log warning as this should not happen
-                    logging.warning('Node %r has no point', element.typed_id)
+                    logging.warning('Node %r has no point', element.id)
 
             # update changeset bounds if any points
             if points:

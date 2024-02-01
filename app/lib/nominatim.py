@@ -10,8 +10,8 @@ from shapely.geometry import Point
 from app.config import NOMINATIM_URL
 from app.lib.translation import primary_translation_language
 from app.limits import NOMINATIM_CACHE_EXPIRE, NOMINATIM_HTTP_TIMEOUT, NOMINATIM_SEARCH_RESULTS_LIMIT
+from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
-from app.models.typed_element_ref import TypedElementRef
 from app.services.cache_service import CacheService
 from app.utils import HTTP
 
@@ -58,7 +58,7 @@ class Nominatim:
             return f'{point.y:.3f}, {point.x:.3f}'
 
     @staticmethod
-    async def search(*, q: str, bbox: Polygon | None = None) -> Sequence[TypedElementRef]:
+    async def search(*, q: str, bbox: Polygon | None = None) -> Sequence[ElementRef]:
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
@@ -79,9 +79,9 @@ class Nominatim:
         results: list[dict] = orjson.loads(cache_entry.value)
 
         return tuple(
-            TypedElementRef(
+            ElementRef(
                 type=ElementType.from_str(osm_type),
-                typed_id=osm_id,
+                id=osm_id,
             )
             for result in results
             # some results are abstract and have no osm_type/osm_id

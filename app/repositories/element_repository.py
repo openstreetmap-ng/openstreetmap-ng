@@ -12,16 +12,16 @@ from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
+from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
-from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 
 
 class ElementRepository:
     @staticmethod
-    async def get_last_typed_id_by_type(type: ElementType) -> int:
+    async def get_last_id_by_type(type: ElementType) -> int:
         """
-        Find the last typed_id for the given type.
+        Find the last id for the given type.
 
         Returns 0 if no elements exist for the given type.
         """
@@ -29,14 +29,14 @@ class ElementRepository:
         async with db() as session:
             stmt = (
                 select(Element)
-                .options(load_only(Element.typed_id, raiseload=True))
+                .options(load_only(Element.id, raiseload=True))
                 .where(Element.type == type)
-                .order_by(Element.typed_id.desc())
+                .order_by(Element.id.desc())
                 .limit(1)
             )
 
             element = await session.scalar(stmt)
-            return element.typed_id if element is not None else 0
+            return element.id if (element is not None) else 0
 
     @staticmethod
     async def find_one_latest() -> Element | None:
@@ -72,7 +72,7 @@ class ElementRepository:
                     or_(
                         and_(
                             Element.type == versioned_ref.type,
-                            Element.typed_id == versioned_ref.typed_id,
+                            Element.id == versioned_ref.id,
                             Element.version == versioned_ref.version,
                         )
                         for versioned_ref in versioned_refs
@@ -86,13 +86,15 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_by_typed_ref(
-        typed_ref: TypedElementRef,
+    async def get_many_by_element_ref(
+        element_ref: ElementRef,
         *,
         limit: int | None,
     ) -> Sequence[Element]:
         """
-        Get elements by the typed ref.
+        Get elements by the element ref.
+
+        Results are sorted by version in descending order (newest first).
         """
 
         async with db() as session:
@@ -100,8 +102,8 @@ class ElementRepository:
                 select(Element)
                 .options(get_joinedload())
                 .where(
-                    Element.type == typed_ref.type,
-                    Element.typed_id == typed_ref.typed_id,
+                    Element.type == element_ref.type,
+                    Element.id == element_ref.id,
                 )
                 .order_by(Element.version.desc())
             )
@@ -112,14 +114,14 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_latest_by_typed_refs(
-        typed_refs: Sequence[TypedElementRef],
+    async def get_many_latest_by_element_refs(
+        element_refs: Sequence[ElementRef],
         *,
         recurse_ways: bool = False,
         limit: int | None,
     ) -> Sequence[Element]:
         """
-        Get elements by the typed refs.
+        Get latest elements by their element refs.
 
         Optionally recurse ways to get their nodes.
 
@@ -127,13 +129,13 @@ class ElementRepository:
         """
 
         # small optimization
-        if not typed_refs:
+        if not element_refs:
             return ()
 
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
-        recurse_way_refs = tuple(ref for ref in typed_refs if ref.type == ElementType.way) if recurse_ways else ()
+        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == ElementType.way) if recurse_ways else ()
 
         async with db() as session:
             stmt = (
@@ -144,10 +146,10 @@ class ElementRepository:
                     Element.superseded_at == null() | (Element.superseded_at > point_in_time),
                     or_(
                         and_(
-                            Element.type == typed_ref.type,
-                            Element.typed_id == typed_ref.typed_id,
+                            Element.type == element_ref.type,
+                            Element.id == element_ref.id,
                         )
-                        for typed_ref in typed_refs
+                        for element_ref in element_refs
                     ),
                 )
             )
@@ -160,10 +162,10 @@ class ElementRepository:
                         Element.created_at <= point_in_time,
                         Element.superseded_at == null() | (Element.superseded_at > point_in_time),
                         Element.type == ElementType.node,
-                        Element.typed_id.in_(
+                        Element.id.in_(
                             select(
                                 cast(
-                                    func.jsonb_path_query(Element.members, '$[*].typed_id'),
+                                    func.jsonb_path_query(Element.members, '$[*].id'),
                                     INTEGER,
                                 )
                             )
@@ -171,7 +173,7 @@ class ElementRepository:
                                 Element.created_at <= point_in_time,
                                 Element.superseded_at == null() | (Element.superseded_at > point_in_time),
                                 Element.type == ElementType.way,
-                                Element.typed_id.in_(ref.typed_id for ref in recurse_way_refs),
+                                Element.id.in_(ref.id for ref in recurse_way_refs),
                             )
                             .subquery()
                         ),
@@ -185,12 +187,12 @@ class ElementRepository:
 
     @staticmethod
     async def find_many_by_refs(
-        refs: Sequence[VersionedElementRef | TypedElementRef],
+        refs: Sequence[VersionedElementRef | ElementRef],
         *,
         limit: int | None,
     ) -> Sequence[Element | None]:
         """
-        Get elements by the versioned or typed refs.
+        Get elements by the versioned or element refs.
 
         Results are returned in the same order as the refs but the duplicates are skipped.
         """
@@ -200,30 +202,30 @@ class ElementRepository:
             return ()
 
         versioned_refs = []
-        typed_refs = []
+        element_refs = []
 
         # organize refs by kind
         for ref in refs:
             if isinstance(ref, VersionedElementRef):
                 versioned_refs.append(ref)
             else:
-                typed_refs.append(ref)
+                element_refs.append(ref)
 
-        ref_map: dict[VersionedElementRef | TypedElementRef, Element] = {}
+        ref_map: dict[VersionedElementRef | ElementRef, Element] = {}
 
-        async def versioned_task() -> None:
+        async def versioned_refs_task() -> None:
             elements = await ElementRepository.get_many_by_versioned_refs(versioned_refs, limit=limit)
             ref_map.update((element.versioned_ref, element) for element in elements)
 
-        async def typed_task() -> None:
-            elements = await ElementRepository.get_many_latest_by_typed_refs(typed_refs, limit=limit)
-            ref_map.update((element.typed_ref, element) for element in elements)
+        async def element_refs_task() -> None:
+            elements = await ElementRepository.get_many_latest_by_element_refs(element_refs, limit=limit)
+            ref_map.update((element.element_ref, element) for element in elements)
 
         async with anyio.create_task_group() as tg:
             if versioned_refs:
-                tg.start_soon(versioned_task)
-            if typed_refs:
-                tg.start_soon(typed_task)
+                tg.start_soon(versioned_refs_task)
+            if element_refs:
+                tg.start_soon(element_refs_task)
 
         # deduplicate results and preserve order
         seen_sequence_id = set()
@@ -245,8 +247,8 @@ class ElementRepository:
         return result
 
     @staticmethod
-    async def get_many_parents_by_typed_refs(
-        member_refs: Sequence[TypedElementRef],
+    async def get_many_parents_by_element_refs(
+        member_refs: Sequence[ElementRef],
         parent_type: ElementType | None = None,
         *,
         after_sequence_id: int | None = None,
@@ -273,7 +275,7 @@ class ElementRepository:
                         func.jsonb_path_exists(
                             Element.members,
                             cast(
-                                f'$[*] ? (@.type == "{member_ref.type.value}" && @.typed_id == {member_ref.typed_id})',
+                                f'$[*] ? (@.type == "{member_ref.type.value}" && @.id == {member_ref.id})',
                                 JSONPATH,
                             ),
                         )
@@ -340,12 +342,12 @@ class ElementRepository:
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
             raise_for().map_query_nodes_limit_exceeded()
 
-        nodes_typed_refs = tuple(node.typed_ref for node in nodes)
+        nodes_refs = tuple(node.element_ref for node in nodes)
         result_sequences = [nodes]
 
-        async def fetch_parents(typed_refs: Sequence[TypedElementRef], parent_type: ElementType) -> Sequence[Element]:
-            parents = await ElementRepository.get_many_parents_by_typed_refs(
-                typed_refs,
+        async def fetch_parents(element_refs: Sequence[ElementRef], parent_type: ElementType) -> Sequence[Element]:
+            parents = await ElementRepository.get_many_parents_by_element_refs(
+                element_refs,
                 parent_type=parent_type,
                 limit=None,
             )
@@ -357,27 +359,27 @@ class ElementRepository:
 
             async def way_task() -> None:
                 # fetch parent ways
-                ways = await fetch_parents(nodes_typed_refs, ElementType.way)
+                ways = await fetch_parents(nodes_refs, ElementType.way)
 
                 if not ways:
                     return
 
                 # fetch ways' parent relations
-                ways_typed_refs = tuple(way.typed_ref for way in ways)
-                tg.start_soon(fetch_parents, ways_typed_refs, ElementType.relation)
+                ways_refs = tuple(way.element_ref for way in ways)
+                tg.start_soon(fetch_parents, ways_refs, ElementType.relation)
 
                 # fetch ways' nodes
-                ways_member_refs = tuple(member.typed_ref for way in ways for member in way.members)
-                ways_nodes = await ElementRepository.get_many_latest_by_typed_refs(
-                    ways_member_refs,
-                    limit=len(ways_member_refs),
+                ways_members_refs = tuple(member.element_ref for way in ways for member in way.members)
+                ways_nodes = await ElementRepository.get_many_latest_by_element_refs(
+                    ways_members_refs,
+                    limit=len(ways_members_refs),
                 )
 
                 if ways_nodes:
                     result_sequences.append(ways_nodes)
 
             tg.start_soon(way_task)
-            tg.start_soon(fetch_parents, nodes_typed_refs, ElementType.relation)
+            tg.start_soon(fetch_parents, nodes_refs, ElementType.relation)
 
         # deduplicate results, preserving order
         return tuple({element.sequence_id: element for elements in result_sequences for element in elements}.values())

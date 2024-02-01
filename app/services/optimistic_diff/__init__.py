@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.models.db.element import Element
-from app.models.typed_element_ref import TypedElementRef
+from app.models.element_ref import ElementRef
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
@@ -17,11 +17,11 @@ class OptimisticDiff:
     def __init__(self, elements: Sequence[Element]) -> None:
         self._elements = elements
 
-    async def run(self) -> dict[TypedElementRef, Sequence[Element]]:
+    async def run(self) -> dict[ElementRef, Sequence[Element]]:
         """
         Perform an optimistic diff update of the elements.
 
-        Returns a dict, mapping original typed refs to the new elements.
+        Returns a dict, mapping original element refs to the new elements.
         """
 
         if not self._elements:

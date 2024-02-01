@@ -108,7 +108,7 @@ def element_worker(
                     'user_id',
                     'changeset_id',
                     'type',
-                    'typed_id',
+                    'id',
                     'version',
                     'visible',
                     'tags',
@@ -130,7 +130,7 @@ def element_worker(
                     temp_members.append(
                         ElementMemberRef(
                             type=ElementType.way,
-                            typed_id=int(elem.attrib['ref']),
+                            id=int(elem.attrib['ref']),
                             role='',
                         )
                     )
@@ -138,7 +138,7 @@ def element_worker(
                     temp_members.append(
                         ElementMemberRef(
                             type=ElementType.from_str(elem.attrib['type']),
-                            typed_id=int(elem.attrib['ref']),
+                            id=int(elem.attrib['ref']),
                             role=elem.attrib['role'],
                         )
                     )
@@ -162,7 +162,7 @@ def element_worker(
                             user_id,  # user_id
                             changeset_id,  # changeset_id
                             elem.tag,  # type
-                            elem.attrib['id'],  # typed_id
+                            elem.attrib['id'],  # id
                             elem.attrib['version'],  # version
                             elem.attrib.get('visible', 'true') == 'true',  # visible
                             orjson.dumps(temp_tags).decode(),  # tags

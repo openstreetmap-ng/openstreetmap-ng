@@ -15,7 +15,7 @@ class ElementMemberRefType(TypeDecorator):
         return [
             {
                 'type': member.type.value,
-                'typed_id': member.typed_id,
+                'id': member.id,
                 'role': member.role,
             }
             for member in value
@@ -27,7 +27,7 @@ class ElementMemberRefType(TypeDecorator):
         return [
             ElementMemberRef(
                 type=ElementType(member['type']),
-                typed_id=member['typed_id'],
+                id=member['id'],
                 role=member['role'],
             )
             for member in value

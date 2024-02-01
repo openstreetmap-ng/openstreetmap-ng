@@ -5,15 +5,15 @@ from app.models.element_type import ElementType
 
 
 @dataclass(frozen=True, slots=True)
-class TypedElementRef:
+class ElementRef:
     type: ElementType
-    typed_id: int
+    id: int
 
     @property
-    def typed_ref(self) -> Self:
-        return TypedElementRef(
+    def element_ref(self) -> Self:
+        return ElementRef(
             type=self.type,
-            typed_id=self.typed_id,
+            id=self.id,
         )
 
     def __str__(self) -> str:
@@ -24,7 +24,7 @@ class TypedElementRef:
         'n123'
         """
 
-        return f'{self.type.value[0]}{self.typed_id}'
+        return f'{self.type.value[0]}{self.id}'
 
     @classmethod
     def from_str(cls, s: str) -> Self:
@@ -37,9 +37,9 @@ class TypedElementRef:
 
         type, id = s[0], s[1:]
         type = ElementType.from_str(type)
-        typed_id = int(id)
+        id = int(id)
 
-        if typed_id == 0:
+        if id == 0:
             raise ValueError('Element id cannot be 0')
 
-        return cls(type, typed_id)
+        return cls(type, id)

@@ -13,9 +13,9 @@ from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
 from app.models.element_member import ElementMemberRef
 from app.models.element_member_type import ElementMemberRefType
+from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.geometry_type import PointType
-from app.models.typed_element_ref import TypedElementRef
 from app.models.versioned_element_ref import VersionedElementRef
 
 
@@ -28,7 +28,7 @@ class Element(Base.NoID, CreatedAtMixin):
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(back_populates='elements', lazy='raise')
     type: Mapped[ElementType] = mapped_column(Enum(ElementType), nullable=False)
-    typed_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
@@ -38,24 +38,24 @@ class Element(Base.NoID, CreatedAtMixin):
     # defaults
     superseded_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
 
-    __table_args__ = (UniqueConstraint(type, typed_id, version),)
+    __table_args__ = (UniqueConstraint(type, id, version),)
 
-    @validates('typed_id')
-    def validate_typed_id(self, _: str, value: int):
+    @validates('id')
+    def validate_id(self, _: str, value: int):
         if value <= 0:
-            raise ValueError('typed_id must be positive')
+            raise ValueError('id must be positive')
         return value
 
     @validates('members')
     def validate_members(self, _: str, value: Sequence[ElementMemberRef]):
-        if any(member.typed_id <= 0 for member in value):
-            raise ValueError('members typed_id must be positive')
+        if any(member.id <= 0 for member in value):
+            raise ValueError('members ids must be positive')
         return value
 
-    @updating_cached_property('typed_id')
-    def typed_ref(self) -> TypedElementRef:
-        return TypedElementRef(type=self.type, typed_id=self.typed_id)
+    @updating_cached_property('id')
+    def element_ref(self) -> ElementRef:
+        return ElementRef(type=self.type, id=self.id)
 
-    @updating_cached_property('typed_id')
+    @updating_cached_property('id')
     def versioned_ref(self) -> VersionedElementRef:
-        return VersionedElementRef(type=self.type, typed_id=self.typed_id, version=self.version)
+        return VersionedElementRef(type=self.type, id=self.id, version=self.version)
