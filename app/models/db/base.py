@@ -1,10 +1,10 @@
 import re
 from abc import ABC
 from typing import Self
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
-from sqlalchemy import BigInteger, Uuid
+from sqlalchemy import BigInteger, Uuid, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
 from app.utils import unicode_normalize
@@ -19,13 +19,23 @@ class Base:
     class Sequential(NoID):
         __abstract__ = True
 
-        id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False, primary_key=True)
+        id: Mapped[int] = mapped_column(
+            BigInteger,
+            init=False,
+            nullable=False,
+            primary_key=True,
+        )
 
     class UUID(NoID):
         __abstract__ = True
 
-        # TODO: sortable like timeflake or ulid if needed?
-        id: Mapped[UUID] = mapped_column(Uuid, init=False, nullable=False, primary_key=True, default_factory=uuid4)
+        id: Mapped[UUID] = mapped_column(
+            Uuid,
+            init=False,
+            nullable=False,
+            primary_key=True,
+            server_default=func.gen_random_uuid(),
+        )
 
     class Validating(BaseModel, ABC):
         # use_enum_values=True is unpredictable
