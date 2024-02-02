@@ -1,5 +1,4 @@
 import logging
-import secrets
 from base64 import b64decode
 from collections.abc import Sequence
 
@@ -9,6 +8,7 @@ from sqlalchemy import update
 
 from app.config import SECRET
 from app.db import db_autocommit
+from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import format_iso_date, utcnow
 from app.lib.exceptions_context import raise_for
@@ -181,7 +181,7 @@ class AuthService:
         Create a new user session token.
         """
 
-        token_bytes = secrets.token_bytes(32)
+        token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
         async with db_autocommit() as session:

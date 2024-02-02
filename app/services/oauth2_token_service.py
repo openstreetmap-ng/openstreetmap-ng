@@ -1,10 +1,10 @@
-import secrets
 from collections.abc import Sequence
 
 from sqlalchemy import null, select
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
+from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -77,7 +77,7 @@ class OAuth2TokenService:
                 # no session found, require manual approval
                 return app
 
-        authorization_code = secrets.token_urlsafe(32)
+        authorization_code = buffered_rand_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
         async with db_autocommit() as session:
@@ -147,7 +147,7 @@ class OAuth2TokenService:
                 await session.delete(token)
                 raise
 
-            access_token = secrets.token_urlsafe(32)
+            access_token = buffered_rand_urlsafe(32)
             access_token_hashed = hash_bytes(access_token, context=None)
 
             token.token_hashed = access_token_hashed

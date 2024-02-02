@@ -1,10 +1,10 @@
-import secrets
 from collections.abc import Sequence
 
 from sqlalchemy import func, null, select
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
+from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
@@ -28,9 +28,9 @@ class OAuth1TokenService:
         if app is None:
             raise_for().oauth_bad_app_token()
 
-        token_str = secrets.token_urlsafe(32)
+        token_str = buffered_rand_urlsafe(32)
         token_hashed = hash_bytes(token_str, context=None)
-        token_secret = secrets.token_urlsafe(32)
+        token_secret = buffered_rand_urlsafe(32)
 
         callback_url = callback_url_param or app.callback_url
 
@@ -100,7 +100,7 @@ class OAuth1TokenService:
             if not set(scopes).issubset(token.application.scopes):
                 raise_for().oauth_bad_scopes()
 
-            verifier = secrets.token_urlsafe(32)
+            verifier = buffered_rand_urlsafe(32)
 
             token.user_id = auth_user().id
             token.scopes = scopes
@@ -150,9 +150,9 @@ class OAuth1TokenService:
                 await session.delete(token)
                 raise
 
-            token_str = secrets.token_urlsafe(32)
+            token_str = buffered_rand_urlsafe(32)
             token_hashed = hash_bytes(token_str, context=None)
-            token_secret = secrets.token_urlsafe(32)
+            token_secret = buffered_rand_urlsafe(32)
 
             token.token_hashed = token_hashed
             token.key_secret = token_secret

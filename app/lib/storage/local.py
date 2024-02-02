@@ -1,8 +1,7 @@
-from random import randbytes
-
 from anyio import Path
 
 from app.config import FILE_STORE_DIR
+from app.lib.buffered_random import buffered_randbytes
 from app.lib.storage.base import StorageBase
 
 
@@ -38,7 +37,7 @@ class LocalStorage(StorageBase):
         key = self._make_key(data, suffix, random)
         path = await self._get_path(key)
 
-        temp_name = f'.{randbytes(16).hex()}.tmp'
+        temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
         temp_path = path.with_name(temp_name)
 
         async with await temp_path.open('xb') as f:

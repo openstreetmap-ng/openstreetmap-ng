@@ -1,7 +1,6 @@
-import secrets
-
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
+from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
@@ -17,7 +16,7 @@ class UserTokenEmailChangeService:
         """
 
         user = auth_user()
-        token_bytes = secrets.token_bytes(32)
+        token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
         async with db_autocommit() as session:

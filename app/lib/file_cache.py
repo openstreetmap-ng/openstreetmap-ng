@@ -1,11 +1,11 @@
 import logging
 import time
 from datetime import timedelta
-from random import randbytes
 
 from anyio import Path
 
 from app.config import FILE_CACHE_DIR
+from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_hex
 from app.models.msgspec.file_cache_meta import FileCacheMeta
 
@@ -68,7 +68,7 @@ class FileCache:
         entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
 
-        temp_name = f'.{randbytes(16).hex()}.tmp'
+        temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
         temp_path = path.with_name(temp_name)
 
         async with await temp_path.open('xb') as f:

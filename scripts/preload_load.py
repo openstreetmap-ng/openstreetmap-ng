@@ -1,5 +1,4 @@
 import csv
-import gc
 import pathlib
 
 import anyio

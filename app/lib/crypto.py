@@ -1,4 +1,3 @@
-import secrets
 from base64 import urlsafe_b64encode
 from hashlib import sha256
 from hmac import HMAC
@@ -7,6 +6,7 @@ import cython
 from Cryptodome.Cipher import ChaCha20
 
 from app.config import SECRET_32bytes
+from app.lib.buffered_random import buffered_randbytes
 
 HASH_SIZE = 32
 
@@ -65,7 +65,7 @@ def encrypt(s: str) -> bytes:
     Returns a buffer of the nonce and cipher text.
     """
 
-    nonce_bytes = secrets.token_bytes(24)
+    nonce_bytes = buffered_randbytes(24)
     cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
     cipher_text_bytes = cipher.encrypt(s.encode())
     return nonce_bytes + cipher_text_bytes

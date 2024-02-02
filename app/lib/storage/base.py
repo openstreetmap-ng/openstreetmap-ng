@@ -1,6 +1,6 @@
-import secrets
 from abc import ABC
 
+from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_urlsafe
 
 STORAGE_KEY_MAX_LENGTH = 64
@@ -23,7 +23,7 @@ class StorageBase(ABC):
         """
 
         if random:  # noqa: SIM108
-            result = secrets.token_urlsafe(32) + suffix
+            result = buffered_rand_urlsafe(32) + suffix
         else:
             result = hash_urlsafe(data) + suffix
 
