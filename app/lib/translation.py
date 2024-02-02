@@ -12,9 +12,9 @@ from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
 from app.lib.date_utils import format_iso_date, utcnow
 
 if cython.compiled:
-    from cython.cimports.libc.math import ceil, floor
+    from cython.cimports.libc.math import ceil
 else:
-    from math import ceil, floor
+    from math import ceil
 
 _locale_dir = LOCALE_DIR / 'gnu'
 
@@ -94,7 +94,7 @@ def t(message: str, **kwargs) -> str:
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
 
-def nt(message: str, count: float, **kwargs) -> str:
+def nt(message: str, count: int, **kwargs) -> str:
     """
     Get the translation for the given message, with pluralization.
     """
@@ -141,23 +141,23 @@ def timeago(date: datetime, *, html: bool = False) -> str:
         ago = nt('datetime.distance_in_words_ago.less_than_x_minutes', 1)
     elif total_seconds < 3600:
         # X minutes ago
-        ago = nt('datetime.distance_in_words_ago.x_minutes', floor(total_seconds / 60))
+        ago = nt('datetime.distance_in_words_ago.x_minutes', int(total_seconds / 60))
     elif total_seconds < (3600 * 24):
         # about X hours ago
-        ago = nt('datetime.distance_in_words_ago.about_x_hours', floor(total_seconds / 3600))
+        ago = nt('datetime.distance_in_words_ago.about_x_hours', int(total_seconds / 3600))
     elif total_seconds < (3600 * 24 * 30):
         # X days ago
-        ago = nt('datetime.distance_in_words_ago.x_days', floor(total_seconds / (3600 * 24)))
+        ago = nt('datetime.distance_in_words_ago.x_days', int(total_seconds / (3600 * 24)))
     elif total_seconds < (3600 * 24 * 330):
         # X months ago
-        ago = nt('datetime.distance_in_words_ago.x_months', floor(total_seconds / (3600 * 24 * 30)))
+        ago = nt('datetime.distance_in_words_ago.x_months', int(total_seconds / (3600 * 24 * 30)))
     else:
         if total_seconds % (3600 * 24 * 365) < (3600 * 24 * 330):
             # X years ago
-            ago = nt('datetime.distance_in_words_ago.x_years', floor(total_seconds / (3600 * 24 * 365)))
+            ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
         else:
             # almost X years ago
-            ago = nt('datetime.distance_in_words_ago.almost_x_years', ceil(total_seconds / (3600 * 24 * 365)))
+            ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
 
     if html:
         iso_date = format_iso_date(date)

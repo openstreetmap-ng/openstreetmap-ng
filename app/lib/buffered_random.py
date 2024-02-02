@@ -15,6 +15,7 @@ def _randbytes(n: cython.int) -> bytes:
 
     while remaining > 0:
         _buffer.write(secrets.token_bytes(_buffer_size))
+        _buffer.seek(0)
         result += _buffer.read(remaining)
         remaining = n - len(result)
 

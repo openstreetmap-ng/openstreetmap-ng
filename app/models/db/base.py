@@ -4,9 +4,10 @@ from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
-from sqlalchemy import BigInteger, Identity, Uuid, func
+from sqlalchemy import BigInteger, Identity, Uuid
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
+from app.lib.uuid7 import uuid7
 from app.utils import unicode_normalize
 
 _bad_xml_re = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XML 1.0
@@ -36,7 +37,7 @@ class Base:
             init=False,
             nullable=False,
             primary_key=True,
-            server_default=func.gen_random_uuid(),
+            default_factory=uuid7,
         )
 
     class Validating(BaseModel, ABC):
