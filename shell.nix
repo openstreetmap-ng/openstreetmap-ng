@@ -3,7 +3,7 @@
 let
   # Currently using nixpkgs-23.11-darwin
   # Update with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a0b900ff0150057e6d564ff3cd2b3ac9cd1eec1.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/94d8166c966bdc338954db8eae84932664f06b06.tar.gz") { };
 
   libraries' = with pkgs; [
     # Base libraries
@@ -80,6 +80,7 @@ let
     gettext
     dart-sass
     inotify-tools
+    curl
 
     # Scripts
     # -- Cython
@@ -106,6 +107,7 @@ let
 
     # -- Alembic
     (writeShellScriptBin "alembic-migration" ''
+      set -e
       name=$1
       if [ -z "$name" ]; then
         read -p "Database migration name: " name
@@ -157,13 +159,13 @@ let
       done
     '')
     (writeShellScriptBin "locale-pipeline" ''
-      set -e
+      set -ex
       locale-postprocess
       locale-make-i18next
       locale-make-gnu
     '')
     (writeShellScriptBin "locale-pipeline-with-download" ''
-      set -e
+      set -ex
       locale-download
       locale-pipeline
     '')
@@ -174,7 +176,8 @@ let
     # -- Supervisor
     (writeShellScriptBin "dev-start" ''
       set -e
-      [ -d data/postgres ] || \
+      fresh_start=0
+      if [ ! -d data/postgres ]; then
         initdb -D data/postgres \
           --no-instructions \
           --locale=C.UTF-8 \
@@ -183,9 +186,19 @@ let
           --auth=password \
           --username=postgres \
           --pwfile=<(echo postgres)
+        fresh_start=1
+      fi
+
       mkdir -p data/supervisor
       supervisord -c config/supervisord.conf
       echo "Supervisor started"
+
+      if [ "$fresh_start" -eq 1 ]; then
+        echo "This is a fresh start. Waiting for Postgres to start..."
+        while ! pg_isready -q -h 127.0.0.1 -t 10; do sleep 0.1; done
+        echo "Postgres started, running migrations"
+        alembic-upgrade
+      fi
     '')
     (writeShellScriptBin "dev-stop" ''
       set -e
@@ -228,10 +241,44 @@ let
           --compress -19 \
           --threads "$(( $(nproc) * 2 ))" \
           "$file" \
-          -o "$file.zstd"
+          -o "$file.zst"
+      done
+    '')
+    (writeShellScriptBin "preload-download" ''
+      set -e
+      mkdir -p data/preload
+      for name in "user" "changeset" "element"; do
+        final_file="data/preload/$name.csv"
+
+        if [ -f "$final_file" ]; then
+          echo "File $final_file already exists. Skipping $name preload data download."
+          continue
+        fi
+
+        echo "Downloading $name preload data"
+        curl \
+          --location \
+          "https://files.monicz.dev/openstreetmap-ng/preload/$name.csv.zst" \
+          -o "data/preload/$name.csv.zst"
+
+        echo "Decompressing"
+        zstd \
+          --force \
+          --decompress \
+          --rm \
+          "data/preload/$name.csv.zst" \
+          -o "data/preload/$name.csv.tmp"
+
+        mv "data/preload/$name.csv.tmp" "$final_file"
       done
     '')
     (writeShellScriptBin "preload-load" "python scripts/preload_load.py")
+    (writeShellScriptBin "preload-pipeline" ''
+      set -ex
+      preload-download
+      dev-start
+      preload-load
+    '')
 
     # -- Watchers
     (writeShellScriptBin "watch-sass" "bun run watch:sass")
