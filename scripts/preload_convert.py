@@ -3,8 +3,6 @@ import gc
 import os
 import pathlib
 from datetime import datetime
-from io import BytesIO
-from itertools import batched
 from multiprocessing import Pool
 from typing import NamedTuple
 
@@ -24,7 +22,7 @@ output_changeset_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
 output_element_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
 
 buffering = 8 * 1024 * 1024  # 8 MB
-batch_size = 100_000
+read_memory_limit = 2 * 1024 * 1024 * 1024  # 2 GB => ~50 GB total memory usage
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -32,70 +30,108 @@ gc.freeze()
 gc.disable()
 
 
-# fix xml syntax from random file seek
-# chains header with the rest of the file
-class WorkerInputStream(BytesIO):
-    position = 0
-    header = b''
-    header_finished_pos = 0
-
-    def __init__(self, file_stream: BytesIO, from_seek: int, to_seek: int):
-        self.file_stream = file_stream
-        self.file_stream_size = to_seek - from_seek
-
-        if from_seek > 0:
-            self.file_stream.seek(from_seek)
-            self.header = b'<osm>\n'
-            self.header_finished_pos = len(self.header)
-
-    def read(self, read_size: int = -1) -> bytes:
-        assert read_size >= 0
-
-        max_read_size = self.header_finished_pos + self.file_stream_size - self.position
-        read_size = min(read_size, max_read_size)
-        if read_size == 0:
-            return b''
-
-        new_position = self.position + read_size
-
-        if self.position < self.header_finished_pos:
-            header_output = self.header[self.position : new_position]
-            file_output = self.file_stream.read(read_size - len(header_output))
-            self.position = new_position
-            return header_output + file_output
-
-        file_output = self.file_stream.read(read_size)
-        self.position = new_position
-        return file_output
-
-    def seek(self, position: int, whence: int = 0) -> int:
-        raise NotImplementedError
-
-    def tell(self) -> int:
-        return self.position
-
-
 class WorkerResult(NamedTuple):
     user_ids: set[int]
     changeset_ids: set[tuple[int, int]]
 
 
-def element_worker(
-    i: int,
-    from_seek: int,  # inclusive
-    to_seek: int,  # exclusive
-) -> WorkerResult:
+def element_worker(args: tuple[int, int, int]) -> WorkerResult:
+    i, from_seek, to_seek = args
+    # from_seek: inclusive
+    # to_seek: exclusive
+
     user_ids: set[int] = set()
     changeset_ids: set[tuple[int, int]] = set()
     result = WorkerResult(user_ids, changeset_ids)
 
+    with input_path.open('rb') as f_in:
+        if from_seek > 0:
+            f_in.seek(from_seek)
+            input_buffer = b'<osm>\n' + f_in.read(to_seek - from_seek)
+        else:
+            input_buffer = f_in.read(to_seek)
+
+    root = ET.fromstring(  # noqa: S320
+        input_buffer,
+        parser=ET.XMLParser(
+            ns_clean=True,
+            recover=True,
+            resolve_entities=False,
+            remove_comments=True,
+            remove_pis=True,
+            collect_ids=False,
+            compact=False,
+        ),
+    )
+
+    # free memory
+    del input_buffer
+
+    rows = []
+
+    for element in root:
+        element: ET.ElementBase
+        tag: str = element.tag
+        attrib: dict = element.attrib
+
+        if tag not in ('node', 'way', 'relation'):
+            continue
+
+        tags = {}
+        members = []
+
+        for child in element:
+            child: ET.ElementBase
+            child_tag: str = child.tag
+            child_attrib: dict = child.attrib
+
+            if child_tag == 'tag':
+                tags[child_attrib['k']] = child_attrib['v']
+            elif child_tag == 'nd':
+                members.append(
+                    {
+                        'type': 'way',
+                        'id': child_attrib['ref'],
+                        'role': '',
+                    }
+                )
+            elif child_tag == 'member':
+                members.append(
+                    {
+                        'type': child_attrib['type'],
+                        'id': child_attrib['ref'],
+                        'role': child_attrib['role'],
+                    }
+                )
+
+        if tag == 'node' and (lon := attrib.get('lon')) is not None and (lat := attrib.get('lat')) is not None:
+            point = f'POINT ({lon} {lat})'
+        else:
+            point = None
+
+        user_id = int(uid) if (uid := attrib.get('uid')) is not None else None
+        user_ids.add(user_id)
+        changeset_id = int(attrib['changeset'])
+        changeset_ids.add((user_id, changeset_id))
+
+        rows.append(
+            (
+                user_id,  # user_id
+                changeset_id,  # changeset_id
+                tag,  # type
+                attrib['id'],  # id
+                attrib['version'],  # version
+                attrib.get('visible', 'true') == 'true',  # visible
+                orjson.dumps(tags).decode() if tags else '{}',  # tags
+                point,  # point
+                orjson.dumps(members).decode() if members else '[]',  # members
+                datetime.fromisoformat(attrib['timestamp']),  # created_at
+            )
+        )
+
     worker_output_path = output_element_path.with_suffix(f'.csv.{i}')
 
-    with input_path.open('rb') as f_in, worker_output_path.open('w', buffering=buffering, newline='') as f_out:
-        f_in = WorkerInputStream(f_in, from_seek, to_seek)
-
-        context = ET.iterparse(f_in, recover=True)
-        elem: ET.ElementBase
+    with worker_output_path.open('w', buffering=buffering, newline='') as f_out:
         writer = csv.writer(f_out)
 
         # only write header for the first file
@@ -115,69 +151,9 @@ def element_worker(
                 )
             )
 
-        rows = []
-        temp_tags = {}
-        temp_members = []
+        writer.writerows(rows)
 
-        for batch in batched(context, batch_size):
-            for _, elem in batch:
-                if elem.tag == 'tag':
-                    temp_tags[elem.attrib['k']] = elem.attrib['v']
-                elif elem.tag == 'nd':
-                    temp_members.append(
-                        {
-                            'type': 'way',
-                            'id': elem.attrib['ref'],
-                            'role': '',
-                        }
-                    )
-                elif elem.tag == 'member':
-                    temp_members.append(
-                        {
-                            'type': elem.attrib['type'],
-                            'id': elem.attrib['ref'],
-                            'role': elem.attrib['role'],
-                        }
-                    )
-                elif elem.tag in ('node', 'way', 'relation'):
-                    if (
-                        elem.tag == 'node'
-                        and (lon := elem.attrib.get('lon')) is not None
-                        and (lat := elem.attrib.get('lat')) is not None
-                    ):
-                        point = f'POINT ({lon} {lat})'
-                    else:
-                        point = None
-
-                    user_id = int(uid) if (uid := elem.attrib.get('uid')) is not None else None
-                    user_ids.add(user_id)
-                    changeset_id = int(elem.attrib['changeset'])
-                    changeset_ids.add((user_id, changeset_id))
-
-                    rows.append(
-                        (
-                            user_id,  # user_id
-                            changeset_id,  # changeset_id
-                            elem.tag,  # type
-                            elem.attrib['id'],  # id
-                            elem.attrib['version'],  # version
-                            elem.attrib.get('visible', 'true') == 'true',  # visible
-                            orjson.dumps(temp_tags).decode(),  # tags
-                            point,  # point
-                            orjson.dumps(temp_members).decode(),  # members
-                            datetime.fromisoformat(elem.attrib['timestamp']),  # created_at
-                        )
-                    )
-
-                    temp_tags.clear()
-                    temp_members.clear()
-
-                elem.clear()
-
-            writer.writerows(rows)
-            rows.clear()
-            gc.collect()
-
+    gc.collect()
     return result
 
 
@@ -185,21 +161,25 @@ async def main():
     user_ids: set[int] = set()
     changeset_ids: set[tuple[int, int]] = set()
 
-    nthreads = os.cpu_count()
-    print(f'Configuring {nthreads} workers')
+    num_workers = os.cpu_count()
+
+    input_size = input_path.stat().st_size
+    task_read_memory_limit = read_memory_limit // num_workers
+    num_tasks = input_size // task_read_memory_limit
+    task_size = input_size // num_tasks
 
     from_seek_search = (b'  <node', b'  <way', b'  <relation')
-    input_size = input_path.stat().st_size
-    seek_one = input_size // nthreads
     from_seeks = []
 
+    print(f'Configuring {num_tasks} tasks (using {num_workers} workers)')
+
     with input_path.open('rb') as f_in:
-        for i in range(nthreads):
-            from_seek = seek_one * i
+        for i in range(num_tasks):
+            from_seek = task_size * i
 
             if i > 0:
                 f_in.seek(from_seek)
-                lookahead = f_in.read(1024 * 1024)
+                lookahead = f_in.read(1024 * 1024)  # 1 MB
                 min_find = float('inf')
 
                 for search in from_seek_search:
@@ -212,17 +192,13 @@ async def main():
             from_seeks.append(from_seek)
 
     args = []
-    for i in range(nthreads):
+    for i in range(num_tasks):
         from_seek = from_seeks[i]
-        to_seek = from_seeks[i + 1] if i + 1 < nthreads else input_size
-
+        to_seek = from_seeks[i + 1] if i + 1 < num_tasks else input_size
         args.append((i, from_seek, to_seek))
-        print(f'  Worker {i}: {from_seek} - {to_seek}')
 
-    print('Batch size:', batch_size)
-    print('🚀 Preparing element data...')
-    with Pool(nthreads) as pool:
-        for result in pool.starmap(element_worker, args):
+    with Pool(num_workers) as pool:
+        for result in tqdm(pool.imap_unordered(element_worker, args), desc='Preparing element data', total=num_tasks):
             user_ids.update(result.user_ids)
             changeset_ids.update(result.changeset_ids)
 

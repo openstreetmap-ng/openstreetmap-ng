@@ -228,7 +228,8 @@ let
       fi
       mv data/preload/element.csv.0 data/preload/element.csv
       for file in $(ls data/preload/element.csv.* | sort -t '.' -k 3 -n); do
-        echo "Merging $file..."
+        if [ "$file" = "data/preload/element.csv.zstd" ]; then continue; fi
+        echo "Merging with $file"
         cat "$file" >> data/preload/element.csv
         rm "$file"
       done
