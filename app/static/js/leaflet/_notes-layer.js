@@ -11,6 +11,7 @@ import { getLatLngBoundsSize, getMarkerIcon } from "./_utils.js"
  * @returns {void}
  */
 export const configureNotesLayer = (map) => {
+    const notesLayer = getOverlayLayerById("notes")
     let abortController = null
 
     /**
@@ -77,13 +78,13 @@ export const configureNotesLayer = (map) => {
                     markers.push(marker)
                 }
 
-                const layer = getOverlayLayerById("notes")
-                layer.clearLayers()
-                if (markers.length) layer.addLayer(L.layerGroup(markers))
+                notesLayer.clearLayers()
+                if (markers.length) notesLayer.addLayer(L.layerGroup(markers))
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch notes", error)
+                notesLayer.clearLayers()
             })
     }
 
@@ -110,7 +111,7 @@ export const configureNotesLayer = (map) => {
         if (abortController) abortController.abort()
         abortController = null
 
-        getOverlayLayerById("notes").clearLayers()
+        notesLayer.clearLayers()
     }
 
     // Listen for events

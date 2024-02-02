@@ -4,6 +4,7 @@ import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { configureContextMenu } from "./_context-menu.js"
+import { configureDataLayer } from "./_data-layer.js"
 import { getGeolocateControl } from "./_geolocate-control.js"
 import { getNewNoteControl } from "./_new-note-control.js"
 import { configureNotesLayer } from "./_notes-layer.js"
@@ -43,6 +44,7 @@ export const getMainMap = (container) => {
 
     // Configure map handlers
     configureNotesLayer(map)
+    configureDataLayer(map)
     configureContextMenu(map)
 
     // Add optional map marker

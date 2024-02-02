@@ -49,9 +49,11 @@ const isWayArea = (way) => {
  * @param {object} styles.changeset Changeset style
  * @param {object} styles.element Element style
  * @param {object} styles.noteHalo Note halo style
+ * @param {object} options Options
+ * @param {boolean} options.renderAreas Whether to render areas
  * @returns {L.Layer[]} Array of added layers
  */
-export const renderObjects = (layerGroup, objects, styles) => {
+export const renderObjects = (layerGroup, objects, styles, { renderAreas = true }) => {
     const layers = []
     const markers = []
 
@@ -102,7 +104,7 @@ export const renderObjects = (layerGroup, objects, styles) => {
         const latLngs = members.map((node) => L.latLng(node.lat, node.lon))
         let layer
 
-        if (isWayArea(way)) {
+        if (renderAreas && isWayArea(way)) {
             // is "area"
             latLngs.pop() // remove last == first
             layer = L.polygon(latLngs, styles.element)
