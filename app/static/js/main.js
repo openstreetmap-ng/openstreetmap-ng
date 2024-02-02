@@ -12,6 +12,7 @@ import { getNewNoteController } from "./index/_new-note.js"
 import { getNoteController } from "./index/_note.js"
 import { getQueryFeaturesController } from "./index/_query-features.js"
 import { configureRouter } from "./index/_router.js"
+import { getSearchController } from "./index/_search.js"
 import { configureFindHomeButton } from "./leaflet/_find-home-button.js"
 import { getMainMap } from "./leaflet/_main-map.js"
 
@@ -30,7 +31,7 @@ configureRouter(
         ["/", getIndexController()],
         ["/export", getExportController(map)],
         ["/directions", null], // TODO: directions
-        ["/search", null], // TODO: search
+        ["/search", getSearchController(map)],
         ["/query", getQueryFeaturesController(map)],
         [
             "(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<displayName>[^/]+)/history)",
