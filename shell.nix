@@ -176,10 +176,10 @@ let
     # -- Supervisor
     (writeShellScriptBin "dev-start" ''
       set -e
-      pid=$(cat data/supervisor/supervisord.pid)
+      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
       if [ -n "$pid" ] && $(kill -0 "$pid" 2> /dev/null); then
         echo "Supervisor is already running"
-        exit 1
+        exit 0
       fi
 
       fresh_start=0
@@ -219,13 +219,9 @@ let
       fi
     '')
     (writeShellScriptBin "dev-restart" ''
-      set -e
-      if [ -f data/supervisor/supervisord.pid ]; then
-        kill -HUP $(cat data/supervisor/supervisord.pid)
-        echo "Supervisor restarted"
-      else
-        dev-start
-      fi
+      set -ex
+      dev-stop
+      dev-start
     '')
     (writeShellScriptBin "dev-clean" ''
       set -e
@@ -282,7 +278,7 @@ let
     (writeShellScriptBin "preload-pipeline" ''
       set -ex
       preload-download
-      dev-start || true
+      dev-start
       preload-load
     '')
 
