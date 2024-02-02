@@ -176,6 +176,12 @@ let
     # -- Supervisor
     (writeShellScriptBin "dev-start" ''
       set -e
+      pid=$(cat data/supervisor/supervisord.pid)
+      if [ -n "$pid" ] && $(kill -0 "$pid" 2> /dev/null); then
+        echo "Supervisor is already running"
+        exit 1
+      fi
+
       fresh_start=0
       if [ ! -d data/postgres ]; then
         initdb -D data/postgres \
@@ -276,7 +282,7 @@ let
     (writeShellScriptBin "preload-pipeline" ''
       set -ex
       preload-download
-      dev-start
+      dev-start || true
       preload-load
     '')
 
