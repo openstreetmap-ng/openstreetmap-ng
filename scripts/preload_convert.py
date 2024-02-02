@@ -35,6 +35,10 @@ class WorkerResult(NamedTuple):
     changeset_ids: set[tuple[int, int]]
 
 
+def get_output_worker_path(i: int) -> pathlib.Path:
+    return output_element_path.with_suffix(f'.csv.{i}')
+
+
 def element_worker(args: tuple[int, int, int]) -> WorkerResult:
     i, from_seek, to_seek = args
     # from_seek: inclusive
@@ -129,9 +133,7 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
             )
         )
 
-    worker_output_path = output_element_path.with_suffix(f'.csv.{i}')
-
-    with worker_output_path.open('w', buffering=buffering, newline='') as f_out:
+    with get_output_worker_path(i).open('w', buffering=buffering, newline='') as f_out:
         writer = csv.writer(f_out)
 
         # only write header for the first file
@@ -201,6 +203,18 @@ async def main():
         for result in tqdm(pool.imap_unordered(element_worker, args), desc='Preparing element data', total=num_tasks):
             user_ids.update(result.user_ids)
             changeset_ids.update(result.changeset_ids)
+
+    get_output_worker_path(0).rename(output_element_path)
+
+    with output_element_path.open('ab', buffering=buffering) as f_out:
+        for i in tqdm(range(1, num_tasks), desc='Merging outputs'):
+            output_worker_path = get_output_worker_path(i)
+
+            with output_worker_path.open('rb') as f_in:
+                while buffer := f_in.read(buffering):
+                    f_out.write(buffer)
+
+            output_worker_path.unlink()
 
     with output_user_path.open('w', buffering=buffering, newline='') as f_user:
         user_writer = csv.writer(f_user)

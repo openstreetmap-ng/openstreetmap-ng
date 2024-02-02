@@ -220,20 +220,6 @@ let
     # -- Preload
     (writeShellScriptBin "preload-clean" "rm -rf data/preload")
     (writeShellScriptBin "preload-convert" "python scripts/preload_convert.py")
-    (writeShellScriptBin "preload-merge" ''
-      set -e
-      if [ ! -f data/preload/element.csv.0 ]; then
-        echo "ERROR: No preload files found"
-        exit 1
-      fi
-      mv data/preload/element.csv.0 data/preload/element.csv
-      for file in $(ls data/preload/element.csv.* | sort -t '.' -k 3 -n); do
-        if [ "$file" = "data/preload/element.csv.zstd" ]; then continue; fi
-        echo "Merging with $file"
-        cat "$file" >> data/preload/element.csv
-        rm "$file"
-      done
-    '')
     (writeShellScriptBin "preload-compress" ''
       set -e
       for file in data/preload/*.csv; do
