@@ -28,11 +28,10 @@ def is_browser_supported(user_agent: str) -> bool:
     name = match['name']
     major_version: cython.int = int(match['major_version'])
 
-    # current target is es2020
-    # see https://www.w3schools.com/Js/js_2020.asp
+    # run `bunx browserslist` to see which versions are supported
     if name == 'Chrome':
-        return major_version >= 85
+        return major_version >= 72
     elif name == 'Firefox':
-        return major_version >= 79
+        return major_version >= 68
     else:
         raise NotImplementedError(f'Unsupported browser name {name!r}')

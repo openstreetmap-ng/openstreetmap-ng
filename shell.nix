@@ -25,10 +25,9 @@ let
 
     # Scripts
     # -- Misc
-    (writeShellScriptBin "make-version" ''
-      sed -i -E "s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|" app/config.py
-    '')
+    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
     (writeShellScriptBin "make-bundle" ''
+      set -e
       dir="app/static/js"
 
       bundle_paths=$(find "$dir" \
@@ -36,7 +35,6 @@ let
         -type f \
         -name "bundle-*")
 
-      # delete existing bundles
       [ -z "$bundle_paths" ] || rm $bundle_paths
 
       src_paths=$(find "$dir" \
@@ -67,7 +65,12 @@ let
           exit 1
         fi
 
-        # TODO: sed replace
+        bunx babel \
+          "$dir/$bundle_name" \
+          --minified \
+          -o "$dir/$bundle_name"
+
+        echo "TODO: sed replace"
         echo "Replacing $src_name with $bundle_name"
       done
     '')
@@ -84,10 +87,9 @@ let
 
     # Scripts
     # -- Cython
-    (writeShellScriptBin "cython-build" ''
-      python setup.py build_ext --inplace --parallel $(nproc --all)
-    '')
+    (writeShellScriptBin "cython-build" "python setup.py build_ext --inplace --parallel $(nproc --all)")
     (writeShellScriptBin "cython-clean" ''
+      set -e
       shopt -s globstar
       rm -rf build/
       dirs=(
@@ -114,9 +116,7 @@ let
       fi
       alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
-    (writeShellScriptBin "alembic-upgrade" ''
-      alembic -c config/alembic.ini upgrade head
-    '')
+    (writeShellScriptBin "alembic-upgrade" "alembic -c config/alembic.ini upgrade head")
 
     # -- Locale
     (writeShellScriptBin "locale-clean" "rm -rf config/locale/*/")
@@ -169,9 +169,12 @@ let
       locale-download
       locale-pipeline
     '')
-
-    # -- Wiki-tags
-    (writeShellScriptBin "wiki-tags-update" "python scripts/wiki_tags_update.py")
+    (writeShellScriptBin "watch-locale" ''
+      locale-pipeline
+      while inotifywait -e close_write config/locale/extra_en.yaml; do
+        locale-pipeline
+      done
+    '')
 
     # -- Supervisor
     (writeShellScriptBin "dev-start" ''
@@ -282,17 +285,32 @@ let
       preload-load
     '')
 
-    # -- Watchers
-    (writeShellScriptBin "watch-sass" "bun run watch:sass")
-    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
-    (writeShellScriptBin "watch-locale" ''
-      locale-pipeline
-      while inotifywait -e close_write config/locale/extra_en.yaml; do
-        locale-pipeline
+    # -- SASS
+    (writeShellScriptBin "sass-pipeline" ''
+      set -e
+      shopt -s globstar
+      sass \
+        --style compressed \
+        --load-path node_modules \
+        --no-source-map \
+        app/static/sass:app/static/css
+      bunx postcss \
+        app/static/css/**/*.css \
+        --use autoprefixer \
+        --replace \
+        --no-map
+    '')
+    (writeShellScriptBin "watch-sass" ''
+      shopt -s globstar
+      sass-pipeline
+      while inotifywait -e close_write app/static/sass/**/*.scss; do
+        sass-pipeline
       done
     '')
 
     # -- Misc
+    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
+    (writeShellScriptBin "wiki-tags-update" "python scripts/wiki_tags_update.py")
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
       hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-23.11-darwin | cut -f 1)

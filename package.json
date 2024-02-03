@@ -2,6 +2,9 @@
   "name": "openstreetmap-ng",
   "private": true,
   "dependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
     "@rapideditor/rapid": "github:facebook/Rapid#release",
     "@types/leaflet": "^1.9.8",
     "bootstrap": "^5.3.2",
@@ -16,15 +19,14 @@
     "autoprefixer": "^10.4.16",
     "bun-types": "latest",
     "i18next-conv": "^14.0.0",
-    "onchange": "^7.1.0",
     "postcss-cli": "^11.0.0"
   },
-  "scripts": {
-    "prefix:css": "postcss src/static/css/**/*.css --use autoprefixer --replace --no-map",
-    "build:sass": "sass --style compressed --load-path node_modules --no-source-map src/static/sass:src/static/css && bun run prefix:css",
-    "watch:sass": "bun run build:sass && onchange 'src/static/sass/**/*.scss' -- bun run build:sass"
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
   },
   "browserslist": [
-    "defaults"
+    "partially supports bigint and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
   ]
 }
