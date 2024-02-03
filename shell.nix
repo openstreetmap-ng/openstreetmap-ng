@@ -37,6 +37,13 @@ let
 
       [ -z "$bundle_paths" ] || rm $bundle_paths
 
+      bunx babel \
+        --verbose \
+        --ignore "$dir/old/**" \
+        --keep-file-extension \
+        --out-dir "$dir" \
+        "$dir"
+
       src_paths=$(find "$dir" \
         -maxdepth 1 \
         -type f \
@@ -64,11 +71,6 @@ let
           echo "ERROR: Failed to match bundle name for $src_path"
           exit 1
         fi
-
-        bunx babel \
-          "$dir/$bundle_name" \
-          --minified \
-          -o "$dir/$bundle_name"
 
         echo "TODO: sed replace"
         echo "Replacing $src_name with $bundle_name"
