@@ -60,3 +60,21 @@ export const isBannerHidden = (name) => localStorage.getItem(`banner-hidden-${na
  * @returns {void}
  */
 export const markBannerHidden = (name) => localStorage.setItem(`banner-hidden-${name}`, "1")
+
+/**
+ * Get last routing engine from local storage
+ * @returns {string|null} Last routing engine identifier
+ * @example
+ * getLastRoutingEngine()
+ * // => "graphhopper_car"
+ */
+export const getLastRoutingEngine = () => localStorage.getItem("lastRoutingEngine")
+
+/**
+ * Set last routing engine to local storage
+ * @param {string} engine Routing engine identifier
+ * @returns {void}
+ * @example
+ * setLastRoutingEngine("graphhopper_car")
+ */
+export const setLastRoutingEngine = (engine) => localStorage.setItem("lastRoutingEngine", engine)
