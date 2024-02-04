@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, PrimaryKeyConstraint
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -18,7 +18,7 @@ from app.models.geometry_type import PointType
 from app.models.versioned_element_ref import VersionedElementRef
 
 
-class Element(Base.NoID, CreatedAtMixin):
+class Element(Base.NoID):
     __tablename__ = 'element'
 
     sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(always=True, minvalue=1), init=False, nullable=False)
@@ -35,6 +35,12 @@ class Element(Base.NoID, CreatedAtMixin):
     members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefJSONB, nullable=False)
 
     # defaults
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=False,
+        server_default=func.statement_timestamp(),
+    )
     superseded_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(True),
         init=False,

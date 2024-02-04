@@ -312,7 +312,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
-    (writeShellScriptBin "wiki-tags-update" "python scripts/wiki_tags_update.py")
+    (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
       hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-23.11-darwin | cut -f 1)
