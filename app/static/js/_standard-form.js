@@ -3,7 +3,7 @@ import { Alert } from "bootstrap"
 /**
  * Initialize a standard bootstrap form
  * @param {HTMLFormElement} form The form element to initialize
- * @param {object} options
+ * @param {object} options Options
  * @param {function|null} options.successCallback Optional callback to call on success
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/

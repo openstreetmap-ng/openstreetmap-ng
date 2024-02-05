@@ -44,14 +44,14 @@ export const rapidVersion = config.rapidVersion
 export const localeHashMap = config.localeHashMap
 
 /**
- * User preferred languages
+ * User translation languages
  * @type {string[]}
  * @example ["en", "pl"]
  */
 export const languages = config.languages
 
 /**
- * User preferred primary language
+ * User primary translation language
  * @type {string}
  * @example "en"
  */
