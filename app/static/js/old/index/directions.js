@@ -1,48 +1,3 @@
-      $.getJSON(OSM.NOMINATIM_URL + "search?q=" + encodeURIComponent(endpoint.value) + "&format=json&viewbox=" + viewbox, function (json) {
-        endpoint.awaitingGeocode = false;
-        endpoint.hasGeocode = true;
-        if (json.length === 0) {
-          input.addClass("error");
-          alert(I18n.t("javascripts.directions.errors.no_place", { place: endpoint.value }));
-          return;
-        }
-
-        endpoint.setLatLng(L.latLng(json[0]));
-
-        input.val(json[0].display_name);
-
-        if (awaitingGeocode) {
-          awaitingGeocode = false;
-          getRoute(true, true);
-        }
-      });
-
-  function getRoute(fitRoute, reportErrors) {
-    // Cancel any route that is already in progress
-    if (awaitingRoute) awaitingRoute.abort();
-
-    // go fetch geocodes for any endpoints which have not already
-    // been geocoded.
-    for (var ep_i = 0; ep_i < 2; ++ep_i) {
-      var endpoint = endpoints[ep_i];
-      if (!endpoint.hasGeocode && !endpoint.awaitingGeocode) {
-        endpoint.getGeocode();
-        awaitingGeocode = true;
-      }
-    }
-    if (endpoints[0].awaitingGeocode || endpoints[1].awaitingGeocode) {
-      awaitingGeocode = true;
-      return;
-    }
-
-    var o = endpoints[0].latlng,
-        d = endpoints[1].latlng;
-
-    if (!o || !d) return;
-    $("header").addClass("closed");
-
-    var precision = OSM.zoomPrecision(map.getZoom());
-
     OSM.router.replace("/directions?" + Qs.stringify({
       engine: chosenEngine.id,
       route: o.lat.toFixed(precision) + "," + o.lng.toFixed(precision) + ";" +
@@ -149,32 +104,6 @@
         I18n.t("javascripts.directions.instructions.courtesy", { link: chosenEngine.creditline }) +
         "</p>");
 
-      directionsCloseButton.on("click", function () {
-        map.removeLayer(polyline);
-        $("#sidebar_content").html("");
-        map.setSidebarOverlaid(true);
-        // TODO: collapse width of sidebar back to previous
-      });
-    });
-  }
-
-  var chosenEngineIndex = findEngine("fossgis_osrm_car");
-  if (Cookies.get("_osm_directions_engine")) {
-    chosenEngineIndex = findEngine(Cookies.get("_osm_directions_engine"));
-  }
-  setEngine(chosenEngineIndex);
-
-  select.on("change", function (e) {
-    chosenEngine = engines[e.target.selectedIndex];
-    Cookies.set("_osm_directions_engine", chosenEngine.id, { secure: true, expires: expiry, path: "/", samesite: "lax" });
-    getRoute(true, true);
-  });
-
-  $(".directions_form").on("submit", function (e) {
-    e.preventDefault();
-    getRoute(true, true);
-  });
-
   $(".routing_marker").on("dragstart", function (e) {
     var dt = e.originalEvent.dataTransfer;
     dt.effectAllowed = "move";
@@ -185,65 +114,3 @@
       dt.setDragImage(img.get(0), 12, 21);
     }
   });
-
-  var page = {};
-
-  page.pushstate = page.popstate = function () {
-    $(".search_form").hide();
-    $(".directions_form").show();
-
-    $("#map").on("dragend dragover", function (e) {
-      e.preventDefault();
-    });
-
-    $("#map").on("drop", function (e) {
-      e.preventDefault();
-      var oe = e.originalEvent;
-      var dragData = JSON.parse(oe.dataTransfer.getData("text"));
-      var type = dragData.type;
-      var pt = L.DomEvent.getMousePosition(oe, map.getContainer()); // co-ordinates of the mouse pointer at present
-      pt.y += 20;
-      var ll = map.containerPointToLatLng(pt);
-      endpoints[type === "from" ? 0 : 1].setLatLng(ll);
-      getRoute(true, true);
-    });
-
-    var params = Qs.parse(location.search.substring(1)),
-        route = (params.route || "").split(";"),
-        from = route[0] && L.latLng(route[0].split(",")),
-        to = route[1] && L.latLng(route[1].split(","));
-
-    if (params.engine) {
-      var engineIndex = findEngine(params.engine);
-
-      if (engineIndex >= 0) {
-        setEngine(engineIndex);
-      }
-    }
-
-    endpoints[0].setValue(params.from || "", from);
-    endpoints[1].setValue(params.to || "", to);
-
-    map.setSidebarOverlaid(!from || !to);
-
-    getRoute(true, true);
-  };
-
-  page.load = function () {
-    page.pushstate();
-  };
-
-  page.unload = function () {
-    $(".search_form").show();
-    $(".directions_form").hide();
-    $("#map").off("dragend dragover drop");
-
-    map
-      .removeLayer(popup)
-      .removeLayer(polyline)
-      .removeLayer(endpoints[0].marker)
-      .removeLayer(endpoints[1].marker);
-  };
-
-  return page;
-};

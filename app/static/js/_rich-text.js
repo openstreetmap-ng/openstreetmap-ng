@@ -8,7 +8,7 @@ const abortControllers = new Map()
  * @param {boolean} newController Whether to return a new AbortController
  * @returns {AbortController|null} AbortController if newController is true, null otherwise
  */
-const abortRequest = (source, newController = false) => {
+const abortRequest = (source, newController) => {
     const controller = abortControllers.get(source)
     if (controller) controller.abort()
 
@@ -33,7 +33,7 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
 
     // On edit button click, abort any requests and show the source textarea
     const onEditButtonClick = () => {
-        abortRequest(sourceTextArea)
+        abortRequest(sourceTextArea, false)
 
         editButton.disabled = true
         previewButton.disabled = false

@@ -2,14 +2,13 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, func
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, PrimaryKeyConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
-from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
 from app.models.element_member_ref import ElementMemberRef, ElementMemberRefJSONB
 from app.models.element_ref import ElementRef
