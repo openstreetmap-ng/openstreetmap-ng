@@ -32,15 +32,15 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Migration of rate limiting
 - [ ] Migration of changeset history RSS feed
 - [x] Improved GPX traces processing
-- [15%] Migration of website API
+- [20%] Migration of website API
 - [x] Migration and refactoring of stylesheets
-- [80%] Migration and refactoring of scripts
+- [95%] Migration and refactoring of scripts
 - [5%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [x] Development translation overrides
 - [ ] Anti-vandalism stage 1
 - [x] Redis in-memory caching
-- [10%] Pagination and limits
+- [15%] Pagination and limits
 - [ ] Deprecation of OAuth 1.0 warning
 - [x] User permalinks
 - [x] Proxy for Amazon requests (better privacy)
@@ -49,14 +49,11 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Scheduled account delete
 - [ ] Identification of anonymous note users
 - [ ] Anti-vandalism stage 2
-- [ ] Design finalization of API 0.7
+- [10%] Design finalization of API 0.7
 - [10%] Development of API 0.7
 - [ ] 2FA and U2F support
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
 - **And a lot more...** :-)!
 
-**📅 Expected feature parity by:** 2023-12-16 \
-(delayed, new ETA soon, [read more here](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/61))
-
-**📅 Expected roadmap finish by:** 2024-02-16
+**📅 Expected test server launch:** 2024-02-18
