@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
 import "../../_types.js"
+import { polylineDecode } from "./_polyline-decoder.js"
 
 // GraphHopper API Documentation
 // https://docs.graphhopper.com/#tag/Routing-API
@@ -29,8 +30,6 @@ const makeEngine = (profile) => {
                 profile: profile,
                 points: [from, to],
                 locale: primaryLanguage,
-                // biome-ignore lint/style/useNamingConvention: Not controlled by this project
-                points_encoded: false,
             }),
             mode: "no-cors",
             credentials: "omit",
@@ -43,7 +42,7 @@ const makeEngine = (profile) => {
 
                 const data = await resp.json()
                 const path = data.paths[0]
-                const points = path.points.coordinates
+                const points = polylineDecode(path.points, 5)
                 const steps = []
 
                 for (const instr of path.instructions) {
