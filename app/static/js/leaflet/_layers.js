@@ -1,10 +1,6 @@
 import * as L from "leaflet"
+import { thunderforestApiKey, tracestrackApiKey } from "../_api-keys.js"
 import "../_types.js"
-
-// There is no point to keep these secret, they are a part of the frontend code
-// It's on the tile server to secure against abuse
-const thunderforestApiKey = "6e5478c8a4f54c779f85573c0e399391"
-const tracestrackApiKey = "383118983d4a867dd2d367451720d724"
 
 const copyright = '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
 const terms = '<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">Website and API terms</a>'

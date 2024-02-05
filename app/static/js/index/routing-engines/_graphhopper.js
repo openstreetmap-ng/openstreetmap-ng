@@ -1,11 +1,10 @@
 import * as L from "leaflet"
+import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
 import "../../_types.js"
 
 // GraphHopper API Documentation
 // https://docs.graphhopper.com/#tag/Routing-API
-
-const graphhopperApiKey = "LijBPDQGfu7Iiq80w3HzwB4RUDJbMbhs6BU0dEnn"
 
 /**
  * Create a new GraphHopper engine
@@ -53,7 +52,7 @@ const makeEngine = (profile) => {
                     steps.push({
                         lon: lon,
                         lat: lat,
-                        line: L.polyline(instrPoints),
+                        line: L.polyline(instrPoints.map(([lon, lat]) => L.latLng(lat, lon))),
                         distance: instr.distance,
                         time: instr.time / 1000,
                         code: signToCodeMap.get(instr.sign) ?? 0,
@@ -79,6 +78,9 @@ const makeEngine = (profile) => {
 }
 
 const signToCodeMap = new Map([
+    [-98, 4], // u-turn
+    [-8, 4], // left u-turn
+    [-7, 19], // keep left
     [-3, 7], // sharp left
     [-2, 6], // left
     [-1, 5], // slight left
@@ -89,6 +91,8 @@ const signToCodeMap = new Map([
     [4, 14], // finish reached
     [5, 14], // via reached
     [6, 10], // roundabout
+    [7, 18], // keep right
+    [8, 4], // right u-turn
 ])
 
 export const GraphHopperEngines = new Map([
