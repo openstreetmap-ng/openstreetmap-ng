@@ -135,11 +135,10 @@ export const getQueryFeaturesController = (map) => {
             onSidebarLoading(latLng, zoom, abortSignal)
 
             // Fetch nearby features
-            const body = qsEncode({ lon, lat, zoom })
+            const queryString = qsEncode({ lon, lat, zoom })
 
-            fetch("/api/web/partial/query/nearby", {
+            fetch(`/api/web/partial/query/nearby?${queryString}`, {
                 method: "GET",
-                body: body,
                 mode: "same-origin",
                 cache: "no-store", // request params are too volatile to cache
                 signal: abortSignal,
@@ -161,9 +160,8 @@ export const getQueryFeaturesController = (map) => {
                 })
 
             // Fetch enclosing features
-            fetch("/api/web/partial/query/enclosing", {
+            fetch(`/api/web/partial/query/enclosing?${queryString}`, {
                 method: "GET",
-                body: body,
                 mode: "same-origin",
                 cache: "no-store", // request params are too volatile to cache
                 signal: abortSignal,

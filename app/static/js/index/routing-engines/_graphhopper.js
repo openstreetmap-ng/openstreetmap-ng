@@ -1,8 +1,8 @@
 import * as L from "leaflet"
 import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
+import { polylineDecode } from "../../_polyline-decoder.js"
 import "../../_types.js"
-import { polylineDecode } from "./_polyline-decoder.js"
 
 // GraphHopper API Documentation
 // https://docs.graphhopper.com/#tag/Routing-API

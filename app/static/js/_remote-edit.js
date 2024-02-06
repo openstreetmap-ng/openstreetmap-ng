@@ -77,9 +77,9 @@ const remoteEdit = (button, bounds, object = null) => {
     // Disable button while loading
     button.disabled = true
 
-    fetch(`${remoteEditHost}/load_and_zoom`, {
+    const loadAndZoomQuery = qsEncode(loadQuery)
+    fetch(`${remoteEditHost}/load_and_zoom?${loadAndZoomQuery}`, {
         method: "GET",
-        body: qsEncode(loadQuery),
         mode: "no-cors",
         credentials: "omit",
         cache: "no-store",
@@ -88,9 +88,9 @@ const remoteEdit = (button, bounds, object = null) => {
         .then(() => {
             // Optionally import note
             if (object && object.type === "note") {
-                return fetch(`${remoteEditHost}/import`, {
+                const importQuery = qsEncode({ url: getObjectRequestUrl(object) })
+                return fetch(`${remoteEditHost}/import?${importQuery}`, {
                     method: "GET",
-                    body: qsEncode({ url: getObjectRequestUrl(object) }),
                     mode: "no-cors",
                     credentials: "omit",
                     cache: "no-store",

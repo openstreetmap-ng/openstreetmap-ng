@@ -6,7 +6,7 @@
  * @param {number} precision Precision
  * @returns {Array<[number, number]>} Coordinates in [lon, lat] format
  */
-export const polylineDecode = (str, precision = 6) => {
+export const polylineDecode = (str, precision) => {
     const coordinates = []
     const factor = 10 ** precision
     let index = 0

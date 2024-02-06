@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { primaryLanguage } from "../../_config.js"
+import { polylineDecode } from "../../_polyline-decoder.js"
 import "../../_types.js"
-import { polylineDecode } from "./_polyline-decoder.js"
 
 // Valhalla API Documentation
 // https://valhalla.github.io/valhalla/api/turn-by-turn/api-reference/
@@ -61,10 +61,10 @@ const makeEngine = (costing) => {
                         lon: lon,
                         lat: lat,
                         line: L.polyline(manPoints.map(([lon, lat]) => L.latLng(lat, lon))),
-                        distance: man.length,
+                        distance: man.length * 1000,
                         time: man.time,
                         code: maneuverTypeToCodeMap.get(man.type) ?? 0,
-                        text: man.instruction * 1000,
+                        text: man.instruction,
                     })
                 }
 
