@@ -27,14 +27,17 @@ const makeEngine = (profile) => {
             overview: false, // no overview (simplified according to highest zoom level)
         })
 
-        fetch(`https://router.project-osrm.org/route/v1/${profile}/${from.lon},${from.lat};${to.lon},${to.lat}`, {
-            method: "GET",
-            mode: "no-cors",
-            credentials: "omit",
-            cache: "no-store",
-            signal: abortSignal,
-            priority: "high",
-        })
+        fetch(
+            `https://router.project-osrm.org/route/v1/${profile}/${from.lon},${from.lat};${to.lon},${to.lat}?${queryString}`,
+            {
+                method: "GET",
+                mode: "no-cors",
+                credentials: "omit",
+                cache: "no-store",
+                signal: abortSignal,
+                priority: "high",
+            },
+        )
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 

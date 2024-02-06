@@ -7,6 +7,9 @@ import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { zoomPrecision } from "../_utils.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
+import { GraphHopperEngines } from "./routing-engines/_graphhopper.js"
+import { OSRMEngines } from "./routing-engines/_osrm.js"
+import { ValhallaEngines } from "./routing-engines/_valhalla.js"
 
 export const routingStyles = {
     route: {
@@ -26,6 +29,8 @@ export const routingStyles = {
 const dragDataType = "text/osm-marker-guid"
 const fromMarkerGuid = "2292de60-aca9-43e1-8bcc-4ca17f517f84"
 const toMarkerGuid = "ad4767d0-4f75-4964-986a-697ca1f22c1d"
+
+const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OSRMEngines])
 
 /**
  * Create a new routing controller
