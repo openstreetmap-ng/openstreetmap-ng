@@ -1,9 +1,10 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { countryBounds, homePoint } from "./_config.js"
+import { homePoint } from "./_config.js"
 import { getLastMapState, setLastMapState } from "./_local-storage.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { shortLinkEncode } from "./_shortlink.js"
+import { timezoneBoundsMap } from "./_timezone_bbox.js"
 import "./_types.js"
 import { isLatitude, isLongitude, isZoom, zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode, getOverlayLayerById } from "./leaflet/_layers.js"
@@ -303,6 +304,8 @@ export const getInitialMapState = (map = null) => {
     }
 
     // 8. Use the user's country bounds
+    const timezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const countryBounds = timezoneBoundsMap.get(timezoneName)
     if (countryBounds) {
         const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, countryBounds)
         return { lon, lat, zoom, layersCode: "" }

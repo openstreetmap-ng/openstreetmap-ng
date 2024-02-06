@@ -65,13 +65,6 @@ export const primaryLanguage = languages[0]
 export const homePoint = config.homePoint
 
 /**
- * Optional user country bounding box in minLon,minLat,maxLon,maxLat format (JSON-encoded)
- * @type {number[]|undefined}
- * @example [14.123, 49.006, 24.150, 54.839]
- */
-export const countryBounds = config.countryBounds
-
-/**
  * Maximum map query area in square degrees
  * @type {number}
  * @example 0.25
