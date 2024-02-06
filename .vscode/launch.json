@@ -11,18 +11,6 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
-        },
-        {
-            "name": "Python: load_osm.py",
-            "type": "python",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "program": "scripts/load_osm.py",
-            "args": [
-                "poland-internal.osm",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true
         }
     ]
 }

@@ -312,6 +312,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
+    (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
