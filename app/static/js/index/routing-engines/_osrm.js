@@ -70,7 +70,7 @@ const makeEngine = (profile) => {
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
-                console.error("Failed to fetch valhalla route", error)
+                console.error("Failed to fetch osrm route", error)
                 errorCallback(error)
             })
     }
