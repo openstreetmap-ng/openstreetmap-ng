@@ -103,14 +103,3 @@
       $("#sidebar_content").append("<p class=\"text-center\">" +
         I18n.t("javascripts.directions.instructions.courtesy", { link: chosenEngine.creditline }) +
         "</p>");
-
-  $(".routing_marker").on("dragstart", function (e) {
-    var dt = e.originalEvent.dataTransfer;
-    dt.effectAllowed = "move";
-    var dragData = { type: $(this).data("type") };
-    dt.setData("text", JSON.stringify(dragData));
-    if (dt.setDragImage) {
-      var img = $("<img>").attr("src", $(e.originalEvent.target).attr("src"));
-      dt.setDragImage(img.get(0), 12, 21);
-    }
-  });

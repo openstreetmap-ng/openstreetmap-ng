@@ -41,6 +41,7 @@ export const getRoutingController = (map) => {
     const sidebar = getActionSidebar("directions")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
+    const draggableMarkers = form.querySelectorAll(".draggable-marker")
     const fromInput = form.querySelector("input[name=from]")
     const toInput = form.querySelector("input[name=to]")
     const engineInput = form.querySelector("input[name=engine]") // TODO: load from local storage
@@ -144,6 +145,24 @@ export const getRoutingController = (map) => {
         bboxInput.value = map.getBounds().toBBoxString()
     }
 
+    /**
+     * On draggable marker drag start, set data and drag image
+     * @param {DragEvent} event
+     */
+    const onDraggableMarkerDragStart = (event) => {
+        const target = event.target
+        const markerGuid = target.dataset.guid
+        console.debug("onDraggableMarkerDragStart", markerGuid)
+
+        const dt = event.dataTransfer
+        dt.effectAllowed = "move"
+        dt.setData(dragDataType, markerGuid)
+
+        const img = new Image()
+        img.src = target.src
+        dt.setDragImage(img, 12, 21)
+    }
+
     // On input enter, submit the form
     const onInputEnter = (event) => {
         if (event.key === "Enter") submitFormIfFilled()
@@ -200,6 +219,9 @@ export const getRoutingController = (map) => {
     configureStandardForm(form, onFormSuccess)
     map.addEventListener("drop", onMapDrop)
     map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+    for (const draggableMarker of draggableMarkers) {
+        draggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
+    }
     fromInput.addEventListener("input", onInputEnter)
     toInput.addEventListener("input", onInputEnter)
     engineInput.addEventListener("input", onEngineInputChange)
