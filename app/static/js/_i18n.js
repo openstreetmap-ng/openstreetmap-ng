@@ -1,6 +1,7 @@
 import i18next from "i18next"
 import HttpApi from "i18next-http-backend"
-import { languages, localeHashMap, primaryLanguage } from "./_config.js"
+import { languages, primaryLanguage } from "./_config.js"
+import { localeHashMap } from "./_locale_hash_map.js"
 
 i18next.use(HttpApi).init({
     lng: primaryLanguage,
@@ -10,7 +11,7 @@ i18next.use(HttpApi).init({
     backend: {
         loadPath: (lngs, namespaces) => {
             const [locale] = lngs
-            const hash = localeHashMap[locale]
+            const hash = localeHashMap.get(locale)
             if (!hash) {
                 console.error(`Missing locale hash for ${locale}`)
                 return false

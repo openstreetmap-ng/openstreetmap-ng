@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-{# TODO: lang #}
-<html lang="{{ lang }}" dir="{{ t('html.dir') }}">
+<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ config }}">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>{% block title %}{% block title_prefix %}{% endblock %}OpenStreetMap{% endblock %}</title>
-    <meta name="description"
-        content="OpenStreetMap is a map of the world, created by people like you and free to use under an open license.">
+    {# TODO: description only on main page #}
+    <meta name="description" content="{{ t('layouts.intro_text') }}">
 
     <link rel="stylesheet" href="/static/css/main.css" fetchpriority="high">
     <script src="/static/js/main.js" type="module" fetchpriority="high" defer></script>
@@ -17,8 +17,7 @@
     <meta property="og:site_name" content="OpenStreetMap">
     <meta property="og:title" content="{{ self.title() }}">
     <meta property="og:url" content="{{ request.url }}">
-    <meta property="og:description"
-        content="OpenStreetMap is a map of the world, created by people like you and free to use under an open license.">
+    <meta property="og:description" content="{{ t('layouts.intro_text') }}">
     <meta property="og:image" content="{{ APP_URL + '/static/img/favicon/512.png' }}">
     <meta property="og:image:alt" content="OpenStreetMap logo">
     <meta property="og:image:type" content="image/png">

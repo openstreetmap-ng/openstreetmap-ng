@@ -42,7 +42,7 @@ app.add_middleware(AuthMiddleware)  # depends on: session
 app.add_middleware(
     SessionMiddleware,
     secret_key=SECRET,
-    session_cookie='_osm_session',
+    session_cookie='session',
     max_age=int(timedelta(days=365).total_seconds()),
     https_only=HTTPS_ONLY,
 )

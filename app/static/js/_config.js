@@ -37,13 +37,6 @@ export const rapidUrl = config.rapidUrl
 export const rapidVersion = config.rapidVersion
 
 /**
- * Locale hash map
- * @type {object}
- * @example {"en":"f40fd5bd91bde9c9",...}
- */
-export const localeHashMap = config.localeHashMap
-
-/**
  * User translation languages
  * @type {string[]}
  * @example ["en", "pl"]
@@ -58,8 +51,8 @@ export const languages = config.languages
 export const primaryLanguage = languages[0]
 
 /**
- * Optional user home location point (JSON-encoded)
- * @type {number[]|undefined}
+ * Optional user home location point
+ * @type {number[]|null}
  * @example [0, 30]
  */
 export const homePoint = config.homePoint

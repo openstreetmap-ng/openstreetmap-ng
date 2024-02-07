@@ -14,12 +14,14 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _get_i18next_locale_hash_map() -> dict[str, str]:
-    result = {}
-    for p in pathlib.Path(LOCALE_DIR / 'i18next').glob('*.json'):
-        locale, _, file_hash = p.stem.rpartition('-')
-        result[locale] = file_hash
-    return result
+def _get_locales() -> frozenset[str]:
+    result = []
+    for p in pathlib.Path(LOCALE_DIR / 'gnu').iterdir():
+        if not p.is_dir():
+            continue
+        locale = p.name
+        result.append(locale)
+    return frozenset(result)
 
 
 @cython.cfunc
@@ -36,9 +38,7 @@ def _normalize(code: str) -> str:
     return code
 
 
-_i18next_locale_hash_map = _get_i18next_locale_hash_map()
-
-_locales = frozenset(_i18next_locale_hash_map.keys())
+_locales = _get_locales()
 _locales_normalized_map = {_normalize(k): k for k in _locales}
 logging.info('Loaded %d locales', len(_locales))
 
@@ -110,14 +110,3 @@ def get_all_locales_names() -> Sequence[LocaleName]:
     """
 
     return _locales_names
-
-
-def get_i18next_locale_hash_map() -> dict[str, str]:
-    """
-    Get i18next hash map.
-
-    >>> get_i18next_locale_hash_map()
-    {'en': 'f40fd5bd91bde9c9', ...}
-    """
-
-    return _i18next_locale_hash_map
