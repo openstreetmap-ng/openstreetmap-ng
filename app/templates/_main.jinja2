@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ t('html.dir') }}" data-config="{{ config }}">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{% block site_name %}{{ t('layouts.project_name.title') }}{% endblock %}">
+    <meta property="og:url" content="{{ request.url }}">
+
+    <title>{% block title %}{% block title_prefix %}{% endblock %}{{ self.site_name() }}{% endblock %}</title>
+    <meta property="og:title" content="{{ self.title() }}">
+
+    {% if TEST_ENV %}
+    {% include '_importmap.jinja2' %}
+    {% endif %}
+
+    <link rel="stylesheet" href="/static/css/main.css" fetchpriority="high">
+    <script src="/static/js/main.js" type="module" fetchpriority="high" defer></script>
+
+    {% block head %}{% endblock %}
+
+    <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
+    <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
+    <link rel="icon" sizes="256x256" type="image/webp" href="/static/img/favicon/256.webp">
+    <link rel="icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
+    <link rel="apple-touch-icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
+    <link rel="apple-touch-icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
+
+    {# TODO: more og tags, dynamic head image, rel next #}
+    <meta property="og:image" content="{{ APP_URL + '/static/img/favicon/512.png' }}">
+    <meta property="og:image:alt" content="{{ t('layouts.logo.alt_text') }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+
+    <link rel="search" type="application/opensearchdescription+xml" title="OpenStreetMap Search"
+        href="/static/opensearch.xml">
+</head>
+
+<body>
+    {% include '_navbar.jinja2' %}
+    {% block body %}{% endblock %}
+</body>
+
+</html>

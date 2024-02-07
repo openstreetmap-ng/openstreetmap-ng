@@ -221,8 +221,6 @@ tg-cyrl:
     help:
       welcome:
         title: Хуш омадед ба ХаритаиКушодаиКӯча
-      help:
-        title: Кумак дар Форум
     search:
       search: Ҷустуҷӯ
   traces:

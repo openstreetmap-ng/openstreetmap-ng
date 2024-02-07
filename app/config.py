@@ -51,6 +51,7 @@ RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
+COOKIE_SESSION_TTL = int(os.getenv('COOKIE_SESSION_TTL', 365 * 24 * 3600))  # 1 year
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'))
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week

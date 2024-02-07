@@ -2,7 +2,6 @@
 # Exported from translatewiki.net
 # Export driver: phpyaml
 # Author: Laitei
-# Author: Reihpaleituh
 # Author: Teitei Para
 ---
 mrh:
@@ -210,8 +209,4 @@ mrh:
   traces:
     index:
       my_gps_traces: Keima GPS pheihniezy
-  javascripts:
-    map:
-      base:
-        cyclosm: CyclOSM
 ...

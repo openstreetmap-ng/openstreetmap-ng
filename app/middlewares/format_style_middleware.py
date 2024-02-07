@@ -11,5 +11,5 @@ class FormatStyleMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        async with format_style_context(request):
-            return await super().dispatch(request, call_next)
+        with format_style_context(request):
+            return await call_next(request)

@@ -89,7 +89,6 @@ zgh:
       name: iD
   auth:
     providers:
-      openid: OpenID
       google: ⴳⵓⴳⵍ
       facebook: ⴼⵉⵙⴱⵓⴽ
       github: ⴳⵉⵜⵀⴰⴱ

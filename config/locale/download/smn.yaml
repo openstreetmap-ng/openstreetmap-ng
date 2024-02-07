@@ -103,8 +103,10 @@ smn:
       from: Vuolgâtteijee
       to: Vuástáväldee
     message_summary:
+      reply_button: Västid
       destroy_button: Siho
     show:
+      reply_button: Västid
       destroy_button: Siho
     sent_message_summary:
       destroy_button: Siho

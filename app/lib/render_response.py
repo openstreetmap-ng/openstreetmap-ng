@@ -2,8 +2,9 @@ import cython
 import orjson
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION
+from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION, TEST_ENV
 from app.lib.auth_context import auth_user
+from app.lib.request_context import get_request
 from app.lib.translation import render, translation_languages
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 
@@ -31,6 +32,9 @@ def _get_default_data() -> dict:
     }
 
     return {
+        'APP_URL': APP_URL,
+        'TEST_ENV': TEST_ENV,
+        'request': get_request(),
         'lang': languages[0],
         'config': orjson.dumps(config).decode(),
     }

@@ -208,7 +208,6 @@ io:
   auth:
     providers:
       none: Nula
-      openid: OpenID
       google: Google
       facebook: Facebook
       microsoft: Microsoft
@@ -430,6 +429,7 @@ io:
       title: Bonveno!
   traces:
     show:
+      start_coordinates: 'Komencala koordinato:'
       visibility: 'Videbleso:'
   oauth:
     scopes:

@@ -236,7 +236,6 @@ eo:
   auth:
     providers:
       none: Neniu
-      openid: OpenID
       google: Google
       facebook: Facebook
       microsoft: Microsoft
@@ -461,6 +460,15 @@ eo:
       introduction: Alklaku la mapon por trovi proksimajn objektojn.
       nearby: Proksimaj objektoj
       enclosing: Ĉirkaŭaj objektoj
+  old_nodes:
+    not_found:
+      sorry: 'Bedaŭrinde la nodo #%{id} en versio %{version} ne troveblas.'
+  old_ways:
+    not_found:
+      sorry: 'Bedaŭrinde la linio #%{id} en versio %{version} ne troveblas.'
+  old_relations:
+    not_found:
+      sorry: 'Bedaŭrinde la rilato #%{id} en versio %{version} ne troveblas.'
   changesets:
     changeset_paging_nav:
       showing_page: Paĝo %{page}
@@ -1828,7 +1836,7 @@ eo:
     new:
       title: Perdita pasvorto
       heading: Forgesis vian pasvorton ?
-      email address: 'Retpoŝtadreso:'
+      email address: Retpoŝta adreso
       new password button: Nuligi pasvorton
       help_text: Entajpu la retpoŝtan adreson kiun vi uzis por ensaluto, ni sendos
         al vi ligilon, kiun vi povos uzi por restarigi vian pasvorton.
@@ -1888,9 +1896,8 @@ eo:
     new:
       title: Ensaluti
       heading: Ensaluti
-      email or username: 'Retpoŝtadreso aŭ uzantnomo:'
-      password: 'Pasvorto:'
-      openid_html: '%{logo} OpenID:'
+      email or username: Retpoŝta adreso aŭ uzantnomo
+      password: Pasvorto
       remember: Memori min
       lost password link: Ĉu vi forgesis vian pasvorton?
       login_button: Ensaluti
@@ -2232,17 +2239,13 @@ eo:
       beginners_guide:
         title: Manlibro por komencantoj
         description: Manlibro por komencantoj kreata de la komunumo (en la angla).
-      help:
-        title: Helpa forumo
-        description: Demandu aŭ serĉu respondojn ĉe retpaĝo de demandoj-kaj-respondoj
-          pri OpenStreetMap.
+      community:
+        title: Forumoj de komunumo
+        description: Loko por diskuti pri OpenStreetMap.
       mailing_lists:
         title: Dissendolistoj
         description: Demandu aŭ diskutu pri interesaj temoj en multaj pritemaj aŭ
           regionaj dissendolistoj.
-      community:
-        title: Forumoj de komunumo
-        description: Loko por diskuti pri OpenStreetMap.
       irc:
         title: IRC
         description: Interaga babilejo en multaj diversaj lingvoj kaj pri multaj temoj.
@@ -3105,7 +3108,6 @@ eo:
           other: Vi estas %{count} futoj for de tiu punkto
       base:
         standard: Norma mapo
-        cyclosm: CyclOSM
         cycle_map: Biciklada mapo
         transport_map: Transporta mapo
         tracestracktop_topo: Topografia mapo

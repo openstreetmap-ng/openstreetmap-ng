@@ -172,7 +172,6 @@ vec:
   auth:
     providers:
       none: Nisun
-      openid: OpenID
       google: Google
       facebook: Facebook
       github: GitHub

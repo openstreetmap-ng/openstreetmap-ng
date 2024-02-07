@@ -97,7 +97,6 @@ uz:
   auth:
     providers:
       none: Hech qaysi
-      openid: OpenID
       google: Google
       facebook: Facebook
       github: GitHub

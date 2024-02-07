@@ -12,11 +12,11 @@ if (idContainer) {
     ctx.preauth({
         url: parent.location.origin,
         apiUrl: apiUrl,
-        // biome-ignore lint/style/useNamingConvention: Not controlled by this project
+        // biome-ignore lint/style/useNamingConvention:
         client_id: params.clientId,
-        // biome-ignore lint/style/useNamingConvention: Not controlled by this project
+        // biome-ignore lint/style/useNamingConvention:
         client_secret: params.clientSecret,
-        // biome-ignore lint/style/useNamingConvention: Not controlled by this project
+        // biome-ignore lint/style/useNamingConvention:
         access_token: params.accessToken,
     })
 

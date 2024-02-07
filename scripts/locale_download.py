@@ -20,11 +20,11 @@ _names_path = LOCALE_DIR / 'names.json'
 async def get_download_locales() -> Sequence[str]:
     r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations?group=out-osm-site')
     r.raise_for_status()
-    matches = re.finditer(r"<option value='([\w-]+)'>\1 - ", r.text)
+    matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", r.text)
     return tuple(match[1] for match in matches)
 
 
-@retry(timedelta(minutes=1))
+@retry(timedelta(minutes=2))
 async def download_locale(locale: str) -> LocaleName | None:
     async with _download_limiter:
         r = await HTTP.get(
@@ -50,14 +50,6 @@ async def download_locale(locale: str) -> LocaleName | None:
     if english_name == 'Message documentation':
         print(f'[❔] {locale}: not a language')
         return None
-
-    # treat en-GB as universal english
-    if locale == 'en-GB':
-        locale = 'en'
-        english_name = 'English'
-        native_name = 'English'
-    elif locale == 'en' or locale == 'en-US':
-        raise RuntimeError('This script assumes en-GB is the universal english')
 
     target_path = _download_dir / f'{locale}.yaml'
 

@@ -405,6 +405,11 @@
     "native": "English"
   },
   {
+    "code": "en-GB",
+    "english": "British English",
+    "native": "British English"
+  },
+  {
     "code": "eo",
     "english": "Esperanto",
     "native": "Esperanto"

@@ -14,4 +14,4 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         user, scopes = await AuthService.authenticate_request(request)
         with auth_context(user, scopes):
-            return await super().dispatch(request, call_next)
+            return await call_next(request)

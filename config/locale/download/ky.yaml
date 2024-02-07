@@ -414,7 +414,6 @@ ky:
       title: Кирүү
       heading: Кирүү
       password: 'Сырсөз:'
-      openid_html: '%{logo} OpenID:'
       remember: Мени эске сактоо
       lost password link: Сыр сөзүңүздү унуттуңузбу ?
       login_button: Кирүү

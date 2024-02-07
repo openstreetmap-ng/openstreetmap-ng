@@ -80,7 +80,6 @@ frc:
   auth:
     providers:
       none: Aucun
-      openid: OpenID
       google: Google
       facebook: Facebook
       github: GitHub

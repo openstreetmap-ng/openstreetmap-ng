@@ -8,7 +8,7 @@ from gettext import GNUTranslations, translation
 import cython
 from jinja2 import Environment, FileSystemLoader
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
+from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, TEST_ENV
 from app.lib.date_utils import format_iso_date, utcnow
 
 if cython.compiled:
@@ -20,7 +20,9 @@ _locale_dir = LOCALE_DIR / 'gnu'
 
 _j2 = Environment(
     loader=FileSystemLoader('app/templates'),
+    keep_trailing_newline=True,
     autoescape=True,
+    cache_size=0 if TEST_ENV else -1,
     auto_reload=False,
 )
 

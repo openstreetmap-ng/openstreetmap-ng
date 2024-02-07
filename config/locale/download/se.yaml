@@ -85,11 +85,13 @@ se:
       from: Sáddejeaddji
       to: Vuostáiváldi
     message_summary:
+      reply_button: Vástit
       destroy_button: Sihko
     new:
       title: Sádde dieđu
       send_message_to_html: Sádde ođđâ dieđu geavaheaddjái %{name}
     show:
+      reply_button: Vástit
       destroy_button: Sihko
     sent_message_summary:
       destroy_button: Sihko

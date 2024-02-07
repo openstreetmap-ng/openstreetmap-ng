@@ -258,7 +258,6 @@ sl:
   auth:
     providers:
       none: Brez
-      openid: OpenID
       google: Google
       facebook: Facebook
       microsoft: Microsoft
@@ -490,6 +489,15 @@ sl:
       introduction: Kliknite na zemljevid za iskanje bližnjih značilnosti.
       nearby: Značilnosti v neposredni bližini
       enclosing: Vsebujoče značilnosti
+  old_nodes:
+    not_found:
+      sorry: 'Žal vozlišča #%{id} različice %{version} ni bilo mogoče najti.'
+  old_ways:
+    not_found:
+      sorry: 'Žal načina #%{id} različice %{version} ni bilo mogoče najti.'
+  old_relations:
+    not_found:
+      sorry: 'Žal relacije #%{id} različice %{version} ni bilo mogoče najti.'
   changesets:
     changeset_paging_nav:
       showing_page: Stran %{page}
@@ -1962,7 +1970,6 @@ sl:
       heading: Prijava
       email or username: E-poštni naslov ali uporabniško ime
       password: Geslo
-      openid_html: '%{logo} OpenID:'
       remember: Zapomni si me
       lost password link: Ste pozabili geslo?
       login_button: Prijava
@@ -2326,17 +2333,13 @@ sl:
         url: https://wiki.openstreetmap.org/wiki/Sl:Beginners%27_guide
         title: Vodnik za začetnike
         description: Vodnik za začetnike, ki ga vzdržuje skupnost.
-      help:
-        title: Forum za pomoč
-        description: Postavite vprašanje ali poiščite odgovore v zbirki vprašanj in
-          odgovorov OpenStreetMap.
+      community:
+        title: Forum skupnosti
+        description: Skupno mesto za pogovore o OpenStreetMap.
       mailing_lists:
         title: Dopisni seznami
         description: Postavite vprašanje ali razpravljajte o različnih krajevnih ali
           regionalnih temah v številnih dopisnih seznamih.
-      community:
-        title: Forum skupnosti
-        description: Skupno mesto za pogovore o OpenStreetMap.
       irc:
         title: IRC
         description: Interaktivni klepet v številnih različnih jezikih in o številnih
@@ -3222,7 +3225,6 @@ sl:
           other: Ste znotraj %{count} čevljev od te točke
       base:
         standard: Privzeta karta
-        cyclosm: CyclOSM
         cycle_map: Kolesarska karta
         transport_map: Prometna karta
         tracestracktop_topo: Tracestrack Topo

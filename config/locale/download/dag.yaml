@@ -117,6 +117,9 @@ dag:
           peninsula: Peninsula‎
         place:
           archipelago: Archipelago
+  user_mailer:
+    gpx_success:
+      all_your_traces_html: A ni tooi nya a GPX shɛŋa zaa din chaŋ viɛnyɛla  %{url}.
   messages:
     heading:
       my_outbox: Ŋ lahabaya din yiri adaka
@@ -127,7 +130,6 @@ dag:
     new:
       email or username: Yimail adrɛɛri bee ŋunsuyuli
       password: Paswɛdi
-      openid_html: '%{logo} yoomiID'
   site:
     key:
       table:

@@ -1,131 +1,126 @@
+import i18next from "i18next"
 import * as L from "leaflet"
 import { thunderforestApiKey, tracestrackApiKey } from "../_api-keys.js"
 import "../_types.js"
 
-const copyright = '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
-const terms = '<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">Website and API terms</a>'
+const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
+const copyright = `© <a href="https://www.openstreetmap.org/copyright" target="_blank">${copyrightText}</a>`
+const termsText = i18next.t("javascripts.map.website_and_api_terms")
+const terms = `<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">${termsText}</a>`
 
-const defaultLayer = L.TileLayer.extend({
-    options: {},
-    initialize: (options) => {
-        const mergedOptions = L.Util.setOptions(this, options)
-        L.TileLayer.prototype.initialize.call(this, mergedOptions.url)
-    },
+const donateTitle = i18next.t("layouts.make_a_donation.title")
+const donateText = i18next.t("layouts.make_a_donation.text")
+
+const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
+    layerCode: "", // Standard has no layer code - it's the default layer
+    layerId: "standard",
+    legacyLayerIds: ["mapnik"],
 })
 
-// TODO: translations
-const StandardLayer = defaultLayer.extend({
-    options: {
-        url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        maxZoom: 19,
-        attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank">Make a Donation</a>. ${terms}`,
-        layerCode: "", // Standard has no layer code - it's the default layer
-        layerId: "standard",
-        legacyLayerIds: ["mapnik"],
-    },
+const osmFranceText = i18next.t("javascripts.map.osm_france")
+const osmFranceLink = `<a href="https://openstreetmap.fr" target="_blank">${osmFranceText}</a>`
+
+const cyclosmText = i18next.t("javascripts.map.cyclosm_name")
+const cyclosmLink = `<a href="https://www.cyclosm.org" target="_blank">${cyclosmText}</a>`
+const cyclosmCredit = i18next.t("javascripts.map.cyclosm_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    cyclosm_link: cyclosmLink,
+    // biome-ignore lint/style/useNamingConvention:
+    osm_france_link: osmFranceLink,
 })
 
-const CyclOSM = defaultLayer.extend({
-    options: {
-        url: "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
-        maxZoom: 20,
-        subdomains: "abc",
-        attribution: `${copyright}. Tiles style by <a href="https://www.cyclosm.org" target="_blank">CyclOSM</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${terms}`,
-        layerCode: "Y",
-        layerId: "cyclosm",
-    },
+const cyclosm = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
+    maxZoom: 20,
+    subdomains: "abc",
+    attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
+    layerCode: "Y",
+    layerId: "cyclosm",
 })
 
-const CycleMap = defaultLayer.extend({
-    options: {
-        url: "https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey={apiKey}",
-        maxZoom: 21, // supports up to 22
-        attribution: `${copyright}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${terms}`,
-        apiKey: thunderforestApiKey,
-        layerCode: "C",
-        layerId: "cyclemap",
-        legacyLayerIds: ["cycle map"],
-    },
+const thunderforestText = i18next.t("javascripts.map.andy_allan")
+const thunderforestLink = `<a href="https://www.thunderforest.com" target="_blank">${thunderforestText}</a>`
+const thunderforestCredit = i18next.t("javascripts.map.thunderforest_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    thunderforest_link: thunderforestLink,
 })
 
-const TransportMap = defaultLayer.extend({
-    options: {
-        url: "https://tile.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey={apiKey}",
-        maxZoom: 21, // supports up to 22
-        attribution: `${copyright}. Tiles courtesy of <a href="https://www.thunderforest.com" target="_blank">Andy Allan</a>. ${terms}`,
-        apiKey: thunderforestApiKey,
-        layerCode: "T",
-        layerId: "transportmap",
-    },
+const cycleMap = L.tileLayer("https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey={apiKey}", {
+    maxZoom: 21, // supports up to 22
+    attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
+    apiKey: thunderforestApiKey,
+    layerCode: "C",
+    layerId: "cyclemap",
+    legacyLayerIds: ["cycle map"],
 })
 
-const TracestrackTopo = defaultLayer.extend({
-    options: {
-        url: "https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key={apiKey}",
-        maxZoom: 19,
-        attribution: `${copyright}. Tiles courtesy of <a href="https://www.tracestrack.com" target="_blank">Tracestrack</a>. ${terms}`,
-        apiKey: tracestrackApiKey,
-        layerCode: "P",
-        layerId: "tracestracktopo",
-    },
+const transportMap = L.tileLayer("https://tile.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey={apiKey}", {
+    maxZoom: 21, // supports up to 22
+    attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
+    apiKey: thunderforestApiKey,
+    layerCode: "T",
+    layerId: "transportmap",
 })
 
-const OPNVKarte = defaultLayer.extend({
-    options: {
-        url: "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png",
-        maxZoom: 17,
-        attribution: `${copyright}. Tiles courtesy of <a href="https://memomaps.de" target="_blank">MeMoMaps</a>. ${terms}`,
-        layerCode: "O",
-        layerId: "opnvkarte",
-    },
+const tracestrackText = i18next.t("javascripts.map.tracestrack")
+const tracestrackLink = `<a href="https://www.tracestrack.com" target="_blank">${tracestrackText}</a>`
+const tracestrackCredit = i18next.t("javascripts.map.tracestrack_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    tracestrack_link: tracestrackLink,
 })
 
-const HOT = defaultLayer.extend({
-    options: {
-        url: "https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-        maxZoom: 20,
-        attribution: `${copyright}. Tiles style by <a href="https://www.hotosm.org" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr" target="_blank">OpenStreetMap France</a>. ${terms}`,
-        layerCode: "H",
-        layerId: "hot",
-    },
+const tracestrackTopo = L.tileLayer("https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key={apiKey}", {
+    maxZoom: 19,
+    attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
+    apiKey: tracestrackApiKey,
+    layerCode: "P",
+    layerId: "tracestracktopo",
 })
 
-const GPS = defaultLayer.extend({
-    options: {
-        // This layer has no zoom limits
-        url: "https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png",
-        maxZoom: 21,
-        maxNativeZoom: 20,
-        layerCode: "G",
-        layerId: "gps",
-        pane: "overlayPane",
-    },
+const hotosmText = i18next.t("javascripts.map.hotosm_name")
+const hotosmLink = `<a href="https://www.hotosm.org" target="_blank">${hotosmText}</a>`
+const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    hotosm_link: hotosmLink,
+    // biome-ignore lint/style/useNamingConvention:
+    osm_france_link: osmFranceLink,
 })
 
-const NoteLayer = L.FeatureGroup.extend({
-    options: {
-        layerCode: "N",
-        layerId: "notes",
-    },
+const hotosm = L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+    maxZoom: 20,
+    attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
+    layerCode: "H",
+    layerId: "hot",
 })
 
-const DataLayer = L.FeatureGroup.extend({
-    options: {
-        layerCode: "D",
-        layerId: "data",
-    },
+const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
+    // This layer has no zoom limits
+    maxZoom: 21,
+    maxNativeZoom: 20,
+    layerCode: "G",
+    layerId: "gps",
+    pane: "overlayPane",
 })
 
-const FocusLayer = L.FeatureGroup.extend({
-    options: {
-        inaccessible: true,
-        layerCode: "", // This layer is not possible to toggle manually
-        layerId: "focus",
-    },
+const noteLayer = L.featureGroup(undefined, {
+    layerCode: "N",
+    layerId: "notes",
 })
 
-const baseLayerIdMap = [StandardLayer, CyclOSM, CycleMap, TransportMap, TracestrackTopo, OPNVKarte, HOT].reduce(
-    (map, layer) => map.set(layer.options.layerId, new layer()),
+const dataLayer = L.featureGroup(undefined, {
+    layerCode: "D",
+    layerId: "data",
+})
+
+const focusLayer = L.featureGroup(undefined, {
+    inaccessible: true,
+    layerCode: "", // This layer is not possible to toggle manually
+    layerId: "focus",
+})
+
+const baseLayerIdMap = [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm].reduce(
+    (map, layer) => map.set(layer.options.layerId, layer),
     new Map(),
 )
 
@@ -136,12 +131,12 @@ const baseLayerIdMap = [StandardLayer, CyclOSM, CycleMap, TransportMap, Tracestr
  */
 export const getBaseLayerById = (layerId) => baseLayerIdMap.get(layerId)
 
-const overlayLayerIdMap = [GPS, NoteLayer, DataLayer, FocusLayer].reduce((map, layer) => {
-    const instance = new layer()
-    map.set(layer.options.layerId, instance)
-    if (layer.options.legacyLayerIds) {
-        for (const legacyLayerId of layer.options.legacyLayerIds) {
-            map.set(legacyLayerId, instance)
+const overlayLayerIdMap = [gps, noteLayer, dataLayer, focusLayer].reduce((map, layer) => {
+    const options = layer.options
+    map.set(options.layerId, layer)
+    if (options.legacyLayerIds) {
+        for (const legacyLayerId of options.legacyLayerIds) {
+            map.set(legacyLayerId, layer)
         }
     }
     return map
@@ -154,10 +149,10 @@ const overlayLayerIdMap = [GPS, NoteLayer, DataLayer, FocusLayer].reduce((map, l
  */
 export const getOverlayLayerById = (layerId) => overlayLayerIdMap.get(layerId)
 
-const layerCodeIdMap = [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()].reduce(
-    (map, layer) => (layer.options.inaccessible ? map : map.set(layer.options.layerCode, layer.options.layerId)),
-    new Map(),
-)
+const layerCodeIdMap = [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()].reduce((map, layer) => {
+    const options = layer.options
+    return options.inaccessible ? map : map.set(options.layerCode, options.layerId)
+}, new Map())
 
 /**
  * Get layer id by code
@@ -169,7 +164,7 @@ const layerCodeIdMap = [...baseLayerIdMap.values(), ...overlayLayerIdMap.values(
  */
 export const getLayerIdByCode = (layerCode) => {
     if (layerCode.length > 1) {
-        console.error(`Invalid layer code: ${layerCode}`)
+        console.error("Invalid layer code", layerCode)
         return getLayerIdByCode("")
     }
 

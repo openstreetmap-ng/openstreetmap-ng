@@ -63,7 +63,6 @@ sms:
       description: iD (muʹttemneävv neʹttlookkjest)
   auth:
     providers:
-      openid: OpenID
       google: Google
       facebook: Facebook
       github: GitHub
@@ -509,9 +508,6 @@ sms:
       download: Laadd
     embed:
       report_problem: Iʹlmmet čuõlmâst
-    map:
-      base:
-        cyclosm: CyclOSM
     changesets:
       show:
         comment: Kommentââʹst

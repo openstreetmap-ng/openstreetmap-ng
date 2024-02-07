@@ -5,8 +5,8 @@
     "@babel/cli": "^7.23.9",
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
+    "@popperjs/core": "^2.11.8",
     "@rapideditor/rapid": "github:facebook/Rapid#release",
-    "@types/leaflet": "^1.9.8",
     "bootstrap": "^5.3.2",
     "core-js": "3",
     "i18next": "^23.7.18",
@@ -17,6 +17,8 @@
     "osm-community-index": "^5.6.1"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.2.10",
+    "@types/leaflet": "^1.9.8",
     "autoprefixer": "^10.4.16",
     "bun-types": "latest",
     "i18next-conv": "^14.0.0",
