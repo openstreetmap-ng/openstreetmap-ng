@@ -9,7 +9,7 @@ from starlette.types import Scope
 from app.db import redis
 from app.lib.crypto import hash_hex
 from app.limits import STATIC_FILES_CACHE_EXPIRE, STATIC_FILES_CACHE_MAX_SIZE
-from app.utils import MSGPACK_DECODE, MSGPACK_ENCODE
+from app.models.msgspec.static_file_cache_meta import StaticFileCacheMeta
 
 
 class CachingStaticFiles(StaticFiles):
@@ -22,14 +22,12 @@ class CachingStaticFiles(StaticFiles):
         redis_key = f'StaticFiles:{cache_id_hex}'
 
         async with redis() as conn:
-            value: dict = await conn.hgetall(redis_key)
+            value: bytes | None = await conn.get(redis_key)
 
-            if len(value) > 0:
+            if value is not None:
                 logging.debug('Static file cache hit for %r', path)
-                content: bytes = value[b'content']
-                headers: dict[str, str] = MSGPACK_DECODE(value[b'headers'])
-                media_type: str = value[b'media_type']
-                return Response(content, headers=headers, media_type=media_type)
+                meta = StaticFileCacheMeta.from_bytes(value)
+                return Response(meta.content, headers=meta.headers, media_type=meta.media_type)
 
             logging.debug('Static file cache miss for %r', path)
             r = await super().get_response(path, scope)
@@ -45,15 +43,11 @@ class CachingStaticFiles(StaticFiles):
             content = await Path(r.path).read_bytes()
             headers = dict(r.headers)
             media_type = r.media_type
-            value = {
-                b'content': content,
-                b'headers': MSGPACK_ENCODE(headers),
-                b'media_type': media_type,
-            }
+            value = StaticFileCacheMeta(
+                content=content,
+                headers=headers,
+                media_type=media_type,
+            ).to_bytes()
 
-            pipe = conn.pipeline()
-            pipe.hset(redis_key, mapping=value)
-            pipe.expire(redis_key, STATIC_FILES_CACHE_EXPIRE, nx=True)
-            await pipe.execute()
-
+            await conn.set(redis_key, value, ex=STATIC_FILES_CACHE_EXPIRE, nx=True)
             return Response(content, headers=headers, media_type=media_type)

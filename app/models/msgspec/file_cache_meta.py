@@ -2,10 +2,10 @@ from typing import Self
 
 import msgspec
 
-from app.utils import MSGPACK_DECODE, MSGPACK_ENCODE
+from app.utils import MSGPACK_ENCODE, msgpack_decoder
 
 
-class FileCacheMeta(msgspec.Struct, omit_defaults=True):
+class FileCacheMeta(msgspec.Struct):
     version: int
     expires_at: int | None
     data: bytes
@@ -31,4 +31,7 @@ class FileCacheMeta(msgspec.Struct, omit_defaults=True):
         Parse the given buffer into a file cache meta struct.
         """
 
-        return MSGPACK_DECODE(buffer, type=cls)
+        return _decode(buffer)
+
+
+_decode = msgpack_decoder(FileCacheMeta).decode

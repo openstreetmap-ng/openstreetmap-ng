@@ -7,10 +7,10 @@ import msgspec
 
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.utils import MSGPACK_DECODE, MSGPACK_ENCODE
+from app.utils import MSGPACK_ENCODE, msgpack_decoder
 
 
-class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
+class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
     version: int
     id: int | UUID  # fallback to 0 on None
     time: datetime | None
@@ -41,7 +41,7 @@ class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, arr
         buff = urlsafe_b64decode(s)
 
         try:
-            obj: Self = MSGPACK_DECODE(buff, type=cls)
+            obj: Self = _decode(buff)
         except Exception:
             raise_for().bad_cursor()
 
@@ -50,3 +50,6 @@ class Cursor(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, arr
             raise_for().cursor_expired()
 
         return obj
+
+
+_decode = msgpack_decoder(Cursor).decode

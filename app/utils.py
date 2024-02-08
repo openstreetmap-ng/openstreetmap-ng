@@ -35,15 +35,20 @@ HTTP = httpx.AsyncClient(
     # },
 )
 
+
+def msgpack_decoder(t: type | None) -> msgspec.msgpack.Decoder:
+    return msgspec.msgpack.Decoder(t) if (t is not None) else msgspec.msgpack.Decoder()
+
+
+def json_decoder(t: type | None) -> msgspec.json.Decoder:
+    return msgspec.json.Decoder(t) if (t is not None) else msgspec.json.Decoder()
+
+
 # TODO: sorted keys?
-_msgpack_encoder = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes')
-MSGPACK_ENCODE = _msgpack_encoder.encode
-_msgpack_decoder = msgspec.msgpack.Decoder()
-MSGPACK_DECODE = _msgpack_decoder.decode
-_json_encoder = msgspec.json.Encoder(decimal_format='number')
-JSON_ENCODE = _json_encoder.encode
-_json_decoder = msgspec.json.Decoder()
-JSON_DECODE = _json_decoder.decode
+MSGPACK_ENCODE = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes').encode
+MSGPACK_DECODE = msgpack_decoder(None).decode
+JSON_ENCODE = msgspec.json.Encoder(decimal_format='number').encode
+JSON_DECODE = json_decoder(None).decode
 
 
 # TODO: reporting of deleted accounts (prometheus)
