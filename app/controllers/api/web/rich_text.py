@@ -17,4 +17,4 @@ async def preview(
     _: Annotated[User, web_user()],
 ) -> str:
     cache_entry = await rich_text(text, None, text_format)
-    return cache_entry.value
+    return cache_entry.value.decode()

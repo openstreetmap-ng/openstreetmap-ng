@@ -2,7 +2,7 @@ from typing import Self
 
 import msgspec
 
-from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
+from app.utils import MSGPACK_DECODE, MSGPACK_ENCODE
 
 
 class FileCacheMeta(msgspec.Struct, omit_defaults=True):
@@ -15,7 +15,7 @@ class FileCacheMeta(msgspec.Struct, omit_defaults=True):
         Serialize the file cache meta struct into bytes.
         """
 
-        return MSGSPEC_MSGPACK_ENCODER.encode(self)
+        return MSGPACK_ENCODE(self)
 
     @classmethod
     def v1(cls, expires_at: int | None, data: bytes) -> Self:
@@ -31,4 +31,4 @@ class FileCacheMeta(msgspec.Struct, omit_defaults=True):
         Parse the given buffer into a file cache meta struct.
         """
 
-        return MSGSPEC_MSGPACK_DECODER.decode(buffer, type=cls)
+        return MSGPACK_DECODE(buffer, type=cls)

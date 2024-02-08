@@ -5,7 +5,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.staticfiles import StaticFiles
 
 import app.controllers.index
 import app.lib.cython_detect  # DO NOT REMOVE
@@ -19,8 +18,10 @@ from app.middlewares.request_url_middleware import RequestUrlMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
+from app.responses.caching_static_files import CachingStaticFiles
 from app.responses.osm_response import OSMResponse
 
+# register additional mimetypes
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
 
@@ -60,10 +61,10 @@ if TEST_ENV:
     main.add_middleware(RuntimeMiddleware)
     main.add_middleware(ProfilerMiddleware)
 
-main.mount('/static', StaticFiles(directory='app/static'), name='static')
-main.mount('/static-locale', StaticFiles(directory=str(LOCALE_DIR / 'i18next')), name='static-locale')
+main.mount('/static', CachingStaticFiles('app/static'), name='static')
+main.mount('/static-locale', CachingStaticFiles(LOCALE_DIR / 'i18next'), name='static-locale')
 
 if TEST_ENV:
-    main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
+    main.mount('/node_modules', CachingStaticFiles('node_modules'), name='node_modules')
 
 main.include_router(app.controllers.index.router)

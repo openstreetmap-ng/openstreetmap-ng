@@ -37,16 +37,15 @@ class Nominatim:
             }
         )
 
-        async def factory() -> str:
+        async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
             r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_TIMEOUT.total_seconds())
             r.raise_for_status()
-            data = orjson.loads(r.content)
-            return data['display_name']
+            return r.content
 
         try:
             cache_entry = await CacheService.get_one_by_key(path, _cache_context, factory, ttl=NOMINATIM_CACHE_EXPIRE)
-            display_name = cache_entry.value
+            display_name = orjson.loads(cache_entry.value)['display_name']
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             display_name = None
@@ -69,11 +68,11 @@ class Nominatim:
             }
         )
 
-        async def factory() -> str:
+        async def factory() -> bytes:
             logging.debug('Nominatim search cache miss for path %r', path)
             r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_TIMEOUT.total_seconds())
             r.raise_for_status()
-            return r.text
+            return r.content
 
         cache_entry = await CacheService.get_one_by_key(path, _cache_context, factory, ttl=NOMINATIM_CACHE_EXPIRE)
         results: list[dict] = orjson.loads(cache_entry.value)

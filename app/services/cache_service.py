@@ -12,7 +12,7 @@ class CacheService:
     async def get_one_by_cache_id(
         cache_id: bytes,
         context: str,
-        factory: Callable[[], Awaitable[str]],
+        factory: Callable[[], Awaitable[str | bytes]],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
     ) -> CacheEntry:
@@ -25,11 +25,13 @@ class CacheService:
         redis_key = f'{context}:{cache_id.hex()}'
 
         async with redis() as conn:
-            value: str | None = await conn.get(redis_key)
+            value: bytes | None = await conn.get(redis_key)
 
+            # on cache miss, call the factory to generate the value and cache it
             if value is None:
-                value = await factory()
-                await conn.set(redis_key, value, ex=ttl.total_seconds(), nx=True)
+                value_maybe_str: str | bytes = await factory()
+                await conn.set(redis_key, value_maybe_str, ex=ttl, nx=True)
+                value = value_maybe_str.encode() if isinstance(value_maybe_str, str) else value_maybe_str
 
         return CacheEntry(id=cache_id, value=value)
 
@@ -37,7 +39,7 @@ class CacheService:
     async def get_one_by_key(
         key: str,
         context: str,
-        factory: Callable[[], Awaitable[str]],
+        factory: Callable[[], Awaitable[str | bytes]],
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
     ) -> CacheEntry:

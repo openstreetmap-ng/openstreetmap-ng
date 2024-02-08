@@ -5,7 +5,7 @@ from uuid import UUID
 import msgspec
 
 from app.lib.exceptions_context import raise_for
-from app.utils import MSGSPEC_MSGPACK_DECODER, MSGSPEC_MSGPACK_ENCODER
+from app.utils import MSGPACK_DECODE, MSGPACK_ENCODE
 
 
 class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=True, array_like=True):
@@ -18,7 +18,7 @@ class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=
         Return a string representation of the user token struct.
         """
 
-        return urlsafe_b64encode(MSGSPEC_MSGPACK_ENCODER.encode(self)).decode()
+        return urlsafe_b64encode(MSGPACK_ENCODE(self)).decode()
 
     @classmethod
     def v1(cls, id: int | UUID, token: bytes) -> Self:
@@ -37,7 +37,7 @@ class UserTokenStruct(msgspec.Struct, omit_defaults=True, forbid_unknown_fields=
         buff = urlsafe_b64decode(s)
 
         try:
-            obj: Self = MSGSPEC_MSGPACK_DECODER.decode(buff, type=cls)
+            obj: Self = MSGPACK_DECODE(buff, type=cls)
         except Exception:
             raise_for().bad_user_token_struct()
 

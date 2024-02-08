@@ -28,22 +28,23 @@ class RichTextMixin:
             text: str = getattr(self, field_name)
             text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
             cache_entry = await rich_text(text, text_rich_hash, text_format)
+            cache_entry_id = cache_entry.id  # read property once for performance
 
             # assign new hash if changed
-            if text_rich_hash != cache_entry.id:
+            if text_rich_hash != cache_entry_id:
                 async with db_autocommit() as session:
                     cls = type(self)
                     stmt = (
                         update(cls)
                         .where(cls.id == self.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
-                        .values({rich_hash_field_name: cache_entry.id})
+                        .values({rich_hash_field_name: cache_entry_id})
                     )
 
                     await session.execute(stmt)
-                setattr(self, rich_hash_field_name, cache_entry.id)
+                setattr(self, rich_hash_field_name, cache_entry_id)
 
             # assign value to instance
-            setattr(self, rich_field_name, cache_entry)
+            setattr(self, rich_field_name, cache_entry.value.decode())
 
         # small optimization, don't create task group if at most one field
         if len(self.__rich_text_fields__) <= 1:

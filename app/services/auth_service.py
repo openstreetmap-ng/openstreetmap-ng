@@ -136,11 +136,11 @@ class AuthService:
                 )
             )
 
-            async def factory() -> str:
+            async def factory() -> bytes:
                 logging.debug('Fast password cache miss for user %r', user.id)
                 ph = user.password_hasher
                 ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
-                return 'OK' if ph_valid else ''
+                return b'\xff' if ph_valid else b'\x00'
 
             cache = await CacheService.get_one_by_key(key, _cache_context, factory, ttl=FAST_PASSWORD_CACHE_EXPIRE)
         else:
@@ -148,7 +148,7 @@ class AuthService:
 
         if cache is not None:
             ph = None
-            ph_valid = cache.value == 'OK'
+            ph_valid = cache.value == b'\xff'
         else:
             ph = user.password_hasher
             ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
