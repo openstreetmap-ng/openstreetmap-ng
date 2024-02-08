@@ -18,4 +18,13 @@
         top: -0.1em;
         height: 1.2em;
     }
+
+    .navbar-nav {
+        font-size: 0.9em;
+
+        .nav-link {
+            padding-left: 0.4em;
+            padding-right: 0.4em;
+        }
+    }
 }

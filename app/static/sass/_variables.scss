@@ -2,6 +2,7 @@
 
 $blue: #7092ff;
 $green: #7ebc6f;
+$light-green: tint-color($green, 70%);
 $vibrant-green: #76c551;
 $off-white: #f8f8ff;
 
@@ -20,7 +21,8 @@ $table-striped-bg: $off-white;
 // https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
 
 $custom-colors: (
-    "green": $green
+    "green": $green,
+    "light-green": $light-green
 );
 $theme-colors: map-merge($theme-colors, $custom-colors);
 

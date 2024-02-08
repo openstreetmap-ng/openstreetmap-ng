@@ -33,7 +33,7 @@ export const updateNavbarAndHash = (state, object = null) => {
         const isEditLink = link.classList.contains("edit-link")
         if (isEditLink) {
             // Remote edit button stores information in dataset
-            const isRemoteEditButton = link.classList.contains("remote-edit")
+            const isRemoteEditButton = link.classList.contains("remote-edit-btn")
             if (isRemoteEditButton) {
                 link.dataset.remoteEdit = JSON.stringify({ state, object })
             } else {

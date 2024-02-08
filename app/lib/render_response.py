@@ -37,6 +37,7 @@ def _get_default_data() -> dict:
         'request': get_request(),
         'lang': languages[0],
         'config': orjson.dumps(config).decode(),
+        'user': user,
     }
 
 

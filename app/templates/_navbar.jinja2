@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg bg-body-light">
+<nav class="navbar navbar-expand-lg">
 
     <div class="container-fluid">
 
@@ -8,16 +8,16 @@
         </a>
 
         <div class="btn-group dropdown" role="group">
-            <a class="btn btn-outline-green map-link edit-link" href="#">
+            <a class="btn btn-outline-green map-link edit-link" href="/edit">
                 {{ t('layouts.edit') }}
             </a>
 
-            <a class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0" href="#" role="button"
+            <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
                 data-bs-toggle="dropdown" aria-expanded="false">
-            </a>
+            </button>
             <ul class="dropdown-menu dropdown-menu-green">
                 <li>
-                    <a class="dropdown-item map-link edit-link" href="/edit">
+                    <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
                         {% set editor %}
                         <img src="/static/img/brand/id.webp">
                         {{ t('editor.id.description') }}
@@ -26,7 +26,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item map-link edit-link" href="/edit">
+                    <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
                         {% set editor %}
                         <img src="/static/img/brand/rapid.webp">
                         {{ t('editor.rapid.description') }}
@@ -35,7 +35,7 @@
                     </a>
                 </li>
                 <li>
-                    <button class="dropdown-item map-link edit-link remote-edit">
+                    <button class="dropdown-item map-link edit-link remote-edit-btn">
                         {% set editor %}
                         <img src="/static/img/brand/josm.webp">
                         {{ t('editor.remote.description') }}
@@ -59,35 +59,100 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 me-3">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Link</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        Dropdown
+                    <a class="nav-link" href="/traces" title="{{ t('layouts.gps_traces_tooltip') }}">
+                        {{ t('layouts.gps_traces') }}
                     </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Action</a></li>
-                        <li><a class="dropdown-item" href="#">Another action</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="#">Something else here</a></li>
-                    </ul>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                    <a class="nav-link" href="/diary" title="{{ t('layouts.user_diaries_tooltip') }}">
+                        {{ t('layouts.user_diaries') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/communities">
+                        {{ t('site.communities.title') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/copyright" rel="license">
+                        {{ t('layouts.copyright') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/help">
+                        {{ t('layouts.help') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">
+                        {{ t('layouts.about') }}
+                    </a>
                 </li>
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
+
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <img class="avatar me-2" src="/static/img/element/crab_yes.webp">
+                    NorthCrab
+                    {# TODO #}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="/dashboard">
+                            {{ t('dashboards.show.title') }}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="/messages/inbox">
+                            {{ t('users.show.my messages') }}
+                            <span class="badge text-bg-light-green fw-light">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        {# TODO #}
+                        <a class="dropdown-item" href="/user/NorthCrab">
+                            {{ t('users.show.my profile') }}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="/settings">
+                            {{ t('accounts.edit.my settings') }}
+                        </a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        {# TODO #}
+                        <button class="dropdown-item">
+                            {{ t('layouts.home') }}
+                        </button>
+                    </li>
+                    <li>
+                        <form method="POST" action="/logout">
+                            <button class="dropdown-item" type="submit">
+                                {{ t('layouts.logout') }}
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+            {# <div class="btn-group" role="group">
+                <a class="btn btn-outline-secondary" href="/login">
+                    {{ t('layouts.log_in') }}
+                </a>
+                <a class="btn btn-outline-secondary" href="/user/new">
+                    {{ t('users.new.title') }}
+                </a>
+            </div> #}
+
         </div>
     </div>
 </nav>
