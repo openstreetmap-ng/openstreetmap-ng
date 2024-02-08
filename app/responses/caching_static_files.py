@@ -6,6 +6,7 @@ from starlette.responses import FileResponse, Response
 from starlette.staticfiles import PathLike, StaticFiles
 from starlette.types import Scope
 
+from app.config import TEST_ENV
 from app.db import redis
 from app.lib.crypto import hash_hex
 from app.limits import STATIC_FILES_CACHE_EXPIRE, STATIC_FILES_CACHE_MAX_SIZE
@@ -31,6 +32,10 @@ class CachingStaticFiles(StaticFiles):
 
             logging.debug('Static file cache miss for %r', path)
             r = await super().get_response(path, scope)
+
+            # don't cache when in test environment
+            if TEST_ENV:
+                return r
 
             # cache only successful file responses
             if not isinstance(r, FileResponse) or r.status_code != 200:
