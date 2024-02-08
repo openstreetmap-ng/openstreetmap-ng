@@ -142,7 +142,7 @@ let
         if [ ! -f "$target_file_bin" ] || [ "$source_file" -nt "$target_file_bin" ]; then
           mkdir -p "$(dirname "$target_file")"
 
-          bun run i18next-conv \
+          bunx i18next-conv \
             --quiet \
             --language "$locale" \
             --source "$source_file" \
@@ -150,6 +150,9 @@ let
             --keyseparator "." \
             --ctxSeparator "__" \
             --compatibilityJSON "v4"
+
+          sed -i -E 's/\{\{/{/g' "$target_file"
+          sed -i -E 's/\}\}/}/g' "$target_file"
 
           msgfmt "$target_file" --output-file "$target_file_bin";
 

@@ -13,7 +13,7 @@ from app.lib.user_agent_analyzer import is_browser_supported
         ),
         (
             # Old Firefox version
-            'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/78.0',
+            'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/67.0',
             False,
         ),
         (

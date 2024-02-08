@@ -1,0 +1,21 @@
+.navbar {
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 1.15em;
+        padding-top: 0.1em;
+
+        img {
+            height: 1.7em;
+            margin-right: 0.25em;
+        }
+    }
+
+    .dropdown-menu img {
+        margin-left: 0.15em;
+        position: relative;
+        top: -0.1em;
+        height: 1.2em;
+    }
+}

@@ -68,7 +68,7 @@ export const localeHashMap = new Map([
     ["dv", "b65a327a25819826"],
     ["egl", "9cc358748d871d6e"],
     ["el", "66c694bc21ce9d53"],
-    ["en", "bb6e7db20ca8cbc7"],
+    ["en", "82443a83f5762b29"],
     ["en-GB", "1473a86d9076cc09"],
     ["eo", "e32eb9ec35e932f2"],
     ["es", "513d18834aebf489"],

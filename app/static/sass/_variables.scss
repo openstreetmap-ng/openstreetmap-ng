@@ -16,6 +16,14 @@ $message-unread-bg: #cbeea7;
 
 $table-striped-bg: $off-white;
 
+// Themes
+// https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
+
+$custom-colors: (
+    "green": $green
+);
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
 // Sidebar
 
 $action-sidebar-width: 350px;

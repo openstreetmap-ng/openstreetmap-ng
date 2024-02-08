@@ -1,11 +1,63 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg bg-body-light">
 
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Navbar</a>
+
+        <a class="navbar-brand" href="/">
+            <img src="/static/img/favicon/256.webp" alt="{{ t('layouts.logo.alt_text') }}">
+            {{ t('layouts.project_name.title') }}
+        </a>
+
+        <div class="btn-group dropdown" role="group">
+            <a class="btn btn-outline-green map-link edit-link" href="#">
+                {{ t('layouts.edit') }}
+            </a>
+
+            <a class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0" href="#" role="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            </a>
+            <ul class="dropdown-menu dropdown-menu-green">
+                <li>
+                    <a class="dropdown-item map-link edit-link" href="/edit">
+                        {% set editor %}
+                        <img src="/static/img/brand/id.webp">
+                        {{ t('editor.id.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item map-link edit-link" href="/edit">
+                        {% set editor %}
+                        <img src="/static/img/brand/rapid.webp">
+                        {{ t('editor.rapid.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </a>
+                </li>
+                <li>
+                    <button class="dropdown-item map-link edit-link remote-edit">
+                        {% set editor %}
+                        <img src="/static/img/brand/josm.webp">
+                        {{ t('editor.remote.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </button>
+                </li>
+            </ul>
+
+            <a class="btn btn-outline-green map-link" href="/history">
+                {{ t('layouts.history') }}
+            </a>
+            <a class="btn btn-outline-green map-link" href="/export">
+                {{ t('layouts.export') }}
+            </a>
+        </div>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">

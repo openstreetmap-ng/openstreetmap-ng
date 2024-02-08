@@ -1,0 +1,4 @@
+.btn-outline-green {
+    // Override hover and active colors to light
+    @include button-outline-variant($green, $color-hover: $light, $active-color: $light);
+}

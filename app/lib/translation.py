@@ -30,7 +30,6 @@ _context_langs = ContextVar('Translation_context_langs')
 _context_trans = ContextVar('Translation_context_trans')
 
 
-@lru_cache(maxsize=128)
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
@@ -41,6 +40,11 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
         localedir=_locale_dir,
         languages=languages,
     )
+
+
+if not TEST_ENV:
+    # cache the translations when not in test environment
+    _get_translation = lru_cache(maxsize=128)(_get_translation)
 
 
 @contextmanager
