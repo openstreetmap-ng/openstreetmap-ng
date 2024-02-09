@@ -55,14 +55,20 @@ def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
     """
     Map the locales to i18next files.
 
-    >>> map_i18next_files(['en', 'pl'])
-    ['en-c39c7633ceb0ce46.js', 'pl-e4c39a792074d67c.js']
+    Returns at most two files: primary and fallback locale.
+
+    >>> map_i18next_files(['pl', 'de', 'en'])
+    ['pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js']
     """
 
     # force reload map in test environment
     if TEST_ENV:
         global _i18next_map
         _i18next_map = _get_i18next_locale_map()
+
+    # i18next supports only primary+fallback locale
+    if len(locales) > 2:
+        return tuple(_i18next_map[code] for code in (locales[0], locales[-1]))
 
     return tuple(_i18next_map[code] for code in locales)
 
