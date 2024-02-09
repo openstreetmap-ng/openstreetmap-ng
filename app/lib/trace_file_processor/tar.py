@@ -4,8 +4,6 @@ from collections.abc import Sequence
 from io import BytesIO
 from typing import override
 
-import cython
-
 from app.lib.exceptions_context import raise_for
 from app.lib.trace_file_processor.base import TraceFileProcessor
 from app.limits import TRACE_FILE_ARCHIVE_MAX_FILES
@@ -20,23 +18,13 @@ class TarFileProcessor(TraceFileProcessor):
         # pure tar uses no compression, so it's efficient to read files from the memory buffer
         # r: opens for reading exclusively without compression (safety check)
         with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
-            members = archive.getmembers()
-            members_len = len(members)
-            logging.debug('Trace %r archive contains %d files', cls.media_type, members_len)
+            infos = tuple(info for info in archive.getmembers() if info.isfile())
+            infos_len = len(infos)
+            logging.debug('Trace %r archive contains %d files', cls.media_type, infos_len)
 
-            if members_len > TRACE_FILE_ARCHIVE_MAX_FILES:
+            if infos_len > TRACE_FILE_ARCHIVE_MAX_FILES:
                 raise_for().trace_file_archive_too_many_files()
 
-            result = [None] * members_len
-            i: cython.int
-
-            for i, member in enumerate(members):
-                file = archive.extractfile(member)
-
-                # skip directories
-                if file is None:
-                    continue
-
-                result[i] = file.read()
-
-            return result
+            # not checking for the total size of the files - there is no compression
+            # the output size will not exceed the input size
+            return tuple(archive.extractfile(info).read() for info in infos)

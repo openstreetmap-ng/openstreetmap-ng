@@ -54,6 +54,7 @@ supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "<1"}
 uvloop = "<1"
+zstandard = "<1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"

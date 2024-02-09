@@ -18,7 +18,6 @@ let
     # Base packages
     python312
     coreutils
-    zstd
     bun
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
     redis
@@ -86,6 +85,7 @@ let
     dart-sass
     inotify-tools
     curl
+    zstd
 
     # Scripts
     # -- Cython

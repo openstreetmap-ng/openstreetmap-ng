@@ -1,11 +1,9 @@
 import logging
-import subprocess
 import zipfile
 from collections.abc import Sequence
 from io import BytesIO
 from typing import override
 
-import anyio
 import cython
 
 from app.lib.exceptions_context import raise_for
@@ -21,39 +19,23 @@ class ZipFileProcessor(TraceFileProcessor):
     @classmethod
     async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         with zipfile.ZipFile(BytesIO(buffer)) as archive:
-            filenames = archive.namelist()
-            filenames_len = len(filenames)
-            logging.debug('Trace %r archive contains %d files', cls.media_type, filenames_len)
+            infos = tuple(info for info in archive.infolist() if not info.is_dir())
+            infos_len = len(infos)
+            logging.debug('Trace %r archive contains %d files', cls.media_type, infos_len)
 
-        if filenames_len > TRACE_FILE_ARCHIVE_MAX_FILES:
-            raise_for().trace_file_archive_too_many_files()
+            if infos_len > TRACE_FILE_ARCHIVE_MAX_FILES:
+                raise_for().trace_file_archive_too_many_files()
 
-        result = [None] * filenames_len
-        result_size: cython.int = 0
+            result = []
+            result_size: cython.int = 0
 
-        async def read_file(i: cython.int, filename: bytes) -> None:
-            nonlocal result_size
+            for info in infos:
+                file = archive.read(info)
+                result.append(file)
+                result_size += len(file)
 
-            async with await anyio.open_process(
-                ('unzip', '-p', '-', filename),
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-            ) as process:
-                await process.stdin.send(buffer)
-                file_result = await process.stdout.receive(max_bytes=TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
-
-            if process.returncode != 0:
-                raise_for().trace_file_archive_corrupted(cls.media_type)
-
-            result[i] = file_result
-            result_size += len(file_result)
-
-            if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-                raise_for().input_too_big(result_size)
-
-        async with anyio.create_task_group() as tg:
-            for i, filename in enumerate(filenames):
-                tg.start_soon(read_file, i, filename)
+                if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
+                    raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(result_size))
         return result

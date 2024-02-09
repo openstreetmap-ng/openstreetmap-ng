@@ -91,8 +91,8 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
     If `cache_id` is given, it will be used to accelerate cache lookup.
     """
 
-    async def factory() -> str:
-        return _process(text, text_format)
+    async def factory() -> bytes:
+        return _process(text, text_format).encode()
 
     context = _cache_context(text_format)
 

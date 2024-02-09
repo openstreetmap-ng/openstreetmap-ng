@@ -13,7 +13,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile
 from app.lib.trace_image import TraceImage
 from app.lib.xmltodict import XMLToDict
-from app.limits import TRACE_FILE_MAX_SIZE
+from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
@@ -55,8 +55,9 @@ class TraceService:
         Returns the created trace object.
         """
 
-        if len(file.size) > TRACE_FILE_MAX_SIZE:
-            raise_for().input_too_big(len(file.size))
+        file_size_len = len(file.size)
+        if file_size_len > TRACE_FILE_UPLOAD_MAX_SIZE:
+            raise_for().input_too_big(file_size_len)
 
         buffer = await to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
