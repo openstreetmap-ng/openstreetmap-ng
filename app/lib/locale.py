@@ -15,7 +15,7 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 @cython.cfunc
 def _get_i18next_locale_map() -> dict[str, str]:
-    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next_map.json').read_bytes())
+    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next' / 'map.json').read_bytes())
 
 
 @cython.cfunc

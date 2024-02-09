@@ -84,8 +84,8 @@ async def main():
     file_map = convert()
 
     output = orjson.dumps(file_map, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2)
-    output_path = LOCALE_DIR / 'i18next_map.json'
-    await output_path.write_bytes(output)
+    output_path = _i18next_dir / 'map.json'
+    output_path.write_bytes(output)
 
 
 if __name__ == '__main__':
