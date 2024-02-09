@@ -38,11 +38,12 @@ export const getQueryFeaturesControl = () => {
 
         // Create container
         const container = document.createElement("div")
+        container.className = "leaflet-control query-features"
 
         // Create a button and a tooltip
         const button = document.createElement("button")
         button.className = "control-button"
-        button.innerHTML = "<span class='icon query'></span>"
+        button.innerHTML = "<span class='icon query-features'></span>"
 
         const tooltip = new Tooltip(button, {
             title: i18next.t("javascripts.site.queryfeature_tooltip"),

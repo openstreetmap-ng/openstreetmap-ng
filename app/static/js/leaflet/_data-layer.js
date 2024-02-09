@@ -63,6 +63,9 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const onMapZoomOrMoveEnd = () => {
+        // Skip if the notes layer is not visible
+        if (!map.hasLayer(dataLayer)) return
+
         // Abort any pending request
         if (abortController) abortController.abort()
         abortController = new AbortController()

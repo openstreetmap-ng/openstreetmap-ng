@@ -19,11 +19,11 @@
         @include legacy-leaflet-icon(-20px, 0);
     }
 
-    .icon.zoomin {
+    .icon.zoom-in {
         @include legacy-leaflet-icon(-40px, 0);
     }
 
-    .icon.zoomout {
+    .icon.zoom-out {
         @include legacy-leaflet-icon(-60px, 0);
     }
 
@@ -67,15 +67,15 @@
         @include legacy-leaflet-icon(-220px, 0);
     }
 
-    .icon.note {
+    .icon.new-note {
         @include legacy-leaflet-icon(-240px, 0);
     }
 
-    .icon.note.gray {
+    .icon.new-note.gray {
         @include legacy-leaflet-icon(-240px, -20px);
     }
 
-    .icon.query {
+    .icon.query-features {
         @include legacy-leaflet-icon(-260px, 0);
     }
 }

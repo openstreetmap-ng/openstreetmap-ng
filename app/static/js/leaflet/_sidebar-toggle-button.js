@@ -14,10 +14,11 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
     control.onAdd = (map) => {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`.leaflet-sidebar.${className}`)
-        if (!sidebar) console.error(`Sidebar ${className} not found`)
+        if (!sidebar) console.error(`Sidebar "${className}" not found`)
 
         // Create container
         const container = document.createElement("div")
+        container.className = `leaflet-control ${className}`
 
         // Create button and tooltip
         const input = document.createElement("input")

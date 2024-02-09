@@ -8,42 +8,44 @@
         </a>
 
         <div class="btn-group dropdown" role="group">
-            <a class="btn btn-outline-green map-link edit-link" href="/edit">
-                {{ t('layouts.edit') }}
-            </a>
+            <div class="btn-group edit-group">
+                <a class="btn btn-outline-green map-link edit-link" href="/edit">
+                    {{ t('layouts.edit') }}
+                </a>
 
-            <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
-                data-bs-toggle="dropdown" aria-expanded="false">
-            </button>
-            <ul class="dropdown-menu dropdown-menu-green">
-                <li>
-                    <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
-                        {% set editor %}
-                        <img src="/static/img/brand/id.webp">
-                        {{ t('editor.id.description') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
-                        {% set editor %}
-                        <img src="/static/img/brand/rapid.webp">
-                        {{ t('editor.rapid.description') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </a>
-                </li>
-                <li>
-                    <button class="dropdown-item map-link edit-link remote-edit-btn">
-                        {% set editor %}
-                        <img src="/static/img/brand/josm.webp">
-                        {{ t('editor.remote.description') }}
-                        {% endset %}
-                        {{ t('layouts.edit_with', editor=editor) | safe }}
-                    </button>
-                </li>
-            </ul>
+                <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                </button>
+                <ul class="dropdown-menu dropdown-menu-green">
+                    <li>
+                        <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
+                            {% set editor %}
+                            <img src="/static/img/brand/id.webp">
+                            {{ t('editor.id.description') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=editor) | safe }}
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
+                            {% set editor %}
+                            <img src="/static/img/brand/rapid.webp">
+                            {{ t('editor.rapid.description') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=editor) | safe }}
+                        </a>
+                    </li>
+                    <li>
+                        <button class="dropdown-item map-link edit-link remote-edit-btn">
+                            {% set editor %}
+                            <img src="/static/img/brand/josm.webp">
+                            {{ t('editor.remote.description') }}
+                            {% endset %}
+                            {{ t('layouts.edit_with', editor=editor) | safe }}
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
             <a class="btn btn-outline-green map-link" href="/history">
                 {{ t('layouts.history') }}

@@ -1,6 +1,4 @@
-from collections.abc import Generator
 from contextlib import asynccontextmanager
-from typing import Any
 
 import orjson
 from redis.asyncio import ConnectionPool, Redis
@@ -28,7 +26,7 @@ _db_engine = create_async_engine(
 
 
 @asynccontextmanager
-async def db() -> Generator[AsyncSession, Any, None]:
+async def db():
     """
     Get a database session.
     """
@@ -42,7 +40,7 @@ async def db() -> Generator[AsyncSession, Any, None]:
 
 
 @asynccontextmanager
-async def db_autocommit() -> Generator[AsyncSession, Any, None]:
+async def db_autocommit():
     """
     Get a database session that commits automatically on exit.
     """

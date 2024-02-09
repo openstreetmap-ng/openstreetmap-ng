@@ -1,22 +1,23 @@
 import { Tooltip } from "bootstrap"
+import i18next from "i18next"
 import { encodeMapState } from "./_map-utils.js"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
-// Don't assume navbar exists in case we ever make it fancy
+const editGroup = navbar.querySelector(".edit-group")
 
 /**
  * Map of navbar elements to their base href
  * @type {Map<HTMLElement, string>}
  */
-const mapLinksHrefMap = [...(navbar?.querySelectorAll(".map-link") ?? [])].reduce(
+const mapLinksHrefMap = [...(navbar.querySelectorAll(".map-link") ?? [])].reduce(
     (map, link) => map.set(link, link.getAttribute("href")),
     new Map(),
 )
 
-const remoteEditButton = navbar?.querySelector(".remote-edit")
+const remoteEditButton = navbar.querySelector(".remote-edit")
 if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 
 /**
@@ -46,19 +47,36 @@ export const updateNavbarAndHash = (state, object = null) => {
                 if (!link.classList.contains("disabled")) {
                     link.classList.add("disabled")
                     link.setAttribute("aria-disabled", "true")
-                    Tooltip.getInstance(link).enable()
                 }
             } else {
                 // biome-ignore lint/style/useCollapsedElseIf: Readability
                 if (link.classList.contains("disabled")) {
                     link.classList.remove("disabled")
                     link.setAttribute("aria-disabled", "false")
-                    Tooltip.getInstance(link).disable()
                 }
             }
         } else {
             const href = baseHref + hash
             link.setAttribute("href", href)
+        }
+    }
+
+    // Toggle tooltip on edit group
+    if (isEditDisabled) {
+        if (!editGroup.classList.contains("disabled")) {
+            editGroup.classList.add("disabled")
+            editGroup.setAttribute("aria-disabled", "true")
+            Tooltip.getOrCreateInstance(editGroup, {
+                title: i18next.t("javascripts.site.edit_disabled_tooltip"),
+                placement: "bottom",
+            }).enable()
+        }
+    } else {
+        // biome-ignore lint/style/useCollapsedElseIf: Readability
+        if (editGroup.classList.contains("disabled")) {
+            editGroup.classList.remove("disabled")
+            editGroup.setAttribute("aria-disabled", "false")
+            Tooltip.getInstance(editGroup).disable()
         }
     }
 

@@ -1,3 +1,4 @@
+import "./_bootstrap.js"
 import "./_i18n.js"
 
 import { configureActionSidebars } from "./_action-sidebar.js"

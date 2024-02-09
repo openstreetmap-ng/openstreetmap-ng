@@ -1,10 +1,12 @@
 .leaflet-container {
     // Stick controls to the edges of the map
     .leaflet-top.leaflet-left .leaflet-control {
+        margin-top: 0;
         margin-left: 0;
     }
 
     .leaflet-top.leaflet-right .leaflet-control {
+        margin-top: 0;
         margin-right: 0;
     }
 
@@ -36,13 +38,12 @@
         border: unset;
         line-height: 0;
 
-        &-first {
+        &:first-child {
             margin-top: 0.625rem;
             border-start-start-radius: $border-radius-sm;
         }
 
-        &-last {
-            margin-bottom: 0.625rem;
+        &:last-child {
             border-end-start-radius: $border-radius-sm;
         }
 

@@ -38,7 +38,7 @@
         href="/static/opensearch.xml">
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
     {% include '_navbar.jinja2' %}
     {% block body %}{% endblock %}
 </body>

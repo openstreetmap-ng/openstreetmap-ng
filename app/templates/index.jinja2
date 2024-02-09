@@ -6,12 +6,11 @@
 <meta property="og:description" content="{{ description }}">
 
 {% endblock %}
+{% block body_class %}map-body{% endblock %}
 {% block body %}
 
-<div class="map-body">
-    <div class="map-container">
-        <div class="main-map"></div>
-    </div>
+<div class="map-container">
+    <div class="main-map"></div>
 </div>
 
 {% endblock %}

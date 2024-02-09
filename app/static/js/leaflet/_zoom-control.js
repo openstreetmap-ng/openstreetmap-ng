@@ -37,11 +37,12 @@ export const getZoomControl = () => {
 
         // Create container
         const container = document.createElement("div")
+        container.className = "leaflet-control zoom"
 
         // Create buttons and tooltips
         const zoomInButton = document.createElement("button")
         zoomInButton.className = "control-button"
-        zoomInButton.innerHTML = "<span class='icon zoomin'></span>"
+        zoomInButton.innerHTML = "<span class='icon zoom-in'></span>"
 
         const zoomInTooltip = new Tooltip(zoomInButton, {
             title: i18next.t("javascripts.map.zoom.in"),
@@ -50,7 +51,7 @@ export const getZoomControl = () => {
 
         const zoomOutButton = document.createElement("button")
         zoomOutButton.className = "control-button"
-        zoomOutButton.innerHTML = "<span class='icon zoomout'></span>"
+        zoomOutButton.innerHTML = "<span class='icon zoom-out'></span>"
 
         const zoomOutTooltip = new Tooltip(zoomOutButton, {
             title: i18next.t("javascripts.map.zoom.out"),

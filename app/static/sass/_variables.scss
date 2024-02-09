@@ -1,5 +1,3 @@
-// Colors
-
 $blue: #7092ff;
 $green: #7ebc6f;
 $light-green: tint-color($green, 70%);
@@ -12,21 +10,17 @@ $link-hover-color: #24d;
 $link-hover-decoration: underline;
 
 $list-highlight: #ffffc0;
-
 $message-unread-bg: #cbeea7;
-
 $table-striped-bg: $off-white;
 
-// Themes
 // https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
-
 $custom-colors: (
     "green": $green,
     "light-green": $light-green
 );
 $theme-colors: map-merge($theme-colors, $custom-colors);
 
-// Sidebar
-
 $action-sidebar-width: 350px;
 $leaflet-sidebar-width: 250px;
+
+$zindex-dropdown: 1010;

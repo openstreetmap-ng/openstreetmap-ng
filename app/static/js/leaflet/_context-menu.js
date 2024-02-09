@@ -9,10 +9,10 @@ export const queryFeaturesMinZoom = 14
 /**
  * Configure the map context menu
  * @param {L.Map} map Leaflet map
- * @param {HTMLElement} element Context menu element
  * @returns {void}
  */
-export const configureContextMenu = (map, element) => {
+export const configureContextMenu = (map) => {
+    const element = document.querySelector(".leaflet-context-menu")
     const routingFromButton = element.querySelector(".routing-from")
     const routingToButton = element.querySelector(".routing-to")
     const newNoteButton = element.querySelector(".new-note")

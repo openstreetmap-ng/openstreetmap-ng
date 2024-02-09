@@ -43,11 +43,12 @@ export const getNewNoteControl = () => {
 
         // Create container
         const container = document.createElement("div")
+        container.className = "leaflet-control new-note"
 
         // Create a button and a tooltip
         const button = document.createElement("button")
         button.className = "control-button"
-        button.innerHTML = "<span class='icon note'></span>"
+        button.innerHTML = "<span class='icon new-note'></span>"
 
         const tooltip = new Tooltip(button, {
             title: i18next.t("javascripts.site.createnote_tooltip"),
