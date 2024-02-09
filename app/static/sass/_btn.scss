@@ -7,8 +7,8 @@
 //     @include button-outline-variant(#888, $color-hover: $light, $active-color: $light);
 // }
 
-.btn-light-soft {
-    --bs-btn-bg: $white;
+.btn-bg-initial {
+    --bs-btn-bg: initial;
 }
 
 // .btn-outline-secondary-soft {
