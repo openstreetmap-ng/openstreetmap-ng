@@ -95,7 +95,7 @@ async def main():
         result[timezone] = bbox
 
     output = generate_javascript_file(result)
-    output_path = Path('app/static/js/_timezone_bbox.js')
+    output_path = Path('app/static/js/_timezone-bbox.js')
     await output_path.write_text(output)
 
 

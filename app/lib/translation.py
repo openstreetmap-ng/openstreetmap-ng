@@ -22,6 +22,7 @@ _j2 = Environment(
     loader=FileSystemLoader('app/templates'),
     keep_trailing_newline=True,
     autoescape=True,
+    # cache translations in production
     cache_size=0 if TEST_ENV else -1,
     auto_reload=False,
 )
@@ -43,7 +44,7 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
 
 
 if not TEST_ENV:
-    # cache the translations when not in test environment
+    # cache translations in production
     _get_translation = lru_cache(maxsize=128)(_get_translation)
 
 
@@ -55,11 +56,21 @@ def translation_context(languages: Sequence[str]):
     Languages order determines the preference, from most to least preferred.
     """
 
-    # always use default translation language
-    languages = (*languages, DEFAULT_LANGUAGE)
+    processed = []
+    default_lang = DEFAULT_LANGUAGE  # read property once for performance
 
-    trans = _get_translation(languages)
-    token_langs = _context_langs.set(languages)
+    for lang in languages:
+        processed.append(lang)
+
+        # small optimization, abort if the default language is reached
+        if lang == default_lang:
+            break
+    else:
+        # processed languages must contain the default language
+        processed.append(default_lang)
+
+    trans = _get_translation(processed)
+    token_langs = _context_langs.set(processed)
     token_trans = _context_trans.set(trans)
     try:
         yield

@@ -6,7 +6,7 @@ from collections.abc import Sequence
 import cython
 import orjson
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
+from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, TEST_ENV
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 from app.models.locale_name import LocaleName
 
@@ -14,14 +14,8 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _get_locales() -> frozenset[str]:
-    result = []
-    for p in pathlib.Path(LOCALE_DIR / 'gnu').iterdir():
-        if not p.is_dir():
-            continue
-        locale = p.name
-        result.append(locale)
-    return frozenset(result)
+def _get_i18next_locale_map() -> dict[str, str]:
+    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next_map.json').read_bytes())
 
 
 @cython.cfunc
@@ -38,7 +32,9 @@ def _normalize(code: str) -> str:
     return code
 
 
-_locales = _get_locales()
+_i18next_map = _get_i18next_locale_map()
+
+_locales = frozenset(_i18next_map.keys())
 _locales_normalized_map = {_normalize(k): k for k in _locales}
 logging.info('Loaded %d locales', len(_locales))
 
@@ -53,6 +49,22 @@ for code in _locales:
 
 _locales_names = _get_locales_names()
 logging.info('Loaded %d locales names', len(_locales_names))
+
+
+def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
+    """
+    Map the locales to i18next files.
+
+    >>> map_i18next_files(['en', 'pl'])
+    ['en-c39c7633ceb0ce46.js', 'pl-e4c39a792074d67c.js']
+    """
+
+    # force reload map in test environment
+    if TEST_ENV:
+        global _i18next_map
+        _i18next_map = _get_i18next_locale_map()
+
+    return tuple(_i18next_map[code] for code in locales)
 
 
 def is_valid_locale(code: str) -> bool:

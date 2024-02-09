@@ -3,6 +3,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
 
+import cython
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from shapely.geometry import Point
 from sqlalchemy import (
@@ -159,11 +160,28 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     @languages_str.setter
     def languages_str(self, s: str) -> None:
-        languages = s.split()
-        languages = (t.strip()[:LANGUAGE_CODE_MAX_LENGTH].strip() for t in languages)
-        languages = (normalize_locale(t, raise_on_not_found=False) for t in languages)
-        languages = (t for t in languages if t)
-        self.languages = tuple(set(languages))[:LANGUAGE_CODES_LIMIT]
+        processed = []
+        processed_set = set()
+
+        language_code_max_length: cython.int = LANGUAGE_CODE_MAX_LENGTH
+        languages_codes_limit: cython.int = LANGUAGE_CODES_LIMIT
+
+        # normalize, remove duplicates, and preserve order
+        for lang in s.split():
+            lang = lang.strip()
+            lang_len = len(lang)
+            if lang_len == 0 or lang_len > language_code_max_length:
+                continue
+
+            lang = normalize_locale(lang, raise_on_not_found=False)
+            if lang not in processed_set:
+                processed.append(lang)
+                processed_set.add(lang)
+
+                if len(processed) >= languages_codes_limit:
+                    break
+
+        return tuple(processed)
 
     @property
     def languages_valid(self) -> Sequence[str]:

@@ -314,6 +314,14 @@ let
     '')
 
     # -- Misc
+    (writeShellScriptBin "watch-js" ''
+      bun build \
+        --watch \
+        --entry-naming "[dir]/bundle-[name].[ext]" \
+        --sourcemap=inline \
+        --outdir app/static/js \
+        app/static/js/id.js app/static/js/main.js app/static/js/matomo.js app/static/js/rapid.js
+    '')
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")

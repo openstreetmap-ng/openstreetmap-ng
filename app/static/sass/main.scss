@@ -51,6 +51,9 @@
 // (Bootstrap) Utilities
 @import "bootstrap/scss/utilities/api";
 
+// (Leaflet)
+@import "leaflet/dist/leaflet";
+
 @import "about";
 @import "action-sidebar-changeset";
 @import "action-sidebar-export";
@@ -69,9 +72,9 @@
 @import "leaflet-sidebar-legend";
 @import "leaflet-sidebar-share";
 @import "legal";
-@import "map";
 @import "map-alert";
 @import "map-attribution";
+@import "map-body";
 @import "message";
 @import "navbar";
 @import "rich-text";

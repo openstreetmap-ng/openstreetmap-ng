@@ -5,15 +5,13 @@
     "@babel/cli": "^7.23.9",
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
-    "@popperjs/core": "^2.11.8",
     "@rapideditor/rapid": "github:facebook/Rapid#release",
     "bootstrap": "^5.3.2",
     "core-js": "3",
     "i18next": "^23.7.18",
-    "i18next-http-backend": "^2.4.2",
     "iD": "github:openstreetmap/iD#release",
     "leaflet": "^1.8.0",
-    "leaflet.locatecontrol": "^0.79.0",
+    "leaflet.locatecontrol": "<1",
     "osm-community-index": "^5.6.1"
   },
   "devDependencies": {
@@ -39,6 +37,6 @@
     ]
   },
   "browserslist": [
-    "partially supports bigint and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
+    "partially supports bigint and partially supports es6-module and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
   ]
 }

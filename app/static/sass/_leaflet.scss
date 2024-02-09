@@ -1,4 +1,13 @@
 .leaflet-container {
+    // Stick controls to the edges of the map
+    .leaflet-top.leaflet-left .leaflet-control {
+        margin-left: 0;
+    }
+
+    .leaflet-top.leaflet-right .leaflet-control {
+        margin-right: 0;
+    }
+
     // Style the cursor depending on the action
     &.query-features {
         cursor: help;
@@ -10,22 +19,22 @@
     }
 
     // TODO: is this necessary?
-    .leaflet-marker-draggable {
-        cursor: move;
+    // .leaflet-marker-draggable {
+    //     cursor: move;
 
-        &.leaflet-drag-target {
-            cursor: grabbing;
-        }
-    }
+    //     &.leaflet-drag-target {
+    //         cursor: grabbing;
+    //     }
+    // }
 
     // Style buttons displayed on the side of the map
     // (e.g. zoom in/out, layers, etc.)
     .control-button {
         display: block;
         background: rgba(0, 0, 0, 0.6);
-        margin-top: 0px;
-        margin-right: 0px;
-        margin-bottom: 0px;
+        padding: unset;
+        border: unset;
+        line-height: 0;
 
         &-first {
             margin-top: 0.625rem;

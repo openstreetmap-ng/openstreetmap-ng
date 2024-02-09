@@ -64,7 +64,4 @@ if TEST_ENV:
 main.mount('/static', StaticFiles(directory='app/static'), name='static')
 main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
 
-if TEST_ENV:
-    main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
-
 main.include_router(app.controllers.index.router)

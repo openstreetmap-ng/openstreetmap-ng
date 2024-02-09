@@ -1,1 +1,0 @@
-{"activerecord":{"attributes":{"diary_entry":{"language_code":"Тел","user":"Ҡатнашыуцы"},"friend":{"friend":"Тус","user":"Ҡатнашыуцы"},"trace":{"name":"Исем","user":"Ҡатнашыуцы"},"user":{"languages":"Телләр"}},"models":{"friend":"Тус","language":"Тел","way":"Йул"}},"browse":{"way":{"title_html":"Йул: {{name}}"}}}

@@ -23,6 +23,8 @@ import { getZoomControl } from "./_zoom-control.js"
  * @returns {L.Map} The map
  */
 export const getMainMap = (container) => {
+    console.debug("Initializing main map")
+
     const map = L.map(container, {
         zoomControl: false,
     })

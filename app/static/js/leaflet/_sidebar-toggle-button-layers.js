@@ -215,4 +215,6 @@ export const getLayersSidebarToggleButton = () => {
 
         return container
     }
+
+    return control
 }
