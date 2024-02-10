@@ -1,13 +1,13 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { homePoint } from "./_config.js"
-import { getLastMapState, setLastMapState } from "./_local-storage.js"
-import { qsParse, qsStringify } from "./_qs.js"
-import { shortLinkEncode } from "./_shortlink.js"
-import { timezoneBoundsMap } from "./_timezone-bbox.js"
-import "./_types.js"
-import { isLatitude, isLongitude, isZoom, zoomPrecision } from "./_utils.js"
-import { getBaseLayerById, getLayerIdByCode, getOverlayLayerById } from "./leaflet/_layers.js"
+import { homePoint } from "../_config.js"
+import { getLastMapState, setLastMapState } from "../_local-storage.js"
+import { qsParse, qsStringify } from "../_qs.js"
+import { shortLinkEncode } from "../_shortlink.js"
+import { timezoneBoundsMap } from "../_timezone-bbox.js"
+import "../_types.js"
+import { isLatitude, isLongitude, isZoom, zoomPrecision } from "../_utils.js"
+import { getBaseLayerById, getLayerIdByCode, getOverlayLayerById } from "./_layers.js"
 
 /**
  * Encode current layers to a string using layer codes
@@ -450,4 +450,48 @@ export const getMapGeoUri = (map) => {
     const lat = center.lat.toFixed(precision)
     const lon = center.lng.toFixed(precision)
     return `geo:${lat},${lon}?z=${zoom}`
+}
+
+/**
+ * Clone a tile layer
+ * @param {L.TileLayer} layer Layer to clone
+ * @returns {L.TileLayer} Cloned layer
+ */
+export const cloneTileLayer = (layer) => {
+    return new L.TileLayer(layer._url, layer.options)
+}
+
+/**
+ * Add a control group to the map
+ * @param {L.Map} map Leaflet map
+ * @param {L.Control[]} controls Control instances
+ * @returns {void}
+ */
+export const addControlGroup = (map, controls) => {
+    for (const control of controls) {
+        map.addControl(control)
+
+        const container = control.getContainer()
+        const classList = container.classList
+        classList.add("leaflet-control-group")
+
+        if (control === controls[0]) classList.add("first")
+        if (control === controls[controls.length - 1]) classList.add("last")
+    }
+}
+
+/**
+ * Disable click propagation for map controls
+ * @param {L.Map} map Leaflet map
+ * @returns {void}
+ */
+export const disableControlClickPropagation = (map) => {
+    const container = map.getContainer().querySelector(".leaflet-control-container")
+    if (!container) {
+        console.warn("Leaflet control container not found")
+        return
+    }
+
+    console.debug("disableControlClickPropagation", container)
+    L.DomEvent.disableClickPropagation(container)
 }

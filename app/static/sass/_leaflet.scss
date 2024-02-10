@@ -7,12 +7,59 @@
 
     // Stick controls to the edges of the map
     .leaflet-top.leaflet-left .leaflet-control {
-        margin-top: 0;
         margin-left: 0;
     }
     .leaflet-top.leaflet-right .leaflet-control {
-        margin-top: 0;
         margin-right: 0;
+    }
+
+    .leaflet-control-group {
+        margin-top: 0rem;
+
+        &.first {
+            margin-top: 0.625rem;
+            border-start-start-radius: $border-radius-sm;
+            overflow: hidden;
+        }
+
+        &.last {
+            border-end-start-radius: $border-radius-sm;
+            overflow: hidden;
+        }
+    }
+
+    // Style buttons displayed on the side of the map
+    // (e.g. zoom in/out, layers, etc.)
+    .control-button {
+        display: block;
+        background: rgba(0, 0, 0, 0.6);
+        padding: unset;
+        border: unset;
+        line-height: 0;
+
+        &:hover,
+        &:focus {
+            background: black;
+        }
+
+        &:disabled {
+            background: rgba(0, 0, 0, 0.5);
+            cursor: default;
+        }
+
+        &.active {
+            background: $vibrant-green;
+        }
+    }
+
+    // // Support activation via btn-check (radio input)
+    // .btn-check:checked + .control-button {
+    //     background: $vibrant-green;
+    // }
+
+    // Style the map popup
+    .leaflet-popup-content-wrapper {
+        border-radius: $border-radius;
     }
 
     // Style the cursor depending on the action
@@ -33,48 +80,4 @@
     //         cursor: grabbing;
     //     }
     // }
-
-    // Style buttons displayed on the side of the map
-    // (e.g. zoom in/out, layers, etc.)
-    .control-button {
-        display: block;
-        background: rgba(0, 0, 0, 0.6);
-        padding: unset;
-        border: unset;
-        line-height: 0;
-
-        &:first-child {
-            margin-top: 0.625rem;
-            border-start-start-radius: $border-radius-sm;
-        }
-
-        &:last-child {
-            border-end-start-radius: $border-radius-sm;
-        }
-
-        &:hover,
-        &:focus {
-            background: black;
-        }
-
-        &.disabled {
-            background: rgba(0, 0, 0, 0.5);
-            cursor: default;
-        }
-
-        &.active {
-            background: $vibrant-green;
-        }
-    }
-
-    // Support activation via btn-check (radio input)
-    .btn-check:checked + .control-button {
-        background: $vibrant-green;
-    }
-
-    // Style the map popup
-    // Make the border radius match the sidebar
-    .leaflet-popup-content-wrapper {
-        border-radius: $border-radius-sm;
-    }
 }

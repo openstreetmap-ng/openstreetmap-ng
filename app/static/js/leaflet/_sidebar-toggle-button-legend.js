@@ -1,5 +1,5 @@
 import i18next from "i18next"
-import { getMapBaseLayerId } from "../_map-utils.js"
+import { getMapBaseLayerId } from "./_map-utils.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 
 const precomputeMaxZoom = 25
@@ -11,7 +11,7 @@ export const getLegendSidebarToggleButton = () => {
     control.onAdd = (map) => {
         const container = controlOnAdd(map)
         const sidebar = control.sidebar
-        const input = control.input
+        const button = control.button
         const tooltip = control.tooltip
 
         // Discover the legend items and precompute their visibility
@@ -39,24 +39,24 @@ export const getLegendSidebarToggleButton = () => {
             const isLegendAvailable = layerElementsMap[activeLayerId] !== undefined
 
             if (isLegendAvailable) {
-                if (input.disabled) {
-                    input.disabled = false
+                if (button.disabled) {
+                    button.disabled = false
                     tooltip.setContent({
                         ".tooltip-inner": i18next.t("javascripts.key.tooltip"),
                     })
                 }
             } else {
-                if (!input.disabled) {
-                    input.disabled = true
+                if (!button.disabled) {
+                    button.blur()
+                    button.disabled = true
                     tooltip.setContent({
                         ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
                     })
                 }
 
                 // Uncheck the input if checked
-                if (input.checked) {
-                    input.checked = false
-                    input.dispatchEvent(new Event("change"))
+                if (button.classList.contains("active")) {
+                    button.dispatchEvent(new Event("click"))
                 }
             }
         }
@@ -64,7 +64,7 @@ export const getLegendSidebarToggleButton = () => {
         // On zoom end, display only related elements
         const onZoomEnd = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             const activeLayerId = getMapBaseLayerId(map)
             const currentZoom = Math.floor(map.getZoom())
@@ -88,14 +88,14 @@ export const getLegendSidebarToggleButton = () => {
         }
 
         // On sidebar shown, update the legend (simulate zoomend)
-        const onInputCheckedChange = () => {
-            if (input.checked) onZoomEnd()
+        const onButtonClick = () => {
+            if (button.classList.contains("active")) onZoomEnd()
         }
 
         // Listen for events
         map.addEventListener("baselayerchange", onBaseLayerChange)
         map.addEventListener("zoomend", onZoomEnd)
-        input.addEventListener("change", onInputCheckedChange)
+        button.addEventListener("click", onButtonClick)
 
         // Initial update to set tooltip text
         onBaseLayerChange()

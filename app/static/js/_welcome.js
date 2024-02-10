@@ -1,6 +1,6 @@
-import { encodeMapState } from "./_map-utils.js"
 import { qsParse, qsStringify } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"
+import { encodeMapState } from "./leaflet/_map-utils.js"
 
 const noteIcon = document.querySelector(".welcome-note-link")
 if (noteIcon) {

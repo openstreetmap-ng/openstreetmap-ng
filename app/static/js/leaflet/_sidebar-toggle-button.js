@@ -15,47 +15,50 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`.leaflet-sidebar.${className}`)
         if (!sidebar) console.error(`Sidebar "${className}" not found`)
+        const sidebarCloseButton = sidebar.querySelector(".btn-close")
 
         // Create container
         const container = document.createElement("div")
         container.className = `leaflet-control ${className}`
 
         // Create button and tooltip
-        const input = document.createElement("input")
-        input.type = "radio"
-        input.name = "sidebar-toggle"
-        input.id = `sidebar-toggle-${className}`
-        input.className = "btn-check"
+        const buttonText = i18next.t(tooltipTitle)
+        const button = document.createElement("button")
+        button.className = "control-button"
+        button.ariaLabel = buttonText
+        button.innerHTML = `<span class='icon ${className}'></span>`
 
-        // Always deselect the input on load/reload
-        input.autocomplete = "off"
-
-        const label = document.createElement("label")
-        label.className = "control-button"
-        label.innerHTML = `<span class='icon ${className}'></span>`
-        label.htmlFor = input.id
-
-        const tooltip = new Tooltip(label, {
-            title: i18next.t(tooltipTitle),
+        const tooltip = new Tooltip(button, {
+            title: buttonText,
             placement: "left",
         })
 
         // Add button to container
-        container.appendChild(input)
-        container.appendChild(label)
+        container.appendChild(button)
+
+        // Close sidebar on button click
+        const onCloseClick = () => {
+            if (button.classList.contains("active")) {
+                button.dispatchEvent(new Event("click"))
+            }
+        }
 
         // On input checked, toggle sidebar visibility and invalidate map size
-        const onChange = () => {
-            sidebar.classList.toggle("d-none", !input.checked)
-            map.invalidateSize({ pan: false }) // TODO: skipping animation, seems unnecessary
+        const onButtonClick = () => {
+            // TODO: unselect other buttons
+            button.blur() // lose focus
+
+            const isActive = button.classList.toggle("active")
+            sidebar.classList.toggle("d-none", !isActive)
+            map.invalidateSize({ pan: false })
         }
 
         // Listen for events
-        input.addEventListener("change", onChange)
+        sidebarCloseButton.addEventListener("click", onCloseClick)
+        button.addEventListener("click", onButtonClick)
 
         control.sidebar = sidebar
-        control.input = input
-        control.label = label
+        control.button = button
         control.tooltip = tooltip
 
         return container

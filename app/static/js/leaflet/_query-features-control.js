@@ -17,6 +17,7 @@ export const getQueryFeaturesControl = () => {
         // Enable/disable buttons based on current zoom level
         if (currentZoom < queryFeaturesMinZoom) {
             if (!button.disabled) {
+                button.blur()
                 button.disabled = true
                 tooltip.setContent({
                     ".tooltip-inner": i18next.t("javascripts.site.queryfeature_disabled_tooltip"),
@@ -41,12 +42,14 @@ export const getQueryFeaturesControl = () => {
         container.className = "leaflet-control query-features"
 
         // Create a button and a tooltip
+        const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
         const button = document.createElement("button")
         button.className = "control-button"
+        button.ariaLabel = buttonText
         button.innerHTML = "<span class='icon query-features'></span>"
 
         const tooltip = new Tooltip(button, {
-            title: i18next.t("javascripts.site.queryfeature_tooltip"),
+            title: buttonText,
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })
@@ -54,6 +57,9 @@ export const getQueryFeaturesControl = () => {
         control.button = button
         control.tooltip = tooltip
         control.map = map
+
+        // Add button to container
+        container.appendChild(button)
 
         // TODO: active state, handle click on map, precision!
 

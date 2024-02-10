@@ -11,14 +11,6 @@ const terms = `<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" rel="t
 const donateTitle = i18next.t("layouts.make_a_donation.title")
 const donateText = i18next.t("layouts.make_a_donation.text")
 
-const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
-    layerCode: "", // Standard has no layer code - it's the default layer
-    layerId: "standard",
-    legacyLayerIds: ["mapnik"],
-})
-
 const osmFranceText = i18next.t("javascripts.map.osm_france")
 const osmFranceLink = `<a href="https://openstreetmap.fr" target="_blank">${osmFranceText}</a>`
 
@@ -29,6 +21,42 @@ const cyclosmCredit = i18next.t("javascripts.map.cyclosm_credit", {
     cyclosm_link: cyclosmLink,
     // biome-ignore lint/style/useNamingConvention:
     osm_france_link: osmFranceLink,
+    interpolation: { escapeValue: false },
+})
+
+const thunderforestText = i18next.t("javascripts.map.andy_allan")
+const thunderforestLink = `<a href="https://www.thunderforest.com" target="_blank">${thunderforestText}</a>`
+const thunderforestCredit = i18next.t("javascripts.map.thunderforest_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    thunderforest_link: thunderforestLink,
+    interpolation: { escapeValue: false },
+})
+
+const tracestrackText = i18next.t("javascripts.map.tracestrack")
+const tracestrackLink = `<a href="https://www.tracestrack.com" target="_blank">${tracestrackText}</a>`
+const tracestrackCredit = i18next.t("javascripts.map.tracestrack_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    tracestrack_link: tracestrackLink,
+    interpolation: { escapeValue: false },
+})
+
+const hotosmText = i18next.t("javascripts.map.hotosm_name")
+const hotosmLink = `<a href="https://www.hotosm.org" target="_blank">${hotosmText}</a>`
+const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
+    // biome-ignore lint/style/useNamingConvention:
+    hotosm_link: hotosmLink,
+    // biome-ignore lint/style/useNamingConvention:
+    osm_france_link: osmFranceLink,
+    interpolation: { escapeValue: false },
+})
+
+// Base layers
+const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
+    layerCode: "", // Standard has no layer code - it's the default layer
+    layerId: "standard",
+    legacyLayerIds: ["mapnik"],
 })
 
 const cyclosm = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png", {
@@ -37,13 +65,6 @@ const cyclosm = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{
     attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
     layerCode: "Y",
     layerId: "cyclosm",
-})
-
-const thunderforestText = i18next.t("javascripts.map.andy_allan")
-const thunderforestLink = `<a href="https://www.thunderforest.com" target="_blank">${thunderforestText}</a>`
-const thunderforestCredit = i18next.t("javascripts.map.thunderforest_credit", {
-    // biome-ignore lint/style/useNamingConvention:
-    thunderforest_link: thunderforestLink,
 })
 
 const cycleMap = L.tileLayer("https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey={apiKey}", {
@@ -63,28 +84,12 @@ const transportMap = L.tileLayer("https://tile.thunderforest.com/transport/{z}/{
     layerId: "transportmap",
 })
 
-const tracestrackText = i18next.t("javascripts.map.tracestrack")
-const tracestrackLink = `<a href="https://www.tracestrack.com" target="_blank">${tracestrackText}</a>`
-const tracestrackCredit = i18next.t("javascripts.map.tracestrack_credit", {
-    // biome-ignore lint/style/useNamingConvention:
-    tracestrack_link: tracestrackLink,
-})
-
 const tracestrackTopo = L.tileLayer("https://tile.tracestrack.com/topo__/{z}/{x}/{y}.png?key={apiKey}", {
     maxZoom: 19,
     attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
     apiKey: tracestrackApiKey,
     layerCode: "P",
     layerId: "tracestracktopo",
-})
-
-const hotosmText = i18next.t("javascripts.map.hotosm_name")
-const hotosmLink = `<a href="https://www.hotosm.org" target="_blank">${hotosmText}</a>`
-const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
-    // biome-ignore lint/style/useNamingConvention:
-    hotosm_link: hotosmLink,
-    // biome-ignore lint/style/useNamingConvention:
-    osm_france_link: osmFranceLink,
 })
 
 const hotosm = L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
@@ -94,6 +99,7 @@ const hotosm = L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", 
     layerId: "hot",
 })
 
+// Overlay layers
 const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png", {
     // This layer has no zoom limits
     maxZoom: 21,

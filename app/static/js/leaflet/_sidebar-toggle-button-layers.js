@@ -1,9 +1,10 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config.js"
-import { getMapBaseLayerId } from "../_map-utils.js"
 import { getBaseLayerById, getOverlayLayerById } from "./_layers.js"
+import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
+import { getLatLngBoundsSize } from "./_utils.js"
 
 const minimapZoomOut = 2
 
@@ -14,7 +15,7 @@ export const getLayersSidebarToggleButton = () => {
     control.onAdd = (map) => {
         const container = controlOnAdd(map)
         const sidebar = control.sidebar
-        const input = control.input
+        const button = control.button
 
         const minimaps = []
         const layerContainers = sidebar.querySelectorAll(".layer")
@@ -27,10 +28,11 @@ export const getLayersSidebarToggleButton = () => {
             const layerId = layerContainer.dataset.layerId
             const layer = getBaseLayerById(layerId)
             if (!layer) {
-                console.error(`Base layer ${layerId} not found`)
+                console.error(`Base layer "${layerId}" not found`)
                 continue
             }
 
+            console.debug("Initializing minimap for layer", layerId)
             const minimapContainer = layerContainer.querySelector(".leaflet-container")
             const minimap = L.map(minimapContainer, {
                 attributionControl: false,
@@ -43,15 +45,12 @@ export const getLayersSidebarToggleButton = () => {
                 touchZoom: false,
             })
 
-            minimap.addLayer(layer)
+            minimap.addLayer(cloneTileLayer(layer))
             minimaps.push(minimap)
         }
 
         // On layer change, update the active container
         const onBaseLayerChange = () => {
-            // Skip updates if the sidebar is hidden
-            if (!input.checked) return
-
             const activeLayerId = getMapBaseLayerId(map)
 
             for (const layerContainer of layerContainers) {
@@ -63,7 +62,7 @@ export const getLayersSidebarToggleButton = () => {
         // On map zoomend or moveend, update the minimaps view
         const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             const center = map.getCenter()
             const zoom = Math.max(map.getZoom() - minimapZoomOut, 0)
@@ -76,7 +75,7 @@ export const getLayersSidebarToggleButton = () => {
         // On map zoomend, update the available overlays
         const onMapZoomEnd = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
 
@@ -145,10 +144,17 @@ export const getLayersSidebarToggleButton = () => {
 
             // Remove all base layers
             map.eachLayer((layer) => {
-                if (getBaseLayerById(layer.options.layerId)) map.removeLayer(layer)
+                const layerId = layer.options.layerId
+                if (!layerId) return
+
+                if (getBaseLayerById(layerId)) {
+                    console.debug("Removing layer", layerId)
+                    map.removeLayer(layer)
+                }
             })
 
             // Add the new base layer
+            console.debug("Adding layer", layerId)
             map.addLayer(layer)
 
             // Trigger the baselayerchange event
@@ -192,9 +198,9 @@ export const getLayersSidebarToggleButton = () => {
         }
 
         // On sidebar shown, update the minimaps view instantly
-        const onInputCheckedChange = () => {
+        const onButtonClick = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             const center = map.getCenter()
             const zoom = Math.max(map.getZoom() - minimapZoomOut, 0)
@@ -211,7 +217,7 @@ export const getLayersSidebarToggleButton = () => {
         for (const layerContainer of layerContainers) layerContainer.addEventListener("click", onBaseLayerClick)
         for (const overlayCheckbox of overlayCheckboxes)
             overlayCheckbox.addEventListener("change", onOverlayCheckboxChange)
-        input.addEventListener("change", onInputCheckedChange)
+        button.addEventListener("click", onButtonClick)
 
         return container
     }

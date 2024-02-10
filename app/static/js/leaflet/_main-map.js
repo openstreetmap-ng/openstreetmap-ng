@@ -1,13 +1,21 @@
 import * as L from "leaflet"
-import { getInitialMapState, getMapState, parseMapState, setMapState } from "../_map-utils.js"
 import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { getGeolocateControl } from "./_geolocate-control.js"
+import {
+    addControlGroup,
+    disableControlClickPropagation,
+    getInitialMapState,
+    getMapState,
+    parseMapState,
+    setMapState,
+} from "./_map-utils.js"
 import { getNewNoteControl } from "./_new-note-control.js"
 import { configureNotesLayer } from "./_notes-layer.js"
 import { getQueryFeaturesControl } from "./_query-features-control.js"
+import { getLayersSidebarToggleButton } from "./_sidebar-toggle-button-layers.js"
 import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom-control.js"
 
@@ -32,13 +40,17 @@ export const getMainMap = (container) => {
     map.addControl(L.control.scale())
 
     // Add custom controls
-    map.addControl(getZoomControl())
-    map.addControl(getGeolocateControl())
-    // map.addControl(getLayersSidebarToggleButton())
-    // map.addControl(getLegendSidebarToggleButton())
-    // map.addControl(getShareSidebarToggleButton())
-    map.addControl(getNewNoteControl())
-    map.addControl(getQueryFeaturesControl())
+    addControlGroup(map, [getZoomControl(), getGeolocateControl()])
+    addControlGroup(map, [
+        getLayersSidebarToggleButton(),
+        // getLegendSidebarToggleButton(),
+        // getShareSidebarToggleButton()
+    ])
+    addControlGroup(map, [getNewNoteControl()])
+    addControlGroup(map, [getQueryFeaturesControl()])
+
+    // Disable click propagation on controls
+    disableControlClickPropagation(map)
 
     // Configure map handlers
     configureNotesLayer(map)

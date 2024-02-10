@@ -1,0 +1,6 @@
+.leaflet-control {
+    // Make labels behave like buttons
+    label.control-button {
+        cursor: pointer;
+    }
+}

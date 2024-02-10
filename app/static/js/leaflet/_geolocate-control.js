@@ -30,19 +30,21 @@ export const getGeolocateControl = () => {
             container.className = "leaflet-control geolocate"
 
             // Create button and tooltip
-            const locateButton = document.createElement("button")
-            locateButton.className = "control-button"
-            locateButton.innerHTML = `<span class="${options.icon}"></span>`
+            const buttonText = i18next.t("javascripts.map.locate.title")
+            const button = document.createElement("button")
+            button.className = "control-button"
+            button.ariaLabel = buttonText
+            button.innerHTML = `<span class="${options.icon}"></span>`
 
-            new Tooltip(locateButton, {
-                title: i18next.t("javascripts.map.locate.title"),
+            new Tooltip(button, {
+                title: buttonText,
                 placement: "left",
             })
 
             // Add button to container
-            container.appendChild(locateButton)
+            container.appendChild(button)
 
-            return { link: locateButton, icon: locateButton.querySelector("span") }
+            return { link: button, icon: button.querySelector("span") }
         },
     })
 

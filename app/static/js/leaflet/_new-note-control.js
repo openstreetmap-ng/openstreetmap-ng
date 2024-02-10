@@ -18,6 +18,7 @@ export const getNewNoteControl = () => {
         // Enable/disable buttons based on current zoom level
         if (currentZoom < newNoteMinZoom) {
             if (!button.disabled) {
+                button.blur()
                 button.disabled = true
                 tooltip.setContent({
                     ".tooltip-inner": i18next.t("javascripts.site.createnote_disabled_tooltip"),
@@ -46,15 +47,20 @@ export const getNewNoteControl = () => {
         container.className = "leaflet-control new-note"
 
         // Create a button and a tooltip
+        const buttonText = i18next.t("javascripts.site.createnote_tooltip")
         const button = document.createElement("button")
         button.className = "control-button"
+        button.ariaLabel = buttonText
         button.innerHTML = "<span class='icon new-note'></span>"
 
         const tooltip = new Tooltip(button, {
-            title: i18next.t("javascripts.site.createnote_tooltip"),
+            title: buttonText,
             placement: "left",
             // TODO: check RTL support, also with leaflet options
         })
+
+        // Add button to container
+        container.appendChild(button)
 
         control.button = button
         control.tooltip = tooltip

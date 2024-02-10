@@ -4,18 +4,25 @@
     .layer {
         cursor: pointer;
         position: relative;
-        border-radius: $border-radius;
+        border-radius: $border-radius-lg;
         border: 2px solid transparent;
+        overflow: hidden;
         transition: border-color 0.08s ease-in;
 
+        // Add some margin between each layer
+        &:not(:last-child) {
+            margin-bottom: 0.5rem;
+        }
+
         label {
+            cursor: pointer;
             position: absolute;
             top: 0;
             left: 0;
-            padding: 0.15rem 0.5rem;
+            padding: 0.1rem 0.5rem 0.15rem;
             font-weight: 600;
             background: rgba(255, 255, 255, 0.9);
-            border-bottom-right-radius: $border-radius;
+            border-bottom-right-radius: $border-radius-lg;
             z-index: 1000;
         }
 
@@ -25,14 +32,14 @@
 
         // Change border color depending on the state
         &.active {
-            border-color: $green-600;
+            border-color: $green-400;
         }
 
         &:hover {
             border-color: $gray-400;
 
             &.active {
-                border-color: $green-700;
+                border-color: $green-600;
             }
         }
     }

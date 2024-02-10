@@ -1,8 +1,8 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
-import { encodeMapState } from "./_map-utils.js"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
+import { encodeMapState } from "./leaflet/_map-utils.js"
 
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")

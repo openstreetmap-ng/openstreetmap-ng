@@ -2,9 +2,6 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
 
-// TODO: is that even necessary?
-const shiftAccel = 3
-
 export const getZoomControl = () => {
     const control = new L.Control()
 
@@ -20,12 +17,14 @@ export const getZoomControl = () => {
 
         // Enable/disable buttons based on current zoom level
         if (currentZoom <= minZoom) {
+            zoomOutButton.blur()
             zoomOutButton.disabled = true
         } else {
             zoomOutButton.disabled = false
         }
 
         if (currentZoom >= maxZoom) {
+            zoomInButton.blur()
             zoomInButton.disabled = true
         } else {
             zoomInButton.disabled = false
@@ -40,21 +39,25 @@ export const getZoomControl = () => {
         container.className = "leaflet-control zoom"
 
         // Create buttons and tooltips
+        const zoomInText = i18next.t("javascripts.map.zoom.in")
         const zoomInButton = document.createElement("button")
         zoomInButton.className = "control-button"
+        zoomInButton.ariaLabel = zoomInText
         zoomInButton.innerHTML = "<span class='icon zoom-in'></span>"
 
-        const zoomInTooltip = new Tooltip(zoomInButton, {
-            title: i18next.t("javascripts.map.zoom.in"),
+        new Tooltip(zoomInButton, {
+            title: zoomInText,
             placement: "left",
         })
 
+        const zoomOutText = i18next.t("javascripts.map.zoom.out")
         const zoomOutButton = document.createElement("button")
         zoomOutButton.className = "control-button"
+        zoomOutButton.ariaLabel = zoomOutText
         zoomOutButton.innerHTML = "<span class='icon zoom-out'></span>"
 
-        const zoomOutTooltip = new Tooltip(zoomOutButton, {
-            title: i18next.t("javascripts.map.zoom.out"),
+        new Tooltip(zoomOutButton, {
+            title: zoomOutText,
             placement: "left",
         })
 
@@ -62,24 +65,22 @@ export const getZoomControl = () => {
         container.appendChild(zoomInButton)
         container.appendChild(zoomOutButton)
 
-        const onZoomInButtonClick = (e) => {
-            map.zoomIn(e.shiftKey ? shiftAccel : 1)
+        const onZoomInButtonClick = () => {
+            map.zoomIn(1)
         }
 
-        const onZoomOutButtonClick = (e) => {
-            map.zoomOut(e.shiftKey ? shiftAccel : 1)
+        const onZoomOutButtonClick = () => {
+            map.zoomOut(1)
         }
 
         control.zoomInButton = zoomInButton
-        control.zoomInTooltip = zoomInTooltip
         control.zoomOutButton = zoomOutButton
-        control.zoomOutTooltip = zoomOutTooltip
         control.map = map
 
         // Listen for events
+        map.addEventListener("zoomend zoomlevelschange", onMapZoomChange)
         zoomInButton.addEventListener("click", onZoomInButtonClick)
         zoomOutButton.addEventListener("click", onZoomOutButtonClick)
-        map.addEventListener("zoomend zoomlevelschange", onMapZoomChange)
 
         // Initial update to set button states
         onMapZoomChange()

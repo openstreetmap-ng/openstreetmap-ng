@@ -1,8 +1,8 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl, getMapUrl } from "../_map-utils.js"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
+import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl, getMapUrl } from "./_map-utils.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getMarkerIcon } from "./_utils.js"
 
@@ -13,7 +13,7 @@ export const getShareSidebarToggleButton = () => {
     control.onAdd = (map) => {
         const container = controlOnAdd(map)
         const sidebar = control.sidebar
-        const input = control.input
+        const button = control.button
 
         const markerCheckbox = sidebar.querySelector(".marker-checkbox")
         const linkRadioInput = sidebar.querySelector(".link-button")
@@ -61,7 +61,7 @@ export const getShareSidebarToggleButton = () => {
         // On map move, update marker position if marker is enabled
         const onMapMove = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
             if (markerCheckbox.checked) {
                 marker.setLatLng(map.getCenter())
             }
@@ -70,7 +70,7 @@ export const getShareSidebarToggleButton = () => {
         // On map zoomend or moveend, update sidebar data
         const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             updateLinks()
             updateGeoUri()
@@ -79,7 +79,7 @@ export const getShareSidebarToggleButton = () => {
         // On map zoomend or baselayerchange, update the optimal export params
         const onMapZoomOrLayerChange = () => {
             // Skip updates if the sidebar is hidden
-            if (!input.checked) return
+            if (!button.classList.contains("active")) return
 
             const baseLayer = getMapBaseLayer(map)
 
@@ -196,8 +196,8 @@ export const getShareSidebarToggleButton = () => {
             })
         }
 
-        const onInputCheckedChange = () => {
-            if (input.checked) {
+        const onButtonClick = () => {
+            if (button.classList.contains("active")) {
                 // On sidebar shown, force update
                 onMapZoomOrMoveEnd()
                 onMapZoomOrLayerChange()
@@ -220,7 +220,7 @@ export const getShareSidebarToggleButton = () => {
         map.addEventListener("move", onMapMove)
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
-        input.addEventListener("change", onInputCheckedChange)
+        button.addEventListener("click", onButtonClick)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
         linkRadioInput.addEventListener("change", () => {
             if (linkRadioInput.checked) updateLinks()
