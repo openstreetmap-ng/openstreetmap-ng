@@ -11,6 +11,7 @@ import app.controllers.index
 import app.lib.cython_detect  # DO NOT REMOVE
 from app.config import COOKIE_SESSION_TTL, HTTPS_ONLY, LOCALE_DIR, NAME, SECRET, TEST_ENV
 from app.middlewares.auth_middleware import AuthMiddleware
+from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
@@ -41,6 +42,7 @@ main = FastAPI(
     lifespan=lifespan,
 )
 
+main.add_middleware(CacheControlMiddleware)  # depends on: request
 main.add_middleware(RequestContextMiddleware)
 main.add_middleware(VersionMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
@@ -61,6 +63,7 @@ if TEST_ENV:
     main.add_middleware(RuntimeMiddleware)
     main.add_middleware(ProfilerMiddleware)
 
+# TODO: /static default cache control
 main.mount('/static', StaticFiles(directory='app/static'), name='static')
 main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
 

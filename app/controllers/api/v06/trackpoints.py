@@ -30,4 +30,4 @@ async def trackpoints_read(
         legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
     )
 
-    return Format06.encode_tracks(points)
+    return Format06.encode_track(points)

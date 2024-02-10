@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from contextlib import nullcontext
 from typing import Annotated
 
+import cython
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
 from pydantic import PositiveInt
@@ -57,10 +58,10 @@ async def changeset_create(
 @router.get('/changeset/{changeset_id}.json')
 async def changeset_read(
     changeset_id: PositiveInt,
-    include_discussion: Annotated[str | None, Query(None)],
+    include_discussion_str: Annotated[str | None, Query(None, alias='include_discussion')],
 ) -> dict:
     # treat any non-empty string as True
-    include_discussion: bool = bool(include_discussion)
+    include_discussion: cython.char = bool(include_discussion_str)
 
     with joinedload_context(Changeset.comments, ChangesetComment.user) if include_discussion else nullcontext():
         changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
@@ -143,20 +144,20 @@ async def changesets_query(
     display_name: Annotated[str | None, Query(None, min_length=1)],
     user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
     time: Annotated[str | None, Query(None, min_length=1)],
-    open: Annotated[str | None, Query(None)],
-    closed: Annotated[str | None, Query(None)],
+    open_str: Annotated[str | None, Query(None, alias='open')],
+    closed_str: Annotated[str | None, Query(None, alias='closed')],
     bbox: Annotated[str | None, Query(None, min_length=1)],
     limit: Annotated[int, Query(CHANGESET_QUERY_DEFAULT_LIMIT, gt=0, le=CHANGESET_QUERY_MAX_LIMIT)],
 ) -> Sequence[dict]:
     # treat any non-empty string as True
-    open: bool = bool(open)
-    closed: bool = bool(closed)
+    open: cython.char = bool(open_str)
+    closed: cython.char = bool(closed_str)
 
     # small logical optimization
     if open and closed:
         return Format06.encode_changesets(())
 
-    geometry = parse_bbox(bbox) if bbox is not None else None
+    geometry = parse_bbox(bbox) if (bbox is not None) else None
 
     if changesets is not None:
         parts = (c.strip() for c in changesets.split(','))
@@ -167,8 +168,8 @@ async def changesets_query(
     else:
         changeset_ids = None
 
-    display_name_provided = display_name is not None
-    user_id_provided = user_id is not None
+    display_name_provided: cython.char = display_name is not None
+    user_id_provided: cython.char = user_id is not None
 
     if display_name_provided and user_id_provided:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
@@ -182,18 +183,19 @@ async def changesets_query(
             raise_for().user_not_found_bad_request(user_id)
 
     if time is not None:
+        time_left, _, time_right = time.partition(',')
+
         try:
-            if ',' in time:
-                parts = time.split(',', maxsplit=1)
-                created_before = parse_date(parts[0])
-                closed_after = parse_date(parts[1])
+            if time_right:
+                created_before = parse_date(time_left)
+                closed_after = parse_date(time_right)
             else:
                 closed_after = parse_date(time)
                 created_before = None
         except Exception as e:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, f'no time information in "{time}"') from e
 
-        if closed_after and created_before and closed_after > created_before:
+        if (closed_after is not None) and (created_before is not None) and closed_after > created_before:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'The time range is invalid, T1 > T2')
     else:
         closed_after = None
@@ -201,7 +203,7 @@ async def changesets_query(
 
     changesets = await ChangesetRepository.find_many_by_query(
         changeset_ids=changeset_ids,
-        user_id=user.id if user is not None else None,
+        user_id=user.id if (user is not None) else None,
         created_before=created_before,
         closed_after=closed_after,
         is_open=True if open else (False if closed else None),

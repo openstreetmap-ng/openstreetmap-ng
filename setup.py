@@ -10,6 +10,7 @@ Options.annotate = True
 
 
 dirs = [
+    'app/controllers',
     'app/exceptions',
     'app/exceptions06',
     'app/format06',

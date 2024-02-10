@@ -186,7 +186,7 @@ skip-magic-trailing-comma = false
 line-ending = "lf"
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "input", "open", "type"]
+builtins-ignorelist = ["id", "input", "open", "type", "map"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["pgettext", "npgettext"]

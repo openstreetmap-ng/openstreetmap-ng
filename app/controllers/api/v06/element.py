@@ -21,6 +21,11 @@ from app.services.optimistic_diff import OptimisticDiff
 # TODO: dependency for xml parsing?
 router = APIRouter()
 
+# read property once for performance
+_type_node = ElementType.node
+_type_way = ElementType.way
+_type_relation = ElementType.relation
+
 # TODO: redaction (403 forbidden), https://wiki.openstreetmap.org/wiki/API_v0.6#Redaction:_POST_/api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
 # TODO: HttpUrl, ConstrainedUrl
 
@@ -46,7 +51,7 @@ async def element_create(
         raise_for().bad_xml(type.value, xml, str(e))
 
     assigned_ref_map = await OptimisticDiff((element,)).run()
-    return next(iter(assigned_ref_map.values()))[0].id
+    return assigned_ref_map[element.element_ref][0].id
 
 
 @router.get('/{type}/{id}')
@@ -159,11 +164,11 @@ async def elements_read_many(
     ways: Annotated[str | None, Query(None)],
     relations: Annotated[str | None, Query(None)],
 ) -> Sequence[dict]:
-    if type == ElementType.node:
+    if type == _type_node:
         query = nodes
-    elif type == ElementType.way:
+    elif type == _type_way:
         query = ways
-    elif type == ElementType.relation:
+    elif type == _type_relation:
         query = relations
     else:
         raise NotImplementedError(f'Unsupported element type {type!r}')
@@ -207,7 +212,7 @@ async def element_parent_relations(
     element_ref = ElementRef(type=type, id=id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=ElementType.relation,
+        parent_type=_type_relation,
         limit=None,
     )
     return Format06.encode_elements(elements)
@@ -219,10 +224,10 @@ async def element_parent_relations(
 async def element_parent_ways(
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=ElementType.node, id=id)
+    element_ref = ElementRef(type=_type_node, id=id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=ElementType.way,
+        parent_type=_type_way,
         limit=None,
     )
     return Format06.encode_elements(elements)

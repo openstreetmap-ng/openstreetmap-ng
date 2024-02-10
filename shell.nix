@@ -95,6 +95,7 @@ let
       shopt -s globstar
       rm -rf build/
       dirs=(
+        app/controllers
         app/exceptions
         app/exceptions06
         app/format06

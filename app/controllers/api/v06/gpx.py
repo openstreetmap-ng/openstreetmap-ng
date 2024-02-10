@@ -2,16 +2,14 @@ import logging
 from typing import Annotated
 
 import magic
-from fastapi import APIRouter, File, Form, Request, UploadFile, status
+from fastapi import APIRouter, File, Form, Request, Response, UploadFile
 from fastapi.responses import PlainTextResponse
-from httpx import Response
 from pydantic import PositiveInt
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import joinedload_context
-from app.lib.tracks import Tracks
 from app.lib.xmltodict import XMLToDict
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
@@ -36,9 +34,11 @@ async def gpx_create(
     _: Annotated[User, api_user(Scope.write_gpx)],
 ) -> int:
     if visibility is None:
+        # backwards compatibility:
+        # if public (numeric) is non-zero, set visibility to public
         visibility = TraceVisibility.public if public else TraceVisibility.private
 
-    trace = await Tracks.process_upload(file, description, tags, visibility)
+    trace = await TraceService.upload(file, description, tags, visibility)
     return trace.id
 
 
@@ -65,7 +65,7 @@ async def gpx_read_data(
     if request.url.path.endswith(('.xml', '.gpx')):
         with joinedload_context(Trace.points, TracePoint.trace):
             trace = await TraceRepository.get_one_by_id(trace_id)
-        return Format06.encode_tracks(trace.points)
+        return Format06.encode_track(trace.points)
 
     # otherwise, return the raw file
     else:
@@ -74,9 +74,8 @@ async def gpx_read_data(
         logging.debug('Downloading trace file content type is %r', content_type)
 
         return Response(
-            status.HTTP_200_OK,
-            headers={'Content-Disposition': f'attachment; filename="{filename}"'},
             content=file,
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'},
             media_type=content_type,
         )
 

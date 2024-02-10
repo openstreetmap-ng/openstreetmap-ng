@@ -21,7 +21,7 @@ class UserTokenEmailReplyRepository:
         _, reply_address = parseaddr(reply_address)
 
         try:
-            token_str, _ = reply_address.split('@', maxsplit=1)
+            token_str = reply_address.partition('@')[0]
             token_struct = UserTokenStruct.from_str(token_str)
         except Exception:
             logging.debug('Invalid reply_address format %r', reply_address)

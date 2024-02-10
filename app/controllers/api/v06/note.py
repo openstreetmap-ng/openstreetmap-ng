@@ -38,6 +38,9 @@ from app.validators.date import DateValidator
 
 router = APIRouter()
 
+# read property once for performance
+_style_rss = FormatStyle.rss
+
 # TODO: validate input lengths
 
 
@@ -54,10 +57,13 @@ async def _resolve_rich_texts(notes_or_comments: Sequence[Note | NoteComment] | 
         notes_or_comments = (notes_or_comments,)
 
     async with anyio.create_task_group() as tg:
+        # is it a sequence of comments or notes?
         if isinstance(notes_or_comments[0], NoteComment):
+            comment: NoteComment
             for comment in notes_or_comments:
                 tg.start_soon(comment.resolve_rich_text)
         else:
+            note: Note
             for note in notes_or_comments:
                 for comment in note.comments:
                     tg.start_soon(comment.resolve_rich_text)
@@ -97,7 +103,7 @@ async def note_read(
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == FormatStyle.rss:
+    if style == _style_rss:
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
@@ -198,7 +204,12 @@ async def notes_feed(
     fg.title(t('api.notes.rss.title'))
 
     if geometry:
-        min_lon, min_lat, max_lon, max_lat = geometry.bounds
+        bounds = geometry.bounds
+        min_lon = bounds[0]
+        min_lat = bounds[1]
+        max_lon = bounds[2]
+        max_lat = bounds[3]
+
         fg.subtitle(
             t('api.notes.rss.description_area').format(
                 min_lon=min_lon,
@@ -241,8 +252,12 @@ async def notes_read(
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == FormatStyle.rss:
-        min_lon, min_lat, max_lon, max_lat = geometry.bounds
+    if style == _style_rss:
+        bounds = geometry.bounds
+        min_lon = bounds[0]
+        min_lat = bounds[1]
+        max_lon = bounds[2]
+        max_lat = bounds[3]
 
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
@@ -263,12 +278,12 @@ async def notes_read(
         return FormatRSS06.encode_notes(notes)
 
 
-class SearchSort(StrEnum):
+class _SearchSort(StrEnum):
     created_at = 'created_at'
     updated_at = 'updated_at'
 
 
-class SearchOrder(StrEnum):
+class _SearchOrder(StrEnum):
     oldest = 'oldest'
     newest = 'newest'
 
@@ -287,11 +302,11 @@ async def notes_query(
     bbox: Annotated[str | None, Query(None, min_length=1)],
     from_: Annotated[datetime | None, DateValidator, Query(None, alias='from')],
     to: Annotated[datetime | None, DateValidator, Query(None)],
-    sort: Annotated[SearchSort, Query(SearchSort.updated_at)],
-    order: Annotated[SearchOrder, Query(SearchOrder.newest)],
+    sort: Annotated[_SearchSort, Query(_SearchSort.updated_at)],
+    order: Annotated[_SearchOrder, Query(_SearchOrder.newest)],
     limit: Annotated[PositiveInt, Query(NOTE_QUERY_DEFAULT_LIMIT, le=NOTE_QUERY_LEGACY_MAX_LIMIT)],
 ) -> Sequence[dict]:
-    # small logical optimization
+    # small logical optimizations
     if (from_ is not None) and (to is not None) and (from_ >= to):  # invalid date range
         return Format06.encode_notes(())
     if (q is not None) and (not q.strip()):  # provided empty q
@@ -326,21 +341,26 @@ async def notes_query(
             geometry=geometry,
             date_from=from_,
             date_to=to,
-            sort_by_created=sort == SearchSort.created_at,
-            sort_asc=order == SearchOrder.oldest,
+            sort_by_created=sort == _SearchSort.created_at,
+            sort_asc=order == _SearchOrder.oldest,
             limit=limit,
         )
 
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == FormatStyle.rss:
+    if style == _style_rss:
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
 
         if geometry is not None:
-            min_lon, min_lat, max_lon, max_lat = geometry.bounds
+            bounds = geometry.bounds
+            min_lon = bounds[0]
+            min_lat = bounds[1]
+            max_lon = bounds[2]
+            max_lat = bounds[3]
+
             fg.subtitle(
                 t('api.notes.rss.description_area').format(
                     min_lon=min_lon,
