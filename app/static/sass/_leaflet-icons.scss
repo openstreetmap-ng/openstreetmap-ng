@@ -29,6 +29,23 @@
 
     .icon.geolocate {
         @include legacy-leaflet-icon(-80px, 0);
+
+        &.loading {
+            animation: spin 2s infinite;
+            transform-origin: 50% 48.5%;
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                75% {
+                    transform: rotate(360deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        }
     }
 
     .active .icon.geolocate {

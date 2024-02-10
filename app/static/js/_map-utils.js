@@ -65,6 +65,7 @@ export const getMapBaseLayer = (map) => {
  * setMapLayersCode(map, "BT")
  */
 const setMapLayersCode = (map, layersCode) => {
+    console.debug("setMapLayersCode", layersCode)
     const layersIds = new Set()
 
     // Extract base layers to validate the code
@@ -95,16 +96,21 @@ const setMapLayersCode = (map, layersCode) => {
 
     // Remove layers not found in the code
     map.eachLayer((layer) => {
-        if (!layersIds.has(layer.options.layerId)) {
+        const layerId = layer.options.layerId
+        if (!layerId) return
+
+        if (!layersIds.has(layerId)) {
+            console.debug("Removing layer", layerId)
             map.removeLayer(layer)
         } else {
-            layersIds.delete(layer.options.layerId)
+            layersIds.delete(layerId)
         }
     })
 
     // Add missing layers
     for (const layerId of layersIds) {
         const layer = getBaseLayerById(layerId) ?? getOverlayLayerById(layerId)
+        console.debug("Adding layer", layerId)
         map.addLayer(layer)
     }
 

@@ -53,20 +53,20 @@ export const focusMapObject = (map, object) => {
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects) => {
-    const layer = getOverlayLayerById("focus")
+    const focusLayer = getOverlayLayerById("focus")
 
     // Always clear the focus layer
-    layer.clearLayers()
+    focusLayer.clearLayers()
 
     // If there are no objects to focus, remove the focus layer
     if (!objects.length) {
-        if (map.hasLayer(layer)) {
-            map.removeLayer(layer)
+        if (map.hasLayer(focusLayer)) {
+            map.removeLayer(focusLayer)
 
             // Trigger the overlayremove event
             // https://leafletjs.com/reference.html#map-overlayremove
             // https://leafletjs.com/reference.html#layerscontrolevent
-            map.fire("overlayremove", { layer: layer, name: layer.options.layerId })
+            map.fire("overlayremove", { layer: focusLayer, name: focusLayer.options.layerId })
         }
 
         return []
@@ -74,14 +74,14 @@ export const focusManyMapObjects = (map, objects) => {
 
     // TODO: z-index
     // Create the focus layer if it doesn't exist
-    if (!map.hasLayer(layer)) {
-        map.addLayer(layer)
+    if (!map.hasLayer(focusLayer)) {
+        map.addLayer(focusLayer)
 
         // Trigger the overlayadd event
         // https://leafletjs.com/reference.html#map-overlayadd
         // https://leafletjs.com/reference.html#layerscontrolevent
-        map.fire("overlayadd", { layer: layer, name: layer.options.layerId })
+        map.fire("overlayadd", { layer: focusLayer, name: focusLayer.options.layerId })
     }
 
-    return renderObjects(layer, objects, focusStyles)
+    return renderObjects(focusLayer, objects, focusStyles)
 }
