@@ -239,6 +239,8 @@ let
     (writeShellScriptBin "dev-postgres-logs" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
     (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
+    (writeShellScriptBin "dev-watch-js-logs" "tail -f data/supervisor/watch-js.log")
+    (writeShellScriptBin "dev-watch-sass-logs" "tail -f data/supervisor/watch-sass.log")
 
     # -- Preload
     (writeShellScriptBin "preload-clean" "rm -rf data/preload")
@@ -321,11 +323,6 @@ let
         --sourcemap=inline \
         --outdir app/static/js \
         app/static/js/id.js app/static/js/main.js app/static/js/matomo.js app/static/js/rapid.js
-    '')
-    (writeShellScriptBin "watch-static" ''
-      watch-sass &
-      watch-js &
-      wait
     '')
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
