@@ -1,10 +1,15 @@
 .leaflet-container {
+    // Hint to the browser that the map will be animated
+    .leaflet-map-pane,
+    .leaflet-zoom-animated {
+        will-change: transform;
+    }
+
     // Stick controls to the edges of the map
     .leaflet-top.leaflet-left .leaflet-control {
         margin-top: 0;
         margin-left: 0;
     }
-
     .leaflet-top.leaflet-right .leaflet-control {
         margin-top: 0;
         margin-right: 0;

@@ -4,9 +4,9 @@ import { thunderforestApiKey, tracestrackApiKey } from "../_api-keys.js"
 import "../_types.js"
 
 const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
-const copyright = `© <a href="https://www.openstreetmap.org/copyright" target="_blank">${copyrightText}</a>`
+const copyright = `© <a href="https://www.openstreetmap.org/copyright" rel="license" target="_blank">${copyrightText}</a>`
 const termsText = i18next.t("javascripts.map.website_and_api_terms")
-const terms = `<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" target="_blank">${termsText}</a>`
+const terms = `<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service" target="_blank">${termsText}</a>`
 
 const donateTitle = i18next.t("layouts.make_a_donation.title")
 const donateText = i18next.t("layouts.make_a_donation.text")
