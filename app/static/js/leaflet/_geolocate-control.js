@@ -8,6 +8,10 @@ import { isMetricUnit } from "../_utils.js"
 
 export const getGeolocateControl = () => {
     const control = L.control.locate({
+        locateOptions: {
+            timeout: 30_000, // 30 seconds
+            maximumAge: 300_000, // 5 minutes
+        },
         position: "topright",
         icon: "icon geolocate",
         iconLoading: "icon geolocate loading",
