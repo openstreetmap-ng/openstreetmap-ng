@@ -14,7 +14,7 @@ class Bzip2FileProcessor(TraceFileProcessor):
 
     @override
     @classmethod
-    async def decompress(cls, buffer: bytes) -> bytes:
+    def decompress(cls, buffer: bytes) -> bytes:
         with bz2.open(BytesIO(buffer), 'rb') as f:
             result = f.read(TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 

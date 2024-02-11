@@ -6,7 +6,7 @@ class TraceFileProcessor(ABC):
     media_type: str
 
     @classmethod
-    async def decompress(cls, buffer: bytes) -> Sequence[bytes] | bytes:
+    def decompress(cls, buffer: bytes) -> Sequence[bytes] | bytes:
         """
         Decompress the buffer and return files data or a subsequent buffer.
         """

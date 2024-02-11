@@ -17,7 +17,7 @@ class ZipFileProcessor(TraceFileProcessor):
 
     @override
     @classmethod
-    async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
+    def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         with zipfile.ZipFile(BytesIO(buffer)) as archive:
             infos = tuple(info for info in archive.infolist() if not info.is_dir())
             infos_len = len(infos)

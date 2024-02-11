@@ -56,7 +56,7 @@ class NoteRepository:
 
             stmt = stmt.where(*where_and)
 
-            # small optimization, skip sort if at most one note will be returned
+            # logical optimization, skip sort if at most one note will be returned
             if not (note_ids is not None and len(note_ids) == 1):
                 stmt = stmt.order_by(sort_by_key.asc() if sort_asc else sort_by_key.desc())
 

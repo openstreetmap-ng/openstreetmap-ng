@@ -16,6 +16,11 @@ from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.versioned_element_ref import VersionedElementRef
 
+# read property once for performance
+_type_node = ElementType.node
+_type_way = ElementType.way
+_type_relation = ElementType.relation
+
 
 class ElementRepository:
     @staticmethod
@@ -161,7 +166,7 @@ class ElementRepository:
                     .where(
                         Element.created_at <= point_in_time,
                         Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                        Element.type == ElementType.node,
+                        Element.type == _type_node,
                         Element.id.in_(
                             select(
                                 cast(
@@ -172,7 +177,7 @@ class ElementRepository:
                             .where(
                                 Element.created_at <= point_in_time,
                                 Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                                Element.type == ElementType.way,
+                                Element.type == _type_way,
                                 Element.id.in_(ref.id for ref in recurse_way_refs),
                             )
                             .subquery()
@@ -329,7 +334,7 @@ class ElementRepository:
                 .where(
                     Element.created_at <= point_in_time,
                     Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                    Element.type == ElementType.node,
+                    Element.type == _type_node,
                     func.ST_Intersects(Element.point, geometry.wkt),
                 )
             )
@@ -359,14 +364,14 @@ class ElementRepository:
 
             async def way_task() -> None:
                 # fetch parent ways
-                ways = await fetch_parents(nodes_refs, ElementType.way)
+                ways = await fetch_parents(nodes_refs, _type_way)
 
                 if not ways:
                     return
 
                 # fetch ways' parent relations
                 ways_refs = tuple(way.element_ref for way in ways)
-                tg.start_soon(fetch_parents, ways_refs, ElementType.relation)
+                tg.start_soon(fetch_parents, ways_refs, _type_relation)
 
                 # fetch ways' nodes
                 ways_members_refs = tuple(member.element_ref for way in ways for member in way.members)
@@ -379,7 +384,17 @@ class ElementRepository:
                     result_sequences.append(ways_nodes)
 
             tg.start_soon(way_task)
-            tg.start_soon(fetch_parents, nodes_refs, ElementType.relation)
+            tg.start_soon(fetch_parents, nodes_refs, _type_relation)
 
-        # deduplicate results, preserving order
-        return tuple({element.sequence_id: element for elements in result_sequences for element in elements}.values())
+        # remove duplicates and preserve order
+        result = []
+        result_set: set[int] = set()
+
+        for elements in result_sequences:
+            for element in elements:
+                element_sequence_id = element.sequence_id
+                if element_sequence_id not in result_set:
+                    result.append(element)
+                    result_set.add(element_sequence_id)
+
+        return result

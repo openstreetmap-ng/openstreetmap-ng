@@ -15,7 +15,7 @@ class GzipFileProcessor(TraceFileProcessor):
 
     @override
     @classmethod
-    async def decompress(cls, buffer: bytes) -> bytes:
+    def decompress(cls, buffer: bytes) -> bytes:
         try:
             with gzip.open(BytesIO(buffer), 'rb') as f:
                 result = f.read(TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)

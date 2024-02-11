@@ -26,7 +26,7 @@ class ZstdFileProcessor(TraceFileProcessor):
 
     @override
     @classmethod
-    async def decompress(cls, buffer: bytes) -> bytes:
+    def decompress(cls, buffer: bytes) -> bytes:
         try:
             result = _decompress(
                 buffer,
@@ -40,7 +40,7 @@ class ZstdFileProcessor(TraceFileProcessor):
         return result
 
     @classmethod
-    async def compress(cls, buffer: bytes) -> bytes:
+    def compress(cls, buffer: bytes) -> bytes:
         result = _compress(buffer)
         logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

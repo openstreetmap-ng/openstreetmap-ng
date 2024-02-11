@@ -18,7 +18,7 @@ class UserTokenEmailReplyRepository:
         """
 
         # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
-        _, reply_address = parseaddr(reply_address)
+        reply_address = parseaddr(reply_address)[1]
 
         try:
             token_str = reply_address.partition('@')[0]

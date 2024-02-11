@@ -3,6 +3,7 @@ from datetime import timedelta
 from itertools import pairwise
 
 import anyio
+import cython
 from anyio import to_thread
 from fastapi import UploadFile
 
@@ -21,7 +22,8 @@ from app.models.validating.trace_ import TraceValidating
 from app.storage import TRACES_STORAGE
 
 
-def _sort_and_deduplicate(points: Sequence[TracePoint]) -> Sequence[TracePoint]:
+@cython.cfunc
+def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
     """
     Sort and deduplicates the points.
 
@@ -59,87 +61,58 @@ class TraceService:
         if file_size_len > TRACE_FILE_UPLOAD_MAX_SIZE:
             raise_for().input_too_big(file_size_len)
 
-        buffer = await to_thread.run_sync(file.file.read)
+        file_bytes = await to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
-        trace: Trace = None
-        image: bytes = None
-        icon: bytes = None
-        compressed: bytes = None
-        compressed_suffix: str = None
 
-        async def extract_and_generate_image_icon() -> None:
-            nonlocal trace, points, image, icon
+        # process multiple files in the archive
+        try:
+            for gpx_bytes in TraceFile.extract(file_bytes):
+                gpx = gpx_bytes.decode()
+                tracks = XMLToDict.parse(gpx).get('gpx', {}).get('trk', [])
 
-            track_idx_last = -1
+                track_idx_last = points[-1].track_idx if points else -1
+                points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_last))
+        except Exception as e:
+            raise_for().bad_trace_file(str(e))
 
-            # process multiple files in the archive
-            for gpx_bytes in await TraceFile.extract(buffer):
-                try:
-                    gpx = gpx_bytes.decode()
-                    tracks = XMLToDict.parse(gpx).get('gpx', {}).get('trk', [])
-                    points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_last + 1))
-                except Exception as e:
-                    raise_for().bad_trace_file(str(e))
+        points = _sort_and_deduplicate(points)
 
-                if points:
-                    track_idx_last = points[-1].track_idx
+        # require two distinct points for sane bounding box and icon
+        if len(points) < 2:
+            raise_for().bad_trace_file('not enough points')
 
-            points = _sort_and_deduplicate(points)
+        trace = Trace(
+            **TraceValidating(
+                user_id=auth_user().id,
+                name=file.filename,
+                description=description,
+                visibility=visibility,
+                size=len(points),
+                start_point=points[0].point,
+                tags=(),  # set with .tag_string
+            ).to_orm_dict()
+        )
 
-            # require two distinct points for sane bounding box and icon
-            if len(points) < 2:
-                raise_for().bad_trace_file('not enough points')
+        trace.points = points
+        trace.tag_string = tags
 
-            trace = Trace(
-                **TraceValidating(
-                    user_id=auth_user().id,
-                    name=file.filename,
-                    description=description,
-                    visibility=visibility,
-                    size=len(points),
-                    start_point=points[0].point,
-                    tags=(),  # set with .tag_string
-                ).to_orm_dict()
-            )
-
-            trace.points = points
-            trace.tag_string = tags
-
-            image, icon = await TraceImage.generate_async(points)
-
-        async def compress_upload() -> None:
-            nonlocal compressed, compressed_suffix
-            compressed, compressed_suffix = await TraceFile.zstd_compress(buffer)
-
-        async with anyio.create_task_group() as tg:
-            tg.start_soon(extract_and_generate_image_icon)
-            tg.start_soon(compress_upload)
-
-        file_id: str = None
-        image_id: str = None
-        icon_id: str = None
+        image, icon = await TraceImage.generate_async(points)
+        compressed_file, compressed_suffix = TraceFile.zstd_compress(file_bytes)
 
         async def save_file() -> None:
-            nonlocal file_id
-            file_id = await TRACES_STORAGE.save(compressed, compressed_suffix)
+            trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
 
         async def save_image() -> None:
-            nonlocal image_id
-            image_id = await TRACES_STORAGE.save(image, TraceImage.image_suffix)
+            trace.image_id = await TRACES_STORAGE.save(image, TraceImage.image_suffix)
 
         async def save_icon() -> None:
-            nonlocal icon_id
-            icon_id = await TRACES_STORAGE.save(icon, TraceImage.icon_suffix)
+            trace.icon_id = await TRACES_STORAGE.save(icon, TraceImage.icon_suffix)
 
         # save the files after the validation
         async with anyio.create_task_group() as tg:
             tg.start_soon(save_file)
             tg.start_soon(save_image)
             tg.start_soon(save_icon)
-
-        trace.file_id = file_id
-        trace.image_id = image_id
-        trace.icon_id = icon_id
 
         async with db_autocommit() as session:
             session.add(trace)

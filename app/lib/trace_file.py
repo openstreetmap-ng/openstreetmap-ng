@@ -28,7 +28,7 @@ _trace_file_processors: dict[str, TraceFileProcessor] = {
 
 class TraceFile:
     @staticmethod
-    async def extract(buffer: bytes) -> Sequence[bytes]:
+    def extract(buffer: bytes) -> Sequence[bytes]:
         """
         Extract the trace files from the buffer.
 
@@ -46,7 +46,7 @@ class TraceFile:
             if processor is None:
                 raise_for().trace_file_unsupported_format(content_type)
 
-            result = await processor.decompress(buffer)
+            result = processor.decompress(buffer)
 
             # bytes: further processing is needed
             if isinstance(result, bytes):
@@ -60,22 +60,22 @@ class TraceFile:
         raise_for().trace_file_archive_too_deep()
 
     @staticmethod
-    async def zstd_compress(buffer: bytes) -> tuple[bytes, str]:
+    def zstd_compress(buffer: bytes) -> tuple[bytes, str]:
         """
         Compress the buffer with zstd.
 
         Returns the compressed buffer and the suffix to add to the file name.
         """
 
-        return await ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
+        return ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
 
     @staticmethod
-    async def zstd_decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
+    def zstd_decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
         """
         Decompress the buffer if needed.
         """
 
         if file_id.endswith(ZstdFileProcessor.suffix):
-            return await ZstdFileProcessor.decompress(buffer)
+            return ZstdFileProcessor.decompress(buffer)
 
         return buffer

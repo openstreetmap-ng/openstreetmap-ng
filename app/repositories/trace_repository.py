@@ -41,10 +41,10 @@ class TraceRepository:
         """
 
         trace = await TraceRepository.get_one_by_id(trace_id)
-        buffer = await TRACES_STORAGE.load(trace.file_id)
-        file = await TraceFile.zstd_decompress_if_needed(buffer, trace.file_id)
+        file_buffer = await TRACES_STORAGE.load(trace.file_id)
+        file_bytes = TraceFile.zstd_decompress_if_needed(file_buffer, trace.file_id)
         filename = trace.name
-        return filename, file
+        return filename, file_bytes
 
     @staticmethod
     async def find_many_by_user_id(

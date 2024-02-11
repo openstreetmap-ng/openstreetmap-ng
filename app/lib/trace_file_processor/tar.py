@@ -14,7 +14,7 @@ class TarFileProcessor(TraceFileProcessor):
 
     @override
     @classmethod
-    async def decompress(cls, buffer: bytes) -> Sequence[bytes]:
+    def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         # pure tar uses no compression, so it's efficient to read files from the memory buffer
         # r: opens for reading exclusively without compression (safety check)
         with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
