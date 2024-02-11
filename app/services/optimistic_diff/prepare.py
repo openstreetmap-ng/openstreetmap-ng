@@ -62,6 +62,11 @@ class OptimisticDiffPrepare:
     For example, `(way/1, False)` = `{node/1, node/2}` means that way/1 no longer references node/1 and node/2 locally.
     """
 
+    _element_parent_refs_cache: dict[ElementRef, frozenset[ElementRef]]
+    """
+    Local element parents cache, mapping from element ref to the set of parent element refs.
+    """
+
     last_sequence_id: int
 
     def __init__(self, elements: Sequence[Element]) -> None:
@@ -72,6 +77,7 @@ class OptimisticDiffPrepare:
         self.element_state = defaultdict(list)
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
+        self._element_parent_refs_cache = {}
         self.last_sequence_id = None
 
     async def prepare(self) -> None:
@@ -290,12 +296,12 @@ class OptimisticDiffPrepare:
 
         # check if all elements exist
         if len(remote_elements) != remote_refs_len:
-            load_element_refs_set = set(remote_refs)
+            remote_refs_set = set(remote_refs)
 
             for element in remote_elements:
-                load_element_refs_set.remove(element.element_ref)
+                remote_refs_set.remove(element.element_ref)
 
-            raise_for().element_not_found(next(iter(remote_refs)))
+            raise_for().element_not_found(next(iter(remote_refs_set)))
 
         # update local state
         for element in remote_elements:
@@ -358,27 +364,31 @@ class OptimisticDiffPrepare:
         Check if the element is not referenced by other elements.
         """
 
+        # read property once for performance
+        reference_override = self._reference_override
+        element_parent_refs_cache = self._element_parent_refs_cache
         element_ref = element.element_ref
 
         # check if not referenced by local state
-        positive_refs = self._reference_override[(element_ref, True)]
+        positive_refs = reference_override[(element_ref, True)]
         if positive_refs:
             raise_for().element_in_use(element.versioned_ref, positive_refs)
 
         # check if not referenced by database elements
         # logical optimization, only pre-existing elements
         if element.id > 0:
-            negative_refs = self._reference_override[(element_ref, False)]
+            negative_refs = reference_override[(element_ref, False)]
+            parent_refs = element_parent_refs_cache.get(element_ref)
 
-            # TODO: this could be cached per instance+element_ref
-            parents = await ElementRepository.get_many_parents_by_element_refs(
-                (element_ref,),
-                limit=len(negative_refs) + 1,
-            )
+            if parent_refs is None:
+                # cache miss, fetch from the database
+                parents = await ElementRepository.get_many_parents_by_element_refs(
+                    (element_ref,),
+                    limit=len(negative_refs) + 1,
+                )
 
-            if parents:
-                # read property once for performance
                 last_sequence_id = self.last_sequence_id
+                parent_refs_list: list[ElementRef] = []
 
                 for parent in parents:
                     parent_sequence_id = parent.sequence_id
@@ -389,8 +399,13 @@ class OptimisticDiffPrepare:
                             f'Parent {parent_ref} has future sequence id {parent_sequence_id} > {last_sequence_id}'
                         )
 
-                    if parent_ref not in negative_refs:
-                        raise_for().element_in_use(element.versioned_ref, (parent_ref,))
+                    parent_refs_list.append(parent_ref)
+
+                parent_refs = frozenset(parent_refs_list)
+                element_parent_refs_cache[element_ref] = parent_refs
+
+            for parent_ref in parent_refs - negative_refs:
+                raise_for().element_in_use(element.versioned_ref, (parent_ref,))
 
             self.reference_check_element_refs.add(element_ref)
 
