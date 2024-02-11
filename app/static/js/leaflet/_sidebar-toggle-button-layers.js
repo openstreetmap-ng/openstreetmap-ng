@@ -80,9 +80,8 @@ export const getLayersSidebarToggleButton = () => {
             const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
 
             for (const overlayCheckbox of overlayCheckboxes) {
-                const layerId = overlayCheckbox.dataset.layerId
                 let areaMaxSize
-
+                const layerId = overlayCheckbox.value
                 switch (layerId) {
                     case "notes":
                         areaMaxSize = noteQueryAreaMaxSize
@@ -99,29 +98,40 @@ export const getLayersSidebarToggleButton = () => {
                 if (isAvailable) {
                     if (overlayCheckbox.disabled) {
                         overlayCheckbox.disabled = false
-                        Tooltip.getInstance(overlayCheckbox).disable()
-                        // TODO: will it hide if needed?
+
+                        const parent = overlayCheckbox.closest(".form-check")
+                        parent.classList.remove("disabled")
+                        parent.setAttribute("aria-disabled", "false")
+                        const tooltip = Tooltip.getInstance(parent)
+                        tooltip.disable()
+                        tooltip.hide()
 
                         // Restore the overlay state if it was checked before
                         if (overlayCheckbox.dataset.wasChecked) {
-                            overlayCheckbox.dataset.wasChecked = undefined
+                            console.debug("Restoring checked state for overlay", layerId)
+                            overlayCheckbox.dataset.wasChecked = ""
                             overlayCheckbox.checked = true
                             overlayCheckbox.dispatchEvent(new Event("change"))
                         }
                     }
-                } else {
-                    // biome-ignore lint/style/useCollapsedElseIf: Readability
-                    if (!overlayCheckbox.disabled) {
-                        overlayCheckbox.disabled = true
-                        Tooltip.getInstance(overlayCheckbox).enable()
-                        // TODO: will it hide if needed?
+                } else if (!overlayCheckbox.disabled) {
+                    overlayCheckbox.blur()
+                    overlayCheckbox.disabled = true
 
-                        // Force uncheck the overlay when it becomes unavailable
-                        if (overlayCheckbox.checked) {
-                            overlayCheckbox.dataset.wasChecked = true
-                            overlayCheckbox.checked = false
-                            overlayCheckbox.dispatchEvent(new Event("change"))
-                        }
+                    const parent = overlayCheckbox.closest(".form-check")
+                    parent.classList.add("disabled")
+                    parent.setAttribute("aria-disabled", "true")
+                    Tooltip.getOrCreateInstance(parent, {
+                        title: parent.dataset.bsTitle,
+                        placement: "top",
+                    }).enable()
+
+                    // Force uncheck the overlay when it becomes unavailable
+                    if (overlayCheckbox.checked) {
+                        console.debug("Forcing unchecked state for overlay", layerId)
+                        overlayCheckbox.dataset.wasChecked = true
+                        overlayCheckbox.checked = false
+                        overlayCheckbox.dispatchEvent(new Event("change"))
                     }
                 }
             }
@@ -130,7 +140,7 @@ export const getLayersSidebarToggleButton = () => {
         // On layer click, update the active (base) layer
         const onBaseLayerClick = (e) => {
             const layerContainer = e.currentTarget
-            const layerId = layerContainer.dataset.layerId
+            const layerId = layerContainer.value
             const layer = getBaseLayerById(layerId)
             if (!layer) {
                 console.error(`Base layer ${layerId} not found`)
@@ -165,8 +175,9 @@ export const getLayersSidebarToggleButton = () => {
 
         // On overlay checkbox change, add or remove the overlay layer
         const onOverlayCheckboxChange = (e) => {
+            console.warn(e)
             const overlayCheckbox = e.currentTarget
-            const layerId = overlayCheckbox.dataset.layerId
+            const layerId = overlayCheckbox.value
             const layer = getOverlayLayerById(layerId)
             if (!layer) {
                 console.error(`Overlay ${layerId} not found`)
@@ -181,6 +192,7 @@ export const getLayersSidebarToggleButton = () => {
 
             // Add or remove the overlay layer
             if (checked) {
+                console.debug("Adding layer", layerId)
                 map.addLayer(layer)
 
                 // Trigger the overlayadd event
@@ -188,6 +200,7 @@ export const getLayersSidebarToggleButton = () => {
                 // https://leafletjs.com/reference.html#layerscontrolevent
                 map.fire("overlayadd", { layer: layer, name: layerId })
             } else {
+                console.debug("Removing layer", layerId)
                 map.removeLayer(layer)
 
                 // Trigger the overlayremove event

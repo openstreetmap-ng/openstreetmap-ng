@@ -1,6 +1,13 @@
 .leaflet-sidebar {
     // border-top: 1px solid tint-color($border-color, 50%);
-    padding: 1em;
+
+    .section {
+        padding: 1.2em 1em;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid $border-color;
+        }
+    }
 
     // Adjust position of the close button
     .btn-close {

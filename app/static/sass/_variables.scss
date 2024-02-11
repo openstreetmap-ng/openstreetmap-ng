@@ -4,6 +4,8 @@ $light-green: tint-color($green, 70%);
 $vibrant-green: #76c551;
 $off-white: #f8f8ff;
 
+$primary: $blue;
+
 $link-color: #24d;
 $link-decoration: none;
 $link-hover-color: #24d;
@@ -15,6 +17,8 @@ $table-striped-bg: $off-white;
 
 // https://getbootstrap.com/docs/5.3/customize/color-modes/#adding-theme-colors
 $custom-colors: (
+    "primary": $primary,
+    "blue": $blue,
     "green": $green,
     "light-green": $light-green
 );

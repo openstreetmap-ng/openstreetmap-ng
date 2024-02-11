@@ -1,5 +1,4 @@
 import { Tooltip } from "bootstrap"
-import i18next from "i18next"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
@@ -67,7 +66,7 @@ export const updateNavbarAndHash = (state, object = null) => {
             editGroup.classList.add("disabled")
             editGroup.setAttribute("aria-disabled", "true")
             Tooltip.getOrCreateInstance(editGroup, {
-                title: i18next.t("javascripts.site.edit_disabled_tooltip"),
+                title: editGroup.dataset.bsTitle,
                 placement: "bottom",
             }).enable()
         }

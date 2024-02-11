@@ -1,6 +1,14 @@
+.btn-primary {
+    --bs-btn-color: #{$light};
+    --bs-btn-hover-color: #{$light};
+    --bs-btn-active-color: #{$light};
+    --bs-btn-disabled-color: #{$light};
+}
+
+.btn-outline-primary,
 .btn-outline-green {
-    // Override hover and active colors to light
-    @include button-outline-variant($green, $color-hover: $light, $active-color: $light);
+    --bs-btn-hover-color: #{$light};
+    --bs-btn-active-color: #{$light};
 }
 
 // .btn-outline-light-gray {

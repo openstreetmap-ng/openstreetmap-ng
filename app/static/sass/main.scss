@@ -49,6 +49,11 @@
 // (Bootstrap) Utilities
 @import "bootstrap/scss/utilities/api";
 
+// (Bootstrap Icons)
+// TODO: icons
+$bootstrap-icons-font-dir: "/static/fonts";
+@import "bootstrap-icons/font/bootstrap-icons";
+
 // (Leaflet)
 @import "leaflet/dist/leaflet";
 
@@ -60,6 +65,7 @@
 @import "action-sidebar-routing";
 @import "avatar";
 @import "btn";
+@import "check";
 @import "diary";
 @import "dropdown";
 @import "illustration";

@@ -1,0 +1,13 @@
+.form-check.disabled {
+    color: $gray-500;
+}
+
+.form-check-label {
+    // Prevent text selection
+    user-select: none;
+}
+
+.form-check-input:checked {
+    background-color: $primary;
+    border-color: $primary;
+}

@@ -43,15 +43,4 @@
             }
         }
     }
-
-    // Style the overlay section (map notes, map data, etc.)
-    .overlays {
-        p {
-            font-size: 0.8em;
-        }
-
-        .disabled {
-            color: $gray-600;
-        }
-    }
 }
