@@ -104,6 +104,7 @@ let
         app/middlewares
         app/repositories
         app/responses
+        app/services
         app/validators
       )
       for dir in "''${dirs[@]}"; do

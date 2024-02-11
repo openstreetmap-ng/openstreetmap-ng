@@ -1,3 +1,4 @@
+from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -7,87 +8,64 @@ from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
+from app.models.db.changeset_subscription import ChangesetSubscription
 
 
 class ChangesetCommentService:
     @staticmethod
-    async def subscribe(changeset_id: int) -> Changeset:
+    async def subscribe(changeset_id: int) -> None:
         """
         Subscribe current user to changeset discussion.
         """
 
         try:
             async with db_autocommit() as session:
-                changeset = await session.get(
-                    Changeset,
-                    changeset_id,
-                    options=(
-                        joinedload(Changeset.changeset_subscription_users),
-                        get_joinedload(),
-                    ),
+                session.add(
+                    ChangesetSubscription(
+                        user_id=auth_user().id,
+                        changeset_id=changeset_id,
+                    )
                 )
 
-                if changeset is None:
-                    raise_for().changeset_not_found(changeset_id)
-
-                changeset.changeset_subscription_users.append(auth_user())
-
         except IntegrityError:
+            # TODO: raise_for().changeset_not_found(changeset_id)
             raise_for().changeset_already_subscribed(changeset_id)
 
-        return changeset
-
     @staticmethod
-    async def unsubscribe(changeset_id: int) -> Changeset:
+    async def unsubscribe(changeset_id: int) -> None:
         """
         Unsubscribe current user from changeset discussion.
         """
 
         async with db_autocommit() as session:
-            changeset = await session.get(
-                Changeset,
-                changeset_id,
-                options=(
-                    joinedload(Changeset.changeset_subscription_users),
-                    get_joinedload(),
-                ),
+            stmt = delete(ChangesetSubscription).where(
+                ChangesetSubscription.user_id == auth_user().id,
+                ChangesetSubscription.changeset_id == changeset_id,
             )
 
-            if changeset is None:
-                raise_for().changeset_not_found(changeset_id)
-
-        # TODO: will this work?
-        try:
-            changeset.changeset_subscription_users.remove(auth_user())
-        except ValueError:
-            raise_for().changeset_not_subscribed(changeset_id)
-
-        return changeset
+            if (await session.execute(stmt)).rowcount != 1:
+                raise_for().changeset_not_subscribed(changeset_id)
 
     @staticmethod
-    async def comment(changeset_id: int, text: str) -> Changeset:
+    async def comment(changeset_id: int, text: str) -> None:
         """
         Comment on a changeset.
         """
 
         async with db_autocommit() as session:
-            changeset = await session.get(
+            changeset: Changeset | None = await session.get(
                 Changeset,
                 changeset_id,
-                options=(
-                    joinedload(Changeset.comments),
-                    get_joinedload(),
-                ),
+                options=(get_joinedload(),),
+                with_for_update=True,
             )
-
-            # TODO: with_for_update=True
 
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
             if changeset.closed_at is None:
                 raise_for().changeset_not_closed(changeset_id)
 
-            changeset.comments.append(
+            session.add(
                 ChangesetComment(
                     user_id=auth_user().id,
                     changeset_id=changeset_id,
@@ -95,31 +73,14 @@ class ChangesetCommentService:
                 )
             )
 
-        return changeset
-
     @staticmethod
-    async def delete_comment_unsafe(comment_id: int) -> Changeset:
+    async def delete_comment_unsafe(comment_id: int) -> None:
         """
         Delete any changeset comment.
         """
 
         async with db_autocommit() as session:
-            comment = await session.get(
-                ChangesetComment,
-                comment_id,
-                with_for_update=True,
-            )
+            stmt = delete(ChangesetComment).where(ChangesetComment.id == comment_id)
 
-            if comment is None:
+            if (await session.execute(stmt)).rowcount != 1:
                 raise_for().changeset_comment_not_found(comment_id)
-
-            await session.delete(comment)
-            await session.flush()
-
-            changeset = await session.get(
-                Changeset,
-                comment.changeset_id,
-                options=(get_joinedload(),),
-            )
-
-        return changeset

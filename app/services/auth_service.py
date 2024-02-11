@@ -53,10 +53,9 @@ class AuthService:
         if request.url.path.startswith(('/api/0.6/', '/api/0.7/')):
             authorization = request.headers.get('Authorization')
             scheme, param = get_authorization_scheme_param(authorization)
-            scheme = scheme.lower()
 
             # handle basic auth
-            if scheme == 'basic':
+            if scheme == 'Basic':
                 logging.debug('Attempting to authenticate with Basic')
                 username, _, password = b64decode(param).decode().partition(':')
                 if not username or not password:
@@ -72,7 +71,8 @@ class AuthService:
                 logging.debug('Attempting to authenticate with OAuth')
                 oauth_result = await AuthService.authenticate_oauth(request)
                 if oauth_result is not None:
-                    user, scopes = oauth_result
+                    user = oauth_result[0]
+                    scopes = oauth_result[1]
 
         # all endpoints support session cookies
         if user is None and (token_str := request.session.get('session')) is not None:
@@ -229,12 +229,11 @@ class AuthService:
             # oauth1 requests may use query params or body params
             oauth_version = 1
         else:
-            scheme, _ = get_authorization_scheme_param(authorization)
-            scheme = scheme.lower()
+            scheme = get_authorization_scheme_param(authorization)[0]
 
-            if scheme == 'oauth':
+            if scheme == 'OAuth':
                 oauth_version = 1
-            elif scheme == 'bearer':
+            elif scheme == 'Bearer':
                 oauth_version = 2
             else:
                 # not an OAuth request

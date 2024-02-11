@@ -15,6 +15,7 @@ async def redis():
         yield r
 
 
+# TODO: pool size (anyio concurrency limit)
 _db_engine = create_async_engine(
     POSTGRES_URL,
     echo=POSTGRES_LOG,

@@ -68,3 +68,7 @@ class Element(Base.NoID):
     @updating_cached_property('id')
     def versioned_ref(self) -> VersionedElementRef:
         return VersionedElementRef(type=self.type, id=self.id, version=self.version)
+
+    @updating_cached_property('members')
+    def members_element_refs_set(self) -> frozenset[ElementRef]:
+        return frozenset(member.element_ref for member in self.members)

@@ -80,6 +80,7 @@ async def note_create(
     text: Annotated[str, Query(min_length=1)],
 ) -> dict:
     point = Point(lon, lat)
+    # TODO: update, fetch note
     note = await NoteService.create(request, point, text)
     await _resolve_rich_texts(note)
     return Format06.encode_note(note)
@@ -125,6 +126,7 @@ async def note_comment(
     text: Annotated[str, Query(min_length=1)],
     _: Annotated[User, api_user(Scope.write_notes)],
 ) -> dict:
+    # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
         note = await NoteService.comment(note_id, text, NoteEvent.commented)
     await _resolve_rich_texts(note)
@@ -140,6 +142,7 @@ async def note_close(
     text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes)],
 ) -> dict:
+    # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
         note = await NoteService.comment(note_id, text, NoteEvent.closed)
     await _resolve_rich_texts(note)
@@ -155,6 +158,7 @@ async def note_reopen(
     text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes)],
 ) -> dict:
+    # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
         note = await NoteService.comment(note_id, text, NoteEvent.reopened)
     await _resolve_rich_texts(note)
@@ -170,6 +174,7 @@ async def note_hide(
     text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
 ) -> dict:
+    # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
         note = await NoteService.comment(note_id, text, NoteEvent.hidden)
     await _resolve_rich_texts(note)

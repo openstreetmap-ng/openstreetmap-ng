@@ -13,31 +13,31 @@ from app.repositories.user_token_email_reply_repository import UserTokenEmailRep
 from app.services.message_service import MessageService
 
 
+async def _create_token(replying_user_id: int, source_type: MailFromType) -> UserTokenStruct:
+    """
+    Create a new user email reply token.
+
+    Replying user can use this token to send a message to the current user.
+    """
+
+    token_bytes = buffered_randbytes(32)
+    token_hashed = hash_bytes(token_bytes, context=None)
+
+    async with db_autocommit() as session:
+        token = UserTokenEmailReply(
+            user_id=replying_user_id,
+            token_hashed=token_hashed,
+            expires_at=utcnow() + USER_TOKEN_EMAIL_REPLY_EXPIRE,
+            source_type=source_type,
+            to_user_id=auth_user().id,
+        )
+
+        session.add(token)
+
+    return UserTokenStruct.v1(id=token.id, token=token_bytes)
+
+
 class UserTokenEmailReplyService:
-    @staticmethod
-    async def _create(replying_user_id: int, source_type: MailFromType) -> UserTokenStruct:
-        """
-        Create a new user email reply token.
-
-        Replying user can use this token to send a message to the current user.
-        """
-
-        token_bytes = buffered_randbytes(32)
-        token_hashed = hash_bytes(token_bytes, context=None)
-
-        async with db_autocommit() as session:
-            token = UserTokenEmailReply(
-                user_id=replying_user_id,
-                token_hashed=token_hashed,
-                expires_at=utcnow() + USER_TOKEN_EMAIL_REPLY_EXPIRE,
-                source_type=source_type,
-                to_user_id=auth_user().id,
-            )
-
-            session.add(token)
-
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
-
     @staticmethod
     async def create_address(replying_user_id: int, source_type: MailFromType) -> str:
         """
@@ -46,7 +46,7 @@ class UserTokenEmailReplyService:
         Replying user can use this address to send a message to the current user.
         """
 
-        token = await UserTokenEmailReplyService._create(replying_user_id, source_type)
+        token = await _create_token(replying_user_id, source_type)
         reply_address = f'{token}@{SMTP_MESSAGES_FROM_HOST}'
         return reply_address
 

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from dataclasses import replace
 from datetime import datetime
 
-import anyio
+from anyio import create_task_group
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
@@ -40,9 +40,11 @@ class OptimisticDiffApply:
         prepare.applied = True
         assigned_ref_map: dict[ElementRef, Sequence[Element]] = None
 
-        async with db_autocommit() as session, anyio.create_task_group() as tg:
+        async with db_autocommit() as session, create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
-            await session.execute(f'LOCK TABLE {Changeset.__tablename__}, {Element.__tablename__} IN EXCLUSIVE MODE')
+            await session.execute(
+                f'LOCK TABLE "{Changeset.__tablename__}", "{Element.__tablename__}" IN EXCLUSIVE MODE'
+            )
 
             # get the current time
             self._now = utcnow()
@@ -50,15 +52,18 @@ class OptimisticDiffApply:
             # check time integrity
             tg.start_soon(self._check_time_integrity)
 
-            # check if the elements are still the latest version
+            # check if the element state is still valid
             for element_ref, elements in prepare.element_state.items():
                 if element_ref.id > 0:
                     tg.start_soon(self._check_element_is_latest, elements[0])  # check the oldest element
 
             # check if the elements are not referenced by any *new* elements
-            # TODO: single db call (already implemented)
-            for element, after in prepare.reference_check_state.values():
-                tg.start_soon(self._check_element_not_referenced, element, after)
+            if element_refs := prepare.reference_check_element_refs:
+                tg.start_soon(
+                    self._check_elements_not_referenced,
+                    element_refs,
+                    prepare.last_sequence_id,
+                )
 
             # update the changesets
             tg.start_soon(self._update_changesets, prepare.changeset_state, session)
@@ -78,9 +83,7 @@ class OptimisticDiffApply:
         """
 
         element = await ElementRepository.find_one_latest()
-        if element is None:
-            return
-        if element.created_at > self._now:
+        if element is not None and element.created_at > self._now:
             logging.error(
                 'Element %r/%r was created in the future: %r > %r',
                 element.type,
@@ -109,19 +112,19 @@ class OptimisticDiffApply:
                 f'Element {element.element_ref} is not the latest version ({latest.version} != {element.version})'
             )
 
-    async def _check_element_not_referenced(self, element: Element, after: int) -> None:
+    async def _check_elements_not_referenced(self, element_refs: Sequence[ElementRef], after: int) -> None:
         """
-        Check if the element is not referenced by any other element.
+        Check if the elements are not referenced by any other elements after the given sequence id.
 
-        Raises `OptimisticDiffError` if it is.
+        Raises `OptimisticDiffError` if they are.
         """
 
         if parents := await ElementRepository.get_many_parents_by_element_refs(
-            (element.element_ref,),
+            element_refs,
             after_sequence_id=after,
             limit=1,
         ):
-            raise OptimisticDiffError(f'Element {element.element_ref} is referenced by {parents[0].element_ref}')
+            raise OptimisticDiffError(f'Element is referenced by {parents[0].element_ref}')
 
     async def _update_changesets(
         self,
@@ -143,7 +146,7 @@ class OptimisticDiffApply:
         async for remote in await session.stream_scalars(stmt):
             local = changesets_next.pop(remote.id)
 
-            # check if the changeset was modified in the meantime
+            # ensure the changeset was not modified
             if remote.updated_at != local.updated_at:
                 raise OptimisticDiffError(
                     f'Changeset {remote.id} was modified ({remote.updated_at} != {local.updated_at})'
@@ -194,7 +197,8 @@ class OptimisticDiffApply:
 
             # supersede the previous version
             if element.version > 1:
-                superseded_refs.add(replace(element_versioned_ref, version=element_versioned_ref.version - 1))
+                previous_versioned_ref = replace(element_versioned_ref, version=element_versioned_ref.version - 1)
+                superseded_refs.add(previous_versioned_ref)
 
         # process superseded elements (remote)
         if superseded_refs:
@@ -229,35 +233,34 @@ class OptimisticDiffApply:
         type_next_id_map: dict[ElementType, int] = {}
 
         async def type_next_id_task(type: ElementType) -> None:
-            if any(e.id < 0 and e.type == type for e in elements):
-                type_next_id_map[type] = (await ElementRepository.get_last_id_by_type(type)) + 1
+            last_id_by_type = await ElementRepository.get_last_id_by_type(type)
+            type_next_id_map[type] = last_id_by_type + 1
 
-        seen_types: set[ElementType] = set()
-        max_seen_types = len(ElementType)
+        elements_without_id = []
+        started_type_tasks: set[ElementType] = set()
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for element in elements:
-                element_type = element.type
-                if element_type in seen_types:
+                if element.id > 0:
                     continue
 
-                seen_types.add(element_type)
-                tg.start_soon(type_next_id_task, element_type)
+                elements_without_id.append(element)
 
-                if len(seen_types) == max_seen_types:
-                    break
+                element_type = element.type
+                if element_type in started_type_tasks:
+                    continue
+
+                tg.start_soon(type_next_id_task, element_type)
+                started_type_tasks.add(element_type)
 
         # small optimization, skip if no elements needing assignment
-        if not type_next_id_map:
+        if not elements_without_id:
             return
 
         # assign ids
         assigned_id_map: dict[ElementRef, int] = {}
 
-        for element in elements:
-            if element.id > 0:
-                continue
-
+        for element in elements_without_id:
             # check for existing assigned id
             if (assigned_id := assigned_id_map.get(element.element_ref)) is not None:
                 element.id = assigned_id
@@ -269,11 +272,12 @@ class OptimisticDiffApply:
             element.id = assigned_id
             assigned_id_map[element.element_ref] = assigned_id
 
-        # update element members
+        # update elements members
         for element in elements:
-            element.members = tuple(
-                replace(member_ref, id=assigned_id_map[member_ref.element_ref])
-                if member_ref.id < 0  #
-                else member_ref
-                for member_ref in element.members
-            )
+            if element.members:
+                element.members = tuple(
+                    replace(member_ref, id=assigned_id_map[member_ref.element_ref])
+                    if member_ref.id < 0  #
+                    else member_ref
+                    for member_ref in element.members
+                )

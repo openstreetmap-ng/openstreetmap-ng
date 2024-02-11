@@ -18,6 +18,7 @@ async def changeset_subscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
+    # TODO: update, fetch changeset
     changeset = await ChangesetCommentService.subscribe(changeset_id)
     return Format06.encode_changeset(changeset)
 
@@ -27,6 +28,7 @@ async def changeset_unsubscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
+    # TODO: update, fetch changeset
     changeset = await ChangesetCommentService.unsubscribe(changeset_id)
     return Format06.encode_changeset(changeset)
 
@@ -37,6 +39,7 @@ async def changeset_comment(
     text: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
+    # TODO: update, fetch changeset
     changeset = await ChangesetCommentService.comment(changeset_id, text)
     return Format06.encode_changeset(changeset)
 
@@ -46,5 +49,6 @@ async def changeset_comment_hide(
     comment_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api, ExtendedScope.role_moderator)],
 ) -> dict:
+    # TODO: update, fetch changeset
     changeset = await ChangesetCommentService.delete_comment_unsafe(comment_id)
     return Format06.encode_changeset(changeset)

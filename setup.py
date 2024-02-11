@@ -19,6 +19,7 @@ dirs = [
     'app/middlewares',
     'app/repositories',
     'app/responses',
+    'app/services',
     'app/validators',
 ]
 

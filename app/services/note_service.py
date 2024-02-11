@@ -10,13 +10,14 @@ from app.lib.joinedload_context import get_joinedload
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
+from app.utils import parse_request_ip
 
 
 class NoteService:
     @staticmethod
-    async def create(request: Request, point: Point, text: str) -> Note:
+    async def create(request: Request, point: Point, text: str) -> int:
         """
-        Create a note.
+        Create a note and return its id.
         """
 
         if (user := auth_user()) is not None:
@@ -24,43 +25,39 @@ class NoteService:
             user_ip = None
         else:
             user_id = None
-            user_ip = request.client.host
+            user_ip = parse_request_ip(request)
 
         async with db_autocommit() as session:
-            note = Note(
-                point=point,
-                comments=[
-                    NoteComment(
-                        user_id=user_id,
-                        user_ip=user_ip,
-                        event=NoteEvent.opened,
-                        body=text,
-                    )
-                ],
+            note = Note(point=point)
+            session.add(note)
+            await session.flush()
+
+            session.add(
+                NoteComment(
+                    user_id=user_id,
+                    user_ip=user_ip,
+                    note_id=note.id,
+                    event=NoteEvent.opened,
+                    body=text,
+                )
             )
 
-            session.add(note)
-
-        return note
+        return note.id
 
     @staticmethod
-    async def comment(note_id: int, text: str, event: NoteEvent) -> Note:
+    async def comment(note_id: int, text: str, event: NoteEvent) -> None:
         """
         Comment on a note.
         """
 
-        current_user = auth_user()
+        user = auth_user()
 
         async with db_autocommit() as session:
             stmt = (
                 select(Note)
-                .options(
-                    joinedload(Note.comments),
-                    get_joinedload(),
-                )
                 .where(
                     Note.id == note_id,
-                    Note.visible_to(current_user),
+                    Note.visible_to(user),
                 )
                 .with_for_update()
             )
@@ -97,14 +94,15 @@ class NoteService:
             else:
                 raise RuntimeError(f'Unsupported comment event {event!r}')
 
-            # TODO: will this updated_at ?
-            note.comments.append(
+            # force update note object
+            note.updated_at = func.statement_timestamp()
+
+            session.add(
                 NoteComment(
-                    user_id=current_user.id,
+                    user_id=user.id,
                     user_ip=None,
+                    note_id=note_id,
                     event=event,
                     body=text,
                 )
             )
-
-        return note

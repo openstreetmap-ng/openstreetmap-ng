@@ -140,7 +140,7 @@ class ElementRepository:
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
-        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == ElementType.way) if recurse_ways else ()
+        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == _type_way) if recurse_ways else ()
 
         async with db() as session:
             stmt = (
@@ -232,19 +232,19 @@ class ElementRepository:
             if element_refs:
                 tg.start_soon(element_refs_task)
 
-        # deduplicate results and preserve order
-        seen_sequence_id = set()
+        # remove duplicates and preserve order
         result = []
+        result_set: set[int] = set()
 
         for ref in refs:
             element = ref_map.get(ref)
+            if element is None:
+                continue
 
-            if element is not None:
-                if element.sequence_id in seen_sequence_id:
-                    continue
-                seen_sequence_id.add(element.sequence_id)
-
-            result.append(element)
+            element_sequence_id = element.sequence_id
+            if element_sequence_id not in result_set:
+                result.append(element)
+                result_set.add(element_sequence_id)
 
         if limit is not None:
             return result[:limit]

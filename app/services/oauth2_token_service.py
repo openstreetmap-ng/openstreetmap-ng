@@ -26,8 +26,8 @@ class OAuth2TokenService:
         client_id: str,
         redirect_uri: str,
         scopes: Sequence[Scope],
-        code_challenge: str | None,
         code_challenge_method: OAuth2CodeChallengeMethod | None,
+        code_challenge: str | None,
         state: str | None,
     ) -> str | OAuth2Application:
         """
@@ -87,8 +87,8 @@ class OAuth2TokenService:
                 token_hashed=authorization_code_hashed,
                 scopes=scopes,
                 redirect_uri=redirect_uri,
-                code_challenge=code_challenge,
                 code_challenge_method=code_challenge_method,
+                code_challenge=code_challenge,
             )
 
             session.add(token)
@@ -152,8 +152,8 @@ class OAuth2TokenService:
 
             token.token_hashed = access_token_hashed
             token.authorized_at = utcnow()
-            token.code_challenge = None
             token.code_challenge_method = None
+            token.code_challenge = None
 
         return {
             'access_token': access_token,

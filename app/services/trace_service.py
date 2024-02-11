@@ -34,18 +34,31 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
     max_date_diff = timedelta(seconds=1)
 
     sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
-    deduped_points = [sorted_points[0]]
+    result = []
+    prev: TracePoint | None = None
 
-    for prev, point in pairwise(sorted_points):
-        if (
-            abs(point.point.x - prev.point.x) < max_pos_diff
-            and abs(point.point.y - prev.point.y) < max_pos_diff
-            and point.captured_at - prev.captured_at < max_date_diff  # check date last, slowest to compute
-        ):
-            continue
-        deduped_points.append(point)
+    for point in sorted_points:
+        if prev is not None:
+            point_point = point.point
+            prev_point = prev.point
 
-    return deduped_points
+            point_x: cython.double = point_point.x
+            prev_x: cython.double = prev_point.x
+            x_delta = point_x - prev_x if (point_x > prev_x) else prev_x - point_x
+
+            if x_delta < max_pos_diff:
+                point_y: cython.double = point_point.y
+                prev_y: cython.double = prev_point.y
+                y_delta = point_y - prev_y if (point_y > prev_y) else prev_y - point_y
+
+                # check date last, slowest to compute
+                if y_delta < max_pos_diff and point.captured_at - prev.captured_at < max_date_diff:
+                    continue
+
+        result.append(point)
+        prev = point
+
+    return result
 
 
 class TraceService:
@@ -89,7 +102,6 @@ class TraceService:
                 visibility=visibility,
                 size=len(points),
                 start_point=points[0].point,
-                tags=(),  # set with .tag_string
             ).to_orm_dict()
         )
 

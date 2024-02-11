@@ -22,7 +22,7 @@ class OAuth2:
 
         scheme, param = get_authorization_scheme_param(authorization)
 
-        if scheme.lower() != 'bearer':
+        if scheme != 'Bearer':
             raise_for().oauth2_bearer_missing()
 
         token = await OAuth2TokenRepository.find_one_authorized_by_token(param)

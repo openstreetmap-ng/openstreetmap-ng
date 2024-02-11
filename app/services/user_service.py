@@ -76,7 +76,7 @@ class UserService:
                 user.avatar_id = avatar_id
 
         # cleanup old avatar
-        if avatar_type is not None and current_user.avatar_id:
+        if avatar_type is not None and current_user.avatar_id is not None:
             await AvatarService.delete_by_id(current_user.avatar_id)
 
     @staticmethod

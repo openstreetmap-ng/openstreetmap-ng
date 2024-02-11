@@ -4,6 +4,7 @@ from email.message import EmailMessage
 from email.utils import formataddr, formatdate
 
 import anyio
+import cython
 from aiosmtplib import SMTP
 from sqlalchemy import null, or_, select
 
@@ -24,29 +25,26 @@ from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UN
 from app.models.db.mail import Mail
 from app.models.db.user import User
 from app.models.mail_from_type import MailFromType
-from app.services.user_token_email_reply_service import EmailReplyService
+from app.services.user_token_email_reply_service import EmailReplyService, UserTokenEmailReplyService
 
 
 def _validate_smtp_config():
     return SMTP_NOREPLY_FROM and SMTP_MESSAGES_FROM
 
 
-def _validate_secure_port(port):
-    if port not in (465, 587):
-        raise ValueError('SMTP_SECURE is enabled but SMTP_PORT is not 465 or 587')
-
-
-def _create_smtp_client(host, port, user, password, secure):
-    if secure:
-        _validate_secure_port(port)
-        use_tls = port == 465
-        start_tls = True if port == 587 else None
-        return SMTP(host, port, user, password, use_tls=use_tls, start_tls=start_tls)
-    else:
-        return SMTP(host, port, user, password)
-
-
 if _validate_smtp_config():
+
+    def _create_smtp_client(host: str, port: int, user: str, password: str, secure: bool):
+        if secure:
+            if port not in (465, 587):
+                raise ValueError('SMTP_SECURE is enabled but SMTP_PORT is not 465 or 587')
+
+            use_tls = port == 465
+            start_tls = True if port == 587 else None
+            return SMTP(host, port, user, password, use_tls=use_tls, start_tls=start_tls)
+        else:
+            return SMTP(host, port, user, password)
+
     _SMTP = _create_smtp_client(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE)
 else:
     logging.warning('SMTP is not configured, mail delivery is disabled')
@@ -59,20 +57,14 @@ async def _send_smtp(mail: Mail) -> None:
     #     logging.info('Discarding mail %r to user %d (not found)', mail.id, mail.to_user_id)
     #     return
 
-    if mail.from_type != MailFromType.system and mail.from_user is None:
-        logging.info('Discarding mail %r from user %d (not found)', mail.id, mail.from_user_id)
-        return
-
     message = EmailMessage()
 
     if mail.from_type == MailFromType.system:
         message['From'] = SMTP_NOREPLY_FROM
     else:
-        # swap from/to users because this is a reply token
-        reply_address = await EmailReplyService.create_address(
-            from_user_id=mail.to_user_id,
+        reply_address = await UserTokenEmailReplyService.create_address(
+            replying_user_id=mail.to_user_id,
             source_type=mail.from_type,
-            to_user_id=mail.from_user_id,
         )
         message['From'] = formataddr((mail.from_user.display_name, reply_address))
 
@@ -90,7 +82,7 @@ async def _send_smtp(mail: Mail) -> None:
         # disables threading in gmail
         message['X-Entity-Ref-ID'] = full_ref
 
-    if not _SMTP:
+    if _SMTP is None:
         logging.info('Discarding mail %r (SMTP is not configured)', mail.id)
         return
 
@@ -120,7 +112,7 @@ class MailService:
 
         async with db_autocommit() as session:
             mail = Mail(
-                from_user_id=from_user.id if from_user is not None else None,
+                from_user_id=from_user.id if (from_user is not None) else None,
                 from_type=from_type,
                 to_user_id=to_user.id,
                 subject=subject,
@@ -188,4 +180,3 @@ class MailService:
                 logging.info('Requeuing unprocessed mail %r', mail.id, exc_info=True)
                 mail.processing_counter += 1
                 mail.processing_at = processing_at
-                # TODO: redundant? await session.commit()

@@ -1,8 +1,8 @@
 import logging
 import time
 from collections.abc import Sequence
-from itertools import count
 
+import cython
 from sqlalchemy.exc import IntegrityError
 
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
@@ -28,8 +28,11 @@ class OptimisticDiff:
             return {}
 
         ts = time.monotonic()
+        attempt: cython.int = 0
 
-        for attempt in count(1):
+        while True:
+            attempt += 1
+
             try:
                 prep = OptimisticDiffPrepare(self._elements)
                 await prep.prepare()
