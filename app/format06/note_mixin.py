@@ -95,7 +95,7 @@ class Note06Mixin:
                     'time': note.created_at,
                     'name': f'Note: {note.id}',
                     'link': {'href': note.permalink},
-                    'desc': ET.CDATA(render('api/0.6/note_comments_rss.jinja2', comments=note.comments)),
+                    'desc': ET.CDATA(render('api/0.6/note_feed_comments.jinja2', comments=note.comments)),
                     'extensions': {
                         'id': note.id,
                         'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',

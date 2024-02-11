@@ -29,7 +29,7 @@ async def _encode_note(
     fe.link(href=note.permalink)
     fe.content(
         render(
-            'api/0.6/note_comments_rss.jinja2',
+            'api/0.6/note_feed_comments.jinja2',
             comments=note.comments,
         ),
         type='CDATA',
@@ -74,7 +74,7 @@ async def _encode_note_comment(
     fe.link(href=comment.legacy_permalink)
     fe.content(
         render(
-            'api/0.6/note_feed_entry_rss.jinja2',
+            'api/0.6/note_feed_entry.jinja2',
             comment=comment,
             comments=comment.note.comments,
         ),
