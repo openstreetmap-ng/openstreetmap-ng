@@ -4,3 +4,6 @@ editor:
 map:
   overlays:
     title: Map Overlays
+action:
+  copy: Copy
+  copy_success: Copied!

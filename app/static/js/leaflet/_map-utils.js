@@ -338,9 +338,9 @@ export const getInitialMapState = (map = null) => {
 export const getMapUrl = (map, showMarker = false) => {
     let { lon, lat, zoom, layersCode } = getMapState(map)
     const precision = zoomPrecision(zoom)
+    const hash = encodeMapState({ lon, lat, zoom, layersCode })
     lon = lon.toFixed(precision)
     lat = lat.toFixed(precision)
-    const hash = encodeMapState({ lon, lat, zoom, layersCode })
 
     if (showMarker) {
         return `${location.protocol}//${location.host}/?mlat=${lat}&mlon=${lon}${hash}`
@@ -359,11 +359,7 @@ export const getMapUrl = (map, showMarker = false) => {
  * // => "https://osm.org/go/wF7ZdNbjU-"
  */
 export const getMapShortUrl = (map, showMarker = false) => {
-    const { center, zoom, layersCode } = getMapState(map)
-    const precision = zoomPrecision(zoom)
-    const lat = center.lat.toFixed(precision)
-    const lon = center.lng.toFixed(precision)
-
+    const { lon, lat, zoom, layersCode } = getMapState(map)
     const code = shortLinkEncode(lon, lat, zoom)
     const params = {}
 
@@ -397,14 +393,14 @@ export const getMapShortUrl = (map, showMarker = false) => {
 export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const params = {
         bbox: map.getBounds().toBBoxString(),
-        layer: map.getBaseLayerId(),
+        layer: getMapBaseLayer(map).options.layerId,
     }
 
     // Add optional map marker
     if (markerLatLng) {
-        // Don't apply precision on embeds
-        const lat = markerLatLng.lat
+        // Not applying precision on embed markers
         const lon = markerLatLng.lng
+        const lat = markerLatLng.lat
         params.marker = `${lat},${lon}`
     }
 
@@ -425,10 +421,14 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
 
     container.appendChild(iframe)
 
+    // Create new line
+    const br = document.createElement("br")
+    container.appendChild(br)
+
     // Create the link to view the larger map
     const small = document.createElement("small")
     const link = document.createElement("a")
-    link.href = getMapUrl(map, markerLatLng)
+    link.href = getMapUrl(map, Boolean(markerLatLng))
     link.textContent = i18next.t("javascripts.share.view_larger_map")
     small.appendChild(link)
     container.appendChild(small)
@@ -445,10 +445,10 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
  * // => "geo:51.505,-0.09?z=15"
  */
 export const getMapGeoUri = (map) => {
-    const { center, zoom } = getMapState(map)
+    let { lon, lat, zoom } = getMapState(map)
     const precision = zoomPrecision(zoom)
-    const lat = center.lat.toFixed(precision)
-    const lon = center.lng.toFixed(precision)
+    lon = lon.toFixed(precision)
+    lat = lat.toFixed(precision)
     return `geo:${lat},${lon}?z=${zoom}`
 }
 

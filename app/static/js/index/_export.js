@@ -17,7 +17,7 @@ export const getExportController = (map) => {
     const minLatInput = sidebar.querySelector("input[name=min_lat]")
     const maxLonInput = sidebar.querySelector("input[name=max_lon]")
     const maxLatInput = sidebar.querySelector("input[name=max_lat]")
-    const customRegionCheckbox = sidebar.querySelector(".custom-region-checkbox")
+    const customRegionCheckbox = sidebar.querySelector(".custom-region-check")
     const formAvailableContainer = sidebar.querySelector(".form-available-container")
     const formUnavailableContainer = sidebar.querySelector(".form-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")

@@ -2,7 +2,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
-import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl, getMapUrl } from "./_map-utils.js"
+import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl } from "./_map-utils.js"
 import { getSidebarToggleButton } from "./_sidebar-toggle-button.js"
 import { getMarkerIcon } from "./_utils.js"
 
@@ -15,65 +15,44 @@ export const getShareSidebarToggleButton = () => {
         const sidebar = control.sidebar
         const button = control.button
 
-        const markerCheckbox = sidebar.querySelector(".marker-checkbox")
-        const linkRadioInput = sidebar.querySelector(".link-button")
+        const markerCheckbox = sidebar.querySelector(".marker-check")
+        const copyGroups = sidebar.querySelectorAll(".copy-group")
         const linkInput = sidebar.querySelector(".link-input")
-        const shortLinkRadioInput = sidebar.querySelector(".short-link-button")
-        const shortLinkInput = sidebar.querySelector(".short-link-input")
-        const embedRadioInput = sidebar.querySelector(".embed-button")
+        const geoUriInput = sidebar.querySelector(".geo-uri-input")
         const embedInput = sidebar.querySelector(".embed-input")
-        const geoUriLink = sidebar.querySelector(".geo-uri-link")
-        const exportForm = sidebar.querySelector(".export-form")
-        const exportFormatSelect = exportForm.querySelector(".export-format-select")
-        const customRegionCheckbox = exportForm.querySelector(".custom-region-checkbox")
-        const offsetsWithDetailRadioInputs = exportForm
-            .querySelectorAll(".detail-input")
-            .map((input) => [parseInt(input.value), input])
-        const exportButton = exportForm.querySelector("[type=submit]")
+
+        // const exportForm = sidebar.querySelector(".export-form")
+        // const exportFormatSelect = exportForm.querySelector(".export-format-select")
+        // const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
+        // const offsetsWithDetailRadioInputs = exportForm
+        //     .querySelectorAll(".detail-input")
+        //     .map((input) => [parseInt(input.value), input])
+        // const exportButton = exportForm.querySelector("[type=submit]")
 
         // Null values until initialized
         let marker = null
         let locationFilter = null
         let optimalExportParams = null
 
-        const updateLinks = () => {
+        const updateCopyInputs = () => {
             const showMarker = markerCheckbox.checked
-
-            if (linkRadioInput.checked) {
-                const link = getMapUrl(map, showMarker)
-                linkInput.value = link
-            } else if (shortLinkRadioInput.checked) {
-                const shortLink = getMapShortUrl(map, showMarker)
-                shortLinkInput.value = shortLink
-            } else if (embedRadioInput.checked) {
-                const markerLatLng = showMarker ? marker.getLatLng() : null
-                const embed = getMapEmbedHtml(map, markerLatLng)
-                embedInput.value = embed
-            }
-        }
-
-        const updateGeoUri = () => {
-            const geoUri = getMapGeoUri(map)
-            geoUriLink.href = geoUri
-            geoUriLink.textContent = geoUri
+            linkInput.value = getMapShortUrl(map, showMarker)
+            geoUriInput.value = getMapGeoUri(map)
+            embedInput.value = getMapEmbedHtml(map, showMarker ? marker.getLatLng() : null)
         }
 
         // On map move, update marker position if marker is enabled
         const onMapMove = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
-            if (markerCheckbox.checked) {
-                marker.setLatLng(map.getCenter())
-            }
+            if (markerCheckbox.checked) marker.setLatLng(map.getCenter())
         }
 
         // On map zoomend or moveend, update sidebar data
         const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
-
-            updateLinks()
-            updateGeoUri()
+            updateCopyInputs()
         }
 
         // On map zoomend or baselayerchange, update the optimal export params
@@ -107,6 +86,15 @@ export const getShareSidebarToggleButton = () => {
             }
         }
 
+        // On marker drag end, center map to marker
+        const onMarkerDragEnd = () => {
+            map.removeEventListener("move", onMapMove)
+            map.panTo(marker.getLatLng())
+            map.addOneTimeEventListener("moveend", () => {
+                map.addEventListener("move", onMapMove)
+            })
+        }
+
         // On marker checkbox change, display/hide the marker
         const onMarkerCheckboxChange = () => {
             if (markerCheckbox.checked) {
@@ -130,6 +118,12 @@ export const getShareSidebarToggleButton = () => {
                 map.options.scrollWheelZoom = map.options.doubleClickZoom = true
             }
         }
+
+        // On copy group input focus, select all text
+        const onCopyInputFocus = (e) => {}
+
+        // On copy group button click, copy input and change tooltip text
+        const onCopyButtonClick = (e) => {}
 
         const onExportFormSubmit = async (e) => {
             e.preventDefault()
@@ -187,16 +181,7 @@ export const getShareSidebarToggleButton = () => {
             onMapZoomOrLayerChange()
         }
 
-        // On marker drag end, center map to marker
-        const onMarkerDragEnd = () => {
-            map.removeEventListener("move", onMapMove)
-            map.panTo(marker.getLatLng())
-            map.addOneTimeEventListener("moveend", () => {
-                map.addEventListener("move", onMapMove)
-            })
-        }
-
-        const onButtonClick = () => {
+        const onSidebarButtonClick = () => {
             if (button.classList.contains("active")) {
                 // On sidebar shown, force update
                 onMapZoomOrMoveEnd()
@@ -220,19 +205,16 @@ export const getShareSidebarToggleButton = () => {
         map.addEventListener("move", onMapMove)
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
-        button.addEventListener("click", onButtonClick)
+        button.addEventListener("click", onSidebarButtonClick)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
-        linkRadioInput.addEventListener("change", () => {
-            if (linkRadioInput.checked) updateLinks()
-        })
-        shortLinkRadioInput.addEventListener("change", () => {
-            if (shortLinkRadioInput.checked) updateLinks()
-        })
-        embedRadioInput.addEventListener("change", () => {
-            if (embedRadioInput.checked) updateLinks()
-        })
-        exportForm.addEventListener("submit", onExportFormSubmit)
-        customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
+        for (const copyGroup of copyGroups) {
+            const copyInput = copyGroup.querySelector(".form-control")
+            copyInput.addEventListener("focus", onCopyInputFocus)
+            const copyButton = copyGroup.querySelector("button")
+            copyButton.addEventListener("click", onCopyButtonClick)
+        }
+        //exportForm.addEventListener("submit", onExportFormSubmit)
+        //customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
 
         return container
     }

@@ -1,0 +1,70 @@
+<div class="sidebar leaflet-sidebar share">
+    <div class="sidebar-content">
+        <div class="section">
+
+            <div class="row g-1 mb-2">
+                <div class="col">
+                    <h2>
+                        {{ t('javascripts.share.title') }}
+                    </h2>
+                </div>
+                <div class="col-auto">
+                    <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+                </div>
+            </div>
+
+            <div class="form-check mb-3">
+                <label class="form-check-label d-block">
+                    <input class="form-check-input marker-check" type="checkbox" autocomplete="off">
+                    {{ t('javascripts.share.include_marker') }}
+                    <span class="text-body-tertiary">
+                        (<img class="marker-icon" src="/static/img/marker/blue.webp" alt="Blue marker icon">)
+                    </span>
+                </label>
+            </div>
+
+            <label class="copy-group-label">
+                {{ t('javascripts.share.long_link') }}
+            </label>
+
+            <div class="input-group copy-group mb-3">
+                <input class="form-control link-input" type="text" autocomplete="off" readonly>
+                <button class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-title="{{ t('action.copy') }}" data-bs-title-success="{{ t('action.copy_success') }}">
+                    <i class="bi bi-copy"></i>
+                </button>
+            </div>
+
+
+            <label class="copy-group-label">
+                {{ t('javascripts.share.geo_uri') }}
+            </label>
+
+            <div class="input-group copy-group mb-3">
+                <input class="form-control geo-uri-input" type="text" autocomplete="off" readonly>
+                <button class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-title="{{ t('action.copy') }}" data-bs-title-success="{{ t('action.copy_success') }}">
+                    <i class="bi bi-copy"></i>
+                </button>
+            </div>
+
+            <label class="copy-group-label">
+                {{ t('javascripts.share.embed') }}
+            </label>
+
+            <div class="input-group copy-group mb-2">
+                <input class="form-control embed-input" type="text" autocomplete="off" readonly></textarea>
+                <button class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-title="{{ t('action.copy') }}" data-bs-title-success="{{ t('action.copy_success') }}">
+                    <i class="bi bi-copy"></i>
+                </button>
+            </div>
+
+        </div>
+        <div class="section">
+            <h4>
+                {{ t('javascripts.share.image') }}
+            </h4>
+        </div>
+    </div>
+</div>

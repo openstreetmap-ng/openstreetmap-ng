@@ -1,14 +1,14 @@
 const messagesContainer = document.querySelector(".messages-container")
 if (messagesContainer) {
     // Panel
-    const toggleAllCheckbox = document.querySelector(".toggle-all-checkbox")
+    const toggleAllCheckbox = document.querySelector(".toggle-all-check")
     const numSelectedSpan = document.querySelector(".num-selected")
     const markReadButton = document.querySelector(".mark-read-btn")
     const markUnreadButton = document.querySelector(".mark-unread-btn")
     const deleteButton = document.querySelector(".delete-btn")
 
     // Table
-    const toggleCheckboxes = document.querySelectorAll(".toggle-checkbox")
+    const toggleCheckboxes = document.querySelectorAll(".toggle-check")
 
     const messageIds = new Set()
 
