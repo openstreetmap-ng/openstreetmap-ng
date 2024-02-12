@@ -1,0 +1,149 @@
+<div class="sidebar leaflet-sidebar legend">
+    <div class="sidebar-content section">
+
+        <div class="row g-1 mb-3">
+            <div class="col">
+                <h2>
+                    {{ t('javascripts.key.title') }}
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+        </div>
+
+        {%
+            set config = (
+                ('-', 'motorway', 'motorway'),
+                ('-6', 'mainroad', 'main_road'),
+                ('7-8', 'mainroad7', 'main_road'),
+                ('9-11', 'mainroad9', 'main_road'),
+                ('12-', 'mainroad12', 'main_road'),
+                ('13-', 'track', 'track'),
+                ('13-', 'bridleway', 'bridleway'),
+                ('13-', 'cycleway', 'cycleway'),
+                ('13-', 'footway', 'footway'),
+                ('8-12', 'rail', 'rail'),
+                ('13-', 'rail13', 'rail'),
+                ('13-', 'subway', 'subway'),
+                ('13-', 'tram', 'tram'),
+                ('12-', 'cable_car', 'cable_car'),
+                ('12-', 'chair_lift', 'chair_lift'),
+                ('11-', 'runway', 'runway'),
+                ('12-', 'apron', 'apron'),
+                ('-', 'admin', 'admin'),
+                ('9-', 'forest', 'forest'),
+                ('10-', 'wood', 'wood'),
+                ('10-', 'golf', 'golf'),
+                ('10-', 'park', 'park'),
+                ('8-', 'resident', 'resident'),
+                ('10-', 'common', 'common'),
+                ('10-', 'retail', 'retail'),
+                ('10-', 'industrial', 'industrial'),
+                ('10-', 'commercial', 'commercial'),
+                ('10-', 'heathland', 'heathland'),
+                ('7-', 'lake', 'lake'),
+                ('10-', 'farm', 'farm'),
+                ('10-', 'brownfield', 'brownfield'),
+                ('11-', 'cemetery', 'cemetery'),
+                ('11-', 'allotments', 'allotments'),
+                ('11-', 'pitch', 'pitch'),
+                ('11-', 'centre', 'centre'),
+                ('11-', 'reserve', 'reserve'),
+                ('11-', 'military', 'military'),
+                ('12-', 'school', 'school'),
+                ('12-', 'building', 'building'),
+                ('12-', 'station', 'station'),
+                ('12-', 'summit', 'summit'),
+                ('12-', 'tunnel', 'tunnel'),
+                ('13-', 'bridge', 'bridge'),
+                ('15-', 'private', 'private'),
+                ('15-', 'destination', 'destination'),
+                ('12-', 'construction', 'construction')
+            )
+        %}
+        <table class="table table-sm table-borderless align-middle layer-container" data-layer-id="standard">
+            <tbody>
+                {% for zoom, icon, translation in config %}
+                <tr data-zoom="{{ zoom }}">
+                    <td class="icon">
+                        <img src="/static/img/legend/standard/{{ icon }}.webp">
+                    </td>
+                    <td class="small">{{ t('site.key.table.entry.' + translation) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {#
+  - { min_zoom: 0, max_zoom: 11, name: motorway, image: motorway.png }
+  - { min_zoom: 12, max_zoom: 19, name: motorway, image: motorway12.png }
+  - { min_zoom: 0, max_zoom: 11, name: trunk, image: trunk.png }
+  - { min_zoom: 12, max_zoom: 19, name: trunk, image: trunk12.png }
+  - { min_zoom: 7, max_zoom: 11, name: primary, image: primary.png }
+  - { min_zoom: 12, max_zoom: 19, name: primary, image: primary12.png }
+  - { min_zoom: 9, max_zoom: 11, name: secondary, image: secondary.png }
+  - { min_zoom: 12, max_zoom: 19, name: secondary, image: secondary12.png }
+  - { min_zoom: 13, max_zoom: 19, name: track, image: track.png }
+  - { min_zoom: 8, max_zoom: 19, name: cycleway, image: cycleway.png }
+  - { min_zoom: 5, max_zoom: 12, name: cycleway_national, image: cycleway_national.png }
+  - { min_zoom: 13, max_zoom: 19, name: cycleway_national, image: cycleway_national13.png }
+  - { min_zoom: 5, max_zoom: 12, name: cycleway_regional, image: cycleway_regional.png }
+  - { min_zoom: 13, max_zoom: 19, name: cycleway_regional, image: cycleway_regional13.png }
+  - { min_zoom: 8, max_zoom: 12, name: cycleway_local, image: cycleway_local.png }
+  - { min_zoom: 13, max_zoom: 19, name: cycleway_local, image: cycleway_local13.png }
+  - { min_zoom: 13, max_zoom: 19, name: footway, image: footway.png }
+  - { min_zoom: 7, max_zoom: 13, name: rail, image: rail.png }
+  - { min_zoom: 14, max_zoom: 19, name: rail, image: rail14.png }
+  - { min_zoom: 9, max_zoom: 19, name: forest, image: forest.png }
+  - { min_zoom: 10, max_zoom: 19, name: common, image: common.png }
+  - { min_zoom: 7, max_zoom: 19, name: lake, image: lake.png }
+  - { min_zoom: 14, max_zoom: 19, name: bicycle_shop, image: bicycle_shop.png }
+  - { min_zoom: 14, max_zoom: 19, name: bicycle_parking, image: bicycle_parking.png }
+  - { min_zoom: 16, max_zoom: 19, name: toilets, image: toilets.png }
+#}
+
+        {%
+            set config = (
+                ('-11', 'motorway', 'motorway'),
+                ('12-', 'motorway12', 'motorway'),
+                ('-11', 'trunk', 'trunk'),
+                ('12-', 'trunk12', 'trunk'),
+                ('7-11', 'primary', 'primary'),
+                ('12-', 'primary12', 'primary'),
+                ('9-11', 'secondary', 'secondary'),
+                ('12-', 'secondary12', 'secondary'),
+                ('13-', 'track', 'track'),
+                ('8-19', 'cycleway', 'cycleway'),
+                ('5-12', 'cycleway_national', 'cycleway_national'),
+                ('13-', 'cycleway_national13', 'cycleway_national'),
+                ('5-12', 'cycleway_regional', 'cycleway_regional'),
+                ('13-', 'cycleway_regional13', 'cycleway_regional'),
+                ('8-12', 'cycleway_local', 'cycleway_local'),
+                ('13-', 'cycleway_local13', 'cycleway_local'),
+                ('13-', 'footway', 'footway'),
+                ('7-13', 'rail', 'rail'),
+                ('14-', 'rail14', 'rail'),
+                ('9-', 'forest', 'forest'),
+                ('10-', 'common', 'common'),
+                ('7-', 'lake', 'lake'),
+                ('14-', 'bicycle_shop', 'bicycle_shop'),
+                ('14-', 'bicycle_parking', 'bicycle_parking'),
+                ('16-', 'toilets', 'toilets')
+            )
+        %}
+        <table class="table table-sm table-borderless align-middle layer-container" data-layer-id="cyclemap">
+            <tbody>
+                {% for zoom, icon, translation in config %}
+                <tr data-zoom="{{ zoom }}">
+                    <td class="icon">
+                        <img src="/static/img/legend/cyclemap/{{ icon }}.webp">
+                    </td>
+                    <td class="small">{{ t('site.key.table.entry.' + translation) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>

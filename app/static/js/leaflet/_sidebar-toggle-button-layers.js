@@ -140,7 +140,7 @@ export const getLayersSidebarToggleButton = () => {
         // On layer click, update the active (base) layer
         const onBaseLayerClick = (e) => {
             const layerContainer = e.currentTarget
-            const layerId = layerContainer.value
+            const layerId = layerContainer.dataset.layerId
             const layer = getBaseLayerById(layerId)
             if (!layer) {
                 console.error(`Base layer ${layerId} not found`)

@@ -16,11 +16,12 @@ export const getLegendSidebarToggleButton = () => {
 
         // Discover the legend items and precompute their visibility
         const layerContainers = sidebar.querySelectorAll(".layer-container")
-        const layerElementsMap = layerContainers.reduce((map, layerContainer) => {
+        const layerElementsMap = [...layerContainers].reduce((map, layerContainer) => {
             const layerId = layerContainer.dataset.layerId
-            const elements = layerContainer.querySelectorAll(".legend-item").map((element) => {
-                const minZoom = parseFloat(element.dataset.minZoom)
-                const maxZoom = parseFloat(element.dataset.maxZoom)
+            const elements = [...layerContainer.querySelectorAll("tr")].map((element) => {
+                const [minZoomStr, maxZoomStr] = element.dataset.zoom.split("-")
+                const minZoom = minZoomStr ? parseInt(minZoomStr, 10) : 0
+                const maxZoom = maxZoomStr ? parseInt(maxZoomStr, 10) : precomputeMaxZoom
                 const visibility = new Array(precomputeMaxZoom + 1)
 
                 visibility.fill(false, 0, minZoom)
@@ -36,7 +37,7 @@ export const getLegendSidebarToggleButton = () => {
         // On layer change, update availability of the button and its tooltip
         const onBaseLayerChange = () => {
             const activeLayerId = getMapBaseLayerId(map)
-            const isLegendAvailable = layerElementsMap[activeLayerId] !== undefined
+            const isLegendAvailable = layerElementsMap.has(activeLayerId)
 
             if (isLegendAvailable) {
                 if (button.disabled) {
@@ -76,7 +77,8 @@ export const getLegendSidebarToggleButton = () => {
                     layerContainer.classList.remove("d-none")
 
                     // Update visibility of elements
-                    for (const { element, visibility } of layerElementsMap[layerId]) {
+                    // TODO: map key not available for this layer
+                    for (const { element, visibility } of layerElementsMap.get(layerId)) {
                         const isVisible = visibility[currentZoom]
                         element.classList.toggle("d-none", !isVisible)
                     }
@@ -97,9 +99,8 @@ export const getLegendSidebarToggleButton = () => {
         map.addEventListener("zoomend", onZoomEnd)
         button.addEventListener("click", onButtonClick)
 
-        // Initial update to set tooltip text
-        onBaseLayerChange()
-
         return container
     }
+
+    return control
 }

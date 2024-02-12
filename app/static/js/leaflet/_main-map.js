@@ -16,6 +16,7 @@ import { getNewNoteControl } from "./_new-note-control.js"
 import { configureNotesLayer } from "./_notes-layer.js"
 import { getQueryFeaturesControl } from "./_query-features-control.js"
 import { getLayersSidebarToggleButton } from "./_sidebar-toggle-button-layers.js"
+import { getLegendSidebarToggleButton } from "./_sidebar-toggle-button-legend.js"
 import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom-control.js"
 
@@ -43,7 +44,7 @@ export const getMainMap = (container) => {
     addControlGroup(map, [getZoomControl(), getGeolocateControl()])
     addControlGroup(map, [
         getLayersSidebarToggleButton(),
-        // getLegendSidebarToggleButton(),
+        getLegendSidebarToggleButton(),
         // getShareSidebarToggleButton()
     ])
     addControlGroup(map, [getNewNoteControl()])
