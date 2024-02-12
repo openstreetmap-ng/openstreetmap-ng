@@ -1,7 +1,9 @@
 // Style the "Share" sidebar panel
 .leaflet-sidebar.share {
     .marker-icon {
-        height: 1.1em;
+        height: 1em;
+        margin-left: 1px;
+        margin-right: 1px;
     }
 
     .copy-group-label {
@@ -10,16 +12,13 @@
         border: 1px solid $border-color;
         border-radius: $card-inner-border-radius $card-inner-border-radius 0 0;
         border-bottom-width: 0;
-        font-weight: 500;
-        padding: 0.2em 0.5em 0.15em;
+        padding: 0.3em 0.7em 0.25em;
     }
 
     .copy-group {
         .form-control {
             border-top-left-radius: 0;
-            font-family: monospace;
-            letter-spacing: -0.05ch;
-            font-size: 0.9em;
+            font-size: 0.95em;
         }
 
         button {

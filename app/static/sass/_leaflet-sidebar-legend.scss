@@ -1,8 +1,16 @@
 // Style the "Map Key" sidebar panel
 .leaflet-sidebar.legend {
-    .icon img {
-        height: 1.2em;
-        width: 3.5em;
-        object-fit: scale-down;
+    .layer-container {
+        vertical-align: middle;
+
+        img {
+            height: 1.2em;
+            width: 3.5em;
+            object-fit: scale-down;
+        }
+
+        td:last-child {
+            font-size: 0.875em;
+        }
     }
 }
