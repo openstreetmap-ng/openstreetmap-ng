@@ -21,13 +21,14 @@ export const getShareSidebarToggleButton = () => {
         const geoUriInput = sidebar.querySelector(".geo-uri-input")
         const embedInput = sidebar.querySelector(".embed-input")
 
-        // const exportForm = sidebar.querySelector(".export-form")
-        // const exportFormatSelect = exportForm.querySelector(".export-format-select")
-        // const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
-        // const offsetsWithDetailRadioInputs = exportForm
-        //     .querySelectorAll(".detail-input")
-        //     .map((input) => [parseInt(input.value), input])
-        // const exportButton = exportForm.querySelector("[type=submit]")
+        const exportForm = sidebar.querySelector(".export-form")
+        const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
+        const offsetsWithDetailRadioInputs = [...exportForm.querySelectorAll("[name=detail]")].map((input) => [
+            parseInt(input.value),
+            input,
+        ])
+        const formatSelect = exportForm.querySelector(".format-select")
+        const exportButton = exportForm.querySelector("[type=submit]")
 
         // Null values until initialized
         let marker = null
@@ -120,10 +121,41 @@ export const getShareSidebarToggleButton = () => {
         }
 
         // On copy group input focus, select all text
-        const onCopyInputFocus = (e) => {}
+        const onCopyInputFocus = (e) => {
+            e.target.select()
+        }
 
         // On copy group button click, copy input and change tooltip text
-        const onCopyButtonClick = (e) => {}
+        const onCopyButtonClick = async (e) => {
+            const copyButton = e.target.closest("button")
+            const copyIcon = copyButton.querySelector("i")
+            const copyGroup = copyButton.closest(".copy-group")
+            const copyInput = copyGroup.querySelector(".form-control")
+
+            // Visual feedback
+            copyInput.select()
+
+            try {
+                // Write to clipboard
+                const text = copyInput.value
+                await navigator.clipboard.writeText(text)
+                console.debug("Copied to clipboard", text)
+            } catch (error) {
+                console.error("Failed to write to clipboard", error)
+                alert(error.message)
+                return
+            }
+
+            if (copyIcon.timeout) clearTimeout(copyIcon.timeout)
+
+            copyIcon.classList.remove("bi-copy")
+            copyIcon.classList.add("bi-check2")
+
+            copyIcon.timeout = setTimeout(() => {
+                copyIcon.classList.remove("bi-check2")
+                copyIcon.classList.add("bi-copy")
+            }, 1500)
+        }
 
         const onExportFormSubmit = async (e) => {
             e.preventDefault()
@@ -136,8 +168,8 @@ export const getShareSidebarToggleButton = () => {
 
             try {
                 // Get export params from the form
-                const mimeType = exportFormatSelect.value
-                const fileExtension = exportFormatSelect.selectedOptions[0].dataset.fileExtension
+                const mimeType = formatSelect.value
+                const fileSuffix = formatSelect.selectedOptions[0].dataset.suffix
                 const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
                 const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
                 const zoom = optimalExportParams.zoom + zoomOffset
@@ -151,7 +183,7 @@ export const getShareSidebarToggleButton = () => {
 
                 const a = document.createElement("a")
                 a.href = URL.createObjectURL(blob)
-                a.download = `Map ${date}.${fileExtension}`
+                a.download = `Map ${date}${fileSuffix}`
                 a.click()
             } finally {
                 exportButton.innerHTML = originalInner
@@ -170,10 +202,11 @@ export const getShareSidebarToggleButton = () => {
                     locationFilter.addEventListener("change", onMapZoomOrLayerChange)
                 }
 
+                map.addLayer(locationFilter)
+
                 // By default, location filter is slightly smaller than the current view
                 locationFilter.setBounds(map.getBounds().pad(-0.2))
-
-                map.addLayer(locationFilter)
+                locationFilter.enable()
             } else {
                 map.removeLayer(locationFilter)
             }
@@ -213,8 +246,10 @@ export const getShareSidebarToggleButton = () => {
             const copyButton = copyGroup.querySelector("button")
             copyButton.addEventListener("click", onCopyButtonClick)
         }
-        //exportForm.addEventListener("submit", onExportFormSubmit)
-        //customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
+        customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
+        // TODO: support svg/pdf fallback
+        // TODO: finish implementation
+        exportForm.addEventListener("submit", onExportFormSubmit)
 
         return container
     }

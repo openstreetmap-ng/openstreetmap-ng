@@ -4,6 +4,15 @@ editor:
 map:
   overlays:
     title: Map Overlays
+  export:
+    select_custom_region: Select custom region
+    level_of_detail:
+      title: Level of detail
+      very_low: Very low
+      low: Low
+      normal: Normal
+      high: High
+      very_high: Very high
+    save_as: Save as
 action:
   copy: Copy
-  copy_success: Copied!

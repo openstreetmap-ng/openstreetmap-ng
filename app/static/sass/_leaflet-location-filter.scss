@@ -3,17 +3,26 @@
  * Copyright (C) 2012, Tripbirds.com, http://tripbirds.com
  * https://github.com/kajic/leaflet-locationfilter
  * Originally licensed under the MIT License.
- * Modification licensed under the AGPL-3.0 License.
+ * Modification licensed under the CC0 1.0 Universal License.
  */
 
-div.leaflet-marker-icon.location-filter.resize-marker {
-    background: url(/static/img/location-filter/resize-handle.png) no-repeat;
+.leaflet-marker-icon.location-filter {
     cursor: move;
-}
+    will-change: transform, z-index;
 
-div.leaflet-marker-icon.location-filter.move-marker {
-    background: url(/static/img/location-filter/move-handle.png) no-repeat;
-    cursor: move;
+    &.resize-marker {
+        padding: 0.4em;
+        width: 2.1em;
+        height: 2.1em;
+        margin-left: -1.05em;
+        margin-top: -1.05em;
+    }
+
+    &.move-marker {
+        padding: 1em;
+        width: 3.5em;
+        height: 3.5em;
+    }
 }
 
 div.location-filter.button-container {

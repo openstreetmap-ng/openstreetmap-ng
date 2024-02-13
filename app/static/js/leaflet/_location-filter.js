@@ -3,7 +3,7 @@
  * Copyright (C) 2012, Tripbirds.com, http://tripbirds.com
  * https://github.com/kajic/leaflet-locationfilter
  * Originally licensed under the MIT License.
- * Modification licensed under the AGPL-3.0 License.
+ * Modification licensed under the CC0 1.0 Universal License.
  */
 import * as L from "leaflet"
 
@@ -87,7 +87,7 @@ L.Control.ButtonContainer = L.Control.extend({
     },
 })
 
-const LocationFilter = L.Class.extend({
+const LocationFilter = L.Layer.extend({
     includes: L.Mixin.Events,
 
     options: {
@@ -167,7 +167,8 @@ const LocationFilter = L.Class.extend({
     /* Draw a draggable marker */
     _drawImageMarker: function (point, options) {
         const marker = new L.Marker(point, {
-            icon: new L.DivIcon({
+            icon: new L.icon({
+                iconUrl: options.iconUrl,
                 iconAnchor: options.anchor,
                 iconSize: options.size,
                 className: options.className,
@@ -183,9 +184,8 @@ const LocationFilter = L.Class.extend({
        moved */
     _drawMoveMarker: function (point) {
         this._moveMarker = this._drawImageMarker(point, {
+            iconUrl: "/static/img/location-filter/move-handle.webp",
             className: "location-filter move-marker",
-            anchor: [-10, -10],
-            size: [13, 13],
         })
         this._moveMarker.on("drag", () => {
             const markerPos = this._moveMarker.getLatLng()
@@ -204,9 +204,8 @@ const LocationFilter = L.Class.extend({
     /* Draw a resize marker */
     _drawResizeMarker: function (point, latFollower, lngFollower, otherPos) {
         return this._drawImageMarker(point, {
+            iconUrl: "/static/img/location-filter/resize-handle.webp",
             className: "location-filter resize-marker",
-            anchor: [7, 6],
-            size: [13, 12],
         })
     },
 
@@ -254,14 +253,12 @@ const LocationFilter = L.Class.extend({
        filter rectangle */
     _calculateBounds: function () {
         const mapBounds = this._map.getBounds()
-        const outerBounds = new L.LatLngBounds(
-            new L.LatLng(mapBounds.getSouthWest().lat - 0.1, mapBounds.getSouthWest().lng - 0.1, true),
-            new L.LatLng(mapBounds.getNorthEast().lat + 0.1, mapBounds.getNorthEast().lng + 0.1, true),
-        )
+        const sw = mapBounds.getSouthWest()
+        const ne = mapBounds.getNorthEast()
 
         // The south west and north east points of the mask */
-        this._osw = outerBounds.getSouthWest()
-        this._one = outerBounds.getNorthEast()
+        this._osw = new L.LatLng(sw.lat - 0.1, sw.lng - 0.1, true)
+        this._one = new L.LatLng(ne.lat + 0.1, ne.lng + 0.1, true)
 
         // Bounds for the mask rectangles
         this._northBounds = new L.LatLngBounds(new L.LatLng(this._ne.lat, this._osw.lng, true), this._one)
@@ -318,7 +315,7 @@ const LocationFilter = L.Class.extend({
 
     /* Reposition all rectangles and markers to the current filter bounds. */
     _draw: function (options) {
-        const mergedOptions = L.Util.extend({ repositionResizeMarkers: true }, options)
+        const repositionResizeMarkers = options?.repositionResizeMarkers ?? true
 
         // Calculate filter bounds
         this._calculateBounds()
@@ -331,7 +328,7 @@ const LocationFilter = L.Class.extend({
         this._innerRect.setBounds(this.getBounds())
 
         // Reposition resize markers
-        if (mergedOptions.repositionResizeMarkers) {
+        if (repositionResizeMarkers) {
             this._nwMarker.setLatLng(this._nw)
             this._neMarker.setLatLng(this._ne)
             this._swMarker.setLatLng(this._sw)
