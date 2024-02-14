@@ -57,6 +57,7 @@ let
         output=$(bun build \
           "$src_path" \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --sourcemap=external \
           --minify \
           --outdir "$dir" | tee /dev/stdout)
 
