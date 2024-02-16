@@ -43,9 +43,9 @@ export const getRoutingController = (map) => {
     const draggableMarkers = form.querySelectorAll(".draggable-marker")
     const fromInput = form.querySelector("input[name=from]")
     const toInput = form.querySelector("input[name=to]")
-    const engineInput = form.querySelector("input[name=engine]") // TODO: load from local storage
+    const reverseButton = form.querySelector(".reverse-btn")
+    const engineInput = form.querySelector("select[name=engine]")
     const bboxInput = form.querySelector("input[name=bbox]")
-    const reverseButton = form.querySelector(".reverse-button")
     let loaded = false
     let abortController = null
 
@@ -55,6 +55,10 @@ export const getRoutingController = (map) => {
     let routePolyline = null
     let highlightPolyline = null
     let highlightPopup = null // TODO: autoPanPadding: [100, 100]
+
+    // Set default routing engine
+    const lastRoutingEngine = getLastRoutingEngine()
+    if (routingEngines.has(lastRoutingEngine)) engineInput.value = lastRoutingEngine
 
     const markerFactory = (color) =>
         L.marker(L.latLng(0, 0), {

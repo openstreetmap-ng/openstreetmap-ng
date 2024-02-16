@@ -1,0 +1,14 @@
+.custom-input-group {
+    label {
+        position: relative;
+        left: 0.5em;
+        top: 0.5em;
+        background: $body-bg;
+        border: 1px solid $border-color;
+        border-radius: $border-radius;
+        font-size: 0.9em;
+        font-weight: 600;
+        padding: 0.12em 0.7em;
+        z-index: 1000;
+    }
+}
