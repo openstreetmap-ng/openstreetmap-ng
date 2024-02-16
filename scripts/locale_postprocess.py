@@ -129,7 +129,7 @@ def convert_variable_format(data: dict):
         if isinstance(value, dict):
             convert_variable_format(value)
         elif isinstance(value, str):
-            data[key] = value.replace('%{', '{')
+            data[key] = value.replace('%{', '{{').replace('}', '}}')
 
 
 def convert_format_format(data: dict):
@@ -143,6 +143,33 @@ def convert_format_format(data: dict):
             convert_format_format(value)
         elif isinstance(value, str):
             data[key] = value.replace('%e', '%-d')
+
+
+def convert_plural_format(data: dict):
+    """
+    Convert plural dicts to singular keys.
+    """
+
+    # {'example': {'one': 'one', 'two': 'two', 'three': 'three'}}
+    # to:
+    # {'example_one': 'one', 'example_two': 'two', 'example_three': 'three'}
+
+    for k, v in tuple(data.items()):
+        # skip non-dict values
+        if not isinstance(v, dict):
+            continue
+
+        # recurse non-plural dicts
+        if not all(count in v for count in ('zero', 'one', 'two', 'few', 'many', 'other')):
+            convert_plural_format(v)
+            continue
+
+        # convert plural dicts
+        for count, value in v.items():
+            data[f'{k}_{count}'] = value
+
+        # remove the original plural dict
+        data.pop(k)
 
 
 def postprocess():
@@ -162,6 +189,7 @@ def postprocess():
         trim_values(data)
         convert_variable_format(data)
         convert_format_format(data)
+        convert_plural_format(data)
 
         # apply local chapter overrides
         if (local_chapters := local_chapters_map.get(locale)) is not None:

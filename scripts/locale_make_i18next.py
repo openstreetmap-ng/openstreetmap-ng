@@ -12,56 +12,13 @@ _postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
 _i18next_dir = pathlib.Path(LOCALE_DIR / 'i18next')
 
 
-def convert_variable_format(data: dict):
-    """
-    Convert {variable} to {{variable}} in all strings.
-    """
-
-    for key, value in data.items():
-        if isinstance(value, dict):
-            convert_variable_format(value)
-        elif isinstance(value, str):
-            data[key] = value.replace('{', '{{').replace('}', '}}')
-
-
-def convert_plural_format(data: dict):
-    """
-    Convert plural dicts to singular keys.
-    """
-
-    # {'example': {'one': 'one', 'two': 'two', 'three': 'three'}}
-    # to:
-    # {'example_one': 'one', 'example_two': 'two', 'example_three': 'three'}
-
-    for k, v in tuple(data.items()):
-        # skip non-dict values
-        if not isinstance(v, dict):
-            continue
-
-        # recurse non-plural dicts
-        if not all(count in v for count in ('zero', 'one', 'two', 'few', 'many', 'other')):
-            convert_plural_format(v)
-            continue
-
-        # convert plural dicts
-        for count, value in v.items():
-            data[f'{k}_{count}'] = value
-
-        # remove the original plural dict
-        data.pop(k)
-
-
 def convert() -> dict[str, str]:
     file_map = {}
 
-    for source_path in tqdm(tuple(_postprocess_dir.glob('*.json')), desc='Converting to i18next format'):
+    for source_path in tqdm(tuple(_postprocess_dir.glob('*.json')), desc='Converting to JavaScript'):
         locale = source_path.stem
 
         data = orjson.loads(source_path.read_bytes())
-
-        convert_variable_format(data)
-        convert_plural_format(data)
-
         buffer = orjson.dumps(data, option=orjson.OPT_SORT_KEYS).decode()
         buffer = f'if(!window.locales)window.locales={{}},window.locales["{locale}"]={{translation:{buffer}}}'
         buffer = buffer.encode()

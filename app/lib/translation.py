@@ -22,7 +22,7 @@ _j2 = Environment(
     loader=FileSystemLoader('app/templates'),
     keep_trailing_newline=True,
     autoescape=True,
-    # cache translations in production
+    # cache templates in production
     cache_size=0 if TEST_ENV else -1,
     auto_reload=False,
 )
@@ -31,6 +31,9 @@ _context_langs = ContextVar('Translation_context_langs')
 _context_trans = ContextVar('Translation_context_trans')
 
 
+# removing this will not enable live-reload for translations
+# gettext always caches .mo files internally
+@lru_cache(maxsize=128)
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
@@ -41,11 +44,6 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
         localedir=_locale_dir,
         languages=languages,
     )
-
-
-if not TEST_ENV:
-    # cache translations in production
-    _get_translation = lru_cache(maxsize=128)(_get_translation)
 
 
 @contextmanager

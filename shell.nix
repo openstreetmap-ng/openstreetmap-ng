@@ -137,9 +137,8 @@ let
       mkdir -p config/locale/gnu
       echo "Converting to GNU gettext format"
 
-      for source_file in config/locale/i18next/*.json; do
-        stem=$(basename "$source_file" .json)
-        locale=''${stem::-17}
+      for source_file in config/locale/postprocess/*.json; do
+        locale=$(basename "$source_file" .json)
         target_file="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
         target_file_bin="''${target_file%.po}.mo"
 
@@ -155,8 +154,8 @@ let
             --ctxSeparator "__" \
             --compatibilityJSON "v4"
 
-          sed -i -E 's/\{\{/{/g' "$target_file"
-          sed -i -E 's/\}\}/}/g' "$target_file"
+          # convert format to python-style
+          sed -i -E 's/\{\{/{/g; s/\}\}/}/g' "$target_file"
 
           msgfmt "$target_file" --output-file "$target_file_bin";
 
@@ -240,11 +239,12 @@ let
       dev-stop
       rm -rf data/postgres
     '')
-    (writeShellScriptBin "dev-postgres-logs" "tail -f data/supervisor/postgres.log")
-    (writeShellScriptBin "dev-redis-logs" "tail -f data/supervisor/redis.log")
-    (writeShellScriptBin "dev-supervisord-logs" "tail -f data/supervisor/supervisord.log")
-    (writeShellScriptBin "dev-watch-js-logs" "tail -f data/supervisor/watch-js.log")
-    (writeShellScriptBin "dev-watch-sass-logs" "tail -f data/supervisor/watch-sass.log")
+    (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
+    (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
+    (writeShellScriptBin "dev-logs-supervisord" "tail -f data/supervisor/supervisord.log")
+    (writeShellScriptBin "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
+    (writeShellScriptBin "dev-logs-watch-locale" "tail -f data/supervisor/watch-locale.log")
+    (writeShellScriptBin "dev-logs-watch-sass" "tail -f data/supervisor/watch-sass.log")
 
     # -- Preload
     (writeShellScriptBin "preload-clean" "rm -rf data/preload")
