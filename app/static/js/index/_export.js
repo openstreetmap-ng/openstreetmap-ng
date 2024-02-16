@@ -95,10 +95,11 @@ export const getExportController = (map) => {
                 locationFilter.addEventListener("change", onMapMoveEnd)
             }
 
+            map.addLayer(locationFilter)
+
             // By default, location filter is slightly smaller than the current view
             locationFilter.setBounds(map.getBounds().pad(-0.2))
-
-            map.addLayer(locationFilter)
+            locationFilter.enable()
         } else {
             map.removeLayer(locationFilter)
         }

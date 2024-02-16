@@ -67,6 +67,7 @@ def translation_context(languages: Sequence[str]):
         # processed languages must contain the default language
         processed.append(default_lang)
 
+    processed = tuple(processed)
     trans = _get_translation(processed)
     token_langs = _context_langs.set(processed)
     token_trans = _context_trans.set(trans)

@@ -33,14 +33,14 @@
                 </label>
             </div>
 
-            <div class="mb-2">
-                <div class="export-available-container d-none">
+            <div class="mb-3">
+                <div class="export-available-container">
                     <a class="btn btn-primary w-100 export-link" href="{{ API_URL }}/api/0.6/map" target="_blank">
                         {{ t('site.export.export_button') }}
                     </a>
                 </div>
 
-                <div class="export-unavailabe-container alert alert-warning" role="alert">
+                <div class="export-unavailable-container alert alert-warning" role="alert">
                     {{ t('site.export.too_large.body') }}
                 </div>
             </div>
@@ -48,13 +48,61 @@
             <p>
                 {{ t('site.export.too_large.advice') }}
             </p>
+            <ul>
+                <li>
+                    <h6 class="mb-1">
+                        <img class="source-icon" src="/static/img/brand/overpass.webp">
+                        <a class="export-overpass-link" href="https://overpass-api.de/api/map" target="_blank">
+                            {{ t('site.export.too_large.overpass.title') }}
+                        </a>
+                    </h6>
+                    <p>
+                        {{ t('site.export.too_large.overpass.description') }}
+                    </p>
+                </li>
+
+                <li>
+                    <h6 class="mb-1">
+                        <img class="source-icon" src="/static/img/favicon/256.webp">
+                        <a href="https://planet.openstreetmap.org">
+                            {{ t('site.export.too_large.planet.title') }}
+                        </a>
+                    </h6>
+                    <p>
+                        {{ t('site.export.too_large.planet.description') }}
+                    </p>
+                </li>
+
+                <li>
+                    <h6 class="mb-1">
+                        <img class="source-icon" src="/static/img/brand/geofabrik.webp">
+                        <a href="https://download.geofabrik.de">
+                            {{ t('site.export.too_large.geofabrik.title') }}
+                        </a>
+                    </h6>
+                    <p>
+                        {{ t('site.export.too_large.geofabrik.description') }}
+                    </p>
+                </li>
+
+                <li>
+                    <h6 class="mb-1">
+                        <a href="https://wiki.openstreetmap.org/wiki/Downloading_data">
+                            {{ t('site.export.too_large.other.title') }}
+                        </a>
+                    </h6>
+                    <p>
+                        {{ t('site.export.too_large.other.description') }}
+                    </p>
+                </li>
+            </ul>
 
             <h4>
                 {{ t('site.export.licence') }}
             </h4>
             <p>
                 {% set odbl_link %}
-                <a href="https://opendatacommons.org/licenses/odbl/1.0/" target="_blank">{{ t('site.export.odbl') }}</a>
+                <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank">{{ t('site.export.odbl') }}</a>
                 {% endset %}
                 {{ t('site.export.licence_details_html', odbl_link=odbl_link) | safe }}
             </p>
