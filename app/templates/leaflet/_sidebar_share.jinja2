@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <div class="form-check mb-3">
+            <div class="form-check mb-2">
                 <label class="form-check-label d-block">
                     <input class="form-check-input marker-check" type="checkbox" autocomplete="off">
                     {{ t('javascripts.share.include_marker') }}
@@ -26,18 +26,17 @@
             <label class="copy-group-label">
                 {{ t('javascripts.share.long_link') }}
             </label>
-            <div class="input-group copy-group mb-3">
+            <div class="input-group copy-group mb-2">
                 <input class="form-control link-input" type="text" autocomplete="off" readonly>
                 <button class="btn btn-primary" title="{{ t('action.copy') }}">
                     <i class="bi bi-copy"></i>
                 </button>
             </div>
 
-
             <label class="copy-group-label">
                 {{ t('javascripts.share.geo_uri') }}
             </label>
-            <div class="input-group copy-group mb-3">
+            <div class="input-group copy-group mb-2">
                 <input class="form-control geo-uri-input" type="text" autocomplete="off" readonly>
                 <button class="btn btn-primary" title="{{ t('action.copy') }}">
                     <i class="bi bi-copy"></i>
@@ -56,6 +55,7 @@
 
         </div>
         <form class="section export-form">
+
             <h4 class="mb-3">
                 {{ t('javascripts.share.image') }}
             </h4>
@@ -115,6 +115,7 @@
             <button class="btn btn-primary" type="submit">
                 {{ t('javascripts.share.download') }}
             </button>
+
         </form>
     </div>
 </div>

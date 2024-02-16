@@ -16,6 +16,12 @@
 // TODO: hover action
 // TODO: limit navigation updates per sec
 .action-sidebar.routing {
+    .draggable-marker {
+        cursor: move;
+        height: $form-floating-height;
+        padding: 0.65em 0.45em;
+    }
+
     // The sprite usage is deprecated.
     // New icons should be kept separate for ease of maintenance.
     // TODO: Split the sprite into separate files.

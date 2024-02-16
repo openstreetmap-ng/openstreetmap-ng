@@ -7,22 +7,21 @@
     }
 
     .copy-group-label {
-        display: block;
-        background: $card-cap-bg;
+        position: relative;
+        left: 0.5em;
+        top: 0.5em;
+        background: $body-bg;
         border: 1px solid $border-color;
-        border-radius: $card-inner-border-radius $card-inner-border-radius 0 0;
-        border-bottom-width: 0;
-        padding: 0.3em 0.7em 0.25em;
+        border-radius: $border-radius;
+        font-size: 0.9em;
+        font-weight: 600;
+        padding: 0.12em 0.7em;
+        z-index: 1000;
     }
 
     .copy-group {
         .form-control {
-            border-top-left-radius: 0;
             font-size: 0.95em;
-        }
-
-        button {
-            border-top-right-radius: 0;
         }
     }
 }

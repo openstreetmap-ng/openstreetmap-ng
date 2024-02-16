@@ -156,9 +156,10 @@ const LocationFilter = L.Layer.extend({
             fill: true,
             fillColor: "black",
             fillOpacity: 0.3,
-            clickable: false,
+            smoothFactor: 0,
+            interactive: false,
         }
-        const mergedOptions = L.Util.extend(defaultOptions, options ?? {})
+        const mergedOptions = options ? L.Util.extend(defaultOptions, options) : defaultOptions
         const rect = new L.Rectangle(bounds, mergedOptions)
         rect.addTo(this._layer)
         return rect
@@ -256,22 +257,16 @@ const LocationFilter = L.Layer.extend({
         const sw = mapBounds.getSouthWest()
         const ne = mapBounds.getNorthEast()
 
-        // The south west and north east points of the mask */
-        this._osw = new L.LatLng(sw.lat - 0.1, sw.lng - 0.1, true)
-        this._one = new L.LatLng(ne.lat + 0.1, ne.lng + 0.1, true)
-
         // Bounds for the mask rectangles
-        this._northBounds = new L.LatLngBounds(new L.LatLng(this._ne.lat, this._osw.lng, true), this._one)
-        this._westBounds = new L.LatLngBounds(new L.LatLng(this._sw.lat, this._osw.lng, true), this._nw)
-        this._eastBounds = new L.LatLngBounds(this._se, new L.LatLng(this._ne.lat, this._one.lng, true))
-        this._southBounds = new L.LatLngBounds(this._osw, new L.LatLng(this._sw.lat, this._one.lng, true))
+        this._northBounds = new L.LatLngBounds(new L.LatLng(this._ne.lat, sw.lng), ne)
+        this._westBounds = new L.LatLngBounds(new L.LatLng(this._sw.lat, sw.lng), this._nw)
+        this._eastBounds = new L.LatLngBounds(this._se, new L.LatLng(this._ne.lat, ne.lng))
+        this._southBounds = new L.LatLngBounds(sw, new L.LatLng(this._sw.lat, ne.lng))
     },
 
     /* Initializes rectangles and markers */
     _initialDraw: function () {
-        if (this._initialDrawCalled) {
-            return
-        }
+        if (this._initialDrawCalled) return
 
         this._layer = new L.LayerGroup()
 
@@ -284,11 +279,11 @@ const LocationFilter = L.Layer.extend({
         this._eastRect = this._drawRectangle(this._eastBounds)
         this._southRect = this._drawRectangle(this._southBounds)
         this._innerRect = this._drawRectangle(this.getBounds(), {
-            fillOpacity: 0,
             stroke: true,
             color: "white",
             weight: 1,
             opacity: 0.9,
+            fillOpacity: 0,
         })
 
         // Create resize markers

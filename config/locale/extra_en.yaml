@@ -6,6 +6,10 @@ map:
     title: Map Overlays
   export:
     select_custom_region: Select custom region
+    min_lon: Minimum longitude
+    max_lon: Maximum longitude
+    min_lat: Minimum latitude
+    max_lat: Maximum latitude
     level_of_detail:
       title: Level of detail
       very_low: Very low

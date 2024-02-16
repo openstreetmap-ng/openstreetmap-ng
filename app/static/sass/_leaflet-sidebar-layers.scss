@@ -4,14 +4,14 @@
     .layer {
         cursor: pointer;
         position: relative;
-        border-radius: $border-radius-lg;
+        border-radius: $border-radius;
         border: 2px solid transparent;
         overflow: hidden;
         transition: border-color 0.08s ease-in;
 
         // Add some margin between each layer
         &:not(:last-child) {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.7rem;
         }
 
         label {
@@ -19,15 +19,16 @@
             position: absolute;
             top: 0;
             left: 0;
-            padding: 0.1rem 0.5rem 0.15rem;
+            padding: 0.1rem 0.5rem;
             font-weight: 600;
-            background: rgba(255, 255, 255, 0.9);
-            border-bottom-right-radius: $border-radius-lg;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(0.5rem);
+            border-bottom-right-radius: $border-radius-sm;
             z-index: 1000;
         }
 
         .leaflet-container {
-            height: 3.25rem;
+            height: 3.5rem;
         }
 
         // Change border color depending on the state
@@ -39,7 +40,7 @@
             border-color: $gray-400;
 
             &.active {
-                border-color: $green-600;
+                border-color: $green-500;
             }
         }
     }

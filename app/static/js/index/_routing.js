@@ -26,8 +26,8 @@ export const routingStyles = {
 }
 
 const dragDataType = "text/osm-marker-guid"
-const fromMarkerGuid = "2292de60-aca9-43e1-8bcc-4ca17f517f84"
-const toMarkerGuid = "ad4767d0-4f75-4964-986a-697ca1f22c1d"
+const fromMarkerGuid = "018db10c-729f-75cd-a3a9-1beabe239ed0"
+const toMarkerGuid = "018db10c-729f-73b8-853d-038e3b39ed0b"
 
 const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OSRMEngines])
 
@@ -37,7 +37,7 @@ const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OS
  * @returns {object} Controller
  */
 export const getRoutingController = (map) => {
-    const sidebar = getActionSidebar("directions")
+    const sidebar = getActionSidebar("routing")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
     const draggableMarkers = form.querySelectorAll(".draggable-marker")
@@ -155,11 +155,16 @@ export const getRoutingController = (map) => {
 
         const dt = event.dataTransfer
         dt.effectAllowed = "move"
+        dt.setData("text/plain", "")
         dt.setData(dragDataType, markerGuid)
 
-        const img = new Image()
-        img.src = target.src
-        dt.setDragImage(img, 12, 21)
+        const canvas = document.createElement("canvas")
+        canvas.width = 25
+        canvas.height = 41
+
+        const ctx = canvas.getContext("2d")
+        ctx.drawImage(target, 0, 0, 25, 41)
+        dt.setDragImage(canvas, 12, 21)
     }
 
     // On input enter, submit the form
