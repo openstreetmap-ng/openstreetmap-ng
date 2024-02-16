@@ -40,9 +40,10 @@ export const getRoutingController = (map) => {
     const sidebar = getActionSidebar("routing")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
-    const draggableMarkers = form.querySelectorAll(".draggable-marker")
     const fromInput = form.querySelector("input[name=from]")
+    const fromDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${fromMarkerGuid}"]`)
     const toInput = form.querySelector("input[name=to]")
+    const toDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${toMarkerGuid}"]`)
     const reverseButton = form.querySelector(".reverse-btn")
     const engineInput = form.querySelector("select[name=engine]")
     const bboxInput = form.querySelector("input[name=bbox]")
@@ -83,7 +84,9 @@ export const getRoutingController = (map) => {
      * @returns {void}
      */
     const onMarkerDragEnd = (event) => {
-        const marker = event.propagatedFrom
+        console.debug("onMarkerDragEnd", event)
+
+        const marker = event.propagatedFrom || event.target
         const latLng = marker.getLatLng()
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
@@ -114,6 +117,8 @@ export const getRoutingController = (map) => {
 
         let marker
         const dragData = event.dataTransfer.getData(dragDataType)
+        console.debug("onMapDrop", dragData)
+
         if (dragData === fromMarkerGuid) {
             if (!fromMarker) {
                 fromMarker = markerFactory("green")
@@ -225,15 +230,16 @@ export const getRoutingController = (map) => {
 
     // Listen for events
     configureStandardForm(form, onFormSuccess)
-    map.addEventListener("drop", onMapDrop)
+    const mapContainer = map.getContainer()
+    mapContainer.addEventListener("dragover", (event) => event.preventDefault())
+    mapContainer.addEventListener("drop", onMapDrop)
     map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-    for (const draggableMarker of draggableMarkers) {
-        draggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
-    }
     fromInput.addEventListener("input", onInputEnter)
+    fromDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
     toInput.addEventListener("input", onInputEnter)
-    engineInput.addEventListener("input", onEngineInputChange)
+    toDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
     reverseButton.addEventListener("click", onReverseButtonClick)
+    engineInput.addEventListener("input", onEngineInputChange)
 
     return {
         load: () => {
