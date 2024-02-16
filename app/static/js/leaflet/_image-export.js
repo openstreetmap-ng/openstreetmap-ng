@@ -13,10 +13,10 @@ const imageQuality = 0.95
 
 /**
  * Returns the optimal zoom level and resolution for exporting the map image
- * @param {number[]} bounds Map bounds in the format [minLat, minLon, maxLat, maxLon]
+ * @param {number[]} bounds Map bounds in the format [minLon, minLat, maxLon, maxLat]
  */
 export const getOptimalExportParams = (bounds) => {
-    let [minLat, minLon, maxLat, maxLon] = bounds
+    let [minLon, minLat, maxLon, maxLat] = bounds
     // The bounds cross the antimeridian
     if (minLon > maxLon) maxLon += 360
 
@@ -27,12 +27,13 @@ export const getOptimalExportParams = (bounds) => {
     const yProportion = sizeInMeters.y / earthCircumference
 
     let optimalZoom = maxZoom
+    let yResolution = tileSize * 2 ** maxZoom * yProportion
+    const yResolutionTarget = optimalExportResolution * (2 / 3)
 
     // Find the zoom level that closest matches the optimal export resolution
-    for (let z = 0; z < maxZoom; z++) {
-        const yResolution = tileSize * 2 ** z * yProportion
-        if (yResolution < optimalExportResolution * (2 / 3)) continue
-        optimalZoom = z
+    while (yResolution > yResolutionTarget && optimalZoom > 0) {
+        optimalZoom--
+        yResolution /= 2
     }
 
     const optimalEarthResolution = tileSize * 2 ** optimalZoom
@@ -96,7 +97,7 @@ const wrapTileCoords = (x, y, zoom) => {
 /**
  * Export the map image
  * @param {string} mimeType Image MIME type
- * @param {number[]} bounds Map bounds in the format [minLat, minLon, maxLat, maxLon]
+ * @param {number[]} bounds Map bounds in the format [minLon, minLat, maxLon, maxLat]
  * @param {number} zoom Zoom level
  * @param {L.TileLayer} baseLayer Base layer
  * @returns {Promise<Blob>} Image blob
@@ -105,33 +106,34 @@ const wrapTileCoords = (x, y, zoom) => {
  * // => Blob { size: 123456, type: "image/png" }
  */
 export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
-    let [minLat, minLon, maxLat, maxLon] = bounds
+    console.debug("exportMapImage", mimeType, bounds, zoom, baseLayer)
+
+    let [minLon, minLat, maxLon, maxLat] = bounds
     // The bounds cross the antimeridian
     if (minLon > maxLon) maxLon += 360
 
     const minTileCoords = getTileCoords(minLon, maxLat, zoom)
     const maxTileCoords = getTileCoords(maxLon, minLat, zoom)
 
-    // Calculate the pixel position for trimming
-    const wrappedMinTileCoords = wrapTileCoords(minTileCoords.x, minTileCoords.y, zoom)
-    const minTopLeft = getLatLonFromTileCoords(wrappedMinTileCoords.x, wrappedMinTileCoords.y, zoom)
-    const wrappedMinEndTileCoords = wrapTileCoords(minTileCoords.x + 1, minTileCoords.y + 1, zoom)
-    const minBottomRight = getLatLonFromTileCoords(wrappedMinEndTileCoords.x, wrappedMinEndTileCoords.y, zoom)
-    const wrappedMaxTileCoords = wrapTileCoords(maxTileCoords.x, maxTileCoords.y, zoom)
-    const maxTopLeft = getLatLonFromTileCoords(wrappedMaxTileCoords.x, wrappedMaxTileCoords.y, zoom)
-    const wrappedMaxEndTileCoords = wrapTileCoords(maxTileCoords.x + 1, maxTileCoords.y + 1, zoom)
-    const maxBottomRight = getLatLonFromTileCoords(wrappedMaxEndTileCoords.x, wrappedMaxEndTileCoords.y, zoom)
-
-    const topOffset = Math.round(((maxLat - minTopLeft.lat) / (minBottomRight.lat - minTopLeft.lat)) * tileSize)
-    const leftOffset = Math.round(((minLon - minTopLeft.lon) / (minBottomRight.lon - minTopLeft.lon)) * tileSize)
-    const bottomOffset = Math.round(((maxBottomRight.lat - minLat) / (maxBottomRight.lat - maxTopLeft.lat)) * tileSize)
-    const rightOffset = Math.round(((maxBottomRight.lon - maxLon) / (maxBottomRight.lon - maxTopLeft.lon)) * tileSize)
+    const { topOffset, leftOffset, bottomOffset, rightOffset } = calculateTrimOffsets(
+        minLon,
+        minLat,
+        maxLon,
+        maxLat,
+        zoom,
+        minTileCoords,
+        maxTileCoords,
+    )
 
     // Create a canvas to draw the tiles on
     const canvas = document.createElement("canvas")
     canvas.width = (maxTileCoords.x - minTileCoords.x + 1) * tileSize - leftOffset - rightOffset
     canvas.height = (maxTileCoords.y - minTileCoords.y + 1) * tileSize - topOffset - bottomOffset
     const ctx = canvas.getContext("2d", { alpha: false })
+
+    // Extract base layer url and options
+    const baseLayerUrl = baseLayer._url
+    const baseLayerOptions = baseLayer.options
 
     const fetchTilePromise = (x, y) => {
         return new Promise((resolve, reject) => {
@@ -146,7 +148,7 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
             img.onerror = () => {
                 reject(`Failed to load tile at x=${x}, y=${y}, z=${zoom}`)
             }
-            img.src = baseLayer.getTileUrl({ x, y, z: zoom })
+            img.src = L.Util.template(baseLayerUrl, L.Util.extend({ x, y, z: zoom }, baseLayerOptions))
         })
     }
 
@@ -159,7 +161,9 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
         }
     }
 
+    console.debug(`Fetching ${fetchTilesPromises.length} tiles...`)
     await Promise.all(fetchTilesPromises)
+    console.debug("Finished fetching tiles")
 
     // Export the canvas to an image
     return new Promise((resolve, reject) => {
@@ -172,4 +176,35 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
             imageQuality,
         )
     })
+}
+
+/**
+ * Calculate the offsets for trimming the exported image
+ * @param {number} minLon Minimum longitude
+ * @param {number} minLat Minimum latitude
+ * @param {number} maxLon Maximum longitude
+ * @param {number} maxLat Maximum latitude
+ * @param {number} zoom Zoom level
+ * @param {{ x: number, y: number }} minTileCoords Minimum tile coordinates
+ * @param {{ x: number, y: number }} maxTileCoords Maximum tile coordinates
+ */
+const calculateTrimOffsets = (minLon, minLat, maxLon, maxLat, zoom, minTileCoords, maxTileCoords) => {
+    const wrappedMinTileCoords = wrapTileCoords(minTileCoords.x, minTileCoords.y, zoom)
+    const minTopLeft = getLatLonFromTileCoords(wrappedMinTileCoords.x, wrappedMinTileCoords.y, zoom)
+
+    const wrappedMinEndTileCoords = wrapTileCoords(minTileCoords.x + 1, minTileCoords.y + 1, zoom)
+    const minBottomRight = getLatLonFromTileCoords(wrappedMinEndTileCoords.x, wrappedMinEndTileCoords.y, zoom)
+
+    const wrappedMaxTileCoords = wrapTileCoords(maxTileCoords.x, maxTileCoords.y, zoom)
+    const maxTopLeft = getLatLonFromTileCoords(wrappedMaxTileCoords.x, wrappedMaxTileCoords.y, zoom)
+
+    const wrappedMaxEndTileCoords = wrapTileCoords(maxTileCoords.x + 1, maxTileCoords.y + 1, zoom)
+    const maxBottomRight = getLatLonFromTileCoords(wrappedMaxEndTileCoords.x, wrappedMaxEndTileCoords.y, zoom)
+
+    const topOffset = Math.round(((maxLat - minTopLeft.lat) / (minBottomRight.lat - minTopLeft.lat)) * tileSize)
+    const leftOffset = Math.round(((minLon - minTopLeft.lon) / (minBottomRight.lon - minTopLeft.lon)) * tileSize)
+    const bottomOffset = Math.round(((maxBottomRight.lat - minLat) / (maxBottomRight.lat - maxTopLeft.lat)) * tileSize)
+    const rightOffset = Math.round(((maxBottomRight.lon - maxLon) / (maxBottomRight.lon - maxTopLeft.lon)) * tileSize)
+
+    return { topOffset, leftOffset, bottomOffset, rightOffset }
 }

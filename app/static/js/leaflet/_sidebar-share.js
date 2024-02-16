@@ -24,9 +24,9 @@ export const getShareSidebarToggleButton = () => {
         const exportForm = sidebar.querySelector(".export-form")
         const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
         // TODO: disable unavailable zoom levels (on zoomend)
-        const offsetsWithDetailRadioInputs = Array.from(exportForm.querySelectorAll("[name=detail]")).map((input) => [
+        const detailOffsetsWithElements = Array.from(exportForm.querySelectorAll("[name=detail]")).map((input) => [
             parseInt(input.value),
-            input,
+            [input, input.closest("label").querySelector(".resolution")],
         ])
         const formatSelect = exportForm.querySelector(".format-select")
         const exportButton = exportForm.querySelector("[type=submit]")
@@ -68,22 +68,32 @@ export const getShareSidebarToggleButton = () => {
             const minZoom = baseLayer.options.minZoom
             const maxZoom = baseLayer.options.maxNativeZoom ?? baseLayer.options.maxZoom
 
-            const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+            const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+            const sw = leafletBounds.getSouthWest()
+            const ne = leafletBounds.getNorthEast()
+            const bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
             optimalExportParams = getOptimalExportParams(bounds)
 
             // Update the radio inputs availability
-            for (const [zoomOffset, radioInput] of offsetsWithDetailRadioInputs) {
+            for (const [zoomOffset, [input, resolutionSpan]] of detailOffsetsWithElements) {
                 const zoom = optimalExportParams.zoom + zoomOffset
-                // TODO: Display the export resolution
+                const isAvailable = minZoom <= zoom && zoom <= maxZoom
+                const isDisabled = !isAvailable
+
+                // Skip updates if the input is already in the correct state
+                if (input.disabled === isDisabled) continue
+
+                // Don't show resolution for now: it's not compatible wtih SVG, PDF
                 // const xResolution = Math.round(optimalExportParams.xResolution * 2 ** zoomOffset)
                 // const yResolution = Math.round(optimalExportParams.yResolution * 2 ** zoomOffset)
-                const isAvailable = minZoom <= zoom && zoom <= maxZoom
+                // resolutionSpan.textContent = `${xResolution}⨯${yResolution} px`
 
-                radioInput.disabled = !isAvailable
+                input.disabled = isDisabled
+                input.closest(".form-check").classList.toggle("disabled", isDisabled)
 
-                if (radioInput.checked && !isAvailable) {
-                    radioInput.checked = false
-                    radioInput.dispatchEvent(new Event("change"))
+                if (input.checked && isDisabled) {
+                    input.checked = false
+                    input.dispatchEvent(new Event("change"))
                 }
             }
         }
@@ -171,8 +181,11 @@ export const getShareSidebarToggleButton = () => {
                 // Get export params from the form
                 const mimeType = formatSelect.value
                 const fileSuffix = formatSelect.selectedOptions[0].dataset.suffix
-                const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
-                const zoomOffset = parseInt(exportForm.querySelector(".detail-input:checked").value)
+                const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
+                const sw = leafletBounds.getSouthWest()
+                const ne = leafletBounds.getNorthEast()
+                const bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
+                const zoomOffset = parseInt(exportForm.querySelector("[name=detail]:checked").value)
                 const zoom = optimalExportParams.zoom + zoomOffset
                 const baseLayer = getMapBaseLayer(map)
 

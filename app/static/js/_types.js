@@ -54,7 +54,7 @@
  * @property {"changeset"} type Object type
  * @property {number} id Object id
  * @property {Map<string, string>} tags Object tags
- * @property {number[]|null} bounds Optional object bounds coordinates in the format [minLat, minLon, maxLat, maxLon]
+ * @property {number[]|null} bounds Optional object bounds coordinates in the format [minLon, minLat, maxLon, maxLat]
 
 /**
  * @typedef {OSMNode|OSMWay|OSMRelation|OSMNote|OSMChangeset} OSMObject
