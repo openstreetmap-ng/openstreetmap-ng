@@ -29,7 +29,7 @@ export const getShareSidebarToggleButton = () => {
             [input, input.closest("label").querySelector(".resolution")],
         ])
         const formatSelect = exportForm.querySelector(".format-select")
-        const exportButton = exportForm.querySelector("[type=submit]")
+        const submitButton = exportForm.querySelector("[type=submit]")
 
         // Null values until initialized
         let marker = null
@@ -171,11 +171,11 @@ export const getShareSidebarToggleButton = () => {
         const onExportFormSubmit = async (e) => {
             e.preventDefault()
 
-            if (exportButton.disabled) return
+            if (submitButton.disabled) return
 
-            const originalInner = exportButton.innerHTML
-            exportButton.disabled = true
-            exportButton.textContent = i18next.t("javascripts.share.exporting")
+            const originalInner = submitButton.innerHTML
+            submitButton.disabled = true
+            submitButton.textContent = i18next.t("action.downloading")
 
             try {
                 // Get export params from the form
@@ -200,8 +200,8 @@ export const getShareSidebarToggleButton = () => {
                 a.download = `Map ${date}${fileSuffix}`
                 a.click()
             } finally {
-                exportButton.innerHTML = originalInner
-                exportButton.disabled = false
+                submitButton.innerHTML = originalInner
+                submitButton.disabled = false
             }
         }
 
@@ -262,7 +262,6 @@ export const getShareSidebarToggleButton = () => {
         }
         customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
         // TODO: support svg/pdf fallback
-        // TODO: finish implementation
         exportForm.addEventListener("submit", onExportFormSubmit)
 
         return container

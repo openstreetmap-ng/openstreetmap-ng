@@ -2,14 +2,14 @@ import * as L from "leaflet"
 
 const maxZoom = 25
 const tileSize = 256
-const optimalExportResolution = 1024
+const optimalExportResolution = Math.max(1024, innerHeight)
 const earthRadius = 6371000
 const earthCircumference = 40030173 // 2 * Math.PI * EARTH_RADIUS
 
 // TODO: add information that only base layer is exported, no markers etc.
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
-const imageQuality = 0.95
+const imageQuality = 0.98
 
 /**
  * Returns the optimal zoom level and resolution for exporting the map image
@@ -18,7 +18,7 @@ const imageQuality = 0.95
 export const getOptimalExportParams = (bounds) => {
     let [minLon, minLat, maxLon, maxLat] = bounds
     // The bounds cross the antimeridian
-    if (minLon > maxLon) maxLon += 360
+    while (minLon > maxLon) maxLon += 360
 
     const sizeInDegrees = L.point(maxLon - minLon, maxLat - minLat)
     const sizeInRadians = sizeInDegrees.multiplyBy(Math.PI / 180)
@@ -110,7 +110,11 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
 
     let [minLon, minLat, maxLon, maxLat] = bounds
     // The bounds cross the antimeridian
-    if (minLon > maxLon) maxLon += 360
+    while (minLon > maxLon) maxLon += 360
+
+    // Clamp latitudes to avoid numerical errors
+    minLat = Math.max(minLat, -85)
+    maxLat = Math.min(maxLat, 85)
 
     const minTileCoords = getTileCoords(minLon, maxLat, zoom)
     const maxTileCoords = getTileCoords(maxLon, minLat, zoom)
@@ -137,6 +141,7 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
 
     const fetchTilePromise = (x, y) => {
         return new Promise((resolve, reject) => {
+            const wrapped = wrapTileCoords(x, y, zoom)
             const img = new Image()
             img.crossOrigin = "anonymous"
             img.onload = () => {
@@ -148,7 +153,7 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
             img.onerror = () => {
                 reject(`Failed to load tile at x=${x}, y=${y}, z=${zoom}`)
             }
-            img.src = L.Util.template(baseLayerUrl, L.Util.extend({ x, y, z: zoom }, baseLayerOptions))
+            img.src = L.Util.template(baseLayerUrl, L.Util.extend({ x: wrapped.x, y, z: zoom }, baseLayerOptions))
         })
     }
 
@@ -156,14 +161,13 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
     const fetchTilesPromises = []
     for (let x = minTileCoords.x; x <= maxTileCoords.x; x++) {
         for (let y = minTileCoords.y; y <= maxTileCoords.y; y++) {
-            const wrapped = wrapTileCoords(x, y, zoom)
-            fetchTilesPromises.push(fetchTilePromise(wrapped.x, wrapped.y))
+            fetchTilesPromises.push(fetchTilePromise(x, y))
         }
     }
 
-    console.debug(`Fetching ${fetchTilesPromises.length} tiles...`)
+    console.log(`Fetching ${fetchTilesPromises.length} tiles...`)
     await Promise.all(fetchTilesPromises)
-    console.debug("Finished fetching tiles")
+    console.log("Finished fetching tiles")
 
     // Export the canvas to an image
     return new Promise((resolve, reject) => {
@@ -189,17 +193,10 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
  * @param {{ x: number, y: number }} maxTileCoords Maximum tile coordinates
  */
 const calculateTrimOffsets = (minLon, minLat, maxLon, maxLat, zoom, minTileCoords, maxTileCoords) => {
-    const wrappedMinTileCoords = wrapTileCoords(minTileCoords.x, minTileCoords.y, zoom)
-    const minTopLeft = getLatLonFromTileCoords(wrappedMinTileCoords.x, wrappedMinTileCoords.y, zoom)
-
-    const wrappedMinEndTileCoords = wrapTileCoords(minTileCoords.x + 1, minTileCoords.y + 1, zoom)
-    const minBottomRight = getLatLonFromTileCoords(wrappedMinEndTileCoords.x, wrappedMinEndTileCoords.y, zoom)
-
-    const wrappedMaxTileCoords = wrapTileCoords(maxTileCoords.x, maxTileCoords.y, zoom)
-    const maxTopLeft = getLatLonFromTileCoords(wrappedMaxTileCoords.x, wrappedMaxTileCoords.y, zoom)
-
-    const wrappedMaxEndTileCoords = wrapTileCoords(maxTileCoords.x + 1, maxTileCoords.y + 1, zoom)
-    const maxBottomRight = getLatLonFromTileCoords(wrappedMaxEndTileCoords.x, wrappedMaxEndTileCoords.y, zoom)
+    const minTopLeft = getLatLonFromTileCoords(minTileCoords.x, minTileCoords.y, zoom)
+    const minBottomRight = getLatLonFromTileCoords(minTileCoords.x + 1, minTileCoords.y + 1, zoom)
+    const maxTopLeft = getLatLonFromTileCoords(maxTileCoords.x, maxTileCoords.y, zoom)
+    const maxBottomRight = getLatLonFromTileCoords(maxTileCoords.x + 1, maxTileCoords.y + 1, zoom)
 
     const topOffset = Math.round(((maxLat - minTopLeft.lat) / (minBottomRight.lat - minTopLeft.lat)) * tileSize)
     const leftOffset = Math.round(((minLon - minTopLeft.lon) / (minBottomRight.lon - minTopLeft.lon)) * tileSize)
