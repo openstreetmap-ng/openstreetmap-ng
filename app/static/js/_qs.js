@@ -10,7 +10,7 @@ export const qsParse = (qs) => {
     const params = new URLSearchParams(qs)
     const result = {}
 
-    for (const [key, value] of params.entries()) {
+    for (const [key, value] of params) {
         if (key in result) {
             if (Array.isArray(result[key])) {
                 result[key].push(value)

@@ -47,7 +47,7 @@ export const routerNavigate = (newPath) => {
  * @param {Map<string, object>} pathControllerMap Mapping of path regex patterns to controller objects
  */
 export const configureRouter = (pathControllerMap) => {
-    routes = [...pathControllerMap.entries()].map(([path, controller]) => Route(path, controller))
+    routes = Array.from(pathControllerMap).map(([path, controller]) => Route(path, controller))
     console.debug(`Loaded ${routes.length} routes`)
 
     currentPath = removeTrailingSlash(location.pathname) + location.search

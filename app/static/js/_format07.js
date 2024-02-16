@@ -49,9 +49,13 @@ export const parseElements = (elements) => {
         relation: new Map(),
     }
 
-    // Util to resolve members by their ref
+    /**
+     * Util to resolve members by their ref
+     * @param {object[]} members Members
+     * @returns {OSMObject[]} Resolved members
+     */
     const resolveMembers = (members) =>
-        [...members]
+        members
             .filter((ref) => ref.type !== "relation")
             .map((ref) => {
                 const elementType = ref.type

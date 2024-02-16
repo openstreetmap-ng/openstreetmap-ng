@@ -43,7 +43,7 @@ export const getChangesetsHistoryController = (map) => {
     // Configure result actions to handle focus and clicks
     const configureResultActions = (container) => {
         const resultActions = container.querySelectorAll(".result-action")
-        const changesets = [...resultActions].map((resultAction) => {
+        const changesets = Array.from(resultActions).map((resultAction) => {
             const params = JSON.parse(resultAction.dataset.params)
             const bounds = makeBoundsMinimumSize(params.bounds)
             const boudsArea = (bounds[2] - bounds[0]) * (bounds[3] - bounds[1])

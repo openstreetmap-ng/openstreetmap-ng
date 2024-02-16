@@ -60,7 +60,7 @@ if (messagesContainer) {
             const input = document.createElement("input")
             input.type = "hidden"
             input.name = "message_ids"
-            input.value = JSON.stringify([...messageIds])
+            input.value = JSON.stringify(Array.from(messageIds))
             form.append(input)
         })
     }

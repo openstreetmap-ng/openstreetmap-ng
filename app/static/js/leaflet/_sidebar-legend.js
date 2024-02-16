@@ -16,9 +16,9 @@ export const getLegendSidebarToggleButton = () => {
 
         // Discover the legend items and precompute their visibility
         const layerContainers = sidebar.querySelectorAll(".layer-container")
-        const layerElementsMap = [...layerContainers].reduce((map, layerContainer) => {
+        const layerElementsMap = Array.from(layerContainers).reduce((map, layerContainer) => {
             const layerId = layerContainer.dataset.layerId
-            const elements = [...layerContainer.querySelectorAll("tr")].map((element) => {
+            const elements = Array.from(layerContainer.querySelectorAll("tr")).map((element) => {
                 const [minZoomStr, maxZoomStr] = element.dataset.zoom.split("-")
                 const minZoom = minZoomStr ? parseInt(minZoomStr, 10) : 0
                 const maxZoom = maxZoomStr ? parseInt(maxZoomStr, 10) : precomputeMaxZoom

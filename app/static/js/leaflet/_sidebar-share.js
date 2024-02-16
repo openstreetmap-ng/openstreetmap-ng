@@ -23,7 +23,7 @@ export const getShareSidebarToggleButton = () => {
 
         const exportForm = sidebar.querySelector(".export-form")
         const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
-        const offsetsWithDetailRadioInputs = [...exportForm.querySelectorAll("[name=detail]")].map((input) => [
+        const offsetsWithDetailRadioInputs = Array.from(exportForm.querySelectorAll("[name=detail]")).map((input) => [
             parseInt(input.value),
             input,
         ])

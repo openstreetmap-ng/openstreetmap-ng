@@ -11,7 +11,7 @@ const editGroup = navbar.querySelector(".edit-group")
  * Map of navbar elements to their base href
  * @type {Map<HTMLElement, string>}
  */
-const mapLinksHrefMap = [...(navbar.querySelectorAll(".map-link") ?? [])].reduce(
+const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
     (map, link) => map.set(link, link.getAttribute("href")),
     new Map(),
 )
