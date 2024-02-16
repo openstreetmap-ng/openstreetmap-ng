@@ -28,4 +28,19 @@
         right: 0;
         bottom: 0;
     }
+
+    // Add padding to the sidebar sections
+    .section {
+        padding: 1.2em 1em;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid $border-color;
+        }
+    }
+
+    // Adjust position of the close button
+    .btn-close {
+        position: relative;
+        top: -0.1em;
+    }
 }

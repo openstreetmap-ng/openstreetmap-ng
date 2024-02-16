@@ -18,8 +18,10 @@ export const getExportController = (map) => {
     const maxLonInput = sidebar.querySelector("input[name=max_lon]")
     const maxLatInput = sidebar.querySelector("input[name=max_lat]")
     const customRegionCheckbox = sidebar.querySelector(".custom-region-check")
-    const formAvailableContainer = sidebar.querySelector(".form-available-container")
-    const formUnavailableContainer = sidebar.querySelector(".form-unavailable-container")
+    const exportAvailableContainer = sidebar.querySelector(".export-available-container")
+    const exportLink = exportAvailableContainer.querySelector(".export-link")
+    const exportBaseHref = exportLink.getAttribute("href")
+    const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.getAttribute("href")
     let loaded = false
@@ -31,12 +33,13 @@ export const getExportController = (map) => {
         // Update the from availability
         const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
         const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
-        formAvailableContainer.classList.toggle("d-none", !isFormAvailable)
-        formUnavailableContainer.classList.toggle("d-none", isFormAvailable)
+        exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)
+        exportUnavailableContainer.classList.toggle("d-none", isFormAvailable)
 
-        // Update the overpass link
-        const overpassHref = exportOverpassBaseHref + `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
-        exportOverpassLink.setAttribute("href", overpassHref)
+        // Update the export links
+        const bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
+        exportLink.setAttribute("href", exportBaseHref + bboxQueryString)
+        exportOverpassLink.setAttribute("href", exportOverpassBaseHref + bboxQueryString)
     }
 
     // On input change, enable the custom region and update the filter's bounds

@@ -23,6 +23,7 @@ export const getShareSidebarToggleButton = () => {
 
         const exportForm = sidebar.querySelector(".export-form")
         const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
+        // TODO: disable unavailable zoom levels (on zoomend)
         const offsetsWithDetailRadioInputs = Array.from(exportForm.querySelectorAll("[name=detail]")).map((input) => [
             parseInt(input.value),
             input,

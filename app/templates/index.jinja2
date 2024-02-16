@@ -10,6 +10,8 @@
 {% block body %}
 
 <div class="map-container">
+    {% include 'index/_export.jinja2' %}
+
     <div class="main-map"></div>
 
     {% include 'leaflet/_sidebar_layers.jinja2' %}

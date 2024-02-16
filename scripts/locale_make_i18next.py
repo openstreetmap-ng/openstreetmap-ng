@@ -39,7 +39,7 @@ def convert_plural_format(data: dict):
             continue
 
         # recurse non-plural dicts
-        if not any(count in v for count in ('zero', 'one', 'two', 'few', 'many', 'other')):
+        if not all(count in v for count in ('zero', 'one', 'two', 'few', 'many', 'other')):
             convert_plural_format(v)
             continue
 

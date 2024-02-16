@@ -26,7 +26,7 @@ $custom-colors: (
 );
 $theme-colors: map-merge($theme-colors, $custom-colors);
 
-$action-sidebar-width: 350px;
+$action-sidebar-width: 400px;
 $leaflet-sidebar-width: 250px;
 
 $zindex-dropdown: 1010;

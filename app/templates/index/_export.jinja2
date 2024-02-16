@@ -1,0 +1,64 @@
+<div class="sidebar action-sidebar export">
+    <div class="sidebar-content">
+        <div class="section">
+
+            <div class="row g-1 mb-3">
+                <div class="col">
+                    <h2 class="sidebar-title">
+                        {{ t('site.export.title') }}
+                    </h2>
+                </div>
+                <div class="col-auto">
+                    <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+                </div>
+            </div>
+
+            <div class="export-box p-1 mb-2">
+                <div class="d-flex justify-content-center mb-2">
+                    <input type="number" class="form-control" name="max_lon">
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <input type="number" class="form-control" name="min_lat">
+                    <input type="number" class="form-control" name="max_lat">
+                </div>
+                <div class="d-flex justify-content-center">
+                    <input type="number" class="form-control" name="min_lon">
+                </div>
+            </div>
+
+            <div class="form-check mb-3 ms-1">
+                <label class="form-check-label">
+                    <input class="form-check-input custom-region-check" type="checkbox" autocomplete="off">
+                    {{ t('site.export.manually_select') }}
+                </label>
+            </div>
+
+            <div class="mb-2">
+                <div class="export-available-container d-none">
+                    <a class="btn btn-primary w-100 export-link" href="{{ API_URL }}/api/0.6/map" target="_blank">
+                        {{ t('site.export.export_button') }}
+                    </a>
+                </div>
+
+                <div class="export-unavailabe-container alert alert-warning" role="alert">
+                    {{ t('site.export.too_large.body') }}
+                </div>
+            </div>
+
+            <p>
+                {{ t('site.export.too_large.advice') }}
+            </p>
+
+            <h4>
+                {{ t('site.export.licence') }}
+            </h4>
+            <p>
+                {% set odbl_link %}
+                <a href="https://opendatacommons.org/licenses/odbl/1.0/" target="_blank">{{ t('site.export.odbl') }}</a>
+                {% endset %}
+                {{ t('site.export.licence_details_html', odbl_link=odbl_link) | safe }}
+            </p>
+
+        </div>
+    </div>
+</div>
