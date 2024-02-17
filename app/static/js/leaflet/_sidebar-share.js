@@ -175,7 +175,7 @@ export const getShareSidebarToggleButton = () => {
 
             const originalInner = submitButton.innerHTML
             submitButton.disabled = true
-            submitButton.textContent = i18next.t("action.downloading")
+            submitButton.textContent = i18next.t("state.preparing")
 
             try {
                 // Get export params from the form

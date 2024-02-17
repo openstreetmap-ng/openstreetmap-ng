@@ -19,11 +19,12 @@ map:
       very_high: Very high
   routing:
     drag_and_drop:
-      start: Drag and drop this marker to set the start location
-      end: Drag and drop this marker to set the end location
+      start: Drag and drop this marker to set the start position
+      end: Drag and drop this marker to set the end position
     engine:
       title: Routing engine
 action:
   copy: Copy
   save_as: Save as
-  downloading: Downloading
+state:
+  preparing: Preparing
