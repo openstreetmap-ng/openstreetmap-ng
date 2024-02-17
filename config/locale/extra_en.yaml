@@ -3,7 +3,9 @@ editor:
     description: Rapid
 map:
   overlays:
-    title: Map Overlays
+    title: Map overlays
+  data_export:
+    title: Data export
   export:
     select_custom_region: Select custom region
     min_lon: Minimum longitude

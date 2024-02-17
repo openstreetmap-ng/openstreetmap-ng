@@ -5,7 +5,7 @@
             <div class="row g-1 mb-3">
                 <div class="col">
                     <h2 class="sidebar-title">
-                        {{ t('site.export.title') }}
+                        {{ t('map.data_export.title') | title }}
                     </h2>
                 </div>
                 <div class="col-auto">
@@ -102,9 +102,7 @@
                 </li>
             </ul>
 
-            <h4>
-                {{ t('site.export.licence') }}
-            </h4>
+            <h4>{{ t('site.export.licence') }}</h4>
             <p>
                 {% set odbl_link %}
                 <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank">{{ t('site.export.odbl') }}</a>
