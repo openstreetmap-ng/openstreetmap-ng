@@ -4,8 +4,8 @@ _kb = 1024
 _mb = 1024 * _kb
 
 AVATAR_MAX_RATIO = 2
-AVATAR_MAX_MEGAPIXELS = 2 * _mb  # 2 MP (e.g., 1448x1448)
-AVATAR_MAX_FILE_SIZE = 1 * _mb
+AVATAR_MAX_MEGAPIXELS = 1 * _mb  # 1 MP (e.g., 1024x1024)
+AVATAR_MAX_FILE_SIZE = 512 * _kb  # 512 KB
 
 # this is in-memory cache configuration
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)

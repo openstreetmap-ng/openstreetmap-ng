@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 
 import cython
@@ -5,8 +6,74 @@ from anyio import Path
 from PIL import Image, ImageOps
 
 from app.lib.exceptions_context import raise_for
+from app.lib.naturalsize import naturalsize
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 from app.models.avatar_type import AvatarType
+
+
+@cython.cfunc
+def _optimize_quality(img: Image) -> tuple[int, bytes]:
+    # read property once for performance
+    max_size: int = AVATAR_MAX_FILE_SIZE
+    size: int
+
+    with BytesIO() as buffer:
+        # lossless mode
+        compression_level: int = 100
+
+        img.save(buffer, format='WEBP', quality=compression_level, lossless=True)
+        size = buffer.tell()
+        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', compression_level, naturalsize(size))
+
+        if size <= max_size:
+            return compression_level, buffer.getvalue()
+
+        high: cython.int = 95
+        low: cython.int = 20
+        bs_step: cython.int = 5
+        best_quality: cython.int = -1
+        best_buffer: bytes | None = None
+
+        # initial quick scan
+        quality: cython.int
+        for quality in range(80, 20 - 1, -20):
+            buffer.seek(0)
+            buffer.truncate()
+
+            img.save(buffer, format='WEBP', quality=quality)
+            size = buffer.tell()
+            logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, naturalsize(size))
+
+            if size > max_size:
+                high = quality - bs_step
+            else:
+                low = quality + bs_step
+                best_quality = quality
+                best_buffer = buffer.getvalue()
+                break
+        else:
+            raise_for().avatar_too_big()
+
+        # fine-tune with binary search
+        while low <= high:
+            # round down to the nearest bs_step
+            quality = ((low + high) // 2) // bs_step * bs_step
+
+            buffer.seek(0)
+            buffer.truncate()
+
+            img.save(buffer, format='WEBP', quality=quality)
+            size = buffer.tell()
+            logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, naturalsize(size))
+
+            if size > max_size:
+                high = quality - bs_step
+            else:
+                low = quality + bs_step
+                best_quality = quality
+                best_buffer = buffer.getvalue()
+
+        return best_quality, best_buffer
 
 
 class Avatar:
@@ -80,15 +147,8 @@ class Avatar:
             img_height: cython.int = int(img_height / mp_ratio)
             img.thumbnail((img_width, img_height))
 
-        # normalize file size
-        with BytesIO() as buffer:
-            for quality in (95, 90, 80, 70, 60, 50):
-                buffer.seek(0)
-                buffer.truncate()
+        # optimize file size
+        quality, buffer = _optimize_quality(img)
+        logging.debug('Optimized avatar quality: Q%d', quality)
 
-                img.save(buffer, format='WEBP', quality=quality)
-
-                if buffer.tell() <= AVATAR_MAX_FILE_SIZE:
-                    return buffer.getvalue()
-
-        raise_for().avatar_too_big()
+        return buffer
