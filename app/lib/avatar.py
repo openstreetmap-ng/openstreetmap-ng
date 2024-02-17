@@ -13,6 +13,12 @@ from app.models.avatar_type import AvatarType
 
 @cython.cfunc
 def _optimize_quality(img: Image) -> tuple[int, bytes]:
+    """
+    Find the best image quality given the maximum file size.
+
+    Returns the quality and the image buffer.
+    """
+
     # read property once for performance
     max_size: int = AVATAR_MAX_FILE_SIZE
     size: int
