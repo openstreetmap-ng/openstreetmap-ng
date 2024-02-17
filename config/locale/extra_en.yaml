@@ -28,3 +28,13 @@ action:
   save_as: Save as
 state:
   preparing: Preparing
+alt:
+  brand:
+    firefox: Firefox logo
+    google_chrome: Google Chrome logo
+unsupported_browser:
+  title:
+    short: Unsupported browser
+    long: This browser is not supported
+  description: For the best experience, please update your browser or pick one from the list below.
+  proceed_anyway: Proceed anyway

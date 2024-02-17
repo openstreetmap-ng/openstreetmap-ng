@@ -19,6 +19,7 @@ from app.middlewares.request_context_middleware import RequestContextMiddleware
 from app.middlewares.request_url_middleware import RequestUrlMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
+from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import OSMResponse
 
@@ -42,6 +43,7 @@ main = FastAPI(
     lifespan=lifespan,
 )
 
+main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(CacheControlMiddleware)  # depends on: request
 main.add_middleware(RequestContextMiddleware)
 main.add_middleware(VersionMiddleware)

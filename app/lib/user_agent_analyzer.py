@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 
 import cython
 
@@ -7,6 +8,7 @@ import cython
 _user_agent_re = re.compile(r'(?P<name>Chrome|Firefox)/(?P<major_version>\d{1,4})')
 
 
+@lru_cache(maxsize=256)
 def is_browser_supported(user_agent: str) -> bool:
     """
     Check if the given user agent supports the targeted web standards.

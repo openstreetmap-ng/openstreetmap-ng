@@ -10,7 +10,7 @@ Options.annotate = True
 
 
 dirs = [
-    'app/controllers',
+    # not supported by pydantic: 'app/controllers',
     'app/exceptions',
     'app/exceptions06',
     'app/format06',

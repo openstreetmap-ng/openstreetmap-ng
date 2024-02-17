@@ -56,7 +56,7 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
         formData.append("text", sourceTextArea.value)
         formData.append("text_format", "markdown")
 
-        fetch("/api/web/rich_text/preview", {
+        fetch("/api/web/rich-text/preview", {
             method: "POST",
             body: formData,
             mode: "same-origin",
