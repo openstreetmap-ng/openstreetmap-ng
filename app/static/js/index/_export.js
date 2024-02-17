@@ -2,7 +2,7 @@ import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { mapQueryAreaMaxSize } from "../_config.js"
 import { getPageTitle } from "../_title.js"
-import { isLatitude, isLongitude, zoomPrecision } from "../_utils.js"
+import { zoomPrecision } from "../_utils.js"
 import { getLocationFilter } from "../leaflet/_location-filter.js"
 
 /**
@@ -40,41 +40,6 @@ export const getExportController = (map) => {
         const bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
         exportLink.setAttribute("href", exportBaseHref + bboxQueryString)
         exportOverpassLink.setAttribute("href", exportOverpassBaseHref + bboxQueryString)
-    }
-
-    // On input change, enable the custom region and update the filter's bounds
-    const onInput = () => {
-        const minLon = parseFloat(minLonInput.value)
-        const minLat = parseFloat(minLatInput.value)
-        const maxLon = parseFloat(maxLonInput.value)
-        const maxLat = parseFloat(maxLatInput.value)
-
-        const isMinLonValid = isLongitude(minLon)
-        const isMinLatValid = isLatitude(minLat)
-        const isMaxLonValid = isLongitude(maxLon)
-        const isMaxLatValid = isLatitude(maxLat)
-
-        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
-        minLonInput.classList.toggle("is-invalid", !isMinLonValid && !minLonInput.validity.valueMissing)
-        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
-        minLatInput.classList.toggle("is-invalid", !isMinLatValid && !minLatInput.validity.valueMissing)
-        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
-        maxLonInput.classList.toggle("is-invalid", !isMaxLonValid && !maxLonInput.validity.valueMissing)
-        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
-        maxLatInput.classList.toggle("is-invalid", !isMaxLatValid && !maxLatInput.validity.valueMissing)
-
-        // Skip processing invalid values
-        if (!(isMinLonValid && isMinLatValid && isMaxLonValid && isMaxLatValid)) return
-
-        if (!customRegionCheckbox.checked) {
-            customRegionCheckbox.checked = true
-            customRegionCheckbox.dispatchEvent(new Event("change"))
-        }
-
-        // Update the filter's bounds
-        locationFilter.setBounds(L.latLngBounds([minLat, minLon], [maxLat, maxLon]))
-
-        updateForm(minLon, minLat, maxLon, maxLat)
     }
 
     // On map move end, update the inputs
@@ -123,9 +88,6 @@ export const getExportController = (map) => {
 
     // Listen for events
     map.addEventListener("moveend", onMapMoveEnd)
-    for (const input of [minLonInput, minLatInput, maxLonInput, maxLatInput]) {
-        input.addEventListener("input", onInput)
-    }
     customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
 
     return {

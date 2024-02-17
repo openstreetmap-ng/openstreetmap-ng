@@ -7,15 +7,8 @@
 
         input {
             width: 7em;
+            background: $gray-100;
             text-align: center;
-
-            // Disable number input arrows
-            -moz-appearance: textfield;
-            &::-webkit-inner-spin-button,
-            &::-webkit-outer-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
         }
 
         .bi {
