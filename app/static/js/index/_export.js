@@ -49,8 +49,22 @@ export const getExportController = (map) => {
         const maxLon = parseFloat(maxLonInput.value)
         const maxLat = parseFloat(maxLatInput.value)
 
-        // Skip invalid values
-        if (!(isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat))) return
+        const isMinLonValid = isLongitude(minLon)
+        const isMinLatValid = isLatitude(minLat)
+        const isMaxLonValid = isLongitude(maxLon)
+        const isMaxLatValid = isLatitude(maxLat)
+
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
+        minLonInput.classList.toggle("is-invalid", !isMinLonValid && !minLonInput.validity.valueMissing)
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
+        minLatInput.classList.toggle("is-invalid", !isMinLatValid && !minLatInput.validity.valueMissing)
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
+        maxLonInput.classList.toggle("is-invalid", !isMaxLonValid && !maxLonInput.validity.valueMissing)
+        // biome-ignore lint/complexity/useSimplifiedLogicExpression:
+        maxLatInput.classList.toggle("is-invalid", !isMaxLatValid && !maxLatInput.validity.valueMissing)
+
+        // Skip processing invalid values
+        if (!(isMinLonValid && isMinLatValid && isMaxLonValid && isMaxLatValid)) return
 
         if (!customRegionCheckbox.checked) {
             customRegionCheckbox.checked = true
