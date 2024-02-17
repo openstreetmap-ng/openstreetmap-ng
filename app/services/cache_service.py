@@ -45,7 +45,7 @@ class CacheService:
 
             if value_stored is not None:
                 # on cache hit, decompress the value if needed (first byte is compression marker)
-                if value_stored[0] == '\xff':
+                if value_stored[0] == 0xFF:
                     value = _decompress(value_stored[1:], allow_extra_data=False)
                 else:
                     value = value_stored[1:]
