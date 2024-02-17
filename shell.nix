@@ -367,6 +367,7 @@ let
     export TEST_ENV=1
     export HTTPS_ONLY=0
     export POSTGRES_LOG=1
+    export AUTHLIB_INSECURE_TRANSPORT=1
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"

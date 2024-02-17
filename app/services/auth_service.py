@@ -2,7 +2,6 @@ import logging
 from base64 import b64decode
 from collections.abc import Sequence
 
-from authlib.oauth1.errors import OAuth1Error
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy import update
@@ -241,11 +240,7 @@ class AuthService:
                 return None
 
         if oauth_version == 1:
-            try:
-                request_ = await OAuth1.convert_request(request)
-            except OAuth1Error:
-                # not an OAuth request
-                return None
+            request_ = await OAuth1.convert_request(request)
 
             if request_.signature is None:
                 # not an OAuth request
