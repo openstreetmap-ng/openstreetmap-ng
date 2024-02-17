@@ -25,7 +25,7 @@ def format_style_context(request: Request):
     request_path = request.url.path
 
     # path defaults
-    if request_path.startswith('/api/0.7/'):
+    if request_path.startswith(('/api/web/', '/api/0.7/')):
         style = _style_json
     elif request_path.startswith('/api/'):
         style = _style_xml

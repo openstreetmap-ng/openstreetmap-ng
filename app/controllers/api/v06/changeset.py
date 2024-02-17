@@ -58,7 +58,7 @@ async def changeset_create(
 @router.get('/changeset/{changeset_id}.json')
 async def changeset_read(
     changeset_id: PositiveInt,
-    include_discussion_str: Annotated[str | None, Query(None, alias='include_discussion')],
+    include_discussion_str: Annotated[str | None, Query(alias='include_discussion')] = None,
 ) -> dict:
     # treat any non-empty string as True
     include_discussion: cython.char = bool(include_discussion_str)
@@ -126,7 +126,7 @@ async def changeset_close(
 @router.get('/changeset/{changeset_id}/download.xml', response_class=OSMChangeResponse)
 async def changeset_download(
     changeset_id: PositiveInt,
-) -> Sequence:
+) -> Sequence[tuple[str, dict]]:
     with joinedload_context(Changeset.elements):
         changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
@@ -140,14 +140,14 @@ async def changeset_download(
 @router.get('/changesets.xml')
 @router.get('/changesets.json')
 async def changesets_query(
-    changesets: Annotated[str | None, Query(None, min_length=1)],
-    display_name: Annotated[str | None, Query(None, min_length=1)],
-    user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
-    time: Annotated[str | None, Query(None, min_length=1)],
-    open_str: Annotated[str | None, Query(None, alias='open')],
-    closed_str: Annotated[str | None, Query(None, alias='closed')],
-    bbox: Annotated[str | None, Query(None, min_length=1)],
-    limit: Annotated[int, Query(CHANGESET_QUERY_DEFAULT_LIMIT, gt=0, le=CHANGESET_QUERY_MAX_LIMIT)],
+    changesets: Annotated[str | None, Query(min_length=1)] = None,
+    display_name: Annotated[str | None, Query(min_length=1)] = None,
+    user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
+    time: Annotated[str | None, Query(min_length=1)] = None,
+    open_str: Annotated[str | None, Query(alias='open')] = None,
+    closed_str: Annotated[str | None, Query(alias='closed')] = None,
+    bbox: Annotated[str | None, Query(min_length=1)] = None,
+    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ) -> Sequence[dict]:
     # treat any non-empty string as True
     open: cython.char = bool(open_str)

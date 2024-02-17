@@ -26,12 +26,12 @@ router = APIRouter()
 
 @router.post('/gpx/create', response_class=PlainTextResponse)
 async def gpx_create(
+    _: Annotated[User, api_user(Scope.write_gpx)],
     file: Annotated[UploadFile, File()],
     description: Annotated[Str255, Form()],
-    tags: Annotated[str, Form('')],
-    visibility: Annotated[TraceVisibility | None, Form(None)],
-    public: Annotated[int, Form(0, deprecated=True)],
-    _: Annotated[User, api_user(Scope.write_gpx)],
+    tags: Annotated[str, Form()] = '',
+    visibility: Annotated[TraceVisibility | None, Form()] = None,
+    public: Annotated[int, Form(deprecated=True)] = 0,
 ) -> int:
     if visibility is None:
         # backwards compatibility:
@@ -54,30 +54,29 @@ async def gpx_read(
     return Format06.encode_gpx_file(trace)
 
 
-@router.get('/gpx/{trace_id}/data')
 @router.get('/gpx/{trace_id}/data.xml', response_class=GPXResponse)
 @router.get('/gpx/{trace_id}/data.gpx', response_class=GPXResponse)
 async def gpx_read_data(
-    request: Request,
     trace_id: PositiveInt,
-) -> Response | dict:
-    # if requested, encode as gpx
-    if request.url.path.endswith(('.xml', '.gpx')):
-        with joinedload_context(Trace.points, TracePoint.trace):
-            trace = await TraceRepository.get_one_by_id(trace_id)
-        return Format06.encode_track(trace.points)
+) -> dict:
+    with joinedload_context(Trace.points, TracePoint.trace):
+        trace = await TraceRepository.get_one_by_id(trace_id)
+    return Format06.encode_track(trace.points)
 
-    # otherwise, return the raw file
-    else:
-        filename, file = await TraceRepository.get_one_data_by_id(trace_id)
-        content_type = magic.from_buffer(file[:2048], mime=True)
-        logging.debug('Downloading trace file content type is %r', content_type)
 
-        return Response(
-            content=file,
-            headers={'Content-Disposition': f'attachment; filename="{filename}"'},
-            media_type=content_type,
-        )
+@router.get('/gpx/{trace_id}/data')
+async def gpx_read_data_raw(
+    trace_id: PositiveInt,
+) -> Response:
+    filename, file = await TraceRepository.get_one_data_by_id(trace_id)
+    content_type = magic.from_buffer(file[:2048], mime=True)
+    logging.debug('Downloading trace file content type is %r', content_type)
+
+    return Response(
+        content=file,
+        headers={'Content-Disposition': f'attachment; filename="{filename}"'},
+        media_type=content_type,
+    )
 
 
 @router.put('/gpx/{trace_id}', response_class=PlainTextResponse)

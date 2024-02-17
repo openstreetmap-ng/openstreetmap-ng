@@ -138,9 +138,9 @@ async def note_comment(
 @router.post('/notes/{note_id}/close.json')
 @router.post('/notes/{note_id}/close.gpx', response_class=GPXResponse)
 async def note_close(
-    note_id: PositiveInt,
-    text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes)],
+    note_id: PositiveInt,
+    text: Annotated[str, Query()] = '',
 ) -> dict:
     # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
@@ -154,9 +154,9 @@ async def note_close(
 @router.post('/notes/{note_id}/reopen.json')
 @router.post('/notes/{note_id}/reopen.gpx', response_class=GPXResponse)
 async def note_reopen(
-    note_id: PositiveInt,
-    text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes)],
+    note_id: PositiveInt,
+    text: Annotated[str, Query()] = '',
 ) -> dict:
     # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
@@ -170,9 +170,9 @@ async def note_reopen(
 @router.delete('/notes/{note_id}.json')
 @router.delete('/notes/{note_id}.gpx', response_class=GPXResponse)
 async def note_hide(
-    note_id: PositiveInt,
-    text: Annotated[str, Query('')],
     _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
+    note_id: PositiveInt,
+    text: Annotated[str, Query()] = '',
 ) -> dict:
     # TODO: update, fetch note
     with joinedload_context(Note.comments, NoteComment.body_rich):
@@ -185,7 +185,7 @@ async def note_hide(
 @router.get('/notes/feed.rss')
 async def notes_feed(
     request: Request,
-    bbox: Annotated[str | None, Query(None, min_length=1)],
+    bbox: Annotated[str | None, Query(min_length=1)] = None,
 ) -> Sequence[dict]:
     if bbox is not None:
         geometry = parse_bbox(bbox)
@@ -238,8 +238,8 @@ async def notes_feed(
 async def notes_read(
     request: Request,
     bbox: Annotated[str, Query(min_length=1)],
-    closed: Annotated[int, Query(NOTE_QUERY_DEFAULT_CLOSED)],
-    limit: Annotated[PositiveInt, Query(NOTE_QUERY_DEFAULT_LIMIT, le=NOTE_QUERY_LEGACY_MAX_LIMIT)],
+    closed: Annotated[int, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
+    limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
 ) -> Sequence[dict]:
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
     geometry = parse_bbox(bbox)
@@ -300,16 +300,16 @@ class _SearchOrder(StrEnum):
 @router.get('/notes/search.gpx', response_class=GPXResponse)
 async def notes_query(
     request: Request,
-    q: Annotated[str | None, Query(None)],
-    closed: Annotated[float, Query(NOTE_QUERY_DEFAULT_CLOSED)],
-    display_name: Annotated[str | None, Query(None, min_length=1)],
-    user_id: Annotated[PositiveInt | None, Query(None, alias='user')],
-    bbox: Annotated[str | None, Query(None, min_length=1)],
-    from_: Annotated[datetime | None, DateValidator, Query(None, alias='from')],
-    to: Annotated[datetime | None, DateValidator, Query(None)],
-    sort: Annotated[_SearchSort, Query(_SearchSort.updated_at)],
-    order: Annotated[_SearchOrder, Query(_SearchOrder.newest)],
-    limit: Annotated[PositiveInt, Query(NOTE_QUERY_DEFAULT_LIMIT, le=NOTE_QUERY_LEGACY_MAX_LIMIT)],
+    q: Annotated[str | None, Query()] = None,
+    closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
+    display_name: Annotated[str | None, Query(min_length=1)] = None,
+    user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
+    bbox: Annotated[str | None, Query(min_length=1)] = None,
+    from_: Annotated[datetime | None, DateValidator, Query(alias='from')] = None,
+    to: Annotated[datetime | None, DateValidator, Query()] = None,
+    sort: Annotated[_SearchSort, Query()] = _SearchSort.updated_at,
+    order: Annotated[_SearchOrder, Query()] = _SearchOrder.newest,
+    limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
 ) -> Sequence[dict]:
     # small logical optimizations
     if (from_ is not None) and (to is not None) and (from_ >= to):  # invalid date range

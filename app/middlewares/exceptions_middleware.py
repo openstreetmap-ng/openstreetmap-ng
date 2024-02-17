@@ -18,5 +18,5 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
         else:
             implementation = Exceptions()
 
-        async with exceptions_context(implementation):
+        with exceptions_context(implementation):
             return await call_next(request)

@@ -4,18 +4,23 @@ from urllib.parse import urlencode
 
 import orjson
 from httpx import HTTPError
-from shapely import Polygon
+from shapely import Polygon, box
 from shapely.geometry import Point
 
 from app.config import NOMINATIM_URL
 from app.lib.translation import primary_translation_language
-from app.limits import NOMINATIM_CACHE_EXPIRE, NOMINATIM_HTTP_TIMEOUT, NOMINATIM_SEARCH_RESULTS_LIMIT
+from app.limits import (
+    NOMINATIM_CACHE_LONG_EXPIRE,
+    NOMINATIM_CACHE_SHORT_EXPIRE,
+    NOMINATIM_HTTP_LONG_TIMEOUT,
+    NOMINATIM_HTTP_SHORT_TIMEOUT,
+    NOMINATIM_SEARCH_RESULTS_LIMIT,
+)
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
+from app.models.nominatim_search_generic import NominatimSearchGeneric
 from app.services.cache_service import CacheService
 from app.utils import HTTP
-
-# uses primary_translation_language for better cache hit rate
 
 _cache_context = 'Nominatim'
 
@@ -39,42 +44,96 @@ class Nominatim:
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
-            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_TIMEOUT.total_seconds())
+            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
             r.raise_for_status()
             return r.content
 
         try:
-            cache_entry = await CacheService.get_one_by_key(path, _cache_context, factory, ttl=NOMINATIM_CACHE_EXPIRE)
-            display_name = orjson.loads(cache_entry.value)['display_name']
+            cache_entry = await CacheService.get_one_by_key(
+                key=path,
+                context=_cache_context,
+                factory=factory,
+                ttl=NOMINATIM_CACHE_LONG_EXPIRE,
+            )
+            return orjson.loads(cache_entry.value)['display_name']
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
-            display_name = None
-
-        if display_name is not None:
-            return display_name
-        else:
             # always succeed, return coordinates as a fallback
-            return f'{point.y:.3f}, {point.x:.3f}'
+            return f'{point.y:.5f}, {point.x:.5f}'
 
     @staticmethod
-    async def search(*, q: str, bbox: Polygon | None = None) -> Sequence[ElementRef]:
+    async def search_generic(*, q: str, bounds: Polygon | None = None) -> NominatimSearchGeneric:
+        """
+        Search for a location by name.
+
+        Returns the first result as a NominatimSearchGeneric object.
+        """
+
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
                 'q': q,
                 'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bbox.bounds)} if bbox is not None else {}),
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if bounds is not None else {}),
                 'accept-language': primary_translation_language(),
             }
         )
 
         async def factory() -> bytes:
             logging.debug('Nominatim search cache miss for path %r', path)
-            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_TIMEOUT.total_seconds())
+            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
             r.raise_for_status()
             return r.content
 
-        cache_entry = await CacheService.get_one_by_key(path, _cache_context, factory, ttl=NOMINATIM_CACHE_EXPIRE)
+        cache_entry = await CacheService.get_one_by_key(
+            key=path,
+            context=_cache_context,
+            factory=factory,
+            ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
+        )
+        result: dict = orjson.loads(cache_entry.value)[0]
+
+        point = Point(float(result['lon']), float(result['lat']))
+        name = result['display_name']
+        result_bbox = result['boundingbox']
+        min_lat = float(result_bbox[0])
+        max_lat = float(result_bbox[1])
+        min_lon = float(result_bbox[2])
+        max_lon = float(result_bbox[3])
+        geometry = box(min_lon, min_lat, max_lon, max_lat)
+
+        return NominatimSearchGeneric(point=point, name=name, bounds=geometry)
+
+    @staticmethod
+    async def search_elements(*, q: str, bounds: Polygon | None = None) -> Sequence[ElementRef]:
+        """
+        Search for a location by name.
+
+        Returns a sequence of ElementRef objects.
+        """
+
+        path = '/search?' + urlencode(
+            {
+                'format': 'jsonv2',
+                'q': q,
+                'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if bounds is not None else {}),
+                'accept-language': primary_translation_language(),
+            }
+        )
+
+        async def factory() -> bytes:
+            logging.debug('Nominatim search cache miss for path %r', path)
+            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
+            r.raise_for_status()
+            return r.content
+
+        cache_entry = await CacheService.get_one_by_key(
+            key=path,
+            context=_cache_context,
+            factory=factory,
+            ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
+        )
         results: list[dict] = orjson.loads(cache_entry.value)
 
         return tuple(

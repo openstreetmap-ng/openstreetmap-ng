@@ -1,14 +1,14 @@
 import { Alert } from "bootstrap"
+import i18next from "i18next"
 
 /**
  * Initialize a standard bootstrap form
  * @param {HTMLFormElement} form The form element to initialize
- * @param {object} options Options
- * @param {function|null} options.successCallback Optional callback to call on success
+ * @param {function|null} successCallback Optional callback to call on success
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const configureStandardForm = (form, { successCallback = null }) => {
+export const configureStandardForm = (form, successCallback = null) => {
     console.debug("Initializing standard form", form)
 
     const submitElements = form.querySelectorAll("[type=submit]")
@@ -42,7 +42,7 @@ export const configureStandardForm = (form, { successCallback = null }) => {
         if (type === "success" || type === "info") {
             feedback.classList.add("valid-feedback")
             feedback.classList.remove("invalid-feedback")
-        } else if (type === "error") {
+        } else if (type === "error" || type === "missing") {
             feedback.classList.add("invalid-feedback")
             feedback.classList.remove("valid-feedback")
         } else {
@@ -74,6 +74,8 @@ export const configureStandardForm = (form, { successCallback = null }) => {
      */
     const handleFormFeedback = (type, message) => {
         let feedback = form.querySelector(".form-feedback")
+        let feedbackAlert = null
+
         if (!feedback) {
             feedback = document.createElement("div")
             feedback.classList.add("form-feedback", "alert", "alert-dismissible", "fade", "show")
@@ -83,10 +85,11 @@ export const configureStandardForm = (form, { successCallback = null }) => {
             const closeButton = document.createElement("button")
             closeButton.type = "button"
             closeButton.classList.add("btn-close")
-            closeButton.ariaLabel = "Close"
+            closeButton.ariaLabel = i18next.t("javascripts.close")
+            closeButton.dataset.bsDismiss = "alert"
             feedback.append(closeButton)
+            feedbackAlert = new Alert(feedback)
             form.prepend(feedback)
-            Alert.getOrCreateInstance(feedback)
         }
 
         if (type === "success") {
@@ -95,7 +98,7 @@ export const configureStandardForm = (form, { successCallback = null }) => {
         } else if (type === "info") {
             feedback.classList.remove("alert-success", "alert-danger")
             feedback.classList.add("alert-info")
-        } else if (type === "error") {
+        } else if (type === "error" || type === "missing") {
             feedback.classList.remove("alert-success", "alert-info")
             feedback.classList.add("alert-danger")
         } else {
@@ -108,7 +111,8 @@ export const configureStandardForm = (form, { successCallback = null }) => {
         // Remove feedback on submit
         const onInvalidated = () => {
             if (!feedback) return
-            Alert.getInstance(feedback).dispose()
+            feedbackAlert.dispose()
+            feedbackAlert = null
             feedback.remove()
             feedback = null
             form.removeEventListener("submit", onInvalidated)
@@ -153,28 +157,48 @@ export const configureStandardForm = (form, { successCallback = null }) => {
             priority: "high",
         })
             .then(async (resp) => {
-                const data = await resp.json()
+                if (resp.ok) {
+                    console.debug("Form submitted successfully")
+                }
+
+                let data
+
+                // Attempt to parse response as JSON
+                if (resp.headers.get("Content-Type").startsWith("application/json")) {
+                    console.debug("Reading JSON response")
+                    data = await resp.json()
+                } else {
+                    console.debug("Reading text response")
+                    data = { detail: await resp.text() }
+                }
 
                 // Process form feedback if present
-                if (data.detail) {
-                    console.debug("Received form feedback", data.detail)
+                const detail = data.detail
+                if (detail) {
+                    console.debug("Received form feedback", detail)
 
-                    for (const {
-                        type,
-                        loc: [_, field],
-                        msg,
-                    } of data.detail) {
-                        if (field) {
-                            const input = form.querySelector(`[name=${field}]`)
-                            // TODO: handle not found
-                            if (input.type === "hidden") {
-                                handleFormFeedback(type, msg)
+                    if (Array.isArray(detail)) {
+                        // Process array of details
+                        for (const {
+                            type,
+                            loc: [_, field],
+                            msg,
+                        } of detail) {
+                            if (field) {
+                                // TODO: better handle not found (input)
+                                const input = form.querySelector(`[name=${field}]`)
+                                if (input.type === "hidden") {
+                                    handleFormFeedback(type, msg)
+                                } else {
+                                    handleElementFeedback(input, type, msg)
+                                }
                             } else {
-                                handleElementFeedback(input, type, msg)
+                                handleFormFeedback(type, msg)
                             }
-                        } else {
-                            handleFormFeedback(type, msg)
                         }
+                    } else {
+                        // Process detail as a single text message
+                        handleFormFeedback("error", detail)
                     }
 
                     form.classList.add("was-validated")

@@ -46,7 +46,7 @@ export const getRoutingController = (map) => {
     const toDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${toMarkerGuid}"]`)
     const reverseButton = form.querySelector(".reverse-btn")
     const engineInput = form.querySelector("select[name=engine]")
-    const bboxInput = form.querySelector("input[name=bbox]")
+    const boundsInput = form.querySelector("input[name=bounds]")
     let loaded = false
     let abortController = null
 
@@ -69,7 +69,7 @@ export const getRoutingController = (map) => {
         }).addTo(map)
 
     const submitFormIfFilled = () => {
-        if (fromInput.value && toInput.value) form.submit()
+        if (fromInput.value && toInput.value) form.requestSubmit()
     }
 
     const callRoutingEngine = () => {
@@ -150,7 +150,8 @@ export const getRoutingController = (map) => {
         // Skip updates if the sidebar is hidden
         if (!loaded) return
 
-        bboxInput.value = map.getBounds().toBBoxString()
+        // TODO: handle 180th meridian
+        boundsInput.value = map.getBounds().toBBoxString()
     }
 
     /**
@@ -177,7 +178,7 @@ export const getRoutingController = (map) => {
     }
 
     // On input enter, submit the form
-    const onInputEnter = (event) => {
+    const onInput = (event) => {
         if (event.key === "Enter") submitFormIfFilled()
     }
 
@@ -198,9 +199,11 @@ export const getRoutingController = (map) => {
     }
 
     // On success callback, call routing engine, display results, and update search params
-    const onFormSuccess = ({ from, to, bbox }) => {
-        fromInput.value = from.displayName
-        toInput.value = to.displayName
+    const onFormSuccess = ({ from, to, bounds }) => {
+        console.debug("onFormSuccess", from, to, bounds)
+
+        fromInput.value = from.name
+        toInput.value = to.name
         fromInput.dispatchEvent(new Event("input"))
         toInput.dispatchEvent(new Event("input"))
 
@@ -216,15 +219,17 @@ export const getRoutingController = (map) => {
             map.addLayer(toMarker)
         }
 
-        fromMarker.setLatLng(L.latLng(from.lat, from.lon))
-        toMarker.setLatLng(L.latLng(to.lat, to.lon))
+        const [fromLon, fromLat] = from.point
+        const [toLon, toLat] = to.point
+        fromMarker.setLatLng(L.latLng(fromLat, fromLon))
+        toMarker.setLatLng(L.latLng(toLat, toLon))
         callRoutingEngine()
 
         // Focus on the makers if they're offscreen
-        const [minLon, minLat, maxLon, maxLat] = bbox
+        const [minLon, minLat, maxLon, maxLat] = bounds
         const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
         if (!map.getBounds().contains(latLngBounds)) {
-            map.fitBounds(latLngBounds) // TODO: test animate
+            map.fitBounds(latLngBounds)
         }
     }
 
@@ -234,9 +239,9 @@ export const getRoutingController = (map) => {
     mapContainer.addEventListener("dragover", (event) => event.preventDefault())
     mapContainer.addEventListener("drop", onMapDrop)
     map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-    fromInput.addEventListener("input", onInputEnter)
+    fromInput.addEventListener("input", onInput)
     fromDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
-    toInput.addEventListener("input", onInputEnter)
+    toInput.addEventListener("input", onInput)
     toDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
     reverseButton.addEventListener("click", onReverseButtonClick)
     engineInput.addEventListener("input", onEngineInputChange)

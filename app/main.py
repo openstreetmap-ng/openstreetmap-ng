@@ -3,7 +3,6 @@ import mimetypes
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 
@@ -12,6 +11,7 @@ import app.lib.cython_detect  # DO NOT REMOVE
 from app.config import COOKIE_SESSION_TTL, HTTPS_ONLY, LOCALE_DIR, NAME, SECRET, TEST_ENV
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
+from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
@@ -59,7 +59,7 @@ main.add_middleware(
 )
 main.add_middleware(RequestBodyMiddleware)
 main.add_middleware(RequestUrlMiddleware)
-main.add_middleware(ExceptionMiddleware)
+main.add_middleware(ExceptionsMiddleware)
 
 if TEST_ENV:
     main.add_middleware(RuntimeMiddleware)
@@ -70,4 +70,4 @@ main.mount('/static', StaticFiles(directory='app/static'), name='static')
 main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
 main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
 
-main.include_router(app.controllers.index.router)
+main.include_router(app.controllers.router)

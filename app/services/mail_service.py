@@ -25,7 +25,7 @@ from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UN
 from app.models.db.mail import Mail
 from app.models.db.user import User
 from app.models.mail_from_type import MailFromType
-from app.services.user_token_email_reply_service import EmailReplyService, UserTokenEmailReplyService
+from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
 
 def _validate_smtp_config():

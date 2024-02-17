@@ -43,4 +43,12 @@
         position: relative;
         top: -0.1em;
     }
+
+    // Fixup the close button position for the alerts
+    .alert {
+        .btn-close {
+            position: absolute;
+            top: 0;
+        }
+    }
 }

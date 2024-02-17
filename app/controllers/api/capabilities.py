@@ -5,8 +5,8 @@ from app.lib.xmltodict import xattr
 from app.limits import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
     CHANGESET_QUERY_MAX_LIMIT,
-    ELEMENT_RELATION_MAX_MEMBERS,
-    ELEMENT_WAY_MAX_NODES,
+    ELEMENT_RELATION_MEMBERS_LIMIT,
+    ELEMENT_WAY_MEMBERS_LIMIT,
     MAP_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_LIMIT,
@@ -59,7 +59,7 @@ async def legacy_capabilities() -> dict:
                 xattr('maximum_query_limit'): NOTE_QUERY_LEGACY_MAX_LIMIT,
             },
             'relationmembers': {
-                xattr('maximum'): ELEMENT_RELATION_MAX_MEMBERS,
+                xattr('maximum'): ELEMENT_RELATION_MEMBERS_LIMIT,
             },
             'status': {
                 # this is over-complicated, just check HTTP_503_SERVICE_UNAVAILABLE
@@ -74,7 +74,7 @@ async def legacy_capabilities() -> dict:
                 xattr('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,
             },
             'waynodes': {
-                xattr('maximum'): ELEMENT_WAY_MAX_NODES,
+                xattr('maximum'): ELEMENT_WAY_MEMBERS_LIMIT,
             },
         },
         'policy': {

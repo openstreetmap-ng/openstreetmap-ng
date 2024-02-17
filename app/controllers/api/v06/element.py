@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Annotated
+from typing import Annotated, Union
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
@@ -160,9 +160,9 @@ async def element_history(
 @router.get('/{type}s.json')
 async def elements_read_many(
     type: ElementType,
-    nodes: Annotated[str | None, Query(None)],
-    ways: Annotated[str | None, Query(None)],
-    relations: Annotated[str | None, Query(None)],
+    nodes: Annotated[str | None, Query()] = None,
+    ways: Annotated[str | None, Query()] = None,
+    relations: Annotated[str | None, Query()] = None,
 ) -> Sequence[dict]:
     if type == _type_node:
         query = nodes
@@ -237,7 +237,7 @@ async def element_parent_ways(
 @router.get('/{type}/{id}/full.xml')
 @router.get('/{type}/{id}/full.json')
 async def element_full(
-    type: ElementType.way | ElementType.relation,
+    type: ElementType,
     id: PositiveInt,
 ) -> Sequence[dict]:
     element_ref = ElementRef(type=type, id=id)
