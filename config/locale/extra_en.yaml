@@ -18,6 +18,9 @@ map:
       high: High
       very_high: Very high
   routing:
+    drag_and_drop:
+      start: Drag and drop this marker to set the start location
+      end: Drag and drop this marker to set the end location
     engine:
       title: Routing engine
 action:
