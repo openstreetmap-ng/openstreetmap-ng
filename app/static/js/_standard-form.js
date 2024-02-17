@@ -42,9 +42,13 @@ export const configureStandardForm = (form, successCallback = null) => {
         if (type === "success" || type === "info") {
             feedback.classList.add("valid-feedback")
             feedback.classList.remove("invalid-feedback")
+            element.classList.add("is-valid")
+            element.classList.remove("is-invalid")
         } else if (type === "error" || type === "missing") {
             feedback.classList.add("invalid-feedback")
             feedback.classList.remove("valid-feedback")
+            element.classList.add("is-invalid")
+            element.classList.remove("is-valid")
         } else {
             console.error(`Unsupported feedback type: ${type}`)
             return
@@ -57,6 +61,7 @@ export const configureStandardForm = (form, successCallback = null) => {
             if (!feedback) return
             feedback.remove()
             feedback = null
+            element.classList.remove("is-valid", "is-invalid")
             element.removeEventListener("change", onInvalidated)
             form.removeEventListener("submit", onInvalidated)
         }
@@ -200,8 +205,6 @@ export const configureStandardForm = (form, successCallback = null) => {
                         // Process detail as a single text message
                         handleFormFeedback("error", detail)
                     }
-
-                    form.classList.add("was-validated")
                 }
 
                 // If the request was successful, call the callback
