@@ -57,7 +57,7 @@ export const getRoutingController = (map) => {
     const routeElevationGroup = routeSection.querySelector(".elevation-group")
     const routeAscend = routeElevationGroup.querySelector(".ascend")
     const routeDescend = routeElevationGroup.querySelector(".descend")
-    const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
+    const turnTable = routeSection.querySelector(".turn-by-turn")
     const attribution = routeSection.querySelector(".attribution")
     let loaded = true
     let abortController = null
@@ -176,7 +176,7 @@ export const getRoutingController = (map) => {
             newTableBody.appendChild(tr)
         }
 
-        turnTableBody.replaceWith(newTableBody)
+        turnTable.querySelector("tbody").replaceWith(newTableBody)
 
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
