@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <div class="form-check mb-2">
+            <div class="form-check ms-1 mb-2">
                 <label class="form-check-label d-block">
                     <input class="form-check-input marker-check" type="checkbox" autocomplete="off">
                     {{ t('javascripts.share.include_marker') }}
@@ -60,7 +60,7 @@
                 {{ t('javascripts.share.image') }}
             </h4>
 
-            <div class="form-check mb-3">
+            <div class="form-check ms-1 mb-3">
                 <label class="form-check-label d-block">
                     <input class="form-check-input custom-region-check" type="checkbox" autocomplete="off">
                     {{ t('map.export.select_custom_region') }}
@@ -70,40 +70,42 @@
             <label class="form-label">
                 {{ t('map.export.level_of_detail.title') }}
             </label>
-            <div class="form-check">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="detail" value="-2">
-                    {{ t('map.export.level_of_detail.very_low') }}
-                    <span class="resolution"></span>
-                </label>
-            </div>
-            <div class="form-check">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="detail" value="-1">
-                    {{ t('map.export.level_of_detail.low') }}
-                    <span class="resolution"></span>
-                </label>
-            </div>
-            <div class="form-check">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="detail" value="0" checked>
-                    {{ t('map.export.level_of_detail.normal') }}
-                    <span class="resolution"></span>
-                </label>
-            </div>
-            <div class="form-check">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="detail" value="1">
-                    {{ t('map.export.level_of_detail.high') }}
-                    <span class="resolution"></span>
-                </label>
-            </div>
-            <div class="form-check mb-3">
-                <label class="form-check-label w-100">
-                    <input class="form-check-input" type="radio" name="detail" value="2">
-                    {{ t('map.export.level_of_detail.very_high') }}
-                    <span class="resolution"></span>
-                </label>
+            <div class="ms-1 mb-3">
+                <div class="form-check">
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="detail" value="-2">
+                        {{ t('map.export.level_of_detail.very_low') }}
+                        <span class="resolution"></span>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="detail" value="-1">
+                        {{ t('map.export.level_of_detail.low') }}
+                        <span class="resolution"></span>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="detail" value="0" checked>
+                        {{ t('map.export.level_of_detail.normal') }}
+                        <span class="resolution"></span>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="detail" value="1">
+                        {{ t('map.export.level_of_detail.high') }}
+                        <span class="resolution"></span>
+                    </label>
+                </div>
+                <div class="form-check">
+                    <label class="form-check-label w-100">
+                        <input class="form-check-input" type="radio" name="detail" value="2">
+                        {{ t('map.export.level_of_detail.very_high') }}
+                        <span class="resolution"></span>
+                    </label>
+                </div>
             </div>
 
             <label class="form-label">
