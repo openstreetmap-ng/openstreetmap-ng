@@ -14,9 +14,19 @@ let
     zlib.out
   ];
 
+  # Wrap Python to override LD_LIBRARY_PATH
+  wrappedPython = with pkgs; (symlinkJoin {
+    name = "python";
+    paths = [ python312 ];
+    buildInputs = [ makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/python3.12" --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath libraries'}"
+    '';
+  });
+
   packages' = with pkgs; [
     # Base packages
-    python312
+    wrappedPython
     coreutils
     bun
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
@@ -354,6 +364,7 @@ let
 
     echo "Installing Python dependencies"
     export POETRY_VIRTUALENVS_IN_PROJECT=1
+    poetry env use "${wrappedPython}/bin/python"
     poetry install --compile
 
     echo "Installing Bun dependencies"
@@ -361,8 +372,6 @@ let
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
-
-    export LD_LIBRARY_PATH="${lib.makeLibraryPath libraries'}"
 
     # Development environment variables
     export PYTHONNOUSERSITE=1
