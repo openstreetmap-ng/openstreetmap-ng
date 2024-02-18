@@ -53,7 +53,7 @@
             <p>
                 {{ t('site.export.too_large.advice') }}
             </p>
-            <ul>
+            <ul class="mb-2">
                 <li>
                     <h6 class="mb-1">
                         <img class="source-icon" src="/static/img/brand/overpass.webp">
@@ -96,18 +96,26 @@
                             {{ t('site.export.too_large.other.title') }}
                         </a>
                     </h6>
-                    <p>
+                    <p class="mb-0">
                         {{ t('site.export.too_large.other.description') }}
                     </p>
                 </li>
             </ul>
 
+        </div>
+        <div class="section">
+
             <h4>{{ t('site.export.licence') }}</h4>
-            <p>
+            <p class="mb-2">
                 {% set odbl_link %}
                 <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank">{{ t('site.export.odbl') }}</a>
                 {% endset %}
                 {{ t('site.export.licence_details_html', odbl_link=odbl_link) | safe }}
+            </p>
+            <p class="small text-end me-1 mb-2">
+                <a href="/copyright" rel="license">
+                    {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                </a>
             </p>
 
         </div>

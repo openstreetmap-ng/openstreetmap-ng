@@ -1,8 +1,3 @@
-    OSM.router.replace("/directions?" + Qs.stringify({
-      engine: chosenEngine.id,
-      route: o.lat.toFixed(precision) + "," + o.lng.toFixed(precision) + ";" +
-             d.lat.toFixed(precision) + "," + d.lng.toFixed(precision)
-    }));
 
     // copy loading item to sidebar and display it. we copy it, rather than
     // just using it in-place and replacing it in case it has to be used

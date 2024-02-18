@@ -7,7 +7,7 @@ map:
   data_export:
     title: Data export
   export:
-    select_custom_region: Select custom region
+    select_custom_region: Select a custom region
     min_lon: Minimum longitude
     max_lon: Maximum longitude
     min_lat: Minimum latitude
