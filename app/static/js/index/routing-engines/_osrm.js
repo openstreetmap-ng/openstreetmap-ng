@@ -16,11 +16,10 @@ const makeEngine = (profile) => {
      * @param {AbortSignal} abortSignal Abort signal
      * @param {object} from From coordinates
      * @param {object} to To coordinates
-     * @param {object} options Options
-     * @param {function} options.successCallback Success callback
-     * @param {function} options.errorCallback Error callback
+     * @param {function} successCallback Success callback
+     * @param {function} errorCallback Error callback
      */
-    return (abortSignal, from, to, { successCallback, errorCallback }) => {
+    return (abortSignal, from, to, successCallback, errorCallback) => {
         const queryString = qsEncode({
             steps: true, // returned route steps for each route leg
             geometries: "polyline6", // polyline encoding with 6 digits precision
@@ -31,7 +30,7 @@ const makeEngine = (profile) => {
             `https://router.project-osrm.org/route/v1/${profile}/${from.lon},${from.lat};${to.lon},${to.lat}?${queryString}`,
             {
                 method: "GET",
-                mode: "no-cors",
+                mode: "cors",
                 credentials: "omit",
                 cache: "no-store",
                 signal: abortSignal,

@@ -16,11 +16,10 @@ const makeEngine = (profile) => {
      * @param {AbortSignal} abortSignal Abort signal
      * @param {object} from From coordinates
      * @param {object} to To coordinates
-     * @param {object} options Options
-     * @param {function} options.successCallback Success callback
-     * @param {function} options.errorCallback Error callback
+     * @param {function} successCallback Success callback
+     * @param {function} errorCallback Error callback
      */
-    return (abortSignal, from, to, { successCallback, errorCallback }) => {
+    return (abortSignal, from, to, successCallback, errorCallback) => {
         fetch(`https://graphhopper.com/api/1/route?key=${graphhopperApiKey}`, {
             method: "POST",
             headers: {
@@ -28,10 +27,13 @@ const makeEngine = (profile) => {
             },
             body: JSON.stringify({
                 profile: profile,
-                points: [from, to],
+                points: [
+                    [from.lon, from.lat],
+                    [to.lon, to.lat],
+                ],
                 locale: primaryLanguage,
             }),
-            mode: "no-cors",
+            mode: "cors",
             credentials: "omit",
             cache: "no-store",
             signal: abortSignal,

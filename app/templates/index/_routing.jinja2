@@ -80,5 +80,37 @@
             </div>
 
         </form>
+        <div class="section route">
+            <div class="route-info mb-3">
+                <div class="mb-1">
+                    <span class="me-2">
+                        <i class="bi bi-signpost-2"></i>
+                        <span>{{ t('javascripts.directions.distance') }}:</span>
+                        <span class="distance"></span>
+                    </span>
+                    <span>
+                        <i class="bi bi-stopwatch"></i>
+                        <span>{{ t('javascripts.directions.time') }}:</span>
+                        <span class="time"></span>
+                    </span>
+                </div>
+                <div class="elevation-group">
+                    <span class="me-2">
+                        <span>{{ t('javascripts.directions.ascend') }}:</span>
+                        <span class="ascend"></span>
+                    </span>
+                    <span>
+                        <span>{{ t('javascripts.directions.descend') }}:</span>
+                        <span class="descend"></span>
+                    </span>
+                </div>
+            </div>
+
+            <table class="turn-by-turn table table-sm align-middle mb-4">
+                <tbody></tbody>
+            </table>
+
+            <div class="attribution"></div>
+        </div>
     </div>
 </div>

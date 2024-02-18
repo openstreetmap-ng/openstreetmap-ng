@@ -35,7 +35,7 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [30%] Migration of website API
 - [x] Migration and refactoring of stylesheets
 - [95%] Migration and refactoring of scripts
-- [15%] Migration of templates
+- [20%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [x] Development translation overrides
 - [ ] Anti-vandalism stage 1

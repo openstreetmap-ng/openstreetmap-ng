@@ -1,18 +1,3 @@
-.action-sidebar {
-    // Style the routing form
-    .routing-form {
-        background: $gray-400;
-
-        // Style the routing marker (contain image and indicate draggable)
-        .routing-marker {
-            cursor: move;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-    }
-}
-
 // TODO: hover action
 // TODO: limit navigation updates per sec
 .action-sidebar.routing {
@@ -20,6 +5,45 @@
         cursor: move;
         height: 3.5em;
         padding: 0.6em 0.45em;
+    }
+
+    .route-info {
+        text-align: center;
+    }
+
+    .elevation-group {
+        font-size: 0.9em;
+        color: $gray-600;
+    }
+
+    .turn-by-turn {
+        // Disable border on the first, icon column
+        .icon {
+            border-bottom: unset;
+        }
+
+        .number {
+            font-weight: bold;
+        }
+
+        // Style the distance text for each turn
+        .distance {
+            color: $gray-600;
+            font-size: 0.75em;
+            text-align: right;
+            vertical-align: middle;
+        }
+
+        // Disable border on the last row
+        tr:last-child {
+            td {
+                border-bottom: unset;
+            }
+        }
+    }
+
+    .attribution {
+        text-align: center;
     }
 
     // The sprite usage is deprecated.
@@ -33,16 +57,8 @@
     }
 
     @for $i from 0 through 25 {
-        .icon.icon-#{$i} {
+        .icon .icon-#{$i} {
             @include legacy-routing-icon($i * -20px, 0px);
         }
-    }
-
-    // Style the distance text for each turn
-    .distance {
-        color: $gray-600;
-        font-size: 0.75em;
-        text-align: right;
-        vertical-align: middle;
     }
 }

@@ -31,32 +31,6 @@
         map.fitBounds(polyline.getBounds().pad(0.05));
       }
 
-      var distanceText = $("<p>").append(
-        I18n.t("javascripts.directions.distance") + ": " + formatDistance(route.distance) + ". " +
-        I18n.t("javascripts.directions.time") + ": " + formatTime(route.time) + ".");
-      if (typeof route.ascend !== "undefined" && typeof route.descend !== "undefined") {
-        distanceText.append(
-          $("<br>"),
-          I18n.t("javascripts.directions.ascend") + ": " + formatHeight(route.ascend) + ". " +
-          I18n.t("javascripts.directions.descend") + ": " + formatHeight(route.descend) + ".");
-      }
-
-      var turnByTurnTable = $("<table class='table table-sm mb-3'>")
-        .append($("<tbody>"));
-      var directionsCloseButton = $("<button type='button' class='btn-close'>")
-        .attr("aria-label", I18n.t("javascripts.close"));
-
-      $("#sidebar_content")
-        .empty()
-        .append(
-          $("<div class='d-flex'>").append(
-            $("<h2 class='flex-grow-1 text-break'>")
-              .text(I18n.t("javascripts.directions.directions")),
-            $("<div>").append(directionsCloseButton)),
-          distanceText,
-          turnByTurnTable
-        );
-
       // Add each row
       route.steps.forEach(function (step) {
         var ll = step[0],
@@ -64,23 +38,6 @@
             instruction = step[2],
             dist = step[3],
             lineseg = step[4];
-
-        if (dist < 5) {
-          dist = "";
-        } else if (dist < 200) {
-          dist = String(Math.round(dist / 10) * 10) + "m";
-        } else if (dist < 1500) {
-          dist = String(Math.round(dist / 100) * 100) + "m";
-        } else if (dist < 5000) {
-          dist = String(Math.round(dist / 100) / 10) + "km";
-        } else {
-          dist = String(Math.round(dist / 1000)) + "km";
-        }
-
-        var row = $("<tr class='turn'/>");
-        row.append("<td class='border-0'><div class='direction i" + direction + "'/></td> ");
-        row.append("<td>" + instruction);
-        row.append("<td class='distance'>" + dist);
 
         row.on("click", function () {
           popup
@@ -96,10 +53,4 @@
         }, function () {
           map.removeLayer(highlight);
         });
-
-        turnByTurnTable.append(row);
       });
-
-      $("#sidebar_content").append("<p class=\"text-center\">" +
-        I18n.t("javascripts.directions.instructions.courtesy", { link: chosenEngine.creditline }) +
-        "</p>");

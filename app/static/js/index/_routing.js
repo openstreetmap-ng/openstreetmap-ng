@@ -1,10 +1,14 @@
+import i18next from "i18next"
 import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
+import { formatDistance, formatHeight, formatSimpleDistance, formatTime } from "../_format-utils.js"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage.js"
-import { qsParse } from "../_qs.js"
+import { qsParse, qsStringify } from "../_qs.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
+import "../_types.js"
 import { zoomPrecision } from "../_utils.js"
+import { encodeMapState, getMapState } from "../leaflet/_map-utils.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { GraphHopperEngines } from "./routing-engines/_graphhopper.js"
 import { OSRMEngines } from "./routing-engines/_osrm.js"
@@ -47,7 +51,15 @@ export const getRoutingController = (map) => {
     const reverseButton = form.querySelector(".reverse-btn")
     const engineInput = form.querySelector("select[name=engine]")
     const boundsInput = form.querySelector("input[name=bounds]")
-    let loaded = false
+    const routeSection = sidebar.querySelector(".section.route")
+    const routeDistance = routeSection.querySelector(".route-info .distance")
+    const routeTime = routeSection.querySelector(".route-info .time")
+    const routeElevationGroup = routeSection.querySelector(".elevation-group")
+    const routeAscend = routeElevationGroup.querySelector(".ascend")
+    const routeDescend = routeElevationGroup.querySelector(".descend")
+    const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
+    const attribution = routeSection.querySelector(".attribution")
+    let loaded = true
     let abortController = null
 
     // Null values until initialized
@@ -76,6 +88,110 @@ export const getRoutingController = (map) => {
         // Abort any pending request
         if (abortController) abortController.abort()
         abortController = new AbortController()
+
+        const routingEngineName = engineInput.value
+        const routingEngine = routingEngines.get(routingEngineName)
+        const fromLatLng = fromMarker.getLatLng()
+        const fromCoords = { lon: fromLatLng.lng, lat: fromLatLng.lat }
+        const toLatLng = toMarker.getLatLng()
+        const toCoords = { lon: toLatLng.lng, lat: toLatLng.lat }
+
+        // Remember routing configuration in URL search params
+        const precision = zoomPrecision(19)
+        const fromRouteParam = `${fromCoords.lat.toFixed(precision)},${fromCoords.lon.toFixed(precision)}`
+        const toRouteParam = `${toCoords.lat.toFixed(precision)},${toCoords.lon.toFixed(precision)}`
+        const routeParam = `${fromRouteParam};${toRouteParam}`
+
+        const searchParams = qsStringify({
+            engine: routingEngineName,
+            route: routeParam,
+        })
+        const hash = encodeMapState(getMapState(map))
+
+        // TODO: will this not remove path?
+        history.replaceState(null, "", `?${searchParams}${hash}`)
+
+        // TODO: show loading animation
+        routingEngine(abortController.signal, fromCoords, toCoords, onRoutingSuccess, onRoutingError)
+    }
+
+    /**
+     * On routing success, render the route
+     * @param {RoutingRoute} route Route
+     * @returns {void}
+     */
+    const onRoutingSuccess = (route) => {
+        console.debug("onRoutingSuccess", route)
+
+        // Display general route information
+        const totalDistance = route.steps.reduce((acc, step) => acc + step.distance, 0)
+        const totalTime = route.steps.reduce((acc, step) => acc + step.time, 0)
+        routeDistance.textContent = formatDistance(totalDistance)
+        routeTime.textContent = formatTime(totalTime)
+
+        // Display the optional elevation information
+        if (route.ascend !== null && route.descend !== null) {
+            routeElevationGroup.classList.remove("d-none")
+            routeAscend.textContent = formatHeight(route.ascend)
+            routeDescend.textContent = formatHeight(route.descend)
+        } else {
+            routeElevationGroup.classList.add("d-none")
+        }
+
+        // Render the turn-by-turn table
+        const newTableBody = document.createElement("tbody")
+
+        let stepNumber = 0
+        for (const step of route.steps) {
+            stepNumber += 1
+
+            const tr = document.createElement("tr")
+
+            // Icon
+            const tdIcon = document.createElement("td")
+            tdIcon.classList.add("icon")
+            const iconDiv = document.createElement("div")
+            iconDiv.classList.add(`icon-${step.code}`)
+            tdIcon.appendChild(iconDiv)
+            tr.appendChild(tdIcon)
+
+            // Number
+            const tdNumber = document.createElement("td")
+            tdNumber.classList.add("number")
+            tdNumber.textContent = `${stepNumber}.`
+            tr.appendChild(tdNumber)
+
+            // Text instruction
+            const tdText = document.createElement("td")
+            tdText.classList.add("instruction")
+            tdText.textContent = step.text
+            tr.appendChild(tdText)
+
+            // Distance
+            const tdDistance = document.createElement("td")
+            tdDistance.classList.add("distance")
+            tdDistance.textContent = formatSimpleDistance(step.distance)
+            tr.appendChild(tdDistance)
+
+            newTableBody.appendChild(tr)
+        }
+
+        turnTableBody.replaceWith(newTableBody)
+
+        attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
+            link: route.attribution,
+            interpolation: { escapeValue: false },
+        })
+    }
+
+    /**
+     * On routing error, display an error message
+     * @param {Error} error Error
+     * @returns {void}
+     */
+    const onRoutingError = (error) => {
+        // TODO: standard error
+        alert(error.message)
     }
 
     /**

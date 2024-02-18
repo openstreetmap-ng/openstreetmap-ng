@@ -15,11 +15,10 @@ const makeEngine = (costing) => {
      * @param {AbortSignal} abortSignal Abort signal
      * @param {object} from From coordinates
      * @param {object} to To coordinates
-     * @param {object} options Options
-     * @param {function} options.successCallback Success callback
-     * @param {function} options.errorCallback Error callback
+     * @param {function} successCallback Success callback
+     * @param {function} errorCallback Error callback
      */
-    return (abortSignal, from, to, { successCallback, errorCallback }) => {
+    return (abortSignal, from, to, successCallback, errorCallback) => {
         fetch("https://valhalla1.openstreetmap.de/route", {
             method: "POST",
             headers: {
@@ -40,7 +39,7 @@ const makeEngine = (costing) => {
                 units: "km", // changing this affects the distance values
                 language: primaryLanguage,
             }),
-            mode: "no-cors",
+            mode: "cors",
             credentials: "omit",
             cache: "no-store",
             signal: abortSignal,
