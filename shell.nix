@@ -198,7 +198,7 @@ let
     (writeShellScriptBin "dev-start" ''
       set -e
       pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
-      if [ -n "$pid" ] && $(kill -0 "$pid" 2> /dev/null); then
+      if [ -n "$pid" ] && $(grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null); then
         echo "Supervisor is already running"
         exit 0
       fi
@@ -229,8 +229,8 @@ let
     '')
     (writeShellScriptBin "dev-stop" ''
       set -e
-      if [ -f data/supervisor/supervisord.pid ]; then
-        pid=$(cat data/supervisor/supervisord.pid)
+      pid=$(cat data/supervisor/supervisord.pid 2> /dev/null || echo "")
+      if [ -n "$pid" ] && $(grep -q "supervisord" "/proc/$pid/cmdline" 2> /dev/null); then
         kill -INT "$pid"
         echo "Supervisor stopping..."
         while $(kill -0 "$pid" 2> /dev/null); do sleep 0.1; done
