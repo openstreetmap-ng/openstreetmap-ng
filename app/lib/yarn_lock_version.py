@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import re
 
@@ -31,4 +32,6 @@ def yarn_lock_version(name: str) -> str:
     '60eb7d7'
     """
 
-    return _yarn_lock_versions[name]
+    result = _yarn_lock_versions[name]
+    logging.info('Yarn lock for %s is %s', name, result)
+    return result

@@ -1,29 +1,13 @@
-import logging
+import contextlib
 import os
 import pathlib
 import re
-import sys
 from hashlib import sha256
 from logging.config import dictConfig
 
 from anyio import Path
-from pydantic import BaseModel
 
 from app.lib.yarn_lock_version import yarn_lock_version
-
-sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
-# TODO: gc threshold + debug
-
-
-def _path(s: str) -> Path:
-    """
-    Convert a string to a Path object and resolve it.
-    """
-    try:
-        return Path(pathlib.Path(s).resolve(strict=True))
-    except FileNotFoundError:
-        return Path(s)
-
 
 VERSION = '0.7.0'
 VERSION_DATE = ''
@@ -49,16 +33,31 @@ ID_URL = os.environ['ID_URL'].rstrip('/')
 OVERPASS_INTERPRETER_URL = os.environ['OVERPASS_INTERPRETER_URL'].rstrip('/')
 RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 
+
+def _path(s: str, *, mkdir: bool = False) -> Path:
+    """
+    Convert a string to a Path object and resolve it.
+    """
+    p = pathlib.Path(s)
+
+    with contextlib.suppress(FileNotFoundError):
+        p = p.resolve(strict=True)
+    if mkdir:
+        p.mkdir(parents=True, exist_ok=True)
+
+    return Path(p)
+
+
 # Configuration (optional)
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
 COOKIE_SESSION_TTL = int(os.getenv('COOKIE_SESSION_TTL', 365 * 24 * 3600))  # 1 year
-FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'))
+FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
-FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'))
+FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 HTTPS_ONLY = os.getenv('HTTPS_ONLY', '1').strip().lower() in ('1', 'true', 'yes')
 ID_ASSETS_DIR = _path(os.getenv('ID_ASSETS_DIR', 'node_modules/iD/dist'))
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
@@ -78,9 +77,32 @@ SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', '')
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', '')
 SRID = int(os.getenv('SRID', 4326))
 
-# Checks
-if not HTTPS_ONLY and not TEST_ENV:
-    logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
+# Logging configuration
+dictConfig(
+    {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'default': {
+                '()': 'uvicorn.logging.DefaultFormatter',
+                'fmt': '%(levelprefix)s | %(asctime)s | %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S',
+            },
+        },
+        'handlers': {
+            'default': {
+                'formatter': 'default',
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stderr',
+            },
+        },
+        'loggers': {
+            'root': {'handlers': ['default'], 'level': LOG_LEVEL},
+            'httpx': {'handlers': ['default'], 'level': 'INFO'},
+            'httpcore': {'handlers': ['default'], 'level': 'INFO'},
+        },
+    }
+)
 
 # Derived configuration
 SECRET_32bytes = sha256(SECRET.encode()).digest()
@@ -91,35 +113,3 @@ SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1]
 
 ID_VERSION = yarn_lock_version('iD')
 RAPID_VERSION = yarn_lock_version('@rapideditor/rapid')
-
-# Synchronously create directories if missing
-pathlib.Path(FILE_CACHE_DIR).mkdir(parents=True, exist_ok=True)
-pathlib.Path(FILE_STORE_DIR).mkdir(parents=True, exist_ok=True)
-
-
-# Configure logging
-class LogConfig(BaseModel):
-    version: int = 1
-    disable_existing_loggers: bool = False
-    formatters: dict = {
-        'default': {
-            '()': 'uvicorn.logging.DefaultFormatter',
-            'fmt': '%(levelprefix)s | %(asctime)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        },
-    }
-    handlers: dict = {
-        'default': {
-            'formatter': 'default',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stderr',
-        },
-    }
-    loggers: dict = {
-        'root': {'handlers': ['default'], 'level': LOG_LEVEL},
-        'httpx': {'handlers': ['default'], 'level': 'INFO'},
-        'httpcore': {'handlers': ['default'], 'level': 'INFO'},
-    }
-
-
-dictConfig(LogConfig().model_dump())

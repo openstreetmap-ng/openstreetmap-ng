@@ -3,6 +3,7 @@ import importlib
 import logging
 import mimetypes
 import pathlib
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
@@ -40,12 +41,20 @@ from app.responses.osm_response import OSMResponse
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
 
+# warn against unsafe cookies
+if not HTTPS_ONLY and not TEST_ENV:
+    logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
+
 
 @asynccontextmanager
 async def lifespan(_):
-    # freeze all gc objects before starting for improved performance
+    # TODO: gc threshold + debug
+    # freeze uncollected gc objects for improved performance
     gc.collect()
     gc.freeze()
+
+    # harden against parsing really big numbers
+    sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
     yield
 
 
@@ -85,11 +94,10 @@ main.mount(f'/static-id/{ID_VERSION}', StaticFiles(directory=ID_ASSETS_DIR), nam
 main.mount(f'/static-rapid/{RAPID_VERSION}', StaticFiles(directory=RAPID_ASSETS_DIR), name='static-rapid')
 
 
-def make_router(path: str, prefix: str) -> APIRouter:
+def _make_router(path: str, prefix: str) -> APIRouter:
     """
     Create a router from all modules in the given path.
     """
-
     router = APIRouter(prefix=prefix)
     counter = 0
 
@@ -108,8 +116,8 @@ def make_router(path: str, prefix: str) -> APIRouter:
     return router
 
 
-main.include_router(make_router('app/controllers', ''))
-main.include_router(make_router('app/controllers/api', '/api'))
-main.include_router(make_router('app/controllers/api/v06', '/api/0.6'))
-main.include_router(make_router('app/controllers/api/web', '/api/web'))
-main.include_router(make_router('app/controllers/api/web/partial', '/api/web/partial'))
+main.include_router(_make_router('app/controllers', ''))
+main.include_router(_make_router('app/controllers/api', '/api'))
+main.include_router(_make_router('app/controllers/api/v06', '/api/0.6'))
+main.include_router(_make_router('app/controllers/api/web', '/api/web'))
+main.include_router(_make_router('app/controllers/api/web/partial', '/api/web/partial'))
