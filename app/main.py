@@ -1,14 +1,27 @@
 import gc
+import importlib
+import logging
 import mimetypes
+import pathlib
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 
-import app.controllers.index
-import app.lib.cython_detect  # DO NOT REMOVE
-from app.config import COOKIE_SESSION_TTL, HTTPS_ONLY, LOCALE_DIR, NAME, SECRET, TEST_ENV
+import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
+from app.config import (
+    COOKIE_SESSION_TTL,
+    HTTPS_ONLY,
+    ID_ASSETS_DIR,
+    ID_VERSION,
+    LOCALE_DIR,
+    NAME,
+    RAPID_ASSETS_DIR,
+    RAPID_VERSION,
+    SECRET,
+    TEST_ENV,
+)
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
@@ -33,7 +46,6 @@ async def lifespan(_):
     # freeze all gc objects before starting for improved performance
     gc.collect()
     gc.freeze()
-
     yield
 
 
@@ -69,5 +81,35 @@ if TEST_ENV:
 main.mount('/static', StaticFiles(directory='app/static'), name='static')
 main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
 main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
+main.mount(f'/static-id/{ID_VERSION}', StaticFiles(directory=ID_ASSETS_DIR), name='static-id')
+main.mount(f'/static-rapid/{RAPID_VERSION}', StaticFiles(directory=RAPID_ASSETS_DIR), name='static-rapid')
 
-main.include_router(app.controllers.router)
+
+def make_router(path: str, prefix: str) -> APIRouter:
+    """
+    Create a router from all modules in the given path.
+    """
+
+    router = APIRouter(prefix=prefix)
+    counter = 0
+
+    for p in pathlib.Path(path).glob('*.py'):
+        module_name = p.with_suffix('').as_posix().replace('/', '.')
+        module = importlib.import_module(module_name)
+        router_attr = getattr(module, 'router', None)
+
+        if router_attr is not None:
+            router.include_router(router_attr)
+            counter += 1
+        else:
+            logging.warning('Missing router in %s', module_name)
+
+    logging.info('Loaded %d routers from %s as %r', counter, path, prefix)
+    return router
+
+
+main.include_router(make_router('app/controllers', ''))
+main.include_router(make_router('app/controllers/api', '/api'))
+main.include_router(make_router('app/controllers/api/v06', '/api/0.6'))
+main.include_router(make_router('app/controllers/api/web', '/api/web'))
+main.include_router(make_router('app/controllers/api/web/partial', '/api/web/partial'))

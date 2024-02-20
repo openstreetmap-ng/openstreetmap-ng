@@ -1,6 +1,6 @@
 <div class="sidebar action-sidebar new-note">
     <div class="sidebar-content">
-        <form class="section" method="POST" action="{{ API_URL }}/api/0.6/notes">
+        <form class="section" method="POST" action="/api/0.6/notes">
 
             <div class="row g-1">
                 <div class="col">
@@ -25,6 +25,8 @@
                 {{ t('notes.new.advice') }}
             </div>
 
+            <input type="hidden" name="lon">
+            <input type="hidden" name="lat">
             <button class="btn btn-primary w-100" type="submit">
                 <i class="bi bi-plus-circle me-2"></i>{{ t('notes.new.add') }}
             </button>

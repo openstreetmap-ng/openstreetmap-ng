@@ -4,8 +4,10 @@ import pathlib
 import re
 import sys
 from hashlib import sha256
+from logging.config import dictConfig
 
 from anyio import Path
+from pydantic import BaseModel
 
 from app.lib.yarn_lock_version import yarn_lock_version
 
@@ -49,6 +51,7 @@ RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 
 # Configuration (optional)
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
 COOKIE_SESSION_TTL = int(os.getenv('COOKIE_SESSION_TTL', 365 * 24 * 3600))  # 1 year
@@ -92,3 +95,31 @@ RAPID_VERSION = yarn_lock_version('@rapideditor/rapid')
 # Synchronously create directories if missing
 pathlib.Path(FILE_CACHE_DIR).mkdir(parents=True, exist_ok=True)
 pathlib.Path(FILE_STORE_DIR).mkdir(parents=True, exist_ok=True)
+
+
+# Configure logging
+class LogConfig(BaseModel):
+    version: int = 1
+    disable_existing_loggers: bool = False
+    formatters: dict = {
+        'default': {
+            '()': 'uvicorn.logging.DefaultFormatter',
+            'fmt': '%(levelprefix)s | %(asctime)s | %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    }
+    handlers: dict = {
+        'default': {
+            'formatter': 'default',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stderr',
+        },
+    }
+    loggers: dict = {
+        'root': {'handlers': ['default'], 'level': LOG_LEVEL},
+        'httpx': {'handlers': ['default'], 'level': 'INFO'},
+        'httpcore': {'handlers': ['default'], 'level': 'INFO'},
+    }
+
+
+dictConfig(LogConfig().model_dump())
