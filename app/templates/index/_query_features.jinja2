@@ -1,0 +1,39 @@
+<div class="sidebar action-sidebar query-features d-none">
+    <div class="sidebar-content">
+        <div class="section">
+
+            <div class="row g-1">
+                <div class="col">
+                    <h2 class="sidebar-title">
+                        {{ t('javascripts.site.queryfeature_tooltip') | title }}
+                    </h2>
+                    <p>
+                        {{ t('browse.query.introduction') }}
+                    </p>
+                </div>
+                <div class="col-auto">
+                    <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+                </div>
+            </div>
+
+            <h4 class="mb-3">{{ t('browse.query.nearby') }}</h4>
+            <div class="nearby-container mb-4">
+                <div class="text-center">
+                    <div class="spinner-border text-secondary" role="status">
+                        <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mb-3">{{ t('browse.query.enclosing') }}</h4>
+            <div class="enclosing-container mb-4">
+                <div class="text-center">
+                    <div class="spinner-border text-secondary" role="status">
+                        <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="sidebar action-sidebar new-note">
+    <div class="sidebar-content">
+        <form class="section" method="POST" action="{{ API_URL }}/api/0.6/notes">
+
+            <div class="row g-1">
+                <div class="col">
+                    <h2 class="sidebar-title">
+                        {{ t('notes.new.title') }}
+                    </h2>
+                </div>
+                <div class="col-auto">
+                    <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+                </div>
+            </div>
+
+            <p class="mb-2">
+                {{ t('notes.new.intro') }}
+            </p>
+
+            <div class="custom-input-group">
+                <label>{{ t('notes.show.description') }}</label>
+                <textarea class="form-control" rows="7"></textarea>
+            </div>
+            <div class="form-text mb-4">
+                {{ t('notes.new.advice') }}
+            </div>
+
+            <button class="btn btn-primary w-100" type="submit">
+                <i class="bi bi-plus-circle me-2"></i>{{ t('notes.new.add') }}
+            </button>
+
+        </form>
+    </div>
+</div>

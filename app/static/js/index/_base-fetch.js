@@ -3,24 +3,25 @@ import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 /**
  * Create a base fetch controller
  * @param {string} className Class name of the sidebar
+ * @param {function} loadedCallback Callback when loaded
  * @returns {object} Controller
  */
-export const getBaseFetchController = (className, { loadedCallback = null }) => {
+export const getBaseFetchController = (className, loadedCallback) => {
     const sidebar = getActionSidebar(className)
-    const sidebarContent = sidebar.querySelector(".sidebar-content")
-    const sidebarLoadingContent = sidebarContent
+    const dynamicContent = sidebar.querySelector(".dynamic-content")
+    const loadingHtml = dynamicContent.innerHTML
 
     let abortController = null
 
     // On sidebar loading, display loading content
     const onSidebarLoading = () => {
-        sidebarContent.replaceWith(sidebarLoadingContent.cloneNode(true))
+        dynamicContent.innerHTML = loadingHtml
     }
 
     // On sidebar loaded, display content and call callback
     const onSidebarLoaded = (html) => {
-        sidebarContent.innerHTML = html
-        if (loadedCallback) loadedCallback(sidebarContent)
+        dynamicContent.innerHTML = html
+        if (loadedCallback) loadedCallback(dynamicContent)
     }
 
     return {

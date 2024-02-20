@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { noteQueryAreaMaxSize } from "../_config.js"
+import { apiUrl, noteQueryAreaMaxSize } from "../_config.js"
 import "../_types.js"
 import { routerNavigate } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
@@ -50,7 +50,7 @@ export const configureNotesLayer = (map) => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
 
-        fetch(`/api/0.6/notes.json?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
+        fetch(`${apiUrl}/api/0.6/notes.json?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store", // request params are too volatile to cache

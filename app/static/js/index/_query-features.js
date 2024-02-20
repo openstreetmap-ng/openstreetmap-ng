@@ -16,9 +16,9 @@ export const getQueryFeaturesController = (map) => {
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector(".nearby-container")
-    const nearbyLoadingContent = nearbyContainer
+    const nearbyLoadingHtml = nearbyContainer.innerHTML
     const enclosingContainer = sidebar.querySelector(".enclosing-container")
-    const enclosingLoadingContent = enclosingContainer
+    const enclosingLoadingHtml = enclosingContainer.innerHTML
     const emptyText = i18next.t("javascripts.query.nothing_found")
 
     let abortController = null
@@ -72,8 +72,8 @@ export const getQueryFeaturesController = (map) => {
 
     // On sidebar loading, display loading content and show map animation
     const onSidebarLoading = (latLng, zoom, abortSignal) => {
-        nearbyContainer.replaceWith(nearbyLoadingContent.cloneNode(true))
-        enclosingContainer.replaceWith(enclosingLoadingContent.cloneNode(true))
+        nearbyContainer.innerHTML = nearbyLoadingHtml
+        enclosingContainer.innerHTML = enclosingLoadingHtml
 
         // Fade out circle in steps
         const radius = 10 * 1.5 ** (19 - zoom)

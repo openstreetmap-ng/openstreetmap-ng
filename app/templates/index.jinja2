@@ -10,8 +10,12 @@
 {% block body %}
 
 <div class="map-container">
+    {% include 'index/_changesets_history.jinja2' %}
     {% include 'index/_export.jinja2' %}
+    {% include 'index/_new_note.jinja2' %}
+    {% include 'index/_query_features.jinja2' %}
     {% include 'index/_routing.jinja2' %}
+    {% include 'index/_search.jinja2' %}
 
     <div class="main-map"></div>
 

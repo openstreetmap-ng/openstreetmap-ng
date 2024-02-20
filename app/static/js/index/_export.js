@@ -24,7 +24,7 @@ export const getExportController = (map) => {
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.getAttribute("href")
-    let loaded = false
+    let loaded = true
 
     // Null values until initialized
     let locationFilter = null
