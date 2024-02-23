@@ -7,7 +7,7 @@ import msgspec
 
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.utils import MSGPACK_ENCODE, msgpack_decoder
+from app.utils import MSGPACK_ENCODE, typed_msgpack_decoder
 
 
 class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
@@ -52,4 +52,4 @@ class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
         return obj
 
 
-_decode = msgpack_decoder(Cursor).decode
+_decode = typed_msgpack_decoder(Cursor).decode

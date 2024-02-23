@@ -57,7 +57,7 @@ export const getRoutingController = (map) => {
     const routeElevationGroup = routeSection.querySelector(".elevation-group")
     const routeAscend = routeElevationGroup.querySelector(".ascend")
     const routeDescend = routeElevationGroup.querySelector(".descend")
-    const turnTable = routeSection.querySelector(".turn-by-turn")
+    const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
     const attribution = routeSection.querySelector(".attribution")
     let loaded = true
     let abortController = null
@@ -139,13 +139,14 @@ export const getRoutingController = (map) => {
         }
 
         // Render the turn-by-turn table
-        const newTableBody = document.createElement("tbody")
+        const newRows = []
 
         let stepNumber = 0
         for (const step of route.steps) {
             stepNumber += 1
 
-            const tr = document.createElement("tr")
+            const row = document.createElement("tr")
+            newRows.push(row)
 
             // Icon
             const tdIcon = document.createElement("td")
@@ -153,30 +154,28 @@ export const getRoutingController = (map) => {
             const iconDiv = document.createElement("div")
             iconDiv.classList.add(`icon-${step.code}`)
             tdIcon.appendChild(iconDiv)
-            tr.appendChild(tdIcon)
+            row.appendChild(tdIcon)
 
             // Number
             const tdNumber = document.createElement("td")
             tdNumber.classList.add("number")
             tdNumber.textContent = `${stepNumber}.`
-            tr.appendChild(tdNumber)
+            row.appendChild(tdNumber)
 
             // Text instruction
             const tdText = document.createElement("td")
             tdText.classList.add("instruction")
             tdText.textContent = step.text
-            tr.appendChild(tdText)
+            row.appendChild(tdText)
 
             // Distance
             const tdDistance = document.createElement("td")
             tdDistance.classList.add("distance")
             tdDistance.textContent = formatSimpleDistance(step.distance)
-            tr.appendChild(tdDistance)
-
-            newTableBody.appendChild(tr)
+            row.appendChild(tdDistance)
         }
 
-        turnTable.querySelector("tbody").replaceWith(newTableBody)
+        turnTableBody.replaceChildren(...newRows)
 
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,

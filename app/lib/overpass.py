@@ -2,7 +2,6 @@ import logging
 from collections.abc import Sequence
 
 import cython
-import orjson
 from shapely.geometry import Point
 
 from app.config import OVERPASS_INTERPRETER_URL
@@ -10,7 +9,7 @@ from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.db.element import Element
 from app.models.element_type import ElementType
 from app.services.cache_service import CacheService
-from app.utils import HTTP
+from app.utils import HTTP, JSON_DECODE
 
 _cache_context = 'Overpass'
 
@@ -54,7 +53,7 @@ class Overpass:
             return r.content
 
         cache_entry = await CacheService.get_one_by_key(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements: list[dict] = orjson.loads(cache_entry.value)['elements']
+        elements: list[dict] = JSON_DECODE(cache_entry.value)['elements']
         elements.sort(key=_get_bounds_size)
 
         return tuple(

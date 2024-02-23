@@ -1,11 +1,11 @@
+import json
 from math import isclose
 
 import anyio
-import brotlicffi
-import orjson
 from anyio import Path
 from pytz import country_timezones
 from shapely.geometry import shape
+from zstandard import ZstdDecompressor
 
 from app.utils import HTTP
 
@@ -26,11 +26,11 @@ def get_timezone_country_dict() -> dict[str, str]:
 
 async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]]:
     print('Downloading country data')
-    r = await HTTP.get('https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.br')
+    r = await HTTP.get('https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst')
     r.raise_for_status()
 
-    content = brotlicffi.decompress(r.content)
-    features = orjson.loads(content)['features']
+    content = ZstdDecompressor().decompress(r.content)
+    features = json.loads(content)['features']
 
     result = {}
 
@@ -100,4 +100,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

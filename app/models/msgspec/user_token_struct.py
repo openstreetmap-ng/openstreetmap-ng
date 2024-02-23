@@ -5,7 +5,7 @@ from uuid import UUID
 import msgspec
 
 from app.lib.exceptions_context import raise_for
-from app.utils import MSGPACK_ENCODE, msgpack_decoder
+from app.utils import MSGPACK_ENCODE, typed_msgpack_decoder
 
 
 class UserTokenStruct(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
@@ -44,4 +44,4 @@ class UserTokenStruct(msgspec.Struct, forbid_unknown_fields=True, array_like=Tru
         return obj
 
 
-_decode = msgpack_decoder(UserTokenStruct).decode
+_decode = typed_msgpack_decoder(UserTokenStruct).decode

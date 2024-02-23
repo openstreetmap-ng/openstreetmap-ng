@@ -1,8 +1,8 @@
+import json
 import pathlib
 from collections.abc import Sequence
 
 import cython
-import orjson
 
 from app.config import CONFIG_DIR, DEFAULT_LANGUAGE
 from app.lib.locale import normalize_locale
@@ -11,7 +11,7 @@ from app.lib.translation import translation_languages
 
 @cython.cfunc
 def _get_wiki_pages() -> dict[str, frozenset[str]]:
-    data: dict[str, Sequence[str]] = orjson.loads(pathlib.Path(CONFIG_DIR / 'wiki_pages.json').read_bytes())
+    data: dict[str, Sequence[str]] = json.loads(pathlib.Path(CONFIG_DIR / 'wiki_pages.json').read_bytes())
     return {
         tag: frozenset(
             normalize_locale(locale, raise_on_not_found=True)  #

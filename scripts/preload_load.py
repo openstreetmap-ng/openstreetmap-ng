@@ -98,4 +98,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

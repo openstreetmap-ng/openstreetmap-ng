@@ -2,7 +2,7 @@ from typing import Self
 
 import msgspec
 
-from app.utils import MSGPACK_ENCODE, msgpack_decoder
+from app.utils import MSGPACK_ENCODE, typed_msgpack_decoder
 
 
 class FileCacheMeta(msgspec.Struct):
@@ -34,4 +34,4 @@ class FileCacheMeta(msgspec.Struct):
         return _decode(buffer)
 
 
-_decode = msgpack_decoder(FileCacheMeta).decode
+_decode = typed_msgpack_decoder(FileCacheMeta).decode

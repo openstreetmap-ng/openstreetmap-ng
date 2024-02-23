@@ -1,14 +1,14 @@
+import json
 import pathlib
 
 import cython
-import orjson
 
 
 @cython.cfunc
 def _get_local_chapters_ids() -> frozenset[str]:
     package_dir = pathlib.Path('node_modules/osm-community-index')
     resources = (package_dir / 'dist/resources.min.json').read_bytes()
-    communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
+    communities_dict: dict[str, dict] = json.loads(resources)['resources']
 
     # filter only local chapters
     ids = (c['id'] for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')

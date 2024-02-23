@@ -1,15 +1,16 @@
+import json
 import os
 import pathlib
 from hashlib import sha256
 
 import anyio
-import orjson
 from tqdm import tqdm
 
 from app.config import LOCALE_DIR
 
 _postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
 _i18next_dir = pathlib.Path(LOCALE_DIR / 'i18next')
+_i18next_map_path = _i18next_dir / 'map.json'
 
 
 def convert() -> dict[str, str]:
@@ -18,8 +19,10 @@ def convert() -> dict[str, str]:
     for source_path in tqdm(tuple(_postprocess_dir.glob('*.json')), desc='Converting to JavaScript'):
         locale = source_path.stem
 
-        data = orjson.loads(source_path.read_bytes())
-        buffer = orjson.dumps(data, option=orjson.OPT_SORT_KEYS).decode()
+        # re-encode json to sort keys
+        buffer = json.dumps(json.loads(source_path.read_bytes()), sort_keys=True)
+
+        # transform json to javascript
         buffer = f'if(!window.locales)window.locales={{}},window.locales["{locale}"]={{translation:{buffer}}}'
         buffer = buffer.encode()
 
@@ -40,10 +43,9 @@ async def main():
     _i18next_dir.mkdir(parents=True, exist_ok=True)
     file_map = convert()
 
-    output = orjson.dumps(file_map, option=orjson.OPT_SORT_KEYS | orjson.OPT_INDENT_2)
-    output_path = _i18next_dir / 'map.json'
-    output_path.write_bytes(output)
+    buffer = json.dumps(file_map, indent=2, sort_keys=True)
+    _i18next_map_path.write_text(buffer)
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

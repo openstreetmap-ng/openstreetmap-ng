@@ -1,10 +1,10 @@
+import json
 import logging
 import pathlib
 from html import escape
 
 import bleach
 import cython
-import orjson
 from markdown_it import MarkdownIt
 
 from app.config import CONFIG_DIR
@@ -16,7 +16,7 @@ from app.services.cache_service import CacheService
 
 @cython.cfunc
 def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    data: dict = orjson.loads(pathlib.Path(CONFIG_DIR / 'rich_text.json').read_bytes())
+    data: dict = json.loads(pathlib.Path(CONFIG_DIR / 'rich_text.json').read_bytes())
     allowed_tags = frozenset(data['allowed_tags'])
     allowed_attributes = {k: frozenset(v) for k, v in data['allowed_attributes'].items()}
     return allowed_tags, allowed_attributes

@@ -33,6 +33,16 @@ def xattr(name: str, custom_xml: str | None = None) -> _XAttr:
     return _XAttr(name, custom_xml)
 
 
+@cython.cfunc
+def _parse_xml_bool(value: str) -> bool:
+    return value == 'true'
+
+
+@cython.cfunc
+def _parse_xml_version(value: str) -> float:  # no union return, int is also float
+    return int(value) if value.isdigit() else float(value)
+
+
 _parser = ET.XMLParser(
     ns_clean=True,
     resolve_entities=False,
@@ -75,12 +85,12 @@ class XMLToDict:
         '@min_lat': float,
         '@min_lon': float,
         '@num_changes': int,
-        '@open': lambda x: x == 'true',
+        '@open': _parse_xml_bool,
         '@ref': int,
         '@timestamp': datetime.fromisoformat,
         '@uid': int,
-        '@version': lambda x: int(x) if x.isdigit() else float(x),
-        '@visible': lambda x: x == 'true',
+        '@version': _parse_xml_version,
+        '@visible': _parse_xml_bool,
     }
 
     @staticmethod

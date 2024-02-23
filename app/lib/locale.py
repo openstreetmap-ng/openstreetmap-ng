@@ -1,10 +1,10 @@
+import json
 import logging
 import pathlib
 import re
 from collections.abc import Sequence
 
 import cython
-import orjson
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, TEST_ENV
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
@@ -15,13 +15,14 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 @cython.cfunc
 def _get_i18next_locale_map() -> dict[str, str]:
-    return orjson.loads(pathlib.Path(LOCALE_DIR / 'i18next' / 'map.json').read_bytes())
+    return json.loads(pathlib.Path(LOCALE_DIR / 'i18next' / 'map.json').read_bytes())
 
 
 @cython.cfunc
-def _get_locales_names() -> tuple[LocaleName, ...]:
-    data = orjson.loads(pathlib.Path(LOCALE_DIR / 'names.json').read_bytes())
-    return tuple(sorted((LocaleName(**d) for d in data), key=lambda v: v.code))
+def _get_locales_names() -> list[LocaleName]:
+    data = json.loads(pathlib.Path(LOCALE_DIR / 'names.json').read_bytes())
+    structured = (LocaleName(**d) for d in data)
+    return sorted(structured, key=lambda v: v.code)
 
 
 @cython.cfunc

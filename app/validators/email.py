@@ -52,4 +52,4 @@ async def validate_email_deliverability(email: str) -> None:
         raise ValueError('Invalid email address') from e
 
 
-EmailStrValidator = Predicate(lambda s: validate_email(s))
+EmailStrValidator = Predicate(validate_email)

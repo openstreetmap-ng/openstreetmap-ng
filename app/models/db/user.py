@@ -192,7 +192,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         ['en', 'pl']
         """
 
-        return tuple(filter(lambda v: is_valid_locale(v), self.languages))
+        return tuple(filter(is_valid_locale, self.languages))
 
     @property
     def changeset_max_size(self) -> int:

@@ -30,4 +30,4 @@ def test_retry_timeout():
         raise RuntimeError
 
     with pytest.raises(RuntimeError):
-        anyio.run(func, backend_options={'use_uvloop': True})
+        anyio.run(func)

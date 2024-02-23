@@ -1,4 +1,3 @@
-import logging
 import unicodedata
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from shutil import which
@@ -10,45 +9,36 @@ from fastapi import Request
 
 from app.config import USER_AGENT
 
-
-# TODO: configure logging
-def _log_http_request(r: httpx.Request) -> None:
-    logging.debug('Client HTTP request: %s %s', r.method, r.url)
-
-
-def _log_http_response(r: httpx.Response) -> None:
-    if r.is_success:
-        logging.debug('Client HTTP response: %s %s %s', r.status_code, r.reason_phrase, r.url)
-    else:
-        logging.info('Client HTTP response: %s %s %s', r.status_code, r.reason_phrase, r.url)
-
-
 HTTP = httpx.AsyncClient(
     headers={'User-Agent': USER_AGENT},
-    timeout=httpx.Timeout(15),
+    timeout=httpx.Timeout(connect=5, read=15),
     follow_redirects=True,
     http1=True,
     http2=True,
-    # event_hooks={
-    #     'request': [_log_http_request],
-    #     'response': [_log_http_response],
-    # },
 )
 
 
-def msgpack_decoder(t: type | None) -> msgspec.msgpack.Decoder:
+def typed_msgpack_decoder(t: type | None) -> msgspec.msgpack.Decoder:
+    """
+    Create a MessagePack decoder which returns a specific type.
+    """
+
     return msgspec.msgpack.Decoder(t) if (t is not None) else msgspec.msgpack.Decoder()
 
 
-def json_decoder(t: type | None) -> msgspec.json.Decoder:
+def typed_json_decoder(t: type | None) -> msgspec.json.Decoder:
+    """
+    Create a JSON decoder which returns a specific type.
+    """
+
     return msgspec.json.Decoder(t) if (t is not None) else msgspec.json.Decoder()
 
 
 # TODO: sorted keys?
 MSGPACK_ENCODE = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes').encode
-MSGPACK_DECODE = msgpack_decoder(None).decode
+MSGPACK_DECODE = typed_msgpack_decoder(None).decode
 JSON_ENCODE = msgspec.json.Encoder(decimal_format='number').encode
-JSON_DECODE = json_decoder(None).decode
+JSON_DECODE = typed_json_decoder(None).decode
 
 
 # TODO: reporting of deleted accounts (prometheus)

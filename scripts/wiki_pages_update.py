@@ -1,4 +1,5 @@
 import gzip
+import json
 import re
 from collections import defaultdict
 from collections.abc import Sequence
@@ -6,7 +7,6 @@ from datetime import timedelta
 from urllib.parse import unquote_plus
 
 import anyio
-import orjson
 from anyio import CapacityLimiter
 
 from app.config import CONFIG_DIR
@@ -14,6 +14,7 @@ from app.lib.retry import retry
 from app.utils import HTTP
 
 _download_limiter = CapacityLimiter(8)  # max concurrent downloads
+_wiki_pages_path = CONFIG_DIR / 'wiki_pages.json'
 
 
 async def get_sitemap_links() -> Sequence[str]:
@@ -67,13 +68,10 @@ async def main():
     for locale, key in locale_keys:
         result[key].add(locale)
 
-    await (CONFIG_DIR / 'wiki_pages.json').write_bytes(
-        orjson.dumps(
-            {k: sorted(v) for k, v in result.items()},
-            option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
-        )
-    )
+    result_sorted = {k: sorted(v) for k, v in result.items()}
+    buffer = json.dumps(result_sorted, indent=2, sort_keys=True)
+    await _wiki_pages_path.write_text(buffer)
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

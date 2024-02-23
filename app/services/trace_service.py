@@ -1,11 +1,11 @@
 from collections.abc import Sequence
-from datetime import timedelta
-from itertools import pairwise
+from datetime import datetime, timedelta
 
 import anyio
 import cython
 from anyio import to_thread
 from fastapi import UploadFile
+from shapely import get_coordinates
 
 from app.db import db_autocommit
 from app.format06 import Format06
@@ -23,17 +23,27 @@ from app.storage import TRACES_STORAGE
 
 
 @cython.cfunc
+def _sort_point_key(p: TracePoint) -> tuple[datetime, float, float]:
+    """
+    Key function for sorting points.
+
+    Sorts by captured_at, then by longitude, then by latitude.
+    """
+
+    coords = get_coordinates(p.point)[0].tolist()
+    return p.captured_at, coords[0], coords[1]
+
+
+@cython.cfunc
 def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
     """
     Sort and deduplicates the points.
-
-    The points are sorted by captured_at, then by longitude, then by latitude.
     """
 
     max_pos_diff = 1e-7  # different up to 7 decimal places
     max_date_diff = timedelta(seconds=1)
 
-    sorted_points = sorted(points, key=lambda p: (p.captured_at, p.point.x, p.point.y))
+    sorted_points = sorted(points, key=_sort_point_key)
     result = []
     prev: TracePoint | None = None
 

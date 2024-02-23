@@ -1,13 +1,13 @@
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import orjson
 from fastapi import Response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
 from app.models.format_style import FormatStyle
+from app.utils import JSON_ENCODE
 
 # TODO: 0.7 json/xml version
 _json_attributes = {
@@ -59,7 +59,7 @@ class OSMResponse(Response):
             else:
                 raise ValueError(f'Invalid json content type {type(content)}')
 
-            return orjson.dumps(content, option=orjson.OPT_NAIVE_UTC | orjson.OPT_UTC_Z)
+            return JSON_ENCODE(content)
 
         elif style == _style_xml:
             if isinstance(content, Mapping):

@@ -1,10 +1,9 @@
+import json
 import pathlib
 import re
 from collections.abc import Sequence
-from typing import NamedTuple
 
 import cython
-import orjson
 import phonenumbers
 from phonenumbers import (
     NumberParseException,
@@ -18,14 +17,8 @@ from phonenumbers import (
 from app.config import CONFIG_DIR
 from app.lib.translation import primary_translation_language
 from app.models.tag_format import TagFormat
+from app.models.tag_formatted import TagFormatted
 from app.validators.email import validate_email
-
-
-class TagFormatTuple(NamedTuple):
-    format: TagFormat  # noqa: A003
-    value: str
-    data: str
-
 
 # TODO: 0.7 official reserved tag characters
 
@@ -35,17 +28,15 @@ _wiki_lang_re = re.compile(r'^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?$')
 _wiki_lang_value_re = re.compile(r'^(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?):(?P<value>.+)$')
 
 # source: https://www.w3.org/TR/css-color-3/#svg-color
-_w3c_colors = frozenset(orjson.loads(pathlib.Path(CONFIG_DIR / 'w3c_colors.json').read_bytes()))
+_w3c_colors = frozenset(json.loads(pathlib.Path(CONFIG_DIR / 'w3c_colors.json').read_bytes()))
 
 # read property once for performance
 _fmt_default = TagFormat.default
 
 
-def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
+def tag_format(key: str, value: str) -> Sequence[TagFormatted]:
     """
     Return a sequence of tag formats for a key/value pair.
-
-    Returns None if the format is not recognized.
 
     >>> tag_format('colour', '#ff0000;invalid;aliceblue')
     [
@@ -70,7 +61,7 @@ def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
 
     # skip unexpectedly long sequences
     if len(key_parts) > max_key_parts:
-        return (TagFormatTuple(_fmt_default, value, value),)
+        return (TagFormatted(_fmt_default, value, value),)
 
     # iterate over each supported key format
     for key_format_key in _key_format_map_keys.intersection(key_parts):
@@ -79,11 +70,11 @@ def tag_format(key: str, value: str) -> Sequence[TagFormatTuple]:
 
         # skip unexpectedly long sequences
         if len(values) > max_values:
-            return (TagFormatTuple(_fmt_default, value, value),)
+            return (TagFormatted(_fmt_default, value, value),)
 
         return _key_format_map[key_format_key](key_parts, values)
 
-    return (TagFormatTuple(_fmt_default, value, value),)
+    return (TagFormatted(_fmt_default, value, value),)
 
 
 @cython.cfunc
@@ -110,11 +101,11 @@ def _is_w3c_color(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_color(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_color(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     return tuple(
-        TagFormatTuple(TagFormat.color, s, s)
+        TagFormatted(TagFormat.color, s, s)
         if (_is_hex_color(s) or _is_w3c_color(s))
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 
@@ -129,17 +120,17 @@ def _is_email_string(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_email(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_email(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     return tuple(
-        TagFormatTuple(TagFormat.email, s, f'mailto:{s}')
+        TagFormatted(TagFormat.email, s, f'mailto:{s}')
         if _is_email_string(s)  #
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 
 
 @cython.cfunc
-def _format_phone(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_phone(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     def get_phone_info(s: str) -> PhoneNumber | None:
         try:
             info = phonenumbers.parse(s, None)
@@ -154,9 +145,9 @@ def _format_phone(key_parts: Sequence[str], values: list[str]) -> tuple[TagForma
         return info
 
     return tuple(
-        TagFormatTuple(TagFormat.phone, s, f'tel:{format_number(phone_info, PhoneNumberFormat.E164)}')
+        TagFormatted(TagFormat.phone, s, f'tel:{format_number(phone_info, PhoneNumberFormat.E164)}')
         if (phone_info := get_phone_info(s)) is not None
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 
@@ -167,17 +158,17 @@ def _is_url_string(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_url(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_url(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     return tuple(
-        TagFormatTuple(TagFormat.url, s, s)
+        TagFormatted(TagFormat.url, s, s)
         if _is_url_string(s)  #
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 
 
 @cython.cfunc
-def _format_wikipedia(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikipedia(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     # always default to english
     key_lang = 'en'
     user_lang = primary_translation_language()
@@ -188,14 +179,14 @@ def _format_wikipedia(key_parts: Sequence[str], values: list[str]) -> tuple[TagF
             key_lang = key_part
             break
 
-    def format_value(s: str) -> TagFormatTuple:
+    def format_value(s: str) -> TagFormatted:
         # return empty values without formatting
         if not s:
-            return TagFormatTuple(_fmt_default, s, s)
+            return TagFormatted(_fmt_default, s, s)
 
         # return urls as-is
         if _is_url_string(s):
-            return TagFormatTuple(TagFormat.url, s, s)
+            return TagFormatted(TagFormat.url, s, s)
 
         lang = key_lang
 
@@ -211,7 +202,7 @@ def _format_wikipedia(key_parts: Sequence[str], values: list[str]) -> tuple[TagF
         if fragment:
             url += f'#{fragment}'
 
-        return TagFormatTuple(TagFormat.url, s, url)
+        return TagFormatted(TagFormat.url, s, url)
 
     return tuple(format_value(s) for s in values)
 
@@ -239,13 +230,13 @@ def _is_wiki_id(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_wikidata(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikidata(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     user_lang = primary_translation_language()
 
     return tuple(
-        TagFormatTuple(TagFormat.url, s, f'https://www.wikidata.org/entity/{s}?uselang={user_lang}')
+        TagFormatted(TagFormat.url, s, f'https://www.wikidata.org/entity/{s}?uselang={user_lang}')
         if _is_wiki_id(s)
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 
@@ -256,13 +247,13 @@ def _is_wikimedia_entry(s: str) -> cython.char:
 
 
 @cython.cfunc
-def _format_wikimedia_commons(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatTuple, ...]:
+def _format_wikimedia_commons(key_parts: Sequence[str], values: list[str]) -> tuple[TagFormatted, ...]:
     user_lang = primary_translation_language()
 
     return tuple(
-        TagFormatTuple(TagFormat.url, s, f'https://commons.wikimedia.org/wiki/{s}?uselang={user_lang}')
+        TagFormatted(TagFormat.url, s, f'https://commons.wikimedia.org/wiki/{s}?uselang={user_lang}')
         if _is_wikimedia_entry(s)
-        else TagFormatTuple(_fmt_default, s, s)
+        else TagFormatted(_fmt_default, s, s)
         for s in values
     )
 

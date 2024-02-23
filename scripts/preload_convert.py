@@ -8,10 +8,10 @@ from typing import NamedTuple
 
 import anyio
 import lxml.etree as ET
-import orjson
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
+from app.utils import JSON_ENCODE
 
 input_path = pathlib.Path(PRELOAD_DIR / 'preload.osm')
 if not input_path.is_file():
@@ -126,9 +126,9 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
                 attrib['id'],  # id
                 attrib['version'],  # version
                 attrib.get('visible', 'true') == 'true',  # visible
-                orjson.dumps(tags).decode() if tags else '{}',  # tags
+                JSON_ENCODE(tags).decode() if tags else '{}',  # tags
                 point,  # point
-                orjson.dumps(members).decode() if members else '[]',  # members
+                JSON_ENCODE(members).decode() if members else '[]',  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at
             )
         )
@@ -269,4 +269,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

@@ -1,8 +1,8 @@
+import json
 import os
 import pathlib
 
 import anyio
-import orjson
 import yaml
 from fastapi.utils import deep_dict_update
 from tqdm import tqdm
@@ -69,7 +69,7 @@ def extract_local_chapters_map() -> dict[str, dict]:
 
     package_dir = pathlib.Path('node_modules/osm-community-index')
     resources = (package_dir / 'dist/resources.min.json').read_bytes()
-    communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
+    communities_dict: dict[str, dict] = json.loads(resources)['resources']
 
     # filter only local chapters
     communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
@@ -199,9 +199,9 @@ def postprocess():
         if locale == 'en' and (extra_data := yaml.load(_locale_extra_en_path.read_bytes(), yaml.CSafeLoader)):
             deep_dict_update(data, extra_data)
 
-        buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS)
+        buffer = json.dumps(data, indent=2, sort_keys=True)
         target_path = _postprocess_dir / f'{locale}.json'
-        target_path.write_bytes(buffer)
+        target_path.write_text(buffer)
 
         mtime = get_source_mtime(locale)
         os.utime(target_path, (mtime, mtime))
@@ -213,4 +213,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    anyio.run(main, backend_options={'use_uvloop': True})
+    anyio.run(main)

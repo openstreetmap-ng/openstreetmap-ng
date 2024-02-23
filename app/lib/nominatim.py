@@ -2,7 +2,6 @@ import logging
 from collections.abc import Sequence
 from urllib.parse import urlencode
 
-import orjson
 from httpx import HTTPError
 from shapely import Polygon, box
 from shapely.geometry import Point
@@ -20,7 +19,7 @@ from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.nominatim_search_generic import NominatimSearchGeneric
 from app.services.cache_service import CacheService
-from app.utils import HTTP
+from app.utils import HTTP, JSON_DECODE
 
 _cache_context = 'Nominatim'
 
@@ -55,7 +54,7 @@ class Nominatim:
                 factory=factory,
                 ttl=NOMINATIM_CACHE_LONG_EXPIRE,
             )
-            return orjson.loads(cache_entry.value)['display_name']
+            return JSON_DECODE(cache_entry.value)['display_name']
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             # always succeed, return coordinates as a fallback
@@ -91,7 +90,7 @@ class Nominatim:
             factory=factory,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        result: dict = orjson.loads(cache_entry.value)[0]
+        result: dict = JSON_DECODE(cache_entry.value)[0]
 
         point = Point(float(result['lon']), float(result['lat']))
         name = result['display_name']
@@ -134,7 +133,7 @@ class Nominatim:
             factory=factory,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        results: list[dict] = orjson.loads(cache_entry.value)
+        results: list[dict] = JSON_DECODE(cache_entry.value)
 
         return tuple(
             ElementRef(

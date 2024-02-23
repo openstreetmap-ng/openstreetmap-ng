@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Self
+from operator import itemgetter
 
 from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_HIGH_MEMORY, RFC_9106_LOW_MEMORY
@@ -12,24 +12,26 @@ class UserRole(BaseEnum):
     administrator = 'administrator'
 
     @staticmethod
-    def get_changeset_max_size(roles: Sequence[Self]) -> int:
+    def get_changeset_max_size(roles: Sequence['UserRole']) -> int:
         """
         Get the maximum size of a changeset for the given roles.
         """
 
         if not roles:
-            roles = (None,)
+            return _changeset_max_size[None]
+
         return max(_changeset_max_size[r] for r in roles)
 
     @staticmethod
-    def get_password_hasher(roles: Sequence[Self]) -> PasswordHasher:
+    def get_password_hasher(roles: Sequence['UserRole']) -> PasswordHasher:
         """
         Get the password hasher for the given roles.
         """
 
         if not roles:
-            roles = (None,)
-        return max((_password_hasher[r] for r in roles), key=lambda x: x[0])[1]
+            return _password_hasher[None][1]
+
+        return max((_password_hasher[r] for r in roles), key=itemgetter(0))[1]
 
 
 _changeset_max_size = {
