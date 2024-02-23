@@ -9,11 +9,6 @@ from app.models.element_type import ElementType
 from app.models.geometry import PointGeometry
 from app.models.validating.tags import TagsValidating
 
-# read property once for performance
-_type_node = ElementType.node
-_type_way = ElementType.way
-_type_relation = ElementType.relation
-
 
 class ElementValidating(TagsValidating):
     user_id: PositiveInt
@@ -27,7 +22,7 @@ class ElementValidating(TagsValidating):
 
     @model_validator(mode='after')
     def validate_node(self) -> Self:
-        if self.type != _type_node:
+        if self.type != ElementType.node:
             return self
 
         if self.members:
@@ -37,7 +32,7 @@ class ElementValidating(TagsValidating):
 
     @model_validator(mode='after')
     def validate_way(self) -> Self:
-        if self.type != _type_way:
+        if self.type != ElementType.way:
             return self
 
         if self.point is not None:
@@ -48,14 +43,16 @@ class ElementValidating(TagsValidating):
             raise ValueError(f'Way cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
         if any(member.role for member in self.members):
             raise ValueError('Way cannot have members with roles')
-        if any(member.type != _type_node for member in self.members):
+
+        type_node = ElementType.node  # read property once for performance
+        if any(member.type != type_node for member in self.members):
             raise ValueError('Way cannot have non-node members')
 
         return self
 
     @model_validator(mode='after')
     def validate_relation(self) -> Self:
-        if self.type != _type_relation:
+        if self.type != ElementType.relation:
             return self
 
         if self.point is not None:

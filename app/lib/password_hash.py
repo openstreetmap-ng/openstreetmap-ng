@@ -34,9 +34,8 @@ class PasswordHash:
                 logging.warning('Unexpected salt for Argon2 hash')
 
             try:
-                hasher = self._hasher  # read property once for performance
-                hasher.verify(password_hashed, password)
-                self.rehash_needed = hasher.check_needs_rehash(password_hashed)
+                self._hasher.verify(password_hashed, password)
+                self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
                 return True
             except VerifyMismatchError:
                 self.rehash_needed = False

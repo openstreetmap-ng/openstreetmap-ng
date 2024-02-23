@@ -13,9 +13,6 @@ from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.validating.element import ElementValidating
 
-# read property once for performance
-_type_node = ElementType.node
-
 
 @cython.cfunc
 def _encode_nodes(nodes: Sequence[ElementMemberRef]) -> tuple[dict | int, ...]:
@@ -42,9 +39,12 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
     [ElementMemberRef(type=ElementType.node, id=1, role='')]
     """
 
+    # read property once for performance
+    type_node = ElementType.node
+
     return tuple(
         ElementMemberRef(
-            type=_type_node,
+            type=type_node,
             id=int(node['@ref']),
             role='',
         )

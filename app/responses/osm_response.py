@@ -37,12 +37,6 @@ _gpx_attributes = {
     '@xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
 }
 
-# read property once for performance
-_style_json = FormatStyle.json
-_style_xml = FormatStyle.xml
-_style_rss = FormatStyle.rss
-_style_gpx = FormatStyle.gpx
-
 
 class OSMResponse(Response):
     xml_root = 'osm'
@@ -53,7 +47,7 @@ class OSMResponse(Response):
         # set content type
         self.media_type = FormatStyle.media_type(style)
 
-        if style == _style_json:
+        if style == FormatStyle.json:
             if isinstance(content, Mapping):
                 content |= _json_attributes
             else:
@@ -61,7 +55,7 @@ class OSMResponse(Response):
 
             return JSON_ENCODE(content)
 
-        elif style == _style_xml:
+        elif style == FormatStyle.xml:
             if isinstance(content, Mapping):
                 content = {self.xml_root: _xml_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):
@@ -71,13 +65,13 @@ class OSMResponse(Response):
 
             return XMLToDict.unparse(content, raw=True)
 
-        elif style == _style_rss:
+        elif style == FormatStyle.rss:
             if not isinstance(content, str):
                 raise ValueError(f'Invalid rss content type {type(content)}')
 
             return content.encode()
 
-        elif style == _style_gpx:
+        elif style == FormatStyle.gpx:
             if isinstance(content, Mapping):
                 content = {self.xml_root: _gpx_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):

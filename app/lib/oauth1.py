@@ -42,13 +42,9 @@ class OAuth1:
         Raises exception if the request is not OAuth1 valid.
         """
 
-        # read property once for performance
-        request_signature_method: str | None = request.signature_method
-        request_signature: str | None = request.signature
-
-        if request_signature_method is None or request_signature_method.upper() != 'HMAC-SHA1':
-            raise_for().oauth1_unsupported_signature_method(request_signature_method)
-        if request_signature is None:
+        if request.signature_method is None or request.signature_method.upper() != 'HMAC-SHA1':
+            raise_for().oauth1_unsupported_signature_method(request.signature_method)
+        if request.signature is None:
             raise_for().oauth1_bad_signature()
 
         token = await OAuth1TokenRepository.find_one_authorized_by_token(request.token)
@@ -67,7 +63,7 @@ class OAuth1:
             token.token_secret,
         )
 
-        if signature != request_signature:
+        if signature != request.signature:
             raise_for().oauth1_bad_signature()
 
         return token
