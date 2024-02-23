@@ -11,7 +11,7 @@ from app.config import USER_AGENT
 
 HTTP = httpx.AsyncClient(
     headers={'User-Agent': USER_AGENT},
-    timeout=httpx.Timeout(connect=5, read=15),
+    timeout=httpx.Timeout(connect=10, read=15, write=10, pool=10),
     follow_redirects=True,
     http1=True,
     http2=True,
