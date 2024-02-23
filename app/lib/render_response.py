@@ -1,4 +1,5 @@
 import cython
+from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
 from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION
@@ -16,7 +17,7 @@ def _get_default_data() -> dict:
     languages = translation_languages()
 
     if (user is not None) and (user_home_point := user.home_point) is not None:
-        home_point = (user_home_point.x, user_home_point.y)
+        home_point = get_coordinates(user_home_point)[0].tolist()
     else:
         home_point = None
 

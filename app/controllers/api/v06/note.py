@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Annotated
 
-import anyio
+from anyio import create_task_group
 from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
@@ -38,9 +38,6 @@ from app.validators.date import DateValidator
 
 router = APIRouter()
 
-# read property once for performance
-_style_rss = FormatStyle.rss
-
 # TODO: validate input lengths
 
 
@@ -56,7 +53,7 @@ async def _resolve_rich_texts(notes_or_comments: Sequence[Note | NoteComment] | 
     if isinstance(notes_or_comments, Note | NoteComment):
         notes_or_comments = (notes_or_comments,)
 
-    async with anyio.create_task_group() as tg:
+    async with create_task_group() as tg:
         # is it a sequence of comments or notes?
         if isinstance(notes_or_comments[0], NoteComment):
             comment: NoteComment
@@ -104,7 +101,7 @@ async def note_read(
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == _style_rss:
+    if style == FormatStyle.rss:
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
@@ -208,19 +205,15 @@ async def notes_feed(
     fg.link(href=str(request.url), rel='self')
     fg.title(t('api.notes.rss.title'))
 
-    if geometry:
-        bounds = geometry.bounds
-        min_lon = bounds[0]
-        min_lat = bounds[1]
-        max_lon = bounds[2]
-        max_lat = bounds[3]
+    if geometry is not None:
+        minx, miny, maxx, maxy = geometry.bounds
 
         fg.subtitle(
             t('api.notes.rss.description_area').format(
-                min_lon=min_lon,
-                min_lat=min_lat,
-                max_lon=max_lon,
-                max_lat=max_lat,
+                min_lon=minx,
+                min_lat=miny,
+                max_lon=maxx,
+                max_lat=maxy,
             )
         )
     else:
@@ -257,22 +250,18 @@ async def notes_read(
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == _style_rss:
-        bounds = geometry.bounds
-        min_lon = bounds[0]
-        min_lat = bounds[1]
-        max_lon = bounds[2]
-        max_lat = bounds[3]
+    if style == FormatStyle.rss:
+        minx, miny, maxx, maxy = geometry.bounds
 
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
         fg.subtitle(
             t('api.notes.rss.description_area').format(
-                min_lon=min_lon,
-                min_lat=min_lat,
-                max_lon=max_lon,
-                max_lat=max_lat,
+                min_lon=minx,
+                min_lat=miny,
+                max_lon=maxx,
+                max_lat=maxy,
             )
         )
 
@@ -354,24 +343,20 @@ async def notes_query(
     await _resolve_rich_texts(notes)
 
     style = format_style()
-    if style == _style_rss:
+    if style == FormatStyle.rss:
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
 
         if geometry is not None:
-            bounds = geometry.bounds
-            min_lon = bounds[0]
-            min_lat = bounds[1]
-            max_lon = bounds[2]
-            max_lat = bounds[3]
+            minx, miny, maxx, maxy = geometry.bounds
 
             fg.subtitle(
                 t('api.notes.rss.description_area').format(
-                    min_lon=min_lon,
-                    min_lat=min_lat,
-                    max_lon=max_lon,
-                    max_lat=max_lat,
+                    min_lon=minx,
+                    min_lat=miny,
+                    max_lon=maxx,
+                    max_lat=maxy,
                 )
             )
         else:

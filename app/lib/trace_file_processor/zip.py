@@ -20,10 +20,9 @@ class ZipFileProcessor(TraceFileProcessor):
     def decompress(cls, buffer: bytes) -> Sequence[bytes]:
         with zipfile.ZipFile(BytesIO(buffer)) as archive:
             infos = tuple(info for info in archive.infolist() if not info.is_dir())
-            infos_len = len(infos)
-            logging.debug('Trace %r archive contains %d files', cls.media_type, infos_len)
+            logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
-            if infos_len > TRACE_FILE_ARCHIVE_MAX_FILES:
+            if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
                 raise_for().trace_file_archive_too_many_files()
 
             result = []

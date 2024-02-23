@@ -55,9 +55,12 @@ async def user_read(
 async def users_read(
     users: Annotated[str, Query(min_length=1)],
 ) -> Sequence[dict]:
-    query = (q.strip() for q in users.split(','))
-    query = (q for q in query if q and q.isdigit())
-    user_ids = {int(q) for q in query}
+    user_ids = set()
+
+    for q in users.split(','):
+        q = q.strip()
+        if q.isdigit():
+            user_ids.add(int(q))
 
     if not user_ids:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No users were given to search for')

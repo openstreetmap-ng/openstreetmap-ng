@@ -7,7 +7,7 @@ from datetime import timedelta
 from urllib.parse import unquote_plus
 
 import anyio
-from anyio import CapacityLimiter
+from anyio import CapacityLimiter, create_task_group
 
 from app.config import CONFIG_DIR
 from app.lib.retry import retry
@@ -59,7 +59,7 @@ async def main():
     async def process_sitemap_url(sitemap_url: str):
         locale_keys.extend(await download_and_analyze(sitemap_url))
 
-    async with anyio.create_task_group() as tg:
+    async with create_task_group() as tg:
         for url in urls:
             tg.start_soon(process_sitemap_url, url)
 

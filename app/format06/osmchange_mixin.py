@@ -6,12 +6,6 @@ from app.format06.element_mixin import Element06Mixin
 from app.lib.exceptions_context import raise_for
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
-from app.models.osmchange_action import OSMChangeAction
-
-# read property once for performance
-_action_create_value = OSMChangeAction.create.value
-_action_modify_value = OSMChangeAction.modify.value
-_action_delete_value = OSMChangeAction.delete.value
 
 
 class OsmChange06Mixin:
@@ -29,22 +23,22 @@ class OsmChange06Mixin:
         """
 
         result = [None] * len(elements)
-        i: cython.int
 
+        i: cython.int
         for i, element in enumerate(elements):
             if element.version == 1:
-                action = _action_create_value
+                action = 'create'
             elif element.visible:
-                action = _action_modify_value
+                action = 'modify'
             else:
-                action = _action_delete_value
+                action = 'delete'
 
             result[i] = (action, Element06Mixin.encode_element(element))
 
         return result
 
     @staticmethod
-    def decode_osmchange(elements: Sequence[tuple[str, dict]], changeset_id: int | None) -> Sequence[Element]:
+    def decode_osmchange(changes: Sequence[tuple[str, dict]], changeset_id: int | None) -> Sequence[Element]:
         """
         If `changeset_id` is `None`, it will be extracted from the element data.
 
@@ -55,26 +49,25 @@ class OsmChange06Mixin:
         [Element(type=ElementType, ...), Element(type=ElementType.way, ...)]
         """
 
-        result = [None] * len(elements)
-        i: cython.int
+        result = [None] * len(changes)
 
-        for i, (action, element_dict) in enumerate(elements):
-            element_dict_len = len(element_dict)
-            if element_dict_len != 1:
-                raise ValueError(f'Expected one element in {action!r}, got {element_dict_len}')
+        i: cython.int
+        for i, (action, element_dict) in enumerate(changes):
+            if len(element_dict) != 1:
+                raise ValueError(f'Expected one element in {action!r}, got {len(element_dict)}')
 
             element = Element06Mixin.decode_element(element_dict, changeset_id=changeset_id)
 
-            if action == _action_create_value:
+            if action == 'create':
                 if element.id > 0:
                     raise_for().diff_create_bad_id(element.versioned_ref)
                 element.version = 1
 
-            elif action == _action_modify_value:
+            elif action == 'modify':
                 if element.version < 2:
                     raise_for().diff_update_bad_version(element.versioned_ref)
 
-            elif action == _action_delete_value:
+            elif action == 'delete':
                 if element.version < 2:
                     raise_for().diff_update_bad_version(element.versioned_ref)
                 element.visible = False

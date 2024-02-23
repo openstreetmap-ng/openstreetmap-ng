@@ -1,5 +1,6 @@
 import logging
 import re
+from operator import itemgetter
 
 import cython
 from fastapi import Request
@@ -17,7 +18,7 @@ _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|
 
 
 @cython.cfunc
-def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
+def _parse_accept_language(accept_language: str) -> list[str]:
     """
     Parse the accept language header.
 
@@ -33,8 +34,7 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     if not accept_language:
         return (DEFAULT_LANGUAGE,)
 
-    temp: list[tuple[float, str]] = []
-    language_code_max_length: cython.int = LANGUAGE_CODE_MAX_LENGTH
+    q_langs: list[tuple[float, str]] = []
 
     # process accept language codes
     for match in _accept_language_re.finditer(accept_language):
@@ -42,9 +42,8 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
         q = match['q']
 
         # skip weird accept language codes
-        lang_len = len(lang)
-        if lang_len > language_code_max_length:
-            logging.debug('Accept language code is too long %d', lang_len)
+        if len(lang) > LANGUAGE_CODE_MAX_LENGTH:
+            logging.debug('Accept language code is too long %d', len(lang))
             continue
 
         # replace asterisk with default language
@@ -68,25 +67,25 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
                 logging.debug('Invalid accept language q-factor %r', q)
                 continue
 
-        temp.append((q, lang))
+        q_langs.append((q, lang))
 
     # sort by q-factor, descending
-    temp.sort(reverse=True)
+    q_langs.sort(key=itemgetter(0), reverse=True)
 
     # remove duplicates and preserve order
-    result = []
-    result_set = set()
-    languages_codes_limit: cython.int = LANGUAGE_CODES_LIMIT
+    result_set: set[str] = set()
+    result: list[str] = []
 
-    for _, lang in temp:
+    for q_lang in q_langs:
+        lang = q_lang[1]
         if lang not in result_set:
-            result.append(lang)
             result_set.add(lang)
+            result.append(lang)
 
-            if len(result) >= languages_codes_limit:
+            if len(result) >= LANGUAGE_CODES_LIMIT:
                 break
 
-    return tuple(result)
+    return result
 
 
 class TranslationMiddleware(BaseHTTPMiddleware):

@@ -4,6 +4,7 @@ from contextvars import ContextVar
 from datetime import datetime
 from functools import lru_cache
 from gettext import GNUTranslations, translation
+from typing import Iterable
 
 import cython
 from jinja2 import Environment, FileSystemLoader
@@ -27,8 +28,8 @@ _j2 = Environment(
     auto_reload=False,
 )
 
-_context_langs = ContextVar('Translation_context_langs')
-_context_trans = ContextVar('Translation_context_trans')
+_context_languages = ContextVar('Translation_context_langs')
+_context_translation = ContextVar('Translation_context_trans')
 
 
 # removing this will not enable live-reload for translations
@@ -47,7 +48,7 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
 
 
 @contextmanager
-def translation_context(languages: Sequence[str]):
+def translation_context(languages: Iterable[str]):
     """
     Context manager for setting the translation in ContextVar.
 
@@ -55,27 +56,28 @@ def translation_context(languages: Sequence[str]):
     """
 
     processed = []
-    default_lang = DEFAULT_LANGUAGE  # read property once for performance
 
     for lang in languages:
         processed.append(lang)
 
-        # small optimization, abort if the default language is reached
-        if lang == default_lang:
+        # logical optimization, break if the default language is reached
+        if lang == DEFAULT_LANGUAGE:
             break
     else:
         # processed languages must contain the default language
-        processed.append(default_lang)
+        processed.append(DEFAULT_LANGUAGE)
 
+    # convert to tuple for hashability
     processed = tuple(processed)
-    trans = _get_translation(processed)
-    token_langs = _context_langs.set(processed)
-    token_trans = _context_trans.set(trans)
+
+    translation = _get_translation(processed)
+    token_languages = _context_languages.set(processed)
+    token_translation = _context_translation.set(translation)
     try:
         yield
     finally:
-        _context_langs.reset(token_langs)
-        _context_trans.reset(token_trans)
+        _context_languages.reset(token_languages)
+        _context_translation.reset(token_translation)
 
 
 def translation_languages() -> Sequence[str]:
@@ -86,7 +88,7 @@ def translation_languages() -> Sequence[str]:
     ('en', 'pl')
     """
 
-    return _context_langs.get()
+    return _context_languages.get()
 
 
 def primary_translation_language() -> str:
@@ -97,7 +99,7 @@ def primary_translation_language() -> str:
     'en'
     """
 
-    return _context_langs.get()[0]
+    return _context_languages.get()[0]
 
 
 def t(message: str, **kwargs) -> str:
@@ -105,7 +107,7 @@ def t(message: str, **kwargs) -> str:
     Get the translation for the given message.
     """
 
-    trans: GNUTranslations = _context_trans.get()
+    trans: GNUTranslations = _context_translation.get()
     translated = trans.gettext(message)
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
@@ -115,7 +117,7 @@ def nt(message: str, count: int, **kwargs) -> str:
     Get the translation for the given message, with pluralization.
     """
 
-    trans: GNUTranslations = _context_trans.get()
+    trans: GNUTranslations = _context_translation.get()
     translated = trans.ngettext(message, message, count)
     return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)
 

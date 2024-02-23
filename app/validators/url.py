@@ -7,7 +7,7 @@ URIValidator = Validator().forbid_use_of_password().require_presence_of('scheme'
 
 
 @cython.cfunc
-def _validate_urlsafe(text: str) -> bool:
+def _validate_urlsafe(text: str) -> cython.char:
     return all(c not in '/;.,?%#' for c in text)
 
 

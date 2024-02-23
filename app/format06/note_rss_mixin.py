@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 
-import anyio
+from anyio import TASK_STATUS_IGNORED, create_task_group
 from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
+from shapely import get_coordinates
 
 from app.config import API_URL
 from app.lib.nominatim import Nominatim
@@ -22,7 +23,7 @@ _event_hidden = NoteEvent.hidden
 async def _encode_note(
     fg: FeedGenerator,
     note: Note,
-    task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    task_status: TaskStatus = TASK_STATUS_IGNORED,
 ) -> None:
     fe = fg.add_entry(order='append')
     fe.guid(f'{API_URL}/api/0.6/notes/{note.id}', permalink=True)
@@ -36,7 +37,9 @@ async def _encode_note(
     )
     fe.published(note.created_at)
     fe.updated(note.updated_at)
-    fe.geo.point(f'{note.point.y} {note.point.x}')
+
+    x, y = get_coordinates(note.point)[0].tolist()
+    fe.geo.point(f'{y} {x}')
 
     if (user := note.comments[0].user) is not None:
         fe.author(name=user.display_name, uri=user.permalink)
@@ -65,7 +68,7 @@ async def _encode_note(
 async def _encode_note_comment(
     fg: FeedGenerator,
     comment: NoteComment,
-    task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    task_status: TaskStatus = TASK_STATUS_IGNORED,
 ) -> None:
     point = comment.note.point
 
@@ -81,7 +84,9 @@ async def _encode_note_comment(
         type='CDATA',
     )
     fe.published(comment.created_at)
-    fe.geo.point(f'{point.y} {point.x}')
+
+    x, y = get_coordinates(point)[0].tolist()
+    fe.geo.point(f'{y} {x}')
 
     if (user := comment.user) is not None:
         fe.author(name=user.display_name, uri=user.permalink)
@@ -119,7 +124,7 @@ class NoteRSS06Mixin:
         fg.load_extension('dc')
         fg.load_extension('geo')
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for note in notes:
                 await tg.start(_encode_note, fg, note)
 
@@ -132,6 +137,6 @@ class NoteRSS06Mixin:
         fg.load_extension('dc')
         fg.load_extension('geo')
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for comment in comments:
                 await tg.start(_encode_note_comment, fg, comment)

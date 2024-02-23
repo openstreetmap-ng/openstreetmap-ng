@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
-import anyio
 import cython
+from anyio import create_task_group
 
 from app.format06.geometry_mixin import Geometry06Mixin
 from app.lib.auth_context import auth_user
@@ -17,18 +17,17 @@ from app.repositories.trace_repository import TraceRepository
 from app.repositories.user_block_repository import UserBlockRepository
 
 
-# cython does not support union return types
-# @cython.cfunc
-def _encode_languages(languages: Sequence[str]) -> dict | Sequence[str]:
+@cython.cfunc
+def _encode_languages(languages: Sequence[str]):
     """
     >>> _encode_languages(['en', 'pl'])
     {'lang': ('en', 'pl')}
     """
 
     if format_is_json():
-        return tuple(languages)
+        return languages
     else:
-        return {'lang': tuple(languages)}
+        return {'lang': languages}
 
 
 class User06Mixin:
@@ -42,15 +41,15 @@ class User06Mixin:
         current_user = auth_user()
         access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
 
-        changesets_count = 0
-        traces_count = 0
-        block_received_count = 0
-        block_received_active_count = 0
-        block_issued_count = 0
-        block_issued_active_count = 0
-        messages_received_count = 0
-        messages_received_unread_count = 0
-        messages_sent_count = 0
+        changesets_count = None
+        traces_count = None
+        block_received_count = None
+        block_received_active_count = None
+        block_issued_count = None
+        block_issued_active_count = None
+        messages_received_count = None
+        messages_received_unread_count = None
+        messages_sent_count = None
 
         async def changesets_count_task() -> None:
             nonlocal changesets_count
@@ -82,7 +81,7 @@ class User06Mixin:
             nonlocal messages_sent_count
             messages_sent_count = await MessageRepository.count_sent_by_user_id(user.id)
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             tg.start_soon(changesets_count_task)
             tg.start_soon(traces_count_task)
             tg.start_soon(block_received_count_task)
@@ -154,19 +153,19 @@ class User06Mixin:
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
 
-        encoded = [None] * len(users)
+        encoded_users = [None] * len(users)
 
         async def task(i: int, user: User):
-            encoded[i] = await User06Mixin.encode_user(user)
+            encoded_users[i] = await User06Mixin.encode_user(user)
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for i, user in enumerate(users):
                 tg.start_soon(task, i, user)
 
         if format_is_json():
-            return {'users': tuple(user for user in encoded)}
+            return {'users': encoded_users}
         else:
-            return {'user': tuple(user['user'] for user in encoded)}
+            return {'user': tuple(user['user'] for user in encoded_users)}
 
     @staticmethod
     def decode_user_preference(pref: dict) -> UserPref:

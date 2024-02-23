@@ -69,7 +69,7 @@ def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
 
     # i18next supports only primary+fallback locale
     if len(locales) > 2:
-        return tuple(_i18next_map[code] for code in (locales[0], locales[-1]))
+        return (_i18next_map[locales[0]], _i18next_map[locales[-1]])
 
     return tuple(_i18next_map[code] for code in locales)
 

@@ -7,12 +7,6 @@ from app.models.format_style import FormatStyle
 
 _context = ContextVar('Format_context')
 
-# read property once for performance
-_style_json = FormatStyle.json
-_style_xml = FormatStyle.xml
-_style_rss = FormatStyle.rss
-_style_gpx = FormatStyle.gpx
-
 
 @contextmanager
 def format_style_context(request: Request):
@@ -26,23 +20,23 @@ def format_style_context(request: Request):
 
     # path defaults
     if request_path.startswith(('/api/web/', '/api/0.7/')):
-        style = _style_json
+        style = FormatStyle.json
     elif request_path.startswith('/api/'):
-        style = _style_xml
+        style = FormatStyle.xml
     else:
-        style = _style_json
+        style = FormatStyle.json
 
     extension = request_path.rpartition('.')[2]
 
     # overrides
     if extension == 'json':
-        style = _style_json
+        style = FormatStyle.json
     elif extension == 'xml':
-        style = _style_xml
+        style = FormatStyle.xml
     elif extension == 'rss' or request_path.endswith('/feed'):
-        style = _style_rss
+        style = FormatStyle.rss
     elif extension == 'gpx':
-        style = _style_gpx
+        style = FormatStyle.gpx
 
     token = _context.set(style)
     try:
@@ -64,7 +58,7 @@ def format_is_json() -> bool:
     Check if the format style is JSON.
     """
 
-    return _context.get() == _style_json
+    return _context.get() == FormatStyle.json
 
 
 def format_is_xml() -> bool:
@@ -72,7 +66,7 @@ def format_is_xml() -> bool:
     Check if the format style is XML.
     """
 
-    return _context.get() == _style_xml
+    return _context.get() == FormatStyle.xml
 
 
 def format_is_rss() -> bool:
@@ -80,4 +74,4 @@ def format_is_rss() -> bool:
     Check if the format style is RSS.
     """
 
-    return _context.get() == _style_rss
+    return _context.get() == FormatStyle.rss

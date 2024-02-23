@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-import anyio
+from anyio import create_task_group
 from shapely import Point
 from sqlalchemy import ColumnElement, null, true
 from sqlalchemy.dialects.postgresql import TIMESTAMP
@@ -83,6 +83,6 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Resolve rich text for all comments.
         """
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for comment in self.comments:
                 tg.start_soon(comment.resolve_rich_text)

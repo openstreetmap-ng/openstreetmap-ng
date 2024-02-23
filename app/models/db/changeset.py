@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-import anyio
+from anyio import create_task_group
 from shapely.geometry import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import ForeignKey, Integer, func
@@ -68,7 +68,7 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         Resolve rich text for all comments.
         """
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for comment in self.comments:
                 tg.start_soon(comment.resolve_rich_text)
 

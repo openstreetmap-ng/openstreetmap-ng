@@ -42,8 +42,7 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
         if country is None:
             raise ValueError(f'Country code not found in {tags!r}')
 
-        geom = shape(feature['geometry'])
-        bbox = geom.bounds
+        bbox = shape(feature['geometry']).bounds
 
         if country == 'FJ':
             bbox = (-182.870666, -20.67597, 181.575562, -12.480111)

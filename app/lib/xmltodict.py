@@ -34,7 +34,7 @@ def xattr(name: str, custom_xml: str | None = None) -> _XAttr:
 
 
 @cython.cfunc
-def _parse_xml_bool(value: str) -> bool:
+def _parse_xml_bool(value: str) -> cython.char:
     return value == 'true'
 
 
@@ -119,9 +119,8 @@ class XMLToDict:
 
         # TODO: ensure valid XML charset (encode if necessary) /user/小智智/traces/10908782
 
-        d_len = len(d)
-        if d_len != 1:
-            raise ValueError(f'Invalid root element count {d_len}')
+        if len(d) != 1:
+            raise ValueError(f'Invalid root element count {len(d)}')
 
         root_k, root_v = next(iter(d.items()))
         elements = _unparse_element(root_k, root_v)
@@ -148,9 +147,9 @@ _value_postprocessor = XMLToDict.value_postprocessor
 def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: cython.char):
     is_sequence_and_root: cython.char = sequence and is_root
     parsed = [None] * len(element.attrib)
-    i: cython.int
 
     # parse attributes
+    i: cython.int
     for i, (k, v) in enumerate(element.attrib.items()):
         k = '@' + k
         v = _postprocessor(k, v)
@@ -188,12 +187,11 @@ def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: c
 
     # parse text content
     element_text: str | None = element.text
-    text = element_text.strip() if element_text is not None else ''
-    if text:
+    if (element_text is not None) and (element_text := element_text.strip()):
         if parsed:
-            parsed.append(('#text', text))
+            parsed.append(('#text', element_text))
         else:
-            return text
+            return element_text
 
     # in sequence mode, return root element as typle
     if is_sequence_and_root:

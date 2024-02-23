@@ -35,9 +35,8 @@ class ElementRef:
         TypedElementRef(type=<ElementType.node: 'node'>, id=123)
         """
 
-        type, id = s[0], s[1:]
-        type = ElementType.from_str(type)
-        id = int(id)
+        type = ElementType.from_str(s[0])
+        id = int(s[1:])
 
         if id == 0:
             raise ValueError('Element id cannot be 0')

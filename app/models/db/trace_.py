@@ -59,15 +59,23 @@ class Trace(Base.Sequential, CreatedAtMixin):
     @tag_string.setter
     def tag_string(self, s: str) -> None:
         if ',' in s:  # noqa: SIM108
-            tags = s.split(',')
+            sep = ','
         else:
             # do as before for backwards compatibility
             # BUG: this produces weird behavior: 'a b, c' -> ['a b', 'c']; 'a b' -> ['a', 'b']
-            tags = s.split()
+            sep = None
 
-        tags = (t.strip()[:TRACE_TAG_MAX_LENGTH].strip() for t in tags)
-        tags = (t for t in tags if t)
-        self.tags = tuple(set(tags))
+        # remove duplicates and preserve order
+        result_set: set[str] = set()
+        result: list[str] = []
+
+        for tag in s.split(sep):
+            tag = tag.strip()[:TRACE_TAG_MAX_LENGTH].strip()
+            if tag and (tag not in result_set):
+                result_set.add(tag)
+                result.append(tag)
+
+        self.tags = result
 
     @hybrid_property
     def linked_to_user_in_api(self) -> bool:

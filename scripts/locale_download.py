@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from datetime import timedelta
 
 import anyio
-from anyio import CapacityLimiter
+from anyio import CapacityLimiter, create_task_group
 
 from app.config import LOCALE_DIR
 from app.lib.retry import retry
@@ -96,7 +96,7 @@ async def main():
         if (locale_name := await download_locale(locale)) is not None:
             locales_names.append(locale_name)
 
-    async with anyio.create_task_group() as tg:
+    async with create_task_group() as tg:
         for locale in locales:
             tg.start_soon(process_locale, locale)
 

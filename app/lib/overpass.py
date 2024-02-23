@@ -2,6 +2,7 @@ import logging
 from collections.abc import Sequence
 
 import cython
+from shapely import get_coordinates
 from shapely.geometry import Point
 
 from app.config import OVERPASS_INTERPRETER_URL
@@ -36,10 +37,12 @@ class Overpass:
         Returns a sequence of simplified element instances.
         """
 
+        x, y = get_coordinates(point)[0].tolist()
+
         timeout = 10
         query = (
             f'[out:json][timeout:{timeout}];'
-            f'is_in({point.y:.7f},{point.x:.7f})->.a;'  # lat,lon
+            f'is_in({y:.7f},{x:.7f})->.a;'  # lat,lon
             'way(pivot.a);'
             'out tags bb;'
             'rel(pivot.a);'

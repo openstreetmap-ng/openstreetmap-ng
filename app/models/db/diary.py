@@ -1,4 +1,4 @@
-import anyio
+from anyio import create_task_group
 from shapely import Point
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -39,6 +39,6 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
         Resolve rich text for all comments.
         """
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             for comment in self.comments:
                 tg.start_soon(comment.resolve_rich_text)

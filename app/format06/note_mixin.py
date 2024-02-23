@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 import cython
 import lxml.etree as ET
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.config import API_URL
 from app.format06.geometry_mixin import Geometry06Mixin
@@ -15,7 +15,7 @@ from app.models.format_style import FormatStyle
 
 
 @cython.cfunc
-def _mapping_point(p: Point) -> dict:
+def _fast_mapping_point(point: Point) -> dict:
     """
     Convert a Shapely point to a GeoJSON-like dict.
 
@@ -25,10 +25,9 @@ def _mapping_point(p: Point) -> dict:
     {'type': 'Point', 'coordinates': (1, 2)}
     """
 
-    return {
-        'type': 'Point',
-        'coordinates': (p.x, p.y),
-    }
+    coords = get_coordinates(point)[0].tolist()
+
+    return {'type': 'Point', 'coordinates': coords}
 
 
 @cython.cfunc
@@ -68,7 +67,7 @@ class Note06Mixin:
         if style == FormatStyle.json:
             return {
                 'type': 'Feature',
-                'geometry': _mapping_point(note.point),
+                'geometry': _fast_mapping_point(note.point),
                 'properties': {
                     'id': note.id,
                     'url': f'{API_URL}/api/0.6/notes/{note.id}.json',

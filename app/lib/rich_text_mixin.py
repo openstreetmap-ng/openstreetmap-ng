@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-import anyio
+from anyio import create_task_group
 from sqlalchemy import update
 
 from app.db import db_autocommit
@@ -46,11 +46,6 @@ class RichTextMixin:
             # assign value to instance
             setattr(self, rich_field_name, cache_entry.value.decode())
 
-        # small optimization, don't create task group if at most one field
-        if len(self.__rich_text_fields__) <= 1:
+        async with create_task_group() as tg:
             for field_name, text_format in self.__rich_text_fields__:
-                await resolve_task(field_name, text_format)
-        else:
-            async with anyio.create_task_group() as tg:
-                for field_name, text_format in self.__rich_text_fields__:
-                    tg.start_soon(resolve_task, field_name, text_format)
+                tg.start_soon(resolve_task, field_name, text_format)

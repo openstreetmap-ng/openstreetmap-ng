@@ -31,9 +31,11 @@ class VersionedElementRef(ElementRef):
         VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
         """
 
+        type = ElementType.from_str(s[0])
+
         i = s.rindex('v')
-        type, id, version = s[0], int(s[1:i]), int(s[i + 1 :])
-        type = ElementType.from_str(type)
+        id = int(s[1:i])
+        version = int(s[i + 1 :])
 
         if id == 0:
             raise ValueError('Element id cannot be 0')

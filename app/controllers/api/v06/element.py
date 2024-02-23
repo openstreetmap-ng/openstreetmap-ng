@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Annotated, Union
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import PlainTextResponse
@@ -20,11 +20,6 @@ from app.services.optimistic_diff import OptimisticDiff
 # TODO: rate limit
 # TODO: dependency for xml parsing?
 router = APIRouter()
-
-# read property once for performance
-_type_node = ElementType.node
-_type_way = ElementType.way
-_type_relation = ElementType.relation
 
 # TODO: redaction (403 forbidden), https://wiki.openstreetmap.org/wiki/API_v0.6#Redaction:_POST_/api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
 # TODO: HttpUrl, ConstrainedUrl
@@ -164,11 +159,11 @@ async def elements_read_many(
     ways: Annotated[str | None, Query()] = None,
     relations: Annotated[str | None, Query()] = None,
 ) -> Sequence[dict]:
-    if type == _type_node:
+    if type == ElementType.node:
         query = nodes
-    elif type == _type_way:
+    elif type == ElementType.way:
         query = ways
-    elif type == _type_relation:
+    elif type == ElementType.relation:
         query = relations
     else:
         raise NotImplementedError(f'Unsupported element type {type!r}')
@@ -181,19 +176,25 @@ async def elements_read_many(
         )
 
     try:
-        query = (q.strip() for q in query.split(','))
-        query = (q for q in query if q)
-        query = {
-            VersionedElementRef.from_type_str(type, q)
-            if 'v' in q  #
-            else ElementRef(type=type, id=int(q))
-            for q in query
-        }
+        # remove duplicates and preserve order
+        parsed_query_set: set[str] = set()
+        parsed_query: list[VersionedElementRef | ElementRef] = []
+
+        for q in query.split(','):
+            q = q.strip()
+            if (not q) or (q in parsed_query_set):
+                continue
+            parsed_query_set.add(q)
+            parsed_query.append(
+                VersionedElementRef.from_type_str(type, q)
+                if 'v' in q  #
+                else ElementRef(type=type, id=int(q))
+            )
     except ValueError as e:
         # parsing error => element not found
         raise HTTPException(status.HTTP_404_NOT_FOUND) from e
 
-    elements = await ElementRepository.find_many_by_refs(query, limit=None)
+    elements = await ElementRepository.find_many_by_refs(parsed_query, limit=None)
 
     for element in elements:
         if element is None:
@@ -212,7 +213,7 @@ async def element_parent_relations(
     element_ref = ElementRef(type=type, id=id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=_type_relation,
+        parent_type=ElementType.relation,
         limit=None,
     )
     return Format06.encode_elements(elements)
@@ -224,10 +225,10 @@ async def element_parent_relations(
 async def element_parent_ways(
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=_type_node, id=id)
+    element_ref = ElementRef(type=ElementType.node, id=id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=_type_way,
+        parent_type=ElementType.way,
         limit=None,
     )
     return Format06.encode_elements(elements)

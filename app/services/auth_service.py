@@ -71,8 +71,7 @@ class AuthService:
                 logging.debug('Attempting to authenticate with OAuth')
                 oauth_result = await AuthService.authenticate_oauth(request)
                 if oauth_result is not None:
-                    user = oauth_result[0]
-                    scopes = oauth_result[1]
+                    user, scopes = oauth_result
 
         # all endpoints support session cookies
         if user is None and (token_str := request.session.get('session')) is not None:

@@ -49,8 +49,6 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         content_encoding: str | None = request.headers.get('Content-Encoding')
-        max_compressed_size: cython.int = HTTP_COMPRESSED_BODY_MAX_SIZE
-        max_body_size: cython.int = HTTP_BODY_MAX_SIZE
         input_size: cython.int = 0
         chunks = []
 
@@ -60,23 +58,22 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
 
             async for chunk in request.stream():
                 input_size += len(chunk)
-                if input_size > max_compressed_size:
+                if input_size > HTTP_COMPRESSED_BODY_MAX_SIZE:
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
             logging.debug('Compressed request body size: %s', naturalsize(input_size))
             request._body = body = decompressor(b''.join(chunks))  # noqa: SLF001
-            decompressed_size = len(body)
-            logging.debug('Decompressed request body size: %s', naturalsize(decompressed_size))
+            logging.debug('Decompressed request body size: %s', naturalsize(len(body)))
 
-            if decompressed_size > max_body_size:
-                raise_for().input_too_big(decompressed_size)
+            if len(body) > HTTP_BODY_MAX_SIZE:
+                raise_for().input_too_big(len(body))
 
         # check size without compression
         else:
             async for chunk in request.stream():
                 input_size += len(chunk)
-                if input_size > max_body_size:
+                if input_size > HTTP_BODY_MAX_SIZE:
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 

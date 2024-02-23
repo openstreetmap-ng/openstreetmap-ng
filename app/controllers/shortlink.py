@@ -23,13 +23,9 @@ async def go(
     """
 
     try:
-        t = shortlink_decode(code)
+        lon, lat, z = shortlink_decode(code)
     except Exception as e:
         raise HTTPException(status.HTTP_404_NOT_FOUND) from e
-
-    lon = t[0]
-    lat = t[1]
-    z = t[2]
 
     query = parse_qs(request.url.query, strict_parsing=True)
     query['map'] = [f'{z}/{lat:.5f}/{lon:.5f}']

@@ -39,12 +39,8 @@ class Changeset06Mixin:
         {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
         """
 
-        if changeset.bounds:
-            bounds = changeset.bounds.bounds
-            minx = bounds[0]
-            miny = bounds[1]
-            maxx = bounds[2]
-            maxy = bounds[3]
+        if changeset.bounds is not None:
+            minx, miny, maxx, maxy = changeset.bounds.bounds
             bounds_dict = {
                 xattr('minlon', custom_xml='min_lon'): minx,
                 xattr('minlat', custom_xml='min_lat'): miny,

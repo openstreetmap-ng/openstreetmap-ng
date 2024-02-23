@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-import anyio
+from anyio import create_task_group
 from shapely import Polygon
 from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
@@ -226,15 +226,15 @@ class ElementRepository:
             elements = await ElementRepository.get_many_latest_by_element_refs(element_refs, limit=limit)
             ref_map.update((element.element_ref, element) for element in elements)
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             if versioned_refs:
                 tg.start_soon(versioned_refs_task)
             if element_refs:
                 tg.start_soon(element_refs_task)
 
         # remove duplicates and preserve order
-        result = []
         result_set: set[int] = set()
+        result: list[Element] = []
 
         for ref in refs:
             element = ref_map.get(ref)
@@ -243,8 +243,8 @@ class ElementRepository:
 
             element_sequence_id = element.sequence_id
             if element_sequence_id not in result_set:
-                result.append(element)
                 result_set.add(element_sequence_id)
+                result.append(element)
 
         if limit is not None:
             return result[:limit]
@@ -360,7 +360,7 @@ class ElementRepository:
                 result_sequences.append(parents)
             return parents
 
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
 
             async def way_task() -> None:
                 # fetch parent ways
@@ -387,14 +387,14 @@ class ElementRepository:
             tg.start_soon(fetch_parents, nodes_refs, _type_relation)
 
         # remove duplicates and preserve order
-        result = []
         result_set: set[int] = set()
+        result: list[Element] = []
 
         for elements in result_sequences:
             for element in elements:
                 element_sequence_id = element.sequence_id
                 if element_sequence_id not in result_set:
-                    result.append(element)
                     result_set.add(element_sequence_id)
+                    result.append(element)
 
         return result

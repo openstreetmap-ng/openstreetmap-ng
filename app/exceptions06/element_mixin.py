@@ -64,7 +64,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
 
     @override
     def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[ElementRef]) -> NoReturn:
-        # wtf is this
+        # wtf is this condition
         if versioned_ref.type == ElementType.node:
             if ref_ways := tuple(ref for ref in used_by if ref.type == ElementType.way):
                 raise APIError(

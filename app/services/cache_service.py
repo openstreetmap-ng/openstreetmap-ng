@@ -57,9 +57,8 @@ class CacheService:
                 if not isinstance(value, bytes):
                     raise TypeError(f'Cache factory returned {type(value)!r}, expected bytes')
 
-                value_len = len(value)
-                if value_len >= CACHE_COMPRESS_MIN_SIZE:
-                    logging.debug('Compressing cache %r value of size %s', redis_key, naturalsize(value_len))
+                if len(value) >= CACHE_COMPRESS_MIN_SIZE:
+                    logging.debug('Compressing cache %r value of size %s', redis_key, naturalsize(len(value)))
                     value_stored = b'\xff' + _compress(value)
                 else:
                     value_stored = b'\x00' + value

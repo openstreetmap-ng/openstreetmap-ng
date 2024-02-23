@@ -18,9 +18,8 @@ class Bzip2FileProcessor(TraceFileProcessor):
         with bz2.open(BytesIO(buffer), 'rb') as f:
             result = f.read(TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
 
-        result_len = len(result)
-        if result_len > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
+        if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(result_len))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

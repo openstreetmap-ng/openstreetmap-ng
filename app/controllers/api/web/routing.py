@@ -2,7 +2,7 @@ from typing import Annotated
 
 from anyio import create_task_group
 from fastapi import APIRouter, Form
-from shapely import unary_union
+from shapely import get_coordinates, unary_union
 from shapely.ops import BaseGeometry
 
 from app.lib.geo_utils import parse_bbox
@@ -35,15 +35,17 @@ async def resolve_names(
         tg.start_soon(to_task)
 
     union_bounds: BaseGeometry = unary_union((resolve_from.bounds, resolve_to.bounds))
+    resolve_from_coords: list[float] = get_coordinates(resolve_from.point)[0].tolist()
+    resolve_to_coords: list[float] = get_coordinates(resolve_to.point)[0].tolist()
 
     return {
         'from': {
             'name': resolve_from.name,
-            'point': (resolve_from.point.x, resolve_from.point.y),
+            'point': resolve_from_coords,
         },
         'to': {
             'name': resolve_to.name,
-            'point': (resolve_to.point.x, resolve_to.point.y),
+            'point': resolve_to_coords,
         },
         'bounds': union_bounds.bounds,
     }

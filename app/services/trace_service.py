@@ -1,9 +1,8 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 
-import anyio
 import cython
-from anyio import to_thread
+from anyio import create_task_group, to_thread
 from fastapi import UploadFile
 from shapely import get_coordinates
 
@@ -30,8 +29,9 @@ def _sort_point_key(p: TracePoint) -> tuple[datetime, float, float]:
     Sorts by captured_at, then by longitude, then by latitude.
     """
 
-    coords = get_coordinates(p.point)[0].tolist()
-    return p.captured_at, coords[0], coords[1]
+    x, y = get_coordinates(p.point)[0].tolist()
+
+    return p.captured_at, x, y
 
 
 @cython.cfunc
@@ -54,11 +54,15 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
 
             point_x: cython.double = point_point.x
             prev_x: cython.double = prev_point.x
+
+            # abs(point_x - prev_x)
             x_delta = point_x - prev_x if (point_x > prev_x) else prev_x - point_x
 
             if x_delta < max_pos_diff:
                 point_y: cython.double = point_point.y
                 prev_y: cython.double = prev_point.y
+
+                # abs(point_y - prev_y)
                 y_delta = point_y - prev_y if (point_y > prev_y) else prev_y - point_y
 
                 # check date last, slowest to compute
@@ -80,9 +84,8 @@ class TraceService:
         Returns the created trace object.
         """
 
-        file_size_len = len(file.size)
-        if file_size_len > TRACE_FILE_UPLOAD_MAX_SIZE:
-            raise_for().input_too_big(file_size_len)
+        if len(file.size) > TRACE_FILE_UPLOAD_MAX_SIZE:
+            raise_for().input_too_big(len(file.size))
 
         file_bytes = await to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
@@ -131,7 +134,7 @@ class TraceService:
             trace.icon_id = await TRACES_STORAGE.save(icon, TraceImage.icon_suffix)
 
         # save the files after the validation
-        async with anyio.create_task_group() as tg:
+        async with create_task_group() as tg:
             tg.start_soon(save_file)
             tg.start_soon(save_image)
             tg.start_soon(save_icon)

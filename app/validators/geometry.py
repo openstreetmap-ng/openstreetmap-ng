@@ -30,6 +30,7 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     return value
 
 
+# TODO: get_coordinates
 @cython.cfunc
 def _geom_points(geom: BaseGeometry) -> tuple[tuple[float, float], ...]:
     """

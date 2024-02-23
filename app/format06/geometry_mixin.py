@@ -1,4 +1,4 @@
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.lib.xmltodict import xattr
 
@@ -14,9 +14,11 @@ class Geometry06Mixin:
         if point is None:
             return {}
 
+        x, y = get_coordinates(point)[0].tolist()
+
         return {
-            xattr('lon'): point.x,
-            xattr('lat'): point.y,
+            xattr('lon'): x,
+            xattr('lat'): y,
         }
 
     @staticmethod

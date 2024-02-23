@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from urllib.parse import urlencode
 
 from httpx import HTTPError
-from shapely import Polygon, box
+from shapely import Polygon, box, get_coordinates
 from shapely.geometry import Point
 
 from app.config import NOMINATIM_URL
@@ -31,11 +31,13 @@ class Nominatim:
         Reverse geocode a point into a human-readable name.
         """
 
+        x, y = get_coordinates(point)[0].tolist()
+
         path = '/reverse?' + urlencode(
             {
                 'format': 'jsonv2',
-                'lon': f'{point.x:.7f}',
-                'lat': f'{point.y:.7f}',
+                'lon': f'{x:.7f}',
+                'lat': f'{y:.7f}',
                 'zoom': zoom,
                 'accept-language': primary_translation_language(),
             }
@@ -58,7 +60,7 @@ class Nominatim:
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             # always succeed, return coordinates as a fallback
-            return f'{point.y:.5f}, {point.x:.5f}'
+            return f'{y:.5f}, {x:.5f}'
 
     @staticmethod
     async def search_generic(*, q: str, bounds: Polygon | None = None) -> NominatimSearchGeneric:
@@ -73,7 +75,7 @@ class Nominatim:
                 'format': 'jsonv2',
                 'q': q,
                 'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if bounds is not None else {}),
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
                 'accept-language': primary_translation_language(),
             }
         )
@@ -95,11 +97,11 @@ class Nominatim:
         point = Point(float(result['lon']), float(result['lat']))
         name = result['display_name']
         result_bbox = result['boundingbox']
-        min_lat = float(result_bbox[0])
-        max_lat = float(result_bbox[1])
-        min_lon = float(result_bbox[2])
-        max_lon = float(result_bbox[3])
-        geometry = box(min_lon, min_lat, max_lon, max_lat)
+        miny = float(result_bbox[0])
+        maxy = float(result_bbox[1])
+        minx = float(result_bbox[2])
+        maxx = float(result_bbox[3])
+        geometry = box(minx, miny, maxx, maxy)
 
         return NominatimSearchGeneric(point=point, name=name, bounds=geometry)
 
@@ -116,7 +118,7 @@ class Nominatim:
                 'format': 'jsonv2',
                 'q': q,
                 'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if bounds is not None else {}),
+                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
                 'accept-language': primary_translation_language(),
             }
         )

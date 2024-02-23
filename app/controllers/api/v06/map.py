@@ -29,11 +29,7 @@ async def map_read(
         legacy_nodes_limit=True,
     )
 
-    bounds = geometry.bounds
-    minx = bounds[0]
-    miny = bounds[1]
-    maxx = bounds[2]
-    maxy = bounds[3]
+    minx, miny, maxx, maxy = geometry.bounds
 
     return {
         'bounds': {

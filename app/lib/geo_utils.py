@@ -1,4 +1,5 @@
 import cython
+from shapely import box, get_coordinates
 from shapely.geometry import Point, Polygon
 
 from app.lib.exceptions_context import raise_for
@@ -50,15 +51,18 @@ def haversine_distance(p1: Point, p2: Point) -> float:
     Returns the distance in meters.
     """
 
-    lon1: cython.double = p1.x
-    lat1: cython.double = p1.y
-    lon2: cython.double = p2.x
-    lat2: cython.double = p2.y
+    coords1 = get_coordinates(p1)[0]
+    lon1: cython.double = coords1[0]
+    lat1: cython.double = coords1[1]
 
-    dlon = radians(lon2 - lon1)
-    dlat = radians(lat2 - lat1)
+    coords2 = get_coordinates(p2)[0]
+    lon2: cython.double = coords2[0]
+    lat2: cython.double = coords2[1]
 
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    delta_lon: cython.double = radians(lon2 - lon1)
+    delta_lat: cython.double = radians(lat2 - lat1)
+
+    a = sin(delta_lat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(delta_lon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     return c * 6371000  # R
@@ -87,12 +91,4 @@ def parse_bbox(s: str) -> Polygon:
     if miny > maxy:
         raise_for().bad_bbox(s, 'min latitude > max latitude')
 
-    # skip box() call for some extra performance
-    coords = (
-        (maxx, miny),
-        (maxx, maxy),
-        (minx, maxy),
-        (minx, miny),
-    )
-
-    return validate_geometry(Polygon(coords))
+    return validate_geometry(box(minx, miny, maxx, maxy))

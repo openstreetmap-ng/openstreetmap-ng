@@ -15,8 +15,6 @@ from app.models.validating.element import ElementValidating
 
 # read property once for performance
 _type_node = ElementType.node
-_type_way = ElementType.way
-_type_relation = ElementType.relation
 
 
 @cython.cfunc
@@ -107,15 +105,15 @@ class Element06Mixin:
         """
 
         # read property once for performance
-        element_type = element.type
+        element_type_str = element.type.value
 
-        is_node: cython.char = element_type == _type_node
-        is_way: cython.char = not is_node and element_type == _type_way
+        is_node: cython.char = element_type_str == 'node'
+        is_way: cython.char = not is_node and element_type_str == 'way'
         is_relation: cython.char = not is_node and not is_way
 
         if format_is_json():
             return {
-                'type': element_type.value,
+                'type': element_type_str,
                 'id': element.id,
                 **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                 'version': element.version,
@@ -136,7 +134,7 @@ class Element06Mixin:
             }
         else:
             return {
-                element_type.value: {
+                element_type_str: {
                     '@id': element.id,
                     **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
                     '@version': element.version,
@@ -163,9 +161,8 @@ class Element06Mixin:
         If `changeset_id` is None, it will be extracted from the element data.
         """
 
-        element_len = len(element)
-        if element_len != 1:
-            raise ValueError(f'Expected one root element, got {element_len}')
+        if len(element) != 1:
+            raise ValueError(f'Expected one root element, got {len(element)}')
 
         type, data = next(iter(element.items()))
         type = ElementType.from_str(type)

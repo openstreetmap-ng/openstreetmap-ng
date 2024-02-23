@@ -160,28 +160,24 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     @languages_str.setter
     def languages_str(self, s: str) -> None:
-        processed = []
-        processed_set = set()
+        # remove duplicates and preserve order
+        result_set: set[str] = set()
+        result: list[str] = []
 
-        language_code_max_length: cython.int = LANGUAGE_CODE_MAX_LENGTH
-        languages_codes_limit: cython.int = LANGUAGE_CODES_LIMIT
-
-        # normalize, remove duplicates, and preserve order
         for lang in s.split():
             lang = lang.strip()
-            lang_len = len(lang)
-            if lang_len == 0 or lang_len > language_code_max_length:
+            if not lang or len(lang) > LANGUAGE_CODE_MAX_LENGTH:
                 continue
 
             lang = normalize_locale(lang, raise_on_not_found=False)
-            if lang not in processed_set:
-                processed.append(lang)
-                processed_set.add(lang)
+            if lang not in result_set:
+                result_set.add(lang)
+                result.append(lang)
 
-                if len(processed) >= languages_codes_limit:
+                if len(result) >= LANGUAGE_CODES_LIMIT:
                     break
 
-        return tuple(processed)
+        self.languages = result
 
     @property
     def languages_valid(self) -> Sequence[str]:

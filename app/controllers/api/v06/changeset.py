@@ -160,9 +160,13 @@ async def changesets_query(
     geometry = parse_bbox(bbox) if (bbox is not None) else None
 
     if changesets is not None:
-        parts = (c.strip() for c in changesets.split(','))
-        parts = (c for c in parts if c and c.isdigit())
-        changeset_ids = {int(c) for c in parts}
+        changeset_ids = set()
+
+        for c in changesets.split(','):
+            c = c.strip()
+            if c.isdigit():
+                changeset_ids.add(int(c))
+
         if not changeset_ids:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No changesets were given to search for')
     else:

@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 import cython
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.format06.geometry_mixin import Geometry06Mixin
 from app.lib.auth_context import auth_user
@@ -126,6 +126,8 @@ class Trace06Mixin:
         {'gpx_file': {'@id': 1, '@uid': 1234, ...}}
         """
 
+        start_x, start_y = get_coordinates(trace.start_point)[0].tolist()
+
         return {
             'gpx_file': {
                 '@id': trace.id,
@@ -133,8 +135,8 @@ class Trace06Mixin:
                 '@user': trace.user.display_name,
                 '@timestamp': trace.created_at,
                 '@name': trace.name,
-                '@lon': trace.start_point.x,
-                '@lat': trace.start_point.y,
+                '@lon': start_x,
+                '@lat': start_y,
                 '@visibility': trace.visibility.value,
                 '@pending': False,
                 'description': trace.description,

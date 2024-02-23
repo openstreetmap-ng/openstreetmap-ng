@@ -19,10 +19,6 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
     Returns the quality and the image buffer.
     """
 
-    # read property once for performance
-    max_size: int = AVATAR_MAX_FILE_SIZE
-    size: int
-
     with BytesIO() as buffer:
         # lossless mode
         compression_level: int = 100
@@ -31,7 +27,7 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
         size = buffer.tell()
         logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', compression_level, naturalsize(size))
 
-        if size <= max_size:
+        if size <= AVATAR_MAX_FILE_SIZE:
             return compression_level, buffer.getvalue()
 
         high: cython.int = 95
@@ -50,7 +46,7 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, naturalsize(size))
 
-            if size > max_size:
+            if size > AVATAR_MAX_FILE_SIZE:
                 high = quality - bs_step
             else:
                 low = quality + bs_step
@@ -72,7 +68,7 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, naturalsize(size))
 
-            if size > max_size:
+            if size > AVATAR_MAX_FILE_SIZE:
                 high = quality - bs_step
             else:
                 low = quality + bs_step

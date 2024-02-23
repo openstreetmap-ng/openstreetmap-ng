@@ -7,7 +7,7 @@ import cython
 from anyio import to_thread
 from PIL import Image, ImageDraw
 from PIL.Image import Resampling
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.lib.mercator import Mercator
 from app.models.db.trace_point import TracePoint
@@ -44,10 +44,7 @@ class TraceImage:
         anim_frames: cython.int = 10
         anim_delay: int = 500
         anim_gen_size: cython.int = 250 * antialias
-        anim_gen_size_tuple: tuple[int, int] = (
-            anim_gen_size,
-            anim_gen_size,
-        )
+        anim_gen_size_tuple: tuple[int, int] = (anim_gen_size, anim_gen_size)
         anim_save_size_tuple: tuple[int, int] = (
             anim_gen_size // antialias,
             anim_gen_size // antialias,
@@ -65,23 +62,24 @@ class TraceImage:
         secondary_color: int = 187
         secondary_width: cython.int = 1 * antialias
 
-        # convert trace points to shapely points
+        # get shapely points from trace points
         points: tuple[Point] = tuple(tp.point for tp in trace_points)
+        points_len: cython.int = len(points)
 
         # sample points to speed up image generation
         max_points: cython.int = sample_points_per_frame * anim_frames
 
-        if len(points) > max_points:
-            step: cython.int = (len(points) - 1) // (max_points - 1)
-            num_indices: cython.int = int(ceil(len(points) / step))
+        if points_len > max_points:
+            step: cython.int = (points_len - 1) // (max_points - 1)
+            num_indices: cython.int = int(ceil(points_len / step))
 
-            # make sure we always include the last point (nice visually)
-            if num_indices > max_points:  # noqa: SIM108
-                points = tuple(*points[::step], points[-1])
-            else:
-                points = points[::step]
+            # make sure we always include the last point, nice visually
+            points = tuple(*points[::step], points[-1]) if (num_indices > max_points) else points[::step]
+            points_len: cython.int = len(points)
 
-        logging.debug('Generating %d frames animation for %d points', anim_frames, len(points))
+        logging.debug('Generating %d frames animation for %d points', anim_frames, points_len)
+
+        points_coords = []
 
         # find bounding box without python's builtin min/max
         min_lon: cython.double = 180
@@ -90,8 +88,10 @@ class TraceImage:
         max_lat: cython.double = -90
 
         for p in points:
-            x: cython.double = p.x
-            y: cython.double = p.y
+            coords = get_coordinates(p)[0].tolist()
+            points_coords.append(coords)
+            x: cython.double = coords[0]
+            y: cython.double = coords[1]
 
             if x < min_lon:
                 min_lon = x
@@ -102,28 +102,30 @@ class TraceImage:
             if y > max_lat:
                 max_lat = y
 
-        proj = Mercator(min_lon, min_lat, max_lon, max_lat, anim_gen_size, anim_gen_size)
-        points_proj = tuple((proj.x(point.x), proj.y(point.y)) for point in points)
-        points_per_frame: cython.int = int(ceil(len(points) / anim_frames))
+        mercator = Mercator(min_lon, min_lat, max_lon, max_lat, anim_gen_size, anim_gen_size)
+        project_x = mercator.x
+        project_y = mercator.y
+        projected_coords = [(project_x(x), project_y(y)) for x, y in points_coords]
 
         # animation generation, L = luminance (grayscale)
         base_frame = Image.new('L', anim_gen_size_tuple, color=background_color)
         draw = ImageDraw.Draw(base_frame)
-        draw.line(points_proj, fill=secondary_color, width=secondary_width, joint=None)
+        draw.line(projected_coords, fill=secondary_color, width=secondary_width, joint=None)
 
-        frames = [None] * anim_frames
-        n: cython.int
+        points_per_frame: cython.int = int(ceil(points_len / anim_frames))
+        frames = []
 
-        for n in range(anim_frames):
-            start_idx: cython.int = n * points_per_frame
+        i: cython.int
+        for i in range(anim_frames):
+            start_idx: cython.int = i * points_per_frame
             end_idx: cython.int = start_idx + points_per_frame  # no need to clamp, slicing does it for us
 
             frame = base_frame.copy()
             draw = ImageDraw.Draw(frame)
-            draw.line(points_proj[start_idx : end_idx + 1], fill=primary_color, width=primary_width, joint='curve')
+            draw.line(projected_coords[start_idx : end_idx + 1], fill=primary_color, width=primary_width, joint='curve')
 
             frame = frame.resize(anim_save_size_tuple, Resampling.BOX)
-            frames[n] = frame
+            frames.append(frame)
 
         with BytesIO() as buffer:
             frames[0].save(
@@ -143,7 +145,7 @@ class TraceImage:
             # icon generation
             base_frame = Image.new('L', anim_gen_size_tuple, color=background_color)
             draw = ImageDraw.Draw(base_frame)
-            draw.line(points_proj, fill=primary_color, width=secondary_width * icon_downscale + 10, joint=None)
+            draw.line(projected_coords, fill=primary_color, width=secondary_width * icon_downscale + 10, joint=None)
             base_frame = base_frame.resize(icon_save_size_tuple, Resampling.BOX)
 
             base_frame.save(
