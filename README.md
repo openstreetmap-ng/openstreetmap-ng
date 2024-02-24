@@ -29,13 +29,13 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Optimistic diff processing
 - [x] Migration of API 0.6
 - [ ] Migration of redactions
-- [ ] Migration of rate limiting
+- [x] Migration of rate limiting
 - [ ] Migration of changeset history RSS feed
 - [x] Improved GPX traces processing
 - [30%] Migration of website API
 - [x] Migration and refactoring of stylesheets
-- [95%] Migration and refactoring of scripts
-- [20%] Migration of templates
+- [x] Migration and refactoring of scripts
+- [25%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [x] Development translation overrides
 - [ ] Anti-vandalism stage 1
@@ -55,5 +55,3 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [ ] Community profiles
 - [ ] Functional sitemap.xml
 - **And a lot more...** :-)!
-
-**📅 Expected test server launch:** 2024-02-18
