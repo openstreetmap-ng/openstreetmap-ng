@@ -21,32 +21,34 @@ export const getLayersSidebarToggleButton = () => {
         const layerContainers = sidebar.querySelectorAll(".layer")
         const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
 
-        // TODO: invalidateSize ?
+        // Ensure minimaps have been initialized
+        const ensureMinimapsInitialized = () => {
+            if (minimaps.length) return
 
-        // Initialize the minimap
-        for (const layerContainer of layerContainers) {
-            const layerId = layerContainer.dataset.layerId
-            const layer = getBaseLayerById(layerId)
-            if (!layer) {
-                console.error(`Base layer "${layerId}" not found`)
-                continue
+            for (const layerContainer of layerContainers) {
+                const layerId = layerContainer.dataset.layerId
+                const layer = getBaseLayerById(layerId)
+                if (!layer) {
+                    console.error("Base layer", layerId, "not found")
+                    continue
+                }
+
+                console.debug("Initializing minimap for layer", layerId)
+                const minimapContainer = layerContainer.querySelector(".leaflet-container")
+                const minimap = L.map(minimapContainer, {
+                    attributionControl: false,
+                    zoomControl: false,
+                    boxZoom: false,
+                    doubleClickZoom: false,
+                    dragging: false,
+                    keyboard: false,
+                    scrollWheelZoom: false,
+                    touchZoom: false,
+                })
+
+                minimap.addLayer(cloneTileLayer(layer))
+                minimaps.push(minimap)
             }
-
-            console.debug("Initializing minimap for layer", layerId)
-            const minimapContainer = layerContainer.querySelector(".leaflet-container")
-            const minimap = L.map(minimapContainer, {
-                attributionControl: false,
-                zoomControl: false,
-                boxZoom: false,
-                doubleClickZoom: false,
-                dragging: false,
-                keyboard: false,
-                scrollWheelZoom: false,
-                touchZoom: false,
-            })
-
-            minimap.addLayer(cloneTileLayer(layer))
-            minimaps.push(minimap)
         }
 
         // On layer change, update the active container
@@ -143,7 +145,7 @@ export const getLayersSidebarToggleButton = () => {
             const layerId = layerContainer.dataset.layerId
             const layer = getBaseLayerById(layerId)
             if (!layer) {
-                console.error(`Base layer ${layerId} not found`)
+                console.error("Base layer", layerId, "not found")
                 return
             }
 
@@ -158,13 +160,13 @@ export const getLayersSidebarToggleButton = () => {
                 if (!layerId) return
 
                 if (getBaseLayerById(layerId)) {
-                    console.debug("Removing layer", layerId)
+                    console.debug("Removing base layer", layerId)
                     map.removeLayer(layer)
                 }
             })
 
             // Add the new base layer
-            console.debug("Adding layer", layerId)
+            console.debug("Adding base layer", layerId)
             map.addLayer(layer)
 
             // Trigger the baselayerchange event
@@ -180,7 +182,7 @@ export const getLayersSidebarToggleButton = () => {
             const layerId = overlayCheckbox.value
             const layer = getOverlayLayerById(layerId)
             if (!layer) {
-                console.error(`Overlay ${layerId} not found`)
+                console.error("Overlay layer", layerId, "not found")
                 return
             }
 
@@ -192,7 +194,7 @@ export const getLayersSidebarToggleButton = () => {
 
             // Add or remove the overlay layer
             if (checked) {
-                console.debug("Adding layer", layerId)
+                console.debug("Adding overlay layer", layerId)
                 map.addLayer(layer)
 
                 // Trigger the overlayadd event
@@ -200,7 +202,7 @@ export const getLayersSidebarToggleButton = () => {
                 // https://leafletjs.com/reference.html#layerscontrolevent
                 map.fire("overlayadd", { layer: layer, name: layerId })
             } else {
-                console.debug("Removing layer", layerId)
+                console.debug("Removing overlay layer", layerId)
                 map.removeLayer(layer)
 
                 // Trigger the overlayremove event
@@ -215,6 +217,7 @@ export const getLayersSidebarToggleButton = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
+            ensureMinimapsInitialized()
             const center = map.getCenter()
             const zoom = Math.max(map.getZoom() - minimapZoomOut, 0)
 

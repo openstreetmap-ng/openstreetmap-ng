@@ -30,7 +30,7 @@ setup(
     ext_modules=cythonize(
         [
             Extension(
-                str(path.with_suffix('')).replace('/', '.'),
+                path.with_suffix('').as_posix().replace('/', '.'),
                 [str(path)],
                 extra_compile_args=[
                     '-march=x86-64-v2',

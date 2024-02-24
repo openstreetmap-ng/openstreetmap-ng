@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class TextFormat(BaseEnum):
+class TextFormat(str, Enum):
     html = 'html'
     markdown = 'markdown'
     plain = 'plain'

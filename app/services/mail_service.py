@@ -4,7 +4,6 @@ from email.message import EmailMessage
 from email.utils import formataddr, formatdate
 
 import anyio
-import cython
 from aiosmtplib import SMTP
 from sqlalchemy import null, or_, select
 

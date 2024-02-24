@@ -24,7 +24,7 @@ export const getExportController = (map) => {
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.getAttribute("href")
-    let loaded = true
+    let loaded = false
 
     // Null values until initialized
     let locationFilter = null
@@ -92,7 +92,7 @@ export const getExportController = (map) => {
 
     return {
         load: () => {
-            switchActionSidebar("export")
+            switchActionSidebar(map, "export")
             document.title = getPageTitle(sidebarTitle)
             loaded = true
 

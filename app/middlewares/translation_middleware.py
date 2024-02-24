@@ -54,7 +54,7 @@ def _parse_accept_language(accept_language: str) -> list[str]:
             try:
                 lang = normalize_locale(lang, raise_on_not_found=True)
             except KeyError:
-                logging.debug('Unknown accept language %r', lang)
+                logging.debug('Unsupported accept language %r', lang)
                 continue
 
         # parse q-factor

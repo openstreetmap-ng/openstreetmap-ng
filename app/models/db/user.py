@@ -3,7 +3,6 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
 
-import cython
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from shapely.geometry import Point
 from sqlalchemy import (

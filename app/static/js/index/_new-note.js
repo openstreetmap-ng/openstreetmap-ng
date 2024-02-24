@@ -26,7 +26,10 @@ export const getNewNoteController = (map) => {
 
     // On marker drag start, remove the halo
     const onMarkerDragStart = () => {
-        halo.setStyle({ opacity: 0 })
+        halo.setStyle({
+            opacity: 0,
+            fillOpacity: 0,
+        })
     }
 
     // On marker drag end, update the form's coordinates and add the halo
@@ -36,7 +39,10 @@ export const getNewNoteController = (map) => {
         latInput.value = latLng.lat
 
         halo.setLatLng(latLng)
-        halo.setStyle({ opacity: focusStyles.noteHalo.opacity })
+        halo.setStyle({
+            opacity: focusStyles.noteHalo.opacity,
+            fillOpacity: focusStyles.noteHalo.fillOpacity,
+        })
     }
 
     // On success callback, navigate to the new note and simulate map move (reload notes layer)
@@ -51,7 +57,7 @@ export const getNewNoteController = (map) => {
     return {
         load: () => {
             form.reset()
-            switchActionSidebar("new-note")
+            switchActionSidebar(map, "new-note")
             document.title = getPageTitle(sidebarTitle)
 
             let center = map.getCenter()

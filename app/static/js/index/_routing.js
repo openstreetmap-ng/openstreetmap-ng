@@ -59,7 +59,7 @@ export const getRoutingController = (map) => {
     const routeDescend = routeElevationGroup.querySelector(".descend")
     const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
     const attribution = routeSection.querySelector(".attribution")
-    let loaded = true
+    let loaded = false
     let abortController = null
 
     // Null values until initialized
@@ -364,7 +364,7 @@ export const getRoutingController = (map) => {
     return {
         load: () => {
             form.reset()
-            switchActionSidebar("directions")
+            switchActionSidebar(map, "directions")
             document.title = getPageTitle(sidebarTitle)
 
             // Allow default form setting via URL search parameters
@@ -384,7 +384,7 @@ export const getRoutingController = (map) => {
                     engineInput.value = routingEngine
                     engineInput.dispatchEvent(new Event("input"))
                 } else {
-                    console.warn(`Unknown routing engine: ${routingEngine}`)
+                    console.warn("Unsupported routing engine", routingEngine)
                 }
             }
 

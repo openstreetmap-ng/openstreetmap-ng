@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class TraceVisibility(BaseEnum):
+class TraceVisibility(str, Enum):
     identifiable = 'identifiable'
     public = 'public'
     trackable = 'trackable'

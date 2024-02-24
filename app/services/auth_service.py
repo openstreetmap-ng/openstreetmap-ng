@@ -84,8 +84,6 @@ class AuthService:
         if user is not None:
             logging.debug('Request authenticated as user %d', user.id)
             scopes = (*scopes, *user.extended_scopes)
-        else:
-            logging.debug('Request is not authenticated')
 
         return user, scopes
 

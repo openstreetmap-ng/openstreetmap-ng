@@ -62,9 +62,8 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
-            logging.debug('Compressed request body size: %s', naturalsize(input_size))
             request._body = body = decompressor(b''.join(chunks))  # noqa: SLF001
-            logging.debug('Decompressed request body size: %s', naturalsize(len(body)))
+            logging.debug('Request body size: %s -> %s (decompressed)', naturalsize(input_size), naturalsize(len(body)))
 
             if len(body) > HTTP_BODY_MAX_SIZE:
                 raise_for().input_too_big(len(body))
@@ -77,7 +76,10 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
-            logging.debug('Request body size: %s', naturalsize(input_size))
-            request._body = b''.join(chunks)  # noqa: SLF001
+            if input_size > 0:
+                request._body = b''.join(chunks)  # noqa: SLF001
+                logging.debug('Request body size: %s', naturalsize(input_size))
+            else:
+                request._body = b''  # noqa: SLF001
 
         return await call_next(request)

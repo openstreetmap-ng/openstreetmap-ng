@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class ReportCategory(BaseEnum):
+class ReportCategory(str, Enum):
     spam = 'spam'
     offensive = 'offensive'
     threat = 'threat'

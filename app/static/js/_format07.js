@@ -8,7 +8,7 @@ import "./_types.js"
  */
 const isInterestingNode = (node, membersSet) => {
     if (node.type !== "node") {
-        console.error(`Invalid node type: ${node.type}`)
+        console.error("Invalid node type", node.type)
         return true
     }
 
@@ -93,7 +93,7 @@ export const parseElements = (elements) => {
                 members: resolveMembers(element.members),
             })
         } else {
-            console.error(`Unsupported element type: ${elementType}`)
+            console.error("Unsupported element type", elementType)
         }
     }
 

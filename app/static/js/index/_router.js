@@ -48,7 +48,7 @@ export const routerNavigate = (newPath) => {
  */
 export const configureRouter = (pathControllerMap) => {
     routes = Array.from(pathControllerMap).map(([path, controller]) => Route(path, controller))
-    console.debug(`Loaded ${routes.length} routes`)
+    console.debug("Loaded", routes.length, "routes")
 
     currentPath = removeTrailingSlash(location.pathname) + location.search
     currentRoute = findRoute(currentPath)

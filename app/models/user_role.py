@@ -1,13 +1,12 @@
 from collections.abc import Sequence
+from enum import Enum
 from operator import itemgetter
 
 from argon2 import PasswordHasher
 from argon2.profiles import RFC_9106_HIGH_MEMORY, RFC_9106_LOW_MEMORY
 
-from app.models.base_enum import BaseEnum
 
-
-class UserRole(BaseEnum):
+class UserRole(str, Enum):
     moderator = 'moderator'
     administrator = 'administrator'
 

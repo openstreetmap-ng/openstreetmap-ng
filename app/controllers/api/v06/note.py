@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from enum import StrEnum
+from enum import Enum
 from typing import Annotated
 
 from anyio import create_task_group
@@ -272,12 +272,12 @@ async def notes_read(
         return FormatRSS06.encode_notes(notes)
 
 
-class _SearchSort(StrEnum):
+class _SearchSort(str, Enum):
     created_at = 'created_at'
     updated_at = 'updated_at'
 
 
-class _SearchOrder(StrEnum):
+class _SearchOrder(str, Enum):
     oldest = 'oldest'
     newest = 'newest'
 

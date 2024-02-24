@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class MailFromType(BaseEnum):
+class MailFromType(str, Enum):
     system = 'system'
     message = 'message'
     diary_comment = 'diary_comment'

@@ -165,7 +165,7 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
         }
     }
 
-    console.log(`Fetching ${fetchTilesPromises.length} tiles...`)
+    console.log("Fetching", fetchTilesPromises.length, "tiles...")
     await Promise.all(fetchTilesPromises)
     console.log("Finished fetching tiles")
 

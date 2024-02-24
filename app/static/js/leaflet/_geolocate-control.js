@@ -23,7 +23,7 @@ export const getGeolocateControl = () => {
                 // hard-coded strings for searchability
                 if (unit === "meters") return i18next.t("javascripts.map.locate.metersPopup", { count })
                 if (unit === "feet") return i18next.t("javascripts.map.locate.feetPopup", { count })
-                console.error(`Unknown unit: ${unit}`)
+                console.error("Unsupported unit", unit)
             },
         },
         createButtonCallback: (container, options) => {

@@ -1,11 +1,11 @@
+from enum import Enum
 from typing import Self
 
-from app.models.base_enum import BaseEnum
 from app.models.report_category import ReportCategory
 from app.models.user_role import UserRole
 
 
-class ReportType(BaseEnum):
+class ReportType(str, Enum):
     diary = 'diary'
     diary_comment = 'diary_comment'
     note = 'note'

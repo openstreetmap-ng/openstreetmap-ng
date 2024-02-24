@@ -1,10 +1,9 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime
 from functools import lru_cache
 from gettext import GNUTranslations, translation
-from typing import Iterable
 
 import cython
 from jinja2 import Environment, FileSystemLoader

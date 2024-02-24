@@ -1,14 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query
+from fastapi import APIRouter, Query
 
-from app.lib.auth_context import web_user
-from app.models.auth_provider import AuthProvider
-from app.models.db.user import User
-from app.models.editor import Editor
 from app.models.str import DisplayNameStr
 from app.repositories.user_repository import UserRepository
-from app.services.user_service import UserService
 
 router = APIRouter(prefix='/user')
 

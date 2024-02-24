@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class AuthProvider(BaseEnum):
+class AuthProvider(str, Enum):
     openid = 'openid'
     google = 'google'
     facebook = 'facebook'

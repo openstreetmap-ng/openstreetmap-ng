@@ -21,7 +21,7 @@ import { getShareSidebarToggleButton } from "./_sidebar-share.js"
 import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom-control.js"
 
-// TODO: map.invalidateSize({ pan: false }) on sidebar-content
+// TODO: map.invalidateSize(false) on sidebar-content
 
 /**
  * Get the main map

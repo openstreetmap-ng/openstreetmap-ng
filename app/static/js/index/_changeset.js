@@ -52,7 +52,7 @@ export const getChangesetController = (map) => {
         configureStandardForm(commentForm, onFormSuccess)
     }
 
-    const base = getBaseFetchController("changeset", onLoaded)
+    const base = getBaseFetchController(map, "changeset", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 

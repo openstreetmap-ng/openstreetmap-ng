@@ -61,6 +61,7 @@ export const focusManyMapObjects = (map, objects) => {
     // If there are no objects to focus, remove the focus layer
     if (!objects.length) {
         if (map.hasLayer(focusLayer)) {
+            console.debug("Removing overlay layer", focusLayer.options.layerId)
             map.removeLayer(focusLayer)
 
             // Trigger the overlayremove event
@@ -75,6 +76,7 @@ export const focusManyMapObjects = (map, objects) => {
     // TODO: z-index
     // Create the focus layer if it doesn't exist
     if (!map.hasLayer(focusLayer)) {
+        console.debug("Adding overlay layer", focusLayer.options.layerId)
         map.addLayer(focusLayer)
 
         // Trigger the overlayadd event

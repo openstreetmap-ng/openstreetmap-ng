@@ -54,6 +54,7 @@ export const getShareSidebarToggleButton = () => {
         const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
+
             updateCopyInputs()
         }
 

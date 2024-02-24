@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class IssueStatus(BaseEnum):
+class IssueStatus(str, Enum):
     open = 'open'
     resolved = 'resolved'
     ignored = 'ignored'

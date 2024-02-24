@@ -14,7 +14,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
     control.onAdd = (map) => {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`.leaflet-sidebar.${className}`)
-        if (!sidebar) console.error(`Sidebar "${className}" not found`)
+        if (!sidebar) console.error("Sidebar", className, "not found")
         const sidebarCloseButton = sidebar.querySelector(".btn-close")
 
         // Create container
@@ -45,12 +45,14 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
 
         // On input checked, toggle sidebar visibility and invalidate map size
         const onButtonClick = () => {
+            console.debug("toggleLeafletSidebar", className)
+
             // TODO: unselect other buttons
             button.blur() // lose focus
 
             const isActive = button.classList.toggle("active")
             sidebar.classList.toggle("d-none", !isActive)
-            map.invalidateSize({ pan: false })
+            map.invalidateSize(false)
         }
 
         // Listen for events

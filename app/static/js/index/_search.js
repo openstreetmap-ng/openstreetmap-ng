@@ -47,7 +47,7 @@ export const getSearchController = (map) => {
         }
     }
 
-    const base = getBaseFetchController("search", onLoaded)
+    const base = getBaseFetchController(map, "search", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 

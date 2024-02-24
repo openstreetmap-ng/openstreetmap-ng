@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class TagFormat(StrEnum):
+class TagFormat(str, Enum):
     default = 'default'
     color = 'color'
     email = 'email'

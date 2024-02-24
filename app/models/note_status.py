@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class NoteStatus(BaseEnum):
+class NoteStatus(str, Enum):
     open = 'open'
     closed = 'closed'
     hidden = 'hidden'

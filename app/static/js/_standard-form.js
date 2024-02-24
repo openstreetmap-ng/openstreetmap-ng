@@ -50,7 +50,7 @@ export const configureStandardForm = (form, successCallback = null) => {
             element.classList.add("is-invalid")
             element.classList.remove("is-valid")
         } else {
-            console.error(`Unsupported feedback type: ${type}`)
+            console.error("Unsupported feedback type", type)
             return
         }
 
@@ -107,7 +107,7 @@ export const configureStandardForm = (form, successCallback = null) => {
             feedback.classList.remove("alert-success", "alert-info")
             feedback.classList.add("alert-danger")
         } else {
-            console.error(`Unsupported feedback type: ${type}`)
+            console.error("Unsupported feedback type", type)
             return
         }
 

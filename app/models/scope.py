@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class Scope(BaseEnum):
+class Scope(str, Enum):
     read_prefs = 'read_prefs'
     write_prefs = 'write_prefs'
     write_diary = 'write_diary'
@@ -12,7 +12,7 @@ class Scope(BaseEnum):
 
 
 # extend enums is not yet supported
-class ExtendedScope(BaseEnum):
+class ExtendedScope(str, Enum):
     """
     Extended scopes with entries that are not obtainable by normal means.
     """

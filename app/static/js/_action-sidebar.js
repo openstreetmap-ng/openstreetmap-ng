@@ -1,3 +1,4 @@
+import * as L from "leaflet"
 import { routerNavigate } from "./index/_router.js"
 
 const actionSidebars = document.querySelectorAll(".action-sidebar")
@@ -13,11 +14,12 @@ export const getActionSidebar = (className) => document.querySelector(`.action-s
 
 /**
  * Switch the action sidebar with the given class name
+ * @param {L.Map} map Leaflet map
  * @param {string} className Class name of the sidebar
  * @returns {void}
  */
-export const switchActionSidebar = (className) => {
-    console.debug("Switching action sidebar to", className)
+export const switchActionSidebar = (map, className) => {
+    console.debug("switchActionSidebar", className)
 
     // Reset all search and routing forms
     for (const searchForm of searchForms) searchForm.reset()
@@ -27,6 +29,9 @@ export const switchActionSidebar = (className) => {
     for (const sidebar of actionSidebars) {
         sidebar.classList.toggle("d-none", !sidebar.classList.contains(className))
     }
+
+    // Invalidate the map size
+    map.invalidateSize(false)
 }
 
 /**

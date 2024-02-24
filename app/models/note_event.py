@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class NoteEvent(BaseEnum):
+class NoteEvent(str, Enum):
     opened = 'opened'
     closed = 'closed'
     reopened = 'reopened'

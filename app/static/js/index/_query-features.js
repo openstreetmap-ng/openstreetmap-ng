@@ -110,7 +110,7 @@ export const getQueryFeaturesController = (map) => {
 
     return {
         load: () => {
-            switchActionSidebar("query-features")
+            switchActionSidebar(map, "query-features")
             document.title = getPageTitle(sidebarTitle)
 
             const position = getQueryPosition()

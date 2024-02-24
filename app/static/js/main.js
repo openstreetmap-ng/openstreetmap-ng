@@ -30,7 +30,7 @@ if (homePoint) {
 
 configureRouter(
     new Map([
-        ["/", getIndexController()],
+        ["/", getIndexController(map)],
         ["/export", getExportController(map)],
         ["/directions", getRoutingController(map)],
         ["/search", getSearchController(map)],

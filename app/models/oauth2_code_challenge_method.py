@@ -1,10 +1,9 @@
 from base64 import urlsafe_b64encode
+from enum import Enum
 from hashlib import sha256
 
-from app.models.base_enum import BaseEnum
 
-
-class OAuth2CodeChallengeMethod(BaseEnum):
+class OAuth2CodeChallengeMethod(str, Enum):
     plain = 'plain'
     S256 = 'S256'
 

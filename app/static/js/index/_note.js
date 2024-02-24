@@ -54,7 +54,7 @@ export const getNoteController = (map) => {
         configureStandardForm(commentForm, onFormSuccess)
     }
 
-    const base = getBaseFetchController("note", onLoaded)
+    const base = getBaseFetchController(map, "note", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 

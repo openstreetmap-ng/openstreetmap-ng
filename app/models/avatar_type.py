@@ -1,7 +1,7 @@
-from app.models.base_enum import BaseEnum
+from enum import Enum
 
 
-class AvatarType(BaseEnum):
+class AvatarType(str, Enum):
     default = 'default'
     gravatar = 'gravatar'
     custom = 'custom'

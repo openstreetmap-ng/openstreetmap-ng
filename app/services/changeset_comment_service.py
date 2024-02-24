@@ -1,6 +1,5 @@
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user

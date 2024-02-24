@@ -39,7 +39,7 @@ export const getElementHistoryController = (map) => {
         }
     }
 
-    const base = getBaseFetchController("element-history", onLoaded)
+    const base = getBaseFetchController(map, "element-history", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 

@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class Editor(StrEnum):
+class Editor(str, Enum):
     id = 'id'
     rapid = 'rapid'
     remote = 'remote'

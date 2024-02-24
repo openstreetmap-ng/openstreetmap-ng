@@ -49,11 +49,10 @@ const isWayArea = (way) => {
  * @param {object} styles.changeset Changeset style
  * @param {object} styles.element Element style
  * @param {object} styles.noteHalo Note halo style
- * @param {object} options Options
- * @param {boolean} options.renderAreas Whether to render areas
+ * @param {boolean} renderAreas Whether to render areas
  * @returns {L.Layer[]} Array of added layers
  */
-export const renderObjects = (layerGroup, objects, styles, { renderAreas = true }) => {
+export const renderObjects = (layerGroup, objects, styles, renderAreas = true) => {
     const layers = []
     const markers = []
 
@@ -148,12 +147,18 @@ export const renderObjects = (layerGroup, objects, styles, { renderAreas = true 
         const objectType = object.type
         const fn = processMap[objectType]
         if (fn) fn(object)
-        else console.error(`Unsupported feature type: ${objectType}`)
+        else console.error("Unsupported feature type", objectType)
     }
 
     // Render icons on top of the feature layers
-    if (layers.length) layerGroup.addLayer(L.layerGroup(layers))
-    if (markers.length) layerGroup.addLayer(L.layerGroup(markers))
+    if (layers.length) {
+        console.debug("Render", layers.length, "objects")
+        layerGroup.addLayer(L.layerGroup(layers))
+    }
+    if (markers.length) {
+        console.debug("Render", markers.length, "markers")
+        layerGroup.addLayer(L.layerGroup(markers))
+    }
 
     return layers
 }

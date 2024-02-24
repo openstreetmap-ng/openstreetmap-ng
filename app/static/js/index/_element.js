@@ -39,7 +39,7 @@ export const getElementController = (map) => {
         }
     }
 
-    const base = getBaseFetchController("element", onLoaded)
+    const base = getBaseFetchController(map, "element", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
 

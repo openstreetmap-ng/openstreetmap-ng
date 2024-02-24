@@ -19,6 +19,8 @@ map:
       normal: Normal
       high: High
       very_high: Very high
+  note:
+    title: Note
   routing:
     drag_and_drop:
       start: Drag and drop this marker to set the start position

@@ -1,8 +1,8 @@
-from enum import StrEnum
+from enum import Enum
 from typing import Self
 
 
-class FormatStyle(StrEnum):
+class FormatStyle(str, Enum):
     json = 'json'
     xml = 'xml'
     rss = 'rss'

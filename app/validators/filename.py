@@ -1,7 +1,7 @@
 import re
 
 import cython
-from pydantic import PlainValidator
+from pydantic import BeforeValidator
 
 _filename_re = re.compile(r'[^a-zA-Z0-9.]')
 
@@ -13,4 +13,4 @@ def _validate_filename(value: str) -> str:
     return _filename_re.sub('_', value)
 
 
-FileNameValidator = PlainValidator(_validate_filename)
+FileNameValidator = BeforeValidator(_validate_filename)

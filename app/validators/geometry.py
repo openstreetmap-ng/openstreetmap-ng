@@ -1,4 +1,3 @@
-import cython
 import numpy as np
 from pydantic import PlainValidator
 from shapely import get_coordinates

@@ -45,6 +45,10 @@ mimetypes.add_type('application/javascript', '.cjs')
 if not HTTPS_ONLY and not TEST_ENV:
     logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
 
+# log when in test environment
+if TEST_ENV:
+    logging.info('🦺 Running in test environment')
+
 
 @asynccontextmanager
 async def lifespan(_):
@@ -55,6 +59,7 @@ async def lifespan(_):
 
     # harden against parsing really big numbers
     sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
+
     yield
 
 

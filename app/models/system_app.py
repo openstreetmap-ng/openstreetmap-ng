@@ -1,11 +1,11 @@
 from collections.abc import Sequence
-from enum import StrEnum
+from enum import Enum
 from typing import Self
 
 from models.scope import Scope
 
 
-class SystemApp(StrEnum):
+class SystemApp(str, Enum):
     id = 'id'
     rapid = 'rapid'
 

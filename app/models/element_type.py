@@ -1,9 +1,8 @@
+from enum import Enum
 from typing import Self
 
-from app.models.base_enum import BaseEnum
 
-
-class ElementType(BaseEnum):
+class ElementType(str, Enum):
     node = 'node'
     way = 'way'
     relation = 'relation'

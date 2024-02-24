@@ -15,6 +15,8 @@ const minBoundsSizePx = 20
  * @returns {object} Controller
  */
 export const getChangesetsHistoryController = (map) => {
+    let loaded = false
+
     // Make bounds minimum size to make them easier to click
     const makeBoundsMinimumSize = (bounds) => {
         const [minLon, minLat, maxLon, maxLat] = bounds
@@ -116,7 +118,7 @@ export const getChangesetsHistoryController = (map) => {
         configureResultActions(sidebarContent)
     }
 
-    const base = getBaseFetchController("changesets-history", onLoaded)
+    const base = getBaseFetchController(map, "changesets-history", onLoaded)
     const baseLoad = base.load
     const baseUnload = base.unload
     let lastLoadOptions
@@ -136,11 +138,15 @@ export const getChangesetsHistoryController = (map) => {
 
         lastLoadOptions = { scope, displayName }
         baseLoad({ url })
+
+        loaded = true
     }
 
     base.unload = () => {
         focusMapObject(map, null)
         baseUnload()
+
+        loaded = false
     }
 
     /**
@@ -148,6 +154,10 @@ export const getChangesetsHistoryController = (map) => {
      * @returns {void}
      */
     const onMapZoomOrMoveEnd = () => {
+        // Skip updates if the sidebar is hidden
+        if (!loaded) return
+
+        console.debug("Reloading changesets history")
         base.unload()
         base.load(lastLoadOptions)
     }
