@@ -7,6 +7,7 @@ import brotlicffi
 import cython
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from zstandard import ZstdDecompressor
 
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
@@ -28,6 +29,11 @@ def _decompress_brotli(buffer: bytes) -> bytes:
     return brotlicffi.decompress(buffer)
 
 
+@cython.cfunc
+def _decompress_zstd(buffer: bytes) -> bytes:
+    return ZstdDecompressor().decompress(buffer, allow_extra_data=False)
+
+
 def _get_decompressor(content_encoding: str | None) -> Callable[[bytes], bytes] | None:
     if content_encoding is None:
         return None
@@ -38,6 +44,8 @@ def _get_decompressor(content_encoding: str | None) -> Callable[[bytes], bytes] 
         return _decompress_gzip
     if content_encoding == 'br':
         return _decompress_brotli
+    if content_encoding == 'zstd':
+        return _decompress_zstd
 
     return None
 
@@ -53,7 +61,8 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
         chunks = []
 
         # check size with compression
-        if (decompressor := _get_decompressor(content_encoding)) is not None:
+        decompressor = _get_decompressor(content_encoding)
+        if decompressor is not None:
             logging.debug('Decompressing %r request encoding', content_encoding)
 
             async for chunk in request.stream():
@@ -62,7 +71,12 @@ class RequestBodyMiddleware(BaseHTTPMiddleware):
                     raise_for().input_too_big(input_size)
                 chunks.append(chunk)
 
-            request._body = body = decompressor(b''.join(chunks))  # noqa: SLF001
+            try:
+                body = decompressor(b''.join(chunks))
+            except Exception:
+                raise_for().request_decompression_failed()
+
+            request._body = body  # noqa: SLF001
             logging.debug('Request body size: %s -> %s (decompressed)', naturalsize(input_size), naturalsize(len(body)))
 
             if len(body) > HTTP_BODY_MAX_SIZE:

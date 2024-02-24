@@ -3,7 +3,7 @@ from contextvars import ContextVar
 
 from app.exceptions import Exceptions
 
-_context = ContextVar('Exceptions_context')
+_context: ContextVar[Exceptions] = ContextVar('ExceptionsContext')
 
 
 @contextmanager

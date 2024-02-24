@@ -60,19 +60,19 @@ class TraceFile:
         raise_for().trace_file_archive_too_deep()
 
     @staticmethod
-    def zstd_compress(buffer: bytes) -> tuple[bytes, str]:
+    def compress(buffer: bytes) -> tuple[bytes, str]:
         """
-        Compress the buffer with zstd.
+        Compress the trace file buffer.
 
-        Returns the compressed buffer and the suffix to add to the file name.
+        Returns the compressed buffer and the file name suffix.
         """
 
         return ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
 
     @staticmethod
-    def zstd_decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
+    def decompress_if_needed(buffer: bytes, file_id: str) -> bytes:
         """
-        Decompress the buffer if needed.
+        Decompress the trace file buffer if needed.
         """
 
         if file_id.endswith(ZstdFileProcessor.suffix):

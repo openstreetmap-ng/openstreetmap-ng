@@ -12,13 +12,6 @@ from app.limits import (
     TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
 )
 
-_compress = ZstdCompressor(
-    level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-    threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
-).compress
-
-_decompress = ZstdDecompressor().decompress
-
 
 class ZstdFileProcessor(TraceFileProcessor):
     media_type = 'application/zstd'
@@ -28,19 +21,22 @@ class ZstdFileProcessor(TraceFileProcessor):
     @classmethod
     def decompress(cls, buffer: bytes) -> bytes:
         try:
-            result = _decompress(
-                buffer,
-                max_output_size=TRACE_FILE_UNCOMPRESSED_MAX_SIZE,
-                allow_extra_data=False,
-            )
+            result = ZstdDecompressor().decompress(buffer, allow_extra_data=False)
         except ZstdError:
             raise_for().trace_file_archive_corrupted(cls.media_type)
+
+        if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
+            raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
         return result
 
     @classmethod
     def compress(cls, buffer: bytes) -> bytes:
-        result = _compress(buffer)
+        result = ZstdCompressor(
+            level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+            threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
+        ).compress(buffer)
+
         logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result)))
         return result

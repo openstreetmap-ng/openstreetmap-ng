@@ -2,6 +2,7 @@ import logging
 import random
 import time
 from datetime import timedelta
+from functools import wraps
 
 import anyio
 import cython
@@ -17,6 +18,7 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: f
     timeout_seconds: cython.double = -1 if timeout is None else timeout.total_seconds()
 
     def decorator(func):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             ts: cython.double = time.monotonic()
             sleep: cython.double = sleep_init

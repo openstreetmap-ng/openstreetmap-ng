@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import NoReturn
 
-from fastapi import status
+from starlette import status
 
 from app.exceptions.api_error import APIError
 
@@ -18,6 +18,9 @@ class RequestExceptionsMixin:
 
     def time_integrity(self) -> NoReturn:
         raise APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity error')
+
+    def request_decompression_failed(self) -> NoReturn:
+        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Request decompression failed')
 
     def bad_cursor(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid database cursor')

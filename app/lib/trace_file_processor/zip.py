@@ -18,23 +18,27 @@ class ZipFileProcessor(TraceFileProcessor):
     @override
     @classmethod
     def decompress(cls, buffer: bytes) -> Sequence[bytes]:
-        with zipfile.ZipFile(BytesIO(buffer)) as archive:
-            infos = tuple(info for info in archive.infolist() if not info.is_dir())
-            logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
+        try:
+            with zipfile.ZipFile(BytesIO(buffer)) as archive:
+                infos = tuple(info for info in archive.infolist() if not info.is_dir())
+                logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
-            if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                raise_for().trace_file_archive_too_many_files()
+                if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
+                    raise_for().trace_file_archive_too_many_files()
 
-            result = []
-            result_size: cython.int = 0
+                result = []
+                result_size: cython.int = 0
 
-            for info in infos:
-                file = archive.read(info)
-                result.append(file)
-                result_size += len(file)
+                for info in infos:
+                    file = archive.read(info)
+                    result.append(file)
+                    result_size += len(file)
 
-                if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
-                    raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+                    if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
+                        raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
+
+        except zipfile.BadZipFile():
+            raise_for().trace_file_archive_corrupted(cls.media_type)
 
         logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(result_size))
         return result

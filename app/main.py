@@ -28,6 +28,7 @@ from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
+from app.middlewares.rate_limit_middleware import RateLimitMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_context_middleware import RequestContextMiddleware
 from app.middlewares.request_url_middleware import RequestUrlMiddleware
@@ -71,6 +72,7 @@ main = FastAPI(
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(CacheControlMiddleware)  # depends on: request
+main.add_middleware(RateLimitMiddleware)  # depends on: request
 main.add_middleware(RequestContextMiddleware)
 main.add_middleware(VersionMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware

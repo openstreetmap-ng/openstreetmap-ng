@@ -2,7 +2,7 @@ from abc import abstractmethod
 from collections.abc import Sequence
 from typing import NoReturn
 
-from fastapi import status
+from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod

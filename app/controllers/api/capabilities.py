@@ -34,7 +34,8 @@ _legacy_imagery_blacklist = (
 @router.get('/0.6/capabilities.json')
 async def legacy_capabilities() -> dict:
     user = auth_user()
-    changeset_max_size = user.changeset_max_size if (user is not None) else UserRole.get_changeset_max_size(())
+    user_roles = user.roles if (user is not None) else ()
+    changeset_max_size = UserRole.get_changeset_max_size(user_roles)
 
     return {
         'api': {

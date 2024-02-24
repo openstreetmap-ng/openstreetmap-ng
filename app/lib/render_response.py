@@ -5,9 +5,9 @@ from starlette.responses import HTMLResponse
 from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION
 from app.lib.auth_context import auth_user
 from app.lib.locale import map_i18next_files
-from app.lib.request_context import get_request
 from app.lib.translation import render, translation_languages
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
+from app.middlewares.request_context_middleware import get_request
 from app.utils import JSON_ENCODE
 
 

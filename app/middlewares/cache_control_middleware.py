@@ -1,53 +1,49 @@
-import functools
 from datetime import timedelta
+from functools import wraps
 
 import cython
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.lib.request_context import get_request
-
-
-@cython.cfunc
-def _make_cache_control(max_age: timedelta, stale: timedelta):
-    return f'public, max-age={int(max_age.total_seconds())}, stale-while-revalidate={int(stale.total_seconds())}'
+from app.middlewares.request_context_middleware import get_request
 
 
 class CacheControlMiddleware(BaseHTTPMiddleware):
+    """
+    Process the Cache-Control header from `@cache_control` decorator.
+    """
+
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
-        request_method = request.method
-        response_status_code: cython.int = response.status_code
+        state: dict = request.state._state  # noqa: SLF001
+        cache_control: str | None = state.get('cache_control_header')
+        if cache_control is not None:
+            request_method = request.method
+            response_status_code: cython.int = response.status_code
 
-        if request_method in ('GET', 'HEAD') and (200 <= response_status_code < 300 or response_status_code == 301):
-            try:
-                state = request.state
-                max_age: timedelta = state.max_age
-                stale: timedelta = state.stale
-
-                response_headers = response.headers
-                if 'Cache-Control' not in response_headers:
-                    response_headers['Cache-Control'] = _make_cache_control(max_age, stale)
-
-            except AttributeError:
-                pass
+            # consider only successful responses and permanent redirects
+            if (
+                (request_method == 'GET' or request_method == 'HEAD')  #
+                and (200 <= response_status_code < 300 or response_status_code == 301)
+            ):
+                response.headers.setdefault('Cache-Control', cache_control)
 
         return response
 
 
 def cache_control(max_age: timedelta, stale: timedelta):
     """
-    Add Cache-Control header to the response.
+    Decorator to set the Cache-Control header for an endpoint.
     """
 
+    header = f'public, max-age={int(max_age.total_seconds())}, stale-while-revalidate={int(stale.total_seconds())}'
+
     def decorator(func):
-        @functools.wraps(func)
+        @wraps(func)
         async def wrapper(*args, **kwargs):
-            request = get_request()
-            state = request.state
-            state.max_age = max_age
-            state.stale = stale
+            state: dict = get_request().state._state  # noqa: SLF001
+            state['cache_control_header'] = header
             return await func(*args, **kwargs)
 
         return wrapper

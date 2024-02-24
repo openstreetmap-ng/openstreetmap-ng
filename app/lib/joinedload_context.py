@@ -3,7 +3,7 @@ from contextvars import ContextVar
 
 from sqlalchemy.orm import joinedload
 
-_context = ContextVar('JoinedLoad_context')
+_context = ContextVar('JoinedLoadContext')
 
 
 @contextmanager
@@ -19,7 +19,7 @@ def joinedload_context(*keys):
         _context.reset(token)
 
 
-def get_joinedload() -> joinedload:
+def get_joinedload():
     """
     Get the joinedload from the context.
     """

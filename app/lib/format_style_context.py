@@ -5,7 +5,7 @@ from fastapi import Request
 
 from app.models.format_style import FormatStyle
 
-_context = ContextVar('Format_context')
+_context: ContextVar[FormatStyle] = ContextVar('FormatStyleContext')
 
 
 @contextmanager

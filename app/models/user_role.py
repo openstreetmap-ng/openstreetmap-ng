@@ -14,6 +14,9 @@ class UserRole(str, Enum):
     def get_changeset_max_size(roles: Sequence['UserRole']) -> int:
         """
         Get the maximum size of a changeset for the given roles.
+
+        >>> UserRole.get_changeset_max_size([])
+        10_000
         """
 
         if not roles:
@@ -32,6 +35,20 @@ class UserRole(str, Enum):
 
         return max((_password_hasher[r] for r in roles), key=itemgetter(0))[1]
 
+    @staticmethod
+    def get_rate_limit_quota(roles: Sequence['UserRole']) -> int:
+        """
+        Get the rate limit quota for the given roles.
+
+        >>> UserRole.get_rate_limit_quota([])
+        10_000
+        """
+
+        if not roles:
+            return _rate_limit_quota[None]
+
+        return max(_rate_limit_quota[r] for r in roles)
+
 
 _changeset_max_size = {
     None: 10_000,
@@ -45,4 +62,11 @@ _password_hasher = {
     None: (0, PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)),
     UserRole.moderator: (100, PasswordHasher.from_parameters(RFC_9106_HIGH_MEMORY)),
     UserRole.administrator: (100, PasswordHasher.from_parameters(RFC_9106_HIGH_MEMORY)),
+}
+
+
+_rate_limit_quota = {
+    None: 10_000,
+    UserRole.moderator: 25_000,
+    UserRole.administrator: 25_000,
 }

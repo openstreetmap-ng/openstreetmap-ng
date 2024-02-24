@@ -13,7 +13,7 @@ from app.models.scope import ExtendedScope, Scope
 # TODO: more 0.7 scopes
 
 
-_context = ContextVar('Auth_context')
+_context: ContextVar[tuple[User | None, Sequence[ExtendedScope]]] = ContextVar('AuthContext')
 
 
 @contextmanager

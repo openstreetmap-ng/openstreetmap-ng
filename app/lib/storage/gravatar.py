@@ -1,6 +1,6 @@
 from hashlib import md5
 
-from fastapi import status
+from starlette import status
 
 from app.lib.avatar import Avatar
 from app.lib.file_cache import FileCache

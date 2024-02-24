@@ -15,15 +15,19 @@ class TarFileProcessor(TraceFileProcessor):
     @override
     @classmethod
     def decompress(cls, buffer: bytes) -> Sequence[bytes]:
-        # pure tar uses no compression, so it's efficient to read files from the memory buffer
-        # r: opens for reading exclusively without compression (safety check)
-        with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
-            infos = tuple(info for info in archive.getmembers() if info.isfile())
-            logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
+        try:
+            # pure tar uses no compression, so it's efficient to read files from the memory buffer
+            # r: opens for reading exclusively without compression (safety check)
+            with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
+                infos = tuple(info for info in archive.getmembers() if info.isfile())
+                logging.debug('Trace %r archive contains %d files', cls.media_type, len(infos))
 
-            if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                raise_for().trace_file_archive_too_many_files()
+                if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
+                    raise_for().trace_file_archive_too_many_files()
 
-            # not checking for the total size of the files - there is no compression
-            # the output size will not exceed the input size
-            return tuple(archive.extractfile(info).read() for info in infos)
+                # not checking for the total size of the files - there is no compression
+                # the output size will not exceed the input size
+                return tuple(archive.extractfile(info).read() for info in infos)
+
+        except tarfile.TarError:
+            raise_for().trace_file_archive_corrupted(cls.media_type)

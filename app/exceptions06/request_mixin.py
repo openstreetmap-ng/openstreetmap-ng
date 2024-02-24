@@ -1,6 +1,6 @@
 from typing import NoReturn, override
 
-from fastapi import status
+from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.request_mixin import RequestExceptionsMixin

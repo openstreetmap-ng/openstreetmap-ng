@@ -190,17 +190,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         return tuple(filter(is_valid_locale, self.languages))
 
     @property
-    def changeset_max_size(self) -> int:
-        """
-        Get the maximum changeset size for this user.
-
-        >>> user.changeset_max_size
-        10_000
-        """
-
-        return UserRole.get_changeset_max_size(self.roles)
-
-    @property
     def password_hasher(self) -> PasswordHash:
         """
         Get the password hash class for this user.

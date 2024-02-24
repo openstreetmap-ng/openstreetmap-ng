@@ -58,7 +58,7 @@ class TraceImage:
 
         background_color: int = 255
         primary_color: int = 0
-        primary_width: int = 3 * antialias
+        primary_width: cython.int = 3 * antialias
         secondary_color: int = 187
         secondary_width: cython.int = 1 * antialias
 

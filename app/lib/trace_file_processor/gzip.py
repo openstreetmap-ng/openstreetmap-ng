@@ -1,7 +1,5 @@
 import gzip
 import logging
-from gzip import BadGzipFile
-from io import BytesIO
 from typing import override
 
 from app.lib.exceptions_context import raise_for
@@ -17,9 +15,8 @@ class GzipFileProcessor(TraceFileProcessor):
     @classmethod
     def decompress(cls, buffer: bytes) -> bytes:
         try:
-            with gzip.open(BytesIO(buffer), 'rb') as f:
-                result = f.read(TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
-        except BadGzipFile:
+            result = gzip.decompress(buffer)
+        except (EOFError, gzip.BadGzipFile()):
             raise_for().trace_file_archive_corrupted(cls.media_type)
 
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:

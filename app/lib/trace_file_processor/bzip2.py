@@ -1,6 +1,5 @@
 import bz2
 import logging
-from io import BytesIO
 from typing import override
 
 from app.lib.exceptions_context import raise_for
@@ -15,8 +14,10 @@ class Bzip2FileProcessor(TraceFileProcessor):
     @override
     @classmethod
     def decompress(cls, buffer: bytes) -> bytes:
-        with bz2.open(BytesIO(buffer), 'rb') as f:
-            result = f.read(TRACE_FILE_UNCOMPRESSED_MAX_SIZE + 1)
+        try:
+            result = bz2.decompress(buffer)
+        except (OSError, ValueError):
+            raise_for().trace_file_archive_corrupted(cls.media_type)
 
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import NoReturn, override
 
-from fastapi import status
+from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.changeset_mixin import ChangesetExceptionsMixin

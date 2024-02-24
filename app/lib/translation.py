@@ -27,8 +27,7 @@ _j2 = Environment(
     auto_reload=False,
 )
 
-_context_languages = ContextVar('Translation_context_langs')
-_context_translation = ContextVar('Translation_context_trans')
+_context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
 
 
 # removing this will not enable live-reload for translations
@@ -70,13 +69,11 @@ def translation_context(languages: Iterable[str]):
     processed = tuple(processed)
 
     translation = _get_translation(processed)
-    token_languages = _context_languages.set(processed)
-    token_translation = _context_translation.set(translation)
+    token = _context.set((processed, translation))
     try:
         yield
     finally:
-        _context_languages.reset(token_languages)
-        _context_translation.reset(token_translation)
+        _context.reset(token)
 
 
 def translation_languages() -> Sequence[str]:
@@ -87,7 +84,7 @@ def translation_languages() -> Sequence[str]:
     ('en', 'pl')
     """
 
-    return _context_languages.get()
+    return _context.get()[0]
 
 
 def primary_translation_language() -> str:
@@ -98,7 +95,7 @@ def primary_translation_language() -> str:
     'en'
     """
 
-    return _context_languages.get()[0]
+    return _context.get()[0][0]
 
 
 def t(message: str, **kwargs) -> str:
@@ -106,7 +103,7 @@ def t(message: str, **kwargs) -> str:
     Get the translation for the given message.
     """
 
-    trans: GNUTranslations = _context_translation.get()
+    trans: GNUTranslations = _context.get()[1]
     translated = trans.gettext(message)
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
@@ -116,7 +113,7 @@ def nt(message: str, count: int, **kwargs) -> str:
     Get the translation for the given message, with pluralization.
     """
 
-    trans: GNUTranslations = _context_translation.get()
+    trans: GNUTranslations = _context.get()[1]
     translated = trans.ngettext(message, message, count)
     return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)
 

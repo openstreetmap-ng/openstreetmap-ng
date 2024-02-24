@@ -13,6 +13,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
 from app.models.geometry_type import PolygonType
+from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
     from app.models.db.element import Element
@@ -61,7 +62,7 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         Get the maximum size for this changeset
         """
 
-        return self.user.changeset_max_size
+        return UserRole.get_changeset_max_size(self.user.roles)
 
     async def resolve_comments_rich_text(self) -> None:
         """

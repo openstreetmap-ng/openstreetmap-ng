@@ -1,8 +1,32 @@
+from contextlib import contextmanager
+from contextvars import ContextVar
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from app.lib.request_context import request_context
+_context: ContextVar[Request] = ContextVar('RequestContext')
+
+
+@contextmanager
+def request_context(request: Request):
+    """
+    Context manager for setting request in ContextVar.
+    """
+
+    token = _context.set(request)
+    try:
+        yield
+    finally:
+        _context.reset(token)
+
+
+def get_request() -> Request:
+    """
+    Get the request from the context.
+    """
+
+    return _context.get()
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):

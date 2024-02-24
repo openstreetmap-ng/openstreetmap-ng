@@ -42,7 +42,7 @@ class TraceRepository:
 
         trace = await TraceRepository.get_one_by_id(trace_id)
         file_buffer = await TRACES_STORAGE.load(trace.file_id)
-        file_bytes = TraceFile.zstd_decompress_if_needed(file_buffer, trace.file_id)
+        file_bytes = TraceFile.decompress_if_needed(file_buffer, trace.file_id)
         filename = trace.name
         return filename, file_bytes
 
