@@ -32,7 +32,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
 
-async def _increase_counter(key: str, change: int, quota: int) -> dict[str, str]:
+async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit: bool) -> dict[str, str]:
     """
     Increase the rate limit counter and raise if the limit is exceeded.
 
@@ -56,7 +56,7 @@ async def _increase_counter(key: str, change: int, quota: int) -> dict[str, str]
     rate_limit_policy_header = f'{quota};w=3600;burst=0'
 
     # check if the rate limit is exceeded
-    if current_usage > quota:
+    if current_usage > quota and raise_on_limit:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail='Rate limit exceeded',
@@ -97,7 +97,7 @@ def rate_limit(*, weight: int = 1):
                 key = f'RateLimit:host:{request.client.host}'
                 quota = UserRole.get_rate_limit_quota(())
 
-            rate_limit_headers = await _increase_counter(key, weight, quota)
+            rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)
 
             # proceed with the request
             token = _weight_context.set([weight])
@@ -107,7 +107,7 @@ def rate_limit(*, weight: int = 1):
                 # check if the weight was overridden (only increasing)
                 weight_change = _weight_context.get()[0] - weight
                 if weight_change > 0:
-                    rate_limit_headers = await _increase_counter(key, weight_change, quota)
+                    rate_limit_headers = await _increase_counter(key, weight_change, quota, raise_on_limit=False)
 
                 # save the headers to the request state
                 state: dict = get_request().state._state  # noqa: SLF001
