@@ -1,8 +1,9 @@
 import logging
 from collections import UserString
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from functools import cache
+from typing import Any
 
 import cython
 import lxml.etree as ET
@@ -17,7 +18,7 @@ class _XAttr(UserString):
 
     def __init__(self, seq: str, custom_xml: str | None = None) -> None:
         super().__init__(seq)
-        self.xml = custom_xml if (custom_xml is not None) else None
+        self.xml = custom_xml
 
 
 @cache
@@ -39,9 +40,50 @@ def _parse_xml_bool(value: str) -> cython.char:
 
 
 @cython.cfunc
-def _parse_xml_version(value: str) -> float:  # no union return, int is also float
+def _parse_xml_version(value: str):
+    # for simplicity, we don't support floating point versions
     return int(value) if value.isdigit() else float(value)
 
+
+force_sequence = {
+    'create',
+    'modify',
+    'delete',
+    'node',
+    'way',
+    'relation',
+}
+
+force_list = {
+    'member',
+    'tag',
+    'nd',
+    'trk',
+    'trkseg',
+    'trkpt',
+    'preference',
+}
+
+value_postprocessor: dict[str, Callable[[str], Any]] = {
+    '@changeset': int,
+    '@closed_at': datetime.fromisoformat,
+    '@comments_count': int,
+    '@created_at': datetime.fromisoformat,
+    '@id': int,
+    '@lat': float,
+    '@lon': float,
+    '@max_lat': float,
+    '@max_lon': float,
+    '@min_lat': float,
+    '@min_lon': float,
+    '@num_changes': int,
+    '@open': _parse_xml_bool,
+    '@ref': int,
+    '@timestamp': datetime.fromisoformat,
+    '@uid': int,
+    '@version': _parse_xml_version,
+    '@visible': _parse_xml_bool,
+}
 
 _parser = ET.XMLParser(
     ns_clean=True,
@@ -54,63 +96,23 @@ _parser = ET.XMLParser(
 
 
 class XMLToDict:
-    force_list = frozenset(
-        (
-            'create',
-            'modify',
-            'delete',
-            'node',
-            'way',
-            'relation',
-            'member',
-            'tag',
-            'nd',
-            'trk',
-            'trkseg',
-            'trkpt',
-            'preference',
-        )
-    )
-
-    value_postprocessor = {  # noqa: RUF012
-        '@changeset': int,
-        '@closed_at': datetime.fromisoformat,
-        '@comments_count': int,
-        '@created_at': datetime.fromisoformat,
-        '@id': int,
-        '@lat': float,
-        '@lon': float,
-        '@max_lat': float,
-        '@max_lon': float,
-        '@min_lat': float,
-        '@min_lon': float,
-        '@num_changes': int,
-        '@open': _parse_xml_bool,
-        '@ref': int,
-        '@timestamp': datetime.fromisoformat,
-        '@uid': int,
-        '@version': _parse_xml_version,
-        '@visible': _parse_xml_bool,
-    }
-
     @staticmethod
-    def parse(xml_bytes: bytes, *, sequence: cython.char = False) -> dict:
+    def parse(xml_bytes: bytes) -> dict:
         """
         Parse XML string to dict.
 
         If `sequence` is `True`, then the root element is parsed as a sequence.
         """
 
-        xml_bytes_len = len(xml_bytes)
-        if xml_bytes_len > XML_PARSE_MAX_SIZE:
-            raise_for().input_too_big(xml_bytes_len)
+        if len(xml_bytes) > XML_PARSE_MAX_SIZE:
+            raise_for().input_too_big(len(xml_bytes))
 
-        logging.debug('Parsing %s XML string', naturalsize(xml_bytes_len))
+        logging.debug('Parsing %s XML string', naturalsize(len(xml_bytes)))
         root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
-        return {_strip_namespace(root.tag): _parse_element(sequence, root, is_root=True)}
+        return {_strip_namespace(root.tag): _parse_element(root)}
 
     @staticmethod
-    def unparse(d: Mapping, *, raw: cython.char = False) -> str | bytes:
+    def unparse(d: dict[str, Any], *, raw: bool = False) -> str | bytes:
         """
         Unparse dict to XML string.
 
@@ -122,10 +124,12 @@ class XMLToDict:
         if len(d) != 1:
             raise ValueError(f'Invalid root element count {len(d)}')
 
+        root_k: str
+        root_v: Any
         root_k, root_v = next(iter(d.items()))
         elements = _unparse_element(root_k, root_v)
 
-        # always return root element, even if it's empty
+        # always return the root element, even if it's empty
         if not elements:
             elements = (ET.Element(root_k),)
 
@@ -138,34 +142,42 @@ class XMLToDict:
             return result.decode()
 
 
-# read property once for performance
-_force_list = XMLToDict.force_list
-_value_postprocessor = XMLToDict.value_postprocessor
-
-
 @cython.cfunc
-def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: cython.char):
-    is_sequence_and_root: cython.char = sequence and is_root
-    parsed = [None] * len(element.attrib)
+def _parse_element(element: ET.ElementBase):
+    # read property once for performance
+    force_sequence_: set[str] = force_sequence
+    force_list_: set[str] = force_list
+    value_postprocessor_: dict[str, Callable[[str], Any]] = value_postprocessor
+    element_attrib: ET._Attrib = element.attrib  # noqa: SLF001
+
+    parsed: list[tuple] = []
+    sequence_mark: cython.char = False
 
     # parse attributes
-    i: cython.int
-    for i, (k, v) in enumerate(element.attrib.items()):
+    k: str
+    v: Any
+    v_str: str
+    for k, v_str in element_attrib.items():
         k = '@' + k
-        v = _postprocessor(k, v)
-        parsed[i] = (k, v)
+
+        # post-process value
+        call = value_postprocessor_.get(k)
+        if call is not None:
+            parsed.append((k, call(v_str)))
+        else:
+            parsed.append((k, v_str))
 
     # parse children
-    parsed_children = {}
+    parsed_children: dict[str, Any | list[Any]] = {}
 
     for child in element:
         k = _strip_namespace(child.tag)
-        v = _parse_element(sequence, child, is_root=False)
-        v = _postprocessor(k, v)
+        v = _parse_element(child)
 
         # in sequence mode, return root element as typle
-        if is_sequence_and_root:
+        if k in force_sequence_:
             parsed.append((k, v))
+            sequence_mark = True
 
         # merge with existing value
         elif (parsed_v := parsed_children.get(k)) is not None:
@@ -177,7 +189,7 @@ def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: c
 
         # add new value
         else:
-            if k in _force_list:
+            if k in force_list_:
                 parsed_children[k] = [v]
             else:
                 parsed_children[k] = v
@@ -193,8 +205,8 @@ def _parse_element(sequence: cython.char, element: ET.ElementBase, *, is_root: c
         else:
             return element_text
 
-    # in sequence mode, return root element as typle
-    if is_sequence_and_root:
+    # in sequence mode, return elements as-is: tuple
+    if sequence_mark:
         return parsed
     else:
         return dict(parsed)
@@ -206,27 +218,21 @@ def _strip_namespace(tag: str) -> str:
 
 
 @cython.cfunc
-def _postprocessor(key: str, value):
-    call = _value_postprocessor.get(key)
-    if call is not None:
-        return call(value)
-    else:
-        return value
-
-
-@cython.cfunc
-def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
+def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
     # encode dict
-    if isinstance(value, Mapping):
+    if isinstance(value, dict):
         element = ET.Element(key)
+        element_attrib: ET._Attrib = element.attrib  # read property once for performance  # noqa: SLF001
 
+        k: str
+        v: Any
         for k, v in value.items():
             if k and k[0] == '@':
-                element.attrib[k[1:]] = _to_string(v)
+                element_attrib[k[1:]] = _to_string(v)
             elif k == '#text':
                 element.text = _to_string(v)
             elif (k_xml := getattr(k, 'xml', None)) is not None:  # isinstance(k, _XAttr)
-                element.attrib[k_xml] = _to_string(v)
+                element_attrib[k_xml] = _to_string(v)
             else:
                 element.extend(_unparse_element(k, v))
 
@@ -240,7 +246,7 @@ def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
         first = value[0]
 
         # encode sequence of dicts
-        if isinstance(first, Mapping):
+        if isinstance(first, dict):
             result = []
             for v in value:
                 result.extend(_unparse_element(key, v))
@@ -249,15 +255,20 @@ def _unparse_element(key, value) -> tuple[ET.ElementBase, ...]:
         # encode sequence of (key, value) tuples
         elif isinstance(first, Sequence) and not isinstance(first, str):
             element = ET.Element(key)
+            element_attrib: dict = element.attrib  # read property once for performance
+
+            k: str
+            v: Any
             for k, v in value:
                 if k and k[0] == '@':
-                    element.attrib[k[1:]] = _to_string(v)
+                    element_attrib[k[1:]] = _to_string(v)
                 elif k == '#text':
                     element.text = _to_string(v)
                 elif (k_xml := getattr(k, 'xml', None)) is not None:  # isinstance(k, _XAttr)
-                    element.attrib[k_xml] = _to_string(v)
+                    element_attrib[k_xml] = _to_string(v)
                 else:
                     element.extend(_unparse_element(k, v))
+
             return (element,)
 
         else:
@@ -275,8 +286,9 @@ def _to_string(v) -> str:
     if isinstance(v, str | ET.CDATA):
         return v
     elif isinstance(v, datetime):
-        return v.isoformat(timespec='seconds') + 'Z'
+        v_str: str = v.isoformat(timespec='seconds')
+        return v_str + 'Z'
     elif isinstance(v, bool):
-        return 'true' if v else 'false'
+        return 'true' if (v is True) else 'false'
     else:
         return str(v)

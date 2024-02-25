@@ -66,7 +66,7 @@ class ElementValidating(TagsValidating):
         return self
 
     @model_validator(mode='after')
-    def validate_not_visible(self) -> Self:
+    def validate_hidden(self) -> Self:
         if self.visible:
             return self
 

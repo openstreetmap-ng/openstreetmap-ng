@@ -12,12 +12,33 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
 
-# read property once for performance
-_event_opened = NoteEvent.opened
-_event_closed = NoteEvent.closed
-_event_reopened = NoteEvent.reopened
-_event_commented = NoteEvent.commented
-_event_hidden = NoteEvent.hidden
+
+class NoteRSS06Mixin:
+    @staticmethod
+    async def encode_notes(fg: FeedGenerator, notes: Sequence[Note]) -> None:
+        """
+        Encode notes into a feed.
+        """
+
+        fg.load_extension('dc')
+        fg.load_extension('geo')
+
+        async with create_task_group() as tg:
+            for note in notes:
+                await tg.start(_encode_note, fg, note)
+
+    @staticmethod
+    async def encode_note_comments(fg: FeedGenerator, comments: Sequence[NoteComment]) -> None:
+        """
+        Encode note comments into a feed.
+        """
+
+        fg.load_extension('dc')
+        fg.load_extension('geo')
+
+        async with create_task_group() as tg:
+            for comment in comments:
+                await tg.start(_encode_note_comment, fg, comment)
 
 
 async def _encode_note(
@@ -55,9 +76,9 @@ async def _encode_note(
         fe.title(t('api.notes.rss.opened', place=place))
     else:
         for comment in reversed(note.comments):
-            if comment.event == _event_hidden:
+            if comment.event == NoteEvent.hidden:
                 continue  # skip hide events
-            if comment.event == _event_closed:
+            if comment.event == NoteEvent.closed:
                 fe.title(t('api.notes.rss.closed', place=place))
             else:
                 fe.title(t('api.notes.rss.commented', place=place))
@@ -100,43 +121,15 @@ async def _encode_note_comment(
 
     comment_event = comment.event
 
-    if comment_event == _event_opened:
+    if comment_event == NoteEvent.opened:
         fe.title(t('api.notes.rss.opened', place=place))
-    elif comment_event == _event_closed:
+    elif comment_event == NoteEvent.closed:
         fe.title(t('api.notes.rss.closed', place=place))
-    elif comment_event == _event_reopened:
+    elif comment_event == NoteEvent.reopened:
         fe.title(t('api.notes.rss.reopened', place=place))
-    elif comment_event == _event_commented:
+    elif comment_event == NoteEvent.commented:
         fe.title(t('api.notes.rss.commented', place=place))
-    elif comment_event == _event_hidden:
+    elif comment_event == NoteEvent.hidden:
         fe.title(t('api.notes.rss.hidden', place=place))
     else:
         raise NotImplementedError(f'Unsupported note event {comment_event!r}')
-
-
-class NoteRSS06Mixin:
-    @staticmethod
-    async def encode_notes(fg: FeedGenerator, notes: Sequence[Note]) -> None:
-        """
-        Encode notes into a feed.
-        """
-
-        fg.load_extension('dc')
-        fg.load_extension('geo')
-
-        async with create_task_group() as tg:
-            for note in notes:
-                await tg.start(_encode_note, fg, note)
-
-    @staticmethod
-    async def encode_note_comments(fg: FeedGenerator, comments: Sequence[NoteComment]) -> None:
-        """
-        Encode note comments into a feed.
-        """
-
-        fg.load_extension('dc')
-        fg.load_extension('geo')
-
-        async with create_task_group() as tg:
-            for comment in comments:
-                await tg.start(_encode_note_comment, fg, comment)

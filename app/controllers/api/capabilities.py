@@ -33,6 +33,7 @@ _legacy_imagery_blacklist = (
 @router.get('/0.6/capabilities.xml')
 @router.get('/0.6/capabilities.json')
 async def legacy_capabilities() -> dict:
+    xattr_ = xattr  # read property once for performance
     user = auth_user()
     user_roles = user.roles if (user is not None) else ()
     changeset_max_size = UserRole.get_changeset_max_size(user_roles)
@@ -41,46 +42,46 @@ async def legacy_capabilities() -> dict:
         'api': {
             'version': {
                 # legacy capabilities endpoint only supports 0.6
-                xattr('minimum'): '0.6',
-                xattr('maximum'): '0.6',
+                xattr_('minimum'): '0.6',
+                xattr_('maximum'): '0.6',
             },
             'area': {
-                xattr('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
+                xattr_('maximum'): min(MAP_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_AREA_MAX_SIZE),
             },
             'changesets': {
-                xattr('maximum_elements'): changeset_max_size,
-                xattr('default_query_limit'): CHANGESET_QUERY_DEFAULT_LIMIT,
-                xattr('maximum_query_limit'): CHANGESET_QUERY_MAX_LIMIT,
+                xattr_('maximum_elements'): changeset_max_size,
+                xattr_('default_query_limit'): CHANGESET_QUERY_DEFAULT_LIMIT,
+                xattr_('maximum_query_limit'): CHANGESET_QUERY_MAX_LIMIT,
             },
             'note_area': {
-                xattr('maximum'): NOTE_QUERY_AREA_MAX_SIZE,
+                xattr_('maximum'): NOTE_QUERY_AREA_MAX_SIZE,
             },
             'notes': {
-                xattr('default_query_limit'): NOTE_QUERY_DEFAULT_LIMIT,
-                xattr('maximum_query_limit'): NOTE_QUERY_LEGACY_MAX_LIMIT,
+                xattr_('default_query_limit'): NOTE_QUERY_DEFAULT_LIMIT,
+                xattr_('maximum_query_limit'): NOTE_QUERY_LEGACY_MAX_LIMIT,
             },
             'relationmembers': {
-                xattr('maximum'): ELEMENT_RELATION_MEMBERS_LIMIT,
+                xattr_('maximum'): ELEMENT_RELATION_MEMBERS_LIMIT,
             },
             'status': {
                 # this is over-complicated, just check HTTP_503_SERVICE_UNAVAILABLE
-                xattr('database'): 'online',
-                xattr('api'): 'online',
-                xattr('gpx'): 'online',
+                xattr_('database'): 'online',
+                xattr_('api'): 'online',
+                xattr_('gpx'): 'online',
             },
             'timeout': {
-                xattr('seconds'): 'TODO',  # TODO: timeout
+                xattr_('seconds'): 'TODO',  # TODO: timeout
             },
             'tracepoints': {
-                xattr('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,
+                xattr_('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,
             },
             'waynodes': {
-                xattr('maximum'): ELEMENT_WAY_MEMBERS_LIMIT,
+                xattr_('maximum'): ELEMENT_WAY_MEMBERS_LIMIT,
             },
         },
         'policy': {
             'imagery': {
-                'blacklist': tuple({xattr('regex'): entry} for entry in _legacy_imagery_blacklist),
+                'blacklist': tuple({xattr_('regex'): entry} for entry in _legacy_imagery_blacklist),
             },
         },
     }

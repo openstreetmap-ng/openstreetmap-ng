@@ -27,10 +27,10 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
         )
 
     @override
-    def bad_xml(self, name: str, message: str, xml_input: str) -> NoReturn:
+    def bad_xml(self, name: str, message: str, xml_input: bytes) -> NoReturn:
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
-            detail=f'Cannot parse valid {name} from xml string {xml_input}. {message}',
+            detail=f'Cannot parse valid {name} from xml string {xml_input.decode()}. {message}',
         )
 
     @override

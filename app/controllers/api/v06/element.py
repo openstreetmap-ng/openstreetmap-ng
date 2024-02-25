@@ -17,12 +17,18 @@ from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff import OptimisticDiff
 
-# TODO: rate limit
 # TODO: dependency for xml parsing?
 router = APIRouter()
 
 # TODO: redaction (403 forbidden), https://wiki.openstreetmap.org/wiki/API_v0.6#Redaction:_POST_/api/0.6/[node|way|relation]/#id/#version/redact?redaction=#redaction_id
 # TODO: HttpUrl, ConstrainedUrl
+
+
+def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType) -> tuple[str, dict] | None:
+    for s in elements:
+        if s[0] == type.value:
+            return s
+    return None
 
 
 @router.put('/{type}/create', response_class=PlainTextResponse)
@@ -31,19 +37,18 @@ async def element_create(
     type: ElementType,
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
-    xml = (await request.body()).decode()
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
+    xml = request._body  # noqa: SLF001
+    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
-    if not data:
-        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+    if data is None:
+        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
 
-    # force dynamic id allocation
-    data['@id'] = -1
+    data[1]['@id'] = -1  # enforce dynamic id allocation
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, str(e), xml)
 
     assigned_ref_map = await OptimisticDiff((element,)).run()
     return assigned_ref_map[element.element_ref][0].id
@@ -92,18 +97,18 @@ async def element_update(
     id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
-    xml = (await request.body()).decode()
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
+    xml = request._body  # noqa: SLF001
+    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
-    if not data:
-        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+    if data is None:
+        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
 
-    data['@id'] = id
+    data[1]['@id'] = id
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, str(e), xml)
 
     await OptimisticDiff((element,)).run()
     return element.version
@@ -116,19 +121,19 @@ async def element_delete(
     id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
-    xml = (await request.body()).decode()
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get(type.value, {})
+    xml = request._body  # noqa: SLF001
+    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
-    if not data:
-        raise_for().bad_xml(type.value, xml, f"XML doesn't contain an osm/{type.value} element.")
+    if data is None:
+        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
 
-    data['@id'] = id
-    data['@visible'] = False
+    data[1]['@id'] = id
+    data[1]['@visible'] = False
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, str(e), xml)
 
     await OptimisticDiff((element,)).run()
     return element.version

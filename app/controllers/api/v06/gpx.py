@@ -85,16 +85,16 @@ async def gpx_update(
     trace_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_gpx)],
 ) -> None:
-    xml = (await request.body()).decode()
+    xml = request._body  # noqa: SLF001
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('gpx_file', {})
 
     if not data:
-        raise_for().bad_xml('trace', xml, "XML doesn't contain an osm/gpx_file element.")
+        raise_for().bad_xml('trace', "XML doesn't contain an osm/gpx_file element.", xml)
 
     try:
         new_trace = Format06.decode_gpx_file(data)
     except Exception as e:
-        raise_for().bad_xml('trace', xml, str(e))
+        raise_for().bad_xml('trace', str(e), xml)
 
     await TraceService.update(trace_id, new_trace)
 

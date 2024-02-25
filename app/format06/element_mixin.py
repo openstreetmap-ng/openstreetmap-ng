@@ -2,10 +2,11 @@ from collections import defaultdict
 from collections.abc import Sequence
 
 import cython
+import numpy as np
+from shapely import Point, get_coordinates, points
 
-from app.format06.geometry_mixin import Geometry06Mixin
-from app.format06.tag_mixin import Tag06Mixin
 from app.lib.auth_context import auth_user
+from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import xattr
 from app.models.db.element import Element
@@ -14,8 +15,132 @@ from app.models.element_type import ElementType
 from app.models.validating.element import ElementValidating
 
 
+class Element06Mixin:
+    @staticmethod
+    def encode_element(element: Element) -> dict:
+        """
+        >>> encode_element(Element(type=ElementType.node, id=1, version=1, ...))
+        {'node': {'@id': 1, '@version': 1, ...}}
+        """
+
+        if format_is_json():
+            return _encode_element(element, is_json=True)
+        else:
+            return {element.type.value: _encode_element(element, is_json=False)}
+
+    @staticmethod
+    def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
+        """
+        >>> encode_elements([
+        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type=ElementType.way, id=2, version=1,
+        ... ])
+        {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
+        """
+
+        if format_is_json():
+            return {'elements': tuple(_encode_element(element, is_json=True) for element in elements)}
+        else:
+            result: dict[str, list[dict]] = defaultdict(list)
+
+            # merge elements of the same type together
+            for element in elements:
+                type_list: list[dict] = result[element.type.value]
+                type_list.append(_encode_element(element, is_json=False))
+
+            return result
+
+    @staticmethod
+    def decode_element(element: tuple[str, dict]) -> Element:
+        """
+        >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
+        Element(type=ElementType.node, ...)
+        """
+
+        return _decode_element(element, changeset_id=None)
+
+    @staticmethod
+    def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
+        """
+        >>> encode_osmchange([
+        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type=ElementType.way, id=2, version=2, ...)
+        ... ])
+        [
+            ('create', {'node': {'@id': 1, '@version': 1, ...}}),
+            ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
+        ]
+        """
+
+        result = []
+
+        for element in elements:
+            # determine the action automatically
+            if element.version == 1:
+                action = 'create'
+            elif element.visible:
+                action = 'modify'
+            else:
+                action = 'delete'
+
+            result.append((action, {element.type.value: _encode_element(element, is_json=False)}))
+
+        return result
+
+    @staticmethod
+    def decode_osmchange(
+        changes: Sequence[tuple[str, Sequence[tuple[str, dict]]]], *, changeset_id: int | None
+    ) -> Sequence[Element]:
+        """
+        If `changeset_id` is None, it will be extracted from the element data.
+
+        >>> decode_osmchange([
+        ...     ('create', [('node', {'@id': 1, '@version': 1, ...})]),
+        ...     ('modify', [('way', {'@id': 2, '@version': 2, ...})])
+        ... ])
+        [Element(type=ElementType, ...), Element(type=ElementType.way, ...)]
+        """
+
+        result = []
+
+        for action, elements_data in changes:
+            if action == 'create':
+                for element_data in elements_data:
+                    element = _decode_element(element_data, changeset_id=changeset_id)
+                    element.version = 1
+
+                    if element.id > 0:
+                        raise_for().diff_create_bad_id(element.versioned_ref)
+
+                    result.append(element)
+
+            elif action == 'modify':
+                for element_data in elements_data:
+                    element = _decode_element(element_data, changeset_id=changeset_id)
+
+                    if element.version < 2:
+                        raise_for().diff_update_bad_version(element.versioned_ref)
+
+                    result.append(element)
+
+            elif action == 'delete':
+                for element_data in elements_data:
+                    element = _decode_element(element_data, changeset_id=changeset_id)
+                    element.visible = False
+
+                    if element.version < 2:
+                        raise_for().diff_update_bad_version(element.versioned_ref)
+
+                    result.append(element)
+
+            else:
+                raise_for().diff_unsupported_action(action)
+
+        return result
+
+
 @cython.cfunc
-def _encode_nodes(nodes: Sequence[ElementMemberRef]) -> tuple[dict | int, ...]:
+def _encode_nodes(nodes: Sequence[ElementMemberRef], *, is_json: cython.char) -> tuple[dict | int, ...]:
     """
     >>> _encode_nodes([
     ...     ElementMemberRef(type=ElementType.node, id=1, role=''),
@@ -24,7 +149,7 @@ def _encode_nodes(nodes: Sequence[ElementMemberRef]) -> tuple[dict | int, ...]:
     [{'@ref': 1}, {'@ref': 2}]
     """
 
-    if format_is_json():
+    if is_json:
         return tuple(node.id for node in nodes)
     else:
         return tuple({'@ref': node.id} for node in nodes)
@@ -65,11 +190,13 @@ def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
     ]
     """
 
+    xattr_ = xattr  # read property once for performance
+
     return tuple(
         {
-            xattr('type'): member.type.value,
-            xattr('ref'): member.id,
-            xattr('role'): member.role,
+            xattr_('type'): member.type.value,
+            xattr_('ref'): member.id,
+            xattr_('role'): member.role,
         }
         for member in members
     )
@@ -86,9 +213,12 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, .
     [ElementMemberRef(type=ElementType.node, id=1, role='a')]
     """
 
+    # read property once for performance
+    type_from_str = ElementType.from_str
+
     return tuple(
         ElementMemberRef(
-            type=ElementType.from_str(member['@type']),
+            type=type_from_str(member['@type']),
             id=int(member['@ref']),
             role=member['@role'],
         )
@@ -96,122 +226,141 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, .
     )
 
 
-class Element06Mixin:
-    @staticmethod
-    def encode_element(element: Element) -> dict:
-        """
-        >>> encode_element(Element(type=ElementType.node, id=1, version=1, ...))
-        {'node': {'@id': 1, '@version': 1, ...}}
-        """
+@cython.cfunc
+def _encode_element(element: Element, *, is_json: cython.char) -> dict:
+    """
+    >>> _encode_element(Element(type=ElementType.node, id=1, version=1, ...))
+    {'@id': 1, '@version': 1, ...}
+    """
 
-        # read property once for performance
-        element_type_str = element.type.value
+    # read property once for performance
+    element_type_str = element.type.value
 
-        is_node: cython.char = element_type_str == 'node'
-        is_way: cython.char = not is_node and element_type_str == 'way'
-        is_relation: cython.char = not is_node and not is_way
+    is_node: cython.char = element_type_str == 'node'
+    is_way: cython.char = not is_node and element_type_str == 'way'
+    is_relation: cython.char = not is_node and not is_way
 
-        if format_is_json():
-            return {
-                'type': element_type_str,
-                'id': element.id,
-                **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
-                'version': element.version,
-                'timestamp': element.created_at,
-                'changeset': element.changeset_id,
-                **(
-                    {
-                        'uid': element.user_id,
-                        'user': element.user.display_name,
-                    }
-                    if element.user_id is not None
-                    else {}
-                ),
-                'visible': element.visible,
-                'tags': element.tags,
-                **({'nodes': _encode_nodes(element.members)} if is_way else {}),
-                **({'members': _encode_members(element.members)} if is_relation else {}),
-            }
-        else:
-            return {
-                element_type_str: {
-                    '@id': element.id,
-                    **(Geometry06Mixin.encode_point(element.point) if is_node else {}),
-                    '@version': element.version,
-                    '@timestamp': element.created_at,
-                    '@changeset': element.changeset_id,
-                    **(
-                        {
-                            '@uid': element.user_id,
-                            '@user': element.user.display_name,
-                        }
-                        if element.user_id is not None
-                        else {}
-                    ),
-                    '@visible': element.visible,
-                    'tag': Tag06Mixin.encode_tags(element.tags),
-                    **({'nd': _encode_nodes(element.members)} if is_way else {}),
-                    **({'member': _encode_members(element.members)} if is_relation else {}),
+    if is_json:
+        return {
+            'type': element_type_str,
+            'id': element.id,
+            **(_encode_point(element.point) if is_node else {}),
+            'version': element.version,
+            'timestamp': element.created_at,
+            'changeset': element.changeset_id,
+            **(
+                {
+                    'uid': element.user_id,
+                    'user': element.user.display_name,
                 }
-            }
+                if element.user_id is not None
+                else {}
+            ),
+            'visible': element.visible,
+            'tags': element.tags,
+            **({'nodes': _encode_nodes(element.members, is_json=True)} if is_way else {}),
+            **({'members': _encode_members(element.members)} if is_relation else {}),
+        }
+    else:
+        return {
+            '@id': element.id,
+            **(_encode_point(element.point) if is_node else {}),
+            '@version': element.version,
+            '@timestamp': element.created_at,
+            '@changeset': element.changeset_id,
+            **(
+                {
+                    '@uid': element.user_id,
+                    '@user': element.user.display_name,
+                }
+                if element.user_id is not None
+                else {}
+            ),
+            '@visible': element.visible,
+            'tag': tuple({'@k': k, '@v': v} for k, v in element.tags.items()),
+            **({'nd': _encode_nodes(element.members, is_json=False)} if is_way else {}),
+            **({'member': _encode_members(element.members)} if is_relation else {}),
+        }
 
-    @staticmethod
-    def decode_element(element: dict, *, changeset_id: int | None) -> Element:
-        """
-        If `changeset_id` is None, it will be extracted from the element data.
-        """
 
-        if len(element) != 1:
-            raise ValueError(f'Expected one root element, got {len(element)}')
+@cython.cfunc
+def _decode_element(element: tuple[str, dict], *, changeset_id: int | None):
+    """
+    If `changeset_id` is None, it will be extracted from the element data.
 
-        type, data = next(iter(element.items()))
-        type = ElementType.from_str(type)
-        data: dict
+    >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
+    Element(type=ElementType.node, ...)
+    """
 
-        if (data_tags := data.get('tag')) is not None:  # noqa: SIM108
-            tags = Tag06Mixin.decode_tags_unsafe(data_tags)
-        else:
-            tags = {}
+    type = ElementType.from_str(element[0])
+    data: dict = element[1]
 
-        # decode members from either nd or member
-        if (data_nodes := data.get('nd')) is not None:
-            members = _decode_nodes_unsafe(data_nodes)
-        elif (data_members := data.get('member')) is not None:
-            members = _decode_members_unsafe(data_members)
-        else:
-            members = ()
+    if (data_tags := data.get('tag')) is not None:  # noqa: SIM108
+        tags = _decode_tags_unsafe(data_tags)
+    else:
+        tags = {}
 
-        return Element(
-            **ElementValidating(
-                user_id=auth_user().id,
-                changeset_id=changeset_id or data.get('@changeset'),
-                type=type,
-                id=data.get('@id'),
-                version=data.get('@version', 0) + 1,
-                visible=data.get('@visible', True),
-                tags=tags,
-                point=Geometry06Mixin.decode_point_unsafe(data),
-                members=members,
-            ).to_orm_dict()
-        )
+    if (lon := data.get('@lon')) is None or (lat := data.get('@lat')) is None:
+        point = None
+    else:
+        # numpy automatically parses strings
+        point = points(np.array((lon, lat), np.float64))
 
-    @staticmethod
-    def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
-        """
-        >>> encode_elements([
-        ...     Element(type=ElementType.node, id=1, version=1, ...),
-        ...     Element(type=ElementType.way, id=2, version=1,
-        ... ])
-        {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
-        """
+    # decode members from either nd or member
+    if (data_nodes := data.get('nd')) is not None:
+        members = _decode_nodes_unsafe(data_nodes)
+    elif (data_members := data.get('member')) is not None:
+        members = _decode_members_unsafe(data_members)
+    else:
+        members = ()
 
-        if format_is_json():
-            return {'elements': tuple(Element06Mixin.encode_element(element) for element in elements)}
-        else:
-            result: dict[str, list[dict]] = defaultdict(list)
+    return Element(
+        **ElementValidating(
+            user_id=auth_user().id,
+            changeset_id=changeset_id if (changeset_id is not None) else data.get('@changeset'),
+            type=type,
+            id=data.get('@id'),
+            version=data.get('@version', 0) + 1,
+            visible=data.get('@visible', True),
+            tags=tags,
+            point=point,
+            members=members,
+        ).to_orm_dict()
+    )
 
-            # merge elements of same type together
-            for element in elements:
-                result[element.type.value].append(Element06Mixin.encode_element(element))
 
-            return result
+@cython.cfunc
+def _encode_point(point: Point) -> dict:
+    """
+    >>> _encode_point(Point(1, 2))
+    {'@lon': 1, '@lat': 2}
+    """
+
+    xattr_ = xattr  # read property once for performance
+    x, y = get_coordinates(point)[0].tolist()
+
+    return {
+        xattr_('lon'): x,
+        xattr_('lat'): y,
+    }
+
+
+@cython.cfunc
+def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
+    """
+    This method does not validate the input data.
+
+    >>> _decode_tags_unsafe([
+    ...     {'@k': 'a', '@v': '1'},
+    ...     {'@k': 'b', '@v': '2'},
+    ... ])
+    {'a': '1', 'b': '2'}
+    """
+
+    items = tuple((tag['@k'], tag['@v']) for tag in tags)
+    result = dict(items)
+
+    if len(items) != len(result):
+        raise ValueError('Duplicate tags keys')
+
+    return result

@@ -29,14 +29,15 @@ async def map_read(
         legacy_nodes_limit=True,
     )
 
+    xattr_ = xattr  # read property once for performance
     minx, miny, maxx, maxy = geometry.bounds
 
     return {
         'bounds': {
-            xattr('minlon'): minx,
-            xattr('minlat'): miny,
-            xattr('maxlon'): maxx,
-            xattr('maxlat'): maxy,
+            xattr_('minlon'): minx,
+            xattr_('minlat'): miny,
+            xattr_('maxlon'): maxx,
+            xattr_('maxlat'): maxy,
         },
         **Format06.encode_elements(elements),
     }

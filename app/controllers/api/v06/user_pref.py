@@ -31,16 +31,16 @@ async def update_user_preferences(
     request: Request,
     _: Annotated[User, api_user(Scope.write_prefs)],
 ) -> None:
-    xml = (await request.body()).decode()
+    xml = request._body  # noqa: SLF001
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('preferences', {})
 
     if not data:
-        raise_for().bad_xml(type.value, xml, "XML doesn't contain an osm/preferences element.")
+        raise_for().bad_xml(type.value, "XML doesn't contain an osm/preferences element.", xml)
 
     try:
         prefs = Format06.decode_user_preferences(data.get('preference', ()))
     except Exception as e:
-        raise_for().bad_xml(type.value, xml, str(e))
+        raise_for().bad_xml(type.value, str(e), xml)
 
     await UserPrefService.upsert_many(prefs)
 
@@ -65,7 +65,7 @@ async def update_user_preference(
     _: Annotated[User, api_user(Scope.write_prefs)],
 ) -> None:
     value = (await request.body()).decode()
-    user_pref = Format06.decode_user_preference({'@k': key, '@v': value})
+    user_pref = Format06.decode_user_preferences(({'@k': key, '@v': value},))[0]
     await UserPrefService.upsert_one(user_pref)
 
 
