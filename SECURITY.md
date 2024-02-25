@@ -16,5 +16,5 @@ Your report helps us protect our users and the integrity of our codebase.
 
 To report a vulnerability, you can either use GitHub's built-in private vulnerability reporting feature or contact the maintainers directly.
 
-- [Private vulnerability reporting](https://github.com/Zaczero/openstreetmap-ng/security/advisories?state=Triage)
+- [Private vulnerability reporting](https://github.com/Zaczero/openstreetmap-ng/security/advisories)
 - Kamil Monicz (Zaczero) — [Contact maintainer](https://monicz.dev/#get-in-touch)
