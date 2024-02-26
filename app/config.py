@@ -75,7 +75,6 @@ SMTP_USER = os.getenv('SMTP_USER', None)
 SMTP_PASS = os.getenv('SMTP_PASS', None)
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', '')
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', '')
-SRID = int(os.getenv('SRID', 4326))
 
 # Logging configuration
 dictConfig(
