@@ -22,9 +22,8 @@ _j2 = Environment(
     loader=FileSystemLoader('app/templates'),
     keep_trailing_newline=True,
     autoescape=True,
-    # cache templates in production
-    cache_size=0 if TEST_ENV else -1,
-    auto_reload=False,
+    cache_size=1024,
+    auto_reload=TEST_ENV,
 )
 
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
