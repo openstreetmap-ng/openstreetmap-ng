@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from anyio import create_task_group
-from shapely.geometry import Polygon, box
+from shapely import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP

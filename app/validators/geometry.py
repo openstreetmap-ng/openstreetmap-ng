@@ -2,7 +2,7 @@ import numpy as np
 from pydantic import PlainValidator
 from shapely import get_coordinates
 from shapely.geometry import shape
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 
 from app.lib.exceptions_context import raise_for
 

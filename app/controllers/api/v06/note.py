@@ -7,7 +7,7 @@ from anyio import create_task_group
 from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
-from shapely.geometry import Point
+from shapely import Point
 
 from app.format06 import Format06, FormatRSS06
 from app.lib.auth_context import api_user

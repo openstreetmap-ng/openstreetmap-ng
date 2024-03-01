@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from shapely.geometry import Point, Polygon
+from shapely import Point, Polygon
 
 
 class NominatimResult(NamedTuple):

@@ -3,8 +3,7 @@ from collections.abc import Sequence
 from urllib.parse import urlencode
 
 from httpx import HTTPError
-from shapely import Polygon, box, get_coordinates
-from shapely.geometry import Point
+from shapely import Point, Polygon, box, get_coordinates
 
 from app.config import NOMINATIM_URL
 from app.lib.translation import primary_translation_language

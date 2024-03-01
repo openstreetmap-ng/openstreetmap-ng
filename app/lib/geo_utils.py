@@ -1,6 +1,5 @@
 import cython
-from shapely import box, get_coordinates
-from shapely.geometry import Point, Polygon
+from shapely import Point, Polygon, box, get_coordinates
 
 from app.lib.exceptions_context import raise_for
 from app.validators.geometry import validate_geometry

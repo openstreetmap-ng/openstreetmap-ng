@@ -1,8 +1,7 @@
 import math
 
 import pytest
-from shapely import Polygon
-from shapely.geometry import Point
+from shapely import Point, Polygon
 
 from app.lib.geo_utils import (
     haversine_distance,

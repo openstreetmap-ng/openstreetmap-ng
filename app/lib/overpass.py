@@ -2,8 +2,7 @@ import logging
 from collections.abc import Sequence
 
 import cython
-from shapely import get_coordinates
-from shapely.geometry import Point
+from shapely import Point, get_coordinates
 
 from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE

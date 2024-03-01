@@ -3,7 +3,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Form
 from shapely import get_coordinates, unary_union
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 
 from app.lib.geo_utils import parse_bbox
 from app.lib.nominatim import Nominatim

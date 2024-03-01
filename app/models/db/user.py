@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from shapely.geometry import Point
+from shapely import Point
 from sqlalchemy import (
     ARRAY,
     Boolean,
