@@ -24,9 +24,12 @@ router = APIRouter()
 # TODO: HttpUrl, ConstrainedUrl
 
 
-def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType) -> tuple[str, dict] | None:
+def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType) -> tuple[ElementType, dict] | None:
+    """
+    Get the first element of the given type from the sequence of elements.
+    """
     for s in elements:
-        if s[0] == type.value:
+        if s[0] == type:
             return s
     return None
 
@@ -38,17 +41,17 @@ async def element_create(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
     xml = request._body  # noqa: SLF001
-    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
+    data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
 
     data[1]['@id'] = -1  # enforce dynamic id allocation
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml(type, str(e), xml)
 
     assigned_ref_map = await OptimisticDiff((element,)).run()
     return assigned_ref_map[element.element_ref][0].id
@@ -61,7 +64,7 @@ async def element_read_latest(
     type: ElementType,
     id: PositiveInt,
 ) -> dict:
-    ref = ElementRef(type=type, id=id)
+    ref = ElementRef(type, id)
     elements = await ElementRepository.get_many_latest_by_element_refs((ref,), limit=1)
     element = elements[0] if elements else None
 
@@ -81,7 +84,7 @@ async def element_read_version(
     id: PositiveInt,
     version: PositiveInt,
 ) -> dict:
-    versioned_ref = VersionedElementRef(type=type, id=id, version=version)
+    versioned_ref = VersionedElementRef(type, id, version)
     elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=1)
 
     if not elements:
@@ -98,17 +101,17 @@ async def element_update(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
     xml = request._body  # noqa: SLF001
-    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
+    data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
 
     data[1]['@id'] = id
 
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml(type, str(e), xml)
 
     await OptimisticDiff((element,)).run()
     return element.version
@@ -122,10 +125,10 @@ async def element_delete(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> int:
     xml = request._body  # noqa: SLF001
-    data: tuple[str, dict] | None = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
+    data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type.value, f"XML doesn't contain an osm/{type.value} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
 
     data[1]['@id'] = id
     data[1]['@visible'] = False
@@ -133,7 +136,7 @@ async def element_delete(
     try:
         element = Format06.decode_element(data, changeset_id=None)
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml(type, str(e), xml)
 
     await OptimisticDiff((element,)).run()
     return element.version
@@ -146,7 +149,7 @@ async def element_history(
     type: ElementType,
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=type, id=id)
+    element_ref = ElementRef(type, id)
     elements = await ElementRepository.get_many_by_element_ref(element_ref, limit=None)
 
     if not elements:
@@ -164,11 +167,11 @@ async def elements_read_many(
     ways: Annotated[str | None, Query()] = None,
     relations: Annotated[str | None, Query()] = None,
 ) -> Sequence[dict]:
-    if type == ElementType.node:
+    if type == 'node':
         query = nodes
-    elif type == ElementType.way:
+    elif type == 'way':
         query = ways
-    elif type == ElementType.relation:
+    elif type == 'relation':
         query = relations
     else:
         raise NotImplementedError(f'Unsupported element type {type!r}')
@@ -176,8 +179,8 @@ async def elements_read_many(
     if not query:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            f'The parameter {type.value}s is required, and must be of the form '
-            f'{type.value}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
+            f'The parameter {type}s is required, and must be of the form '
+            f'{type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
         )
 
     try:
@@ -193,7 +196,7 @@ async def elements_read_many(
             parsed_query.append(
                 VersionedElementRef.from_type_str(type, q)
                 if 'v' in q  #
-                else ElementRef(type=type, id=int(q))
+                else ElementRef(type, int(q))
             )
     except ValueError as e:
         # parsing error => element not found
@@ -215,10 +218,10 @@ async def element_parent_relations(
     type: ElementType,
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=type, id=id)
+    element_ref = ElementRef(type, id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=ElementType.relation,
+        parent_type='relation',
         limit=None,
     )
     return Format06.encode_elements(elements)
@@ -230,10 +233,10 @@ async def element_parent_relations(
 async def element_parent_ways(
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=ElementType.node, id=id)
+    element_ref = ElementRef('node', id)
     elements = await ElementRepository.get_many_parents_by_element_refs(
         (element_ref,),
-        parent_type=ElementType.way,
+        parent_type='way',
         limit=None,
     )
     return Format06.encode_elements(elements)
@@ -246,7 +249,7 @@ async def element_full(
     type: ElementType,
     id: PositiveInt,
 ) -> Sequence[dict]:
-    element_ref = ElementRef(type=type, id=id)
+    element_ref = ElementRef(type, id)
     elements = await ElementRepository.get_many_latest_by_element_refs((element_ref,), limit=1)
 
     if not elements:

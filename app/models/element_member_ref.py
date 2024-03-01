@@ -4,7 +4,6 @@ from sqlalchemy import Dialect, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
 from app.models.str import EmptyStr255
 
 
@@ -24,7 +23,7 @@ class ElementMemberRefJSONB(TypeDecorator):
             return None
         return [
             {
-                'type': member.type.value,
+                'type': member.type,
                 'id': member.id,
                 'role': member.role,
             }
@@ -36,7 +35,7 @@ class ElementMemberRefJSONB(TypeDecorator):
             return None
         return [
             ElementMemberRef(
-                type=ElementType(member['type']),
+                type=member['type'],
                 id=member['id'],
                 role=member['role'],
             )

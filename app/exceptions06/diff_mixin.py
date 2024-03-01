@@ -4,7 +4,6 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
-from app.models.element_type import ElementType
 from app.models.versioned_element_ref import VersionedElementRef
 
 
@@ -22,23 +21,23 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
 
     @override
     def diff_create_bad_id(self, versioned_ref: VersionedElementRef) -> NoReturn:
-        if versioned_ref.type == ElementType.node:
+        if versioned_ref.type == 'node':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create node: data is invalid.',
             )
-        elif versioned_ref.type == ElementType.way:
+        elif versioned_ref.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create way: data is invalid.',
             )
-        elif versioned_ref.type == ElementType.relation:
+        elif versioned_ref.type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create relation: data or member data is invalid.',
             )
         else:
-            raise NotImplementedError(f'Unsupported element type {versioned_ref.type.type!r}')
+            raise NotImplementedError(f'Unsupported element type {versioned_ref.type!r}')
 
     @override
     def diff_update_bad_version(self, versioned_ref: VersionedElementRef) -> NoReturn:

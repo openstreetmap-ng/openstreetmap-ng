@@ -4,7 +4,7 @@ from typing import Self, override
 from pydantic import PositiveInt
 
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
+from app.models.element_type import ElementType, element_type
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,7 +19,7 @@ class VersionedElementRef(ElementRef):
         'n123v1'
         """
 
-        return f'{self.type.value[0]}{self.id}v{self.version}'
+        return f'{self.type[0]}{self.id}v{self.version}'
 
     @override
     @classmethod
@@ -31,11 +31,11 @@ class VersionedElementRef(ElementRef):
         VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
         """
 
-        type = ElementType.from_str(s[0])
+        type = element_type(s)
 
-        i = s.rindex('v')
-        id = int(s[1:i])
-        version = int(s[i + 1 :])
+        idx = s.rindex('v')
+        id = int(s[1:idx])
+        version = int(s[idx + 1 :])
 
         if id == 0:
             raise ValueError('Element id cannot be 0')
@@ -54,7 +54,8 @@ class VersionedElementRef(ElementRef):
         """
 
         idx = s.rindex('v')
-        id, version = int(s[:idx]), int(s[idx + 1 :])
+        id = int(s[:idx])
+        version = int(s[idx + 1 :])
 
         if id == 0:
             raise ValueError('Element id cannot be 0')

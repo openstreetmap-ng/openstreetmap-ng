@@ -1,4 +1,3 @@
-
 from sqlalchemy import ARRAY, Enum, ForeignKey, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,7 +22,7 @@ class OAuth1Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     consumer_key: Mapped[str] = mapped_column(Unicode(40), nullable=False)
     consumer_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
     application_url: Mapped[str] = mapped_column(Unicode, nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 

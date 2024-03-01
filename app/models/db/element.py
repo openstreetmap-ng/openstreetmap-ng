@@ -25,7 +25,7 @@ class Element(Base.NoID):
     user: Mapped[User | None] = relationship(init=False, lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(init=False, back_populates='elements', lazy='raise')
-    type: Mapped[ElementType] = mapped_column(Enum(ElementType), nullable=False)
+    type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'area', 'relation'), nullable=False)
     id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
@@ -63,11 +63,11 @@ class Element(Base.NoID):
 
     @updating_cached_property('id')
     def element_ref(self) -> ElementRef:
-        return ElementRef(type=self.type, id=self.id)
+        return ElementRef(self.type, self.id)
 
     @updating_cached_property('id')
     def versioned_ref(self) -> VersionedElementRef:
-        return VersionedElementRef(type=self.type, id=self.id, version=self.version)
+        return VersionedElementRef(self.type, self.id, self.version)
 
     @updating_cached_property('members')
     def members_element_refs_set(self) -> frozenset[ElementRef]:

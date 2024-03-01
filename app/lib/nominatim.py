@@ -16,7 +16,6 @@ from app.limits import (
     NOMINATIM_SEARCH_RESULTS_LIMIT,
 )
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
 from app.models.nominatim_search_generic import NominatimSearchGeneric
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
@@ -138,10 +137,7 @@ class Nominatim:
         results: list[dict] = JSON_DECODE(cache_entry.value)
 
         return tuple(
-            ElementRef(
-                type=ElementType.from_str(osm_type),
-                id=osm_id,
-            )
+            ElementRef(osm_type, osm_id)
             for result in results
             # some results are abstract and have no osm_type/osm_id
             if (osm_type := result.get('osm_type')) is not None and (osm_id := result.get('osm_id')) is not None

@@ -14,14 +14,8 @@ from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
 from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.element_repository import ElementRepository
-
-# read property once for performance
-_type_node = ElementType.node
-_type_way = ElementType.way
-_type_relation = ElementType.relation
 
 
 class OptimisticDiffPrepare:
@@ -415,11 +409,11 @@ class OptimisticDiffPrepare:
         """
 
         element_type = element.type
-        if element_type == _type_node:
+        if element_type == 'node':
             self._push_bbox_node_info(prev, element)
-        elif element_type == _type_way:
+        elif element_type == 'way':
             self._push_bbox_way_info(prev, element)
-        elif element_type == _type_relation:
+        elif element_type == 'relation':
             self._push_bbox_relation_info(prev, element)
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
@@ -484,14 +478,14 @@ class OptimisticDiffPrepare:
         # check for any relation members
         if not full_diff:
             for ref in changed_refs:
-                if ref.type == _type_relation:
+                if ref.type == 'relation':
                     full_diff = True
                     break
 
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
 
         for element_ref in diff_refs:
-            if element_ref.type == _type_relation:
+            if element_ref.type == 'relation':
                 continue
 
             if (elements := element_state.get(element_ref)) is not None:
@@ -527,7 +521,7 @@ class OptimisticDiffPrepare:
 
                 if element_point is not None:
                     points.add(element_point)
-                elif element.type == _type_node:
+                elif element.type == 'node':
                     # log warning as this should not happen
                     logging.warning('Node %r has no point', element.id)
 

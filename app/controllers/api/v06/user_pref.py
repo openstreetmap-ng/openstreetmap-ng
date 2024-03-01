@@ -35,12 +35,12 @@ async def update_user_preferences(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('preferences', {})
 
     if not data:
-        raise_for().bad_xml(type.value, "XML doesn't contain an osm/preferences element.", xml)
+        raise_for().bad_xml('preferences', "XML doesn't contain an osm/preferences element.", xml)
 
     try:
         prefs = Format06.decode_user_preferences(data.get('preference', ()))
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml('preferences', str(e), xml)
 
     await UserPrefService.upsert_many(prefs)
 

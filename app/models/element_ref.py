@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Self
 
-from app.models.element_type import ElementType
+from app.models.element_type import ElementType, element_type
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,7 +24,7 @@ class ElementRef:
         'n123'
         """
 
-        return f'{self.type.value[0]}{self.id}'
+        return f'{self.type[0]}{self.id}'
 
     @classmethod
     def from_str(cls, s: str) -> Self:
@@ -35,7 +35,7 @@ class ElementRef:
         TypedElementRef(type=<ElementType.node: 'node'>, id=123)
         """
 
-        type = ElementType.from_str(s[0])
+        type = element_type(s)
         id = int(s[1:])
 
         if id == 0:

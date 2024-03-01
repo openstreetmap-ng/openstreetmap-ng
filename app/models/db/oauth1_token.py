@@ -24,7 +24,7 @@ class OAuth1Token(Base.UUID, CreatedAtMixin):
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
     # token_secret encryption is redundant, key is already hashed
     token_secret: Mapped[bytes] = mapped_column(LargeBinary(40), nullable=False)
-    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope)), nullable=False)
+    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
     callback_url: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     verifier: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 

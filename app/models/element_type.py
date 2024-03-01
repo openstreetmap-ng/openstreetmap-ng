@@ -1,28 +1,28 @@
-from enum import Enum
-from typing import Self
+from typing import Literal
+
+ElementType = Literal['node', 'way', 'relation']
 
 
-class ElementType(str, Enum):
-    node = 'node'
-    way = 'way'
-    relation = 'relation'
+def element_type(s: str) -> ElementType:
+    """
+    Get the element type from the given string.
 
-    @staticmethod
-    def from_str(cls, s: str) -> Self:
-        """
-        Get the element type from the given string.
+    >>> element_type('node')
+    'node'
+    >>> element_type('w123')
+    'way'
+    """
 
-        >>> ElementType.from_str('node')
-        ElementType.node
-        >>> ElementType.from_str('w123')
-        ElementType.way
-        """
+    if len(s) == 0:
+        raise ValueError('Element type cannot be empty')
 
-        if s.startswith('n'):
-            return cls.node
-        elif s.startswith('w'):
-            return cls.way
-        elif s.startswith('r'):
-            return cls.relation
-        else:
-            raise ValueError(f'Unknown element type {s!r}')
+    c = s[0]
+
+    if c == 'n':
+        return 'node'
+    elif c == 'w':
+        return 'way'
+    elif c == 'r':
+        return 'relation'
+    else:
+        raise ValueError(f'Unknown element type {s!r}')

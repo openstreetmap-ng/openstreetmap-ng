@@ -35,7 +35,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
     icon_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), nullable=False)
 
     # defaults
-    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode), nullable=False, server_default='{}')
+    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode, dimensions=1), nullable=False, server_default='{}')
 
     # relationships (avoid circular imports)
     # TODO: cascade delete + files delete

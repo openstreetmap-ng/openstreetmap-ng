@@ -127,8 +127,7 @@ class ElementRepository:
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
-        type_way = ElementType.way  # read property once for performance
-        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == type_way) if recurse_ways else ()
+        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == 'way') if recurse_ways else ()
 
         async with db() as session:
             stmt = (
@@ -154,7 +153,7 @@ class ElementRepository:
                     .where(
                         Element.created_at <= point_in_time,
                         Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                        Element.type == ElementType.node,
+                        Element.type == 'node',
                         Element.id.in_(
                             select(
                                 cast(
@@ -165,7 +164,7 @@ class ElementRepository:
                             .where(
                                 Element.created_at <= point_in_time,
                                 Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                                Element.type == type_way,
+                                Element.type == 'way',
                                 Element.id.in_(ref.id for ref in recurse_way_refs),
                             )
                             .subquery()
@@ -268,7 +267,7 @@ class ElementRepository:
                         func.jsonb_path_exists(
                             Element.members,
                             cast(
-                                f'$[*] ? (@.type == "{member_ref.type.value}" && @.id == {member_ref.id})',
+                                f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
                                 JSONPATH,
                             ),
                         )
@@ -322,7 +321,7 @@ class ElementRepository:
                 .where(
                     Element.created_at <= point_in_time,
                     Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                    Element.type == ElementType.node,
+                    Element.type == 'node',
                     func.ST_Intersects(Element.point, geometry.wkt),
                 )
             )
@@ -352,14 +351,14 @@ class ElementRepository:
 
             async def way_task() -> None:
                 # fetch parent ways
-                ways = await fetch_parents(nodes_refs, ElementType.way)
+                ways = await fetch_parents(nodes_refs, 'way')
 
                 if not ways:
                     return
 
                 # fetch ways' parent relations
                 ways_refs = tuple(way.element_ref for way in ways)
-                tg.start_soon(fetch_parents, ways_refs, ElementType.relation)
+                tg.start_soon(fetch_parents, ways_refs, 'relation')
 
                 # fetch ways' nodes
                 ways_members_refs = tuple(member.element_ref for way in ways for member in way.members)
@@ -372,7 +371,7 @@ class ElementRepository:
                     result_sequences.append(ways_nodes)
 
             tg.start_soon(way_task)
-            tg.start_soon(fetch_parents, nodes_refs, ElementType.relation)
+            tg.start_soon(fetch_parents, nodes_refs, 'relation')
 
         # remove duplicates and preserve order
         result_set: set[int] = set()

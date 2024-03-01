@@ -8,7 +8,6 @@ from shapely.geometry import Point
 from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.db.element import Element
-from app.models.element_type import ElementType
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
 
@@ -61,7 +60,7 @@ class Overpass:
 
         return tuple(
             Element(
-                type=ElementType.from_str(element['type']),
+                type=element['type'],
                 id=element['id'],
                 tags=element['tags'],
             )

@@ -22,7 +22,7 @@ class ElementValidating(TagsValidating):
 
     @model_validator(mode='after')
     def validate_node(self) -> Self:
-        if self.type != ElementType.node:
+        if self.type != 'node':
             return self
 
         if self.members:
@@ -32,7 +32,7 @@ class ElementValidating(TagsValidating):
 
     @model_validator(mode='after')
     def validate_way(self) -> Self:
-        if self.type != ElementType.way:
+        if self.type != 'way':
             return self
 
         if self.point is not None:
@@ -43,16 +43,14 @@ class ElementValidating(TagsValidating):
             raise ValueError(f'Way cannot have more than {ELEMENT_WAY_MEMBERS_LIMIT} members')
         if any(member.role for member in self.members):
             raise ValueError('Way cannot have members with roles')
-
-        type_node = ElementType.node  # read property once for performance
-        if any(member.type != type_node for member in self.members):
+        if any(member.type != 'node' for member in self.members):
             raise ValueError('Way cannot have non-node members')
 
         return self
 
     @model_validator(mode='after')
     def validate_relation(self) -> Self:
-        if self.type != ElementType.relation:
+        if self.type != 'relation':
             return self
 
         if self.point is not None:

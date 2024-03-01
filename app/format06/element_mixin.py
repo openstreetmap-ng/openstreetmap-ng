@@ -26,7 +26,7 @@ class Element06Mixin:
         if format_is_json():
             return _encode_element(element, is_json=True)
         else:
-            return {element.type.value: _encode_element(element, is_json=False)}
+            return {element.type: _encode_element(element, is_json=False)}
 
     @staticmethod
     def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
@@ -41,17 +41,16 @@ class Element06Mixin:
         if format_is_json():
             return {'elements': tuple(_encode_element(element, is_json=True) for element in elements)}
         else:
-            result: dict[str, list[dict]] = defaultdict(list)
+            result: dict[ElementType, list[dict]] = defaultdict(list)
 
             # merge elements of the same type together
             for element in elements:
-                type_list: list[dict] = result[element.type.value]
-                type_list.append(_encode_element(element, is_json=False))
+                result[element.type].append(_encode_element(element, is_json=False))
 
             return result
 
     @staticmethod
-    def decode_element(element: tuple[str, dict]) -> Element:
+    def decode_element(element: tuple[ElementType, dict]) -> Element:
         """
         >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
         Element(type=ElementType.node, ...)
@@ -60,7 +59,7 @@ class Element06Mixin:
         return _decode_element(element, changeset_id=None)
 
     @staticmethod
-    def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[str, dict]]:
+    def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[str, dict[ElementType, dict]]]:
         """
         >>> encode_osmchange([
         ...     Element(type=ElementType.node, id=1, version=1, ...),
@@ -83,13 +82,13 @@ class Element06Mixin:
             else:
                 action = 'delete'
 
-            result.append((action, {element.type.value: _encode_element(element, is_json=False)}))
+            result.append((action, {element.type: _encode_element(element, is_json=False)}))
 
         return result
 
     @staticmethod
     def decode_osmchange(
-        changes: Sequence[tuple[str, Sequence[tuple[str, dict]]]], *, changeset_id: int | None
+        changes: Sequence[tuple[str, Sequence[tuple[ElementType, dict]]]], *, changeset_id: int | None
     ) -> Sequence[Element]:
         """
         If `changeset_id` is None, it will be extracted from the element data.
@@ -164,12 +163,9 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
     [ElementMemberRef(type=ElementType.node, id=1, role='')]
     """
 
-    # read property once for performance
-    type_node = ElementType.node
-
     return tuple(
         ElementMemberRef(
-            type=type_node,
+            type='node',
             id=int(node['@ref']),
             role='',
         )
@@ -194,7 +190,7 @@ def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
 
     return tuple(
         {
-            xattr_('type'): member.type.value,
+            xattr_('type'): member.type,
             xattr_('ref'): member.id,
             xattr_('role'): member.role,
         }
@@ -213,12 +209,9 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, .
     [ElementMemberRef(type=ElementType.node, id=1, role='a')]
     """
 
-    # read property once for performance
-    type_from_str = ElementType.from_str
-
     return tuple(
         ElementMemberRef(
-            type=type_from_str(member['@type']),
+            type=member['@type'],
             id=int(member['@ref']),
             role=member['@role'],
         )
@@ -234,15 +227,15 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     """
 
     # read property once for performance
-    element_type_str = element.type.value
+    element_type = element.type
 
-    is_node: cython.char = element_type_str == 'node'
-    is_way: cython.char = not is_node and element_type_str == 'way'
+    is_node: cython.char = element_type == 'node'
+    is_way: cython.char = not is_node and element_type == 'way'
     is_relation: cython.char = not is_node and not is_way
 
     if is_json:
         return {
-            'type': element_type_str,
+            'type': element_type,
             'id': element.id,
             **(_encode_point(element.point) if is_node else {}),
             'version': element.version,
@@ -284,7 +277,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _decode_element(element: tuple[str, dict], *, changeset_id: int | None):
+def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | None):
     """
     If `changeset_id` is None, it will be extracted from the element data.
 
@@ -292,7 +285,7 @@ def _decode_element(element: tuple[str, dict], *, changeset_id: int | None):
     Element(type=ElementType.node, ...)
     """
 
-    type = ElementType.from_str(element[0])
+    type: ElementType = element[0]
     data: dict = element[1]
 
     if (data_tags := data.get('tag')) is not None:  # noqa: SIM108

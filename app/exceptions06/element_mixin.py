@@ -6,7 +6,6 @@ from starlette import status
 from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
 from app.models.versioned_element_ref import VersionedElementRef
 
 
@@ -49,12 +48,12 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
 
     @override
     def element_member_not_found(self, initiator_ref: VersionedElementRef, member_ref: ElementRef) -> NoReturn:
-        if initiator_ref.type == ElementType.way:
+        if initiator_ref.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail=f'Way {initiator_ref.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
             )
-        elif initiator_ref.type == ElementType.relation:
+        elif initiator_ref.type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail=f'Relation with id {initiator_ref.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
@@ -65,29 +64,29 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
     def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[ElementRef]) -> NoReturn:
         # wtf is this condition
-        if versioned_ref.type == ElementType.node:
-            if ref_ways := tuple(ref for ref in used_by if ref.type == ElementType.way):
+        if versioned_ref.type == 'node':
+            if ref_ways := tuple(ref for ref in used_by if ref.type == 'way'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
                     detail=f'Node {versioned_ref.id} is still used by ways {",".join(str(ref.id) for ref in ref_ways)}.',
                 )
-            elif ref_relations := tuple(ref for ref in used_by if ref.type == ElementType.relation):
+            elif ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
                     detail=f'Node {versioned_ref.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif versioned_ref.type == ElementType.way:
-            if ref_relations := tuple(ref for ref in used_by if ref.type == ElementType.relation):
+        elif versioned_ref.type == 'way':
+            if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
                     detail=f'Way {versioned_ref.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif versioned_ref.type == ElementType.relation:
-            if ref_relations := tuple(ref for ref in used_by if ref.type == ElementType.relation):
+        elif versioned_ref.type == 'relation':
+            if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
                     detail=f'The relation {versioned_ref.id} is used in relation ' f'{ref_relations[0].id}.',

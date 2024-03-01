@@ -87,11 +87,11 @@ def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
                 return value.capitalize().replace('_', ' ')
 
     # type-generic translations
-    if type == ElementType.node:
+    if type == 'node':
         return t('javascripts.query.node')
-    elif type == ElementType.way:
+    elif type == 'way':
         return t('javascripts.query.way')
-    elif type == ElementType.relation:
+    elif type == 'relation':
         return t('javascripts.query.relation')
     else:
         raise NotImplementedError(f'Unsupported element type {type!r}')

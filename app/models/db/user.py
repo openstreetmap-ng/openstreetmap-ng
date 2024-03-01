@@ -63,7 +63,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH)), nullable=False)
+    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH), dimensions=1), nullable=False)
 
     # defaults
     password_changed_at: Mapped[datetime | None] = mapped_column(
@@ -71,7 +71,9 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, server_default=None)
     consider_public_domain: Mapped[bool | None] = mapped_column(Boolean, nullable=True, server_default=None)
-    roles: Mapped[list[UserRole]] = mapped_column(ARRAY(Enum(UserRole)), nullable=False, server_default='{}')
+    roles: Mapped[list[UserRole]] = mapped_column(
+        ARRAY(Enum(UserRole), dimensions=1), nullable=False, server_default='{}'
+    )
     description: Mapped[str] = mapped_column(UnicodeText, nullable=False, server_default='')
     description_rich_hash: Mapped[bytes | None] = mapped_column(
         LargeBinary(HASH_SIZE), nullable=True, server_default=None

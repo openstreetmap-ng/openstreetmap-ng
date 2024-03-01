@@ -225,14 +225,13 @@ class OptimisticDiffApply:
         Assign ids to the elements placeholders and update their members.
         """
 
+        elements_without_id: list[Element] = []
         type_next_id_map: dict[ElementType, int] = {}
+        started_type_tasks: set[ElementType] = set()
 
         async def type_next_id_task(type: ElementType) -> None:
             last_id_by_type = await ElementRepository.get_last_id_by_type(type)
             type_next_id_map[type] = last_id_by_type + 1
-
-        elements_without_id = []
-        started_type_tasks: set[ElementType] = set()
 
         async with create_task_group() as tg:
             for element in elements:

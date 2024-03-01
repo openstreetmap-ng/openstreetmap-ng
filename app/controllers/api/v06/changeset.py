@@ -42,12 +42,12 @@ async def changeset_create(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        raise_for().bad_xml(type.value, "XML doesn't contain an osm/changeset element.", xml)
+        raise_for().bad_xml(type, "XML doesn't contain an osm/changeset element.", xml)
 
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml(type, str(e), xml)
 
     changeset = await ChangesetService.create(tags)
     return changeset.id
@@ -82,12 +82,12 @@ async def changeset_update(
     data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
 
     if not data:
-        raise_for().bad_xml(type.value, "XML doesn't contain an osm/changeset element.", xml)
+        raise_for().bad_xml('changeset', "XML doesn't contain an osm/changeset element.", xml)
 
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml('changeset', str(e), xml)
 
     changeset = await ChangesetService.update_tags(changeset_id, tags)
     return Format06.encode_changesets((changeset,))
@@ -98,17 +98,18 @@ async def changeset_upload(
     request: Request,
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
-) -> dict:
+):
     xml = request._body  # noqa: SLF001
     data: Sequence[dict] = XMLToDict.parse(xml).get('osmChange', ())
 
     if not data:
-        raise_for().bad_xml(type.value, "XML doesn't contain an /osmChange element.", xml)
+        raise_for().bad_xml('osmChange', "XML doesn't contain an /osmChange element.", xml)
 
     try:
+        # implicitly assume stings are proper types
         elements = Format06.decode_osmchange(data, changeset_id=changeset_id)
     except Exception as e:
-        raise_for().bad_xml(type.value, str(e), xml)
+        raise_for().bad_xml('osmChange', str(e), xml)
 
     assigned_ref_map = await OptimisticDiff(elements).run()
     return Format06.encode_diff_result(assigned_ref_map)
