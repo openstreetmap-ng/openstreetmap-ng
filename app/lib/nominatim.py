@@ -16,7 +16,7 @@ from app.limits import (
     NOMINATIM_SEARCH_RESULTS_LIMIT,
 )
 from app.models.element_ref import ElementRef
-from app.models.nominatim_search_generic import NominatimSearchGeneric
+from app.models.nominatim_result import NominatimResult
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
 
@@ -62,7 +62,7 @@ class Nominatim:
             return f'{y:.5f}, {x:.5f}'
 
     @staticmethod
-    async def search_generic(*, q: str, bounds: Polygon | None = None) -> NominatimSearchGeneric:
+    async def search(*, q: str, bounds: Polygon | None = None) -> NominatimResult:
         """
         Search for a location by name.
 
@@ -102,7 +102,7 @@ class Nominatim:
         maxx = float(result_bbox[3])
         geometry = box(minx, miny, maxx, maxy)
 
-        return NominatimSearchGeneric(point=point, name=name, bounds=geometry)
+        return NominatimResult(point=point, name=name, bounds=geometry)
 
     @staticmethod
     async def search_elements(*, q: str, bounds: Polygon | None = None) -> Sequence[ElementRef]:

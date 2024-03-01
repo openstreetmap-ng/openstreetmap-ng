@@ -4,7 +4,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
-from app.models.versioned_element_ref import VersionedElementRef
+from app.models.element_ref import VersionedElementRef
 
 
 class DiffExceptions06Mixin(DiffExceptionsMixin):

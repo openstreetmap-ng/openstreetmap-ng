@@ -23,7 +23,7 @@ from app.lib.translation import render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User
-from app.models.mail_from_type import MailFromType
+from app.models.mail_source import MailSource
 from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
 
@@ -58,12 +58,12 @@ async def _send_smtp(mail: Mail) -> None:
 
     message = EmailMessage()
 
-    if mail.from_type == MailFromType.system:
+    if mail.source == MailSource.system:
         message['From'] = SMTP_NOREPLY_FROM
     else:
         reply_address = await UserTokenEmailReplyService.create_address(
             replying_user_id=mail.to_user_id,
-            source_type=mail.from_type,
+            mail_source=mail.source,
         )
         message['From'] = formataddr((mail.from_user.display_name, reply_address))
 
@@ -92,8 +92,8 @@ async def _send_smtp(mail: Mail) -> None:
 class MailService:
     @staticmethod
     async def schedule(
+        source: MailSource,
         from_user: User | None,
-        from_type: MailFromType,
         to_user: User,
         subject: str,
         template_name: str,
@@ -111,8 +111,8 @@ class MailService:
 
         async with db_autocommit() as session:
             mail = Mail(
+                source=source,
                 from_user_id=from_user.id if (from_user is not None) else None,
-                from_type=from_type,
                 to_user_id=to_user.id,
                 subject=subject,
                 body=body,

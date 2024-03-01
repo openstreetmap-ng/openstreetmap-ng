@@ -39,7 +39,7 @@ from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
-from app.models.geometry_type import PointType
+from app.models.geometry import PointType
 from app.models.scope import ExtendedScope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole

@@ -11,9 +11,8 @@ from app.lib.exceptions_context import raise_for
 from app.lib.joinedload_context import get_joinedload
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef
+from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.models.versioned_element_ref import VersionedElementRef
 
 
 class ElementRepository:

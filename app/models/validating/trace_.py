@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import PositiveInt
 
 from app.models.db.base import Base
-from app.models.file_name import FileName
+from app.models.filename import FileName
 from app.models.geometry import PointGeometry
 from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility

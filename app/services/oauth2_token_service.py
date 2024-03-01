@@ -1,5 +1,8 @@
+from base64 import urlsafe_b64encode
 from collections.abc import Sequence
+from hashlib import sha256
 
+import cython
 from sqlalchemy import null, select
 
 from app.db import db_autocommit
@@ -16,6 +19,19 @@ from app.models.scope import Scope
 from app.repositories.oauth2_application_repository import OAuth2ApplicationRepository
 from app.repositories.oauth2_token_repository import OAuth2TokenRepository
 from app.utils import extend_query_params
+
+
+@cython.cfunc
+def _compute_s256(verifier: str) -> str:
+    """
+    Compute the S256 code challenge from the verifier.
+    """
+
+    verifier_bytes = verifier.encode()
+    verifier_hashed = sha256(verifier_bytes).digest()
+    verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
+
+    return verifier_base64
 
 
 class OAuth2TokenService:
@@ -136,7 +152,7 @@ class OAuth2TokenService:
                     if token.code_challenge != verifier:
                         raise_for().oauth2_bad_verifier(token.code_challenge_method)
                 elif token.code_challenge_method == OAuth2CodeChallengeMethod.S256:
-                    if token.code_challenge != OAuth2CodeChallengeMethod.compute_s256(verifier):
+                    if token.code_challenge != _compute_s256(verifier):
                         raise_for().oauth2_bad_verifier(token.code_challenge_method)
                 else:
                     raise NotImplementedError(

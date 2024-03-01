@@ -8,6 +8,3 @@ class AuthProvider(str, Enum):
     microsoft = 'microsoft'
     github = 'github'
     wikipedia = 'wikipedia'
-
-
-ALL_AUTH_PROVIDERS = tuple(e for e in AuthProvider)

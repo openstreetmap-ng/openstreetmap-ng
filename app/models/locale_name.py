@@ -8,4 +8,4 @@ class LocaleName(NamedTuple):
 
     @property
     def display_name(self) -> str:
-        return self.english if self.english == self.native else f'{self.english} ({self.native})'
+        return self.english if (self.english == self.native) else f'{self.english} ({self.native})'

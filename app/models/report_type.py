@@ -11,6 +11,7 @@ class ReportType(str, Enum):
     note = 'note'
     user = 'user'
 
+    # TODO: in service
     @staticmethod
     def get_user_role(report_type: Self, category: ReportCategory) -> UserRole:
         # TODO: why admins handle so many reports?

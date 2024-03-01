@@ -7,7 +7,7 @@ from shapely.ops import BaseGeometry
 
 from app.lib.geo_utils import parse_bbox
 from app.lib.nominatim import Nominatim
-from app.models.nominatim_search_generic import NominatimSearchGeneric
+from app.models.nominatim_result import NominatimResult
 
 router = APIRouter(prefix='/routing')
 
@@ -19,16 +19,16 @@ async def resolve_names(
     bounds: Annotated[str, Form(min_length=1)],
 ) -> dict:
     bounds_shape = parse_bbox(bounds)
-    resolve_from: NominatimSearchGeneric = None
-    resolve_to: NominatimSearchGeneric = None
+    resolve_from: NominatimResult = None
+    resolve_to: NominatimResult = None
 
     async def from_task() -> None:
         nonlocal resolve_from
-        resolve_from = await Nominatim.search_generic(q=from_, bounds=bounds_shape)
+        resolve_from = await Nominatim.search(q=from_, bounds=bounds_shape)
 
     async def to_task() -> None:
         nonlocal resolve_to
-        resolve_to = await Nominatim.search_generic(q=to, bounds=bounds_shape)
+        resolve_to = await Nominatim.search(q=to, bounds=bounds_shape)
 
     async with create_task_group() as tg:
         tg.start_soon(from_task)

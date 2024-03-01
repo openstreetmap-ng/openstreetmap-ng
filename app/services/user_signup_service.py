@@ -6,7 +6,7 @@ from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t, translation_languages
 from app.models.db.user import User
-from app.models.mail_from_type import MailFromType
+from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
@@ -75,8 +75,8 @@ class UserSignupService:
         token = await UserTokenAccountConfirmService.create()
 
         await MailService.schedule(
+            from_type=MailSource.system,
             from_user=None,
-            from_type=MailFromType.system,
             to_user=auth_user(),
             subject='TODO',  # TODO:
             template_name='TODO',

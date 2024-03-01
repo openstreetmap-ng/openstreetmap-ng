@@ -10,10 +10,9 @@ from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.xmltodict import XMLToDict
 from app.models.db.user import User
-from app.models.element_ref import ElementRef
+from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.scope import Scope
-from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff import OptimisticDiff
 

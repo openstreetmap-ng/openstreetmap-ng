@@ -7,13 +7,13 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.mail_from_type import MailFromType
+from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.repositories.user_token_email_reply_repository import UserTokenEmailReplyRepository
 from app.services.message_service import MessageService
 
 
-async def _create_token(replying_user_id: int, source_type: MailFromType) -> UserTokenStruct:
+async def _create_token(replying_user_id: int, mail_source: MailSource) -> UserTokenStruct:
     """
     Create a new user email reply token.
 
@@ -28,7 +28,7 @@ async def _create_token(replying_user_id: int, source_type: MailFromType) -> Use
             user_id=replying_user_id,
             token_hashed=token_hashed,
             expires_at=utcnow() + USER_TOKEN_EMAIL_REPLY_EXPIRE,
-            source_type=source_type,
+            mail_source=mail_source,
             to_user_id=auth_user().id,
         )
 
@@ -39,14 +39,14 @@ async def _create_token(replying_user_id: int, source_type: MailFromType) -> Use
 
 class UserTokenEmailReplyService:
     @staticmethod
-    async def create_address(replying_user_id: int, source_type: MailFromType) -> str:
+    async def create_address(replying_user_id: int, mail_source: MailSource) -> str:
         """
         Create a new user email reply address.
 
         Replying user can use this address to send a message to the current user.
         """
 
-        token = await _create_token(replying_user_id, source_type)
+        token = await _create_token(replying_user_id, mail_source)
         reply_address = f'{token}@{SMTP_MESSAGES_FROM_HOST}'
         return reply_address
 

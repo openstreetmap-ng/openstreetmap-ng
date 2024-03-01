@@ -14,7 +14,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
-from app.models.geometry_type import PointType
+from app.models.geometry import PointType
 from app.models.note_status import NoteStatus
 
 

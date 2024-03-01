@@ -11,10 +11,9 @@ from app.models.db.base import Base
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
 from app.models.element_member_ref import ElementMemberRef, ElementMemberRefJSONB
-from app.models.element_ref import ElementRef
+from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.models.geometry_type import PointType
-from app.models.versioned_element_ref import VersionedElementRef
+from app.models.geometry import PointType
 
 
 class Element(Base.NoID):

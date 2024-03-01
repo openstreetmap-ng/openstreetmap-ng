@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import NoReturn
 
-from app.models.versioned_element_ref import VersionedElementRef
+from app.models.element_ref import VersionedElementRef
 
 
 class DiffExceptionsMixin:

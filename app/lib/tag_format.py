@@ -16,8 +16,7 @@ from phonenumbers import (
 
 from app.config import CONFIG_DIR
 from app.lib.translation import primary_translation_language
-from app.models.tag_format import TagFormat
-from app.models.tag_formatted import TagFormatted
+from app.models.tag_format import TagFormat, TagFormatted
 from app.validators.email import validate_email
 
 # TODO: 0.7 official reserved tag characters

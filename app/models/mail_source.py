@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class MailFromType(str, Enum):
+class MailSource(str, Enum):
     system = 'system'
     message = 'message'
     diary_comment = 'diary_comment'

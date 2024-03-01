@@ -14,9 +14,8 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef
+from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.models.versioned_element_ref import VersionedElementRef
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 

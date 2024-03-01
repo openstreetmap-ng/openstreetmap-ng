@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.db.base import Base
 from app.models.db.trace_ import Trace
-from app.models.geometry_type import PointType
+from app.models.geometry import PointType
 
 
 class TracePoint(Base.Sequential):
