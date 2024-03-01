@@ -17,7 +17,10 @@ let
   # Wrap Python to override LD_LIBRARY_PATH
   wrappedPython = with pkgs; (symlinkJoin {
     name = "python";
-    paths = [ python312 ];
+    paths = [
+      # Enable Python optimizations when in production
+      (if isDevelopment then python312 else python312.override { enableOptimizations = true; })
+    ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/python3.12" --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath libraries'}"
@@ -220,12 +223,10 @@ let
       supervisord -c config/supervisord.conf
       echo "Supervisor started"
 
-      if [ "$fresh_start" -eq 1 ]; then
-        echo "This is a fresh start. Waiting for Postgres to start..."
-        while ! pg_isready -q -h 127.0.0.1 -t 10; do sleep 0.1; done
-        echo "Postgres started, running migrations"
-        alembic-upgrade
-      fi
+      echo "Waiting for Postgres to start..."
+      while ! pg_isready -q -h 127.0.0.1 -t 10; do sleep 0.1; done
+      echo "Postgres started, running migrations"
+      alembic-upgrade
     '')
     (writeShellScriptBin "dev-stop" ''
       set -e
@@ -378,15 +379,14 @@ let
     export TZ="UTC"
 
     export TEST_ENV=1
-    export HTTPS_ONLY=0
     export POSTGRES_LOG=1
-    export AUTHLIB_INSECURE_TRANSPORT=1
+    export SECRET="development-secret"
     export APP_URL="http://127.0.0.1:3000"
     export API_URL="http://127.0.0.1:3000"
     export ID_URL="http://127.0.0.1:3000"
     export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
     export RAPID_URL="http://127.0.0.1:3000"
-    export SECRET="development-secret"
+    export AUTHLIB_INSECURE_TRANSPORT=1
 
     if [ -f .env ]; then
       echo "Loading .env file"
@@ -399,7 +399,6 @@ let
   '';
 in
 pkgs.mkShell {
-  libraries = libraries';
   buildInputs = libraries' ++ packages';
   shellHook = shell';
 }

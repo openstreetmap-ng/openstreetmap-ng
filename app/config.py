@@ -58,7 +58,6 @@ FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
 FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
-HTTPS_ONLY = os.getenv('HTTPS_ONLY', '1').strip().lower() in ('1', 'true', 'yes')
 ID_ASSETS_DIR = _path(os.getenv('ID_ASSETS_DIR', 'node_modules/iD/dist'))
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))

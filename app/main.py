@@ -13,7 +13,6 @@ from starlette.staticfiles import StaticFiles
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
     COOKIE_SESSION_TTL,
-    HTTPS_ONLY,
     ID_ASSETS_DIR,
     ID_VERSION,
     LOCALE_DIR,
@@ -41,10 +40,6 @@ from app.responses.osm_response import OSMResponse
 # register additional mimetypes
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
-
-# warn against unsafe cookies
-if not HTTPS_ONLY and not TEST_ENV:
-    logging.warning('HTTPS_ONLY cookies are disabled (unsafe)')
 
 # log when in test environment
 if TEST_ENV:
@@ -83,7 +78,7 @@ main.add_middleware(
     secret_key=SECRET,
     session_cookie='session',
     max_age=COOKIE_SESSION_TTL,
-    https_only=HTTPS_ONLY,
+    https_only=not TEST_ENV,
 )
 main.add_middleware(RequestBodyMiddleware)
 main.add_middleware(RequestUrlMiddleware)
