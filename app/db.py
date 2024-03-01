@@ -18,11 +18,14 @@ async def redis():
 # TODO: pool size (anyio concurrency limit)
 _db_engine = create_async_engine(
     POSTGRES_URL,
+    # asyncpg doesn't play nicely with JIT
+    # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#disabling-the-postgresql-jit-to-improve-enum-datatype-handling
+    connect_args={'server_settings': {'jit': 'off'}},
     echo=POSTGRES_LOG,
     echo_pool=POSTGRES_LOG,
     json_deserializer=JSON_DECODE,
     json_serializer=lambda x: JSON_ENCODE(x).decode(),  # TODO: is decode needed?
-    query_cache_size=512,
+    query_cache_size=1024,
 )
 
 

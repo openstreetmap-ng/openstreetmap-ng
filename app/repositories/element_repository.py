@@ -4,7 +4,6 @@ from anyio import create_task_group
 from shapely import Polygon
 from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
-from sqlalchemy.orm import load_only
 
 from app.db import db
 from app.lib.date_utils import utcnow
@@ -27,16 +26,9 @@ class ElementRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(Element)
-                .options(load_only(Element.id, raiseload=True))
-                .where(Element.type == type)
-                .order_by(Element.id.desc())
-                .limit(1)
-            )
-
-            element = await session.scalar(stmt)
-            return element.id if (element is not None) else 0
+            stmt = select(Element.id).where(Element.type == type).order_by(Element.id.desc()).limit(1)
+            element_id = await session.scalar(stmt)
+            return element_id if (element_id is not None) else 0
 
     @staticmethod
     async def find_one_latest() -> Element | None:

@@ -7,7 +7,6 @@ from datetime import datetime
 from anyio import create_task_group
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import load_only
 
 from app.db import db_autocommit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
@@ -137,20 +136,16 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if any of the changesets were modified in the meantime.
         """
 
-        stmt = (
-            select(Changeset)
-            .options(load_only(Changeset.id, Changeset.updated_at, raiseload=True))
-            .where(Changeset.id.in_(changesets_next))
-        )
+        stmt = select(Changeset.id, Changeset.updated_at).where(Changeset.id.in_(changesets_next))
 
-        async for remote in await session.stream_scalars(stmt):
-            local = changesets_next.pop(remote.id)
+        changeset_id: int
+        updated_at: datetime
+        async for changeset_id, updated_at in await session.stream_scalars(stmt):
+            local = changesets_next.pop(changeset_id)
 
             # ensure the changeset was not modified
-            if remote.updated_at != local.updated_at:
-                raise OptimisticDiffError(
-                    f'Changeset {remote.id} was modified ({remote.updated_at} != {local.updated_at})'
-                )
+            if local.updated_at != updated_at:
+                raise OptimisticDiffError(f'Changeset {changeset_id} was modified ({local.updated_at} != {updated_at})')
 
             # update the changeset
             local.updated_at = self._now
@@ -214,7 +209,7 @@ class OptimisticDiffApply:
                         for versioned_ref in superseded_refs
                     )
                 )
-                .values(superseded_at=now)
+                .values({Element.superseded_at: now})
             )
 
             await session.execute(stmt)

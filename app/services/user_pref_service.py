@@ -28,10 +28,12 @@ class UserPrefService:
             stmt = (
                 insert(UserPref)
                 .values(
-                    user_id=pref.user_id,
-                    app_id=pref.app_id,
-                    key=pref.key,
-                    value=pref.value,
+                    {
+                        UserPref.user_id: pref.user_id,
+                        UserPref.app_id: pref.app_id,
+                        UserPref.key: pref.key,
+                        UserPref.value: pref.value,
+                    }
                 )
                 .on_conflict_do_update(
                     index_elements=(UserPref.user_id, UserPref.app_id, UserPref.key),
@@ -59,10 +61,10 @@ class UserPrefService:
                 .values(
                     tuple(
                         {
-                            'user_id': pref.user_id,
-                            'app_id': pref.app_id,
-                            'key': pref.key,
-                            'value': pref.value,
+                            UserPref.user_id: pref.user_id,
+                            UserPref.app_id: pref.app_id,
+                            UserPref.key: pref.key,
+                            UserPref.value: pref.value,
                         }
                         for pref in prefs
                     )
