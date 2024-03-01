@@ -1,6 +1,6 @@
-import json
 import logging
 import pathlib
+import tomllib
 from html import escape
 
 import bleach
@@ -16,14 +16,14 @@ from app.services.cache_service import CacheService
 
 @cython.cfunc
 def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    data: dict = json.loads(pathlib.Path(CONFIG_DIR / 'rich_text.json').read_bytes())
+    data = tomllib.loads(pathlib.Path(CONFIG_DIR / 'rich_text.toml').read_text())
     allowed_tags = frozenset(data['allowed_tags'])
     allowed_attributes = {k: frozenset(v) for k, v in data['allowed_attributes'].items()}
     return allowed_tags, allowed_attributes
 
 
 _allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
-_global_allowed_attributes = _allowed_attributes['']
+_global_allowed_attributes = _allowed_attributes['*']
 
 _linkify_skip_tags = (
     'code',

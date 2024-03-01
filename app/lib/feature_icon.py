@@ -1,16 +1,10 @@
-import json
 import pathlib
+import tomllib
 
 import cython
 
 from app.config import CONFIG_DIR
 from app.models.db.element import Element
-
-# TODO: icons:
-# amenity: car_wash charging_station parking_entrance parking_space
-# barrier: kerb way-hedge
-# highway: speed_camera
-# landuse: way-orchard way-vineyard
 
 
 @cython.cfunc
@@ -18,12 +12,10 @@ def _get_config() -> dict[str, dict[str, str | dict[str, str]]]:
     """
     Get the feature icon configuration.
 
-    Element types are prefixed with '__'.
-
     Generic icons are stored under the value '*'.
     """
 
-    return json.loads(pathlib.Path(CONFIG_DIR / 'feature_icon.json').read_bytes())
+    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icon.toml').read_text())
 
 
 # _config[tag_key][tag_value] = icon
@@ -71,19 +63,19 @@ def feature_icon(element: Element) -> tuple[str, str] | tuple[None, None]:
     for key in matched_keys:
         key_value: str = tags[key]
         key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(f'__{element_type}')
+        type_config: dict[str, str] | None = key_config.get(element_type)
 
         # prefer type-specific configuration
         if (type_config is not None) and (icon := type_config.get(key_value)) is not None:
             return icon, f'{key}={key_value}'
 
-        if (icon := key_config.get(key_value)) is not None:
+        if (icon := key_config.get(key_value)) is not None and isinstance(icon, str):
             return icon, f'{key}={key_value}'
 
     # 2. check key-specific configuration (generic)
     for key in matched_keys:
         key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(f'__{element_type}')
+        type_config: dict[str, str] | None = key_config.get(element_type)
 
         # prefer type-specific configuration
         if (type_config is not None) and (icon := type_config.get('*')) is not None:
