@@ -11,6 +11,20 @@ from app.models.db.changeset import Changeset
 
 class ChangesetRepository:
     @staticmethod
+    async def get_updated_at_by_ids(changeset_ids: Sequence[int]) -> dict[int, datetime]:
+        """
+        Get the updated at timestamp by changeset ids.
+
+        >>> await ChangesetRepository.get_updated_at_by_ids([1, 2])
+        {1: datetime(...), 2: datetime(...)}
+        """
+
+        async with db() as session:
+            stmt = select(Changeset.id, Changeset.updated_at).where(Changeset.id.in_(changeset_ids))
+            rows = (await session.execute(stmt)).all()
+            return dict(rows)
+
+    @staticmethod
     async def find_many_by_query(
         *,
         changeset_ids: Sequence[int] | None = None,

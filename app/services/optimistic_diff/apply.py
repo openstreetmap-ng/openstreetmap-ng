@@ -5,7 +5,7 @@ from dataclasses import replace
 from datetime import datetime
 
 from anyio import create_task_group
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import and_, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import db_autocommit
@@ -16,6 +16,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
+from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.element_repository import ElementRepository
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
@@ -135,11 +136,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if any of the changesets were modified in the meantime.
         """
 
-        stmt = select(Changeset.id, Changeset.updated_at).where(Changeset.id.in_(changesets_next))
-
-        changeset_id: int
-        updated_at: datetime
-        async for changeset_id, updated_at in await session.stream_scalars(stmt):
+        for changeset_id, updated_at in (await ChangesetRepository.get_updated_at_by_ids(changesets_next)).items():
             local = changesets_next.pop(changeset_id)
 
             # ensure the changeset was not modified
