@@ -4,7 +4,7 @@ The base element defines the core attributes shared by all map objects.
 
 | Attribute | Type | Description |
 | --- | --- | --- |
-| type | String | The type of object (node, way, area, relation). |
+| type | String | The type of object (node, way, relation). |
 | id | Integer | Unique identifier within its object type. |
 | version | Integer | The object's version number. |
 | visible | Boolean | Indicates whether the object should be rendered (deleted flag). |
@@ -119,7 +119,7 @@ The member type is a small structure with the following attributes:
 
 | Attribute | Type | Description |
 | --- | --- | --- |
-| type | String | The type of the member object (node, way, area, relation). |
+| type | String | The type of the member object (node, way, relation). |
 | id | Integer | Unique identifier of the member object. |
 | role | String | Describes the member's function within the relation. |
 
@@ -156,7 +156,7 @@ The member type is a small structure with the following attributes:
 
 ## Way Element
 
-An ordered list of nodes representing a linear feature (e.g., road, river). Inherits from Relation.
+An ordered list of nodes representing a linear feature (e.g., road, river, building). Inherits from Relation.
 
 **Additional Constraints**
 
@@ -191,83 +191,6 @@ No consecutive members can have the same id.
         {
             "type": "node",
             "id": 2,
-            "role": ""
-        }
-    ]
-}
-```
-
-## Area Element
-
-A closed way representing a bounded region (e.g., building, park). Inherits from Way.
-
-**Additional Constraints**
-
-Must contain at least four members if visible.
-
-The first and last members must be the same.
-
-### Backwards compatibility
-
-The new area type will be mostly compatible with the existing API 0.6 applications. It will be possible to read, update, and delete areas, but not create new ones.
-
-#### Reading areas
-
-When an area is read during API 0.6, it is converted to a fake way object. The following operations are performed:
-
-1. Type is changed from "area" to "way".
-2. (1 << 58) is added to the id.
-3. The tag `area=yes` is added.
-
-##### Known compatibility issues
-
-Overpass will have an id conflict with the new area type. It [adds](https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL#Map_way/relation_to_area_(map_to_area)) a small number of 3600000000 to distinguish between relations and its own internal areas. However, a patch should be easy to implement (treat ways with big ids as ways and not internal areas).
-
-#### Updating and deleting areas
-
-Applications operating on API 0.6 will support updating areas out-of-the-box. The server-side postprocessing will convert the way back to an area, check the constraints, and apply the changes.
-
-1. Check if id is greater than (1 << 58).
-2. (1 << 58) is subtracted from the id.
-3. Type is changed from "way" to "area".
-4. The tag `area=yes` is removed.
-
-If the updated area is no longer valid (e.g., is no longer closed), or if it had its `area=yes` tag removed, the server will return an error.
-
-### Example
-
-```json
-{
-    "type": "area",
-    "id": 1,
-    "version": 1,
-    "visible": true,
-    "tags": {
-        "landuse": "residential"
-    },
-    "created_at": "2019-01-01T00:00:00Z",
-    "superseded_at": "2020-01-01T00:00:00Z",
-    "user_id": 15215305,
-    "changeset_id": 148023492,
-    "members": [
-        {
-            "type": "node",
-            "id": 1,
-            "role": ""
-        },
-        {
-            "type": "node",
-            "id": 2,
-            "role": ""
-        },
-        {
-            "type": "node",
-            "id": 3,
-            "role": ""
-        },
-        {
-            "type": "node",
-            "id": 1,
             "role": ""
         }
     ]

@@ -24,7 +24,7 @@ class Element(Base.NoID):
     user: Mapped[User | None] = relationship(init=False, lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(init=False, back_populates='elements', lazy='raise')
-    type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'area', 'relation'), nullable=False)
+    type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation'), nullable=False)
     id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
