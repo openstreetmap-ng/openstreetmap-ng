@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 0fe03c37acf0
+Revision ID: 9b428f705c23
 Revises:
-Create Date: 2024-03-03 00:56:54.722080+00:00
+Create Date: 2024-03-03 01:00:00.177170+00:00
 
 """
 from collections.abc import Sequence
@@ -17,7 +17,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '0fe03c37acf0'
+revision: str = '9b428f705c23'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -323,7 +323,7 @@ def upgrade() -> None:
     sa.Column('sequence_id', sa.BigInteger(), sa.Identity(always=True, minvalue=1), nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('changeset_id', sa.BigInteger(), nullable=False),
-    sa.Column('type', sa.Enum('node', 'way', 'relation'), nullable=False),
+    sa.Column('type', sa.Enum('node', 'way', 'relation', name='element_type'), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('version', sa.BigInteger(), nullable=False),
     sa.Column('visible', sa.Boolean(), nullable=False),
