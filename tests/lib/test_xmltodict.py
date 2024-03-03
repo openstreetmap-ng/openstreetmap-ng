@@ -1,9 +1,8 @@
 from datetime import datetime
 
 import pytest
-import xmltodict
 
-from app.lib.xmltodict import XMLToDict, xattr
+from app.lib.xmltodict import XMLToDict, get_xattr
 
 
 @pytest.mark.parametrize(
@@ -25,15 +24,11 @@ from app.lib.xmltodict import XMLToDict, xattr
         (
             b'<osmChange><modify id="1"/><create id="2"><tag k="test" v="zebra"/></create><modify id="3"/></osmChange>',
             {
-                'osmChange': {
-                    'modify': [{'@id': 1}, {'@id': 3}],
-                    'create': [
-                        {
-                            '@id': 2,
-                            'tag': [{'@k': 'test', '@v': 'zebra'}],
-                        }
-                    ],
-                }
+                'osmChange': [
+                    ('modify', {'@id': 1}),
+                    ('create', {'@id': 2, 'tag': [{'@k': 'test', '@v': 'zebra'}]}),
+                    ('modify', {'@id': 3}),
+                ]
             },
         ),
     ],
@@ -58,20 +53,7 @@ def test_xml_parse(input, output):
     ],
 )
 def test_xml_parse_sequence(input, output):
-    assert XMLToDict.parse(input, sequence=True) == output
-
-
-@pytest.mark.parametrize(
-    'input',
-    [
-        (b'<root><key1 attr="1"/><key2>text</key2><key1 attr="2"/></root>'),
-        (b'<root><key1 attr="1"/><key2>text</key2><key2 attr="2">text2</key2></root>'),
-    ],
-)
-def test_xml_parse_compare_pypi(input):
-    parsed = XMLToDict.parse(input)
-    expected = xmltodict.parse(input, force_list=XMLToDict.force_list)
-    assert parsed == expected
+    assert XMLToDict.parse(input) == output
 
 
 @pytest.mark.parametrize(
@@ -127,7 +109,8 @@ def test_xml_unparse(input, output):
 
 
 def test_xml_unparse_xattr():
-    unparsed = XMLToDict.unparse({'root': {xattr('test', custom_xml='test_xml'): 'test_value'}})
+    xattr = get_xattr(is_json=False)
+    unparsed = XMLToDict.unparse({'root': {xattr('test', xml='test_xml'): 'test_value'}})
     expected = "<?xml version='1.0' encoding='UTF-8'?>\n<root test_xml=\"test_value\"/>"
     assert unparsed == expected
 

@@ -7,7 +7,7 @@ from shapely import Point, get_coordinates
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import xattr
+from app.lib.xmltodict import get_xattr
 from app.models.db.user import User
 from app.models.db.user_pref import UserPref
 from app.models.validating.user_pref import UserPrefValidating
@@ -105,7 +105,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
 
     current_user = auth_user()
     access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
-    xattr_ = xattr  # read property once for performance
+    xattr = get_xattr(is_json=is_json)
 
     changesets_count = None
     traces_count = None
@@ -158,26 +158,26 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
             tg.start_soon(messages_sent_count_task)
 
     return {
-        xattr_('id'): user.id,
-        xattr_('display_name'): user.display_name,
-        xattr_('account_created'): user.created_at,
+        xattr('id'): user.id,
+        xattr('display_name'): user.display_name,
+        xattr('account_created'): user.created_at,
         'description': user.description,
         ('contributor_terms' if is_json else 'contributor-terms'): {
-            xattr_('agreed'): True,
-            **({xattr_('pd'): user.consider_public_domain} if access_private else {}),
+            xattr('agreed'): True,
+            **({xattr('pd'): user.consider_public_domain} if access_private else {}),
         },
-        'img': {xattr_('href'): user.avatar_url},
+        'img': {xattr('href'): user.avatar_url},
         'roles': tuple(role.value for role in user.roles),
-        'changesets': {xattr_('count'): changesets_count},
-        'traces': {xattr_('count'): traces_count},
+        'changesets': {xattr('count'): changesets_count},
+        'traces': {xattr('count'): traces_count},
         'blocks': {
             'received': {
-                xattr_('count'): block_received_count,
-                xattr_('active'): block_received_active_count,
+                xattr('count'): block_received_count,
+                xattr('active'): block_received_active_count,
             },
             'issued': {
-                xattr_('count'): block_issued_count,
-                xattr_('active'): block_issued_active_count,
+                xattr('count'): block_issued_count,
+                xattr('active'): block_issued_active_count,
             },
         },
         # private section
@@ -186,8 +186,8 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                 **(
                     {
                         'home': {
-                            **_encode_point(user.home_point),
-                            xattr_('zoom'): 15,  # default home zoom level
+                            **_encode_point(user.home_point, is_json=is_json),
+                            xattr('zoom'): 15,  # default home zoom level
                         }
                     }
                     if (user.home_point is not None)
@@ -196,10 +196,10 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                 'languages': _encode_languages(user.languages, is_json=is_json),
                 'messages': {
                     'received': {
-                        xattr_('count'): messages_received_count,
-                        xattr_('unread'): messages_received_unread_count,
+                        xattr('count'): messages_received_count,
+                        xattr('unread'): messages_received_unread_count,
                     },
-                    'sent': {xattr_('count'): messages_sent_count},
+                    'sent': {xattr('count'): messages_sent_count},
                 },
             }
             if access_private
@@ -222,16 +222,21 @@ def _encode_languages(languages: Sequence[str], *, is_json: cython.char):
 
 
 @cython.cfunc
-def _encode_point(point: Point) -> dict:
+def _encode_point(point: Point, *, is_json: cython.char) -> dict:
     """
-    >>> _encode_point(Point(1, 2))
+    >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
 
-    xattr_ = xattr  # read property once for performance
     x, y = get_coordinates(point)[0].tolist()
 
-    return {
-        xattr_('lon'): x,
-        xattr_('lat'): y,
-    }
+    if is_json:
+        return {
+            'lon': x,
+            'lat': y,
+        }
+    else:
+        return {
+            '@lon': x,
+            '@lat': y,
+        }

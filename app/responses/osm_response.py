@@ -54,7 +54,7 @@ class OSMResponse(Response):
 
         if style == FormatStyle.json:
             if isinstance(content, Mapping):
-                content |= _json_attributes
+                content = _json_attributes | content
             else:
                 raise ValueError(f'Invalid json content type {type(content)}')
 

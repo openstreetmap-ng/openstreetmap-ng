@@ -1,37 +1,38 @@
 import logging
-from collections import UserString
 from collections.abc import Callable, Sequence
 from datetime import datetime
-from functools import cache
 from typing import Any
 
 import cython
 import lxml.etree as ET
 
 from app.lib.exceptions_context import raise_for
+from app.lib.format_style_context import format_is_json
 from app.lib.naturalsize import naturalsize
 from app.limits import XML_PARSE_MAX_SIZE
 
 
-class _XAttr(UserString):
-    __slots__ = ('data', 'xml')
-
-    def __init__(self, seq: str, custom_xml: str | None = None) -> None:
-        super().__init__(seq)
-        self.xml = custom_xml
+@cython.cfunc
+def _xattr_json(name: str, xml: str | None = None) -> str:
+    return name
 
 
-@cache
-def xattr(name: str, custom_xml: str | None = None) -> _XAttr:
+@cython.cfunc
+def _xattr_xml(name: str, xml: str | None = None) -> str:
+    return f'@{xml}' if (xml is not None) else f'@{name}'
+
+
+def get_xattr(*, is_json: bool | None = None):
     """
-    Create an XML attribute object.
+    Return a function to format attribute names.
 
-    If `custom_xml` is set, then it is used as the XML attribute name instead of the `name`.
-
-    Otherwise, it behaves like a normal string.
+    If `is_json` is None (default), then the current format is detected.
     """
 
-    return _XAttr(name, custom_xml)
+    if is_json is None:
+        is_json = format_is_json()
+
+    return _xattr_json if (is_json is True) else _xattr_xml
 
 
 @cython.cfunc
@@ -131,7 +132,7 @@ class XMLToDict:
 
         # always return the root element, even if it's empty
         if not elements:
-            elements = (ET.Element(root_k),)
+            elements = (ET.Element(root_k.encode()),)
 
         result: bytes = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', naturalsize(len(result)))
@@ -221,7 +222,7 @@ def _strip_namespace(tag: str) -> str:
 def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
     # encode dict
     if isinstance(value, dict):
-        element = ET.Element(key)
+        element = ET.Element(key.encode())
         element_attrib: ET._Attrib = element.attrib  # read property once for performance  # noqa: SLF001
 
         k: str
@@ -231,8 +232,6 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
                 element_attrib[k[1:]] = _to_string(v)
             elif k == '#text':
                 element.text = _to_string(v)
-            elif (k_xml := getattr(k, 'xml', None)) is not None:  # isinstance(k, _XAttr)
-                element_attrib[k_xml] = _to_string(v)
             else:
                 element.extend(_unparse_element(k, v))
 
@@ -254,7 +253,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
 
         # encode sequence of (key, value) tuples
         elif isinstance(first, Sequence) and not isinstance(first, str):
-            element = ET.Element(key)
+            element = ET.Element(key.encode())
             element_attrib: dict = element.attrib  # read property once for performance
 
             k: str
@@ -264,8 +263,6 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
                     element_attrib[k[1:]] = _to_string(v)
                 elif k == '#text':
                     element.text = _to_string(v)
-                elif (k_xml := getattr(k, 'xml', None)) is not None:  # isinstance(k, _XAttr)
-                    element_attrib[k_xml] = _to_string(v)
                 else:
                     element.extend(_unparse_element(k, v))
 
@@ -276,7 +273,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
 
     # encode scalar
     else:
-        element = ET.Element(key)
+        element = ET.Element(key.encode())
         element.text = _to_string(value)
         return (element,)
 

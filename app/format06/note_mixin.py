@@ -8,7 +8,6 @@ from app.config import API_URL
 from app.lib.date_utils import format_sql_date
 from app.lib.format_style_context import format_style
 from app.lib.translation import render
-from app.lib.xmltodict import xattr
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.format_style import FormatStyle
@@ -113,7 +112,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     elif is_gpx:
         return {
-            **_encode_point(note.point),
+            **_encode_point_xml(note.point),
             'time': note.created_at,
             'name': f'Note: {note.id}',
             'link': {'href': note.permalink},
@@ -138,7 +137,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     else:
         return {
-            **_encode_point(note.point),
+            **_encode_point_xml(note.point),
             'id': note.id,
             'url': f'{API_URL}/api/0.6/notes/{note.id}',
             **(
@@ -159,16 +158,15 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
 
 
 @cython.cfunc
-def _encode_point(point: Point) -> dict:
+def _encode_point_xml(point: Point) -> dict:
     """
-    >>> _encode_point(Point(1, 2))
+    >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
 
-    xattr_ = xattr  # read property once for performance
     x, y = get_coordinates(point)[0].tolist()
 
     return {
-        xattr_('lon'): x,
-        xattr_('lat'): y,
+        '@lon': x,
+        '@lat': y,
     }

@@ -57,7 +57,6 @@ zstandard = "<1"
 pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
 pytest-watcher = "^0.3.4"
-xmltodict = "^0.13.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

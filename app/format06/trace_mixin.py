@@ -6,7 +6,6 @@ import numpy as np
 from shapely import Point, get_coordinates, points
 
 from app.lib.auth_context import auth_user
-from app.lib.xmltodict import xattr
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
@@ -71,7 +70,7 @@ class Trace06Mixin:
                 # add point
                 trk_trkseg_trkpts.append(
                     {
-                        **_encode_point(tp.point),
+                        **_encode_point_xml(tp.point),
                         **({'ele': tp.elevation} if (tp.elevation is not None) else {}),
                         'time': tp.captured_at,
                     }
@@ -88,7 +87,7 @@ class Trace06Mixin:
                     last_trk_id = 0
                     last_trkseg_id = 0
 
-                trk_trkseg_trkpts.append(_encode_point(tp.point))
+                trk_trkseg_trkpts.append(_encode_point_xml(tp.point))
 
         return {'trk': trks}
 
@@ -193,16 +192,15 @@ def _encode_gpx_file(trace: Trace) -> dict:
 
 
 @cython.cfunc
-def _encode_point(point: Point) -> dict:
+def _encode_point_xml(point: Point) -> dict:
     """
-    >>> _encode_point(Point(1, 2))
+    >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
 
-    xattr_ = xattr  # read property once for performance
     x, y = get_coordinates(point)[0].tolist()
 
     return {
-        xattr_('lon'): x,
-        xattr_('lat'): y,
+        '@lon': x,
+        '@lat': y,
     }

@@ -8,7 +8,6 @@ from shapely import Point, get_coordinates, points
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import xattr
 from app.models.db.element import Element
 from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
@@ -175,28 +174,36 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
 
 
 @cython.cfunc
-def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
+def _encode_members(members: Sequence[ElementMemberRef], *, is_json: cython.char) -> tuple[dict, ...]:
     """
     >>> _encode_members([
     ...     ElementMemberRef(type=ElementType.node, id=1, role='a'),
     ...     ElementMemberRef(type=ElementType.way, id=2, role='b'),
-    ... ])
+    ... ], is_json=False)
     [
         {'@type': 'node', '@ref': 1, '@role': 'a'},
         {'@type': 'way', '@ref': 2, '@role': 'b'},
     ]
     """
 
-    xattr_ = xattr  # read property once for performance
-
-    return tuple(
-        {
-            xattr_('type'): member.type,
-            xattr_('ref'): member.id,
-            xattr_('role'): member.role,
-        }
-        for member in members
-    )
+    if is_json:
+        return tuple(
+            {
+                'type': member.type,
+                'ref': member.id,
+                'role': member.role,
+            }
+            for member in members
+        )
+    else:
+        return tuple(
+            {
+                '@type': member.type,
+                '@ref': member.id,
+                '@role': member.role,
+            }
+            for member in members
+        )
 
 
 @cython.cfunc
@@ -238,7 +245,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
         return {
             'type': element_type,
             'id': element.id,
-            **(_encode_point(element.point) if is_node else {}),
+            **(_encode_point(element.point, is_json=True) if is_node else {}),
             'version': element.version,
             'timestamp': element.created_at,
             'changeset': element.changeset_id,
@@ -258,7 +265,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     else:
         return {
             '@id': element.id,
-            **(_encode_point(element.point) if is_node else {}),
+            **(_encode_point(element.point, is_json=False) if is_node else {}),
             '@version': element.version,
             '@timestamp': element.created_at,
             '@changeset': element.changeset_id,
@@ -324,19 +331,24 @@ def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | No
 
 
 @cython.cfunc
-def _encode_point(point: Point) -> dict:
+def _encode_point(point: Point, *, is_json: cython.char) -> dict:
     """
-    >>> _encode_point(Point(1, 2))
+    >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
 
-    xattr_ = xattr  # read property once for performance
     x, y = get_coordinates(point)[0].tolist()
 
-    return {
-        xattr_('lon'): x,
-        xattr_('lat'): y,
-    }
+    if is_json:
+        return {
+            'lon': x,
+            'lat': y,
+        }
+    else:
+        return {
+            '@lon': x,
+            '@lat': y,
+        }
 
 
 @cython.cfunc
