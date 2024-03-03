@@ -28,7 +28,6 @@ jinja2 = "^3.1.2"
 lxml = "^5.0.1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "<1"
-networkx = "^3.2.1"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
 psycopg2-binary = "^2.9.9"
@@ -42,7 +41,7 @@ python-magic = "<1"
 python-multipart = "<1"
 pytz = "*"
 pyyaml = "^6.0.1"
-redis = "^5.0.1"
+redis = {extras = ["hiredis"], version = "^5.0.2"}
 rfc3986 = "^2.0.0"
 setuptools = "^69.0.3"
 shapely = "^2.0.2"
@@ -50,7 +49,6 @@ sqlalchemy = {extras = ["asyncio"], version = "^2.0.25"}
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "<1"}
-uvloop = "<1"
 zstandard = "<1"
 
 [tool.poetry.group.test.dependencies]
