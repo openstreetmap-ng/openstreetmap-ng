@@ -1,9 +1,9 @@
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.models.db.changeset import Changeset
 
 
@@ -31,12 +31,9 @@ class ChangesetService:
         """
 
         async with db_autocommit() as session:
-            changeset = await session.get(
-                Changeset,
-                changeset_id,
-                options=(get_joinedload(),),
-                with_for_update=True,
-            )
+            stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
+            stmt = apply_statement_context(stmt)
+            changeset = await session.scalar(stmt)
 
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
@@ -56,12 +53,9 @@ class ChangesetService:
         """
 
         async with db_autocommit() as session:
-            changeset = await session.get(
-                Changeset,
-                changeset_id,
-                options=(get_joinedload(),),
-                with_for_update=True,
-            )
+            stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
+            stmt = apply_statement_context(stmt)
+            changeset = await session.scalar(stmt)
 
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)

@@ -4,7 +4,7 @@ from shapely import Polygon
 from sqlalchemy import func, select
 
 from app.db import db
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
@@ -26,7 +26,6 @@ class TracePointRepository:
         async with db() as session:
             stmt = (
                 select(TracePoint)
-                .options(get_joinedload())
                 .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),
@@ -37,9 +36,11 @@ class TracePointRepository:
                     TracePoint.track_idx.asc(),
                     TracePoint.captured_at.asc(),
                 )
-            ).union(
+            )
+            stmt = apply_statement_context(stmt)
+
+            union_stmt = (
                 select(TracePoint)
-                .options(get_joinedload())
                 .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),
@@ -49,6 +50,9 @@ class TracePointRepository:
                     TracePoint.point.asc(),
                 )
             )
+            union_stmt = apply_statement_context(union_stmt)
+
+            stmt = stmt.union(union_stmt)
 
             if legacy_offset is not None:
                 stmt = stmt.offset(legacy_offset)

@@ -12,7 +12,7 @@ from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.joinedload_context import joinedload_context
+from app.lib.statement_context import joinedload_context
 from app.lib.xmltodict import XMLToDict
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset import Changeset

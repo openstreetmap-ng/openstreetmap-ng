@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
@@ -22,7 +22,8 @@ class NoteCommentRepository:
         """
 
         async with db() as session:
-            stmt = select(NoteComment).options(get_joinedload()).join(Note)
+            stmt = select(NoteComment).join(Note)
+            stmt = apply_statement_context(stmt)
             where_and = [Note.visible_to(auth_user())]
 
             if geometry is not None:

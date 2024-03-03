@@ -9,7 +9,7 @@ from pydantic import PositiveInt
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.joinedload_context import joinedload_context
+from app.lib.statement_context import joinedload_context
 from app.lib.xmltodict import XMLToDict
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint

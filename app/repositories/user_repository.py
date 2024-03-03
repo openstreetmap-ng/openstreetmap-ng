@@ -5,7 +5,7 @@ from sqlalchemy import func, null, select
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.user import User
 
@@ -18,7 +18,9 @@ class UserRepository:
         """
 
         async with db() as session:
-            return await session.get(User, user_id, options=(get_joinedload(),))
+            stmt = select(User).where(User.id == user_id)
+            stmt = apply_statement_context(stmt)
+            return await session.scalar(stmt)
 
     @staticmethod
     async def find_one_by_display_name(display_name: str) -> User | None:
@@ -27,14 +29,8 @@ class UserRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(User)
-                .options(get_joinedload())
-                .where(
-                    User.display_name == display_name,
-                )
-            )
-
+            stmt = select(User).where(User.display_name == display_name)
+            stmt = apply_statement_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -44,14 +40,8 @@ class UserRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(User)
-                .options(get_joinedload())
-                .where(
-                    User.email == email,
-                )
-            )
-
+            stmt = select(User).where(User.email == email)
+            stmt = apply_statement_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -61,14 +51,8 @@ class UserRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(User)
-                .options(get_joinedload())
-                .where(
-                    User.id.in_(user_ids),
-                )
-            )
-
+            stmt = select(User).where(User.id.in_(user_ids))
+            stmt = apply_statement_context(stmt)
             return (await session.scalars(stmt)).all()
 
     @staticmethod
@@ -89,13 +73,13 @@ class UserRepository:
         async with db() as session:
             stmt = (
                 select(User)
-                .options(get_joinedload())
                 .where(
                     User.home_point != null(),
                     func.ST_DWithin(User.home_point, point_wkt, max_distance),
                 )
                 .order_by(func.ST_Distance(User.home_point, point_wkt))
             )
+            stmt = apply_statement_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)

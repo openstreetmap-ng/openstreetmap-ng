@@ -5,7 +5,7 @@ from shapely import Polygon
 from sqlalchemy import func, null, select
 
 from app.db import db
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.models.db.changeset import Changeset
 
 
@@ -40,7 +40,9 @@ class ChangesetRepository:
         """
 
         async with db() as session:
-            stmt = select(Changeset).options(get_joinedload())
+            stmt = select(Changeset)
+            stmt = apply_statement_context(stmt)
+
             where_and = []
 
             if changeset_ids:

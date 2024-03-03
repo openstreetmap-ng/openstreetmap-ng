@@ -1,10 +1,9 @@
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.joinedload_context import get_joinedload
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.changeset_subscription import ChangesetSubscription
@@ -52,16 +51,12 @@ class ChangesetCommentService:
         """
 
         async with db_autocommit() as session:
-            changeset: Changeset | None = await session.get(
-                Changeset,
-                changeset_id,
-                options=(get_joinedload(),),
-                with_for_update=True,
-            )
+            stmt = select(Changeset.closed_at).where(Changeset.id == changeset_id).with_for_update()
+            rows = (await session.execute(stmt)).all()
 
-            if changeset is None:
+            if not rows:
                 raise_for().changeset_not_found(changeset_id)
-            if changeset.closed_at is None:
+            if rows[0][0] is not None:
                 raise_for().changeset_not_closed(changeset_id)
 
             session.add(

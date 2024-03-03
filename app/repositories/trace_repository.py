@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from app.db import db
 from app.lib.auth_context import auth_user_scopes
 from app.lib.exceptions_context import raise_for
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.lib.trace_file import TraceFile
 from app.models.db.trace_ import Trace
 from app.storage import TRACES_STORAGE
@@ -21,7 +21,9 @@ class TraceRepository:
         """
 
         async with db() as session:
-            trace = await session.get(Trace, trace_id, options=(get_joinedload(),))
+            stmt = select(Trace).where(Trace.id == trace_id)
+            stmt = apply_statement_context(stmt)
+            trace = await session.scalar(stmt)
 
         if trace is None:
             raise_for().trace_not_found(trace_id)
@@ -57,14 +59,11 @@ class TraceRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(Trace)
-                .options(get_joinedload())
-                .where(
-                    Trace.user_id == user_id,
-                    Trace.visible_to(*auth_user_scopes()),
-                )
+            stmt = select(Trace).where(
+                Trace.user_id == user_id,
+                Trace.visible_to(*auth_user_scopes()),
             )
+            stmt = apply_statement_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)

@@ -7,7 +7,7 @@ from sqlalchemy import func, null, select
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
@@ -32,7 +32,8 @@ class NoteRepository:
         """
 
         async with db() as session:
-            stmt = select(Note).options(get_joinedload()).join(NoteComment)
+            stmt = select(Note).join(NoteComment)
+            stmt = apply_statement_context(stmt)
             where_and = [Note.visible_to(auth_user())]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at
 

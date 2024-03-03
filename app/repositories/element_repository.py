@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONPATH
 from app.db import db
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.joinedload_context import get_joinedload
+from app.lib.statement_context import apply_statement_context
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -36,7 +36,8 @@ class ElementRepository:
         """
 
         async with db() as session:
-            stmt = select(Element).options(get_joinedload()).order_by(Element.sequence_id.desc()).limit(1)
+            stmt = select(Element).order_by(Element.sequence_id.desc()).limit(1)
+            stmt = apply_statement_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -56,20 +57,17 @@ class ElementRepository:
             return ()
 
         async with db() as session:
-            stmt = (
-                select(Element)
-                .options(get_joinedload())
-                .where(
-                    or_(
-                        and_(
-                            Element.type == versioned_ref.type,
-                            Element.id == versioned_ref.id,
-                            Element.version == versioned_ref.version,
-                        )
-                        for versioned_ref in versioned_refs
+            stmt = select(Element).where(
+                or_(
+                    and_(
+                        Element.type == versioned_ref.type,
+                        Element.id == versioned_ref.id,
+                        Element.version == versioned_ref.version,
                     )
+                    for versioned_ref in versioned_refs
                 )
             )
+            stmt = apply_statement_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -91,13 +89,13 @@ class ElementRepository:
         async with db() as session:
             stmt = (
                 select(Element)
-                .options(get_joinedload())
                 .where(
                     Element.type == element_ref.type,
                     Element.id == element_ref.id,
                 )
                 .order_by(Element.version.desc())
             )
+            stmt = apply_statement_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -129,47 +127,42 @@ class ElementRepository:
         recurse_way_refs = tuple(ref for ref in element_refs if ref.type == 'way') if recurse_ways else ()
 
         async with db() as session:
-            stmt = (
-                select(Element)
-                .options(get_joinedload())
-                .where(
-                    Element.created_at <= point_in_time,
-                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                    or_(
-                        and_(
-                            Element.type == element_ref.type,
-                            Element.id == element_ref.id,
-                        )
-                        for element_ref in element_refs
-                    ),
-                )
+            stmt = select(Element).where(
+                Element.created_at <= point_in_time,
+                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                or_(
+                    and_(
+                        Element.type == element_ref.type,
+                        Element.id == element_ref.id,
+                    )
+                    for element_ref in element_refs
+                ),
             )
+            stmt = apply_statement_context(stmt)
 
             if recurse_way_refs:
-                stmt = stmt.union(
-                    select(Element)
-                    .options(get_joinedload())
-                    .where(
-                        Element.created_at <= point_in_time,
-                        Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                        Element.type == 'node',
-                        Element.id.in_(
-                            select(
-                                cast(
-                                    func.jsonb_path_query(Element.members, '$[*].id'),
-                                    INTEGER,
-                                )
+                stmt_union = select(Element).where(
+                    Element.created_at <= point_in_time,
+                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                    Element.type == 'node',
+                    Element.id.in_(
+                        select(
+                            cast(
+                                func.jsonb_path_query(Element.members, '$[*].id'),
+                                INTEGER,
                             )
-                            .where(
-                                Element.created_at <= point_in_time,
-                                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                                Element.type == 'way',
-                                Element.id.in_(ref.id for ref in recurse_way_refs),
-                            )
-                            .subquery()
-                        ),
-                    )
+                        )
+                        .where(
+                            Element.created_at <= point_in_time,
+                            Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                            Element.type == 'way',
+                            Element.id.in_(ref.id for ref in recurse_way_refs),
+                        )
+                        .subquery()
+                    ),
                 )
+                stmt_union = apply_statement_context(stmt_union)
+                stmt = stmt.union(stmt_union)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -256,24 +249,21 @@ class ElementRepository:
         point_in_time = utcnow()
 
         async with db() as session:
-            stmt = (
-                select(Element)
-                .options(get_joinedload())
-                .where(
-                    Element.created_at <= point_in_time,
-                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                    or_(
-                        func.jsonb_path_exists(
-                            Element.members,
-                            cast(
-                                f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
-                                JSONPATH,
-                            ),
-                        )
-                        for member_ref in member_refs
-                    ),
-                )
+            stmt = select(Element).where(
+                Element.created_at <= point_in_time,
+                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                or_(
+                    func.jsonb_path_exists(
+                        Element.members,
+                        cast(
+                            f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
+                            JSONPATH,
+                        ),
+                    )
+                    for member_ref in member_refs
+                ),
             )
+            stmt = apply_statement_context(stmt)
 
             if parent_type is not None:
                 stmt = stmt.where(Element.type == parent_type)
@@ -314,16 +304,13 @@ class ElementRepository:
 
         # find all the matching nodes
         async with db() as session:
-            stmt = (
-                select(Element)
-                .options(get_joinedload())
-                .where(
-                    Element.created_at <= point_in_time,
-                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
-                    Element.type == 'node',
-                    func.ST_Intersects(Element.point, geometry.wkt),
-                )
+            stmt = select(Element).where(
+                Element.created_at <= point_in_time,
+                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                Element.type == 'node',
+                func.ST_Intersects(Element.point, geometry.wkt),
             )
+            stmt = apply_statement_context(stmt)
 
             if nodes_limit is not None:
                 stmt = stmt.limit(nodes_limit)
