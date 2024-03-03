@@ -1,7 +1,11 @@
 from collections.abc import Mapping, Sequence
-from typing import Any
+from functools import wraps
+from typing import Any, NoReturn
 
-from fastapi import Response
+from fastapi import APIRouter, Response
+from fastapi.dependencies.utils import get_dependant
+from fastapi.routing import APIRoute
+from starlette.routing import request_response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
@@ -41,11 +45,12 @@ _gpx_attributes = {
 class OSMResponse(Response):
     xml_root = 'osm'
 
-    def render(self, content: Any) -> bytes:
-        style = format_style()
+    def render(self, content) -> NoReturn:
+        raise RuntimeError('Setup APIRouter with setup_api_router_response')
 
-        # set content type
-        self.media_type = FormatStyle.media_type(style)
+    @classmethod
+    def serialize(cls, content: Any) -> Response:
+        style = format_style()
 
         if style == FormatStyle.json:
             if isinstance(content, Mapping):
@@ -53,33 +58,37 @@ class OSMResponse(Response):
             else:
                 raise ValueError(f'Invalid json content type {type(content)}')
 
-            return JSON_ENCODE(content)
+            encoded = JSON_ENCODE(content)
+            return Response(encoded, media_type='application/json; charset=utf-8')
 
         elif style == FormatStyle.xml:
             if isinstance(content, Mapping):
-                content = {self.xml_root: _xml_attributes | content}
+                content = {cls.xml_root: _xml_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):
-                content = {self.xml_root: (*_xml_attributes.items(), *content)}
+                content = {cls.xml_root: (*_xml_attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')
 
-            return XMLToDict.unparse(content, raw=True)
+            encoded = XMLToDict.unparse(content, raw=True)
+            return Response(encoded, media_type='application/xml; charset=utf-8')
 
         elif style == FormatStyle.rss:
             if not isinstance(content, str):
                 raise ValueError(f'Invalid rss content type {type(content)}')
 
-            return content.encode()
+            encoded = content.encode()
+            return Response(encoded, media_type='application/rss+xml; charset=utf-8')
 
         elif style == FormatStyle.gpx:
             if isinstance(content, Mapping):
-                content = {self.xml_root: _gpx_attributes | content}
+                content = {cls.xml_root: _gpx_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):
-                content = {self.xml_root: (*_gpx_attributes.items(), *content)}
+                content = {cls.xml_root: (*_gpx_attributes.items(), *content)}
             else:
                 raise ValueError(f'Invalid xml content type {type(content)}')
 
-            return XMLToDict.unparse(content, raw=True)
+            encoded = XMLToDict.unparse(content, raw=True)
+            return Response(encoded, media_type='application/gpx+xml; charset=utf-8')
 
         else:
             raise NotImplementedError(f'Unsupported osm format style {style!r}')
@@ -95,3 +104,41 @@ class DiffResultResponse(OSMResponse):
 
 class GPXResponse(OSMResponse):
     xml_root = 'gpx'
+
+
+def setup_api_router_response(router: APIRouter) -> None:
+    """
+    Setup APIRouter to use optimized OSMResponse serialization.
+
+    Default FastAPI serialization is slow and redundant.
+
+    This is quite hacky as FastAPI does not expose an easy way to override it.
+    """
+
+    for route in router.routes:
+        # override only supported endpoints
+        if not isinstance(route, APIRoute):
+            continue
+
+        if isinstance(route.response_class, OSMResponse):  # noqa: SIM108
+            response_class = route.response_class
+        else:
+            response_class = OSMResponse
+
+        endpoint = route.endpoint
+
+        @wraps(endpoint)
+        async def serializing_endpoint(*args, **kwargs):
+            content = await endpoint(*args, **kwargs)  # noqa: B023
+
+            # pass-through serialized response
+            if isinstance(content, Response):
+                return content
+
+            return response_class.serialize(content)  # noqa: B023
+
+        route.endpoint = serializing_endpoint
+
+        # fixup other fields
+        route.dependant = get_dependant(path=route.path_format, call=route.endpoint)
+        route.app = request_response(route.get_route_handler())

@@ -20,7 +20,7 @@ USER_AGENT = f'{NAME}/{VERSION} (+{WEBSITE})'
 
 DEFAULT_LANGUAGE = 'en'
 
-GENERATOR = 'OpenStreetMap-NG'
+GENERATOR = 'OpenStreetMap-NextGen'
 COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'

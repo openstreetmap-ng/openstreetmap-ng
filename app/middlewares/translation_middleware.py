@@ -32,7 +32,7 @@ def _parse_accept_language(accept_language: str) -> list[str]:
 
     # small optimization
     if not accept_language:
-        return (DEFAULT_LANGUAGE,)
+        return [DEFAULT_LANGUAGE]
 
     q_langs: list[tuple[float, str]] = []
 

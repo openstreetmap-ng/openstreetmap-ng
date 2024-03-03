@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.routing import Router
 from starlette.staticfiles import StaticFiles
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
@@ -35,7 +36,7 @@ from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
-from app.responses.osm_response import OSMResponse
+from app.responses.osm_response import setup_api_router_response
 
 # register additional mimetypes
 mimetypes.init()
@@ -59,11 +60,7 @@ async def lifespan(_):
     yield
 
 
-main = FastAPI(
-    title=NAME,
-    default_response_class=OSMResponse,
-    lifespan=lifespan,
-)
+main = FastAPI(title=NAME, lifespan=lifespan)
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(CacheControlMiddleware)  # depends on: request
@@ -106,9 +103,10 @@ def _make_router(path: str, prefix: str) -> APIRouter:
     for p in pathlib.Path(path).glob('*.py'):
         module_name = p.with_suffix('').as_posix().replace('/', '.')
         module = importlib.import_module(module_name)
-        router_attr = getattr(module, 'router', None)
+        router_attr: Router | None = getattr(module, 'router', None)
 
         if router_attr is not None:
+            setup_api_router_response(router_attr)
             router.include_router(router_attr)
             counter += 1
         else:
