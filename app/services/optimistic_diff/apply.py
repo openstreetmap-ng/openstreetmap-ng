@@ -197,12 +197,14 @@ class OptimisticDiffApply:
                 update(Element)
                 .where(
                     or_(
-                        and_(
-                            Element.type == versioned_ref.type,
-                            Element.id == versioned_ref.id,
-                            Element.version == versioned_ref.version,
+                        *(
+                            and_(
+                                Element.type == versioned_ref.type,
+                                Element.id == versioned_ref.id,
+                                Element.version == versioned_ref.version,
+                            )
+                            for versioned_ref in superseded_refs
                         )
-                        for versioned_ref in superseded_refs
                     )
                 )
                 .values({Element.superseded_at: now})

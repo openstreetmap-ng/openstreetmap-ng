@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from anyio import create_task_group
 from shapely import Polygon
-from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
+from sqlalchemy import INTEGER, and_, cast, false, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
 
 from app.db import db
@@ -59,12 +59,14 @@ class ElementRepository:
         async with db() as session:
             stmt = select(Element).where(
                 or_(
-                    and_(
-                        Element.type == versioned_ref.type,
-                        Element.id == versioned_ref.id,
-                        Element.version == versioned_ref.version,
+                    *(
+                        and_(
+                            Element.type == versioned_ref.type,
+                            Element.id == versioned_ref.id,
+                            Element.version == versioned_ref.version,
+                        )
+                        for versioned_ref in versioned_refs
                     )
-                    for versioned_ref in versioned_refs
                 )
             )
             stmt = apply_statement_context(stmt)
@@ -129,13 +131,15 @@ class ElementRepository:
         async with db() as session:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 or_(
-                    and_(
-                        Element.type == element_ref.type,
-                        Element.id == element_ref.id,
+                    *(
+                        and_(
+                            Element.type == element_ref.type,
+                            Element.id == element_ref.id,
+                        )
+                        for element_ref in element_refs
                     )
-                    for element_ref in element_refs
                 ),
             )
             stmt = apply_statement_context(stmt)
@@ -143,7 +147,7 @@ class ElementRepository:
             if recurse_way_refs:
                 stmt_union = select(Element).where(
                     Element.created_at <= point_in_time,
-                    Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                    or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                     Element.type == 'node',
                     Element.id.in_(
                         select(
@@ -154,7 +158,7 @@ class ElementRepository:
                         )
                         .where(
                             Element.created_at <= point_in_time,
-                            Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                            or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                             Element.type == 'way',
                             Element.id.in_(ref.id for ref in recurse_way_refs),
                         )
@@ -244,6 +248,10 @@ class ElementRepository:
         This method does not check for the existence of the given element.
         """
 
+        # small optimization
+        if not member_refs:
+            return ()
+
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
@@ -251,16 +259,18 @@ class ElementRepository:
         async with db() as session:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 or_(
-                    func.jsonb_path_exists(
-                        Element.members,
-                        cast(
-                            f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
-                            JSONPATH,
-                        ),
-                    )
-                    for member_ref in member_refs
+                    *(
+                        func.jsonb_path_exists(
+                            Element.members,
+                            cast(
+                                f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
+                                JSONPATH,
+                            ),
+                        )
+                        for member_ref in member_refs
+                    ),
                 ),
             )
             stmt = apply_statement_context(stmt)
@@ -306,7 +316,7 @@ class ElementRepository:
         async with db() as session:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
-                Element.superseded_at == null() | (Element.superseded_at > point_in_time),
+                or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 Element.type == 'node',
                 func.ST_Intersects(Element.point, geometry.wkt),
             )
