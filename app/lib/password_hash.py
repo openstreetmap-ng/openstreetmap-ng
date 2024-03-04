@@ -31,7 +31,7 @@ class PasswordHash:
         # argon2
         if password_hashed.startswith('$argon2'):
             if salt is not None:
-                logging.warning('Unexpected salt for Argon2 hash')
+                logging.warning('Unexpected salt for argon2 password hash')
 
             try:
                 self._hasher.verify(password_hashed, password)
@@ -59,7 +59,7 @@ class PasswordHash:
 
         hash_len = len(password_hashed)
         salt_len = len(salt or '')
-        raise ValueError(f'Unknown password hash format: {hash_len=}, {salt_len=}')
+        raise NotImplementedError(f'Unsupported password hash format ({hash_len=}, {salt_len=})')
 
     def hash(self, password: str) -> str:  # noqa: A003
         """

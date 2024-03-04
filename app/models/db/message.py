@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text_mixin import RichTextMixin
+from app.lib.rich_text import RichTextMixin
 from app.limits import MESSAGE_BODY_MAX_LENGTH
 from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
@@ -36,7 +36,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > MESSAGE_BODY_MAX_LENGTH:
-            raise ValueError('Message is too long')
+            raise ValueError(f'Message body is too long ({len(value)} > {MESSAGE_BODY_MAX_LENGTH})')
         return value
 
     @classmethod
@@ -48,7 +48,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
         subject = mail.get('Subject')
 
         if subject is None:
-            raise ValueError('Message has no subject')
+            raise ValueError('Email message has no subject')
 
         def get_body(part: EmailMessage) -> str | None:
             content_type = part.get_content_type()
@@ -70,7 +70,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
             body = get_body(mail)
 
         if body is None:
-            raise ValueError('Message has no body')
+            raise ValueError(f'Email message {subject!r} has no body')
 
         return cls(
             from_user_id=from_user_id,

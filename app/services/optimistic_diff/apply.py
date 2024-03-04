@@ -102,7 +102,7 @@ class OptimisticDiffApply:
         many_latest = await ElementRepository.get_many_latest_by_element_refs((element.element_ref,), limit=1)
 
         if not many_latest:
-            raise RuntimeError(f'Element {element.element_ref} does not exist')
+            raise ValueError(f'Element {element.element_ref} does not exist')
 
         latest = many_latest[0]
 
@@ -150,7 +150,7 @@ class OptimisticDiffApply:
 
         # sanity check
         if changesets_next:
-            raise RuntimeError(f'Changesets {tuple(changesets_next)!r} do not exist')
+            raise ValueError(f'Changesets {tuple(changesets_next)!r} were not found in the database')
 
     async def _update_elements(
         self,

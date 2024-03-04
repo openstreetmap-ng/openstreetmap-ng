@@ -178,7 +178,7 @@ class OptimisticDiffPrepare:
         """
 
         if self.changeset_state:
-            raise RuntimeError('Cannot update changesets when local state is not empty')
+            raise RuntimeError('Cannot update changesets with non-empty local state')
 
         changeset_id_element_map = defaultdict(list)
 
@@ -211,7 +211,7 @@ class OptimisticDiffPrepare:
         element_state = self.element_state
 
         if element_state:
-            raise RuntimeError('Cannot preload elements when local state is not empty')
+            raise RuntimeError('Cannot preload elements with non-empty local state')
 
         # only preload elements that exist in the database (positive id)
         element_refs: set[ElementRef] = {e.element_ref for e in self.elements if e.id > 0}
@@ -240,7 +240,7 @@ class OptimisticDiffPrepare:
         """
 
         if self.last_sequence_id is not None:
-            raise RuntimeError('Cannot fetch last id when already fetched')
+            raise RuntimeError('Last sequence id already assigned')
 
         if (element := await ElementRepository.find_one_latest()) is not None:
             if element.created_at > (now := utcnow()):
@@ -522,8 +522,7 @@ class OptimisticDiffPrepare:
                 if element_point is not None:
                     points.add(element_point)
                 elif element.type == 'node':
-                    # log warning as this should not happen
-                    logging.warning('Node %r has no point', element.id)
+                    raise ValueError(f'Node {element.id} is missing coordinates')
 
             # update changeset bounds if any points
             if points:

@@ -10,7 +10,6 @@ from app.lib.format_style_context import format_style
 from app.lib.translation import render
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
-from app.models.format_style import FormatStyle
 
 
 class Note06Mixin:
@@ -23,9 +22,9 @@ class Note06Mixin:
 
         style = format_style()
 
-        if style == FormatStyle.json:
+        if style == 'json':
             return _encode_note(note, is_json=True, is_gpx=False)
-        elif style == FormatStyle.gpx:
+        elif style == 'gpx':
             return {'wpt': _encode_note(note, is_json=False, is_gpx=True)}
         else:
             return {'note': _encode_note(note, is_json=False, is_gpx=False)}
@@ -42,12 +41,12 @@ class Note06Mixin:
 
         style = format_style()
 
-        if style == FormatStyle.json:
+        if style == 'json':
             return {
                 'type': 'FeatureCollection',
                 'features': tuple(_encode_note(note, is_json=True, is_gpx=False) for note in notes),
             }
-        elif style == FormatStyle.gpx:
+        elif style == 'gpx':
             return {'wpt': tuple(_encode_note(note, is_json=False, is_gpx=True) for note in notes)}
         else:
             return {'note': tuple(_encode_note(note, is_json=False, is_gpx=False) for note in notes)}

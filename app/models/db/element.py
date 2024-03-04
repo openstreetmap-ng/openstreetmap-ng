@@ -51,13 +51,13 @@ class Element(Base.NoID):
     @validates('id')
     def validate_id(self, _: str, value: int):
         if value <= 0:
-            raise ValueError('id must be positive')
+            raise ValueError('Element id must be positive')
         return value
 
     @validates('members')
     def validate_members(self, _: str, value: Sequence[ElementMemberRef]):
         if any(member.id <= 0 for member in value):
-            raise ValueError('members ids must be positive')
+            raise ValueError("Element's members ids must be positive")
         return value
 
     @updating_cached_property('id')

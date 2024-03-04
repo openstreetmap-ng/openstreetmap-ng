@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text_mixin import RichTextMixin
+from app.lib.rich_text import RichTextMixin
 from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset

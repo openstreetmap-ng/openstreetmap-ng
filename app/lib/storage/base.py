@@ -28,7 +28,7 @@ class StorageBase(ABC):
             result = hash_urlsafe(data) + suffix
 
         if len(result) > STORAGE_KEY_MAX_LENGTH:
-            raise RuntimeError(f'Storage key too long: {len(result)} > {STORAGE_KEY_MAX_LENGTH}')
+            raise ValueError(f'Storage key is too long ({len(result)} > {STORAGE_KEY_MAX_LENGTH})')
 
         return result
 

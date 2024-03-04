@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 
+import cython
 from fastapi import Request
 
 from app.models.format_style import FormatStyle
@@ -16,27 +17,35 @@ def format_style_context(request: Request):
     Format style is auto-detected from the request.
     """
 
-    request_path = request.url.path
+    request_path: str = request.url.path
+    is_modern_api: cython.char
 
     # path defaults
     if request_path.startswith(('/api/web/', '/api/0.7/')):
-        style = FormatStyle.json
+        is_modern_api = True
     elif request_path.startswith('/api/'):
-        style = FormatStyle.xml
+        is_modern_api = False
     else:
-        style = FormatStyle.json
+        is_modern_api = True
 
-    extension = request_path.rpartition('.')[2]
+    style: FormatStyle = 'json' if is_modern_api else 'xml'
 
-    # overrides
-    if extension == 'json':
-        style = FormatStyle.json
-    elif extension == 'xml':
-        style = FormatStyle.xml
-    elif extension == 'rss' or request_path.endswith('/feed'):
-        style = FormatStyle.rss
-    elif extension == 'gpx':
-        style = FormatStyle.gpx
+    # path overrides
+    if request_path.endswith('/feed'):
+        style = 'rss'
+
+    # extension overrides (legacy)
+    if not is_modern_api:
+        extension = request_path.rpartition('.')[2]
+
+        if extension == 'json':
+            style = 'json'
+        elif extension == 'xml':
+            style = 'xml'
+        elif extension == 'rss':
+            style = 'rss'
+        elif extension == 'gpx':
+            style = 'gpx'
 
     token = _context.set(style)
     try:
@@ -58,7 +67,7 @@ def format_is_json() -> bool:
     Check if the format style is JSON.
     """
 
-    return _context.get() == FormatStyle.json
+    return _context.get() == 'json'
 
 
 def format_is_xml() -> bool:
@@ -66,7 +75,7 @@ def format_is_xml() -> bool:
     Check if the format style is XML.
     """
 
-    return _context.get() == FormatStyle.xml
+    return _context.get() == 'xml'
 
 
 def format_is_rss() -> bool:
@@ -74,4 +83,12 @@ def format_is_rss() -> bool:
     Check if the format style is RSS.
     """
 
-    return _context.get() == FormatStyle.rss
+    return _context.get() == 'rss'
+
+
+def format_is_gpx() -> bool:
+    """
+    Check if the format style is GPX.
+    """
+
+    return _context.get() == 'gpx'

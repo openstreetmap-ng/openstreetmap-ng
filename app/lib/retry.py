@@ -29,14 +29,14 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: f
 
                 try:
                     return await func(*args, **kwargs)
-                except Exception:
+                except Exception as e:
                     now: cython.double = time.monotonic()
                     next_timeout_seconds: cython.double = now + sleep - ts
 
                     # retry is still possible
                     if next_timeout_seconds < timeout_seconds or timeout_seconds < 0:
                         logging.info(
-                            'Function %s failed at attempt %d, retrying in %.3f seconds',
+                            '%s failed (attempt %d), retrying in %.3f sec',
                             func.__qualname__,
                             attempt,
                             sleep,
@@ -49,14 +49,7 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: f
                         sleep = new_sleep if new_sleep < sleep_limit else sleep_limit
 
                     # retry is not possible, re-raise the exception
-                    else:
-                        logging.warning(
-                            'Function %s failed and timed out after %d attempts',
-                            func.__qualname__,
-                            attempt,
-                            exc_info=True,
-                        )
-                        raise
+                    raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
 
         return wrapper
 

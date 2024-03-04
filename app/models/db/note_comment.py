@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.config import APP_URL
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text_mixin import RichTextMixin
+from app.lib.rich_text import RichTextMixin
 from app.limits import NOTE_COMMENT_BODY_MAX_LENGTH
 from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
@@ -39,7 +39,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > NOTE_COMMENT_BODY_MAX_LENGTH:
-            raise ValueError('Comment is too long')
+            raise ValueError(f'Comment body is too long ({len(value)} > {NOTE_COMMENT_BODY_MAX_LENGTH})')
         return value
 
     @property

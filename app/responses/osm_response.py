@@ -10,7 +10,6 @@ from starlette.routing import request_response
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
-from app.models.format_style import FormatStyle
 from app.utils import JSON_ENCODE
 
 # TODO: 0.7 json/xml version
@@ -52,40 +51,40 @@ class OSMResponse(Response):
     def serialize(cls, content: Any) -> Response:
         style = format_style()
 
-        if style == FormatStyle.json:
+        if style == 'json':
             if isinstance(content, Mapping):
                 content = _json_attributes | content
             else:
-                raise ValueError(f'Invalid json content type {type(content)}')
+                raise TypeError(f'Invalid json content type {type(content)}')
 
             encoded = JSON_ENCODE(content)
             return Response(encoded, media_type='application/json; charset=utf-8')
 
-        elif style == FormatStyle.xml:
+        elif style == 'xml':
             if isinstance(content, Mapping):
                 content = {cls.xml_root: _xml_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {cls.xml_root: (*_xml_attributes.items(), *content)}
             else:
-                raise ValueError(f'Invalid xml content type {type(content)}')
+                raise TypeError(f'Invalid xml content type {type(content)}')
 
             encoded = XMLToDict.unparse(content, raw=True)
             return Response(encoded, media_type='application/xml; charset=utf-8')
 
-        elif style == FormatStyle.rss:
+        elif style == 'rss':
             if not isinstance(content, str):
-                raise ValueError(f'Invalid rss content type {type(content)}')
+                raise TypeError(f'Invalid rss content type {type(content)}')
 
             encoded = content.encode()
             return Response(encoded, media_type='application/rss+xml; charset=utf-8')
 
-        elif style == FormatStyle.gpx:
+        elif style == 'gpx':
             if isinstance(content, Mapping):
                 content = {cls.xml_root: _gpx_attributes | content}
             elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {cls.xml_root: (*_gpx_attributes.items(), *content)}
             else:
-                raise ValueError(f'Invalid xml content type {type(content)}')
+                raise TypeError(f'Invalid xml content type {type(content)}')
 
             encoded = XMLToDict.unparse(content, raw=True)
             return Response(encoded, media_type='application/gpx+xml; charset=utf-8')

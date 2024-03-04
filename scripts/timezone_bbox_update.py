@@ -57,7 +57,7 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
             print(f'[⚠️] {country}: spanning over 180° meridian')
 
         if country in result:
-            raise ValueError(f'Duplicate country {country!r}')
+            raise ValueError(f'Duplicate country code {country!r}')
 
         result[country] = bbox
 

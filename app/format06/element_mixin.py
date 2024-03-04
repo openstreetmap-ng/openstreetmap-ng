@@ -367,6 +367,6 @@ def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
     result = dict(items)
 
     if len(items) != len(result):
-        raise ValueError('Duplicate tags keys')
+        raise ValueError('Duplicate tag keys')
 
     return result

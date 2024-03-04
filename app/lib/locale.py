@@ -41,12 +41,12 @@ logging.info('Loaded %d locales', len(_locales))
 
 # check that default locale exists
 if DEFAULT_LANGUAGE not in _locales:
-    raise RuntimeError(f'Default locale {DEFAULT_LANGUAGE=!r} not found in locales')
+    raise ValueError(f'Default locale {DEFAULT_LANGUAGE!r} not found in locales')
 
 # check that all language codes are short enough
 for code in _locales:
     if len(code) > LANGUAGE_CODE_MAX_LENGTH:
-        raise RuntimeError(f'Language code {code=!r} is too long ({len(code)=} > {LANGUAGE_CODE_MAX_LENGTH=})')
+        raise ValueError(f'Language code {code!r} is too long ({len(code)} > {LANGUAGE_CODE_MAX_LENGTH})')
 
 _locales_names = _get_locales_names()
 logging.info('Loaded %d locales names', len(_locales_names))

@@ -1,4 +1,6 @@
 import contextlib
+import gc
+import logging
 import os
 import pathlib
 import re
@@ -101,6 +103,9 @@ dictConfig(
         },
     }
 )
+
+if logging.root.level <= logging.DEBUG:
+    gc.set_debug(gc.DEBUG_STATS)
 
 # Derived configuration
 SECRET_32bytes = sha256(SECRET.encode()).digest()

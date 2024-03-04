@@ -38,6 +38,9 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 
+# harden against parsing really big numbers
+sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
+
 # register additional mimetypes
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
@@ -53,10 +56,6 @@ async def lifespan(_):
     # freeze uncollected gc objects for improved performance
     gc.collect()
     gc.freeze()
-
-    # harden against parsing really big numbers
-    sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
-
     yield
 
 
@@ -110,7 +109,7 @@ def _make_router(path: str, prefix: str) -> APIRouter:
             router.include_router(router_attr)
             counter += 1
         else:
-            logging.warning('Missing router in %s', module_name)
+            logging.warning('Router not found in %s', module_name)
 
     logging.info('Loaded %d routers from %s as %r', counter, path, prefix)
     return router

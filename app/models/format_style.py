@@ -1,8 +1,3 @@
-from enum import Enum
+from typing import Literal
 
-
-class FormatStyle(str, Enum):
-    json = 'json'
-    xml = 'xml'
-    rss = 'rss'
-    gpx = 'gpx'
+FormatStyle = Literal['json', 'xml', 'rss', 'gpx']

@@ -49,7 +49,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
     @validates('tags')
     def validate_tags(self, _: str, value: Sequence[str]):
         if len(value) > TRACE_TAGS_LIMIT:
-            raise ValueError('Too many tags')
+            raise ValueError(f'Too many trace tags ({len(value)} > {TRACE_TAGS_LIMIT})')
         return value
 
     @property

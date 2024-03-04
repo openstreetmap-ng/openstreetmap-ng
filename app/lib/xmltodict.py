@@ -269,7 +269,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
             return (element,)
 
         else:
-            raise ValueError(f'Invalid list item type {type(first)}')
+            raise TypeError(f'Invalid sequence member type {type(first)}')
 
     # encode scalar
     else:

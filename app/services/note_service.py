@@ -90,7 +90,7 @@ class NoteService:
                 note.hidden_at = func.statement_timestamp()
 
             else:
-                raise RuntimeError(f'Unsupported comment event {event!r}')
+                raise NotImplementedError(f'Unsupported note event {event!r}')
 
             # force update note object
             note.updated_at = func.statement_timestamp()

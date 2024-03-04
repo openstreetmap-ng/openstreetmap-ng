@@ -36,7 +36,7 @@ if _validate_smtp_config():
     def _create_smtp_client(host: str, port: int, user: str, password: str, secure: bool):
         if secure:
             if port not in (465, 587):
-                raise ValueError('SMTP_SECURE is enabled but SMTP_PORT is not 465 or 587')
+                raise ValueError('SMTP_SECURE is True but SMTP_PORT is not 465 or 587')
 
             use_tls = port == 465
             start_tls = True if port == 587 else None

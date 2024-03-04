@@ -1,13 +1,17 @@
 import logging
 import pathlib
 import tomllib
+from collections.abc import Sequence
 from html import escape
 
 import bleach
 import cython
+from anyio import create_task_group
 from markdown_it import MarkdownIt
+from sqlalchemy import update
 
 from app.config import CONFIG_DIR
+from app.db import db_autocommit
 from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.models.cache_entry import CacheEntry
 from app.models.text_format import TextFormat
@@ -38,12 +42,7 @@ _md.enable(('replacements', 'smartquotes'))
 
 
 @cython.cfunc
-def _cache_context(text_format: TextFormat) -> str:
-    return f'RichText:{text_format.value}'
-
-
-@cython.cfunc
-def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
+def _is_allowed_attribute(tag: str, attr: str, value: str) -> cython.char:
     # check global allowed attributes
     if attr in _global_allowed_attributes:
         return True
@@ -56,9 +55,12 @@ def _is_allowed_attribute(tag: str, attr: str, _: str) -> cython.char:
     return False
 
 
-@cython.cfunc
-def _process(text: str, text_format: TextFormat) -> str:
-    logging.debug('Processing rich text %r', text_format)
+def process_rich_text(text: str, text_format: TextFormat) -> str:
+    """
+    Get a rich text string by text and format.
+
+    This function runs synchronously and does not use cache.
+    """
 
     if text_format == TextFormat.markdown:
         text_ = _md.render(text)
@@ -92,9 +94,9 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
     """
 
     async def factory() -> bytes:
-        return _process(text, text_format).encode()
+        return process_rich_text(text, text_format).encode()
 
-    context = _cache_context(text_format)
+    context = f'RichText:{text_format.value}'
 
     # accelerate cache lookup by id if available
     if cache_id is not None:
@@ -103,11 +105,57 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
         return await CacheService.get_one_by_key(text, context, factory, ttl=RICH_TEXT_CACHE_EXPIRE)
 
 
-def rich_text_without_cache(text: str, text_format: TextFormat) -> str:
-    """
-    Get a rich text from text and format.
+class RichTextMixin:
+    __rich_text_fields__: Sequence[tuple[str, TextFormat]] = ()
 
-    This function does not use cache and is synchronous.
-    """
+    async def resolve_rich_text(self) -> None:
+        """
+        Resolve rich text fields.
+        """
 
-    return _process(text, text_format)
+        # read property once for performance
+        rich_test_fields = self.__rich_text_fields__
+
+        num_fields = len(rich_test_fields)
+        if num_fields == 0:
+            logging.warning('%s has not defined rich text fields', type(self).__qualname__)
+            return
+
+        logging.debug('Resolving %d rich text fields', num_fields)
+
+        async with create_task_group() as tg:
+            for field_name, text_format in rich_test_fields:
+                tg.start_soon(self._resolve_rich_text_task, field_name, text_format)
+
+    async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat) -> None:
+        rich_field_name = field_name + '_rich'
+
+        # skip if already resolved, warning for spaghetti code avoidance
+        if getattr(self, rich_field_name) is not None:
+            logging.warning('Rich text field %s.%s is already resolved', type(self).__qualname__, field_name)
+            return
+
+        rich_hash_field_name = field_name + '_rich_hash'
+
+        text = getattr(self, field_name)
+        text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
+        cache_entry = await rich_text(text, text_rich_hash, text_format)
+        cache_entry_id: bytes = cache_entry.id
+
+        # assign new hash if changed
+        if text_rich_hash != cache_entry_id:
+            async with db_autocommit() as session:
+                cls = type(self)
+                stmt = (
+                    update(cls)
+                    .where(cls.id == self.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
+                    .values({rich_hash_field_name: cache_entry_id})
+                )
+
+                await session.execute(stmt)
+
+            logging.debug('Rich text field %r hash changed to %r', field_name, cache_entry_id.hex())
+            setattr(self, rich_hash_field_name, cache_entry_id)
+
+        # assign value to instance
+        setattr(self, rich_field_name, cache_entry.value.decode())

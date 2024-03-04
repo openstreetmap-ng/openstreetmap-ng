@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from anyio import create_task_group
 from shapely import Polygon
-from sqlalchemy import INTEGER, and_, cast, false, func, null, or_, select
+from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
 
 from app.db import db
@@ -309,7 +309,7 @@ class ElementRepository:
 
         if legacy_nodes_limit:
             if nodes_limit != MAP_QUERY_LEGACY_NODES_LIMIT:
-                raise ValueError('limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is enabled')
+                raise ValueError('nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
             nodes_limit += 1  # to detect limit exceeded
 
         # find all the matching nodes

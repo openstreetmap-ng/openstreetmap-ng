@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text_mixin import RichTextMixin
+from app.lib.rich_text import RichTextMixin
 from app.limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
 from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
@@ -31,7 +31,7 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > DIARY_BODY_MAX_LENGTH:
-            raise ValueError('Diary is too long')
+            raise ValueError(f'Diary body is too long ({len(value)} > {DIARY_BODY_MAX_LENGTH})')
         return value
 
     async def resolve_comments_rich_text(self) -> None:

@@ -12,7 +12,7 @@ from shapely import Point
 from app.format06 import Format06, FormatRSS06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_style
+from app.lib.format_style_context import format_is_rss
 from app.lib.geo_utils import parse_bbox
 from app.lib.statement_context import joinedload_context
 from app.lib.translation import t
@@ -25,7 +25,6 @@ from app.limits import (
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
-from app.models.format_style import FormatStyle
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
 from app.models.scope import ExtendedScope, Scope
@@ -100,8 +99,7 @@ async def note_read(
 
     await _resolve_rich_texts(notes)
 
-    style = format_style()
-    if style == FormatStyle.rss:
+    if format_is_rss():
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
@@ -249,8 +247,7 @@ async def notes_read(
 
     await _resolve_rich_texts(notes)
 
-    style = format_style()
-    if style == FormatStyle.rss:
+    if format_is_rss():
         minx, miny, maxx, maxy = geometry.bounds
 
         fg = FeedGenerator()
@@ -342,8 +339,7 @@ async def notes_query(
 
     await _resolve_rich_texts(notes)
 
-    style = format_style()
-    if style == FormatStyle.rss:
+    if format_is_rss():
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))

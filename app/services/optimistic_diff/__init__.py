@@ -38,20 +38,20 @@ class OptimisticDiff:
                 await prep.prepare()
                 return await OptimisticDiffApply().apply(prep)
 
-            except (OptimisticDiffError, IntegrityError):
+            except (OptimisticDiffError, IntegrityError) as e:
                 timeout_seconds = time.monotonic() - ts
 
                 # retry is still possible
                 if timeout_seconds < OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
                     if attempt <= 2:
-                        logging.debug('Optimistic diff failed at attempt %d, retrying', attempt)
+                        fn = logging.debug
                     elif attempt <= 3:
-                        logging.info('Optimistic diff failed at attempt %d, retrying', attempt, exc_info=True)
+                        fn = logging.info
                     else:
-                        logging.warning('Optimistic diff failed at attempt %d, retrying', attempt, exc_info=True)
+                        fn = logging.warning
+
+                    fn('OptimisticDiff failed (attempt %d), retrying', attempt, exc_info=True)
                     continue
 
                 # retry is not possible, re-raise the exception
-                else:
-                    logging.exception('Optimistic diff failed and timed out after %d attempts', attempt)
-                    raise
+                raise TimeoutError(f'OptimisticDiff failed and timed out after {attempt} attempts') from e

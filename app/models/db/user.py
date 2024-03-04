@@ -24,7 +24,7 @@ from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.locale import is_valid_locale, normalize_locale
 from app.lib.password_hash import PasswordHash
-from app.lib.rich_text_mixin import RichTextMixin
+from app.lib.rich_text import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
@@ -103,13 +103,13 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     @validates('languages')
     def validate_languages(self, _: str, value: Sequence[str]):
         if len(value) > USER_LANGUAGES_LIMIT:
-            raise ValueError('Too many languages')
+            raise ValueError(f'Too many user languages ({len(value)} > {USER_LANGUAGES_LIMIT})')
         return value
 
     @validates('description')
     def validate_description(self, _: str, value: str):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
-            raise ValueError('Description is too long')
+            raise ValueError(f'User description is too long ({len(value)} > {USER_DESCRIPTION_MAX_LENGTH})')
         return value
 
     @property
