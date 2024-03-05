@@ -10,7 +10,10 @@ from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
 
 from app.config import TEST_ENV
-from app.limits import EMAIL_DELIVERABILITY_DNS_TIMEOUT
+from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT
+from app.services.cache_service import CacheService
+
+_cache_context = 'EmailDeliverability'
 
 _resolver = Resolver()
 _resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
@@ -36,8 +39,7 @@ def validate_email(email: str) -> str:
             test_environment=TEST_ENV,
         )
     except EmailNotValidError as e:
-        logging.debug('Received invalid email address %r', email)
-        raise ValueError('Invalid email address') from e
+        raise ValueError(f'Invalid email address {email!r}') from e
 
     return info.normalized
 
@@ -56,10 +58,30 @@ async def validate_email_deliverability(email: str) -> None:
             test_environment=TEST_ENV,
         )
     except EmailNotValidError as e:
-        logging.debug('Received invalid email address %r', email)
-        raise ValueError('Invalid email address') from e
+        raise ValueError(f'Invalid email address {email!r}') from e
 
     domain = info.ascii_domain
+
+    async def factory() -> bytes:
+        logging.debug('Email domain deliverability cache miss for %r', domain)
+        success = await _check_domain_deliverability(domain)
+        return b'\xff' if success else b'\x00'
+
+    cache_entry = await CacheService.get_one_by_key(
+        key=domain,
+        context=_cache_context,
+        factory=factory,
+        ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,
+    )
+
+    success = cache_entry.value == b'\xff'
+    logging.info('Email domain deliverability for %r: %s', domain, success)
+
+    if not success:
+        raise ValueError(f'Undeliverable email domain {domain!r}')
+
+
+async def _check_domain_deliverability(domain: str) -> bool:
     success = False
 
     async with create_task_group() as tg:
@@ -101,9 +123,7 @@ async def validate_email_deliverability(email: str) -> None:
 
         tg.start_soon(task, RdataType.MX)
 
-    if not success:
-        logging.debug('Received undeliverable email domain %r', domain)
-        raise ValueError(f'Undeliverable email domain {domain!r}')
+    return success
 
 
 EmailStrValidator = Predicate(validate_email)

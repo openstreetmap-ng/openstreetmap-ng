@@ -7,7 +7,7 @@ def format_iso_date(date: datetime | None) -> str:
     """
     Format a datetime object as a string in ISO 8601 format.
 
-    >>> format_date(datetime(2021, 12, 31, 15, 30, 45))
+    >>> format_iso_date(datetime(2021, 12, 31, 15, 30, 45))
     '2021-12-31T15:30:45Z'
     """
 

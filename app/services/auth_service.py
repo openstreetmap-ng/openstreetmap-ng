@@ -14,7 +14,7 @@ from app.lib.date_utils import format_iso_date, utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
-from app.limits import FAST_PASSWORD_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
+from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -25,7 +25,7 @@ from app.services.cache_service import CacheService
 from app.services.oauth1_nonce_service import OAuth1NonceService
 from app.validators.email import validate_email
 
-_cache_context = 'FastPassword'
+_credentials_context = 'AuthCredentials'
 
 # all scopes when using basic auth
 _basic_auth_scopes = tuple(Scope.__members__.values())
@@ -61,7 +61,7 @@ class AuthService:
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
-                basic_user = await AuthService.authenticate_credentials(username, password, basic_request=request)
+                basic_user = await AuthService.authenticate_credentials(username, password)
                 if basic_user is not None:
                     user, scopes = basic_user, _basic_auth_scopes
 
@@ -91,15 +91,11 @@ class AuthService:
     async def authenticate_credentials(
         display_name_or_email: str,
         password: str,
-        *,
-        basic_request: Request | None,
     ) -> User | None:
         """
         Authenticate a user by (display name or email) and password.
 
-        If `basic_request` is provided, the password will be cached for a short time.
-
-        Returns `None` if the user is not found or the password is incorrect.
+        Returns None if the user is not found or the password is incorrect.
         """
 
         # TODO: normalize unicode & strip
@@ -119,29 +115,27 @@ class AuthService:
             logging.debug('User not found %r', display_name_or_email)
             return None
 
-        # fast password cache with extra entropy
-        # used primarily for api basic auth user:pass which is a hot spot
-        if basic_request is not None:
-            key = '\0'.join(
-                (
-                    SECRET,
-                    user.password_hashed,
-                    format_iso_date(user.password_changed_at),
-                    basic_request.client.host,
-                    basic_request.headers.get('User-Agent', ''),
-                    password,
-                )
+        async def factory() -> bytes:
+            logging.debug('Credentials auth cache miss for user %d', user.id)
+            ph = user.password_hasher
+            ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
+            return b'\xff' if ph_valid else b'\x00'
+
+        key = '\0'.join(
+            (
+                SECRET,
+                user.password_hashed,
+                format_iso_date(user.password_changed_at),
+                password,
             )
+        )
 
-            async def factory() -> bytes:
-                logging.debug('Fast password cache miss for user %r', user.id)
-                ph = user.password_hasher
-                ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
-                return b'\xff' if ph_valid else b'\x00'
-
-            cache = await CacheService.get_one_by_key(key, _cache_context, factory, ttl=FAST_PASSWORD_CACHE_EXPIRE)
-        else:
-            cache = None
+        cache = await CacheService.get_one_by_key(
+            key=key,
+            context=_credentials_context,
+            factory=factory,
+            ttl=AUTH_CREDENTIALS_CACHE_EXPIRE,
+        )
 
         if cache is not None:
             ph = None
@@ -151,10 +145,10 @@ class AuthService:
             ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
 
         if not ph_valid:
-            logging.debug('Password mismatch for user %r', user.id)
+            logging.debug('Password mismatch for user %d', user.id)
             return None
 
-        if ph is not None and ph.rehash_needed:
+        if (ph is not None) and ph.rehash_needed:
             new_hash = ph.hash(password)
 
             async with db_autocommit() as session:
@@ -168,7 +162,7 @@ class AuthService:
 
             user.password_hashed = new_hash
             user.password_salt = None
-            logging.debug('Rehashed password for user %r', user.id)
+            logging.debug('Rehashed password for user %d', user.id)
 
         return user
 
@@ -199,7 +193,7 @@ class AuthService:
         """
         Authenticate a user by user session token.
 
-        Returns `None` if the session is not found or the session key is incorrect.
+        Returns None if the session is not found or the session key is incorrect.
         """
 
         token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
@@ -215,9 +209,9 @@ class AuthService:
         """
         Authenticate a user by OAuth1.0 or OAuth2.0.
 
-        Returns `None` if the request is not an OAuth request.
+        Returns None if the request is not an OAuth request.
 
-        Raises `OAuthError` if the request is an invalid OAuth request.
+        Raises OAuthError if the request is an invalid OAuth request.
         """
 
         authorization = request.headers.get('Authorization')
