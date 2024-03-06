@@ -1,0 +1,25 @@
+.signup-body {
+    .content-header {
+        padding-bottom: 0;
+
+        span {
+            position: relative;
+            top: -0.5rem;
+        }
+
+        .illustration-wrapper {
+            margin-left: 1.5rem;
+            position: relative;
+            display: inline;
+
+            // Style the signup illustration to appear in the correct place
+            .arm-illustration {
+                position: absolute;
+
+                left: 139px;
+                bottom: -130px;
+                z-index: 100;
+            }
+        }
+    }
+}

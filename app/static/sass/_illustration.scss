@@ -1,12 +1,5 @@
 .illustration {
     // Ignore any clicks/drags on the illustration
     pointer-events: none;
-
-    // Style the signup illustration to appear in the correct place
-    &.signup-arm-illustration {
-        position: absolute;
-        left: 280px;
-        top: 180px;
-        z-index: 100;
-    }
+    user-select: none;
 }

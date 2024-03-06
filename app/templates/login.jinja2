@@ -1,0 +1,54 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('sessions.new.title') }} | {% endblock %}
+{% block body_class %}login-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="col-6 offset-3">
+        {{ t('sessions.new.title') }}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <p class="text-body-secondary small">
+            {{ t('sessions.new.no account') }}
+            <a href="/signup">{{ t('sessions.new.register now') }}</a>
+        </p>
+
+        <form method="POST" action="/login">
+
+            <label class="form-label d-block">
+                {{ t('sessions.new.email or username') }}
+                <input type="text" class="form-control mt-2" name="display_name_or_email">
+            </label>
+
+            <label class="form-label d-block">
+                {{ t('sessions.new.password') }}
+                <input type="text" class="form-control mt-2" name="password">
+            </label>
+            <p class="form-text">
+                <a class="link-primary" href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>
+            </p>
+
+            <div class="form-check mb-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" autocomplete="off">
+                    {{ t('sessions.new.remember') }}
+                </label>
+            </div>
+
+            <button class="btn btn-primary px-4" type="submit">
+                {{ t('sessions.new.title') }}
+            </button>
+
+        </form>
+
+        <hr>
+
+        <p class="text-body-secondary small">
+            {{ t('users.new.use external auth') }}:
+        </p>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('layouts.sign_up') }} | {% endblock %}
+{% block body_class %}signup-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-6 offset-3">
+        <h1>
+            <span>{{ t('layouts.sign_up') }}</span>
+            <div class="illustration-wrapper">
+                <img class="illustration main-illustration" src="/static/img/signup/illustration.webp">
+                <img class="illustration arm-illustration" src="/static/img/signup/arm-illustration.webp">
+            </div>
+        </h1>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <div class="row row-cols-2">
+            <form class="col" action="POST" method="/signup">
+
+                <label class="form-label d-block">
+                    {{ t('activerecord.attributes.user.display_name') }}
+                    <input type="text" class="form-control mt-2" name="display_name">
+                </label>
+                <p class="form-text">
+                    {{ t('users.new.display name description') }}
+                </p>
+
+                <label class="form-label d-block">
+                    {{ t('passwords.new.email address') }}
+                    <input type="email" class="form-control mt-2" name="email">
+                </label>
+                <p class="form-text">
+                    {% set privacy_policy_link %}
+                    <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
+                        {{ t('users.new.privacy_policy') }}
+                    </a>
+                    {% endset %}
+                    {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
+                </p>
+
+                <label class="form-label d-block mb-3">
+                    {{ t('activerecord.attributes.user.email_confirmation') }}
+                    <input type="email" class="form-control mt-2" name="email_confirm">
+                </label>
+
+                <label class="form-label d-block mb-3">
+                    {{ t('sessions.new.password') }}
+                    <input type="passowrd" class="form-control mt-2" name="password">
+                </label>
+
+                <label class="form-label d-block mb-3">
+                    {{ t('activerecord.attributes.user.pass_crypt_confirmation') }}
+                    <input type="passowrd" class="form-control mt-2" name="password_confirm">
+                </label>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-link btn-sm">
+                        {{ t('users.new.use external auth') }}
+                    </button>
+                    <button class="btn btn-primary px-4" type="submit">
+                        {{ t('layouts.sign_up') }}
+                    </button>
+                </div>
+
+            </form>
+
+            <div class="col text-secondary">
+                <h3 class="mb-3">{{ t('users.new.about.header') }}</h3>
+                <p>{{ t('users.new.about.paragraph_1') }}</p>
+                <p>{{ t('users.new.about.paragraph_2') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
