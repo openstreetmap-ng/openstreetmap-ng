@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from starlette.responses import HTMLResponse
 
+from app.lib.local_chapters import local_chapters
 from app.lib.render_response import render_response
 
 router = APIRouter()
@@ -28,6 +29,11 @@ router = APIRouter()
 @router.get('/relation/{_:int}/history/{__:int}')
 async def index() -> HTMLResponse:
     return render_response('index.jinja2')
+
+
+@router.get('/communities')
+async def communities() -> HTMLResponse:
+    return render_response('communities.jinja2', {'local_chapters': local_chapters()})
 
 
 @router.get('/copyright')

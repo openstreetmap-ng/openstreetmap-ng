@@ -43,11 +43,14 @@ def _get_default_data() -> dict:
     }
 
 
-def render_response(template_name: str, **template_data: dict) -> HTMLResponse:
+def render_response(template_name: str, template_data: dict | None = None) -> HTMLResponse:
     """
     Render the given Jinja2 template with translation.
     """
 
     data = _get_default_data()
-    data.update(template_data)
+
+    if template_data is not None:
+        data.update(template_data)
+
     return HTMLResponse(render(template_name, **data))

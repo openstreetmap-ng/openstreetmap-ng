@@ -1,12 +1,5 @@
 {% extends '_base.jinja2' %}
 {% block title_prefix %}{{ t('layouts.copyright') }} | {% endblock %}
-{% block head %}
-
-{% set description = t('layouts.intro_text') %}
-<meta name="description" content="{{ description }}">
-<meta property="og:description" content="{{ description }}">
-
-{% endblock %}
 {% block body %}
 
 <div class="content-header">
@@ -25,7 +18,7 @@
             </a>
             {% endset %}
             {% set osm_foundation_link %}
-            <a href="https://osmfoundation.org/">
+            <a href="https://osmfoundation.org">
                 {{ t('site.about.legal_1_1_openstreetmap_foundation') }}
             </a>
             {% endset %}
@@ -294,12 +287,12 @@
             <li>
                 {% set spain %}<b>{{ t('site.copyright.legal_babble.contributors_es_spain') }}</b>{% endset %}
                 {% set ign_link %}
-                <a href="https://www.ign.es/">
+                <a href="https://www.ign.es">
                     {{ t('site.copyright.legal_babble.contributors_es_ign') }}
                 </a>
                 {% endset %}
                 {% set scne_link %}
-                <a href="https://www.scne.es/">
+                <a href="https://www.scne.es">
                     {{ t('site.copyright.legal_babble.contributors_es_scne') }}
                 </a>
                 {% endset %}
@@ -320,7 +313,7 @@
             <li>
                 {% set south_africa %}<b>{{ t('site.copyright.legal_babble.contributors_za_south_africa') }}</b>{% endset %}
                 {% set ngi_link %}
-                <a href="https://ngi.dalrrd.gov.za/">
+                <a href="https://ngi.dalrrd.gov.za">
                     {{ t('site.copyright.legal_babble.contributors_za_ngi') }}
                 </a>
                 {% endset %}
@@ -359,7 +352,7 @@
             </a>
             {% endset %}
             {% set online_filing_page_link %}
-            <a href="https://dmca.openstreetmap.org/">
+            <a href="https://dmca.openstreetmap.org">
                 {{ t('site.copyright.legal_babble.infringement_2_1_online_filing_page') }}
             </a>
             {% endset %}
