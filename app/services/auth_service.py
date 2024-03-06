@@ -15,6 +15,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
 from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
+from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -251,3 +252,11 @@ class AuthService:
             raise_for().oauth_bad_user_token()
 
         return token.user, token.scopes
+
+    @staticmethod
+    async def logout_session() -> None:
+        """
+        Logout the current session.
+        """
+
+        get_request().session.pop('session', None)
