@@ -1,9 +1,12 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
+from typing import TypeVar
 
 from sqlalchemy.orm import joinedload
 
 _joinedload_context = ContextVar('StatementContext_JoinedLoad')
+
+T = TypeVar('T')
 
 
 @contextmanager
@@ -19,7 +22,7 @@ def joinedload_context(*keys):
         _joinedload_context.reset(token)
 
 
-def apply_statement_context[T](stmt: T) -> T:
+def apply_statement_context(stmt: T) -> T:
     """
     Apply statement post-processing context.
     """

@@ -12,12 +12,10 @@ from app.lib.naturalsize import naturalsize
 from app.limits import XML_PARSE_MAX_SIZE
 
 
-@cython.cfunc
 def _xattr_json(name: str, xml: str | None = None) -> str:
     return name
 
 
-@cython.cfunc
 def _xattr_xml(name: str, xml: str | None = None) -> str:
     return f'@{xml}' if (xml is not None) else f'@{name}'
 

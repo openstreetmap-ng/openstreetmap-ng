@@ -260,7 +260,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             'visible': element.visible,
             'tags': element.tags,
             **({'nodes': _encode_nodes(element.members, is_json=True)} if is_way else {}),
-            **({'members': _encode_members(element.members)} if is_relation else {}),
+            **({'members': _encode_members(element.members, is_json=True)} if is_relation else {}),
         }
     else:
         return {
@@ -280,7 +280,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             '@visible': element.visible,
             'tag': tuple({'@k': k, '@v': v} for k, v in element.tags.items()),
             **({'nd': _encode_nodes(element.members, is_json=False)} if is_way else {}),
-            **({'member': _encode_members(element.members)} if is_relation else {}),
+            **({'member': _encode_members(element.members, is_json=False)} if is_relation else {}),
         }
 
 

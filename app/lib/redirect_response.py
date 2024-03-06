@@ -9,7 +9,7 @@ from app.middlewares.request_context_middleware import get_request
 
 
 @cython.cfunc
-def _process_referrer(referrer: str) -> str | None:
+def _process_referrer(referrer: str):
     """
     Process the referrer value.
 
