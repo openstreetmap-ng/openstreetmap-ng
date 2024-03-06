@@ -14,7 +14,7 @@
                 <h2 class="fw-light">
                     <img src="/static/img/favicon/256.webp" alt="{{ t('layouts.logo.alt_text') }}">
                     {% set name %}
-                    <b class="vibrant">{{ self.title() }}</b>
+                    <b class="vibrant">{{ self.site_name() }}</b>
                     {% endset %}
                     {{ t('site.about.used_by_html', name=name) | safe }}
                 </h2>
