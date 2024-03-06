@@ -1,51 +1,87 @@
-// Style the about section header
-.about-header {
-    .map-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+.about-body {
+    // Style the about section header
+    .content-header {
+        padding: 0;
+
+        .landing-image {
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .attribution {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+
+                margin-bottom: 0;
+                padding: 1rem 1.5rem;
+
+                background: $vibrant-green;
+                color: $light;
+            }
+        }
+
+        .landing-text {
+            padding: 1.5rem 2rem;
+            background: $dark;
+            color: $light;
+
+            img {
+                height: 1em;
+            }
+
+            .vibrant {
+                color: $vibrant-green;
+            }
+        }
+
+        .header-body {
+            padding: 2rem 2.5rem;
+            background: white;
+        }
     }
 
-    .attribution {
-        background: $vibrant-green;
+    // The sprite usage is deprecated.
+    // New icons should be kept separate for ease of maintenance.
+    // TODO: Split the sprite into separate files.
+    @mixin legacy-about-icon($x, $y) {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: url("/static/img/about/sprite.webp");
+        background-position: $x $y;
     }
 
-    .vibrant {
-        color: $vibrant-green;
+    .icon {
+        position: relative;
+        top: 0.125em;
     }
-}
 
-// The sprite usage is deprecated.
-// New icons should be kept separate for ease of maintenance.
-// TODO: Split the sprite into separate files.
-@mixin legacy-about-icon($x, $y) {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    background: url("/static/img/about/sprite.webp");
-    background-position: $x $y;
-}
+    .icon.local {
+        @include legacy-about-icon(0, 0);
+    }
 
-.about-icon.local {
-    @include legacy-about-icon(0, 0);
-}
+    .icon.community {
+        @include legacy-about-icon(0, -40px);
+    }
 
-.about-icon.community {
-    @include legacy-about-icon(0, -40px);
-}
+    .icon.open {
+        @include legacy-about-icon(0, -80px);
+    }
 
-.about-icon.open {
-    @include legacy-about-icon(0, -80px);
-}
+    .icon.partners {
+        @include legacy-about-icon(0, -120px);
+    }
 
-.about-icon.partners {
-    @include legacy-about-icon(0, -120px);
-}
+    .icon.infringement {
+        @include legacy-about-icon(0, -160px);
+    }
 
-.about-icon.infringement {
-    @include legacy-about-icon(0, -160px);
-}
-
-.about-icon.legal {
-    @include legacy-about-icon(-45px, -160px);
+    .icon.legal {
+        @include legacy-about-icon(-45px, -160px);
+    }
 }

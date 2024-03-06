@@ -58,7 +58,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
 
     @tag_string.setter
     def tag_string(self, s: str) -> None:
-        if ',' in s:  # noqa: SIM108
+        if ',' in s:
             sep = ','
         else:
             # do as before for backwards compatibility

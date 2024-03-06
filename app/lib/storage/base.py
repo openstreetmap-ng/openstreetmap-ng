@@ -22,7 +22,7 @@ class StorageBase(ABC):
         'Drmhze6EPcv0fN_81Bj-nA.png'
         """
 
-        if random:  # noqa: SIM108
+        if random:
             result = buffered_rand_urlsafe(32) + suffix
         else:
             result = hash_urlsafe(data) + suffix

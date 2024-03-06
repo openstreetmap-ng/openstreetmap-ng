@@ -1,7 +1,9 @@
 import * as L from "leaflet"
+import { homePoint } from "../_config.js"
 import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
+import { configureActionSidebars } from "./_action-sidebar.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { getGeolocateControl } from "./_geolocate-control.js"
 import {
@@ -20,15 +22,28 @@ import { getLegendSidebarToggleButton } from "./_sidebar-legend.js"
 import { getShareSidebarToggleButton } from "./_sidebar-share.js"
 import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom-control.js"
+import { getChangesetController } from "./index/_changeset.js"
+import { getChangesetsHistoryController } from "./index/_changesets-history.js"
+import { getElementHistoryController } from "./index/_element-history.js"
+import { getElementController } from "./index/_element.js"
+import { getExportController } from "./index/_export.js"
+import { getIndexController } from "./index/_index.js"
+import { getNewNoteController } from "./index/_new-note.js"
+import { getNoteController } from "./index/_note.js"
+import { getQueryFeaturesController } from "./index/_query-features.js"
+import { configureRouter } from "./index/_router.js"
+import { getRoutingController } from "./index/_routing.js"
+import { getSearchController } from "./index/_search.js"
+import { configureFindHomeButton } from "./leaflet/_find-home-button.js"
 
 // TODO: map.invalidateSize(false) on sidebar-content
 
 /**
- * Get the main map
+ * Get the main map instance
  * @param {HTMLDivElement} container The container element
- * @returns {L.Map} The map
+ * @returns {L.Map} Leaflet map
  */
-export const getMainMap = (container) => {
+const getMainMap = (container) => {
     console.debug("Initializing main map")
 
     const map = L.map(container, {
@@ -111,4 +126,41 @@ export const getMainMap = (container) => {
     setMapState(map, initialMapState, { animate: false })
 
     return map
+}
+
+/**
+ * Configure the main map and all its components
+ * @param {HTMLDivElement} container The container element
+ * @returns {void}
+ */
+export const configureMainMap = (container) => {
+    const map = getMainMap(container)
+
+    // Configure here instead of navbar to avoid global script dependency (navbar is global)
+    // Find home button is only available for the users with configured home location
+    if (homePoint) {
+        const findHomeButton = document.querySelector(".find-home")
+        if (findHomeButton) configureFindHomeButton(map, findHomeButton)
+    }
+
+    configureRouter(
+        new Map([
+            ["/", getIndexController(map)],
+            ["/export", getExportController(map)],
+            ["/directions", getRoutingController(map)],
+            ["/search", getSearchController(map)],
+            ["/query", getQueryFeaturesController(map)],
+            [
+                "(?:/history(?:/(?<scope>nearby|friends))?|/user/(?<displayName>[^/]+)/history)",
+                getChangesetsHistoryController(map),
+            ],
+            ["/note/new", getNewNoteController(map)],
+            ["/note/(?<id>\\d+)", getNoteController(map)],
+            ["/changeset/(?<id>\\d+)", getChangesetController(map)],
+            ["/(?<type>node|way|relation)/(?<id>\\d+)(?:/history/(?<version>\\d+))?", getElementController(map)],
+            ["/(?<type>node|way|relation)/(?<id>\\d+)/history", getElementHistoryController(map)],
+        ]),
+    )
+
+    configureActionSidebars()
 }

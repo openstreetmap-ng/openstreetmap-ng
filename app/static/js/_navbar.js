@@ -6,6 +6,19 @@ import { encodeMapState } from "./leaflet/_map-utils.js"
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
+const navLinks = navbar.querySelectorAll(".nav-link")
+
+// Configure the remote edit button (JOSM)
+const remoteEditButton = navbar.querySelector(".remote-edit")
+if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
+
+// Add active class to current nav-lik
+for (const link of navLinks) {
+    if (link.getAttribute("href") === location.pathname) {
+        link.classList.add("active")
+        break
+    }
+}
 
 /**
  * Map of navbar elements to their base href
@@ -15,9 +28,6 @@ const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
     (map, link) => map.set(link, link.getAttribute("href")),
     new Map(),
 )
-
-const remoteEditButton = navbar.querySelector(".remote-edit")
-if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 
 /**
  * Update the navbar links and current URL hash
@@ -88,6 +98,7 @@ const onMapState = (data) => {
     updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
 }
 
+// Handle mapState window messages (from iD/Rapid)
 addEventListener("message", (event) => {
     const data = event.data
     if (data.type === "mapState") onMapState(data)

@@ -19,6 +19,7 @@ beautifulsoup4 = {extras = ["charset-normalizer", "lxml"], version = "^4.12.3"}
 bleach = "^6.1.0"
 brotlicffi = "^1.1.0.0"
 cython = "^3.0.7"
+dnspython = "^2.6.1"
 email-validator = "^2.1.0.post1"
 fastapi = "<1"
 feedgen = "^1.0.0"
@@ -48,7 +49,6 @@ supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "<1"}
 zstandard = "<1"
-dnspython = "^2.6.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"
@@ -96,6 +96,7 @@ ignore = [
   "ARG001", # unused-function-argument
   "ARG002", # unused-method-argument
   "S101", # assert
+  "SIM108", # if-else-block-instead-of-if-exp
   "PT011", # pytest-raises-too-broad
   "W191", # tab-indentation
   "E111", # indentation-with-invalid-multiple
@@ -179,7 +180,7 @@ skip-magic-trailing-comma = false
 line-ending = "lf"
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "input", "open", "type", "map"]
+builtins-ignorelist = ["id", "input", "open", "type", "map", "copyright", "help"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["pgettext", "npgettext"]

@@ -7,32 +7,14 @@ import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 
-/**
- * Get the fix the map link
- * @param {number} lon The longitude
- * @param {number} lat The latitude
- * @param {number} zoom The zoom
- * @returns {string} The link
- * @example
- * getFixTheMapLink(5.123456, 6.123456, 17)
- * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
- */
-const getFixTheMapLink = (lon, lat, zoom) => {
-    const precision = zoomPrecision(zoom)
-    const lonFixed = lon.toFixed(precision)
-    const latFixed = lat.toFixed(precision)
-    return `https://www.openstreetmap.org/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoom}`
-}
-
-const reportProblemText = i18next.t("javascripts.embed.report_problem")
-
-const searchParams = qsParse(location.search.substring(1))
-
 const mapContainer = document.getElementById("map")
 const map = L.map(mapContainer, {
     center: L.latLng(0, 0),
     zoom: 1,
 })
+
+// Parse search params
+const searchParams = qsParse(location.search.substring(1))
 
 // Set initial view
 if (searchParams.bbox) {
@@ -65,6 +47,25 @@ if (searchParams.marker) {
 // Use default layer when not specified or unknown
 const layer = getBaseLayerById(searchParams.layer) ?? getBaseLayerById(getLayerIdByCode(""))
 map.addLayer(layer)
+
+/**
+ * Get the fix the map link
+ * @param {number} lon The longitude
+ * @param {number} lat The latitude
+ * @param {number} zoom The zoom
+ * @returns {string} The link
+ * @example
+ * getFixTheMapLink(5.123456, 6.123456, 17)
+ * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
+ */
+const getFixTheMapLink = (lon, lat, zoom) => {
+    const precision = zoomPrecision(zoom)
+    const lonFixed = lon.toFixed(precision)
+    const latFixed = lat.toFixed(precision)
+    return `https://www.openstreetmap.org/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoom}`
+}
+
+const reportProblemText = i18next.t("javascripts.embed.report_problem")
 
 // On move end, update the link
 const onMoveEnd = () => {

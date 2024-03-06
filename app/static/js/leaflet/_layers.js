@@ -4,15 +4,15 @@ import { thunderforestApiKey, tracestrackApiKey } from "../_api-keys.js"
 import "../_types.js"
 
 const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
-const copyright = `© <a href="https://www.openstreetmap.org/copyright" rel="license" target="_blank">${copyrightText}</a>`
+const copyright = `© <a href="/copyright" rel="license" target="_blank">${copyrightText}</a>`
 const termsText = i18next.t("javascripts.map.website_and_api_terms")
-const terms = `<a href="https://wiki.osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service" target="_blank">${termsText}</a>`
+const terms = `<a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service" target="_blank">${termsText}</a>`
 
 const donateTitle = i18next.t("layouts.make_a_donation.title")
 const donateText = i18next.t("layouts.make_a_donation.text")
 
 const osmFranceText = i18next.t("javascripts.map.osm_france")
-const osmFranceLink = `<a href="https://openstreetmap.fr" target="_blank">${osmFranceText}</a>`
+const osmFranceLink = `<a href="https://www.openstreetmap.fr" target="_blank">${osmFranceText}</a>`
 
 const cyclosmText = i18next.t("javascripts.map.cyclosm_name")
 const cyclosmLink = `<a href="https://www.cyclosm.org" target="_blank">${cyclosmText}</a>`

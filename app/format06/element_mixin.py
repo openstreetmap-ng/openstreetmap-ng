@@ -296,7 +296,7 @@ def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | No
     type: ElementType = element[0]
     data: dict = element[1]
 
-    if (data_tags := data.get('tag')) is not None:  # noqa: SIM108
+    if (data_tags := data.get('tag')) is not None:
         tags = _decode_tags_unsafe(data_tags)
     else:
         tags = {}

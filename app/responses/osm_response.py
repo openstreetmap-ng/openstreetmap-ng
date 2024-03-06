@@ -1,7 +1,8 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import Any, NoReturn
 
+import cython
 from fastapi import APIRouter, Response
 from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute
@@ -119,25 +120,28 @@ def setup_api_router_response(router: APIRouter) -> None:
         if not isinstance(route, APIRoute):
             continue
 
-        if isinstance(route.response_class, OSMResponse):  # noqa: SIM108
+        if isinstance(route.response_class, OSMResponse):
             response_class = route.response_class
         else:
             response_class = OSMResponse
 
-        endpoint = route.endpoint
-
-        @wraps(endpoint)
-        async def serializing_endpoint(*args, **kwargs):
-            content = await endpoint(*args, **kwargs)  # noqa: B023
-
-            # pass-through serialized response
-            if isinstance(content, Response):
-                return content
-
-            return response_class.serialize(content)  # noqa: B023
-
-        route.endpoint = serializing_endpoint
+        route.endpoint = _get_serializing_endpoint(route.endpoint, response_class)
 
         # fixup other fields
         route.dependant = get_dependant(path=route.path_format, call=route.endpoint)
         route.app = request_response(route.get_route_handler())
+
+
+@cython.cfunc
+def _get_serializing_endpoint(endpoint: Callable, response_class: OSMResponse) -> Callable:
+    @wraps(endpoint)
+    async def serializing_endpoint(*args, **kwargs):
+        content = await endpoint(*args, **kwargs)
+
+        # pass-through serialized response
+        if isinstance(content, Response):
+            return content
+
+        return response_class.serialize(content)
+
+    return serializing_endpoint

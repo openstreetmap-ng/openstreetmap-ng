@@ -107,7 +107,7 @@ class Trace06Mixin:
         for trk in tracks:
             for track_idx, trkseg in enumerate(trk.get('trkseg', ()), track_idx_start):
                 for trkpt in trkseg.get('trkpt', ()):
-                    if (time := trkpt.get('time')) is not None:  # noqa: SIM108
+                    if (time := trkpt.get('time')) is not None:
                         captured_at = datetime.fromisoformat(time)
                     else:
                         captured_at = None

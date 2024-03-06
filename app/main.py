@@ -38,12 +38,18 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 
-# harden against parsing really big numbers
-sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
-
 # register additional mimetypes
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
+
+# harden against parsing really big numbers
+sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
+
+# reduce gc frequency and enable debug logging
+gc.set_threshold(10_000, 10, 10)
+
+if logging.root.level <= logging.DEBUG:
+    gc.set_debug(gc.DEBUG_STATS)
 
 # log when in test environment
 if TEST_ENV:

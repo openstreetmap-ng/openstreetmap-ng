@@ -38,8 +38,7 @@ def _parse_accept_language(accept_language: str) -> list[str]:
 
     # process accept language codes
     for match in _accept_language_re.finditer(accept_language):
-        lang = match['lang']
-        q = match['q']
+        lang: str = match['lang']
 
         # skip weird accept language codes
         if len(lang) > LANGUAGE_CODE_MAX_LENGTH:
@@ -54,8 +53,11 @@ def _parse_accept_language(accept_language: str) -> list[str]:
             try:
                 lang = normalize_locale(lang, raise_on_not_found=True)
             except KeyError:
-                logging.debug('Unsupported accept language %r', lang)
+                if lang != 'en-US':  # don't log for en-US, it's too common and annoying
+                    logging.debug('Unsupported accept language %r', lang)
                 continue
+
+        q: str | None = match['q']
 
         # parse q-factor
         if q is None:

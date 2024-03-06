@@ -25,6 +25,10 @@
         .nav-link {
             padding-left: 0.4em;
             padding-right: 0.4em;
+
+            &.active {
+                transition: none;
+            }
         }
     }
 }
