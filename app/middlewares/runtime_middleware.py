@@ -13,5 +13,5 @@ class RuntimeMiddleware(BaseHTTPMiddleware):
         ts = time.perf_counter()
         response = await call_next(request)
         te = time.perf_counter()
-        response.headers['X-Runtime'] = f'{te - ts:.3f}'
+        response.headers['X-Runtime'] = f'{te - ts:.5f}'
         return response

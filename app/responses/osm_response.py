@@ -2,6 +2,7 @@ from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import Any, NoReturn
 
+import cython
 from fastapi import APIRouter, Response
 from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute
@@ -131,7 +132,8 @@ def setup_api_router_response(router: APIRouter) -> None:
         route.app = request_response(route.get_route_handler())
 
 
-def _get_serializing_endpoint(endpoint: Callable, response_class: OSMResponse) -> Callable:
+@cython.cfunc
+def _get_serializing_endpoint(endpoint: Callable, response_class: OSMResponse):
     @wraps(endpoint)
     async def serializing_endpoint(*args, **kwargs):
         content = await endpoint(*args, **kwargs)

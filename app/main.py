@@ -85,9 +85,9 @@ main.add_middleware(
 main.add_middleware(RequestBodyMiddleware)
 main.add_middleware(RequestUrlMiddleware)
 main.add_middleware(ExceptionsMiddleware)
+main.add_middleware(RuntimeMiddleware)
 
 if TEST_ENV:
-    main.add_middleware(RuntimeMiddleware)
     main.add_middleware(ProfilerMiddleware)
 
 # TODO: /static default cache control
@@ -103,7 +103,8 @@ def _make_router(path: str, prefix: str) -> APIRouter:
     Create a router from all modules in the given path.
     """
     router = APIRouter(prefix=prefix)
-    counter = 0
+    router_counter = 0
+    routes_counter = 0
 
     for p in pathlib.Path(path).glob('*.py'):
         module_name = p.with_suffix('').as_posix().replace('/', '.')
@@ -113,11 +114,12 @@ def _make_router(path: str, prefix: str) -> APIRouter:
         if router_attr is not None:
             setup_api_router_response(router_attr)
             router.include_router(router_attr)
-            counter += 1
+            router_counter += 1
+            routes_counter += len(router_attr.routes)
         else:
             logging.warning('Router not found in %s', module_name)
 
-    logging.info('Loaded %d routers from %s as %r', counter, path, prefix)
+    logging.info('Loaded (%d routers, %d routes) from %s as %r', router_counter, routes_counter, path, prefix)
     return router
 
 

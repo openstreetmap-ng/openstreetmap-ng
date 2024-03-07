@@ -6,7 +6,7 @@ import cython
 
 
 @cython.cfunc
-def _get_local_chapters() -> list[tuple[str, str]]:
+def _get_local_chapters() -> tuple[tuple[str, str], ...]:
     package_dir = pathlib.Path('node_modules/osm-community-index')
     resources = (package_dir / 'dist/resources.min.json').read_bytes()
     communities_dict: dict[str, dict] = json.loads(resources)['resources']
