@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
+from ipaddress import IPv4Address, IPv6Address, ip_address
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -27,6 +28,14 @@ def get_request() -> Request:
     """
 
     return _context.get()
+
+
+def get_request_ip() -> IPv4Address | IPv6Address:
+    """
+    Get the request IP address.
+    """
+
+    return ip_address(_context.get().client.host)
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):

@@ -61,7 +61,7 @@ class UserTokenAccountConfirmService:
                 update(User)
                 .where(
                     User.id == token.user_id,
-                    User.status == UserStatus.pending,
+                    User.status == UserStatus.pending_activation,
                 )
                 .values({User.status: UserStatus.active})
             )

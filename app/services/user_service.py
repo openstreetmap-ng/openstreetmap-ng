@@ -126,7 +126,6 @@ class UserService:
         if not current_user.password_hasher.verify(old_password, current_user.password_hashed):
             collector.raise_error('old_password', t('user.invalid_password'))
 
-        # precompute values to reduce transaction time
         password_hashed = current_user.password_hasher.hash(new_password)
 
         # update user data

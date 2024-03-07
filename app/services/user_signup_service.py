@@ -1,10 +1,13 @@
-from fastapi import Request
+import logging
+
+from sqlalchemy import delete, update
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t, translation_languages
+from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User
 from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -12,16 +15,14 @@ from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
-from app.services.mail_service import MailService
+from app.services.mail_service import SMTP, MailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
-from app.utils import parse_request_ip
 from app.validators.email import validate_email_deliverability
 
 
 class UserSignupService:
     @staticmethod
     async def signup(
-        request: Request,
         collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
@@ -42,10 +43,11 @@ class UserSignupService:
         if not await validate_email_deliverability(email):
             collector.raise_error('email', t('user.invalid_email'))
 
-        # precompute values to reduce transaction time
         password_hashed = PasswordHash.default().hash(password)
-        created_ip = parse_request_ip(request)
+        created_ip = get_request_ip()
         languages = translation_languages()
+
+        # TODO: purge stale pending terms accounts
 
         # create user
         async with db_autocommit() as session:
@@ -54,28 +56,62 @@ class UserSignupService:
                 display_name=display_name,
                 password_hashed=password_hashed,
                 created_ip=created_ip,
-                status=UserStatus.pending,
+                status=UserStatus.pending_terms,
                 auth_provider=None,  # TODO: support
                 auth_uid=None,
                 languages=languages,
             )
             session.add(user)
 
+        return await AuthService.create_session(user.id)
+
+    @staticmethod
+    async def abort_signup() -> None:
+        """
+        Abort the current signup process.
+        """
+
+        async with db_autocommit() as session:
+            stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
+            await session.execute(stmt)
+
+    @staticmethod
+    async def accept_terms() -> None:
+        """
+        Accept the terms of service and send a confirmation email.
+        """
+
+        user = auth_user()
+
+        async with db_autocommit() as session:
+            stmt = (
+                update(User)
+                .where(User.id == user.id, User.status == UserStatus.pending_terms)
+                .values({User.status: UserStatus.pending_activation})
+            )
+
+            if (await session.execute(stmt)).rowcount != 1:
+                return
+
         with auth_context(user, scopes=()):
             await UserSignupService.send_confirm_email()
 
-        return await AuthService.create_session(user.id)
+            # auto-activate if smtp is not configured
+            if SMTP is None:
+                logging.info('Activating user %d (SMTP is not configured)', user.id)
+                token = await UserTokenAccountConfirmService.create()
+                await UserTokenAccountConfirmService.confirm(token)
 
     @staticmethod
     async def send_confirm_email() -> None:
         """
-        Send a confirmation email for the account.
+        Send a confirmation email for the current user.
         """
 
         token = await UserTokenAccountConfirmService.create()
 
         await MailService.schedule(
-            from_type=MailSource.system,
+            source=MailSource.system,
             from_user=None,
             to_user=auth_user(),
             subject='TODO',  # TODO:

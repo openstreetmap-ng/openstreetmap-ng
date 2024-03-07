@@ -54,7 +54,6 @@ for (const container of document.querySelectorAll(".rich-text-container")) {
 
         const formData = new FormData()
         formData.append("text", sourceTextArea.value)
-        formData.append("text_format", "markdown")
 
         fetch("/api/web/rich-text/preview", {
             method: "POST",

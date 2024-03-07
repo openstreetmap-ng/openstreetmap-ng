@@ -1,19 +1,18 @@
-from fastapi import Request
 from shapely import Point
 from sqlalchemy import func, select
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
+from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
-from app.utils import parse_request_ip
 
 
 class NoteService:
     @staticmethod
-    async def create(request: Request, point: Point, text: str) -> int:
+    async def create(point: Point, text: str) -> int:
         """
         Create a note and return its id.
         """
@@ -23,7 +22,7 @@ class NoteService:
             user_ip = None
         else:
             user_id = None
-            user_ip = parse_request_ip(request)
+            user_ip = get_request_ip()
 
         async with db_autocommit() as session:
             note = Note(point=point)

@@ -7,7 +7,6 @@ from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from shapely import Point
 from sqlalchemy import (
     ARRAY,
-    Boolean,
     Enum,
     Index,
     LargeBinary,
@@ -70,7 +69,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         TIMESTAMP(True), nullable=True, server_default=func.statement_timestamp()
     )
     password_salt: Mapped[str | None] = mapped_column(Unicode, nullable=True, server_default=None)
-    consider_public_domain: Mapped[bool | None] = mapped_column(Boolean, nullable=True, server_default=None)
     roles: Mapped[list[UserRole]] = mapped_column(
         ARRAY(Enum(UserRole), dimensions=1), nullable=False, server_default='{}'
     )

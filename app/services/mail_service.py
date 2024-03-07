@@ -3,8 +3,8 @@ from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
 
+import aiosmtplib
 import anyio
-from aiosmtplib import SMTP
 from sqlalchemy import null, or_, select
 
 from app.config import (
@@ -40,14 +40,26 @@ if _validate_smtp_config():
 
             use_tls = port == 465
             start_tls = True if port == 587 else None
-            return SMTP(host, port, user, password, use_tls=use_tls, start_tls=start_tls)
+            return aiosmtplib.SMTP(
+                hostname=host,
+                port=port,
+                username=user,
+                password=password,
+                use_tls=use_tls,
+                start_tls=start_tls,
+            )
         else:
-            return SMTP(host, port, user, password)
+            return aiosmtplib.SMTP(
+                hostname=host,
+                port=port,
+                username=user,
+                password=password,
+            )
 
-    _SMTP = _create_smtp_client(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE)
+    SMTP = _create_smtp_client(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE)
 else:
     logging.warning('SMTP is not configured, mail delivery is disabled')
-    _SMTP = None
+    SMTP = None
 
 
 async def _send_smtp(mail: Mail) -> None:
@@ -81,12 +93,12 @@ async def _send_smtp(mail: Mail) -> None:
         # disables threading in gmail
         message['X-Entity-Ref-ID'] = full_ref
 
-    if _SMTP is None:
+    if SMTP is None:
         logging.info('Discarding mail %r (SMTP is not configured)', mail.id)
         return
 
     logging.debug('Sending mail %r', mail.id)
-    await _SMTP.send_message(message)
+    await SMTP.send_message(message)
 
 
 class MailService:

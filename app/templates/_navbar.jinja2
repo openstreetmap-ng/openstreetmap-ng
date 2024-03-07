@@ -95,6 +95,8 @@
                 </li>
             </ul>
 
+            {% if user %}
+
             <div class="dropdown">
                 <button class="btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center"
                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -146,14 +148,18 @@
                 </ul>
             </div>
 
-            {# <div class="btn-group" role="group">
+            {% else %}
+
+            <div class="btn-group" role="group">
                 <a class="btn btn-outline-secondary" href="/login">
                     {{ t('sessions.new.title') }}
                 </a>
-                <a class="btn btn-outline-secondary" href="/user/new">
+                <a class="btn btn-outline-secondary" href="/signup">
                     {{ t('users.new.title') }}
                 </a>
-            </div> #}
+            </div>
+
+            {% endif %}
 
         </div>
     </div>

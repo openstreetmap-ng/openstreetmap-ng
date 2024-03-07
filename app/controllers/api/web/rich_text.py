@@ -13,8 +13,7 @@ router = APIRouter(prefix='/rich-text')
 @router.post('/preview')
 async def preview(
     text: Annotated[str, Form()],
-    text_format: Annotated[TextFormat, Form()],
     _: Annotated[User, web_user()],
 ) -> str:
-    cache_entry = await rich_text(text, None, text_format)
+    cache_entry = await rich_text(text, None, TextFormat.markdown)
     return cache_entry.value.decode()

@@ -1,11 +1,9 @@
 import unicodedata
-from ipaddress import IPv4Address, IPv6Address, ip_address
 from shutil import which
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 import msgspec
-from fastapi import Request
 
 from app.config import USER_AGENT
 
@@ -79,11 +77,3 @@ def extend_query_params(uri: str, params: dict) -> str:
     query = parse_qsl(uri_.query, keep_blank_values=True)
     query.extend(params.items())
     return urlunsplit(uri_._replace(query=urlencode(query)))
-
-
-def parse_request_ip(request: Request) -> IPv4Address | IPv6Address:
-    """
-    Parse the client IP address from a `Request`.
-    """
-
-    return ip_address(request.client.host)

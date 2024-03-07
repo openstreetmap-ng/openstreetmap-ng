@@ -164,7 +164,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
         'description': user.description,
         ('contributor_terms' if is_json else 'contributor-terms'): {
             xattr('agreed'): True,
-            **({xattr('pd'): user.consider_public_domain} if access_private else {}),
+            **({xattr('pd'): False} if access_private else {}),
         },
         'img': {xattr('href'): user.avatar_url},
         'roles': tuple(role.value for role in user.roles),
