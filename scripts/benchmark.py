@@ -22,6 +22,14 @@ async def benchmark(url: str, *, warmup: int = 5, num: int = 100) -> list[float]
 # Min: 0.04264s
 # Median: 0.04521s
 
+# official
+# Min: 0.01892s
+# Median: 0.02921s
+
+# test
+# Min: 0.00913s
+# Median: 0.01725s
+
 # python
 # Min: 0.00314s
 # Median: 0.00325s
