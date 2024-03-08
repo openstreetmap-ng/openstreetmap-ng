@@ -34,7 +34,7 @@ async def login(
     response: Response,
     display_name_or_email: Annotated[str, Form(min_length=1)],
     password: Annotated[PasswordStr, Form()],
-    remember: Annotated[bool, Form(default=False)],
+    remember: Annotated[bool, Form()] = False,
 ):
     collector = MessageCollector()
     token = await UserService.login(
@@ -48,7 +48,10 @@ async def login(
 
 
 @router.post('/logout')
-async def logout(response: Response):
+async def logout(
+    response: Response,
+    _: Annotated[User, web_user()],
+):
     await AuthService.logout_session()
     response.delete_cookie('auth')
     return redirect_response()

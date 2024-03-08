@@ -1,6 +1,6 @@
 import { configureStandardForm } from "./_standard-form.js"
 
-const userSettingsForm = document.querySelector(".user-settings-form")
+const userSettingsForm = document.querySelector("form.user-settings-form")
 if (userSettingsForm) {
     configureStandardForm(userSettingsForm)
 

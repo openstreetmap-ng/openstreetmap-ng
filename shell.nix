@@ -331,16 +331,29 @@ let
     '')
 
     # -- Misc
+    (writeShellScriptBin "js-pipeline" ''
+      set -e
+      src_paths=$(find app/static/js \
+        -maxdepth 1 \
+        -type f \
+        -name "*.js" \
+        -not -name "_*" \
+        -not -name "bundle-*")
+      bun build \
+        --entry-naming "[dir]/bundle-[name].[ext]" \
+        --sourcemap=inline \
+        --outdir app/static/js \
+        $src_paths
+    '')
     (writeShellScriptBin "watch-js" ''
-      while true; do
-        bun build \
-          --watch \
-          --entry-naming "[dir]/bundle-[name].[ext]" \
-          --sourcemap=inline \
-          --outdir app/static/js \
-          app/static/js/id.js app/static/js/main.js app/static/js/rapid.js
-        echo "Bun exit unexpectedly, restarting..."
-        sleep 2
+      shopt -s globstar
+      paths=$(find app/static/js \
+        -type f \
+        -name "*.js" \
+        -not -name "bundle-*")
+      js-pipeline
+      while inotifywait -e close_write $paths; do
+        js-pipeline
       done
     '')
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")

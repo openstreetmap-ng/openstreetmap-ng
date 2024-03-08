@@ -27,6 +27,9 @@ map:
       end: Drag and drop this marker to set the end position
     engine:
       title: Routing engine
+signup:
+  email_missmatch: The email addresses do not match
+  password_missmatch: The passwords do not match
 action:
   copy: Copy
   save_as: Save as

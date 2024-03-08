@@ -1,6 +1,8 @@
 from fastapi import APIRouter
-from starlette.responses import HTMLResponse
+from starlette import status
+from starlette.responses import HTMLResponse, RedirectResponse
 
+from app.lib.auth_context import auth_user
 from app.lib.local_chapters import local_chapters
 from app.lib.render_response import render_response
 
@@ -52,10 +54,14 @@ async def about() -> HTMLResponse:
 
 
 @router.get('/login')
-async def login() -> HTMLResponse:
-    return render_response('login.jinja2')
+async def login():
+    if auth_user() is not None:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response('user/login.jinja2')
 
 
 @router.get('/signup')
-async def signup() -> HTMLResponse:
-    return render_response('signup.jinja2')
+async def signup():
+    if auth_user() is not None:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response('user/signup.jinja2')

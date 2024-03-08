@@ -5,10 +5,11 @@ import i18next from "i18next"
  * Initialize a standard bootstrap form
  * @param {HTMLFormElement} form The form element to initialize
  * @param {function|null} successCallback Optional callback to call on success
+ * @param {function|null} clientValidationCallback Optional client validation before submitting
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const configureStandardForm = (form, successCallback = null) => {
+export const configureStandardForm = (form, successCallback = null, clientValidationCallback = null) => {
     console.debug("Initializing standard form", form)
 
     const submitElements = form.querySelectorAll("[type=submit]")
@@ -32,6 +33,8 @@ export const configureStandardForm = (form, successCallback = null) => {
      * @returns {void}
      */
     const handleElementFeedback = (element, type, message) => {
+        element.parentElement.classList.add("position-relative")
+
         let feedback = element.nextElementSibling
         if (!feedback?.classList.contains("element-feedback")) {
             feedback = document.createElement("div")
@@ -40,35 +43,37 @@ export const configureStandardForm = (form, successCallback = null) => {
         }
 
         if (type === "success" || type === "info") {
-            feedback.classList.add("valid-feedback")
-            feedback.classList.remove("invalid-feedback")
+            feedback.classList.add("valid-tooltip")
+            feedback.classList.remove("invalid-tooltip")
             element.classList.add("is-valid")
             element.classList.remove("is-invalid")
-        } else if (type === "error" || type === "missing") {
-            feedback.classList.add("invalid-feedback")
-            feedback.classList.remove("valid-feedback")
+        } else {
+            feedback.classList.add("invalid-tooltip")
+            feedback.classList.remove("valid-tooltip")
             element.classList.add("is-invalid")
             element.classList.remove("is-valid")
-        } else {
-            console.error("Unsupported feedback type", type)
-            return
         }
 
         feedback.textContent = message
 
         // Remove feedback on change or submit
+        const onElementInput = () => {
+            if (!feedback) return
+            console.debug("Invalidating form feedback")
+            form.dispatchEvent(new CustomEvent("invalidate"))
+        }
+
         const onInvalidated = () => {
             if (!feedback) return
             feedback.remove()
             feedback = null
             element.classList.remove("is-valid", "is-invalid")
-            element.removeEventListener("change", onInvalidated)
-            form.removeEventListener("submit", onInvalidated)
         }
 
         // Listen for events that invalidate the feedback
-        element.addEventListener("change", onInvalidated)
-        form.addEventListener("submit", onInvalidated)
+        element.addEventListener("input", onElementInput, { once: true })
+        form.addEventListener("invalidate", onInvalidated, { once: true })
+        form.addEventListener("submit", onInvalidated, { once: true })
     }
 
     /**
@@ -103,12 +108,9 @@ export const configureStandardForm = (form, successCallback = null) => {
         } else if (type === "info") {
             feedback.classList.remove("alert-success", "alert-danger")
             feedback.classList.add("alert-info")
-        } else if (type === "error" || type === "missing") {
+        } else {
             feedback.classList.remove("alert-success", "alert-info")
             feedback.classList.add("alert-danger")
-        } else {
-            console.error("Unsupported feedback type", type)
-            return
         }
 
         feedback.firstElementChild.textContent = message
@@ -120,11 +122,43 @@ export const configureStandardForm = (form, successCallback = null) => {
             feedbackAlert = null
             feedback.remove()
             feedback = null
-            form.removeEventListener("submit", onInvalidated)
         }
 
         // Listen for events that invalidate the feedback
-        form.addEventListener("submit", onInvalidated)
+        form.addEventListener("invalidate submit", onInvalidated, { once: true })
+    }
+
+    /**
+     * Process raw form feedback
+     * @param {string|Array} detail
+     * @returns {void}
+     */
+    const processFormFeedback = (detail) => {
+        console.debug("Received form feedback", detail)
+
+        if (Array.isArray(detail)) {
+            // Process array of details
+            for (const {
+                type,
+                loc: [_, field],
+                msg,
+            } of detail) {
+                if (field) {
+                    // TODO: better handle not found (input)
+                    const input = form.querySelector(`[name=${field}]`)
+                    if (input.type === "hidden") {
+                        handleFormFeedback(type, msg)
+                    } else {
+                        handleElementFeedback(input, type, msg)
+                    }
+                } else {
+                    handleFormFeedback(type, msg)
+                }
+            }
+        } else {
+            // Process detail as a single text message
+            handleFormFeedback("error", detail)
+        }
     }
 
     // Disable browser validation in favor of bootstrap
@@ -149,6 +183,18 @@ export const configureStandardForm = (form, successCallback = null) => {
         if (pending) {
             console.warn("Form already pending", form)
             return
+        }
+
+        if (clientValidationCallback) {
+            const clientValidationResult = clientValidationCallback(form)
+            if (
+                clientValidationResult &&
+                (!Array.isArray(clientValidationResult) || clientValidationResult.length > 0)
+            ) {
+                console.debug("Client validation failed")
+                processFormFeedback(clientValidationResult)
+                return
+            }
         }
 
         pending = true
@@ -179,33 +225,7 @@ export const configureStandardForm = (form, successCallback = null) => {
 
                 // Process form feedback if present
                 const detail = data.detail
-                if (detail) {
-                    console.debug("Received form feedback", detail)
-
-                    if (Array.isArray(detail)) {
-                        // Process array of details
-                        for (const {
-                            type,
-                            loc: [_, field],
-                            msg,
-                        } of detail) {
-                            if (field) {
-                                // TODO: better handle not found (input)
-                                const input = form.querySelector(`[name=${field}]`)
-                                if (input.type === "hidden") {
-                                    handleFormFeedback(type, msg)
-                                } else {
-                                    handleElementFeedback(input, type, msg)
-                                }
-                            } else {
-                                handleFormFeedback(type, msg)
-                            }
-                        }
-                    } else {
-                        // Process detail as a single text message
-                        handleFormFeedback("error", detail)
-                    }
-                }
+                if (detail) processFormFeedback(detail)
 
                 // If the request was successful, call the callback
                 if (resp.ok && successCallback) successCallback(data)
