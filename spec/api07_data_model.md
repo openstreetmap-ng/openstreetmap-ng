@@ -10,7 +10,6 @@ The base element defines the core attributes shared by all map objects.
 | visible | Boolean | Indicates whether the object should be rendered (deleted flag). |
 | tags | Map<KeyString, ValueString> | Key-value pairs for additional object properties. |
 | created_at | DateTime | Creation timestamp (ISO 8601, UTC). |
-| superseded_at | Optional\<DateTime> | Timestamp when the version was superseded, if applicable (ISO 8601, UTC). |
 | user_id | Integer |  Identifier of the user who created the version. |
 | changeset_id | Integer | Identifier of the changeset where this version was created. |
 
@@ -89,7 +88,6 @@ Longitude and latitude are present if and only if the node is visible.
         "name": "Crab Shack"
     },
     "created_at": "2019-01-01T00:00:00Z",
-    "superseded_at": "2020-01-01T00:00:00Z",
     "user_id": 15215305,
     "changeset_id": 148023492,
     "lon": 135.1234567,
@@ -136,7 +134,6 @@ The member type is a small structure with the following attributes:
         "landuse": "residential"
     },
     "created_at": "2019-01-01T00:00:00Z",
-    "superseded_at": "2020-01-01T00:00:00Z",
     "user_id": 15215305,
     "changeset_id": 148023492,
     "members": [
@@ -179,7 +176,6 @@ No consecutive members can have the same id.
         "name": "Main Street"
     },
     "created_at": "2019-01-01T00:00:00Z",
-    "superseded_at": "2020-01-01T00:00:00Z",
     "user_id": 15215305,
     "changeset_id": 148023492,
     "members": [
