@@ -66,16 +66,6 @@ class UserSignupService:
         return await AuthService.create_session(user.id)
 
     @staticmethod
-    async def abort_signup() -> None:
-        """
-        Abort the current signup process.
-        """
-
-        async with db_autocommit() as session:
-            stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
-            await session.execute(stmt)
-
-    @staticmethod
     async def accept_terms() -> None:
         """
         Accept the terms of service and send a confirmation email.
@@ -118,3 +108,13 @@ class UserSignupService:
             template_name='TODO',
             template_data={'token': str(token)},
         )
+
+    @staticmethod
+    async def abort_signup() -> None:
+        """
+        Abort the current signup process.
+        """
+
+        async with db_autocommit() as session:
+            stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
+            await session.execute(stmt)

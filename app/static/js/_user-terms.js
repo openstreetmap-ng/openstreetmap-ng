@@ -29,4 +29,8 @@ if (userTermsBody) {
     }
 
     autoDetectResidence()
+
+    const onAbortSignupClick = () => userTermsBody.querySelector("form.abort-signup-form").submit()
+    const abortSignupButton = userTermsBody.querySelector(".abort-signup-btn")
+    abortSignupButton.addEventListener("click", onAbortSignupClick)
 }

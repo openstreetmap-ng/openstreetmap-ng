@@ -13,16 +13,14 @@ from starlette.staticfiles import StaticFiles
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
-    COOKIE_SESSION_TTL,
-    ID_ASSETS_DIR,
     ID_VERSION,
     LOCALE_DIR,
     NAME,
-    RAPID_ASSETS_DIR,
     RAPID_VERSION,
     SECRET,
     TEST_ENV,
 )
+from app.limits import COOKIE_SESSION_MAX_AGE
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
@@ -75,11 +73,11 @@ main.add_middleware(VersionMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
 main.add_middleware(TranslationMiddleware)  # depends on: auth
 main.add_middleware(AuthMiddleware)  # depends on: session
-main.add_middleware(
+main.add_middleware(  # TODO: is it actually useful?
     SessionMiddleware,
     secret_key=SECRET,
     session_cookie='session',
-    max_age=COOKIE_SESSION_TTL,
+    max_age=COOKIE_SESSION_MAX_AGE,
     https_only=not TEST_ENV,
 )
 main.add_middleware(RequestBodyMiddleware)
@@ -94,8 +92,16 @@ if TEST_ENV:
 main.mount('/static', StaticFiles(directory='app/static'), name='static')
 main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
 main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
-main.mount(f'/static-id/{ID_VERSION}', StaticFiles(directory=ID_ASSETS_DIR), name='static-id')
-main.mount(f'/static-rapid/{RAPID_VERSION}', StaticFiles(directory=RAPID_ASSETS_DIR), name='static-rapid')
+main.mount(
+    f'/static-id/{ID_VERSION}',
+    StaticFiles(directory='node_modules/iD/dist'),
+    name='static-id',
+)
+main.mount(
+    f'/static-rapid/{RAPID_VERSION}',
+    StaticFiles(directory='node_modules/@rapideditor/rapid/dist'),
+    name='static-rapid',
+)
 
 
 def _make_router(path: str, prefix: str) -> APIRouter:

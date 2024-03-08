@@ -64,10 +64,11 @@ def _get_user(require_scopes: SecurityScopes) -> User:
 
     # user must be authenticated
     if user is None:
-        raise_for().unauthorized(request_basic_auth=True)
+        request_basic_auth = ExtendedScope.web_user not in require_scopes.scopes
+        raise_for().unauthorized(request_basic_auth=request_basic_auth)
 
     # and have the required scopes
-    if missing_scopes := set(require_scopes.scopes).difference(s.value for s in user_scopes):
+    if missing_scopes := set(require_scopes.scopes).difference(user_scopes):
         raise_for().insufficient_scopes(missing_scopes)
 
     return user

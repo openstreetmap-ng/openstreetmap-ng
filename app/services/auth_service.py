@@ -75,7 +75,7 @@ class AuthService:
                     user, scopes = oauth_result
 
         # all endpoints support session cookies
-        if user is None and (token_str := request.session.get('session')) is not None:
+        if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
             token_struct = UserTokenStruct.from_str(token_str)
             session_user = await AuthService.authenticate_session(token_struct)

@@ -2,9 +2,7 @@ from fastapi import APIRouter
 from starlette.responses import HTMLResponse
 
 from app.lib.local_chapters import local_chapters
-from app.lib.redirect_response import redirect_response
 from app.lib.render_response import render_response
-from app.services.auth_service import AuthService
 
 router = APIRouter()
 
@@ -61,9 +59,3 @@ async def login() -> HTMLResponse:
 @router.get('/signup')
 async def signup() -> HTMLResponse:
     return render_response('signup.jinja2')
-
-
-@router.post('/logout')
-async def logout():
-    await AuthService.logout_session()
-    return redirect_response()

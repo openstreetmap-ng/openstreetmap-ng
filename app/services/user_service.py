@@ -12,14 +12,36 @@ from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
 from app.models.geometry import PointGeometry
+from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.repositories.user_repository import UserRepository
+from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
 from app.services.email_change_service import EmailChangeService
 from app.validators.email import validate_email_deliverability
 
 
 class UserService:
+    @staticmethod
+    async def login(
+        collector: MessageCollector,
+        *,
+        display_name_or_email: str,
+        password: PasswordStr,
+    ) -> UserTokenStruct:
+        """
+        Attempt to log in a user.
+
+        Returns a new user session token.
+        """
+
+        user = await AuthService.authenticate_credentials(display_name_or_email, password)
+
+        if user is None:
+            collector.raise_error(None, t('users.auth_failure.invalid_credentials'))
+
+        return await AuthService.create_session(user.id)
+
     @staticmethod
     async def update_about_me(
         *,

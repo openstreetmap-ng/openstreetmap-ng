@@ -11,7 +11,11 @@ from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 class AuthExceptionsMixin:
     @abstractmethod
     def unauthorized(self, *, request_basic_auth: bool = False) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(
+            status.HTTP_401_UNAUTHORIZED,
+            detail='Unauthorized',
+            headers={'WWW-Authenticate': 'Basic realm="Access to OpenStreetMap"'} if request_basic_auth else None,
+        )
 
     @abstractmethod
     def insufficient_scopes(self, scopes: Sequence[str]) -> NoReturn:

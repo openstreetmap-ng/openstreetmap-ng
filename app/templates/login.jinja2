@@ -15,7 +15,7 @@
             <a href="/signup">{{ t('sessions.new.register now') }}</a>
         </p>
 
-        <form method="POST" action="/login">
+        <form method="POST" action="/api/web/user/login">
 
             <label class="form-label d-block">
                 {{ t('sessions.new.email or username') }}
@@ -32,7 +32,7 @@
 
             <div class="form-check mb-3">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" autocomplete="off">
+                    <input class="form-check-input" type="checkbox" name="remember" value="True" autocomplete="off">
                     {{ t('sessions.new.remember') }}
                 </label>
             </div>

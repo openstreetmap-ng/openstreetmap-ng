@@ -53,12 +53,9 @@ TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
-COOKIE_SESSION_TTL = int(os.getenv('COOKIE_SESSION_TTL', 365 * 24 * 3600))  # 1 year
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
-FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
-FILE_CACHE_TTL = int(os.getenv('FILE_CACHE_TTL', 7 * 24 * 3600))  # 1 week
+FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))  # TODO: implement?
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
-ID_ASSETS_DIR = _path(os.getenv('ID_ASSETS_DIR', 'node_modules/iD/dist'))
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
@@ -66,7 +63,6 @@ POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', '
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@127.0.0.1/postgres')
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
-RAPID_ASSETS_DIR = _path(os.getenv('RAPID_ASSETS_DIR', 'node_modules/@rapideditor/rapid/dist'))
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1?password=redis&protocol=3')
 SMTP_HOST = os.getenv('SMTP_HOST', '127.0.0.1')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 25))

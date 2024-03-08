@@ -1,17 +1,24 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Request
+from fastapi import APIRouter, Form, Query, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import TEST_ENV
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
+from app.lib.redirect_response import redirect_response
+from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.repositories.user_repository import UserRepository
+from app.services.auth_service import AuthService
+from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 
 router = APIRouter(prefix='/user')
+
+# TODO: captcha
 
 
 # TODO: frontend implement
@@ -22,10 +29,34 @@ async def display_name_available(
     return await UserRepository.check_display_name_available(display_name)
 
 
-# TODO: captcha
+@router.post('/login')
+async def login(
+    response: Response,
+    display_name_or_email: Annotated[str, Form(min_length=1)],
+    password: Annotated[PasswordStr, Form()],
+    remember: Annotated[bool, Form(default=False)],
+):
+    collector = MessageCollector()
+    token = await UserService.login(
+        collector,
+        display_name_or_email=display_name_or_email,
+        password=password,
+    )
+    max_age = COOKIE_AUTH_MAX_AGE if remember else None
+    response.set_cookie('auth', str(token), max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
+    return collector.result
+
+
+@router.post('/logout')
+async def logout(response: Response):
+    await AuthService.logout_session()
+    response.delete_cookie('auth')
+    return redirect_response()
+
+
 @router.post('/signup')
 async def signup(
-    request: Request,
+    response: Response,
     display_name: Annotated[DisplayNameStr, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[PasswordStr, Form()],
@@ -37,18 +68,8 @@ async def signup(
         email=email,
         password=password,
     )
-    request.session['session'] = str(token)
+    response.set_cookie('auth', str(token), None, secure=not TEST_ENV, httponly=True, samesite='lax')
     return collector.result
-
-
-@router.post('/abort-signup')
-async def abort_signup(
-    request: Request,
-    _: Annotated[User, web_user()],
-):
-    await UserSignupService.abort_signup()
-    request.session.pop('session', None)
-    return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
 
 
 @router.post('/accept-terms')
@@ -57,6 +78,16 @@ async def accept_terms(
 ):
     await UserSignupService.accept_terms()
     return RedirectResponse('/user/pending-activation', status.HTTP_303_SEE_OTHER)
+
+
+@router.post('/abort-signup')
+async def abort_signup(
+    response: Response,
+    _: Annotated[User, web_user()],
+):
+    await UserSignupService.abort_signup()
+    response.delete_cookie('auth')
+    return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
 
 
 # @router.post('/settings')
