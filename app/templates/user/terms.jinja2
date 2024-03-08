@@ -29,14 +29,16 @@
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="radio" autocomplete="off" name="residence" value="france">
+                    <input class="form-check-input" type="radio" autocomplete="off" name="residence" value="france"
+                        data-timezone="Europe/Paris">
                     <img class="flag" src="/static/img/terms/france.webp">
                     {{ t('users.terms.legale_names.france') }}
                 </label>
             </div>
             <div class="form-check form-check-inline">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="radio" autocomplete="off" name="residence" value="italy">
+                    <input class="form-check-input" type="radio" autocomplete="off" name="residence" value="italy"
+                        data-timezone="Europe/Rome">
                     <img class="flag" src="/static/img/terms/italy.webp">
                     {{ t('users.terms.legale_names.italy') }}
                 </label>
@@ -44,13 +46,13 @@
         </div>
 
         <div class="mb-3">
-            <div class="legal-document" data-legal-document="other">
+            <div class="legal-document" data-residence="other">
                 {{ legal_terms_GB | safe }}
             </div>
-            <div class="legal-document d-none" data-legal-document="france">
+            <div class="legal-document d-none" data-residence="france">
                 {{ legal_terms_FR | safe }}
             </div>
-            <div class="legal-document d-none" data-legal-document="italy">
+            <div class="legal-document d-none" data-residence="italy">
                 {{ legal_terms_IT | safe }}
             </div>
         </div>
