@@ -338,7 +338,7 @@ let
           --entry-naming "[dir]/bundle-[name].[ext]" \
           --sourcemap=inline \
           --outdir app/static/js \
-          app/static/js/id.js app/static/js/main.js app/static/js/matomo.js app/static/js/rapid.js
+          app/static/js/id.js app/static/js/main.js app/static/js/rapid.js
         echo "Bun exit unexpectedly, restarting..."
         sleep 2
       done
