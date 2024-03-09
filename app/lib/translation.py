@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime
@@ -45,27 +45,18 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
 
 
 @contextmanager
-def translation_context(languages: Iterable[str]):
+def translation_context(languages: Sequence[str]):
     """
     Context manager for setting the translation in ContextVar.
 
     Languages order determines the preference, from most to least preferred.
     """
 
-    processed = []
-
-    for lang in languages:
-        processed.append(lang)
-
-        # logical optimization, break if the default language is reached
-        if lang == DEFAULT_LANGUAGE:
-            break
-    else:
-        # processed languages must contain the default language
-        processed.append(DEFAULT_LANGUAGE)
-
-    # convert to tuple for hashability
-    processed = tuple(processed)
+    try:
+        i = languages.index(DEFAULT_LANGUAGE)
+        processed = tuple(languages[: i + 1])
+    except ValueError:
+        processed = (*languages, DEFAULT_LANGUAGE)
 
     translation = _get_translation(processed)
     token = _context.set((processed, translation))

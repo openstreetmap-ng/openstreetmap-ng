@@ -15,37 +15,33 @@ from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
 
 
 @cython.cfunc
-def _decompress_deflate(buffer: bytes) -> bytes:
-    return zlib.decompress(buffer, -zlib.MAX_WBITS)
-
-
-@cython.cfunc
-def _decompress_gzip(buffer: bytes) -> bytes:
-    return gzip.decompress(buffer)
-
+def _decompress_zstd(buffer: bytes) -> bytes:
+    return ZstdDecompressor().decompress(buffer, allow_extra_data=False)
 
 @cython.cfunc
 def _decompress_brotli(buffer: bytes) -> bytes:
     return brotlicffi.decompress(buffer)
 
+@cython.cfunc
+def _decompress_gzip(buffer: bytes) -> bytes:
+    return gzip.decompress(buffer)
 
 @cython.cfunc
-def _decompress_zstd(buffer: bytes) -> bytes:
-    return ZstdDecompressor().decompress(buffer, allow_extra_data=False)
-
+def _decompress_deflate(buffer: bytes) -> bytes:
+    return zlib.decompress(buffer, -zlib.MAX_WBITS)
 
 def _get_decompressor(content_encoding: str | None) -> Callable[[bytes], bytes] | None:
     if content_encoding is None:
         return None
 
-    if content_encoding == 'deflate':
-        return _decompress_deflate
-    if content_encoding == 'gzip':
-        return _decompress_gzip
-    if content_encoding == 'br':
-        return _decompress_brotli
     if content_encoding == 'zstd':
         return _decompress_zstd
+    if content_encoding == 'br':
+        return _decompress_brotli
+    if content_encoding == 'gzip':
+        return _decompress_gzip
+    if content_encoding == 'deflate':
+        return _decompress_deflate
 
     return None
 

@@ -1,8 +1,8 @@
 import logging
 import re
+from functools import lru_cache
 from operator import itemgetter
 
-import cython
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -17,8 +17,8 @@ from app.limits import LANGUAGE_CODE_MAX_LENGTH, LANGUAGE_CODES_LIMIT
 _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
-@cython.cfunc
-def _parse_accept_language(accept_language: str) -> list[str]:
+@lru_cache(maxsize=1024)
+def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     """
     Parse the accept language header.
 
@@ -29,10 +29,6 @@ def _parse_accept_language(accept_language: str) -> list[str]:
     >>> _parse_accept_language('en-US,pl;q=0.8,es;q=0.9,*;q=0.5')
     ('en-US', 'es', 'pl', 'en')
     """
-
-    # small optimization
-    if not accept_language:
-        return [DEFAULT_LANGUAGE]
 
     q_langs: list[tuple[float, str]] = []
 
@@ -53,7 +49,7 @@ def _parse_accept_language(accept_language: str) -> list[str]:
             try:
                 lang = normalize_locale(lang, raise_on_not_found=True)
             except KeyError:
-                if lang != 'en-US':  # don't log for en-US, it's too common and annoying
+                if lang != 'en-US':  # reduce logging noise
                     logging.debug('Unsupported accept language %r', lang)
                 continue
 
@@ -87,7 +83,7 @@ def _parse_accept_language(accept_language: str) -> list[str]:
             if len(result) >= LANGUAGE_CODES_LIMIT:
                 break
 
-    return result
+    return tuple(result)
 
 
 class TranslationMiddleware(BaseHTTPMiddleware):
@@ -103,7 +99,7 @@ class TranslationMiddleware(BaseHTTPMiddleware):
         # fallback to accept language header
         if not languages:
             accept_language = request.headers.get('Accept-Language')
-            languages = _parse_accept_language(accept_language) if (accept_language is not None) else ()
+            languages = _parse_accept_language(accept_language) if accept_language else ()
 
         with translation_context(languages):
             return await call_next(request)

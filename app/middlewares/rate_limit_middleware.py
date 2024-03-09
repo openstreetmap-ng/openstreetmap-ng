@@ -1,4 +1,4 @@
-from contextvars import ContextVar
+import logging
 from functools import wraps
 
 import cython
@@ -10,8 +10,6 @@ from app.db import redis
 from app.lib.auth_context import auth_user
 from app.middlewares.request_context_middleware import get_request
 from app.models.user_role import UserRole
-
-_weight_context: ContextVar[list[int]] = ContextVar('RateLimit_Weight')
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -100,22 +98,19 @@ def rate_limit(*, weight: int = 1):
             rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)
 
             # proceed with the request
-            token = _weight_context.set([weight])
-            try:
-                result = await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
 
-                # check if the weight was overridden (only increasing)
-                weight_change = _weight_context.get()[0] - weight
-                if weight_change > 0:
-                    rate_limit_headers = await _increase_counter(key, weight_change, quota, raise_on_limit=False)
+            state: dict = get_request().state._state  # noqa: SLF001
 
-                # save the headers to the request state
-                state: dict = get_request().state._state  # noqa: SLF001
-                state['rate_limit_headers'] = rate_limit_headers
+            # check if the weight was overridden (only increasing)
+            weight_change: int = state.get('rate_limit_weight', weight) - weight
+            if weight_change > 0:
+                rate_limit_headers = await _increase_counter(key, weight_change, quota, raise_on_limit=False)
 
-                return result
-            finally:
-                _weight_context.reset(token)
+            # save the headers to the request state
+            state['rate_limit_headers'] = rate_limit_headers
+
+            return result
 
         return wrapper
 
@@ -127,4 +122,6 @@ def set_rate_limit_weight(weight: int) -> None:
     Override the request weight for rate limiting.
     """
 
-    _weight_context.get()[0] = weight
+    logging.debug('Overriding rate limit weight to %d', weight)
+    state: dict = get_request().state._state  # noqa: SLF001
+    state['rate_limit_weight'] = weight

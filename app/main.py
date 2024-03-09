@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Router
-from starlette.staticfiles import StaticFiles
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
@@ -35,6 +34,7 @@ from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
+from app.responses.precompressed_static_files import PrecompressedStaticFiles
 
 # register additional mimetypes
 mimetypes.init()
@@ -89,17 +89,17 @@ if TEST_ENV:
     main.add_middleware(ProfilerMiddleware)
 
 # TODO: /static default cache control
-main.mount('/static', StaticFiles(directory='app/static'), name='static')
-main.mount('/static-locale', StaticFiles(directory=LOCALE_DIR / 'i18next'), name='static-locale')
-main.mount('/node_modules', StaticFiles(directory='node_modules'), name='node_modules')
+main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')
+main.mount('/static-locale', PrecompressedStaticFiles(LOCALE_DIR / 'i18next'), name='static-locale')
+main.mount('/node_modules', PrecompressedStaticFiles('node_modules'), name='node_modules')
 main.mount(
     f'/static-id/{ID_VERSION}',
-    StaticFiles(directory='node_modules/iD/dist'),
+    PrecompressedStaticFiles('node_modules/iD/dist'),
     name='static-id',
 )
 main.mount(
     f'/static-rapid/{RAPID_VERSION}',
-    StaticFiles(directory='node_modules/@rapideditor/rapid/dist'),
+    PrecompressedStaticFiles('node_modules/@rapideditor/rapid/dist'),
     name='static-rapid',
 )
 
