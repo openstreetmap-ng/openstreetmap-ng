@@ -22,11 +22,11 @@ from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.compress_middleware import CompressMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
+from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.rate_limit_middleware import RateLimitMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_context_middleware import RequestContextMiddleware
-from app.middlewares.request_url_middleware import RequestUrlMiddleware
 from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
@@ -65,20 +65,22 @@ main = FastAPI(title=NAME, lifespan=lifespan)
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(CompressMiddleware)
-main.add_middleware(CacheControlMiddleware)  # depends on: request
-main.add_middleware(RateLimitMiddleware)  # depends on: request
-main.add_middleware(RequestContextMiddleware)
+main.add_middleware(CacheControlMiddleware)
+main.add_middleware(RateLimitMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
 main.add_middleware(TranslationMiddleware)  # depends on: auth
 main.add_middleware(AuthMiddleware)
 main.add_middleware(RequestBodyMiddleware)
-main.add_middleware(RequestUrlMiddleware)
+main.add_middleware(LimitUrlSizeMiddleware)
 main.add_middleware(ExceptionsMiddleware)
-main.add_middleware(VersionMiddleware)
-main.add_middleware(RuntimeMiddleware)
 
 if TEST_ENV:
     main.add_middleware(ProfilerMiddleware)
+
+main.add_middleware(RequestContextMiddleware)
+main.add_middleware(VersionMiddleware)
+main.add_middleware(RuntimeMiddleware)
+
 
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')

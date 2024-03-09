@@ -1,33 +1,68 @@
 import logging
 
+import cython
 from starlette import status
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+from starlette.datastructures import Headers
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.lib.render_response import render_response
 from app.lib.user_agent_analyzer import is_browser_supported
+from app.middlewares.request_context_middleware import get_request
 
 
-class UnsupportedBrowserMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next) -> Response:
-        response = await call_next(request)
+@cython.cfunc
+def _should_capture(message: Message) -> cython.char:
+    status_code: cython.int = message['status']
+    if status_code != 200:
+        return False
+    headers = Headers(raw=message['headers'])
+    content_type: str | None = headers.get('Content-Type')
+    if content_type is None or not content_type.startswith('text/html'):
+        return False
+    return True
+
+
+class UnsupportedBrowserMiddleware:
+    """
+    Unsupported browser handling middleware.
+    """
+
+    __slots__ = ('app',)
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        request = get_request()
         user_agent = request.headers.get('User-Agent')
-
-        if is_browser_supported(user_agent):
-            return response
-
-        # capture successful html responses
         if (
-            request.method == 'GET'
-            and response.status_code == 200  # OK
-            and response.headers.get('Content-Type').startswith('text/html')
-            and request.cookies.get('unsupported_browser_override') is None
+            user_agent is None
+            or is_browser_supported(user_agent)
+            or request.method != 'GET'
+            or request.cookies.get('unsupported_browser_override') is not None
         ):
-            logging.debug('Unsupported browser detected, rewriting response')
+            await self.app(scope, receive, send)
+            return
+
+        capture: bool = False
+
+        async def wrapper(message: Message) -> None:
+            nonlocal capture
+
+            if message['type'] == 'http.response.start':
+                capture = _should_capture(message)
+
+            if not capture:
+                await send(message)
+                return
+
+            logging.debug('Client browser is not supported')
             response = render_response('unsupported_browser.jinja2')
             response.status_code = status.HTTP_501_NOT_IMPLEMENTED
-            return response
+            await response(scope, receive, send)
 
-        # pass through all other responses (failures, non-html, etc.)
-        return response
+        await self.app(scope, receive, wrapper)

@@ -2,34 +2,47 @@ from datetime import timedelta
 from functools import wraps
 
 import cython
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.middlewares.request_context_middleware import get_request
 
 
-class CacheControlMiddleware(BaseHTTPMiddleware):
+class CacheControlMiddleware:
     """
-    Process the Cache-Control header from `@cache_control` decorator.
+    Add Cache-Control header from `@cache_control` decorator.
     """
 
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
+    __slots__ = ('app',)
 
-        state: dict = request.state._state  # noqa: SLF001
-        cache_control: str | None = state.get('cache_control_header')
-        if cache_control is not None:
-            request_method = request.method
-            response_status_code: cython.int = response.status_code
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
 
-            # consider only successful responses and permanent redirects
-            if (
-                (request_method == 'GET' or request_method == 'HEAD')  #
-                and (200 <= response_status_code < 300 or response_status_code == 301)
-            ):
-                response.headers.setdefault('Cache-Control', cache_control)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
 
-        return response
+        request = get_request()
+        request_method = request.method
+        if request_method != 'GET' and request_method != 'HEAD':
+            await self.app(scope, receive, send)
+            return
+
+        async def wrapper(message: Message) -> None:
+            if message['type'] == 'http.response.start':
+                status_code: cython.int = message['status']
+
+                if 200 <= status_code < 300 or status_code == 301:
+                    state: dict = request.state._state  # noqa: SLF001
+                    cache_control: str | None = state.get('cache_control_header')
+                    if cache_control is not None:
+                        headers = MutableHeaders(raw=message['headers'])
+                        headers.setdefault('Cache-Control', cache_control)
+
+            await send(message)
+
+        await self.app(scope, receive, wrapper)
 
 
 def cache_control(max_age: timedelta, stale: timedelta):

@@ -2,9 +2,10 @@ import logging
 from functools import wraps
 
 import cython
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from starlette import status
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.db import redis
 from app.lib.auth_context import auth_user
@@ -12,22 +13,34 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.user_role import UserRole
 
 
-class RateLimitMiddleware(BaseHTTPMiddleware):
+class RateLimitMiddleware:
     """
-    Rate limit middleware.
+    Rate limiting middleware.
 
     The endpoint must be decorated with `@rate_limit` to enable rate limiting.
     """
 
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
+    __slots__ = ('app',)
 
-        state: dict = request.state._state  # noqa: SLF001
-        rate_limit_headers: dict | None = state.get('rate_limit_headers')
-        if rate_limit_headers is not None:
-            response.headers.update(rate_limit_headers)
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
 
-        return response
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        async def wrapper(message: Message) -> None:
+            if message['type'] == 'http.response.start':
+                state: dict = get_request().state._state  # noqa: SLF001
+                rate_limit_headers: dict | None = state.get('rate_limit_headers')
+                if rate_limit_headers is not None:
+                    headers = MutableHeaders(raw=message['headers'])
+                    headers.update(rate_limit_headers)
+
+            await send(message)
+
+        await self.app(scope, receive, wrapper)
 
 
 async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit: bool) -> dict[str, str]:

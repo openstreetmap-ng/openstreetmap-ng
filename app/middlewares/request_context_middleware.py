@@ -1,32 +1,16 @@
-from contextlib import contextmanager
 from contextvars import ContextVar
 from ipaddress import IPv4Address, IPv6Address, ip_address
 
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 _context: ContextVar[Request] = ContextVar('RequestContext')
-
-
-@contextmanager
-def request_context(request: Request):
-    """
-    Context manager for setting request in ContextVar.
-    """
-
-    token = _context.set(request)
-    try:
-        yield
-    finally:
-        _context.reset(token)
 
 
 def get_request() -> Request:
     """
     Get the request from the context.
     """
-
     return _context.get()
 
 
@@ -34,15 +18,27 @@ def get_request_ip() -> IPv4Address | IPv6Address:
     """
     Get the request IP address.
     """
-
     return ip_address(_context.get().client.host)
 
 
-class RequestContextMiddleware(BaseHTTPMiddleware):
+class RequestContextMiddleware:
     """
     Wrap requests in request context.
     """
 
-    async def dispatch(self, request: Request, call_next) -> Response:
-        with request_context(request):
-            return await call_next(request)
+    __slots__ = ('app',)
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope, receive)
+        token = _context.set(request)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            _context.reset(token)

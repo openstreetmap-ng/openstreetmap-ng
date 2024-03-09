@@ -3,14 +3,14 @@ import re
 from functools import lru_cache
 from operator import itemgetter
 
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user
 from app.lib.locale import normalize_locale
 from app.lib.translation import translation_context
 from app.limits import LANGUAGE_CODE_MAX_LENGTH, LANGUAGE_CODES_LIMIT
+from app.middlewares.request_context_middleware import get_request
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
@@ -86,20 +86,30 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     return tuple(result)
 
 
-class TranslationMiddleware(BaseHTTPMiddleware):
+class TranslationMiddleware:
     """
     Wrap requests in translation context.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    __slots__ = ('app',)
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
         # prefer user languages
         user = auth_user()
         languages = user.languages_valid if (user is not None) else ()
 
         # fallback to accept language header
         if not languages:
+            request = get_request()
             accept_language = request.headers.get('Accept-Language')
             languages = _parse_accept_language(accept_language) if accept_language else ()
 
         with translation_context(languages):
-            return await call_next(request)
+            await self.app(scope, receive, send)

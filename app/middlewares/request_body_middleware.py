@@ -1,95 +1,112 @@
 import gzip
 import logging
 import zlib
-from collections.abc import Callable
+from io import BytesIO
 
 import brotlicffi
 import cython
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
-from app.limits import HTTP_BODY_MAX_SIZE, HTTP_COMPRESSED_BODY_MAX_SIZE
+from app.limits import HTTP_BODY_MAX_SIZE
+from app.middlewares.request_context_middleware import get_request
+
+_zstd_decompress = ZstdDecompressor().decompress
 
 
 @cython.cfunc
 def _decompress_zstd(buffer: bytes) -> bytes:
-    return ZstdDecompressor().decompress(buffer, allow_extra_data=False)
+    return _zstd_decompress(buffer, allow_extra_data=False)
 
-@cython.cfunc
-def _decompress_brotli(buffer: bytes) -> bytes:
-    return brotlicffi.decompress(buffer)
-
-@cython.cfunc
-def _decompress_gzip(buffer: bytes) -> bytes:
-    return gzip.decompress(buffer)
 
 @cython.cfunc
 def _decompress_deflate(buffer: bytes) -> bytes:
     return zlib.decompress(buffer, -zlib.MAX_WBITS)
 
-def _get_decompressor(content_encoding: str | None) -> Callable[[bytes], bytes] | None:
+
+@cython.cfunc
+def _get_decompressor(content_encoding: str | None):
     if content_encoding is None:
         return None
 
     if content_encoding == 'zstd':
         return _decompress_zstd
     if content_encoding == 'br':
-        return _decompress_brotli
+        return brotlicffi.decompress
     if content_encoding == 'gzip':
-        return _decompress_gzip
+        return gzip.decompress
     if content_encoding == 'deflate':
         return _decompress_deflate
 
     return None
 
 
-class RequestBodyMiddleware(BaseHTTPMiddleware):
+class RequestBodyMiddleware:
     """
-    Decompress requests bodies and check their size.
+    Request body decompressing and limiting middleware.
     """
 
-    async def dispatch(self, request: Request, call_next):
-        content_encoding: str | None = request.headers.get('Content-Encoding')
+    __slots__ = ('app',)
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        request = get_request()
         input_size: cython.int = 0
-        chunks = []
+        buffer = BytesIO()
 
-        # check size with compression
-        decompressor = _get_decompressor(content_encoding)
-        if decompressor is not None:
-            logging.debug('Decompressing %r request encoding', content_encoding)
+        async for chunk in request.stream():
+            chunk_size: cython.int = len(chunk)
+            if chunk_size == 0:
+                break
+            input_size += chunk_size
+            if input_size > HTTP_BODY_MAX_SIZE:
+                raise_for().input_too_big(input_size)
+            buffer.write(chunk)
 
-            async for chunk in request.stream():
-                input_size += len(chunk)
-                if input_size > HTTP_COMPRESSED_BODY_MAX_SIZE:
-                    raise_for().input_too_big(input_size)
-                chunks.append(chunk)
+        if input_size > 0:
+            body = buffer.getvalue()
+            content_encoding: str | None = request.headers.get('Content-Encoding')
+            decompressor = _get_decompressor(content_encoding)
 
-            try:
-                body = decompressor(b''.join(chunks))
-            except Exception:
-                raise_for().request_decompression_failed()
+            if decompressor is not None:
+                try:
+                    body = decompressor(body)
+                except Exception:
+                    raise_for().request_decompression_failed()
 
-            request._body = body  # noqa: SLF001
-            logging.debug('Request body size: %s -> %s (decompressed)', naturalsize(input_size), naturalsize(len(body)))
+                logging.debug(
+                    'Request body size: %s -> %s (decompressed; %s)',
+                    naturalsize(input_size),
+                    naturalsize(len(body)),
+                    content_encoding,
+                )
 
-            if len(body) > HTTP_BODY_MAX_SIZE:
-                raise_for().input_too_big(len(body))
-
-        # check size without compression
-        else:
-            async for chunk in request.stream():
-                input_size += len(chunk)
-                if input_size > HTTP_BODY_MAX_SIZE:
-                    raise_for().input_too_big(input_size)
-                chunks.append(chunk)
-
-            if input_size > 0:
-                request._body = b''.join(chunks)  # noqa: SLF001
-                logging.debug('Request body size: %s', naturalsize(input_size))
+                if len(body) > HTTP_BODY_MAX_SIZE:
+                    raise_for().input_too_big(len(body))
             else:
-                request._body = b''  # noqa: SLF001
+                logging.debug(
+                    'Request body size: %s',
+                    naturalsize(input_size),
+                )
+        else:
+            body = b''
 
-        return await call_next(request)
+        request._body = body  # update shared instance # noqa: SLF001
+        wrapper_finished: bool = False
+
+        async def wrapper() -> Message:
+            nonlocal wrapper_finished
+            if wrapper_finished:
+                return await receive()
+            wrapper_finished = True
+            return {'type': 'http.request', 'body': body}
+
+        await self.app(scope, wrapper, send)

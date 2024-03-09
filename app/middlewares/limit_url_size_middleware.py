@@ -1,12 +1,13 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.lib.format_style_context import format_style_context
+from app.lib.exceptions_context import raise_for
+from app.limits import REQUEST_PATH_QUERY_MAX_LENGTH
 from app.middlewares.request_context_middleware import get_request
 
 
-class FormatStyleMiddleware:
+class LimitUrlSizeMiddleware:
     """
-    Wrap requests in format style context.
+    URL size limiting middleware.
     """
 
     __slots__ = ('app',)
@@ -20,5 +21,9 @@ class FormatStyleMiddleware:
             return
 
         request = get_request()
-        with format_style_context(request):
-            await self.app(scope, receive, send)
+        request_url = request.url
+        path_query_length = len(request_url.path) + len(request_url.query)
+        if path_query_length > REQUEST_PATH_QUERY_MAX_LENGTH:
+            raise_for().request_uri_too_long()
+
+        await self.app(scope, receive, send)

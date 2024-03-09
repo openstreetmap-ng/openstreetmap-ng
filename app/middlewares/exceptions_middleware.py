@@ -1,22 +1,31 @@
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.exceptions import Exceptions
 from app.exceptions06 import Exceptions06
 from app.lib.exceptions_context import exceptions_context
+from app.middlewares.request_context_middleware import get_request
 
 
-class ExceptionsMiddleware(BaseHTTPMiddleware):
+class ExceptionsMiddleware:
     """
     Wrap requests in exceptions context.
     """
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    __slots__ = ('app',)
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        request = get_request()
         if request.url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities')):
             implementation = Exceptions06()
         else:
             implementation = Exceptions()
 
         with exceptions_context(implementation):
-            return await call_next(request)
+            await self.app(scope, receive, send)

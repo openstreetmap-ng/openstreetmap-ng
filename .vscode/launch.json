@@ -8,6 +8,7 @@
             "module": "uvicorn",
             "args": [
                 "app.main:main",
+                "--no-server-header",
                 "--reload"
             ],
             "jinja": true
