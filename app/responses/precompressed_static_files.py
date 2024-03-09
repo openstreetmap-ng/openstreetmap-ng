@@ -1,4 +1,3 @@
-import os
 import stat
 from functools import lru_cache
 from mimetypes import guess_type
