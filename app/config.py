@@ -94,6 +94,7 @@ dictConfig(
             'root': {'handlers': ['default'], 'level': LOG_LEVEL},
             'httpx': {'handlers': ['default'], 'level': 'INFO'},
             'httpcore': {'handlers': ['default'], 'level': 'INFO'},
+            'markdown_it': {'handlers': ['default'], 'level': 'INFO'},
         },
     }
 )
