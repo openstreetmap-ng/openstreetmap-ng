@@ -1,6 +1,7 @@
-import logging
-import re
+import os
 import stat
+from functools import lru_cache
+from mimetypes import guess_type
 from os import PathLike, stat_result
 
 import cython
@@ -9,48 +10,37 @@ from cachetools import LRUCache
 from fastapi import HTTPException
 from starlette import status
 from starlette.datastructures import Headers
-from starlette.responses import Response
-from starlette.staticfiles import StaticFiles
+from starlette.responses import FileResponse, Response
+from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
 
 from app.config import TEST_ENV
-
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
-_accept_encoding_re = re.compile(r'[a-z]{2,8}')
+from app.middlewares.compress_middleware import parse_accept_encoding
 
 
-@cython.cfunc
-def _parse_accept_encoding(accept_encoding: str) -> frozenset[str]:
-    """
-    Parse the accept encoding header.
-
-    Returns a set of encodings.
-
-    >>> _parse_accept_encoding('br;q=1.0, gzip;q=0.8, *;q=0.1')
-    {'br', 'gzip'}
-    """
-
-    return frozenset(_accept_encoding_re.findall(accept_encoding))
+@lru_cache(maxsize=512)
+def _guess_media_type(path: str) -> str:
+    return guess_type(path)[0] or 'text/plain'
 
 
 @cython.cfunc
-def _iter_paths(path: str, accept_encoding: str) -> list[str]:
+def _try_paths(path: str, accept_encoding: str) -> list[tuple[str, str | None]]:
     """
-    Returns a list of paths to try for the given path and accept encoding.
+    Returns a list of (path, encoding) tuples to try.
 
     >>> _iter_paths('example.txt', 'br, gzip')
-    ['example.txt.br', 'example.txt']
+    [('example.txt.br', 'br'), ('example.txt', None)]
     """
 
-    accept_encoding_set = _parse_accept_encoding(accept_encoding)
+    accept_encodings = parse_accept_encoding(accept_encoding)
     result: list[str] = []
 
-    if 'zstd' in accept_encoding_set:
-        result.append(path + '.zst')
-    if 'br' in accept_encoding_set:
-        result.append(path + '.br')
+    if 'zstd' in accept_encodings:
+        result.append((path + '.zst', 'zstd'))
+    if 'br' in accept_encodings:
+        result.append((path + '.br', 'br'))
 
-    result.append(path)
+    result.append((path, None))
     return result
 
 
@@ -60,20 +50,33 @@ class PrecompressedStaticFiles(StaticFiles):
         self._resolve_cache = LRUCache(maxsize=1024)
 
     async def get_response(self, path: str, scope: Scope) -> Response:
-        headers = Headers(scope=scope)
-        accept_encoding = headers.get('Accept-Encoding')
-        full_path, stat_result = await self._resolve(path, accept_encoding)
-        return self.file_response(full_path, stat_result, scope)
+        request_headers = Headers(scope=scope)
+        accept_encoding = request_headers.get('Accept-Encoding')
+        full_path, stat_result, encoding = await self._resolve(path, accept_encoding)
 
-    async def _resolve(self, request_path: str, accept_encoding: str | None) -> tuple[str, stat_result]:
+        media_type = _guess_media_type(path)
+        response = FileResponse(full_path, media_type=media_type, stat_result=stat_result)
+        response_headers = response.headers
+        response_headers.add_vary_header('Accept-Encoding')
+
+        if self.is_not_modified(response_headers, request_headers):
+            return NotModifiedResponse(response_headers)
+
+        if encoding is not None:
+            response_headers['Content-Encoding'] = encoding
+
+        response_headers['X-Precompressed'] = '1'
+        return response
+
+    async def _resolve(self, request_path: str, accept_encoding: str | None) -> tuple[str, stat_result, str | None]:
         cache_key = (request_path, accept_encoding)
         result = self._resolve_cache.get(cache_key)
-        if result is not None:
+        if (result is not None) and not TEST_ENV:
             return result
 
-        paths = _iter_paths(request_path, accept_encoding) if accept_encoding else (request_path,)
+        paths = _try_paths(request_path, accept_encoding) if accept_encoding else (request_path,)
 
-        for path in paths:
+        for path, encoding in paths:
             try:
                 full_path, stat_result = await to_thread.run_sync(self.lookup_path, path)
             except PermissionError as e:
@@ -85,10 +88,7 @@ class PrecompressedStaticFiles(StaticFiles):
                 # skip missing or non-regular files
                 continue
 
-            if path == request_path and len(paths) > 1 and not TEST_ENV:
-                logging.warning('Precompressed file not found for %r', path)
-
-            result = (full_path, stat_result)
+            result = (full_path, stat_result, encoding)
             self._resolve_cache[cache_key] = result
             return result
 

@@ -3430,7 +3430,7 @@ files = [
 ]
 
 [package.dependencies]
-cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\""}
+cffi = {version = ">=1.11", optional = true, markers = "platform_python_implementation == \"PyPy\" or extra == \"cffi\""}
 
 [package.extras]
 cffi = ["cffi (>=1.11)"]
@@ -3438,4 +3438,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "839e52484fd0876f6655d69ff42ccd9ed918dd30411fdf239422a4e194e5fd23"
+content-hash = "aa9055fe980807cfcc3e3a35980810a068b963fd85a8b05aa350294ea3016c20"

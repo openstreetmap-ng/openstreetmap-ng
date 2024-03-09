@@ -7,7 +7,6 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
-from starlette.middleware.sessions import SessionMiddleware
 from starlette.routing import Router
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
@@ -16,12 +15,11 @@ from app.config import (
     LOCALE_DIR,
     NAME,
     RAPID_VERSION,
-    SECRET,
     TEST_ENV,
 )
-from app.limits import COOKIE_SESSION_MAX_AGE
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
+from app.middlewares.compress_middleware import CompressMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
@@ -66,23 +64,17 @@ async def lifespan(_):
 main = FastAPI(title=NAME, lifespan=lifespan)
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
+main.add_middleware(CompressMiddleware)
 main.add_middleware(CacheControlMiddleware)  # depends on: request
 main.add_middleware(RateLimitMiddleware)  # depends on: request
 main.add_middleware(RequestContextMiddleware)
-main.add_middleware(VersionMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
 main.add_middleware(TranslationMiddleware)  # depends on: auth
-main.add_middleware(AuthMiddleware)  # depends on: session
-main.add_middleware(  # TODO: is it actually useful?
-    SessionMiddleware,
-    secret_key=SECRET,
-    session_cookie='session',
-    max_age=COOKIE_SESSION_MAX_AGE,
-    https_only=not TEST_ENV,
-)
+main.add_middleware(AuthMiddleware)
 main.add_middleware(RequestBodyMiddleware)
 main.add_middleware(RequestUrlMiddleware)
 main.add_middleware(ExceptionsMiddleware)
+main.add_middleware(VersionMiddleware)
 main.add_middleware(RuntimeMiddleware)
 
 if TEST_ENV:
@@ -91,7 +83,11 @@ if TEST_ENV:
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')
 main.mount('/static-locale', PrecompressedStaticFiles(LOCALE_DIR / 'i18next'), name='static-locale')
-main.mount('/node_modules', PrecompressedStaticFiles('node_modules'), name='node_modules')
+main.mount(
+    '/static-bootstrap-icons',
+    PrecompressedStaticFiles('node_modules/bootstrap-icons/font/fonts'),
+    name='static-bootstrap-icons',
+)
 main.mount(
     f'/static-id/{ID_VERSION}',
     PrecompressedStaticFiles('node_modules/iD/dist'),

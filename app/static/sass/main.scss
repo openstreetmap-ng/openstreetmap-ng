@@ -50,8 +50,7 @@
 @import "bootstrap/scss/utilities/api";
 
 // (Bootstrap Icons)
-// TODO: icons
-$bootstrap-icons-font-dir: "/node_modules/bootstrap-icons/font/fonts";
+$bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "bootstrap-icons/font/bootstrap-icons";
 
 // (Leaflet)

@@ -34,8 +34,52 @@ let
     bun
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
     redis
+    brotli
+    zstd
 
     # Scripts
+    # -- Static
+    (writeShellScriptBin "static-precompress" ''
+      set -e
+      shopt -s globstar
+      dirs=(
+        app/static
+        config/locale/i18next
+        node_modules/iD/dist
+        node_modules/@rapideditor/rapid/dist
+      )
+      for dir in "''${dirs[@]}"; do
+        for file in "$dir"/**/*; do
+          if [ ! -f "$file" ] || [[ "$file" == *.br ]] || [[ "$file" == *.zst ]]; then
+            continue
+          fi
+          echo "Compressing $file"
+          original_size=$(stat --printf="%s" "$file")
+          min_size=$(( original_size * 9 / 10 ))
+
+          brotli \
+            --force \
+            --best \
+            "$file"
+          br_size=$(stat --printf="%s" "$file.br")
+          if [ $br_size -gt $min_size ]; then
+            echo "$file.br is not compressable"
+            rm "$file.br"
+          fi
+
+          zstd \
+            --force -19 \
+            --quiet \
+            "$file"
+          zst_size=$(stat --printf="%s" "$file.zst")
+          if [ $zst_size -gt $min_size ]; then
+            echo "$file.zst is not compressable"
+            rm "$file.zst"
+          fi
+        done
+      done
+    '')
+
     # -- Misc
     (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
     (writeShellScriptBin "make-bundle" ''
@@ -99,7 +143,6 @@ let
     dart-sass
     inotify-tools
     curl
-    zstd
 
     # Scripts
     # -- Cython
@@ -264,11 +307,9 @@ let
       set -e
       for file in data/preload/*.csv; do
         zstd \
-          --force \
-          --compress -19 \
+          --force -19 \
           --threads "$(( $(nproc) * 2 ))" \
-          "$file" \
-          -o "$file.zst"
+          "$file"
       done
     '')
     (writeShellScriptBin "preload-download" ''
@@ -330,7 +371,7 @@ let
       done
     '')
 
-    # -- Misc
+    # -- JavaScript
     (writeShellScriptBin "js-pipeline" ''
       set -e
       src_paths=$(find app/static/js \
@@ -356,6 +397,8 @@ let
         js-pipeline
       done
     '')
+
+    # -- Misc
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")

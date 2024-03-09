@@ -31,7 +31,7 @@ _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('Tran
 
 # removing this will not enable live-reload for translations
 # gettext always caches .mo files internally
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=256)
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.

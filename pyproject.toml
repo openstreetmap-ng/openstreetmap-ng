@@ -49,7 +49,7 @@ sqlalchemy = {extras = ["postgresql-asyncpg"], version = "^2.0.28"}
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "<1"}
-zstandard = "<1"
+zstandard = {extras = ["cffi"], version = "<1"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"

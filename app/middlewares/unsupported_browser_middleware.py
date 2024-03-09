@@ -22,7 +22,7 @@ class UnsupportedBrowserMiddleware(BaseHTTPMiddleware):
             request.method == 'GET'
             and response.status_code == 200  # OK
             and response.headers.get('Content-Type').startswith('text/html')
-            and not request.session.get('unsupported_browser_override')
+            and request.cookies.get('unsupported_browser_override') is None
         ):
             logging.debug('Unsupported browser detected, rewriting response')
             response = render_response('unsupported_browser.jinja2')

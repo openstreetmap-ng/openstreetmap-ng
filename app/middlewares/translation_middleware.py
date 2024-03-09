@@ -17,7 +17,7 @@ from app.limits import LANGUAGE_CODE_MAX_LENGTH, LANGUAGE_CODES_LIMIT
 _accept_language_re = re.compile(r'(?P<lang>[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{1,8})?|\*)(?:;q=(?P<q>[0-9.]+))?')
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=512)
 def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
     """
     Parse the accept language header.
