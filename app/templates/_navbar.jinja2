@@ -100,9 +100,8 @@
             <div class="dropdown">
                 <button class="btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center"
                     data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="avatar me-2" src="/static/img/element/crab_yes.webp">
-                    NorthCrab
-                    {# TODO #}
+                    <img class="avatar me-2" src="{{ user.avatar_url }}">
+                    {{ user.display_name }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
                     <li>
@@ -115,12 +114,13 @@
                             {{ t('users.show.my messages') }}
                             <span class="badge text-bg-light-green fw-light">
                                 0
+                                {# TODO #}
                             </span>
                         </a>
                     </li>
                     <li>
                         {# TODO #}
-                        <a class="dropdown-item" href="/user/NorthCrab">
+                        <a class="dropdown-item" href="/user/{{ user.display_name }}">
                             {{ t('users.show.my profile') }}
                         </a>
                     </li>
@@ -132,12 +132,13 @@
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li>
-                        {# TODO #}
+                    {% if user.home_point is not none %}
+                    <li class="find-home-container d-none">
                         <button class="dropdown-item">
                             {{ t('layouts.home') }}
                         </button>
                     </li>
+                    {% endif %}
                     <li>
                         <form method="POST" action="/api/web/user/logout">
                             <button class="dropdown-item" type="submit">
