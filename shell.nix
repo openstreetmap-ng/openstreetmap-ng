@@ -53,19 +53,14 @@ let
           if [ ! -f "$file" ] || [[ "$file" == *.br ]] || [[ "$file" == *.zst ]]; then
             continue
           fi
-          echo "Compressing $file"
-          original_size=$(stat --printf="%s" "$file")
-          min_size=$(( original_size * 9 / 10 ))
 
-          brotli \
-            --force \
-            --best \
-            "$file"
-          br_size=$(stat --printf="%s" "$file.br")
-          if [ $br_size -gt $min_size ]; then
-            echo "$file.br is not compressable"
-            rm "$file.br"
+          original_size=$(stat --printf="%s" "$file")
+          if [ $original_size -lt 1024 ]; then
+            continue
           fi
+
+          echo "Compressing $file"
+          min_size=$(( original_size * 9 / 10 ))
 
           zstd \
             --force -19 \
@@ -75,6 +70,16 @@ let
           if [ $zst_size -gt $min_size ]; then
             echo "$file.zst is not compressable"
             rm "$file.zst"
+          fi
+
+          brotli \
+            --force \
+            --best \
+            "$file"
+          br_size=$(stat --printf="%s" "$file.br")
+          if [ $br_size -gt $min_size ]; then
+            echo "$file.br is not compressable"
+            rm "$file.br"
           fi
         done
       done
