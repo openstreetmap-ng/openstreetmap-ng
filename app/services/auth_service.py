@@ -20,6 +20,7 @@ from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.scope import ExtendedScope, Scope
+from app.models.str import PasswordStr
 from app.repositories.user_repository import UserRepository
 from app.repositories.user_token_session_repository import UserTokenSessionRepository
 from app.services.cache_service import CacheService
@@ -58,7 +59,9 @@ class AuthService:
             # handle basic auth
             if scheme == 'Basic':
                 logging.debug('Attempting to authenticate with Basic')
-                username, _, password = b64decode(param).decode().partition(':')
+                split = b64decode(param).decode().partition(':')
+                username = split[0]
+                password = PasswordStr(split[2])
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
@@ -91,7 +94,7 @@ class AuthService:
     @staticmethod
     async def authenticate_credentials(
         display_name_or_email: str,
-        password: str,
+        password: PasswordStr,
     ) -> User | None:
         """
         Authenticate a user by (display name or email) and password.
@@ -119,15 +122,35 @@ class AuthService:
         async def factory() -> bytes:
             logging.debug('Credentials auth cache miss for user %d', user.id)
             ph = user.password_hasher
-            ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
-            return b'\xff' if ph_valid else b'\x00'
+            success = ph.verify(user.password_hashed, user.password_salt, password.get_secret_value())
+
+            if not success:
+                return b'\x00'
+
+            if ph.rehash_needed:
+                new_hash = ph.hash(password.get_secret_value())
+
+                async with db_autocommit() as session:
+                    stmt = (
+                        update(User)
+                        .where(User.id == user.id, User.password_hashed == user.password_hashed)
+                        .values({User.password_hashed: new_hash, User.password_salt: None})
+                    )
+
+                    await session.execute(stmt)
+
+                user.password_hashed = new_hash
+                user.password_salt = None
+                logging.debug('Rehashed password for user %d', user.id)
+
+            return b'\xff'
 
         key = '\0'.join(
             (
                 SECRET,
                 user.password_hashed,
                 format_iso_date(user.password_changed_at),
-                password,
+                password.get_secret_value(),
             )
         )
 
@@ -138,32 +161,9 @@ class AuthService:
             ttl=AUTH_CREDENTIALS_CACHE_EXPIRE,
         )
 
-        if cache is not None:
-            ph = None
-            ph_valid = cache.value == b'\xff'
-        else:
-            ph = user.password_hasher
-            ph_valid = ph.verify(user.password_hashed, user.password_salt, password)
-
-        if not ph_valid:
+        if cache.value != b'\xff':
             logging.debug('Password mismatch for user %d', user.id)
             return None
-
-        if (ph is not None) and ph.rehash_needed:
-            new_hash = ph.hash(password)
-
-            async with db_autocommit() as session:
-                stmt = (
-                    update(User)
-                    .where(User.id == user.id, User.password_hashed == user.password_hashed)
-                    .values({User.password_hashed: new_hash, User.password_salt: None})
-                )
-
-                await session.execute(stmt)
-
-            user.password_hashed = new_hash
-            user.password_salt = None
-            logging.debug('Rehashed password for user %d', user.id)
 
         return user
 

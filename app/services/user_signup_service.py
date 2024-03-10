@@ -37,13 +37,13 @@ class UserSignupService:
 
         # some early validation
         if not await UserRepository.check_display_name_available(display_name):
-            collector.raise_error('display_name', t('user.display_name_already_taken'))
+            collector.raise_error('display_name', t('form.display_name_taken'))
         if not await UserRepository.check_email_available(email):
-            collector.raise_error('email', t('user.email_already_taken'))
+            collector.raise_error('email', t('form.email_taken'))
         if not await validate_email_deliverability(email):
-            collector.raise_error('email', t('user.invalid_email'))
+            collector.raise_error('email', t('form.email_invalid'))
 
-        password_hashed = PasswordHash.default().hash(password)
+        password_hashed = PasswordHash.default().hash(password.get_secret_value())
         created_ip = get_request_ip()
         languages = translation_languages()
 

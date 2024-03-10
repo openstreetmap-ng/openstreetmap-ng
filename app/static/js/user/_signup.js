@@ -27,13 +27,13 @@ if (signupBody) {
         }
 
         if (emailInput.value !== emailConfirmationInput.value) {
-            const msg = i18next.t("signup.email_missmatch")
+            const msg = i18next.t("form.email_missmatch")
             result.push({ type: "error", loc: ["", "email"], msg })
             result.push({ type: "error", loc: ["", "email_confirm"], msg })
         }
 
         if (passwordInput.value !== passwordConfirmationInput.value) {
-            const msg = i18next.t("signup.password_missmatch")
+            const msg = i18next.t("form.password_missmatch")
             result.push({ type: "error", loc: ["", "password"], msg })
             result.push({ type: "error", loc: ["", "password_confirm"], msg })
         }

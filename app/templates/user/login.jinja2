@@ -15,16 +15,16 @@
             <a href="/signup">{{ t('sessions.new.register now') }}</a>
         </p>
 
-        <form method="POST" action="/api/web/user/login">
+        <form class="login-form" method="POST" action="/api/web/user/login">
 
             <label class="form-label d-block">
                 {{ t('sessions.new.email or username') }}
-                <input type="text" class="form-control mt-2" name="display_name_or_email">
+                <input type="text" class="form-control mt-2" name="display_name_or_email" required>
             </label>
 
             <label class="form-label d-block">
                 {{ t('sessions.new.password') }}
-                <input type="text" class="form-control mt-2" name="password">
+                <input type="password" class="form-control mt-2" name="password" required>
             </label>
             <p class="form-text">
                 <a class="link-primary" href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>

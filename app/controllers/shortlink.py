@@ -14,10 +14,7 @@ router = APIRouter()
 
 @router.get('/go/{code}')
 @cache_control(max_age=timedelta(days=30), stale=timedelta(days=30))
-async def go(
-    request: Request,
-    code: Annotated[str, Path(min_length=3, max_length=15)],
-) -> RedirectResponse:
+async def go(request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]):
     """
     Redirect to a map from a shortlink code.
     """
@@ -32,7 +29,4 @@ async def go(
     fragment = '#' + urlencode(query, doseq=True)
     redirect_url = APP_URL + fragment
 
-    return RedirectResponse(
-        url=redirect_url,
-        status_code=status.HTTP_301_MOVED_PERMANENTLY,
-    )
+    return RedirectResponse(redirect_url, status.HTTP_301_MOVED_PERMANENTLY)

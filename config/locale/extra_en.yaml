@@ -27,7 +27,10 @@ map:
       end: Drag and drop this marker to set the end position
     engine:
       title: Routing engine
-signup:
+form:
+  display_name_taken: This display name is already taken
+  email_invalid: Invalid email address
+  email_taken: This email address is already taken
   email_missmatch: The email addresses do not match
   password_missmatch: The passwords do not match
 action:
@@ -35,10 +38,6 @@ action:
   save_as: Save as
 state:
   preparing: Preparing
-alt:
-  brand:
-    firefox: Firefox logo
-    google_chrome: Google Chrome logo
 unsupported_browser:
   title:
     short: Unsupported browser

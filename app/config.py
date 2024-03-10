@@ -9,7 +9,7 @@ from anyio import Path
 
 from app.lib.yarn_lock_version import yarn_lock_version
 
-VERSION = '0.7.0'
+VERSION = '0.1.0'
 VERSION_DATE = ''
 if VERSION_DATE:
     VERSION += f'.{VERSION_DATE}'

@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 9b428f705c23
+Revision ID: f1f776ffbd5a
 Revises:
-Create Date: 2024-03-03 01:00:00.177170+00:00
+Create Date: 2024-03-10 16:51:17.553826+00:00
 
 """
 from collections.abc import Sequence
@@ -17,7 +17,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '9b428f705c23'
+revision: str = 'f1f776ffbd5a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -64,13 +64,12 @@ def upgrade() -> None:
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
     sa.Column('password_hashed', sa.Unicode(), nullable=False),
     sa.Column('created_ip', postgresql.INET(), nullable=False),
-    sa.Column('status', sa.Enum('pending', 'active', name='userstatus'), nullable=False),
+    sa.Column('status', sa.Enum('pending_terms', 'pending_activation', 'active', name='userstatus'), nullable=False),
     sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
     sa.Column('auth_uid', sa.Unicode(), nullable=True),
     sa.Column('languages', sa.ARRAY(sa.Unicode(length=15), dimensions=1), nullable=False),
     sa.Column('password_changed_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
     sa.Column('password_salt', sa.Unicode(), nullable=True),
-    sa.Column('consider_public_domain', sa.Boolean(), nullable=True),
     sa.Column('roles', sa.ARRAY(sa.Enum('moderator', 'administrator', name='userrole'), dimensions=1), server_default='{}', nullable=False),
     sa.Column('description', sa.UnicodeText(), server_default='', nullable=False),
     sa.Column('description_rich_hash', sa.LargeBinary(length=32), nullable=True),

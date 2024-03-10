@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from starlette import status
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from app.lib.auth_context import auth_user
 from app.lib.local_chapters import local_chapters
@@ -29,27 +29,27 @@ router = APIRouter()
 @router.get('/relation/{_:int}')
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
-async def index() -> HTMLResponse:
+async def index():
     return render_response('index.jinja2')
 
 
 @router.get('/communities')
-async def communities() -> HTMLResponse:
+async def communities():
     return render_response('communities.jinja2', {'local_chapters': local_chapters()})
 
 
 @router.get('/copyright')
-async def copyright() -> HTMLResponse:
+async def copyright():
     return render_response('copyright.jinja2')
 
 
 @router.get('/help')
-async def help() -> HTMLResponse:
+async def help():
     return render_response('help.jinja2')
 
 
 @router.get('/about')
-async def about() -> HTMLResponse:
+async def about():
     return render_response('about.jinja2')
 
 
@@ -65,3 +65,8 @@ async def signup():
     if auth_user() is not None:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
     return render_response('user/signup.jinja2')
+
+
+@router.get('/robots.txt')
+async def robots():
+    return FileResponse('app/static/robots.txt', media_type='text/plain')

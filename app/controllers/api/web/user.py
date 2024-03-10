@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Response
+from fastapi import APIRouter, Form, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -12,15 +12,15 @@ from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.repositories.user_repository import UserRepository
+from app.responses.osm_response import OSMResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 
 router = APIRouter(prefix='/user')
 
+
 # TODO: captcha
-
-
 # TODO: frontend implement
 @router.get('/display-name-available')
 async def display_name_available(
@@ -31,7 +31,6 @@ async def display_name_available(
 
 @router.post('/login')
 async def login(
-    response: Response,
     display_name_or_email: Annotated[str, Form(min_length=1)],
     password: Annotated[PasswordStr, Form()],
     remember: Annotated[bool, Form()] = False,
@@ -43,23 +42,23 @@ async def login(
         password=password,
     )
     max_age = COOKIE_AUTH_MAX_AGE if remember else None
+    response = OSMResponse.serialize(collector.result)
     response.set_cookie('auth', str(token), max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
-    return collector.result
+    return response
 
 
 @router.post('/logout')
 async def logout(
-    response: Response,
     _: Annotated[User, web_user()],
 ):
     await AuthService.logout_session()
+    response = redirect_response()
     response.delete_cookie('auth')
-    return redirect_response()
+    return response
 
 
 @router.post('/signup')
 async def signup(
-    response: Response,
     display_name: Annotated[DisplayNameStr, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[PasswordStr, Form()],
@@ -71,8 +70,9 @@ async def signup(
         email=email,
         password=password,
     )
+    response = OSMResponse.serialize(collector.result)
     response.set_cookie('auth', str(token), None, secure=not TEST_ENV, httponly=True, samesite='lax')
-    return collector.result
+    return response
 
 
 @router.post('/accept-terms')
@@ -85,12 +85,12 @@ async def accept_terms(
 
 @router.post('/abort-signup')
 async def abort_signup(
-    response: Response,
     _: Annotated[User, web_user()],
 ):
     await UserSignupService.abort_signup()
+    response = RedirectResponse('/', status.HTTP_303_SEE_OTHER)
     response.delete_cookie('auth')
-    return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return response
 
 
 # @router.post('/settings')

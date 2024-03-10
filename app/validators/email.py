@@ -44,11 +44,9 @@ def validate_email(email: str) -> str:
     return info.normalized
 
 
-async def validate_email_deliverability(email: str) -> None:
+async def validate_email_deliverability(email: str) -> bool:
     """
     Validate deliverability of an email address.
-
-    Raises ValueError on error.
     """
 
     try:
@@ -57,8 +55,8 @@ async def validate_email_deliverability(email: str) -> None:
             check_deliverability=False,
             test_environment=TEST_ENV,
         )
-    except EmailNotValidError as e:
-        raise ValueError(f'Invalid email address {email!r}') from e
+    except EmailNotValidError:
+        return False
 
     domain = info.ascii_domain
 
@@ -76,9 +74,7 @@ async def validate_email_deliverability(email: str) -> None:
 
     success = cache_entry.value == b'\xff'
     logging.info('Email domain deliverability for %r: %s', domain, success)
-
-    if not success:
-        raise ValueError(f'Undeliverable email domain {domain!r}')
+    return success
 
 
 async def _check_domain_deliverability(domain: str) -> bool:
