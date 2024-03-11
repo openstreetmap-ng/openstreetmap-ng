@@ -11,10 +11,10 @@ from app.models.msgspec.file_cache_meta import FileCacheMeta
 
 
 class FileCache:
-    _base_dir: Path
+    __slots__ = ('_base_dir',)
 
     def __init__(self, context: str, *, cache_dir: Path = FILE_CACHE_DIR):
-        self._base_dir = cache_dir / context
+        self._base_dir: Path = cache_dir / context
 
     async def _get_path(self, key_str: str) -> Path:
         """

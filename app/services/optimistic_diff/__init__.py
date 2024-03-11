@@ -14,6 +14,8 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 
 class OptimisticDiff:
+    __slots__ = ('_elements',)
+
     def __init__(self, elements: Sequence[Element]) -> None:
         self._elements = elements
 

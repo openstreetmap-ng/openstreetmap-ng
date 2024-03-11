@@ -16,7 +16,7 @@ class GravatarStorage(StorageBase):
     Uses FileCache for local caching.
     """
 
-    __slots__ = ('_context', '_fc')
+    __slots__ = ('_fc',)
 
     def __init__(self, context: str = 'gravatar'):
         super().__init__(context)

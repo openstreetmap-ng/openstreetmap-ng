@@ -24,6 +24,8 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 
 class OptimisticDiffApply:
+    __slots__ = ('_now',)
+
     _now: datetime
 
     async def apply(self, prepare: OptimisticDiffPrepare) -> dict[ElementRef, Sequence[Element]]:

@@ -81,6 +81,8 @@ class CMercator:
 
 
 class Mercator:
+    __slots__ = ('_impl',)
+
     def __init__(
         self,
         min_lon: float,

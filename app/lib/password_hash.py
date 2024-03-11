@@ -11,10 +11,11 @@ from app.models.user_role import UserRole
 
 
 class PasswordHash:
-    rehash_needed: bool | None = None
+    __slots__ = ('_hasher', 'rehash_needed')
 
     def __init__(self, hasher: PasswordHasher):
         self._hasher = hasher
+        self.rehash_needed: bool | None = None
 
     def verify(self, password_hashed: str, salt: str | None, password: str) -> bool:
         """

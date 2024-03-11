@@ -18,7 +18,6 @@ authlib = "^1.3.0"
 beautifulsoup4 = {extras = ["charset-normalizer", "lxml"], version = "^4.12.3"}
 bleach = "^6.1.0"
 brotlicffi = "^1.1.0.0"
-cachetools = "^5.3.3"
 cython = "^3.0.7"
 dnspython = "^2.6.1"
 email-validator = "^2.1.0.post1"

@@ -14,7 +14,7 @@ class S3Storage(StorageBase):
     Uses FileCache for local caching.
     """
 
-    __slots__ = ('_context', '_fc')
+    __slots__ = ('_fc',)
 
     def __init__(self, context: str):
         super().__init__(context)

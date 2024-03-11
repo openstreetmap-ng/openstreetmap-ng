@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 import cython
 from anyio import create_task_group
@@ -18,6 +19,7 @@ from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.element_repository import ElementRepository
 
 
+@dataclass(init=False, repr=False, eq=False, match_args=False, slots=True)
 class OptimisticDiffPrepare:
     applied: bool
     """

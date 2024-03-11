@@ -5,7 +5,6 @@ from os import PathLike, stat_result
 
 import cython
 from anyio import to_thread
-from cachetools import LRUCache
 from fastapi import HTTPException
 from starlette import status
 from starlette.datastructures import Headers
@@ -14,6 +13,7 @@ from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
 
 from app.config import TEST_ENV
+from app.lib.lru_cache import LRUCache
 from app.middlewares.compress_middleware import parse_accept_encoding
 
 

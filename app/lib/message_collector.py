@@ -7,6 +7,8 @@ MessageSeverity = Literal['success', 'info', 'error']
 
 
 class MessageCollector:
+    __slots__ = ('_messages',)
+
     def __init__(self) -> None:
         self._messages: dict[str | None, list[tuple[MessageSeverity, str]]] = defaultdict(list)
 

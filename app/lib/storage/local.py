@@ -10,7 +10,7 @@ class LocalStorage(StorageBase):
     Local file storage.
     """
 
-    __slots__ = ('_context',)
+    __slots__ = ()
 
     def __init__(self, context: str):
         super().__init__(context)
