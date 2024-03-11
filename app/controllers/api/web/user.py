@@ -54,7 +54,7 @@ async def logout(
     _: Annotated[User, web_user()],
 ):
     token_struct = UserTokenStruct.from_str(request.cookies['auth'])
-    await AuthService.logout_session(token_struct)
+    await AuthService.destroy_session(token_struct)
     response = redirect_response()
     response.delete_cookie('auth')
     return response

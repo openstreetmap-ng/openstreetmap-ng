@@ -256,9 +256,9 @@ class AuthService:
         return token.user
 
     @staticmethod
-    async def logout_session(token_struct: UserTokenStruct) -> None:
+    async def destroy_session(token_struct: UserTokenStruct) -> None:
         """
-        Logout the current session.
+        Destroy a user session token.
         """
 
         async with db_autocommit() as session:
