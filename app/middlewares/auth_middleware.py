@@ -1,7 +1,6 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.lib.auth_context import auth_context
-from app.middlewares.request_context_middleware import get_request
 from app.services.auth_service import AuthService
 
 
@@ -20,7 +19,6 @@ class AuthMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = get_request()
-        user, scopes = await AuthService.authenticate_request(request)
+        user, scopes = await AuthService.authenticate_request()
         with auth_context(user, scopes):
             await self.app(scope, receive, send)

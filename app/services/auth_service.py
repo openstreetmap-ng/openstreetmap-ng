@@ -4,7 +4,7 @@ from collections.abc import Sequence
 
 from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
-from sqlalchemy import update
+from sqlalchemy import delete, update
 
 from app.config import SECRET
 from app.db import db_autocommit
@@ -38,7 +38,7 @@ _session_auth_scopes = (*_basic_auth_scopes, ExtendedScope.web_user)
 
 class AuthService:
     @staticmethod
-    async def authenticate_request(request: Request) -> tuple[User | None, Sequence[ExtendedScope]]:
+    async def authenticate_request() -> tuple[User | None, Sequence[ExtendedScope]]:
         """
         Authenticate with the request.
 
@@ -49,7 +49,9 @@ class AuthService:
         Returns the authenticated user (if any) and scopes.
         """
 
-        user, scopes = None, ()
+        user = None
+        scopes = ()
+        request = get_request()
 
         # api endpoints support basic auth and oauth
         if request.url.path.startswith(('/api/0.6/', '/api/0.7/')):
@@ -168,44 +170,6 @@ class AuthService:
         return user
 
     @staticmethod
-    async def create_session(user_id: int) -> UserTokenStruct:
-        """
-        Create a new user session token.
-        """
-
-        token_bytes = buffered_randbytes(32)
-        token_hashed = hash_bytes(token_bytes, context=None)
-
-        async with db_autocommit() as session:
-            token = UserTokenSession(
-                user_id=user_id,
-                token_hashed=token_hashed,
-                expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
-            )
-
-            session.add(token)
-
-            # TODO: test token.id assigned
-
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
-
-    @staticmethod
-    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
-        """
-        Authenticate a user by user session token.
-
-        Returns None if the session is not found or the session key is incorrect.
-        """
-
-        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
-
-        if token is None:
-            logging.debug('Session not found %r', token_struct.id)
-            return None
-
-        return token.user
-
-    @staticmethod
     async def authenticate_oauth(request: Request) -> tuple[User, Sequence[Scope]] | None:
         """
         Authenticate a user by OAuth1.0 or OAuth2.0.
@@ -254,9 +218,51 @@ class AuthService:
         return token.user, token.scopes
 
     @staticmethod
-    async def logout_session() -> None:
+    async def create_session(user_id: int) -> UserTokenStruct:
+        """
+        Create a new user session token.
+        """
+
+        token_bytes = buffered_randbytes(32)
+        token_hashed = hash_bytes(token_bytes, context=None)
+
+        async with db_autocommit() as session:
+            token = UserTokenSession(
+                user_id=user_id,
+                token_hashed=token_hashed,
+                expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
+            )
+
+            session.add(token)
+
+            # TODO: test token.id assigned
+
+        return UserTokenStruct.v1(id=token.id, token=token_bytes)
+
+    @staticmethod
+    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
+        """
+        Authenticate a user by user session token.
+
+        Returns None if the session is not found or the session key is incorrect.
+        """
+
+        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
+
+        if token is None:
+            logging.debug('Session not found %r', token_struct.id)
+            return None
+
+        return token.user
+
+    @staticmethod
+    async def logout_session(token_struct: UserTokenStruct) -> None:
         """
         Logout the current session.
         """
 
-        get_request().session.pop('session', None)
+        async with db_autocommit() as session:
+            stmt = delete(UserTokenSession).where(UserTokenSession.id == token_struct.id)
+
+            if (await session.execute(stmt)).rowcount != 1:
+                logging.warning('Session not found %r', token_struct.id)

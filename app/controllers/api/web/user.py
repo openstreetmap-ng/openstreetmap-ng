@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query
+from fastapi import APIRouter, Form, Query, Request
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -10,6 +10,7 @@ from app.lib.message_collector import MessageCollector
 from app.lib.redirect_response import redirect_response
 from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User
+from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import OSMResponse
@@ -49,9 +50,11 @@ async def login(
 
 @router.post('/logout')
 async def logout(
+    request: Request,
     _: Annotated[User, web_user()],
 ):
-    await AuthService.logout_session()
+    token_struct = UserTokenStruct.from_str(request.cookies['auth'])
+    await AuthService.logout_session(token_struct)
     response = redirect_response()
     response.delete_cookie('auth')
     return response
