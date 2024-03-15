@@ -183,24 +183,29 @@ async def notes_feed(
     else:
         geometry = None
 
-    with joinedload_context(NoteComment.user, NoteComment.body_rich):
-        comments = await NoteCommentRepository.find_many_by_query(
+    with joinedload_context(NoteComment.user, NoteComment.body_rich, NoteComment.legacy_note):
+        comments = await NoteCommentRepository.legacy_find_many_by_query(
             geometry=geometry,
             limit=NOTE_QUERY_DEFAULT_LIMIT,
         )
 
     # small optimization, skip processing for empty result
-    # this is ugly but required, api 0.6 note comment must know all other comments
+    # deduplicate legacy_note instances and resolve rich text
     if comments:
+        note_id_map = {}
+        notes = []
+        for comment in comments:
+            note = note_id_map.get(comment.note_id)
+            if note is not None:
+                comment.legacy_note = note
+            else:
+                note = comment.legacy_note
+                note_id_map[comment.note_id] = note
+                notes.append(note)
+
         async with create_task_group() as tg:
             tg.start_soon(_resolve_comments_and_rich_text(comments))
-            note_ids = {comment.note_id for comment in comments}
-            notes = await NoteRepository.find_many_by_query(note_ids=note_ids, limit=len(note_ids))
             tg.start_soon(_resolve_comments_and_rich_text(notes))
-
-        note_id_map = {note.id: note for note in notes}
-        for comment in comments:
-            comment.legacy_note = note_id_map[comment.note_id]
 
     fg = FeedGenerator()
     fg.link(href=str(request.url), rel='self')

@@ -12,7 +12,7 @@ from app.models.db.note_comment import NoteComment
 
 class NoteCommentRepository:
     @staticmethod
-    async def find_many_by_query(
+    async def legacy_find_many_by_query(
         *,
         geometry: Polygon | None = None,
         limit: int | None,
