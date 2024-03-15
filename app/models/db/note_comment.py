@@ -38,7 +38,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     # runtime
-    legacy_note: Note | None = None
+    legacy_note: Mapped[Note] = relationship(lazy='raise')
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

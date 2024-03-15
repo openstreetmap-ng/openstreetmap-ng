@@ -33,9 +33,9 @@ async def user_details(
     return await Format06.encode_user(user)
 
 
-@router.get('/user/{user_id}')
-@router.get('/user/{user_id}.xml')
-@router.get('/user/{user_id}.json')
+@router.get('/user/{user_id:int}')
+@router.get('/user/{user_id:int}.xml')
+@router.get('/user/{user_id:int}.json')
 async def user_read(
     user_id: PositiveInt,
 ) -> dict:

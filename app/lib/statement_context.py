@@ -27,7 +27,8 @@ def apply_statement_context(stmt: T) -> T:
     Apply statement post-processing context.
     """
 
-    if (keys := _joinedload_context.get(None)) is not None:
-        stmt = stmt.options(joinedload(*keys))
+    keys = _joinedload_context.get(None)
+    if keys is not None:
+        stmt = stmt.options(*(joinedload(key) for key in keys))
 
     return stmt

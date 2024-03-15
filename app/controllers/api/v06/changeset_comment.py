@@ -13,7 +13,7 @@ from app.services.changeset_comment_service import ChangesetCommentService
 router = APIRouter()
 
 
-@router.post('/changeset/{changeset_id}/subscribe')
+@router.post('/changeset/{changeset_id:int}/subscribe')
 async def changeset_subscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
@@ -23,7 +23,7 @@ async def changeset_subscribe(
     return Format06.encode_changeset(changeset)
 
 
-@router.post('/changeset/{changeset_id}/unsubscribe')
+@router.post('/changeset/{changeset_id:int}/unsubscribe')
 async def changeset_unsubscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
@@ -33,7 +33,7 @@ async def changeset_unsubscribe(
     return Format06.encode_changeset(changeset)
 
 
-@router.post('/changeset/{changeset_id}/comment')
+@router.post('/changeset/{changeset_id:int}/comment')
 async def changeset_comment(
     changeset_id: PositiveInt,
     text: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
@@ -44,7 +44,7 @@ async def changeset_comment(
     return Format06.encode_changeset(changeset)
 
 
-@router.post('/changeset/comment/{comment_id}/hide')
+@router.post('/changeset/comment/{comment_id:int}/hide')
 async def changeset_comment_hide(
     comment_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api, ExtendedScope.role_moderator)],

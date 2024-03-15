@@ -53,9 +53,9 @@ async def changeset_create(
     return changeset.id
 
 
-@router.get('/changeset/{changeset_id}')
-@router.get('/changeset/{changeset_id}.xml')
-@router.get('/changeset/{changeset_id}.json')
+@router.get('/changeset/{changeset_id:int}')
+@router.get('/changeset/{changeset_id:int}.xml')
+@router.get('/changeset/{changeset_id:int}.json')
 async def changeset_read(
     changeset_id: PositiveInt,
     include_discussion_str: Annotated[str | None, Query(alias='include_discussion')] = None,
@@ -72,7 +72,7 @@ async def changeset_read(
     return Format06.encode_changesets(changesets)
 
 
-@router.put('/changeset/{changeset_id}')
+@router.put('/changeset/{changeset_id:int}')
 async def changeset_update(
     request: Request,
     changeset_id: PositiveInt,
@@ -93,7 +93,7 @@ async def changeset_update(
     return Format06.encode_changesets((changeset,))
 
 
-@router.post('/changeset/{changeset_id}/upload', response_class=DiffResultResponse)
+@router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
 async def changeset_upload(
     request: Request,
     changeset_id: PositiveInt,
@@ -115,7 +115,7 @@ async def changeset_upload(
     return Format06.encode_diff_result(assigned_ref_map)
 
 
-@router.put('/changeset/{changeset_id}/close', response_class=PlainTextResponse)
+@router.put('/changeset/{changeset_id:int}/close', response_class=PlainTextResponse)
 async def changeset_close(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
@@ -123,8 +123,8 @@ async def changeset_close(
     await ChangesetService.close(changeset_id)
 
 
-@router.get('/changeset/{changeset_id}/download', response_class=OSMChangeResponse)
-@router.get('/changeset/{changeset_id}/download.xml', response_class=OSMChangeResponse)
+@router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
+@router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
 async def changeset_download(
     changeset_id: PositiveInt,
 ) -> Sequence[tuple[str, dict]]:

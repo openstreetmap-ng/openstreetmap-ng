@@ -56,7 +56,7 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
             for comment in notes_or_comments:
                 tg.start_soon(comment.resolve_rich_text)
         else:
-            with joinedload_context(NoteComment.user, NoteComment.body_rich):
+            with joinedload_context(NoteComment.user):
                 await NoteCommentRepository.resolve_comments(notes_or_comments, limit_per_note=None)
             note: Note
             for note in notes_or_comments:
@@ -81,11 +81,11 @@ async def note_create(
     return Format06.encode_note(notes[0])
 
 
-@router.get('/notes/{note_id}')
-@router.get('/notes/{note_id}.xml')
-@router.get('/notes/{note_id}.json')
-@router.get('/notes/{note_id}.rss')
-@router.get('/notes/{note_id}.gpx', response_class=GPXResponse)
+@router.get('/notes/{note_id:int}')
+@router.get('/notes/{note_id:int}.xml')
+@router.get('/notes/{note_id:int}.json')
+@router.get('/notes/{note_id:int}.rss')
+@router.get('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def note_read(
     request: Request,
     note_id: PositiveInt,
@@ -110,10 +110,10 @@ async def note_read(
         return Format06.encode_note(notes[0])
 
 
-@router.post('/notes/{note_id}/comment')
-@router.post('/notes/{note_id}/comment.xml')
-@router.post('/notes/{note_id}/comment.json')
-@router.post('/notes/{note_id}/comment.gpx', response_class=GPXResponse)
+@router.post('/notes/{note_id:int}/comment')
+@router.post('/notes/{note_id:int}/comment.xml')
+@router.post('/notes/{note_id:int}/comment.json')
+@router.post('/notes/{note_id:int}/comment.gpx', response_class=GPXResponse)
 async def note_comment(
     note_id: PositiveInt,
     text: Annotated[str, Query(min_length=1)],
@@ -125,10 +125,10 @@ async def note_comment(
     return Format06.encode_note(notes[0])
 
 
-@router.post('/notes/{note_id}/close')
-@router.post('/notes/{note_id}/close.xml')
-@router.post('/notes/{note_id}/close.json')
-@router.post('/notes/{note_id}/close.gpx', response_class=GPXResponse)
+@router.post('/notes/{note_id:int}/close')
+@router.post('/notes/{note_id:int}/close.xml')
+@router.post('/notes/{note_id:int}/close.json')
+@router.post('/notes/{note_id:int}/close.gpx', response_class=GPXResponse)
 async def note_close(
     _: Annotated[User, api_user(Scope.write_notes)],
     note_id: PositiveInt,
@@ -140,10 +140,10 @@ async def note_close(
     return Format06.encode_note(notes[0])
 
 
-@router.post('/notes/{note_id}/reopen')
-@router.post('/notes/{note_id}/reopen.xml')
-@router.post('/notes/{note_id}/reopen.json')
-@router.post('/notes/{note_id}/reopen.gpx', response_class=GPXResponse)
+@router.post('/notes/{note_id:int}/reopen')
+@router.post('/notes/{note_id:int}/reopen.xml')
+@router.post('/notes/{note_id:int}/reopen.json')
+@router.post('/notes/{note_id:int}/reopen.gpx', response_class=GPXResponse)
 async def note_reopen(
     _: Annotated[User, api_user(Scope.write_notes)],
     note_id: PositiveInt,
@@ -155,10 +155,10 @@ async def note_reopen(
     return Format06.encode_note(notes[0])
 
 
-@router.delete('/notes/{note_id}')
-@router.delete('/notes/{note_id}.xml')
-@router.delete('/notes/{note_id}.json')
-@router.delete('/notes/{note_id}.gpx', response_class=GPXResponse)
+@router.delete('/notes/{note_id:int}')
+@router.delete('/notes/{note_id:int}.xml')
+@router.delete('/notes/{note_id:int}.json')
+@router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def note_hide(
     _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
     note_id: PositiveInt,
@@ -183,7 +183,7 @@ async def notes_feed(
     else:
         geometry = None
 
-    with joinedload_context(NoteComment.user, NoteComment.body_rich, NoteComment.legacy_note):
+    with joinedload_context(NoteComment.user, NoteComment.legacy_note):
         comments = await NoteCommentRepository.legacy_find_many_by_query(
             geometry=geometry,
             limit=NOTE_QUERY_DEFAULT_LIMIT,

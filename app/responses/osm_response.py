@@ -73,11 +73,10 @@ class OSMResponse(Response):
             return Response(encoded, media_type='application/xml; charset=utf-8')
 
         elif style == 'rss':
-            if not isinstance(content, str):
+            if not isinstance(content, bytes):
                 raise TypeError(f'Invalid rss content type {type(content)}')
 
-            encoded = content.encode()
-            return Response(encoded, media_type='application/rss+xml; charset=utf-8')
+            return Response(content, media_type='application/rss+xml; charset=utf-8')
 
         elif style == 'gpx':
             if isinstance(content, Mapping):

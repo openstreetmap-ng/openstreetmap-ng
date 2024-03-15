@@ -42,10 +42,10 @@ async def gpx_create(
     return trace.id
 
 
-@router.get('/gpx/{trace_id}')
-@router.get('/gpx/{trace_id}.xml')
-@router.get('/gpx/{trace_id}/details')
-@router.get('/gpx/{trace_id}/details.xml')
+@router.get('/gpx/{trace_id:int}')
+@router.get('/gpx/{trace_id:int}.xml')
+@router.get('/gpx/{trace_id:int}/details')
+@router.get('/gpx/{trace_id:int}/details.xml')
 async def gpx_read(
     trace_id: PositiveInt,
 ) -> dict:
@@ -54,8 +54,8 @@ async def gpx_read(
     return Format06.encode_gpx_file(trace)
 
 
-@router.get('/gpx/{trace_id}/data.xml', response_class=GPXResponse)
-@router.get('/gpx/{trace_id}/data.gpx', response_class=GPXResponse)
+@router.get('/gpx/{trace_id:int}/data.xml', response_class=GPXResponse)
+@router.get('/gpx/{trace_id:int}/data.gpx', response_class=GPXResponse)
 async def gpx_read_data(
     trace_id: PositiveInt,
 ) -> dict:
@@ -64,7 +64,7 @@ async def gpx_read_data(
     return Format06.encode_track(trace.points)
 
 
-@router.get('/gpx/{trace_id}/data')
+@router.get('/gpx/{trace_id:int}/data')
 async def gpx_read_data_raw(
     trace_id: PositiveInt,
 ) -> Response:
@@ -79,7 +79,7 @@ async def gpx_read_data_raw(
     )
 
 
-@router.put('/gpx/{trace_id}', response_class=PlainTextResponse)
+@router.put('/gpx/{trace_id:int}', response_class=PlainTextResponse)
 async def gpx_update(
     request: Request,
     trace_id: PositiveInt,
@@ -99,7 +99,7 @@ async def gpx_update(
     await TraceService.update(trace_id, new_trace)
 
 
-@router.delete('/gpx/{trace_id}', response_class=PlainTextResponse)
+@router.delete('/gpx/{trace_id:int}', response_class=PlainTextResponse)
 async def gpx_delete(
     trace_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_gpx)],
