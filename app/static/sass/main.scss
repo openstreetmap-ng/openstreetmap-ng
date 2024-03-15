@@ -57,11 +57,6 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "leaflet/dist/leaflet";
 
 @import "about";
-@import "action-sidebar-changeset";
-@import "action-sidebar-export";
-@import "action-sidebar-index";
-@import "action-sidebar-result";
-@import "action-sidebar-routing";
 @import "avatar";
 @import "btn";
 @import "check";
@@ -70,29 +65,37 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "diary";
 @import "dropdown";
 @import "illustration";
-@import "leaflet";
-@import "leaflet-icons";
-@import "leaflet-location-filter";
-@import "leaflet-sidebar";
-@import "leaflet-sidebar-layers";
-@import "leaflet-sidebar-legend";
-@import "leaflet-sidebar-share";
-@import "leaflet-sidebar-toggle-button";
-@import "login";
-@import "main-map";
-@import "map-alert";
-@import "map-attribution";
 @import "message";
 @import "navbar";
 @import "required";
 @import "rich-text";
 @import "rtl";
-@import "sidebar";
-@import "signup";
-@import "tags";
 @import "unsupported-browser";
-@import "user-popup";
-@import "user-terms";
 @import "welcome";
+
+@import "index/action-sidebar-changeset";
+@import "index/action-sidebar-export";
+@import "index/action-sidebar-index";
+@import "index/action-sidebar-result";
+@import "index/action-sidebar-routing";
+@import "index/tags";
+
+@import "leaflet/icons";
+@import "leaflet/leaflet";
+@import "leaflet/location-filter";
+@import "leaflet/main-map";
+@import "leaflet/map-alert";
+@import "leaflet/map-attribution";
+@import "leaflet/sidebar-layers";
+@import "leaflet/sidebar-legend";
+@import "leaflet/sidebar-share";
+@import "leaflet/sidebar-toggle-button";
+@import "leaflet/sidebar";
+@import "leaflet/user-popup";
+
+@import "user/account-confirm";
+@import "user/login";
+@import "user/signup";
+@import "user/terms";
 
 // TODO: print style

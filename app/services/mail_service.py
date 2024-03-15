@@ -8,6 +8,7 @@ import anyio
 from sqlalchemy import null, or_, select
 
 from app.config import (
+    APP_URL,
     SMTP_HOST,
     SMTP_MESSAGES_FROM,
     SMTP_NOREPLY_FROM,
@@ -19,7 +20,7 @@ from app.config import (
 )
 from app.db import db_autocommit
 from app.lib.date_utils import utcnow
-from app.lib.translation import render, translation_context
+from app.lib.translation import primary_translation_language, render, translation_context, translation_languages
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User
@@ -117,9 +118,17 @@ class MailService:
         Schedule a mail for later processing.
         """
 
-        # use destination user's preferred language
+        # consider to_user's preferred language
         with translation_context(to_user.languages):
-            body = render(template_name, **template_data)
+            body = render(
+                template_name,
+                **{
+                    'APP_URL': APP_URL,
+                    'lang': primary_translation_language(),
+                    'user': to_user,
+                    **template_data,
+                },
+            )
 
         async with db_autocommit() as session:
             mail = Mail(
@@ -132,7 +141,7 @@ class MailService:
                 priority=priority,
             )
 
-            logging.debug('Scheduling mail %r to %d with subject %r', mail.id, to_user.id, subject)
+            logging.debug('Scheduling mail %r to user %d with subject %r', mail.id, to_user.id, subject)
             session.add(mail)
 
     @staticmethod
@@ -167,7 +176,7 @@ class MailService:
                 return
 
             try:
-                logging.info('Processing mail %r to %d with subject %r', mail.id, mail.to_user.id, mail.subject)
+                logging.info('Processing mail %r to user %d with subject %r', mail.id, mail.to_user.id, mail.subject)
 
                 with anyio.fail_after(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
                     await _send_smtp(mail)

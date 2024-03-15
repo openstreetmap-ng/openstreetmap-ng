@@ -68,8 +68,8 @@ SMTP_HOST = os.getenv('SMTP_HOST', '127.0.0.1')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 25))
 SMTP_USER = os.getenv('SMTP_USER', None)
 SMTP_PASS = os.getenv('SMTP_PASS', None)
-SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', '')
-SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', '')
+SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
+SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 
 # Logging configuration
 dictConfig(
@@ -104,8 +104,8 @@ dictConfig(
 SECRET_32bytes = sha256(SECRET.encode()).digest()
 
 SMTP_SECURE = os.getenv('SMTP_SECURE', '0' if SMTP_PORT == 25 else '1').strip().lower() in ('1', 'true', 'yes')
-SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else ''
-SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else ''
+SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else None
+SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else None
 
 ID_VERSION = yarn_lock_version('iD')
 RAPID_VERSION = yarn_lock_version('@rapideditor/rapid')

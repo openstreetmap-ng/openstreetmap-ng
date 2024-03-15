@@ -17,6 +17,7 @@ from app.responses.osm_response import OSMResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
+from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 
 router = APIRouter(prefix='/user')
 
@@ -83,7 +84,7 @@ async def accept_terms(
     _: Annotated[User, web_user()],
 ):
     await UserSignupService.accept_terms()
-    return RedirectResponse('/user/pending-activation', status.HTTP_303_SEE_OTHER)
+    return RedirectResponse('/user/account-confirm/pending', status.HTTP_303_SEE_OTHER)
 
 
 @router.post('/abort-signup')
@@ -94,6 +95,23 @@ async def abort_signup(
     response = RedirectResponse('/', status.HTTP_303_SEE_OTHER)
     response.delete_cookie('auth')
     return response
+
+
+@router.get('/account-confirm')
+async def account_confirm(
+    token: Annotated[str, Query(min_length=1)],
+):
+    token_struct = UserTokenStruct.from_str(token)
+    await UserTokenAccountConfirmService.confirm(token_struct)
+    return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+
+
+@router.post('/account-confirm/resend')
+async def account_confirm_resend(
+    _: Annotated[User, web_user()],
+):
+    await UserSignupService.send_confirm_email()
+    return redirect_referrer()
 
 
 # @router.post('/settings')

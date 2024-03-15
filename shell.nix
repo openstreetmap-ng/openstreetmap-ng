@@ -442,11 +442,11 @@ let
     export TEST_ENV=1
     export POSTGRES_LOG=1
     export SECRET="development-secret"
-    export APP_URL="http://127.0.0.1:3000"
-    export API_URL="http://127.0.0.1:3000"
-    export ID_URL="http://127.0.0.1:3000"
+    export APP_URL="http://127.0.0.1:8000"
+    export API_URL="http://127.0.0.1:8000"
+    export ID_URL="http://127.0.0.1:8000"
     export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
-    export RAPID_URL="http://127.0.0.1:3000"
+    export RAPID_URL="http://127.0.0.1:8000"
     export AUTHLIB_INSECURE_TRANSPORT=1
 
     if [ -f .env ]; then

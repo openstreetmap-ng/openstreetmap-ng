@@ -34,12 +34,12 @@ def _get_default_data() -> dict:
     }
 
     return {
-        'APP_URL': APP_URL,
         'request': get_request(),
+        'APP_URL': APP_URL,
         'lang': languages[0],
-        'i18next_files': map_i18next_files(languages),
-        'config': JSON_ENCODE(config).decode(),
         'user': user,
+        'config': JSON_ENCODE(config).decode(),
+        'i18next_files': map_i18next_files(languages),
     }
 
 

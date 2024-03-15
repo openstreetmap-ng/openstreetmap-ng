@@ -1,7 +1,9 @@
 import logging
+from urllib.parse import urlsplit
 
 from sqlalchemy import delete, update
 
+from app.config import APP_URL
 from app.db import db_autocommit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
@@ -18,6 +20,8 @@ from app.services.auth_service import AuthService
 from app.services.mail_service import SMTP, MailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability
+
+_app_domain: str = urlsplit(APP_URL).netloc
 
 
 class UserSignupService:
@@ -104,9 +108,12 @@ class UserSignupService:
             source=MailSource.system,
             from_user=None,
             to_user=auth_user(),
-            subject='TODO',  # TODO:
-            template_name='TODO',
-            template_data={'token': str(token)},
+            subject=t('user_mailer.signup_confirm.subject'),
+            template_name='email/account_confirm.jinja2',
+            template_data={
+                'app_domain': _app_domain,
+                'token': str(token),
+            },
         )
 
     @staticmethod

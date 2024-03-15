@@ -1,9 +1,11 @@
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter
 from starlette import status
 from starlette.responses import HTMLResponse, RedirectResponse
 
+from app.config import APP_URL
 from app.lib.auth_context import web_user
 from app.lib.legal import get_legal_terms
 from app.lib.render_response import render_response
@@ -25,6 +27,13 @@ async def terms(user: Annotated[User, web_user()]):
             'legal_terms_IT': get_legal_terms('IT'),
         },
     )
+
+
+@router.get('/account-confirm/pending')
+async def account_confirm_pending(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.pending_activation:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response('user/account_confirm_pending.jinja2')
 
 
 @router.get('/new')
