@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: f1f776ffbd5a
+Revision ID: cf482a031eba
 Revises:
-Create Date: 2024-03-10 16:51:17.553826+00:00
+Create Date: 2024-03-15 09:54:22.764196+00:00
 
 """
 from collections.abc import Sequence
@@ -17,7 +17,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'f1f776ffbd5a'
+revision: str = 'cf482a031eba'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
