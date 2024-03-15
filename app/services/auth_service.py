@@ -52,9 +52,14 @@ class AuthService:
         user = None
         scopes = ()
         request = get_request()
+        request_path: str = request.url.path
+
+        # skip authorization for static requests
+        if request_path.startswith('/static'):
+            return user, scopes
 
         # api endpoints support basic auth and oauth
-        if request.url.path.startswith(('/api/0.6/', '/api/0.7/')):
+        if request_path.startswith(('/api/0.6/', '/api/0.7/')):
             authorization = request.headers.get('Authorization')
             scheme, param = get_authorization_scheme_param(authorization)
 

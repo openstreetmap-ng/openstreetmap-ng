@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { qsStringify } from "../_qs.js"
 import { zoomPrecision } from "../_utils.js"
-import { routerNavigate } from "../index/_router.js"
+import { routerNavigateStrict } from "../index/_router.js"
 
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
@@ -55,7 +55,7 @@ export const configureContextMenu = (map) => {
     const onRoutingFromButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
-        routerNavigate(
+        routerNavigateStrict(
             `/directions?${qsStringify({
                 from: `${lat},${lon}`,
             })}`,
@@ -66,7 +66,7 @@ export const configureContextMenu = (map) => {
     const onRoutingToButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
-        routerNavigate(
+        routerNavigateStrict(
             `/directions?${qsStringify({
                 to: `${lat},${lon}`,
             })}`,
@@ -77,14 +77,14 @@ export const configureContextMenu = (map) => {
     const onNewNoteButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat, zoom } = getPopupPosition()
-        routerNavigate(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
+        routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     }
 
     // On show address button click, navigate to search page
     const onShowAddressButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
-        routerNavigate(
+        routerNavigateStrict(
             `/search?${qsStringify({
                 whereami: 1,
                 query: `${lat},${lon}`,
@@ -96,7 +96,7 @@ export const configureContextMenu = (map) => {
     const onQueryFeaturesButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat, zoom } = getPopupPosition()
-        routerNavigate(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
+        routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     }
 
     // On center here button click, center the map

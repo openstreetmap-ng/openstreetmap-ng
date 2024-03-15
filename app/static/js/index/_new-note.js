@@ -7,7 +7,7 @@ import { isLatitude, isLongitude } from "../_utils.js"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { getMapState, setMapState } from "../leaflet/_map-utils.js"
-import { routerNavigate } from "./_router.js"
+import { routerNavigateStrict } from "./_router.js"
 
 /**
  * Create a new new note controller
@@ -48,7 +48,7 @@ export const getNewNoteController = (map) => {
     // On success callback, navigate to the new note and simulate map move (reload notes layer)
     const onFormSuccess = (data) => {
         map.panTo(map.getCenter(), { animate: false })
-        routerNavigate(`/note/${data.noteId}`)
+        routerNavigateStrict(`/note/${data.noteId}`)
     }
 
     // Listen for events

@@ -19,16 +19,29 @@ const findRoute = (path) => routes.find((route) => route.match(path))
 const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? removeTrailingSlash(str.slice(0, -1)) : str)
 
 /**
- * Navigate to a path and return true if successful
+ * Navigate to a path, throwing an error if no route is found
  * @param {string} newPath Path to navigate to, including search
  * @returns {void}
+ * @example
+ * routerNavigateStrict("/way/1234")
+ */
+export const routerNavigateStrict = (newPath) => {
+    if (!routerNavigate(newPath)) {
+        throw new Error(`No route found for path: ${newPath}`)
+    }
+}
+
+/**
+ * Navigate to a path and return true if successful
+ * @param {string} newPath Path to navigate to, including search
+ * @returns {boolean}
  * @example
  * routerNavigate("/way/1234")
  * // => true
  */
 export const routerNavigate = (newPath) => {
     const newRoute = findRoute(newPath)
-    if (!newRoute) throw new Error(`No route found for path: ${newPath}`)
+    if (!newRoute) return false
 
     // Unload the current route
     if (currentRoute) currentRoute.unload({ sameRoute: newRoute === currentRoute })
@@ -40,6 +53,7 @@ export const routerNavigate = (newPath) => {
     currentPath = newPath
     currentRoute = newRoute
     currentRoute.load(currentPath, { source: "script" })
+    return true
 }
 
 /**
@@ -77,7 +91,7 @@ export const configureRouter = (pathControllerMap) => {
 
     /**
      * Attempt to navigate to the href of an anchor element
-     * @param {PointerEvent} event Click event
+     * @param {MouseEvent} event Click event
      * @returns {void}
      */
     const onWindowClick = (event) => {
@@ -85,7 +99,9 @@ export const configureRouter = (pathControllerMap) => {
         if (event.defaultPrevented) return
 
         // Skip if not left click or modified click
-        if (!event.isPrimary || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+        console.debug("onWindowClick", event)
 
         // Skip if target is not an anchor
         const target = event.target
@@ -100,6 +116,7 @@ export const configureRouter = (pathControllerMap) => {
 
         // Attempt to navigate and prevent default if successful
         const newPath = removeTrailingSlash(target.pathname) + target.search
+
         if (routerNavigate(newPath)) {
             event.preventDefault()
         }

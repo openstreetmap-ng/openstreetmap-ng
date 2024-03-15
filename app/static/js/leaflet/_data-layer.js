@@ -2,7 +2,7 @@ import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config.js"
 import { parseElements } from "../_format07.js"
 import "../_types.js"
-import { routerNavigate } from "../index/_router.js"
+import { routerNavigateStrict } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
 import { renderObjects } from "./_object-render.js"
 import { getLatLngBoundsSize } from "./_utils.js"
@@ -55,7 +55,7 @@ export const configureDataLayer = (map) => {
     const onLayerClick = (event) => {
         const layer = event.propagatedFrom
         const object = layer.object
-        routerNavigate(`/${object.type}/${object.id}`)
+        routerNavigateStrict(`/${object.type}/${object.id}`)
     }
 
     /**

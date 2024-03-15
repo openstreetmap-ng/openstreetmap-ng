@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
-import { routerNavigate } from "../index/_router.js"
+import { routerNavigateStrict } from "../index/_router.js"
 import { newNoteMinZoom } from "./_context-menu.js"
 
 export const getNewNoteControl = () => {
@@ -37,7 +37,7 @@ export const getNewNoteControl = () => {
 
     // TODO: active state
     // On button click, navigate to the new note page
-    const onButtonClick = () => routerNavigate("/note/new")
+    const onButtonClick = () => routerNavigateStrict("/note/new")
 
     control.onAdd = (map) => {
         if (control.map) console.error("NewNoteControl has already been added to a map")

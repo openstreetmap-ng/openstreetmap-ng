@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { noteQueryAreaMaxSize } from "../_config.js"
 import "../_types.js"
-import { routerNavigate } from "../index/_router.js"
+import { routerNavigateStrict } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
 import { getLatLngBoundsSize, getMarkerIcon } from "./_utils.js"
 
@@ -22,7 +22,7 @@ export const configureNotesLayer = (map) => {
     const onMarkerClick = (event) => {
         const marker = event.propagatedFrom
         const noteId = marker.noteId
-        routerNavigate(`/note/${noteId}`)
+        routerNavigateStrict(`/note/${noteId}`)
     }
 
     /**
