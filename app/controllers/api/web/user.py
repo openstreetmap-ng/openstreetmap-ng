@@ -7,7 +7,7 @@ from starlette.responses import RedirectResponse
 from app.config import TEST_ENV
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
-from app.lib.redirect_response import redirect_response
+from app.lib.redirect_referrer import redirect_referrer
 from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -55,7 +55,7 @@ async def logout(
 ):
     token_struct = UserTokenStruct.from_str(request.cookies['auth'])
     await AuthService.destroy_session(token_struct)
-    response = redirect_response()
+    response = redirect_referrer()
     response.delete_cookie('auth')
     return response
 

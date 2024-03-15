@@ -63,7 +63,7 @@ def _redirect_url() -> str:
     return '/'
 
 
-def redirect_response() -> RedirectResponse:
+def redirect_referrer() -> RedirectResponse:
     """
     Get a redirect response, respecting the referrer header.
     """
