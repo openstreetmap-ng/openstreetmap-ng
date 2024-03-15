@@ -229,7 +229,8 @@ The most significant security vulnerabilities were reported to Ruby security mai
 - **2023-11-08** - Maintainers acknowledged the report
 - **2023-12-04** - Reported additional vulnerabilities with a 3-month deadline
 - **2023-12-06** - Maintainers acknowledged the additional report
-- **2024-03-02** - Publicize vulnerability details
+- <del>**2024-03-02** - Publicize vulnerability details</del>
+- **2024-03-15** - Publicize vulnerability details ([See diary](https://www.openstreetmap.org/user/NorthCrab/diary/403719))
 
 The maintainers are given up to 120 days to resolve the issues, but the vulnerability details may be made public earlier if necessary fixes are deployed on OpenStreetMap production servers.
 
@@ -239,11 +240,11 @@ Currently, providing reliable user profile links can be challenging due to users
 
 For instance, while the standard link appears as:
 
-https://www.openstreetmap.org/user/NorthCrab
+<https://www.openstreetmap.org/user/NorthCrab>
 
 the user permalink follows this format:
 
-https://www.openstreetmap.org/user/permalink/15215305
+<https://www.openstreetmap.org/user/permalink/15215305>
 
 Apart from convenience, this change simplifies the development process of various OSM-based tools, as it eliminates the need to store and update the latest user display name information, which is often an unnecessary convenience.
 
@@ -347,11 +348,11 @@ Once the roadmap is completed, I will focus on enhancing the overall OSM mapping
 
 - **Relatify 2** - A universal relation editor that also features 24/7 monitoring and easy automatic fixes. This project aims to build upon the experience gained from the original Relatify to further enhance the relation mapping experience. Big Thanks to [Lars Röglin](https://www.linkedin.com/in/lars-roeglin/) for contributing to the concept design process, which brought some fantastic ideas for the new editor.
 
-* **Nominatim 2** - I want to create the best reverse geocoding engine this world has seen. It will be completely free software, and fully based on the OpenStreetMap data. I have some exciting ideas on how to approach it, although I won't spoil anything yet.
+- **Nominatim 2** - I want to create the best reverse geocoding engine this world has seen. It will be completely free software, and fully based on the OpenStreetMap data. I have some exciting ideas on how to approach it, although I won't spoil anything yet.
 
-* **OSM API 0.7 Python Framework** - In line with efforts to elevate the OpenStreetMap ecosystem, I'll be developing a Python framework tailored for seamless API 0.7 integration. This robust library is designed with asynchronous support and future-proof architecture, serving as a foundation for both current and upcoming OSM projects.
+- **OSM API 0.7 Python Framework** - In line with efforts to elevate the OpenStreetMap ecosystem, I'll be developing a Python framework tailored for seamless API 0.7 integration. This robust library is designed with asynchronous support and future-proof architecture, serving as a foundation for both current and upcoming OSM projects.
 
-* **Anti-Vandalism Stage 3** - A fully autonomous AI decision engine for detecting and preventing map vandalism in real-time. This engine continuously updates and adapts to various map events. The moderation team can monitor the decision engine in a dedicated dashboard and configure it. The AI is trained on complete OpenStreetMap history, including account blocks issued by the DWG (Data Working Group). Suspected vandals receive an automatic account blockade, with an explanation that their account is under manual review. The moderation team is notified of manual review tasks.
+- **Anti-Vandalism Stage 3** - A fully autonomous AI decision engine for detecting and preventing map vandalism in real-time. This engine continuously updates and adapts to various map events. The moderation team can monitor the decision engine in a dedicated dashboard and configure it. The AI is trained on complete OpenStreetMap history, including account blocks issued by the DWG (Data Working Group). Suspected vandals receive an automatic account blockade, with an explanation that their account is under manual review. The moderation team is notified of manual review tasks.
 
 ## How Can You Help?
 
