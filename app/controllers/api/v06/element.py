@@ -33,7 +33,7 @@ def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType) -
     return None
 
 
-@router.put('/{type}/create', response_class=PlainTextResponse)
+@router.put('/{type:element_type}/create', response_class=PlainTextResponse)
 async def element_create(
     request: Request,
     type: ElementType,
@@ -43,7 +43,7 @@ async def element_create(
     data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type:element_type} element.", xml)
 
     data[1]['@id'] = -1  # enforce dynamic id allocation
 
@@ -56,9 +56,9 @@ async def element_create(
     return assigned_ref_map[element.element_ref][0].id
 
 
-@router.get('/{type}/{id}')
-@router.get('/{type}/{id}.xml')
-@router.get('/{type}/{id}.json')
+@router.get('/{type:element_type}/{id:int}')
+@router.get('/{type:element_type}/{id:int}.xml')
+@router.get('/{type:element_type}/{id:int}.json')
 async def element_read_latest(
     type: ElementType,
     id: PositiveInt,
@@ -75,9 +75,9 @@ async def element_read_latest(
     return Format06.encode_element(element)
 
 
-@router.get('/{type}/{id}/{version}')
-@router.get('/{type}/{id}/{version}.xml')
-@router.get('/{type}/{id}/{version}.json')
+@router.get('/{type:element_type}/{id:int}/{version:int}')
+@router.get('/{type:element_type}/{id:int}/{version:int}.xml')
+@router.get('/{type:element_type}/{id:int}/{version:int}.json')
 async def element_read_version(
     type: ElementType,
     id: PositiveInt,
@@ -92,7 +92,7 @@ async def element_read_version(
     return Format06.encode_element(elements[0])
 
 
-@router.put('/{type}/{id}', response_class=PlainTextResponse)
+@router.put('/{type:element_type}/{id:int}', response_class=PlainTextResponse)
 async def element_update(
     request: Request,
     type: ElementType,
@@ -103,7 +103,7 @@ async def element_update(
     data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type:element_type} element.", xml)
 
     data[1]['@id'] = id
 
@@ -116,7 +116,7 @@ async def element_update(
     return element.version
 
 
-@router.delete('/{type}/{id}', response_class=PlainTextResponse)
+@router.delete('/{type:element_type}/{id:int}', response_class=PlainTextResponse)
 async def element_delete(
     request: Request,
     type: ElementType,
@@ -127,7 +127,7 @@ async def element_delete(
     data = _get_element_data(XMLToDict.parse(xml).get('osm', ()), type)
 
     if data is None:
-        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.", xml)
+        raise_for().bad_xml(type, f"XML doesn't contain an osm/{type:element_type} element.", xml)
 
     data[1]['@id'] = id
     data[1]['@visible'] = False
@@ -141,9 +141,9 @@ async def element_delete(
     return element.version
 
 
-@router.get('/{type}/{id}/history')
-@router.get('/{type}/{id}/history.xml')
-@router.get('/{type}/{id}/history.json')
+@router.get('/{type:element_type}/{id:int}/history')
+@router.get('/{type:element_type}/{id:int}/history.xml')
+@router.get('/{type:element_type}/{id:int}/history.json')
 async def element_history(
     type: ElementType,
     id: PositiveInt,
@@ -157,9 +157,9 @@ async def element_history(
     return Format06.encode_elements(elements)
 
 
-@router.get('/{type}s')
-@router.get('/{type}s.xml')
-@router.get('/{type}s.json')
+@router.get('/{type:element_type}s')
+@router.get('/{type:element_type}s.xml')
+@router.get('/{type:element_type}s.json')
 async def elements_read_many(
     type: ElementType,
     nodes: Annotated[str | None, Query()] = None,
@@ -178,8 +178,8 @@ async def elements_read_many(
     if not query:
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
-            f'The parameter {type}s is required, and must be of the form '
-            f'{type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
+            f'The parameter {type:element_type}s is required, and must be of the form '
+            f'{type:element_type}s=ID[vVER][,ID[vVER][,ID[vVER]...]].',
         )
 
     try:
@@ -210,9 +210,9 @@ async def elements_read_many(
     return Format06.encode_elements(elements)
 
 
-@router.get('/{type}/{id}/relations')
-@router.get('/{type}/{id}/relations.xml')
-@router.get('/{type}/{id}/relations.json')
+@router.get('/{type:element_type}/{id:int}/relations')
+@router.get('/{type:element_type}/{id:int}/relations.xml')
+@router.get('/{type:element_type}/{id:int}/relations.json')
 async def element_parent_relations(
     type: ElementType,
     id: PositiveInt,
@@ -226,9 +226,9 @@ async def element_parent_relations(
     return Format06.encode_elements(elements)
 
 
-@router.get('/node/{id}/ways')
-@router.get('/node/{id}/ways.xml')
-@router.get('/node/{id}/ways.json')
+@router.get('/node/{id:int}/ways')
+@router.get('/node/{id:int}/ways.xml')
+@router.get('/node/{id:int}/ways.json')
 async def element_parent_ways(
     id: PositiveInt,
 ) -> Sequence[dict]:
@@ -241,9 +241,9 @@ async def element_parent_ways(
     return Format06.encode_elements(elements)
 
 
-@router.get('/{type}/{id}/full')
-@router.get('/{type}/{id}/full.xml')
-@router.get('/{type}/{id}/full.json')
+@router.get('/{type:element_type}/{id:int}/full')
+@router.get('/{type:element_type}/{id:int}/full.xml')
+@router.get('/{type:element_type}/{id:int}/full.json')
 async def element_full(
     type: ElementType,
     id: PositiveInt,

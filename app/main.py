@@ -7,6 +7,7 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
+from starlette.convertors import register_url_convertor
 from starlette.routing import Router
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
@@ -33,6 +34,7 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
+from app.validators.element_type import ElementTypeConvertor
 
 # register additional mimetypes
 mimetypes.init()
@@ -62,6 +64,9 @@ async def lifespan(_):
 
 
 main = FastAPI(title=NAME, lifespan=lifespan)
+
+# register custom url convertors
+register_url_convertor('element_type', ElementTypeConvertor())
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(CompressMiddleware)
