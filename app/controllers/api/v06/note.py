@@ -40,17 +40,14 @@ router = APIRouter()
 # TODO: validate input lengths
 
 
-async def _resolve_rich_texts(notes_or_comments: Sequence[Note | NoteComment] | Note | NoteComment) -> None:
+async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | NoteComment]) -> None:
     """
-    Resolve rich text for notes or comments.
+    Resolve note comments and their rich text.
     """
 
+    # small optimization
     if not notes_or_comments:
         return
-
-    # ensure it's a sequence
-    if isinstance(notes_or_comments, Note | NoteComment):
-        notes_or_comments = (notes_or_comments,)
 
     async with create_task_group() as tg:
         # is it a sequence of comments or notes?
@@ -59,6 +56,8 @@ async def _resolve_rich_texts(notes_or_comments: Sequence[Note | NoteComment] | 
             for comment in notes_or_comments:
                 tg.start_soon(comment.resolve_rich_text)
         else:
+            with joinedload_context(NoteComment.user, NoteComment.body_rich):
+                await NoteCommentRepository.resolve_comments(notes_or_comments, limit_per_note=None)
             note: Note
             for note in notes_or_comments:
                 for comment in note.comments:
@@ -76,10 +75,10 @@ async def note_create(
     text: Annotated[str, Query(min_length=1)],
 ) -> dict:
     point = Point(lon, lat)
-    # TODO: update, fetch note
-    note = await NoteService.create(request, point, text)
-    await _resolve_rich_texts(note)
-    return Format06.encode_note(note)
+    note_id = await NoteService.create(request, point, text)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
 
 
 @router.get('/notes/{note_id}')
@@ -91,13 +90,12 @@ async def note_read(
     request: Request,
     note_id: PositiveInt,
 ) -> dict:
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
 
     if not notes:
         raise_for().note_not_found(note_id)
 
-    await _resolve_rich_texts(notes)
+    await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
         fg = FeedGenerator()
@@ -121,11 +119,10 @@ async def note_comment(
     text: Annotated[str, Query(min_length=1)],
     _: Annotated[User, api_user(Scope.write_notes)],
 ) -> dict:
-    # TODO: update, fetch note
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        note = await NoteService.comment(note_id, text, NoteEvent.commented)
-    await _resolve_rich_texts(note)
-    return Format06.encode_note(note)
+    await NoteService.comment(note_id, text, NoteEvent.commented)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
 
 
 @router.post('/notes/{note_id}/close')
@@ -137,11 +134,10 @@ async def note_close(
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ) -> dict:
-    # TODO: update, fetch note
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        note = await NoteService.comment(note_id, text, NoteEvent.closed)
-    await _resolve_rich_texts(note)
-    return Format06.encode_note(note)
+    await NoteService.comment(note_id, text, NoteEvent.closed)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
 
 
 @router.post('/notes/{note_id}/reopen')
@@ -153,11 +149,10 @@ async def note_reopen(
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ) -> dict:
-    # TODO: update, fetch note
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        note = await NoteService.comment(note_id, text, NoteEvent.reopened)
-    await _resolve_rich_texts(note)
-    return Format06.encode_note(note)
+    await NoteService.comment(note_id, text, NoteEvent.reopened)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
 
 
 @router.delete('/notes/{note_id}')
@@ -169,11 +164,10 @@ async def note_hide(
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ) -> dict:
-    # TODO: update, fetch note
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        note = await NoteService.comment(note_id, text, NoteEvent.hidden)
-    await _resolve_rich_texts(note)
-    return Format06.encode_note(note)
+    await NoteService.comment(note_id, text, NoteEvent.hidden)
+    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
 
 
 @router.get('/notes/feed')
@@ -184,20 +178,29 @@ async def notes_feed(
 ) -> Sequence[dict]:
     if bbox is not None:
         geometry = parse_bbox(bbox)
-
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for().notes_query_area_too_big()
     else:
         geometry = None
 
-    # TODO: will this work?
-    with joinedload_context(NoteComment.body_rich, NoteComment.note, Note.comments):
+    with joinedload_context(NoteComment.user, NoteComment.body_rich):
         comments = await NoteCommentRepository.find_many_by_query(
             geometry=geometry,
             limit=NOTE_QUERY_DEFAULT_LIMIT,
         )
 
-    await _resolve_rich_texts(comments)
+    # small optimization, skip processing for empty result
+    # this is ugly but required, api 0.6 note comment must know all other comments
+    if comments:
+        async with create_task_group() as tg:
+            tg.start_soon(_resolve_comments_and_rich_text(comments))
+            note_ids = {comment.note_id for comment in comments}
+            notes = await NoteRepository.find_many_by_query(note_ids=note_ids, limit=len(note_ids))
+            tg.start_soon(_resolve_comments_and_rich_text(notes))
+
+        note_id_map = {note.id: note for note in notes}
+        for comment in comments:
+            comment.legacy_note = note_id_map[comment.note_id]
 
     fg = FeedGenerator()
     fg.link(href=str(request.url), rel='self')
@@ -234,18 +237,16 @@ async def notes_read(
 ) -> Sequence[dict]:
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
     geometry = parse_bbox(bbox)
-
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for().notes_query_area_too_big()
 
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        notes = await NoteRepository.find_many_by_query(
-            geometry=geometry,
-            max_closed_for=max_closed_for,
-            limit=limit,
-        )
+    notes = await NoteRepository.find_many_by_query(
+        geometry=geometry,
+        max_closed_for=max_closed_for,
+        limit=limit,
+    )
 
-    await _resolve_rich_texts(notes)
+    await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
         minx, miny, maxx, maxy = geometry.bounds
@@ -266,7 +267,7 @@ async def notes_read(
         return fg.rss_str()
 
     else:
-        return FormatRSS06.encode_notes(notes)
+        return Format06.encode_notes(notes)
 
 
 class _SearchSort(str, Enum):
@@ -318,26 +319,24 @@ async def notes_query(
 
     if bbox is not None:
         geometry = parse_bbox(bbox)
-
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for().notes_query_area_too_big()
     else:
         geometry = None
 
-    with joinedload_context(Note.comments, NoteComment.body_rich):
-        notes = await NoteRepository.find_many_by_query(
-            text=q,
-            user_id=user.id if user is not None else None,
-            max_closed_for=max_closed_for,
-            geometry=geometry,
-            date_from=from_,
-            date_to=to,
-            sort_by_created=sort == _SearchSort.created_at,
-            sort_asc=order == _SearchOrder.oldest,
-            limit=limit,
-        )
+    notes = await NoteRepository.find_many_by_query(
+        text=q,
+        user_id=user.id if user is not None else None,
+        max_closed_for=max_closed_for,
+        geometry=geometry,
+        date_from=from_,
+        date_to=to,
+        sort_by_created=sort == _SearchSort.created_at,
+        sort_asc=order == _SearchOrder.oldest,
+        limit=limit,
+    )
 
-    await _resolve_rich_texts(notes)
+    await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
         fg = FeedGenerator()

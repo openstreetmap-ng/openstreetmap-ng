@@ -21,6 +21,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'note_comment'
     __rich_text_fields__ = (('body', TextFormat.plain),)
 
+    # TODO: will joinedload work with None?
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
     user: Mapped[User | None] = relationship(lazy='raise')
     user_ip: Mapped[IPv4Address | IPv6Address | None] = mapped_column(INET, nullable=True)
@@ -35,6 +36,9 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
         init=False,
         nullable=False,
     )
+
+    # runtime
+    legacy_note: Note | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

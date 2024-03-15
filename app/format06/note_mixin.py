@@ -66,7 +66,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
                 'uid': comment.user_id,
                 'user': comment.user.display_name,
             }
-            if comment.user_id is not None
+            if (comment.user_id is not None)
             else {}
         ),
         'user_url': comment.user.permalink,
@@ -97,7 +97,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
                     {
                         'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.json',
                     }
-                    if note.closed_at is not None
+                    if (note.closed_at is not None)
                     else {
                         'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.json',
                         'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.json',
@@ -123,7 +123,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
                     {
                         'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen.gpx',
                     }
-                    if note.closed_at is not None
+                    if (note.closed_at is not None)
                     else {
                         'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment.gpx',
                         'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close.gpx',
@@ -143,7 +143,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
                 {
                     'reopen_url': f'{API_URL}/api/0.6/notes/{note.id}/reopen',
                 }
-                if note.closed_at is not None
+                if (note.closed_at is not None)
                 else {
                     'comment_url': f'{API_URL}/api/0.6/notes/{note.id}/comment',
                     'close_url': f'{API_URL}/api/0.6/notes/{note.id}/close',

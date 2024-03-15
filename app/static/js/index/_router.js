@@ -101,8 +101,6 @@ export const configureRouter = (pathControllerMap) => {
         // Skip if not left click or modified click
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
-        console.debug("onWindowClick", event)
-
         // Skip if target is not an anchor
         const target = event.target
         if (target.tagName !== "A") return
@@ -116,6 +114,7 @@ export const configureRouter = (pathControllerMap) => {
 
         // Attempt to navigate and prevent default if successful
         const newPath = removeTrailingSlash(target.pathname) + target.search
+        console.debug("onWindowClick", newPath)
 
         if (routerNavigate(newPath)) {
             event.preventDefault()

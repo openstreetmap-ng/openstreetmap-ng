@@ -20,7 +20,6 @@ async def trackpoints_read(
     page_number: Annotated[NonNegativeInt, Query(alias='pageNumber')] = 0,
 ) -> dict:
     geometry = parse_bbox(bbox)
-
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
         raise_for().trace_points_query_area_too_big()
 

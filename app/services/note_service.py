@@ -27,7 +27,8 @@ class NoteService:
         async with db_autocommit() as session:
             note = Note(point=point)
             session.add(note)
-            await session.flush()
+            # TODO: is this necessary?
+            # await session.flush()
 
             session.add(
                 NoteComment(

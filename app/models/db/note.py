@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from anyio import create_task_group
 from shapely import Point
@@ -17,6 +18,9 @@ from app.models.db.user import User
 from app.models.geometry import PointType
 from app.models.note_status import NoteStatus
 
+if TYPE_CHECKING:
+    from app.models.db.note_comment import NoteComment
+
 
 # TODO: ensure updated at on members
 # TODO: pruner
@@ -28,6 +32,9 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     # defaults
     closed_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
     hidden_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+
+    # runtime
+    comments: list['NoteComment'] | None = None
 
     @property
     def freshly_closed_duration(self) -> timedelta | None:

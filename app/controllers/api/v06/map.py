@@ -19,7 +19,6 @@ async def map_read(
     bbox: Annotated[str, Query(min_length=1)],
 ) -> dict:
     geometry = parse_bbox(bbox)
-
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 

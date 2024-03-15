@@ -91,7 +91,7 @@ async def _encode_note_comment(
     comment: NoteComment,
     task_status: TaskStatus = TASK_STATUS_IGNORED,
 ) -> None:
-    point = comment.note.point
+    point = comment.legacy_note.point
 
     fe = fg.add_entry(order='append')
     fe.guid(comment.legacy_permalink, permalink=True)
@@ -100,7 +100,7 @@ async def _encode_note_comment(
         render(
             'api/0.6/note_feed_entry.jinja2',
             comment=comment,
-            comments=comment.note.comments,
+            comments=comment.legacy_note.comments,
         ),
         type='CDATA',
     )
