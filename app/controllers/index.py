@@ -1,10 +1,14 @@
+from typing import Annotated
+
 from fastapi import APIRouter
 from starlette import status
 from starlette.responses import FileResponse, RedirectResponse
 
-from app.lib.auth_context import auth_user
+from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import local_chapters
 from app.lib.render_response import render_response
+from app.models.db.user import User
+from app.models.user_status import UserStatus
 
 router = APIRouter()
 
@@ -18,6 +22,7 @@ router = APIRouter()
 @router.get('/history/nearby')
 @router.get('/history/friends')
 @router.get('/user/{_:str}/history')
+@router.get('/note/new')
 @router.get('/note/{_:int}')
 @router.get('/changeset/{_:int}')
 @router.get('/node/{_:int}')
@@ -70,3 +75,10 @@ async def signup():
 @router.get('/robots.txt')
 async def robots():
     return FileResponse('app/static/robots.txt', media_type='text/plain')
+
+
+@router.get('/welcome')
+async def welcome(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.active:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response('welcome.jinja2')

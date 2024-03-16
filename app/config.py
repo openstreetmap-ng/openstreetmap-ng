@@ -60,6 +60,7 @@ FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
+# TODO: SecretStr?
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@127.0.0.1/postgres')
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))

@@ -171,8 +171,19 @@ def timeago(date: datetime, *, html: bool = False) -> str:
         return ago
 
 
+# TODO: ideally we should fix translation
+def stripspecial(value: str) -> str:
+    """
+    Strip special characters from the given string.
+    """
+    return value.strip('!?:;.,')
+
+
 # configure template globals
 _j2.globals.update(t=t, nt=nt)
 
 # configure template filters
-_j2.filters.update(timeago=timeago)
+_j2.filters.update(
+    timeago=timeago,
+    stripspecial=stripspecial,
+)

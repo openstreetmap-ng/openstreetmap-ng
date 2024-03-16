@@ -298,7 +298,7 @@ let
     (writeShellScriptBin "dev-clean" ''
       set -e
       dev-stop
-      rm -rf data/postgres data/mailpit.db
+      rm -rf data/postgres data/mailpit.db*
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")

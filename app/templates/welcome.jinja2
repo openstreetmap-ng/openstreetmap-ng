@@ -1,0 +1,224 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('site.welcome.title') | stripspecial }} | {% endblock %}
+{% block body_class %}welcome-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        {{ t('site.help.welcome.title') }}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <p class="lead mb-4">{{ t('site.welcome.introduction') }}</p>
+
+        <h3 class="mb-3">{{ t('site.welcome.whats_on_the_map.title') }}</h3>
+        <div class="row row-cols-2 g-4 mb-4">
+
+            <div class="col">
+                <div class="card h-100 tutorial-card should">
+                    <div class="card-body">
+                        <p class="mb-0">
+                            {% set real_and_current %}<i>{{ t('site.welcome.whats_on_the_map.real_and_current') }}</i>{% endset %}
+                            {{ t(
+                                    'site.welcome.whats_on_the_map.on_the_map_html',
+                                    real_and_current=real_and_current,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <i class="bi bi-check-circle-fill text-green fs-5"></i>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 tutorial-card should-not">
+                    <div class="card-body">
+                        <p class="mb-0">
+                            {% set doesnt %}<i>{{ t('site.welcome.whats_on_the_map.doesnt') }}</i>{% endset %}
+                            {{ t(
+                                    'site.welcome.whats_on_the_map.off_the_map_html',
+                                    doesnt=doesnt,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <h3>{{ t('site.welcome.basic_terms.title') }}</h3>
+        <p>{{ t('site.welcome.basic_terms.paragraph_1') }}</p>
+
+        <div class="row row-cols-4 g-3 mb-4">
+
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent text-center text-primary fw-bold">
+                        <i class="bi bi-pencil-fill"></i>
+                        {{ t('site.welcome.basic_terms.editor') | title }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% set editor %}{{ t('site.welcome.basic_terms.editor') }}{% endset %}
+                            {{ t(
+                                    'site.welcome.basic_terms.an_editor_html',
+                                    editor=editor,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <p class="small text-end mb-0">
+                            <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Editors">
+                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent text-center text-primary fw-bold">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        {{ t('site.welcome.basic_terms.node') | title }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% set node %}{{ t('site.welcome.basic_terms.node') }}{% endset %}
+                            {{ t(
+                                    'site.welcome.basic_terms.a_node_html',
+                                    node=node,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <p class="small text-end mb-0">
+                            <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Node">
+                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent text-center text-primary fw-bold">
+                        <i class="bi bi-sign-turn-right-fill"></i>
+                        {{ t('site.welcome.basic_terms.way') | title }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% set way %}{{ t('site.welcome.basic_terms.way') }}{% endset %}
+                            {{ t(
+                                    'site.welcome.basic_terms.a_way_html',
+                                    way=way,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <p class="small text-end mb-0">
+                            <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Way">
+                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent text-center text-primary fw-bold">
+                        <i class="bi bi-tag-fill"></i>
+                        {{ t('site.welcome.basic_terms.tag') | title }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {% set tag %}{{ t('site.welcome.basic_terms.tag') }}{% endset %}
+                            {{ t(
+                                    'site.welcome.basic_terms.a_tag_html',
+                                    tag=tag,
+                                ) | safe}}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <p class="small text-end mb-0">
+                            <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Tags">
+                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h3>{{ t('site.welcome.rules.title') | stripspecial }}</h3>
+        <p>
+            {% set imports_link %}
+            <a href="https://wiki.openstreetmap.org/wiki/Import/Guidelines">
+                {{ t('site.welcome.rules.imports') | lower }}
+            </a>
+            {% endset %}
+            {% set automated_edits_link %}
+            <a href="https://wiki.openstreetmap.org/wiki/Automated_Edits_code_of_conduct">
+                {{ t('site.welcome.rules.automated_edits') | lower }}
+            </a>
+            {% endset %}
+            {{ t(
+                    'site.welcome.rules.para_1_html',
+                    imports_link=imports_link,
+                    automated_edits_link=automated_edits_link
+                ) | safe }}
+        </p>
+
+        <h3>{{ t('site.any_questions.title') }}</h3>
+        <p class="mb-4">
+            {% set help_link %}
+            <a href="/help">
+                {{ t('site.any_questions.get_help_here') }}
+            </a>
+            {% endset %}
+            {% set welcome_mat_link %}
+            <a href="https://welcome.openstreetmap.org">
+                {{ t('site.any_questions.welcome_mat') }}
+            </a>
+            {% endset %}
+            {{ t(
+                    'site.any_questions.paragraph_1_html',
+                    help_link=help_link,
+                    welcome_mat_link=welcome_mat_link
+                ) | safe }}
+        </p>
+
+        <h3 class="alert-heading">{{ t('site.welcome.add_a_note.title') | stripspecial }}</h3>
+        <p class="mb-4">
+            {{ t('site.welcome.add_a_note.para_1') }}<br>
+            {% set map_link %}
+            <a href="/">
+                {{ t('site.welcome.add_a_note.the_map') }}
+            </a>
+            {% endset %}
+            {% set note_icon %}
+            <a class="leaflet-container note-link">
+                <span class="icon new-note"></span>
+            </a>
+            {% endset %}
+            {{ t(
+                    'site.welcome.add_a_note.para_2_html',
+                    map_link=map_link,
+                    note_icon=note_icon
+                ) | safe }}
+        </p>
+
+        <div class="text-center">
+            <a class="btn btn-lg btn-primary px-5 start-btn" href="/?edit_help=1">
+                {{ t('layouts.start_mapping') }}
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
