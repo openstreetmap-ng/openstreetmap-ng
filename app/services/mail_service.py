@@ -10,17 +10,15 @@ from sqlalchemy import null, or_, select
 from app.config import (
     APP_URL,
     SMTP_HOST,
-    SMTP_MESSAGES_FROM,
     SMTP_NOREPLY_FROM,
     SMTP_NOREPLY_FROM_HOST,
     SMTP_PASS,
     SMTP_PORT,
-    SMTP_SECURE,
     SMTP_USER,
 )
 from app.db import db_autocommit
 from app.lib.date_utils import utcnow
-from app.lib.translation import primary_translation_language, render, translation_context, translation_languages
+from app.lib.translation import primary_translation_language, render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User
@@ -28,39 +26,20 @@ from app.models.mail_source import MailSource
 from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
 
-def _validate_smtp_config():
-    return SMTP_NOREPLY_FROM and SMTP_MESSAGES_FROM
+def _create_smtp_client(host: str, port: int, user: str, password: str):
+    use_tls = port == 465
+    start_tls = True if port == 587 else None
+    return aiosmtplib.SMTP(
+        hostname=host,
+        port=port,
+        username=user,
+        password=password,
+        use_tls=use_tls,
+        start_tls=start_tls,
+    )
 
 
-if _validate_smtp_config():
-
-    def _create_smtp_client(host: str, port: int, user: str, password: str, secure: bool):
-        if secure:
-            if port not in (465, 587):
-                raise ValueError('SMTP_SECURE is True but SMTP_PORT is not 465 or 587')
-
-            use_tls = port == 465
-            start_tls = True if port == 587 else None
-            return aiosmtplib.SMTP(
-                hostname=host,
-                port=port,
-                username=user,
-                password=password,
-                use_tls=use_tls,
-                start_tls=start_tls,
-            )
-        else:
-            return aiosmtplib.SMTP(
-                hostname=host,
-                port=port,
-                username=user,
-                password=password,
-            )
-
-    SMTP = _create_smtp_client(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE)
-else:
-    logging.warning('SMTP is not configured, mail delivery is disabled')
-    SMTP = None
+_smtp = _create_smtp_client(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)
 
 
 async def _send_smtp(mail: Mail) -> None:
@@ -94,12 +73,8 @@ async def _send_smtp(mail: Mail) -> None:
         # disables threading in gmail
         message['X-Entity-Ref-ID'] = full_ref
 
-    if SMTP is None:
-        logging.info('Discarding mail %r (SMTP is not configured)', mail.id)
-        return
-
     logging.debug('Sending mail %r', mail.id)
-    await SMTP.send_message(message)
+    await _smtp.send_message(message)
 
 
 class MailService:

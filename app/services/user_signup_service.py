@@ -1,4 +1,3 @@
-import logging
 from urllib.parse import urlsplit
 
 from sqlalchemy import delete, update
@@ -17,11 +16,9 @@ from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
-from app.services.mail_service import SMTP, MailService
+from app.services.mail_service import MailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability
-
-_app_domain: str = urlsplit(APP_URL).netloc
 
 
 class UserSignupService:
@@ -90,18 +87,13 @@ class UserSignupService:
         with auth_context(user, scopes=()):
             await UserSignupService.send_confirm_email()
 
-            # auto-activate if smtp is not configured
-            if SMTP is None:
-                logging.info('Activating user %d (SMTP is not configured)', user.id)
-                token = await UserTokenAccountConfirmService.create()
-                await UserTokenAccountConfirmService.confirm(token)
-
     @staticmethod
     async def send_confirm_email() -> None:
         """
         Send a confirmation email for the current user.
         """
 
+        app_domain = urlsplit(APP_URL).netloc
         token = await UserTokenAccountConfirmService.create()
 
         await MailService.schedule(
@@ -111,7 +103,7 @@ class UserSignupService:
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
             template_data={
-                'app_domain': _app_domain,
+                'app_domain': app_domain,
                 'token': str(token),
             },
         )

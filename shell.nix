@@ -1,12 +1,12 @@
 { isDevelopment ? true }:
 
 let
-  # Currently using nixpkgs-23.11-darwin
+  # Currently using nixpkgs-unstable
   # Update with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/be5f4498d8d800e447b9463bfe6c0369739f705d.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9af9c1c87ed3e3ed271934cb896e0cdd33dae212.tar.gz") { };
 
   libraries' = with pkgs; [
-    # Base libraries
+    # Python libraries
     stdenv.cc.cc.lib
     file.out
     libxml2.out
@@ -148,6 +148,8 @@ let
     dart-sass
     inotify-tools
     curl
+    spamassassin
+    mailpit
 
     # Scripts
     # -- Cython
@@ -296,11 +298,10 @@ let
     (writeShellScriptBin "dev-clean" ''
       set -e
       dev-stop
-      rm -rf data/postgres
+      rm -rf data/postgres data/mailpit.db
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
-    (writeShellScriptBin "dev-logs-supervisord" "tail -f data/supervisor/supervisord.log")
     (writeShellScriptBin "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
     (writeShellScriptBin "dev-logs-watch-locale" "tail -f data/supervisor/watch-locale.log")
     (writeShellScriptBin "dev-logs-watch-sass" "tail -f data/supervisor/watch-sass.log")
@@ -407,9 +408,10 @@ let
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
+    (writeShellScriptBin "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
-      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-23.11-darwin | cut -f 1)
+      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
       sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
       echo "Nixpkgs updated to $hash"
     '')
@@ -422,7 +424,9 @@ let
   ];
 
   shell' = with pkgs; lib.optionalString isDevelopment ''
-    [ ! -e .venv/bin/python ] && [ -h .venv/bin/python ] && rm -r .venv
+    current_python=$(readlink -e .venv/bin/python || echo "")
+    current_python=''${current_python%/bin/*}
+    [ "$current_python" != "${wrappedPython}" ] && rm -r .venv
 
     echo "Installing Python dependencies"
     export POETRY_VIRTUALENVS_IN_PROJECT=1
@@ -443,10 +447,11 @@ let
     export POSTGRES_LOG=1
     export SECRET="development-secret"
     export APP_URL="http://127.0.0.1:8000"
-    export API_URL="http://127.0.0.1:8000"
-    export ID_URL="http://127.0.0.1:8000"
+    export SMTP_HOST=127.0.0.1
+    export SMTP_PORT=1025
+    export SMTP_USER=mail@openstreetmap.org
+    export SMTP_PASS=anything
     export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
-    export RAPID_URL="http://127.0.0.1:8000"
     export AUTHLIB_INSECURE_TRANSPORT=1
 
     if [ -f .env ]; then
@@ -460,6 +465,6 @@ let
   '';
 in
 pkgs.mkShell {
-  buildInputs = libraries' ++ packages';
+  buildInputs = packages';
   shellHook = shell';
 }
