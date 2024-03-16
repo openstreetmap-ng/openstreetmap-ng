@@ -1,11 +1,9 @@
 from typing import Annotated
-from urllib.parse import urlsplit
 
 from fastapi import APIRouter
 from starlette import status
-from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.responses import RedirectResponse
 
-from app.config import APP_URL
 from app.lib.auth_context import web_user
 from app.lib.legal import get_legal_terms
 from app.lib.render_response import render_response

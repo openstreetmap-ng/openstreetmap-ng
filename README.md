@@ -1,8 +1,8 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" height="100px"> OpenStreetMap-NG
 
 ![Python version](https://shields.monicz.dev/badge/python-v3.12-blue)
-[![Project license](https://shields.monicz.dev/github/license/Zaczero/openstreetmap-ng)](https://github.com/Zaczero/openstreetmap-ng/blob/main/LICENSE)
 [![Support my work](https://shields.monicz.dev/badge/%E2%99%A5%EF%B8%8F%20Support%20my%20work-purple)](https://monicz.dev/#support-my-work)
+[![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay)](https://liberapay.com/Zaczero/)
 [![GitHub repo stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
 
 Welcome to the next generation of OpenStreetMap, an improved website and API developed in Python!

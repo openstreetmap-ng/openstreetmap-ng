@@ -147,7 +147,7 @@ def _parse_element(element: ET.ElementBase):
     force_sequence_: set[str] = force_sequence
     force_list_: set[str] = force_list
     value_postprocessor_: dict[str, Callable[[str], Any]] = value_postprocessor
-    element_attrib: ET._Attrib = element.attrib  # noqa: SLF001
+    element_attrib: ET._Attrib = element.attrib
 
     parsed: list[tuple] = []
     sequence_mark: cython.char = False
@@ -221,7 +221,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
     # encode dict
     if isinstance(value, dict):
         element = ET.Element(key.encode())
-        element_attrib: ET._Attrib = element.attrib  # read property once for performance  # noqa: SLF001
+        element_attrib: ET._Attrib = element.attrib  # read property once for performance
 
         k: str
         v: Any

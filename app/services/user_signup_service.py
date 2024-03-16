@@ -44,7 +44,7 @@ class UserSignupService:
         if not await validate_email_deliverability(email):
             collector.raise_error('email', t('form.email_invalid'))
 
-        password_hashed = PasswordHash.default().hash(password.get_secret_value())
+        password_hashed = PasswordHash.default().hash(password)
         created_ip = get_request_ip()
         languages = translation_languages()
 

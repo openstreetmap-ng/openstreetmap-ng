@@ -7,6 +7,7 @@ from typing import Self
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
+from app.models.str import PasswordStr
 from app.models.user_role import UserRole
 
 
@@ -17,7 +18,7 @@ class PasswordHash:
         self._hasher = hasher
         self.rehash_needed: bool | None = None
 
-    def verify(self, password_hashed: str, salt: str | None, password: str) -> bool:
+    def verify(self, password_hashed: str, salt: str | None, password: PasswordStr) -> bool:
         """
         Verify a password against a hash and optional salt.
 
@@ -35,7 +36,7 @@ class PasswordHash:
                 logging.warning('Unexpected salt for argon2 password hash')
 
             try:
-                self._hasher.verify(password_hashed, password)
+                self._hasher.verify(password_hashed, password.get_secret_value())
                 self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
                 return True
             except VerifyMismatchError:
@@ -47,7 +48,7 @@ class PasswordHash:
 
         # md5 (deprecated)
         if len(password_hashed) == 32:
-            valid_hash = md5(((salt or '') + password).encode()).hexdigest()  # noqa: S324
+            valid_hash = md5(((salt or '') + password.get_secret_value()).encode()).hexdigest()  # noqa: S324
             return compare_digest(password_hashed, valid_hash)
 
         # pbkdf2 (deprecated)
@@ -55,19 +56,25 @@ class PasswordHash:
             password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = salt.split('!')
             iterations = int(iterations_)
-            valid_hash = pbkdf2_hmac(algorithm, password.encode(), salt.encode(), iterations, len(password_hashed_b))
+            valid_hash = pbkdf2_hmac(
+                hash_name=algorithm,
+                password=password.get_secret_value().encode(),
+                salt=salt.encode(),
+                iterations=iterations,
+                dklen=len(password_hashed_b),
+            )
             return compare_digest(password_hashed_b, valid_hash)
 
         hash_len = len(password_hashed)
         salt_len = len(salt or '')
         raise NotImplementedError(f'Unsupported password hash format ({hash_len=}, {salt_len=})')
 
-    def hash(self, password: str) -> str:  # noqa: A003
+    def hash(self, password: PasswordStr) -> str:
         """
         Hash a password using latest recommended algorithm.
         """
 
-        return self._hasher.hash(password)
+        return self._hasher.hash(password.get_secret_value())
 
     @classmethod
     def default(cls) -> Self:

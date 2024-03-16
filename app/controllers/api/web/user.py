@@ -12,6 +12,7 @@ from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
+from app.models.user_status import UserStatus
 from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import OSMResponse
 from app.services.auth_service import AuthService
@@ -56,7 +57,7 @@ async def logout(
 ):
     token_struct = UserTokenStruct.from_str(request.cookies['auth'])
     await AuthService.destroy_session(token_struct)
-    response = redirect_referrer()
+    response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
     response.delete_cookie('auth')
     return response
 
@@ -103,13 +104,16 @@ async def account_confirm(
 ):
     token_struct = UserTokenStruct.from_str(token)
     await UserTokenAccountConfirmService.confirm(token_struct)
-    return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
 
+# TODO: standard form? show success alert
 @router.post('/account-confirm/resend')
 async def account_confirm_resend(
-    _: Annotated[User, web_user()],
+    user: Annotated[User, web_user()],
 ):
+    if user.status != UserStatus.pending_activation:
+        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
     await UserSignupService.send_confirm_email()
     return redirect_referrer()
 

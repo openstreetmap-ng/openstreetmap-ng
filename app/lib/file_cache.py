@@ -58,7 +58,7 @@ class FileCache:
         logging.debug('Cache hit for %r', key)
         return entry.data
 
-    async def set(self, key: str, data: bytes, *, ttl: timedelta | None) -> None:  # noqa: A003
+    async def set(self, key: str, data: bytes, *, ttl: timedelta | None) -> None:
         """
         Set a value in the file cache by key string.
         """

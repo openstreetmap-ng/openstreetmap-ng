@@ -73,7 +73,7 @@ class PrecompressedStaticFiles(StaticFiles):
         if (result is not None) and not TEST_ENV:
             return result
 
-        paths = _try_paths(request_path, accept_encoding) if accept_encoding else (request_path,)
+        paths = _try_paths(request_path, accept_encoding) if accept_encoding else ((request_path, None),)
 
         for path, encoding in paths:
             try:

@@ -34,6 +34,7 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
+from app.services.mail_service import MailService
 from app.validators.element_type import ElementTypeConvertor
 
 # register additional mimetypes
@@ -56,11 +57,11 @@ if TEST_ENV:
 
 @asynccontextmanager
 async def lifespan(_):
-    # TODO: gc threshold + debug
-    # freeze uncollected gc objects for improved performance
-    gc.collect()
-    gc.freeze()
-    yield
+    async with MailService():
+        # freeze uncollected gc objects for improved performance
+        gc.collect()
+        gc.freeze()
+        yield
 
 
 main = FastAPI(title=NAME, lifespan=lifespan)

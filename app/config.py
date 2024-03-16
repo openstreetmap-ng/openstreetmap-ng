@@ -6,6 +6,7 @@ from hashlib import sha256
 from logging.config import dictConfig
 
 from anyio import Path
+from pydantic import SecretStr
 
 from app.lib.yarn_lock_version import yarn_lock_version
 
@@ -31,7 +32,7 @@ APP_URL = os.environ['APP_URL'].rstrip('/')
 SMTP_HOST = os.environ['SMTP_HOST']
 SMTP_PORT = int(os.environ['SMTP_PORT'])
 SMTP_USER = os.environ['SMTP_USER']
-SMTP_PASS = os.environ['SMTP_PASS']
+SMTP_PASS = SecretStr(os.environ['SMTP_PASS'])
 
 
 def _path(s: str, *, mkdir: bool = False) -> Path:
@@ -64,7 +65,7 @@ POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:pos
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1?password=redis&protocol=3')
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
-SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)  # TODO: implement
+SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 
 API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
@@ -96,6 +97,7 @@ dictConfig(
             'httpx': {'handlers': ['default'], 'level': 'INFO'},
             'httpcore': {'handlers': ['default'], 'level': 'INFO'},
             'markdown_it': {'handlers': ['default'], 'level': 'INFO'},
+            'multipart': {'handlers': ['default'], 'level': 'INFO'},
         },
     }
 )

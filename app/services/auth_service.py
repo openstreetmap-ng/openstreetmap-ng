@@ -129,13 +129,13 @@ class AuthService:
         async def factory() -> bytes:
             logging.debug('Credentials auth cache miss for user %d', user.id)
             ph = user.password_hasher
-            success = ph.verify(user.password_hashed, user.password_salt, password.get_secret_value())
+            success = ph.verify(user.password_hashed, user.password_salt, password)
 
             if not success:
                 return b'\x00'
 
             if ph.rehash_needed:
-                new_hash = ph.hash(password.get_secret_value())
+                new_hash = ph.hash(password)
 
                 async with db_autocommit() as session:
                     stmt = (

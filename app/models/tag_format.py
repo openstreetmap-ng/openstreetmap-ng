@@ -11,6 +11,6 @@ class TagFormat(str, Enum):
 
 
 class TagFormatted(NamedTuple):
-    format: TagFormat  # noqa: A003
+    format: TagFormat
     value: str
     data: str

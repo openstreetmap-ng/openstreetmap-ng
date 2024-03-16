@@ -73,7 +73,7 @@ class UserService:
         Update user settings.
         """
 
-        current_user = auth_user()
+        user = auth_user()
 
         # some early validation
         if not await UserRepository.check_display_name_available(display_name):
@@ -87,7 +87,7 @@ class UserService:
 
         # update user data
         async with db_autocommit() as session:
-            user = await session.get(User, current_user.id, with_for_update=True)
+            user = await session.get(User, user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
             user.languages_str = languages
@@ -98,15 +98,15 @@ class UserService:
                 user.avatar_id = avatar_id
 
         # cleanup old avatar
-        if avatar_type is not None and current_user.avatar_id is not None:
-            await AvatarService.delete_by_id(current_user.avatar_id)
+        if avatar_type is not None and user.avatar_id is not None:
+            await AvatarService.delete_by_id(user.avatar_id)
 
     @staticmethod
     async def update_email(
         collector: MessageCollector,
         *,
         new_email: EmailStr,
-        password: str,
+        password: PasswordStr,
     ) -> None:
         """
         Update user email.
@@ -114,13 +114,13 @@ class UserService:
         Sends a confirmation email for the email change.
         """
 
-        current_user = auth_user()
+        user = auth_user()
 
         # some early validation
-        if current_user.email == new_email:
+        if user.email == new_email:
             return
 
-        if not current_user.password_hasher.verify(password, current_user.password_hashed):
+        if not user.password_hasher.verify(user.password_hashed, user.password_salt, password):
             collector.raise_error('password', t('user.invalid_password'))
         if not await UserRepository.check_email_available(new_email):
             collector.raise_error('email', t('user.email_already_taken'))
@@ -129,7 +129,6 @@ class UserService:
 
         await EmailChangeService.send_confirm_email(new_email)
         collector.info('email', t('user.email_change_confirm_sent'))
-        logging.debug('Sent email change confirmation for user %r', current_user.id)
 
     @staticmethod
     async def update_password(
@@ -142,17 +141,18 @@ class UserService:
         Update user password.
         """
 
-        current_user = auth_user()
+        user = auth_user()
+        password_hasher = user.password_hasher
 
         # some early validation
-        if not current_user.password_hasher.verify(old_password, current_user.password_hashed):
+        if not password_hasher.verify(user.password_hashed, user.password_salt, old_password):
             collector.raise_error('old_password', t('user.invalid_password'))
 
-        password_hashed = current_user.password_hasher.hash(new_password)
+        password_hashed = password_hasher.hash(new_password)
 
         # update user data
         async with db_autocommit() as session:
-            user = await session.get(User, current_user.id, with_for_update=True)
+            user = await session.get(User, user.id, with_for_update=True)
             user.password_hashed = password_hashed
             user.password_changed_at = func.statement_timestamp()
             user.password_salt = None

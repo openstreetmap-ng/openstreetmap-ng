@@ -48,11 +48,9 @@ class UserTokenAccountConfirmService:
 
         async with db_autocommit() as session:
             # prevent timing attacks
-            session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
+            await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
 
-            stmt = delete(UserTokenAccountConfirm).where(
-                UserTokenAccountConfirm.id == token_struct.id,
-            )
+            stmt = delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
 
             if (await session.execute(stmt)).rowcount != 1:
                 raise_for().bad_user_token_struct()

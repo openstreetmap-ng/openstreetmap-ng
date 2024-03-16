@@ -3,8 +3,8 @@
 <p>{{ t('user_mailer.signup_confirm.greeting') }}</p>
 <p>{{ t('user_mailer.signup_confirm.created', site_url=app_domain) }}</p>
 <p>{{ t('user_mailer.signup_confirm.confirm') }}</p>
-<a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
-    {{ APP_URL }}/api/web/user/account-confirm?token={{ token }}
+› <a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
+    {{ t('confirm_account.click_here_to_activate') }}
 </a>
 <p>{{ t('user_mailer.signup_confirm.welcome') }}</p>
 {% endblock %}

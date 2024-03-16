@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from starlette import status
-from starlette.responses import FileResponse, HTMLResponse, RedirectResponse
+from starlette.responses import FileResponse, RedirectResponse
 
 from app.lib.auth_context import auth_user
 from app.lib.local_chapters import local_chapters
