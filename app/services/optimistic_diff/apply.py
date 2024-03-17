@@ -182,11 +182,9 @@ class OptimisticDiffApply:
             element.created_at = now
 
             # process superseded elements (local)
-            try:
+            if element_versioned_ref in superseded_refs:
                 superseded_refs.remove(element_versioned_ref)
                 element.superseded_at = now
-            except KeyError:
-                pass
 
             # supersede the previous version
             if element.version > 1:

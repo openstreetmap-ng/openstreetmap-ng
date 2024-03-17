@@ -87,26 +87,23 @@ def is_valid_locale(code: str) -> bool:
     return code in _locales
 
 
-def normalize_locale(code: str, *, raise_on_not_found: bool = False) -> str:
+def normalize_locale(code: str) -> str | None:
     """
     Normalize locale code case.
 
+    Returns None if the locale is not found.
+
     >>> normalize_locale('EN')
     'en'
-    >>> normalize_locale('NonExistent', raise_on_not_found=True)
-    KeyError: 'NonExistent'
+    >>> normalize_locale('NonExistent')
+    None
     """
 
     # skip if already normalized
     if code in _locales:
         return code
 
-    normalized = _normalize(code)
-
-    if raise_on_not_found:
-        return _locales_normalized_map[normalized]
-    else:
-        return _locales_normalized_map.get(normalized, code)
+    return _locales_normalized_map.get(_normalize(code))
 
 
 def get_all_installed_locales() -> frozenset[str]:

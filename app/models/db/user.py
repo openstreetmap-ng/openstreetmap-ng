@@ -206,11 +206,13 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             if not lang or len(lang) > LANGUAGE_CODE_MAX_LENGTH:
                 continue
 
-            lang = normalize_locale(lang, raise_on_not_found=False)
+            lang_normal = normalize_locale(lang)
+            if lang_normal is not None:
+                lang = lang_normal
+
             if lang not in result_set:
                 result_set.add(lang)
                 result.append(lang)
-
                 if len(result) >= LANGUAGE_CODES_LIMIT:
                     break
 

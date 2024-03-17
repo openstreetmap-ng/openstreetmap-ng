@@ -17,9 +17,7 @@ def test_is_valid_locale():
 def test_normalize_locale():
     assert normalize_locale('en') == 'en'
     assert normalize_locale('EN') == 'en'
-    assert normalize_locale('NonExistent', raise_on_not_found=False) == 'NonExistent'
-    with pytest.raises(KeyError):
-        normalize_locale('NonExistent', raise_on_not_found=True)
+    assert normalize_locale('NonExistent') is None
 
 
 def test_get_all_installed_locales():

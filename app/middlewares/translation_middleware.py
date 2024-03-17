@@ -46,12 +46,12 @@ def _parse_accept_language(accept_language: str) -> tuple[str, ...]:
             lang = DEFAULT_LANGUAGE
         # normalize language case and check if it's supported
         else:
-            try:
-                lang = normalize_locale(lang, raise_on_not_found=True)
-            except KeyError:
+            lang_normal = normalize_locale(lang)
+            if lang_normal is None:
                 if lang != 'en-US':  # reduce logging noise
                     logging.debug('Unsupported accept language %r', lang)
                 continue
+            lang = lang_normal
 
         q: str | None = match['q']
 

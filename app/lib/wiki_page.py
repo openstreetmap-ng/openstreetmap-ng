@@ -14,8 +14,8 @@ def _get_wiki_pages() -> dict[str, frozenset[str]]:
     data: dict[str, Sequence[str]] = json.loads(pathlib.Path(CONFIG_DIR / 'wiki_pages.json').read_bytes())
     return {
         tag: frozenset(
-            normalize_locale(locale, raise_on_not_found=True)  #
-            if locale
+            normalize_locale(locale)
+            if locale  #
             else DEFAULT_LANGUAGE
             for locale in locales
         )
