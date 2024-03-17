@@ -32,15 +32,15 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Migration of rate limiting
 - [ ] Migration of changeset history RSS feed
 - [x] Improved GPX traces processing
-- [30%] Migration of website API
+- [35%] Migration of website API
 - [x] Migration and refactoring of stylesheets
 - [x] Migration and refactoring of scripts
-- [25%] Migration of templates
+- [35%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [x] Development translation overrides
 - [ ] Anti-vandalism stage 1
 - [x] Redis in-memory caching
-- [15%] Pagination and limits
+- [20%] Pagination and limits
 - [ ] Deprecation of OAuth 1.0 warning
 - [x] User permalinks
 - [x] Proxy for Amazon requests (better privacy)
