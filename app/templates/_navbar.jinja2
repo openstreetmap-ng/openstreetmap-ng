@@ -30,7 +30,7 @@
                         <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
                             {% set editor %}
                             <img src="/static/img/brand/rapid.webp">
-                            {{ t('editor.rapid.description') }}
+                            {{ t('editor.rapid.name') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=editor) | safe }}
                         </a>
@@ -95,7 +95,7 @@
                 </li>
             </ul>
 
-            {% if user %}
+            {% if user is not none %}
 
             <div class="dropdown">
                 <button class="btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center"
@@ -119,7 +119,6 @@
                         </a>
                     </li>
                     <li>
-                        {# TODO #}
                         <a class="dropdown-item" href="/user/{{ user.display_name }}">
                             {{ t('users.show.my profile') }}
                         </a>

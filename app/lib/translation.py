@@ -116,7 +116,7 @@ def render(template_name: str, **template_data: dict) -> str:
     return _j2.get_template(template_name).render(**template_data)
 
 
-def timeago(date: datetime, *, html: bool = False) -> str:
+def timeago(date: datetime | None, *, html: bool = False) -> str:
     """
     Get a human-readable time difference from the given date.
 
@@ -124,10 +124,14 @@ def timeago(date: datetime, *, html: bool = False) -> str:
 
     >>> timeago(datetime(2021, 12, 31, 15, 30, 45))
     'an hour ago'
-
     >>> timeago(datetime(2021, 12, 31, 15, 30, 45), html=True)
     '<time datetime="2021-12-31T15:30:45Z" title="31 December 2021 at 15:30">an hour ago</time>'
+    >>> timeago(None)
+    'never'
     """
+
+    if date is None:
+        return t('time.never')
 
     total_seconds: cython.double = (utcnow() - date).total_seconds()
 

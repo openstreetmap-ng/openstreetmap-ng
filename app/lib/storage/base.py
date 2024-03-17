@@ -12,7 +12,7 @@ class StorageBase(ABC):
     def __init__(self, context: str):
         self._context = context
 
-    def _make_key(self, data: bytes, suffix: str, *, random: bool) -> str:
+    def _make_key(self, data: bytes, suffix: str, random: bool) -> str:
         """
         Generate a key for a file.
 

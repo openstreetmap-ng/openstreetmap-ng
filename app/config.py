@@ -95,10 +95,17 @@ dictConfig(
         },
         'loggers': {
             'root': {'handlers': ['default'], 'level': LOG_LEVEL},
-            'httpx': {'handlers': ['default'], 'level': 'INFO'},
-            'httpcore': {'handlers': ['default'], 'level': 'INFO'},
-            'markdown_it': {'handlers': ['default'], 'level': 'INFO'},
-            'multipart': {'handlers': ['default'], 'level': 'INFO'},
+            **{
+                # reduce logging verbosity of some modules
+                module: {'handlers': ['default'], 'level': 'INFO'}
+                for module in (
+                    'httpx',
+                    'httpcore',
+                    'markdown_it',
+                    'multipart',
+                    'PIL',
+                )
+            },
         },
     }
 )

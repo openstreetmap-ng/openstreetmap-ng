@@ -5,6 +5,7 @@ import "./_fixthemap.js"
 import "./_welcome.js"
 import { configureMainMap } from "./leaflet/_main-map.js"
 import "./user/_login.js"
+import "./user/_settings.js"
 import "./user/_signup.js"
 import "./user/_terms.js"
 

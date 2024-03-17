@@ -24,7 +24,7 @@ class FileCache:
         Path('.../context/4/68/468e5f...')
         """
 
-        key: str = hash_hex(key_str)
+        key: str = hash_hex(key_str, context=None)
 
         d1 = key[:1]
         d2 = key[1:3]

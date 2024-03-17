@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Request
+from fastapi import APIRouter, Form, Query, Request, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -9,6 +9,7 @@ from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.limits import COOKIE_AUTH_MAX_AGE
+from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
@@ -116,6 +117,16 @@ async def account_confirm_resend(
         return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
     await UserSignupService.send_confirm_email()
     return redirect_referrer()
+
+
+@router.post('/settings/avatar')
+async def settings_avatar(
+    _: Annotated[User, web_user()],
+    avatar_type: Annotated[AvatarType, Form()],
+    avatar_file: Annotated[UploadFile | None, Form()] = None,
+):
+    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
+    return {'avatar_url': avatar_url}
 
 
 # @router.post('/settings')

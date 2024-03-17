@@ -164,7 +164,6 @@ export const configureStandardForm = (form, successCallback = null, clientValida
     // Disable browser validation in favor of bootstrap
     form.noValidate = true
     form.classList.add("needs-validation")
-    let pending = false
 
     // On form submit, build and submit the request
     const onSubmit = (e) => {
@@ -180,7 +179,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
         form.classList.remove("was-validated")
 
         // Prevent double submission
-        if (pending) {
+        if (form.classList.contains("pending")) {
             console.warn("Form already pending", form)
             return
         }
@@ -197,7 +196,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
             }
         }
 
-        pending = true
+        form.classList.add("pending")
         toggleSubmit(false)
 
         fetch(form.action, {
@@ -235,7 +234,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
                 handleFormFeedback("error", error.message)
             })
             .finally(() => {
-                pending = false
+                form.classList.remove("pending")
                 toggleSubmit(true)
             })
     }

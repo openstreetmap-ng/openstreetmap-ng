@@ -59,11 +59,41 @@ class UserService:
                 user.description_rich_hash = None
 
     @staticmethod
+    async def update_avatar(
+        avatar_type: AvatarType,
+        avatar_file: UploadFile | None,
+    ) -> str:
+        """
+        Update user's avatar.
+
+        Returns the new avatar URL.
+        """
+
+        current_user = auth_user()
+
+        # handle custom avatar
+        if avatar_type == AvatarType.custom:
+            avatar_id = await AvatarService.upload(avatar_file)
+        else:
+            avatar_id = None
+
+        # update user data
+        async with db_autocommit() as session:
+            user = await session.get(User, current_user.id, with_for_update=True)
+            old_avatar_id = user.avatar_id
+            user.avatar_type = avatar_type
+            user.avatar_id = avatar_id
+
+        # cleanup old avatar
+        if old_avatar_id is not None:
+            await AvatarService.delete_by_id(old_avatar_id)
+
+        return user.avatar_url
+
+    @staticmethod
     async def update_settings(
         collector: MessageCollector,
         *,
-        avatar_type: AvatarType | None,
-        avatar_file: UploadFile | None,
         display_name: DisplayNameStr,
         editor: Editor | None,
         languages: str,
@@ -79,12 +109,6 @@ class UserService:
         if not await UserRepository.check_display_name_available(display_name):
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
-        # handle custom avatar
-        if avatar_type == AvatarType.custom and avatar_file is not None:
-            avatar_id = await AvatarService.upload(avatar_file)
-        else:
-            avatar_id = None
-
         # update user data
         async with db_autocommit() as session:
             user = await session.get(User, user.id, with_for_update=True)
@@ -92,14 +116,6 @@ class UserService:
             user.editor = editor
             user.languages_str = languages
             user.home_point = home_point
-
-            if avatar_type is not None:
-                user.avatar_type = avatar_type
-                user.avatar_id = avatar_id
-
-        # cleanup old avatar
-        if avatar_type is not None and user.avatar_id is not None:
-            await AvatarService.delete_by_id(user.avatar_id)
 
     @staticmethod
     async def update_email(

@@ -23,7 +23,7 @@ class GravatarStorage(StorageBase):
         self._fc = FileCache(context)
 
     async def load(self, email: str) -> bytes:
-        key = md5(email.lower()).hexdigest()  # noqa: S324
+        key = md5(email.lower().encode()).hexdigest()  # noqa: S324
 
         if (data := await self._fc.get(key)) is not None:
             return data

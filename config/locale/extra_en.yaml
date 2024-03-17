@@ -1,6 +1,6 @@
 editor:
   rapid:
-    description: Rapid
+    name: Rapid
 map:
   overlays:
     title: Map overlays
@@ -27,11 +27,22 @@ map:
       end: Drag and drop this marker to set the end position
     engine:
       title: Routing engine
+user:
+  profile_picture: Profile picture
+  settings:
+    upload_photo: Upload a photo
+    remove_photo: Remove photo
+    preferred_language: Preferred language
+    change_email: Change email
+    change_password: Change password
+    password_last_changed: Password last changed
 fixthemap:
   title: Fix the map
 confirm_account:
   click_here_to_activate: Click here to activate your account
-form:
+time:
+  never: Never
+validation:
   display_name_taken: This display name is already taken
   email_invalid: Invalid email address
   email_taken: This email address is already taken

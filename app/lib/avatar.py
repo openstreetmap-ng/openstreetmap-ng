@@ -10,6 +10,11 @@ from app.lib.naturalsize import naturalsize
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 from app.models.avatar_type import AvatarType
 
+if cython.compiled:
+    from cython.cimports.libc.math import sqrt
+else:
+    from math import sqrt
+
 
 @cython.cfunc
 def _optimize_quality(img: Image) -> tuple[int, bytes]:
@@ -128,6 +133,7 @@ class Avatar:
 
         # image is too wide
         if ratio > AVATAR_MAX_RATIO:
+            logging.debug('Image is too wide %dx%d', img_width, img_height)
             new_width: cython.int = int(img_height * AVATAR_MAX_RATIO)
             x1: cython.int = (img_width - new_width) // 2
             x2: cython.int = (img_width + new_width) // 2
@@ -136,6 +142,7 @@ class Avatar:
 
         # image is too tall
         elif ratio < 1 / AVATAR_MAX_RATIO:
+            logging.debug('Image is too tall %dx%d', img_width, img_height)
             new_height: cython.int = int(img_width / AVATAR_MAX_RATIO)
             y1: cython.int = (img_height - new_height) // 2
             y2: cython.int = (img_height + new_height) // 2
@@ -145,6 +152,8 @@ class Avatar:
         # normalize megapixels
         mp_ratio: cython.double = (img_width * img_height) / AVATAR_MAX_MEGAPIXELS
         if mp_ratio > 1:
+            logging.debug('Image is too big %dx%d', img_width, img_height)
+            mp_ratio = sqrt(mp_ratio)
             img_width: cython.int = int(img_width / mp_ratio)
             img_height: cython.int = int(img_height / mp_ratio)
             img.thumbnail((img_width, img_height))

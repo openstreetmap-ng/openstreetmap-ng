@@ -394,12 +394,12 @@ let
     '')
     (writeShellScriptBin "watch-js" ''
       shopt -s globstar
-      paths=$(find app/static/js \
+      js-pipeline
+      while inotifywait -e close_write $( \
+        find app/static/js \
         -type f \
         -name "*.js" \
-        -not -name "bundle-*")
-      js-pipeline
-      while inotifywait -e close_write $paths; do
+        -not -name "bundle-*"); do
         js-pipeline
       done
     '')

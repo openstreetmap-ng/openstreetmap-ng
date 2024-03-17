@@ -13,6 +13,11 @@ from app.models.user_status import UserStatus
 router = APIRouter()
 
 
+@router.get('/robots.txt')
+async def robots():
+    return FileResponse('app/static/robots.txt', media_type='text/plain')
+
+
 @router.get('/')
 @router.get('/export')
 @router.get('/directions')
@@ -58,6 +63,11 @@ async def about():
     return render_response('about.jinja2')
 
 
+@router.get('/fixthemap')
+async def fixthemap():
+    return render_response('fixthemap.jinja2')
+
+
 @router.get('/login')
 async def login():
     if auth_user() is not None:
@@ -72,18 +82,11 @@ async def signup():
     return render_response('user/signup.jinja2')
 
 
-@router.get('/robots.txt')
-async def robots():
-    return FileResponse('app/static/robots.txt', media_type='text/plain')
-
-
 @router.get('/welcome')
-async def welcome(user: Annotated[User, web_user()]):
-    if user.status != UserStatus.active:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+async def welcome(_: Annotated[User, web_user()]):
     return render_response('welcome.jinja2')
 
 
-@router.get('/fixthemap')
-async def fixthemap():
-    return render_response('fixthemap.jinja2')
+@router.get('/settings')
+async def settings(_: Annotated[User, web_user()]):
+    return render_response('user/settings.jinja2')
