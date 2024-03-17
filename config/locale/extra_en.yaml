@@ -27,6 +27,8 @@ map:
       end: Drag and drop this marker to set the end position
     engine:
       title: Routing engine
+fixthemap:
+  title: Fix the map
 confirm_account:
   click_here_to_activate: Click here to activate your account
 form:

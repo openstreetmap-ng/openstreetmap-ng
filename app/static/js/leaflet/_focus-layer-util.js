@@ -37,6 +37,8 @@ export const focusStyles = {
  * @returns {L.Layer[]} The layers of the focused object
  */
 export const focusMapObject = (map, object) => {
+    console.debug("focusMapObject", object)
+
     if (object) {
         return focusManyMapObjects(map, [object])
     }
@@ -53,6 +55,8 @@ export const focusMapObject = (map, object) => {
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects) => {
+    console.debug("focusManyMapObjects", objects.length)
+
     const focusLayer = getOverlayLayerById("focus")
 
     // Always clear the focus layer

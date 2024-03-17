@@ -82,3 +82,8 @@ async def welcome(user: Annotated[User, web_user()]):
     if user.status != UserStatus.active:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
     return render_response('welcome.jinja2')
+
+
+@router.get('/fixthemap')
+async def fixthemap():
+    return render_response('fixthemap.jinja2')

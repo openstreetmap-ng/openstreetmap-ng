@@ -2,26 +2,26 @@ import { qsParse } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
 
-const noteIcon = document.querySelector(".fixthemap-note-link")
-if (noteIcon) {
-    const getStateFromSearch = () => {
-        // Support default location setting via URL parameters
-        const searchParams = qsParse(location.search.substring(1))
-        if (searchParams.lon && searchParams.lat) {
-            const lon = parseFloat(searchParams.lon)
-            const lat = parseFloat(searchParams.lat)
-            // Zoom is optional, defaults to 17
-            const zoom = parseInt(searchParams.zoom ?? 17, 10)
+const fixthemapBody = document.querySelector("body.fixthemap-body")
+if (fixthemapBody) {
+    const noteLink = fixthemapBody.querySelector(".note-link")
 
-            if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
-                return { lon, lat, zoom, layersCode: "" }
-            }
+    // Support default location setting via URL parameters
+    let locationProvided = false
+    const params = qsParse(location.search.substring(1))
+    if (params.lon && params.lat) {
+        params.lon = parseFloat(params.lon)
+        params.lat = parseFloat(params.lat)
+        // Zoom is optional, defaults to 17
+        params.zoom = parseInt(params.zoom ?? 17, 10)
+
+        if (isLongitude(params.lon) && isLatitude(params.lat) && isZoom(params.zoom)) {
+            locationProvided = true
         }
-
-        return null
     }
 
-    const state = getStateFromSearch()
-    const href = state ? `/note/new${encodeMapState(state)}` : "/note/new"
-    noteIcon.setAttribute("href", href)
+    // Assign position only if it's valid
+    let noteHref = "/note/new"
+    if (locationProvided) noteHref += encodeMapState(params)
+    noteLink.setAttribute("href", noteHref)
 }

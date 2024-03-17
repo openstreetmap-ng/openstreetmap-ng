@@ -192,21 +192,16 @@
                 ) | safe }}
         </p>
 
-        <h3 class="alert-heading">{{ t('site.welcome.add_a_note.title') | stripspecial }}</h3>
+        <h3>{{ t('site.welcome.add_a_note.title') | stripspecial }}</h3>
+        <p class="mb-1">{{ t('site.welcome.add_a_note.para_1') }}</p>
         <p class="mb-4">
-            {{ t('site.welcome.add_a_note.para_1') }}<br>
-            {% set map_link %}
-            <a href="/">
-                {{ t('site.welcome.add_a_note.the_map') }}
-            </a>
-            {% endset %}
             {% set note_icon %}
             <a class="leaflet-container note-link">
                 <span class="icon new-note"></span>
             </a>
             {% endset %}
             {{ t(
-                    'site.welcome.add_a_note.para_2_html',
+                    'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
                     map_link=map_link,
                     note_icon=note_icon
                 ) | safe }}

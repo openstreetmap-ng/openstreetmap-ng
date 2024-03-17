@@ -4,8 +4,8 @@ import { encodeMapState } from "./leaflet/_map-utils.js"
 
 const welcomeBody = document.querySelector("body.welcome-body")
 if (welcomeBody) {
-    const startButton = welcomeBody.querySelector(".start-btn")
     const noteLink = welcomeBody.querySelector(".note-link")
+    const startButton = welcomeBody.querySelector(".start-btn")
 
     // Support default location setting via URL parameters
     let locationProvided = false

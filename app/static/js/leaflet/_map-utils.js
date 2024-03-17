@@ -97,7 +97,7 @@ const setMapLayersCode = (map, layersCode) => {
     // Remove layers not found in the code
     map.eachLayer((layer) => {
         const layerId = layer.options.layerId
-        if (!layerId) return
+        if (!layerId || layerId === "focus") return
 
         if (!layersIds.has(layerId)) {
             console.debug("Removing layer", layerId)
