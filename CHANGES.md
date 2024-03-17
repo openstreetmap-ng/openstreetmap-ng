@@ -1,0 +1,124 @@
+# Changes
+
+Last update: 2024-03-17
+
+## General
+
+- Precompress static assets with Brotli and ZStandard on deployment
+- Add proxy for Gravatar and S3 files for improved privacy and performance
+- Smarter and more efficient avatar image optimization
+- Add email deliverability check during registration
+- Add support for zstd compressed HTTP responses
+- Update languages list
+- Better handling of tag formatting (wiki links, phone numbers, etc.)
+- Support for ';' as a separator in tag values
+- Make the application easier to extend and customize
+- Refactor the codebase for better maintainability and simplicity
+- Start using [nix](https://nixos.org/) for development environment management
+- Configure [mailpit](https://mailpit.axllent.org/) for email testing
+- Configure [spamassassin](https://spamassassin.apache.org/) for email spam scoring
+- Automatically transpile locale to i18n JSON and GNU GetText formats
+- Configure [supervisord](https://supervisord.org/) for permission-less process management (instead of Docker)
+- Completely remove Docker dependency
+- Automatically watch JavaScript, SCSS, and locale files for changes and rebuild on save
+- Automatically configure and migrate database on startup
+- Add script for fast preloading of database with real-world data
+- Remove MaxMind proprietary database dependency, determine user's country from timezone
+- Add script for updating list of tags with wiki pages
+
+## Frontend
+
+- Add [Rapid](https://rapideditor.org/) web editor
+- Serve iD and Rapid from separate domains for improved security
+- Slightly redesign about page
+- Redesign welcome page
+- Redesign user settings page
+- Redesign how edit profile/settings/preferences work
+- Make it easier to change preferred editor and application language
+- Slightly redesign export sidebar
+- Center title text when used with an illustration
+- Improve support for website title prefixes
+- Improve efficiency of user terms loading
+- Slightly redesign terms page
+- Automatically detect user's country on terms page and display the correct document
+- Add soft frost glass effect behind layer names on layers sidebar
+- Improve efficiency of map key/legend rendering
+- Redesign leaflet share sidebar
+- Add support for client-side map export (more efficient, more formats, export any map layer)
+- Redesign routing sidebar
+- Remove "Internal" title text from whereami search
+- Add "Click here to activate your account" link text to registration confirmation email
+- Automatically opt-out of tracking when user has Do Not Track or Global Privacy Control enabled
+- Update OpenSearch configuration
+- Remove redundant alt text from logo images, change "OpenStreetMap logo OpenStreetMap" to "OpenStreetMap"
+- Replace SVG files with raster images for improved render performance
+- Update feature icons and remove deprecated tagging schemes
+- Remove dead code from the frontend scripts and styles
+- Remove lots of duplicated code from the frontend, streamline map state management
+- Improve performance of ways/relations rendering
+- Reduce assets size by including only partial Bootstrap features
+- Update Leaflet usage
+- Add auto pan support on marker drag
+- Use browser-native URLSearchParams for query string encoding/decoding
+- Remove multiple seconds delay on failed remote edit request
+- Start using [Bun](https://bun.sh/) JavaScript toolkit (instead of NodeJS)
+- Configure [Biome](https://biomejs.dev/) for JavaScript formatting and linting
+- Configure [Babel](https://babeljs.io/) for automatic JavaScript transpilation
+- Remove jQuery dependency, and many other JavaScript libraries
+- Make it easier to move frontend code to a separate codebase and framework
+- Early geolocation on welcome page if permission is already granted
+- Add JSDoc documentation strings to public methods
+- Fix frontend script crashes on some invalid strings
+- Fix bug with go to home location adding more and more markers
+
+## Backend
+
+- Migrate from Ruby and C++ to just Python
+- Compile Python code using [cython](https://cython.org/) for improved performance
+- Begin writing API 0.7 specification
+- Add support for multiple API versions existing at the same time, preserving backwards compatibility
+- Automatically generate [OpenAPI](https://swagger.io/specification/) documentation for API 0.7
+- Automatically append build date to application version
+- Add X-Version response header
+- More robust extend query parameters method
+- Add official limit for the supported url length
+- More predictable rate limiting behavior (token bucket algorithm)
+- Add support for RateLimit and RateLimit-Policy headers
+- Update robots.txt
+- Redesign database schema for improved performance and maintainability
+- Secure storage for authentication tokens (instead of plain text)
+- Improved security of email reply address
+- Add guards during GPX file extraction to prevent abuse
+- Fix string comparison timing attack vulnerability
+- Fix downgrade from OAuth 1.0a to OAuth 1.0 as a result of convoluted application logic
+- Add user token purpose for improved security
+- Use high quality random number generator for token generation
+- Improve performance of email sending
+- Add zstd-compressed file cache
+- Improve performance of basic auth
+- Add optimistic changeset diff processing
+- Reduce trace files disk usage (regenerate trace files from database)
+- Use stronger password hashes for moderator and administator accounts
+- Update to latest nominatim and routing engines API
+- Add support for zstd-compressed trace files
+- Add support for zstd and brotli compressed HTTP requests
+- Simplify shortlink algorithm
+- Super efficient and higher quality trace preview image generation
+- Return errors during trace upload instead of sending emails to user
+- Replace [memcached](https://memcached.org/) with [Redis](https://redis.io/) for in-memory caching
+- Start using [Poetry](https://python-poetry.org/) for Python package management
+- Configure [ruff](https://docs.astral.sh/ruff/) for Python formatting and linting
+- Configure [FastAPI](https://fastapi.tiangolo.com/) as a web framework with full async support
+- Configure [feedgen](https://feedgen.kiesow.be/) for seamless RSS and Atom feed generation
+- Rewrite legal documents from YAML to Markdown and remove redundant HTML templates
+- Configure [MessagePack](https://msgpack.org/) for fast small data serialization (tokens, cache, cursors, etc.)
+- Automatically discover web server routes (instead of manually defining them)
+- Configure [pyinstrument](https://github.com/joerick/pyinstrument) for easy Python profiling
+- Add more granularity to the configuration and limits
+- Make it easier to implement new future limits
+- Automatically generate OAuth configuration for system apps (iD, Rapid).
+- Improve mail development experience, remove dependency on external mail server
+- Display mail HTML compatibility and spam scores
+- Prefer static translation strings to automatically detect unused translations
+- Configure [Postgis](https://postgis.net/) for geospatial database support
+- Rename mapnik to standard layer internally

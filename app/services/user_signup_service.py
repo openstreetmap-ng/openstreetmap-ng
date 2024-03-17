@@ -16,7 +16,7 @@ from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import AuthService
-from app.services.mail_service import MailService
+from app.services.email_service import EmailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability
 
@@ -96,7 +96,7 @@ class UserSignupService:
         app_domain = urlsplit(APP_URL).netloc
         token = await UserTokenAccountConfirmService.create()
 
-        await MailService.schedule(
+        await EmailService.schedule(
             source=MailSource.system,
             from_user=None,
             to_user=auth_user(),

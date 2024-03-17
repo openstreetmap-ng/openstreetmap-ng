@@ -1,2 +1,15 @@
 User-agent: *
-Allow: /
+Disallow: */history
+Disallow: */notes
+Disallow: */traces
+Disallow: */diary/comments
+Disallow: /api
+Disallow: /redactions
+Disallow: /changeset
+Disallow: /node
+Disallow: /way
+Disallow: /relation
+Disallow: /note
+Allow: /note/new
+Disallow: /trace
+Disallow: /search

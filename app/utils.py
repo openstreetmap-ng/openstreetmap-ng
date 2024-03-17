@@ -1,5 +1,4 @@
 import unicodedata
-from shutil import which
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
@@ -49,17 +48,6 @@ def unicode_normalize(text: str) -> str:
     """
 
     return unicodedata.normalize('NFC', text)
-
-
-def raise_if_program_unavailable(program: str) -> None:
-    """
-    Raise an exception if a program is not available.
-
-    >>> raise_if_program_unavailable('bzip2')
-    """
-
-    if which(program) is None:
-        raise FileNotFoundError(f'Program {program} is not available')
 
 
 def extend_query_params(uri: str, params: dict) -> str:

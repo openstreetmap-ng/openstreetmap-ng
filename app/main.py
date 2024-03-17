@@ -34,7 +34,7 @@ from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMid
 from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
-from app.services.mail_service import MailService
+from app.services.email_service import EmailService
 from app.validators.element_type import ElementTypeConvertor
 
 # register additional mimetypes
@@ -57,7 +57,7 @@ if TEST_ENV:
 
 @asynccontextmanager
 async def lifespan(_):
-    async with MailService():
+    async with EmailService():
         # freeze uncollected gc objects for improved performance
         gc.collect()
         gc.freeze()

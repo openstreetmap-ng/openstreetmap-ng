@@ -31,7 +31,7 @@ _tg: TaskGroup | None = None
 _process_lock = Lock()
 
 
-class MailService:
+class EmailService:
     async def __aenter__(self):
         global _tg
         if _tg is not None:
