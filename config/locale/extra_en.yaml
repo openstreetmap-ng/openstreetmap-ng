@@ -30,16 +30,34 @@ map:
 user:
   profile_picture: Profile picture
   settings:
+    password_and_security: Password and security
+    applications: Applications
     upload_photo: Upload a photo
     remove_photo: Remove photo
     preferred_language: Preferred language
     change_email: Change email
     change_password: Change password
     password_last_changed: Password last changed
+privacy:
+  enable_activity_tracking:
+    title: Enable activity tracking
+    description: |-
+      By enabling activity tracking, you allow us to collect and store information about your activity on the website.
+    we_use_matomo: We use a self-hosted instance of Matomo, a privacy-friendly analytics platform.
+  enable_crash_reporting:
+    title: Enable crash reporting
+    description: |-
+      By enabling crash reporting, you allow us to collect and store information about crashes and errors that occur on the website.
+      We will use this information to fix bugs and improve your experience.
 fixthemap:
   title: Fix the map
+internalization:
+  get_started: |-
+    Translation of OpenStreetMap is done by individual volunteers.
+    If you would like to help, start with {this_guide}.
+  this_guide: this guide
 confirm_account:
-  click_here_to_activate: Click here to activate your account
+  click_here_to_activate_account: Click here to activate your account
 time:
   never: Never
 validation:

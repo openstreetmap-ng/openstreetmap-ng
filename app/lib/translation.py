@@ -20,10 +20,12 @@ _locale_dir = LOCALE_DIR / 'gnu'
 
 _j2 = Environment(
     loader=FileSystemLoader('app/templates'),
-    keep_trailing_newline=True,
     autoescape=True,
     cache_size=1024,
     auto_reload=TEST_ENV,
+    trim_blocks=True,
+    lstrip_blocks=True,
+    keep_trailing_newline=False,
 )
 
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')

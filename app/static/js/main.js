@@ -1,5 +1,7 @@
+import "./_tracking.js"
+
 import "./_bootstrap.js"
-import "./_i18n.js" // i18n must be loaded before other scripts
+import "./_i18n.js"
 
 import "./_fixthemap.js"
 import "./_welcome.js"

@@ -1,3 +1,9 @@
+import { activityTracking, crashReporting } from "./_config.js"
+
+const enableSentryTracking = () => {
+    // TODO: sentry
+}
+
 const enableMatomoTracking = () => {
     window._paq = window._paq || []
     const _paq = window._paq
@@ -28,19 +34,5 @@ const enableMatomoTracking = () => {
     // })
 }
 
-const enableSentryTracking = () => {
-    // TODO: sentry
-}
-
-const shouldEnableTracking = () => {
-    if (navigator.doNotTrack === "1") return false
-    if (navigator.globalPrivacyControl) return false
-    // TODO: check user preference
-    // TODO: never on TEST_ENV
-    return true
-}
-
-if (shouldEnableTracking()) {
-    enableMatomoTracking()
-    enableSentryTracking()
-}
+if (crashReporting) enableSentryTracking()
+if (activityTracking) enableMatomoTracking()

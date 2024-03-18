@@ -68,6 +68,7 @@ async def signup(
     display_name: Annotated[DisplayNameStr, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[PasswordStr, Form()],
+    tracking: Annotated[bool, Form()],
 ):
     collector = MessageCollector()
     token = await UserSignupService.signup(
@@ -75,6 +76,7 @@ async def signup(
         display_name=display_name,
         email=email,
         password=password,
+        tracking=tracking,
     )
     response = OSMResponse.serialize(collector.result)
     response.set_cookie('auth', str(token), None, secure=not TEST_ENV, httponly=True, samesite='lax')
@@ -119,16 +121,6 @@ async def account_confirm_resend(
     return redirect_referrer()
 
 
-@router.post('/settings/avatar')
-async def settings_avatar(
-    _: Annotated[User, web_user()],
-    avatar_type: Annotated[AvatarType, Form()],
-    avatar_file: Annotated[UploadFile | None, Form()] = None,
-):
-    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
-    return {'avatar_url': avatar_url}
-
-
 # @router.post('/settings')
 # async def update_settings(
 #     display_name: Annotated[DisplayNameStr, Form()],
@@ -149,3 +141,13 @@ async def settings_avatar(
 #         editor=editor,
 #         languages=languages,
 #     )
+
+
+@router.post('/settings/avatar')
+async def settings_avatar(
+    _: Annotated[User, web_user()],
+    avatar_type: Annotated[AvatarType, Form()],
+    avatar_file: Annotated[UploadFile | None, Form()] = None,
+):
+    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
+    return {'avatar_url': avatar_url}

@@ -7,7 +7,7 @@ AUTH_CREDENTIALS_CACHE_EXPIRE = timedelta(hours=8)
 
 AVATAR_MAX_RATIO = 2
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
-AVATAR_MAX_FILE_SIZE = 100 * _kb  # 100 KB
+AVATAR_MAX_FILE_SIZE = 80 * _kb  # 80 KB
 
 # this is in-memory cache configuration
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)

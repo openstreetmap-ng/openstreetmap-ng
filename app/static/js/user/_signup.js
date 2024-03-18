@@ -1,14 +1,18 @@
 import i18next from "i18next"
+import { activityTracking } from "../_config.js"
 import { configureStandardForm } from "../_standard-form.js"
 
 const signupBody = document.querySelector("body.signup-body")
 if (signupBody) {
     const signupForm = signupBody.querySelector("form.signup-form")
+    const trackingInput = signupForm.querySelector("[name=tracking]")
     const displayNameInput = signupForm.querySelector("[name=display_name]")
     const emailInput = signupForm.querySelector("[name=email]")
     const emailConfirmationInput = signupForm.querySelector("[name=email_confirm]")
     const passwordInput = signupForm.querySelector("[name=password]")
     const passwordConfirmationInput = signupForm.querySelector("[name=password_confirm]")
+
+    trackingInput.value = activityTracking
 
     const onSignupSuccess = () => {
         location.href = "/user/terms"

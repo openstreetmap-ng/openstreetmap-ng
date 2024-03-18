@@ -16,6 +16,7 @@ if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 for (const link of navLinks) {
     if (link.getAttribute("href") === location.pathname) {
         link.classList.add("active")
+        link.ariaCurrent = "page"
         break
     }
 }

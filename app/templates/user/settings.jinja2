@@ -13,7 +13,33 @@
         <div class="row">
 
             <div class="col-auto">
-                menu menu menu menu
+                <ul class="nav flex-column settings-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings">
+                            <i class="bi bi-gear"></i>
+                            {{ t('accounts.edit.my settings') | lower | capitalize }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings/security">
+                            <i class="bi bi-shield-lock"></i>
+                            {{ t('user.settings.password_and_security') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings/applications">
+                            <i class="bi bi-boxes"></i>
+                            {{ t('user.settings.applications') }}
+                        </a>
+                    </li>
+                    <hr>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" href="/settings/delete_account">
+                            <i class="bi bi-trash"></i>
+                            {{ t('account.deletions.show.delete_account') | lower | capitalize }}
+                        </a>
+                    </li>
+                </ul>
             </div>
 
             <form class="col settings-form" method="POST" action="/api/web/user/settings">
@@ -43,11 +69,11 @@
                 </p>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('user.settings.password_last_changed') }}
+                    {{ t('user.settings.password_last_changed') | title }}
                     <div class="input-group mt-2">
-                        <input type="text" class="form-control fst-italic"
-                            value="{{ user.password_changed_at | timeago }}" readonly>
-                        <a class="btn btn-light border" href="/settings/passowrd">
+                        <input type="text" class="form-control" value="{{ user.password_changed_at | timeago }}"
+                            readonly>
+                        <a class="btn btn-light border" href="/settings/security">
                             {{ t('user.settings.change_password') }}
                         </a>
                     </div>
@@ -72,13 +98,46 @@
                     </option>
                 </select>
 
-                <label class="form-label">
+                <label class="form-label d-block">
                     {{ t('user.settings.preferred_language') | title }}
+                    <select class="form-select format-select mt-2" name="language" required>
+                        {# TODO #}
+                        <option value="en">English</option>
+                    </select>
                 </label>
-                <select class="form-select format-select mb-3" name="editor" required>
-                    {# TODO #}
-                    <option>English</option>
-                </select>
+                <p class="form-text mb-3">
+                    {% set this_guide %}
+                    <a href="https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate">
+                        {{ t('internalization.this_guide') }}
+                    </a>
+                    {% endset %}
+                    {{ t('internalization.get_started', this_guide=this_guide) | safe }}
+                </p>
+
+                <div class="form-check ms-1">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="activity_tracking" value="true"
+                            {% if user.activity_tracking %}checked{% endif %}>
+                        <i class="bi bi-graph-up text-primary"></i>
+                        {{ t('privacy.enable_activity_tracking.title') }}
+                    </label>
+                </div>
+                <p class="form-text mb-3">
+                    {{ t('privacy.enable_activity_tracking.description') }}
+                    {{ t('privacy.enable_activity_tracking.we_use_matomo') }}
+                </p>
+
+                <div class="form-check ms-1">
+                    <label class="form-check-label d-block">
+                        <input class="form-check-input" type="checkbox" name="crash_reporting" value="true"
+                            {% if user.crash_reporting %}checked{% endif %}>
+                        <i class="bi bi-bug text-primary"></i>
+                        {{ t('privacy.enable_crash_reporting.title') }}
+                    </label>
+                </div>
+                <p class="form-text mb-3">
+                    {{ t('privacy.enable_crash_reporting.description') }}
+                </p>
 
                 <div class="text-end">
                     <button class="btn btn-primary px-3" type="submit">

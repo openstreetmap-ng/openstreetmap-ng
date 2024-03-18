@@ -1,12 +1,11 @@
 """Initial migration
 
-Revision ID: cf482a031eba
+Revision ID: a1cdee862e1e
 Revises:
-Create Date: 2024-03-15 09:54:22.764196+00:00
+Create Date: 2024-03-18 13:34:16.419094+00:00
 
 """
 from collections.abc import Sequence
-from typing import Union
 
 import sqlalchemy as sa
 from alembic import op
@@ -17,10 +16,10 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'cf482a031eba'
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = 'a1cdee862e1e'
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -68,6 +67,8 @@ def upgrade() -> None:
     sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
     sa.Column('auth_uid', sa.Unicode(), nullable=True),
     sa.Column('languages', sa.ARRAY(sa.Unicode(length=15), dimensions=1), nullable=False),
+    sa.Column('activity_tracking', sa.Boolean(), nullable=False),
+    sa.Column('crash_reporting', sa.Boolean(), nullable=False),
     sa.Column('password_changed_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
     sa.Column('password_salt', sa.Unicode(), nullable=True),
     sa.Column('roles', sa.ARRAY(sa.Enum('moderator', 'administrator', name='userrole'), dimensions=1), server_default='{}', nullable=False),

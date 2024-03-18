@@ -35,7 +35,7 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
         if size <= AVATAR_MAX_FILE_SIZE:
             return compression_level, buffer.getvalue()
 
-        high: cython.int = 95
+        high: cython.int = 90
         low: cython.int = 20
         bs_step: cython.int = 5
         best_quality: cython.int = -1

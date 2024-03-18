@@ -3,6 +3,7 @@ Disallow: */history
 Disallow: */notes
 Disallow: */traces
 Disallow: */diary/comments
+Disallow: /user_blocks
 Disallow: /api
 Disallow: /redactions
 Disallow: /changeset

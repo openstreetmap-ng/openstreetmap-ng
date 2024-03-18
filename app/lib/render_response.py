@@ -16,10 +16,16 @@ def _get_default_data() -> dict:
     user = auth_user()
     languages = translation_languages()
 
-    if (user is not None) and (user_home_point := user.home_point) is not None:
-        home_point = get_coordinates(user_home_point)[0].tolist()
-    else:
-        home_point = None
+    activity_tracking = None
+    crash_reporting = None
+    home_point = None
+
+    if user is not None:
+        activity_tracking = user.activity_tracking
+        crash_reporting = user.crash_reporting
+
+        if (user_home_point := user.home_point) is not None:
+            home_point = get_coordinates(user_home_point)[0].tolist()
 
     config = {
         'apiUrl': API_URL,
@@ -28,9 +34,11 @@ def _get_default_data() -> dict:
         'rapidUrl': RAPID_URL,
         'rapidVersion': RAPID_VERSION,
         'languages': languages,
-        'homePoint': home_point,
         'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
         'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
+        'activityTracking': activity_tracking,
+        'crashReporting': crash_reporting,
+        'homePoint': home_point,
     }
 
     return {

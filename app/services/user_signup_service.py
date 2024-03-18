@@ -29,6 +29,7 @@ class UserSignupService:
         display_name: DisplayNameStr,
         email: EmailStr,
         password: PasswordStr,
+        tracking: bool,
     ) -> UserTokenStruct:
         """
         Create a new user.
@@ -61,6 +62,8 @@ class UserSignupService:
                 auth_provider=None,  # TODO: support
                 auth_uid=None,
                 languages=languages,
+                activity_tracking=tracking,
+                crash_reporting=tracking,
             )
             session.add(user)
 
