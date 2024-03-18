@@ -96,8 +96,9 @@ class UserService:
         *,
         display_name: DisplayNameStr,
         editor: Editor | None,
-        languages: str,
-        home_point: PointGeometry | None,
+        language: str,
+        activity_tracking: bool,
+        crash_reporting: bool,
     ) -> None:
         """
         Update user settings.
@@ -114,8 +115,9 @@ class UserService:
             user = await session.get(User, user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
-            user.languages_str = languages
-            user.home_point = home_point
+            user.languages_str = languages  # TODO:
+            user.activity_tracking = activity_tracking
+            user.crash_reporting = crash_reporting
 
     @staticmethod
     async def update_email(

@@ -8,9 +8,11 @@ from app.config import TEST_ENV
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
+from app.lib.translation import t
 from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
+from app.models.editor import Editor
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
@@ -29,13 +31,13 @@ router = APIRouter(prefix='/user')
 @router.get('/display-name-available')
 async def display_name_available(
     display_name: Annotated[DisplayNameStr, Query()],
-) -> bool:
+):
     return await UserRepository.check_display_name_available(display_name)
 
 
 @router.post('/login')
 async def login(
-    display_name_or_email: Annotated[str, Form(min_length=1)],
+    display_name_or_email: Annotated[str, Form()],
     password: Annotated[PasswordStr, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
@@ -110,37 +112,37 @@ async def account_confirm(
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
 
-# TODO: standard form? show success alert
 @router.post('/account-confirm/resend')
 async def account_confirm_resend(
     user: Annotated[User, web_user()],
 ):
     if user.status != UserStatus.pending_activation:
-        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
+        return {'is_active': True}
     await UserSignupService.send_confirm_email()
-    return redirect_referrer()
+    collector = MessageCollector()
+    collector.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
+    return collector.result
 
 
-# @router.post('/settings')
-# async def update_settings(
-#     display_name: Annotated[DisplayNameStr, Form()],
-#     new_email: Annotated[EmptyEmailStr, Form()],
-#     new_password: Annotated[EmptyPasswordStr, Form()],
-#     auth_provider: Annotated[AuthProvider | None, Form()],
-#     auth_uid: Annotated[str, Form()],
-#     editor: Annotated[Editor | None, Form()],
-#     languages: Annotated[str, Form()],
-#     _: Annotated[User, web_user()],
-# ) -> None:
-#     await UserService.update_settings(
-#         display_name=display_name,
-#         new_email=new_email,
-#         new_password=new_password,
-#         auth_provider=auth_provider,
-#         auth_uid=auth_uid,
-#         editor=editor,
-#         languages=languages,
-#     )
+@router.post('/settings')
+async def update_settings(
+    display_name: Annotated[DisplayNameStr, Form()],
+    editor: Annotated[Editor | None, Form()],
+    language: Annotated[str, Form()],
+    activity_tracking: Annotated[bool, Form()],
+    crash_reporting: Annotated[bool, Form()],
+    _: Annotated[User, web_user()],
+):
+    collector = MessageCollector()
+    await UserService.update_settings(
+        collector,
+        display_name=display_name,
+        editor=editor,
+        language=language,
+        activity_tracking=activity_tracking,
+        crash_reporting=crash_reporting,
+    )
+    return collector.result
 
 
 @router.post('/settings/avatar')
