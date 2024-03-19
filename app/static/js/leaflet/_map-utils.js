@@ -2,7 +2,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { homePoint } from "../_config.js"
 import { getLastMapState, setLastMapState } from "../_local-storage.js"
-import { qsParse, qsStringify } from "../_qs.js"
+import { qsEncode, qsParse } from "../_qs.js"
 import { shortLinkEncode } from "../_shortlink.js"
 import { timezoneBoundsMap } from "../_timezone-bbox.js"
 import "../_types.js"
@@ -68,8 +68,8 @@ const setMapLayersCode = (map, layersCode) => {
     console.debug("setMapLayersCode", layersCode)
     const layersIds = new Set()
 
-    // Extract base layers to validate the code
-    // and to check whether we need to use default base layer
+    // Extract base layers for validation and to check
+    // whether we need to auto-add the default base layer
     const baseLayers = []
 
     for (let i = 0; i < layersCode.length; i++) {
@@ -98,26 +98,40 @@ const setMapLayersCode = (map, layersCode) => {
     map.eachLayer((layer) => {
         const layerId = layer.options.layerId
         if (!layerId || layerId === "focus") return
-
-        if (!layersIds.has(layerId)) {
-            console.debug("Removing layer", layerId)
-            map.removeLayer(layer)
-        } else {
+        if (layersIds.has(layerId)) {
+            console.debug("Keeping layer", layerId)
             layersIds.delete(layerId)
+            return
+        }
+
+        if (getOverlayLayerById(layerId)) {
+            console.debug("Removing overlay layer", layerId)
+            map.removeLayer(layer)
+            map.fire("overlayremove", { layer, name: layerId })
+        } else {
+            console.debug("Removing base layer", layerId)
+            map.removeLayer(layer)
         }
     })
 
     // Add missing layers
     for (const layerId of layersIds) {
-        const layer = getBaseLayerById(layerId) ?? getOverlayLayerById(layerId)
-        console.debug("Adding layer", layerId)
-        map.addLayer(layer)
-    }
+        const baseLayer = getBaseLayerById(layerId)
+        if (baseLayer) {
+            console.debug("Adding base layer", layerId)
+            map.addLayer(baseLayer)
 
-    // Trigger the baselayerchange event
-    // https://leafletjs.com/reference.html#map-baselayerchange
-    // https://leafletjs.com/reference.html#layerscontrolevent
-    map.fire("baselayerchange", { layer: baseLayers[0], name: baseLayers[0].options.layerId })
+            // Trigger the baselayerchange event
+            // https://leafletjs.com/reference.html#map-baselayerchange
+            // https://leafletjs.com/reference.html#layerscontrolevent
+            map.fire("baselayerchange", { layer: baseLayer, name: layerId })
+        } else {
+            const overlayLayer = getOverlayLayerById(layerId)
+            console.debug("Adding overlay layer", layerId)
+            map.addLayer(overlayLayer)
+            map.fire("overlayadd", { layer: overlayLayer, name: layerId })
+        }
+    }
 }
 
 /**
@@ -376,7 +390,7 @@ export const getMapShortUrl = (map, showMarker = false) => {
     }
 
     if (Object.keys(params).length) {
-        return `${protocol}//${host}/go/${code}?${qsStringify(params)}`
+        return `${protocol}//${host}/go/${code}?${qsEncode(params)}`
     }
 
     return `${protocol}//${host}/go/${code}`
@@ -411,7 +425,7 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
     const iframe = document.createElement("iframe")
     iframe.width = 425
     iframe.height = 350
-    iframe.src = `${location.protocol}//${location.host}/export/embed.html?${qsStringify(params)}`
+    iframe.src = `${location.protocol}//${location.host}/export/embed.html?${qsEncode(params)}`
     iframe.style.border = "1px solid black"
 
     // allow-popups: allow links to open in a new window: "Report a problem", copyright

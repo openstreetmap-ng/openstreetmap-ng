@@ -38,8 +38,8 @@ export const getExportController = (map) => {
 
         // Update the export links
         const bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
-        exportLink.setAttribute("href", exportBaseHref + bboxQueryString)
-        exportOverpassLink.setAttribute("href", exportOverpassBaseHref + bboxQueryString)
+        exportLink.href = exportBaseHref + bboxQueryString
+        exportOverpassLink.href = exportOverpassBaseHref + bboxQueryString
     }
 
     // On map move end, update the inputs

@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { qsStringify } from "../_qs.js"
+import { qsEncode } from "../_qs.js"
 import { zoomPrecision } from "../_utils.js"
 import { routerNavigateStrict } from "../index/_router.js"
 
@@ -56,7 +56,7 @@ export const configureContextMenu = (map) => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
-            `/directions?${qsStringify({
+            `/directions?${qsEncode({
                 from: `${lat},${lon}`,
             })}`,
         )
@@ -67,7 +67,7 @@ export const configureContextMenu = (map) => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
-            `/directions?${qsStringify({
+            `/directions?${qsEncode({
                 to: `${lat},${lon}`,
             })}`,
         )
@@ -85,7 +85,7 @@ export const configureContextMenu = (map) => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
-            `/search?${qsStringify({
+            `/search?${qsEncode({
                 whereami: 1,
                 query: `${lat},${lon}`,
             })}`,

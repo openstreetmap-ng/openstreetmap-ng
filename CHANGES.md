@@ -70,6 +70,10 @@ Last update: 2024-03-17
 - Add JSDoc documentation strings to public methods
 - Fix frontend script crashes on some invalid strings
 - Fix bug with go to home location adding more and more markers
+- Fixed login referrer not updating on router navigation
+- Auto-enable notes layer during adding a new note to prevent duplicates
+- Remember notes/data enabled state when zooming out and in
+- Manual selection of area is now easier to use
 
 ## Backend
 

@@ -3,7 +3,7 @@ import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { formatDistance, formatHeight, formatSimpleDistance, formatTime } from "../_format-utils.js"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage.js"
-import { qsParse, qsStringify } from "../_qs.js"
+import { qsEncode, qsParse } from "../_qs.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import "../_types.js"
@@ -102,7 +102,7 @@ export const getRoutingController = (map) => {
         const toRouteParam = `${toCoords.lat.toFixed(precision)},${toCoords.lon.toFixed(precision)}`
         const routeParam = `${fromRouteParam};${toRouteParam}`
 
-        const searchParams = qsStringify({
+        const searchParams = qsEncode({
             engine: routingEngineName,
             route: routeParam,
         })

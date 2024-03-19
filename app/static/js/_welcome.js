@@ -1,4 +1,4 @@
-import { qsParse, qsStringify } from "./_qs.js"
+import { qsEncode, qsParse } from "./_qs.js"
 import { isLatitude, isLongitude, isZoom } from "./_utils.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
 
@@ -24,7 +24,7 @@ if (welcomeBody) {
     // Assign position only if it's valid
     let noteHref = "/note/new"
     if (locationProvided) noteHref += encodeMapState(params)
-    noteLink.setAttribute("href", noteHref)
+    noteLink.href = noteHref
 
     // Passthrough supported parameters
     const startParams = {}
@@ -33,9 +33,9 @@ if (welcomeBody) {
     if (locationProvided) {
         // If location was provided, redirect to /edit with the provided coordinates
         let startHref = "/edit"
-        if (Object.keys(startParams).length) startHref += `?${qsStringify(startParams)}`
+        if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
         startHref += encodeMapState(params)
-        startButton.setAttribute("href", startHref)
+        startButton.href = startHref
     } else {
         // If location was not provided, request navigator.geolocation
         // On geolocation success, redirect to /edit with the returned coordinates
@@ -46,9 +46,9 @@ if (welcomeBody) {
             params.zoom = 17
 
             let startHref = "/edit"
-            if (Object.keys(startParams).length) startHref += `?${qsStringify(startParams)}`
+            if (Object.keys(startParams).length) startHref += `?${qsEncode(startParams)}`
             startHref += encodeMapState(params)
-            startButton.setAttribute("href", startHref)
+            startButton.href = startHref
             startButton.removeEventListener("click", onStartButtonClick)
         }
 

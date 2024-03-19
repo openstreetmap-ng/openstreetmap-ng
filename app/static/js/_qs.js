@@ -26,16 +26,6 @@ export const qsParse = (qs) => {
 }
 
 /**
- * Stringify an object into a query string
- * @param {object} obj Object to stringify
- * @returns {string} Query string
- * @example
- * qsStringify({ foo: "bar", baz: "qux" })
- * // => "foo=bar&baz=qux"
- */
-export const qsStringify = (obj) => qsEncode(obj).toString()
-
-/**
  * Encode an object into a URLSearchParams object
  * @param {object} obj Object to encode
  * @returns {URLSearchParams} Encoded query string

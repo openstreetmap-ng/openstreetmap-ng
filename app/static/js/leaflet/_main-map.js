@@ -117,7 +117,7 @@ const getMainMap = (container) => {
     // Listen for events
     window.addEventListener("hashchange", onHashChange)
     map.addEventListener("baselayerchange", onBaseLayerChange)
-    map.addEventListener("zoomend moveend baselayerchange overlaylayerchange", onMapStateChange)
+    map.addEventListener("zoomend moveend baselayerchange overlayadd overlayremove", onMapStateChange)
 
     // TODO: support this on more maps
     // Initialize map state after configuring events

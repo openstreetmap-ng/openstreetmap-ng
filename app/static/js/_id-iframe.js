@@ -1,5 +1,5 @@
 import { idUrl } from "./_config.js"
-import { qsParse, qsStringify } from "./_qs.js"
+import { qsEncode, qsParse } from "./_qs.js"
 import { getInitialMapState, parseMapState } from "./leaflet/_map-utils.js"
 
 const idIframe = document.querySelector(".id-iframe")
@@ -69,5 +69,5 @@ if (idIframe) {
     }
 
     // Initialize iframe
-    idIframe.src = `${idUrl}#${qsStringify(result)}`
+    idIframe.src = `${idUrl}#${qsEncode(result)}`
 }

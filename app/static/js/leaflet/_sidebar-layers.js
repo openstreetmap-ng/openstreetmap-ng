@@ -103,7 +103,7 @@ export const getLayersSidebarToggleButton = () => {
 
                         const parent = overlayCheckbox.closest(".form-check")
                         parent.classList.remove("disabled")
-                        parent.setAttribute("aria-disabled", "false")
+                        parent.ariaDisabled = "false"
                         const tooltip = Tooltip.getInstance(parent)
                         tooltip.disable()
                         tooltip.hide()
@@ -122,7 +122,7 @@ export const getLayersSidebarToggleButton = () => {
 
                     const parent = overlayCheckbox.closest(".form-check")
                     parent.classList.add("disabled")
-                    parent.setAttribute("aria-disabled", "true")
+                    parent.ariaDisabled = "true"
                     Tooltip.getOrCreateInstance(parent, {
                         title: parent.dataset.bsTitle,
                         placement: "top",
@@ -175,9 +175,32 @@ export const getLayersSidebarToggleButton = () => {
             map.fire("baselayerchange", { layer, name: layerId })
         }
 
+        // On overlay layer add, check the corresponding checkbox
+        const onOverlayAdd = ({ name }) => {
+            for (const overlayCheckbox of overlayCheckboxes) {
+                if (overlayCheckbox.value !== name) continue
+                if (overlayCheckbox.checked !== true) {
+                    overlayCheckbox.checked = true
+                    overlayCheckbox.dispatchEvent(new Event("change"))
+                }
+                break
+            }
+        }
+
+        // On overlay layer remove, uncheck the corresponding checkbox
+        const onOverlayRemove = ({ name }) => {
+            for (const overlayCheckbox of overlayCheckboxes) {
+                if (overlayCheckbox.value !== name) continue
+                if (overlayCheckbox.checked !== false) {
+                    overlayCheckbox.checked = false
+                    overlayCheckbox.dispatchEvent(new Event("change"))
+                }
+                break
+            }
+        }
+
         // On overlay checkbox change, add or remove the overlay layer
         const onOverlayCheckboxChange = (e) => {
-            console.warn(e)
             const overlayCheckbox = e.currentTarget
             const layerId = overlayCheckbox.value
             const layer = getOverlayLayerById(layerId)
@@ -190,7 +213,10 @@ export const getLayersSidebarToggleButton = () => {
             const containsLayer = map.hasLayer(layer)
 
             // Skip updates if the layer is already in the correct state
-            if (checked === containsLayer) return
+            if (checked === containsLayer) {
+                console.warn("Overlay layer", layerId, "is already", checked ? "added" : "removed")
+                return
+            }
 
             // Add or remove the overlay layer
             if (checked) {
@@ -200,7 +226,7 @@ export const getLayersSidebarToggleButton = () => {
                 // Trigger the overlayadd event
                 // https://leafletjs.com/reference.html#map-overlayadd
                 // https://leafletjs.com/reference.html#layerscontrolevent
-                map.fire("overlayadd", { layer: layer, name: layerId })
+                map.fire("overlayadd", { layer, name: layerId })
             } else {
                 console.debug("Removing overlay layer", layerId)
                 map.removeLayer(layer)
@@ -208,11 +234,11 @@ export const getLayersSidebarToggleButton = () => {
                 // Trigger the overlayremove event
                 // https://leafletjs.com/reference.html#map-overlayremove
                 // https://leafletjs.com/reference.html#layerscontrolevent
-                map.fire("overlayremove", { layer: layer, name: layerId })
+                map.fire("overlayremove", { layer, name: layerId })
             }
         }
 
-        // On sidebar shown, update the minimaps view instantly
+        // On sidebar shown, update the sidebar state
         const onButtonClick = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
@@ -224,15 +250,22 @@ export const getLayersSidebarToggleButton = () => {
             for (const minimap of minimaps) {
                 minimap.setView(center, zoom, { animate: false })
             }
+
+            onMapZoomEnd()
         }
 
         // Listen for events
         map.addEventListener("baselayerchange", onBaseLayerChange)
+        map.addEventListener("overlayadd", onOverlayAdd)
+        map.addEventListener("overlayremove", onOverlayRemove)
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         map.addEventListener("zoomend", onMapZoomEnd)
-        for (const layerContainer of layerContainers) layerContainer.addEventListener("click", onBaseLayerClick)
-        for (const overlayCheckbox of overlayCheckboxes)
+        for (const layerContainer of layerContainers) {
+            layerContainer.addEventListener("click", onBaseLayerClick)
+        }
+        for (const overlayCheckbox of overlayCheckboxes) {
             overlayCheckbox.addEventListener("change", onOverlayCheckboxChange)
+        }
         button.addEventListener("click", onButtonClick)
 
         return container

@@ -1,4 +1,5 @@
 import { Tooltip } from "bootstrap"
+import { qsEncode } from "./_qs.js"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
@@ -6,25 +7,21 @@ import { encodeMapState } from "./leaflet/_map-utils.js"
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
-const navLinks = navbar.querySelectorAll(".nav-link")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
+const loginLinkQuery = qsEncode({ referer: location.pathname })
 
 // Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
 if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 
 // Add active class to current nav-lik
+const navLinks = navbar.querySelectorAll(".nav-link")
 for (const link of navLinks) {
     if (link.getAttribute("href") === location.pathname) {
         link.classList.add("active")
         link.ariaCurrent = "page"
         break
     }
-}
-
-// Add referer to /login links
-for (const link of loginLinks) {
-    link.href += `?referer=${location.pathname}`
 }
 
 /**
@@ -36,6 +33,7 @@ const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
     new Map(),
 )
 
+// TODO: wth object support?
 /**
  * Update the navbar links and current URL hash
  * @param {MapState} state Map state object
@@ -46,6 +44,9 @@ export const updateNavbarAndHash = (state, object = null) => {
     const isEditDisabled = state.zoom < minEditZoom
     const hash = encodeMapState(state)
 
+    const loginHref = `/login?${loginLinkQuery}${hash}`
+    for (const link of loginLinks) link.href = loginHref
+
     for (const [link, baseHref] of mapLinksHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
         if (isEditLink) {
@@ -53,27 +54,27 @@ export const updateNavbarAndHash = (state, object = null) => {
             const isRemoteEditButton = link.classList.contains("remote-edit-btn")
             if (isRemoteEditButton) {
                 link.dataset.remoteEdit = JSON.stringify({ state, object })
+            } else if (object) {
+                link.href = `${baseHref}?${object.type}=${object.id}${hash}`
             } else {
-                const href = object ? `${baseHref}?${object.type}=${object.id}${hash}` : baseHref + hash
-                link.setAttribute("href", href)
+                link.href = baseHref + hash
             }
 
             // Enable/disable edit links based on current zoom level
             if (isEditDisabled) {
                 if (!link.classList.contains("disabled")) {
                     link.classList.add("disabled")
-                    link.setAttribute("aria-disabled", "true")
+                    link.ariaDisabled = "true"
                 }
             } else {
                 // biome-ignore lint/style/useCollapsedElseIf: Readability
                 if (link.classList.contains("disabled")) {
                     link.classList.remove("disabled")
-                    link.setAttribute("aria-disabled", "false")
+                    link.ariaDisabled = "false"
                 }
             }
         } else {
-            const href = baseHref + hash
-            link.setAttribute("href", href)
+            link.href = baseHref + hash
         }
     }
 
@@ -81,7 +82,7 @@ export const updateNavbarAndHash = (state, object = null) => {
     if (isEditDisabled) {
         if (!editGroup.classList.contains("disabled")) {
             editGroup.classList.add("disabled")
-            editGroup.setAttribute("aria-disabled", "true")
+            editGroup.ariaDisabled = "true"
             Tooltip.getOrCreateInstance(editGroup, {
                 title: editGroup.dataset.bsTitle,
                 placement: "bottom",
@@ -91,12 +92,12 @@ export const updateNavbarAndHash = (state, object = null) => {
         // biome-ignore lint/style/useCollapsedElseIf: Readability
         if (editGroup.classList.contains("disabled")) {
             editGroup.classList.remove("disabled")
-            editGroup.setAttribute("aria-disabled", "false")
+            editGroup.ariaDisabled = "false"
             Tooltip.getInstance(editGroup).disable()
         }
     }
 
-    history.replaceState(null, "", hash) // TODO: will this not remove path?
+    history.replaceState(null, "", hash)
 }
 
 // On window mapState message, update the navbar and hash

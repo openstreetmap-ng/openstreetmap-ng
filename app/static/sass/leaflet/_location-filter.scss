@@ -9,6 +9,7 @@
 .leaflet-marker-icon.location-filter {
     cursor: move;
     will-change: transform, z-index;
+    image-rendering: pixelated;
 
     &.resize-marker {
         padding: 0.4em;

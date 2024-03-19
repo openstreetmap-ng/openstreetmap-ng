@@ -23,5 +23,5 @@ if (fixthemapBody) {
     // Assign position only if it's valid
     let noteHref = "/note/new"
     if (locationProvided) noteHref += encodeMapState(params)
-    noteLink.setAttribute("href", noteHref)
+    noteLink.href = noteHref
 }
