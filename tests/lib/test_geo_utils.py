@@ -45,8 +45,8 @@ def test_parse_bbox_simple():
 
 
 def test_parse_bbox_wrap_around():
-    assert parse_bbox('200,20,210,30').equals(
-        Polygon([(-160, 20), (-150, 20), (-150, 30), (-160, 30), (-160, 20)]),
+    assert parse_bbox('-560,20,-550,30').equals(
+        Polygon([(160, 20), (170, 20), (170, 30), (160, 30), (160, 20)]),
     )
 
 

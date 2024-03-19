@@ -39,6 +39,17 @@ export const isZoom = (zoom) => zoom >= 0 && zoom <= 25
 export const zoomPrecision = (zoom) => Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2))
 
 /**
+ * Compute the modulo of a number, supporting negative numbers
+ * @param {number} n Number
+ * @param {number} m Modulo
+ * @returns {number} Modulo result
+ * @example
+ * mod(-1, 3)
+ * // => 2
+ */
+export const mod = (n, m) => ((n % m) + m) % m
+
+/**
  * Throttle a function to only be called at most once per delay
  * @param {function} func Function to throttle
  * @param {number} delay Minimum delay between calls

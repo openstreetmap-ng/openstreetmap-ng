@@ -1,3 +1,5 @@
+import { mod } from "./_utils.js"
+
 // 64 chars to encode 6 bits
 const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 
@@ -12,7 +14,7 @@ const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~
  * // => "wF7ZdNbjU-"
  */
 export const shortLinkEncode = (lon, lat, zoom) => {
-    const x = BigInt(Math.floor(((lon + 180) % 360) * 11930464.711111112)) // (2 ** 32) / 360
+    const x = BigInt(Math.floor(mod(lon + 180, 360) * 11930464.711111112)) // (2 ** 32) / 360
     const y = BigInt(Math.floor((lat + 90) * 23860929.422222223)) // (2 ** 32) / 180
     let c = 0n
 

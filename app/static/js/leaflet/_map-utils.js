@@ -6,7 +6,7 @@ import { qsEncode, qsParse } from "../_qs.js"
 import { shortLinkEncode } from "../_shortlink.js"
 import { timezoneBoundsMap } from "../_timezone-bbox.js"
 import "../_types.js"
-import { isLatitude, isLongitude, isZoom, zoomPrecision } from "../_utils.js"
+import { isLatitude, isLongitude, isZoom, mod, zoomPrecision } from "../_utils.js"
 import { getBaseLayerById, getLayerIdByCode, getOverlayLayerById } from "./_layers.js"
 
 /**
@@ -141,7 +141,7 @@ const setMapLayersCode = (map, layersCode) => {
  */
 export const getMapState = (map) => {
     const center = map.getCenter()
-    const lon = ((center.lng + 180) % 360) - 180
+    const lon = mod(center.lng + 180, 360) - 180
     const lat = center.lat
     const zoom = map.getZoom()
     const layersCode = getMapLayersCode(map)
@@ -174,7 +174,7 @@ export const setMapState = (map, state, options) => {
 export const encodeMapState = (state) => {
     let { lon, lat, zoom, layersCode } = state
     const precision = zoomPrecision(zoom)
-    lon = ((lon + 180) % 360) - 180
+    lon = mod(lon + 180, 360) - 180
     lon = lon.toFixed(precision)
     lat = lat.toFixed(precision)
     const hash = layersCode ? `#map=${zoom}/${lat}/${lon}&layers=${layersCode}` : `#map=${zoom}/${lat}/${lon}`
