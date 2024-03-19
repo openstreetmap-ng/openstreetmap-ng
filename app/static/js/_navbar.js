@@ -7,6 +7,7 @@ const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
 const navLinks = navbar.querySelectorAll(".nav-link")
+const loginLinks = navbar.querySelectorAll("a[href='/login']")
 
 // Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
@@ -19,6 +20,11 @@ for (const link of navLinks) {
         link.ariaCurrent = "page"
         break
     }
+}
+
+// Add referer to /login links
+for (const link of loginLinks) {
+    link.href += `?referer=${location.pathname}`
 }
 
 /**

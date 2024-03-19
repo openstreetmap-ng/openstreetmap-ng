@@ -30,7 +30,7 @@ async def terms(user: Annotated[User, web_user()]):
 @router.get('/account-confirm/pending')
 async def account_confirm_pending(user: Annotated[User, web_user()]):
     if user.status != UserStatus.pending_activation:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
     return render_response('user/account_confirm_pending.jinja2')
 
 

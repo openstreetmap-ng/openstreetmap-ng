@@ -89,4 +89,4 @@ async def welcome(_: Annotated[User, web_user()]):
 
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
-    return render_response('user/settings.jinja2')
+    return render_response('user/settings/index.jinja2')

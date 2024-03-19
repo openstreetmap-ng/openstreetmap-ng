@@ -3,7 +3,7 @@
 let
   # Currently using nixpkgs-unstable
   # Update with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/9af9c1c87ed3e3ed271934cb896e0cdd33dae212.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/5710127d9693421e78cca4f74fac2db6d67162b1.tar.gz") { };
 
   libraries' = with pkgs; [
     # Python libraries
