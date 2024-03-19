@@ -62,12 +62,12 @@ if (welcomeBody) {
 
             const onGeolocationSuccessWrapped = (position) => {
                 onGeolocationSuccess(position)
-                location = startButton.getAttribute("href")
+                location = startButton.href
             }
 
             const onGeolocationFailureWrapped = () => {
                 onGeolocationFailure()
-                location = startButton.getAttribute("href")
+                location = startButton.href
             }
 
             navigator.geolocation.getCurrentPosition(onGeolocationSuccessWrapped, onGeolocationFailureWrapped, {

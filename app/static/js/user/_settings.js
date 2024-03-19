@@ -3,7 +3,7 @@ import { configureStandardForm } from "../_standard-form.js"
 // Add active class to current nav-lik
 const navLinks = document.querySelectorAll(".settings-nav .nav-link")
 for (const link of navLinks) {
-    if (link.getAttribute("href") === location.pathname) {
+    if (link.href === location.pathname) {
         link.classList.add("active")
         link.ariaCurrent = "page"
         break

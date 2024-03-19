@@ -8,7 +8,6 @@ const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
-const loginLinkQuery = qsEncode({ referer: location.pathname })
 
 // Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
@@ -17,7 +16,7 @@ if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
 for (const link of navLinks) {
-    if (link.getAttribute("href") === location.pathname) {
+    if (link.href === location.pathname) {
         link.classList.add("active")
         link.ariaCurrent = "page"
         break
@@ -29,9 +28,20 @@ for (const link of navLinks) {
  * @type {Map<HTMLElement, string>}
  */
 const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
-    (map, link) => map.set(link, link.getAttribute("href")),
+    (map, link) => map.set(link, link.href),
     new Map(),
 )
+
+/**
+ * Update the login links with the current path and hash
+ * @param {string} hash Current URL hash
+ * @returns {void}
+ */
+const updateLoginLinks = (hash) => {
+    const loginLinkQuery = qsEncode({ referer: location.pathname })
+    const loginHref = `/login?${loginLinkQuery}${hash}`
+    for (const link of loginLinks) link.href = loginHref
+}
 
 // TODO: wth object support?
 /**
@@ -43,9 +53,7 @@ const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
 export const updateNavbarAndHash = (state, object = null) => {
     const isEditDisabled = state.zoom < minEditZoom
     const hash = encodeMapState(state)
-
-    const loginHref = `/login?${loginLinkQuery}${hash}`
-    for (const link of loginLinks) link.href = loginHref
+    updateLoginLinks(hash)
 
     for (const [link, baseHref] of mapLinksHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
@@ -111,3 +119,6 @@ addEventListener("message", (event) => {
     const data = event.data
     if (data.type === "mapState") onMapState(data)
 })
+
+// Initial update to update the login links
+updateLoginLinks(location.hash)

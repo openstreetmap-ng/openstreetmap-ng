@@ -106,8 +106,7 @@ export const configureRouter = (pathControllerMap) => {
         if (target.tagName !== "A") return
 
         // Skip if the anchor is not a link
-        const href = target.getAttribute("href")
-        if (!href) return
+        if (!target.href) return
 
         // Skip if cross-protocol or cross-origin
         if (location.protocol !== target.protocol || location.host !== target.host) return

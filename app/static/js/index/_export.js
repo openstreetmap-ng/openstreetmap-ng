@@ -20,10 +20,10 @@ export const getExportController = (map) => {
     const customRegionCheckbox = sidebar.querySelector(".custom-region-check")
     const exportAvailableContainer = sidebar.querySelector(".export-available-container")
     const exportLink = exportAvailableContainer.querySelector(".export-link")
-    const exportBaseHref = exportLink.getAttribute("href")
+    const exportBaseHref = exportLink.href
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
-    const exportOverpassBaseHref = exportOverpassLink.getAttribute("href")
+    const exportOverpassBaseHref = exportOverpassLink.href
     let loaded = false
 
     // Null values until initialized
