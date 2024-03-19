@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from shapely import Point, Polygon
+from shapely import MultiPolygon, Point, Polygon
 
 from app.lib.geo_utils import (
     haversine_distance,
@@ -38,17 +38,33 @@ def test_haversine_distance(p1, p2, expected_meters):
     assert math.isclose(haversine_distance(p1, p2), expected_meters, rel_tol=1e-9)
 
 
-@pytest.mark.parametrize(
-    ('bbox', 'polygon'),
-    [
-        ('1,2,3,4', Polygon([(1, 2), (3, 2), (3, 4), (1, 4), (1, 2)])),
-        ('-3,-4,-1,-2', Polygon([(-1, -2), (-3, -2), (-3, -4), (-1, -4), (-1, -2)])),
-        ('-1,-2,3,4', Polygon([(-1, -2), (3, -2), (3, 4), (-1, 4), (-1, -2)])),
-        ('1.1,2.2,3.3,4.4', Polygon([(1.1, 2.2), (3.3, 2.2), (3.3, 4.4), (1.1, 4.4), (1.1, 2.2)])),
-    ],
-)
-def test_parse_bbox(bbox, polygon):
-    assert parse_bbox(bbox).equals(polygon)
+def test_parse_bbox_simple():
+    assert parse_bbox('-1,-2,3.3,4.4').equals(
+        Polygon([(-1, -2), (3.3, -2), (3.3, 4.4), (-1, 4.4), (-1, -2)]),
+    )
+
+
+def test_parse_bbox_wrap_around():
+    assert parse_bbox('200,20,210,30').equals(
+        Polygon([(-160, 20), (-150, 20), (-150, 30), (-160, 30), (-160, 20)]),
+    )
+
+
+def test_parse_bbox_cover_world():
+    assert parse_bbox('100,20,900,30').equals(
+        Polygon([(-180, 20), (180, 20), (180, 30), (-180, 30), (-180, 20)]),
+    )
+
+
+def test_parse_bbox_meridian():
+    assert parse_bbox('175,10,195,20').equals(
+        MultiPolygon(
+            [
+                Polygon([(175, 10), (180, 10), (180, 20), (175, 20), (175, 10)]),
+                Polygon([(-180, 10), (-165, 10), (-165, 20), (-180, 20), (-180, 10)]),
+            ]
+        )
+    )
 
 
 @pytest.mark.parametrize(
@@ -61,11 +77,10 @@ def test_parse_bbox(bbox, polygon):
         '1,4,3,2',
         '190,2,3,4',
         '1,95,3,4',
-        '-190,2,3,4',
         '1,-95,3,4',
         'a,b,c,d',
     ],
 )
 def test_parse_bbox_invalid(bbox):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         parse_bbox(bbox)

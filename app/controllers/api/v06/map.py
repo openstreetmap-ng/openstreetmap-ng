@@ -29,7 +29,7 @@ async def map_read(
     )
 
     xattr = get_xattr()
-    minx, miny, maxx, maxy = geometry.bounds
+    minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 
     return {
         'bounds': {

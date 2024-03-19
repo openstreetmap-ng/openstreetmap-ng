@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from shapely import Polygon
+from shapely.ops import BaseGeometry
 from sqlalchemy import func, select, union_all
 
 from app.db import db
@@ -14,7 +14,7 @@ class NoteCommentRepository:
     @staticmethod
     async def legacy_find_many_by_query(
         *,
-        geometry: Polygon | None = None,
+        geometry: BaseGeometry | None = None,
         limit: int | None,
     ) -> Sequence[NoteComment]:
         """

@@ -74,6 +74,7 @@ Last update: 2024-03-17
 - Auto-enable notes layer during adding a new note to prevent duplicates
 - Remember notes/data enabled state when zooming out and in
 - Manual selection of area is now easier to use
+- Fix visual bug when crossing 180th meridian
 
 ## Backend
 
@@ -126,3 +127,4 @@ Last update: 2024-03-17
 - Prefer static translation strings to automatically detect unused translations
 - Configure [Postgis](https://postgis.net/) for geospatial database support
 - Rename mapnik to standard layer internally
+- More robust handling of 180th meridian

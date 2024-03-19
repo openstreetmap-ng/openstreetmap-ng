@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from shapely import Polygon
+from shapely.ops import BaseGeometry
 from sqlalchemy import func, select
 
 from app.db import db
@@ -14,7 +14,7 @@ from app.models.trace_visibility import TraceVisibility
 class TracePointRepository:
     @staticmethod
     async def find_many_by_geometry(
-        geometry: Polygon,
+        geometry: BaseGeometry,
         *,
         limit: int | None,
         legacy_offset: int | None = None,

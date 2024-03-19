@@ -18,7 +18,7 @@ async def resolve_names(
     to: Annotated[str, Form(min_length=1)],
     bounds: Annotated[str, Form(min_length=1)],
 ) -> dict:
-    bounds_shape = parse_bbox(bounds)
+    bounds_shape = parse_bbox(bounds)  # TOOD: MultiPolygon support
     resolve_from: NominatimResult = None
     resolve_to: NominatimResult = None
 

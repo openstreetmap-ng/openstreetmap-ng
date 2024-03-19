@@ -141,9 +141,11 @@ const setMapLayersCode = (map, layersCode) => {
  */
 export const getMapState = (map) => {
     const center = map.getCenter()
+    const lon = ((center.lng + 180) % 360) - 180
+    const lat = center.lat
     const zoom = map.getZoom()
     const layersCode = getMapLayersCode(map)
-    return { lon: center.lng, lat: center.lat, zoom, layersCode }
+    return { lon, lat, zoom, layersCode }
 }
 
 /**
@@ -172,6 +174,7 @@ export const setMapState = (map, state, options) => {
 export const encodeMapState = (state) => {
     let { lon, lat, zoom, layersCode } = state
     const precision = zoomPrecision(zoom)
+    lon = ((lon + 180) % 360) - 180
     lon = lon.toFixed(precision)
     lat = lat.toFixed(precision)
     const hash = layersCode ? `#map=${zoom}/${lat}/${lon}&layers=${layersCode}` : `#map=${zoom}/${lat}/${lon}`
@@ -412,7 +415,7 @@ export const getMapEmbedHtml = (map, markerLatLng = null) => {
 
     // Add optional map marker
     if (markerLatLng) {
-        // Not applying precision on embed markers
+        // Intentionally not applying precision on embed markers
         const lon = markerLatLng.lng
         const lat = markerLatLng.lat
         params.marker = `${lat},${lon}`

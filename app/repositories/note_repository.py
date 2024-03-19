@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 
-from shapely import Polygon
+from shapely.ops import BaseGeometry
 from sqlalchemy import func, null, select
 
 from app.db import db
@@ -20,7 +20,7 @@ class NoteRepository:
         text: str | None = None,
         user_id: int | None = None,
         max_closed_for: timedelta | None = None,
-        geometry: Polygon | None = None,
+        geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
         date_to: datetime | None = None,
         sort_by_created: bool = True,

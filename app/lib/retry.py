@@ -47,6 +47,7 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: f
                         noise: cython.double = random.random()  # noqa: S311
                         new_sleep: cython.double = sleep * (1.5 + noise)
                         sleep = new_sleep if new_sleep < sleep_limit else sleep_limit
+                        continue
 
                     # retry is not possible, re-raise the exception
                     raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from anyio import create_task_group
-from shapely import Polygon
+from shapely.ops import BaseGeometry
 from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
 from sqlalchemy.dialects.postgresql import JSONPATH
 
@@ -286,7 +286,7 @@ class ElementRepository:
 
     @staticmethod
     async def find_many_by_query(
-        geometry: Polygon,
+        geometry: BaseGeometry,
         *,
         nodes_limit: int | None,
         legacy_nodes_limit: bool = False,

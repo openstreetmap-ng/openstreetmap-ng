@@ -29,5 +29,5 @@ def test_retry_timeout():
     async def func():
         raise RuntimeError
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TimeoutError):
         anyio.run(func)

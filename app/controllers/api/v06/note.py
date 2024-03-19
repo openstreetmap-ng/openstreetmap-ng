@@ -212,7 +212,7 @@ async def notes_feed(
     fg.title(t('api.notes.rss.title'))
 
     if geometry is not None:
-        minx, miny, maxx, maxy = geometry.bounds
+        minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 
         fg.subtitle(
             t('api.notes.rss.description_area').format(
@@ -254,7 +254,7 @@ async def notes_read(
     await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
-        minx, miny, maxx, maxy = geometry.bounds
+        minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
@@ -349,7 +349,7 @@ async def notes_query(
         fg.title(t('api.notes.rss.title'))
 
         if geometry is not None:
-            minx, miny, maxx, maxy = geometry.bounds
+            minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 
             fg.subtitle(
                 t('api.notes.rss.description_area').format(

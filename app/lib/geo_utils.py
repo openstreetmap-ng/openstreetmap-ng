@@ -1,5 +1,6 @@
 import cython
-from shapely import Point, Polygon, box, get_coordinates
+import numpy as np
+from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, polygons
 
 from app.lib.exceptions_context import raise_for
 from app.validators.geometry import validate_geometry
@@ -67,11 +68,13 @@ def haversine_distance(p1: Point, p2: Point) -> float:
     return c * 6371000  # R
 
 
-def parse_bbox(s: str) -> Polygon:
+def parse_bbox(s: str) -> Polygon | MultiPolygon:
     """
     Parse a bbox string.
 
-    Raises exception if the string is not a valid bbox format.
+    Returns a Polygon or MultiPolygon (if crossing the antimeridian).
+
+    Raises exception if the string is not in a valid format.
 
     >>> parse_bbox('1,2,3,4')
     POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
@@ -90,4 +93,26 @@ def parse_bbox(s: str) -> Polygon:
     if miny > maxy:
         raise_for().bad_bbox(s, 'min latitude > max latitude')
 
-    return validate_geometry(box(minx, miny, maxx, maxy))
+    # special case, bbox wraps around the whole world
+    if maxx - minx >= 360:
+        return validate_geometry(box(-180, miny, 180, maxy))
+
+    # normalize minx to [-180, 180), maxx to [minx, minx + 360)
+    if minx < -180 or maxx > 180:
+        offset: cython.double = ((minx + 180) % 360 - 180) - minx
+        minx += offset
+        maxx += offset
+
+    # simple geometry, no meridian crossing
+    if maxx <= 180:
+        return validate_geometry(box(minx, miny, maxx, maxy))
+
+    # meridian crossing
+    return validate_geometry(
+        MultiPolygon(
+            (
+                box(minx, miny, 180, maxy),
+                box(-180, miny, maxx - 360, maxy),
+            )
+        )
+    )

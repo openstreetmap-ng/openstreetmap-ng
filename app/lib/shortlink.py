@@ -11,7 +11,7 @@ def shortlink_encode(lon: float, lat: float, zoom: int) -> str:
     Encode a coordinate pair and zoom level into a shortlink code.
     """
 
-    x: cython.uint = int((lon + 180) * 11930464.711111112)  # (2 ** 32) / 360
+    x: cython.uint = int(((lon + 180) % 360) * 11930464.711111112)  # (2 ** 32) / 360
     y: cython.uint = int((lat + 90) * 23860929.422222223)  # (2 ** 32) / 180
     c: cython.ulonglong = 0
     i: cython.int

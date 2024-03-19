@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from datetime import datetime
 
-from shapely import Polygon
+from shapely.ops import BaseGeometry
 from sqlalchemy import func, null, select
 
 from app.db import db
@@ -32,7 +32,7 @@ class ChangesetRepository:
         created_before: datetime | None = None,
         closed_after: datetime | None = None,
         is_open: bool | None = None,
-        geometry: Polygon | None = None,
+        geometry: BaseGeometry | None = None,
         limit: int | None,
     ) -> Sequence[Changeset]:
         """
