@@ -4,6 +4,8 @@ import { configureStandardForm } from "../_standard-form.js"
 const loginBody = document.querySelector("body.login-body")
 if (loginBody) {
     const loginForm = loginBody.querySelector("form.login-form")
+    const loginInputs = loginForm.elements
+    const loginButtons = loginBody.querySelectorAll("button[data-login][data-password]")
 
     const onLoginSuccess = () => {
         // Redirect to refer from query string and hash
@@ -14,5 +16,18 @@ if (loginBody) {
         location.href = referer
     }
 
+    const onLoginButtonClick = (e) => {
+        const dataset = e.target.dataset
+        console.debug("onLoginButtonClick", dataset)
+        loginInputs.display_name_or_email.value = dataset.login
+        loginInputs.password.value = dataset.password
+        loginInputs.remember.checked = true
+        loginForm.requestSubmit()
+    }
+
+    // Listen for events
     configureStandardForm(loginForm, onLoginSuccess)
+    for (const loginButton of loginButtons) {
+        loginButton.addEventListener("click", onLoginButtonClick)
+    }
 }

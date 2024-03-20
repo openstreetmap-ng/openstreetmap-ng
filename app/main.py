@@ -18,6 +18,7 @@ from app.config import (
     RAPID_VERSION,
     TEST_ENV,
 )
+from app.lib.auth_context import auth_context
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.compress_middleware import CompressMiddleware
@@ -32,9 +33,11 @@ from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
+from app.models.user_role import UserRole
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.email_service import EmailService
+from app.services.test_service import TestService
 from app.validators.element_type import ElementTypeConvertor
 
 # register additional mimetypes
@@ -57,10 +60,18 @@ if TEST_ENV:
 
 @asynccontextmanager
 async def lifespan(_):
+    # freeze uncollected gc objects for improved performance
+    gc.collect()
+    gc.freeze()
+
+    if TEST_ENV:
+        with auth_context(None, ()):
+            await TestService.create_user('user1')
+            await TestService.create_user('user2')
+            await TestService.create_user('moderator', roles=(UserRole.moderator,))
+            await TestService.create_user('admin', roles=(UserRole.administrator,))
+
     async with EmailService():
-        # freeze uncollected gc objects for improved performance
-        gc.collect()
-        gc.freeze()
         yield
 
 

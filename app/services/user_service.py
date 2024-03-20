@@ -5,6 +5,7 @@ from sqlalchemy import func
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
+from app.lib.locale import is_valid_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.translation import t
 from app.models.auth_provider import AuthProvider
@@ -114,9 +115,11 @@ class UserService:
             user = await session.get(User, user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
-            user.languages_str = languages  # TODO:
             user.activity_tracking = activity_tracking
             user.crash_reporting = crash_reporting
+
+            if is_valid_locale(language):
+                user.language = language
 
     @staticmethod
     async def update_email(

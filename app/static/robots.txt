@@ -7,9 +7,6 @@ Disallow: /user_blocks
 Disallow: /api
 Disallow: /redactions
 Disallow: /changeset
-Disallow: /node/*/history
-Disallow: /way/*/history
-Disallow: /relation/*/history
 Disallow: /note
 Allow: /note/new
 Disallow: /trace

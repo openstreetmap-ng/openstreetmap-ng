@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: a1cdee862e1e
+Revision ID: f91e1ebae3f6
 Revises:
-Create Date: 2024-03-18 13:34:16.419094+00:00
+Create Date: 2024-03-20 18:05:29.437673+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'a1cdee862e1e'
+revision: str = 'f91e1ebae3f6'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -66,7 +66,7 @@ def upgrade() -> None:
     sa.Column('status', sa.Enum('pending_terms', 'pending_activation', 'active', name='userstatus'), nullable=False),
     sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
     sa.Column('auth_uid', sa.Unicode(), nullable=True),
-    sa.Column('languages', sa.ARRAY(sa.Unicode(length=15), dimensions=1), nullable=False),
+    sa.Column('language', sa.Unicode(length=15), nullable=False),
     sa.Column('activity_tracking', sa.Boolean(), nullable=False),
     sa.Column('crash_reporting', sa.Boolean(), nullable=False),
     sa.Column('password_changed_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),

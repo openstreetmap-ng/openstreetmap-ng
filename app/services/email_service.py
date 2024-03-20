@@ -11,6 +11,7 @@ from sqlalchemy import null, or_, select
 
 from app.config import (
     APP_URL,
+    DEFAULT_LANGUAGE,
     SMTP_HOST,
     SMTP_NOREPLY_FROM,
     SMTP_NOREPLY_FROM_HOST,
@@ -20,6 +21,7 @@ from app.config import (
 )
 from app.db import db, db_autocommit
 from app.lib.date_utils import utcnow
+from app.lib.locale import is_valid_locale
 from app.lib.translation import primary_translation_language, render, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
@@ -60,8 +62,8 @@ class EmailService:
         Schedule a mail and start async processing.
         """
 
-        # consider to_user's preferred language
-        with translation_context(to_user.languages):
+        # render in the to_user's language
+        with translation_context(to_user.language):
             body = render(
                 template_name,
                 **{

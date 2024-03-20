@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, TEST_ENV
 from app.lib.date_utils import format_iso_date, utcnow
+from app.lib.locale import is_valid_locale
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -31,14 +32,13 @@ _j2 = Environment(
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
 
 
-# removing this will not enable live-reload for translations
+# removing lru_cache will not enable live-reload for translations
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
 def _get_translation(languages: Sequence[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
     """
-
     return translation(
         domain='messages',
         localedir=_locale_dir,
@@ -47,18 +47,19 @@ def _get_translation(languages: Sequence[str]) -> GNUTranslations:
 
 
 @contextmanager
-def translation_context(languages: Sequence[str]):
+def translation_context(primary_lang: str):
     """
     Context manager for setting the translation in ContextVar.
 
     Languages order determines the preference, from most to least preferred.
     """
 
-    try:
-        i = languages.index(DEFAULT_LANGUAGE)
-        processed = tuple(languages[: i + 1])
-    except ValueError:
-        processed = (*languages, DEFAULT_LANGUAGE)
+    if primary_lang == DEFAULT_LANGUAGE:
+        processed = (primary_lang,)
+    elif is_valid_locale(primary_lang):
+        processed = (primary_lang, DEFAULT_LANGUAGE)
+    else:
+        processed = (DEFAULT_LANGUAGE,)
 
     translation = _get_translation(processed)
     token = _context.set((processed, translation))
@@ -73,9 +74,8 @@ def translation_languages() -> Sequence[str]:
     Get the languages from the translation context.
 
     >>> translation_languages()
-    ('en', 'pl')
+    ('pl', 'en')
     """
-
     return _context.get()[0]
 
 
@@ -86,7 +86,6 @@ def primary_translation_language() -> str:
     >>> primary_translation_language()
     'en'
     """
-
     return _context.get()[0][0]
 
 
@@ -94,7 +93,6 @@ def t(message: str, **kwargs) -> str:
     """
     Get the translation for the given message.
     """
-
     trans: GNUTranslations = _context.get()[1]
     translated = trans.gettext(message)
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
@@ -104,7 +102,6 @@ def nt(message: str, count: int, **kwargs) -> str:
     """
     Get the translation for the given message, with pluralization.
     """
-
     trans: GNUTranslations = _context.get()[1]
     translated = trans.ngettext(message, message, count)
     return translated.format(count=count, **kwargs) if len(kwargs) > 0 else translated.format(count=count)
@@ -114,7 +111,6 @@ def render(template_name: str, **template_data: dict) -> str:
     """
     Render the given Jinja2 template with translation.
     """
-
     return _j2.get_template(template_name).render(**template_data)
 
 

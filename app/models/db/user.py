@@ -22,16 +22,13 @@ from app.config import APP_URL
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.locale import is_valid_locale, normalize_locale
 from app.lib.password_hash import PasswordHash
 from app.lib.rich_text import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     LANGUAGE_CODE_MAX_LENGTH,
-    LANGUAGE_CODES_LIMIT,
     USER_DESCRIPTION_MAX_LENGTH,
-    USER_LANGUAGES_LIMIT,
 )
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
@@ -63,7 +60,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    languages: Mapped[list[str]] = mapped_column(ARRAY(Unicode(LANGUAGE_CODE_MAX_LENGTH), dimensions=1), nullable=False)
+    language: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     activity_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False)
     crash_reporting: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
@@ -139,12 +136,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         Index('user_display_name_idx', 'display_name', unique=True),
     )
 
-    @validates('languages')
-    def validate_languages(self, _: str, value: Sequence[str]):
-        if len(value) > USER_LANGUAGES_LIMIT:
-            raise ValueError(f'Too many user languages ({len(value)} > {USER_LANGUAGES_LIMIT})')
-        return value
-
     @validates('description')
     def validate_description(self, _: str, value: str):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
@@ -193,44 +184,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
 
         return f'{APP_URL}/user/permalink/{self.id}'
-
-    @property
-    def languages_str(self) -> str:
-        return ' '.join(self.languages)
-
-    @languages_str.setter
-    def languages_str(self, s: str) -> None:
-        # remove duplicates and preserve order
-        result_set: set[str] = set()
-        result: list[str] = []
-
-        for lang in s.split():
-            lang = lang.strip()
-            if not lang or len(lang) > LANGUAGE_CODE_MAX_LENGTH:
-                continue
-
-            lang_normal = normalize_locale(lang)
-            if lang_normal is not None:
-                lang = lang_normal
-
-            if lang not in result_set:
-                result_set.add(lang)
-                result.append(lang)
-                if len(result) >= LANGUAGE_CODES_LIMIT:
-                    break
-
-        self.languages = result
-
-    @property
-    def languages_valid(self) -> Sequence[str]:
-        """
-        Get the user's languages that are supported by the application.
-
-        >>> user.languages_valid
-        ['en', 'pl']
-        """
-
-        return tuple(filter(is_valid_locale, self.languages))
 
     @property
     def password_hasher(self) -> PasswordHash:

@@ -42,14 +42,14 @@ export const rapidVersion = config.rapidVersion
 /**
  * User translation languages
  * @type {string[]}
- * @example ["en", "pl"]
+ * @example ["pl", "en"]
  */
 export const languages = config.languages
 
 /**
  * User primary translation language
  * @type {string}
- * @example "en"
+ * @example "pl"
  */
 export const primaryLanguage = languages[0]
 

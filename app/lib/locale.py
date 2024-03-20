@@ -83,7 +83,6 @@ def is_valid_locale(code: str) -> bool:
     >>> is_valid_locale('NonExistent')
     False
     """
-
     return code in _locales
 
 
@@ -113,7 +112,6 @@ def get_all_installed_locales() -> frozenset[str]:
     >>> get_all_installed_locales()
     frozenset({'en', 'pl', ...})
     """
-
     return _locales
 
 
@@ -124,5 +122,4 @@ def get_all_locales_names() -> Sequence[LocaleName]:
     >>> get_all_locales_names()
     [LocaleName(code='pl', english='Polish', native='Polski'), ...]
     """
-
     return _locales_names

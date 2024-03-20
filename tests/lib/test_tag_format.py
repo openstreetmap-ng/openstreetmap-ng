@@ -103,7 +103,7 @@ def test_tag_format_url(value, output):
     ],
 )
 def test_tag_format_wikipedia(value, output):
-    with translation_context(['pl']):
+    with translation_context('pl'):
         assert tag_format('wikipedia', value) == output
 
 
@@ -117,7 +117,7 @@ def test_tag_format_wikipedia(value, output):
     ],
 )
 def test_tag_format_wikipedia_lang(value, output):
-    with translation_context(['pl']):
+    with translation_context('pl'):
         assert tag_format('pl:wikipedia', value) == output
 
 
@@ -135,7 +135,7 @@ def test_tag_format_wikipedia_lang(value, output):
     ],
 )
 def test_tag_format_wikidata(value, output):
-    with translation_context(['pl']):
+    with translation_context('pl'):
         assert tag_format('wikidata', value) == output
 
 
@@ -161,5 +161,5 @@ def test_tag_format_wikidata(value, output):
     ],
 )
 def test_tag_format_wikimedia_commons(value, output):
-    with translation_context(['pl']):
+    with translation_context('pl'):
         assert tag_format('wikimedia_commons', value) == output

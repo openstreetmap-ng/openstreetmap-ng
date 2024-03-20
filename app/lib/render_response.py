@@ -2,7 +2,7 @@ import cython
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION
+from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION, TEST_ENV
 from app.lib.auth_context import auth_user
 from app.lib.locale import map_i18next_files
 from app.lib.translation import render, translation_languages
@@ -44,6 +44,7 @@ def _get_default_data() -> dict:
     return {
         'request': get_request(),
         'APP_URL': APP_URL,
+        'TEST_ENV': TEST_ENV,
         'lang': languages[0],
         'user': user,
         'config': JSON_ENCODE(config).decode(),

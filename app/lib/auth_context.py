@@ -21,7 +21,6 @@ def auth_context(user: User | None, scopes: Sequence[ExtendedScope]):
     """
     Context manager for authenticating the user.
     """
-
     token = _context.set((user, scopes))
     try:
         yield
@@ -33,7 +32,6 @@ def auth_user_scopes() -> tuple[User | None, Sequence[ExtendedScope]]:
     """
     Get the authenticated user and scopes.
     """
-
     return _context.get()
 
 
@@ -41,7 +39,6 @@ def auth_user() -> User | None:
     """
     Get the authenticated user.
     """
-
     return _context.get()[0]
 
 
@@ -49,7 +46,6 @@ def auth_scopes() -> Sequence[ExtendedScope]:
     """
     Get the authenticated user's scopes.
     """
-
     return _context.get()[1]
 
 
@@ -78,7 +74,6 @@ def api_user(*require_scopes: Scope | ExtendedScope) -> User:
     """
     Dependency for authenticating the api user.
     """
-
     return Security(_get_user, scopes=tuple(s.value for s in require_scopes))
 
 
@@ -86,5 +81,4 @@ def web_user() -> User:
     """
     Dependency for authenticating the web user.
     """
-
     return Security(_get_user, scopes=(ExtendedScope.web_user,))

@@ -67,6 +67,7 @@ PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1?password=redis&protocol=3')
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
+TEST_USER_PASSWORD = os.getenv('TEST_USER_PASSWORD', 'openstreetmap')
 
 API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')

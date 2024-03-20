@@ -193,7 +193,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                     if (user.home_point is not None)
                     else {}
                 ),
-                'languages': _encode_languages(user.languages, is_json=is_json),
+                'languages': _encode_languages(user.language, is_json=is_json),
                 'messages': {
                     'received': {
                         xattr('count'): messages_received_count,
@@ -209,16 +209,16 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _encode_languages(languages: Sequence[str], *, is_json: cython.char):
+def _encode_languages(language: str, *, is_json: cython.char):
     """
     >>> _encode_languages(['en', 'pl'])
     {'lang': ('en', 'pl')}
     """
 
     if is_json:
-        return languages
+        return (language,)
     else:
-        return {'lang': languages}
+        return {'lang': (language,)}
 
 
 @cython.cfunc

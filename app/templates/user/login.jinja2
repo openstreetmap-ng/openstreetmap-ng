@@ -48,6 +48,26 @@
         <p class="text-body-secondary small">
             {{ t('users.new.use external auth') }}:
         </p>
+
+        {% if TEST_ENV %}
+        <div class="d-flex mt-5">
+            <div class="alert alert-light" role="alert">
+                <h5 class="alert-heading">🔑 Debug Login</h5>
+                <button class="btn btn-sm btn-secondary" data-login="user1" data-password="openstreetmap">
+                    user1
+                </button>
+                <button class="btn btn-sm btn-secondary" data-login="user2" data-password="openstreetmap">
+                    user2
+                </button>
+                <button class="btn btn-sm btn-secondary" data-login="moderator" data-password="openstreetmap">
+                    moderator
+                </button>
+                <button class="btn btn-sm btn-secondary" data-login="admin" data-password="openstreetmap">
+                    admin
+                </button>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
