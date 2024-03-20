@@ -11,7 +11,6 @@ from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
-from app.models.geometry import PointGeometry
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.repositories.user_repository import UserRepository

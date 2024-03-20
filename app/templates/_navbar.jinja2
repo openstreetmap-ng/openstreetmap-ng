@@ -3,7 +3,7 @@
     <div class="container-fluid">
 
         <a class="navbar-brand" href="/">
-            <img src="/static/img/favicon/256.webp">
+            <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}">
             {{ t('layouts.project_name.title') }}
         </a>
 
@@ -20,7 +20,7 @@
                     <li>
                         <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
                             {% set editor %}
-                            <img src="/static/img/brand/id.webp">
+                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                             {{ t('editor.id.description') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=editor) | safe }}
@@ -29,7 +29,7 @@
                     <li>
                         <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
                             {% set editor %}
-                            <img src="/static/img/brand/rapid.webp">
+                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                             {{ t('editor.rapid.name') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=editor) | safe }}
@@ -38,7 +38,7 @@
                     <li>
                         <button class="dropdown-item map-link edit-link remote-edit-btn">
                             {% set editor %}
-                            <img src="/static/img/brand/josm.webp">
+                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                             {{ t('editor.remote.description') }}
                             {% endset %}
                             {{ t('layouts.edit_with', editor=editor) | safe }}
@@ -100,7 +100,7 @@
             <div class="dropdown">
                 <button class="btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center"
                     data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="avatar me-2" src="{{ user.avatar_url }}">
+                    <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('user.profile_picture') }}">
                     {{ user.display_name }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">

@@ -50,7 +50,6 @@ Last update: 2024-03-17
 - Add "Click here to activate your account" link text to registration confirmation email
 - Automatically opt-out of tracking when user has Do Not Track or Global Privacy Control enabled
 - Update OpenSearch configuration
-- Remove redundant alt text from logo images, change "OpenStreetMap logo OpenStreetMap" to "OpenStreetMap"
 - Replace SVG files with raster images for improved render performance
 - Update feature icons and remove deprecated tagging schemes
 - Remove dead code from the frontend scripts and styles
@@ -75,6 +74,7 @@ Last update: 2024-03-17
 - Remember notes/data enabled state when zooming out and in
 - Manual selection of area is now easier to use
 - Fix visual bug when crossing 180th meridian
+- Centered application logo
 
 ## Backend
 

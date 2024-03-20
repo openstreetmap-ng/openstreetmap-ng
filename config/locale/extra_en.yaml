@@ -51,6 +51,16 @@ privacy:
       We will use this information to fix bugs and improve your experience.
 fixthemap:
   title: Fix the map
+alt:
+  logo: Logo
+  country_flag: Country flag
+  marker:
+    red: Red marker
+    green: Green marker
+    blue: Blue marker
+  map_layers_art: Artistic presentation of map layers
+  happy_globe_mascot: A globe mascot with a big smile
+  arm_pointing_down: An arm pointing down
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.
