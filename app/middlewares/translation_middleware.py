@@ -63,27 +63,10 @@ def _parse_accept_language(accept_language: str) -> str:
     'pl'
     """
 
-    current_lang: str = DEFAULT_LANGUAGE
     current_q: cython.double = 0
+    current_lang: str = DEFAULT_LANGUAGE
 
     for match in _accept_language_re.finditer(accept_language):
-        lang: str = match['lang']
-
-        if len(lang) > LANGUAGE_CODE_MAX_LENGTH:
-            logging.debug('Accept language code is too long %d', len(lang))
-            continue
-
-        if lang == '*':
-            lang = DEFAULT_LANGUAGE
-        else:
-            # normalize case and check if it's supported
-            lang_normal = normalize_locale(lang)
-            if lang_normal is None:
-                if lang != 'en-US':  # reduce logging noise
-                    logging.debug('Unsupported accept language %r', lang)
-                continue
-            lang = lang_normal
-
         q_str: str | None = match['q']
         q_num: cython.double
         if q_str is None:
@@ -95,8 +78,28 @@ def _parse_accept_language(accept_language: str) -> str:
                 logging.debug('Invalid accept language q-factor %r', q_str)
                 continue
 
-        if q_num > current_q:
-            current_lang = lang
-            current_q = q_num
+        if q_num <= current_q:
+            continue
+
+        lang: str = match['lang']
+
+        if len(lang) > LANGUAGE_CODE_MAX_LENGTH:
+            logging.debug('Accept language code is too long %d', len(lang))
+            continue
+
+        if lang == '*':
+            lang = DEFAULT_LANGUAGE
+        else:
+            lang_normal = normalize_locale(lang)
+            if lang_normal is None:
+                lang_prefix = lang.partition('-')[0]
+                lang_normal = normalize_locale(lang_prefix)
+                if lang_normal is None:
+                    logging.debug('Unsupported accept language %r', lang)
+                    continue
+            lang = lang_normal
+
+        current_q = q_num
+        current_lang = lang
 
     return current_lang

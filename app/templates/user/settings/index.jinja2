@@ -25,7 +25,7 @@
                 <label class="form-label d-block">
                     {{ t('passwords.new.email address') }}
                     <div class="input-group mt-2">
-                        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                        <input type="email" class="form-control bg-body-tertiary" value="{{ user.email }}" readonly>
                         <a class="btn btn-light border" href="/settings/email">
                             {{ t('user.settings.change_email') }}
                         </a>
@@ -43,8 +43,8 @@
                 <label class="form-label d-block mb-3">
                     {{ t('user.settings.password_last_changed') | title }}
                     <div class="input-group mt-2">
-                        <input type="text" class="form-control" value="{{ user.password_changed_at | timeago }}"
-                            readonly>
+                        <input type="text" class="form-control bg-body-tertiary"
+                            value="{{ user.password_changed_at | timeago }}" readonly>
                         <a class="btn btn-light border" href="/settings/security">
                             {{ t('user.settings.change_password') }}
                         </a>
