@@ -18,8 +18,8 @@ export const getNewNoteController = (map) => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
-    const lonInput = form.querySelector("input[name=lon]")
-    const latInput = form.querySelector("input[name=lat]")
+    const lonInput = form.elements.lon
+    const latInput = form.elements.lat
 
     let halo = null
     let marker = null

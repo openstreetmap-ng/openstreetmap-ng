@@ -44,13 +44,13 @@ export const getRoutingController = (map) => {
     const sidebar = getActionSidebar("routing")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
-    const fromInput = form.querySelector("input[name=from]")
+    const fromInput = form.elements.from
     const fromDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${fromMarkerGuid}"]`)
-    const toInput = form.querySelector("input[name=to]")
+    const toInput = form.elements.to
     const toDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${toMarkerGuid}"]`)
     const reverseButton = form.querySelector(".reverse-btn")
-    const engineInput = form.querySelector("select[name=engine]")
-    const boundsInput = form.querySelector("input[name=bounds]")
+    const engineInput = form.elements.engine
+    const boundsInput = form.elements.bounds
     const routeSection = sidebar.querySelector(".section.route")
     const routeDistance = routeSection.querySelector(".route-info .distance")
     const routeTime = routeSection.querySelector(".route-info .time")

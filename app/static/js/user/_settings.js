@@ -16,8 +16,8 @@ if (settingsBody) {
     const avatarForm = settingsBody.querySelector("form.avatar-form")
 
     const avatars = document.querySelectorAll("img.avatar")
-    const avatarTypeInput = avatarForm.querySelector("input[name=avatar_type]")
-    const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")
+    const avatarTypeInput = avatarForm.elements.avatar_type
+    const avatarFileInput = avatarForm.elements.avatar_file
     const uploadAvatarButton = avatarForm.querySelector("button.upload-avatar")
     const useGravatarButton = avatarForm.querySelector("button.use-gravatar")
     const removeAvatarButton = avatarForm.querySelector("button.remove-avatar")

@@ -9,8 +9,8 @@ const defaultHomeZoom = 12
 
 const userSettingsForm = document.querySelector(".user-settings-form")
 if (userSettingsForm) {
-    const lonInput = userSettingsForm.querySelector('input[name="home_longitude"]')
-    const latInput = userSettingsForm.querySelector('input[name="home_latitude"]')
+    const lonInput = userSettingsForm.elements.home_longitude
+    const latInput = userSettingsForm.elements.home_latitude
     // TODO: make those leaflet buttons
     const deleteButton = userSettingsForm.querySelector(".home-delete-btn")
     const restoreButton = userSettingsForm.querySelector(".home-restore-btn")
