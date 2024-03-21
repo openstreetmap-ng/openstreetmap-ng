@@ -27,18 +27,19 @@ class NoteService:
         async with db_autocommit() as session:
             note = Note(point=point)
             session.add(note)
-            # TODO: is this necessary?
-            # await session.flush()
+            await session.flush()
 
-            session.add(
-                NoteComment(
-                    user_id=user_id,
-                    user_ip=user_ip,
-                    note_id=note.id,
-                    event=NoteEvent.opened,
-                    body=text,
-                )
+            note_comment = NoteComment(
+                user_id=user_id,
+                user_ip=user_ip,
+                note_id=note.id,
+                event=NoteEvent.opened,
+                body=text,
             )
+            session.add(note_comment)
+            await session.flush()
+
+            note.updated_at = note_comment.created_at
 
         return note.id
 
@@ -92,15 +93,14 @@ class NoteService:
             else:
                 raise NotImplementedError(f'Unsupported note event {event!r}')
 
-            # force update note object
-            note.updated_at = func.statement_timestamp()
-
-            session.add(
-                NoteComment(
-                    user_id=user.id,
-                    user_ip=None,
-                    note_id=note_id,
-                    event=event,
-                    body=text,
-                )
+            note_comment = NoteComment(
+                user_id=user.id,
+                user_ip=None,
+                note_id=note_id,
+                event=event,
+                body=text,
             )
+            session.add(note_comment)
+            await session.flush((note_comment,))
+
+            note.updated_at = note_comment.created_at

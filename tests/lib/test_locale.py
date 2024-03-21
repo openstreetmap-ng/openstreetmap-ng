@@ -1,4 +1,3 @@
-import pytest
 
 from app.lib.locale import (
     get_all_installed_locales,

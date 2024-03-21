@@ -7,7 +7,7 @@ from app.db import db_autocommit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
-from app.lib.translation import primary_translation_language, t, translation_languages
+from app.lib.translation import primary_translation_language, t
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User
 from app.models.mail_source import MailSource

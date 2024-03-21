@@ -6,7 +6,7 @@ from fastapi import Request
 from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy import delete, update
 
-from app.config import SECRET
+from app.config import SECRET, TEST_ENV
 from app.db import db_autocommit
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -91,6 +91,19 @@ class AuthService:
             session_user = await AuthService.authenticate_session(token_struct)
             if session_user is not None:
                 user, scopes = session_user, _session_auth_scopes
+
+        # all endpoints on test env support any user auth
+        if user is None and TEST_ENV:
+            authorization = request.headers.get('Authorization')
+            scheme, param = get_authorization_scheme_param(authorization)
+
+            if scheme == 'User':
+                logging.debug('Attempting to authenticate with User')
+                username = param
+                user = await UserRepository.find_one_by_display_name(username)
+                scopes = _session_auth_scopes
+                if user is None:
+                    raise_for().user_not_found(username)
 
         if user is not None:
             logging.debug('Request authenticated as user %d', user.id)

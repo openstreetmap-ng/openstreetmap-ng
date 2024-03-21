@@ -30,8 +30,18 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     point: Mapped[Point] = mapped_column(PointType, nullable=False)
 
     # defaults
-    closed_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
-    hidden_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+    closed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+    hidden_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
     # runtime
     comments: list['NoteComment'] | None = None

@@ -69,13 +69,12 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
 @router.post('/notes.json')
 @router.post('/notes.gpx', response_class=GPXResponse)
 async def note_create(
-    request: Request,
     lon: Annotated[Longitude, Query()],
     lat: Annotated[Latitude, Query()],
     text: Annotated[str, Query(min_length=1)],
 ) -> dict:
     point = Point(lon, lat)
-    note_id = await NoteService.create(request, point, text)
+    note_id = await NoteService.create(point, text)
     notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])

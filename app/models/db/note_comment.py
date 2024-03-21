@@ -8,7 +8,6 @@ from app.config import APP_URL
 from app.lib.crypto import HASH_SIZE
 from app.lib.rich_text import RichTextMixin
 from app.limits import NOTE_COMMENT_BODY_MAX_LENGTH
-from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.note import Note
@@ -23,13 +22,18 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     # TODO: will joinedload work with None?
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(lazy='raise')
+    user: Mapped[User | None] = relationship(init=False, lazy='raise')
     user_ip: Mapped[IPv4Address | IPv6Address | None] = mapped_column(INET, nullable=True)
     note_id: Mapped[int] = mapped_column(ForeignKey(Note.id), nullable=False)
     event: Mapped[NoteEvent] = mapped_column(Enum(NoteEvent), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
-    body_rich: CacheEntry | None = None
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+    body_rich: str | None = None
     body_tsvector: Mapped = mapped_column(
         TSVECTOR,
         Computed("to_tsvector('simple', body)", persisted=True),
@@ -38,7 +42,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     # runtime
-    legacy_note: Mapped[Note] = relationship(lazy='raise')
+    legacy_note: Mapped[Note] = relationship(init=False, lazy='raise')
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

@@ -32,7 +32,7 @@ class NoteRepository:
         """
 
         async with db() as session:
-            stmt = select(Note).join(NoteComment)
+            stmt = select(Note)
             stmt = apply_statement_context(stmt)
             where_and = [Note.visible_to(auth_user())]
             sort_by_key = Note.created_at if sort_by_created else Note.updated_at

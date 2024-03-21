@@ -22,7 +22,7 @@ class NoteCommentRepository:
         """
 
         async with db() as session:
-            stmt = select(NoteComment).join(Note)
+            stmt = select(NoteComment)
             stmt = apply_statement_context(stmt)
             where_and = [Note.visible_to(auth_user())]
 
@@ -55,38 +55,29 @@ class NoteCommentRepository:
 
             for note in notes:
                 stmt_ = (
-                    select(NoteComment)
+                    select(NoteComment.id)
                     .where(
                         NoteComment.note_id == note.id,
                         NoteComment.created_at <= note.updated_at,
                     )
                     .order_by(NoteComment.created_at.desc())
                 )
+                stmt_ = apply_statement_context(stmt_)
 
                 if limit_per_note is not None:
                     stmt_ = stmt_.limit(limit_per_note)
 
                 stmts.append(stmt_)
 
-            stmt = union_all(*stmts)
+            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).subquery()))
             stmt = apply_statement_context(stmt)
 
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
-        note_iter = iter(notes)
-        note = next(note_iter)
-        # read property once for performance
-        note_id = note.id
-        note_comments = note.comments = []
+        # TODO: delete notes without comments
 
-        comment_iter = iter(comments)
-        comment = next(comment_iter, None)
-
-        while True:
-            if comment.note_id == note_id:
-                note_comments.append(comment)
-                comment = next(comment_iter)
-            else:
-                note = next(note_iter)
-                note_id = note.id
-                note_comments = note.comments = []
+        note_id_comments_map: dict[int, list[NoteComment]] = {}
+        for note in notes:
+            note_id_comments_map[note.id] = note.comments = []
+        for comment in comments:
+            note_id_comments_map[comment.note_id].append(comment)

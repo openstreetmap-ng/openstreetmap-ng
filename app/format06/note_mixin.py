@@ -72,7 +72,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
         'user_url': comment.user.permalink,
         'action': comment.event.value,
         'text': comment.body,
-        'html': comment.body_rich.value,  # a disaster waiting to happen
+        'html': comment.body_rich,
     }
 
 

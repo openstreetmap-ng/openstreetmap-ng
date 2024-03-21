@@ -32,7 +32,6 @@ from app.limits import (
 )
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
-from app.models.cache_entry import CacheEntry
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
@@ -95,7 +94,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
-    description_rich: CacheEntry | None = None
+    description_rich: str | None = None
     editor: Mapped[Editor | None] = mapped_column(
         Enum(Editor),
         init=False,

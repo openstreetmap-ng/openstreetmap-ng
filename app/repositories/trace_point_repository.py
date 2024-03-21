@@ -26,7 +26,6 @@ class TracePointRepository:
         async with db() as session:
             stmt = (
                 select(TracePoint)
-                .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),
                     Trace.visibility.in_((TraceVisibility.identifiable, TraceVisibility.trackable)),
@@ -41,7 +40,6 @@ class TracePointRepository:
 
             union_stmt = (
                 select(TracePoint)
-                .join(Trace)
                 .where(
                     func.ST_Intersects(TracePoint.point, geometry.wkt),
                     Trace.visibility.in_((TraceVisibility.public, TraceVisibility.private)),

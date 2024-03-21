@@ -37,7 +37,7 @@
         {% endif %}
     </div>
     <div class="note-comment-text">
-        {{ comment.body_rich.value | safe }}
+        {{ comment.body_rich | safe }}
     </div>
 </div>
 {% endfor %}

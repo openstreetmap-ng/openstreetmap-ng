@@ -8,7 +8,6 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import local_chapters
 from app.lib.render_response import render_response
 from app.models.db.user import User
-from app.models.user_status import UserStatus
 
 router = APIRouter()
 
