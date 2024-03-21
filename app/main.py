@@ -64,12 +64,8 @@ async def lifespan(_):
     gc.collect()
     gc.freeze()
 
-    if TEST_ENV:
-        with auth_context(None, ()):
-            await TestService.create_user('user1')
-            await TestService.create_user('user2')
-            await TestService.create_user('moderator', roles=(UserRole.moderator,))
-            await TestService.create_user('admin', roles=(UserRole.administrator,))
+    # prepare the test environment, does nothing if not in one
+    await TestService.on_startup()
 
     async with EmailService():
         yield

@@ -2,8 +2,9 @@ import logging
 from collections.abc import Sequence
 from ipaddress import IPv4Address
 
-from app.config import DEFAULT_LANGUAGE, TEST_ENV, TEST_USER_PASSWORD
+from app.config import DEFAULT_LANGUAGE, TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
 from app.db import db_autocommit
+from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.models.db.user import User
 from app.models.str import PasswordStr
@@ -13,6 +14,23 @@ from app.repositories.user_repository import UserRepository
 
 
 class TestService:
+    @staticmethod
+    async def on_startup():
+        """
+        Prepare the test environment.
+
+        Does nothing if not in test environment.
+        """
+
+        if not TEST_ENV:
+            return
+
+        with auth_context(None, ()):
+            await TestService.create_user('admin', roles=(UserRole.administrator,))
+            await TestService.create_user('moderator', roles=(UserRole.moderator,))
+            await TestService.create_user('user1')
+            await TestService.create_user('user2')
+
     if TEST_ENV:
 
         @staticmethod
@@ -31,12 +49,13 @@ class TestService:
                 logging.debug('Test user %r already exists', name)
                 return
 
+            email = f'{name}@{TEST_USER_DOMAIN}'
             password = PasswordStr(TEST_USER_PASSWORD)
             password_hashed = PasswordHash.default().hash(password)
 
             async with db_autocommit() as session:
                 user = User(
-                    email=f'{name}@test.test',
+                    email=email,
                     display_name=name,
                     password_hashed=password_hashed,
                     created_ip=IPv4Address('127.0.0.1'),

@@ -5,6 +5,7 @@ from contextvars import ContextVar
 from fastapi import Security
 from fastapi.security import SecurityScopes
 
+from app.config import TEST_ENV, TEST_USER_DOMAIN
 from app.lib.exceptions_context import raise_for
 from app.models.db.user import User
 from app.models.scope import ExtendedScope, Scope
@@ -21,6 +22,11 @@ def auth_context(user: User | None, scopes: Sequence[ExtendedScope]):
     """
     Context manager for authenticating the user.
     """
+
+    # safety check, prevent test user auth in non-test env
+    if (user is not None) and (not TEST_ENV) and user.email.endswith('@' + TEST_USER_DOMAIN):
+        raise RuntimeError('Test user authentication is forbidden in non-test environment')
+
     token = _context.set((user, scopes))
     try:
         yield

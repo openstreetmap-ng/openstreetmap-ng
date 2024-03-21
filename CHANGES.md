@@ -25,6 +25,7 @@ Last update: 2024-03-17
 - Add script for fast preloading of database with real-world data
 - Remove MaxMind proprietary database dependency, determine user's country from timezone
 - Add script for updating list of tags with wiki pages
+- Test environment now includes preregistered users for quicker testing, there is an UI too
 
 ## Frontend
 
@@ -128,3 +129,4 @@ Last update: 2024-03-17
 - Configure [Postgis](https://postgis.net/) for geospatial database support
 - Rename mapnik to standard layer internally
 - More robust handling of 180th meridian
+- Sudo permissions are no longer required to develop the application
