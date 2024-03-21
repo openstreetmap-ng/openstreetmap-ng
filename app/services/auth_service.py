@@ -2,8 +2,8 @@ import logging
 from base64 import b64decode
 from collections.abc import Sequence
 
+import cython
 from fastapi import Request
-from fastapi.security.utils import get_authorization_scheme_param
 from sqlalchemy import delete, update
 
 from app.config import SECRET, TEST_ENV
@@ -61,14 +61,16 @@ class AuthService:
         # api endpoints support basic auth and oauth
         if request_path.startswith(('/api/0.6/', '/api/0.7/')):
             authorization = request.headers.get('Authorization')
-            scheme, param = get_authorization_scheme_param(authorization)
+            if authorization is not None:
+                scheme, _, param = authorization.partition(' ')
+            else:
+                scheme = param = None
 
             # handle basic auth
             if scheme == 'Basic':
                 logging.debug('Attempting to authenticate with Basic')
-                split = b64decode(param).decode().partition(':')
-                username = split[0]
-                password = PasswordStr(split[2])
+                username, _, password = b64decode(param).decode().partition(':')
+                password = PasswordStr(password)
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
@@ -76,11 +78,10 @@ class AuthService:
                 if basic_user is not None:
                     user, scopes = basic_user, _basic_auth_scopes
 
-            # handle oauth
+            # handle oauth: don't rely on scheme for oauth, 1.0 may use query params
             else:
-                # don't rely on scheme header for oauth, 1.0 may use query params
                 logging.debug('Attempting to authenticate with OAuth')
-                oauth_result = await AuthService.authenticate_oauth(request)
+                oauth_result = await AuthService.authenticate_oauth(request, scheme, param)
                 if oauth_result is not None:
                     user, scopes = oauth_result
 
@@ -95,15 +96,14 @@ class AuthService:
         # all endpoints on test env support any user auth
         if user is None and TEST_ENV:
             authorization = request.headers.get('Authorization')
-            scheme, param = get_authorization_scheme_param(authorization)
-
-            if scheme == 'User':
-                logging.debug('Attempting to authenticate with User')
-                username = param
-                user = await UserRepository.find_one_by_display_name(username)
-                scopes = _session_auth_scopes
-                if user is None:
-                    raise_for().user_not_found(username)
+            if authorization is not None:
+                scheme, _, param = authorization.partition(' ')
+                if scheme == 'User':
+                    logging.debug('Attempting to authenticate with User')
+                    user = await UserRepository.find_one_by_display_name(param)
+                    scopes = _session_auth_scopes
+                    if user is None:
+                        raise_for().user_not_found(param)
 
         if user is not None:
             logging.debug('Request authenticated as user %d', user.id)
@@ -188,7 +188,11 @@ class AuthService:
         return user
 
     @staticmethod
-    async def authenticate_oauth(request: Request) -> tuple[User, Sequence[Scope]] | None:
+    async def authenticate_oauth(
+        request: Request,
+        scheme: str | None,
+        param: str | None,
+    ) -> tuple[User, Sequence[Scope]] | None:
         """
         Authenticate a user by OAuth1.0 or OAuth2.0.
 
@@ -197,28 +201,21 @@ class AuthService:
         Raises OAuthError if the request is an invalid OAuth request.
         """
 
-        authorization = request.headers.get('Authorization')
-
-        if authorization is None:
+        oauth_version: cython.int
+        if scheme is None:
             # oauth1 requests may use query params or body params
             oauth_version = 1
+        elif scheme == 'OAuth':
+            oauth_version = 1
+        elif scheme == 'Bearer':
+            oauth_version = 2
         else:
-            scheme = get_authorization_scheme_param(authorization)[0]
-
-            if scheme == 'OAuth':
-                oauth_version = 1
-            elif scheme == 'Bearer':
-                oauth_version = 2
-            else:
-                # not an OAuth request
-                return None
+            return None  # not an OAuth request
 
         if oauth_version == 1:
             request_ = await OAuth1.convert_request(request)
-
             if request_.signature is None:
-                # not an OAuth request
-                return None
+                return None  # not an OAuth request
 
             nonce = request_.oauth_params.get('oauth_nonce')
             timestamp = request_.timestamp
@@ -226,7 +223,7 @@ class AuthService:
 
             token = await OAuth1.parse_and_validate(request_)
         elif oauth_version == 2:
-            token = await OAuth2.parse_and_validate(request)
+            token = await OAuth2.parse_and_validate(scheme, param)
         else:
             raise NotImplementedError(f'Unsupported OAuth version {oauth_version}')
 
@@ -234,6 +231,22 @@ class AuthService:
             raise_for().oauth_bad_user_token()
 
         return token.user, token.scopes
+
+    @staticmethod
+    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
+        """
+        Authenticate a user by user session token.
+
+        Returns None if the session is not found or the session key is incorrect.
+        """
+
+        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
+
+        if token is None:
+            logging.debug('Session not found %r', token_struct.id)
+            return None
+
+        return token.user
 
     @staticmethod
     async def create_session(user_id: int) -> UserTokenStruct:
@@ -256,22 +269,6 @@ class AuthService:
             # TODO: test token.id assigned
 
         return UserTokenStruct.v1(id=token.id, token=token_bytes)
-
-    @staticmethod
-    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
-        """
-        Authenticate a user by user session token.
-
-        Returns None if the session is not found or the session key is incorrect.
-        """
-
-        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
-
-        if token is None:
-            logging.debug('Session not found %r', token_struct.id)
-            return None
-
-        return token.user
 
     @staticmethod
     async def destroy_session(token_struct: UserTokenStruct) -> None:
