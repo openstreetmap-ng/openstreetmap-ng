@@ -21,7 +21,6 @@ class TestService:
 
         Does nothing if not in test environment.
         """
-
         if not TEST_ENV:
             return
 

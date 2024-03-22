@@ -235,7 +235,7 @@ async def notes_feed(
 @router.get('/notes.gpx', response_class=GPXResponse)
 async def notes_read(
     request: Request,
-    bbox: Annotated[str, Query(min_length=1)],
+    bbox: Annotated[str, Query()],
     closed: Annotated[int, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
     limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
 ) -> Sequence[dict]:

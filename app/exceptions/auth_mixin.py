@@ -68,6 +68,9 @@ class AuthExceptionsMixin:
     def oauth2_bad_verifier(self, code_challenge_method: OAuth2CodeChallengeMethod) -> NoReturn:
         raise NotImplementedError
 
+    def oauth_bad_app_client_id(self) -> NoReturn:
+        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid client ID')
+
     @abstractmethod
     def oauth_bad_app_token(self) -> NoReturn:
         raise NotImplementedError

@@ -78,3 +78,19 @@ export const getLastRoutingEngine = () => localStorage.getItem("lastRoutingEngin
  * setLastRoutingEngine("graphhopper_car")
  */
 export const setLastRoutingEngine = (engine) => localStorage.setItem("lastRoutingEngine", engine)
+
+/**
+ * Get access token for system app from local storage
+ * @param {string} clientId System app client ID
+ * @returns {string|null} Access token
+ */
+export const getSystemAppAccessToken = (clientId) => localStorage.getItem(`system-app-access-token-${clientId}`)
+
+/**
+ * Set access token for system app to local storage
+ * @param {string} clientId System app client ID
+ * @param {string} accessToken Access token
+ * @returns {void}
+ */
+export const setSystemAppAccessToken = (clientId, accessToken) =>
+    localStorage.setItem(`system-app-access-token-${clientId}`, accessToken)

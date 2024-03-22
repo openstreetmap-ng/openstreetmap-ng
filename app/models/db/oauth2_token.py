@@ -17,19 +17,24 @@ class OAuth2Token(Base.UUID, CreatedAtMixin):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='joined')
+    user: Mapped[User] = relationship(init=False, lazy='joined')
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
-    application: Mapped[OAuth2Application] = relationship(lazy='joined')
+    application: Mapped[OAuth2Application] = relationship(init=False, lazy='joined')
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
-    redirect_uri: Mapped[str] = mapped_column(Unicode, nullable=False)
+    redirect_uri: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
         Enum(OAuth2CodeChallengeMethod), nullable=True
     )
     code_challenge: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     # defaults
-    authorized_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
+    authorized_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
     @property
     def scopes_str(self) -> str:

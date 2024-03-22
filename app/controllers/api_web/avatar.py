@@ -9,7 +9,7 @@ from app.repositories.avatar_repository import AvatarRepository
 router = APIRouter(prefix='/avatar')
 
 
-@router.get('/gravatar/{user_id}')
+@router.get('/gravatar/{user_id:int}')
 async def gravatar(
     user_id: Annotated[PositiveInt, Path()],
 ) -> Response:

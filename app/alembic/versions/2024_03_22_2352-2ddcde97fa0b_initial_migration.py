@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: f91e1ebae3f6
+Revision ID: 2ddcde97fa0b
 Revises:
-Create Date: 2024-03-20 18:05:29.437673+00:00
+Create Date: 2024-03-22 23:52:16.353351+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'f91e1ebae3f6'
+revision: str = '2ddcde97fa0b'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -188,7 +188,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('oauth2_application',
-    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('name', sa.Unicode(), nullable=False),
     sa.Column('client_id', sa.Unicode(length=50), nullable=False),
     sa.Column('client_secret_encrypted', sa.LargeBinary(), nullable=False),
@@ -201,6 +201,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('client_id_idx', 'oauth2_application', ['client_id'], unique=True)
     op.create_table('trace',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('name', sa.Unicode(), nullable=False),
@@ -367,7 +368,7 @@ def upgrade() -> None:
     sa.Column('application_id', sa.BigInteger(), nullable=False),
     sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_diary', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', name='scope'), dimensions=1), nullable=False),
-    sa.Column('redirect_uri', sa.Unicode(), nullable=False),
+    sa.Column('redirect_uri', sa.Unicode(), nullable=True),
     sa.Column('code_challenge_method', sa.Enum('plain', 'S256', name='oauth2codechallengemethod'), nullable=True),
     sa.Column('code_challenge', sa.Unicode(), nullable=True),
     sa.Column('authorized_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
@@ -421,6 +422,7 @@ def downgrade() -> None:
     op.drop_table('user_pref')
     op.drop_table('user_block')
     op.drop_table('trace')
+    op.drop_index('client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('oauth1_application')
     op.drop_table('note_comment')

@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get('/map.xml')
 @router.get('/map.json')
 async def map_read(
-    bbox: Annotated[str, Query(min_length=1)],
+    bbox: Annotated[str, Query()],
 ) -> dict:
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:

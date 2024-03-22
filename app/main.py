@@ -36,6 +36,7 @@ from app.middlewares.version_middleware import VersionMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.email_service import EmailService
+from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
 from app.validators.element_type import ElementTypeConvertor
 
@@ -63,8 +64,8 @@ async def lifespan(_):
     gc.collect()
     gc.freeze()
 
-    # prepare the test environment, does nothing if not in one
     await TestService.on_startup()
+    await SystemAppService.on_startup()
 
     async with EmailService():
         yield

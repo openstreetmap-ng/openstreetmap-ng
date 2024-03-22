@@ -1,23 +1,19 @@
 import { coreContext } from "iD"
 import { apiUrl, idVersion, primaryLanguage } from "./_config.js"
+import { parentLoadSystemApp } from "./_system-app.js"
 import { throttle } from "./_utils.js"
 
 const idContainer = document.querySelector(".id-container")
-if (idContainer) {
-    const params = idContainer.dataset
+if (!idContainer) throw new Error("iD container not found")
 
-    // Create and configure app context
+parentLoadSystemApp((accessToken) => {
     const ctx = coreContext()
     ctx.connection().apiConnections([])
     ctx.preauth({
         url: parent.location.origin,
         apiUrl: apiUrl,
         // biome-ignore lint/style/useNamingConvention:
-        client_id: params.clientId,
-        // biome-ignore lint/style/useNamingConvention:
-        client_secret: params.clientSecret,
-        // biome-ignore lint/style/useNamingConvention:
-        access_token: params.accessToken,
+        access_token: accessToken,
     })
 
     const id = ctx
@@ -30,7 +26,6 @@ if (idContainer) {
     const map = id.map()
 
     // On map move, send the new state to the parent
-    // TODO: isn't there moveend event?
     map.addEventListener(
         "move.embed",
         throttle(() => {
@@ -42,4 +37,4 @@ if (idContainer) {
             parent.postMessage({ type: "mapState", source: "id", state: { lon, lat, zoom } }, "*")
         }, 250),
     )
-}
+})

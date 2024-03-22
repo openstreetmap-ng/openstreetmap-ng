@@ -20,6 +20,8 @@ from app.repositories.oauth2_application_repository import OAuth2ApplicationRepo
 from app.repositories.oauth2_token_repository import OAuth2TokenRepository
 from app.utils import extend_query_params
 
+# TODO: limit number of access tokens per user+app
+
 
 @cython.cfunc
 def _compute_s256(verifier: str) -> str:

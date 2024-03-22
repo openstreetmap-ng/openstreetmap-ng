@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get('/trackpoints', response_class=GPXResponse)
 @router.get('/trackpoints.gpx', response_class=GPXResponse)
 async def trackpoints_read(
-    bbox: Annotated[str, Query(min_length=1)],
+    bbox: Annotated[str, Query()],
     page_number: Annotated[NonNegativeInt, Query(alias='pageNumber')] = 0,
 ) -> dict:
     geometry = parse_bbox(bbox)

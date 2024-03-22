@@ -1,21 +1,17 @@
 import "@rapideditor/rapid"
 import { apiUrl, primaryLanguage, rapidVersion } from "./_config.js"
+import { parentLoadSystemApp } from "./_system-app.js"
 
 const rapidContainer = document.querySelector(".rapid-container")
-if (rapidContainer) {
-    const params = rapidContainer.dataset
+if (!rapidContainer) throw new Error("Rapid container not found")
 
-    // Create and configure app context
+parentLoadSystemApp((accessToken) => {
     const ctx = new window.Rapid.Context()
     ctx.preauth = {
         url: parent.location.origin,
         apiUrl: apiUrl,
         // biome-ignore lint/style/useNamingConvention:
-        client_id: params.clientId,
-        // biome-ignore lint/style/useNamingConvention:
-        client_secret: params.clientSecret,
-        // biome-ignore lint/style/useNamingConvention:
-        access_token: params.accessToken,
+        access_token: accessToken,
     }
 
     ctx.containerNode = rapidContainer
@@ -36,4 +32,4 @@ if (rapidContainer) {
             parent.postMessage({ type: "mapState", state: { lon, lat, zoom } }, "*")
         })
     })
-}
+})
