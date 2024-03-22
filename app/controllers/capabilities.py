@@ -16,7 +16,7 @@ from app.limits import (
 )
 from app.models.user_role import UserRole
 
-router = APIRouter()
+router = APIRouter(prefix='/api')
 
 _legacy_imagery_blacklist = (
     '.*\\.google(apis)?\\..*/.*',
