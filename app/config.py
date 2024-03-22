@@ -57,6 +57,7 @@ CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))  # TODO: implement?
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
+GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')

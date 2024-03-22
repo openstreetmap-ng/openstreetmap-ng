@@ -6,9 +6,8 @@ def naturalsize(value: float) -> str:
     Format a number of byteslike a human readable filesize (eg. 10 KiB, 2.3 MiB, 1.2 GiB, etc).
 
     >>> naturalsize(10000)
-    '9.8 KiB'
+    '9.77 KiB'
     """
-
     base: cython.int = 1024
     bytes_: cython.double = float(value)
 

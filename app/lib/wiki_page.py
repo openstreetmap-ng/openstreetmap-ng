@@ -36,7 +36,7 @@ def wiki_page(tag_key: str, tag_value: str) -> str | None:
 
     Returns None if the tag is not recognized.
 
-    >>> wiki_page('colour')
+    >>> wiki_page('colour', 'value')
     'https://wiki.openstreetmap.org/wiki/Key:colour?uselang=en'
     """
 

@@ -17,11 +17,6 @@ def radians(x: cython.double) -> cython.double:
 
 
 @cython.cfunc
-def x_sheet(lon: cython.double) -> cython.double:
-    return lon
-
-
-@cython.cfunc
 def y_sheet(lat: cython.double) -> cython.double:
     return degrees(log(tan((radians(lat) / 2) + (pi / 4))))
 
@@ -46,8 +41,8 @@ class CMercator:
         width: cython.int,
         height: cython.int,
     ):
-        min_lon_sheet = x_sheet(min_lon)
-        max_lon_sheet = x_sheet(max_lon)
+        min_lon_sheet = min_lon
+        max_lon_sheet = max_lon
         min_lat_sheet = y_sheet(min_lat)
         max_lat_sheet = y_sheet(max_lat)
 
@@ -71,7 +66,7 @@ class CMercator:
     def x(self, lon: cython.double) -> cython.double:
         if self._bx - self._tx <= 0:
             return self._width / 2
-        return (x_sheet(lon) - self._tx) / (self._bx - self._tx) * self._width
+        return (lon - self._tx) / (self._bx - self._tx) * self._width
 
     @cython.cfunc
     def y(self, lat: cython.double) -> cython.double:

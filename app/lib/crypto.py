@@ -30,7 +30,6 @@ def hash_bytes(s: str | bytes, *, context: str | None) -> bytes:
 
     Returns a buffer of the hash.
     """
-
     return _hash(s, context=context).digest()
 
 
@@ -42,7 +41,6 @@ def hash_hex(s: str | bytes, *, context: str | None) -> str:
 
     Returns a hex-encoded string of the hash.
     """
-
     return _hash(s, context=context).hexdigest()
 
 
@@ -54,7 +52,6 @@ def hash_urlsafe(s: str | bytes, *, context: str | None) -> str:
 
     Returns a URL-safe base64-encoded string of the hash.
     """
-
     return urlsafe_b64encode(_hash(s, context=context).digest()).decode()
 
 
@@ -64,7 +61,6 @@ def encrypt(s: str) -> bytes:
 
     Returns a buffer of the nonce and cipher text.
     """
-
     nonce_bytes = buffered_randbytes(24)
     cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
     cipher_text_bytes = cipher.encrypt(s.encode())
@@ -77,7 +73,6 @@ def decrypt(buffer: bytes) -> str:
 
     Expects a buffer of the nonce and cipher text.
     """
-
     nonce_bytes = buffer[:24]
     cipher_text_bytes = buffer[24:]
     cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)

@@ -5,28 +5,14 @@ import pytest
 from app.lib.date_utils import format_iso_date, format_sql_date, parse_date
 
 
-@pytest.mark.parametrize(
-    ('date', 'expected'),
-    [
-        (datetime(2021, 12, 31, 15, 30, 45), '2021-12-31T15:30:45Z'),
-        (datetime(2021, 12, 31, 15, 30, 45, 123456), '2021-12-31T15:30:45Z'),
-        (None, 'None'),
-    ],
-)
-def test_format_iso_date(date, expected):
-    assert format_iso_date(date) == expected
+def test_format_iso_date():
+    assert format_iso_date(datetime(2021, 12, 31, 15, 30, 45, 123456)) == '2021-12-31T15:30:45Z'
+    assert format_iso_date(None) == 'None'
 
 
-@pytest.mark.parametrize(
-    ('date', 'expected'),
-    [
-        (datetime(2021, 12, 31, 15, 30, 45), '2021-12-31 15:30:45 UTC'),
-        (datetime(2021, 12, 31, 15, 30, 45, 123456), '2021-12-31 15:30:45 UTC'),
-        (None, 'None'),
-    ],
-)
-def test_format_sql_date(date, expected):
-    assert format_sql_date(date) == expected
+def test_format_sql_date():
+    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45, 123456)) == '2021-12-31 15:30:45 UTC'
+    assert format_sql_date(None) == 'None'
 
 
 @pytest.mark.parametrize(

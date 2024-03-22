@@ -12,13 +12,13 @@ from starlette.routing import Router
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
+    GC_LOG,
     ID_VERSION,
     LOCALE_DIR,
     NAME,
     RAPID_VERSION,
     TEST_ENV,
 )
-from app.lib.auth_context import auth_context
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.compress_middleware import CompressMiddleware
@@ -33,7 +33,6 @@ from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.middlewares.version_middleware import VersionMiddleware
-from app.models.user_role import UserRole
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.email_service import EmailService
@@ -50,7 +49,7 @@ sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)
 # reduce gc frequency and enable debug logging
 gc.set_threshold(10_000, 10, 10)
 
-if logging.root.level <= logging.DEBUG:
+if GC_LOG and logging.root.level <= logging.DEBUG:
     gc.set_debug(gc.DEBUG_STATS)
 
 # log when in test environment

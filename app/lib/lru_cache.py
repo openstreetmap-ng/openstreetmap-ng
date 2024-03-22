@@ -13,10 +13,10 @@ class LRUCache:
     def __setitem__(self, key, value) -> None:
         cache = self._cache  # read property once for performance
         if key in cache:
-            cache.move_to_end(key, last=False)
+            cache.move_to_end(key)
         else:
             if len(cache) >= self._maxsize:
-                cache.popitem()
+                cache.popitem(last=False)
             cache[key] = value
 
     def get(self, key, default=None):
@@ -27,5 +27,5 @@ class LRUCache:
         value = cache.get(key, not_found)
         if value is not_found:
             return default
-        cache.move_to_end(key, last=False)
+        cache.move_to_end(key)
         return value

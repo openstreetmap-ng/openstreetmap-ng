@@ -178,7 +178,7 @@ def stripspecial(value: str) -> str:
     """
     Strip special characters from the given string.
     """
-    return value.strip('!?:;.,')
+    return value.strip('!?:;., ')
 
 
 # configure template globals
