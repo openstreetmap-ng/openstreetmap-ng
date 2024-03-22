@@ -14,7 +14,6 @@ def _get_config() -> dict[str, dict[str, str | dict[str, str]]]:
 
     Generic icons are stored under the value '*'.
     """
-
     return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icon.toml').read_text())
 
 
