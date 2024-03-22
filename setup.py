@@ -36,12 +36,24 @@ setup(
                     '-march=x86-64-v2',
                     '-mtune=generic',
                     '-ffast-math',
-                    '-fopenmp',
                     '-flto=auto',
+                    '-fharden-compares',
+                    '-fharden-conditional-branches',
+                    # https://gcc.gnu.org/pipermail/gcc-patches/2023-August/628748.html
+                    '-D_FORTIFY_SOURCE=3',
+                    '-ftrivial-auto-var-init=zero',
+                    # (incompatible) '-fPIE',
+                    '-fstack-protector-strong',
+                    '-fstack-clash-protection',
+                    '-fcf-protection=full',
+                    # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
+                    '-mshstk',
                 ],
                 extra_link_args=[
-                    '-fopenmp',
                     '-flto=auto',
+                    # https://gcc.gnu.org/pipermail/gcc-patches/2023-August/628748.html
+                    # (incompatible) '-pie',
+                    '-Wl,-z,relro,-z,now',
                 ],
             )
             for path in paths
