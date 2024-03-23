@@ -19,7 +19,6 @@ def typed_msgpack_decoder(t: type | None) -> msgspec.msgpack.Decoder:
     """
     Create a MessagePack decoder which returns a specific type.
     """
-
     return msgspec.msgpack.Decoder(t) if (t is not None) else msgspec.msgpack.Decoder()
 
 
@@ -27,7 +26,6 @@ def typed_json_decoder(t: type | None) -> msgspec.json.Decoder:
     """
     Create a JSON decoder which returns a specific type.
     """
-
     return msgspec.json.Decoder(t) if (t is not None) else msgspec.json.Decoder()
 
 
@@ -46,7 +44,6 @@ def unicode_normalize(text: str) -> str:
     """
     Normalize a string to NFC form.
     """
-
     return unicodedata.normalize('NFC', text)
 
 
@@ -57,7 +54,6 @@ def extend_query_params(uri: str, params: dict) -> str:
     >>> extend_query_params('http://example.com', {'foo': 'bar'})
     'http://example.com?foo=bar'
     """
-
     if not params:
         return uri
 

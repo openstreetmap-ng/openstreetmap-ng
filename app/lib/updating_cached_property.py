@@ -53,10 +53,11 @@ class updating_cached_property:  # noqa: N801
         if set_attr_name is None:
             raise TypeError(f'Cannot use {type(self).__name__} instance without calling __set_name__ on it.')
 
-        # check for existing cache data
-        try:
+        # check for existing cache data (pessimistic)
+        cache_data: dict
+        if hasattr(instance, cache_name):
             cache_data = getattr(instance, cache_name)
-        except AttributeError:
+        else:
             cache_data = {}
             setattr(instance, cache_name, cache_data)
 

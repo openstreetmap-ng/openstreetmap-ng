@@ -23,7 +23,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'trace'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     description: Mapped[str] = mapped_column(Unicode, nullable=False)
     visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)

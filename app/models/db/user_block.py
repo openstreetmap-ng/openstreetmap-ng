@@ -21,9 +21,9 @@ class UserBlock(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise')
+    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise', innerjoin=True)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise')
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise', innerjoin=True)
     expires_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True)
     acknowledged: Mapped[bool] = mapped_column(Boolean, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)

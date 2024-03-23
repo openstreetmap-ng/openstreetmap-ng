@@ -11,4 +11,4 @@ class UserTokenEmailReply(UserToken):
 
     mail_source: Mapped[MailSource] = mapped_column(Enum(MailSource), nullable=False)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='joined')
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='joined', innerjoin=True)

@@ -18,7 +18,7 @@ class OAuth1Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth1_application'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     consumer_key: Mapped[str] = mapped_column(Unicode(40), nullable=False)
     consumer_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)

@@ -19,9 +19,9 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise')
+    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise', innerjoin=True)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise')
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise', innerjoin=True)
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)

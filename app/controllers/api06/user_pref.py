@@ -1,12 +1,13 @@
 from collections.abc import Sequence
 from typing import Annotated
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.xmltodict import XMLToDict
+from app.lib.xml_body import xml_body
+from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.str import Str255
@@ -28,19 +29,13 @@ async def read_user_preferences(
 
 @router.put('/user/preferences')
 async def update_user_preferences(
-    request: Request,
+    data: Annotated[dict, xml_body('osm/preferences')],
     _: Annotated[User, api_user(Scope.write_prefs)],
 ) -> None:
-    xml = request._body  # noqa: SLF001
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get('preferences', {})
-
-    if not data:
-        raise_for().bad_xml('preferences', "XML doesn't contain an osm/preferences element.", xml)
-
     try:
         prefs = Format06.decode_user_preferences(data.get('preference', ()))
     except Exception as e:
-        raise_for().bad_xml('preferences', str(e), xml)
+        raise_for().bad_xml('preferences', str(e))
 
     await UserPrefService.upsert_many(prefs)
 
@@ -60,11 +55,10 @@ async def read_user_preference(
 
 @router.put('/user/preferences/{key}')
 async def update_user_preference(
-    request: Request,
     key: Str255,
     _: Annotated[User, api_user(Scope.write_prefs)],
 ) -> None:
-    value = (await request.body()).decode()
+    value = get_request()._body.decode()  # noqa: SLF001
     user_pref = Format06.decode_user_preferences(({'@k': key, '@v': value},))[0]
     await UserPrefService.upsert_one(user_pref)
 

@@ -15,9 +15,9 @@ class Mail(Base.UUID, CreatedAtMixin):
 
     source: Mapped[MailSource] = mapped_column(Enum(MailSource), nullable=False)
     from_user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    from_user: Mapped[User | None] = relationship(foreign_keys=(from_user_id,), lazy='joined', init=False)
+    from_user: Mapped[User | None] = relationship(foreign_keys=(from_user_id,), init=False, lazy='joined')
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='joined', init=False)
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), init=False, lazy='joined', innerjoin=True)
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     ref: Mapped[str | None] = mapped_column(UnicodeText, nullable=True)

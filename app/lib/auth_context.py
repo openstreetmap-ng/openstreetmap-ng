@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 
+import cython
 from fastapi import Security
 from fastapi.security import SecurityScopes
 
@@ -55,6 +56,21 @@ def auth_scopes() -> Sequence[ExtendedScope]:
     return _context.get()[1]
 
 
+def api_user(*require_scopes: Scope | ExtendedScope) -> User:
+    """
+    Dependency for authenticating the api user.
+    """
+    return Security(_get_user, scopes=tuple(s.value for s in require_scopes))
+
+
+def web_user() -> User:
+    """
+    Dependency for authenticating the web user.
+    """
+    return Security(_get_user, scopes=(ExtendedScope.web_user,))
+
+
+@cython.cfunc
 def _get_user(require_scopes: SecurityScopes) -> User:
     """
     Get the authenticated user.
@@ -74,17 +90,3 @@ def _get_user(require_scopes: SecurityScopes) -> User:
         raise_for().insufficient_scopes(missing_scopes)
 
     return user
-
-
-def api_user(*require_scopes: Scope | ExtendedScope) -> User:
-    """
-    Dependency for authenticating the api user.
-    """
-    return Security(_get_user, scopes=tuple(s.value for s in require_scopes))
-
-
-def web_user() -> User:
-    """
-    Dependency for authenticating the web user.
-    """
-    return Security(_get_user, scopes=(ExtendedScope.web_user,))

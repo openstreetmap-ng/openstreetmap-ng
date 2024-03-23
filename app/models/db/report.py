@@ -17,7 +17,7 @@ class Report(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     issue_id: Mapped[int] = mapped_column(ForeignKey(Issue.id), nullable=False)
     category: Mapped[ReportCategory] = mapped_column(Enum(ReportCategory), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)

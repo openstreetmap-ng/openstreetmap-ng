@@ -93,9 +93,7 @@ class TraceService:
         # process multiple files in the archive
         try:
             for gpx_bytes in TraceFile.extract(file_bytes):
-                gpx = gpx_bytes.decode()
-                tracks = XMLToDict.parse(gpx).get('gpx', {}).get('trk', [])
-
+                tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])
                 track_idx_last = points[-1].track_idx if points else -1
                 points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_last))
         except Exception as e:

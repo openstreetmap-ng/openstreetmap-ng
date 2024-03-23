@@ -16,7 +16,7 @@ class DiaryComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)

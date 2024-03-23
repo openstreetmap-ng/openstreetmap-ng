@@ -17,9 +17,9 @@ class OAuth2Token(Base.UUID, CreatedAtMixin):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(init=False, lazy='joined')
+    user: Mapped[User] = relationship(init=False, lazy='joined', innerjoin=True)
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id), nullable=False)
-    application: Mapped[OAuth2Application] = relationship(init=False, lazy='joined')
+    application: Mapped[OAuth2Application] = relationship(init=False, lazy='joined', innerjoin=True)
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
     redirect_uri: Mapped[str | None] = mapped_column(Unicode, nullable=True)

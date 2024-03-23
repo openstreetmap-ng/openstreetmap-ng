@@ -9,9 +9,9 @@ from app.models.db.changeset import Changeset
 
 class ChangesetService:
     @staticmethod
-    async def create(tags: dict) -> Changeset:
+    async def create(tags: dict) -> int:
         """
-        Create a new changeset.
+        Create a new changeset and return its id.
         """
 
         async with db_autocommit() as session:
@@ -19,13 +19,12 @@ class ChangesetService:
                 user_id=auth_user().id,
                 tags=tags,
             )
-
             session.add(changeset)
 
-        return changeset
+        return changeset.id
 
     @staticmethod
-    async def update_tags(changeset_id: int, tags: dict) -> Changeset:
+    async def update_tags(changeset_id: int, tags: dict) -> None:
         """
         Update changeset tags.
         """
@@ -44,10 +43,8 @@ class ChangesetService:
 
             changeset.tags = tags
 
-        return changeset
-
     @staticmethod
-    async def close(changeset_id: int) -> Changeset:
+    async def close(changeset_id: int) -> None:
         """
         Close a changeset.
         """
@@ -65,5 +62,3 @@ class ChangesetService:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
 
             changeset.closed_at = func.statement_timestamp()
-
-        return changeset

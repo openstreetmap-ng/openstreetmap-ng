@@ -54,7 +54,7 @@ def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.char
                 xattr('uid'): comment.user_id,
                 xattr('user'): comment.user.display_name,
             }
-            if comment.user_id is not None
+            if (comment.user_id is not None)
             else {}
         ),
         'text': comment.body,
@@ -80,9 +80,6 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
     else:
         bounds_dict = {}
 
-    # TODO: comments service
-    comments = ()
-
     if is_json:
         return {
             'type': 'changeset',
@@ -95,16 +92,21 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                     'uid': changeset.user_id,
                     'user': changeset.user.display_name,
                 }
-                if changeset.user_id is not None
+                if (changeset.user_id is not None)
                 else {}
             ),
             **bounds_dict,
-            'comments_count': len(changeset.comments),
+            'comments_count': 0,  # TODO: count if needed
             'changes_count': changeset.size,
             'tags': changeset.tags,
             **(
-                {'discussion': tuple(_encode_changeset_comment(comment, is_json=True) for comment in comments)}
-                if comments
+                {
+                    'discussion': tuple(
+                        _encode_changeset_comment(comment, is_json=True)  #
+                        for comment in changeset.comments
+                    )
+                }
+                if (changeset.comments is not None)
                 else {}
             ),
         }
@@ -119,20 +121,23 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                     '@uid': changeset.user_id,
                     '@user': changeset.user.display_name,
                 }
-                if changeset.user_id is not None
+                if (changeset.user_id is not None)
                 else {}
             ),
             **bounds_dict,
-            '@comments_count': len(changeset.comments),
+            '@comments_count': 0,  # TODO: count if needed
             '@changes_count': changeset.size,
             'tag': tuple({'@k': k, '@v': v} for k, v in changeset.tags.items()),
             **(
                 {
                     'discussion': {
-                        'comment': tuple(_encode_changeset_comment(comment, is_json=False) for comment in comments)
+                        'comment': tuple(
+                            _encode_changeset_comment(comment, is_json=False)  #
+                            for comment in changeset.comments
+                        )
                     }
                 }
-                if comments
+                if (changeset.comments is not None)
                 else {}
             ),
         }

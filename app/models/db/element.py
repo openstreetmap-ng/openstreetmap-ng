@@ -23,7 +23,7 @@ class Element(Base.NoID):
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
     user: Mapped[User | None] = relationship(init=False, lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
-    changeset: Mapped[Changeset] = relationship(init=False, back_populates='elements', lazy='raise')
+    changeset: Mapped[Changeset] = relationship(init=False, lazy='raise', innerjoin=True, back_populates='elements')
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)
     id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)

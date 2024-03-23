@@ -20,7 +20,6 @@ class NoteCommentRepository:
         """
         Find note comments by query.
         """
-
         async with db() as session:
             stmt = select(NoteComment)
             stmt = apply_statement_context(stmt)
@@ -45,7 +44,6 @@ class NoteCommentRepository:
         """
         Resolve comments for notes.
         """
-
         # small optimization
         if not notes:
             return
@@ -69,15 +67,19 @@ class NoteCommentRepository:
 
                 stmts.append(stmt_)
 
-            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).subquery()))
+            stmt = (
+                select(NoteComment)
+                .where(NoteComment.id.in_(union_all(*stmts).subquery()))
+                .order_by(NoteComment.created_at.desc())
+            )
             stmt = apply_statement_context(stmt)
 
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
         # TODO: delete notes without comments
 
-        note_id_comments_map: dict[int, list[NoteComment]] = {}
+        id_comments_map: dict[int, list[NoteComment]] = {}
         for note in notes:
-            note_id_comments_map[note.id] = note.comments = []
+            id_comments_map[note.id] = note.comments = []
         for comment in comments:
-            note_id_comments_map[comment.note_id].append(comment)
+            id_comments_map[comment.note_id].append(comment)

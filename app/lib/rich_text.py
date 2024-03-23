@@ -116,16 +116,21 @@ class RichTextMixin:
         # read property once for performance
         rich_test_fields = self.__rich_text_fields__
 
-        num_fields = len(rich_test_fields)
+        num_fields: cython.int = len(rich_test_fields)
         if num_fields == 0:
             logging.warning('%s has not defined rich text fields', type(self).__qualname__)
             return
 
         logging.debug('Resolving %d rich text fields', num_fields)
 
-        async with create_task_group() as tg:
-            for field_name, text_format in rich_test_fields:
-                tg.start_soon(self._resolve_rich_text_task, field_name, text_format)
+        # small optimization, skip task group if only one field
+        if num_fields == 1:
+            field_name, text_format = rich_test_fields[0]
+            await self._resolve_rich_text_task(field_name, text_format)
+        else:
+            async with create_task_group() as tg:
+                for field_name, text_format in rich_test_fields:
+                    tg.start_soon(self._resolve_rich_text_task, field_name, text_format)
 
     async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat) -> None:
         rich_field_name = field_name + '_rich'

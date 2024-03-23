@@ -22,7 +22,7 @@ class SystemAppService:
         """
         async with db_autocommit() as session:
             for app in SYSTEM_APPS:
-                logging.debug('Registering system app %r', app.name)
+                logging.info('Registering system app %r', app.name)
 
                 stmt = (
                     insert(OAuth2Application)

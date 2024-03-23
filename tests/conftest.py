@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from app.main import main
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def anyio_backend():
     return 'asyncio'
 

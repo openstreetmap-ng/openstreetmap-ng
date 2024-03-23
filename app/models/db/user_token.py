@@ -21,4 +21,4 @@ class UserToken(Base.UUID, CreatedAtMixin):
     @declared_attr
     @classmethod
     def user(cls) -> Mapped[User]:
-        return relationship(User, foreign_keys=(cls.user_id,), lazy='joined', init=False)
+        return relationship(User, foreign_keys=(cls.user_id,), lazy='joined', init=False, innerjoin=True)

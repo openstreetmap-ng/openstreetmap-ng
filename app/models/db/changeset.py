@@ -16,6 +16,7 @@ from app.models.geometry import PolygonType
 from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
+    from app.models.db.changeset_comment import ChangesetComment
     from app.models.db.element import Element
 
 # TODO: 0.7 180th meridian ?
@@ -25,25 +26,47 @@ class Changeset(Base.Sequential, CreatedAtMixin):
     __tablename__ = 'changeset'
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(lazy='raise')
+    user: Mapped[User | None] = relationship(init=False, lazy='joined', innerjoin=True)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     # TODO: normalize unicode, check unicode, check length
 
     # defaults
-    # updated_at without server_onupdate (optimistic update manages it)
     updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(True), nullable=False, server_default=func.statement_timestamp()
+        TIMESTAMP(True),
+        init=False,
+        nullable=False,
+        server_default=func.statement_timestamp(),
+        onupdate=func.statement_timestamp(),  # instead of server_default, optimistic update overrides it
     )
-    closed_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True, server_default=None)
-    size: Mapped[int] = mapped_column(Integer, nullable=False, server_default='0')
-    bounds: Mapped[Polygon | None] = mapped_column(PolygonType, nullable=True, server_default=None)
+    closed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+    size: Mapped[int] = mapped_column(
+        Integer,
+        init=False,
+        nullable=False,
+        server_default='0',
+    )
+    bounds: Mapped[Polygon | None] = mapped_column(
+        PolygonType,
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
     # relationships (avoid circular imports)
     elements: Mapped[list['Element']] = relationship(
         back_populates='changeset',
         order_by='Element.id.asc()',
         lazy='raise',
+        init=False,
     )
+
+    # runtime
+    comments: list['ChangesetComment'] | None = None
 
     @property
     def permalink(self) -> str:

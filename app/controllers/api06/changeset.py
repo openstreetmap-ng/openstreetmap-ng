@@ -1,10 +1,9 @@
 from collections.abc import Sequence
-from contextlib import nullcontext
 from typing import Annotated
 
 import cython
-from fastapi import APIRouter, HTTPException, Query, Request, status
-from fastapi.responses import PlainTextResponse
+from anyio import create_task_group
+from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
 from app.format06 import Format06
@@ -13,13 +12,13 @@ from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.statement_context import joinedload_context
-from app.lib.xmltodict import XMLToDict
+from app.lib.xml_body import xml_body
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.element_type import ElementType
 from app.models.scope import Scope
+from app.repositories.changeset_comment_repository import ChangesetCommentRepository
 from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
@@ -32,25 +31,34 @@ router = APIRouter()
 # TODO: 0.7 mandatory created_by and comment tags
 
 
-@router.put('/changeset/create', response_class=PlainTextResponse)
+async def _resolve_comments_and_rich_text(changesets: Sequence[Changeset]) -> None:
+    """
+    Resolve changeset comments and their rich text.
+    """
+    # small optimization
+    if not changesets:
+        return
+
+    async with create_task_group() as tg:
+        with joinedload_context(ChangesetComment.user):
+            await ChangesetCommentRepository.resolve_comments(changesets, limit_per_note=None)
+        for changeset in changesets:
+            for comment in changeset.comments:
+                tg.start_soon(comment.resolve_rich_text)
+
+
+@router.put('/changeset/create')
 async def changeset_create(
-    request: Request,
-    type: ElementType,
+    data: Annotated[dict, xml_body('osm/changeset')],
     _: Annotated[User, api_user(Scope.write_api)],
-) -> PositiveInt:
-    xml = request._body  # noqa: SLF001
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
-
-    if not data:
-        raise_for().bad_xml(type, "XML doesn't contain an osm/changeset element.", xml)
-
+):
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml(type, str(e), xml)
+        raise_for().bad_xml('changeset', str(e))
 
-    changeset = await ChangesetService.create(tags)
-    return changeset.id
+    changeset_id = await ChangesetService.create(tags)
+    return Response(str(changeset_id), media_type='text/plain')
 
 
 @router.get('/changeset/{changeset_id:int}')
@@ -58,76 +66,64 @@ async def changeset_create(
 @router.get('/changeset/{changeset_id:int}.json')
 async def changeset_read(
     changeset_id: PositiveInt,
-    include_discussion_str: Annotated[str | None, Query(alias='include_discussion')] = None,
-) -> dict:
-    # treat any non-empty string as True
-    include_discussion: cython.char = bool(include_discussion_str)
-
-    with joinedload_context(Changeset.comments, ChangesetComment.user) if include_discussion else nullcontext():
-        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
+):
+    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
+    if include_discussion:
+        await _resolve_comments_and_rich_text(changesets)
 
     return Format06.encode_changesets(changesets)
 
 
 @router.put('/changeset/{changeset_id:int}')
 async def changeset_update(
-    request: Request,
     changeset_id: PositiveInt,
+    data: Annotated[dict, xml_body('osm/changeset')],
     _: Annotated[User, api_user(Scope.write_api)],
-) -> dict:
-    xml = request._body  # noqa: SLF001
-    data: dict = XMLToDict.parse(xml).get('osm', {}).get('changeset', {})
-
-    if not data:
-        raise_for().bad_xml('changeset', "XML doesn't contain an osm/changeset element.", xml)
-
+):
     try:
         tags = Format06.decode_tags_and_validate(data.get('tag', ()))
     except Exception as e:
-        raise_for().bad_xml('changeset', str(e), xml)
+        raise_for().bad_xml('changeset', str(e))
 
-    changeset = await ChangesetService.update_tags(changeset_id, tags)
-    return Format06.encode_changesets((changeset,))
+    await ChangesetService.update_tags(changeset_id, tags)
+    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    return Format06.encode_changesets(changesets)
 
 
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
 async def changeset_upload(
-    request: Request,
     changeset_id: PositiveInt,
+    data: Annotated[Sequence[dict], xml_body('osmChange')],
     _: Annotated[User, api_user(Scope.write_api)],
 ):
-    xml = request._body  # noqa: SLF001
-    data: Sequence[dict] = XMLToDict.parse(xml).get('osmChange', ())
-
-    if not data:
-        raise_for().bad_xml('osmChange', "XML doesn't contain an /osmChange element.", xml)
-
     try:
         # implicitly assume stings are proper types
         elements = Format06.decode_osmchange(data, changeset_id=changeset_id)
     except Exception as e:
-        raise_for().bad_xml('osmChange', str(e), xml)
+        raise_for().bad_xml('osmChange', str(e))
 
     assigned_ref_map = await OptimisticDiff(elements).run()
     return Format06.encode_diff_result(assigned_ref_map)
 
 
-@router.put('/changeset/{changeset_id:int}/close', response_class=PlainTextResponse)
+@router.put('/changeset/{changeset_id:int}/close')
 async def changeset_close(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
-) -> None:
+):
     await ChangesetService.close(changeset_id)
+    return Response()
 
 
 @router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
 @router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
 async def changeset_download(
     changeset_id: PositiveInt,
-) -> Sequence[tuple[str, dict]]:
+):
     with joinedload_context(Changeset.elements):
         changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
@@ -149,7 +145,7 @@ async def changesets_query(
     closed_str: Annotated[str | None, Query(alias='closed')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
-) -> Sequence[dict]:
+):
     # treat any non-empty string as True
     open: cython.char = bool(open_str)
     closed: cython.char = bool(closed_str)
@@ -169,7 +165,7 @@ async def changesets_query(
                 changeset_ids.add(int(c))
 
         if not changeset_ids:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No changesets were given to search for')
+            return Response('No changesets were given to search for', status.HTTP_400_BAD_REQUEST)
     else:
         changeset_ids = None
 
@@ -177,7 +173,7 @@ async def changesets_query(
     user_id_provided: cython.char = user_id is not None
 
     if display_name_provided and user_id_provided:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'provide either the user ID or display name, but not both')
+        return Response('provide either the user ID or display name, but not both', status.HTTP_400_BAD_REQUEST)
     if display_name_provided:
         user = await UserRepository.find_one_by_display_name(display_name)
         if user is None:
@@ -197,11 +193,11 @@ async def changesets_query(
             else:
                 closed_after = parse_date(time)
                 created_before = None
-        except Exception as e:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, f'no time information in "{time}"') from e
+        except Exception:
+            return Response(f'no time information in "{time}"', status.HTTP_400_BAD_REQUEST)
 
         if (closed_after is not None) and (created_before is not None) and closed_after > created_before:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, 'The time range is invalid, T1 > T2')
+            return Response('The time range is invalid, T1 > T2', status.HTTP_400_BAD_REQUEST)
     else:
         closed_after = None
         created_before = None

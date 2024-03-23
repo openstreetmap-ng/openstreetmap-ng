@@ -15,9 +15,13 @@ class ChangesetComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.plain),)
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    user: Mapped[User] = relationship(lazy='raise')
+    user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
-    changeset: Mapped[Changeset] = relationship(lazy='raise')
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
     body_rich: str | None = None

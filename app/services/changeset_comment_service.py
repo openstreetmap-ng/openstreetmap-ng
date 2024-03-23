@@ -49,6 +49,7 @@ class ChangesetCommentService:
         """
         Comment on a changeset.
         """
+        # TODO: update changeset timestamp
 
         async with db_autocommit() as session:
             stmt = select(Changeset.closed_at).where(Changeset.id == changeset_id).with_for_update()

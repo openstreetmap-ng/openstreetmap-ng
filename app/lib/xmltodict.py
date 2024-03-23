@@ -65,6 +65,7 @@ force_list = {
 
 value_postprocessor: dict[str, Callable[[str], Any]] = {
     '@changeset': int,
+    '@changes_count': int,
     '@closed_at': datetime.fromisoformat,
     '@comments_count': int,
     '@created_at': datetime.fromisoformat,
@@ -281,8 +282,10 @@ def _to_string(v) -> str:
     if isinstance(v, str | ET.CDATA):
         return v
     elif isinstance(v, datetime):
-        v_str: str = v.isoformat(timespec='seconds')
-        return v_str + 'Z'
+        if v.tzinfo is None:
+            return v.isoformat(timespec='seconds') + 'Z'
+        else:
+            return v.isoformat(timespec='seconds')
     elif isinstance(v, bool):
         return 'true' if (v is True) else 'false'
     else:

@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 
 from redis.asyncio import ConnectionPool, Redis
+from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL
+from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL, TEST_ENV
 from app.utils import JSON_DECODE, JSON_ENCODE
 
 _redis_pool = ConnectionPool().from_url(REDIS_URL)
@@ -26,6 +27,14 @@ _db_engine = create_async_engine(
     json_deserializer=JSON_DECODE,
     json_serializer=lambda x: JSON_ENCODE(x).decode(),  # TODO: is decode needed?
     query_cache_size=1024,
+    **(
+        {
+            # tests run in parallel, using multiple event loops
+            'poolclass': NullPool,
+        }
+        if TEST_ENV
+        else {}
+    ),
 )
 
 

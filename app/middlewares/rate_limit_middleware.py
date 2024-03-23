@@ -69,7 +69,7 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
     # check if the rate limit is exceeded
     if current_usage > quota and raise_on_limit:
         raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            status.HTTP_429_TOO_MANY_REQUESTS,
             detail='Rate limit exceeded',
             headers={
                 'RateLimit': rate_limit_header,

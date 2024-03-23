@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
 from app.format06 import Format06
@@ -44,7 +44,7 @@ async def user_read(
     if user is None:
         raise_for().user_not_found(user_id)
     if False:  # TODO: if user deleted
-        raise HTTPException(status.HTTP_410_GONE)
+        return Response(None, status.HTTP_410_GONE)
 
     return await Format06.encode_user(user)
 
@@ -63,7 +63,7 @@ async def users_read(
             user_ids.add(int(q))
 
     if not user_ids:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, 'No users were given to search for')
+        return Response('No users were given to search for', status.HTTP_400_BAD_REQUEST)
 
     users = await UserRepository.find_many_by_ids(user_ids)
     return await Format06.encode_users(users)
