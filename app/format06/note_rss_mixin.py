@@ -6,8 +6,9 @@ from feedgen.feed import FeedGenerator
 from shapely import get_coordinates
 
 from app.config import API_URL
+from app.lib.jinja_env import render
 from app.lib.nominatim import Nominatim
-from app.lib.translation import render, t
+from app.lib.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent

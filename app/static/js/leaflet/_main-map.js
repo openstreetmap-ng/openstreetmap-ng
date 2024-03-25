@@ -1,5 +1,6 @@
 import * as L from "leaflet"
 import { configureActionSidebars } from "../_action-sidebar.js"
+import { homePoint } from "../_config.js"
 import { updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
@@ -140,10 +141,8 @@ export const configureMainMap = (container) => {
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
     // Find home button is only available for the users with configured home location
-    const findHomeContainer = document.querySelector(".find-home-container")
-    if (findHomeContainer) {
-        findHomeContainer.classList.remove("d-none")
-        const findHomeButton = findHomeContainer.querySelector(".find-home")
+    if (homePoint) {
+        const findHomeButton = document.querySelector(".find-home")
         configureFindHomeButton(map, findHomeButton)
     }
 

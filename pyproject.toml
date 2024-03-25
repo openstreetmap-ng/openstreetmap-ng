@@ -136,7 +136,7 @@ select = [
   "N", # pep8-naming
   "NPY", # numpy
   "Q", # flake8-quotes
-  "PD", # pandas-vet
+  # "PD", # pandas-vet
   "PERF", # perflint
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie

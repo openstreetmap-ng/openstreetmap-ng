@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from typing import Annotated
 
 import cython
-from anyio import create_task_group
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
@@ -31,22 +30,6 @@ router = APIRouter()
 # TODO: 0.7 mandatory created_by and comment tags
 
 
-async def _resolve_comments_and_rich_text(changesets: Sequence[Changeset]) -> None:
-    """
-    Resolve changeset comments and their rich text.
-    """
-    # small optimization
-    if not changesets:
-        return
-
-    async with create_task_group() as tg:
-        with joinedload_context(ChangesetComment.user):
-            await ChangesetCommentRepository.resolve_comments(changesets, limit_per_note=None)
-        for changeset in changesets:
-            for comment in changeset.comments:
-                tg.start_soon(comment.resolve_rich_text)
-
-
 @router.put('/changeset/create')
 async def changeset_create(
     data: Annotated[dict, xml_body('osm/changeset')],
@@ -73,7 +56,8 @@ async def changeset_read(
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
     if include_discussion:
-        await _resolve_comments_and_rich_text(changesets)
+        with joinedload_context(ChangesetComment.user):
+            await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
 
     return Format06.encode_changesets(changesets)
 

@@ -68,10 +68,13 @@ def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
         _i18next_map = _get_i18next_locale_map()
 
     # i18next supports only primary+fallback locale
-    if len(locales) > 2:
-        return (_i18next_map[locales[0]], _i18next_map[locales[-1]])
-
-    return tuple(_i18next_map[code] for code in locales)
+    primary_locale = locales[0]
+    primary_file = _i18next_map[primary_locale]
+    if len(locales) == 1:
+        return (primary_file,)
+    fallback_locale = locales[-1]
+    fallback_file = _i18next_map[fallback_locale]
+    return (primary_file, fallback_file)
 
 
 def is_valid_locale(code: str) -> bool:

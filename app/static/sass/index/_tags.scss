@@ -1,16 +1,32 @@
 // Style the tags table
 .tags {
-    table-layout: fixed;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    word-break: break-word;
-    border: 1px solid $gray-600;
+    border: 1px solid $table-border-color;
     border-radius: $border-radius;
+    overflow: hidden;
 
-    .key {
+    table {
+        table-layout: fixed;
+        word-wrap: break-word;
+        word-break: break-word;
+        vertical-align: middle;
+        margin-bottom: unset;
     }
 
-    .value {
+    td {
+        padding: 0.25em 0.55em;
+
+        .tag-value {
+            white-space: pre-wrap;
+        }
+    }
+
+    td:first-child {
+        background: $gray-100;
+        border-right: 1px solid $table-border-color;
+        font-weight: normal;
+    }
+
+    td:last-child {
         // Style the color preview box
         // (used with colour, roof:colour, etc.)
         .color-preview {
@@ -19,9 +35,22 @@
             height: 1.1em;
             position: relative;
             top: 0.2em;
-            margin-right: 0.2em;
+            margin-right: 0.1em;
             border: 1px solid $gray-200;
-            // TODO: in JS: background: var(--color);
+            border-radius: $border-radius-sm;
+        }
+    }
+
+    tr:last-child td {
+        border-bottom: unset;
+    }
+}
+
+.tag-value {
+    &:not(:last-child) {
+        &::after {
+            content: ";";
+            color: black;
         }
     }
 }

@@ -4,42 +4,37 @@ from starlette.responses import HTMLResponse
 
 from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION, TEST_ENV
 from app.lib.auth_context import auth_user
+from app.lib.jinja_env import render
 from app.lib.locale import map_i18next_files
-from app.lib.translation import render, translation_languages
+from app.lib.translation import translation_languages
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 from app.utils import JSON_ENCODE
+
+_config_base = {
+    'apiUrl': API_URL,
+    'idUrl': ID_URL,
+    'idVersion': ID_VERSION,
+    'rapidUrl': RAPID_URL,
+    'rapidVersion': RAPID_VERSION,
+    'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
+    'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
+}
 
 
 @cython.cfunc
 def _get_default_data() -> dict:
     user = auth_user()
     languages = translation_languages()
-
-    activity_tracking = None
-    crash_reporting = None
-    home_point = None
+    config: dict = _config_base.copy()
 
     if user is not None:
-        activity_tracking = user.activity_tracking
-        crash_reporting = user.crash_reporting
+        config['activityTracking'] = user.activity_tracking
+        config['crashReporting'] = user.crash_reporting
 
-        if (user_home_point := user.home_point) is not None:
-            home_point = get_coordinates(user_home_point)[0].tolist()
-
-    config = {
-        'apiUrl': API_URL,
-        'idUrl': ID_URL,
-        'idVersion': ID_VERSION,
-        'rapidUrl': RAPID_URL,
-        'rapidVersion': RAPID_VERSION,
-        'languages': languages,
-        'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
-        'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
-        'activityTracking': activity_tracking,
-        'crashReporting': crash_reporting,
-        'homePoint': home_point,
-    }
+        user_home_point = user.home_point
+        if user_home_point is not None:
+            config['homePoint'] = get_coordinates(user_home_point)[0].tolist()
 
     return {
         'request': get_request(),

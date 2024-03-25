@@ -20,7 +20,8 @@ from app.config import (
 )
 from app.db import db, db_autocommit
 from app.lib.date_utils import utcnow
-from app.lib.translation import primary_translation_language, render, translation_context
+from app.lib.jinja_env import render
+from app.lib.translation import primary_translation_language, translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
 from app.models.db.mail import Mail
 from app.models.db.user import User

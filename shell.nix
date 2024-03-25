@@ -405,7 +405,7 @@ let
     '')
 
     # -- Misc
-    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml")
+    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml --verbose")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (writeShellScriptBin "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")

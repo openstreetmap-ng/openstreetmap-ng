@@ -40,18 +40,11 @@ export const rapidUrl = config.rapidUrl
 export const rapidVersion = config.rapidVersion
 
 /**
- * User translation languages
- * @type {string[]}
- * @example ["pl", "en"]
- */
-export const languages = config.languages
-
-/**
  * User primary translation language
  * @type {string}
  * @example "pl"
  */
-export const primaryLanguage = languages[0]
+export const primaryLanguage = document.documentElement.lang
 
 /**
  * Maximum map query area in square degrees
@@ -69,7 +62,7 @@ export const noteQueryAreaMaxSize = config.noteQueryAreaMaxSize
 
 /**
  * Optional user home location point
- * @type {number[]|null}
+ * @type {number[]|undefined}
  * @example [0, 30]
  */
 export const homePoint = config.homePoint

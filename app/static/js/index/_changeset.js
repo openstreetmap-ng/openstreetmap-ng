@@ -1,4 +1,5 @@
 import * as L from "leaflet"
+import { renderColorPreviews } from "../_color-preview.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { focusMapObject } from "../leaflet/_focus-layer-util.js"
@@ -13,10 +14,12 @@ const _emptyTags = new Map()
  */
 export const getChangesetController = (map) => {
     const onLoaded = (sidebarContent) => {
+        renderColorPreviews()
+
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const commentForm = sidebarContent.querySelector("form")
+        const commentForm = sidebarContent.querySelector("form.comment-form")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -27,7 +30,7 @@ export const getChangesetController = (map) => {
         const bounds = params.bounds
 
         // Not all changesets have a bounding box
-        if (bounds !== null) {
+        if (bounds) {
             focusMapObject(map, {
                 type: "changeset",
                 id: paramsId,
@@ -49,7 +52,9 @@ export const getChangesetController = (map) => {
         }
 
         // Listen for events
-        configureStandardForm(commentForm, onFormSuccess)
+        if (commentForm) {
+            configureStandardForm(commentForm, onFormSuccess)
+        }
     }
 
     const base = getBaseFetchController(map, "changeset", onLoaded)

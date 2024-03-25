@@ -7,7 +7,7 @@ from shapely import Point, get_coordinates
 from app.config import API_URL
 from app.lib.date_utils import format_sql_date
 from app.lib.format_style_context import format_style
-from app.lib.translation import render
+from app.lib.jinja_env import render
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 

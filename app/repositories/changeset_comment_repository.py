@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 
+from anyio import create_task_group
 from sqlalchemy import select, union_all
 
 from app.db import db
@@ -14,6 +15,7 @@ class ChangesetCommentRepository:
         changesets: Sequence[Changeset],
         *,
         limit_per_changeset: int | None,
+        rich_text: bool = True,
     ) -> None:
         """
         Resolve comments for changesets.
@@ -55,3 +57,8 @@ class ChangesetCommentRepository:
             id_comments_map[changeset.id] = changeset.comments = []
         for comment in comments:
             id_comments_map[comment.changeset_id].append(comment)
+
+        if rich_text:
+            async with create_task_group() as tg:
+                for comment in comments:
+                    tg.start_soon(comment.resolve_rich_text)

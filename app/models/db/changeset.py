@@ -1,7 +1,7 @@
+from collections.abc import Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from anyio import create_task_group
 from shapely import Polygon, box
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import ForeignKey, Integer, func
@@ -9,10 +9,13 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config import APP_URL
+from app.lib.tag_stylize import tag_stylize
+from app.lib.translation import t
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PolygonType
+from app.models.tag_style import TagStyleCollection
 from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
@@ -76,7 +79,6 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         >>> changeset.permalink
         'https://www.openstreetmap.org/changeset/123456'
         """
-
         return f'{APP_URL}/changeset/{self.id}'
 
     @property
@@ -84,17 +86,36 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         """
         Get the maximum size for this changeset
         """
-
         return UserRole.get_changeset_max_size(self.user.roles)
 
-    async def resolve_comments_rich_text(self) -> None:
-        """
-        Resolve rich text for all comments.
-        """
+    # @property
+    # def comment(self) -> str:
+    #     """
+    #     Get the comment for this changeset
+    #     """
+    #     result = self.tags.get('comment')
+    #     if result is not None:
+    #         return result
+    #     return t('browse.no_comment')
 
-        async with create_task_group() as tg:
-            for comment in self.comments:
-                tg.start_soon(comment.resolve_rich_text)
+    @property
+    def tags_stylized_map(self) -> dict[str, TagStyleCollection]:
+        """
+        Get the stylized tags for this changeset
+        """
+        tags = [(key, TagStyleCollection(key, value)) for key, value in self.tags.items()]
+        tags.sort()
+        result = dict(tags)
+
+        # TODO: remove after testing
+        # result['colour'] = TagStyleCollection('colour', 'red;blue')
+        # result['email'] = TagStyleCollection('email', '1@example.com;2@example.com')
+        # result['something:email'] = TagStyleCollection('something:email', '1@example.com;2@example.com')
+        # result['phone'] = TagStyleCollection('phone', '+1-234-567-8901')
+        # result['amenity'] = TagStyleCollection('amenity', 'bench')
+
+        tag_stylize(result.values())
+        return result
 
     def increase_size(self, n: int) -> bool:
         """
@@ -129,6 +150,10 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         return True
 
     def union_bounds(self, geometry: BaseGeometry) -> None:
+        """
+        Update the changeset bounds to include the given geometry.
+        """
+
         if self.bounds is None:
             self.bounds = box(*geometry.bounds)
         else:

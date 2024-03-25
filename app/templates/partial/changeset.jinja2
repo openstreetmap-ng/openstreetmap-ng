@@ -1,0 +1,70 @@
+{% if changeset.user_id is none %}
+{% set user_link = t('browse.anonymous') %}
+{% else %}
+{% set user_link %}
+<a href="/user/{{ changeset.user.display_name }}" rel="author">
+    {{ changeset.user.display_name }}
+</a>
+{% endset %}
+{% endif %}
+<div class="sidebar-content">
+    <div class="section">
+
+        <div class="row g-1">
+            <div class="col">
+                <h2 class="sidebar-title" data-params="{{ params }}">
+                    {{ t('browse.in_changeset') }}: {{ changeset.id }}
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+        </div>
+
+        <p class="comment">
+            {% for value in comment_tag.values %}
+            {% include 'partial/_tag_value.jinja2' %}
+            {% endfor %}
+        </p>
+        <p>
+            {% if changeset.closed_at is none %}
+            {{ t(
+                    'browse.created_ago_by_html',
+                    time_ago=timeago(changeset.created_at, html=True),
+                    user=user_link
+                ) | safe }}
+            {% else %}
+            {{ t(
+                    'browse.closed_ago_by_html',
+                    time_ago=timeago(changeset.closed_at, html=True),
+                    user=user_link
+                ) | safe }}
+            {% endif %}
+        </p>
+
+        {# if is buggy here, sort by key, format values #}
+        {% if changeset.tags %}
+        <h4>{{ t('browse.tag_details.tags') }}</h4>
+        <div class="tags">
+            <table class="table table-sm">
+                <tbody dir="auto">
+                    {% for tag in tags %}
+                    <tr>
+                        <td>
+                            {% set value = tag.key %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                        </td>
+                        <td>
+                            {% for value in tag.values %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
