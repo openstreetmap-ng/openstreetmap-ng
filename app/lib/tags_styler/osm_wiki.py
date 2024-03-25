@@ -30,7 +30,7 @@ def _get_wiki_pages() -> dict[str, frozenset[str]]:
 _wiki_pages = _get_wiki_pages()
 
 
-def tag_stylize_osm_wiki(tags: Sequence[TagStyleCollection]) -> None:
+def tags_style_osm_wiki(tags: Sequence[TagStyleCollection]) -> None:
     """
     Style tags with supported wiki links.
     """

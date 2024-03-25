@@ -2,21 +2,21 @@ from collections.abc import Sequence
 
 import cython
 
-from app.lib.tag_stylizers.color import configure_color_style
-from app.lib.tag_stylizers.comment import configure_comment_style
-from app.lib.tag_stylizers.email import configure_email_style
-from app.lib.tag_stylizers.osm_wiki import tag_stylize_osm_wiki
-from app.lib.tag_stylizers.phone import configure_phone_style
-from app.lib.tag_stylizers.url import configure_url_style
-from app.lib.tag_stylizers.wikidata import configure_wikidata_style
-from app.lib.tag_stylizers.wikimedia_commons import configure_wikimedia_commons_style
-from app.lib.tag_stylizers.wikipedia import configure_wikipedia_style
+from app.lib.tags_styler.color import configure_color_style
+from app.lib.tags_styler.comment import configure_comment_style
+from app.lib.tags_styler.email import configure_email_style
+from app.lib.tags_styler.osm_wiki import tags_style_osm_wiki
+from app.lib.tags_styler.phone import configure_phone_style
+from app.lib.tags_styler.url import configure_url_style
+from app.lib.tags_styler.wikidata import configure_wikidata_style
+from app.lib.tags_styler.wikimedia_commons import configure_wikimedia_commons_style
+from app.lib.tags_styler.wikipedia import configure_wikipedia_style
 from app.models.tag_style import TagStyleCollection
 
 # TODO: 0.7 official reserved tag characters
 
 
-def tag_stylize(tags: Sequence[TagStyleCollection]) -> None:
+def tags_style(tags: Sequence[TagStyleCollection]) -> None:
     """
     Style tags (colors, urls, etc.).
     """
@@ -45,7 +45,7 @@ def tag_stylize(tags: Sequence[TagStyleCollection]) -> None:
 
         _method_map[supported_key_part](tag, key_parts, values)
 
-    tag_stylize_osm_wiki(tags)
+    tags_style_osm_wiki(tags)
 
 
 _method_map = {}

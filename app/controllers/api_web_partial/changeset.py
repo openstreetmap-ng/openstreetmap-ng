@@ -24,7 +24,7 @@ async def get_changeset(changeset_id: PositiveInt):
         await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
 
     changeset = changesets[0]
-    tags_map = changeset.tags_stylized_map
+    tags_map = changeset.tags_styled_map
     comment_tag = tags_map.pop('comment', None)
     if comment_tag is None:
         comment_tag = TagStyleCollection('comment', t('browse.no_comment'))

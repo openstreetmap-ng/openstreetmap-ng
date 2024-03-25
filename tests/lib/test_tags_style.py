@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from app.lib.tag_stylize import tag_stylize
+from app.lib.tags_style import tags_style
 from app.lib.translation import translation_context
 from app.models.tag_style import TagStyle, TagStyleCollection
 
@@ -101,6 +101,6 @@ def test_tag_stylize():
     with translation_context('pl'):
         for tag, key, vals in tests:
             tags = [tag]
-            tag_stylize(tags)
+            tags_style(tags)
             assert key == tag.key
             assert tuple(vals) == tuple(tag.values)

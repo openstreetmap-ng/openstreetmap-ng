@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -9,8 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config import APP_URL
-from app.lib.tag_stylize import tag_stylize
-from app.lib.translation import t
+from app.lib.tags_style import tags_style
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
@@ -84,24 +82,14 @@ class Changeset(Base.Sequential, CreatedAtMixin):
     @property
     def max_size(self) -> int:
         """
-        Get the maximum size for this changeset
+        Get the maximum size for this changeset.
         """
         return UserRole.get_changeset_max_size(self.user.roles)
 
-    # @property
-    # def comment(self) -> str:
-    #     """
-    #     Get the comment for this changeset
-    #     """
-    #     result = self.tags.get('comment')
-    #     if result is not None:
-    #         return result
-    #     return t('browse.no_comment')
-
     @property
-    def tags_stylized_map(self) -> dict[str, TagStyleCollection]:
+    def tags_styled_map(self) -> dict[str, TagStyleCollection]:
         """
-        Get the stylized tags for this changeset
+        Get the styled tags for this changeset.
         """
         tags = [(key, TagStyleCollection(key, value)) for key, value in self.tags.items()]
         tags.sort()
@@ -114,7 +102,7 @@ class Changeset(Base.Sequential, CreatedAtMixin):
         # result['phone'] = TagStyleCollection('phone', '+1-234-567-8901')
         # result['amenity'] = TagStyleCollection('amenity', 'bench')
 
-        tag_stylize(result.values())
+        tags_style(result.values())
         return result
 
     def increase_size(self, n: int) -> bool:
