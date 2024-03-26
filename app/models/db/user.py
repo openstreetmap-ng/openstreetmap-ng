@@ -36,7 +36,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry import PointType
-from app.models.scope import ExtendedScope
+from app.models.scope import ExtendedScope, Scope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
@@ -146,7 +146,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         Check if the user is an administrator.
         """
-
         return UserRole.administrator in self.roles
 
     @property
@@ -154,16 +153,16 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         Check if the user is a moderator.
         """
-
         return UserRole.moderator in self.roles or self.is_administrator
 
-    @property
-    def extended_scopes(self) -> Sequence[ExtendedScope]:
+    def extend_scopes(self, scopes: Sequence[Scope]) -> Sequence[ExtendedScope]:
         """
-        Get the user's extended scopes.
+        Extend the scopes with user-specific scopes.
         """
+        if not self.roles:
+            return scopes
 
-        result = []
+        result = list(scopes)
 
         # role-specific scopes
         if self.is_administrator:
@@ -181,7 +180,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         >>> user.permalink
         'https://www.openstreetmap.org/user/permalink/123456'
         """
-
         return f'{APP_URL}/user/permalink/{self.id}'
 
     @property
@@ -189,7 +187,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         Get the password hash class for this user.
         """
-
         return PasswordHash(UserRole.get_password_hasher(self.roles))
 
     @property
@@ -197,7 +194,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         Get the url for the user's avatar image.
         """
-
         # when using gravatar, use user id as the avatar id
         if self.avatar_type == AvatarType.gravatar:
             return Avatar.get_url(self.avatar_type, self.id)
