@@ -19,6 +19,7 @@ export const getChangesetController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
+        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
         const commentForm = sidebarContent.querySelector("form.comment-form")
 
         // Set page title
@@ -47,14 +48,14 @@ export const getChangesetController = (map) => {
 
         // On success callback, reload the changeset
         const onFormSuccess = () => {
+            console.debug("onFormSuccess", paramsId)
             base.unload()
             base.load({ id: paramsId })
         }
 
         // Listen for events
-        if (commentForm) {
-            configureStandardForm(commentForm, onFormSuccess)
-        }
+        if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
+        if (commentForm) configureStandardForm(commentForm, onFormSuccess)
     }
 
     const base = getBaseFetchController(map, "changeset", onLoaded)

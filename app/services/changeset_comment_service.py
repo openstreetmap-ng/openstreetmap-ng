@@ -15,7 +15,6 @@ class ChangesetCommentService:
         """
         Subscribe current user to changeset discussion.
         """
-
         try:
             async with db_autocommit() as session:
                 session.add(
@@ -34,7 +33,6 @@ class ChangesetCommentService:
         """
         Unsubscribe current user from changeset discussion.
         """
-
         async with db_autocommit() as session:
             stmt = delete(ChangesetSubscription).where(
                 ChangesetSubscription.user_id == auth_user().id,
@@ -49,31 +47,28 @@ class ChangesetCommentService:
         """
         Comment on a changeset.
         """
-        # TODO: update changeset timestamp
-
         async with db_autocommit() as session:
-            stmt = select(Changeset.closed_at).where(Changeset.id == changeset_id).with_for_update()
-            rows = (await session.execute(stmt)).all()
+            stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
+            changeset = await session.scalar(stmt)
 
-            if not rows:
+            if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
-            if rows[0][0] is not None:
-                raise_for().changeset_not_closed(changeset_id)
 
-            session.add(
-                ChangesetComment(
-                    user_id=auth_user().id,
-                    changeset_id=changeset_id,
-                    body=text,
-                )
+            changeset_comment = ChangesetComment(
+                user_id=auth_user().id,
+                changeset_id=changeset_id,
+                body=text,
             )
+            session.add(changeset_comment)
+            await session.flush()
+
+            changeset.updated_at = changeset_comment.created_at
 
     @staticmethod
     async def delete_comment_unsafe(comment_id: int) -> None:
         """
         Delete any changeset comment.
         """
-
         async with db_autocommit() as session:
             stmt = delete(ChangesetComment).where(ChangesetComment.id == comment_id)
 

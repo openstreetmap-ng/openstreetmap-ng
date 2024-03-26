@@ -18,10 +18,6 @@ class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):
         raise APIError(status.HTTP_409_CONFLICT, detail="The user doesn't own that changeset")
 
     @override
-    def changeset_not_closed(self, changeset_id: int) -> NoReturn:
-        raise APIError(status.HTTP_409_CONFLICT, detail=f'The changeset {changeset_id} is not yet closed')
-
-    @override
     def changeset_already_closed(self, changeset_id: int, closed_at: datetime) -> NoReturn:
         raise APIError(
             status.HTTP_409_CONFLICT,

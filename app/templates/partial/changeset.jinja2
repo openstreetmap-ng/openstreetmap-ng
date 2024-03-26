@@ -1,12 +1,3 @@
-{% if changeset.user_id is none %}
-{% set user_link = t('browse.anonymous') %}
-{% else %}
-{% set user_link %}
-<a href="/user/{{ changeset.user.display_name }}" rel="author">
-    {{ changeset.user.display_name }}
-</a>
-{% endset %}
-{% endif %}
 <div class="sidebar-content">
     <div class="section">
 
@@ -26,8 +17,19 @@
             {% include 'partial/_tag_value.jinja2' %}
             {% endfor %}
         </p>
-        <p>
+        <p class="status">
+            {% if changeset.user_id is none %}
+            {% set user_link = t('browse.anonymous') %}
+            {% else %}
+            {% set user_link %}
+            <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                #}{{ changeset.user.display_name }}
+            </a>
+            {% endset %}
+            {% endif %}
             {% if changeset.closed_at is none %}
+            <span class="badge text-bg-success">{{ t('changeset.open') }}</span>
             {{ t(
                     'browse.created_ago_by_html',
                     time_ago=timeago(changeset.created_at, html=True),
@@ -42,10 +44,9 @@
             {% endif %}
         </p>
 
-        {# if is buggy here, sort by key, format values #}
-        {% if changeset.tags %}
+        {% if tags %}
         <h4>{{ t('browse.tag_details.tags') }}</h4>
-        <div class="tags">
+        <div class="tags mb-3">
             <table class="table table-sm">
                 <tbody dir="auto">
                     {% for tag in tags %}
@@ -66,5 +67,69 @@
         </div>
         {% endif %}
 
+        <div class="row g-1">
+            <div class="col">
+                <h4>{{ t('browse.changeset.discussion') }}</h4>
+            </div>
+            {% if user is not none %}
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/changeset/{{ changeset.id }}/discussion/subscribe">
+                <button class="btn btn-sm btn-outline-primary">{{ t('javascripts.changesets.show.subscribe') }}</button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% if changeset.comments %}
+        <ul class="comments list-unstyled">
+            {% for comment in changeset.comments %}
+            <li>
+                <p class="header text-muted">
+                    <a href="/user/{{ comment.user.display_name }}">
+                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                        #}{{ comment.user.display_name }}{#
+                    #}</a>
+                    {{ t('action.commented') }}
+                    {{ timeago(comment.created_at, html=True) | safe }}
+                </p>
+                <p class="body">
+                    {{ comment.body_rich | safe }}
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if user is not none %}
+        <form class="comment-form" method="POST" action="/api/web/changeset/{{ changeset.id }}/discussion">
+            <div class="mb-2">
+                <textarea class="form-control" name="comment" rows="4" required></textarea>
+            </div>
+            <div class="text-end">
+                <button class="btn btn-primary">
+                    <i class="bi bi-chat-right-fill me-1"></i>
+                    {{ t('action.comment') }}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        {# TODO: referer here? #}
+        <p><a href="/login">{{ t('browse.changeset.join_discussion') }}</a></p>
+        {% endif%}
+
+        ...elements...
+
+    </div>
+    <div class="section">
+        <div class="text-center">
+            <a href="/api/0.6/changeset/{{ changeset.id }}">
+                {{ t('browse.changeset.changesetxml') }}
+            </a>
+            ·
+            <a href="/api/0.6/changeset/{{ changeset.id }}/download">
+                {{ t('browse.changeset.osmchangexml') }}
+            </a>
+        </div>
+
+        {# TODO: prev/next user changesets + rel #}
     </div>
 </div>

@@ -11,6 +11,7 @@ from app.config import APP_URL
 from app.lib.tags_style import tags_style
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
+from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PolygonType
 from app.models.tag_style import TagStyleCollection
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 # TODO: 0.7 180th meridian ?
 
 
-class Changeset(Base.Sequential, CreatedAtMixin):
+class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'changeset'
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
@@ -32,13 +33,7 @@ class Changeset(Base.Sequential, CreatedAtMixin):
     # TODO: normalize unicode, check unicode, check length
 
     # defaults
-    updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(True),
-        init=False,
-        nullable=False,
-        server_default=func.statement_timestamp(),
-        onupdate=func.statement_timestamp(),  # instead of server_default, optimistic update overrides it
-    )
+    # TODO: test updated at optimistic
     closed_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(True),
         init=False,

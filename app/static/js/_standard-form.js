@@ -214,7 +214,8 @@ export const configureStandardForm = (form, successCallback = null, clientValida
                 let data
 
                 // Attempt to parse response as JSON
-                if (resp.headers.get("Content-Type").startsWith("application/json")) {
+                const contentType = resp.headers.get("Content-Type")
+                if (contentType?.startsWith("application/json")) {
                     console.debug("Reading JSON response")
                     data = await resp.json()
                 } else {

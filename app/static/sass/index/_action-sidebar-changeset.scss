@@ -3,6 +3,35 @@
         font-style: italic;
     }
 
+    .status {
+        .badge {
+            position: relative;
+            top: -0.15em;
+        }
+
+        .avatar {
+            margin-left: 0.25rem;
+            margin-right: 0.4rem;
+        }
+    }
+
+    .comments {
+        .avatar {
+            margin-right: 0.3rem;
+        }
+
+        .header {
+            font-size: 0.8em;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid $border-color;
+            margin-bottom: 0.25rem;
+        }
+
+        .body {
+            margin-left: 0.25rem;
+        }
+    }
+
     .elements {
         // Style the elements icons
         .icon {
