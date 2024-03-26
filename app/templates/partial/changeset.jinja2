@@ -1,9 +1,12 @@
 <div class="sidebar-content">
     <div class="section">
 
-        <div class="row g-1">
+        <div class="row g-1 mb-1">
             <div class="col">
                 <h2 class="sidebar-title" data-params="{{ params }}">
+                    {% if changeset.closed_at is none %}
+                    <i class="bi bi-unlock-fill is-open" title="{{ t('changeset.this_changeset_is_open') }}"></i>
+                    {% endif %}
                     {{ t('browse.in_changeset') }}: {{ changeset.id }}
                 </h2>
             </div>
@@ -12,41 +15,33 @@
             </div>
         </div>
 
-        <p class="comment">
-            {% for value in comment_tag.values %}
-            {% include 'partial/_tag_value.jinja2' %}
-            {% endfor %}
-        </p>
-        <p class="status">
-            {% if changeset.user_id is none %}
-            {% set user_link = t('browse.anonymous') %}
-            {% else %}
-            {% set user_link %}
-            <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
-                #}{{ changeset.user.display_name }}
-            </a>
-            {% endset %}
-            {% endif %}
-            {% if changeset.closed_at is none %}
-            <span class="badge text-bg-success">{{ t('changeset.open') }}</span>
-            {{ t(
-                    'browse.created_ago_by_html',
-                    time_ago=timeago(changeset.created_at, html=True),
-                    user=user_link
-                ) | safe }}
-            {% else %}
-            {{ t(
-                    'browse.closed_ago_by_html',
-                    time_ago=timeago(changeset.closed_at, html=True),
-                    user=user_link
-                ) | safe }}
-            {% endif %}
-        </p>
+        <div class="social-entry status">
+            <p class="header text-muted">
+                {% if changeset.user_id is none %}
+                {{ t('browse.anonymous') }}
+                {% else %}
+                <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                    <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                #}{{ changeset.user.display_name }}{#
+                #}</a>
+                {% endif %}
+                {% if changeset.closed_at is none %}
+                {{ t('browse.created') | lower }}
+                {{ timeago(changeset.created_at, html=True) | safe }}
+                {% else %}
+                {{ t('browse.closed') | lower }}
+                {{ timeago(changeset.closed_at, html=True) | safe }}
+                {% endif %}
+            </p>
+            <p class="body fst-italic">
+                {% for value in comment_tag.values %}
+                {% include 'partial/_tag_value.jinja2' %}
+                {% endfor %}
+            </p>
+        </div>
 
         {% if tags %}
-        <h4>{{ t('browse.tag_details.tags') }}</h4>
-        <div class="tags mb-3">
+        <div class="tags">
             <table class="table table-sm">
                 <tbody dir="auto">
                     {% for tag in tags %}
@@ -67,22 +62,24 @@
         </div>
         {% endif %}
 
-        <div class="row g-1">
+        <div class="mb-4"></div>
+
+        <div class="row g-1 mb-1">
             <div class="col">
                 <h4>{{ t('browse.changeset.discussion') }}</h4>
             </div>
             {% if user is not none %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/changeset/{{ changeset.id }}/discussion/subscribe">
-                <button class="btn btn-sm btn-outline-primary">{{ t('javascripts.changesets.show.subscribe') }}</button>
+                <button class="btn btn-sm btn-light">{{ t('javascripts.changesets.show.subscribe') }}</button>
             </form>
             {% endif %}
         </div>
 
         {% if changeset.comments %}
-        <ul class="comments list-unstyled">
+        <ul class="list-unstyled">
             {% for comment in changeset.comments %}
-            <li>
+            <li class="social-entry">
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
                         <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
@@ -101,7 +98,7 @@
 
         {% if user is not none %}
         <form class="comment-form" method="POST" action="/api/web/changeset/{{ changeset.id }}/discussion">
-            <div class="mb-2">
+            <div class="mb-3">
                 <textarea class="form-control" name="comment" rows="4" required></textarea>
             </div>
             <div class="text-end">

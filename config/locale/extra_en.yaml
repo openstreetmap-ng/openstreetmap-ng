@@ -28,7 +28,7 @@ map:
     engine:
       title: Routing engine
 changeset:
-  open: Open
+  this_changeset_is_open: This changeset is open
 user:
   profile_picture: Profile picture
   settings:

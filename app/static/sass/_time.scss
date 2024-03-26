@@ -1,5 +1,6 @@
 time[title] {
     cursor: help;
+    text-wrap: nowrap;
 
     &:hover {
         text-decoration: underline dotted $gray-600;
