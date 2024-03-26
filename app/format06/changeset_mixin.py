@@ -85,6 +85,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
             'type': 'changeset',
             'id': changeset.id,
             'created_at': changeset.created_at,
+            'updated_at': changeset.updated_at,
             **({'closed_at': changeset.closed_at} if (changeset.closed_at is not None) else {}),
             'open': changeset.closed_at is None,
             **(
@@ -114,6 +115,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
         return {
             '@id': changeset.id,
             '@created_at': changeset.created_at,
+            '@updated_at': changeset.updated_at,
             **({'@closed_at': changeset.closed_at} if (changeset.closed_at is not None) else {}),
             '@open': changeset.closed_at is None,
             **(

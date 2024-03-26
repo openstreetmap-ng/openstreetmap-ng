@@ -1,4 +1,4 @@
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db import db_autocommit
@@ -50,7 +50,6 @@ class ChangesetCommentService:
         async with db_autocommit() as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
             changeset = await session.scalar(stmt)
-
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
 
@@ -65,12 +64,24 @@ class ChangesetCommentService:
             changeset.updated_at = changeset_comment.created_at
 
     @staticmethod
-    async def delete_comment_unsafe(comment_id: int) -> None:
+    async def delete_comment_unsafe(comment_id: int) -> int:
         """
         Delete any changeset comment.
+
+        Returns the parent changeset id.
         """
         async with db_autocommit() as session:
-            stmt = delete(ChangesetComment).where(ChangesetComment.id == comment_id)
-
-            if (await session.execute(stmt)).rowcount != 1:
+            stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
+            comment = await session.scalar(stmt)
+            if comment is None:
                 raise_for().changeset_comment_not_found(comment_id)
+
+            stmt = select(Changeset).where(Changeset.id == comment.changeset_id).with_for_update()
+            changeset = await session.scalar(stmt)
+            if changeset is None:
+                raise_for().changeset_comment_not_found(comment_id)
+
+            await session.delete(comment)
+            changeset.updated_at = func.statement_timestamp()
+
+            return changeset.id

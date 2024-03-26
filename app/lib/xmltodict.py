@@ -44,7 +44,7 @@ def _parse_xml_version(value: str):
     return int(value) if value.isdigit() else float(value)
 
 
-force_sequence = {
+force_sequence_root = {
     'create',
     'modify',
     'delete',
@@ -61,6 +61,7 @@ force_list = {
     'trkseg',
     'trkpt',
     'preference',
+    'comment',
 }
 
 value_postprocessor: dict[str, Callable[[str], Any]] = {
@@ -69,6 +70,7 @@ value_postprocessor: dict[str, Callable[[str], Any]] = {
     '@closed_at': datetime.fromisoformat,
     '@comments_count': int,
     '@created_at': datetime.fromisoformat,
+    '@date': datetime.fromisoformat,
     '@id': int,
     '@lat': float,
     '@lon': float,
@@ -81,6 +83,7 @@ value_postprocessor: dict[str, Callable[[str], Any]] = {
     '@ref': int,
     '@timestamp': datetime.fromisoformat,
     '@uid': int,
+    '@updated_at': datetime.fromisoformat,
     '@version': _parse_xml_version,
     '@visible': _parse_xml_bool,
 }
@@ -145,7 +148,7 @@ class XMLToDict:
 @cython.cfunc
 def _parse_element(element: ET.ElementBase):
     # read property once for performance
-    force_sequence_: set[str] = force_sequence
+    force_sequence_root_: set[str] = force_sequence_root
     force_list_: set[str] = force_list
     value_postprocessor_: dict[str, Callable[[str], Any]] = value_postprocessor
     element_attrib: ET._Attrib = element.attrib
@@ -174,8 +177,8 @@ def _parse_element(element: ET.ElementBase):
         k = _strip_namespace(child.tag)
         v = _parse_element(child)
 
-        # in sequence mode, return root element as typle
-        if k in force_sequence_:
+        # in sequence mode, return root element as tuple
+        if k in force_sequence_root_:
             parsed.append((k, v))
             sequence_mark = True
 

@@ -11,5 +11,5 @@ class UpdatedAtMixin:
         init=False,
         nullable=False,
         server_default=func.statement_timestamp(),
-        server_onupdate=func.statement_timestamp(),
+        onupdate=func.statement_timestamp(),
     )

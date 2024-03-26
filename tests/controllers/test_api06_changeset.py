@@ -1,3 +1,4 @@
+import anyio
 import pytest
 from httpx import AsyncClient
 
@@ -38,9 +39,13 @@ async def test_changeset_crud(client: AsyncClient):
 
     assert changeset['@id'] == changeset_id
     assert changeset['@open'] is True
+    assert changeset['@created_at'] == changeset['@updated_at']
     assert '@closed_at' not in changeset
     assert len(tags) == 3
     assert tags['comment'] == 'create'
+
+    last_updated_at = changeset['@updated_at']
+    await anyio.sleep(1)
 
     # update changeset
     r = await client.put(
@@ -62,9 +67,13 @@ async def test_changeset_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
+    assert changeset['@updated_at'] > last_updated_at
     assert len(tags) == 2
     assert tags['comment'] == 'update'
     assert 'remove_me' not in tags
+
+    last_updated_at = changeset['@updated_at']
+    await anyio.sleep(1)
 
     # close changeset
     r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
@@ -77,5 +86,6 @@ async def test_changeset_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@open'] is False
+    assert changeset['@updated_at'] > last_updated_at
     assert '@closed_at' in changeset
     assert changeset['@changes_count'] == 0

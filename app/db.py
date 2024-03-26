@@ -7,13 +7,19 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL, TEST_ENV
 from app.utils import JSON_DECODE, JSON_ENCODE
 
-_redis_pool = ConnectionPool().from_url(REDIS_URL)
+if TEST_ENV:
 
+    @asynccontextmanager
+    async def redis():
+        async with Redis.from_url(REDIS_URL) as r:
+            yield r
+else:
+    _redis_pool = ConnectionPool().from_url(REDIS_URL)
 
-@asynccontextmanager
-async def redis():
-    async with Redis(connection_pool=_redis_pool) as r:
-        yield r
+    @asynccontextmanager
+    async def redis():
+        async with Redis(connection_pool=_redis_pool) as r:
+            yield r
 
 
 # TODO: pool size (anyio concurrency limit)
@@ -27,14 +33,7 @@ _db_engine = create_async_engine(
     json_deserializer=JSON_DECODE,
     json_serializer=lambda x: JSON_ENCODE(x).decode(),  # TODO: is decode needed?
     query_cache_size=1024,
-    **(
-        {
-            # tests run in parallel, using multiple event loops
-            'poolclass': NullPool,
-        }
-        if TEST_ENV
-        else {}
-    ),
+    **({'poolclass': NullPool} if TEST_ENV else {}),
 )
 
 

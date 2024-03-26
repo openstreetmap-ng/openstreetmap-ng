@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 2ddcde97fa0b
+Revision ID: 4515fee079fc
 Revises:
-Create Date: 2024-03-22 23:52:16.353351+00:00
+Create Date: 2024-03-26 02:42:17.544849+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '2ddcde97fa0b'
+revision: str = '4515fee079fc'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -87,12 +87,12 @@ def upgrade() -> None:
     op.create_table('changeset',
     sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('tags', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('closed_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('size', sa.Integer(), server_default='0', nullable=False),
     sa.Column('bounds', app.models.geometry.PolygonType(), nullable=True),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
+    sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
