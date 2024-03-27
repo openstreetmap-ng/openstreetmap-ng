@@ -39,43 +39,42 @@ More feature details can be found in the project [announcement](https://github.c
 
 ## The Roadmap 🛣️
 
-This is the general roadmap of the OpenStreetMap-NG project. I will update it from time to time to reflect the current state.
+The general roadmap of the project. You can use it to track the big picture progress. I update it from time to time as the development progresses. Not all features and improvements are listed here.
 
-- [x] Architecture design
-- [x] ~~Migration of the database models (document-db)~~
-- [x] Migration of the database models (sql-db)
-- [x] Migration of translations
-- [x] Migration of various utilities and "lib" folder
-- [x] Cache for markdown generated content (faster page loading)
-- [x] Migration of OAuth 1.0 & OAuth 2.0
-- [x] Authorization
-- [ ] Authorization with third-party providers
-- [x] Optimistic diff processing
-- [x] Migration of API 0.6
-- [ ] Migration of redactions
-- [x] Migration of rate limiting
-- [ ] Migration of changeset history RSS feed
-- [x] Improved GPX traces processing
+- ✅ Architecture design
+- ✅ Migration of the database models
+- ✅ Migration of translations
+- ✅ Migration of various utilities and "lib" folder
+- ✅ Cache for markdown generated content (faster page loading)
+- ✅ Migration of OAuth 1.0 & OAuth 2.0
+- ✅ Authorization
+- ⬛ Authorization with third-party providers
+- ✅ Optimistic diff processing
+- ✅ Migration of API 0.6
+- ⬛ Migration of redactions
+- ✅ Migration of rate limiting
+- ⬛ Migration of changeset history RSS feed
+- ✅ Improved GPX traces processing
 - [40%] Migration of website API
-- [x] Migration and refactoring of stylesheets
-- [x] Migration and refactoring of scripts
+- ✅ Migration and refactoring of stylesheets
+- ✅ Migration and refactoring of scripts
 - [40%] Migration of templates
-- [ ] 🎉 **FEATURE-PARITY POINT** 🎉
-- [x] Development translation overrides
-- [ ] Anti-vandalism stage 1
-- [x] Redis in-memory caching
-- [20%] Pagination and limits
-- [ ] Deprecation of OAuth 1.0 warning
-- [x] User permalinks
-- [x] Proxy for Amazon requests (better privacy)
-- [x] Addition of Rapid editor
-- [ ] Ability to rotate OAuth keys
-- [ ] Scheduled account delete
-- [ ] Identification of anonymous note users
-- [ ] Anti-vandalism stage 2
-- [10%] Design finalization of API 0.7
+- ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
+- ✅ Development translation overrides
+- [20%] Anti-vandalism stage 1
+- ✅ Redis in-memory caching
+- [40%] Pagination and limits
+- ⬛ Deprecation of OAuth 1.0 warning
+- ✅ User permalinks
+- ✅ Proxy for Amazon requests (better privacy)
+- ✅ Addition of Rapid editor
+- ⬛ Ability to rotate OAuth keys
+- ⬛ Scheduled account delete
+- ⬛ Identification of anonymous note users
+- ⬛ Anti-vandalism stage 2
+- [20%] Design finalization of API 0.7
 - [10%] Development of API 0.7
-- [ ] 2FA and U2F support
-- [ ] Community profiles
-- [ ] Functional sitemap.xml
+- [10%] 2FA and U2F support
+- ⬛ Community profiles
+- ⬛ Functional sitemap.xml
 - **And a lot more...** :-)!
