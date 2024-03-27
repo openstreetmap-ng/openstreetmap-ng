@@ -5,17 +5,41 @@
 [![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay)](https://liberapay.com/Zaczero/)
 [![GitHub repo stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
 
-Welcome to the next generation of OpenStreetMap, an improved website and API developed in Python!
+OpenStreetMap-NG is an unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). It's on a mission to push the boundaries of OpenStreetMap and provide a better experience for all users. It's simply the Next Generation of OpenStreetMap.
 
-🚧 **Active development alert**: Please note that this project is in a very active development. Code is continuously evolving, and significant changes are happening daily. As a result, **I am not currently accepting pull requests**.
+🚧 **Active development alert**: Please note that this project is in a very active development. Code is continuously evolving in significant ways. As a result, **I am not currently accepting pull requests and issues**.
 
-❗ **Disclaimer**: Please note that this project is not affiliated with the OpenStreetMap Foundation. It's the result of my voluntary work and personal choices.
+## Development Updates 📢
 
-## Announcement
+I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary). You can also subscribe to the [RSS feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss) to stay up-to-date.
 
-🚧 **This README is currently under construction**. In the meantime, please refer to [ANNOUNCEMENT.md](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md) which includes all the details.
+## The Vision ✨
 
-## Roadmap
+- **Simple to contribute**: OpenStreetMap-NG requires basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We us Nix to significantly simplify the development setup and ensure reproducibility.
+
+- **Super efficient**: OpenStreetMap-NG uses modern programming techniques to provide high performance and low latency. Most of the codebase is compiled to C language with Cython Pure Python Mode.
+
+- **Privacy first**: OpenStreetMap-NG is designed with privacy first approach. We give users the control over their data and privacy. The new builtin proxy for third-party requests protects users identity.
+
+- **Innovation**: OpenStreetMap-NG is a playground for new ideas and features. It's a place where the community can experiment with new features and technologies. We are not afraid of change.
+
+## KISS Principle 🔢
+
+OpenStreetMap-NG follows the KISS principle (Keep It Simple, Stupid). We believe that simplicity is the key to success and that less is more. We avoid complex abstractions and frameworks. We use straightforward and easy to understand Python code.
+
+## Community Driven 🌍
+
+OpenStreetMap-NG is a community-driven project. We welcome contributions from everyone. We believe that the best ideas come from the community!
+
+We are not a part of the OpenStreetMap Foundation.
+
+## Learn More 📚
+
+More details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project.
+
+## The Roadmap 🛣️
+
+This is the general roadmap of the OpenStreetMap-NG project. I will update it from time to time to reflect the current state.
 
 - [x] Architecture design
 - [x] ~~Migration of the database models (document-db)~~
@@ -32,10 +56,10 @@ Welcome to the next generation of OpenStreetMap, an improved website and API dev
 - [x] Migration of rate limiting
 - [ ] Migration of changeset history RSS feed
 - [x] Improved GPX traces processing
-- [35%] Migration of website API
+- [40%] Migration of website API
 - [x] Migration and refactoring of stylesheets
 - [x] Migration and refactoring of scripts
-- [35%] Migration of templates
+- [40%] Migration of templates
 - [ ] 🎉 **FEATURE-PARITY POINT** 🎉
 - [x] Development translation overrides
 - [ ] Anti-vandalism stage 1
