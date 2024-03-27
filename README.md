@@ -15,13 +15,13 @@ I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG 
 
 ## The Vision ✨
 
-- **Simple to contribute**: OpenStreetMap-NG requires basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We us Nix to significantly simplify the development setup and ensure reproducibility.
+- **Simple to contribute**: OpenStreetMap-NG requires just basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We use Nix to provide stress-free and streamlined developer experience.
 
 - **Super efficient**: OpenStreetMap-NG uses modern programming techniques to provide high performance and low latency. Most of the codebase is compiled to C language with Cython Pure Python Mode.
 
-- **Privacy first**: OpenStreetMap-NG is designed with privacy first approach. We give users the control over their data and privacy. The new builtin proxy for third-party requests protects users identity.
+- **Privacy first**: OpenStreetMap-NG is designed with privacy first approach. We give users the control over their data and privacy. The new builtin proxy for third-party requests additionally protects users identity.
 
-- **Innovation**: OpenStreetMap-NG is a playground for new ideas and features. It's a place where the community can experiment with new features and technologies. We are not afraid of change.
+- **Innovation**: OpenStreetMap-NG is a playground for new ideas and features. It's a place where the community can experiment with new features and technologies. We are not afraid of change!
 
 ## KISS Principle 🔢
 
@@ -29,13 +29,13 @@ OpenStreetMap-NG follows the KISS principle (Keep It Simple, Stupid). We believe
 
 ## Community Driven 🌍
 
-OpenStreetMap-NG is a community-driven project. We welcome contributions from everyone. We believe that the best ideas come from the community!
+OpenStreetMap-NG is an open community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
 
-We are not a part of the OpenStreetMap Foundation.
+This project is currently funded through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are ordinary mappers who want to make a difference.
 
 ## Learn More 📚
 
-More details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project.
+More feature details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project. More recent updates can be found on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary) but they are lesser in quantity.
 
 ## The Roadmap 🛣️
 
