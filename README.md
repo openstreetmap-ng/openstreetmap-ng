@@ -78,3 +78,11 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ⬛ Community profiles
 - ⬛ Functional sitemap.xml
 - **And a lot more...** :-)!
+
+---
+
+<p align="center">
+<i>OpenStreetMap-NG</i><br>
+<i>Made with love and care.</i><br>
+— 🫂 —
+</p>
