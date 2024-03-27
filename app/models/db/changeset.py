@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from shapely import Polygon, box
@@ -74,7 +75,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         """
         return f'{APP_URL}/changeset/{self.id}'
 
-    @property
+    @cached_property
     def max_size(self) -> int:
         """
         Get the maximum size for this changeset.
@@ -126,10 +127,10 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
         if self.closed_at is not None:
             return False
-        if self._size < self.max_size:
+        if self.size < self.max_size:
             return False
 
-        self.closed_at = now or func.statement_timestamp()
+        self.closed_at = now if (now is not None) else func.statement_timestamp()
         return True
 
     def union_bounds(self, geometry: BaseGeometry) -> None:

@@ -5,7 +5,7 @@ from dataclasses import replace
 from datetime import datetime
 
 from anyio import create_task_group
-from sqlalchemy import and_, or_, update
+from sqlalchemy import and_, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import db_autocommit
@@ -44,7 +44,7 @@ class OptimisticDiffApply:
         async with db_autocommit() as session, create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
             await session.execute(
-                f'LOCK TABLE "{Changeset.__tablename__}", "{Element.__tablename__}" IN EXCLUSIVE MODE'
+                text(f'LOCK TABLE "{Changeset.__tablename__}", "{Element.__tablename__}" IN EXCLUSIVE MODE')
             )
 
             # get the current time
@@ -138,6 +138,9 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if any of the changesets were modified in the meantime.
         """
 
+        # read property once for performance
+        now = self._now
+
         for changeset_id, updated_at in (await ChangesetRepository.get_updated_at_by_ids(changesets_next)).items():
             local = changesets_next.pop(changeset_id)
 
@@ -146,8 +149,8 @@ class OptimisticDiffApply:
                 raise OptimisticDiffError(f'Changeset {changeset_id} was modified ({local.updated_at} != {updated_at})')
 
             # update the changeset
-            local.updated_at = self._now
-            local.auto_close_on_size(now=self._now)
+            local.updated_at = now
+            local.auto_close_on_size(now=now)
             session.add(local)
 
         # sanity check
@@ -175,7 +178,9 @@ class OptimisticDiffApply:
 
         # process superseded elements and update the timestamps
         superseded_refs: set[VersionedElementRef] = set()
-        now = self._now  # speed up access
+
+        # read property once for performance
+        now = self._now
 
         for element in reversed(elements):
             element_versioned_ref: VersionedElementRef = element.versioned_ref

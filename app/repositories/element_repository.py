@@ -23,7 +23,6 @@ class ElementRepository:
 
         Returns 0 if no elements exist for the given type.
         """
-
         async with db() as session:
             stmt = select(Element.id).where(Element.type == type).order_by(Element.id.desc()).limit(1)
             element_id = await session.scalar(stmt)
@@ -34,7 +33,6 @@ class ElementRepository:
         """
         Find the latest element (one with the highest sequence_id).
         """
-
         async with db() as session:
             stmt = select(Element).order_by(Element.sequence_id.desc()).limit(1)
             stmt = apply_statement_context(stmt)
@@ -85,7 +83,7 @@ class ElementRepository:
         """
         Get elements by the element ref.
 
-        Results are sorted by version in descending order (newest first).
+        Results are sorted by version in ascending order (oldest first).
         """
 
         async with db() as session:
@@ -95,7 +93,7 @@ class ElementRepository:
                     Element.type == element_ref.type,
                     Element.id == element_ref.id,
                 )
-                .order_by(Element.version.desc())
+                .order_by(Element.version.asc())
             )
             stmt = apply_statement_context(stmt)
 

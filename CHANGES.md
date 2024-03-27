@@ -26,6 +26,7 @@ Last update: 2024-03-17
 - Remove MaxMind proprietary database dependency, determine user's country from timezone
 - Add script for updating list of tags with wiki pages
 - Test environment now includes preregistered users for quicker testing, there is an UI too
+- Update http links to https
 
 ## Frontend
 

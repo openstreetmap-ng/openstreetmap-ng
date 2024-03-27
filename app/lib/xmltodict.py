@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable, Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import cython
@@ -285,10 +285,13 @@ def _to_string(v) -> str:
     if isinstance(v, str | ET.CDATA):
         return v
     elif isinstance(v, datetime):
-        if v.tzinfo is None:
-            return v.isoformat(timespec='seconds') + 'Z'
-        else:
-            return v.isoformat(timespec='seconds')
+        # strip timezone for backwards-compatible format
+        v_tzinfo = v.tzinfo
+        if v_tzinfo is not None:
+            if v_tzinfo is not UTC:
+                raise AssertionError(f'Unexpected non-UTC timezone {v_tzinfo!r}')
+            v = v.replace(tzinfo=None)
+        return v.isoformat(timespec='seconds') + 'Z'
     elif isinstance(v, bool):
         return 'true' if (v is True) else 'false'
     else:

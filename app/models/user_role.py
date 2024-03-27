@@ -18,7 +18,6 @@ class UserRole(str, Enum):
         >>> UserRole.get_changeset_max_size([])
         10_000
         """
-
         if not roles:
             return _changeset_max_size[None]
 
@@ -29,7 +28,6 @@ class UserRole(str, Enum):
         """
         Get the password hasher for the given roles.
         """
-
         if not roles:
             return _password_hasher[None][1]
 
@@ -43,7 +41,6 @@ class UserRole(str, Enum):
         >>> UserRole.get_rate_limit_quota([])
         10_000
         """
-
         if not roles:
             return _rate_limit_quota[None]
 

@@ -1,10 +1,9 @@
-from collections.abc import Sequence
 from datetime import datetime
 
 from shapely import Point
 from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, PrimaryKeyConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
@@ -47,18 +46,6 @@ class Element(Base.NoID):
     )
 
     __table_args__ = (PrimaryKeyConstraint(type, id, version, name='element_pkey'),)
-
-    @validates('id')
-    def validate_id(self, _: str, value: int):
-        if value <= 0:
-            raise ValueError('Element id must be positive')
-        return value
-
-    @validates('members')
-    def validate_members(self, _: str, value: Sequence[ElementMemberRef]):
-        if any(member.id <= 0 for member in value):
-            raise ValueError("Element's members ids must be positive")
-        return value
 
     @updating_cached_property('id')
     def element_ref(self) -> ElementRef:

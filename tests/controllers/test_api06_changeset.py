@@ -38,6 +38,7 @@ async def test_changeset_crud(client: AsyncClient):
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
     assert changeset['@id'] == changeset_id
+    assert changeset['@user'] == 'user1'
     assert changeset['@open'] is True
     assert changeset['@created_at'] == changeset['@updated_at']
     assert '@closed_at' not in changeset
@@ -88,4 +89,8 @@ async def test_changeset_crud(client: AsyncClient):
     assert changeset['@open'] is False
     assert changeset['@updated_at'] > last_updated_at
     assert '@closed_at' in changeset
+    assert '@min_lat' not in changeset
+    assert '@max_lat' not in changeset
+    assert '@min_lon' not in changeset
+    assert '@max_lon' not in changeset
     assert changeset['@changes_count'] == 0

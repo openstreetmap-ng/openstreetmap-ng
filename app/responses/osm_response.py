@@ -119,7 +119,7 @@ def setup_api_router_response(router: APIRouter) -> None:
         if not isinstance(route, APIRoute):
             continue
 
-        if isinstance(route.response_class, OSMResponse):
+        if isinstance(route.response_class, type) and issubclass(route.response_class, OSMResponse):
             response_class = route.response_class
         else:
             response_class = OSMResponse

@@ -63,6 +63,18 @@ class ElementValidating(TagsValidating):
 
         return self
 
+    # using 'before' mode to avoid conflicts with validate_assignment=True
+    @model_validator(mode='before')
+    @classmethod
+    def validate_hidden_prepare(cls, data: dict) -> dict:
+        if data['visible']:
+            return data
+
+        data['tags'] = {}
+        data['point'] = None
+        data['members'] = ()
+        return data
+
     @model_validator(mode='after')
     def validate_hidden(self) -> Self:
         if self.visible:
@@ -70,8 +82,11 @@ class ElementValidating(TagsValidating):
 
         if self.version == 1:
             raise ValueError('Element cannot be hidden on creation')
+        if self.tags:
+            raise ValueError('Hidden element cannot have tags')
+        if self.point is not None:
+            raise ValueError('Hidden element cannot have coordinates')
+        if self.members:
+            raise ValueError('Hidden element cannot have members')
 
-        self.tags = {}
-        self.point = None
-        self.members = ()
         return self

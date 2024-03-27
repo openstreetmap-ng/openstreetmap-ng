@@ -12,6 +12,7 @@ from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.statement_context import joinedload_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
@@ -157,7 +158,8 @@ class OptimisticDiffPrepare:
         if (changeset := self.changeset_state.get(changeset_id)) is not None:
             return changeset
 
-        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+        with joinedload_context(Changeset.user):
+            changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
         if not changesets:
             raise_for().changeset_not_found(changeset_id)
@@ -501,19 +503,19 @@ class OptimisticDiffPrepare:
         """
 
         async def task(changeset_id: int, bbox_info: set[Point | ElementRef]) -> None:
-            points: set[Point] = set()
-            element_refs: set[ElementRef] = set()
+            points: list[Point] = []
+            element_refs_map: set[ElementRef] = set()
 
             # organize bbox info into points and element refs
             for point_or_ref in bbox_info:
                 if isinstance(point_or_ref, Point):
-                    points.add(point_or_ref)
+                    points.append(point_or_ref)
                 else:
-                    element_refs.add(point_or_ref)
+                    element_refs_map.add(point_or_ref)
 
             # get points for element refs
             elements = await ElementRepository.get_many_latest_by_element_refs(
-                element_refs,
+                element_refs_map,
                 recurse_ways=True,
                 limit=None,
             )
@@ -522,7 +524,7 @@ class OptimisticDiffPrepare:
                 element_point = element.point
 
                 if element_point is not None:
-                    points.add(element_point)
+                    points.append(element_point)
                 elif element.type == 'node':
                     raise ValueError(f'Node {element.id} is missing coordinates')
 

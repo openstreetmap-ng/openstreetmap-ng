@@ -331,11 +331,13 @@ def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | No
 
 
 @cython.cfunc
-def _encode_point(point: Point, *, is_json: cython.char) -> dict:
+def _encode_point(point: Point | None, *, is_json: cython.char) -> dict:
     """
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
+    if point is None:
+        return {}
 
     x, y = get_coordinates(point)[0].tolist()
 

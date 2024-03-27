@@ -66,7 +66,7 @@ class ChangesetRepository:
             if limit is not None:
                 stmt = stmt.limit(limit)
 
-            return (await session.scalars(stmt)).all()
+            return (await session.scalars(stmt)).unique().all()
 
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:

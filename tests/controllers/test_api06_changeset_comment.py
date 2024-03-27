@@ -50,6 +50,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     assert r.is_success
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
+    # TODO: assert changeset['@comments_count'] == 1
     assert len(changeset['discussion']['comment']) == 1
     assert changeset['discussion']['comment'][-1]['@date'] == changeset['@updated_at']
     assert changeset['discussion']['comment'][-1]['text'] == 'comment'
@@ -72,4 +73,5 @@ async def test_changeset_comment_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at
+    # TODO: assert changeset['@comments_count'] == 0
     assert 'comment' not in changeset['discussion']
