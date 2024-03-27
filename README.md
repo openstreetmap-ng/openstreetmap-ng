@@ -7,13 +7,13 @@
 
 OpenStreetMap-NG is an unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). It's on a mission to push the boundaries of OpenStreetMap and provide a better experience for all users. It's simply the Next Generation of OpenStreetMap.
 
-🚧 **Active development alert**: Please note that this project is in a very active development. Code is continuously evolving in significant ways. As a result, **I am not currently accepting pull requests and issues**.
+**Active development alert**: Please note that this project is in a very active development. Code is continuously evolving in significant ways. As a result, **I am not currently accepting pull requests and issues**.
 
-## Development Updates 📢
+## 📢 Development Updates
 
 I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary). You can also subscribe to the [RSS feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss) to stay up-to-date.
 
-## The Vision ✨
+## ✨ The Vision
 
 - **Simple to contribute**: OpenStreetMap-NG requires just basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We use Nix to provide stress-free and streamlined developer experience.
 
@@ -23,21 +23,21 @@ I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG 
 
 - **Innovation**: OpenStreetMap-NG is a playground for new ideas and features. It's a place where the community can experiment with new features and technologies. We are not afraid of change!
 
-## KISS Principle 🔢
+## 🔢 KISS Principle
 
 OpenStreetMap-NG follows the KISS principle (Keep It Simple, Stupid). We believe that simplicity is the key to success and that less is more. We avoid complex abstractions and frameworks. We use straightforward and easy to understand Python code.
 
-## Community Driven 🌍
+## 🌍 Community Driven
 
 OpenStreetMap-NG is an open community-driven project. The best ideas come from people just like you! We believe the community is the heart of OpenStreetMap and that everyone should have an equal say.
 
 This project is currently funded through community donations. We are not sponsored nor endorsed by the OpenStreetMap Foundation. We are ordinary mappers who want to make a difference.
 
-## Learn More 📚
+## 📚 Learn More
 
 More feature details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project. More recent updates can be found on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary) but they are lesser in quantity.
 
-## The Roadmap 🛣️
+## 🛣️ The Roadmap
 
 The general roadmap of the project. You can use it to track the big picture progress. I update it from time to time as the development progresses. Not all features and improvements are listed here.
 
