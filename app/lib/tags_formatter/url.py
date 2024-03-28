@@ -1,6 +1,6 @@
 import cython
 
-from app.models.tag_style import TagStyle, TagStyleCollection
+from app.models.tag_format import TagFormat, TagFormatCollection
 
 
 @cython.cfunc
@@ -8,23 +8,22 @@ def _is_url_string(s: str) -> cython.char:
     return s.lower().startswith(('https://', 'http://'))
 
 
-@cython.cfunc
-def _format_url(tag: TagStyleCollection, key_parts: list[str], values: list[str]) -> None:
+def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
     success: cython.char = False
     new_styles = []
 
     for value in values:
         if _is_url_string(value):
             success = True
-            new_styles.append(TagStyle(value, 'url', value))
+            new_styles.append(TagFormat(value, 'url', value))
         else:
-            new_styles.append(TagStyle(value))
+            new_styles.append(TagFormat(value))
 
     if success:
         tag.values = new_styles
 
 
-def configure_url_style(method_map: dict) -> None:
+def configure_url_format(method_map: dict) -> None:
     for key in (
         'host',
         'url',
@@ -32,4 +31,4 @@ def configure_url_style(method_map: dict) -> None:
         'source',
         'image',
     ):
-        method_map[key] = _format_url
+        method_map[key] = _format

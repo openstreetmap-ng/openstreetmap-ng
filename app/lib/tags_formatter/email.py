@@ -1,6 +1,6 @@
 import cython
 
-from app.models.tag_style import TagStyle, TagStyleCollection
+from app.models.tag_format import TagFormat, TagFormatCollection
 from app.validators.email import validate_email
 
 
@@ -13,21 +13,20 @@ def _is_email_string(s: str) -> cython.char:
         return False
 
 
-@cython.cfunc
-def _format_email(tag: TagStyleCollection, key_parts: list[str], values: list[str]) -> None:
+def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
     success: cython.char = False
     new_styles = []
 
     for value in values:
         if _is_email_string(value):
             success = True
-            new_styles.append(TagStyle(value, 'email', f'mailto:{value}'))
+            new_styles.append(TagFormat(value, 'email', f'mailto:{value}'))
         else:
-            new_styles.append(TagStyle(value))
+            new_styles.append(TagFormat(value))
 
     if success:
         tag.values = new_styles
 
 
-def configure_email_style(method_map: dict) -> None:
-    method_map['email'] = _format_email
+def configure_email_format(method_map: dict) -> None:
+    method_map['email'] = _format

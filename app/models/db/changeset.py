@@ -9,18 +9,15 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.config import APP_URL
-from app.lib.tags_style import tags_style
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PolygonType
-from app.models.tag_style import TagStyleCollection
 from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
     from app.models.db.changeset_comment import ChangesetComment
-    from app.models.db.element import Element
 
 # TODO: 0.7 180th meridian ?
 
@@ -54,14 +51,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         server_default=None,
     )
 
-    # relationships (avoid circular imports)
-    elements: Mapped[list['Element']] = relationship(
-        back_populates='changeset',
-        order_by='Element.id.asc()',
-        lazy='raise',
-        init=False,
-    )
-
     # runtime
     comments: list['ChangesetComment'] | None = None
 
@@ -81,25 +70,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Get the maximum size for this changeset.
         """
         return UserRole.get_changeset_max_size(self.user.roles)
-
-    @property
-    def tags_styled_map(self) -> dict[str, TagStyleCollection]:
-        """
-        Get the styled tags for this changeset.
-        """
-        tags = [(key, TagStyleCollection(key, value)) for key, value in self.tags.items()]
-        tags.sort()
-        result = dict(tags)
-
-        # TODO: remove after testing
-        # result['colour'] = TagStyleCollection('colour', 'red;blue')
-        # result['email'] = TagStyleCollection('email', '1@example.com;2@example.com')
-        # result['something:email'] = TagStyleCollection('something:email', '1@example.com;2@example.com')
-        # result['phone'] = TagStyleCollection('phone', '+1-234-567-8901')
-        # result['amenity'] = TagStyleCollection('amenity', 'bench')
-
-        tags_style(result.values())
-        return result
 
     def increase_size(self, n: int) -> bool:
         """

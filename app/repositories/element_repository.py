@@ -283,6 +283,30 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
+    async def get_many_by_changeset(
+        changeset_id: int,
+        *,
+        sort_by_id: bool,
+    ) -> Sequence[Element]:
+        """
+        Get elements by the changeset id.
+
+        If sort_by_id is True, the results are sorted by id in ascending order.
+
+        If sort_by_id is False, the results are sorted by sequence_id in ascending order.
+        """
+
+        async with db() as session:
+            stmt = (
+                select(Element)
+                .where(Element.changeset_id == changeset_id)
+                .order_by((Element.id if sort_by_id else Element.sequence_id).asc())
+            )
+            stmt = apply_statement_context(stmt)
+
+            return (await session.scalars(stmt)).all()
+
+    @staticmethod
     async def find_many_by_query(
         geometry: BaseGeometry,
         *,

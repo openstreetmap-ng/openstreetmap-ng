@@ -3,7 +3,7 @@ import re
 import cython
 
 from app.lib.translation import primary_translation_language
-from app.models.tag_style import TagStyle, TagStyleCollection
+from app.models.tag_format import TagFormat, TagFormatCollection
 
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys
@@ -16,8 +16,7 @@ def _is_url_string(s: str) -> cython.char:
     return s.lower().startswith(('https://', 'http://'))
 
 
-@cython.cfunc
-def _format_wikipedia(tag: TagStyleCollection, key_parts: list[str], values: list[str]) -> None:
+def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
     # always default to english
     key_lang = 'en'
     user_lang = primary_translation_language()
@@ -34,13 +33,13 @@ def _format_wikipedia(tag: TagStyleCollection, key_parts: list[str], values: lis
     for value in values:
         # return empty values without formatting
         if not value:
-            new_styles.append(TagStyle(value))
+            new_styles.append(TagFormat(value))
             continue
 
         # return urls as-is
         if _is_url_string(value):
             success = True
-            new_styles.append(TagStyle(value, 'url', value))
+            new_styles.append(TagFormat(value, 'url', value))
             continue
 
         lang = key_lang
@@ -58,11 +57,11 @@ def _format_wikipedia(tag: TagStyleCollection, key_parts: list[str], values: lis
             url += f'#{fragment}'
 
         success = True
-        new_styles.append(TagStyle(value, 'url-safe', url))
+        new_styles.append(TagFormat(value, 'url-safe', url))
 
     if success:
         tag.values = new_styles
 
 
-def configure_wikipedia_style(method_map: dict) -> None:
-    method_map['wikipedia'] = _format_wikipedia
+def configure_wikipedia_format(method_map: dict) -> None:
+    method_map['wikipedia'] = _format

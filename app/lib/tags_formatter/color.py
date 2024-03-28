@@ -4,7 +4,7 @@ import pathlib
 import cython
 
 from app.config import CONFIG_DIR
-from app.models.tag_style import TagStyle, TagStyleCollection
+from app.models.tag_format import TagFormat, TagFormatCollection
 
 # source: https://www.w3.org/TR/css-color-3/#svg-color
 _w3c_colors = frozenset(json.loads(pathlib.Path(CONFIG_DIR / 'w3c_colors.json').read_bytes()))
@@ -33,21 +33,20 @@ def _is_w3c_color(s: str) -> cython.char:
     return s.lower() in _w3c_colors
 
 
-@cython.cfunc
-def _format_color(tag: TagStyleCollection, key_parts: list[str], values: list[str]) -> None:
+def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
     success: cython.char = False
     new_styles = []
 
     for value in values:
         if _is_hex_color(value) or _is_w3c_color(value):
             success = True
-            new_styles.append(TagStyle(value, 'color', value))
+            new_styles.append(TagFormat(value, 'color', value))
         else:
-            new_styles.append(TagStyle(value))
+            new_styles.append(TagFormat(value))
 
     if success:
         tag.values = new_styles
 
 
-def configure_color_style(method_map: dict) -> None:
-    method_map['colour'] = _format_color
+def configure_color_format(method_map: dict) -> None:
+    method_map['colour'] = _format

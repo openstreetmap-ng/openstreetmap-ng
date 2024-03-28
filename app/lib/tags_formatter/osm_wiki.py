@@ -7,7 +7,7 @@ import cython
 from app.config import CONFIG_DIR, DEFAULT_LANGUAGE
 from app.lib.locale import normalize_locale
 from app.lib.translation import translation_languages
-from app.models.tag_style import TagStyle, TagStyleCollection
+from app.models.tag_format import TagFormat, TagFormatCollection
 
 # TODO: perhaps support glob matches: Key:*:lanes
 
@@ -30,9 +30,9 @@ def _get_wiki_pages() -> dict[str, frozenset[str]]:
 _wiki_pages = _get_wiki_pages()
 
 
-def tags_style_osm_wiki(tags: Sequence[TagStyleCollection]) -> None:
+def tags_format_osm_wiki(tags: Sequence[TagFormatCollection]) -> None:
     """
-    Style tags with supported wiki links.
+    Format tags with supported wiki links.
     """
     user_langs = translation_languages()
     primary_lang = user_langs[0]
@@ -76,8 +76,8 @@ def tags_style_osm_wiki(tags: Sequence[TagStyleCollection]) -> None:
                     url = f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:{page}?uselang={primary_lang}'
 
                 if is_value:
-                    tag.values = (TagStyle(tag_value.value, 'url-safe', url),)
+                    tag.values = (TagFormat(tag_value.value, 'url-safe', url),)
                 else:
-                    tag.key = TagStyle(tag_key.value, 'url-safe', url)
+                    tag.key = TagFormat(tag_key.value, 'url-safe', url)
 
                 break

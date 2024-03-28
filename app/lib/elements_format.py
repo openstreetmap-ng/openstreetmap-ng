@@ -1,0 +1,143 @@
+import pathlib
+import tomllib
+from collections.abc import Sequence
+
+import cython
+
+from app.config import CONFIG_DIR
+from app.models.db.element import Element
+from app.models.element_format import ElementFormat
+from app.models.element_ref import VersionedElementRef
+from app.models.element_type import ElementType
+from app.repositories.element_repository import ElementRepository
+
+
+async def elements_format(elements: Sequence[Element]) -> dict[ElementType, Sequence[ElementFormat]]:
+    """
+    Format elements for displaying on the website (icons, strikethrough, sort).
+
+    Returns a mapping of element types to sequences of ElementStyle.
+    """
+    # element.version > 1 is mostly redundant
+    # but ensures backward-compatible compliance for PositiveInt
+    prev_refs: tuple[VersionedElementRef, ...] = tuple(
+        VersionedElementRef(element.type, element.id, element.version - 1)
+        for element in elements
+        if not element.visible and element.version > 1
+    )
+
+    if prev_refs:
+        prev_elements = await ElementRepository.get_many_by_versioned_refs(prev_refs, limit=len(prev_refs))
+        prev_ref_map = {element.element_ref: element for element in prev_elements}
+    else:
+        prev_ref_map = {}
+
+    result: dict[ElementType, list[ElementFormat]] = {'node': [], 'way': [], 'relation': []}
+
+    for element in elements:
+        prev = prev_ref_map.get(element.element_ref)
+        resolved = _resolve_icon(prev, element)
+
+        if resolved is not None:
+            icon = resolved[0]
+            icon_title = resolved[1]
+        else:
+            icon = None
+            icon_title = None
+
+        result[element.type].append(
+            ElementFormat(
+                id=element.id,
+                version=element.version,
+                visible=element.visible,
+                icon=icon,
+                icon_title=icon_title,
+            )
+        )
+
+    for v in result.values():
+        v.sort(key=lambda x: (not x.visible, x.id, x.version))
+
+    return result
+
+
+@cython.cfunc
+def _resolve_icon(prev: Element | None, element: Element):
+    """
+    Get the filename and title of the icon for an element.
+
+    Returns None if no appropriate icon is found.
+
+    >>> _resolve_icon(...)
+    'aeroway_terminal.webp', 'aeroway=terminal'
+    """
+
+    if element.visible:
+        tags = element.tags
+    elif prev is not None:
+        tags = prev.tags
+    else:
+        return None
+
+    # small optimization, most elements don't have any tags
+    if not tags:
+        return None
+
+    element_type = element.type
+    matched_keys = _config_keys.intersection(tags)
+
+    # 1. check value-specific configuration
+    for key in matched_keys:
+        key_value = tags[key]
+        key_config: dict[str, str | dict[str, str]] = _config[key]
+        type_config: dict[str, str] | None = key_config.get(element_type)
+
+        # prefer type-specific configuration
+        if (type_config is not None) and (icon := type_config.get(key_value)) is not None:
+            return icon, f'{key}={key_value}'
+
+        if (icon := key_config.get(key_value)) is not None and isinstance(icon, str):
+            return icon, f'{key}={key_value}'
+
+    # 2. check key-specific configuration (generic)
+    for key in matched_keys:
+        key_config: dict[str, str | dict[str, str]] = _config[key]
+        type_config: dict[str, str] | None = key_config.get(element_type)
+
+        # prefer type-specific configuration
+        if (type_config is not None) and (icon := type_config.get('*')) is not None:
+            return icon, key
+
+        if (icon := key_config.get('*')) is not None:
+            return icon, key
+
+    return None
+
+
+@cython.cfunc
+def _get_config() -> dict[str, dict[str, str | dict[str, str]]]:
+    """
+    Get the feature icon configuration.
+
+    Generic icons are stored under the value '*'.
+    """
+    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icon.toml').read_text())
+
+
+# _config[tag_key][tag_value] = icon
+# _config[tag_key][type][tag_value] = icon
+_config = _get_config()
+_config_keys = frozenset(_config)
+
+
+# raise an exception if any of the icon files are missing
+for key_config in _config.values():
+    for icon_or_type_config in key_config.values():
+        icon_or_type_config: str | dict
+
+        icons = (icon_or_type_config,) if isinstance(icon_or_type_config, str) else icon_or_type_config.values()
+
+        for icon in icons:
+            path = pathlib.Path('app/static/img/element/' + icon)
+            if not path.is_file():
+                raise FileNotFoundError(path)
