@@ -1,7 +1,8 @@
 .action-sidebar.changeset {
-    .is-open {
+    .open-badge {
         cursor: help;
-        color: $success;
+        font-size: 0.8em;
+        text-transform: uppercase;
     }
 
     .elements {

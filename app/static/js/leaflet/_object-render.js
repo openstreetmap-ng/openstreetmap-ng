@@ -60,7 +60,9 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMChangeset} changeset
      */
     const processChangeset = (changeset) => {
-        const layer = L.rectangle(changeset.bounds ?? [0, 0, 0, 0], styles.changeset)
+        const [minLon, minLat, maxLon, maxLat] = changeset.bounds ?? [0, 0, 0, 0]
+        const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+        const layer = L.rectangle(latLngBounds, styles.changeset)
         layer.object = changeset
         layers.push(layer)
     }

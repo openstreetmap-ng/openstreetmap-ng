@@ -40,7 +40,8 @@ export const getChangesetController = (map) => {
             })
 
             // Focus on the changeset if it's offscreen
-            const latLngBounds = L.latLngBounds(bounds)
+            const [minLon, minLat, maxLon, maxLat] = bounds
+            const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
             if (!map.getBounds().contains(latLngBounds)) {
                 map.fitBounds(latLngBounds, { animate: false })
             }
