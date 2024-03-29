@@ -74,7 +74,9 @@
             {% if user is not none %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/changeset/{{ changeset.id }}/discussion/subscribe">
-                <button class="btn btn-sm btn-light">{{ t('javascripts.changesets.show.subscribe') }}</button>
+                <button class="btn btn-sm btn-light">
+                    {{ t('javascripts.changesets.show.subscribe') }}
+                </button>
             </form>
             {% endif %}
         </div>
@@ -100,23 +102,45 @@
         {% endif %}
 
         {% if user is not none %}
-        <form class="comment-form" method="POST" action="/api/web/changeset/{{ changeset.id }}/discussion">
+        <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/discussion">
             <div class="mb-3">
                 <textarea class="form-control" name="comment" rows="4" required></textarea>
             </div>
             <div class="text-end">
                 <button class="btn btn-primary">
-                    <i class="bi bi-chat-right-fill me-1"></i>
                     {{ t('action.comment') }}
                 </button>
             </div>
         </form>
         {% else %}
-        {# TODO: referer here? #}
-        <p><a href="/login">{{ t('browse.changeset.join_discussion') }}</a></p>
-        {% endif%}
+        <p class="text-center mb-2">
+            {# TODO: referer here? #}
+            <a href="/login">
+                {{ t('browse.changeset.join_discussion') }}
+            </a>
+        </p>
+        {% endif %}
 
-        ...elements...
+        <div class="elements mt-4 mb-1">
+            <template class="group">
+                <h4 class="title mt-3"></h4>
+                <table class="table table-borderless mb-0">
+                    <tbody></tbody>
+                </table>
+                <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+                    <ul class="pagination pagination-sm justify-content-end mt-2"></ul>
+                </nav>
+            </template>
+            <template class="entry">
+                <tr>
+                    <td><img></td>
+                    <td>
+                        <a class="link-latest"></a>,
+                        <a class="link-version"></a>
+                    </td>
+                </tr>
+            </template>
+        </div>
 
     </div>
     <div class="section">

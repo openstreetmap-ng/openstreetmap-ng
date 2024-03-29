@@ -51,13 +51,11 @@ async def get_changeset(changeset_id: PositiveInt):
             'changeset': changeset,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'nodes': elements['node'],
-            'ways': elements['way'],
-            'relations': elements['relation'],
             'params': JSON_ENCODE(
                 {
                     'id': changeset_id,
                     **({'bounds': changeset.bounds.bounds} if (changeset.bounds is not None) else {}),
+                    'elements': elements,
                 }
             ).decode(),
         },

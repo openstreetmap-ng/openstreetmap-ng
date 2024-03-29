@@ -78,6 +78,10 @@ Last update: 2024-03-17
 - Manual selection of area is now easier to use
 - Fix visual bug when crossing 180th meridian
 - Centered application logo
+- Location filter is now easier to use
+- Elements pagination does not require a sidebar reload (now client-sided)
+- Elements pagination is now easier to navigate, min width is 2 characters
+- New about page map image, featuring only free styles
 
 ## Backend
 
@@ -132,3 +136,4 @@ Last update: 2024-03-17
 - Rename mapnik to standard layer internally
 - More robust handling of 180th meridian
 - Sudo permissions are no longer required to develop the application
+- Reduce location filter library size

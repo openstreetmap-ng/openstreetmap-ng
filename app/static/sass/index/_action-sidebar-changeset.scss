@@ -6,12 +6,23 @@
     }
 
     .elements {
+        td {
+            padding: 0;
+        }
+
         // Style the elements icons
-        .icon {
-            display: inline-block;
-            width: 2em;
-            height: 1em;
-            object-fit: contain;
+        tr {
+            td:first-child {
+                width: 2em;
+                line-height: 1;
+
+                img {
+                    display: inline-block;
+                    width: 2em;
+                    height: 1.5em;
+                    object-fit: contain;
+                }
+            }
         }
 
         // Style the deleted elements
@@ -22,6 +33,14 @@
             .icon {
                 // TODO: adjust
                 opacity: 0.8;
+            }
+        }
+
+        .pagination {
+            text-align: center;
+
+            .page-link {
+                min-width: calc(2ch + 16px + 2px);
             }
         }
     }

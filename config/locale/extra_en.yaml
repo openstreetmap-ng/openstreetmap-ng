@@ -64,6 +64,7 @@ alt:
   map_layers_art: Artistic presentation of map layers
   happy_globe_mascot: A globe mascot with a big smile
   arm_pointing_down: An arm pointing down
+  elements_page_navigation: Elements page navigation
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.

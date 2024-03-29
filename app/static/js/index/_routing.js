@@ -145,6 +145,8 @@ export const getRoutingController = (map) => {
         for (const step of route.steps) {
             stepNumber += 1
 
+            // TODO: template
+
             const row = document.createElement("tr")
             newRows.push(row)
 
