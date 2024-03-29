@@ -210,10 +210,7 @@ export const getShareSidebarToggleButton = () => {
         const onCustomRegionCheckboxChange = () => {
             if (customRegionCheckbox.checked) {
                 if (!locationFilter) {
-                    locationFilter = getLocationFilter({
-                        enableButton: false,
-                        adjustButton: false,
-                    })
+                    locationFilter = getLocationFilter()
                     locationFilter.addEventListener("change", onMapZoomOrLayerChange)
                 }
 

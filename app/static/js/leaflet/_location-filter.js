@@ -3,7 +3,7 @@
  * Copyright (C) 2012, Tripbirds.com, http://tripbirds.com
  * https://github.com/kajic/leaflet-locationfilter
  * Originally licensed under the MIT License.
- * Modification licensed under the CC0 1.0 Universal License.
+ * Modification licensed under the Unlicense <https://unlicense.org/>.
  */
 import * as L from "leaflet"
 
@@ -19,87 +19,10 @@ L.LatLngBounds.prototype.modify = function (map, amount) {
     return new L.LatLngBounds(sw, ne)
 }
 
-L.Control.Button = L.Class.extend({
-    initialize: function (options) {
-        L.Util.setOptions(this, options)
-    },
-
-    addTo: function (container) {
-        container.addButton(this)
-        return this
-    },
-
-    onAdd: function (buttonContainer) {
-        this._buttonContainer = buttonContainer
-        this._button = L.DomUtil.create("a", this.options.className, this._buttonContainer.getContainer())
-        this._button.href = "#"
-        this.setText(this.options.text)
-
-        this._onClick = (event) => {
-            this.options.onClick.call(this, event)
-        }
-
-        L.DomEvent.on(this._button, "click", L.DomEvent.stopPropagation)
-            .on(this._button, "mousedown", L.DomEvent.stopPropagation)
-            .on(this._button, "dblclick", L.DomEvent.stopPropagation)
-            .on(this._button, "click", L.DomEvent.preventDefault)
-            .on(this._button, "click", this._onClick, this)
-    },
-
-    remove: function () {
-        L.DomEvent.off(this._button, "click", this._onClick)
-        this._buttonContainer.getContainer().removeChild(this._button)
-    },
-
-    setText: function (text) {
-        this._button.title = text
-        this._button.innerHTML = text
-    },
-})
-
-L.Control.ButtonContainer = L.Control.extend({
-    options: {
-        position: "topleft",
-    },
-
-    getContainer: function () {
-        if (!this._container) {
-            this._container = L.DomUtil.create("div", this.options.className)
-        }
-        return this._container
-    },
-
-    onAdd: function (map) {
-        this._map = map
-        return this.getContainer()
-    },
-
-    addButton: function (button) {
-        button.onAdd(this)
-    },
-
-    addClass: function (className) {
-        L.DomUtil.addClass(this.getContainer(), className)
-    },
-
-    removeClass: function (className) {
-        L.DomUtil.removeClass(this.getContainer(), className)
-    },
-})
-
 const LocationFilter = L.Layer.extend({
     includes: L.Evented,
 
-    options: {
-        enableButton: {
-            enableText: "Select area",
-            disableText: "Remove selection",
-        },
-        adjustButton: {
-            text: "Select area within current zoom",
-        },
-        buttonPosition: "topleft",
-    },
+    options: {},
 
     initialize: function (options) {
         L.Util.setOptions(this, options)
@@ -112,21 +35,10 @@ const LocationFilter = L.Layer.extend({
 
     onAdd: function (map) {
         this._map = map
-
-        if (this.options.enableButton || this.options.adjustButton) {
-            this._initializeButtonContainer()
-        }
-
-        if (this.options.enable) {
-            this.enable()
-        }
     },
 
     onRemove: function (map) {
         this.disable()
-        if (this._buttonContainer) {
-            this._buttonContainer.removeFrom(map)
-        }
     },
 
     /* Get the current filter bounds */
@@ -361,19 +273,6 @@ const LocationFilter = L.Layer.extend({
         this._sw = bounds.getSouthWest()
         this._se = bounds.getSouthEast()
 
-        // Update buttons
-        if (this._buttonContainer) {
-            this._buttonContainer.addClass("enabled")
-        }
-
-        if (this._enableButton) {
-            this._enableButton.setText(this.options.enableButton.disableText)
-        }
-
-        if (this.options.adjustButton) {
-            this._createAdjustButton()
-        }
-
         // Draw filter
         this._initialDraw()
         this._draw()
@@ -406,19 +305,6 @@ const LocationFilter = L.Layer.extend({
             return
         }
 
-        // Update buttons
-        if (this._buttonContainer) {
-            this._buttonContainer.removeClass("enabled")
-        }
-
-        if (this._enableButton) {
-            this._enableButton.setText(this.options.enableButton.enableText)
-        }
-
-        if (this._adjustButton) {
-            this._adjustButton.remove()
-        }
-
         // Remove event listener
         this._map.off("move", this._moveHandler)
 
@@ -430,50 +316,6 @@ const LocationFilter = L.Layer.extend({
         // Fire the disabled event
         this.fire("disabled")
     },
-
-    /* Create a button that allows the user to adjust the location
-       filter to the current zoom */
-    _createAdjustButton: function () {
-        this._adjustButton = new L.Control.Button({
-            className: "adjust-button",
-            text: this.options.adjustButton.text,
-
-            onClick: () => {
-                this._adjustToMap()
-                this.fire("adjustToZoomClick")
-            },
-        }).addTo(this._buttonContainer)
-    },
-
-    /* Create the location filter button container and the button that
-       toggles the location filter */
-    _initializeButtonContainer: function () {
-        this._buttonContainer = new L.Control.ButtonContainer({
-            className: "location-filter button-container",
-            position: this.options.buttonPosition,
-        })
-
-        if (this.options.enableButton) {
-            this._enableButton = new L.Control.Button({
-                className: "enable-button",
-                text: this.options.enableButton.enableText,
-
-                onClick: () => {
-                    if (!this._enabled) {
-                        // Enable the location filter
-                        this.enable()
-                        this.fire("enableClick")
-                    } else {
-                        // Disable the location filter
-                        this.disable()
-                        this.fire("disableClick")
-                    }
-                },
-            }).addTo(this._buttonContainer)
-        }
-
-        this._buttonContainer.addTo(this._map)
-    },
 })
 
-export const getLocationFilter = (options) => new LocationFilter(options)
+export const getLocationFilter = () => new LocationFilter()
