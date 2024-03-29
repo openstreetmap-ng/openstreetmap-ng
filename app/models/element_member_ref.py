@@ -4,12 +4,12 @@ from sqlalchemy import Dialect, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
 
 from app.models.element_ref import ElementRef
-from app.models.str import EmptyStr255
+from app.models.str import RoleStr
 
 
 @dataclass(frozen=True, slots=True)
 class ElementMemberRef(ElementRef):
-    role: EmptyStr255
+    role: RoleStr
 
 
 # ideally we would use a composite type here,

@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-import cython
 from fastapi import Security
 from fastapi.security import SecurityScopes
 

@@ -15,7 +15,6 @@ class Tag06Mixin:
         ... ])
         {'a': '1', 'b': '2'}
         """
-
         return TagsValidating(tags=_decode_tags_unsafe(tags)).tags
 
 
@@ -30,7 +29,6 @@ def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
     ... ])
     {'a': '1', 'b': '2'}
     """
-
     items = tuple((tag['@k'], tag['@v']) for tag in tags)
     result = dict(items)
 
