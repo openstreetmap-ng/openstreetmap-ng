@@ -180,6 +180,10 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
                 iconImg.remove()
             }
 
+            if (!element.visible) {
+                linkLatest.parentElement.classList.add("deleted")
+            }
+
             linkLatest.textContent = element.name ? `${element.name} (${element.id})` : element.id
             linkLatest.href = `/${type}/${element.id}`
 
