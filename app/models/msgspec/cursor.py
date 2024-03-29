@@ -46,7 +46,7 @@ class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
             raise_for().bad_cursor()
 
         # optionally check expiration
-        if expire is not None and (obj.time is None or obj.time + expire < utcnow()):
+        if (expire is not None) and (obj.time is None or obj.time + expire < utcnow()):
             raise_for().cursor_expired()
 
         return obj

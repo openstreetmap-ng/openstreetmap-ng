@@ -106,7 +106,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
 
     @hybrid_method
     def visible_to(self, user: User | None, scopes: Sequence[ExtendedScope]) -> bool:
-        if user is not None and ExtendedScope.read_gpx in scopes:
+        if (user is not None) and ExtendedScope.read_gpx in scopes:
             return self.linked_to_user_on_site or (self.user_id == user.id)
         else:
             return self.linked_to_user_on_site
@@ -114,7 +114,7 @@ class Trace(Base.Sequential, CreatedAtMixin):
     @visible_to.expression
     @classmethod
     def visible_to(cls, user: User | None, scopes: Sequence[ExtendedScope]) -> ColumnElement[bool]:
-        if user is not None and ExtendedScope.read_gpx in scopes:
+        if (user is not None) and ExtendedScope.read_gpx in scopes:
             return cls.linked_to_user_on_site | (cls.user_id == user.id)
         else:
             return cls.linked_to_user_on_site

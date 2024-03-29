@@ -27,6 +27,7 @@ Last update: 2024-03-17
 - Add script for updating list of tags with wiki pages
 - Test environment now includes preregistered users for quicker testing, there is an UI too
 - Update http links to https
+- Support addr:place in feature names
 
 ## Frontend
 

@@ -66,7 +66,6 @@ class TraceFile:
 
         Returns the compressed buffer and the file name suffix.
         """
-
         return ZstdFileProcessor.compress(buffer), ZstdFileProcessor.suffix
 
     @staticmethod
@@ -74,7 +73,6 @@ class TraceFile:
         """
         Decompress the trace file buffer if needed.
         """
-
         if file_id.endswith(ZstdFileProcessor.suffix):
             return ZstdFileProcessor.decompress(buffer)
 

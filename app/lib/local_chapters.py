@@ -30,5 +30,4 @@ def local_chapters() -> Sequence[tuple[str, str]]:
     >>> local_chapters()
     [('be-chapter', 'https://openstreetmap.be'), ...]
     """
-
     return _local_chapters

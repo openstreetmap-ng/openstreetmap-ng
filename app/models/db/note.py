@@ -55,7 +55,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:
-        if user is not None and user.is_moderator:
+        if (user is not None) and user.is_moderator:
             return True
 
         return self.hidden_at is None
@@ -63,7 +63,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     @visible_to.expression
     @classmethod
     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
-        if user is not None and user.is_moderator:
+        if (user is not None) and user.is_moderator:
             return true()
 
         return cls.hidden_at == null()

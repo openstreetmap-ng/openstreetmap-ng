@@ -35,7 +35,7 @@ class OAuth1TokenService:
         callback_url = callback_url_param or app.callback_url
 
         # oob requests don't contain a callback url
-        if callback_url is not None and callback_url[:3].lower() == 'oob':
+        if (callback_url is not None) and callback_url[:3].lower() == 'oob':
             callback_url = None
 
         # validate the callback url

@@ -20,7 +20,8 @@ def test_feature_prefix():
 
 
 def test_feature_name():
-    with translation_context('en'):
-        assert feature_name(123, {'name': 'Foo'}) == 'Foo'
-        assert feature_name(123, {}) == '#123'
-        assert feature_name(123, {'non_existing_key': 'aaa'}) == '#123'
+    with translation_context('pl'):
+        assert feature_name({'name': 'Foo'}) == 'Foo'
+        assert feature_name({'name:pl': 'Foo', 'name': 'Bar'}) == 'Foo'
+        assert feature_name({'non_existing_key': 'aaa'}) is None
+        assert feature_name({}) is None

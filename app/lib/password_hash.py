@@ -52,7 +52,7 @@ class PasswordHash:
             return compare_digest(password_hashed, valid_hash)
 
         # pbkdf2 (deprecated)
-        if salt is not None and '!' in salt:
+        if (salt is not None) and '!' in salt:
             password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = salt.split('!')
             iterations = int(iterations_)
@@ -73,13 +73,11 @@ class PasswordHash:
         """
         Hash a password using latest recommended algorithm.
         """
-
         return self._hasher.hash(password.get_secret_value())
 
     @classmethod
     def default(cls) -> Self:
         """
-        Get a default password hasher.
+        Get the default password hasher.
         """
-
         return cls(UserRole.get_password_hasher(()))

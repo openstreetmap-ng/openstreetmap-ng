@@ -24,13 +24,13 @@ def _get_legal_data() -> dict[str, str]:
 _legal_data = _get_legal_data()
 
 
-def get_legal_terms(locale: str) -> str:
+def legal_terms(locale: str) -> str:
     """
     Get legal terms for a locale as HTML.
 
-    >>> get_legal('GB')
+    >>> legal_terms('GB')
     '<p>Thank you for your interest in contributing...</p>'
-    >>> get_legal('NonExistent')
+    >>> legal_terms('NonExistent')
     KeyError: 'NonExistent'
     """
     return _legal_data[locale]

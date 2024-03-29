@@ -50,7 +50,7 @@ class FileCache:
 
         entry = FileCacheMeta.from_bytes(entry_bytes)
 
-        if entry.expires_at is not None and entry.expires_at < int(time.time()):
+        if (entry.expires_at is not None) and entry.expires_at < int(time.time()):
             logging.debug('Cache miss for %r', key)
             await path.unlink(missing_ok=True)
             return None

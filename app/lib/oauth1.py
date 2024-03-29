@@ -13,10 +13,8 @@ def _compute_hmac_sha1(request: OAuth1Request, consumer_secret: str, token_secre
     """
     Compute the HMAC-SHA1 signature for an OAuth1 request.
     """
-
     base_string = generate_signature_base_string(request)
     signature = hmac_sha1_signature(base_string, consumer_secret, token_secret)
-
     return signature
 
 
@@ -26,7 +24,6 @@ class OAuth1:
         """
         Convert a FastAPI request to an OAuth1Request.
         """
-
         return OAuth1Request(
             method=request.method,
             uri=str(request.url),

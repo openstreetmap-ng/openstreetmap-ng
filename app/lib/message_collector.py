@@ -16,21 +16,18 @@ class MessageCollector:
         """
         Collect a success message for a field.
         """
-
         self._messages[field].append(('success', message))
 
     def info(self, field: str | None, message: str) -> None:
         """
         Collect an info message for a field.
         """
-
         self._messages[field].append(('info', message))
 
     def raise_error(self, field: str | None, message: str) -> NoReturn:
         """
         Collect an error message for a field and raise a HTTPException.
         """
-
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
             detail=(
@@ -47,7 +44,6 @@ class MessageCollector:
         """
         Return the collected messages as a dict.
         """
-
         return {
             'detail': tuple(
                 {

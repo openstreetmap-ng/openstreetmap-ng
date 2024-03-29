@@ -84,7 +84,7 @@ class OptimisticDiffApply:
         """
 
         element = await ElementRepository.find_one_latest()
-        if element is not None and element.created_at > self._now:
+        if (element is not None) and element.created_at > self._now:
             logging.error(
                 'Element %r/%r was created in the future: %r > %r',
                 element.type,

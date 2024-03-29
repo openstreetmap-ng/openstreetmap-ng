@@ -10,12 +10,6 @@ else:
     from math import atan2, cos, pi, sin, sqrt
 
 
-# @cython.cfunc
-#
-# def degrees(x: cython.double) -> cython.double:
-#     return x * (180 / pi)
-
-
 @cython.cfunc
 def radians(x: cython.double) -> cython.double:
     return x * (pi / 180)
@@ -28,7 +22,6 @@ def meters_to_radians(meters: float) -> float:
     >>> meters_to_radians(1000)
     0.008993216059693147
     """
-
     return meters / 6371000  # R
 
 
@@ -39,7 +32,6 @@ def radians_to_meters(radians: float) -> float:
     >>> radians_to_meters(0.008993216059693147)
     1000.0
     """
-
     return radians * 6371000  # R
 
 

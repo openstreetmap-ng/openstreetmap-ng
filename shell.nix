@@ -175,6 +175,12 @@ let
         rm -rf "$dir"/**/*{.c,.html,.so}
       done
     '')
+    (writeShellScriptBin "watch-cython" ''
+      cython-build
+      while inotifywait -e close_write app/**/*.py; do
+        cython-build
+      done
+    '')
 
     # -- Alembic
     (writeShellScriptBin "alembic-migration" ''

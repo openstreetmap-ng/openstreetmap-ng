@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import cython
 
 from app.config import CONFIG_DIR
+from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.element_format import ElementFormat
 from app.models.element_ref import VersionedElementRef
@@ -36,7 +37,8 @@ async def elements_format(elements: Sequence[Element]) -> dict[ElementType, Sequ
 
     for element in elements:
         prev = prev_ref_map.get(element.element_ref)
-        resolved = _resolve_icon(prev, element)
+        tags = prev.tags if (prev is not None) else element.tags
+        resolved = _resolve_icon(element.type, tags)
 
         if resolved is not None:
             icon = resolved[0]
@@ -50,19 +52,20 @@ async def elements_format(elements: Sequence[Element]) -> dict[ElementType, Sequ
                 id=element.id,
                 version=element.version,
                 visible=element.visible,
+                name=feature_name(tags) if tags else None,
                 icon=icon,
                 icon_title=icon_title,
             )
         )
 
     for v in result.values():
-        v.sort(key=lambda x: (not x.visible, x.id, x.version))
+        v.sort(key=_sort_key)
 
     return result
 
 
 @cython.cfunc
-def _resolve_icon(prev: Element | None, element: Element):
+def _resolve_icon(type: ElementType, tags: dict[str, str]):
     """
     Get the filename and title of the icon for an element.
 
@@ -72,25 +75,17 @@ def _resolve_icon(prev: Element | None, element: Element):
     'aeroway_terminal.webp', 'aeroway=terminal'
     """
 
-    if element.visible:
-        tags = element.tags
-    elif prev is not None:
-        tags = prev.tags
-    else:
-        return None
-
     # small optimization, most elements don't have any tags
     if not tags:
         return None
 
-    element_type = element.type
     matched_keys = _config_keys.intersection(tags)
 
     # 1. check value-specific configuration
     for key in matched_keys:
         key_value = tags[key]
         key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(element_type)
+        type_config: dict[str, str] | None = key_config.get(type)
 
         # prefer type-specific configuration
         if (type_config is not None) and (icon := type_config.get(key_value)) is not None:
@@ -102,7 +97,7 @@ def _resolve_icon(prev: Element | None, element: Element):
     # 2. check key-specific configuration (generic)
     for key in matched_keys:
         key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(element_type)
+        type_config: dict[str, str] | None = key_config.get(type)
 
         # prefer type-specific configuration
         if (type_config is not None) and (icon := type_config.get('*')) is not None:
@@ -112,6 +107,11 @@ def _resolve_icon(prev: Element | None, element: Element):
             return icon, key
 
     return None
+
+
+@cython.cfunc
+def _sort_key(element: Element) -> tuple:
+    return (not element.visible, element.id, element.version)
 
 
 @cython.cfunc

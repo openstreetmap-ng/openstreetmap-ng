@@ -70,7 +70,6 @@ def web_user() -> User:
     return Security(_get_user, scopes=(ExtendedScope.web_user,))
 
 
-@cython.cfunc
 def _get_user(require_scopes: SecurityScopes) -> User:
     """
     Get the authenticated user.

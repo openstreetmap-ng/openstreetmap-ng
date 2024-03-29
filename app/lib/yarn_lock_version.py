@@ -31,7 +31,6 @@ def yarn_lock_version(name: str) -> str:
     >>> yarn_lock_version('iD')
     '60eb7d7'
     """
-
     result = _yarn_lock_versions[name]
     logging.info('Yarn lock for %s is %s', name, result)
     return result
