@@ -45,7 +45,7 @@ class ChangesetCommentRepository:
 
             stmt = (
                 select(ChangesetComment)
-                .where(ChangesetComment.id.in_(union_all(*stmts).subquery()))
+                .where(ChangesetComment.id.in_(union_all(*stmts).subquery().select()))
                 .order_by(ChangesetComment.created_at.asc())
             )
             stmt = apply_statement_context(stmt)

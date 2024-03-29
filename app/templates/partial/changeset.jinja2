@@ -7,33 +7,37 @@
                     {{ t('browse.in_changeset') }}: {{ changeset.id }}
                 </h2>
             </div>
-            <div class="col-auto d-flex flex-column justify-content-between align-items-end">
+            <div class="col-auto">
                 <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
-                {% if changeset.closed_at is none %}
-                <div class="open-badge badge text-bg-success my-2"
-                    title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
-                    {{ t('changeset.open') }}
-                </div>
-                {% endif %}
             </div>
         </div>
 
         <div class="social-entry status">
-            <p class="header text-muted">
-                {% if changeset.user_id is none %}
-                {{ t('browse.anonymous') }}
-                {% else %}
-                <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                    <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
-                #}{{ changeset.user.display_name }}{#
-                #}</a>
-                {% endif %}
+            <p class="header text-muted d-flex justify-content-between">
+                <span>
+                    {% if changeset.user_id is none %}
+                    {{ t('browse.anonymous') }}
+                    {% else %}
+                    <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                        <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                    #}{{ changeset.user.display_name }}{#
+                    #}</a>
+                    {% endif %}
+                    {% if changeset.closed_at is none %}
+                    {{ t('browse.created') | lower }}
+                    {{ timeago(changeset.created_at, html=True) | safe }}
+                    {% else %}
+                    {{ t('browse.closed') | lower }}
+                    {{ timeago(changeset.closed_at, html=True) | safe }}
+                    {% endif %}
+                </span>
                 {% if changeset.closed_at is none %}
-                {{ t('browse.created') | lower }}
-                {{ timeago(changeset.created_at, html=True) | safe }}
-                {% else %}
-                {{ t('browse.closed') | lower }}
-                {{ timeago(changeset.closed_at, html=True) | safe }}
+                <span>
+                    <span class="open-badge badge text-bg-success"
+                        title="{{ t('changeset.this_changeset_is_state', state=t('changeset.open').lower()) }}">
+                        <i class="bi bi-unlock-fill"></i>
+                    </span>
+                </span>
                 {% endif %}
             </p>
             <p class="body fst-italic">
@@ -72,12 +76,22 @@
                 <h4>{{ t('browse.changeset.discussion') }}</h4>
             </div>
             {% if user is not none %}
+            {% if is_subscribed %}
             <form class="col-auto subscription-form" method="POST"
-                action="/api/web/changeset/{{ changeset.id }}/discussion/subscribe">
-                <button class="btn btn-sm btn-light">
+                action="/api/web/changeset/{{ changeset.id }}/unsubscribe">
+                <button class="btn btn-sm btn-light border">
+                    <i class="bi bi-bookmark-check me-1"></i>
+                    {{ t('javascripts.changesets.show.unsubscribe') }}
+                </button>
+            </form>
+            {% else %}
+            <form class="col-auto subscription-form" method="POST"
+                action="/api/web/changeset/{{ changeset.id }}/subscribe">
+                <button class="btn btn-sm btn-light border">
                     {{ t('javascripts.changesets.show.subscribe') }}
                 </button>
             </form>
+            {% endif %}
             {% endif %}
         </div>
 
@@ -102,7 +116,7 @@
         {% endif %}
 
         {% if user is not none %}
-        <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/discussion">
+        <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/comment">
             <div class="mb-3">
                 <textarea class="form-control" name="comment" rows="4" required></textarea>
             </div>

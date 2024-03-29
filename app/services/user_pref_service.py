@@ -22,7 +22,6 @@ class UserPrefService:
         """
         Set a user preference.
         """
-
         async with db_autocommit() as session:
             logging.debug('Setting user pref %r for app %r', pref.key, pref.app_id)
             stmt = (
@@ -48,7 +47,6 @@ class UserPrefService:
         """
         Set multiple user preferences.
         """
-
         if len(prefs) > USER_PREF_BULK_SET_LIMIT:
             raise_for().pref_bulk_set_limit_exceeded()
 
@@ -82,7 +80,6 @@ class UserPrefService:
         """
         Delete a user preference by app id and key.
         """
-
         async with db_autocommit() as session:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             stmt = delete(UserPref).where(
@@ -98,7 +95,6 @@ class UserPrefService:
         """
         Delete all user preferences by app id.
         """
-
         async with db_autocommit() as session:
             logging.debug('Deleting user prefs for app %r', app_id)
             stmt = delete(UserPref).where(
