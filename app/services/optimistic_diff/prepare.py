@@ -81,7 +81,6 @@ class OptimisticDiffPrepare:
         """
         Prepare the optimistic update.
         """
-
         async with create_task_group() as tg:
             # update and validate changesets
             tg.start_soon(self._update_changesets)
@@ -154,7 +153,6 @@ class OptimisticDiffPrepare:
         """
         Get the changeset from the local state or the database if not found.
         """
-
         if (changeset := self.changeset_state.get(changeset_id)) is not None:
             return changeset
 
@@ -180,7 +178,6 @@ class OptimisticDiffPrepare:
 
         Boundaries are not updated as a part of this method.
         """
-
         if self.changeset_state:
             raise RuntimeError('Cannot update changesets with non-empty local state')
 
@@ -210,7 +207,6 @@ class OptimisticDiffPrepare:
         """
         Preload elements from the database.
         """
-
         # read property once for performance
         element_state = self.element_state
 
@@ -242,7 +238,6 @@ class OptimisticDiffPrepare:
         """
         Remember the last sequence id and check the time integrity.
         """
-
         if self.last_sequence_id is not None:
             raise RuntimeError('Last sequence id already assigned')
 
@@ -267,7 +262,6 @@ class OptimisticDiffPrepare:
 
         The returned elements order *IS NOT* preserved.
         """
-
         # read property once for performance
         element_state = self.element_state
 
@@ -311,7 +305,6 @@ class OptimisticDiffPrepare:
         """
         Update the local element state with the new element.
         """
-
         self.element_state[element.element_ref].append(element)
 
     def _update_reference_override(
@@ -350,7 +343,6 @@ class OptimisticDiffPrepare:
         """
         Check if the members exists and are visible.
         """
-
         elements = await self._get_latest_elements(element_refs_unique)
 
         for element in elements:
@@ -361,7 +353,6 @@ class OptimisticDiffPrepare:
         """
         Check if the element is not referenced by other elements.
         """
-
         # read property once for performance
         reference_override = self._reference_override
         element_parent_refs_cache = self._element_parent_refs_cache
@@ -411,7 +402,6 @@ class OptimisticDiffPrepare:
         """
         Push bbox info for later processing.
         """
-
         element_type = element.type
         if element_type == 'node':
             self._push_bbox_node_info(prev, element)
@@ -426,7 +416,6 @@ class OptimisticDiffPrepare:
         """
         Push bbox info for a node.
         """
-
         bbox_info = self._changeset_bbox_info[element.changeset_id]
 
         element_point = element.point
@@ -444,7 +433,6 @@ class OptimisticDiffPrepare:
 
         Way info contains all nodes.
         """
-
         # read property once for performance
         element_state = self.element_state
 
@@ -466,7 +454,6 @@ class OptimisticDiffPrepare:
 
         Relation info contains either all members or only changed members.
         """
-
         # read property once for performance
         element_state = self.element_state
 

@@ -1,4 +1,3 @@
-import "@rapideditor/rapid"
 import { apiUrl, primaryLanguage, rapidVersion } from "./_config.js"
 import { parentLoadSystemApp } from "./_system-app.js"
 

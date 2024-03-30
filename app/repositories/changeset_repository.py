@@ -59,7 +59,8 @@ class ChangesetRepository:
                 else:
                     where_and.append(Changeset.closed_at != null())
             if geometry is not None:
-                where_and.append(func.ST_Intersects(Changeset.bounds, geometry.wkt))
+                geometry_wkt = 'SRID=4326;' + geometry.wkt
+                where_and.append(func.ST_Intersects(Changeset.bounds, geometry_wkt))
 
             if where_and:
                 stmt = stmt.where(*where_and)

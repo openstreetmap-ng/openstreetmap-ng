@@ -1,4 +1,4 @@
-import { getSystemAppAccessToken } from "./_local-storage.js"
+import { getSystemAppAccessToken, setSystemAppAccessToken } from "./_local-storage.js"
 
 /**
  * Load system app access token and call successCallback with it
@@ -32,7 +32,9 @@ const loadSystemApp = (clientId, successCallback) => {
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
             const data = await resp.json()
-            successCallback(data.access_token)
+            const accessToken = data.access_token
+            setSystemAppAccessToken(clientId, accessToken)
+            successCallback(accessToken)
         })
         .catch((error) => {
             console.error("Failed to create system app access token", error)

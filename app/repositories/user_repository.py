@@ -68,7 +68,7 @@ class UserRepository:
         Users position is determined by their home point.
         """
 
-        point_wkt = point.wkt
+        point_wkt = 'SRID=4326;' + point.wkt
 
         async with db() as session:
             stmt = (

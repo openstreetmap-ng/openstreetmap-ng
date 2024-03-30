@@ -49,7 +49,6 @@ class ElementRepository:
 
         This method does not check for the existence of the given elements.
         """
-
         # small optimization
         if not versioned_refs:
             return ()
@@ -85,7 +84,6 @@ class ElementRepository:
 
         Results are sorted by version in ascending order (oldest first).
         """
-
         async with db() as session:
             stmt = (
                 select(Element)
@@ -116,7 +114,6 @@ class ElementRepository:
 
         This method does not check for the existence of the given elements.
         """
-
         # small optimization
         if not element_refs:
             return ()
@@ -182,7 +179,6 @@ class ElementRepository:
 
         Results are returned in the same order as the refs but the duplicates are skipped.
         """
-
         # small optimization
         if not refs:
             return ()
@@ -245,7 +241,6 @@ class ElementRepository:
 
         This method does not check for the existence of the given element.
         """
-
         # small optimization
         if not member_refs:
             return ()
@@ -295,7 +290,6 @@ class ElementRepository:
 
         If sort_by_id is False, the results are sorted by sequence_id in ascending order.
         """
-
         async with db() as session:
             stmt = (
                 select(Element)
@@ -325,7 +319,6 @@ class ElementRepository:
 
         Results don't include duplicates.
         """
-
         # TODO: point in time
         point_in_time = utcnow()
 
@@ -334,13 +327,15 @@ class ElementRepository:
                 raise ValueError('nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
             nodes_limit += 1  # to detect limit exceeded
 
+        geometry_wkt = 'SRID=4326;' + geometry.wkt
+
         # find all the matching nodes
         async with db() as session:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
                 or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 Element.type == 'node',
-                func.ST_Intersects(Element.point, geometry.wkt),
+                func.ST_Intersects(Element.point, geometry_wkt),
             )
             stmt = apply_statement_context(stmt)
 

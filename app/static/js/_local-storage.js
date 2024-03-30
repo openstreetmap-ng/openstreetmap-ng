@@ -84,7 +84,7 @@ export const setLastRoutingEngine = (engine) => localStorage.setItem("lastRoutin
  * @param {string} clientId System app client ID
  * @returns {string|null} Access token
  */
-export const getSystemAppAccessToken = (clientId) => localStorage.getItem(`system-app-access-token-${clientId}`)
+export const getSystemAppAccessToken = (clientId) => localStorage.getItem(`systemAppAccessToken-${clientId}`)
 
 /**
  * Set access token for system app to local storage
@@ -93,4 +93,4 @@ export const getSystemAppAccessToken = (clientId) => localStorage.getItem(`syste
  * @returns {void}
  */
 export const setSystemAppAccessToken = (clientId, accessToken) =>
-    localStorage.setItem(`system-app-access-token-${clientId}`, accessToken)
+    localStorage.setItem(`systemAppAccessToken-${clientId}`, accessToken)

@@ -26,6 +26,8 @@ const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? remo
  * routerNavigateStrict("/way/1234")
  */
 export const routerNavigateStrict = (newPath) => {
+    console.debug("routerNavigateStrict", newPath)
+
     if (!routerNavigate(newPath)) {
         throw new Error(`No route found for path: ${newPath}`)
     }
@@ -40,6 +42,8 @@ export const routerNavigateStrict = (newPath) => {
  * // => true
  */
 export const routerNavigate = (newPath) => {
+    console.debug("routerNavigate", newPath)
+
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
 

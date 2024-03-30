@@ -258,8 +258,11 @@ class OptimisticDiffApply:
         assigned_id_map: dict[ElementRef, int] = {}
 
         for element in elements_without_id:
-            # check for existing assigned id
-            if (assigned_id := assigned_id_map.get(element.element_ref)) is not None:
+            original_element_ref = element.element_ref
+
+            # check for already assigned id
+            assigned_id = assigned_id_map.get(original_element_ref)
+            if assigned_id is not None:
                 element.id = assigned_id
                 continue
 
@@ -267,7 +270,7 @@ class OptimisticDiffApply:
             assigned_id = type_next_id_map[element.type]
             type_next_id_map[element.type] += 1
             element.id = assigned_id
-            assigned_id_map[element.element_ref] = assigned_id
+            assigned_id_map[original_element_ref] = assigned_id
 
         # update elements members
         for element in elements:

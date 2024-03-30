@@ -5,8 +5,10 @@ from fastapi import APIRouter, Query
 from app.format06 import Format06
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
+from app.lib.statement_context import joinedload_context
 from app.lib.xmltodict import get_xattr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
+from app.models.db.element import Element
 from app.repositories.element_repository import ElementRepository
 
 router = APIRouter()
@@ -22,11 +24,12 @@ async def map_read(
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 
-    elements = await ElementRepository.find_many_by_query(
-        geometry,
-        nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
-        legacy_nodes_limit=True,
-    )
+    with joinedload_context(Element.user):
+        elements = await ElementRepository.find_many_by_query(
+            geometry,
+            nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
+            legacy_nodes_limit=True,
+        )
 
     xattr = get_xattr()
     minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support

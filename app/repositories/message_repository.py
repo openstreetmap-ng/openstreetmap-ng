@@ -1,4 +1,4 @@
-from sqlalchemy import false, func, select
+from sqlalchemy import false, func, select, text
 
 from app.db import db
 from app.models.db.message import Message
@@ -14,27 +14,23 @@ class MessageRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(func.count())
-                .select_from(
-                    select(Message).where(
-                        Message.to_user_id == user_id,
-                        Message.to_hidden == false(),
-                    )
-                )
-                .union(
-                    select(func.count()).select_from(
-                        select(Message).where(
-                            Message.to_user_id == user_id,
-                            Message.to_hidden == false(),
-                            Message.is_read == false(),
-                        )
-                    )
+            stmt_total = select(func.count()).select_from(
+                select(text('1')).where(
+                    Message.to_user_id == user_id,
+                    Message.to_hidden == false(),
                 )
             )
+            stmt_unread = select(func.count()).select_from(
+                select(text('1')).where(
+                    Message.to_user_id == user_id,
+                    Message.to_hidden == false(),
+                    Message.is_read == false(),
+                )
+            )
+            stmt = stmt_total.union_all(stmt_unread)
 
-            total, active = (await session.scalars(stmt)).all()
-            return total, active
+            total, unread = (await session.scalars(stmt)).all()
+            return total, unread
 
     @staticmethod
     async def count_sent_by_user_id(user_id: int) -> int:

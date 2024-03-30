@@ -1,6 +1,5 @@
 import re
 from abc import ABC
-from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -49,7 +48,7 @@ class Base:
             from_attributes=True,
             validate_assignment=True,
             validate_default=True,
-        )  # TODO: True only dev/test
+        )
 
         @field_validator('*')
         @classmethod
@@ -62,13 +61,3 @@ class Base:
                 # normalize unicode to NFC form
                 return unicode_normalize(v)
             return v
-
-        @classmethod
-        def from_orm(cls, orm, *, validate: bool = True) -> Self:
-            if validate:
-                return cls.model_validate(orm)
-            else:
-                return cls.model_construct(orm)
-
-        def to_orm_dict(self) -> dict:
-            return super().model_dump(by_alias=True)

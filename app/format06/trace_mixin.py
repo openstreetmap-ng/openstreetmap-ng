@@ -120,12 +120,14 @@ class Trace06Mixin:
 
                     result.append(
                         TracePoint(
-                            **TracePointValidating(
-                                track_idx=track_idx,
-                                captured_at=captured_at,
-                                point=point,
-                                elevation=trkpt.get('ele'),
-                            ).to_orm_dict()
+                            **dict(
+                                TracePointValidating(
+                                    track_idx=track_idx,
+                                    captured_at=captured_at,
+                                    point=point,
+                                    elevation=trkpt.get('ele'),
+                                )
+                            )
                         )
                     )
 
@@ -155,15 +157,17 @@ class Trace06Mixin:
     @staticmethod
     def decode_gpx_file(gpx_file: dict) -> Trace:
         return Trace(
-            **TraceValidating(
-                user_id=auth_user().id,
-                name=gpx_file.get('@name'),
-                description=gpx_file.get('description'),
-                visibility=TraceVisibility(gpx_file.get('@visibility')),
-                size=1,
-                start_point=Point(0, 0),
-                tags=gpx_file.get('tag', ()),
-            ).to_orm_dict()
+            **dict(
+                TraceValidating(
+                    user_id=auth_user().id,
+                    name=gpx_file.get('@name'),
+                    description=gpx_file.get('description'),
+                    visibility=TraceVisibility(gpx_file.get('@visibility')),
+                    size=1,
+                    start_point=Point(0, 0),
+                    tags=gpx_file.get('tag', ()),
+                )
+            )
         )
 
 
@@ -197,10 +201,6 @@ def _encode_point_xml(point: Point) -> dict:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-
     x, y = get_coordinates(point)[0].tolist()
 
-    return {
-        '@lon': x,
-        '@lat': y,
-    }
+    return {'@lon': x, '@lat': y}

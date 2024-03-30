@@ -28,5 +28,4 @@ class TagsValidating(Base.Validating):
                 if size > ELEMENT_TAGS_MAX_SIZE:
                     raise ValueError(f'Element tags size cannot exceed {naturalsize(ELEMENT_TAGS_MAX_SIZE)}')
 
-        # sort by key
-        return dict(sorted(tags.items()))
+        return tags

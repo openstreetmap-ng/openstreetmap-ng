@@ -86,12 +86,14 @@ class User06Mixin:
 
         return tuple(
             UserPref(
-                **UserPrefValidating(
-                    user_id=user_id,
-                    app_id=None,  # 0.6 api does not support prefs partitioning
-                    key=pref['@k'],
-                    value=pref['@v'],
-                ).to_orm_dict()
+                **dict(
+                    UserPrefValidating(
+                        user_id=user_id,
+                        app_id=None,  # 0.6 api does not support prefs partitioning
+                        key=pref['@k'],
+                        value=pref['@v'],
+                    )
+                )
             )
             for pref in prefs
         )
@@ -227,16 +229,9 @@ def _encode_point(point: Point, *, is_json: cython.char) -> dict:
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
-
     x, y = get_coordinates(point)[0].tolist()
 
     if is_json:
-        return {
-            'lon': x,
-            'lat': y,
-        }
+        return {'lon': x, 'lat': y}
     else:
-        return {
-            '@lon': x,
-            '@lat': y,
-        }
+        return {'@lon': x, '@lat': y}

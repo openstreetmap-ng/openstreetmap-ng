@@ -37,10 +37,12 @@ class OAuth1NonceService:
 
         try:
             nonce = OAuth1Nonce(
-                **OAuth1NonceValidating(
-                    nonce=nonce_str,
-                    created_at=created_at,
-                ).to_orm_dict()
+                **dict(
+                    OAuth1NonceValidating(
+                        nonce=nonce_str,
+                        created_at=created_at,
+                    )
+                )
             )
         except ValidationError:
             logging.debug('OAuth nonce timestamp invalid %r', timestamp)

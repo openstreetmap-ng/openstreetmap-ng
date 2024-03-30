@@ -1,4 +1,4 @@
-from sqlalchemy import false, func, select
+from sqlalchemy import false, func, select, text
 
 from app.db import db
 from app.models.db.user_block import UserBlock
@@ -14,22 +14,18 @@ class UserBlockRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(func.count())
-                .select_from(
-                    select(UserBlock).where(
-                        UserBlock.to_user_id == user_id,
-                    )
-                )
-                .union(
-                    select(func.count()).select_from(
-                        select(UserBlock).where(
-                            UserBlock.to_user_id == user_id,
-                            UserBlock.expired == false(),
-                        )
-                    )
+            stmt_total = select(func.count()).select_from(
+                select(text('1')).where(
+                    UserBlock.to_user_id == user_id,
                 )
             )
+            stmt_active = select(func.count()).select_from(
+                select(text('1')).where(
+                    UserBlock.to_user_id == user_id,
+                    UserBlock.expired == false(),
+                )
+            )
+            stmt = stmt_total.union_all(stmt_active)
 
             total, active = (await session.scalars(stmt)).all()
             return total, active
@@ -43,22 +39,18 @@ class UserBlockRepository:
         """
 
         async with db() as session:
-            stmt = (
-                select(func.count())
-                .select_from(
-                    select(UserBlock).where(
-                        UserBlock.from_user_id == user_id,
-                    )
-                )
-                .union(
-                    select(func.count()).select_from(
-                        select(UserBlock).where(
-                            UserBlock.from_user_id == user_id,
-                            UserBlock.expired == false(),
-                        )
-                    )
+            stmt_total = select(func.count()).select_from(
+                select(text('1')).where(
+                    UserBlock.from_user_id == user_id,
                 )
             )
+            stmt_active = select(func.count()).select_from(
+                select(text('1')).where(
+                    UserBlock.from_user_id == user_id,
+                    UserBlock.expired == false(),
+                )
+            )
+            stmt = stmt_total.union_all(stmt_active)
 
             total, active = (await session.scalars(stmt)).all()
             return total, active

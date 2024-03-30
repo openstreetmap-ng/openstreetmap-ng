@@ -22,10 +22,9 @@ class ElementRef:
         """
         Produce a string representation of the element reference.
 
-        >>> TypedElementRef(ElementType.node, 123)
+        >>> ElementRef(ElementType.node, 123)
         'n123'
         """
-
         return f'{self.type[0]}{self.id}'
 
     @classmethod
@@ -33,10 +32,9 @@ class ElementRef:
         """
         Parse an element reference from a string representation.
 
-        >>> TypedElementRef.from_str('n123')
-        TypedElementRef(type=<ElementType.node: 'node'>, id=123)
+        >>> ElementRef.from_str('n123')
+        ElementRef(type=<ElementType.node: 'node'>, id=123)
         """
-
         type = element_type(s)
         id = int(s[1:])
 
@@ -57,7 +55,6 @@ class VersionedElementRef(ElementRef):
         >>> VersionedElementRef(ElementType.node, 123, 1)
         'n123v1'
         """
-
         return f'{self.type[0]}{self.id}v{self.version}'
 
     @override
@@ -69,7 +66,6 @@ class VersionedElementRef(ElementRef):
         >>> VersionedElementRef.from_str('n123v1')
         VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
         """
-
         type = element_type(s)
 
         idx = s.rindex('v')
@@ -91,7 +87,6 @@ class VersionedElementRef(ElementRef):
         >>> VersionedElementRef.from_type_str(ElementType.node, '123v1')
         VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
         """
-
         idx = s.rindex('v')
         id = int(s[:idx])
         version = int(s[idx + 1 :])

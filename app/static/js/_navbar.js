@@ -1,7 +1,8 @@
 import { Tooltip } from "bootstrap"
-import { qsEncode } from "./_qs.js"
+import { qsEncode, qsParse } from "./_qs.js"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
+import { routerNavigateStrict } from "./index/_router.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
 
 const minEditZoom = 13
@@ -43,6 +44,22 @@ const updateLoginLinks = (hash) => {
     for (const link of loginLinks) link.href = loginHref
 }
 
+/**
+ * Handle remote edit path (/edit?editor=remote).
+ * Simulate a click on the remote edit button and navigate back to index.
+ * @returns {void}
+ */
+export const handleEditRemotePath = () => {
+    if (location.pathname !== "/edit" || !remoteEditButton) return
+
+    const searchParams = qsParse(location.search.substring(1))
+    if (searchParams.editor !== "remote") return
+
+    console.debug("handleEditRemotePath")
+    routerNavigateStrict("/")
+    remoteEditButton.click()
+}
+
 // TODO: wth object support?
 /**
  * Update the navbar links and current URL hash
@@ -59,7 +76,7 @@ export const updateNavbarAndHash = (state, object = null) => {
         const isEditLink = link.classList.contains("edit-link")
         if (isEditLink) {
             // Remote edit button stores information in dataset
-            const isRemoteEditButton = link.classList.contains("remote-edit-btn")
+            const isRemoteEditButton = link.classList.contains("remote-edit")
             if (isRemoteEditButton) {
                 link.dataset.remoteEdit = JSON.stringify({ state, object })
             } else if (object) {

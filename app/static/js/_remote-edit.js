@@ -113,7 +113,9 @@ const remoteEdit = (button, bounds, object = null) => {
  * @returns {void}
  */
 export const configureRemoteEditButton = (button) => {
-    const onButtonClick = () => {
+    console.debug("configureRemoteEditButton", button)
+
+    const onClick = () => {
         const data = button.dataset.remoteEdit
         if (!data) {
             console.error("Missing remote edit data")
@@ -126,5 +128,5 @@ export const configureRemoteEditButton = (button) => {
     }
 
     // Listen for events
-    button.addEventListener("click", onButtonClick)
+    button.addEventListener("click", onClick)
 }

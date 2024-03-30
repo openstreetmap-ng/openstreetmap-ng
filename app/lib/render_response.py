@@ -26,6 +26,8 @@ _config_base = {
 def _get_default_data() -> dict:
     user = auth_user()
     languages = translation_languages()
+
+    # config: don't include sensitive data, it's exposed to iD/Rapid
     config: dict = _config_base.copy()
 
     if user is not None:
@@ -38,8 +40,10 @@ def _get_default_data() -> dict:
 
     return {
         'request': get_request(),
-        'APP_URL': APP_URL,
         'TEST_ENV': TEST_ENV,
+        'APP_URL': APP_URL,
+        'ID_VERSION': ID_VERSION,
+        'RAPID_VERSION': RAPID_VERSION,
         'lang': languages[0],
         'user': user,
         'config': JSON_ENCODE(config).decode(),

@@ -22,7 +22,6 @@ class Element06Mixin:
         >>> encode_element(Element(type=ElementType.node, id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
         """
-
         if format_is_json():
             return _encode_element(element, is_json=True)
         else:
@@ -37,7 +36,6 @@ class Element06Mixin:
         ... ])
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
         """
-
         if format_is_json():
             return {'elements': tuple(_encode_element(element, is_json=True) for element in elements)}
         else:
@@ -55,8 +53,9 @@ class Element06Mixin:
         >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
         Element(type=ElementType.node, ...)
         """
-
-        return _decode_element(element, changeset_id=None)
+        type = element[0]
+        data = element[1]
+        return _decode_element(type, data, changeset_id=None)
 
     @staticmethod
     def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[OSMChangeAction, dict[ElementType, dict]]]:
@@ -70,7 +69,6 @@ class Element06Mixin:
             ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
         ]
         """
-
         result = []
 
         for element in elements:
@@ -99,13 +97,27 @@ class Element06Mixin:
         ... ])
         [Element(type=ElementType, ...), Element(type=ElementType.way, ...)]
         """
+        # skip attributes-only osmChange
+        if isinstance(changes, dict):
+            return ()
 
         result = []
 
         for action, elements_data in changes:
+            # skip osmChange attributes
+            if action.startswith('@'):
+                continue
+            # skip attributes-only actions
+            if isinstance(elements_data, dict):
+                continue
+
             if action == 'create':
-                for element_data in elements_data:
-                    element = _decode_element(element_data, changeset_id=changeset_id)
+                for key, data in elements_data:
+                    # skip action attributes
+                    if key.startswith('@'):
+                        continue
+
+                    element = _decode_element(key, data, changeset_id=changeset_id)
                     element.version = 1
 
                     if element.id > 0:
@@ -114,8 +126,12 @@ class Element06Mixin:
                     result.append(element)
 
             elif action == 'modify':
-                for element_data in elements_data:
-                    element = _decode_element(element_data, changeset_id=changeset_id)
+                for key, data in elements_data:
+                    # skip action attributes
+                    if key.startswith('@'):
+                        continue
+
+                    element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version < 2:
                         raise_for().diff_update_bad_version(element.versioned_ref)
@@ -123,8 +139,16 @@ class Element06Mixin:
                     result.append(element)
 
             elif action == 'delete':
-                for element_data in elements_data:
-                    element = _decode_element(element_data, changeset_id=changeset_id)
+                delete_if_unused: bool = False  # TODO: finish implementation
+
+                for key, data in elements_data:
+                    # skip action attributes
+                    if key.startswith('@'):
+                        if key == '@if-unused':
+                            delete_if_unused = True
+                        continue
+
+                    element = _decode_element(key, data, changeset_id=changeset_id)
                     element.visible = False
 
                     if element.version < 2:
@@ -147,7 +171,6 @@ def _encode_nodes(nodes: Sequence[ElementMemberRef], *, is_json: cython.char) ->
     ... ])
     [{'@ref': 1}, {'@ref': 2}]
     """
-
     if is_json:
         return tuple(node.id for node in nodes)
     else:
@@ -162,7 +185,6 @@ def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
     >>> _decode_nodes_unsafe([{'@ref': '1'}])
     [ElementMemberRef(type=ElementType.node, id=1, role='')]
     """
-
     return tuple(
         ElementMemberRef(
             type='node',
@@ -185,7 +207,6 @@ def _encode_members(members: Sequence[ElementMemberRef], *, is_json: cython.char
         {'@type': 'way', '@ref': 2, '@role': 'b'},
     ]
     """
-
     if is_json:
         return tuple(
             {
@@ -216,7 +237,6 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, .
     ... ])
     [ElementMemberRef(type=ElementType.node, id=1, role='a')]
     """
-
     return tuple(
         ElementMemberRef(
             type=member['@type'],
@@ -233,7 +253,6 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     >>> _encode_element(Element(type=ElementType.node, id=1, version=1, ...))
     {'@id': 1, '@version': 1, ...}
     """
-
     # read property once for performance
     element_type = element.type
 
@@ -285,16 +304,13 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | None):
+def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
     """
     If `changeset_id` is None, it will be extracted from the element data.
 
     >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
     Element(type=ElementType.node, ...)
     """
-
-    type: ElementType = element[0]
-    data: dict = element[1]
 
     if (data_tags := data.get('tag')) is not None:
         tags = _decode_tags_unsafe(data_tags)
@@ -316,17 +332,19 @@ def _decode_element(element: tuple[ElementType, dict], *, changeset_id: int | No
         members = ()
 
     return Element(
-        **ElementValidating(
-            user_id=auth_user().id,
-            changeset_id=changeset_id if (changeset_id is not None) else data.get('@changeset'),
-            type=type,
-            id=data.get('@id'),
-            version=data.get('@version', 0) + 1,
-            visible=data.get('@visible', True),
-            tags=tags,
-            point=point,
-            members=members,
-        ).to_orm_dict()
+        **dict(
+            ElementValidating(
+                user_id=auth_user().id,
+                changeset_id=changeset_id if (changeset_id is not None) else data.get('@changeset'),
+                type=type,
+                id=data.get('@id'),
+                version=data.get('@version', 0) + 1,
+                visible=data.get('@visible', True),
+                tags=tags,
+                point=point,
+                members=members,
+            )
+        )
     )
 
 
@@ -342,15 +360,9 @@ def _encode_point(point: Point | None, *, is_json: cython.char) -> dict:
     x, y = get_coordinates(point)[0].tolist()
 
     if is_json:
-        return {
-            'lon': x,
-            'lat': y,
-        }
+        return {'lon': x, 'lat': y}
     else:
-        return {
-            '@lon': x,
-            '@lat': y,
-        }
+        return {'@lon': x, '@lat': y}
 
 
 @cython.cfunc
@@ -364,7 +376,6 @@ def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
     ... ])
     {'a': '1', 'b': '2'}
     """
-
     items = tuple((tag['@k'], tag['@v']) for tag in tags)
     result = dict(items)
 

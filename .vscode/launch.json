@@ -11,7 +11,8 @@
                 "--no-server-header",
                 "--reload"
             ],
-            "jinja": true
+            "jinja": true,
+            "justMyCode": true
         },
         {
             "name": "Python: Current File",

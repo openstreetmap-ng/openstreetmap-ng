@@ -9,8 +9,8 @@
             padding: 0;
         }
 
-        // Style the elements icons
         tr {
+            // Style the elements icons
             td:first-child {
                 width: 2em;
                 line-height: 1;
@@ -21,6 +21,11 @@
                     height: 1.5em;
                     object-fit: contain;
                 }
+            }
+
+            // Style the elements links
+            td:last-child {
+                padding-left: 0.5rem;
             }
         }
 

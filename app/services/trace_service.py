@@ -106,14 +106,16 @@ class TraceService:
             raise_for().bad_trace_file('not enough points')
 
         trace = Trace(
-            **TraceValidating(
-                user_id=auth_user().id,
-                name=file.filename,
-                description=description,
-                visibility=visibility,
-                size=len(points),
-                start_point=points[0].point,
-            ).to_orm_dict()
+            **dict(
+                TraceValidating(
+                    user_id=auth_user().id,
+                    name=file.filename,
+                    description=description,
+                    visibility=visibility,
+                    size=len(points),
+                    start_point=points[0].point,
+                )
+            )
         )
 
         trace.points = points

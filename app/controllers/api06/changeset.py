@@ -20,6 +20,7 @@ from app.models.db.user import User
 from app.models.scope import Scope
 from app.repositories.changeset_comment_repository import ChangesetCommentRepository
 from app.repositories.changeset_repository import ChangesetRepository
+from app.repositories.element_repository import ElementRepository
 from app.repositories.user_repository import UserRepository
 from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
@@ -109,13 +110,16 @@ async def changeset_close(
 async def changeset_download(
     changeset_id: PositiveInt,
 ):
-    with joinedload_context((Changeset.elements, Element.user)):
-        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-
-    if not changesets:
+    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changeset = changesets[0] if changesets else None
+    if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
-    return Format06.encode_osmchange(changesets[0].elements)
+    # TODO: optimize user
+    with joinedload_context(Element.user):
+        elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by_id=False)
+
+    return Format06.encode_osmchange(elements)
 
 
 @router.get('/changesets')

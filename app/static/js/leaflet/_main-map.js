@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { configureActionSidebars } from "../_action-sidebar.js"
 import { homePoint } from "../_config.js"
-import { updateNavbarAndHash } from "../_navbar.js"
+import { handleEditRemotePath, updateNavbarAndHash } from "../_navbar.js"
 import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { getChangesetController } from "../index/_changeset.js"
@@ -165,5 +165,6 @@ export const configureMainMap = (container) => {
         ]),
     )
 
+    handleEditRemotePath()
     configureActionSidebars()
 }

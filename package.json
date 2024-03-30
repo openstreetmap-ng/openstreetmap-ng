@@ -5,7 +5,7 @@
     "@babel/cli": "^7.23.9",
     "@babel/core": "^7.23.9",
     "@babel/preset-env": "^7.23.9",
-    "@rapideditor/rapid": "github:facebook/Rapid#release",
+    "@rapideditor/rapid": "^2.2.5",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.3",
     "core-js": "3.35",

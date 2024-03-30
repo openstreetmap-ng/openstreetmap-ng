@@ -11,7 +11,7 @@ from app.validators.whitespace import BoundaryWhitespaceValidator
 
 Str255 = Annotated[str, MinLen(1), MaxLen(255)]
 
-TagKeyStr = Annotated[str, MinLen(ELEMENT_TAGS_KEY_MAX_LENGTH)]
+TagKeyStr = Annotated[str, MaxLen(ELEMENT_TAGS_KEY_MAX_LENGTH)]
 TagValueStr = Annotated[str, MaxLen(255)]
 
 RoleStr = Annotated[str, MaxLen(255)]

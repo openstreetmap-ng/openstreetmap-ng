@@ -1,4 +1,3 @@
-import { coreContext } from "iD"
 import { apiUrl, idVersion, primaryLanguage } from "./_config.js"
 import { parentLoadSystemApp } from "./_system-app.js"
 import { throttle } from "./_utils.js"
@@ -7,7 +6,7 @@ const idContainer = document.querySelector(".id-container")
 if (!idContainer) throw new Error("iD container not found")
 
 parentLoadSystemApp((accessToken) => {
-    const ctx = coreContext()
+    const ctx = window.iD.coreContext()
     ctx.connection().apiConnections([])
     ctx.preauth({
         url: parent.location.origin,
@@ -26,7 +25,7 @@ parentLoadSystemApp((accessToken) => {
     const map = id.map()
 
     // On map move, send the new state to the parent
-    map.addEventListener(
+    map.on(
         "move.embed",
         throttle(() => {
             // Skip if in intro

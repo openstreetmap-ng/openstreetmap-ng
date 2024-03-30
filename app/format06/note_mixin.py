@@ -162,10 +162,6 @@ def _encode_point_xml(point: Point) -> dict:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-
     x, y = get_coordinates(point)[0].tolist()
 
-    return {
-        '@lon': x,
-        '@lat': y,
-    }
+    return {'@lon': x, '@lat': y}
