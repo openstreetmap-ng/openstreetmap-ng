@@ -113,10 +113,6 @@ class Element06Mixin:
 
             if action == 'create':
                 for key, data in elements_data:
-                    # skip action attributes
-                    if key.startswith('@'):
-                        continue
-
                     element = _decode_element(key, data, changeset_id=changeset_id)
                     element.version = 1
 
@@ -127,10 +123,6 @@ class Element06Mixin:
 
             elif action == 'modify':
                 for key, data in elements_data:
-                    # skip action attributes
-                    if key.startswith('@'):
-                        continue
-
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version < 2:
@@ -142,10 +134,8 @@ class Element06Mixin:
                 delete_if_unused: bool = False  # TODO: finish implementation
 
                 for key, data in elements_data:
-                    # skip action attributes
-                    if key.startswith('@'):
-                        if key == '@if-unused':
-                            delete_if_unused = True
+                    if key == '@if-unused':
+                        delete_if_unused = True
                         continue
 
                     element = _decode_element(key, data, changeset_id=changeset_id)
