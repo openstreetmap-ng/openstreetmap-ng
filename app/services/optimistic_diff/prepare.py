@@ -231,8 +231,8 @@ class OptimisticDiffPrepare:
             raise_for().element_not_found(next(iter(element_refs)))
 
         # if they do, push them to the local state
-        for element_ref, element in zip(element_refs, elements, strict=True):
-            element_state[element_ref] = [element]
+        for element in elements:
+            element_state[element.element_ref] = [element]
 
     async def _assign_last_sequence_id_and_check_time_integrity(self) -> None:
         """
@@ -317,7 +317,6 @@ class OptimisticDiffPrepare:
 
         Returns the removed and added references.
         """
-
         prev_refs: frozenset[ElementRef] = prev.members_element_refs_set if (prev is not None) else frozenset()
         next_refs: frozenset[ElementRef] = element.members_element_refs_set
 

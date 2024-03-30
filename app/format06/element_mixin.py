@@ -113,8 +113,8 @@ class Element06Mixin:
 
             if action == 'create':
                 for key, data in elements_data:
+                    data['@version'] = 0
                     element = _decode_element(key, data, changeset_id=changeset_id)
-                    element.version = 1
 
                     if element.id > 0:
                         raise_for().diff_create_bad_id(element.versioned_ref)
@@ -138,8 +138,8 @@ class Element06Mixin:
                         delete_if_unused = True
                         continue
 
+                    data['@visible'] = False
                     element = _decode_element(key, data, changeset_id=changeset_id)
-                    element.visible = False
 
                     if element.version < 2:
                         raise_for().diff_update_bad_version(element.versioned_ref)

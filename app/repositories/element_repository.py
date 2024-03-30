@@ -121,7 +121,7 @@ class ElementRepository:
         # TODO: index
         # TODO: point in time
         point_in_time = utcnow()
-        recurse_way_refs = tuple(ref for ref in element_refs if ref.type == 'way') if recurse_ways else ()
+        recurse_way_ids = tuple(ref.id for ref in element_refs if ref.type == 'way') if recurse_ways else ()
 
         async with db() as session:
             stmt = select(Element).where(
@@ -139,7 +139,7 @@ class ElementRepository:
             )
             stmt = apply_statement_context(stmt)
 
-            if recurse_way_refs:
+            if recurse_way_ids:
                 stmt_union = select(Element).where(
                     Element.created_at <= point_in_time,
                     or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
@@ -155,7 +155,7 @@ class ElementRepository:
                             Element.created_at <= point_in_time,
                             or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                             Element.type == 'way',
-                            Element.id.in_(ref.id for ref in recurse_way_refs),
+                            Element.id.in_(recurse_way_ids),
                         )
                         .subquery()
                     ),

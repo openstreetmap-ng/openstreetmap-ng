@@ -51,6 +51,7 @@ def _register_routes(type: ElementType):
             raise_for().bad_xml(type, f"XML doesn't contain an osm/{type} element.")
 
         data[1]['@id'] = -1  # dynamic id allocation
+        data[1]['@version'] = 0
 
         try:
             element = Format06.decode_element(data)
