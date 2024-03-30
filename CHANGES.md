@@ -117,7 +117,7 @@ Last update: 2024-03-17
 - Simplify shortlink algorithm
 - Super efficient and higher quality trace preview image generation
 - Return errors during trace upload instead of sending emails to user
-- Replace [memcached](https://memcached.org/) with [Redis](https://redis.io/) for in-memory caching
+- Replace [memcached](https://memcached.org/) with [Valkey](https://valkey.io/) *(BSD-licensed Redis)* for in-memory caching
 - Start using [Poetry](https://python-poetry.org/) for Python package management
 - Configure [ruff](https://docs.astral.sh/ruff/) for Python formatting and linting
 - Configure [FastAPI](https://fastapi.tiangolo.com/) as a web framework with full async support

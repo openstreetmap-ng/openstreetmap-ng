@@ -33,7 +33,7 @@ let
     coreutils
     bun
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
-    redis
+    redis # TODO: switch to valkey on new version
     brotli
     zstd
 
