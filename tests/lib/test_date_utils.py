@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from dateutil.tz import tzoffset
 
-from app.lib.date_utils import format_sql_date, parse_date
+from app.lib.date_utils import format_sql_date, parse_date, utcnow
 
 
 def test_format_sql_date():
@@ -19,14 +19,15 @@ def test_format_sql_date():
     ('input', 'output'),
     [
         ('2010-10-31', datetime(2010, 10, 31, tzinfo=UTC)),
-        ('2010-10-31T12:34:56Z', datetime(2010, 10, 31, 12, 34, 56, tzinfo=UTC)),
-        ('2010-10-31T12:34:56.789Z', datetime(2010, 10, 31, 12, 34, 56, 789000, tzinfo=UTC)),
-        ('2010-10-31T12:34:56+00:00', datetime(2010, 10, 31, 12, 34, 56, tzinfo=UTC)),
-        ('Thu, 06 Oct 2011 02:26:12 UTC', datetime(2011, 10, 6, 2, 26, 12, tzinfo=UTC)),
-        ('16:00', datetime.now(UTC).replace(hour=16, minute=0, second=0, microsecond=0)),
-        ('7/23', datetime.now(UTC).replace(month=7, day=23, hour=0, minute=0, second=0, microsecond=0)),
-        ('Aug 31', datetime.now(UTC).replace(month=8, day=31, hour=0, minute=0, second=0, microsecond=0)),
-        ('Aug 2000', datetime.now(UTC).replace(month=8, year=2000, hour=0, minute=0, second=0, microsecond=0)),
+        ('2010-10-31T12:34:56', datetime(2010, 10, 31, 12, 34, 56, 0, UTC)),
+        ('2010-10-31T12:34:56.789Z', datetime(2010, 10, 31, 12, 34, 56, 789000, UTC)),
+        ('2010-10-31T12:34:56+00:00', datetime(2010, 10, 31, 12, 34, 56, 0, UTC)),
+        ('2010-10-31T12:34:56+01:00', datetime(2010, 10, 31, 11, 34, 56, 0, UTC)),
+        ('Thu, 06 Oct 2011 02:26:12 UTC', datetime(2011, 10, 6, 2, 26, 12, 0, UTC)),
+        ('16:00', utcnow().replace(hour=16, minute=0, second=0, microsecond=0)),
+        ('7/23', utcnow().replace(month=7, day=23, hour=0, minute=0, second=0, microsecond=0)),
+        ('Aug 31', utcnow().replace(month=8, day=31, hour=0, minute=0, second=0, microsecond=0)),
+        ('Aug 2000', utcnow().replace(month=8, year=2000, hour=0, minute=0, second=0, microsecond=0)),
     ],
 )
 def test_parse_date(input, output):

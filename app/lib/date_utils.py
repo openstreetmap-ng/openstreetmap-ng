@@ -51,11 +51,11 @@ def parse_date(s: str) -> datetime:
     >>> parse_date('2010-10-31')
     datetime.datetime(2010, 10, 31, 0, 0)
     """
-    # TODO: support timezones
     date = dateutil.parser.parse(s, ignoretz=False)
 
-    # ensure timezone is set
     if date.tzinfo is None:
-        date = date.replace(tzinfo=UTC)
-
-    return date
+        # attach UTC timezone if missing
+        return date.replace(tzinfo=UTC)
+    else:
+        # convert to UTC timezone
+        return date.astimezone(UTC)
