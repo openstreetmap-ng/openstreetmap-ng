@@ -1,7 +1,6 @@
 import logging
 from base64 import b64decode
 from collections.abc import Sequence
-from datetime import datetime
 
 import cython
 from fastapi import Request

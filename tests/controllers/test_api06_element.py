@@ -1,7 +1,7 @@
-import anyio
 import pytest
 from httpx import AsyncClient
 
+from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format06 import Format06
 from app.lib.xmltodict import XMLToDict
 
@@ -9,6 +9,7 @@ pytestmark = pytest.mark.anyio
 
 
 async def test_element_crud(client: AsyncClient):
+    assert LEGACY_HIGH_PRECISION_TIME
     client.headers['Authorization'] = 'User user1'
 
     # create changeset
@@ -35,7 +36,6 @@ async def test_element_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     last_updated_at = changeset['@updated_at']
-    await anyio.sleep(1)
 
     # create node
     r = await client.put(
@@ -95,7 +95,6 @@ async def test_element_crud(client: AsyncClient):
     assert tags['remove_me'] == 'remove_me'
 
     last_updated_at = changeset['@updated_at']
-    await anyio.sleep(1)
 
     # update node
     r = await client.put(
@@ -157,7 +156,6 @@ async def test_element_crud(client: AsyncClient):
     assert 'remove_me' not in tags
 
     last_updated_at = changeset['@updated_at']
-    await anyio.sleep(1)
 
     # delete node
     r = await client.request(

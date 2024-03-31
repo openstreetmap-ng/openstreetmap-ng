@@ -1,13 +1,14 @@
-import anyio
 import pytest
 from httpx import AsyncClient
 
+from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.lib.xmltodict import XMLToDict
 
 pytestmark = pytest.mark.anyio
 
 
 async def test_changeset_comment_crud(client: AsyncClient):
+    assert LEGACY_HIGH_PRECISION_TIME
     client.headers['Authorization'] = 'User user1'
 
     # create changeset
@@ -34,7 +35,6 @@ async def test_changeset_comment_crud(client: AsyncClient):
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     last_updated_at = changeset['@updated_at']
-    await anyio.sleep(1)
 
     # create comment
     r = await client.post(f'/api/0.6/changeset/{changeset_id}/comment', data={'text': 'comment'})
@@ -57,7 +57,6 @@ async def test_changeset_comment_crud(client: AsyncClient):
 
     last_updated_at = changeset['@updated_at']
     comment_id = changeset['discussion']['comment'][-1]['@id']
-    await anyio.sleep(1)
 
     # delete comment
     client.headers['Authorization'] = 'User moderator'
