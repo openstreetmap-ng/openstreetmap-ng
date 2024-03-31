@@ -20,7 +20,6 @@ class NoteRSS06Mixin:
         """
         Encode notes into a feed.
         """
-
         fg.load_extension('dc')
         fg.load_extension('geo')
 
@@ -33,7 +32,6 @@ class NoteRSS06Mixin:
         """
         Encode note comments into a feed.
         """
-
         fg.load_extension('dc')
         fg.load_extension('geo')
 

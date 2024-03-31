@@ -4,7 +4,7 @@ import cython
 from jinja2 import Environment, FileSystemLoader
 
 from app.config import TEST_ENV
-from app.lib.date_utils import format_iso_date, utcnow
+from app.lib.date_utils import utcnow
 from app.lib.translation import nt, t
 
 if cython.compiled:
@@ -83,9 +83,8 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
             ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
 
     if html:
-        iso_date = format_iso_date(date)
         friendly_date = date.strftime(t('time.formats.friendly'))
-        return f'<time datetime="{iso_date}" title="{friendly_date}">{ago}</time>'
+        return f'<time datetime="{date.isoformat()}" title="{friendly_date}">{ago}</time>'
     else:
         return ago
 

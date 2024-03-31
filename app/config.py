@@ -55,6 +55,7 @@ def _path(s: str, *, mkdir: bool = False) -> Path:
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
 
+LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in ('1', 'true', 'yes')
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))  # TODO: implement?

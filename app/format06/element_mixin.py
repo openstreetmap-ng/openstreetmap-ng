@@ -6,6 +6,7 @@ import numpy as np
 from shapely import Point, get_coordinates, points
 
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.models.db.element import Element
@@ -256,7 +257,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             'id': element.id,
             **(_encode_point(element.point, is_json=True) if is_node else {}),
             'version': element.version,
-            'timestamp': element.created_at,
+            'timestamp': legacy_date(element.created_at),
             'changeset': element.changeset_id,
             **(
                 {
@@ -276,7 +277,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             '@id': element.id,
             **(_encode_point(element.point, is_json=False) if is_node else {}),
             '@version': element.version,
-            '@timestamp': element.created_at,
+            '@timestamp': legacy_date(element.created_at),
             '@changeset': element.changeset_id,
             **(
                 {
@@ -301,7 +302,6 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
     >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
     Element(type=ElementType.node, ...)
     """
-
     if (data_tags := data.get('tag')) is not None:
         tags = _decode_tags_unsafe(data_tags)
     else:

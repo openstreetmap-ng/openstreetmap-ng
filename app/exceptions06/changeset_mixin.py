@@ -5,7 +5,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.changeset_mixin import ChangesetExceptionsMixin
-from app.lib.date_utils import format_iso_date
+from app.lib.date_utils import legacy_date
 
 
 class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):
@@ -21,7 +21,7 @@ class ChangesetExceptions06Mixin(ChangesetExceptionsMixin):
     def changeset_already_closed(self, changeset_id: int, closed_at: datetime) -> NoReturn:
         raise APIError(
             status.HTTP_409_CONFLICT,
-            detail=f'The changeset {changeset_id} was closed at {format_iso_date(closed_at)}',
+            detail=f'The changeset {changeset_id} was closed at {legacy_date(closed_at).isoformat()}',
         )
 
     @override

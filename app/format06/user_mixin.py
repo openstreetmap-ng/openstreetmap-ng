@@ -5,6 +5,7 @@ from anyio import create_task_group
 from shapely import Point, get_coordinates
 
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
@@ -24,7 +25,6 @@ class User06Mixin:
         >>> encode_user(User(...))
         {'user': {'@id': 1234, '@display_name': 'userName', ...}}
         """
-
         return {'user': await _encode_user(user, is_json=format_is_json())}
 
     @staticmethod
@@ -36,7 +36,6 @@ class User06Mixin:
         ... ])
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
-
         is_json = format_is_json()
         encoded_users = [None] * len(users)
 
@@ -61,7 +60,6 @@ class User06Mixin:
         ... ])
         {'preferences': {'preference': [{'@k': 'key1', '@v': 'value1'}, {'@k': 'key2', '@v': 'value2'}]}}
         """
-
         if format_is_json():
             return {'preferences': {pref.key: pref.value for pref in prefs}}
         else:
@@ -73,7 +71,6 @@ class User06Mixin:
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
         """
-
         user_id = auth_user().id
         seen_keys: set[str] = set()
 
@@ -104,7 +101,6 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
     >>> _encode_user(User(...))
     {'@id': 1234, '@display_name': 'userName', ...}
     """
-
     current_user = auth_user()
     access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
     xattr = get_xattr(is_json=is_json)
@@ -162,7 +158,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
     return {
         xattr('id'): user.id,
         xattr('display_name'): user.display_name,
-        xattr('account_created'): user.created_at,
+        xattr('account_created'): legacy_date(user.created_at),
         'description': user.description,
         ('contributor_terms' if is_json else 'contributor-terms'): {
             xattr('agreed'): True,
@@ -216,7 +212,6 @@ def _encode_languages(language: str, *, is_json: cython.char):
     >>> _encode_languages(['en', 'pl'])
     {'lang': ('en', 'pl')}
     """
-
     if is_json:
         return (language,)
     else:

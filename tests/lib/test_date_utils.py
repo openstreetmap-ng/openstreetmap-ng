@@ -1,18 +1,18 @@
 from datetime import UTC, datetime
 
 import pytest
+from dateutil.tz import tzoffset
 
-from app.lib.date_utils import format_iso_date, format_sql_date, parse_date
-
-
-def test_format_iso_date():
-    assert format_iso_date(datetime(2021, 12, 31, 15, 30, 45, 123456)) == '2021-12-31T15:30:45Z'
-    assert format_iso_date(None) == 'None'
+from app.lib.date_utils import format_sql_date, parse_date
 
 
 def test_format_sql_date():
-    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45, 123456)) == '2021-12-31 15:30:45 UTC'
+    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45)) == '2021-12-31 15:30:45 UTC'
+    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45, 123456, UTC)) == '2021-12-31 15:30:45.123456 UTC'
     assert format_sql_date(None) == 'None'
+
+    with pytest.raises(AssertionError):
+        format_sql_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=tzoffset(None, 32400)))
 
 
 @pytest.mark.parametrize(

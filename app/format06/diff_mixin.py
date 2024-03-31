@@ -20,7 +20,6 @@ class Diff06Mixin:
             ('node', {'@old_id': -1, '@new_id': 1, '@new_version': 2})
         ]
         """
-
         result = []
 
         for element_ref, elements in assigned_ref_map.items():

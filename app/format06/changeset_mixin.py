@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 import cython
 
+from app.lib.date_utils import legacy_date
 from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.changeset import Changeset
@@ -15,7 +16,6 @@ class Changeset06Mixin:
         >>> encode_changeset(Changeset(...))
         {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
         """
-
         if format_is_json():
             return _encode_changeset(changeset, is_json=True)
         else:
@@ -30,7 +30,6 @@ class Changeset06Mixin:
         ... ])
         {'changeset': [{'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}]}
         """
-
         if format_is_json():
             return {'changesets': tuple(_encode_changeset(changeset, is_json=True) for changeset in changesets)}
         else:
@@ -43,12 +42,11 @@ def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.char
     >>> _encode_changeset_comment(ChangesetComment(...))
     {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}
     """
-
     xattr = get_xattr(is_json=is_json)
 
     return {
         xattr('id'): comment.id,
-        xattr('date'): comment.created_at,
+        xattr('date'): legacy_date(comment.created_at),
         **(
             {
                 xattr('uid'): comment.user_id,
@@ -67,7 +65,6 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
     >>> _encode_changeset(Changeset(...))
     {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}
     """
-
     if changeset.bounds is not None:
         xattr = get_xattr(is_json=is_json)
         minx, miny, maxx, maxy = changeset.bounds.bounds
@@ -80,14 +77,18 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
     else:
         bounds_dict = {}
 
+    created_at = legacy_date(changeset.created_at)
+    updated_at = legacy_date(changeset.updated_at)
+    closed_at = legacy_date(changeset.closed_at)
+
     if is_json:
         return {
             'type': 'changeset',
             'id': changeset.id,
-            'created_at': changeset.created_at,
-            'updated_at': changeset.updated_at,
-            **({'closed_at': changeset.closed_at} if (changeset.closed_at is not None) else {}),
-            'open': changeset.closed_at is None,
+            'created_at': created_at,
+            'updated_at': updated_at,
+            **({'closed_at': closed_at} if (closed_at is not None) else {}),
+            'open': closed_at is None,
             **(
                 {
                     'uid': changeset.user_id,
@@ -114,10 +115,10 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
     else:
         return {
             '@id': changeset.id,
-            '@created_at': changeset.created_at,
-            '@updated_at': changeset.updated_at,
-            **({'@closed_at': changeset.closed_at} if (changeset.closed_at is not None) else {}),
-            '@open': changeset.closed_at is None,
+            '@created_at': created_at,
+            '@updated_at': updated_at,
+            **({'@closed_at': closed_at} if (closed_at is not None) else {}),
+            '@open': closed_at is None,
             **(
                 {
                     '@uid': changeset.user_id,

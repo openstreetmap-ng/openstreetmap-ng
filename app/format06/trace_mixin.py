@@ -23,7 +23,6 @@ class Trace06Mixin:
         ... ])
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
-
         # read property once for performance
         visibility_identifiable = TraceVisibility.identifiable
 
@@ -97,7 +96,6 @@ class Trace06Mixin:
         >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TracePoint(...)]
         """
-
         result = []
 
         trk: dict
@@ -139,7 +137,6 @@ class Trace06Mixin:
         >>> encode_gpx_file(Trace(...))
         {'gpx_file': {'@id': 1, '@uid': 1234, ...}}
         """
-
         return {'gpx_file': _encode_gpx_file(trace)}
 
     @staticmethod
@@ -151,7 +148,6 @@ class Trace06Mixin:
         ... ])
         {'gpx_file': [{'@id': 1, '@uid': 1234, ...}, {'@id': 2, '@uid': 1234, ...}]}
         """
-
         return {'gpx_file': tuple(_encode_gpx_file(trace) for trace in traces)}
 
     @staticmethod
@@ -177,7 +173,6 @@ def _encode_gpx_file(trace: Trace) -> dict:
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}
     """
-
     start_x, start_y = get_coordinates(trace.start_point)[0].tolist()
 
     return {

@@ -286,12 +286,12 @@ def _to_string(v) -> str:
         return v
     elif isinstance(v, datetime):
         # strip timezone for backwards-compatible format
-        v_tzinfo = v.tzinfo
-        if v_tzinfo is not None:
-            if v_tzinfo is not UTC:
-                raise AssertionError(f'Unexpected non-UTC timezone {v_tzinfo!r}')
+        tzinfo = v.tzinfo
+        if tzinfo is not None:
+            if tzinfo is not UTC:
+                raise AssertionError(f'Unexpected non-UTC timezone {tzinfo!r}')
             v = v.replace(tzinfo=None)
-        return v.isoformat(timespec='seconds') + 'Z'
+        return v.isoformat() + 'Z'
     elif isinstance(v, bool):
         return 'true' if (v is True) else 'false'
     else:

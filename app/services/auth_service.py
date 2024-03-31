@@ -1,6 +1,7 @@
 import logging
 from base64 import b64decode
 from collections.abc import Sequence
+from datetime import datetime
 
 import cython
 from fastapi import Request
@@ -10,7 +11,7 @@ from app.config import SECRET, TEST_ENV
 from app.db import db_autocommit
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
-from app.lib.date_utils import format_iso_date, utcnow
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
@@ -165,14 +166,11 @@ class AuthService:
 
             return b'\xff'
 
-        key = '\0'.join(
-            (
-                SECRET,
-                user.password_hashed,
-                format_iso_date(user.password_changed_at),
-                password.get_secret_value(),
-            )
-        )
+        password_hashed = user.password_hashed
+        password_changed_at = user.password_changed_at
+        password_changed_at_str = password_changed_at.isoformat() if (password_changed_at is not None) else 'None'
+
+        key = f'{SECRET}\x00{password_hashed}\x00{password_changed_at_str}\x00{password.get_secret_value()}'
 
         cache = await CacheService.get_one_by_key(
             key=key,

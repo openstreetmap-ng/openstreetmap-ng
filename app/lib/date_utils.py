@@ -2,18 +2,21 @@ from datetime import UTC, datetime
 
 import dateutil.parser
 
+from app.config import LEGACY_HIGH_PRECISION_TIME
 
-def format_iso_date(date: datetime | None) -> str:
+
+def legacy_date(date: datetime | None) -> datetime | None:
     """
-    Format a datetime object as a string in ISO 8601 format.
+    Convert date to legacy format (strip microseconds).
 
-    >>> format_iso_date(datetime(2021, 12, 31, 15, 30, 45))
-    '2021-12-31T15:30:45Z'
+    >>> legacy_date(datetime(2021, 12, 31, 15, 30, 45, 123456))
+    datetime.datetime(2021, 12, 31, 15, 30, 45)
     """
     if date is None:
-        return 'None'
-
-    return date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return date
+    if LEGACY_HIGH_PRECISION_TIME:
+        return date
+    return date.replace(microsecond=0)
 
 
 def format_sql_date(date: datetime | None) -> str:
@@ -25,8 +28,11 @@ def format_sql_date(date: datetime | None) -> str:
     """
     if date is None:
         return 'None'
-
-    return date.strftime('%Y-%m-%d %H:%M:%S UTC')
+    tzinfo = date.tzinfo
+    if tzinfo is not None and tzinfo is not UTC:
+        raise AssertionError(f'Unexpected non-UTC timezone {tzinfo!r}')
+    format = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
+    return date.strftime(format)
 
 
 def utcnow() -> datetime:
