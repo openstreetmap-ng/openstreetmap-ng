@@ -1,9 +1,9 @@
-import { apiUrl, idVersion, primaryLanguage } from "./_config.js"
+import { apiUrl, primaryLanguage } from "./_config.js"
 import { parentLoadSystemApp } from "./_system-app.js"
 import { throttle } from "./_utils.js"
 
-const idContainer = document.querySelector(".id-container")
-if (!idContainer) throw new Error("iD container not found")
+const container = document.querySelector(".id-container")
+if (!container) throw new Error("iD container not found")
 
 parentLoadSystemApp((accessToken) => {
     const ctx = window.iD.coreContext()
@@ -17,9 +17,9 @@ parentLoadSystemApp((accessToken) => {
 
     const id = ctx
         .embed(true)
-        .assetPath(`/static-id/${idVersion}/`)
+        .assetPath(`/static-id/${container.dataset.version}/`)
         .locale(primaryLanguage)
-        .containerNode(idContainer)
+        .containerNode(container)
         .init()
 
     const map = id.map()

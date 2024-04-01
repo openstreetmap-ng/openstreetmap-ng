@@ -452,8 +452,6 @@ let
     export TEST_ENV=1
     export SECRET="development-secret"
     export APP_URL="http://127.0.0.1:8000"
-    export ID_URL="http://127.0.0.1:8000/id"
-    export RAPID_URL="http://127.0.0.1:8000/rapid"
     export SMTP_HOST=127.0.0.1
     export SMTP_PORT=1025
     export SMTP_USER=mail@openstreetmap.org

@@ -12,34 +12,6 @@ const defaultTracking = navigator.doNotTrack !== "1" && !navigator.globalPrivacy
 export const apiUrl = config.apiUrl
 
 /**
- * ID editor base URL
- * @type {string}
- * @example "https://id.openstreetmap.org"
- */
-export const idUrl = config.idUrl
-
-/**
- * ID editor version
- * @type {string}
- * @example "abc123"
- */
-export const idVersion = config.idVersion
-
-/**
- * Rapid editor base URL
- * @type {string}
- * @example "https://rapid.openstreetmap.org"
- */
-export const rapidUrl = config.rapidUrl
-
-/**
- * Rapid editor version
- * @type {string}
- * @example "abc123"
- */
-export const rapidVersion = config.rapidVersion
-
-/**
  * User primary translation language
  * @type {string}
  * @example "pl"

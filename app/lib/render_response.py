@@ -2,7 +2,7 @@ import cython
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
-from app.config import API_URL, APP_URL, ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION, TEST_ENV
+from app.config import API_URL, APP_URL, TEST_ENV
 from app.lib.auth_context import auth_user
 from app.lib.jinja_env import render
 from app.lib.locale import map_i18next_files
@@ -13,10 +13,6 @@ from app.utils import JSON_ENCODE
 
 _config_base = {
     'apiUrl': API_URL,
-    'idUrl': ID_URL,
-    'idVersion': ID_VERSION,
-    'rapidUrl': RAPID_URL,
-    'rapidVersion': RAPID_VERSION,
     'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
     'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
 }
@@ -42,8 +38,6 @@ def _get_default_data() -> dict:
         'request': get_request(),
         'TEST_ENV': TEST_ENV,
         'APP_URL': APP_URL,
-        'ID_VERSION': ID_VERSION,
-        'RAPID_VERSION': RAPID_VERSION,
         'lang': languages[0],
         'user': user,
         'config': JSON_ENCODE(config).decode(),

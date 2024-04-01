@@ -29,8 +29,6 @@ LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 # Configuration (required)
 SECRET = os.environ['SECRET']
 APP_URL = os.environ['APP_URL'].rstrip('/')
-ID_URL = os.environ['ID_URL'].rstrip('/')
-RAPID_URL = os.environ['RAPID_URL'].rstrip('/')
 SMTP_HOST = os.environ['SMTP_HOST']
 SMTP_PORT = int(os.environ['SMTP_PORT'])
 SMTP_USER = os.environ['SMTP_USER']
@@ -73,8 +71,10 @@ SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 
 API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
+ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
+RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
 TEST_USER_PASSWORD = 'openstreetmap'  # noqa: S105
 TEST_USER_DOMAIN = 'test.test'

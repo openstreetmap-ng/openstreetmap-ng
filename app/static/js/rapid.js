@@ -1,8 +1,8 @@
-import { apiUrl, primaryLanguage, rapidVersion } from "./_config.js"
+import { apiUrl, primaryLanguage } from "./_config.js"
 import { parentLoadSystemApp } from "./_system-app.js"
 
-const rapidContainer = document.querySelector(".rapid-container")
-if (!rapidContainer) throw new Error("Rapid container not found")
+const container = document.querySelector(".rapid-container")
+if (!container) throw new Error("Rapid container not found")
 
 parentLoadSystemApp((accessToken) => {
     const ctx = new window.Rapid.Context()
@@ -13,8 +13,8 @@ parentLoadSystemApp((accessToken) => {
         access_token: accessToken,
     }
 
-    ctx.containerNode = rapidContainer
-    ctx.assetPath = `/static-rapid/${rapidVersion}/`
+    ctx.containerNode = container
+    ctx.assetPath = `/static-rapid/${container.dataset.version}/`
     ctx.locale = primaryLanguage
     ctx.embed(true)
 

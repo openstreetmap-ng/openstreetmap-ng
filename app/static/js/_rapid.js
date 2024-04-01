@@ -1,10 +1,9 @@
-import { rapidUrl } from "./_config.js"
 import { qsEncode, qsParse } from "./_qs.js"
 import { configureIFrameSystemApp } from "./_system-app.js"
 import { getInitialMapState, parseMapState } from "./leaflet/_map-utils.js"
 
-const rapidIFrame = document.querySelector("iframe.rapid-iframe")
-if (rapidIFrame) {
+const iframe = document.querySelector("iframe.rapid-iframe")
+if (iframe) {
     const hashParams = qsParse(location.hash.substring(1))
     const searchParams = qsParse(location.search.substring(1))
     let { lon, lat, zoom } = getInitialMapState()
@@ -63,11 +62,11 @@ if (rapidIFrame) {
         if (value) result[param] = value
     }
 
-    const src = `${rapidUrl}#${qsEncode(result)}`
+    const src = `${iframe.dataset.url}/rapid#${qsEncode(result)}`
     const iframeOrigin = new URL(src).origin
-    configureIFrameSystemApp("SystemApp.rapid", rapidIFrame, iframeOrigin)
+    configureIFrameSystemApp("SystemApp.rapid", iframe, iframeOrigin)
 
     // Initialize iframe
     console.debug("Initializing Rapid iframe", src)
-    rapidIFrame.src = src
+    iframe.src = src
 }

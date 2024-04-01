@@ -1,10 +1,9 @@
-import { idUrl } from "./_config.js"
 import { qsEncode, qsParse } from "./_qs.js"
 import { configureIFrameSystemApp } from "./_system-app.js"
 import { getInitialMapState, parseMapState } from "./leaflet/_map-utils.js"
 
-const idIframe = document.querySelector("iframe.id-iframe")
-if (idIframe) {
+const iframe = document.querySelector("iframe.id-iframe")
+if (iframe) {
     const hashParams = qsParse(location.hash.substring(1))
     const searchParams = qsParse(location.search.substring(1))
     let { lon, lat, zoom } = getInitialMapState()
@@ -69,11 +68,11 @@ if (idIframe) {
         if (value) result[param] = value
     }
 
-    const src = `${idUrl}#${qsEncode(result)}`
+    const src = `${iframe.dataset.url}/id#${qsEncode(result)}`
     const iframeOrigin = new URL(src).origin
-    configureIFrameSystemApp("SystemApp.id", idIframe, iframeOrigin)
+    configureIFrameSystemApp("SystemApp.id", iframe, iframeOrigin)
 
     // Initialize iframe
     console.debug("Initializing iD iframe", src)
-    idIframe.src = src
+    iframe.src = src
 }
