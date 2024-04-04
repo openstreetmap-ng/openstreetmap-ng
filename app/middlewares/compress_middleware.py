@@ -4,7 +4,7 @@ import re
 from functools import lru_cache
 from io import BytesIO
 
-import brotlicffi
+import brotli
 import cython
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -18,42 +18,7 @@ from app.limits import (
     COMPRESS_DYNAMIC_ZSTD_LEVEL,
 )
 
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
-_accept_encoding_re = re.compile(r'[a-z]{2,8}')
-
 _zstd_compressor = ZstdCompressor(level=COMPRESS_DYNAMIC_ZSTD_LEVEL)
-
-
-@lru_cache(maxsize=128)
-def parse_accept_encoding(accept_encoding: str) -> frozenset[str]:
-    """
-    Parse the accept encoding header.
-
-    Returns a set of encodings.
-
-    >>> _parse_accept_encoding('br;q=1.0, gzip;q=0.8, *;q=0.1')
-    {'br', 'gzip'}
-    """
-    return frozenset(_accept_encoding_re.findall(accept_encoding))
-
-
-@cython.cfunc
-def _is_response_start_satisfied(message: Message) -> cython.char:
-    status_code: cython.int = message['status']
-    if status_code != 200:
-        return False
-    headers = Headers(raw=message['headers'])
-    if 'Content-Encoding' in headers or 'X-Precompressed' in headers:
-        return False
-    content_type: str | None = headers.get('Content-Type')
-    if (content_type is not None) and not content_type.startswith(('text/', 'application/')):
-        return False
-    return True
-
-
-@cython.cfunc
-def _is_response_body_satisfied(body: bytes, more_body: cython.char) -> cython.char:
-    return more_body or len(body) >= COMPRESS_DYNAMIC_MIN_SIZE
 
 
 class CompressMiddleware:
@@ -91,13 +56,13 @@ class CompressMiddleware:
 
 
 class ZstdResponder:
-    __slots__ = ('app', 'send', 'initial_message', 'zstd_chunker')
+    __slots__ = ('app', 'send', 'start_message', 'chunker')
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
         self.send: Send = None
-        self.initial_message: Message | None = None
-        self.zstd_chunker: ZstdCompressionChunker | None = None
+        self.start_message: Message | None = None
+        self.chunker: ZstdCompressionChunker | None = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         self.send = send
@@ -105,16 +70,19 @@ class ZstdResponder:
 
     async def wrapper(self, message: Message) -> None:
         message_type: str = message['type']
+
+        # handle start message
         if message_type == 'http.response.start':
-            if _is_response_start_satisfied(message):
-                # delay initial message until response body is satisfied
-                self.initial_message = message
+            if _is_start_message_satisfied(message):
+                # capture start message and wait for response body
+                self.start_message = message
+                return
             else:
                 await self.send(message)
-            return
+                return
 
         # skip further processing if not satisfied
-        if self.initial_message is None:
+        if self.start_message is None:
             await self.send(message)
             return
 
@@ -127,14 +95,13 @@ class ZstdResponder:
         body: bytes = message.get('body', b'')
         more_body: cython.char = message.get('more_body', False)
 
-        if self.zstd_chunker is None:
-            if not _is_response_body_satisfied(body, more_body):
-                await self.send(self.initial_message)
+        if self.chunker is None:
+            if not _is_body_satisfied(body, more_body):
+                await self.send(self.start_message)
                 await self.send(message)
-                self.initial_message = None  # skip further processing
                 return
 
-            headers = MutableHeaders(raw=self.initial_message['headers'])
+            headers = MutableHeaders(raw=self.start_message['headers'])
             headers['Content-Encoding'] = 'zstd'
             headers.add_vary_header('Accept-Encoding')
 
@@ -143,35 +110,35 @@ class ZstdResponder:
                 compressed_body = _zstd_compressor.compress(body)
                 headers['Content-Length'] = str(len(compressed_body))
                 message['body'] = compressed_body
-                await self.send(self.initial_message)
+                await self.send(self.start_message)
                 await self.send(message)
                 return
 
-            # streaming
+            # begin streaming
             content_length: int = int(headers.get('Content-Length', -1))
             del headers['Content-Length']
-            await self.send(self.initial_message)
-            self.zstd_chunker = _zstd_compressor.chunker(content_length)
+            await self.send(self.start_message)
+            self.chunker = _zstd_compressor.chunker(content_length)
 
         # streaming
-        for chunk in self.zstd_chunker.compress(body):
+        for chunk in self.chunker.compress(body):
             await self.send({'type': 'http.response.body', 'body': chunk, 'more_body': True})
         if more_body:
             return
-        for chunk in self.zstd_chunker.finish():
+        for chunk in self.chunker.finish():
             await self.send({'type': 'http.response.body', 'body': chunk, 'more_body': True})
 
         await self.send({'type': 'http.response.body'})
 
 
 class BrotliResponder:
-    __slots__ = ('app', 'send', 'initial_message', 'brotli_compressor')
+    __slots__ = ('app', 'send', 'start_message', 'compressor')
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
         self.send: Send = None
-        self.initial_message: Message | None = None
-        self.brotli_compressor: brotlicffi.Compressor | None = None
+        self.start_message: Message | None = None
+        self.compressor: brotli.Compressor | None = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         self.send = send
@@ -179,16 +146,19 @@ class BrotliResponder:
 
     async def wrapper(self, message: Message) -> None:
         message_type: str = message['type']
+
+        # handle start message
         if message_type == 'http.response.start':
-            if _is_response_start_satisfied(message):
-                # delay initial message until response body is satisfied
-                self.initial_message = message
+            if _is_start_message_satisfied(message):
+                # capture start message and wait for response body
+                self.start_message = message
+                return
             else:
                 await self.send(message)
-            return
+                return
 
         # skip further processing if not satisfied
-        if self.initial_message is None:
+        if self.start_message is None:
             await self.send(message)
             return
 
@@ -201,50 +171,49 @@ class BrotliResponder:
         body: bytes = message.get('body', b'')
         more_body: cython.char = message.get('more_body', False)
 
-        if self.brotli_compressor is None:
-            if not _is_response_body_satisfied(body, more_body):
-                await self.send(self.initial_message)
+        if self.compressor is None:
+            if not _is_body_satisfied(body, more_body):
+                await self.send(self.start_message)
                 await self.send(message)
-                self.initial_message = None  # skip further processing
                 return
 
-            headers = MutableHeaders(raw=self.initial_message['headers'])
+            headers = MutableHeaders(raw=self.start_message['headers'])
             headers['Content-Encoding'] = 'br'
             headers.add_vary_header('Accept-Encoding')
 
             if not more_body:
                 # one-shot
-                compressed_body = brotlicffi.compress(body, quality=COMPRESS_DYNAMIC_BROTLI_QUALITY)
+                compressed_body = brotli.compress(body, quality=COMPRESS_DYNAMIC_BROTLI_QUALITY)
                 headers['Content-Length'] = str(len(compressed_body))
                 message['body'] = compressed_body
-                await self.send(self.initial_message)
+                await self.send(self.start_message)
                 await self.send(message)
                 return
 
-            # streaming
+            # begin streaming
             del headers['Content-Length']
-            await self.send(self.initial_message)
-            self.brotli_compressor = brotlicffi.Compressor(quality=COMPRESS_DYNAMIC_BROTLI_QUALITY)
+            await self.send(self.start_message)
+            self.compressor = brotli.Compressor(quality=COMPRESS_DYNAMIC_BROTLI_QUALITY)
 
         # streaming
-        compressed_body = self.brotli_compressor.compress(body)
+        compressed_body = self.compressor.process(body)
         if compressed_body:
             await self.send({'type': 'http.response.body', 'body': compressed_body, 'more_body': True})
         if more_body:
             return
-        compressed_body = self.brotli_compressor.finish()
+        compressed_body = self.compressor.finish()
         await self.send({'type': 'http.response.body', 'body': compressed_body})
 
 
 class GZipResponder:
-    __slots__ = ('app', 'send', 'initial_message', 'gzip_compressor', 'gzip_buffer')
+    __slots__ = ('app', 'send', 'start_message', 'compressor', 'buffer')
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
         self.send: Send = None
-        self.initial_message: Message | None = None
-        self.gzip_compressor: gzip.GzipFile | None = None
-        self.gzip_buffer: BytesIO | None = None
+        self.start_message: Message | None = None
+        self.compressor: gzip.GzipFile | None = None
+        self.buffer: BytesIO | None = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         self.send = send
@@ -252,16 +221,19 @@ class GZipResponder:
 
     async def wrapper(self, message: Message) -> None:
         message_type: str = message['type']
+
+        # handle start message
         if message_type == 'http.response.start':
-            if _is_response_start_satisfied(message):
-                # delay initial message until response body is satisfied
-                self.initial_message = message
+            if _is_start_message_satisfied(message):
+                # capture start message and wait for response body
+                self.start_message = message
+                return
             else:
                 await self.send(message)
-            return
+                return
 
         # skip further processing if not satisfied
-        if self.initial_message is None:
+        if self.start_message is None:
             await self.send(message)
             return
 
@@ -274,14 +246,13 @@ class GZipResponder:
         body: bytes = message.get('body', b'')
         more_body: cython.char = message.get('more_body', False)
 
-        if self.gzip_compressor is None:
-            if not _is_response_body_satisfied(body, more_body):
-                await self.send(self.initial_message)
+        if self.compressor is None:
+            if not _is_body_satisfied(body, more_body):
+                await self.send(self.start_message)
                 await self.send(message)
-                self.initial_message = None  # skip further processing
                 return
 
-            headers = MutableHeaders(raw=self.initial_message['headers'])
+            headers = MutableHeaders(raw=self.start_message['headers'])
             headers['Content-Encoding'] = 'gzip'
             headers.add_vary_header('Accept-Encoding')
 
@@ -290,32 +261,114 @@ class GZipResponder:
                 compressed_body = gzip.compress(body, compresslevel=COMPRESS_DYNAMIC_GZIP_LEVEL)
                 headers['Content-Length'] = str(len(compressed_body))
                 message['body'] = compressed_body
-                await self.send(self.initial_message)
+                await self.send(self.start_message)
                 await self.send(message)
                 return
 
-            # streaming
+            # begin streaming
             del headers['Content-Length']
-            await self.send(self.initial_message)
-            self.gzip_buffer = gzip_buffer = BytesIO()
-            self.gzip_compressor = gzip.GzipFile(
+            await self.send(self.start_message)
+            buffer = BytesIO()
+            self.buffer = buffer
+            self.compressor = gzip.GzipFile(
                 mode='wb',
-                fileobj=gzip_buffer,
+                fileobj=buffer,
                 compresslevel=COMPRESS_DYNAMIC_GZIP_LEVEL,
             )
         else:
             # read property once for performance
-            gzip_buffer = self.gzip_buffer
+            buffer = self.buffer
 
         # streaming
-        self.gzip_compressor.write(body)
+        self.compressor.write(body)
         if not more_body:
-            self.gzip_compressor.close()
-        compressed_body = gzip_buffer.getvalue()
+            self.compressor.close()
+        compressed_body = buffer.getvalue()
         if more_body:
             if compressed_body:
-                gzip_buffer.seek(0)
-                gzip_buffer.truncate()
+                buffer.seek(0)
+                buffer.truncate()
             else:
                 return
         await self.send({'type': 'http.response.body', 'body': compressed_body, 'more_body': more_body})
+
+
+# https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding
+_accept_encoding_re = re.compile(r'[a-z]{2,8}')
+
+
+@lru_cache(maxsize=128)
+def parse_accept_encoding(accept_encoding: str) -> frozenset[str]:
+    """
+    Parse the accept encoding header.
+
+    Returns a set of encodings.
+
+    >>> _parse_accept_encoding('br;q=1.0, gzip;q=0.8, *;q=0.1')
+    {'br', 'gzip'}
+    """
+    return frozenset(_accept_encoding_re.findall(accept_encoding))
+
+
+# Primarily based on:
+# https://github.com/h5bp/server-configs-nginx/blob/main/h5bp/web_performance/compression.conf#L38
+_compress_content_types: set[str] = {
+    'application/atom+xml',
+    'application/geo+json',
+    'application/javascript',
+    'application/x-javascript',
+    'application/json',
+    'application/ld+json',
+    'application/manifest+json',
+    'application/rdf+xml',
+    'application/rss+xml',
+    'application/vnd.mapbox-vector-tile',
+    'application/vnd.ms-fontobject',
+    'application/wasm',
+    'application/x-web-app-manifest+json',
+    'application/xhtml+xml',
+    'application/xml',
+    'font/eot',
+    'font/otf',
+    'font/ttf',
+    'image/bmp',
+    'image/svg+xml',
+    'image/vnd.microsoft.icon',
+    'image/x-icon',
+    'text/cache-manifest',
+    'text/calendar',
+    'text/css',
+    'text/html',
+    'text/javascript',
+    'text/markdown',
+    'text/plain',
+    'text/xml',
+    'text/vcard',
+    'text/vnd.rim.location.xloc',
+    'text/vtt',
+    'text/x-component',
+    'text/x-cross-domain-policy',
+}
+
+
+@cython.cfunc
+def _is_start_message_satisfied(message: Message) -> cython.char:
+    status_code: cython.int = message['status']
+    if status_code < 200 or status_code >= 300:
+        return False
+
+    headers = Headers(raw=message['headers'])
+    if 'Content-Encoding' in headers or 'X-Precompressed' in headers:
+        return False
+
+    content_type: str | None = headers.get('Content-Type')
+    if content_type is None:
+        return True
+
+    basic_content_type = content_type.partition(';')[0].strip()
+    return basic_content_type in _compress_content_types
+
+
+@cython.cfunc
+def _is_body_satisfied(body: bytes, more_body: cython.char) -> cython.char:
+    return more_body or len(body) >= COMPRESS_DYNAMIC_MIN_SIZE

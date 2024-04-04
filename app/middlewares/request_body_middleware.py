@@ -3,7 +3,7 @@ import logging
 import zlib
 from io import BytesIO
 
-import brotlicffi
+import brotli
 import cython
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
@@ -34,7 +34,7 @@ def _get_decompressor(content_encoding: str | None):
     if content_encoding == 'zstd':
         return _decompress_zstd
     if content_encoding == 'br':
-        return brotlicffi.decompress
+        return brotli.decompress
     if content_encoding == 'gzip':
         return gzip.decompress
     if content_encoding == 'deflate':
