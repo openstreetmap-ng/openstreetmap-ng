@@ -121,7 +121,7 @@ class TraceService:
         trace.points = points
         trace.tag_string = tags
 
-        image, icon = await TraceImage.generate_async(points)
+        image, icon = TraceImage.generate(points)
         compressed_file, compressed_suffix = TraceFile.compress(file_bytes)
 
         async def save_file() -> None:

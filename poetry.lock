@@ -999,6 +999,21 @@ trio = ["trio (>=0.23)"]
 wmi = ["wmi (>=1.5.1)"]
 
 [[package]]
+name = "drawsvg"
+version = "2.3.0"
+description = "A Python 3 library for programmatically generating SVG (vector) images and animations.  Drawsvg can also render to PNG, MP4, and display your drawings in Jupyter notebook and Jupyter lab."
+optional = false
+python-versions = "*"
+files = [
+    {file = "drawsvg-2.3.0-py3-none-any.whl", hash = "sha256:93ad2b465d0da0b98c4e2cde11b64ce0149e2f15f8cdc0bd8e68f8b30a2e0abf"},
+]
+
+[package.extras]
+all = ["cairoSVG (>=2.3,<3.0)", "imageio (>=2.5,<3.0)", "imageio-ffmpeg (>=0.4,<1.0)", "numpy (>=1.16,<2.0)", "pwkit (>=1.0,<2.0)"]
+color = ["numpy (>=1.16,<2.0)", "pwkit (>=1.0,<2.0)"]
+raster = ["cairoSVG (>=2.3,<3.0)", "imageio (>=2.5,<3.0)", "imageio-ffmpeg (>=0.4,<1.0)", "numpy (>=1.16,<2.0)"]
+
+[[package]]
 name = "email-validator"
 version = "2.1.1"
 description = "A robust email address syntax and deliverability validation library."
@@ -3404,4 +3419,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "3781e98cf046e9b1035b1e5ce30ab67c42bcab89a9d6999bdbb2262e83279648"
+content-hash = "a71c756a665a87e9d5ac8fc324d83dabf52681788e65bb70a1866a2b3a0be0ad"
