@@ -69,8 +69,9 @@ async def gpx_read_data_raw(
 ):
     filename, file = await TraceRepository.get_one_data_by_id(trace_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
+    if content_type == 'text/xml':
+        content_type = 'application/gpx+xml'
     logging.debug('Downloading trace file content type is %r', content_type)
-
     return Response(
         content=file,
         headers={'Content-Disposition': f'attachment; filename="{filename}"'},

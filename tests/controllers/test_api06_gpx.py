@@ -74,3 +74,30 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict):
     # delete trace
     r = await client.delete(f'/api/0.6/gpx/{trace_id}')
     assert r.is_success, r.text
+
+
+async def test_gpx_data(client: AsyncClient, gpx: dict):
+    client.headers['Authorization'] = 'User user1'
+    file = XMLToDict.unparse(gpx, raw=True)
+
+    # create gpx
+    r = await client.post(
+        '/api/0.6/gpx/create',
+        data={
+            'visibility': 'identifiable',
+            'description': 'test gpx data',
+        },
+        files={
+            'file': ('test_gpx_data.gpx', file),
+        },
+    )
+    assert r.is_success, r.text
+    trace_id = int(r.text)
+
+    # read trace data
+    r = await client.get(f'/api/0.6/gpx/{trace_id}/data')
+    assert r.is_success, r.text
+
+    assert r.content == file
+    assert r.headers['Content-Disposition'] == 'attachment; filename="test_gpx_data.gpx"'
+    assert r.headers['Content-Type'] == 'application/gpx+xml'

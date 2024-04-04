@@ -315,6 +315,7 @@ def parse_accept_encoding(accept_encoding: str) -> frozenset[str]:
 _compress_content_types: set[str] = {
     'application/atom+xml',
     'application/geo+json',
+    'application/gpx+xml',
     'application/javascript',
     'application/x-javascript',
     'application/json',
