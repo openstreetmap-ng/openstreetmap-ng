@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 4515fee079fc
+Revision ID: 5318fdaaf108
 Revises:
-Create Date: 2024-03-26 02:42:17.544849+00:00
+Create Date: 2024-04-04 21:26:45.432579+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '4515fee079fc'
+revision: str = '5318fdaaf108'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -210,11 +210,10 @@ def upgrade() -> None:
     sa.Column('size', sa.Integer(), nullable=False),
     sa.Column('start_point', app.models.geometry.PointType(), nullable=False),
     sa.Column('file_id', sa.Unicode(length=64), nullable=False),
-    sa.Column('image_id', sa.Unicode(length=64), nullable=False),
-    sa.Column('icon_id', sa.Unicode(length=64), nullable=False),
     sa.Column('tags', sa.ARRAY(sa.Unicode(), dimensions=1), server_default='{}', nullable=False),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
+    sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -359,7 +358,7 @@ def upgrade() -> None:
     sa.Column('authorized_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-    sa.ForeignKeyConstraint(['application_id'], ['oauth1_application.id'], ),
+    sa.ForeignKeyConstraint(['application_id'], ['oauth1_application.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -374,7 +373,7 @@ def upgrade() -> None:
     sa.Column('authorized_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-    sa.ForeignKeyConstraint(['application_id'], ['oauth2_application.id'], ),
+    sa.ForeignKeyConstraint(['application_id'], ['oauth2_application.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -397,7 +396,7 @@ def upgrade() -> None:
     sa.Column('point', app.models.geometry.PointType(), nullable=False),
     sa.Column('elevation', sa.Float(), nullable=True),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
-    sa.ForeignKeyConstraint(['trace_id'], ['trace.id'], ),
+    sa.ForeignKeyConstraint(['trace_id'], ['trace.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

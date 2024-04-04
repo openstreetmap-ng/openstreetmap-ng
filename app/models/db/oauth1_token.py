@@ -19,7 +19,7 @@ class OAuth1Token(Base.UUID, CreatedAtMixin):
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(lazy='joined', innerjoin=True)
-    application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id), nullable=False)
+    application_id: Mapped[int] = mapped_column(ForeignKey(OAuth1Application.id, ondelete='CASCADE'), nullable=False)
     application: Mapped[OAuth1Application] = relationship(lazy='joined', innerjoin=True)
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)  # TODO: binary length
     # token_secret encryption is redundant, key is already hashed

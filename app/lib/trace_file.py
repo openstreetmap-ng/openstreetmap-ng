@@ -34,7 +34,6 @@ class TraceFile:
 
         The buffer may be compressed, in which case it will be decompressed first.
         """
-
         # multiple layers allow to handle nested archives such as .tar.gz
         # the use of range here is a cython optimization
         for layer in range(1, 2 + 1):

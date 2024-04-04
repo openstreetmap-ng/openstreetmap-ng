@@ -12,7 +12,7 @@ async def test_note_crud(client: AsyncClient):
         '/api/0.6/notes.json',
         params={'lon': 0, 'lat': 0, 'text': 'create'},
     )
-    assert r.is_success
+    assert r.is_success, r.text
     props: dict = r.json()['properties']
     note_id: int = props['id']
     comments: list[dict] = props['comments']
@@ -25,7 +25,7 @@ async def test_note_crud(client: AsyncClient):
 
     # read note
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
-    assert r.is_success
+    assert r.is_success, r.text
     assert r.json()['properties'] == props
 
     # comment note
@@ -33,7 +33,7 @@ async def test_note_crud(client: AsyncClient):
         f'/api/0.6/notes/{note_id}/comment.json',
         params={'text': 'comment'},
     )
-    assert r.is_success
+    assert r.is_success, r.text
     props: dict = r.json()['properties']
     comments = props['comments']
 
@@ -48,7 +48,7 @@ async def test_note_crud(client: AsyncClient):
         f'/api/0.6/notes/{note_id}/close.json',
         params={'text': 'resolve'},
     )
-    assert r.is_success
+    assert r.is_success, r.text
     props: dict = r.json()['properties']
     comments = props['comments']
 

@@ -1,17 +1,14 @@
 from collections.abc import Sequence
-from datetime import datetime, timedelta
 
 import cython
-from anyio import create_task_group, to_thread
+from anyio import to_thread
 from fastapi import UploadFile
-from shapely import get_coordinates
 
 from app.db import db_autocommit
 from app.format06 import Format06
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile
-from app.lib.trace_image import TraceImage
 from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.models.db.trace_ import Trace
@@ -19,60 +16,6 @@ from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
 from app.models.validating.trace_ import TraceValidating
 from app.storage import TRACES_STORAGE
-
-
-@cython.cfunc
-def _sort_point_key(p: TracePoint) -> tuple[datetime, float, float]:
-    """
-    Key function for sorting points.
-
-    Sorts by captured_at, then by longitude, then by latitude.
-    """
-
-    x, y = get_coordinates(p.point)[0].tolist()
-
-    return p.captured_at, x, y
-
-
-@cython.cfunc
-def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
-    """
-    Sort and deduplicates the points.
-    """
-
-    max_pos_diff = 1e-7  # different up to 7 decimal places
-    max_date_diff = timedelta(seconds=1)
-
-    sorted_points = sorted(points, key=_sort_point_key)
-    result = []
-    prev: TracePoint | None = None
-
-    for point in sorted_points:
-        if prev is not None:
-            point_point = point.point
-            prev_point = prev.point
-
-            point_x: cython.double = point_point.x
-            prev_x: cython.double = prev_point.x
-
-            # abs(point_x - prev_x)
-            x_delta = point_x - prev_x if (point_x > prev_x) else prev_x - point_x
-
-            if x_delta < max_pos_diff:
-                point_y: cython.double = point_point.y
-                prev_y: cython.double = prev_point.y
-
-                # abs(point_y - prev_y)
-                y_delta = point_y - prev_y if (point_y > prev_y) else prev_y - point_y
-
-                # check date last, slowest to compute
-                if y_delta < max_pos_diff and point.captured_at - prev.captured_at < max_date_diff:
-                    continue
-
-        result.append(point)
-        prev = point
-
-    return result
 
 
 class TraceService:
@@ -83,9 +26,8 @@ class TraceService:
 
         Returns the created trace object.
         """
-
-        if len(file.size) > TRACE_FILE_UPLOAD_MAX_SIZE:
-            raise_for().input_too_big(len(file.size))
+        if file.size > TRACE_FILE_UPLOAD_MAX_SIZE:
+            raise_for().input_too_big(file.size)
 
         file_bytes = await to_thread.run_sync(file.file.read)
         points: list[TracePoint] = []
@@ -94,8 +36,8 @@ class TraceService:
         try:
             for gpx_bytes in TraceFile.extract(file_bytes):
                 tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])
-                track_idx_last = points[-1].track_idx if points else -1
-                points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_last))
+                track_idx_start = (points[-1].track_idx + 1) if points else 0
+                points.extend(Format06.decode_tracks(tracks, track_idx_start=track_idx_start))
         except Exception as e:
             raise_for().bad_trace_file(str(e))
 
@@ -118,29 +60,24 @@ class TraceService:
             )
         )
 
-        trace.points = points
         trace.tag_string = tags
 
-        image, icon = TraceImage.generate(points)
         compressed_file, compressed_suffix = TraceFile.compress(file_bytes)
+        trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
 
-        async def save_file() -> None:
-            trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
+        try:
+            async with db_autocommit() as session:
+                session.add(trace)
+                await session.flush()
 
-        async def save_image() -> None:
-            trace.image_id = await TRACES_STORAGE.save(image, TraceImage.image_suffix)
+                for point in points:
+                    point.trace_id = trace.id
+                    session.add(point)
 
-        async def save_icon() -> None:
-            trace.icon_id = await TRACES_STORAGE.save(icon, TraceImage.icon_suffix)
-
-        # save the files after the validation
-        async with create_task_group() as tg:
-            tg.start_soon(save_file)
-            tg.start_soon(save_image)
-            tg.start_soon(save_icon)
-
-        async with db_autocommit() as session:
-            session.add(trace)
+        except Exception:
+            # clean up trace file on error
+            await TRACES_STORAGE.delete(trace.file_id)
+            raise
 
         return trace
 
@@ -149,7 +86,6 @@ class TraceService:
         """
         Update a trace.
         """
-
         async with db_autocommit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
@@ -168,7 +104,6 @@ class TraceService:
         """
         Delete a trace.
         """
-
         async with db_autocommit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
@@ -178,3 +113,31 @@ class TraceService:
                 raise_for().trace_access_denied(trace_id)
 
             await session.delete(trace)
+
+
+@cython.cfunc
+def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
+    """
+    Sort and deduplicates the points.
+    """
+    sorted_points = sorted(points, key=_point_sort_key)
+    result = []
+    prev_timestamp: cython.double = -1
+
+    # not checking for track_idx - not worth the extra complexity
+    # may lead to invalid deduplication in some edge cases
+
+    for point in sorted_points:
+        point_timestamp: cython.double = point.captured_at.timestamp()
+        if point_timestamp - prev_timestamp < 1:
+            continue
+
+        result.append(point)
+        prev_timestamp = point_timestamp
+
+    return result
+
+
+@cython.cfunc
+def _point_sort_key(p: TracePoint) -> tuple:
+    return p.track_idx, p.captured_at

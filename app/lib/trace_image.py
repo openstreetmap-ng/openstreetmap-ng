@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Sequence
 from io import StringIO
-from typing import Final
 
 import cython
 import drawsvg as draw
@@ -17,9 +16,6 @@ else:
 
 
 class TraceImage:
-    image_suffix: Final[str] = '.svg'
-    icon_suffix: Final[str] = '.svg'
-
     @staticmethod
     def generate(trace_points: Sequence[TracePoint]) -> tuple[bytes, bytes]:
         """

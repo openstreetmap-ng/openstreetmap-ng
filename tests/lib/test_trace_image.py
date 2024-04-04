@@ -1,18 +1,14 @@
 import pytest
-from anyio import Path
 
 from app.format06 import Format06
 from app.lib.trace_image import TraceImage
-from app.lib.xmltodict import XMLToDict
 
 pytestmark = pytest.mark.anyio
 
 
-async def test_generate():
+async def test_generate(gpx: dict):
     # TODO: fixture?
-    gpx = await Path('tests/data/11152535.gpx').read_bytes()
-    data = XMLToDict.parse(gpx)
-    trace_points = Format06.decode_tracks(data['gpx']['trk'])
+    trace_points = Format06.decode_tracks(gpx['gpx']['trk'])
     animation, icon = TraceImage.generate(trace_points)
 
     assert isinstance(animation, bytes)

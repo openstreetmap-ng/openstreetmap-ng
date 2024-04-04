@@ -80,6 +80,7 @@ value_postprocessor: dict[str, Callable[[str], Any]] = {
     '@min_lon': float,
     '@num_changes': int,
     '@open': _parse_xml_bool,
+    '@pending': _parse_xml_bool,
     '@ref': int,
     '@timestamp': datetime.fromisoformat,
     '@uid': int,
@@ -270,8 +271,15 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
 
             return (element,)
 
+        # encode sequence of scalars
         else:
-            raise TypeError(f'Invalid sequence member type {type(first)}')
+            key_bytes = key.encode()
+            result = []
+            for v in value:
+                element = ET.Element(key_bytes)
+                element.text = _to_string(v)
+                result.append(element)
+            return tuple(result)
 
     # encode scalar
     else:

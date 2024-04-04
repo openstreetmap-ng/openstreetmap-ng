@@ -58,9 +58,9 @@ async def gpx_read(
 async def gpx_read_data(
     trace_id: PositiveInt,
 ):
-    with joinedload_context(Trace.points, TracePoint.trace):
-        trace = await TraceRepository.get_one_by_id(trace_id)
-    return Format06.encode_track(trace.points)
+    with joinedload_context(TracePoint.trace):
+        trace_points = await TraceRepository.get_one_by_id(trace_id)
+    return Format06.encode_track(trace_points)
 
 
 @router.get('/gpx/{trace_id:int}/data')

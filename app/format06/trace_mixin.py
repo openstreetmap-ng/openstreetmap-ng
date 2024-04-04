@@ -174,7 +174,6 @@ def _encode_gpx_file(trace: Trace) -> dict:
     {'@id': 1, '@uid': 1234, ...}
     """
     start_x, start_y = get_coordinates(trace.start_point)[0].tolist()
-
     return {
         '@id': trace.id,
         '@uid': trace.user_id,
@@ -197,5 +196,4 @@ def _encode_point_xml(point: Point) -> dict:
     {'@lon': 1, '@lat': 2}
     """
     x, y = get_coordinates(point)[0].tolist()
-
     return {'@lon': x, '@lat': y}

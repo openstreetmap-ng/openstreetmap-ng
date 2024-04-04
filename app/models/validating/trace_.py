@@ -21,7 +21,4 @@ class TraceValidating(Base.Validating):
     start_point: PointGeometry
 
     # defaults
-    file_id: str | None = None
-    image_id: str | None = None
-    icon_id: str | None = None
     tags: Sequence[Annotated[Str255, URLSafeValidator]] = ()

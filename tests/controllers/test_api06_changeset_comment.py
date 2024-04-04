@@ -26,19 +26,19 @@ async def test_changeset_comment_crud(client: AsyncClient):
             }
         ),
     )
-    assert r.is_success
+    assert r.is_success, r.text
     changeset_id = int(r.text)
 
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     last_updated_at = changeset['@updated_at']
 
     # create comment
     r = await client.post(f'/api/0.6/changeset/{changeset_id}/comment', data={'text': 'comment'})
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@id'] == changeset_id
@@ -47,7 +47,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
 
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     # TODO: assert changeset['@comments_count'] == 1
@@ -62,13 +62,13 @@ async def test_changeset_comment_crud(client: AsyncClient):
     client.headers['Authorization'] = 'User moderator'
 
     r = await client.delete(f'/api/0.6/changeset/comment/{comment_id}')
-    assert r.is_success
+    assert r.is_success, r.text
 
     assert changeset['@id'] == changeset_id
 
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at

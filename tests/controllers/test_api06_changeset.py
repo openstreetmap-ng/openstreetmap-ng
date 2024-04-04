@@ -29,12 +29,12 @@ async def test_changeset_crud(client: AsyncClient):
             }
         ),
     )
-    assert r.is_success
+    assert r.is_success, r.text
     changeset_id = int(r.text)
 
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
@@ -64,7 +64,7 @@ async def test_changeset_crud(client: AsyncClient):
             }
         ),
     )
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
@@ -77,12 +77,12 @@ async def test_changeset_crud(client: AsyncClient):
 
     # close changeset
     r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
-    assert r.is_success
+    assert r.is_success, r.text
     assert not r.content
 
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
-    assert r.is_success
+    assert r.is_success, r.text
     changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@open'] is False
