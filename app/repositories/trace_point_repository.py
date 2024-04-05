@@ -1,8 +1,6 @@
 import logging
 from collections.abc import Sequence
-from datetime import datetime
 
-import cython
 import numpy as np
 from shapely import get_coordinates
 from shapely.ops import BaseGeometry
@@ -84,23 +82,17 @@ class TracePointRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_image_coords_by_id(trace_id: int) -> list[int]:
+    async def get_image_coords_by_id(trace_id: int, n: int = 200) -> list[int]:
         """
         Get coords list for rendering an icon.
 
         >>> get_image_coords_by_id(...)
         [x1, y1, x2, y2, ...]
         """
-        n: cython.int = 200  # 10 frames x 20 points
-
         async with db() as session:
-            stmt = select(Trace.size, Trace.updated_at).where(Trace.id == trace_id).with_for_update()
-            row = (await session.execute(stmt)).scalar_one_or_none()
-            if row is None:
-                return ()
-
-            size: cython.int = row[0]
-            if size < 2:
+            stmt = select(Trace.size).where(Trace.id == trace_id).with_for_update()
+            size = await session.scalar(stmt)
+            if size is None or size < 2:
                 return ()
 
             async def factory() -> bytes:
@@ -120,11 +112,10 @@ class TracePointRepository:
                     )
 
                 points = (await session.scalars(stmt)).all()
-                coords = mercator(get_coordinates(points), 100, 100).astype(int).flatten().tolist()
-                return bytes(coords)  # this is possible because 100 <= 255
+                coords = mercator(get_coordinates(points), 100, 100).astype(np.byte).flatten()
+                return bytes(coords)  # this is possible because coords fit in 1 byte
 
-            updated_at: datetime = row[1]
-            key = f'{trace_id}:{updated_at.timestamp()}'
+            key = f'{trace_id}:{n}'
             cache_entry = await CacheService.get_one_by_key(
                 key=key.encode(),
                 context=_cache_context,
