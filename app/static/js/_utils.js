@@ -86,3 +86,14 @@ export const throttle = (func, delay) => {
 // Also, such simple startsWith check is bug-prone:
 // export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
 export const isMetricUnit = true
+
+/**
+ * Check if the given href is the current page
+ * @param {string} href Href
+ * @returns {boolean}
+ */
+export const isHrefCurrentPage = (href) => {
+    const hrefPathname = new URL(href).pathname
+    const locationPathname = location.pathname
+    return hrefPathname === locationPathname || hrefPathname + "/" === locationPathname
+}

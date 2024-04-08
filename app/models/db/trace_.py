@@ -33,6 +33,9 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     # defaults
     tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode, dimensions=1), nullable=False, server_default='{}')
 
+    # runtime
+    image_coords: list[int] | None = None
+
     @validates('tags')
     def validate_tags(self, _: str, value: Sequence[str]):
         if len(value) > TRACE_TAGS_LIMIT:

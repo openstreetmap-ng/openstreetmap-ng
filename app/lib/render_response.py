@@ -49,7 +49,6 @@ def render_response(template_name: str, template_data: dict | None = None) -> HT
     """
     Render the given Jinja2 template with translation.
     """
-
     data = _get_default_data()
 
     if template_data is not None:

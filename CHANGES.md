@@ -82,6 +82,8 @@ Last update: 2024-03-17
 - Elements pagination does not require a sidebar reload (now client-sided)
 - Elements pagination is now easier to navigate, min width is 2 characters
 - New about page map image, featuring only free styles
+- Client-side, efficient, and high quality trace preview image generation (SVGs)
+- Display 30 traces per page instead of 20
 
 ## Backend
 
@@ -109,13 +111,12 @@ Last update: 2024-03-17
 - Add zstd-compressed file cache
 - Improve performance of basic auth
 - Add optimistic changeset diff processing
-- Reduce trace files disk usage (regenerate trace files from database)
+- Reduce trace files disk usage (regenerate trace files from database, auto-compress, on-demand trace images)
 - Use stronger password hashes for moderator and administator accounts
 - Update to latest nominatim and routing engines API
 - Add support for zstd-compressed trace files
 - Add support for zstd and brotli compressed HTTP requests
 - Simplify shortlink algorithm
-- Super efficient and higher quality trace preview image generation
 - Return errors during trace upload instead of sending emails to user
 - Replace [memcached](https://memcached.org/) with [Valkey](https://valkey.io/) *(BSD-licensed Redis)* for in-memory caching
 - Start using [Poetry](https://python-poetry.org/) for Python package management

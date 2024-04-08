@@ -19,7 +19,6 @@ class TraceRepository:
 
         Raises if the trace is not visible to the current user.
         """
-
         async with db() as session:
             stmt = select(Trace).where(Trace.id == trace_id)
             stmt = apply_statement_context(stmt)
@@ -41,7 +40,6 @@ class TraceRepository:
 
         Returns a tuple of (filename, file).
         """
-
         trace = await TraceRepository.get_one_by_id(trace_id)
         file_buffer = await TRACES_STORAGE.load(trace.file_id)
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace.file_id)
@@ -57,7 +55,6 @@ class TraceRepository:
         """
         Find traces by user id.
         """
-
         async with db() as session:
             stmt = select(Trace).where(
                 Trace.user_id == user_id,
@@ -75,12 +72,43 @@ class TraceRepository:
         """
         Count traces by user id.
         """
-
         async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(Trace).where(
-                    Trace.user_id == user_id,
-                )
-            )
+            stmt = select(func.count()).select_from(select(Trace).where(Trace.user_id == user_id))
 
             return await session.scalar(stmt)
+
+    @staticmethod
+    async def find_many_recent(
+        *,
+        after: int | None = None,
+        before: int | None = None,
+        limit: int,
+    ) -> Sequence[Trace]:
+        """
+        Find recent traces.
+        """
+        async with db() as session:
+            stmt = select(Trace)
+            stmt = apply_statement_context(stmt)
+
+            where_and = [Trace.visible_to(*auth_user_scopes())]
+
+            if after is not None:
+                where_and.append(Trace.id > after)
+            if before is not None:
+                where_and.append(Trace.id < before)
+
+            stmt = stmt.where(*where_and)
+
+            if (after is None) or (before is not None):
+                stmt = stmt.order_by(Trace.id.desc())
+                reverse = False
+            else:
+                stmt = stmt.order_by(Trace.id.asc())
+                reverse = True
+
+            stmt = stmt.limit(limit)
+            result = (await session.scalars(stmt)).all()
+            if reverse:
+                result.reverse()
+            return result

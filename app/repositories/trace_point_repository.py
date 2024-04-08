@@ -1,21 +1,16 @@
-import logging
 from collections.abc import Sequence
 
 import numpy as np
-from shapely import get_coordinates
+from shapely import Point, get_coordinates
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, select
+from sqlalchemy import func, select, union_all
 
 from app.db import db
 from app.lib.mercator import mercator
 from app.lib.statement_context import apply_statement_context
-from app.limits import TRACE_POINT_COORDS_CACHE_EXPIRE
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
-from app.services.cache_service import CacheService
-
-_cache_context = 'TracePointRepository'
 
 
 # TODO: limit offset for safety
@@ -82,45 +77,49 @@ class TracePointRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_image_coords_by_id(trace_id: int, n: int = 200) -> list[int]:
+    async def resolve_image_coords(traces: Sequence[Trace], *, limit_per_trace: int) -> None:
         """
-        Get coords list for rendering an icon.
+        Resolve image coords for traces.
+        """
+        if not traces:
+            return
 
-        >>> get_image_coords_by_id(...)
-        [x1, y1, x2, y2, ...]
-        """
         async with db() as session:
-            stmt = select(Trace.size).where(Trace.id == trace_id).with_for_update()
-            size = await session.scalar(stmt)
-            if size is None or size < 2:
-                return ()
+            stmts = []
 
-            async def factory() -> bytes:
-                logging.debug('Image coords cache miss for trace %d', trace_id)
-                stmt = (
-                    select(TracePoint.point)  #
-                    .where(TracePoint.trace_id == trace_id)
+            for trace in traces:
+                stmt_ = (
+                    select(
+                        TracePoint.trace_id,
+                        TracePoint.point,
+                        func.row_number().over().label('row_number'),
+                    )
+                    .where(TracePoint.trace_id == trace.id)
                     .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
                 )
 
-                if size > n:
-                    indices = np.round(np.linspace(0, size, n)).astype(int)
-                    stmt = (
-                        select(TracePoint.point)  #
-                        .select_from(stmt.subquery())
-                        .where(func.row_number().in_(indices))
+                if trace.size > limit_per_trace:
+                    indices = np.round(np.linspace(1, trace.size, limit_per_trace)).astype(int)
+                    stmt_subq = stmt_.subquery()
+                    stmt_ = (
+                        stmt_subq.select()
+                        .where(stmt_subq.c.row_number.in_(indices))  #
+                        .order_by(stmt_subq.c.row_number)
                     )
 
-                points = (await session.scalars(stmt)).all()
-                coords = mercator(get_coordinates(points), 100, 100).astype(np.byte).flatten()
-                return bytes(coords)  # this is possible because coords fit in 1 byte
+                stmts.append(stmt_)
 
-            key = f'{trace_id}:{n}'
-            cache_entry = await CacheService.get_one_by_key(
-                key=key.encode(),
-                context=_cache_context,
-                factory=factory,
-                ttl=TRACE_POINT_COORDS_CACHE_EXPIRE,
-            )
+            stmt = union_all(*stmts)
+            rows = (await session.execute(stmt)).all()
 
-            return list(cache_entry.value)
+        id_points_map: dict[int, list[Point]] = {}
+        for trace in traces:
+            id_points_map[trace.id] = trace.image_coords = []
+        for row in rows:
+            id_points_map[row[0]].append(row[1])
+        for trace in traces:
+            if trace.size < 2:
+                trace.image_coords.clear()
+            else:
+                coords = mercator(get_coordinates(trace.image_coords), 100, 100).astype(int).flatten().tolist()
+                trace.image_coords = coords

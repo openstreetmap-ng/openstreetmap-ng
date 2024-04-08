@@ -1,0 +1,43 @@
+.traces-body {
+}
+
+.traces-list {
+    height: 100%;
+
+    td:first-child {
+        svg {
+            width: 5em;
+            height: 5em;
+            background: $body-bg;
+        }
+    }
+
+    td:nth-child(2) {
+        width: 100%;
+    }
+
+    .badge {
+        position: relative;
+        top: -0.05em;
+    }
+
+    .hashtag {
+        &:not(:last-child) {
+            &::after {
+                content: ",";
+                color: black;
+            }
+        }
+    }
+
+    .btn-group {
+        height: 100%;
+
+        .btn {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-wrap: nowrap;
+        }
+    }
+}

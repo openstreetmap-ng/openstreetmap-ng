@@ -17,7 +17,8 @@ if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
 for (const link of navLinks) {
-    if (link.href === location.pathname) {
+    const linkPathname = new URL(link.href).pathname.trimEnd("/")
+    if (linkPathname === location.pathname) {
         link.classList.add("active")
         link.ariaCurrent = "page"
         break

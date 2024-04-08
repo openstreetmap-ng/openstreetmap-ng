@@ -3,7 +3,6 @@ from collections.abc import Sequence
 from io import StringIO
 
 import cython
-import drawsvg as draw
 from shapely import Point, get_coordinates
 
 from app.lib.mercator import mercator
