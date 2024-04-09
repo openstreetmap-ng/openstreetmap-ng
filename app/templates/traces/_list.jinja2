@@ -29,14 +29,13 @@
                             <span class="badge text-bg-secondary">
                                 {{ nt('traces.trace.count_points', trace.size) }}
                             </span>
-                            {% set visibility = trace.visibility.value %}
-                            {% if visibility == 'identifiable' %}
+                            {% if trace.visibility == 'identifiable' %}
                             <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
-                            {% elif visibility == 'public' %}
+                            {% elif trace.visibility == 'public' %}
                             <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
-                            {% elif visibility == 'trackable' %}
+                            {% elif trace.visibility == 'trackable' %}
                             <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
-                            {% elif visibility == 'private' %}
+                            {% elif trace.visibility == 'private' %}
                             <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
                             {% endif %}
                         </span>

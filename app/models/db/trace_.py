@@ -23,7 +23,10 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
     name: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     description: Mapped[str] = mapped_column(Unicode(255), nullable=False)
-    visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)
+    visibility: Mapped[TraceVisibility] = mapped_column(
+        Enum('identifiable', 'public', 'trackable', 'private', name='trace_visibility'),
+        nullable=False,
+    )
 
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
@@ -31,7 +34,11 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), init=False, nullable=False)
 
     # defaults
-    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode(255), dimensions=1), nullable=False, server_default='{}')
+    tags: Mapped[list[str]] = mapped_column(
+        ARRAY(Unicode(TRACE_TAG_MAX_LENGTH), dimensions=1),
+        nullable=False,
+        server_default='{}',
+    )
 
     # runtime
     image_coords: list[int] | None = None
@@ -69,30 +76,30 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @hybrid_property
     def linked_to_user_in_api(self) -> bool:
-        return self.visibility == TraceVisibility.identifiable
+        return self.visibility == 'identifiable'
 
     @linked_to_user_in_api.inplace.expression
     @classmethod
     def _linked_to_user_in_api_expression(cls) -> ColumnElement[bool]:
-        return cls.visibility == TraceVisibility.identifiable
+        return cls.visibility == 'identifiable'
 
     @hybrid_property
     def linked_to_user_on_site(self) -> bool:
-        return self.visibility in (TraceVisibility.identifiable, TraceVisibility.public)
+        return self.visibility in ('identifiable', 'public')
 
     @linked_to_user_on_site.inplace.expression
     @classmethod
     def _linked_to_user_on_site_expression(cls) -> ColumnElement[bool]:
-        return cls.visibility.in_((TraceVisibility.identifiable, TraceVisibility.public))
+        return cls.visibility.in_(('identifiable', 'public'))
 
     @hybrid_property
     def timestamps_via_api(self) -> bool:
-        return self.visibility in (TraceVisibility.identifiable, TraceVisibility.trackable)
+        return self.visibility in ('identifiable', 'trackable')
 
     @timestamps_via_api.inplace.expression
     @classmethod
     def _timestamps_via_api_expression(cls) -> ColumnElement[bool]:
-        return cls.visibility.in_((TraceVisibility.identifiable, TraceVisibility.trackable))
+        return cls.visibility.in_(('identifiable', 'trackable'))
 
     @hybrid_method
     def visible_to(self, user: User | None, scopes: Sequence[ExtendedScope]) -> bool:

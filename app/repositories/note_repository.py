@@ -49,8 +49,7 @@ class NoteRepository:
                 else:
                     where_and.append(Note.closed_at == null())
             if geometry is not None:
-                geometry_wkt = 'SRID=4326;' + geometry.wkt
-                where_and.append(func.ST_Intersects(Note.point, geometry_wkt))
+                where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
             if date_from is not None:
                 where_and.append(sort_by_key >= date_from)
             if date_to is not None:

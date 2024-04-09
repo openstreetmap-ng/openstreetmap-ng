@@ -26,8 +26,7 @@ class NoteCommentRepository:
             where_and = [Note.visible_to(auth_user())]
 
             if geometry is not None:
-                geometry_wkt = 'SRID=4326;' + geometry.wkt
-                where_and.append(func.ST_Intersects(Note.point, geometry_wkt))
+                where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
 
             stmt = stmt.where(*where_and).order_by(NoteComment.created_at.desc())
 

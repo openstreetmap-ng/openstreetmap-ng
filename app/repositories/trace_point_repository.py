@@ -10,7 +10,6 @@ from app.lib.mercator import mercator
 from app.lib.statement_context import apply_statement_context
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
-from app.models.trace_visibility import TraceVisibility
 
 
 # TODO: limit offset for safety
@@ -40,14 +39,12 @@ class TracePointRepository:
         """
         Find trace points by geometry.
         """
-        geometry_wkt = 'SRID=4326;' + geometry.wkt
-
         async with db() as session:
             stmt1 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(TracePoint.point, geometry_wkt),
-                    Trace.visibility.in_((TraceVisibility.identifiable, TraceVisibility.trackable)),
+                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    Trace.visibility.in_(('identifiable', 'trackable')),
                 )
                 .order_by(
                     TracePoint.trace_id.desc(),
@@ -59,8 +56,8 @@ class TracePointRepository:
             stmt2 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(TracePoint.point, geometry_wkt),
-                    Trace.visibility.in_((TraceVisibility.public, TraceVisibility.private)),
+                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    Trace.visibility.in_(('public', 'private')),
                 )
                 .order_by(
                     TracePoint.point.asc(),
@@ -77,7 +74,12 @@ class TracePointRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def resolve_image_coords(traces: Sequence[Trace], *, limit_per_trace: int) -> None:
+    async def resolve_image_coords(
+        traces: Sequence[Trace],
+        *,
+        limit_per_trace: int,
+        resolution: int,
+    ) -> None:
         """
         Resolve image coords for traces.
         """
@@ -121,5 +123,7 @@ class TracePointRepository:
             if trace.size < 2:
                 trace.image_coords.clear()
             else:
-                coords = mercator(get_coordinates(trace.image_coords), 100, 100).astype(int).flatten().tolist()
+                coords = (
+                    mercator(get_coordinates(trace.image_coords), resolution, resolution).astype(int).flatten().tolist()
+                )
                 trace.image_coords = coords

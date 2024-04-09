@@ -16,7 +16,6 @@ class UserRepository:
         """
         Find a user by id.
         """
-
         async with db() as session:
             stmt = select(User).where(User.id == user_id)
             stmt = apply_statement_context(stmt)
@@ -27,7 +26,6 @@ class UserRepository:
         """
         Find a user by display name.
         """
-
         async with db() as session:
             stmt = select(User).where(User.display_name == display_name)
             stmt = apply_statement_context(stmt)
@@ -38,7 +36,6 @@ class UserRepository:
         """
         Find a user by email.
         """
-
         async with db() as session:
             stmt = select(User).where(User.email == email)
             stmt = apply_statement_context(stmt)
@@ -49,7 +46,6 @@ class UserRepository:
         """
         Find users by ids.
         """
-
         async with db() as session:
             stmt = select(User).where(User.id.in_(user_ids))
             stmt = apply_statement_context(stmt)
@@ -67,17 +63,14 @@ class UserRepository:
 
         Users position is determined by their home point.
         """
-
-        point_wkt = 'SRID=4326;' + point.wkt
-
         async with db() as session:
             stmt = (
                 select(User)
                 .where(
                     User.home_point != null(),
-                    func.ST_DWithin(User.home_point, point_wkt, max_distance),
+                    func.ST_DWithin(User.home_point, func.ST_GeomFromText(point.wkt, 4326), max_distance),
                 )
-                .order_by(func.ST_Distance(User.home_point, point_wkt))
+                .order_by(func.ST_Distance(User.home_point, func.ST_GeomFromText(point.wkt, 4326)))
             )
             stmt = apply_statement_context(stmt)
 
@@ -91,9 +84,7 @@ class UserRepository:
         """
         Check if a display name is available.
         """
-
         user = auth_user()
-
         if user is not None:
             # check if the name is unchanged
             if user.display_name == display_name:
@@ -113,9 +104,7 @@ class UserRepository:
         """
         Check if an email is available.
         """
-
         user = auth_user()
-
         if user is not None:
             # check if the email is unchanged
             if user.email == email:

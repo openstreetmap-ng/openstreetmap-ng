@@ -35,7 +35,7 @@ async def gpx_create(
     if visibility is None:
         # backwards compatibility:
         # if public (numeric) is non-zero, set visibility to public
-        visibility = TraceVisibility.public if public else TraceVisibility.private
+        visibility = 'public' if public else 'private'
 
     trace = await TraceService.upload(file, description, tags, visibility)
     return Response(str(trace.id), media_type='text/plain')

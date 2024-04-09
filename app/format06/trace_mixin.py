@@ -8,7 +8,6 @@ from shapely import Point, get_coordinates, points
 from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
-from app.models.trace_visibility import TraceVisibility
 from app.models.validating.trace_ import TraceValidating
 from app.models.validating.trace_point import TracePointValidating
 
@@ -23,9 +22,6 @@ class Trace06Mixin:
         ... ])
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
-        # read property once for performance
-        visibility_identifiable = TraceVisibility.identifiable
-
         trks = []
         trk_trksegs = []
         trk_trkseg_trkpts = []
@@ -43,7 +39,7 @@ class Trace06Mixin:
 
                 # handle track change
                 if last_trk_id != trace_id:
-                    if trace.visibility == visibility_identifiable:
+                    if trace.visibility == 'identifiable':
                         url = f'/user/permalink/{trace.user_id}/traces/{trace_id}'
                     else:
                         url = None
@@ -158,7 +154,7 @@ class Trace06Mixin:
                     user_id=auth_user().id,
                     name=gpx_file.get('@name'),
                     description=gpx_file.get('description'),
-                    visibility=TraceVisibility(gpx_file.get('@visibility')),
+                    visibility=gpx_file.get('@visibility'),
                     size=1,
                     start_point=Point(0, 0),
                     tags=gpx_file.get('tag', ()),
@@ -182,7 +178,7 @@ def _encode_gpx_file(trace: Trace) -> dict:
         '@name': trace.name,
         '@lon': start_x,
         '@lat': start_y,
-        '@visibility': trace.visibility.value,
+        '@visibility': trace.visibility,
         '@pending': False,
         'description': trace.description,
         'tag': trace.tags,

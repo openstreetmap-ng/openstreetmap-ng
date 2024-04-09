@@ -327,15 +327,13 @@ class ElementRepository:
                 raise ValueError('nodes_limit must be MAP_QUERY_NODES_LEGACY_LIMIT when legacy_nodes_limit is True')
             nodes_limit += 1  # to detect limit exceeded
 
-        geometry_wkt = 'SRID=4326;' + geometry.wkt
-
         # find all the matching nodes
         async with db() as session:
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
                 or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 Element.type == 'node',
-                func.ST_Intersects(Element.point, geometry_wkt),
+                func.ST_Intersects(Element.point, func.ST_GeomFromText(geometry.wkt, 4326)),
             )
             stmt = apply_statement_context(stmt)
 

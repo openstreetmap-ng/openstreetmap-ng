@@ -1,8 +1,3 @@
-from enum import Enum
+from typing import Literal
 
-
-class TraceVisibility(str, Enum):
-    identifiable = 'identifiable'
-    public = 'public'
-    trackable = 'trackable'
-    private = 'private'
+TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']

@@ -1,0 +1,101 @@
+{% extends '_base.jinja2' %}
+{% set title = t('traces.show.title', name=trace.name) %}
+{% block title_prefix %}{{ title }} | {% endblock %}
+{% block body_class %}traces-details-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-6 offset-3">
+        <h1>{{ title }}</h1>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+
+        <div class="preview mb-3">
+            <svg data-coords="{{ image_coords | safe }}" xmlns="http://www.w3.org/2000/svg" width="102" height="102"
+                viewBox="-2.0 -2.0 204 204"></svg>
+        </div>
+
+        <div class="row traces-list mb-4">
+            <div class="col social-entry">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        <a href="/user/{{ trace.user.display_name }}">
+                            <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                        #}{{ trace.user.display_name }}{#
+                    #}</a>
+                        {{ t('action.uploaded') }}
+                        {{ timeago(trace.created_at, html=True) | safe }}
+                    </span>
+                    <span>
+                        <span class="badge text-bg-secondary">
+                            {{ nt('traces.trace.count_points', trace.size) }}
+                        </span>
+                        {% if trace.visibility == 'identifiable' %}
+                        <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
+                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('traces.visibility.identifiable') }}"></i>
+                        {% elif trace.visibility == 'public' %}
+                        <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
+                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('traces.visibility.public') }}"></i>
+                        {% elif trace.visibility == 'trackable' %}
+                        <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
+                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('traces.visibility.trackable') }}"></i>
+                        {% elif trace.visibility == 'private' %}
+                        <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
+                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip"
+                            data-bs-title="{{ t('traces.visibility.private') }}"></i>
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="body mb-0">
+                    <span class="fst-italic me-1">
+                        {{ trace.description }}
+                    </span>
+                    <span>
+                        {% for tag in trace.tags %}
+                        <a class="hashtag" href="/traces/tag/{{ tag }}">#{{ tag }}</a>
+                        {% endfor %}
+                    </span>
+                </p>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-link"
+                        href="/?mlon={{ trace.start_point.x }}&mlat={{ trace.start_point.y }}&zoom=14">
+                        <i class="bi bi-geo-alt fs-5"></i>
+                        <span>{{ t('traces.trace.view_map') }}</span>
+                    </a>
+                    <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
+                        <i class="bi bi-pencil fs-5"></i>
+                        <span>{{ t('traces.trace.edit_map') }}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span>
+                <a class="btn btn-primary px-4" href="TODO">
+                    {{ t('javascripts.share.download') }}
+                </a>
+            </span>
+            {% if (user is not none) and trace.user_id == user.id %}
+            <span>
+                <a class="btn btn-outline-primary" href="TODO">
+                    {{ t('traces.show.edit_trace') }}
+                </a>
+                <a class="btn btn-outline-danger" href="TODO">
+                    {{ t('profiles.edit.delete') }}
+                </a>
+            </span>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
