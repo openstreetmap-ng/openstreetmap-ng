@@ -1,5 +1,5 @@
-{% include 'traces/_list_nav.jinja2' %}
 {% if traces %}
+{% include 'traces/_list_nav.jinja2' %}
 <table class="table table-striped traces-list" data-coords="{{ image_coords | safe }}">
     <tbody>
         {% for trace in traces %}
@@ -46,8 +46,6 @@
                             {{ trace.description }}
                         </span>
                         <span>
-                            <a class="hashtag" href="/traces/tag/streetcomplete">#streetcomplete</a>
-                            <a class="hashtag" href="/traces/tag/osmand">#osmand</a>
                             {% for tag in trace.tags %}
                             <a class="hashtag" href="/traces/tag/{{ tag }}">#{{ tag }}</a>
                             {% endfor %}
@@ -72,12 +70,24 @@
         {% endfor %}
     </tbody>
 </table>
-{% else %}
-<h3>
-    {{ t('geocoder.results.no_results') }}
-    <a class="btn btn-link" href="/traces">
-        <i class="bi bi-x-circle me-2"></i>{{ t('action.reset_filters') }}
-    </a>
-</h3>
-{% endif %}
 {% include 'traces/_list_nav.jinja2' %}
+{% else %}
+<h3>{{ t('traces.index.empty_title') }}</h3>
+<p>
+    {% set upload_link %}
+    <a href="/traces/new">
+        {{ t('traces.index.upload_new') }}
+    </a>
+    {% endset %}
+    {% set wiki_link %}
+    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2">
+        {{ t('traces.index.wiki_page') }}
+    </a>
+    {% endset %}
+    {{ t(
+    'traces.index.empty_upload_html',
+    upload_link=upload_link,
+    wiki_link=wiki_link,
+) | safe }}
+</p>
+{% endif %}

@@ -1,5 +1,6 @@
 from typing import Annotated
 
+import cython
 from anyio import create_task_group
 from fastapi import APIRouter, Query
 
@@ -13,31 +14,46 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/traces')
 
 
-@router.get('/')
-async def index(
-    after: Annotated[int | None, Query(gt=0)] = None,
-    before: Annotated[int | None, Query(gt=0)] = None,
-):
+@cython.cfunc
+async def _get_traces_data(
+    *,
+    personal: bool,
+    after: int | None,
+    before: int | None,
+) -> dict:
     with joinedload_context(Trace.user):
-        traces = await TraceRepository.find_many_recent(after=after, before=before, limit=30)
+        traces = await TraceRepository.find_many_recent(
+            personal=personal,
+            after=after,
+            before=before,
+            limit=30,
+        )
 
     new_after: int | None = None
     new_before: int | None = None
 
     async def resolve_task():
-        await TracePointRepository.resolve_image_coords(traces, limit_per_trace=50)
+        await TracePointRepository.resolve_image_coords(traces, limit_per_trace=80)
 
     async def new_after_task():
         nonlocal new_after
         after = traces[0].id
-        after_traces = await TraceRepository.find_many_recent(after=after, limit=1)
+        after_traces = await TraceRepository.find_many_recent(
+            personal=personal,
+            after=after,
+            limit=1,
+        )
         if after_traces:
             new_after = after
 
     async def new_before_task():
         nonlocal new_before
         before = traces[-1].id
-        before_traces = await TraceRepository.find_many_recent(before=before, limit=1)
+        before_traces = await TraceRepository.find_many_recent(
+            personal=personal,
+            before=before,
+            limit=1,
+        )
         if before_traces:
             new_before = before
 
@@ -48,12 +64,28 @@ async def index(
             tg.start_soon(new_before_task)
 
     image_coords = JSON_ENCODE(tuple(trace.image_coords for trace in traces)).decode()
-    return render_response(
-        'traces/index.jinja2',
-        {
-            'new_after': new_after,
-            'new_before': new_before,
-            'traces': traces,
-            'image_coords': image_coords,
-        },
-    )
+
+    return {
+        'new_after': new_after,
+        'new_before': new_before,
+        'traces': traces,
+        'image_coords': image_coords,
+    }
+
+
+@router.get('/')
+async def index(
+    after: Annotated[int | None, Query(gt=0)] = None,
+    before: Annotated[int | None, Query(gt=0)] = None,
+):
+    data = await _get_traces_data(personal=False, after=after, before=before)
+    return render_response('traces/index.jinja2', data)
+
+
+@router.get('/mine')
+async def mine(
+    after: Annotated[int | None, Query(gt=0)] = None,
+    before: Annotated[int | None, Query(gt=0)] = None,
+):
+    data = await _get_traces_data(personal=True, after=after, before=before)
+    return render_response('traces/mine.jinja2', data)

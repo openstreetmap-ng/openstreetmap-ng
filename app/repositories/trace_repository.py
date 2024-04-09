@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import func, select
 
 from app.db import db
-from app.lib.auth_context import auth_user_scopes
+from app.lib.auth_context import auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.statement_context import apply_statement_context
 from app.lib.trace_file import TraceFile
@@ -80,6 +80,7 @@ class TraceRepository:
     @staticmethod
     async def find_many_recent(
         *,
+        personal: bool,
         after: int | None = None,
         before: int | None = None,
         limit: int,
@@ -91,7 +92,12 @@ class TraceRepository:
             stmt = select(Trace)
             stmt = apply_statement_context(stmt)
 
-            where_and = [Trace.visible_to(*auth_user_scopes())]
+            where_and = []
+
+            if personal:
+                where_and.append(Trace.user_id == auth_user().id)
+            else:
+                where_and.append(Trace.visible_to(*auth_user_scopes()))
 
             if after is not None:
                 where_and.append(Trace.id > after)
