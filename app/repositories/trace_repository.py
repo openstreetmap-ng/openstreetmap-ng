@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from sqlalchemy import func, select
 
 from app.db import db
-from app.lib.auth_context import auth_user, auth_user_scopes
+from app.lib.auth_context import auth_scopes, auth_user, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.statement_context import apply_statement_context
 from app.lib.trace_file import TraceFile
@@ -97,7 +97,7 @@ class TraceRepository:
             if personal:
                 where_and.append(Trace.user_id == auth_user().id)
             else:
-                where_and.append(Trace.visible_to(*auth_user_scopes()))
+                where_and.append(Trace.visible_to(None, auth_scopes()))
 
             if after is not None:
                 where_and.append(Trace.id > after)

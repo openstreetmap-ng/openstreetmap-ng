@@ -81,9 +81,9 @@
     {% endset %}
     {% set wiki_link %}
     <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2">
-        {{ t('traces.index.wiki_page') }}
-    </a>
-    {% endset %}
+        {{ t('traces.index.wiki_page') }}{#
+    #}</a>{#
+    #}{% endset %}
     {{ t(
     'traces.index.empty_upload_html',
     upload_link=upload_link,
