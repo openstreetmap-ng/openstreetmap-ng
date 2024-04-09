@@ -1,7 +1,6 @@
 const tracesDetailsBody = document.querySelector('body.traces-details-body')
 if (tracesDetailsBody) {
     const svg = tracesDetailsBody.querySelector('.preview svg')
-    const fragment = document.createDocumentFragment()
     const coords = JSON.parse(svg.dataset.coords)
 
     console.debug("Rendering", 1, "animated trace SVG")
@@ -20,7 +19,7 @@ if (tracesDetailsBody) {
     path.setAttribute('stroke-width', '0.5')
     path.setAttribute('stroke-linecap', 'round')
 
-    fragment.appendChild(path)
+    svg.appendChild(path)
 
     {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -44,8 +43,6 @@ if (tracesDetailsBody) {
         animate.setAttribute('fill', 'freeze')
 
         path.appendChild(animate)
-        fragment.appendChild(path)
+        svg.appendChild(path)
     }
-
-    svg.appendChild(fragment)
 }
