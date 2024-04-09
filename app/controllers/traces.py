@@ -4,9 +4,11 @@ import cython
 from anyio import create_task_group
 from fastapi import APIRouter, Query
 
+from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.lib.statement_context import joinedload_context
 from app.models.db.trace_ import Trace
+from app.models.db.user import User
 from app.repositories.trace_point_repository import TracePointRepository
 from app.repositories.trace_repository import TraceRepository
 from app.utils import JSON_ENCODE
@@ -84,8 +86,14 @@ async def index(
 
 @router.get('/mine')
 async def mine(
+    _: Annotated[User, web_user()],
     after: Annotated[int | None, Query(gt=0)] = None,
     before: Annotated[int | None, Query(gt=0)] = None,
 ):
     data = await _get_traces_data(personal=True, after=after, before=before)
     return render_response('traces/mine.jinja2', data)
+
+
+@router.get('/new')
+async def new(_: Annotated[User, web_user()]):
+    return render_response('traces/new.jinja2')

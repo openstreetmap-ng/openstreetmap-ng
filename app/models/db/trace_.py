@@ -21,8 +21,8 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
     user: Mapped[User] = relationship(init=False, lazy='raise', innerjoin=True)
-    name: Mapped[str] = mapped_column(Unicode, nullable=False)
-    description: Mapped[str] = mapped_column(Unicode, nullable=False)
+    name: Mapped[str] = mapped_column(Unicode(255), nullable=False)
+    description: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     visibility: Mapped[TraceVisibility] = mapped_column(Enum(TraceVisibility), nullable=False)
 
     size: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -31,7 +31,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), init=False, nullable=False)
 
     # defaults
-    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode, dimensions=1), nullable=False, server_default='{}')
+    tags: Mapped[list[str]] = mapped_column(ARRAY(Unicode(255), dimensions=1), nullable=False, server_default='{}')
 
     # runtime
     image_coords: list[int] | None = None

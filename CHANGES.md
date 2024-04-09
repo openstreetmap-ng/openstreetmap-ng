@@ -84,6 +84,7 @@ Last update: 2024-03-17
 - New about page map image, featuring only free styles
 - Client-side, efficient, and high quality trace preview image generation (SVGs)
 - Display 30 traces per page instead of 20
+- Filter file types during trace upload
 
 ## Backend
 

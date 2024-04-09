@@ -31,7 +31,8 @@
                     <i class="bi bi-cloud-arrow-up me-2"></i>{{ t('traces.index.upload_trace') }}
                 </a>
                 {% endif %}
-                <a class="btn btn-light border" href="/traces/rss" aria-label="{{ t('alt.rss_feed') }}">
+                <a class="btn btn-light border" href="/user/{{ user.display_name }}/traces/rss"
+                    aria-label="{{ t('alt.rss_feed') }}">
                     <i class="bi bi-rss-fill rss-color"></i>
                 </a>
             </li>

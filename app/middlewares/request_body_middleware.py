@@ -10,7 +10,7 @@ from zstandard import ZstdDecompressor
 
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
-from app.limits import HTTP_BODY_MAX_SIZE
+from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
 _zstd_decompress = ZstdDecompressor().decompress
@@ -67,7 +67,7 @@ class RequestBodyMiddleware:
             if chunk_size == 0:
                 break
             input_size += chunk_size
-            if input_size > HTTP_BODY_MAX_SIZE:
+            if input_size > REQUEST_BODY_MAX_SIZE:
                 raise_for().input_too_big(input_size)
             buffer.write(chunk)
 
@@ -89,7 +89,7 @@ class RequestBodyMiddleware:
                     content_encoding,
                 )
 
-                if len(body) > HTTP_BODY_MAX_SIZE:
+                if len(body) > REQUEST_BODY_MAX_SIZE:
                     raise_for().input_too_big(len(body))
             else:
                 logging.debug(

@@ -46,9 +46,9 @@ export const getNewNoteController = (map) => {
     }
 
     // On success callback, navigate to the new note and simulate map move (reload notes layer)
-    const onFormSuccess = (data) => {
+    const onFormSuccess = ({ noteId }) => {
         map.panTo(map.getCenter(), { animate: false })
-        routerNavigateStrict(`/note/${data.noteId}`)
+        routerNavigateStrict(`/note/${noteId}`)
     }
 
     // Listen for events

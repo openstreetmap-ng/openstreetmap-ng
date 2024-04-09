@@ -1,0 +1,73 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('traces.new.upload_trace') }} | {% endblock %}
+{% block body_class %}traces-new-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-6 offset-3">
+        <h1>
+            {{ t('traces.new.upload_trace') }}
+        </h1>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <form class="upload-form" method="POST" action="/api/web/traces/upload" enctype="multipart/form-data">
+
+            <label class="form-label d-block mb-3">
+                <span class="required">{{ t('activerecord.attributes.trace.gpx_file') }}</span>
+                <input type="file" class="form-control mt-2"
+                    accept=".gpx,application/gpx+xml,application/x-bzip2,application/gzip,application/x-tar,text/xml,application/zip,application/zstd"
+                    name="file" required>
+            </label>
+
+            <label class="form-label d-block mb-3">
+                <span class="required">{{ t('notes.show.description') }}</span>
+                <input type="text" class="form-control mt-2" name="description" required>
+            </label>
+
+            <label class="form-label d-block">
+                {{ t('browse.tag_details.tags') }}
+                <input type="text" class="form-control mt-2" name="tags">
+            </label>
+            <p class="form-text">
+                {{ t('activerecord.help.trace.tagstring') }}
+            </p>
+
+            <label class="form-label">
+                <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
+            </label>
+            <select class="form-select format-select mb-2" name="visibility" required>
+                <option value="private" selected>
+                    {{ t('traces.visibility.private') }}
+                </option>
+                <option value="public">
+                    {{ t('traces.visibility.public') }}
+                </option>
+                <option value="trackable">
+                    {{ t('traces.visibility.trackable') }}
+                </option>
+                <option value="identifiable">
+                    {{ t('traces.visibility.identifiable') }}
+                </option>
+            </select>
+            <p class="form-text">
+                <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
+                    target="_blank" rel="help">
+                    {{ t('traces.edit.visibility_help') }}
+                </a>
+            </p>
+
+            <button class="btn btn-primary px-4" type="submit">
+                {{ t('action.upload') }}
+            </button>
+
+            <a class="btn btn-link" href="https://wiki.openstreetmap.org/wiki/Upload" target="_blank" rel="help">
+                {{ t('layouts.help') }}
+            </a>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}
