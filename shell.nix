@@ -262,8 +262,7 @@ let
         exit 0
       fi
 
-      fresh_start=0
-      if [ ! -d data/postgres ]; then
+      if [ ! -f data/postgres/PG_VERSION ]; then
         initdb -D data/postgres \
           --no-instructions \
           --locale=C.UTF-8 \
@@ -272,15 +271,14 @@ let
           --auth=password \
           --username=postgres \
           --pwfile=<(echo postgres)
-        fresh_start=1
       fi
 
-      mkdir -p data/supervisor
+      mkdir -p /tmp/osm-postgres data/supervisor data/mailpit
       supervisord -c config/supervisord.conf
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
-      while ! pg_isready -q -h 127.0.0.1 -t 10; do sleep 0.1; done
+      while ! pg_isready -q -h /tmp/osm-postgres -t 10; do sleep 0.1; done
       echo "Postgres started, running migrations"
       alembic-upgrade
     '')
@@ -304,7 +302,7 @@ let
     (writeShellScriptBin "dev-clean" ''
       set -e
       dev-stop
-      rm -rf data/postgres data/mailpit.db*
+      rm -rf data/postgres data/mailpit
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
@@ -464,7 +462,7 @@ let
       echo "Loading .env file"
       set -o allexport
       source .env set
-      +o allexport
+      set +o allexport
     fi
   '' + lib.optionalString (!isDevelopment) ''
     make-version

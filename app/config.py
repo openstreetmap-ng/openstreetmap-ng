@@ -64,9 +64,9 @@ LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 # TODO: SecretStr?
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@127.0.0.1/postgres')
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@/postgres?host=/tmp/osm-postgres')
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
-REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1?password=redis&protocol=3')
+REDIS_URL = os.getenv('REDIS_URL', 'unix:///tmp/osm-redis.sock?password=redis&protocol=3')
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
 
