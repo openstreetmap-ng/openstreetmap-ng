@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 5318fdaaf108
+Revision ID: a6dc91e821b0
 Revises:
-Create Date: 2024-04-04 21:26:45.432579+00:00
+Create Date: 2024-04-10 14:02:55.421038+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '5318fdaaf108'
+revision: str = 'a6dc91e821b0'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -204,13 +204,13 @@ def upgrade() -> None:
     op.create_index('client_id_idx', 'oauth2_application', ['client_id'], unique=True)
     op.create_table('trace',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
-    sa.Column('name', sa.Unicode(), nullable=False),
-    sa.Column('description', sa.Unicode(), nullable=False),
-    sa.Column('visibility', sa.Enum('identifiable', 'public', 'trackable', 'private', name='tracevisibility'), nullable=False),
+    sa.Column('name', sa.Unicode(length=255), nullable=False),
+    sa.Column('description', sa.Unicode(length=255), nullable=False),
+    sa.Column('visibility', sa.Enum('identifiable', 'public', 'trackable', 'private', name='trace_visibility'), nullable=False),
     sa.Column('size', sa.Integer(), nullable=False),
     sa.Column('start_point', app.models.geometry.PointType(), nullable=False),
     sa.Column('file_id', sa.Unicode(length=64), nullable=False),
-    sa.Column('tags', sa.ARRAY(sa.Unicode(), dimensions=1), server_default='{}', nullable=False),
+    sa.Column('tags', sa.ARRAY(sa.Unicode(length=40), dimensions=1), server_default='{}', nullable=False),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
