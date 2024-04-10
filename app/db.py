@@ -22,18 +22,26 @@ else:
             yield r
 
 
-# TODO: pool size (anyio concurrency limit)
 _db_engine = create_async_engine(
     POSTGRES_URL,
-    # asyncpg doesn't play nicely with JIT
+    # asyncpg enum doesn't play nicely with JIT
     # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#disabling-the-postgresql-jit-to-improve-enum-datatype-handling
     connect_args={'server_settings': {'jit': 'off'}},
     echo=POSTGRES_LOG,
     echo_pool=POSTGRES_LOG,
     json_deserializer=JSON_DECODE,
-    json_serializer=lambda x: JSON_ENCODE(x).decode(),  # TODO: is decode needed?
+    json_serializer=lambda x: JSON_ENCODE(x).decode(),
     query_cache_size=1024,
-    **({'poolclass': NullPool} if TEST_ENV else {}),
+    **(
+        {
+            'poolclass': NullPool,
+        }
+        if TEST_ENV
+        else {
+            'pool_size': 10,
+            'max_overflow': -1,
+        }
+    ),
 )
 
 
@@ -42,7 +50,6 @@ async def db():
     """
     Get a database session.
     """
-
     async with AsyncSession(
         _db_engine,
         expire_on_commit=False,
@@ -56,7 +63,6 @@ async def db_autocommit():
     """
     Get a database session that commits automatically on exit.
     """
-
     async with db() as session:
         yield session
         await session.commit()
