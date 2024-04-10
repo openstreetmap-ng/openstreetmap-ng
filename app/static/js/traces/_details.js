@@ -30,7 +30,7 @@ if (tracesDetailsBody) {
         path.setAttribute('stroke-linecap', 'round')
 
         const totalLength = path.getTotalLength()
-        const segmentLength = totalLength / 10
+        const segmentLength = 50
         const duration = totalLength / 120
 
         path.setAttribute('stroke-dasharray', `${segmentLength} ${totalLength}`)
