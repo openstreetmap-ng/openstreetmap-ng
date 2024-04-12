@@ -41,6 +41,7 @@ from app.services.test_service import TestService
 # register additional mimetypes
 mimetypes.init()
 mimetypes.add_type('application/javascript', '.cjs')
+mimetypes.add_type('application/gpx+xml', '.gpx')
 
 # harden against parsing really big numbers
 sys.set_int_max_str_digits(sys.int_info.str_digits_check_threshold)

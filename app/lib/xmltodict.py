@@ -26,7 +26,6 @@ def get_xattr(*, is_json: bool | None = None):
 
     If `is_json` is None (default), then the current format is detected.
     """
-
     if is_json is None:
         is_json = format_is_json()
 

@@ -12,7 +12,7 @@
 <div class="content-body">
     <div class="col-6 offset-3">
 
-        <div class="preview mb-3">
+        <div class="trace-preview mb-3">
             <svg data-coords="{{ image_coords | safe }}" xmlns="http://www.w3.org/2000/svg" width="102" height="102"
                 viewBox="-2.0 -2.0 204 204"></svg>
         </div>
@@ -79,18 +79,21 @@
 
         <div class="d-flex justify-content-between">
             <span>
-                <a class="btn btn-primary px-4" href="TODO">
+                {# intentionally without API_URL, to not require user authorization #}
+                <a class="btn btn-primary px-4" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
                     {{ t('javascripts.share.download') }}
                 </a>
             </span>
             {% if (user is not none) and trace.user_id == user.id %}
             <span>
-                <a class="btn btn-outline-primary" href="TODO">
+                <a class="btn btn-outline-primary" href="/trace/{{ trace.id }}/edit">
                     {{ t('traces.show.edit_trace') }}
                 </a>
-                <a class="btn btn-outline-danger" href="TODO">
-                    {{ t('profiles.edit.delete') }}
-                </a>
+                <form class="d-inline delete-form" method="POST" action="/api/web/traces/{{ trace.id }}/delete">
+                    <button class="btn btn-outline-danger" type="submit">
+                        {{ t('profiles.edit.delete') }}
+                    </button>
+                </form>
             </span>
             {% endif %}
         </div>

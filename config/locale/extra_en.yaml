@@ -83,7 +83,9 @@ validation:
   email_missmatch: The email addresses do not match
   password_missmatch: The passwords do not match
 action:
+  cancel: Cancel
   copy: Copy
+  save: Save
   save_as: Save as
   comment: Comment
   commented: commented

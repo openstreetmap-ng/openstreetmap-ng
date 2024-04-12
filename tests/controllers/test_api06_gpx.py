@@ -94,10 +94,19 @@ async def test_gpx_data(client: AsyncClient, gpx: dict):
     assert r.is_success, r.text
     trace_id = int(r.text)
 
-    # read trace data
+    # read trace raw data
     r = await client.get(f'/api/0.6/gpx/{trace_id}/data')
     assert r.is_success, r.text
 
     assert r.content == file
-    assert r.headers['Content-Disposition'] == 'attachment; filename="test_gpx_data.gpx"'
-    assert r.headers['Content-Type'] == 'application/gpx+xml'
+    assert r.headers['Content-Disposition'] == f'attachment; filename="{trace_id}"'
+    assert 'Content-Type' not in r.headers
+
+    # read trace gpx data
+    r = await client.get(f'/api/0.6/gpx/{trace_id}/data.gpx')
+    assert r.is_success, r.text
+
+    assert r.content != file
+    assert r.content.startswith(b'<?xml')
+    assert r.headers['Content-Disposition'] == f'attachment; filename="{trace_id}.gpx"'
+    assert r.headers['Content-Type'] == 'application/gpx+xml; charset=utf-8'

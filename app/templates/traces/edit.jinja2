@@ -1,34 +1,37 @@
 {% extends '_base.jinja2' %}
-{% block title_prefix %}{{ t('traces.new.upload_trace') }} | {% endblock %}
-{% block body_class %}traces-new-body{% endblock %}
+{% set title = t('traces.edit.title', name=trace.name) %}
+{% block title_prefix %}{{ title }} | {% endblock %}
+{% block body_class %}traces-edit-body{% endblock %}
 {% block body %}
 
 <div class="content-header">
     <div class="col-6 offset-3">
-        <h1>
-            {{ t('traces.new.upload_trace') }}
-        </h1>
+        <h1>{{ title }}</h1>
     </div>
 </div>
 <div class="content-body">
     <div class="col-6 offset-3">
-        <form class="upload-form" method="POST" action="/api/web/traces/upload" enctype="multipart/form-data">
+        <div class="trace-preview trace-preview-sm mb-3">
+            <svg data-coords="{{ image_coords | safe }}" xmlns="http://www.w3.org/2000/svg" width="102" height="102"
+                viewBox="-2.0 -2.0 204 204"></svg>
+        </div>
+
+        <form class="update-form" method="POST" action="/api/web/traces/{{ trace.id }}/update">
 
             <label class="form-label d-block mb-3">
-                <span class="required">{{ t('activerecord.attributes.trace.gpx_file') }}</span>
-                <input type="file" class="form-control mt-2"
-                    accept=".gpx,application/gpx+xml,application/x-bzip2,application/gzip,application/x-tar,text/xml,application/zip,application/zstd"
-                    name="file" required>
+                <span class="required">{{ t('oauth2_applications.index.name') }}</span>
+                <input type="text" class="form-control mt-2" name="name" value="{{ trace.name }}" required>
             </label>
 
             <label class="form-label d-block mb-3">
                 <span class="required">{{ t('notes.show.description') }}</span>
-                <input type="text" class="form-control mt-2" name="description" required>
+                <input type="text" class="form-control mt-2" name="description" value="{{ trace.description }}"
+                    required>
             </label>
 
             <label class="form-label d-block">
                 {{ t('browse.tag_details.tags') }}
-                <input type="text" class="form-control mt-2" name="tags">
+                <input type="text" class="form-control mt-2" name="tags" value="{{ trace.tag_string }}">
             </label>
             <p class="form-text">
                 {{ t('activerecord.help.trace.tagstring') }}
@@ -38,16 +41,17 @@
                 <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
             </label>
             <select class="form-select format-select mb-2" name="visibility" required>
-                <option value="private" selected>
+                {% set visibility = trace.visibility %}
+                <option value="private" {% if visibility == "private" %}selected{% endif %}>
                     {{ t('traces.visibility.private') }}
                 </option>
-                <option value="public">
+                <option value="public" {% if visibility == "public" %}selected{% endif %}>
                     {{ t('traces.visibility.public') }}
                 </option>
-                <option value="trackable">
+                <option value="trackable" {% if visibility == "trackable" %}selected{% endif %}>
                     {{ t('traces.visibility.trackable') }}
                 </option>
-                <option value="identifiable">
+                <option value="identifiable" {% if visibility == "identifiable" %}selected{% endif %}>
                     {{ t('traces.visibility.identifiable') }}
                 </option>
             </select>
@@ -58,13 +62,12 @@
                 </a>
             </p>
 
-            <div class="text-end">
-                <a class="btn btn-link me-3" href="https://wiki.openstreetmap.org/wiki/Upload" target="_blank"
-                    rel="help">
-                    <i class="bi bi-question-circle me-2"></i>{{ t('layouts.help') }}
+            <div class="d-flex justify-content-between">
+                <a class="btn btn-secondary px-4" href="/trace/{{ trace.id }}">
+                    {{ t('action.cancel') }}
                 </a>
                 <button class="btn btn-primary px-4" type="submit">
-                    <i class="bi bi-cloud-arrow-up-fill me-2"></i>{{ t('action.upload') }}
+                    <i class="bi bi-floppy2-fill me-2"></i>{{ t('action.save') }}
                 </button>
             </div>
 

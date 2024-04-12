@@ -3,7 +3,8 @@ from typing import Annotated
 import cython
 from anyio import create_task_group
 from fastapi import APIRouter, Query
-from pydantic import PositiveInt
+from starlette import status
+from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
@@ -96,14 +97,5 @@ async def mine(
 
 
 @router.get('/new')
-async def new(_: Annotated[User, web_user()]):
-    return render_response('traces/new.jinja2')
-
-
-@router.get('/{trace_id:int}')
-async def details(trace_id: PositiveInt):
-    with joinedload_context(Trace.user):
-        trace = await TraceRepository.get_one_by_id(trace_id)
-    await TracePointRepository.resolve_image_coords((trace,), limit_per_trace=300, resolution=200)
-    image_coords = JSON_ENCODE(trace.image_coords).decode()
-    return render_response('traces/details.jinja2', {'trace': trace, 'image_coords': image_coords})
+async def legacy_new():
+    return RedirectResponse('/trace/upload', status.HTTP_301_MOVED_PERMANENTLY)

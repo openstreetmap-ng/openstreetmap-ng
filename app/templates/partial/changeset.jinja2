@@ -79,7 +79,7 @@
             {% if is_subscribed %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/changeset/{{ changeset.id }}/unsubscribe">
-                <button class="btn btn-sm btn-light border">
+                <button class="btn btn-sm btn-light border" type="submit">
                     <i class="bi bi-bookmark-check me-1"></i>
                     {{ t('javascripts.changesets.show.unsubscribe') }}
                 </button>
@@ -87,7 +87,7 @@
             {% else %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/changeset/{{ changeset.id }}/subscribe">
-                <button class="btn btn-sm btn-light border">
+                <button class="btn btn-sm btn-light border" type="submit">
                     {{ t('javascripts.changesets.show.subscribe') }}
                 </button>
             </form>
@@ -121,7 +121,7 @@
                 <textarea class="form-control" name="comment" rows="4" required></textarea>
             </div>
             <div class="text-end">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" type="submit">
                     {{ t('action.comment') }}
                 </button>
             </div>

@@ -5,7 +5,7 @@
         {% for trace in traces %}
         <tr>
             <td>
-                <a href="/traces/{{ trace.id }}">
+                <a href="/trace/{{ trace.id }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1.0 -1.0 102 102"></svg>
                 </a>
             </td>
@@ -21,7 +21,7 @@
                             {{ t('action.uploaded') }}
                             {{ timeago(trace.created_at, html=True) | safe }}
                             &mdash;
-                            (<a href="/traces/{{ trace.id }}">{#
+                            (<a href="/trace/{{ trace.id }}">{#
                                 #}{{ trace.name }}{#
                             #}</a>)
                         </span>

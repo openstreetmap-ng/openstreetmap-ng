@@ -20,7 +20,7 @@ from app.storage import TRACES_STORAGE
 
 class TraceService:
     @staticmethod
-    async def upload(file: UploadFile, description: str, tags: str, visibility: TraceVisibility) -> Trace:
+    async def upload(file: UploadFile, *, description: str, tags: str, visibility: TraceVisibility) -> Trace:
         """
         Process upload of a trace file.
 
@@ -82,7 +82,9 @@ class TraceService:
         return trace
 
     @staticmethod
-    async def update(trace_id: int, new_trace: Trace) -> None:
+    async def update(
+        trace_id: int, *, name: str, description: str, tag_string: str, visibility: TraceVisibility
+    ) -> None:
         """
         Update a trace.
         """
@@ -94,10 +96,10 @@ class TraceService:
             if trace.user_id != auth_user().id:
                 raise_for().trace_access_denied(trace_id)
 
-            trace.name = new_trace.name
-            trace.description = new_trace.description
-            trace.visibility = new_trace.visibility
-            trace.tags = new_trace.tags
+            trace.name = name
+            trace.description = description
+            trace.tag_string = tag_string
+            trace.visibility = visibility
 
     @staticmethod
     async def delete(trace_id: int) -> None:

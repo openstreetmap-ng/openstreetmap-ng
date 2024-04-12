@@ -28,6 +28,7 @@ Last update: 2024-03-17
 - Test environment now includes preregistered users for quicker testing, there is an UI too
 - Update http links to https
 - Support addr:place in feature names
+- Trace have now simpler and more consistent URLs
 
 ## Frontend
 
@@ -85,6 +86,7 @@ Last update: 2024-03-17
 - Client-side, efficient, and high quality trace preview image generation (SVGs)
 - Display 30 traces per page instead of 20
 - Filter file types during trace upload
+- Edit trace name is no longer limited to API 0.6
 
 ## Backend
 

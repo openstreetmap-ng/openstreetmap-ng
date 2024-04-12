@@ -14,7 +14,7 @@ from app.models.validating.trace_point import TracePointValidating
 
 class Trace06Mixin:
     @staticmethod
-    def encode_track(trace_points: Sequence[TracePoint]) -> dict:
+    def encode_track(trace_points: Sequence[TracePoint], trace_: Trace | None = None) -> dict:
         """
         >>> encode_track([
         ...     TracePoint(...),
@@ -22,15 +22,15 @@ class Trace06Mixin:
         ... ])
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
-        trks = []
-        trk_trksegs = []
-        trk_trkseg_trkpts = []
+        trks: list[dict] = []
+        trk_trksegs: list[dict] | None = None
+        trk_trkseg_trkpts: list[dict] | None = None
 
-        last_trk_id: cython.int = 0
-        last_trkseg_id: cython.int = 0
+        last_trk_id: cython.int = -1
+        last_trkseg_id: cython.int = -1
 
         for tp in trace_points:
-            trace = tp.trace
+            trace = tp.trace if (trace_ is None) else trace_
 
             # if trace is available via api, encode full information
             if trace.timestamps_via_api:
@@ -39,22 +39,16 @@ class Trace06Mixin:
 
                 # handle track change
                 if last_trk_id != trace_id:
-                    if trace.visibility == 'identifiable':
-                        url = f'/user/permalink/{trace.user_id}/traces/{trace_id}'
-                    else:
-                        url = None
-
                     trk_trksegs = []
                     trks.append(
                         {
                             'name': trace.name,
                             'desc': trace.description,
-                            **({'url': url} if (url is not None) else {}),
                             'trkseg': trk_trksegs,
                         }
                     )
                     last_trk_id = trace_id
-                    last_trkseg_id = 0
+                    last_trkseg_id = -1
 
                 # handle track segment change
                 if last_trkseg_id != track_idx:
@@ -62,27 +56,25 @@ class Trace06Mixin:
                     trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
                     last_trkseg_id = track_idx
 
-                # add point
-                trk_trkseg_trkpts.append(
-                    {
-                        **_encode_point_xml(tp.point),
-                        **({'ele': tp.elevation} if (tp.elevation is not None) else {}),
-                        'time': tp.captured_at,
-                    }
-                )
-
             # otherwise, encode only coordinates
             else:
                 # handle track and track segment change
-                if last_trk_id > 0 or last_trkseg_id > 0:
+                if (last_trk_id > -1 or trk_trksegs is None) or (last_trkseg_id > -1 or trk_trkseg_trkpts is None):
                     trk_trksegs = []
                     trks.append({'trkseg': trk_trksegs})
                     trk_trkseg_trkpts = []
                     trk_trksegs.append({'trkpt': trk_trkseg_trkpts})
-                    last_trk_id = 0
-                    last_trkseg_id = 0
+                    last_trk_id = -1
+                    last_trkseg_id = -1
 
-                trk_trkseg_trkpts.append(_encode_point_xml(tp.point))
+            # add point
+            trk_trkseg_trkpts.append(
+                {
+                    **_encode_point_xml(tp.point),
+                    **({'ele': tp.elevation} if (tp.elevation is not None) else {}),
+                    'time': tp.captured_at,
+                }
+            )
 
         return {'trk': trks}
 

@@ -32,7 +32,7 @@ class TraceRepository:
         return trace
 
     @staticmethod
-    async def get_one_data_by_id(trace_id: int) -> tuple[str, bytes]:
+    async def get_one_data_by_id(trace_id: int) -> bytes:
         """
         Get a trace data file by id.
 
@@ -43,8 +43,7 @@ class TraceRepository:
         trace = await TraceRepository.get_one_by_id(trace_id)
         file_buffer = await TRACES_STORAGE.load(trace.file_id)
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace.file_id)
-        filename = trace.name
-        return filename, file_bytes
+        return file_bytes
 
     @staticmethod
     async def find_many_by_user_id(

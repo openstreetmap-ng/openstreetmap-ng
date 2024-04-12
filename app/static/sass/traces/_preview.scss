@@ -1,0 +1,16 @@
+.trace-preview {
+    width: 100%;
+    height: 20em;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    padding: 0.75em 0;
+
+    &.trace-preview-sm {
+        height: 15em;
+    }
+
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}

@@ -8,7 +8,7 @@ else:
 
 
 @cython.cfunc
-def y_sheet(arr: np.ndarray) -> np.ndarray:
+def y_sheet(arr: np.ndarray):
     return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))
 
 

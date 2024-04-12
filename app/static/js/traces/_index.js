@@ -1,6 +1,6 @@
-const tracesBody = document.querySelector('body.traces-body')
-if (tracesBody) {
-    const tracesList = tracesBody.querySelector('.traces-list')
+const tracesIndexBody = document.querySelector('body.traces-index-body')
+if (tracesIndexBody) {
+    const tracesList = tracesIndexBody.querySelector('.traces-list')
     const coordsAll = JSON.parse(tracesList.dataset.coords)
     const svgs = tracesList.querySelectorAll('svg')
 

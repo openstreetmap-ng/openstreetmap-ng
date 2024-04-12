@@ -15,7 +15,7 @@ from app.models.db.trace_point import TracePoint
 # TODO: limit offset for safety
 class TracePointRepository:
     @staticmethod
-    async def get_many_by_trace(trace_id: int) -> Sequence[TracePoint]:
+    async def get_many_by_trace_id(trace_id: int) -> Sequence[TracePoint]:
         """
         Get trace points by trace id.
         """

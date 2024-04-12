@@ -37,8 +37,9 @@ _gpx_attributes = {
     '@attribution': ATTRIBUTION_URL,
     '@license': LICENSE_URL,
     '@xmlns': 'http://www.topografix.com/GPX/1/1',
-    '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-    '@xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
+    # XMLToDict does not support setting namespaces yet
+    #'@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+    #'@xsi:schemaLocation': 'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd',
 }
 
 

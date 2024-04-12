@@ -2,6 +2,7 @@ import { Tooltip } from "bootstrap"
 import { qsEncode, qsParse } from "./_qs.js"
 import { configureRemoteEditButton } from "./_remote-edit.js"
 import "./_types.js"
+import { isHrefCurrentPage } from "./_utils.js"
 import { routerNavigateStrict } from "./index/_router.js"
 import { encodeMapState } from "./leaflet/_map-utils.js"
 
@@ -17,8 +18,7 @@ if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
 for (const link of navLinks) {
-    const linkPathname = new URL(link.href).pathname.trimEnd("/")
-    if (linkPathname === location.pathname) {
+    if (isHrefCurrentPage(link.href)) {
         link.classList.add("active")
         link.ariaCurrent = "page"
         break
