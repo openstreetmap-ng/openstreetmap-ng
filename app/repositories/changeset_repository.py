@@ -25,6 +25,38 @@ class ChangesetRepository:
             return dict(rows)
 
     @staticmethod
+    async def get_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
+        """
+        Get the user's previous and next changeset ids.
+        """
+        async with db() as session:
+            stmt_prev = (
+                select(Changeset.id)
+                .where(Changeset.id < changeset_id, Changeset.user_id == user_id)
+                .order_by(Changeset.id.desc())
+                .limit(1)
+            )
+            stmt_next = (
+                select(Changeset.id)
+                .where(Changeset.id > changeset_id, Changeset.user_id == user_id)
+                .order_by(Changeset.id.asc())
+                .limit(1)
+            )
+            stmt = stmt_prev.union_all(stmt_next)
+            ids: Sequence[int] = (await session.scalars(stmt)).all()
+
+        prev_id: int | None = None
+        next_id: int | None = None
+
+        for id in ids:
+            if id < changeset_id:
+                prev_id = id
+            else:
+                next_id = id
+
+        return prev_id, next_id
+
+    @staticmethod
     async def find_many_by_query(
         *,
         changeset_ids: Sequence[int] | None = None,

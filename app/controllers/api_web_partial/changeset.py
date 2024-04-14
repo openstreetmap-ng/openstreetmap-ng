@@ -25,9 +25,12 @@ async def get_changeset(changeset_id: PositiveInt):
     changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     changeset = changesets[0] if changesets else None
     if changeset is None:
+        # TODO: better error message (html)
         return Response(None, status.HTTP_404_NOT_FOUND)
 
     elements = None
+    prev_changeset_id: int | None = None
+    next_changeset_id: int | None = None
     is_subscribed = False
 
     async def elements_task():
@@ -39,6 +42,12 @@ async def get_changeset(changeset_id: PositiveInt):
         with joinedload_context(ChangesetComment.user):
             await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
 
+    async def adjacent_ids_task():
+        nonlocal prev_changeset_id, next_changeset_id
+        t: tuple = await ChangesetRepository.get_adjacent_ids(changeset_id, user_id=changeset.user_id)
+        prev_changeset_id = t[0]
+        next_changeset_id = t[1]
+
     async def is_subscribed_task():
         nonlocal is_subscribed
         is_subscribed = await ChangesetSubscriptionRepository.is_subscribed_by_id(changeset_id)
@@ -46,6 +55,8 @@ async def get_changeset(changeset_id: PositiveInt):
     async with create_task_group() as tg:
         tg.start_soon(elements_task)
         tg.start_soon(comments_task)
+        if changeset.user_id is not None:
+            tg.start_soon(adjacent_ids_task)
         if auth_user() is not None:
             tg.start_soon(is_subscribed_task)
 
@@ -58,6 +69,8 @@ async def get_changeset(changeset_id: PositiveInt):
         'partial/changeset.jinja2',
         {
             'changeset': changeset,
+            'prev_changeset_id': prev_changeset_id,
+            'next_changeset_id': next_changeset_id,
             'is_subscribed': is_subscribed,
             'tags': tags.values(),
             'comment_tag': comment_tag,

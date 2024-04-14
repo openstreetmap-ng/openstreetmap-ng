@@ -157,8 +157,8 @@
         </div>
 
     </div>
-    <div class="section">
-        <div class="text-center">
+    <div class="section text-center">
+        <div>
             <a href="/api/0.6/changeset/{{ changeset.id }}">
                 {{ t('browse.changeset.changesetxml') }}
             </a>
@@ -168,6 +168,26 @@
             </a>
         </div>
 
-        {# TODO: prev/next user changesets + rel #}
+        {% if changeset.user_id is not none %}
+        <div class="mt-2">
+            {% if prev_changeset_id %}
+            <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
+                «
+                {{ prev_changeset_id }}
+            </a>
+            ·
+            {% endif %}
+            <a href="/user/{{ changeset.user.display_name }}" rel="author">
+                {{ changeset.user.display_name }}
+            </a>
+            {% if next_changeset_id %}
+            ·
+            <a href="/changeset/{{ next_changeset_id }}" rel="next">
+                {{ next_changeset_id }}
+                »
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
