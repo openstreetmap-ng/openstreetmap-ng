@@ -16,8 +16,15 @@
         padding: 0.375rem 0.3rem 0;
     }
 
+    // Better centering of the badges
     .badge {
         position: relative;
         top: -0.05em;
+
+        // ..and the icons within them
+        i {
+            position: relative;
+            top: 0.1em;
+        }
     }
 }

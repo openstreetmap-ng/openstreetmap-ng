@@ -114,9 +114,10 @@ async def changeset_download(
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
-    # TODO: optimize user
-    with joinedload_context(Element.user):
-        elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by_id=False)
+    elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by_id=False)
+
+    for element in elements:
+        element.changeset = changeset
 
     return Format06.encode_osmchange(elements)
 

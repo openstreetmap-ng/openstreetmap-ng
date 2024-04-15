@@ -159,11 +159,11 @@
     </div>
     <div class="section text-center">
         <div>
-            <a href="/api/0.6/changeset/{{ changeset.id }}">
+            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
                 {{ t('browse.changeset.changesetxml') }}
             </a>
             ·
-            <a href="/api/0.6/changeset/{{ changeset.id }}/download">
+            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
                 {{ t('browse.changeset.osmchangexml') }}
             </a>
         </div>

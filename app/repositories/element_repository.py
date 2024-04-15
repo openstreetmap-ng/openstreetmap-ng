@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
-from sqlalchemy import INTEGER, and_, cast, func, null, or_, select
+from sqlalchemy import INTEGER, and_, cast, func, null, or_, select, text
 from sqlalchemy.dialects.postgresql import JSONPATH
 
 from app.db import db
@@ -37,6 +37,19 @@ class ElementRepository:
             stmt = select(Element).order_by(Element.sequence_id.desc()).limit(1)
             stmt = apply_statement_context(stmt)
             return await session.scalar(stmt)
+
+    @staticmethod
+    async def is_latest(versioned_ref: VersionedElementRef) -> bool:
+        """
+        Check if the given versioned ref is the latest version of the element.
+        """
+        async with db() as session:
+            stmt = select(text('1')).where(
+                Element.type == versioned_ref.type,
+                Element.id == versioned_ref.id,
+                Element.version == versioned_ref.version + 1,
+            )
+            return await session.scalar(stmt) is None
 
     @staticmethod
     async def get_many_by_versioned_refs(

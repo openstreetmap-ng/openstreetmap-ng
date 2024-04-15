@@ -19,8 +19,6 @@ class Element(Base.NoID):
     __tablename__ = 'element'
 
     sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(always=True, minvalue=1), init=False, nullable=False)
-    user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(init=False, lazy='raise')
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(init=False, lazy='raise', innerjoin=True)
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)

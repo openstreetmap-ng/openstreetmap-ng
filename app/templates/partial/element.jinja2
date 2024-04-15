@@ -1,0 +1,152 @@
+<div class="sidebar-content">
+    <div class="section">
+
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h2>
+                    <span class="sidebar-title" data-params="{{ params }}">
+                        {% set type = element.type %}
+                        {% if type == 'node' %}
+                        {{ t('javascripts.query.node') }}: {{ element.id }}
+                        {% elif type == 'way' %}
+                        {{ t('javascripts.query.way') }}: {{ element.id }}
+                        {% elif type == 'relation' %}
+                        {{ t('javascripts.query.relation') }}: {{ element.id }}
+                        {% endif %}
+                    </span>
+                    <span class="version-badge badge" title="{{ t('browse.version') }} {{ element.version }}">
+                        v{{ element.version }}
+                    </span>
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+        </div>
+
+        <div class="social-entry status">
+            <p class="header text-muted d-flex justify-content-between">
+                <span>
+                    {% if changeset.user_id is none %}
+                    {{ t('browse.anonymous') }}
+                    {% else %}
+                    <a href="/user/{{ changeset.user.display_name }}">
+                        <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                    #}{{ changeset.user.display_name }}{#
+                    #}</a>
+                    {% endif %}
+                    {% if element.visible %}
+                    {{ t('action.edited') }}
+                    {% else %}
+                    {{ t('action.deleted') }}
+                    {% endif %}
+                    {{ timeago(element.created_at, html=True) | safe }}
+                </span>
+                {% if not element.visible %}
+                <span>
+                    <span class="badge text-bg-secondary">
+                        <i class="bi bi-trash-fill"></i>
+                    </span>
+                </span>
+                {% endif %}
+            </p>
+            <div class="body">
+                <p class="position-relative mb-1">
+                    {{ t('browse.in_changeset') }}
+                    #<a class="stretched-link" href="/changeset/{{ changeset.id }}">{#
+                        #}{{ changeset.id }}
+                    </a>
+                </p>
+                <p class="fst-italic">
+                    {% for value in comment_tag.values %}
+                    {% include 'partial/_tag_value.jinja2' %}
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+
+        {% if element.point is not none %}
+        <li class="position-relative">
+            {{ t('diary_entries.form.location') }}:
+            <a class="stretched-link" href="">
+                {{ element.point.y }}, {{ element.point.x }}
+            </a>
+        </li>
+        {% endif %}
+
+        {% if tags %}
+        <div class="tags">
+            <table class="table table-sm">
+                <tbody dir="auto">
+                    {% for tag in tags %}
+                    <tr>
+                        <td>
+                            {% set value = tag.key %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                        </td>
+                        <td>
+                            {% for value in tag.values %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="mb-4"></div>
+
+        <div class="elements mt-4 mb-1">
+            <template class="group">
+                <h4 class="title mt-3"></h4>
+                <table class="table table-borderless mb-0">
+                    <tbody></tbody>
+                </table>
+                <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+                    <ul class="pagination pagination-sm justify-content-end mt-2"></ul>
+                </nav>
+            </template>
+            <template class="entry">
+                <tr>
+                    <td><img></td>
+                    <td>
+                        <a class="link-latest"></a>,
+                        <a class="link-version"></a>
+                    </td>
+                </tr>
+            </template>
+        </div>
+
+    </div>
+    <div class="section text-center">
+        {% if element.visible %}
+        <div class="mb-2">
+            <a href="{{ API_URL }}/api/0.6/{{ type }}/{{ element.id }}">
+                {{ t('browse.download_xml') }}
+            </a>
+        </div>
+        {% endif %}
+
+        <div>
+            {% if prev_version is not none %}
+            <a href="/{{ type }}/{{ element.id }}/history/{{ prev_version }}" rel="prev">
+                «
+                #{{ prev_version }}
+            </a>
+            ·
+            {% endif %}
+            <a href="/{{ type }}/{{ element.id }}/history">
+                {{ t('browse.view_history') }}
+            </a>
+            {% if next_version is not none %}
+            ·
+            <a href="/{{ type }}/{{ element.id }}/history/{{ next_version }}" rel="next">
+                #{{ next_version }}
+                »
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

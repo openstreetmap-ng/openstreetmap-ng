@@ -33,14 +33,14 @@
 
         // Change border color depending on the state
         &.active {
-            border-color: $green-400;
+            border-color: $green-500;
         }
 
         &:hover {
             border-color: $gray-400;
 
             &.active {
-                border-color: $green-500;
+                border-color: $green-600;
             }
         }
     }

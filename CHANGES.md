@@ -87,6 +87,7 @@ Last update: 2024-03-17
 - Display 30 traces per page instead of 20
 - Filter file types during trace upload
 - Edit trace name is no longer limited to API 0.6
+- Added deleted element icon
 
 ## Backend
 

@@ -89,6 +89,8 @@ action:
   save_as: Save as
   comment: Comment
   commented: commented
+  deleted: deleted
+  edited: edited
   upload: Upload
   uploaded: uploaded
   reset_filters: Reset filters

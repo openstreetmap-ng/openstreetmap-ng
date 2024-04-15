@@ -66,7 +66,7 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}.xml')
     @router.get(f'/{type}/{{id:int}}.json')
     async def element_read_latest(id: PositiveInt):
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             ref = ElementRef(type, id)
             elements = await ElementRepository.get_many_latest_by_element_refs((ref,), limit=1)
             element = elements[0] if elements else None
@@ -82,7 +82,7 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/{{version:int}}.xml')
     @router.get(f'/{type}/{{id:int}}/{{version:int}}.json')
     async def element_read_version(id: PositiveInt, version: PositiveInt):
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             versioned_ref = VersionedElementRef(type, id, version)
             elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=1)
 
@@ -136,7 +136,7 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/history.xml')
     @router.get(f'/{type}/{{id:int}}/history.json')
     async def element_history(id: PositiveInt):
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             element_ref = ElementRef(type, id)
             elements = await ElementRepository.get_many_by_element_ref(element_ref, limit=None)
 
@@ -177,7 +177,7 @@ def _register_routes(type: ElementType):
             # return not found on parsing errors, why?, idk
             return Response(None, status.HTTP_404_NOT_FOUND)
 
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             elements = await ElementRepository.find_many_by_refs(parsed_query, limit=None)
 
         for element in elements:
@@ -190,7 +190,7 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/relations.xml')
     @router.get(f'/{type}/{{id:int}}/relations.json')
     async def element_parent_relations(id: PositiveInt):
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             element_ref = ElementRef(type, id)
             elements = await ElementRepository.get_many_parents_by_element_refs(
                 (element_ref,),
@@ -203,7 +203,7 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/full.xml')
     @router.get(f'/{type}/{{id:int}}/full.json')
     async def element_full(id: PositiveInt):
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             element_ref = ElementRef(type, id)
             elements = await ElementRepository.get_many_latest_by_element_refs((element_ref,), limit=1)
             element = elements[0] if elements else None
@@ -213,7 +213,7 @@ def _register_routes(type: ElementType):
         if not element.visible:
             return Response(None, status.HTTP_410_GONE)
 
-        with joinedload_context(Element.user):
+        with joinedload_context(Element.changeset):
             members_element_refs = tuple(member.element_ref for member in element.members)
             members_elements = await ElementRepository.get_many_latest_by_element_refs(
                 members_element_refs,
@@ -233,7 +233,7 @@ _register_routes('relation')
 @router.get('/node/{id:int}/ways.xml')
 @router.get('/node/{id:int}/ways.json')
 async def node_parent_ways(id: PositiveInt):
-    with joinedload_context(Element.user):
+    with joinedload_context(Element.changeset):
         element_ref = ElementRef('node', id)
         elements = await ElementRepository.get_many_parents_by_element_refs(
             (element_ref,),

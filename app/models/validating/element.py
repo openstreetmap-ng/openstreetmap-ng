@@ -11,7 +11,6 @@ from app.models.validating.tags import TagsValidating
 
 
 class ElementValidating(TagsValidating):
-    user_id: PositiveInt
     changeset_id: PositiveInt | None
     type: ElementType
     id: int

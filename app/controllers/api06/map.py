@@ -24,7 +24,8 @@ async def map_read(
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 
-    with joinedload_context(Element.user):
+    # TODO: optimize with loadonly
+    with joinedload_context(Element.changeset):
         elements = await ElementRepository.find_many_by_query(
             geometry,
             nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,

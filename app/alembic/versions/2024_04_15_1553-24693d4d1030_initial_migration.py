@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: a6dc91e821b0
+Revision ID: 24693d4d1030
 Revises:
-Create Date: 2024-04-10 14:02:55.421038+00:00
+Create Date: 2024-04-15 15:53:54.073336+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'a6dc91e821b0'
+revision: str = '24693d4d1030'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -321,7 +321,6 @@ def upgrade() -> None:
     )
     op.create_table('element',
     sa.Column('sequence_id', sa.BigInteger(), sa.Identity(always=True, minvalue=1), nullable=False),
-    sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('changeset_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('node', 'way', 'relation', name='element_type'), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
@@ -333,7 +332,6 @@ def upgrade() -> None:
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('superseded_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('type', 'id', 'version', name='element_pkey')
     )
     op.create_table('issue_comment',

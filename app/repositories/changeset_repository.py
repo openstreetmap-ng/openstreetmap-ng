@@ -18,7 +18,6 @@ class ChangesetRepository:
         >>> await ChangesetRepository.get_updated_at_by_ids([1, 2])
         {1: datetime(...), 2: datetime(...)}
         """
-
         async with db() as session:
             stmt = select(Changeset.id, Changeset.updated_at).where(Changeset.id.in_(changeset_ids))
             rows = (await session.execute(stmt)).all()
@@ -70,7 +69,6 @@ class ChangesetRepository:
         """
         Find changesets by query.
         """
-
         async with db() as session:
             stmt = select(Changeset)
             stmt = apply_statement_context(stmt)
@@ -105,10 +103,6 @@ class ChangesetRepository:
         """
         Count changesets by user id.
         """
-
         async with db() as session:
-            stmt = select(func.count()).select_from(
-                select(Changeset).where(Changeset.user_id == user_id)  #
-            )
-
+            stmt = select(func.count()).select_from(select(Changeset).where(Changeset.user_id == user_id))
             return await session.scalar(stmt)

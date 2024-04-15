@@ -246,6 +246,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     """
     # read property once for performance
     element_type = element.type
+    changeset = element.changeset
 
     is_node: cython.char = element_type == 'node'
     is_way: cython.char = not is_node and element_type == 'way'
@@ -261,10 +262,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             'changeset': element.changeset_id,
             **(
                 {
-                    'uid': element.user_id,
-                    'user': element.user.display_name,
+                    'uid': changeset.user_id,
+                    'user': changeset.user.display_name,
                 }
-                if element.user_id is not None
+                if changeset.user_id is not None
                 else {}
             ),
             'visible': element.visible,
@@ -281,10 +282,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             '@changeset': element.changeset_id,
             **(
                 {
-                    '@uid': element.user_id,
-                    '@user': element.user.display_name,
+                    '@uid': changeset.user_id,
+                    '@user': changeset.user.display_name,
                 }
-                if element.user_id is not None
+                if changeset.user_id is not None
                 else {}
             ),
             '@visible': element.visible,
@@ -324,7 +325,6 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
     return Element(
         **dict(
             ElementValidating(
-                user_id=auth_user().id,
                 changeset_id=changeset_id if (changeset_id is not None) else data.get('@changeset'),
                 type=type,
                 id=data.get('@id'),
