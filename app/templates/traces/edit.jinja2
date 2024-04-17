@@ -40,21 +40,31 @@
             <label class="form-label">
                 <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
             </label>
-            <select class="form-select format-select mb-2" name="visibility" required>
-                {% set visibility = trace.visibility %}
-                <option value="private" {% if visibility == "private" %}selected{% endif %}>
-                    {{ t('traces.visibility.private') }}
-                </option>
-                <option value="public" {% if visibility == "public" %}selected{% endif %}>
-                    {{ t('traces.visibility.public') }}
-                </option>
-                <option value="trackable" {% if visibility == "trackable" %}selected{% endif %}>
-                    {{ t('traces.visibility.trackable') }}
-                </option>
-                <option value="identifiable" {% if visibility == "identifiable" %}selected{% endif %}>
-                    {{ t('traces.visibility.identifiable') }}
-                </option>
-            </select>
+            <div class="ms-1">
+                <div class="form-check">
+                    {% set visibility = trace.visibility %}
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="private"
+                            {% if visibility == "private" %}checked{% endif %}>
+                        {{ t('traces.visibility.private') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="trackable"
+                            {% if visibility == "trackable" %}checked{% endif %}>
+                        {{ t('traces.visibility.trackable') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="public"
+                            {% if visibility == "public" %}checked{% endif %}>
+                        {{ t('traces.visibility.public') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="identifiable"
+                            {% if visibility == "identifiable" %}checked{% endif %}>
+                        {{ t('traces.visibility.identifiable') }}
+                    </label>
+                </div>
+            </div>
             <p class="form-text">
                 <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
                     target="_blank" rel="help">

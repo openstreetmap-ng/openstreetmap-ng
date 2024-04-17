@@ -37,20 +37,26 @@
             <label class="form-label">
                 <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
             </label>
-            <select class="form-select format-select mb-2" name="visibility" required>
-                <option value="private" selected>
-                    {{ t('traces.visibility.private') }}
-                </option>
-                <option value="public">
-                    {{ t('traces.visibility.public') }}
-                </option>
-                <option value="trackable">
-                    {{ t('traces.visibility.trackable') }}
-                </option>
-                <option value="identifiable">
-                    {{ t('traces.visibility.identifiable') }}
-                </option>
-            </select>
+            <div class="ms-1">
+                <div class="form-check">
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="private" checked>
+                        {{ t('traces.visibility.private') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="trackable">
+                        {{ t('traces.visibility.trackable') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="public">
+                        {{ t('traces.visibility.public') }}
+                    </label>
+                    <label class="form-check-label w-100 mb-2">
+                        <input class="form-check-input" type="radio" name="visibility" value="identifiable">
+                        {{ t('traces.visibility.identifiable') }}
+                    </label>
+                </div>
+            </div>
             <p class="form-text">
                 <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
                     target="_blank" rel="help">
