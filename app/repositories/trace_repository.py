@@ -80,6 +80,7 @@ class TraceRepository:
     async def find_many_recent(
         *,
         personal: bool,
+        tag: str | None = None,
         after: int | None = None,
         before: int | None = None,
         limit: int,
@@ -97,6 +98,9 @@ class TraceRepository:
                 where_and.append(Trace.user_id == auth_user().id)
             else:
                 where_and.append(Trace.visible_to(None, auth_scopes()))
+
+            if tag is not None:
+                where_and.append(Trace.tags.any(tag))
 
             if after is not None:
                 where_and.append(Trace.id > after)
