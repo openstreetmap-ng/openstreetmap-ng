@@ -1,12 +1,10 @@
 { isDevelopment ? true }:
 
 let
-  # Currently using nixpkgs-unstable
-  # Update with `nixpkgs-update` command
+  # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/07262b18b97000d16a4bdb003418bd2fb067a932.tar.gz") { };
 
-  libraries' = with pkgs; [
-    # Python libraries
+  pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
     file.out
     libxml2.out
@@ -14,30 +12,135 @@ let
     zlib.out
   ];
 
-  # Wrap Python to override LD_LIBRARY_PATH
+  # Override LD_LIBRARY_PATH to load Python libraries
   wrappedPython = with pkgs; (symlinkJoin {
     name = "python";
     paths = [
-      # Enable Python optimizations when in production
+      # Enable compiler optimizations when in production
       (if isDevelopment then python312 else python312.override { enableOptimizations = true; })
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.12" --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath libraries'}"
+      wrapProgram "$out/bin/python3.12" --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath pythonLibs}"
     '';
   });
 
   packages' = with pkgs; [
-    # Base packages
-    wrappedPython
     coreutils
-    bun
-    (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
-    redis # TODO: switch to valkey on new version
+    curl
+    inotify-tools
     brotli
     zstd
+    # Python:
+    wrappedPython
+    poetry
+    ruff
+    gcc
+    gettext
+    # Frontend:
+    bun
+    biome
+    dart-sass
+    # Services:
+    (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
+    # TODO: switch redis to valkey when merged:
+    # https://github.com/NixOS/nixpkgs/pull/302935
+    redis
+    mailpit
+    spamassassin
 
-    # Scripts
+    # Scripts:
+    # -- Alembic
+    (writeShellScriptBin "alembic-migration" ''
+      set -e
+      name=$1
+      if [ -z "$name" ]; then
+        read -p "Database migration name: " name
+      fi
+      alembic -c config/alembic.ini revision --autogenerate --message "$name"
+    '')
+    (writeShellScriptBin "alembic-upgrade" "alembic -c config/alembic.ini upgrade head")
+
+    # -- Cython
+    (writeShellScriptBin "cython-build" "python setup.py build_ext --inplace --parallel $(nproc --all)")
+    (writeShellScriptBin "cython-clean" ''
+      set -e
+      shopt -s globstar
+      rm -rf build/
+      dirs=(
+        app/controllers
+        app/exceptions
+        app/exceptions06
+        app/format06
+        app/format07
+        app/lib
+        app/middlewares
+        app/repositories
+        app/responses
+        app/services
+        app/validators
+      )
+      for dir in "''${dirs[@]}"; do
+        rm -rf "$dir"/**/*{.c,.html,.so}
+      done
+    '')
+    (writeShellScriptBin "watch-cython" ''
+      cython-build
+      while inotifywait -e close_write app/**/*.py; do
+        cython-build
+      done
+    '')
+
+    # -- SASS
+    (writeShellScriptBin "sass-pipeline" ''
+      set -e
+      shopt -s globstar
+      sass \
+        --style compressed \
+        --load-path node_modules \
+        --no-source-map \
+        app/static/sass:app/static/css
+      bunx postcss \
+        app/static/css/**/*.css \
+        --use autoprefixer \
+        --replace \
+        --no-map
+    '')
+    (writeShellScriptBin "watch-sass" ''
+      shopt -s globstar
+      sass-pipeline
+      while inotifywait -e close_write app/static/sass/**/*.scss; do
+        sass-pipeline
+      done
+    '')
+
+    # -- JavaScript
+    (writeShellScriptBin "js-pipeline" ''
+      set -e
+      src_paths=$(find app/static/js \
+        -maxdepth 1 \
+        -type f \
+        -name "*.js" \
+        -not -name "_*" \
+        -not -name "bundle-*")
+      bun build \
+        --entry-naming "[dir]/bundle-[name].[ext]" \
+        --sourcemap=inline \
+        --outdir app/static/js \
+        $src_paths
+    '')
+    (writeShellScriptBin "watch-js" ''
+      shopt -s globstar
+      js-pipeline
+      while inotifywait -e close_write $( \
+        find app/static/js \
+        -type f \
+        -name "*.js" \
+        -not -name "bundle-*"); do
+        js-pipeline
+      done
+    '')
+
     # -- Static
     (writeShellScriptBin "static-precompress" ''
       set -e
@@ -84,114 +187,6 @@ let
         done
       done
     '')
-
-    # -- Misc
-    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
-    (writeShellScriptBin "make-bundle" ''
-      set -e
-      dir="app/static/js"
-
-      bundle_paths=$(find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "bundle-*")
-
-      [ -z "$bundle_paths" ] || rm $bundle_paths
-
-      bunx babel \
-        --verbose \
-        --ignore "$dir/old/**" \
-        --keep-file-extension \
-        --out-dir "$dir" \
-        "$dir"
-
-      src_paths=$(find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "*.js" \
-        -not -name "_*")
-
-      for src_path in $src_paths; do
-        src_name=$(basename "$src_path")
-        src_stem=$(echo "$src_name" | cut -d. -f1)
-        src_ext=$(echo "$src_name" | cut -d. -f2)
-
-        output=$(bun build \
-          "$src_path" \
-          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
-          --sourcemap=external \
-          --minify \
-          --outdir "$dir" | tee /dev/stdout)
-
-        bundle_name=$(grep \
-          --only-matching \
-          --extended-regexp \
-          --max-count=1 \
-          "bundle-$src_stem-[0-9a-f]{16}\.$src_ext" <<< "$output")
-
-        if [ -z "$bundle_name" ]; then
-          echo "ERROR: Failed to match bundle name for $src_path"
-          exit 1
-        fi
-
-        echo "TODO: sed replace"
-        echo "Replacing $src_name with $bundle_name"
-      done
-    '')
-  ] ++ lib.optionals isDevelopment [
-    # Development packages
-    poetry
-    ruff
-    biome
-    gcc
-    gettext
-    dart-sass
-    inotify-tools
-    curl
-    spamassassin
-    mailpit
-
-    # Scripts
-    # -- Cython
-    (writeShellScriptBin "cython-build" "python setup.py build_ext --inplace --parallel $(nproc --all)")
-    (writeShellScriptBin "cython-clean" ''
-      set -e
-      shopt -s globstar
-      rm -rf build/
-      dirs=(
-        app/controllers
-        app/exceptions
-        app/exceptions06
-        app/format06
-        app/format07
-        app/lib
-        app/middlewares
-        app/repositories
-        app/responses
-        app/services
-        app/validators
-      )
-      for dir in "''${dirs[@]}"; do
-        rm -rf "$dir"/**/*{.c,.html,.so}
-      done
-    '')
-    (writeShellScriptBin "watch-cython" ''
-      cython-build
-      while inotifywait -e close_write app/**/*.py; do
-        cython-build
-      done
-    '')
-
-    # -- Alembic
-    (writeShellScriptBin "alembic-migration" ''
-      set -e
-      name=$1
-      if [ -z "$name" ]; then
-        read -p "Database migration name: " name
-      fi
-      alembic -c config/alembic.ini revision --autogenerate --message "$name"
-    '')
-    (writeShellScriptBin "alembic-upgrade" "alembic -c config/alembic.ini upgrade head")
 
     # -- Locale
     (writeShellScriptBin "locale-clean" "rm -rf config/locale/*/")
@@ -358,56 +353,6 @@ let
       preload-load
     '')
 
-    # -- SASS
-    (writeShellScriptBin "sass-pipeline" ''
-      set -e
-      shopt -s globstar
-      sass \
-        --style compressed \
-        --load-path node_modules \
-        --no-source-map \
-        app/static/sass:app/static/css
-      bunx postcss \
-        app/static/css/**/*.css \
-        --use autoprefixer \
-        --replace \
-        --no-map
-    '')
-    (writeShellScriptBin "watch-sass" ''
-      shopt -s globstar
-      sass-pipeline
-      while inotifywait -e close_write app/static/sass/**/*.scss; do
-        sass-pipeline
-      done
-    '')
-
-    # -- JavaScript
-    (writeShellScriptBin "js-pipeline" ''
-      set -e
-      src_paths=$(find app/static/js \
-        -maxdepth 1 \
-        -type f \
-        -name "*.js" \
-        -not -name "_*" \
-        -not -name "bundle-*")
-      bun build \
-        --entry-naming "[dir]/bundle-[name].[ext]" \
-        --sourcemap=inline \
-        --outdir app/static/js \
-        $src_paths
-    '')
-    (writeShellScriptBin "watch-js" ''
-      shopt -s globstar
-      js-pipeline
-      while inotifywait -e close_write $( \
-        find app/static/js \
-        -type f \
-        -name "*.js" \
-        -not -name "bundle-*"); do
-        js-pipeline
-      done
-    '')
-
     # -- Misc
     (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml --verbose")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
@@ -424,6 +369,58 @@ let
       cython-clean && cython-build
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
       docker push $(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')
+    '')
+    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
+    (writeShellScriptBin "make-bundle" ''
+      set -e
+      dir="app/static/js"
+
+      bundle_paths=$(find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "bundle-*")
+
+      [ -z "$bundle_paths" ] || rm $bundle_paths
+
+      bunx babel \
+        --verbose \
+        --ignore "$dir/old/**" \
+        --keep-file-extension \
+        --out-dir "$dir" \
+        "$dir"
+
+      src_paths=$(find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "*.js" \
+        -not -name "_*")
+
+      for src_path in $src_paths; do
+        src_name=$(basename "$src_path")
+        src_stem=$(echo "$src_name" | cut -d. -f1)
+        src_ext=$(echo "$src_name" | cut -d. -f2)
+
+        output=$(bun build \
+          "$src_path" \
+          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --sourcemap=external \
+          --minify \
+          --outdir "$dir" | tee /dev/stdout)
+
+        bundle_name=$(grep \
+          --only-matching \
+          --extended-regexp \
+          --max-count=1 \
+          "bundle-$src_stem-[0-9a-f]{16}\.$src_ext" <<< "$output")
+
+        if [ -z "$bundle_name" ]; then
+          echo "ERROR: Failed to match bundle name for $src_path"
+          exit 1
+        fi
+
+        echo "TODO: sed replace"
+        echo "Replacing $src_name with $bundle_name"
+      done
     '')
   ];
 
@@ -448,13 +445,13 @@ let
     export TZ="UTC"
 
     export TEST_ENV=1
-    export SECRET="development-secret"
-    export APP_URL="http://127.0.0.1:8000"
+    export SECRET=development-secret
+    export APP_URL=http://127.0.0.1:8000
     export SMTP_HOST=127.0.0.1
     export SMTP_PORT=1025
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
-    export OVERPASS_INTERPRETER_URL="https://overpass.monicz.dev/api/interpreter"
+    export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
     export LEGACY_HIGH_PRECISION_TIME=1
     export AUTHLIB_INSECURE_TRANSPORT=1
 
