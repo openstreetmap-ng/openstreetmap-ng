@@ -21,4 +21,24 @@ nix-shell
 
 ## 3. Starting the Services
 
-...
+During a typical development session, you will most likely need to start the project services, such as the PostgreSQL database. When you are inside the development shell, we provide you with a set of scripts to do just that. The following command will start all necessary services and run the database migrations:
+
+```sh
+dev-start
+```
+
+> [!TIP]
+> All custom scripts are defined in the `shell.nix` file. Other useful scripts include `dev-stop` to stop the services, and `dev-clean` to clean services data files.
+
+## 4. Preloading the Database (Optional)
+
+For some development tasks, you might want to preload the database with some real-world OpenStreetMap data. We make this process easy by providing a script that does everything for you:
+
+```sh
+dev-clean  # Clean the database first (recommended)
+preload-pipeline
+```
+
+The download size is about 4 GB, and the result is cached on your local machine in `data/preload` directory. Subsequent preloads will be able to reuse the cache.
+
+The import process takes around 30-60 minutes.
