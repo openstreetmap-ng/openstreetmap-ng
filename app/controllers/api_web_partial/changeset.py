@@ -1,10 +1,11 @@
+from collections.abc import Sequence
+
 from anyio import create_task_group
-from fastapi import APIRouter, Response
+from fastapi import APIRouter
 from pydantic import PositiveInt
-from starlette import status
 
 from app.lib.auth_context import auth_user
-from app.lib.elements_format import elements_format
+from app.lib.elements_format import ElementFormat, ElementType, changeset_elements_format
 from app.lib.render_response import render_response
 from app.lib.statement_context import joinedload_context
 from app.lib.tags_format import tags_format
@@ -31,7 +32,7 @@ async def get_changeset(id: PositiveInt):
             {'type': 'changeset', 'id': id},
         )
 
-    elements = None
+    elements: dict[ElementType, Sequence[ElementFormat]] | None = None
     prev_changeset_id: int | None = None
     next_changeset_id: int | None = None
     is_subscribed = False
@@ -39,7 +40,7 @@ async def get_changeset(id: PositiveInt):
     async def elements_task():
         nonlocal elements
         elements_ = await ElementRepository.get_many_by_changeset(id, sort_by_id=True)
-        elements = await elements_format(elements_)
+        elements = await changeset_elements_format(elements_)
 
     async def comments_task():
         with joinedload_context(ChangesetComment.user):

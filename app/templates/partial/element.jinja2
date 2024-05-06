@@ -53,7 +53,7 @@
             <div class="body">
                 <p class="position-relative mb-1">
                     {{ t('browse.in_changeset') }}
-                    #<a class="stretched-link" href="/changeset/{{ changeset.id }}">{#
+                    #<a href="/changeset/{{ changeset.id }}">{#
                         #}{{ changeset.id }}
                     </a>
                 </p>
@@ -96,28 +96,31 @@
         </div>
         {% endif %}
 
-        <div class="mb-4"></div>
-
+        {% if elements_len %}
         <div class="elements mt-4 mb-1">
-            <template class="group">
-                <h4 class="title mt-3"></h4>
-                <table class="table table-borderless mb-0">
-                    <tbody></tbody>
-                </table>
-                <nav aria-label="{{ t('alt.elements_page_navigation') }}">
-                    <ul class="pagination pagination-sm justify-content-end mt-2"></ul>
-                </nav>
-            </template>
+            <h4 class="title">
+                {% if type == 'way' %}
+                {{ t('browse.way.nodes') }}
+                {% else %}
+                {{ t('browse.relation.members') }}
+                {% endif %}
+                ({{ elements_len }})
+            </h4>
+            <table class="table table-borderless mb-0">
+                <tbody></tbody>
+            </table>
+            <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+                <ul class="pagination pagination-sm justify-content-end mt-2"></ul>
+            </nav>
             <template class="entry">
                 <tr>
                     <td><img></td>
                     <td>
-                        <a class="link-latest"></a>,
-                        <a class="link-version"></a>
                     </td>
                 </tr>
             </template>
         </div>
+        {% endif %}
 
     </div>
     <div class="section text-center">

@@ -9,4 +9,39 @@
         position: relative;
         top: -0.2em;
     }
+
+    .elements {
+        td {
+            padding: 0;
+        }
+
+        tr {
+            // Style the elements icons
+            td:first-child {
+                width: 2em;
+                line-height: 1;
+
+                img {
+                    display: inline-block;
+                    width: 2em;
+                    height: 1.5em;
+                    padding: 0.1em 0;
+                    object-fit: contain;
+                }
+            }
+
+            // Style the elements links
+            td:last-child {
+                padding-left: 0.5rem;
+            }
+        }
+
+        .pagination {
+            text-align: center;
+
+            .page-link {
+                min-width: calc(2ch + 16px + 2px);
+            }
+        }
+    }
 }

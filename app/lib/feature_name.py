@@ -12,11 +12,6 @@ def feature_name(tags: dict[str, str]) -> str | None:
     >>> feature_name({'name': 'Foo'})
     'Foo'
     """
-
-    # small optimization, most elements don't have tags
-    if not tags:
-        return None
-
     for locale in translation_languages():
         if name := tags.get(f'name:{locale}'):
             return name
@@ -43,7 +38,6 @@ def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
     >>> feature_prefix(ElementType.node, {'amenity': 'restaurant'})
     'Restaurant'
     """
-
     tags_len: cython.int = len(tags)
 
     # small optimization, most elements don't have tags
@@ -89,7 +83,6 @@ def _feature_prefix_administrative(tags: dict[str, str]) -> str:
     >>> _feature_prefix_administrative({'admin_level': '2'})
     'Country Boundary'
     """
-
     # if admin_level is present, use it to be more specific
     admin_level_value = tags.get('admin_level')
     if admin_level_value and len(admin_level_value) <= 2:

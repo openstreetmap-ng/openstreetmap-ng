@@ -98,7 +98,6 @@ const renderElements = (elementsSection, elements) => {
 
     const groupTemplate = elementsSection.querySelector("template.group")
     const entryTemplate = elementsSection.querySelector("template.entry")
-
     const fragment = document.createDocumentFragment()
 
     for (const type of ['way', 'relation', 'node']) {
@@ -168,13 +167,12 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
         const iStart = (currentPage - 1) * elementsPerPage
         const iEnd = Math.min(currentPage * elementsPerPage, elementsLength)
         for (let i = iStart; i < iEnd; i++) {
-            const entryFragment = entryTemplate.content.cloneNode(true)
+            const element = elements[i]
 
+            const entryFragment = entryTemplate.content.cloneNode(true)
             const iconImg = entryFragment.querySelector("img")
             const linkLatest = entryFragment.querySelector("a.link-latest")
             const linkVersion = entryFragment.querySelector("a.link-version")
-
-            const element = elements[i]
 
             if (element.icon) {
                 iconImg.src = `/static/img/element/${element.icon}`
