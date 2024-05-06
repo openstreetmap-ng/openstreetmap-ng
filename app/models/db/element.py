@@ -8,7 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
-from app.models.db.user import User
 from app.models.element_member_ref import ElementMemberRef, ElementMemberRefJSONB
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType

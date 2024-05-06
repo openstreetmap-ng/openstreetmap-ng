@@ -19,6 +19,9 @@ export const getNoteController = (map) => {
         // Set page title
         document.title = getPageTitle(sidebarTitle)
 
+        // Handle not found
+        if (!sidebarTitleElement.dataset.params) return
+
         // Get params
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsId = params.id

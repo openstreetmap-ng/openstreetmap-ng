@@ -20,13 +20,16 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/changeset')
 
 
-@router.get('/{changeset_id:int}')
-async def get_changeset(changeset_id: PositiveInt):
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+@router.get('/{id:int}')
+async def get_changeset(id: PositiveInt):
+    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(id,), limit=1)
     changeset = changesets[0] if changesets else None
+
     if changeset is None:
-        # TODO: better error message (html)
-        return Response(None, status.HTTP_404_NOT_FOUND)
+        return render_response(
+            'partial/not_found.jinja2',
+            {'type': 'changeset', 'id': id},
+        )
 
     elements = None
     prev_changeset_id: int | None = None
@@ -35,7 +38,7 @@ async def get_changeset(changeset_id: PositiveInt):
 
     async def elements_task():
         nonlocal elements
-        elements_ = await ElementRepository.get_many_by_changeset(changeset_id, sort_by_id=True)
+        elements_ = await ElementRepository.get_many_by_changeset(id, sort_by_id=True)
         elements = await elements_format(elements_)
 
     async def comments_task():
@@ -44,13 +47,13 @@ async def get_changeset(changeset_id: PositiveInt):
 
     async def adjacent_ids_task():
         nonlocal prev_changeset_id, next_changeset_id
-        t: tuple = await ChangesetRepository.get_adjacent_ids(changeset_id, user_id=changeset.user_id)
+        t: tuple = await ChangesetRepository.get_adjacent_ids(id, user_id=changeset.user_id)
         prev_changeset_id = t[0]
         next_changeset_id = t[1]
 
     async def is_subscribed_task():
         nonlocal is_subscribed
-        is_subscribed = await ChangesetSubscriptionRepository.is_subscribed_by_id(changeset_id)
+        is_subscribed = await ChangesetSubscriptionRepository.is_subscribed_by_id(id)
 
     async with create_task_group() as tg:
         tg.start_soon(elements_task)
@@ -76,7 +79,7 @@ async def get_changeset(changeset_id: PositiveInt):
             'comment_tag': comment_tag,
             'params': JSON_ENCODE(
                 {
-                    'id': changeset_id,
+                    'id': id,
                     **({'bounds': changeset.bounds.bounds} if (changeset.bounds is not None) else {}),
                     'elements': elements,
                 }

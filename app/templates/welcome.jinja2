@@ -23,7 +23,7 @@
                             {{ t(
                                     'site.welcome.whats_on_the_map.on_the_map_html',
                                     real_and_current=real_and_current,
-                                ) | safe}}
+                                ) | safe }}
                         </p>
                     </div>
                     <i class="bi bi-check-circle-fill text-green fs-5"></i>
@@ -38,7 +38,7 @@
                             {{ t(
                                     'site.welcome.whats_on_the_map.off_the_map_html',
                                     doesnt=doesnt,
-                                ) | safe}}
+                                ) | safe }}
                         </p>
                     </div>
                     <i class="bi bi-x-circle-fill text-danger fs-5"></i>
@@ -60,11 +60,10 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            {% set editor %}{{ t('site.welcome.basic_terms.editor') }}{% endset %}
                             {{ t(
                                     'site.welcome.basic_terms.an_editor_html',
-                                    editor=editor,
-                                ) | safe}}
+                                    editor=t('site.welcome.basic_terms.editor'),
+                                ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
@@ -81,15 +80,14 @@
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-geo-alt-fill"></i>
-                        {{ t('site.welcome.basic_terms.node') | title }}
+                        {{ t('javascripts.query.node') | title }}
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            {% set node %}{{ t('site.welcome.basic_terms.node') }}{% endset %}
                             {{ t(
                                     'site.welcome.basic_terms.a_node_html',
-                                    node=node,
-                                ) | safe}}
+                                    node=t('javascripts.query.node').lower(),
+                                ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
@@ -106,15 +104,14 @@
                 <div class="card h-100">
                     <div class="card-header bg-transparent text-center text-primary fw-bold">
                         <i class="bi bi-sign-turn-right-fill"></i>
-                        {{ t('site.welcome.basic_terms.way') | title }}
+                        {{ t('javascripts.query.way') | title }}
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            {% set way %}{{ t('site.welcome.basic_terms.way') }}{% endset %}
                             {{ t(
                                     'site.welcome.basic_terms.a_way_html',
-                                    way=way,
-                                ) | safe}}
+                                    way=t('javascripts.query.way').lower(),
+                                ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
@@ -135,11 +132,10 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text">
-                            {% set tag %}{{ t('site.welcome.basic_terms.tag') }}{% endset %}
                             {{ t(
                                     'site.welcome.basic_terms.a_tag_html',
-                                    tag=tag,
-                                ) | safe}}
+                                    tag=t('site.welcome.basic_terms.tag'),
+                                ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">

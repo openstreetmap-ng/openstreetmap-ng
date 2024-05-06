@@ -19,6 +19,9 @@ export const getElementController = (map) => {
         // Set page title
         document.title = getPageTitle(sidebarTitle)
 
+        // Handle not found
+        if (!sidebarTitleElement.dataset.params) return
+
         // Get params
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const mainElementType = params.type

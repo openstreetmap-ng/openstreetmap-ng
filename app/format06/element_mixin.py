@@ -5,7 +5,6 @@ import cython
 import numpy as np
 from shapely import Point, get_coordinates, points
 
-from app.lib.auth_context import auth_user
 from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json

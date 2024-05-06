@@ -24,8 +24,10 @@ async def get_element(type: ElementType, id: PositiveInt):
         element = elements[0] if elements else None
 
     if element is None:
-        # TODO: better error message (html)
-        return Response(None, status.HTTP_404_NOT_FOUND)
+        return render_response(
+            'partial/not_found.jinja2',
+            {'type': type, 'id': id},
+        )
 
     is_latest = True
     prev_version = element.version - 1 if element.version > 1 else None
@@ -52,6 +54,7 @@ async def get_element(type: ElementType, id: PositiveInt):
             'params': JSON_ENCODE(
                 {
                     # **({'bounds': changeset.bounds.bounds} if (changeset.bounds is not None) else {}),
+                    # TODO: part of data
                     # TODO: members data
                     #'members': members,
                 }

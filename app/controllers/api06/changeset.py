@@ -14,7 +14,6 @@ from app.lib.statement_context import joinedload_context
 from app.lib.xml_body import xml_body
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset_comment import ChangesetComment
-from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.scope import Scope
 from app.repositories.changeset_comment_repository import ChangesetCommentRepository
