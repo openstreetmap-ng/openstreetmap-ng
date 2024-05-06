@@ -5,12 +5,13 @@ from fastapi import APIRouter
 from pydantic import PositiveInt
 
 from app.lib.auth_context import auth_user
-from app.lib.elements_format import ElementFormat, ElementType, changeset_elements_format
+from app.lib.elements_formatter import ElementType, format_changeset_elements
 from app.lib.render_response import render_response
 from app.lib.statement_context import joinedload_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.changeset_comment import ChangesetComment
+from app.models.element_format import ChangesetElementFormat
 from app.models.tag_format import TagFormatCollection
 from app.repositories.changeset_comment_repository import ChangesetCommentRepository
 from app.repositories.changeset_repository import ChangesetRepository
@@ -32,7 +33,7 @@ async def get_changeset(id: PositiveInt):
             {'type': 'changeset', 'id': id},
         )
 
-    elements: dict[ElementType, Sequence[ElementFormat]] | None = None
+    elements: dict[ElementType, Sequence[ChangesetElementFormat]] | None = None
     prev_changeset_id: int | None = None
     next_changeset_id: int | None = None
     is_subscribed = False
@@ -40,7 +41,7 @@ async def get_changeset(id: PositiveInt):
     async def elements_task():
         nonlocal elements
         elements_ = await ElementRepository.get_many_by_changeset(id, sort_by_id=True)
-        elements = await changeset_elements_format(elements_)
+        elements = await format_changeset_elements(elements_)
 
     async def comments_task():
         with joinedload_context(ChangesetComment.user):

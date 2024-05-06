@@ -4,13 +4,13 @@ from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
 
-from app.lib.elements_format import element_members_format
+from app.lib.elements_formatter import format_element_members
 from app.lib.render_response import render_response
 from app.lib.statement_context import joinedload_context, loadonly_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.element import Element
-from app.models.element_format import ElementFormat
+from app.models.element_format import ElementMemberFormat
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
@@ -34,7 +34,7 @@ async def get_element(type: ElementType, id: PositiveInt):
         )
 
     is_latest = False
-    elements: Sequence[ElementFormat] | None = None
+    elements: Sequence[ElementMemberFormat] | None = None
 
     async def check_latest_task():
         nonlocal is_latest
@@ -44,7 +44,7 @@ async def get_element(type: ElementType, id: PositiveInt):
         nonlocal elements
         with loadonly_context(Element.type, Element.id, Element.tags):
             elements_ = await ElementRepository.get_many_latest_by_element_refs(element.members, limit=None)
-            elements = element_members_format(element.members, elements_)
+            elements = format_element_members(element.members, elements_)
 
     async with create_task_group() as tg:
         tg.start_soon(check_latest_task)

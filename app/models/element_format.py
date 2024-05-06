@@ -4,16 +4,20 @@ from app.models.element_type import ElementType
 
 
 @dataclass(frozen=True, slots=True)
-class ElementFormat:
+class _ElementFormat:
     type: ElementType
     id: int
     name: str | None
     icon: str | None
     icon_title: str | None
 
-    # changeset render:
-    version: int = 0
-    visible: bool = True
 
-    # element render:
-    role: str | None = None
+@dataclass(frozen=True, slots=True)
+class ChangesetElementFormat(_ElementFormat):
+    version: int
+    visible: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ElementMemberFormat(_ElementFormat):
+    role: str | None
