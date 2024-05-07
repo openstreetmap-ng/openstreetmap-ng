@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from starlette.routing import Router
+from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
@@ -18,9 +19,14 @@ from app.config import (
     RAPID_VERSION,
     TEST_ENV,
 )
+from app.limits import (
+    COMPRESS_HTTP_BROTLI_QUALITY,
+    COMPRESS_HTTP_GZIP_LEVEL,
+    COMPRESS_HTTP_MIN_SIZE,
+    COMPRESS_HTTP_ZSTD_LEVEL,
+)
 from app.middlewares.auth_middleware import AuthMiddleware
 from app.middlewares.cache_control_middleware import CacheControlMiddleware
-from app.middlewares.compress_middleware import CompressMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
@@ -73,7 +79,13 @@ async def lifespan(_):
 main = FastAPI(title=NAME, lifespan=lifespan)
 
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
-main.add_middleware(CompressMiddleware)
+main.add_middleware(
+    CompressMiddleware,
+    minimum_size=COMPRESS_HTTP_MIN_SIZE,
+    zstd_level=COMPRESS_HTTP_ZSTD_LEVEL,
+    brotli_quality=COMPRESS_HTTP_BROTLI_QUALITY,
+    gzip_level=COMPRESS_HTTP_GZIP_LEVEL,
+)
 main.add_middleware(CacheControlMiddleware)
 main.add_middleware(RateLimitMiddleware)
 main.add_middleware(FormatStyleMiddleware)  # TODO: check raise before this middleware
