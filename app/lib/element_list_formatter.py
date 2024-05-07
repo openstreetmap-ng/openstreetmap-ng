@@ -7,7 +7,7 @@ import cython
 from app.config import CONFIG_DIR
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
-from app.models.element_format import ChangesetElementFormat, ElementMemberFormat
+from app.models.element_list_entry import ChangesetElementEntry, ElementMemberEntry
 from app.models.element_member_ref import ElementMemberRef
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
@@ -16,7 +16,7 @@ from app.repositories.element_repository import ElementRepository
 
 async def format_changeset_elements(
     elements: Sequence[Element],
-) -> dict[ElementType, Sequence[ChangesetElementFormat]]:
+) -> dict[ElementType, Sequence[ChangesetElementEntry]]:
     """
     Format elements for displaying on the website (icons, strikethrough, sort).
 
@@ -36,7 +36,7 @@ async def format_changeset_elements(
     else:
         prev_ref_map = {}
 
-    result: dict[ElementType, list[ChangesetElementFormat]] = {'node': [], 'way': [], 'relation': []}
+    result: dict[ElementType, list[ChangesetElementEntry]] = {'node': [], 'way': [], 'relation': []}
 
     for element in elements:
         prev = prev_ref_map.get(element.element_ref)
@@ -51,7 +51,7 @@ async def format_changeset_elements(
             icon_title = None
 
         result[element.type].append(
-            ChangesetElementFormat(
+            ChangesetElementEntry(
                 type=element.type,
                 id=element.id,
                 name=feature_name(tags) if tags else None,
@@ -71,9 +71,9 @@ async def format_changeset_elements(
 def format_element_members(
     member_refs: Sequence[ElementMemberRef],
     members: Sequence[Element],
-) -> Sequence[ElementMemberFormat]:
+) -> Sequence[ElementMemberEntry]:
     ref_element_map: dict[ElementRef, Element] = {member.element_ref: member for member in members}
-    result: list[ElementMemberFormat] = []
+    result: list[ElementMemberEntry] = []
 
     for ref in member_refs:
         element = ref_element_map.get(ref.element_ref)
@@ -91,7 +91,7 @@ def format_element_members(
             icon_title = None
 
         result.append(
-            ElementMemberFormat(
+            ElementMemberEntry(
                 type=ref.type,
                 id=ref.id,
                 name=feature_name(tags) if tags else None,

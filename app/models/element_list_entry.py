@@ -4,7 +4,7 @@ from app.models.element_type import ElementType
 
 
 @dataclass(frozen=True, slots=True)
-class _ElementFormat:
+class _BaseListEntry:
     type: ElementType
     id: int
     name: str | None
@@ -13,11 +13,11 @@ class _ElementFormat:
 
 
 @dataclass(frozen=True, slots=True)
-class ChangesetElementFormat(_ElementFormat):
+class ChangesetElementEntry(_BaseListEntry):
     version: int
     visible: bool
 
 
 @dataclass(frozen=True, slots=True)
-class ElementMemberFormat(_ElementFormat):
+class ElementMemberEntry(_BaseListEntry):
     role: str | None
