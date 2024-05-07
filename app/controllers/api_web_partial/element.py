@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from pydantic import PositiveInt
 
 from app.lib.elements_formatter import format_element_members
+from app.lib.feature_name import feature_name
 from app.lib.render_response import render_response
 from app.lib.statement_context import joinedload_context, loadonly_context
 from app.lib.tags_format import tags_format
@@ -60,6 +61,7 @@ async def get_element(type: ElementType, id: PositiveInt):
 
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if not is_latest else None
+    name = feature_name(element.tags)
     tags = tags_format(element.tags)
 
     return render_response(
@@ -69,6 +71,7 @@ async def get_element(type: ElementType, id: PositiveInt):
             'changeset': element.changeset,
             'prev_version': prev_version,
             'next_version': next_version,
+            'name': name,
             'tags': tags.values(),
             'comment_tag': comment_tag,
             'elements_len': len(elements) if (elements is not None) else None,
@@ -76,7 +79,6 @@ async def get_element(type: ElementType, id: PositiveInt):
                 {
                     'type': type,
                     'id': id,
-                    # **({'bounds': changeset.bounds.bounds} if (changeset.bounds is not None) else {}),
                     # TODO: part of data
                     'elements': elements,
                 }

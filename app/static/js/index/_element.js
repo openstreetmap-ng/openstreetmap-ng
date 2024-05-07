@@ -32,11 +32,10 @@ export const getElementController = (map) => {
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsType = params.type
         const paramsId = params.id
-        const bounds = params.bounds
         const elements = params.elements
 
-        // Not all elements have a bounding box
-        if (bounds) {
+        // Not all elements have members
+        if (elementsSection) {
             // TODO: correct params
             // focusMapObject(map, {
             //     type: paramsType,
@@ -47,15 +46,12 @@ export const getElementController = (map) => {
             // })
 
             // Focus on the element if it's offscreen
-            const [minLon, minLat, maxLon, maxLat] = bounds
-            const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-            if (!map.getBounds().contains(latLngBounds)) {
-                map.fitBounds(latLngBounds, { animate: false })
-            }
-        }
+            // const [minLon, minLat, maxLon, maxLat] = bounds
+            // const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+            // if (!map.getBounds().contains(latLngBounds)) {
+            //     map.fitBounds(latLngBounds, { animate: false })
+            // }
 
-        // Not all elements have members
-        if (elementsSection) {
             const isWay = paramsType === "way"
             renderElements(elementsSection, elements, isWay)
         }
@@ -126,7 +122,16 @@ const renderElements = (elementsSection, elements, isWay) => {
             }
 
             const linkLatest = document.createElement("a")
-            linkLatest.textContent = element.name ? `${element.name} (${element.id})` : element.id
+            if (element.name) {
+                const bdi = document.createElement("bdi")
+                bdi.textContent = element.name
+                linkLatest.appendChild(bdi)
+                const span = document.createElement("span")
+                span.textContent = ` (${element.id})`
+                linkLatest.appendChild(span)
+            } else {
+                linkLatest.textContent = element.id
+            }
             linkLatest.href = `/${type}/${element.id}`
 
             if (isWay) {

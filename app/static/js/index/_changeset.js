@@ -185,7 +185,16 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
                 linkLatest.parentElement.classList.add("deleted")
             }
 
-            linkLatest.textContent = element.name ? `${element.name} (${element.id})` : element.id
+            if (element.name) {
+                const bdi = document.createElement("bdi")
+                bdi.textContent = element.name
+                linkLatest.appendChild(bdi)
+                const span = document.createElement("span")
+                span.textContent = ` (${element.id})`
+                linkLatest.appendChild(span)
+            } else {
+                linkLatest.textContent = element.id
+            }
             linkLatest.href = `/${type}/${element.id}`
 
             linkVersion.textContent = `v${element.version}`

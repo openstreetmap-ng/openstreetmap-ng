@@ -7,11 +7,17 @@
                     <span class="sidebar-title" data-params="{{ params }}">
                         {% set type = element.type %}
                         {% if type == 'node' %}
-                        {{ t('javascripts.query.node') }}: {{ element.id }}
+                        {{ t('javascripts.query.node') }}:
                         {% elif type == 'way' %}
-                        {{ t('javascripts.query.way') }}: {{ element.id }}
+                        {{ t('javascripts.query.way') }}:
                         {% elif type == 'relation' %}
-                        {{ t('javascripts.query.relation') }}: {{ element.id }}
+                        {{ t('javascripts.query.relation') }}:
+                        {% endif %}
+
+                        {% if name %}
+                        <bdi>{{ name }}</bdi> ({{ element.id }})
+                        {% else %}
+                        {{ element.id }}
                         {% endif %}
                     </span>
                     <span class="version-badge badge" title="{{ t('browse.version') }} {{ element.version }}">
