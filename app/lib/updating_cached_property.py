@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from types import GenericAlias
-from typing import Self
 
 _not_found = object()
 
@@ -21,7 +20,7 @@ class updating_cached_property:  # noqa: N801
         self._cache_name = None
         self._func = None
 
-    def __call__(self, func: Callable) -> Self:
+    def __call__(self, func: Callable) -> 'updating_cached_property':
         self._func = func
         return self
 

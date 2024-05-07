@@ -1,5 +1,4 @@
 from email.message import EmailMessage
-from typing import Self
 
 from bs4 import BeautifulSoup
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
@@ -39,7 +38,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
         return value
 
     @classmethod
-    def from_email(cls, mail: EmailMessage, from_user_id: int, to_user_id: int) -> Self:
+    def from_email(cls, mail: EmailMessage, from_user_id: int, to_user_id: int) -> 'Message':
         """
         Create a message instance from an email message.
         """

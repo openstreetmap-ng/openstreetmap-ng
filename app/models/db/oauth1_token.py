@@ -14,7 +14,7 @@ from app.models.scope import Scope
 # TODO: smooth reauthorize
 
 
-class OAuth1Token(Base.UUID, CreatedAtMixin):
+class OAuth1Token(Base.Snowflake, CreatedAtMixin):
     __tablename__ = 'oauth1_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)

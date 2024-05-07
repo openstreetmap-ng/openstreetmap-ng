@@ -1,7 +1,5 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime, timedelta
-from typing import Self
-from uuid import UUID
 
 import msgspec
 
@@ -12,36 +10,33 @@ from app.utils import MSGPACK_ENCODE, typed_msgpack_decoder
 
 class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
     version: int
-    id: int | UUID  # fallback to 0 on None
+    id: int  # fallback to 0 on None
     time: datetime | None
 
     def __str__(self) -> str:
         """
         Return a string representation of the cursor.
         """
-
         return urlsafe_b64encode(MSGPACK_ENCODE(self)).decode()
 
     @classmethod
-    def v1(cls, id: int | UUID, *, time: datetime | None = None) -> Self:
+    def v1(cls, id: int, *, time: datetime | None = None) -> 'Cursor':
         """
         Create a cursor with version 1.
         """
-
         return cls(version=1, id=id, time=time)
 
     @classmethod
-    def from_str(cls, s: str, *, expire: timedelta | None = None) -> Self:
+    def from_str(cls, s: str, *, expire: timedelta | None = None) -> 'Cursor':
         """
         Parse the given string into a cursor.
 
         Optionally check whether the cursor is expired.
         """
-
         buff = urlsafe_b64decode(s)
 
         try:
-            obj: Self = _decode(buff)
+            obj: Cursor = _decode(buff)
         except Exception:
             raise_for().bad_cursor()
 

@@ -2,7 +2,6 @@ import base64
 import logging
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
-from typing import Self
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -76,7 +75,7 @@ class PasswordHash:
         return self._hasher.hash(password.get_secret_value())
 
     @classmethod
-    def default(cls) -> Self:
+    def default(cls) -> 'PasswordHash':
         """
         Get the default password hasher.
         """

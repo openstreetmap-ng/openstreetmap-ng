@@ -1,12 +1,11 @@
 import re
 from abc import ABC
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
-from sqlalchemy import BigInteger, Identity, Uuid
+from sqlalchemy import BigInteger, Identity
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
-from app.lib.uuid7 import uuid7
+from app.lib.snowflake import snowflake_id
 from app.utils import unicode_normalize
 
 _bad_xml_re = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XML/1.0
@@ -28,15 +27,15 @@ class Base:
             primary_key=True,
         )
 
-    class UUID(NoID):
+    class Snowflake(NoID):
         __abstract__ = True
 
-        id: Mapped[UUID] = mapped_column(
-            Uuid,
+        id: Mapped[int] = mapped_column(
+            BigInteger,
             init=False,
             nullable=False,
             primary_key=True,
-            default_factory=uuid7,
+            default_factory=snowflake_id,
         )
 
     class Validating(BaseModel, ABC):

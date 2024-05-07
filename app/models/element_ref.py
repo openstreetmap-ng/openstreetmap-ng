@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Self, override
+from typing import override
 
 from pydantic import PositiveInt
 
@@ -12,7 +12,7 @@ class ElementRef:
     id: int
 
     @property
-    def element_ref(self) -> Self:
+    def element_ref(self) -> 'ElementRef':
         return ElementRef(
             type=self.type,
             id=self.id,
@@ -28,7 +28,7 @@ class ElementRef:
         return f'{self.type[0]}{self.id}'
 
     @classmethod
-    def from_str(cls, s: str) -> Self:
+    def from_str(cls, s: str) -> 'ElementRef':
         """
         Parse an element reference from a string representation.
 
@@ -59,7 +59,7 @@ class VersionedElementRef(ElementRef):
 
     @override
     @classmethod
-    def from_str(cls, s: str) -> Self:
+    def from_str(cls, s: str) -> 'VersionedElementRef':
         """
         Parse a versioned element reference from a string representation.
 
@@ -80,7 +80,7 @@ class VersionedElementRef(ElementRef):
         return cls(type, id, version)
 
     @classmethod
-    def from_type_str(cls, type: ElementType, s: str) -> Self:
+    def from_type_str(cls, type: ElementType, s: str) -> 'VersionedElementRef':
         """
         Parse a versioned element reference from a string.
 

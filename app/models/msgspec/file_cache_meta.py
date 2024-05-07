@@ -1,5 +1,3 @@
-from typing import Self
-
 import msgspec
 
 from app.utils import MSGPACK_ENCODE, typed_msgpack_decoder
@@ -14,23 +12,20 @@ class FileCacheMeta(msgspec.Struct):
         """
         Serialize the file cache meta struct into bytes.
         """
-
         return MSGPACK_ENCODE(self)
 
     @classmethod
-    def v1(cls, expires_at: int | None, data: bytes) -> Self:
+    def v1(cls, expires_at: int | None, data: bytes) -> 'FileCacheMeta':
         """
         Create a file cache meta struct with version 1.
         """
-
         return cls(version=1, expires_at=expires_at, data=data)
 
     @classmethod
-    def from_bytes(cls, buffer: bytes) -> Self:
+    def from_bytes(cls, buffer: bytes) -> 'FileCacheMeta':
         """
         Parse the given buffer into a file cache meta struct.
         """
-
         return _decode(buffer)
 
 

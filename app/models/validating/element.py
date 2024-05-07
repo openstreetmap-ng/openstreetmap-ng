@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from typing import Self
 
 from pydantic import PositiveInt, model_validator
 
@@ -20,7 +19,7 @@ class ElementValidating(TagsValidating):
     members: Sequence[ElementMemberRef]
 
     @model_validator(mode='after')
-    def validate_node(self) -> Self:
+    def validate_node(self):
         if self.type != 'node':
             return self
 
@@ -30,7 +29,7 @@ class ElementValidating(TagsValidating):
         return self
 
     @model_validator(mode='after')
-    def validate_way(self) -> Self:
+    def validate_way(self):
         if self.type != 'way':
             return self
 
@@ -48,7 +47,7 @@ class ElementValidating(TagsValidating):
         return self
 
     @model_validator(mode='after')
-    def validate_relation(self) -> Self:
+    def validate_relation(self):
         if self.type != 'relation':
             return self
 
@@ -65,7 +64,7 @@ class ElementValidating(TagsValidating):
     # using 'before' mode to avoid conflicts with validate_assignment=True
     @model_validator(mode='before')
     @classmethod
-    def validate_hidden_prepare(cls, data: dict) -> dict:
+    def validate_hidden_prepare(cls, data: dict):
         if data['visible']:
             return data
 
@@ -75,7 +74,7 @@ class ElementValidating(TagsValidating):
         return data
 
     @model_validator(mode='after')
-    def validate_hidden(self) -> Self:
+    def validate_hidden(self):
         if self.visible:
             return self
 

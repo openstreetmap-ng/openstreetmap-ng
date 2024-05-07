@@ -13,7 +13,7 @@ from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from app.models.scope import Scope
 
 
-class OAuth2Token(Base.UUID, CreatedAtMixin):
+class OAuth2Token(Base.Snowflake, CreatedAtMixin):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)

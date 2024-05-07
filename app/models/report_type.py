@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Self
 
 from app.models.report_category import ReportCategory
 from app.models.user_role import UserRole
@@ -13,7 +12,7 @@ class ReportType(str, Enum):
 
     # TODO: in service
     @staticmethod
-    def get_user_role(report_type: Self, category: ReportCategory) -> UserRole:
+    def get_user_role(report_type: 'ReportType', category: ReportCategory) -> UserRole:
         # TODO: why admins handle so many reports?
         if report_type == ReportType.note:
             return UserRole.moderator
