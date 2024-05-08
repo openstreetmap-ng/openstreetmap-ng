@@ -8,9 +8,9 @@ from app.validators.email import validate_email
 def _is_email_string(s: str) -> cython.char:
     try:
         validate_email(s)
-        return True
     except ValueError:
         return False
+    return True
 
 
 def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:

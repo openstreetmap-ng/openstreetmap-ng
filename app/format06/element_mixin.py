@@ -255,10 +255,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
         return {
             'type': element_type,
             'id': element.id,
-            **(_encode_point(element.point, is_json=True) if is_node else {}),
             'version': element.version,
-            'timestamp': legacy_date(element.created_at),
-            'changeset': element.changeset_id,
             **(
                 {
                     'uid': changeset.user_id,
@@ -267,7 +264,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
                 if changeset.user_id is not None
                 else {}
             ),
+            'changeset': element.changeset_id,
+            'timestamp': legacy_date(element.created_at),
             'visible': element.visible,
+            **(_encode_point(element.point, is_json=True) if is_node else {}),
             'tags': element.tags,
             **({'nodes': _encode_nodes(element.members, is_json=True)} if is_way else {}),
             **({'members': _encode_members(element.members, is_json=True)} if is_relation else {}),
@@ -275,10 +275,7 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     else:
         return {
             '@id': element.id,
-            **(_encode_point(element.point, is_json=False) if is_node else {}),
             '@version': element.version,
-            '@timestamp': legacy_date(element.created_at),
-            '@changeset': element.changeset_id,
             **(
                 {
                     '@uid': changeset.user_id,
@@ -287,7 +284,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
                 if changeset.user_id is not None
                 else {}
             ),
+            '@changeset': element.changeset_id,
+            '@timestamp': legacy_date(element.created_at),
             '@visible': element.visible,
+            **(_encode_point(element.point, is_json=False) if is_node else {}),
             'tag': tuple({'@k': k, '@v': v} for k, v in element.tags.items()),
             **({'nd': _encode_nodes(element.members, is_json=False)} if is_way else {}),
             **({'member': _encode_members(element.members, is_json=False)} if is_relation else {}),

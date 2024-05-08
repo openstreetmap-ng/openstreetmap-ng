@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/07262b18b97000d16a4bdb003418bd2fb067a932.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/ad7efee13e0d216bf29992311536fce1d3eefbef.tar.gz") { };
 
   pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
@@ -353,8 +353,19 @@ let
       preload-load
     '')
 
+    # -- Testing
+    (writeShellScriptBin "run-tests" ''
+      set -e
+      pytest . --cov app --cov-report xml --verbose
+    '')
+    (writeShellScriptBin "watch-tests" ''
+      run-tests || true
+      while inotifywait -e close_write ./**/*.py; do
+        run-tests || true
+      done
+    '')
+
     # -- Misc
-    (writeShellScriptBin "watch-tests" "ptw --now . --cov app --cov-report xml --verbose")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (writeShellScriptBin "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")

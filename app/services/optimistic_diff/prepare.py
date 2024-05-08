@@ -7,12 +7,13 @@ import cython
 from anyio import create_task_group
 from shapely import Point
 from shapely.ops import unary_union
+from sqlalchemy.orm import joinedload
 
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
@@ -156,7 +157,7 @@ class OptimisticDiffPrepare:
         if (changeset := self.changeset_state.get(changeset_id)) is not None:
             return changeset
 
-        with joinedload_context(Changeset.user):
+        with options_context(joinedload(Changeset.user)):
             changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
         if not changesets:

@@ -1,17 +1,17 @@
 import numpy as np
 from pydantic import PlainValidator
-from shapely import get_coordinates
+from shapely import Point, get_coordinates, points
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
 from app.lib.exceptions_context import raise_for
+from app.limits import GEO_COORDINATE_PRECISION
 
 
 def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     """
     Validate a geometry.
     """
-
     if isinstance(value, dict):
         value = shape(value)
 
@@ -26,4 +26,17 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     return value
 
 
+def validate_point_precision(value: Point) -> Point:
+    """
+    Validate a point precision.
+
+    >>> validate_point_precision(Point(0.123456789, 0.123456789))
+    Point(0.1234567, 0.1234567)
+    """
+    coords: np.ndarray = get_coordinates(value)[0]
+    coords = coords.round(GEO_COORDINATE_PRECISION)
+    return points(coords)
+
+
 GeometryValidator = PlainValidator(validate_geometry)
+PointPrecisionValidator = PlainValidator(validate_point_precision)

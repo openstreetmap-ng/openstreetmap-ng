@@ -107,6 +107,7 @@ async def abort_signup(
 async def account_confirm(
     token: Annotated[str, Query(min_length=1)],
 ):
+    # TODO: check errors
     token_struct = UserTokenStruct.from_str(token)
     await UserTokenAccountConfirmService.confirm(token_struct)
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)

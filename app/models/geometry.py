@@ -7,10 +7,11 @@ from sqlalchemy import BindParameter
 from sqlalchemy.sql import func
 from sqlalchemy.types import UserDefinedType
 
-from app.validators.geometry import GeometryValidator
+from app.validators.geometry import GeometryValidator, PointPrecisionValidator
 
 Geometry = Annotated[BaseGeometry, GeometryValidator]
 PointGeometry = Annotated[Point, GeometryValidator]
+PointPrecisionGeometry = Annotated[Point, GeometryValidator, PointPrecisionValidator]
 PolygonGeometry = Annotated[Polygon, GeometryValidator]
 MultiPolygonGeometry = Annotated[Polygon | MultiPolygon, GeometryValidator]
 Longitude = Annotated[float, Interval(ge=-180, le=180)]

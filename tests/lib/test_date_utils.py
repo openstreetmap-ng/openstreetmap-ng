@@ -7,7 +7,7 @@ from app.lib.date_utils import format_sql_date, parse_date, utcnow
 
 
 def test_format_sql_date():
-    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45)) == '2021-12-31 15:30:45 UTC'
+    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45)) == '2021-12-31 15:30:45 UTC'  # noqa: DTZ001
     assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45, 123456, UTC)) == '2021-12-31 15:30:45.123456 UTC'
     assert format_sql_date(None) == 'None'
 

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_urlsafe
@@ -32,23 +32,21 @@ class StorageBase(ABC):
 
         return result
 
+    @abstractmethod
     async def load(self, key: str) -> bytes:
         """
         Load a file from storage by key.
         """
-
-        raise NotImplementedError
+        ...
 
     async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
         """
         Save a file to storage and return its key.
         """
-
         raise NotImplementedError
 
     async def delete(self, key: str) -> None:
         """
         Delete a key from storage.
         """
-
         raise NotImplementedError

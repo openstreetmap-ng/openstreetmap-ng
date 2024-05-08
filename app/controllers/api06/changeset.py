@@ -4,13 +4,14 @@ from typing import Annotated
 import cython
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
+from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset_comment import ChangesetComment
@@ -56,7 +57,7 @@ async def changeset_read(
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
     if include_discussion:
-        with joinedload_context(ChangesetComment.user):
+        with options_context(joinedload(ChangesetComment.user)):
             await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
 
     return Format06.encode_changesets(changesets)

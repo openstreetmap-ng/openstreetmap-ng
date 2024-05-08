@@ -8,13 +8,14 @@ from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely import Point
+from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06, FormatRSS06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_rss
 from app.lib.geo_utils import parse_bbox
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.lib.translation import t
 from app.limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
@@ -55,7 +56,7 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
             for comment in notes_or_comments:
                 tg.start_soon(comment.resolve_rich_text)
         else:
-            with joinedload_context(NoteComment.user):
+            with options_context(joinedload(NoteComment.user)):
                 await NoteCommentRepository.resolve_comments(notes_or_comments, limit_per_note=None)
             note: Note
             for note in notes_or_comments:
@@ -181,7 +182,7 @@ async def notes_feed(
     else:
         geometry = None
 
-    with joinedload_context(NoteComment.user, NoteComment.legacy_note):
+    with options_context(joinedload(NoteComment.user), joinedload(NoteComment.legacy_note)):
         comments = await NoteCommentRepository.legacy_find_many_by_query(
             geometry=geometry,
             limit=NOTE_QUERY_DEFAULT_LIMIT,

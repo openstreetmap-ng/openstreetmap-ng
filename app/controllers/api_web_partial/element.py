@@ -3,11 +3,12 @@ from collections.abc import Sequence
 from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
+from sqlalchemy.orm import joinedload, load_only
 
-from app.lib.element_list_formatter import format_element_members
+from app.lib.element_list_formatter import format_element_members_list
 from app.lib.feature_name import feature_name
 from app.lib.render_response import render_response
-from app.lib.statement_context import joinedload_context, loadonly_context
+from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.element import Element
@@ -23,7 +24,7 @@ router = APIRouter(prefix='/element')
 
 @router.get('/{type}/{id:int}')
 async def get_element(type: ElementType, id: PositiveInt):
-    with joinedload_context(Element.changeset):
+    with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
         elements = await ElementRepository.get_many_latest_by_element_refs((ref,), limit=1)
         element = elements[0] if elements else None
@@ -43,9 +44,9 @@ async def get_element(type: ElementType, id: PositiveInt):
 
     async def elements_task():
         nonlocal elements
-        with loadonly_context(Element.type, Element.id, Element.tags):
+        with options_context(load_only(Element.type, Element.id, Element.tags)):
             elements_ = await ElementRepository.get_many_latest_by_element_refs(element.members, limit=None)
-            elements = format_element_members(element.members, elements_)
+            elements = format_element_members_list(element.members, elements_)
 
     async with create_task_group() as tg:
         tg.start_soon(check_latest_task)

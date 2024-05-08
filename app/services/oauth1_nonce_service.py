@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
@@ -25,7 +25,7 @@ class OAuth1NonceService:
             raise_for().oauth1_nonce_missing()
 
         try:
-            created_at = datetime.fromtimestamp(int(timestamp))
+            created_at = datetime.fromtimestamp(int(timestamp), tz=UTC)
             created_age = utcnow() - created_at
         except ValueError:
             logging.debug('OAuth nonce timestamp invalid %r', timestamp)

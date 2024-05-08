@@ -14,7 +14,7 @@ from app.models.element_type import ElementType
 from app.repositories.element_repository import ElementRepository
 
 
-async def format_changeset_elements(
+async def format_changeset_elements_list(
     elements: Sequence[Element],
 ) -> dict[ElementType, Sequence[ChangesetElementEntry]]:
     """
@@ -68,7 +68,7 @@ async def format_changeset_elements(
     return result
 
 
-def format_element_members(
+def format_element_members_list(
     member_refs: Sequence[ElementMemberRef],
     members: Sequence[Element],
 ) -> Sequence[ElementMemberEntry]:

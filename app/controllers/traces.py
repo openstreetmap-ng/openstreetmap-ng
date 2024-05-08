@@ -3,12 +3,13 @@ from typing import Annotated
 import cython
 from anyio import create_task_group
 from fastapi import APIRouter, Path, Query
+from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.limits import TRACE_TAG_MAX_LENGTH
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
@@ -27,7 +28,7 @@ async def _get_traces_data(
     after: int | None,
     before: int | None,
 ) -> dict:
-    with joinedload_context(Trace.user):
+    with options_context(joinedload(Trace.user)):
         traces = await TraceRepository.find_many_recent(
             personal=personal,
             tag=tag,

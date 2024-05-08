@@ -3,11 +3,12 @@ from collections.abc import Sequence
 from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
+from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
-from app.lib.element_list_formatter import ElementType, format_changeset_elements
+from app.lib.element_list_formatter import ElementType, format_changeset_elements_list
 from app.lib.render_response import render_response
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.changeset_comment import ChangesetComment
@@ -41,10 +42,10 @@ async def get_changeset(id: PositiveInt):
     async def elements_task():
         nonlocal elements
         elements_ = await ElementRepository.get_many_by_changeset(id, sort_by_id=True)
-        elements = await format_changeset_elements(elements_)
+        elements = await format_changeset_elements_list(elements_)
 
     async def comments_task():
-        with joinedload_context(ChangesetComment.user):
+        with options_context(joinedload(ChangesetComment.user)):
             await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
 
     async def adjacent_ids_task():

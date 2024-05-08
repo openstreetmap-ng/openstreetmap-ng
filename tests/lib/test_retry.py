@@ -18,7 +18,7 @@ async def test_retry():
 
         # raise exception on first run
         if runs < 2:
-            raise Exception
+            raise Exception  # noqa: TRY002
 
     await func()
     assert runs == 2

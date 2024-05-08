@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -70,7 +70,7 @@ def test_xml_parse_sequence(input, output):
                         'modify',
                         {
                             '@id': '4',
-                            '@timestamp': datetime(2020, 1, 1),
+                            '@timestamp': datetime(2020, 1, 1, tzinfo=UTC),
                             '@visible': True,
                         },
                     ),

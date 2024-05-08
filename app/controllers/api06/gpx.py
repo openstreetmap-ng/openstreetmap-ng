@@ -2,11 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Response, UploadFile
 from pydantic import PositiveInt
+from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import joinedload_context
+from app.lib.statement_context import options_context
 from app.lib.xml_body import xml_body
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
@@ -46,7 +47,7 @@ async def gpx_create(
 async def gpx_read(
     trace_id: PositiveInt,
 ):
-    with joinedload_context(Trace.user):
+    with options_context(joinedload(Trace.user)):
         trace = await TraceRepository.get_one_by_id(trace_id)
     return Format06.encode_gpx_file(trace)
 

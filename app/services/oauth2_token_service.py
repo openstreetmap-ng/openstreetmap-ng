@@ -157,7 +157,7 @@ class OAuth2TokenService:
                     if token.code_challenge != _compute_s256(verifier):
                         raise_for().oauth2_bad_verifier(token.code_challenge_method)
                 else:
-                    raise NotImplementedError(
+                    raise NotImplementedError(  # noqa: TRY301
                         f'Unsupported OAuth2 code challenge method {token.code_challenge_method!r}'
                     )
             except Exception:

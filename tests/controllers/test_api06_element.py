@@ -84,10 +84,10 @@ async def test_element_crud(client: AsyncClient):
     tags = Format06.decode_tags_and_validate(node['tag'])
 
     assert node['@id'] == node_id
-    assert node['@visible'] is True
     assert node['@version'] == 1
     assert node['@changeset'] == changeset_id
     assert node['@timestamp'] == changeset['@updated_at']
+    assert node['@visible'] is True
     assert node['@lon'] == 1
     assert node['@lat'] == 2
     assert len(tags) == 3
@@ -145,10 +145,11 @@ async def test_element_crud(client: AsyncClient):
     tags = Format06.decode_tags_and_validate(node['tag'])
 
     assert node['@id'] == node_id
-    assert node['@visible'] is True
     assert node['@version'] == 2
+    assert node['@user'] == 'user1'
     assert node['@changeset'] == changeset_id
     assert node['@timestamp'] == changeset['@updated_at']
+    assert node['@visible'] is True
     assert node['@lon'] == 3
     assert node['@lat'] == 4
     assert len(tags) == 2
@@ -205,10 +206,10 @@ async def test_element_crud(client: AsyncClient):
     node: dict = element[1]
 
     assert node['@id'] == node_id
-    assert node['@visible'] is False
     assert node['@version'] == 3
     assert node['@changeset'] == changeset_id
     assert node['@timestamp'] == changeset['@updated_at']
+    assert node['@visible'] is False
     assert '@lon' not in node
     assert '@lat' not in node
     assert 'tag' not in node

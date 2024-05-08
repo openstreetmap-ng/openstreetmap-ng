@@ -1,5 +1,5 @@
 [tool.poetry]
-authors = ["Your Name <you@example.com>"]
+authors = []
 description = ""
 name = "openstreetmap-ng"
 packages = [
@@ -48,12 +48,11 @@ starlette-compress = "^1.0.1"
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 uvicorn = {extras = ["standard"], version = "<1"}
-zstandard = {extras = ["cffi"], version = "<1"}
+zstandard = "<1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.4"
 pytest-cov = "^4.1.0"
-pytest-watcher = "^0.3.4"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -95,6 +94,7 @@ target-version = "py312"
 ignore = [
   "ARG001", # unused-function-argument
   "ARG002", # unused-method-argument
+  "TRY003", # raise-vanilla-args
   "S101", # assert
   "SIM108", # if-else-block-instead-of-if-exp
   "PT011", # pytest-raises-too-broad
@@ -114,34 +114,32 @@ ignore = [
   "ISC001", # single-line-implicit-string-concatenation
   "ISC002", # multi-line-implicit-string-concatenation
 ]
+# see https://docs.astral.sh/ruff/rules/ for rules documentation
 select = [
-  # see https://docs.astral.sh/ruff/rules/ for rules documentation
   "A", # flake8-builtins
   "ARG", # flake8-unused-arguments
   "ASYNC", # flake8-async
   "B", # flake8-bugbear
-  # "COM", # flake8-commas
   "C4", # flake8-comprehensions
+  "DTZ", # flake8-datetimez
   "E4", # pycodestyle
   "E7",
   "E9",
   "F", # pyflakes
-  # "FBT", # flake8-boolean-trap
-  "FLY", # flynt
-  # "FURB", # refurb (preview)
+  "FA", # flake8-future-annotations
+  "FLY", # flynt  # "FURB", # refurb
   "G", # flake8-logging-format
   "I", # isort
+  "ICN", # flake8-import-conventions
   "INT", # flake8-gettext
   "ISC", # flake8-implicit-str-concat
-  # "LOG", # flake8-logging (preview)
+  "LOG", # flake8-logging
   "N", # pep8-naming
   "NPY", # numpy
   "Q", # flake8-quotes
-  # "PD", # pandas-vet
   "PERF", # perflint
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
-  # "PL", # pylint
   "PT", # flake8-pytest-style
   "PTH", # flake8-use-pathlib
   "PYI", # flake8-pyi
@@ -152,9 +150,8 @@ select = [
   "SLF", # flake8-self
   "SLOT", # flake8-slots
   "T10", # flake8-debugger
-  # "T20", # flake8-print
   "TID", # flake8-tidy-imports
-  # "TRY", # tryceratops
+  "TRY", # tryceratops
   "UP", # pyupgrade
   "W6",
   "YTT", # flake8-2020
@@ -168,16 +165,10 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.format]
-quote-style = "single"
-
-# Like Black, indent with spaces, rather than tabs.
 indent-style = "space"
-
-# Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = false
-
-# Like Black, automatically detect the appropriate line ending.
 line-ending = "lf"
+quote-style = "single"
+skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["id", "input", "open", "type", "map", "copyright", "help", "format"]
@@ -199,6 +190,4 @@ max-args = 10
 [tool.pytest.ini_options]
 addopts = "-ra --quiet --disable-pytest-warnings"
 minversion = "6.0"
-testpaths = [
-  "tests",
-]
+testpaths = ["tests"]

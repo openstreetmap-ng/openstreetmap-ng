@@ -36,11 +36,12 @@ class PasswordHash:
 
             try:
                 self._hasher.verify(password_hashed, password.get_secret_value())
-                self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
-                return True
             except VerifyMismatchError:
                 self.rehash_needed = False
                 return False
+            else:
+                self.rehash_needed = self._hasher.check_needs_rehash(password_hashed)
+                return True
 
         # rehash deprecated methods
         self.rehash_needed = True

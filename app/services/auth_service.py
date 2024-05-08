@@ -88,10 +88,14 @@ class AuthService:
         # all endpoints support session cookies
         if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
-            token_struct = UserTokenStruct.from_str(token_str)
-            session_user = await AuthService.authenticate_session(token_struct)
-            if session_user is not None:
-                user, scopes = session_user, _session_auth_scopes
+            try:
+                token_struct = UserTokenStruct.from_str(token_str)
+            except Exception:  # noqa: S110
+                pass
+            else:
+                session_user = await AuthService.authenticate_session(token_struct)
+                if session_user is not None:
+                    user, scopes = session_user, _session_auth_scopes
 
         # all endpoints on test env support any user auth
         if user is None and TEST_ENV:
