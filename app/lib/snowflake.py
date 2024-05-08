@@ -24,15 +24,20 @@ def snowflake_id() -> int:
         raise OverflowError('Time value is too large')
 
     # get the sequence number (increment if the time is unchanged)
-    # operate on int32 to avoid math overflow
-    seq: cython.int
+    seq_max: cython.ushort = 0xFFFF
+    seq: cython.ushort
     if _last_time == time:
         seq = _last_seq
-        seq += 1
+
+        if seq < seq_max:
+            seq += 1
+        else:
+            seq = 0
+
         _last_seq = seq
     else:
         seq = int.from_bytes(buffered_randbytes(2))
         _last_time = time
         _last_seq = seq
 
-    return (time << 16) | (seq & 0xFFFF)
+    return (time << 16) | seq

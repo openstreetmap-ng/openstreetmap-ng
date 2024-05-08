@@ -15,7 +15,7 @@ from app.repositories.element_repository import ElementRepository
 router = APIRouter()
 
 
-# TODO: limits
+# TODO: limits + cursor
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str, Query()],
