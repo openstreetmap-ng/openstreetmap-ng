@@ -15,6 +15,10 @@ if cython.compiled:
 else:
     from math import sqrt
 
+# Support up to 256MP images
+# TODO: handle errors
+Image.MAX_IMAGE_PIXELS = 2 * int(1024 * 1024 * 1024 // 4 // 3)
+
 
 @cython.cfunc
 def _optimize_quality(img: Image) -> tuple[int, bytes]:
@@ -23,7 +27,6 @@ def _optimize_quality(img: Image) -> tuple[int, bytes]:
 
     Returns the quality and the image buffer.
     """
-
     with BytesIO() as buffer:
         # lossless mode
         compression_level: int = 100
@@ -92,7 +95,6 @@ class Avatar:
         >>> Avatar.get_url(AvatarType.custom, '123456')
         '/api/web/avatar/custom/123456'
         """
-
         if avatar_type == AvatarType.default:
             return '/static/img/avatar.webp'
         elif avatar_type == AvatarType.gravatar:
@@ -107,7 +109,6 @@ class Avatar:
         """
         Get the default avatar image.
         """
-
         return await Path('app/static/img/avatar.webp').read_bytes()
 
     @staticmethod
@@ -120,7 +121,6 @@ class Avatar:
         - Megapixels: downscale
         - File size: reduce quality
         """
-
         img = Image.open(BytesIO(data))
 
         # normalize orientation

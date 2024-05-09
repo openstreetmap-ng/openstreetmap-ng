@@ -356,7 +356,11 @@ let
     # -- Testing
     (writeShellScriptBin "run-tests" ''
       set -e
-      pytest . --cov app --cov-report xml --verbose
+      pytest . \
+        --verbose \
+        --no-header \
+        --cov app \
+        --cov-report xml
     '')
     (writeShellScriptBin "watch-tests" ''
       run-tests || true
@@ -384,7 +388,7 @@ let
     (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
     (writeShellScriptBin "make-bundle" ''
       set -e
-      dir="app/static/js"
+      dir=app/static/js
 
       bundle_paths=$(find "$dir" \
         -maxdepth 1 \
@@ -453,7 +457,7 @@ let
 
     # Development environment variables
     export PYTHONNOUSERSITE=1
-    export TZ="UTC"
+    export TZ=UTC
 
     export TEST_ENV=1
     export SECRET=development-secret

@@ -11,9 +11,9 @@ from starlette.routing import request_response
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
+from app.middlewares.request_context_middleware import get_request
 from app.utils import JSON_ENCODE
 
-# TODO: 0.7 json/xml version
 _json_attributes = {
     'version': '0.6',
     'generator': GENERATOR,
@@ -54,10 +54,13 @@ class OSMResponse(Response):
         style = format_style()
 
         if style == 'json':
-            if isinstance(content, Mapping):
-                content = _json_attributes | content
-            else:
-                raise TypeError(f'Invalid json content type {type(content)}')
+            request = get_request()
+            request_path: str = request.url.path
+            if request_path.startswith('/api/0.6/'):
+                if isinstance(content, Mapping):
+                    content = _json_attributes | content
+                else:
+                    raise TypeError(f'Invalid json content type {type(content)}')
 
             encoded = JSON_ENCODE(content)
             return Response(encoded, media_type='application/json; charset=utf-8')

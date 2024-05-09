@@ -25,6 +25,8 @@ const isInterestingNode = (node, membersSet) => {
  * @returns {{node: Map<number, OSMNode>, way: Map<number, OSMWay>, relation: Map<number, OSMRelation>}} Mapping to OSMObjects
  */
 export const parseElements = (elements) => {
+    console.debug("parseElements", elements.length)
+
     // Create ref map for quick type+id lookup
     const refMap = {
         node: new Map(),
@@ -33,7 +35,7 @@ export const parseElements = (elements) => {
     }
 
     for (const element of elements) {
-        refMap[element.type].add(element.id, element)
+        refMap[element.type].set(element.id, element)
     }
 
     // Set of all members in "n123" format (for filtering out boring nodes)
@@ -78,9 +80,9 @@ export const parseElements = (elements) => {
                 type: elementType,
                 id: elementId,
                 version: element.version,
-                tags: element.tags,
                 lon: element.lon,
                 lat: element.lat,
+                tags: element.tags,
             }
             node.interesting = isInterestingNode(node, membersSet)
             resultMap[elementType].set(elementId, node)
