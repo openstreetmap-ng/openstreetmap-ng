@@ -93,5 +93,27 @@ export const focusManyMapObjects = (map, objects) => {
         map.fire("overlayadd", { layer: focusLayer, name: focusLayer.options.layerId })
     }
 
-    return renderObjects(focusLayer, objects, focusStyles)
+    const layers = renderObjects(focusLayer, objects, focusStyles)
+
+    // Focus on the layers if they are offscreen
+    if (layers.length) {
+        const latLngBounds = layers.reduce((bounds, layer) => bounds.extend(getLayerBounds(layer)), L.latLngBounds())
+        if (!map.getBounds().contains(latLngBounds)) {
+            console.debug("Fitting map to", layers.length, "focus layers")
+            map.fitBounds(latLngBounds, { animate: false })
+        }
+    }
+
+    return layers
+}
+
+const getLayerBounds = (layer) => {
+    if (layer.getBounds) {
+        return layer.getBounds()
+    }
+    if (layer.getLatLng) {
+        return L.latLngBounds([layer.getLatLng()])
+    }
+    console.warn("Focus layer has no bounds", layer)
+    return L.latLngBounds()
 }
