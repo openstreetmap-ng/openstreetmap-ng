@@ -145,7 +145,7 @@ export const configureDataLayer = (map) => {
 
         if (abortController) abortController.abort()
         abortController = null
-
+        renderedBounds = null
         dataLayer.clearLayers()
     }
 
