@@ -4,8 +4,6 @@ import { getPageTitle } from "../_title.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
-const emptyTags = new Map()
-
 const elementsPerPage = 20
 const paginationDistance = 2
 
@@ -19,6 +17,7 @@ export const getElementController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
+        const partOfSection = sidebarContent.querySelector(".part-of")
         const elementsSection = sidebarContent.querySelector(".elements")
         // TODO: (version X) in title
 
@@ -31,33 +30,21 @@ export const getElementController = (map) => {
         // Get params
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsType = params.type
-        const paramsId = params.id
-        const fullData = params.full_data
+        // const paramsId = params.id
+        const fullData = params.fullData
+        const partOf = params.partOf
         const elements = params.elements
 
-        focusManyMapObjects(map, fullData)
+        if (partOfSection) {
+            renderElements(partOfSection, partOf, false)
+        }
 
-        // Not all elements have members
         if (elementsSection) {
-            // TODO: correct params
-            // focusMapObject(map, {
-            //     type: paramsType,
-            //     id: paramsId,
-            //     version: 0, // currently unused
-            //     tags: emptyTags, // currently unused
-            //     bounds: bounds,
-            // })
-
-            // Focus on the element if it's offscreen
-            // const [minLon, minLat, maxLon, maxLat] = bounds
-            // const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-            // if (!map.getBounds().contains(latLngBounds)) {
-            //     map.fitBounds(latLngBounds, { animate: false })
-            // }
-
             const isWay = paramsType === "way"
             renderElements(elementsSection, elements, isWay)
         }
+
+        focusManyMapObjects(map, fullData)
     }
 
     const base = getBaseFetchController(map, "element", onLoaded)

@@ -102,6 +102,25 @@
         </div>
         {% endif %}
 
+        {% if part_of_len %}
+        <div class="part-of mt-4 mb-1">
+            <h4 class="title">{{ t('browse.part_of') }} ({{ elements_len }})</h4>
+            <table class="table table-borderless mb-0">
+                <tbody></tbody>
+            </table>
+            <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+                <ul class="pagination pagination-sm justify-content-end mt-2"></ul>
+            </nav>
+            <template class="entry">
+                <tr>
+                    <td><img></td>
+                    <td>
+                    </td>
+                </tr>
+            </template>
+        </div>
+        {% endif %}
+
         {% if elements_len %}
         <div class="elements mt-4 mb-1">
             <h4 class="title">

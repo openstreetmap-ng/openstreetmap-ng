@@ -68,15 +68,56 @@ async def format_changeset_elements_list(
     return result
 
 
+def format_element_parents_list(ref: ElementRef, parents: Sequence[Element]) -> Sequence[ElementMemberEntry]:
+    result: list[ElementMemberEntry] = []
+
+    for element in parents:
+        tags = element.tags
+        resolved = _resolve_icon(element.type, tags)
+
+        if resolved is not None:
+            icon = resolved[0]
+            icon_title = resolved[1]
+        else:
+            icon = None
+            icon_title = None
+
+        if element.type == 'relation':
+            role = ', '.join(
+                sorted(
+                    {
+                        member_ref.role
+                        for member_ref in element.members
+                        if member_ref.role and member_ref.type == ref.type and member_ref.id == ref.id
+                    }
+                )
+            )
+        else:
+            role = ''
+
+        result.append(
+            ElementMemberEntry(
+                type=element.type,
+                id=element.id,
+                name=feature_name(tags) if tags else None,
+                icon=icon,
+                icon_title=icon_title,
+                role=role,
+            )
+        )
+
+    return result
+
+
 def format_element_members_list(
     member_refs: Sequence[ElementMemberRef],
     members: Sequence[Element],
 ) -> Sequence[ElementMemberEntry]:
-    ref_element_map: dict[ElementRef, Element] = {member.element_ref: member for member in members}
+    ref_map: dict[ElementRef, Element] = {member.element_ref: member for member in members}
     result: list[ElementMemberEntry] = []
 
     for ref in member_refs:
-        element = ref_element_map.get(ref.element_ref)
+        element = ref_map.get(ref.element_ref)
         if element is None:
             continue
 

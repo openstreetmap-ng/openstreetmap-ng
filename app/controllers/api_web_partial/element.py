@@ -6,7 +6,7 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format07 import Format07
-from app.lib.element_list_formatter import format_element_members_list
+from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
 from app.lib.feature_name import feature_name
 from app.lib.render_response import render_response
 from app.lib.statement_context import options_context
@@ -37,12 +37,18 @@ async def get_element(type: ElementType, id: PositiveInt):
         )
 
     is_latest = False
+    list_parents: Sequence[ElementMemberEntry] | None = None
     full_data: Sequence[Element] | None = None
     list_elements: Sequence[ElementMemberEntry] | None = None
 
     async def check_latest_task():
         nonlocal is_latest
         is_latest = await ElementRepository.is_latest(element.versioned_ref)
+
+    async def parents_task():
+        nonlocal list_parents
+        parents = await ElementRepository.get_many_parents_by_element_refs((element.element_ref,), limit=None)
+        list_parents = format_element_parents_list(element.element_ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
@@ -58,6 +64,7 @@ async def get_element(type: ElementType, id: PositiveInt):
 
     async with create_task_group() as tg:
         tg.start_soon(check_latest_task)
+        tg.start_soon(parents_task)
         if element.members:
             tg.start_soon(data_task)
         else:
@@ -86,14 +93,15 @@ async def get_element(type: ElementType, id: PositiveInt):
             'name': name,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'elements_len': len(list_elements) if (list_elements is not None) else None,
+            'elements_len': len(list_elements),
+            'part_of_len': len(list_parents),
             'params': JSON_ENCODE(
                 {
                     'type': type,
                     'id': id,
-                    # TODO: part of data
-                    'full_data': Format07.encode_elements(full_data),
+                    'fullData': Format07.encode_elements(full_data),
                     'elements': list_elements,
+                    'partOf': list_parents,
                 }
             ).decode(),
         },
