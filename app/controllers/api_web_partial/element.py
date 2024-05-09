@@ -12,6 +12,7 @@ from app.lib.render_response import render_response
 from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
+from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef
@@ -52,12 +53,13 @@ async def get_element(type: ElementType, id: PositiveInt):
 
     async def data_task():
         nonlocal full_data, list_elements
-        members_element_refs = frozenset(member.element_ref for member in element.members)
-        members_elements = await ElementRepository.get_many_latest_by_element_refs(
-            members_element_refs,
-            recurse_ways=True,
-            limit=None,
-        )
+        with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
+            members_element_refs = frozenset(member.element_ref for member in element.members)
+            members_elements = await ElementRepository.get_many_latest_by_element_refs(
+                members_element_refs,
+                recurse_ways=True,
+                limit=None,
+            )
         direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
         full_data = (element, *members_elements)
         list_elements = format_element_members_list(element.members, direct_members)
@@ -100,8 +102,10 @@ async def get_element(type: ElementType, id: PositiveInt):
                     'type': type,
                     'id': id,
                     'fullData': Format07.encode_elements(full_data),
-                    'elements': list_elements,
-                    'partOf': list_parents,
+                    'lists': {
+                        'partOf': list_parents,
+                        'elements': list_elements,
+                    },
                 }
             ).decode(),
         },

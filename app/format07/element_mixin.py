@@ -22,7 +22,7 @@ def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
     return tuple(
         {
             'type': member.type,
-            'ref': member.id,
+            'id': member.id,
             'role': member.role,
         }
         for member in members

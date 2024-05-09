@@ -80,7 +80,6 @@ export const focusManyMapObjects = (map, objects) => {
         return []
     }
 
-    // TODO: z-index
     // Create the focus layer if it doesn't exist
     if (!map.hasLayer(focusLayer)) {
         console.debug("Adding overlay layer", focusLayer.options.layerId)
