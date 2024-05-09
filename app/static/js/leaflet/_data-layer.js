@@ -7,7 +7,6 @@ import { getOverlayLayerById } from "./_layers.js"
 import { renderObjects } from "./_object-render.js"
 import { getLatLngBoundsSize } from "./_utils.js"
 
-// TODO: test canvas rendering
 // TODO: standard alert
 // function displayFeatureWarning(count, limit, add, cancel) {
 //     $("#browse_status").html(
@@ -53,8 +52,9 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const onLayerClick = (event) => {
-        const layer = event.propagatedFrom
+        const layer = event.target
         const object = layer.object
+        console.debug("onLayerClick", object)
         routerNavigateStrict(`/${object.type}/${object.id}`)
     }
 

@@ -3,8 +3,9 @@ from collections.abc import Sequence
 from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm import joinedload
 
+from app.format07 import Format07
 from app.lib.element_list_formatter import format_element_members_list
 from app.lib.feature_name import feature_name
 from app.lib.render_response import render_response
@@ -36,22 +37,32 @@ async def get_element(type: ElementType, id: PositiveInt):
         )
 
     is_latest = False
-    elements: Sequence[ElementMemberEntry] | None = None
+    full_data: Sequence[Element] | None = None
+    list_elements: Sequence[ElementMemberEntry] | None = None
 
     async def check_latest_task():
         nonlocal is_latest
         is_latest = await ElementRepository.is_latest(element.versioned_ref)
 
-    async def elements_task():
-        nonlocal elements
-        with options_context(load_only(Element.type, Element.id, Element.tags)):
-            elements_ = await ElementRepository.get_many_latest_by_element_refs(element.members, limit=None)
-            elements = format_element_members_list(element.members, elements_)
+    async def data_task():
+        nonlocal full_data, list_elements
+        members_element_refs = frozenset(member.element_ref for member in element.members)
+        members_elements = await ElementRepository.get_many_latest_by_element_refs(
+            members_element_refs,
+            recurse_ways=True,
+            limit=None,
+        )
+        direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
+        full_data = (element, *members_elements)
+        list_elements = format_element_members_list(element.members, direct_members)
 
     async with create_task_group() as tg:
         tg.start_soon(check_latest_task)
         if element.members:
-            tg.start_soon(elements_task)
+            tg.start_soon(data_task)
+        else:
+            full_data = (element,)
+            list_elements = ()
 
     changeset_tags_ = element.changeset.tags
     if 'comment' in changeset_tags_:
@@ -75,13 +86,14 @@ async def get_element(type: ElementType, id: PositiveInt):
             'name': name,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'elements_len': len(elements) if (elements is not None) else None,
+            'elements_len': len(list_elements) if (list_elements is not None) else None,
             'params': JSON_ENCODE(
                 {
                     'type': type,
                     'id': id,
                     # TODO: part of data
-                    'elements': elements,
+                    'full_data': Format07.encode_elements(full_data),
+                    'elements': list_elements,
                 }
             ).decode(),
         },

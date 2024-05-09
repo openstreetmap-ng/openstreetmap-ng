@@ -5,6 +5,7 @@ import { renderObjects } from "./_object-render.js"
 
 export const focusStyles = {
     changeset: {
+        pane: "focus",
         color: "#FF9500",
         weight: 2,
         opacity: 1,
@@ -13,6 +14,7 @@ export const focusStyles = {
         interactive: true,
     },
     element: {
+        pane: "focus",
         color: "#FF6200",
         weight: 4,
         opacity: 1,
@@ -20,6 +22,7 @@ export const focusStyles = {
         interactive: false,
     },
     noteHalo: {
+        pane: "focus",
         radius: 20,
         color: "#FF6200",
         weight: 2.5,
@@ -81,6 +84,7 @@ export const focusManyMapObjects = (map, objects) => {
     // Create the focus layer if it doesn't exist
     if (!map.hasLayer(focusLayer)) {
         console.debug("Adding overlay layer", focusLayer.options.layerId)
+        map.createPane("focus")
         map.addLayer(focusLayer)
 
         // Trigger the overlayadd event

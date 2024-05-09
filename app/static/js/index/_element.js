@@ -1,7 +1,7 @@
 import i18next from "i18next"
 import * as L from "leaflet"
 import { getPageTitle } from "../_title.js"
-import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
 const emptyTags = new Map()
@@ -32,7 +32,10 @@ export const getElementController = (map) => {
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsType = params.type
         const paramsId = params.id
+        const fullData = params.full_data
         const elements = params.elements
+
+        focusManyMapObjects(map, fullData)
 
         // Not all elements have members
         if (elementsSection) {
