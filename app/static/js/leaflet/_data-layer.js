@@ -72,10 +72,13 @@ export const configureDataLayer = (map) => {
 
         // TODO: handle 180th meridian: send 2 requests
 
-        const bounds = map.getBounds()
+        const viewBounds = map.getBounds()
 
         // Skip updates if the view is satisfied
-        if (renderedBounds?.contains(bounds)) return
+        if (renderedBounds?.contains(viewBounds)) return
+
+        // Pad the bounds to reduce refreshes
+        const bounds = viewBounds.pad(0.2)
 
         // Skip updates if the area is too big
         const area = getLatLngBoundsSize(bounds)
