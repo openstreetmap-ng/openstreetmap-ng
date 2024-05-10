@@ -1,13 +1,12 @@
 import * as L from "leaflet"
 import { getPageTitle } from "../_title.js"
 import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
+import { makeBoundsMinimumSize } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
 // TODO: always show close button, even when loading
 // TODO: ensure no empty changesets are returned
 // TODO: load more button
-
-const minBoundsSizePx = 20
 
 /**
  * Create a new changesets history controller
@@ -17,37 +16,12 @@ const minBoundsSizePx = 20
 export const getChangesetsHistoryController = (map) => {
     let loaded = false
 
-    // Make bounds minimum size to make them easier to click
-    const makeBoundsMinimumSize = (bounds) => {
-        const [minLon, minLat, maxLon, maxLat] = bounds
-        const mapBottomLeft = map.project(L.latLng(minLat, minLon))
-        const mapTopRight = map.project(L.latLng(maxLat, maxLon))
-        const width = mapTopRight.x - mapBottomLeft.x
-        const height = mapBottomLeft.y - mapTopRight.y
-
-        if (width < minBoundsSizePx) {
-            const diff = minBoundsSizePx - width
-            mapBottomLeft.x -= diff / 2
-            mapTopRight.x += diff / 2
-        }
-
-        if (height < minBoundsSizePx) {
-            const diff = minBoundsSizePx - height
-            mapBottomLeft.y += diff / 2
-            mapTopRight.y -= diff / 2
-        }
-
-        const latLngBottomLeft = map.unproject(mapBottomLeft)
-        const latLngTopRight = map.unproject(mapTopRight)
-        return [latLngBottomLeft.lng, latLngBottomLeft.lat, latLngTopRight.lng, latLngTopRight.lat]
-    }
-
     // Configure result actions to handle focus and clicks
     const configureResultActions = (container) => {
         const resultActions = container.querySelectorAll(".result-action")
         const changesets = Array.from(resultActions).map((resultAction) => {
             const params = JSON.parse(resultAction.dataset.params)
-            const bounds = makeBoundsMinimumSize(params.bounds)
+            const bounds = makeBoundsMinimumSize(map, params.bounds)
             const boudsArea = (bounds[2] - bounds[0]) * (bounds[3] - bounds[1])
             return {
                 type: "changeset",

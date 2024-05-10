@@ -91,6 +91,7 @@ Last update: 2024-03-17
 - Added deleted element icon
 - Node location navigation will now only increase zoom if zoomed out far enough
 - Node location click no longer closes the sidebar
+- Ensure changeset bounds are not too small on changeset view
 
 ## Backend
 

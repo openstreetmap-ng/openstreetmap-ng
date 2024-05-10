@@ -4,6 +4,7 @@ import { renderColorPreviews } from "../_color-preview.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { makeBoundsMinimumSize } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
 const emptyTags = new Map()
@@ -41,19 +42,27 @@ export const getChangesetController = (map) => {
 
         // Not all changesets have a bounding box
         if (bounds) {
-            focusMapObject(map, {
-                type: "changeset",
-                id: paramsId,
-                tags: emptyTags, // currently unused
-                bounds: bounds,
-            })
-
             // Focus on the changeset if it's offscreen
             const [minLon, minLat, maxLon, maxLat] = bounds
             const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
             if (!map.getBounds().contains(latLngBounds)) {
                 map.fitBounds(latLngBounds, { animate: false })
             }
+
+            const onMapZoomEnd = () => {
+                focusMapObject(map, {
+                    type: "changeset",
+                    id: paramsId,
+                    tags: emptyTags, // currently unused
+                    bounds: makeBoundsMinimumSize(map, bounds),
+                })
+            }
+
+            // Listen for events
+            map.addEventListener("zoomend", onMapZoomEnd)
+
+            // Initial update
+            onMapZoomEnd()
         }
 
         renderElements(elementsSection, elements)

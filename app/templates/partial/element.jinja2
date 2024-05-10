@@ -156,7 +156,7 @@
             {% if prev_version is not none %}
             <a href="/{{ type }}/{{ element.id }}/history/{{ prev_version }}" rel="prev">
                 «
-                #{{ prev_version }}
+                v{{ prev_version }}
             </a>
             ·
             {% endif %}
@@ -166,7 +166,7 @@
             {% if next_version is not none %}
             ·
             <a href="/{{ type }}/{{ element.id }}/history/{{ next_version }}" rel="next">
-                #{{ next_version }}
+                v{{ next_version }}
                 »
             </a>
             {% endif %}

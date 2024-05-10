@@ -30,8 +30,8 @@ export const routingStyles = {
 }
 
 const dragDataType = "text/osm-marker-guid"
-const fromMarkerGuid = "018db10c-729f-75cd-a3a9-1beabe239ed0"
-const toMarkerGuid = "018db10c-729f-73b8-853d-038e3b39ed0b"
+const fromMarkerGuid = "1beabe239ed0"
+const toMarkerGuid = "038e3b39ed0b"
 
 const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OSRMEngines])
 

@@ -106,8 +106,8 @@ export const configureRouter = (pathControllerMap) => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
         // Skip if target is not an anchor
-        const target = event.target
-        if (target.tagName !== "A") return
+        const target = event.target.closest("a")
+        if (!target) return
 
         // Skip if the anchor is not a link
         if (!target.href) return
