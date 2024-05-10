@@ -370,9 +370,13 @@ let
     '')
 
     # -- Misc
+    (writeShellScriptBin "run-app" ''
+      uvicorn app.main:main --reload
+    '')
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
     (writeShellScriptBin "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")
+    (writeShellScriptBin "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (writeShellScriptBin "nixpkgs-update" ''
       set -e
       hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)

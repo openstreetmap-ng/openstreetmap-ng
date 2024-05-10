@@ -102,7 +102,7 @@
         </div>
         {% endif %}
 
-        {% if part_of_len %}
+        {% if show_part_of %}
         <div class="part-of mt-4 mb-1">
             <h4 class="title">{{ t('browse.part_of') }} ({{ elements_len }})</h4>
             <table class="table table-borderless mb-0">
@@ -121,16 +121,9 @@
         </div>
         {% endif %}
 
-        {% if elements_len %}
+        {% if show_elements %}
         <div class="elements mt-4 mb-1">
-            <h4 class="title">
-                {% if type == 'way' %}
-                {{ t('browse.way.nodes') }}
-                {% else %}
-                {{ t('browse.relation.members') }}
-                {% endif %}
-                ({{ elements_len }})
-            </h4>
+            <h4 class="title"></h4>
             <table class="table table-borderless mb-0">
                 <tbody></tbody>
             </table>

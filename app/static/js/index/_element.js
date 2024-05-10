@@ -83,11 +83,28 @@ const renderElements = (elementsSection, elements, isWay) => {
     console.debug("renderElements", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")
+    const titleElement = elementsSection.querySelector(".title")
     const tbody = elementsSection.querySelector("tbody")
 
     const elementsLength = elements.length
     const totalPages = Math.ceil(elementsLength / elementsPerPage)
     let currentPage = 1
+
+    const updateTitle = () => {
+        const count = totalPages > 1 ? i18next.t('pagination.range', {
+            x: `${(currentPage - 1) * elementsPerPage + 1}-${Math.min(currentPage * elementsPerPage, elementsLength)}`,
+            y: elementsLength,
+        }) : elementsLength
+
+        // prefer static translation strings to ease automation
+        let newTitle
+        if (isWay) {
+            newTitle = i18next.t('browse.changeset.node', { count })
+        } else {
+            newTitle = i18next.t('browse.relation.members') + ` (${count})`
+        }
+        titleElement.textContent = newTitle
+    }
 
     const updateTable = () => {
         const tbodyFragment = document.createDocumentFragment()
@@ -191,6 +208,7 @@ const renderElements = (elementsSection, elements, isWay) => {
                 } else {
                     button.addEventListener("click", () => {
                         currentPage = i
+                        updateTitle()
                         updateTable()
                         updatePagination()
                     })
@@ -209,5 +227,6 @@ const renderElements = (elementsSection, elements, isWay) => {
     }
 
     // Initial update
+    updateTitle()
     updateTable()
 }

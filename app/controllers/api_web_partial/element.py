@@ -95,8 +95,8 @@ async def get_element(type: ElementType, id: PositiveInt):
             'name': name,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'elements_len': len(list_elements),
-            'part_of_len': len(list_parents),
+            'show_elements': bool(list_elements),
+            'show_part_of': bool(list_parents),
             'params': JSON_ENCODE(
                 {
                     'type': type,

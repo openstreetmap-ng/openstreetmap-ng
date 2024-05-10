@@ -135,28 +135,19 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
     let currentPage = 1
 
     const updateTitle = () => {
-        const data = totalPages > 1 ? {
-            count: elementsLength,
-            x: (currentPage - 1) * elementsPerPage + 1,
-            y: Math.min(currentPage * elementsPerPage, elementsLength),
-        } : {
-            count: elementsLength,
-        }
+        const count = totalPages > 1 ? i18next.t('pagination.range', {
+            x: `${(currentPage - 1) * elementsPerPage + 1}-${Math.min(currentPage * elementsPerPage, elementsLength)}`,
+            y: elementsLength,
+        }) : elementsLength
 
         // prefer static translation strings to ease automation
         let newTitle
         if (type === 'node') {
-            newTitle = totalPages > 1
-                ? i18next.t('browse.changeset.node_paginated', data)
-                : i18next.t('browse.changeset.node', data)
+            newTitle = i18next.t('browse.changeset.node', { count })
         } else if (type === 'way') {
-            newTitle = totalPages > 1
-                ? i18next.t('browse.changeset.way_paginated', data)
-                : i18next.t('browse.changeset.way', data)
+            newTitle = i18next.t('browse.changeset.way', { count })
         } else if (type === 'relation') {
-            newTitle = totalPages > 1
-                ? i18next.t('browse.changeset.relation_paginated', data)
-                : i18next.t('browse.changeset.relation', data)
+            newTitle = i18next.t('browse.changeset.relation', { count })
         }
         titleElement.textContent = newTitle
     }
