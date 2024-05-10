@@ -180,7 +180,7 @@
         </div>
         {% endif %}
 
-        <div>
+        <small>
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
                 {{ t('browse.changeset.changesetxml') }}
             </a>
@@ -188,6 +188,6 @@
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
                 {{ t('browse.changeset.osmchangexml') }}
             </a>
-        </div>
+        </small>
     </div>
 </div>
