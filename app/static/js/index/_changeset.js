@@ -42,19 +42,15 @@ export const getChangesetController = (map) => {
 
         // Not all changesets have a bounding box
         if (bounds) {
-            // Focus on the changeset if it's offscreen
-            const [minLon, minLat, maxLon, maxLat] = bounds
-            const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-            if (!map.getBounds().contains(latLngBounds)) {
-                map.fitBounds(latLngBounds, { animate: false })
-            }
-
-            const onMapZoomEnd = () => {
+            const onMapZoomEnd = (e) => {
                 focusMapObject(map, {
                     type: "changeset",
                     id: paramsId,
                     tags: emptyTags, // currently unused
                     bounds: makeBoundsMinimumSize(map, bounds),
+                }, {
+                    // Fit the bounds only on the initial update
+                    fitBounds: !e,
                 })
             }
 

@@ -7,11 +7,11 @@ export const focusStyles = {
     changeset: {
         pane: "focus",
         color: "#FF9500",
-        weight: 2,
+        weight: 4,
         opacity: 1,
         fillColor: "#FFFFAF",
         fillOpacity: 0,
-        interactive: true,
+        interactive: false,
     },
     element: {
         pane: "focus",
@@ -37,16 +37,18 @@ export const focusStyles = {
  * To unfocus, pass null as the object.
  * @param {L.Map} map Leaflet map
  * @param {OSMObject|null} object Object to focus
+ * @param {object} options Options
+ * @param {boolean} options.fitBounds Fit the map to the focused object
  * @returns {L.Layer[]} The layers of the focused object
  */
-export const focusMapObject = (map, object) => {
+export const focusMapObject = (map, object, options) => {
     console.debug("focusMapObject", object)
 
     if (object) {
-        return focusManyMapObjects(map, [object])
+        return focusManyMapObjects(map, [object], options)
     }
 
-    focusManyMapObjects(map, [])
+    focusManyMapObjects(map, [], options)
     return []
 }
 
@@ -55,9 +57,11 @@ export const focusMapObject = (map, object) => {
  * To unfocus, pass an empty array as the objects.
  * @param {L.Map} map Leaflet map
  * @param {OSMObject[]} objects Objects to focus
+ * @param {object} options Options
+ * @param {boolean} options.fitBounds Fit the map to the focused objects
  * @returns {L.Layer[]} The layers of the focused objects
  */
-export const focusManyMapObjects = (map, objects) => {
+export const focusManyMapObjects = (map, objects, options) => {
     console.debug("focusManyMapObjects", objects.length)
 
     const focusLayer = getOverlayLayerById("focus")
@@ -95,7 +99,7 @@ export const focusManyMapObjects = (map, objects) => {
     const layers = renderObjects(focusLayer, objects, focusStyles)
 
     // Focus on the layers if they are offscreen
-    if (layers.length) {
+    if (layers.length && (options?.fitBounds ?? true)) {
         const latLngBounds = layers.reduce((bounds, layer) => bounds.extend(getLayerBounds(layer)), L.latLngBounds())
         if (!map.getBounds().contains(latLngBounds)) {
             console.debug("Fitting map to", layers.length, "focus layers")
