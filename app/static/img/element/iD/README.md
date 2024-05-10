@@ -1,6 +1,6 @@
-# iD Icons
+# Icons (iD)
 
-This directory contains icons downloaded from the [iD](https://github.com/openstreetmap/iD) project repository. They are licensed under the ISC license.
+This directory contains icons downloaded from the [iD](https://github.com/openstreetmap/iD) project repository. They are licensed under the [ISC license](https://github.com/openstreetmap/iD/blob/develop/LICENSE.md).
 
 ## ISC License
 
