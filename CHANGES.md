@@ -29,6 +29,7 @@ Last update: 2024-03-17
 - Update http links to https
 - Support addr:place in feature names
 - Trace have now simpler and more consistent URLs
+- Element view supports pagination and icons for part of, members, and nodes
 
 ## Frontend
 
@@ -88,6 +89,8 @@ Last update: 2024-03-17
 - Filter file types during trace upload
 - Edit trace name is no longer limited to API 0.6
 - Added deleted element icon
+- Node location navigation will now only increase zoom if zoomed out far enough
+- Node location click no longer closes the sidebar
 
 ## Backend
 

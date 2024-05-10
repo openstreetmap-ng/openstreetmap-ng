@@ -72,12 +72,14 @@
         </div>
 
         {% if element.point is not none %}
-        <li class="position-relative">
+        <p class="position-relative mb-2">
+            <b class="me-1">•</b>
             {{ t('diary_entries.form.location') }}:
-            <a class="stretched-link" href="">
+            <button class="location-btn btn btn-link p-0 stretched-link" data-lon="{{ element.point.x }}"
+                data-lat="{{ element.point.y }}">
                 {{ element.point.y }}, {{ element.point.x }}
-            </a>
-        </li>
+            </button>
+        </p>
         {% endif %}
 
         {% if tags %}
@@ -104,7 +106,7 @@
 
         {% if show_part_of %}
         <div class="part-of mt-4 mb-1">
-            <h4 class="title">{{ t('browse.part_of') }} ({{ elements_len }})</h4>
+            <h4 class="title"></h4>
             <table class="table table-borderless mb-0">
                 <tbody></tbody>
             </table>

@@ -18,6 +18,7 @@ export const getElementController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
+        const locationButton = sidebarContent.querySelector(".location-btn")
         const partOfSection = sidebarContent.querySelector(".part-of")
         const elementsSection = sidebarContent.querySelector(".elements")
         // TODO: (version X) in title
@@ -32,6 +33,23 @@ export const getElementController = (map) => {
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsType = params.type
         // const paramsId = params.id
+
+        if (locationButton) {
+            const onLocationClick = () => {
+                const dataset = locationButton.dataset
+                const lon = parseFloat(dataset.lon)
+                const lat = parseFloat(dataset.lat)
+                const latLng = L.latLng(lat, lon)
+                const currentZoom = map.getZoom()
+                if (currentZoom < 16) {
+                    map.setView(latLng, 18)
+                } else {
+                    map.panTo(latLng)
+                }
+            }
+
+            locationButton.addEventListener("click", onLocationClick)
+        }
 
         if (partOfSection) {
             const listPartOf = params.lists.partOf
@@ -100,6 +118,8 @@ const renderElements = (elementsSection, elements, isWay) => {
         let newTitle
         if (isWay) {
             newTitle = i18next.t('browse.changeset.node', { count })
+        } else if (elementsSection.classList.contains("part-of")) {
+            newTitle = i18next.t('browse.part_of') + ` (${count})`
         } else {
             newTitle = i18next.t('browse.relation.members') + ` (${count})`
         }
