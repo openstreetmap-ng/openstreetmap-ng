@@ -476,13 +476,23 @@ class OptimisticDiffPrepare:
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
 
         for element_ref in diff_refs:
-            if element_ref.type == 'relation':
-                continue
+            if element_ref.type == 'node':
+                if (elements := element_state.get(element_ref)) is None:
+                    bbox_info.add(elements[-1].point)
+                else:
+                    bbox_info.add(element_ref)
 
-            if (elements := element_state.get(element_ref)) is not None:
-                bbox_info.add(elements[-1].point)
-            else:
-                bbox_info.add(element_ref)
+            elif element_ref.type == 'way':
+                if (elements := element_state.get(element_ref)) is None:
+                    bbox_info.add(element_ref)
+                    continue
+
+                for member_ref in elements[-1].members:
+                    member_element_ref = member_ref.element_ref
+                    if (member_elements := element_state.get(member_element_ref)) is not None:
+                        bbox_info.add(member_elements[-1].point)
+                    else:
+                        bbox_info.add(member_element_ref)
 
     async def _update_changeset_boundaries(self) -> None:
         """

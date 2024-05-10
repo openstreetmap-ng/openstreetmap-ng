@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import tomllib
 from collections.abc import Sequence
@@ -202,23 +203,26 @@ def _get_config() -> dict[str, dict[str, str | dict[str, str]]]:
 
     Generic icons are stored under the value '*'.
     """
-    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icon.toml').read_text())
+    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icons.toml').read_text())
 
 
 # _config[tag_key][tag_value] = icon
 # _config[tag_key][type][tag_value] = icon
 _config = _get_config()
 _config_keys = frozenset(_config)
+_num_icons = 0
 
-
-# raise an exception if any of the icon files are missing
+# raise an exception if any of the icons are missing
 for key_config in _config.values():
     for icon_or_type_config in key_config.values():
         icon_or_type_config: str | dict
 
         icons = (icon_or_type_config,) if isinstance(icon_or_type_config, str) else icon_or_type_config.values()
+        _num_icons += len(icons)
 
         for icon in icons:
             path = pathlib.Path('app/static/img/element/' + icon)
             if not path.is_file():
                 raise FileNotFoundError(path)
+
+logging.info('Loaded %d feature icons', _num_icons)

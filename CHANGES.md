@@ -18,6 +18,7 @@ Last update: 2024-03-17
 - Configure [mailpit](https://mailpit.axllent.org/) for email testing
 - Configure [spamassassin](https://spamassassin.apache.org/) for email spam scoring
 - Automatically transpile locale to i18n JSON and GNU GetText formats
+- Support for [i18next JSON v4](https://www.i18next.com/misc/json-format) translation format
 - Configure [supervisord](https://supervisord.org/) for permission-less process management (instead of Docker)
 - Completely remove Docker dependency
 - Automatically watch JavaScript, SCSS, and locale files for changes and rebuild on save
@@ -30,6 +31,7 @@ Last update: 2024-03-17
 - Support addr:place in feature names
 - Trace have now simpler and more consistent URLs
 - Element view supports pagination and icons for part of, members, and nodes
+- Replace markdown formatter with [CommonMark](https://spec.commonmark.org/)-compliant [implementation](https://github.com/executablebooks/markdown-it-py)
 
 ## Frontend
 
@@ -57,6 +59,7 @@ Last update: 2024-03-17
 - Update OpenSearch configuration
 - Replace SVG files with raster images for improved render performance
 - Update feature icons and remove deprecated tagging schemes
+- Add icons for common types of relations
 - Remove dead code from the frontend scripts and styles
 - Remove lots of duplicated code from the frontend, streamline map state management
 - Improve performance of ways/relations rendering

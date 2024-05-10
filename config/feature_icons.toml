@@ -94,6 +94,9 @@ fence = "barrier_wall.20.webp"
 # TODO: hedge
 wall = "barrier_wall.20.webp"
 
+[boundary]
+"*" = "iD/boundary.webp"
+
 [building]
 bunker = "military_bunker.webp"
 
@@ -209,6 +212,7 @@ water_park = "leisure_water_park.16.webp"
 crane = "man_made_crane.webp"
 lighthouse = "man_made_lighthouse.16.webp"
 mast = "man_made_communications_tower.webp"
+pipeline = "iD/pipeline-line.webp"
 storage_tank = "man_made_water_tower.webp"
 surveillance = "man_made_surveillance.webp"
 survey_point = "man_made_survey_point.webp"
@@ -266,6 +270,20 @@ light_rail = "railway_light_rail.20.webp"
 rail = "railway_rail.20.webp"
 subway = "railway_subway.20.webp"
 tram = "railway_tram.20.webp"
+
+[restriction.relation]
+"*" = "iD/restriction.webp"
+no_left_turn = "iD/restriction-no-left-turn.webp"
+no_right_turn = "iD/restriction-no-right-turn.webp"
+no_straight_on = "iD/restriction-no-straight-on.webp"
+no_u_turn = "iD/restriction-no-u-turn.webp"
+only_left_turn = "iD/restriction-only-left-turn.webp"
+only_right_turn = "iD/restriction-only-right-turn.webp"
+only_straight_on = "iD/restriction-only-straight-on.webp"
+only_u_turn = "iD/restriction-only-u-turn.webp"
+
+[route]
+detour = "iD/route-detour.webp"
 
 [shop]
 "*" = "shop_convenience.webp"
@@ -350,6 +368,13 @@ bump = "traffic_calming_bump.webp"
 cushion = "traffic_calming_bump.webp"
 hump = "traffic_calming_bump.webp"
 table = "traffic_calming_bump.webp"
+
+[type.relation]
+multipolygon = "iD/multipolygon.webp"
+network = "iD/relation.webp"
+route = "iD/route.webp"
+route_master = "iD/route-master.webp"
+site = "iD/relation.webp"
 
 [water.way]
 "*" = "waterway_lake.webp"
