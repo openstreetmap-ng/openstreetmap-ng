@@ -20,7 +20,8 @@
                         {{ element.id }}
                         {% endif %}
                     </span>
-                    <span class="version-badge badge" title="{{ t('browse.version') }} {{ element.version }}">
+                    <span class="version-badge badge {% if next_version is none %}is-latest{% endif %}"
+                        title="{{ t('browse.version') }} {{ element.version }} {% if next_version is none %}({{ t('version.latest') }}){% endif %}">
                         v{{ element.version }}
                     </span>
                 </h2>

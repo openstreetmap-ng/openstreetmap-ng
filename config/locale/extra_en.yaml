@@ -78,6 +78,8 @@ confirm_account:
   click_here_to_activate_account: Click here to activate your account
 time:
   never: Never
+version:
+  latest: latest
 validation:
   display_name_taken: This display name is already taken
   email_invalid: Invalid email address

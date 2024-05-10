@@ -8,6 +8,11 @@
 
         position: relative;
         top: -0.2em;
+
+        &.is-latest {
+            color: $light;
+            background: $green;
+        }
     }
 
     .part-of,

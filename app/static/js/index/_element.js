@@ -33,8 +33,12 @@ export const getElementController = (map) => {
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsType = params.type
         // const paramsId = params.id
+        const listPartOf = params.lists.partOf
+        const listElements = params.lists.elements
+        const fullData = params.fullData
 
         if (locationButton) {
+            // On location click, pan the map
             const onLocationClick = () => {
                 const dataset = locationButton.dataset
                 const lon = parseFloat(dataset.lon)
@@ -48,21 +52,19 @@ export const getElementController = (map) => {
                 }
             }
 
+            // Listen for events
             locationButton.addEventListener("click", onLocationClick)
         }
 
         if (partOfSection) {
-            const listPartOf = params.lists.partOf
             renderElements(partOfSection, listPartOf, false)
         }
 
         if (elementsSection) {
-            const listElements = params.lists.elements
             const isWay = paramsType === "way"
             renderElements(elementsSection, listElements, isWay)
         }
 
-        const fullData = params.fullData
         const elementMap = parseElements(fullData)
         const elements = [
             ...elementMap.relation.values(),

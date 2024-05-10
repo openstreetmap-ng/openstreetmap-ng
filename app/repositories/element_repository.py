@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
@@ -87,13 +88,13 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_by_element_ref(
+    async def get_all_versions_by_element_ref(
         element_ref: ElementRef,
         *,
         limit: int | None,
     ) -> Sequence[Element]:
         """
-        Get elements by the element ref.
+        Get all versions of the element for the given element ref.
 
         Results are sorted by version in ascending order (oldest first).
         """
@@ -114,14 +115,15 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_latest_by_element_refs(
+    async def get_many_by_element_refs(
         element_refs: Sequence[ElementRef],
         *,
+        point_in_time: datetime | None = None,
         recurse_ways: bool = False,
         limit: int | None,
     ) -> Sequence[Element]:
         """
-        Get latest elements by their element refs.
+        Get current elements by their element refs.
 
         Optionally recurse ways to get their nodes.
 
@@ -132,8 +134,9 @@ class ElementRepository:
             return ()
 
         # TODO: index
-        # TODO: point in time
-        point_in_time = utcnow()
+        if point_in_time is None:
+            point_in_time = utcnow()
+
         recurse_way_ids = tuple(ref.id for ref in element_refs if ref.type == 'way') if recurse_ways else ()
 
         async with db() as session:
@@ -185,6 +188,7 @@ class ElementRepository:
     async def find_many_by_refs(
         refs: Sequence[VersionedElementRef | ElementRef],
         *,
+        point_in_time: datetime | None = None,
         limit: int | None,
     ) -> Sequence[Element | None]:
         """
@@ -195,6 +199,9 @@ class ElementRepository:
         # small optimization
         if not refs:
             return ()
+
+        if point_in_time is None:
+            point_in_time = utcnow()
 
         versioned_refs = []
         element_refs = []
@@ -209,11 +216,18 @@ class ElementRepository:
         ref_map: dict[VersionedElementRef | ElementRef, Element] = {}
 
         async def versioned_refs_task() -> None:
-            elements = await ElementRepository.get_many_by_versioned_refs(versioned_refs, limit=limit)
+            elements = await ElementRepository.get_many_by_versioned_refs(
+                versioned_refs,
+                limit=limit,
+            )
             ref_map.update((element.versioned_ref, element) for element in elements)
 
         async def element_refs_task() -> None:
-            elements = await ElementRepository.get_many_latest_by_element_refs(element_refs, limit=limit)
+            elements = await ElementRepository.get_many_by_element_refs(
+                element_refs,
+                point_in_time=point_in_time,
+                limit=limit,
+            )
             ref_map.update((element.element_ref, element) for element in elements)
 
         async with create_task_group() as tg:
@@ -246,6 +260,7 @@ class ElementRepository:
         member_refs: Sequence[ElementRef],
         parent_type: ElementType | None = None,
         *,
+        point_in_time: datetime | None = None,
         after_sequence_id: int | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
@@ -259,8 +274,8 @@ class ElementRepository:
             return ()
 
         # TODO: index
-        # TODO: point in time
-        point_in_time = utcnow()
+        if point_in_time is None:
+            point_in_time = utcnow()
 
         async with db() as session:
             stmt = select(Element).where(
@@ -386,7 +401,7 @@ class ElementRepository:
 
                 # fetch ways' nodes
                 ways_members_refs = tuple(member.element_ref for way in ways for member in way.members)
-                ways_nodes = await ElementRepository.get_many_latest_by_element_refs(
+                ways_nodes = await ElementRepository.get_many_by_element_refs(
                     ways_members_refs,
                     limit=len(ways_members_refs),
                 )

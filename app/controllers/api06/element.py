@@ -69,7 +69,7 @@ def _register_routes(type: ElementType):
     async def element_read_latest(id: PositiveInt):
         with options_context(joinedload(Element.changeset)):
             ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_latest_by_element_refs((ref,), limit=1)
+            elements = await ElementRepository.get_many_by_element_refs((ref,), limit=1)
             element = elements[0] if elements else None
 
         if element is None:
@@ -139,7 +139,7 @@ def _register_routes(type: ElementType):
     async def element_history(id: PositiveInt):
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_by_element_ref(element_ref, limit=None)
+            elements = await ElementRepository.get_all_versions_by_element_ref(element_ref, limit=None)
 
         if not elements:
             raise_for().element_not_found(element_ref)
@@ -206,7 +206,7 @@ def _register_routes(type: ElementType):
     async def element_full(id: PositiveInt):
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_latest_by_element_refs((element_ref,), limit=1)
+            elements = await ElementRepository.get_many_by_element_refs((element_ref,), limit=1)
             element = elements[0] if elements else None
 
         if element is None:
@@ -216,7 +216,7 @@ def _register_routes(type: ElementType):
 
         with options_context(joinedload(Element.changeset)):
             members_element_refs = tuple(member.element_ref for member in element.members)
-            members_elements = await ElementRepository.get_many_latest_by_element_refs(
+            members_elements = await ElementRepository.get_many_by_element_refs(
                 members_element_refs,
                 recurse_ways=True,
                 limit=None,

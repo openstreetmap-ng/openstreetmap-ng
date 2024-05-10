@@ -222,7 +222,7 @@ class OptimisticDiffPrepare:
             return
 
         element_refs_len = len(element_refs)
-        elements = await ElementRepository.get_many_latest_by_element_refs(element_refs, limit=element_refs_len)
+        elements = await ElementRepository.get_many_by_element_refs(element_refs, limit=element_refs_len)
 
         # check if all elements exist
         if len(elements) != element_refs_len:
@@ -285,7 +285,7 @@ class OptimisticDiffPrepare:
             return local_elements
 
         remote_refs_len = len(remote_refs)
-        remote_elements = await ElementRepository.get_many_latest_by_element_refs(remote_refs, limit=remote_refs_len)
+        remote_elements = await ElementRepository.get_many_by_element_refs(remote_refs, limit=remote_refs_len)
 
         # check if all elements exist
         if len(remote_elements) != remote_refs_len:
@@ -501,7 +501,7 @@ class OptimisticDiffPrepare:
                     element_refs_map.add(point_or_ref)
 
             # get points for element refs
-            elements = await ElementRepository.get_many_latest_by_element_refs(
+            elements = await ElementRepository.get_many_by_element_refs(
                 element_refs_map,
                 recurse_ways=True,
                 limit=None,
