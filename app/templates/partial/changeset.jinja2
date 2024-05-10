@@ -158,18 +158,8 @@
 
     </div>
     <div class="section text-center">
-        <div>
-            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
-                {{ t('browse.changeset.changesetxml') }}
-            </a>
-            ·
-            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
-                {{ t('browse.changeset.osmchangexml') }}
-            </a>
-        </div>
-
         {% if changeset.user_id is not none %}
-        <div class="mt-2">
+        <div class="mb-2">
             {% if prev_changeset_id %}
             <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
                 «
@@ -189,5 +179,15 @@
             {% endif %}
         </div>
         {% endif %}
+
+        <div>
+            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
+                {{ t('browse.changeset.changesetxml') }}
+            </a>
+            ·
+            <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
+                {{ t('browse.changeset.osmchangexml') }}
+            </a>
+        </div>
     </div>
 </div>

@@ -145,14 +145,6 @@
 
     </div>
     <div class="section text-center">
-        {% if element.visible %}
-        <div class="mb-2">
-            <a href="{{ API_URL }}/api/0.6/{{ type }}/{{ element.id }}">
-                {{ t('browse.download_xml') }}
-            </a>
-        </div>
-        {% endif %}
-
         <div>
             {% if prev_version is not none %}
             <a href="/{{ type }}/{{ element.id }}/history/{{ prev_version }}" rel="prev">
@@ -172,5 +164,13 @@
             </a>
             {% endif %}
         </div>
+
+        {% if element.visible %}
+        <div class="mt-2">
+            <a href="{{ API_URL }}/api/0.6/{{ type }}/{{ element.id }}">
+                {{ t('browse.download_xml') }}
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
