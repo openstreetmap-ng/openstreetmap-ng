@@ -12,7 +12,7 @@ from app.models.scope import Scope
 from app.repositories.trace_repository import TraceRepository
 from app.repositories.user_repository import UserRepository
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.get('/user/gpx_files')

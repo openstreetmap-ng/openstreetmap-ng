@@ -8,7 +8,7 @@ from app.models.db.user import User
 from app.services.changeset_comment_service import ChangesetCommentService
 from app.services.changeset_subscription_service import ChangesetSubscriptionService
 
-router = APIRouter(prefix='/changeset')
+router = APIRouter(prefix='/api/web/changeset')
 
 
 @router.post('/{changeset_id:int}/comment')

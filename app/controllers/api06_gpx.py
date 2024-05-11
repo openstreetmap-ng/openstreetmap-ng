@@ -19,7 +19,7 @@ from app.repositories.trace_repository import TraceRepository
 from app.responses.osm_response import GPXResponse
 from app.services.trace_service import TraceService
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.post('/gpx/create')

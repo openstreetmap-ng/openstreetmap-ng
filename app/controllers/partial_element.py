@@ -25,7 +25,7 @@ from app.models.tag_format import TagFormatCollection
 from app.repositories.element_repository import ElementRepository
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/element')
+router = APIRouter(prefix='/api/web/partial/element')
 
 
 async def _get_element_response(element: Element, point_in_time: datetime):

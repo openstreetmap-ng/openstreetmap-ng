@@ -12,7 +12,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.repositories.element_repository import ElementRepository
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.7')
 
 
 # TODO: limits + cursor

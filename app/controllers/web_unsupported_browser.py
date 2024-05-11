@@ -5,7 +5,7 @@ from starlette.responses import RedirectResponse
 from app.config import TEST_ENV
 from app.limits import COOKIE_GENERIC_MAX_AGE
 
-router = APIRouter(prefix='/unsupported-browser')
+router = APIRouter(prefix='/api/web/unsupported-browser')
 
 
 @router.post('/override')

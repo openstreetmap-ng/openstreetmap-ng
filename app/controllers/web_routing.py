@@ -9,7 +9,7 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.nominatim import Nominatim
 from app.models.nominatim_result import NominatimResult
 
-router = APIRouter(prefix='/routing')
+router = APIRouter(prefix='/api/web/routing')
 
 
 @router.post('/resolve-names')

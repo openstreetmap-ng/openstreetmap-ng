@@ -6,7 +6,7 @@ from app.lib.auth_context import web_user
 from app.models.db.user import User
 from app.services.system_app_service import SystemAppService
 
-router = APIRouter(prefix='/system-app')
+router = APIRouter(prefix='/api/web/system-app')
 
 
 @router.post('/create-access-token')

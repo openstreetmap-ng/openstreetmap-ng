@@ -20,7 +20,7 @@ from app.repositories.changeset_subscription_repository import ChangesetSubscrip
 from app.repositories.element_repository import ElementRepository
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/changeset')
+router = APIRouter(prefix='/api/web/partial/changeset')
 
 
 @router.get('/{id:int}')

@@ -148,8 +148,4 @@ def _make_router(path: str, prefix: str) -> APIRouter:
     return router
 
 
-main.include_router(_make_router('app/controllers/api_web', '/api/web'))
-main.include_router(_make_router('app/controllers/api_web_partial', '/api/web/partial'))
-main.include_router(_make_router('app/controllers/api06', '/api/0.6'))
-main.include_router(_make_router('app/controllers/api07', '/api/0.7'))
 main.include_router(_make_router('app/controllers', ''))

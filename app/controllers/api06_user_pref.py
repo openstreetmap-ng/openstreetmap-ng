@@ -14,7 +14,7 @@ from app.models.str import Str255
 from app.repositories.user_pref_repository import UserPrefRepository
 from app.services.user_pref_service import UserPrefService
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.get('/user/preferences')

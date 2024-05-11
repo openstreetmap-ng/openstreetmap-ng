@@ -6,7 +6,7 @@ from pydantic import PositiveInt
 
 from app.repositories.avatar_repository import AvatarRepository
 
-router = APIRouter(prefix='/avatar')
+router = APIRouter(prefix='/api/web/avatar')
 
 
 @router.get('/gravatar/{user_id:int}')

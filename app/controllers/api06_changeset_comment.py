@@ -11,7 +11,7 @@ from app.models.scope import ExtendedScope, Scope
 from app.repositories.changeset_repository import ChangesetRepository
 from app.services.changeset_comment_service import ChangesetCommentService
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.post('/changeset/{changeset_id:int}/subscribe')

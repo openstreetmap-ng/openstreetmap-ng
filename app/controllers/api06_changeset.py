@@ -25,7 +25,7 @@ from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 # TODO: https://www.openstreetmap.org/history/feed
 # TODO: 0.7 mandatory created_by and comment tags

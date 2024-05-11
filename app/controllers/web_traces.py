@@ -11,7 +11,7 @@ from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility
 from app.services.trace_service import TraceService
 
-router = APIRouter(prefix='/traces')
+router = APIRouter(prefix='/api/web/traces')
 
 
 @router.post('/upload')

@@ -10,7 +10,7 @@ from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAUL
 from app.repositories.trace_point_repository import TracePointRepository
 from app.responses.osm_response import GPXResponse
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.get('/trackpoints', response_class=GPXResponse)

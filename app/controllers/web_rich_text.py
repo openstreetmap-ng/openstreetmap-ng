@@ -7,7 +7,7 @@ from app.lib.rich_text import rich_text
 from app.models.db.user import User
 from app.models.text_format import TextFormat
 
-router = APIRouter(prefix='/rich-text')
+router = APIRouter(prefix='/api/web/rich-text')
 
 
 @router.post('/preview')

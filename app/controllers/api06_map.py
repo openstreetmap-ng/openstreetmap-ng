@@ -14,7 +14,7 @@ from app.models.db.element import Element
 from app.models.db.user import User
 from app.repositories.element_repository import ElementRepository
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 
 @router.get('/map')

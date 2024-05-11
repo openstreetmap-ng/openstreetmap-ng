@@ -36,7 +36,7 @@ from app.responses.osm_response import GPXResponse
 from app.services.note_service import NoteService
 from app.validators.date import DateValidator
 
-router = APIRouter()
+router = APIRouter(prefix='/api/0.6')
 
 # TODO: validate input lengths
 

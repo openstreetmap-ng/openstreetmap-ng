@@ -23,7 +23,7 @@ from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 
-router = APIRouter(prefix='/user')
+router = APIRouter(prefix='/api/web/user')
 
 
 # TODO: captcha
