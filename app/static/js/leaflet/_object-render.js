@@ -118,7 +118,7 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
         layers.push(layer)
 
         for (const member of members) {
-            const interesting = member.interesting !== undefined ? member.interesting : true
+            const interesting = member.interesting ?? true
             if (interesting) processNode(member)
         }
     }
@@ -129,7 +129,7 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
     const processRelation = (relation) => {
         for (const member of relation.members) {
             if (member.type === "node") {
-                const interesting = member.interesting !== undefined ? member.interesting : true
+                const interesting = member.interesting ?? true
                 if (interesting) processNode(member)
             } else if (member.type === "way") {
                 processWay(member)

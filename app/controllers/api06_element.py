@@ -139,7 +139,7 @@ def _register_routes(type: ElementType):
     async def element_history(id: PositiveInt):
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_all_versions_by_element_ref(element_ref, limit=None)
+            elements = await ElementRepository.get_versions_by_element_ref(element_ref, limit=None)
 
         if not elements:
             raise_for().element_not_found(element_ref)

@@ -80,7 +80,7 @@ export const getChangesetController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ id }) => {
-        const url = `/api/web/partial/changeset/${id}`
+        const url = `/api/partial/changeset/${id}`
         baseLoad({ url })
     }
 

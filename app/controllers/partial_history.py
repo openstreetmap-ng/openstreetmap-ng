@@ -1,3 +1,3 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix='/api/web/partial/history')
+router = APIRouter(prefix='/api/partial/history')

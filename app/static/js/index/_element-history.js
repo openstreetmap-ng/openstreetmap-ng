@@ -1,8 +1,9 @@
 import * as L from "leaflet"
-import { parseElements } from "../_format07.js"
 import { getPageTitle } from "../_title.js"
-import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
 import { getBaseFetchController } from "./_base-fetch.js"
+import { initializeElementContent } from "./_element.js"
+import { routerNavigateStrict } from "./_router.js"
 
 /**
  * Create a new element history controller
@@ -18,27 +19,43 @@ export const getElementHistoryController = (map) => {
         // Set page title
         document.title = getPageTitle(sidebarTitle)
 
-        // Handle not found
-        if (!sidebarTitleElement.dataset.params) return
+        // TODO: Handle not found
+        // if (!sidebarTitleElement.dataset.params) return
 
-        // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const mainElementType = params.type
-        const mainElementId = params.id
-        const elements = params.elements
+        const versionSections = sidebarContent.querySelectorAll(".version-section")
+        const versionElements = []
 
-        // Not all elements are focusable (e.g., non-latest ways and relations)
-        if (elements?.length) {
-            const elementMap = parseElements(elements)
-            const mainElement = elementMap[mainElementType].get(mainElementId)
-            const layers = focusMapObject(map, mainElement)
-            const layersBounds = L.featureGroup(layers).getBounds()
+        for (const versionSection of versionSections) {
+            const elements = initializeElementContent(map, versionSection)
+            versionElements.push(elements)
 
-            // Focus on the elements if they're offscreen
-            // TODO: padding
-            if (!map.getBounds().contains(layersBounds)) {
-                map.fitBounds(layersBounds, { animate: false })
+            // On mouse enter, focus elements
+            const onVersionMouseEnter = () => {
+                console.debug("onVersionMouseEnter")
+                focusManyMapObjects(map, elements)
             }
+
+            // On mouse leave, remove focus
+            const onVersionMouseLeave = () => {
+                console.debug("onVersionMouseLeave")
+                focusMapObject(map, null)
+            }
+
+            // On click, navigate to version
+            const onVersionClick = (e) => {
+                const target = e.target
+                if (target.closest("a, button, details")) return
+
+                console.debug("onVersionClick")
+                const { type, id, version } = JSON.parse(versionSection.dataset.params)
+                const path = `/${type}/${id}/history/${version}`
+                routerNavigateStrict(path)
+            }
+
+            // Listen for events
+            versionSection.addEventListener("mouseenter", onVersionMouseEnter)
+            versionSection.addEventListener("mouseleave", onVersionMouseLeave)
+            versionSection.addEventListener("click", onVersionClick)
         }
     }
 
@@ -47,7 +64,7 @@ export const getElementHistoryController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ type, id }) => {
-        const url = `/api/web/partial/element/${type}/${id}/history`
+        const url = `/api/partial/element/${type}/${id}/history${location.search}`
         baseLoad({ url })
     }
 

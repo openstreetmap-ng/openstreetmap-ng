@@ -88,26 +88,41 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_all_versions_by_element_ref(
+    async def get_versions_by_element_ref(
         element_ref: ElementRef,
         *,
+        point_in_time: datetime | None = None,
+        ascending: bool = True,
+        after_version: int | None = None,
+        before_version: int | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
         """
-        Get all versions of the element for the given element ref.
-
-        Results are sorted by version in ascending order (oldest first).
+        Get versions by the given element ref.
         """
+        if point_in_time is None:
+            point_in_time = utcnow()
+
         async with db() as session:
-            stmt = (
-                select(Element)
-                .where(
-                    Element.type == element_ref.type,
-                    Element.id == element_ref.id,
-                )
-                .order_by(Element.version.asc())
-            )
+            stmt = select(Element)
             stmt = apply_statement_context(stmt)
+            where_and = [
+                Element.created_at <= point_in_time,
+                Element.type == element_ref.type,
+                Element.id == element_ref.id,
+            ]
+
+            if after_version is not None:
+                where_and.append(Element.version > after_version)
+            if before_version is not None:
+                where_and.append(Element.version < before_version)
+
+            stmt = stmt.where(*where_and)
+
+            if ascending:
+                stmt = stmt.order_by(Element.version.asc())
+            else:
+                stmt = stmt.order_by(Element.version.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

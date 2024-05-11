@@ -20,7 +20,7 @@ def format_style_context(request: Request):
     is_modern_api: cython.char
 
     # path defaults
-    if request_path.startswith(('/api/web/', '/api/0.7/')):
+    if request_path.startswith(('/api/web/', '/api/partial/', '/api/0.7/')):
         is_modern_api = True
     elif request_path.startswith('/api/'):
         is_modern_api = False

@@ -74,12 +74,12 @@ internalization:
   this_guide: this guide
 pagination:
   range: '{{x}} of {{y}}'
+  previous_page: Previous page
+  next_page: Next page
 confirm_account:
   click_here_to_activate_account: Click here to activate your account
 time:
   never: Never
-version:
-  latest: latest
 validation:
   display_name_taken: This display name is already taken
   email_invalid: Invalid email address
@@ -99,6 +99,7 @@ action:
   uploaded: uploaded
   reset_filters: Reset filters
 state:
+  latest: latest
   preparing: Preparing
 unsupported_browser:
   title:

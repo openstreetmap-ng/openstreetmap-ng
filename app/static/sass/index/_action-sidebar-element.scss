@@ -1,13 +1,8 @@
-.action-sidebar.element {
+.action-sidebar.element,
+.action-sidebar.element-history {
     .version-badge {
-        cursor: help;
-        padding: 0.2em 0.3em;
         color: $text-muted;
         background: $gray-200;
-        font-size: 0.5em;
-
-        position: relative;
-        top: -0.2em;
 
         &.is-latest {
             color: $light;
@@ -49,5 +44,26 @@
                 min-width: calc(2ch + 16px + 2px);
             }
         }
+    }
+}
+
+.action-sidebar.element {
+    .version-badge {
+        position: relative;
+        top: -0.2em;
+        padding: 0.2em 0.3em;
+        cursor: help;
+        font-size: 0.5em;
+    }
+}
+
+.action-sidebar.element-history {
+    .version-badge {
+        font-size: initial;
+    }
+
+    .version-section:hover {
+        cursor: pointer;
+        background: $list-highlight;
     }
 }

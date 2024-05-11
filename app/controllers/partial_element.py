@@ -1,9 +1,10 @@
 import datetime
 from collections.abc import Sequence
 from datetime import timedelta
+from typing import Annotated
 
 from anyio import create_task_group
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
@@ -16,6 +17,7 @@ from app.lib.render_response import render_response
 from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
+from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_list_entry import ElementMemberEntry
@@ -25,10 +27,10 @@ from app.models.tag_format import TagFormatCollection
 from app.repositories.element_repository import ElementRepository
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/api/web/partial/element')
+router = APIRouter(prefix='/api/partial/element')
 
 
-async def _get_element_response(element: Element, point_in_time: datetime):
+async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
     list_parents: Sequence[ElementMemberEntry] = ()
     full_data: Sequence[Element] = ()
     list_elements: Sequence[ElementMemberEntry] = ()
@@ -77,31 +79,28 @@ async def _get_element_response(element: Element, point_in_time: datetime):
     name = feature_name(element.tags)
     tags = tags_format(element.tags)
 
-    return render_response(
-        'partial/element.jinja2',
-        {
-            'element': element,
-            'changeset': element.changeset,
-            'prev_version': prev_version,
-            'next_version': next_version,
-            'name': name,
-            'tags': tags.values(),
-            'comment_tag': comment_tag,
-            'show_elements': bool(list_elements),
-            'show_part_of': bool(list_parents),
-            'params': JSON_ENCODE(
-                {
-                    'type': element.type,
-                    'id': element.id,
-                    'fullData': Format07.encode_elements(full_data),
-                    'lists': {
-                        'partOf': list_parents,
-                        'elements': list_elements,
-                    },
-                }
-            ).decode(),
-        },
-    )
+    return {
+        'element': element,
+        'prev_version': prev_version,
+        'next_version': next_version,
+        'name': name,
+        'tags': tags.values(),
+        'comment_tag': comment_tag,
+        'show_elements': bool(list_elements),
+        'show_part_of': bool(list_parents),
+        'params': JSON_ENCODE(
+            {
+                'type': element.type,
+                'id': element.id,
+                'version': element.version,
+                'fullData': Format07.encode_elements(full_data),
+                'lists': {
+                    'partOf': list_parents,
+                    'elements': list_elements,
+                },
+            }
+        ).decode(),
+    }
 
 
 @router.get('/{type}/{id:int}')
@@ -127,10 +126,11 @@ async def get_latest(type: ElementType, id: PositiveInt):
     if element.superseded_at is not None:
         return Response(None, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    return await _get_element_response(element, point_in_time)
+    data = await _get_element_data(element, point_in_time)
+    return render_response('partial/element.jinja2', data)
 
 
-@router.get('/{type}/{id:int}/version/{version:int}')
+@router.get('/{type}/{id:int}/history/{version:int}')
 async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
     point_in_time = utcnow()
 
@@ -154,4 +154,64 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
     elif element.created_at > point_in_time:
         point_in_time = element.created_at
 
-    return await _get_element_response(element, point_in_time)
+    data = await _get_element_data(element, point_in_time)
+    return render_response('partial/element.jinja2', data)
+
+
+@router.get('/{type}/{id:int}/history')
+async def get_history(
+    type: ElementType,
+    id: PositiveInt,
+    after: Annotated[PositiveInt | None, Query()] = None,
+    before: Annotated[PositiveInt | None, Query()] = None,
+):
+    point_in_time = utcnow()
+
+    with options_context(joinedload(Element.changeset)):
+        ref = ElementRef(type, id)
+        elements = await ElementRepository.get_versions_by_element_ref(
+            ref,
+            point_in_time=point_in_time,
+            ascending=after is not None,
+            after_version=after,
+            before_version=before,
+            limit=ELEMENT_HISTORY_PAGE_SIZE,
+        )
+
+        if after is not None:
+            elements = tuple(reversed(elements))
+
+    elements_data = [None] * len(elements)
+
+    async with create_task_group() as tg:
+
+        async def data_task(i: int, element: Element):
+            point_in_time_ = point_in_time
+
+            # if the element was superseded, get the point in time just before
+            if element.superseded_at is not None:
+                point_in_time_ = element.superseded_at - timedelta(microseconds=1)
+
+            # forward point in time if element was created after (very small chance)
+            elif element.created_at > point_in_time_:
+                point_in_time_ = element.created_at
+
+            element_data = await _get_element_data(element, point_in_time_)
+            elements_data[i] = element_data
+
+        for i, element in enumerate(elements):
+            tg.start_soon(data_task, i, element)
+
+    new_after = elements[0].version if (elements_data[0]['next_version'] is not None) else None
+    new_before = elements[-1].version if (elements_data[-1]['prev_version'] is not None) else None
+
+    return render_response(
+        'partial/element_history.jinja2',
+        {
+            'type': type,
+            'id': id,
+            'after': new_after,
+            'before': new_before,
+            'elements_data': elements_data,
+        },
+    )

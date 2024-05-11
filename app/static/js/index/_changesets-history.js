@@ -101,13 +101,13 @@ export const getChangesetsHistoryController = (map) => {
         let url
 
         if (scope === "nearby") {
-            url = "/api/web/partial/changeset/history/nearby_users"
+            url = "/api/partial/changeset/history/nearby_users"
         } else if (scope === "friends") {
-            url = "/api/web/partial/changeset/history/friends"
+            url = "/api/partial/changeset/history/friends"
         } else if (displayName) {
-            url = `/api/web/partial/changeset/history/user/${displayName}`
+            url = `/api/partial/changeset/history/user/${displayName}`
         } else {
-            url = "/api/web/partial/changeset/history"
+            url = "/api/partial/changeset/history"
         }
 
         lastLoadOptions = { scope, displayName }

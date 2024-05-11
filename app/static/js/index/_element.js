@@ -2,6 +2,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { parseElements } from "../_format07.js"
 import { getPageTitle } from "../_title.js"
+import "../_types.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
@@ -14,64 +15,19 @@ const paginationDistance = 2
  * @returns {object} Controller
  */
 export const getElementController = (map) => {
-    const onLoaded = (sidebarContent) => {
+    const onLoaded = (sidebarSection) => {
         // Get elements
+        const sidebarContent = sidebarSection.querySelector(".sidebar-content")
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const locationButton = sidebarContent.querySelector(".location-btn")
-        const partOfSection = sidebarContent.querySelector(".part-of")
-        const elementsSection = sidebarContent.querySelector(".elements")
-        // TODO: (version X) in title
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
 
         // Handle not found
-        if (!sidebarTitleElement.dataset.params) return
+        if (!sidebarContent.dataset.params) return
 
-        // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsType = params.type
-        // const paramsId = params.id
-        const listPartOf = params.lists.partOf
-        const listElements = params.lists.elements
-        const fullData = params.fullData
-
-        if (locationButton) {
-            // On location click, pan the map
-            const onLocationClick = () => {
-                const dataset = locationButton.dataset
-                const lon = parseFloat(dataset.lon)
-                const lat = parseFloat(dataset.lat)
-                const latLng = L.latLng(lat, lon)
-                const currentZoom = map.getZoom()
-                if (currentZoom < 16) {
-                    map.setView(latLng, 18)
-                } else {
-                    map.panTo(latLng)
-                }
-            }
-
-            // Listen for events
-            locationButton.addEventListener("click", onLocationClick)
-        }
-
-        if (partOfSection) {
-            renderElements(partOfSection, listPartOf, false)
-        }
-
-        if (elementsSection) {
-            const isWay = paramsType === "way"
-            renderElements(elementsSection, listElements, isWay)
-        }
-
-        const elementMap = parseElements(fullData)
-        const elements = [
-            ...elementMap.relation.values(),
-            ...elementMap.way.values(),
-            ...elementMap.node.values(),
-        ]
-
+        const elements = initializeElementContent(map, sidebarContent)
         focusManyMapObjects(map, elements)
     }
 
@@ -80,7 +36,9 @@ export const getElementController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ type, id, version }) => {
-        const url = `/api/web/partial/element/${type}/${id}${version ? `/version/${version}` : ""}`
+        const url = version
+            ? `/api/partial/element/${type}/${id}/history/${version}`
+            : `/api/partial/element/${type}/${id}`
         baseLoad({ url })
     }
 
@@ -90,6 +48,66 @@ export const getElementController = (map) => {
     }
 
     return base
+}
+
+/**
+ * Initialize element content
+ * @param {L.Map} map Leaflet map
+ * @param {HTMLElement} container Element content container
+ * @returns {OSMObject[]} Focusable elements
+ */
+export const initializeElementContent = (map, container) => {
+    console.debug("initializeElementContent")
+    const locationButton = container.querySelector(".location-btn")
+    const partOfContainer = container.querySelector(".part-of")
+    const elementsContainer = container.querySelector(".elements")
+
+    // Get params
+    const params = JSON.parse(container.dataset.params)
+    const paramsType = params.type
+    const listPartOf = params.lists.partOf
+    const listElements = params.lists.elements
+    const fullData = params.fullData
+
+    if (locationButton) {
+        // On location click, pan the map
+        const onLocationClick = () => {
+            const dataset = locationButton.dataset
+            const lon = parseFloat(dataset.lon)
+            const lat = parseFloat(dataset.lat)
+            const latLng = L.latLng(lat, lon)
+            const currentZoom = map.getZoom()
+            if (currentZoom < 16) {
+                map.setView(latLng, 18)
+            } else {
+                map.panTo(latLng)
+            }
+        }
+
+        // Listen for events
+        locationButton.addEventListener("click", onLocationClick)
+    }
+
+    if (partOfContainer) {
+        renderElements(partOfContainer, listPartOf, false)
+    }
+
+    if (elementsContainer) {
+        const isWay = paramsType === "way"
+        renderElements(elementsContainer, listElements, isWay)
+    }
+
+    const elementMap = parseElements(fullData)
+    const elements = [
+        ...elementMap.relation.values(),
+        ...elementMap.way.values(),
+    ]
+
+    for (const node of elementMap.node.values()) {
+        if (node.interesting) elements.push(node)
+    }
+
+    return elements
 }
 
 /**

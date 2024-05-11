@@ -58,7 +58,7 @@ export const getSearchController = (map) => {
         // Set page title
         document.title = getPageTitle(query || defaultTitle)
 
-        const url = `/api/web/partial/search?${qsEncode({ query })}`
+        const url = `/api/partial/search?${qsEncode({ query })}`
         baseLoad({ url })
     }
 

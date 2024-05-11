@@ -71,8 +71,6 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "required";
 @import "rich-text";
 @import "rss";
-@import "rtl";
-@import "time";
 @import "social-entry";
 @import "unsupported-browser";
 @import "welcome";
@@ -108,3 +106,27 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "user/terms";
 
 // TODO: print style
+
+// Ritgh-to-left support using <html dir="rtl"> tag
+html[dir="rtl"] {
+    text-align: right;
+
+    // Mirror illustrations
+    .illustration {
+        transform: scaleX(-1);
+    }
+}
+
+time[title] {
+    cursor: help;
+    text-wrap: nowrap;
+
+    &:hover {
+        text-decoration: underline dotted $gray-600;
+        text-underline-offset: 0.1em;
+    }
+}
+
+summary {
+    user-select: none;
+}

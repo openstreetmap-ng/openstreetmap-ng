@@ -62,7 +62,7 @@ export const getNoteController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ id }) => {
-        const url = `/api/web/partial/note/${id}`
+        const url = `/api/partial/note/${id}`
         baseLoad({ url })
     }
 

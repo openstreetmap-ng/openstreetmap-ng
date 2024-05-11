@@ -1,9 +1,0 @@
-// Ritgh-to-left support using <html dir="rtl"> tag
-html[dir="rtl"] {
-    text-align: right;
-
-    // Mirror illustrations
-    .illustration {
-        transform: scaleX(-1);
-    }
-}

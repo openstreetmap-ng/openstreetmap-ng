@@ -1,9 +1,0 @@
-time[title] {
-    cursor: help;
-    text-wrap: nowrap;
-
-    &:hover {
-        text-decoration: underline dotted $gray-600;
-        text-underline-offset: 0.1em;
-    }
-}

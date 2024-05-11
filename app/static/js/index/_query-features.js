@@ -137,7 +137,7 @@ export const getQueryFeaturesController = (map) => {
             // Fetch nearby features
             const queryString = qsEncode({ lon, lat, zoom })
 
-            fetch(`/api/web/partial/query/nearby?${queryString}`, {
+            fetch(`/api/partial/query/nearby?${queryString}`, {
                 method: "GET",
                 mode: "same-origin",
                 cache: "no-store", // request params are too volatile to cache
@@ -160,7 +160,7 @@ export const getQueryFeaturesController = (map) => {
                 })
 
             // Fetch enclosing features
-            fetch(`/api/web/partial/query/enclosing?${queryString}`, {
+            fetch(`/api/partial/query/enclosing?${queryString}`, {
                 method: "GET",
                 mode: "same-origin",
                 cache: "no-store", // request params are too volatile to cache
