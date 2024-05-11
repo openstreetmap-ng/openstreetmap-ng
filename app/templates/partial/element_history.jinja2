@@ -5,12 +5,11 @@
         <div class="row g-1 mb-1">
             <div class="col">
                 <h2 class="sidebar-title">
-                    {% set type = element.type %}
-                    {% if type == 'node' %}
+                    {% if element.type == 'node' %}
                     {{ t('browse.node.history_title_html', name=element.id) | safe }}
-                    {% elif type == 'way' %}
+                    {% elif element.type == 'way' %}
                     {{ t('browse.way.history_title_html', name=element.id) | safe }}
-                    {% elif type == 'relation' %}
+                    {% elif element.type == 'relation' %}
                     {{ t('browse.relation.history_title_html', name=element.id) | safe }}
                     {% endif %}
                 </h2>

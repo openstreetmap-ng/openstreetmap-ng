@@ -4,12 +4,11 @@
             <div class="col">
                 <h2>
                     <span class="sidebar-title">
-                        {% set type = element.type %}
-                        {% if type == 'node' %}
+                        {% if element.type == 'node' %}
                         {{ t('javascripts.query.node') }}:
-                        {% elif type == 'way' %}
+                        {% elif element.type == 'way' %}
                         {{ t('javascripts.query.way') }}:
-                        {% elif type == 'relation' %}
+                        {% elif element.type == 'relation' %}
                         {{ t('javascripts.query.relation') }}:
                         {% endif %}
 
