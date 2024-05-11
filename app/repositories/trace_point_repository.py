@@ -65,6 +65,7 @@ class TracePointRepository:
             )
             stmt2 = apply_statement_context(stmt2)
             stmt = stmt1.union(stmt2)
+            # TODO: this may require a correction
 
             if legacy_offset is not None:
                 stmt = stmt.offset(legacy_offset)

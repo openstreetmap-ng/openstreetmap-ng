@@ -140,44 +140,42 @@ class ElementRepository:
         recurse_way_ids = tuple(ref.id for ref in element_refs if ref.type == 'way') if recurse_ways else ()
 
         async with db() as session:
+            selectors_list = [
+                and_(
+                    Element.type == element_ref.type,
+                    Element.id == element_ref.id,
+                )
+                for element_ref in element_refs
+            ]
+
+            if recurse_way_ids:
+                selectors_list.append(
+                    and_(
+                        Element.type == 'node',
+                        Element.id.in_(
+                            select(
+                                cast(
+                                    func.jsonb_path_query(Element.members, cast('$[*].id', JSONPATH)),
+                                    INTEGER,
+                                )
+                            )
+                            .where(
+                                Element.created_at <= point_in_time,
+                                or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
+                                Element.type == 'way',
+                                Element.id.in_(recurse_way_ids),
+                            )
+                            .subquery()
+                        ),
+                    )
+                )
+
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
                 or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
-                or_(
-                    *(
-                        and_(
-                            Element.type == element_ref.type,
-                            Element.id == element_ref.id,
-                        )
-                        for element_ref in element_refs
-                    )
-                ),
+                or_(*selectors_list),
             )
             stmt = apply_statement_context(stmt)
-
-            if recurse_way_ids:
-                stmt_union = select(Element).where(
-                    Element.created_at <= point_in_time,
-                    or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
-                    Element.type == 'node',
-                    Element.id.in_(
-                        select(
-                            cast(
-                                func.jsonb_path_query(Element.members, '$[*].id'),
-                                INTEGER,
-                            )
-                        )
-                        .where(
-                            Element.created_at <= point_in_time,
-                            or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
-                            Element.type == 'way',
-                            Element.id.in_(recurse_way_ids),
-                        )
-                        .subquery()
-                    ),
-                )
-                stmt_union = apply_statement_context(stmt_union)
-                stmt = stmt.union(stmt_union)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -285,10 +283,7 @@ class ElementRepository:
                     *(
                         func.jsonb_path_exists(
                             Element.members,
-                            cast(
-                                f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})',
-                                JSONPATH,
-                            ),
+                            cast(f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})', JSONPATH),
                         )
                         for member_ref in member_refs
                     ),

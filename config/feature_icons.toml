@@ -374,7 +374,6 @@ multipolygon = "iD/multipolygon.webp"
 network = "iD/relation.webp"
 route = "iD/route.webp"
 route_master = "iD/route-master.webp"
-site = "iD/relation.webp"
 
 [water.way]
 "*" = "waterway_lake.webp"

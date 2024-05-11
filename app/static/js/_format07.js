@@ -82,7 +82,7 @@ export const parseElements = (elements) => {
                 version: element.version,
                 lon: element.lon,
                 lat: element.lat,
-                tags: element.tags,
+                tags: new Map(Object.entries(element.tags)),
             }
             node.interesting = isInterestingNode(node, membersSet)
             resultMap[elementType].set(elementId, node)
@@ -91,7 +91,7 @@ export const parseElements = (elements) => {
                 type: elementType,
                 id: elementId,
                 version: element.version,
-                tags: element.tags,
+                tags: new Map(Object.entries(element.tags)),
                 members: resolveMembers(element.members),
             })
         } else {
