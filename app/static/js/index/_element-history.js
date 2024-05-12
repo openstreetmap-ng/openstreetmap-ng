@@ -5,6 +5,8 @@ import { getBaseFetchController } from "./_base-fetch.js"
 import { initializeElementContent } from "./_element.js"
 import { routerNavigateStrict } from "./_router.js"
 
+const paginationDistance = 2
+
 /**
  * Create a new element history controller
  * @param {L.Map} map Leaflet map
@@ -15,6 +17,7 @@ export const getElementHistoryController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
+        const paginationContainer = sidebarContent.querySelector(".history-pagination")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -56,6 +59,47 @@ export const getElementHistoryController = (map) => {
             versionSection.addEventListener("mouseenter", onVersionMouseEnter)
             versionSection.addEventListener("mouseleave", onVersionMouseLeave)
             versionSection.addEventListener("click", onVersionClick)
+        }
+
+        if (paginationContainer) {
+            const dataset = paginationContainer.dataset
+            const currentPage = parseInt(dataset.page)
+            const totalPages = parseInt(dataset.numPages)
+            console.debug("Initializing element history pagination", dataset)
+
+            const paginationFragment = document.createDocumentFragment()
+
+            for (let i = 1; i <= totalPages; i++) {
+                const distance = Math.abs(i - currentPage)
+                if (distance > paginationDistance && i !== 1 && i !== totalPages) {
+                    if (i === 2 || i === totalPages - 1) {
+                        const li = document.createElement("li")
+                        li.classList.add("page-item", "disabled")
+                        li.ariaDisabled = "true"
+                        li.innerHTML = `<span class="page-link">...</span>`
+                        paginationFragment.appendChild(li)
+                    }
+                    continue
+                }
+
+                const li = document.createElement("li")
+                li.classList.add("page-item")
+
+                const button = document.createElement("a")
+                button.classList.add("page-link")
+                button.textContent = i
+                button.href = `?page=${i}`
+                li.appendChild(button)
+
+                if (i === currentPage) {
+                    li.classList.add("active")
+                    li.ariaCurrent = "page"
+                }
+
+                paginationFragment.appendChild(li)
+            }
+
+            paginationContainer.appendChild(paginationFragment)
         }
     }
 

@@ -88,6 +88,31 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
+    async def get_current_version_by_ref(
+        element_ref: ElementRef,
+        *,
+        point_in_time: datetime,
+    ) -> int:
+        """
+        Get the current version of the element by the given element ref.
+
+        Returns 0 if the element does not exist.
+        """
+        async with db() as session:
+            stmt = (
+                select(Element.version)
+                .where(
+                    Element.created_at <= point_in_time,
+                    Element.type == element_ref.type,
+                    Element.id == element_ref.id,
+                )
+                .order_by(Element.version.desc())
+                .limit(1)
+            )
+            version = await session.scalar(stmt)
+            return version if (version is not None) else 0
+
+    @staticmethod
     async def get_versions_by_element_ref(
         element_ref: ElementRef,
         *,

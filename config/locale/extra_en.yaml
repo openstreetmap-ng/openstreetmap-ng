@@ -73,9 +73,7 @@ internalization:
     If you would like to help, start with {{this_guide}}.
   this_guide: this guide
 pagination:
-  range: '{{x}} of {{y}}'
-  previous_page: Previous page
-  next_page: Next page
+  range: "{{x}} of {{y}}"
 confirm_account:
   click_here_to_activate_account: Click here to activate your account
 time:

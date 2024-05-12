@@ -39,25 +39,12 @@
     </div>
     {% endfor %}
 
-    {% if after is not none or before is not none %}
+    {% if num_pages > 1 %}
     <div class="section">
-        <div class="row">
-            <div class="col">
-                {% if after is not none %}
-                <a class="btn btn-primary" href="/{{ element.type }}/{{ element.id }}/history?after={{ after }}">
-                    {{ t('pagination.previous_page') }}
-                </a>
-                {% endif %}
-            </div>
-
-            <div class="col text-end">
-                {% if before is not none %}
-                <a class="btn btn-primary" href="/{{ element.type }}/{{ element.id }}/history?before={{ before }}">
-                    {{ t('pagination.next_page') }}
-                </a>
-                {% endif %}
-            </div>
-        </div>
+        <nav aria-label="{{ t('alt.elements_page_navigation') }}">
+            <ul class="history-pagination pagination justify-content-end" data-page="{{ page }}"
+                data-num-pages="{{ num_pages }}"></ul>
+        </nav>
     </div>
     {% endif %}
 </div>

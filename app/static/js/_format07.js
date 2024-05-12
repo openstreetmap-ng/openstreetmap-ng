@@ -3,16 +3,11 @@ import "./_types.js"
 /**
  * Check if the given node is interesting
  * @param {OSMNode} node Node
- * @param {Set<string>} membersSet Set of all members in "n123" format
+ * @param {Set<number>} nodeMembersSet Set of all members in "n123" format
  * @returns {boolean} True if the node is interesting
  */
-const isInterestingNode = (node, membersSet) => {
-    if (node.type !== "node") {
-        console.error("Invalid node type", node.type)
-        return true
-    }
-
-    const isMember = membersSet.has(`n${node.id}`)
+const isInterestingNode = (node, nodeMembersSet) => {
+    const isMember = nodeMembersSet.has(node.id)
     if (!isMember) return true
 
     const hasTags = node.tags.size > 0
@@ -38,14 +33,22 @@ export const parseElements = (elements) => {
         refMap[element.type].set(element.id, element)
     }
 
-    // Set of all members in "n123" format (for filtering out boring nodes)
-    const membersSet = new Set(
-        [...refMap.way.values(), ...refMap.relation.values()].flatMap((object) =>
-            object.members.map((member) => `${member.type[0]}${member.id}`),
-        ),
-    )
+    // Set of all node members ids
+    const nodeMembersSet = new Set()
+    for (const way of refMap.way.values()) {
+        for (const member of way.members) {
+            nodeMembersSet.add(member.id)
+        }
+    }
+    for (const relation of refMap.relation.values()) {
+        for (const member of relation.members) {
+            if (member.type === "node") {
+                nodeMembersSet.add(member.id)
+            }
+        }
+    }
 
-    const resultMap = {
+    const result = {
         node: new Map(),
         way: new Map(),
         relation: new Map(),
@@ -56,24 +59,26 @@ export const parseElements = (elements) => {
      * @param {object[]} members Members
      * @returns {OSMObject[]} Resolved members
      */
-    const resolveMembers = (members) =>
-        members
-            .filter((ref) => ref.type !== "relation")
-            .map((ref) => {
-                const elementType = ref.type
-                const elementId = ref.id
-                const element = refMap[elementType].get(elementId)
-                parseElement(element)
-                return resultMap[elementType].get(elementId)
-            })
+    const resolveMembers = (members) => {
+        const resolved = []
+        for (const ref of members) {
+            if (ref.type === "relation") continue
+            const elementType = ref.type
+            const elementId = ref.id
+            const element = refMap[elementType].get(elementId)
+            processElement(element)
+            resolved.push(result[elementType].get(elementId))
+        }
+        return resolved
+    }
 
-    // Parse a Format07 element
-    const parseElement = (element) => {
+    // Process an element and store the result
+    const processElement = (element) => {
         const elementType = element.type
         const elementId = element.id
 
-        // Don't parse the same element twice
-        if (resultMap[elementType].has(elementId)) return
+        // Skip parsing the same element repeatedly
+        if (result[elementType].has(elementId)) return
 
         if (elementType === "node") {
             const node = {
@@ -84,10 +89,10 @@ export const parseElements = (elements) => {
                 lat: element.lat,
                 tags: new Map(Object.entries(element.tags)),
             }
-            node.interesting = isInterestingNode(node, membersSet)
-            resultMap[elementType].set(elementId, node)
+            node.interesting = isInterestingNode(node, nodeMembersSet)
+            result[elementType].set(elementId, node)
         } else if (elementType === "way" || elementType === "relation") {
-            resultMap[elementType].set(elementId, {
+            result[elementType].set(elementId, {
                 type: elementType,
                 id: elementId,
                 version: element.version,
@@ -99,12 +104,12 @@ export const parseElements = (elements) => {
         }
     }
 
-    // Parse all elements
+    // Process all elements
     for (const type of Object.keys(refMap)) {
         for (const element of refMap[type].values()) {
-            parseElement(element)
+            processElement(element)
         }
     }
 
-    return resultMap
+    return result
 }

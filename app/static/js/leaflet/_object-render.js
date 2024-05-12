@@ -102,7 +102,8 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      */
     const processWay = (way) => {
         const members = way.members
-        const latLngs = members.map((node) => L.latLng(node.lat, node.lon))
+        const latLngs = []
+        for (const member of members) latLngs.push(L.latLng(member.lat, member.lon))
         let layer
 
         if (renderAreas && isWayArea(way)) {
@@ -118,8 +119,9 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
         layers.push(layer)
 
         for (const member of members) {
-            const interesting = member.interesting ?? true
-            if (interesting) processNode(member)
+            if (member.interesting ?? true) {
+                processNode(member)
+            }
         }
     }
 
@@ -129,8 +131,9 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
     const processRelation = (relation) => {
         for (const member of relation.members) {
             if (member.type === "node") {
-                const interesting = member.interesting ?? true
-                if (interesting) processNode(member)
+                if (member.interesting ?? true) {
+                    processNode(member)
+                }
             } else if (member.type === "way") {
                 processWay(member)
             }
@@ -146,10 +149,9 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
     }
 
     for (const object of objects) {
-        const objectType = object.type
-        const fn = processMap[objectType]
+        const fn = processMap[object.type]
         if (fn) fn(object)
-        else console.error("Unsupported feature type", objectType)
+        else console.error("Unsupported feature type", object.type)
     }
 
     // Render icons on top of the feature layers

@@ -6,7 +6,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Query, Response
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, load_only
 from starlette import status
 
 from app.format07 import Format07
@@ -162,24 +162,26 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
 async def get_history(
     type: ElementType,
     id: PositiveInt,
-    after: Annotated[PositiveInt | None, Query()] = None,
-    before: Annotated[PositiveInt | None, Query()] = None,
+    page: Annotated[PositiveInt, Query()] = 1,
 ):
     point_in_time = utcnow()
 
+    ref = ElementRef(type, id)
+    current_version = await ElementRepository.get_current_version_by_ref(ref, point_in_time=point_in_time)
+
+    num_pages = (current_version + ELEMENT_HISTORY_PAGE_SIZE - 1) // ELEMENT_HISTORY_PAGE_SIZE
+    from_inclusive = current_version - ELEMENT_HISTORY_PAGE_SIZE * (page - 1)
+    to_exclusive = from_inclusive - ELEMENT_HISTORY_PAGE_SIZE
+
     with options_context(joinedload(Element.changeset)):
-        ref = ElementRef(type, id)
         elements = await ElementRepository.get_versions_by_element_ref(
             ref,
             point_in_time=point_in_time,
-            ascending=after is not None,
-            after_version=after,
-            before_version=before,
+            ascending=False,
+            after_version=to_exclusive,
+            before_version=from_inclusive + 1,
             limit=ELEMENT_HISTORY_PAGE_SIZE,
         )
-
-        if after is not None:
-            elements = tuple(reversed(elements))
 
     elements_data = [None] * len(elements)
 
@@ -202,16 +204,13 @@ async def get_history(
         for i, element in enumerate(elements):
             tg.start_soon(data_task, i, element)
 
-    new_after = elements[0].version if (elements_data[0]['next_version'] is not None) else None
-    new_before = elements[-1].version if (elements_data[-1]['prev_version'] is not None) else None
-
     return render_response(
         'partial/element_history.jinja2',
         {
             'type': type,
             'id': id,
-            'after': new_after,
-            'before': new_before,
+            'page': page,
+            'num_pages': num_pages,
             'elements_data': elements_data,
         },
     )
