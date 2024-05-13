@@ -1,10 +1,11 @@
+import logging
+from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
-from sqlalchemy import INTEGER, and_, cast, func, null, or_, select, text
-from sqlalchemy.dialects.postgresql import JSONPATH
+from sqlalchemy import and_, func, null, or_, select, text
 
 from app.db import db
 from app.lib.date_utils import utcnow
@@ -25,7 +26,7 @@ class ElementRepository:
         Returns 0 if no elements exist for the given type.
         """
         async with db() as session:
-            stmt = select(Element.id).where(Element.type == type).order_by(Element.id.desc()).limit(1)
+            stmt = select(func.max(Element.id)).where(Element.type == type)
             element_id = await session.scalar(stmt)
             return element_id if (element_id is not None) else 0
 
@@ -99,15 +100,10 @@ class ElementRepository:
         Returns 0 if the element does not exist.
         """
         async with db() as session:
-            stmt = (
-                select(Element.version)
-                .where(
-                    Element.created_at <= point_in_time,
-                    Element.type == element_ref.type,
-                    Element.id == element_ref.id,
-                )
-                .order_by(Element.version.desc())
-                .limit(1)
+            stmt = select(func.max(Element.version)).where(
+                Element.created_at <= point_in_time,
+                Element.type == element_ref.type,
+                Element.id == element_ref.id,
             )
             version = await session.scalar(stmt)
             return version if (version is not None) else 0
@@ -177,43 +173,40 @@ class ElementRepository:
         if point_in_time is None:
             point_in_time = utcnow()
 
-        recurse_way_ids = tuple(ref.id for ref in element_refs if ref.type == 'way') if recurse_ways else ()
+        type_id_map: dict[ElementType, set[int]] = defaultdict(set)
+
+        for element_ref in element_refs:
+            type_id_map[element_ref.type].add(element_ref.id)
 
         async with db() as session:
-            selectors_list = [
-                and_(
-                    Element.type == element_ref.type,
-                    Element.id == element_ref.id,
-                )
-                for element_ref in element_refs
-            ]
-
+            recurse_way_ids = type_id_map.get('way', ()) if recurse_ways else ()
             if recurse_way_ids:
-                selectors_list.append(
-                    and_(
-                        Element.type == 'node',
-                        Element.id.in_(
-                            select(
-                                cast(
-                                    func.jsonb_path_query(Element.members, cast('$[*].id', JSONPATH)),
-                                    INTEGER,
-                                )
-                            )
-                            .where(
-                                Element.created_at <= point_in_time,
-                                or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
-                                Element.type == 'way',
-                                Element.id.in_(recurse_way_ids),
-                            )
-                            .subquery()
-                        ),
+                stmt = (
+                    select(func.jsonb_path_query(Element.members, text("'$[*].id'")))
+                    .where(
+                        Element.created_at <= point_in_time,
+                        or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
+                        Element.type == 'way',
+                        Element.id.in_(text(','.join(str(id) for id in recurse_way_ids))),
                     )
+                    .distinct()
                 )
+                node_ids = (await session.scalars(stmt)).all()
+                type_id_map['node'].update(node_ids)
+                logging.debug('Found %d nodes for %d recurse ways', len(node_ids), len(recurse_way_ids))
 
             stmt = select(Element).where(
                 Element.created_at <= point_in_time,
                 or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
-                or_(*selectors_list),
+                or_(
+                    *(
+                        and_(
+                            Element.type == type,
+                            Element.id.in_(text(','.join(str(id) for id in ids))),
+                        )
+                        for type, ids in type_id_map.items()
+                    )
+                ),
             )
             stmt = apply_statement_context(stmt)
 
@@ -321,9 +314,8 @@ class ElementRepository:
                 or_(Element.superseded_at == null(), Element.superseded_at > point_in_time),
                 or_(
                     *(
-                        func.jsonb_path_exists(
-                            Element.members,
-                            cast(f'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})', JSONPATH),
+                        Element.members.op('@?')(
+                            text(f'\'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})\'')
                         )
                         for member_ref in member_refs
                     ),

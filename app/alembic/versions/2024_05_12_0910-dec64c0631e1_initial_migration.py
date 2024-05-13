@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: aee39cb39531
+Revision ID: dec64c0631e1
 Revises:
-Create Date: 2024-05-08 01:29:14.318341+00:00
+Create Date: 2024-05-12 09:10:12.355760+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'aee39cb39531'
+revision: str = 'dec64c0631e1'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -334,6 +334,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
     sa.PrimaryKeyConstraint('type', 'id', 'version', name='element_pkey')
     )
+    op.create_index('element_changeset_id_idx', 'element', ['changeset_id'], unique=False)
     op.create_table('issue_comment',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('issue_id', sa.BigInteger(), nullable=False),
@@ -407,6 +408,7 @@ def downgrade() -> None:
     op.drop_table('oauth2_token')
     op.drop_table('oauth1_token')
     op.drop_table('issue_comment')
+    op.drop_index('element_changeset_id_idx', table_name='element')
     op.drop_table('element')
     op.drop_table('diary_subscription')
     op.drop_table('diary_comment')

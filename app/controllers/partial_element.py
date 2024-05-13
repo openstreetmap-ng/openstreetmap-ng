@@ -6,7 +6,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Query, Response
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload, load_only
+from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.format07 import Format07

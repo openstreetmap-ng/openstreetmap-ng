@@ -20,8 +20,7 @@ class Base:
 
         id: Mapped[int] = mapped_column(
             BigInteger,
-            # always=False: during future migration, ids will be set explicitly
-            Identity(always=False, minvalue=1),
+            Identity(minvalue=1),
             init=False,
             nullable=False,
             primary_key=True,

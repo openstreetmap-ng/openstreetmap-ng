@@ -21,7 +21,7 @@ output_user_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
 output_changeset_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
 output_element_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
 
-buffering = 8 * 1024 * 1024  # 8 MB
+buffering = 32 * 1024 * 1024  # 32 MB
 read_memory_limit = 2 * 1024 * 1024 * 1024  # 2 GB => ~50 GB total memory usage
 
 # freeze all gc objects before starting for improved performance
@@ -30,23 +30,20 @@ gc.freeze()
 gc.disable()
 
 
-class WorkerResult(NamedTuple):
-    user_ids: set[int]
-    changeset_ids: set[tuple[int, int]]
+class ElementSummary(NamedTuple):
+    changeset_id: int
+    user_id: int | None
+    user_display_name: str | None
+    timestamp: datetime
 
 
 def get_output_worker_path(i: int) -> pathlib.Path:
     return output_element_path.with_suffix(f'.csv.{i}')
 
 
-def element_worker(args: tuple[int, int, int]) -> WorkerResult:
-    i, from_seek, to_seek = args
-    # from_seek: inclusive
-    # to_seek: exclusive
-
-    user_ids: set[int] = set()
-    changeset_ids: set[tuple[int, int]] = set()
-    result = WorkerResult(user_ids, changeset_ids)
+def element_worker(args: tuple[int, int, int]) -> list[ElementSummary]:
+    i, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
+    result: list[ElementSummary] = []
 
     with input_path.open('rb') as f_in:
         if from_seek > 0:
@@ -94,8 +91,8 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
             elif child_tag == 'nd':
                 members.append(
                     {
-                        'type': 'way',
-                        'id': child_attrib['ref'],
+                        'type': 'node',
+                        'id': int(child_attrib['ref']),
                         'role': '',
                     }
                 )
@@ -103,7 +100,7 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
                 members.append(
                     {
                         'type': child_attrib['type'],
-                        'id': child_attrib['ref'],
+                        'id': int(child_attrib['ref']),
                         'role': child_attrib['role'],
                     }
                 )
@@ -113,14 +110,19 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
         else:
             point = None
 
-        user_id = int(uid) if (uid := attrib.get('uid')) is not None else None
-        user_ids.add(user_id)
+        uid = attrib.get('uid')
+        if uid is not None:
+            user_id = int(uid)
+            user_display_name = attrib['user']
+        else:
+            user_id = None
+            user_display_name = None
+
         changeset_id = int(attrib['changeset'])
-        changeset_ids.add((user_id, changeset_id))
+        timestamp = datetime.fromisoformat(attrib['timestamp'])
 
         rows.append(
             (
-                user_id,  # user_id
                 changeset_id,  # changeset_id
                 tag,  # type
                 attrib['id'],  # id
@@ -129,7 +131,16 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
                 JSON_ENCODE(tags).decode() if tags else '{}',  # tags
                 point,  # point
                 JSON_ENCODE(members).decode() if members else '[]',  # members
-                datetime.fromisoformat(attrib['timestamp']),  # created_at
+                timestamp,  # created_at
+            )
+        )
+
+        result.append(
+            ElementSummary(
+                changeset_id,
+                user_id,
+                user_display_name,
+                timestamp,
             )
         )
 
@@ -140,7 +151,6 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
         if i == 0:
             writer.writerow(
                 (
-                    'user_id',
                     'changeset_id',
                     'type',
                     'id',
@@ -160,9 +170,6 @@ def element_worker(args: tuple[int, int, int]) -> WorkerResult:
 
 
 async def main():
-    user_ids: set[int] = set()
-    changeset_ids: set[tuple[int, int]] = set()
-
     num_workers = os.cpu_count()
 
     input_size = input_path.stat().st_size
@@ -199,10 +206,23 @@ async def main():
         to_seek = from_seeks[i + 1] if i + 1 < num_tasks else input_size
         args.append((i, from_seek, to_seek))
 
+    user_name_map: dict[int, str] = {}
+    changeset_user_map: dict[int, int | None] = {}
+
     with Pool(num_workers) as pool:
-        for result in tqdm(pool.imap_unordered(element_worker, args), desc='Preparing element data', total=num_tasks):
-            user_ids.update(result.user_ids)
-            changeset_ids.update(result.changeset_ids)
+        for result_list in tqdm(
+            pool.imap_unordered(element_worker, args),
+            desc='Preparing element data',
+            total=num_tasks,
+        ):
+            for result in result_list:
+                user_id = result.user_id
+                changeset_id = result.changeset_id
+
+                if user_id is not None:
+                    user_name_map[user_id] = result.user_display_name
+
+                changeset_user_map[changeset_id] = user_id
 
     get_output_worker_path(0).rename(output_element_path)
 
@@ -228,23 +248,26 @@ async def main():
                 'status',
                 'auth_provider',
                 'auth_uid',
-                'languages',
+                'language',
+                'activity_tracking',
+                'crash_reporting',
             )
         )
 
-        user_ids.discard(None)
-        for user_id in tqdm(user_ids, desc='Preparing user data'):
+        for user_id, display_name in tqdm(user_name_map.items(), desc='Preparing user data'):
             user_writer.writerow(
                 (
                     user_id,  # id
                     f'{user_id}@localhost.invalid',  # email
-                    f'user_{user_id}',  # display_name
+                    display_name,  # display_name
                     'x',  # password_hashed
                     '127.0.0.1',  # created_ip
                     'active',  # status
                     None,  # auth_provider
                     None,  # auth_uid
-                    '{"en"}',  # languages
+                    'en',  # language
+                    1,  # activity_tracking
+                    1,  # crash_reporting
                 )
             )
 
@@ -258,7 +281,7 @@ async def main():
             )
         )
 
-        for user_id, changeset_id in tqdm(changeset_ids, desc='Preparing changeset data'):
+        for changeset_id, user_id in tqdm(changeset_user_map.items(), desc='Preparing changeset data'):
             changeset_writer.writerow(
                 (
                     changeset_id,  # id

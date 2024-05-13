@@ -29,18 +29,8 @@ class ChangesetRepository:
         Get the user's previous and next changeset ids.
         """
         async with db() as session:
-            stmt_prev = (
-                select(Changeset.id)
-                .where(Changeset.id < changeset_id, Changeset.user_id == user_id)
-                .order_by(Changeset.id.desc())
-                .limit(1)
-            )
-            stmt_next = (
-                select(Changeset.id)
-                .where(Changeset.id > changeset_id, Changeset.user_id == user_id)
-                .order_by(Changeset.id.asc())
-                .limit(1)
-            )
+            stmt_prev = select(func.max(Changeset.id)).where(Changeset.id < changeset_id, Changeset.user_id == user_id)
+            stmt_next = select(func.min(Changeset.id)).where(Changeset.id > changeset_id, Changeset.user_id == user_id)
             stmt = stmt_prev.union_all(stmt_next)
             ids: Sequence[int] = (await session.scalars(stmt)).all()
 

@@ -2,6 +2,9 @@ import logging
 from collections.abc import Sequence
 from ipaddress import IPv4Address
 
+from sqlalchemy import select
+from sqlalchemy.orm import load_only
+
 from app.config import DEFAULT_LANGUAGE, TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
 from app.db import db_autocommit
 from app.lib.auth_context import auth_context
@@ -30,6 +33,7 @@ class TestService:
             await TestService.create_user('user1')
             await TestService.create_user('user2')
 
+    # Additional safeguard against running this in production
     if TEST_ENV:
 
         @staticmethod
@@ -42,30 +46,42 @@ class TestService:
             """
             Create a test user.
             """
+            email = f'{name}@{TEST_USER_DOMAIN}'
+            email_available = await UserRepository.check_email_available(email)
 
             # skip creation if the user already exists
-            if not await UserRepository.check_display_name_available(name):
+            if not email_available:
                 logging.debug('Test user %r already exists', name)
                 return
 
-            email = f'{name}@{TEST_USER_DOMAIN}'
+            name_available = await UserRepository.check_display_name_available(name)
             password = PasswordStr(TEST_USER_PASSWORD)
             password_hashed = PasswordHash.default().hash(password)
 
             async with db_autocommit() as session:
-                user = User(
-                    email=email,
-                    display_name=name,
-                    password_hashed=password_hashed,
-                    created_ip=IPv4Address('127.0.0.1'),
-                    status=status,
-                    auth_provider=None,
-                    auth_uid=None,
-                    language=DEFAULT_LANGUAGE,
-                    activity_tracking=False,
-                    crash_reporting=False,
-                )
-                user.roles = roles
-                session.add(user)
+                if name_available:
+                    # create new user
+                    user = User(
+                        email=email,
+                        display_name=name,
+                        password_hashed=password_hashed,
+                        created_ip=IPv4Address('127.0.0.1'),
+                        status=status,
+                        auth_provider=None,
+                        auth_uid=None,
+                        language=DEFAULT_LANGUAGE,
+                        activity_tracking=False,
+                        crash_reporting=False,
+                    )
+                    user.roles = roles
+                    session.add(user)
+                else:
+                    # update existing user (happens after preloading real users)
+                    stmt = select(User).options(load_only(User.id)).where(User.display_name == name).with_for_update()
+                    user = (await session.execute(stmt)).scalar_one()
+                    user.email = email
+                    user.password_hashed = password_hashed
+                    user.status = status
+                    user.roles = roles
 
             logging.info('Test user %r created', name)

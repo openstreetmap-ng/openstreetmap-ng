@@ -21,11 +21,10 @@ class PasswordHash:
         """
         Verify a password against a hash and optional salt.
 
-        Returns `True` if the password matches, `False` otherwise.
+        Returns True if the password matches, False otherwise.
 
-        If the password matches but the hash needs to be rehashed, `rehash_needed` will be set to `True`.
+        If the password matches but the hash needs to be rehashed, `rehash_needed` will be set to True.
         """
-
         if self.rehash_needed is not None:
             raise RuntimeError(f'{self.verify.__qualname__} was reused')
 

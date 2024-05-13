@@ -1,11 +1,11 @@
 import logging
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import load_only
 
 from app.db import db_autocommit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import apply_statement_context
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_subscription import ChangesetSubscription
 
@@ -43,8 +43,12 @@ class ChangesetService:
         Update changeset tags.
         """
         async with db_autocommit() as session:
-            stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
-            stmt = apply_statement_context(stmt)
+            stmt = (
+                select(Changeset)
+                .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
+                .where(Changeset.id == changeset_id)
+                .with_for_update()
+            )
             changeset = await session.scalar(stmt)
 
             if changeset is None:
@@ -62,8 +66,12 @@ class ChangesetService:
         Close a changeset.
         """
         async with db_autocommit() as session:
-            stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
-            stmt = apply_statement_context(stmt)
+            stmt = (
+                select(Changeset)
+                .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
+                .where(Changeset.id == changeset_id)
+                .with_for_update()
+            )
             changeset = await session.scalar(stmt)
 
             if changeset is None:

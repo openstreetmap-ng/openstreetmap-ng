@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, PrimaryKeyConstraint, func
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,7 +17,7 @@ from app.models.geometry import PointType
 class Element(Base.NoID):
     __tablename__ = 'element'
 
-    sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(always=True, minvalue=1), init=False, nullable=False)
+    sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(minvalue=1), init=False, nullable=False)
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
     changeset: Mapped[Changeset] = relationship(init=False, lazy='raise', innerjoin=True)
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)
@@ -42,7 +42,11 @@ class Element(Base.NoID):
         server_default=None,
     )
 
-    __table_args__ = (PrimaryKeyConstraint(type, id, version, name='element_pkey'),)
+    __table_args__ = (
+        PrimaryKeyConstraint(type, id, version, name='element_pkey'),
+        Index('element_changeset_id_idx', changeset_id),
+        Index('element_members_idx', members, postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'}),
+    )
 
     @updating_cached_property('id')
     def element_ref(self) -> ElementRef:

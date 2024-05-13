@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from redis.asyncio import ConnectionPool, Redis
-from sqlalchemy import NullPool
+from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL, TEST_ENV
@@ -66,6 +66,15 @@ async def db_autocommit():
     async with db() as session:
         yield session
         await session.commit()
+
+
+async def db_update_stats(*, vacuum: bool = False) -> None:
+    """
+    Update the database statistics.
+    """
+    async with db() as session:
+        await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
+        await session.execute(text('VACUUM ANALYZE') if vacuum else text('ANALYZE'))
 
 
 # TODO: test unicode normalization comparison

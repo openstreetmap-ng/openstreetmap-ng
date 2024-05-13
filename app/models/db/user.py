@@ -131,8 +131,8 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     __table_args__ = (
-        Index('user_email_idx', 'email', unique=True),
-        Index('user_display_name_idx', 'display_name', unique=True),
+        Index('user_email_idx', email, unique=True),
+        Index('user_display_name_idx', display_name, unique=True),
     )
 
     @validates('description')
