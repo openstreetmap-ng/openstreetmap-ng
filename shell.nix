@@ -43,9 +43,7 @@ let
     dart-sass
     # Services:
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
-    # TODO: switch redis to valkey when merged:
-    # https://github.com/NixOS/nixpkgs/pull/302935
-    redis
+    valkey
     mailpit
     spamassassin
 
@@ -300,7 +298,6 @@ let
       rm -rf data/postgres data/mailpit
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
-    (writeShellScriptBin "dev-logs-redis" "tail -f data/supervisor/redis.log")
     (writeShellScriptBin "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
     (writeShellScriptBin "dev-logs-watch-locale" "tail -f data/supervisor/watch-locale.log")
     (writeShellScriptBin "dev-logs-watch-sass" "tail -f data/supervisor/watch-sass.log")

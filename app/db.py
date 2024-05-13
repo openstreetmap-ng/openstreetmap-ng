@@ -4,20 +4,20 @@ from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.config import POSTGRES_LOG, POSTGRES_URL, REDIS_URL, TEST_ENV
+from app.config import POSTGRES_LOG, POSTGRES_URL, TEST_ENV, VALKEY_URL
 from app.utils import JSON_DECODE, JSON_ENCODE
 
 if TEST_ENV:
 
     @asynccontextmanager
-    async def redis():
-        async with Redis.from_url(REDIS_URL) as r:
+    async def valkey():
+        async with Redis.from_url(VALKEY_URL) as r:
             yield r
 else:
-    _redis_pool = ConnectionPool().from_url(REDIS_URL)
+    _redis_pool = ConnectionPool().from_url(VALKEY_URL)
 
     @asynccontextmanager
-    async def redis():
+    async def valkey():
         async with Redis(connection_pool=_redis_pool) as r:
             yield r
 

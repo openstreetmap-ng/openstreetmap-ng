@@ -18,7 +18,7 @@ _cache_context = 'EmailDeliverability'
 _resolver = Resolver()
 _resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
 _resolver.lifetime = _resolver.timeout + 2
-_resolver.cache = None  # using redis cache
+_resolver.cache = None  # using valkey cache
 _resolver.retry_servfail = True
 
 

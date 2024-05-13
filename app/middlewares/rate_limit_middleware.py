@@ -7,7 +7,7 @@ from starlette import status
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.db import redis
+from app.db import valkey
 from app.lib.auth_context import auth_user
 from app.middlewares.request_context_middleware import get_request
 from app.models.user_role import UserRole
@@ -50,7 +50,7 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
     Returns the rate limit headers.
     """
 
-    async with redis() as conn, conn.pipeline() as pipe:
+    async with valkey() as conn, conn.pipeline() as pipe:
         pipe.incrby(key, change)
         pipe.expire(key, 3600, nx=True)
         pipe.ttl(key)

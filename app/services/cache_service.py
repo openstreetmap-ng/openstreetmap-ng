@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from zstandard import ZstdCompressor, ZstdDecompressor
 
-from app.db import redis
+from app.db import valkey
 from app.lib.crypto import hash_bytes
 from app.lib.naturalsize import naturalsize
 from app.limits import (
@@ -38,10 +38,10 @@ class CacheService:
         If the value is not in the cache, call the async factory to generate it.
         """
 
-        redis_key = f'{context}:{cache_id.hex()}'
+        cache_key = f'{context}:{cache_id.hex()}'
 
-        async with redis() as conn:
-            value_stored: bytes | None = await conn.get(redis_key)
+        async with valkey() as conn:
+            value_stored: bytes | None = await conn.get(cache_key)
 
             if value_stored is not None:
                 # on cache hit, decompress the value if needed (first byte is compression marker)
@@ -58,12 +58,12 @@ class CacheService:
                     raise TypeError(f'Cache factory returned {type(value)!r}, expected bytes')
 
                 if len(value) >= CACHE_COMPRESS_MIN_SIZE:
-                    logging.debug('Compressing cache %r value of size %s', redis_key, naturalsize(len(value)))
+                    logging.debug('Compressing cache %r value of size %s', cache_key, naturalsize(len(value)))
                     value_stored = b'\xff' + _compress(value)
                 else:
                     value_stored = b'\x00' + value
 
-                await conn.set(redis_key, value_stored, ex=ttl, nx=True)
+                await conn.set(cache_key, value_stored, ex=ttl, nx=True)
 
         return CacheEntry(id=cache_id, value=value)
 
