@@ -40,7 +40,7 @@ class MessageRepository:
 
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(Message).where(
+                select(text('1')).where(
                     Message.from_user_id == user_id,
                     Message.from_hidden == false(),
                 )

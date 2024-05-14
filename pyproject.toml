@@ -30,6 +30,7 @@ markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "<1"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
+polars = "<1"
 pycryptodomex = "^3.20.0"
 pydantic = "^2.5.3"
 pyinstrument = "^4.6.1"

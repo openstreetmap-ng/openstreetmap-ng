@@ -1,4 +1,4 @@
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.orm import aliased
 
 from app.db import db_autocommit
@@ -35,7 +35,7 @@ class MigrationService:
                     .where(Element.changeset_id == Changeset.id)
                     .scalar_subquery(),
                     Changeset.size: select(func.count())
-                    .select_from(Element)
+                    .select_from(text('1'))
                     .where(Element.changeset_id == Changeset.id)
                     .scalar_subquery(),
                 }
@@ -51,12 +51,14 @@ class MigrationService:
             E = aliased(Element)  # noqa: N806
             stmt = update(Element).values(
                 {
-                    Element.superseded_at: select(func.min(E.created_at))
+                    Element.next_sequence_id: select(E.sequence_id)
                     .where(
                         E.type == Element.type,
                         E.id == Element.id,
                         E.version > Element.version,
                     )
+                    .order_by(E.version.asc())
+                    .limit(1)
                     .scalar_subquery()
                 }
             )

@@ -68,7 +68,7 @@ POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:pos
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
-VALKEY_URL = os.getenv('REDIS_URL', 'unix:///tmp/osm-valkey.sock?password=valkey&protocol=3')
+VALKEY_URL = os.getenv('VALKEY_URL', 'unix:///tmp/osm-valkey.sock?password=valkey&protocol=3')
 
 API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')

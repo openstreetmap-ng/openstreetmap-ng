@@ -51,6 +51,8 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         server_default=None,
     )
 
+    __table_args__ = ()
+
     # runtime
     comments: list['ChangesetComment'] | None = None
 

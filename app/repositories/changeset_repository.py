@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, null, select
+from sqlalchemy import func, null, select, text
 
 from app.db import db
 from app.lib.statement_context import apply_statement_context
@@ -94,5 +94,5 @@ class ChangesetRepository:
         Count changesets by user id.
         """
         async with db() as session:
-            stmt = select(func.count()).select_from(select(Changeset).where(Changeset.user_id == user_id))
+            stmt = select(func.count()).select_from(select(text('1')).where(Changeset.user_id == user_id))
             return await session.scalar(stmt)

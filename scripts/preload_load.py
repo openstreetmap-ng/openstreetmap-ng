@@ -1,8 +1,8 @@
 import csv
+import gc
 import pathlib
 
 import anyio
-from anyio import create_task_group
 from sqlalchemy import Index, select, text
 
 from app.config import PRELOAD_DIR
@@ -13,13 +13,18 @@ from app.models.db.element import Element
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
 
+user_csv_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
+changeset_csv_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
+element_csv_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
 
-async def main():
-    input_user_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
-    input_changeset_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
-    input_element_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
+# freeze all gc objects before starting for improved performance
+gc.collect()
+gc.freeze()
+gc.disable()
 
-    for p in (input_user_path, input_changeset_path, input_element_path):
+
+async def main() -> None:
+    for p in (user_csv_path, changeset_csv_path, element_csv_path):
         if not p.is_file():
             raise FileNotFoundError(f'File not found: {p}')
 
@@ -29,7 +34,7 @@ async def main():
                 print('Aborted')
                 return
 
-        # copy requires truncate
+        # copy freeze requires truncate
         print('Truncating...')
         tables = (Element, Changeset, User)
         table_names = ', '.join(f'"{t.__tablename__}"' for t in tables)
@@ -54,40 +59,40 @@ async def main():
             await session.execute(text(f'DROP INDEX {index.name}'))
 
         print('Populating user table...')
-        with input_user_path.open(newline='') as f:
+        with user_csv_path.open(newline='') as f:
             columns = next(iter(csv.reader(f)))
             columns = tuple(f'"{c}"' for c in columns)
 
         await session.execute(
             text(
                 f'COPY "{User.__tablename__}" ({", ".join(columns)}) '
-                f"FROM '{input_user_path.absolute()}' "
+                f"FROM '{user_csv_path.absolute()}' "
                 f'(FORMAT CSV, FREEZE, HEADER TRUE)'
             ),
         )
 
         print('Populating changeset table...')
-        with input_changeset_path.open(newline='') as f:
+        with changeset_csv_path.open(newline='') as f:
             columns = next(iter(csv.reader(f)))
             columns = tuple(f'"{c}"' for c in columns)
 
         await session.execute(
             text(
                 f'COPY "{Changeset.__tablename__}" ({", ".join(columns)}) '
-                f"FROM '{input_changeset_path.absolute()}' "
+                f"FROM '{changeset_csv_path.absolute()}' "
                 f'(FORMAT CSV, FREEZE, HEADER TRUE)'
             ),
         )
 
         print('Populating element table...')
-        with input_element_path.open(newline='') as f:
+        with element_csv_path.open(newline='') as f:
             columns = next(iter(csv.reader(f)))
             columns = tuple(f'"{c}"' for c in columns)
 
         await session.execute(
             text(
                 f'COPY "{Element.__tablename__}" ({", ".join(columns)}) '
-                f"FROM '{input_element_path.absolute()}' "
+                f"FROM '{element_csv_path.absolute()}' "
                 f'(FORMAT CSV, FREEZE, HEADER TRUE)'
             ),
         )
@@ -102,14 +107,8 @@ async def main():
     print('Updating statistics')
     await db_update_stats()
 
-    print('Fixing data consistency...')
-    async with create_task_group() as tg:
-        tg.start_soon(MigrationService.fix_sequence_counters)
-        tg.start_soon(MigrationService.fix_changeset_table)
-        tg.start_soon(MigrationService.fix_element_table)
-
-    print('Updating statistics')
-    await db_update_stats()
+    print('Fixing database consistency')
+    await MigrationService.fix_sequence_counters()
 
 
 if __name__ == '__main__':

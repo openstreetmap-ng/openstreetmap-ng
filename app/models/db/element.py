@@ -35,8 +35,8 @@ class Element(Base.NoID):
         nullable=False,
         server_default=func.statement_timestamp(),
     )
-    superseded_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(True),
+    next_sequence_id: Mapped[int | None] = mapped_column(
+        BigInteger,
         init=False,
         nullable=True,
         server_default=None,
@@ -44,7 +44,9 @@ class Element(Base.NoID):
 
     __table_args__ = (
         PrimaryKeyConstraint(type, id, version, name='element_pkey'),
-        Index('element_changeset_id_idx', changeset_id),
+        Index('element_current_idx', type, id, next_sequence_id, sequence_id),
+        Index('element_sequence_id_idx', sequence_id, unique=True),
+        Index('element_changeset_id_idx', changeset_id, postgresql_using='hash'),
         Index('element_members_idx', members, postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'}),
     )
 

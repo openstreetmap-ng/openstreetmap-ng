@@ -51,7 +51,7 @@ async def run_async_migrations() -> None:
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()
-    await db_update_stats(vacuum=True)
+    await db_update_stats()
 
 
 def run_migrations_online() -> None:
