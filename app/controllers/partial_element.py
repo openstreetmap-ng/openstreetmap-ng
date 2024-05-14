@@ -189,7 +189,7 @@ async def get_history(
 
             # if the element was superseded, get data just before
             if element.next_sequence_id is not None:
-                at_sequence_id_ = element.sequence_id - 1
+                at_sequence_id_ = element.next_sequence_id - 1
 
             # forward sequence if element was created after (very small chance)
             elif element.sequence_id > at_sequence_id_:

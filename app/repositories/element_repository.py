@@ -137,7 +137,6 @@ class ElementRepository:
             stmt = apply_statement_context(stmt)
             where_and = [
                 Element.sequence_id <= at_sequence_id,
-                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
                 Element.type == element_ref.type,
                 Element.id == element_ref.id,
             ]
