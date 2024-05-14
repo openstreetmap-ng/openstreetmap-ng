@@ -304,11 +304,12 @@ let
 
     # -- Preload
     (writeShellScriptBin "preload-clean" "rm -rf data/preload")
-    (writeShellScriptBin "preload-convert" "python scripts/preload_convert.py")
-    (writeShellScriptBin "preload-compress" ''
+    (writeShellScriptBin "preload-convert" ''
       set -e
+      python scripts/preload_convert.py
       for file in data/preload/*.csv; do
         zstd \
+          --rm \
           --force -19 \
           --threads "$(( $(nproc) * 2 ))" \
           "$file"
@@ -330,16 +331,6 @@ let
           --location \
           "https://files.monicz.dev/openstreetmap-ng/preload/$name.csv.zst" \
           -o "data/preload/$name.csv.zst"
-
-        echo "Decompressing"
-        zstd \
-          --force \
-          --decompress \
-          --rm \
-          "data/preload/$name.csv.zst" \
-          -o "data/preload/$name.csv.tmp"
-
-        mv "data/preload/$name.csv.tmp" "$final_file"
       done
     '')
     (writeShellScriptBin "preload-load" "python scripts/preload_load.py")

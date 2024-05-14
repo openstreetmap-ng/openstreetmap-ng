@@ -248,6 +248,7 @@ def write_user_csv() -> None:
     df: pl.LazyFrame = pl.scan_parquet(data_parquet_path)
     df = df.select('user_id', 'display_name').unique()
     df = df.rename({'user_id': 'id'})
+    df = df.drop_nulls('id')
     df = df.with_columns(
         pl.concat_str('id', pl.lit('@localhost.invalid')).alias('email'),
         pl.lit('x').alias('password_hashed'),
@@ -265,7 +266,8 @@ def write_user_csv() -> None:
 def write_changeset_csv() -> None:
     df = pl.scan_parquet(data_parquet_path)
     df = df.select('changeset_id', 'created_at', 'user_id')
-    df = df.group_by('changeset_id').agg(
+    df = df.rename({'changeset_id': 'id'})
+    df = df.group_by('id').agg(
         pl.first('user_id'),
         pl.max('created_at').alias('closed_at'),
         pl.len().alias('size'),
