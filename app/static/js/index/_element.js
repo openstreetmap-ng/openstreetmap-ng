@@ -65,9 +65,9 @@ export const initializeElementContent = (map, container) => {
     // Get params
     const params = JSON.parse(container.dataset.params)
     const paramsType = params.type
-    const listPartOf = params.lists.partOf
+    const listPartOf = params.lists.part_of
     const listElements = params.lists.elements
-    const fullData = params.fullData
+    const fullData = params.full_data
 
     if (locationButton) {
         // On location click, pan the map

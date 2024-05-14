@@ -7,11 +7,13 @@ from datetime import datetime
 from anyio import create_task_group
 from sqlalchemy import and_, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import load_only
 
 from app.db import db_autocommit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.statement_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -82,8 +84,9 @@ class OptimisticDiffApply:
         """
         Check the time integrity of the database.
         """
+        with options_context(load_only(Element.id, Element.type, Element.created_at)):
+            element = await ElementRepository.find_one_latest()
 
-        element = await ElementRepository.find_one_latest()
         if (element is not None) and element.created_at > self._now:
             logging.error(
                 'Element %r/%r was created in the future: %r > %r',
@@ -101,7 +104,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is not.
         """
 
-        many_latest = await ElementRepository.get_many_by_element_refs((element.element_ref,), limit=1)
+        many_latest = await ElementRepository.get_many_by_refs((element.element_ref,), limit=1)
 
         if not many_latest:
             raise ValueError(f'Element {element.element_ref} does not exist')
@@ -120,12 +123,8 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if they are.
         """
 
-        if parents := await ElementRepository.get_many_parents_by_element_refs(
-            element_refs,
-            after_sequence_id=after,
-            limit=1,
-        ):
-            raise OptimisticDiffError(f'Element is referenced by {parents[0].element_ref}')
+        if not await ElementRepository.is_unreferenced(element_refs, after_sequence_id=after):
+            raise OptimisticDiffError(f'Element is referenced by after {after}')
 
     async def _update_changesets(
         self,
@@ -233,7 +232,7 @@ class OptimisticDiffApply:
         started_type_tasks: set[ElementType] = set()
 
         async def type_next_id_task(type: ElementType) -> None:
-            last_id_by_type = await ElementRepository.get_last_id_by_type(type)
+            last_id_by_type = await ElementRepository.get_current_id_by_type(type)
             type_next_id_map[type] = last_id_by_type + 1
 
         async with create_task_group() as tg:

@@ -1,6 +1,4 @@
-import datetime
 from collections.abc import Sequence
-from datetime import timedelta
 from typing import Annotated
 
 from anyio import create_task_group
@@ -10,7 +8,6 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 
 from app.format07 import Format07
-from app.lib.date_utils import utcnow
 from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
 from app.lib.feature_name import feature_name
 from app.lib.render_response import render_response
@@ -30,7 +27,7 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/api/partial/element')
 
 
-async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
+async def _get_element_data(element: Element, at_sequence_id: int) -> dict:
     list_parents: Sequence[ElementMemberEntry] = ()
     full_data: Sequence[Element] = ()
     list_elements: Sequence[ElementMemberEntry] = ()
@@ -39,9 +36,9 @@ async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
 
         async def parents_task():
             nonlocal list_parents
-            parents = await ElementRepository.get_many_parents_by_element_refs(
+            parents = await ElementRepository.get_many_parents_by_refs(
                 (element.element_ref,),
-                point_in_time=point_in_time,
+                at_sequence_id=at_sequence_id,
                 limit=None,
             )
             list_parents = format_element_parents_list(element.element_ref, parents)
@@ -50,9 +47,9 @@ async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
             nonlocal full_data, list_elements
             with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
                 members_element_refs = frozenset(member.element_ref for member in element.members)
-                members_elements = await ElementRepository.get_many_by_element_refs(
+                members_elements = await ElementRepository.get_many_by_refs(
                     members_element_refs,
-                    point_in_time=point_in_time,
+                    at_sequence_id=at_sequence_id,
                     recurse_ways=True,
                     limit=None,
                 )
@@ -75,7 +72,7 @@ async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
         comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
 
     prev_version = element.version - 1 if element.version > 1 else None
-    next_version = element.version + 1 if (element.superseded_at is not None) else None
+    next_version = element.version + 1 if (element.next_sequence_id is not None) else None
     name = feature_name(element.tags)
     tags = tags_format(element.tags)
 
@@ -93,9 +90,9 @@ async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
                 'type': element.type,
                 'id': element.id,
                 'version': element.version,
-                'fullData': Format07.encode_elements(full_data),
+                'full_data': Format07.encode_elements(full_data),
                 'lists': {
-                    'partOf': list_parents,
+                    'part_of': list_parents,
                     'elements': list_elements,
                 },
             }
@@ -105,13 +102,13 @@ async def _get_element_data(element: Element, point_in_time: datetime) -> dict:
 
 @router.get('/{type}/{id:int}')
 async def get_latest(type: ElementType, id: PositiveInt):
-    point_in_time = utcnow()
+    at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_many_by_element_refs(
+        elements = await ElementRepository.get_many_by_refs(
             (ref,),
-            point_in_time=point_in_time,
+            at_sequence_id=at_sequence_id,
             limit=1,
         )
         element = elements[0] if elements else None
@@ -123,16 +120,16 @@ async def get_latest(type: ElementType, id: PositiveInt):
         )
 
     # return error if element is no longer latest (small chance race condition)
-    if element.superseded_at is not None:
+    if element.next_sequence_id is not None:
         return Response(None, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    data = await _get_element_data(element, point_in_time)
+    data = await _get_element_data(element, at_sequence_id)
     return render_response('partial/element.jinja2', data)
 
 
 @router.get('/{type}/{id:int}/history/{version:int}')
 async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
-    point_in_time = utcnow()
+    at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     with options_context(joinedload(Element.changeset)):
         ref = VersionedElementRef(type, id, version)
@@ -146,15 +143,15 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
             {'type': type, 'id': id_text},
         )
 
-    # if the element was superseded, get the point in time just before
-    if element.superseded_at is not None:
-        point_in_time = element.superseded_at - timedelta(microseconds=1)
+    # if the element was superseded, get data just before
+    if element.next_sequence_id is not None:
+        at_sequence_id = element.next_sequence_id - 1
 
-    # forward point in time if element was created after (very small chance)
-    elif element.created_at > point_in_time:
-        point_in_time = element.created_at
+    # forward sequence if element was created after (very small chance)
+    elif element.sequence_id > at_sequence_id:
+        at_sequence_id = element.sequence_id
 
-    data = await _get_element_data(element, point_in_time)
+    data = await _get_element_data(element, at_sequence_id)
     return render_response('partial/element.jinja2', data)
 
 
@@ -164,22 +161,22 @@ async def get_history(
     id: PositiveInt,
     page: Annotated[PositiveInt, Query()] = 1,
 ):
-    point_in_time = utcnow()
+    at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    current_version = await ElementRepository.get_current_version_by_ref(ref, point_in_time=point_in_time)
+    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
     num_pages = (current_version + ELEMENT_HISTORY_PAGE_SIZE - 1) // ELEMENT_HISTORY_PAGE_SIZE
     from_inclusive = current_version - ELEMENT_HISTORY_PAGE_SIZE * (page - 1)
     to_exclusive = from_inclusive - ELEMENT_HISTORY_PAGE_SIZE
 
     with options_context(joinedload(Element.changeset)):
-        elements = await ElementRepository.get_versions_by_element_ref(
+        elements = await ElementRepository.get_versions_by_ref(
             ref,
-            point_in_time=point_in_time,
+            at_sequence_id=at_sequence_id,
             ascending=False,
-            after_version=to_exclusive,
-            before_version=from_inclusive + 1,
+            max_version=from_inclusive,
+            min_version=to_exclusive - 1,
             limit=ELEMENT_HISTORY_PAGE_SIZE,
         )
 
@@ -188,17 +185,17 @@ async def get_history(
     async with create_task_group() as tg:
 
         async def data_task(i: int, element: Element):
-            point_in_time_ = point_in_time
+            at_sequence_id_ = at_sequence_id
 
-            # if the element was superseded, get the point in time just before
-            if element.superseded_at is not None:
-                point_in_time_ = element.superseded_at - timedelta(microseconds=1)
+            # if the element was superseded, get data just before
+            if element.next_sequence_id is not None:
+                at_sequence_id_ = element.sequence_id - 1
 
-            # forward point in time if element was created after (very small chance)
-            elif element.created_at > point_in_time_:
-                point_in_time_ = element.created_at
+            # forward sequence if element was created after (very small chance)
+            elif element.sequence_id > at_sequence_id_:
+                at_sequence_id_ = element.sequence_id
 
-            element_data = await _get_element_data(element, point_in_time_)
+            element_data = await _get_element_data(element, at_sequence_id_)
             elements_data[i] = element_data
 
         for i, element in enumerate(elements):

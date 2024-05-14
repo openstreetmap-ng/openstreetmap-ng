@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, func
+from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, and_, func, true
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,12 +42,29 @@ class Element(Base.NoID):
         server_default=None,
     )
 
+    # splitting by type allows for faster parallel index rebuilds
+    # it also provides more detailed index statistics
     __table_args__ = (
         PrimaryKeyConstraint(type, id, version, name='element_pkey'),
-        Index('element_current_idx', type, id, next_sequence_id, sequence_id),
         Index('element_sequence_id_idx', sequence_id, unique=True),
-        Index('element_changeset_id_idx', changeset_id, postgresql_using='hash'),
-        Index('element_members_idx', members, postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'}),
+        Index('element_changeset_id_idx', changeset_id),
+        Index('element_current_node_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'node')),
+        Index('element_current_way_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'way')),
+        Index('element_current_relation_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'relation')),
+        Index(
+            'element_way_members_idx',
+            members,
+            postgresql_where=and_(type == 'way', visible == true()),
+            postgresql_using='gin',
+            postgresql_ops={'members': 'jsonb_path_ops'},
+        ),
+        Index(
+            'element_relation_members_idx',
+            members,
+            postgresql_where=and_(type == 'relation', visible == true()),
+            postgresql_using='gin',
+            postgresql_ops={'members': 'jsonb_path_ops'},
+        ),
     )
 
     @updating_cached_property('id')

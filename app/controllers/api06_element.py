@@ -67,9 +67,15 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}.xml')
     @router.get(f'/{type}/{{id:int}}.json')
     async def element_read_latest(id: PositiveInt):
+        at_sequence_id = await ElementRepository.get_current_sequence_id()
+
         with options_context(joinedload(Element.changeset)):
             ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_by_element_refs((ref,), limit=1)
+            elements = await ElementRepository.get_many_by_refs(
+                (ref,),
+                at_sequence_id=at_sequence_id,
+                limit=1,
+            )
             element = elements[0] if elements else None
 
         if element is None:
@@ -137,9 +143,15 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/history.xml')
     @router.get(f'/{type}/{{id:int}}/history.json')
     async def element_history(id: PositiveInt):
+        at_sequence_id = await ElementRepository.get_current_sequence_id()
+
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_versions_by_element_ref(element_ref, limit=None)
+            elements = await ElementRepository.get_versions_by_ref(
+                element_ref,
+                at_sequence_id=at_sequence_id,
+                limit=None,
+            )
 
         if not elements:
             raise_for().element_not_found(element_ref)
@@ -178,8 +190,14 @@ def _register_routes(type: ElementType):
             # return not found on parsing errors, why?, idk
             return Response(None, status.HTTP_404_NOT_FOUND)
 
+        at_sequence_id = await ElementRepository.get_current_sequence_id()
+
         with options_context(joinedload(Element.changeset)):
-            elements = await ElementRepository.find_many_by_refs(parsed_query, limit=None)
+            elements = await ElementRepository.find_many_by_any_refs(
+                parsed_query,
+                at_sequence_id=at_sequence_id,
+                limit=None,
+            )
 
         for element in elements:
             if element is None:
@@ -191,10 +209,13 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/relations.xml')
     @router.get(f'/{type}/{{id:int}}/relations.json')
     async def element_parent_relations(id: PositiveInt):
+        at_sequence_id = await ElementRepository.get_current_sequence_id()
+
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_parents_by_element_refs(
+            elements = await ElementRepository.get_many_parents_by_refs(
                 (element_ref,),
+                at_sequence_id=at_sequence_id,
                 parent_type='relation',
                 limit=None,
             )
@@ -204,9 +225,15 @@ def _register_routes(type: ElementType):
     @router.get(f'/{type}/{{id:int}}/full.xml')
     @router.get(f'/{type}/{{id:int}}/full.json')
     async def element_full(id: PositiveInt):
+        at_sequence_id = await ElementRepository.get_current_sequence_id()
+
         with options_context(joinedload(Element.changeset)):
             element_ref = ElementRef(type, id)
-            elements = await ElementRepository.get_many_by_element_refs((element_ref,), limit=1)
+            elements = await ElementRepository.get_many_by_refs(
+                (element_ref,),
+                at_sequence_id=at_sequence_id,
+                limit=1,
+            )
             element = elements[0] if elements else None
 
         if element is None:
@@ -216,8 +243,9 @@ def _register_routes(type: ElementType):
 
         with options_context(joinedload(Element.changeset)):
             members_element_refs = tuple(member.element_ref for member in element.members)
-            members_elements = await ElementRepository.get_many_by_element_refs(
+            members_elements = await ElementRepository.get_many_by_refs(
                 members_element_refs,
+                at_sequence_id=at_sequence_id,
                 recurse_ways=True,
                 limit=None,
             )
@@ -234,11 +262,15 @@ _register_routes('relation')
 @router.get('/node/{id:int}/ways.xml')
 @router.get('/node/{id:int}/ways.json')
 async def node_parent_ways(id: PositiveInt):
+    at_sequence_id = await ElementRepository.get_current_sequence_id()
+
     with options_context(joinedload(Element.changeset)):
         element_ref = ElementRef('node', id)
-        elements = await ElementRepository.get_many_parents_by_element_refs(
+        elements = await ElementRepository.get_many_parents_by_refs(
             (element_ref,),
+            at_sequence_id=at_sequence_id,
             parent_type='way',
             limit=None,
         )
+
     return Format06.encode_elements(elements)
