@@ -85,11 +85,13 @@ export const getElementHistoryController = (map) => {
                 const li = document.createElement("li")
                 li.classList.add("page-item")
 
-                const button = document.createElement("a")
-                button.classList.add("page-link")
-                button.textContent = i
-                button.href = `?page=${i}`
-                li.appendChild(button)
+                const anchor = document.createElement("a")
+                anchor.classList.add("page-link")
+                anchor.textContent = i
+                anchor.href = `?page=${i}`
+                if (distance === 1) anchor.rel = i < currentPage ? "prev" : "next"
+
+                li.appendChild(anchor)
 
                 if (i === currentPage) {
                     li.classList.add("active")

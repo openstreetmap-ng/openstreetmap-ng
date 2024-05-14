@@ -7,6 +7,7 @@ import sys
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
+from starlette.convertors import register_url_convertor
 from starlette.routing import Router
 from starlette_compress import CompressMiddleware
 
@@ -43,6 +44,7 @@ from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
+from app.validators.element_type import ElementTypeConvertor
 
 # register additional mimetypes
 mimetypes.init()
@@ -75,6 +77,8 @@ async def lifespan(_):
     async with EmailService():
         yield
 
+
+register_url_convertor('element_type', ElementTypeConvertor())
 
 main = FastAPI(title=NAME, lifespan=lifespan)
 

@@ -126,6 +126,11 @@ def worker(args: tuple[int, int, int]) -> None:
         else:
             point = None
 
+        if tag == 'node':
+            visible = point is not None
+        elif tag == 'way' or tag == 'relation':
+            visible = tags or members
+
         uid = attrib.get('uid')
         if uid is not None:
             user_id = int(uid)
@@ -140,7 +145,7 @@ def worker(args: tuple[int, int, int]) -> None:
                 tag,  # type
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
-                attrib.get('visible', 'true') == 'true',  # visible
+                visible,  # visible
                 JSON_ENCODE(tags).decode() if tags else '{}',  # tags
                 point,  # point
                 JSON_ENCODE(members).decode() if members else '[]',  # members

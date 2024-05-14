@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import "../_types.js"
 import { getOverlayLayerById } from "./_layers.js"
 import { renderObjects } from "./_object-render.js"
+import { getLatLngBoundsSize } from "./_utils.js"
 
 export const focusStyles = {
     changeset: {
@@ -101,9 +102,19 @@ export const focusManyMapObjects = (map, objects, options) => {
     // Focus on the layers if they are offscreen
     if (layers.length && (options?.fitBounds ?? true)) {
         const latLngBounds = layers.reduce((bounds, layer) => bounds.extend(getLayerBounds(layer)), L.latLngBounds())
-        if (!map.getBounds().contains(latLngBounds)) {
-            console.debug("Fitting map to", layers.length, "focus layers")
+        const mapBounds = map.getBounds()
+        if (!mapBounds.contains(latLngBounds)) {
+            console.debug("Fitting map to", layers.length, "focus layers (offscreen)")
             map.fitBounds(latLngBounds, { animate: false })
+        } else {
+            const latLngSize = getLatLngBoundsSize(latLngBounds)
+            const mapBoundsSize = getLatLngBoundsSize(mapBounds)
+            const proportion = latLngSize / mapBoundsSize
+            console.warn(proportion)
+            if (proportion > 0 && proportion < 0.00035) {
+                console.debug("Fitting map to", layers.length, "focus layers (small)")
+                map.fitBounds(latLngBounds, { animate: false })
+            }
         }
     }
 

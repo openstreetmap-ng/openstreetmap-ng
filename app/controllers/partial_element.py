@@ -100,7 +100,7 @@ async def _get_element_data(element: Element, at_sequence_id: int) -> dict:
     }
 
 
-@router.get('/{type}/{id:int}')
+@router.get('/{type:element_type}/{id:int}')
 async def get_latest(type: ElementType, id: PositiveInt):
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
@@ -127,7 +127,7 @@ async def get_latest(type: ElementType, id: PositiveInt):
     return render_response('partial/element.jinja2', data)
 
 
-@router.get('/{type}/{id:int}/history/{version:int}')
+@router.get('/{type:element_type}/{id:int}/history/{version:int}')
 async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
@@ -155,7 +155,7 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
     return render_response('partial/element.jinja2', data)
 
 
-@router.get('/{type}/{id:int}/history')
+@router.get('/{type:element_type}/{id:int}/history')
 async def get_history(
     type: ElementType,
     id: PositiveInt,
