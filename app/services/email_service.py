@@ -210,7 +210,7 @@ def _smtp_factory():
         hostname=SMTP_HOST,
         port=port,
         username=SMTP_USER,
-        password=SMTP_PASS.get_secret_value(),
+        password=SMTP_PASS,
         use_tls=use_tls,
         start_tls=start_tls,
     )

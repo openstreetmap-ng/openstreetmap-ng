@@ -7,7 +7,7 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
 
-from app.format07 import Format07
+from app.lib.element_leaflet_formatter import format_leaflet_elements
 from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
 from app.lib.feature_name import feature_name
 from app.lib.options_context import options_context
@@ -75,6 +75,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, parents: b
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None
     name = feature_name(element.tags)
     tags = tags_format(element.tags)
+    leaflet = format_leaflet_elements(full_data, detailed=False)
 
     return {
         'element': element,
@@ -90,13 +91,13 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, parents: b
                 'type': element.type,
                 'id': element.id,
                 'version': element.version,
-                'full_data': Format07.encode_elements(full_data),
                 'lists': {
                     'part_of': list_parents,
                     'elements': list_elements,
                 },
             }
         ).decode(),
+        'leaflet': JSON_ENCODE(leaflet).decode(),
     }
 
 

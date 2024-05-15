@@ -1,7 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
 import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
-import { parseElements } from "../_format07.js"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
@@ -50,6 +49,7 @@ export const getQueryFeaturesController = (map) => {
             const mainElementId = params.id
             const elements = params.elements
 
+            // TODO: leaflet elements
             const elementMap = parseElements(elements)
             const mainElement = elementMap[mainElementType].get(mainElementId)
 

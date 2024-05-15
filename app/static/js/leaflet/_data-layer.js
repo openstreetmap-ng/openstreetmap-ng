@@ -1,6 +1,5 @@
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config.js"
-import { parseElements } from "../_format07.js"
 import "../_types.js"
 import { routerNavigateStrict } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
@@ -89,7 +88,7 @@ export const configureDataLayer = (map) => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
 
-        fetch(`/api/0.7/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
+        fetch(`/api/web/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store", // request params are too volatile to cache
@@ -99,14 +98,7 @@ export const configureDataLayer = (map) => {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const data = await resp.json()
-                const elementMap = parseElements(data)
-                const elements = [
-                    ...elementMap.relation.values(),
-                    ...elementMap.way.values(),
-                    ...elementMap.node.values(),
-                ]
-
+                const elements = await resp.json()
                 const group = L.layerGroup()
                 const renderLayers = renderObjects(group, elements, dataStyles, { renderAreas: false })
 

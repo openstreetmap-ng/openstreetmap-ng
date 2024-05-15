@@ -10,32 +10,20 @@
  * @typedef {object} OSMNode
  * @property {"node"} type Object type
  * @property {number} id Object id
- * @property {number} version Object version
- * @property {Map<string, string>} tags Object tags
- * @property {number} lon Object longitude
- * @property {number} lat Object latitude
- * @property {string|undefined} role Optional member role
- * @property {boolean|undefined} interesting Optional interesting flag for the renderer
+ * @property {number[]} geom Object geometry [lon, lat]
  */
 
 /**
  * @typedef {object} OSMWay
  * @property {"way"} type Object type
  * @property {number} id Object id
- * @property {number} version Object version
- * @property {Map<string, string>} tags Object tags
- * @property {OSMNode[]} members Object members (nodes)
- * @property {string|undefined} role Optional member role
+ * @property {number[]} geom Object geometry [lon1, lat1, lon2, lat2, ...]
  */
 
 /**
  * @typedef {object} OSMRelation
  * @property {"relation"} type Object type
  * @property {number} id Object id
- * @property {number} version Object version
- * @property {Map<string, string>} tags Object tags
- * @property {OSMNode[]|OSMWay[]|OSMRelation[]} members Object members
- * @property {string|undefined} role Optional member role
  */
 
 /**
@@ -53,7 +41,6 @@
  * @typedef {object} OSMChangeset
  * @property {"changeset"} type Object type
  * @property {number} id Object id
- * @property {Map<string, string>} tags Object tags
  * @property {number[]|null} bounds Optional object bounds coordinates in the format [minLon, minLat, maxLon, maxLat]
 
 /**

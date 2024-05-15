@@ -2,44 +2,6 @@ import * as L from "leaflet"
 import "../_types.js"
 import { getMarkerIcon } from "./_utils.js"
 
-const areaTagsSet = new Set([
-    "area",
-    "building",
-    "leisure",
-    "tourism",
-    "ruins",
-    "historic",
-    "landuse",
-    "military",
-    "natural",
-    "sport",
-])
-
-const areaTagsPrefixes = ["area:"]
-
-/**
- * Check if the given way is considered an area
- * @param {OSMWay} way Way
- * @returns {boolean} True if the way is an area
- */
-const isWayArea = (way) => {
-    if (way.members.length <= 2) return false
-
-    const isClosedWay = way.members[0].id === way.members[way.members.length - 1].id
-    if (!isClosedWay) return false
-
-    for (const tagKey of way.tags.keys()) {
-        // Check exact matches
-        if (areaTagsSet.has(tagKey)) return true
-
-        // Check prefix matches
-        for (const prefix of areaTagsPrefixes) {
-            if (tagKey.startsWith(prefix)) return true
-        }
-    }
-
-    return false
-}
 
 /**
  * Add objects to the feature group layer
@@ -92,7 +54,8 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMNode} node
      */
     const processNode = (node) => {
-        const layer = L.circleMarker(L.latLng(node.lat, node.lon), styles.element)
+        const [lon, lat] = node.geom
+        const layer = L.circleMarker(L.latLng(lat, lon), styles.element)
         layer.object = node
         layers.push(layer)
     }
@@ -101,43 +64,25 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMWay} way
      */
     const processWay = (way) => {
-        const members = way.members
         const latLngs = []
-        for (const member of members) latLngs.push(L.latLng(member.lat, member.lon))
-        let layer
+        const geom = way.geom
 
-        if (renderAreas && isWayArea(way)) {
-            // is "area"
+        for (let i = 0; i < geom.length; i += 2) {
+            const lon = geom[i]
+            const lat = geom[i + 1]
+            latLngs.push(L.latLng(lat, lon))
+        }
+
+        let layer
+        if (renderAreas && way.area) {
             latLngs.pop() // remove last == first
             layer = L.polygon(latLngs, styles.element)
         } else {
-            // is way
             layer = L.polyline(latLngs, styles.element)
         }
 
         layer.object = way
         layers.push(layer)
-
-        for (const member of members) {
-            if (member.interesting ?? true) {
-                processNode(member)
-            }
-        }
-    }
-
-    /**
-     * @param {OSMRelation} relation
-     */
-    const processRelation = (relation) => {
-        for (const member of relation.members) {
-            if (member.type === "node") {
-                if (member.interesting ?? true) {
-                    processNode(member)
-                }
-            } else if (member.type === "way") {
-                processWay(member)
-            }
-        }
     }
 
     const processMap = {
@@ -145,13 +90,12 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
         note: processNote,
         node: processNode,
         way: processWay,
-        relation: processRelation,
     }
 
     for (const object of objects) {
         const fn = processMap[object.type]
         if (fn) fn(object)
-        else console.error("Unsupported feature type", object.type)
+        else console.error("Unsupported feature type", object)
     }
 
     // Render icons on top of the feature layers

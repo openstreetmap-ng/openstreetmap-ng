@@ -6,7 +6,6 @@ from hashlib import sha256
 from logging.config import dictConfig
 
 from anyio import Path
-from pydantic import SecretStr
 
 from app.lib.yarn_lock_version import yarn_lock_version
 
@@ -32,7 +31,7 @@ APP_URL = os.environ['APP_URL'].rstrip('/')
 SMTP_HOST = os.environ['SMTP_HOST']
 SMTP_PORT = int(os.environ['SMTP_PORT'])
 SMTP_USER = os.environ['SMTP_USER']
-SMTP_PASS = SecretStr(os.environ['SMTP_PASS'])
+SMTP_PASS = os.environ['SMTP_PASS']
 
 
 def _path(s: str, *, mkdir: bool = False) -> Path:
@@ -62,7 +61,6 @@ GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
 LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
-# TODO: SecretStr?
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@/postgres?host=/tmp/osm-postgres')
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))

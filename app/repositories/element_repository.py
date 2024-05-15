@@ -314,7 +314,7 @@ class ElementRepository:
         if not member_refs:
             return ()
 
-        member_refs_t = tuple[tuple[ElementType, int], ...] = (
+        member_refs_t: tuple[tuple[ElementType, int], ...] = (
             (member_ref.type, member_ref.id)  #
             for member_ref in member_refs
         )
@@ -347,7 +347,7 @@ class ElementRepository:
                     else (
                         Element.sequence_id <= at_sequence_id_shortlived,
                         or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id_shortlived),
-                    ),
+                    )
                 ),
                 Element.visible == true(),
             ]

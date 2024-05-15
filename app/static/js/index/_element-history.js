@@ -26,11 +26,9 @@ export const getElementHistoryController = (map) => {
         // if (!sidebarTitleElement.dataset.params) return
 
         const versionSections = sidebarContent.querySelectorAll(".version-section")
-        const versionElements = []
 
         for (const versionSection of versionSections) {
             const elements = initializeElementContent(map, versionSection)
-            versionElements.push(elements)
 
             // On mouse enter, focus elements
             const onVersionMouseEnter = () => {

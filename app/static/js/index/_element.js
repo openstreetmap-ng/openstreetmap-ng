@@ -1,6 +1,5 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { parseElements } from "../_format07.js"
 import { getPageTitle } from "../_title.js"
 import "../_types.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
@@ -67,7 +66,6 @@ export const initializeElementContent = (map, container) => {
     const paramsType = params.type
     const listPartOf = params.lists.part_of
     const listElements = params.lists.elements
-    const fullData = params.full_data
 
     if (locationButton) {
         // On location click, pan the map
@@ -97,17 +95,7 @@ export const initializeElementContent = (map, container) => {
         renderElements(elementsContainer, listElements, isWay)
     }
 
-    const elementMap = parseElements(fullData)
-    const elements = [
-        ...elementMap.relation.values(),
-        ...elementMap.way.values(),
-    ]
-
-    for (const node of elementMap.node.values()) {
-        if (node.interesting) elements.push(node)
-    }
-
-    return elements
+    return JSON.parse(container.dataset.leaflet)
 }
 
 /**
