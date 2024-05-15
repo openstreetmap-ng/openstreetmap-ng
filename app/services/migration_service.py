@@ -1,6 +1,6 @@
 from sqlalchemy import func, select
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
@@ -12,7 +12,7 @@ class MigrationService:
         """
         Fix the sequence counters.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = select(func.setval('changeset_id_seq', func.max(Changeset.id)))
             await session.execute(stmt)
 

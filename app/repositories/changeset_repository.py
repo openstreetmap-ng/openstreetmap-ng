@@ -5,7 +5,7 @@ from shapely.ops import BaseGeometry
 from sqlalchemy import func, null, select, text
 
 from app.db import db
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 
 
@@ -61,8 +61,7 @@ class ChangesetRepository:
         """
         async with db() as session:
             stmt = select(Changeset)
-            stmt = apply_statement_context(stmt)
-
+            stmt = apply_options_context(stmt)
             where_and = []
 
             if changeset_ids:

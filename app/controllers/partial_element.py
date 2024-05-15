@@ -10,8 +10,8 @@ from starlette import status
 from app.format07 import Format07
 from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
 from app.lib.feature_name import feature_name
+from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.limits import ELEMENT_HISTORY_PAGE_SIZE
@@ -27,38 +27,38 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/api/partial/element')
 
 
-async def _get_element_data(element: Element, at_sequence_id: int) -> dict:
+async def _get_element_data(element: Element, at_sequence_id: int, *, parents: bool) -> dict:
     list_parents: Sequence[ElementMemberEntry] = ()
     full_data: Sequence[Element] = ()
     list_elements: Sequence[ElementMemberEntry] = ()
 
-    if element.visible:
+    async def parents_task():
+        nonlocal list_parents
+        parents = await ElementRepository.get_many_parents_by_refs(
+            (element.element_ref,),
+            at_sequence_id_shortlived=at_sequence_id,
+            limit=None,
+        )
+        list_parents = format_element_parents_list(element.element_ref, parents)
 
-        async def parents_task():
-            nonlocal list_parents
-            parents = await ElementRepository.get_many_parents_by_refs(
-                (element.element_ref,),
+    async def data_task():
+        nonlocal full_data, list_elements
+        with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
+            members_element_refs = frozenset(member.element_ref for member in element.members)
+            members_elements = await ElementRepository.get_many_by_refs(
+                members_element_refs,
                 at_sequence_id=at_sequence_id,
+                recurse_ways=True,
                 limit=None,
             )
-            list_parents = format_element_parents_list(element.element_ref, parents)
+        direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
+        full_data = (element, *members_elements)
+        list_elements = format_element_members_list(element.members, direct_members)
 
-        async def data_task():
-            nonlocal full_data, list_elements
-            with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
-                members_element_refs = frozenset(member.element_ref for member in element.members)
-                members_elements = await ElementRepository.get_many_by_refs(
-                    members_element_refs,
-                    at_sequence_id=at_sequence_id,
-                    recurse_ways=True,
-                    limit=None,
-                )
-            direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
-            full_data = (element, *members_elements)
-            list_elements = format_element_members_list(element.members, direct_members)
-
+    if element.visible:
         async with create_task_group() as tg:
-            tg.start_soon(parents_task)
+            if parents:
+                tg.start_soon(parents_task)
             if element.members:
                 tg.start_soon(data_task)
             else:
@@ -123,17 +123,22 @@ async def get_latest(type: ElementType, id: PositiveInt):
     if element.next_sequence_id is not None:
         return Response(None, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    data = await _get_element_data(element, at_sequence_id)
+    data = await _get_element_data(element, at_sequence_id, parents=True)
     return render_response('partial/element.jinja2', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
 async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
     at_sequence_id = await ElementRepository.get_current_sequence_id()
+    parents = True
 
     with options_context(joinedload(Element.changeset)):
         ref = VersionedElementRef(type, id, version)
-        elements = await ElementRepository.get_many_by_versioned_refs((ref,), limit=1)
+        elements = await ElementRepository.get_many_by_versioned_refs(
+            (ref,),
+            at_sequence_id=at_sequence_id,
+            limit=1,
+        )
         element = elements[0] if elements else None
 
     if element is None:
@@ -146,12 +151,9 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
     # if the element was superseded, get data just before
     if element.next_sequence_id is not None:
         at_sequence_id = element.next_sequence_id - 1
+        parents = False
 
-    # forward sequence if element was created after (very small chance)
-    elif element.sequence_id > at_sequence_id:
-        at_sequence_id = element.sequence_id
-
-    data = await _get_element_data(element, at_sequence_id)
+    data = await _get_element_data(element, at_sequence_id, parents=parents)
     return render_response('partial/element.jinja2', data)
 
 
@@ -182,22 +184,19 @@ async def get_history(
 
     elements_data = [None] * len(elements)
 
+    async def data_task(i: int, element: Element):
+        at_sequence_id_ = at_sequence_id
+        parents = True
+
+        # if the element was superseded, get data just before
+        if element.next_sequence_id is not None:
+            at_sequence_id_ = element.next_sequence_id - 1
+            parents = False
+
+        element_data = await _get_element_data(element, at_sequence_id_, parents=parents)
+        elements_data[i] = element_data
+
     async with create_task_group() as tg:
-
-        async def data_task(i: int, element: Element):
-            at_sequence_id_ = at_sequence_id
-
-            # if the element was superseded, get data just before
-            if element.next_sequence_id is not None:
-                at_sequence_id_ = element.next_sequence_id - 1
-
-            # forward sequence if element was created after (very small chance)
-            elif element.sequence_id > at_sequence_id_:
-                at_sequence_id_ = element.sequence_id
-
-            element_data = await _get_element_data(element, at_sequence_id_)
-            elements_data[i] = element_data
-
         for i, element in enumerate(elements):
             tg.start_soon(data_task, i, element)
 

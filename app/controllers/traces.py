@@ -8,8 +8,8 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
+from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.lib.statement_context import options_context
 from app.limits import TRACE_TAG_MAX_LENGTH
 from app.models.db.trace_ import Trace
 from app.models.db.user import User

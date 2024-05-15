@@ -4,7 +4,7 @@ from anyio import create_task_group
 from sqlalchemy import select, union_all
 
 from app.db import db
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 
@@ -36,7 +36,7 @@ class ChangesetCommentRepository:
                     )
                     .order_by(ChangesetComment.created_at.desc())
                 )
-                stmt_ = apply_statement_context(stmt_)
+                stmt_ = apply_options_context(stmt_)
 
                 if limit_per_changeset is not None:
                     stmt_ = stmt_.limit(limit_per_changeset)
@@ -48,7 +48,7 @@ class ChangesetCommentRepository:
                 .where(ChangesetComment.id.in_(union_all(*stmts).subquery().select()))
                 .order_by(ChangesetComment.created_at.asc())
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             comments: Sequence[ChangesetComment] = (await session.scalars(stmt)).all()
 

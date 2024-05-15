@@ -7,8 +7,8 @@ from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
 from app.lib.element_list_formatter import ElementType, format_changeset_elements_list
+from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.lib.statement_context import options_context
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.changeset_comment import ChangesetComment
@@ -41,7 +41,7 @@ async def get_changeset(id: PositiveInt):
 
     async def elements_task():
         nonlocal elements
-        elements_ = await ElementRepository.get_many_by_changeset(id, sort_by_id=True)
+        elements_ = await ElementRepository.get_many_by_changeset(id, sort_by='id')
         elements = await format_changeset_elements_list(elements_)
 
     async def comments_task():

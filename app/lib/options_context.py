@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TypeVar
 
-_options_context = ContextVar('StatementContext_Options')
+_options_context = ContextVar('OptionsContext')
 
 T = TypeVar('T')
 
@@ -21,9 +21,9 @@ def options_context(*options):
         _options_context.reset(token)
 
 
-def apply_statement_context(stmt: T) -> T:
+def apply_options_context(stmt: T) -> T:
     """
-    Apply statement post-processing context.
+    Apply options context.
     """
     options = _options_context.get(None)
     if options is not None:

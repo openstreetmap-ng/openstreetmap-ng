@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import func, select
 from sqlalchemy.orm import load_only
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
@@ -18,7 +18,7 @@ class ChangesetService:
         """
         user_id = auth_user().id
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             changeset = Changeset(
                 user_id=user_id,
                 tags=tags,
@@ -42,7 +42,7 @@ class ChangesetService:
         """
         Update changeset tags.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(Changeset)
                 .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))
@@ -65,7 +65,7 @@ class ChangesetService:
         """
         Close a changeset.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(Changeset)
                 .options(load_only(Changeset.id, Changeset.user_id, Changeset.closed_at))

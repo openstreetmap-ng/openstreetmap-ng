@@ -1,7 +1,7 @@
 from shapely import Point
 from sqlalchemy import func, select
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.middlewares.request_context_middleware import get_request_ip
@@ -24,7 +24,7 @@ class NoteService:
             user_id = None
             user_ip = get_request_ip()
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             note = Note(point=point)
             session.add(note)
             await session.flush()
@@ -51,7 +51,7 @@ class NoteService:
 
         user = auth_user()
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(Note)
                 .where(

@@ -1,7 +1,7 @@
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
@@ -16,7 +16,7 @@ class ChangesetCommentService:
         Subscribe current user to changeset discussion.
         """
         try:
-            async with db_autocommit() as session:
+            async with db_commit() as session:
                 session.add(
                     ChangesetSubscription(
                         user_id=auth_user().id,
@@ -33,7 +33,7 @@ class ChangesetCommentService:
         """
         Unsubscribe current user from changeset discussion.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = delete(ChangesetSubscription).where(
                 ChangesetSubscription.user_id == auth_user().id,
                 ChangesetSubscription.changeset_id == changeset_id,
@@ -47,7 +47,7 @@ class ChangesetCommentService:
         """
         Comment on a changeset.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id).with_for_update()
             changeset = await session.scalar(stmt)
             if changeset is None:
@@ -70,7 +70,7 @@ class ChangesetCommentService:
 
         Returns the parent changeset id.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
             comment = await session.scalar(stmt)
             if comment is None:

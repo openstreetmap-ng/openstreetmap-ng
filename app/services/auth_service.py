@@ -7,7 +7,7 @@ from fastapi import Request
 from sqlalchemy import delete, update
 
 from app.config import SECRET, TEST_ENV
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
@@ -154,7 +154,7 @@ class AuthService:
             if ph.rehash_needed:
                 new_hash = ph.hash(password)
 
-                async with db_autocommit() as session:
+                async with db_commit() as session:
                     stmt = (
                         update(User)
                         .where(User.id == user.id, User.password_hashed == user.password_hashed)
@@ -258,7 +258,7 @@ class AuthService:
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             token = UserTokenSession(
                 user_id=user_id,
                 token_hashed=token_hashed,
@@ -277,7 +277,7 @@ class AuthService:
         Destroy a user session token.
         """
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = delete(UserTokenSession).where(UserTokenSession.id == token_struct.id)
 
             if (await session.execute(stmt)).rowcount != 1:

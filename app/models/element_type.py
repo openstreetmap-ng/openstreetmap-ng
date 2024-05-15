@@ -12,8 +12,7 @@ def element_type(s: str) -> ElementType:
     >>> element_type('w123')
     'way'
     """
-
-    if len(s) == 0:
+    if len(s) == 0:  # TODO: cython check
         raise ValueError('Element type cannot be empty')
 
     c = s[0]

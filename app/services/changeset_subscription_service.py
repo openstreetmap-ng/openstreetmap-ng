@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.models.db.changeset_subscription import ChangesetSubscription
 
@@ -17,7 +17,7 @@ class ChangesetSubscriptionService:
         user_id = auth_user().id
         logging.debug('Subscribing user %d to changeset %d', user_id, changeset_id)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 insert(ChangesetSubscription)
                 .values(
@@ -41,7 +41,7 @@ class ChangesetSubscriptionService:
         user_id = auth_user().id
         logging.debug('Unsubscribing user %d from changeset %d', user_id, changeset_id)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = delete(ChangesetSubscription).where(
                 ChangesetSubscription.changeset_id == changeset_id,
                 ChangesetSubscription.user_id == user_id,

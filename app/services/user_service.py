@@ -3,7 +3,7 @@ import logging
 from fastapi import UploadFile
 from sqlalchemy import func
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.locale import is_valid_locale
 from app.lib.message_collector import MessageCollector
@@ -51,7 +51,7 @@ class UserService:
         Update user's about me.
         """
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             user = await session.get(User, auth_user().id, with_for_update=True)
 
             if user.description != description:
@@ -78,7 +78,7 @@ class UserService:
             avatar_id = None
 
         # update user data
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             user = await session.get(User, current_user.id, with_for_update=True)
             old_avatar_id = user.avatar_id
             user.avatar_type = avatar_type
@@ -111,7 +111,7 @@ class UserService:
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
         # update user data
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             user = await session.get(User, user.id, with_for_update=True)
             user.display_name = display_name
             user.editor = editor
@@ -171,7 +171,7 @@ class UserService:
         password_hashed = password_hasher.hash(new_password)
 
         # update user data
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             user = await session.get(User, user.id, with_for_update=True)
             user.password_hashed = password_hashed
             user.password_changed_at = func.statement_timestamp()

@@ -7,7 +7,7 @@ from sqlalchemy import func, select, union_all
 
 from app.db import db
 from app.lib.mercator import mercator
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 
@@ -26,7 +26,7 @@ class TracePointRepository:
                 # this order_by is important for proper formatting
                 .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
 
     @staticmethod
@@ -52,7 +52,7 @@ class TracePointRepository:
                     TracePoint.captured_at.asc(),
                 )
             )
-            stmt1 = apply_statement_context(stmt1)
+            stmt1 = apply_options_context(stmt1)
             stmt2 = (
                 select(TracePoint)
                 .where(
@@ -63,7 +63,7 @@ class TracePointRepository:
                     TracePoint.point.asc(),
                 )
             )
-            stmt2 = apply_statement_context(stmt2)
+            stmt2 = apply_options_context(stmt2)
             stmt = stmt1.union(stmt2)
             # TODO: this may require a correction
 

@@ -1,6 +1,6 @@
 from sqlalchemy import delete, update
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -24,7 +24,7 @@ class UserTokenAccountConfirmService:
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             token = UserTokenAccountConfirm(
                 user_id=auth_user().id,
                 token_hashed=token_hashed,
@@ -46,7 +46,7 @@ class UserTokenAccountConfirmService:
         if token is None:
             raise_for().bad_user_token_struct()
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             # prevent timing attacks
             await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
 

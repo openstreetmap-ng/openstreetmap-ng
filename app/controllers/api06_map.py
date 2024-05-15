@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 from app.format06 import Format06
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.lib.xmltodict import get_xattr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.changeset import Changeset
@@ -27,8 +27,6 @@ async def map_read(
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 
-    at_sequence_id = await ElementRepository.get_current_sequence_id()
-
     with options_context(
         joinedload(Element.changeset)
         .load_only(Changeset.user_id)
@@ -37,7 +35,6 @@ async def map_read(
     ):
         elements = await ElementRepository.find_many_by_geom(
             geometry,
-            at_sequence_id=at_sequence_id,
             nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
             legacy_nodes_limit=True,
         )

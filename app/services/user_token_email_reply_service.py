@@ -1,5 +1,5 @@
 from app.config import SMTP_MESSAGES_FROM_HOST
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
@@ -23,7 +23,7 @@ async def _create_token(replying_user_id: int, mail_source: MailSource) -> UserT
     token_bytes = buffered_randbytes(32)
     token_hashed = hash_bytes(token_bytes, context=None)
 
-    async with db_autocommit() as session:
+    async with db_commit() as session:
         token = UserTokenEmailReply(
             user_id=replying_user_id,
             token_hashed=token_hashed,

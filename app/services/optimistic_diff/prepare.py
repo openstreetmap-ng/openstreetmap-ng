@@ -13,7 +13,7 @@ from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef

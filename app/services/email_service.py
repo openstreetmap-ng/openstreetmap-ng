@@ -18,7 +18,7 @@ from app.config import (
     SMTP_PORT,
     SMTP_USER,
 )
-from app.db import db, db_autocommit
+from app.db import db, db_commit
 from app.lib.date_utils import utcnow
 from app.lib.jinja_env import render
 from app.lib.translation import primary_translation_language, translation_context
@@ -73,7 +73,7 @@ class EmailService:
                 },
             )
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             mail = Mail(
                 source=source,
                 from_user_id=from_user.id if (from_user is not None) else None,

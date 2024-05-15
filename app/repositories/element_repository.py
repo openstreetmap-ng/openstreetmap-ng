@@ -1,14 +1,16 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
+from typing import Literal
 
+import cython
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
 from sqlalchemy import and_, func, null, or_, select, text, true
 
 from app.db import db
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -17,21 +19,9 @@ from app.models.element_type import ElementType
 
 class ElementRepository:
     @staticmethod
-    async def get_current_id_by_type(type: ElementType) -> int:
-        """
-        Find the last id for the given type.
-
-        Returns 0 if no elements exist for the given type.
-        """
-        async with db() as session:
-            stmt = select(func.max(Element.id)).where(Element.type == type)
-            element_id = await session.scalar(stmt)
-            return element_id if (element_id is not None) else 0
-
-    @staticmethod
     async def get_current_sequence_id() -> int:
         """
-        Find the current sequence id.
+        Get the current sequence id.
 
         Returns 0 if no elements exist.
         """
@@ -41,32 +31,32 @@ class ElementRepository:
             return sequence_id if (sequence_id is not None) else 0
 
     @staticmethod
+    async def get_current_id_by_type(type: ElementType) -> int:
+        """
+        Get the last id for the given element type.
+
+        Returns 0 if no elements exist with the given type.
+        """
+        async with db() as session:
+            stmt = select(func.max(Element.id)).where(Element.type == type)
+            element_id = await session.scalar(stmt)
+            return element_id if (element_id is not None) else 0
+
+    @staticmethod
     async def find_one_latest() -> Element | None:
         """
         Find the latest element (one with the highest sequence_id).
         """
         async with db() as session:
             stmt = select(Element).order_by(Element.sequence_id.desc()).limit(1)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return await session.scalar(stmt)
-
-    @staticmethod
-    async def is_latest(versioned_ref: VersionedElementRef) -> bool:
-        """
-        Check if the given versioned ref is the latest version of the element.
-        """
-        async with db() as session:
-            stmt = select(text('1')).where(
-                Element.type == versioned_ref.type,
-                Element.id == versioned_ref.id,
-                Element.version > versioned_ref.version,
-            )
-            return await session.scalar(stmt) is None
 
     @staticmethod
     async def get_many_by_versioned_refs(
         versioned_refs: Sequence[VersionedElementRef],
         *,
+        at_sequence_id: int | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
         """
@@ -80,6 +70,7 @@ class ElementRepository:
 
         async with db() as session:
             stmt = select(Element).where(
+                *((Element.sequence_id <= at_sequence_id,) if (at_sequence_id is not None) else ()),
                 or_(
                     *(
                         and_(
@@ -89,9 +80,9 @@ class ElementRepository:
                         )
                         for versioned_ref in versioned_refs
                     )
-                )
+                ),
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -102,7 +93,7 @@ class ElementRepository:
     async def get_current_version_by_ref(
         element_ref: ElementRef,
         *,
-        at_sequence_id: int,
+        at_sequence_id: int | None = None,
     ) -> int:
         """
         Get the current version of the element by the given element ref.
@@ -111,11 +102,20 @@ class ElementRepository:
         """
         async with db() as session:
             stmt = select(func.max(Element.version)).where(
-                Element.sequence_id <= at_sequence_id,
-                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                *(
+                    # this is more efficient than (Element.sequence_id <= at_sequence_id)
+                    # because it utilizes the index
+                    (Element.next_sequence_id == null(),)
+                    if at_sequence_id is None
+                    else (
+                        Element.sequence_id <= at_sequence_id,
+                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                    )
+                ),
                 Element.type == element_ref.type,
                 Element.id == element_ref.id,
             )
+
             version = await session.scalar(stmt)
             return version if (version is not None) else 0
 
@@ -123,7 +123,7 @@ class ElementRepository:
     async def get_versions_by_ref(
         element_ref: ElementRef,
         *,
-        at_sequence_id: int,
+        at_sequence_id: int | None = None,
         ascending: bool = True,
         max_version: int | None = None,
         min_version: int | None = None,
@@ -134,9 +134,9 @@ class ElementRepository:
         """
         async with db() as session:
             stmt = select(Element)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             where_and = [
-                Element.sequence_id <= at_sequence_id,
+                *((Element.sequence_id <= at_sequence_id,) if (at_sequence_id is not None) else ()),
                 Element.type == element_ref.type,
                 Element.id == element_ref.id,
             ]
@@ -162,7 +162,7 @@ class ElementRepository:
     async def get_many_by_refs(
         element_refs: Sequence[ElementRef],
         *,
-        at_sequence_id: int,
+        at_sequence_id: int | None = None,
         recurse_ways: bool = False,
         limit: int | None,
     ) -> Sequence[Element]:
@@ -182,14 +182,22 @@ class ElementRepository:
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
 
+        where_at_sequence_id = (
+            (Element.next_sequence_id == null(),)
+            if at_sequence_id is None
+            else (
+                Element.sequence_id <= at_sequence_id,
+                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+            )
+        )
+
         async with db() as session:
             recurse_way_ids = type_id_map.get('way', ()) if recurse_ways else ()
             if recurse_way_ids:
                 stmt = (
                     select(func.jsonb_path_query(Element.members, text("'$[*].id'")))
                     .where(
-                        Element.sequence_id <= at_sequence_id,
-                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                        *where_at_sequence_id,
                         Element.type == 'way',
                         Element.id.in_(text(','.join(str(id) for id in recurse_way_ids))),
                     )
@@ -200,8 +208,7 @@ class ElementRepository:
                 logging.debug('Found %d nodes for %d recurse ways', len(node_ids), len(recurse_way_ids))
 
             stmt = select(Element).where(
-                Element.sequence_id <= at_sequence_id,
-                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                *where_at_sequence_id,
                 or_(
                     *(
                         and_(
@@ -212,7 +219,7 @@ class ElementRepository:
                     )
                 ),
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -223,7 +230,7 @@ class ElementRepository:
     async def find_many_by_any_refs(
         refs: Sequence[VersionedElementRef | ElementRef],
         *,
-        at_sequence_id: int,
+        at_sequence_id: int | None = None,
         limit: int | None,
     ) -> Sequence[Element | None]:
         """
@@ -235,8 +242,11 @@ class ElementRepository:
         if not refs:
             return ()
 
-        versioned_refs = []
-        element_refs = []
+        if at_sequence_id is None:
+            at_sequence_id = await ElementRepository.get_current_sequence_id()
+
+        versioned_refs: list[VersionedElementRef] = []
+        element_refs: list[ElementRef] = []
 
         # organize refs by kind
         for ref in refs:
@@ -250,6 +260,7 @@ class ElementRepository:
         async def versioned_refs_task() -> None:
             elements = await ElementRepository.get_many_by_versioned_refs(
                 versioned_refs,
+                at_sequence_id=at_sequence_id,
                 limit=limit,
             )
             ref_map.update((element.versioned_ref, element) for element in elements)
@@ -290,49 +301,84 @@ class ElementRepository:
     @staticmethod
     async def get_many_parents_by_refs(
         member_refs: Sequence[ElementRef],
-        parent_type: ElementType | None = None,
         *,
-        at_sequence_id: int,
+        # use only short-lived at_sequence_id, this query will behave poorly otherwise
+        at_sequence_id_shortlived: int | None = None,
+        parent_type: ElementType | None = None,
         limit: int | None,
     ) -> Sequence[Element]:
         """
         Get elements that reference the given elements.
-
-        This method does not check for the existence of the given element.
         """
         # small optimization
         if not member_refs:
             return ()
 
-        # optimization: way and relation members can only be referenced by relations
-        if parent_type is None:
-            for member_ref in member_refs:
-                if member_ref.type == 'node':
-                    break
-            else:
-                parent_type = 'relation'
+        member_refs_t = tuple[tuple[ElementType, int], ...] = (
+            (member_ref.type, member_ref.id)  #
+            for member_ref in member_refs
+        )
+
+        only_nodes: cython.char = True
+        only_ways_relations: cython.char = True
+
+        for t in member_refs_t:
+            type = t[0]
+
+            if type != 'node':
+                only_nodes = False
+            if type != 'way' and type != 'relation':
+                only_ways_relations = False
+
+            if not only_nodes and not only_ways_relations:
+                break
+
+        # optimization: ways and relations can only be members of relations
+        if parent_type is None and only_ways_relations:
+            parent_type = 'relation'
 
         async with db() as session:
-            stmt = select(Element).where(
-                Element.sequence_id <= at_sequence_id,
-                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
-                Element.visible == true(),
-                or_(
-                    *(
-                        Element.members.op('@?')(
-                            text(f'\'$[*] ? (@.type == "{member_ref.type}" && @.id == {member_ref.id})\'')
-                        )
-                        for member_ref in member_refs
+            stmt = select(Element)
+            stmt = apply_options_context(stmt)
+            where_and = [
+                *(
+                    (Element.next_sequence_id == null(),)
+                    if at_sequence_id_shortlived is None
+                    else (
+                        Element.sequence_id <= at_sequence_id_shortlived,
+                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id_shortlived),
                     ),
                 ),
-            )
-            stmt = apply_statement_context(stmt)
+                Element.visible == true(),
+            ]
 
             if parent_type is not None:
-                stmt = stmt.where(Element.type == parent_type)
+                where_and.append(Element.type == parent_type)
             else:
-                # important! use of index requires way or relation to be specified
-                stmt = stmt.where(or_(Element.type == 'way', Element.type == 'relation'))
+                # important! use of index requires way or relation type
+                where_and.append(or_(Element.type == 'way', Element.type == 'relation'))
+
+            # optimization: skip type checking for ways nodes
+            if parent_type == 'way' and only_nodes:
+                where_and.append(
+                    or_(
+                        *(
+                            Element.members.op('@?')(text(f"'$[*] ? (@.id == {t[1]})'"))  #
+                            for t in member_refs_t
+                        ),
+                    )
+                )
+            else:
+                where_and.append(
+                    or_(
+                        *(
+                            Element.members.op('@?')(text(f'\'$[*] ? (@.type == "{type}" && @.id == {id})\''))
+                            for (type, id) in member_refs_t
+                        ),
+                    )
+                )
+
+            stmt = stmt.where(*where_and)
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -342,7 +388,9 @@ class ElementRepository:
     @staticmethod
     async def is_unreferenced(member_refs: Sequence[ElementRef], *, after_sequence_id: int) -> bool:
         """
-        Check if the given elements are unreferenced after the given sequence id.
+        Check if the given elements are currently unreferenced.
+
+        after_sequence_id is used as an optimization.
         """
         # small optimization
         if not member_refs:
@@ -351,8 +399,9 @@ class ElementRepository:
         async with db() as session:
             stmt = select(text('1')).where(
                 Element.sequence_id < after_sequence_id,
+                Element.next_sequence_id == null(),
                 Element.visible == true(),
-                Element.type.in_(('way', 'relation')),
+                or_(Element.type == 'way', Element.type == 'relation'),
                 or_(
                     *(
                         Element.members.op('@?')(
@@ -368,7 +417,7 @@ class ElementRepository:
     async def get_many_by_changeset(
         changeset_id: int,
         *,
-        sort_by_id: bool,
+        sort_by: Literal['id', 'sequence_id'],
     ) -> Sequence[Element]:
         """
         Get elements by the changeset id.
@@ -381,9 +430,9 @@ class ElementRepository:
             stmt = (
                 select(Element)
                 .where(Element.changeset_id == changeset_id)
-                .order_by((Element.id if sort_by_id else Element.sequence_id).asc())
+                .order_by((Element.id if sort_by == 'id' else Element.sequence_id).asc())
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
 
     @staticmethod
@@ -426,7 +475,7 @@ class ElementRepository:
                 Element.type == 'node',
                 func.ST_Intersects(Element.point, func.ST_GeomFromText(geometry.wkt, 4326)),
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             if nodes_limit is not None:
                 stmt = stmt.limit(nodes_limit)
@@ -442,7 +491,7 @@ class ElementRepository:
         async def fetch_parents(element_refs: Sequence[ElementRef], parent_type: ElementType) -> Sequence[Element]:
             parents = await ElementRepository.get_many_parents_by_refs(
                 element_refs,
-                at_sequence_id=at_sequence_id,
+                at_sequence_id_shortlived=at_sequence_id,
                 parent_type=parent_type,
                 limit=None,
             )
@@ -455,7 +504,6 @@ class ElementRepository:
             async def way_task() -> None:
                 # fetch parent ways
                 ways = await fetch_parents(nodes_refs, 'way')
-
                 if not ways:
                     return
 

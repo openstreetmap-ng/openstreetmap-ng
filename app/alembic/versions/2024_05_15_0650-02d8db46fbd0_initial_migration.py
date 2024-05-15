@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: f1d2ce7d9805
+Revision ID: 02d8db46fbd0
 Revises:
-Create Date: 2024-05-14 10:24:32.179796+00:00
+Create Date: 2024-05-15 06:50:31.229600+00:00
 
 """
 from collections.abc import Sequence
@@ -16,7 +16,7 @@ import app.models.element_member_ref
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'f1d2ce7d9805'
+revision: str = '02d8db46fbd0'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -334,13 +334,14 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
     sa.PrimaryKeyConstraint('type', 'id', 'version', name='element_pkey')
     )
-    op.create_index('element_changeset_id_idx', 'element', ['changeset_id'], unique=False, postgresql_using='hash')
-    op.create_index('element_current_node_idx', 'element', ['id', 'next_sequence_id', 'sequence_id'], unique=False, postgresql_where=sa.text("type = 'node'"))
-    op.create_index('element_current_relation_idx', 'element', ['id', 'next_sequence_id', 'sequence_id'], unique=False, postgresql_where=sa.text("type = 'relation'"))
-    op.create_index('element_current_way_idx', 'element', ['id', 'next_sequence_id', 'sequence_id'], unique=False, postgresql_where=sa.text("type = 'way'"))
-    op.create_index('element_relation_members_idx', 'element', ['members'], unique=False, postgresql_where=sa.text("type = 'relation' AND visible = true"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
+    op.create_index('element_changeset_id_idx', 'element', ['changeset_id'], unique=False)
+    op.create_index('element_current_node_idx', 'element', ['id', 'next_sequence_id'], unique=False, postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'node'"))
+    op.create_index('element_current_relation_idx', 'element', ['id', 'next_sequence_id'], unique=False, postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'relation'"))
+    op.create_index('element_current_way_idx', 'element', ['id', 'next_sequence_id'], unique=False, postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'way'"))
+    op.create_index('element_point_idx', 'element', ['point'], unique=False, postgresql_where=sa.text("type = 'node' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gist')
+    op.create_index('element_relation_members_idx', 'element', ['members'], unique=False, postgresql_where=sa.text("type = 'relation' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
     op.create_index('element_sequence_id_idx', 'element', ['sequence_id'], unique=True)
-    op.create_index('element_way_members_idx', 'element', ['members'], unique=False, postgresql_where=sa.text("type = 'way' AND visible = true"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
+    op.create_index('element_way_members_idx', 'element', ['members'], unique=False, postgresql_where=sa.text("type = 'way' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
     op.create_table('issue_comment',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('issue_id', sa.BigInteger(), nullable=False),
@@ -414,13 +415,14 @@ def downgrade() -> None:
     op.drop_table('oauth2_token')
     op.drop_table('oauth1_token')
     op.drop_table('issue_comment')
-    op.drop_index('element_way_members_idx', table_name='element', postgresql_where=sa.text("type = 'way' AND visible = true"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
+    op.drop_index('element_way_members_idx', table_name='element', postgresql_where=sa.text("type = 'way' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
     op.drop_index('element_sequence_id_idx', table_name='element')
-    op.drop_index('element_relation_members_idx', table_name='element', postgresql_where=sa.text("type = 'relation' AND visible = true"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
-    op.drop_index('element_current_way_idx', table_name='element', postgresql_where=sa.text("type = 'way'"))
-    op.drop_index('element_current_relation_idx', table_name='element', postgresql_where=sa.text("type = 'relation'"))
-    op.drop_index('element_current_node_idx', table_name='element', postgresql_where=sa.text("type = 'node'"))
-    op.drop_index('element_changeset_id_idx', table_name='element', postgresql_using='hash')
+    op.drop_index('element_relation_members_idx', table_name='element', postgresql_where=sa.text("type = 'relation' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gin', postgresql_ops={'members': 'jsonb_path_ops'})
+    op.drop_index('element_point_idx', table_name='element', postgresql_where=sa.text("type = 'node' AND visible = true AND next_sequence_id IS NULL"), postgresql_using='gist')
+    op.drop_index('element_current_way_idx', table_name='element', postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'way'"))
+    op.drop_index('element_current_relation_idx', table_name='element', postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'relation'"))
+    op.drop_index('element_current_node_idx', table_name='element', postgresql_include=('sequence_id',), postgresql_where=sa.text("type = 'node'"))
+    op.drop_index('element_changeset_id_idx', table_name='element')
     op.drop_table('element')
     op.drop_table('diary_subscription')
     op.drop_table('diary_comment')

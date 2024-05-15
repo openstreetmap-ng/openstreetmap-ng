@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
 from app.config import DEFAULT_LANGUAGE, TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.models.db.user import User
@@ -58,7 +58,7 @@ class TestService:
             password = PasswordStr(TEST_USER_PASSWORD)
             password_hashed = PasswordHash.default().hash(password)
 
-            async with db_autocommit() as session:
+            async with db_commit() as session:
                 if name_available:
                     # create new user
                     user = User(

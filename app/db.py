@@ -14,11 +14,11 @@ if TEST_ENV:
         async with Redis.from_url(VALKEY_URL) as r:
             yield r
 else:
-    _redis_pool = ConnectionPool().from_url(VALKEY_URL)
+    _valkey_pool = ConnectionPool().from_url(VALKEY_URL)
 
     @asynccontextmanager
     async def valkey():
-        async with Redis(connection_pool=_redis_pool) as r:
+        async with Redis(connection_pool=_valkey_pool) as r:
             yield r
 
 
@@ -59,9 +59,9 @@ async def db():
 
 
 @asynccontextmanager
-async def db_autocommit():
+async def db_commit():
     """
-    Get a database session that commits automatically on exit.
+    Get a database session that commits on exit.
     """
     async with db() as session:
         yield session

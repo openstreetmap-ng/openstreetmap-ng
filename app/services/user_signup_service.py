@@ -3,7 +3,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import delete, update
 
 from app.config import APP_URL
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
@@ -52,7 +52,7 @@ class UserSignupService:
         # TODO: purge stale pending terms accounts
 
         # create user
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             user = User(
                 email=email,
                 display_name=display_name,
@@ -77,7 +77,7 @@ class UserSignupService:
 
         user = auth_user()
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 update(User)
                 .where(User.id == user.id, User.status == UserStatus.pending_terms)
@@ -117,6 +117,6 @@ class UserSignupService:
         Abort the current signup process.
         """
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
             await session.execute(stmt)

@@ -8,7 +8,7 @@ from anyio import create_task_group
 from sqlalchemy import Index, select, text
 
 from app.config import PRELOAD_DIR
-from app.db import db, db_autocommit, db_update_stats
+from app.db import db, db_commit, db_update_stats
 from app.models.db import *  # noqa: F403
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
@@ -45,7 +45,7 @@ def get_csv_header(path: pathlib.Path) -> str:
 
 
 async def main() -> None:
-    async with db_autocommit() as session:
+    async with db_commit() as session:
         if await session.scalar(select(Element).limit(1)):  # noqa: SIM102
             if input('Database is not empty. Continue? (y/N): ').lower() != 'y':
                 print('Aborted')

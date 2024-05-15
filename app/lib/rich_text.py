@@ -11,7 +11,7 @@ from markdown_it import MarkdownIt
 from sqlalchemy import update
 
 from app.config import CONFIG_DIR
-from app.db import db_autocommit
+from app.db import db_commit
 from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.models.cache_entry import CacheEntry
 from app.models.text_format import TextFormat
@@ -149,7 +149,7 @@ class RichTextMixin:
 
         # assign new hash if changed
         if text_rich_hash != cache_entry_id:
-            async with db_autocommit() as session:
+            async with db_commit() as session:
                 cls = type(self)
                 stmt = (
                     update(cls)

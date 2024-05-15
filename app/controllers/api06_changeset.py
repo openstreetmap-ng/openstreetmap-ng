@@ -11,7 +11,7 @@ from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset_comment import ChangesetComment
@@ -114,7 +114,7 @@ async def changeset_download(
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
-    elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by_id=False)
+    elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by='sequence_id')
 
     for element in elements:
         element.changeset = changeset

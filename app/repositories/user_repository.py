@@ -5,7 +5,7 @@ from sqlalchemy import func, null, select
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.user import User
 
@@ -18,7 +18,7 @@ class UserRepository:
         """
         async with db() as session:
             stmt = select(User).where(User.id == user_id)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -28,7 +28,7 @@ class UserRepository:
         """
         async with db() as session:
             stmt = select(User).where(User.display_name == display_name)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -38,7 +38,7 @@ class UserRepository:
         """
         async with db() as session:
             stmt = select(User).where(User.email == email)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -48,7 +48,7 @@ class UserRepository:
         """
         async with db() as session:
             stmt = select(User).where(User.id.in_(user_ids))
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
 
     @staticmethod
@@ -72,7 +72,7 @@ class UserRepository:
                 )
                 .order_by(func.ST_Distance(User.home_point, func.ST_GeomFromText(point.wkt, 4326)))
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)

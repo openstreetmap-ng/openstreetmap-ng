@@ -9,11 +9,11 @@ from sqlalchemy import and_, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -43,7 +43,7 @@ class OptimisticDiffApply:
         prepare.applied = True
         assigned_ref_map: dict[ElementRef, Sequence[Element]] = None
 
-        async with db_autocommit() as session, create_task_group() as tg:
+        async with db_commit() as session, create_task_group() as tg:
             # lock the tables, allowing reads but blocking writes
             await session.execute(
                 text(f'LOCK TABLE "{Changeset.__tablename__}", "{Element.__tablename__}" IN EXCLUSIVE MODE')

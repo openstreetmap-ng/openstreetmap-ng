@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from sqlalchemy import func, null, select
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -45,7 +45,7 @@ class OAuth1TokenService:
             except Exception:
                 raise_for().oauth_bad_redirect_uri()
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             session.add(
                 OAuth1Token(
                     user_id=None,
@@ -83,7 +83,7 @@ class OAuth1TokenService:
 
         token_hashed = hash_bytes(token_str, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(OAuth1Token)
                 .where(
@@ -126,7 +126,7 @@ class OAuth1TokenService:
 
         token_hashed = hash_bytes(token_str, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(OAuth1Token)
                 .where(

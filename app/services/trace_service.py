@@ -4,7 +4,7 @@ import cython
 from anyio import to_thread
 from fastapi import UploadFile
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.format06 import Format06
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
@@ -66,7 +66,7 @@ class TraceService:
         trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
 
         try:
-            async with db_autocommit() as session:
+            async with db_commit() as session:
                 session.add(trace)
                 await session.flush()
 
@@ -88,7 +88,7 @@ class TraceService:
         """
         Update a trace.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:
@@ -106,7 +106,7 @@ class TraceService:
         """
         Delete a trace.
         """
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             trace = await session.get(Trace, trace_id, with_for_update=True)
 
             if trace is None:

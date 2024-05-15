@@ -5,7 +5,7 @@ from sqlalchemy import func, select, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.lib.statement_context import apply_statement_context
+from app.lib.options_context import apply_options_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
@@ -22,7 +22,7 @@ class NoteCommentRepository:
         """
         async with db() as session:
             stmt = select(NoteComment)
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
             where_and = [Note.visible_to(auth_user())]
 
             if geometry is not None:
@@ -60,7 +60,7 @@ class NoteCommentRepository:
                     )
                     .order_by(NoteComment.created_at.desc())
                 )
-                stmt_ = apply_statement_context(stmt_)
+                stmt_ = apply_options_context(stmt_)
 
                 if limit_per_note is not None:
                     stmt_ = stmt_.limit(limit_per_note)
@@ -72,7 +72,7 @@ class NoteCommentRepository:
                 .where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
                 .order_by(NoteComment.created_at.desc())
             )
-            stmt = apply_statement_context(stmt)
+            stmt = apply_options_context(stmt)
 
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 

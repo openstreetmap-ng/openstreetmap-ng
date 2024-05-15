@@ -5,7 +5,7 @@ from hashlib import sha256
 import cython
 from sqlalchemy import null, select
 
-from app.db import db_autocommit
+from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
@@ -98,7 +98,7 @@ class OAuth2TokenService:
         authorization_code = buffered_rand_urlsafe(32)
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             token = OAuth2Token(
                 user_id=user_id,
                 application_id=app.id,
@@ -131,7 +131,7 @@ class OAuth2TokenService:
 
         authorization_code_hashed = hash_bytes(authorization_code, context=None)
 
-        async with db_autocommit() as session:
+        async with db_commit() as session:
             stmt = (
                 select(OAuth2Token)
                 .where(

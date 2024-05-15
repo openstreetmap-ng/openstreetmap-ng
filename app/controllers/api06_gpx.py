@@ -7,7 +7,7 @@ from sqlalchemy.orm import joinedload
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.models.db.trace_ import Trace
 from app.models.db.user import User

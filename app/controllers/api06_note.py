@@ -15,7 +15,7 @@ from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_rss
 from app.lib.geo_utils import parse_bbox
-from app.lib.statement_context import options_context
+from app.lib.options_context import options_context
 from app.lib.translation import t
 from app.limits import (
     NOTE_QUERY_AREA_MAX_SIZE,
