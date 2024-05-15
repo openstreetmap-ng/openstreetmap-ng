@@ -387,15 +387,14 @@ class ElementRepository:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def find_many_by_query(
+    async def find_many_by_geom(
         geometry: BaseGeometry,
         *,
-        at_sequence_id: int,
         nodes_limit: int | None,
         legacy_nodes_limit: bool = False,
     ) -> Sequence[Element]:
         """
-        Find elements by the query.
+        Find elements within the given geometry.
 
         The matching is performed on the nodes only and all related elements are returned:
         - nodes
@@ -413,9 +412,17 @@ class ElementRepository:
 
         # find all the matching nodes
         async with db() as session:
+            await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
+
+            stmt = select(func.max(Element.sequence_id))
+            at_sequence_id = await session.scalar(stmt)
+            if at_sequence_id is None:
+                return ()
+
+            # index stores only the current nodes
             stmt = select(Element).where(
-                Element.sequence_id <= at_sequence_id,
-                or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                Element.next_sequence_id == null(),
+                Element.visible == true(),
                 Element.type == 'node',
                 func.ST_Intersects(Element.point, func.ST_GeomFromText(geometry.wkt, 4326)),
             )

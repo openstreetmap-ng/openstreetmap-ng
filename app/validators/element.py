@@ -6,7 +6,7 @@ from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
 from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.geometry import PointPrecisionGeometry
-from app.models.validating.tags import TagsValidating
+from app.validators.tags import TagsValidating
 
 
 class ElementValidating(TagsValidating):

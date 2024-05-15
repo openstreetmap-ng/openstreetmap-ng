@@ -1,7 +1,19 @@
 from datetime import datetime
 
 from shapely import Point
-from sqlalchemy import BigInteger, Boolean, Enum, ForeignKey, Identity, Index, PrimaryKeyConstraint, and_, func, true
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Enum,
+    ForeignKey,
+    Identity,
+    Index,
+    PrimaryKeyConstraint,
+    and_,
+    func,
+    null,
+    true,
+)
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -51,6 +63,12 @@ class Element(Base.NoID):
         Index('element_current_node_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'node')),
         Index('element_current_way_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'way')),
         Index('element_current_relation_idx', id, next_sequence_id, sequence_id, postgresql_where=(type == 'relation')),
+        Index(
+            'element_point_idx',
+            point,
+            postgresql_where=(type == 'node', visible == true(), next_sequence_id == null()),
+            postgresql_using='gist',
+        ),
         Index(
             'element_way_members_idx',
             members,

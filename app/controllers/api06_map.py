@@ -35,7 +35,7 @@ async def map_read(
         .joinedload(Changeset.user)
         .load_only(User.display_name)
     ):
-        elements = await ElementRepository.find_many_by_query(
+        elements = await ElementRepository.find_many_by_geom(
             geometry,
             at_sequence_id=at_sequence_id,
             nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,

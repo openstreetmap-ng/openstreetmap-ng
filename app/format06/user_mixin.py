@@ -11,11 +11,11 @@ from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.user import User
 from app.models.db.user_pref import UserPref
-from app.models.validating.user_pref import UserPrefValidating
 from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.message_repository import MessageRepository
 from app.repositories.trace_repository import TraceRepository
 from app.repositories.user_block_repository import UserBlockRepository
+from app.validators.user_pref import UserPrefValidating
 
 
 class User06Mixin:

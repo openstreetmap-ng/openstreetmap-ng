@@ -31,7 +31,6 @@ def validate_email(email: str) -> str:
     >>> validate_email('example@ツ.ⓁⒾⒻⒺ')
     'example@ツ.life'
     """
-
     try:
         info = validate_email_(
             email,
@@ -48,7 +47,6 @@ async def validate_email_deliverability(email: str) -> bool:
     """
     Validate deliverability of an email address.
     """
-
     try:
         info = validate_email_(
             email,

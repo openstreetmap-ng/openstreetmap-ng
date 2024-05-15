@@ -27,7 +27,7 @@ async def get_map(
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
-        elements = await ElementRepository.find_many_by_query(
+        elements = await ElementRepository.find_many_by_geom(
             geometry,
             at_sequence_id=at_sequence_id,
             nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,

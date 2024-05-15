@@ -8,8 +8,8 @@ from shapely import Point, get_coordinates, points
 from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
-from app.models.validating.trace_ import TraceValidating
-from app.models.validating.trace_point import TracePointValidating
+from app.validators.trace_ import TraceValidating
+from app.validators.trace_point import TracePointValidating
 
 
 class Trace06Mixin:

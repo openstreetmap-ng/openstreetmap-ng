@@ -14,8 +14,8 @@ from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.models.trace_visibility import TraceVisibility
-from app.models.validating.trace_ import TraceValidating
 from app.storage import TRACES_STORAGE
+from app.validators.trace_ import TraceValidating
 
 
 class TraceService:

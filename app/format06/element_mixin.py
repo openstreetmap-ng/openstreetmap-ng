@@ -12,7 +12,7 @@ from app.models.db.element import Element
 from app.models.element_member_ref import ElementMemberRef
 from app.models.element_type import ElementType
 from app.models.osmchange_action import OSMChangeAction
-from app.models.validating.element import ElementValidating
+from app.validators.element import ElementValidating
 
 
 class Element06Mixin:
