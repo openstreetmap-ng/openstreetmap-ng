@@ -210,32 +210,35 @@ def merge_worker_files() -> None:
         created_at_all.extend(created_at)
 
     print('Assigning sequence IDs (step 2/2)...')
-    sequence_ids_all = np.argsort(created_at_all, kind='stable').astype(np.uint64) + 1
-    sequence_ids_all = np.flip(sequence_ids_all)  # flip because assigning nexts from the end
-    last_sequence_id_index = 0
-    type_id_sequence_map: dict[tuple[str, int], int] = {}
+    created_at_argsort = np.argsort(created_at_all, kind='stable').astype(np.uint64)
 
     # free memory
     del created_at_all
 
+    sequence_ids_all = np.empty_like(created_at_argsort, dtype=np.uint64)
+    sequence_ids_all[created_at_argsort] = np.arange(1, len(created_at_argsort) + 1, dtype=np.uint64)
+    last_sequence_id_index = len(sequence_ids_all)
+    type_id_sequence_map: dict[tuple[str, int], int] = {}
+
+    # free memory
+    del created_at_argsort
+
     for path in tqdm(reversed(paths), desc='Assigning next sequence IDs', total=len(paths)):
         df = pl.read_parquet(path, use_statistics=False)
 
-        sequence_ids = sequence_ids_all[last_sequence_id_index : last_sequence_id_index + df.height]
-        last_sequence_id_index += df.height
+        sequence_ids = sequence_ids_all[last_sequence_id_index - df.height : last_sequence_id_index]
+        last_sequence_id_index -= df.height
+        df = df.with_columns(pl.Series('sequence_id', sequence_ids))
+
         next_sequence_ids = np.empty(df.height, dtype=np.float64)
 
-        temp = df.select('type', 'id').reverse().with_columns(pl.Series('sequence_id', sequence_ids))
-
-        for i, (type, id, sequence_id) in enumerate(temp.iter_rows()):
+        for i, (type, id, sequence_id) in enumerate(df.select('type', 'id', 'sequence_id').reverse().iter_rows()):
             type_id = (type, id)
             next_sequence_ids[i] = type_id_sequence_map.get(type_id)
             type_id_sequence_map[type_id] = sequence_id
 
-        df = df.with_columns(
-            pl.Series('sequence_id', sequence_ids).reverse(),
-            pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True).reverse(),
-        )
+        next_sequence_ids = np.flip(next_sequence_ids)
+        df = df.with_columns(pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True))
         df.write_parquet(path, compression_level=1, statistics=False)
 
     # free memory
@@ -301,7 +304,7 @@ def write_changeset_csv() -> None:
 
 
 async def convert_xml2csv() -> None:
-    # run_workers()
+    run_workers()
     merge_worker_files()
 
     print('Writing user CSV...')
