@@ -7,6 +7,7 @@ from multiprocessing import Pool
 
 import anyio
 import lxml.etree as ET
+import numpy as np
 import polars as pl
 from tqdm import tqdm
 
@@ -86,8 +87,8 @@ def worker(args: tuple[int, int, int]) -> None:
     # free memory
     del input_buffer
 
+    element: ET.ElementBase
     for element in root:
-        element: ET.ElementBase
         tag: str = element.tag
         attrib: dict = element.attrib
 
@@ -97,8 +98,8 @@ def worker(args: tuple[int, int, int]) -> None:
         tags = {}
         members = []
 
+        child: ET.ElementBase
         for child in element:
-            child: ET.ElementBase
             child_tag: str = child.tag
             child_attrib: dict = child.attrib
 
@@ -122,14 +123,14 @@ def worker(args: tuple[int, int, int]) -> None:
                 )
 
         if tag == 'node' and (lon := attrib.get('lon')) is not None and (lat := attrib.get('lat')) is not None:
-            point = f'POINT ({lon} {lat})'
+            point = f'POINT({lon} {lat})'
         else:
             point = None
 
         if tag == 'node':
             visible = point is not None
         elif tag == 'way' or tag == 'relation':
-            visible = tags or members
+            visible = bool(tags or members)
 
         uid = attrib.get('uid')
         if uid is not None:
@@ -156,7 +157,7 @@ def worker(args: tuple[int, int, int]) -> None:
         )
 
     df = pl.DataFrame(data, schema=schema)
-    df.write_parquet(get_worker_output_path(i), compression='uncompressed', statistics=False)
+    df.write_parquet(get_worker_output_path(i), compression_level=1, statistics=False)
     gc.collect()
 
 
@@ -201,31 +202,49 @@ def run_workers() -> None:
 
 def merge_worker_files() -> None:
     paths = [get_worker_output_path(i) for i in range(num_tasks)]
+    created_at_all: list[int] = []
 
-    current_sequence_id = 1
+    for path in tqdm(paths, desc='Assigning sequence IDs (step 1/2)'):
+        df = pl.read_parquet(path, columns=('created_at',), use_statistics=False)
+        created_at = df.to_series().dt.epoch('s').to_numpy(allow_copy=False)
+        created_at_all.extend(created_at)
+
+    print('Assigning sequence IDs (step 2/2)...')
+    sequence_ids_all = np.argsort(created_at_all, kind='stable').astype(np.uint64) + 1
+    sequence_ids_all = np.flip(sequence_ids_all)  # flip because assigning nexts from the end
+    last_sequence_id_index = 0
     type_id_sequence_map: dict[tuple[str, int], int] = {}
 
-    for path in tqdm(paths, desc='Assigning sequence IDs'):
-        df = pl.read_parquet(path)
-        df = df.with_row_index('sequence_id', current_sequence_id)
-        df.write_parquet(path, compression='uncompressed', statistics=False)
-        current_sequence_id += df.height
+    # free memory
+    del created_at_all
 
     for path in tqdm(reversed(paths), desc='Assigning next sequence IDs', total=len(paths)):
-        df = pl.read_parquet(path)
-        next_sequence_ids = [None] * df.height
+        df = pl.read_parquet(path, use_statistics=False)
 
-        for i, (type, id, sequence_id) in enumerate(df.select('type', 'id', 'sequence_id').reverse().iter_rows()):
+        sequence_ids = sequence_ids_all[last_sequence_id_index : last_sequence_id_index + df.height]
+        last_sequence_id_index += df.height
+        next_sequence_ids = np.empty(df.height, dtype=np.float64)
+
+        temp = df.select('type', 'id').reverse().with_columns(pl.Series('sequence_id', sequence_ids))
+
+        for i, (type, id, sequence_id) in enumerate(temp.iter_rows()):
             type_id = (type, id)
             next_sequence_ids[i] = type_id_sequence_map.get(type_id)
             type_id_sequence_map[type_id] = sequence_id
 
-        df = df.with_columns(pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64).reverse())
-        df.write_parquet(path, compression='uncompressed', statistics=False)
+        df = df.with_columns(
+            pl.Series('sequence_id', sequence_ids).reverse(),
+            pl.Series('next_sequence_id', next_sequence_ids, pl.UInt64, nan_to_null=True).reverse(),
+        )
+        df.write_parquet(path, compression_level=1, statistics=False)
 
-    print('Saving processed data...')
+    # free memory
+    del sequence_ids_all
+    del type_id_sequence_map
+
+    print(f'Merging {len(paths)} worker files...')
     df = pl.scan_parquet(paths)
-    df.sink_parquet(data_parquet_path)
+    df.sink_parquet(data_parquet_path, compression_level=3)
 
     for path in paths:
         path.unlink()
@@ -282,7 +301,7 @@ def write_changeset_csv() -> None:
 
 
 async def convert_xml2csv() -> None:
-    run_workers()
+    # run_workers()
     merge_worker_files()
 
     print('Writing user CSV...')
