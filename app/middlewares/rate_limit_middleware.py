@@ -45,11 +45,10 @@ class RateLimitMiddleware:
 
 async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit: bool) -> dict[str, str]:
     """
-    Increase the rate limit counter and raise if the limit is exceeded.
+    Increase the rate limit counter and raise HTTPException if the limit is exceeded.
 
-    Returns the rate limit headers.
+    Returns the rate limit response headers.
     """
-
     async with valkey() as conn, conn.pipeline() as pipe:
         pipe.incrby(key, change)
         pipe.expire(key, 3600, nx=True)
@@ -86,11 +85,11 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
 
 def rate_limit(*, weight: int = 1):
     """
-    Decorator for rate limiting an endpoint.
+    Decorator to rate-limit an endpoint.
 
     The rate limit quota is global and per-deployment.
 
-    The weight can be overridden during execution using `set_rate_limit_weight` function.
+    The weight can be overridden during execution using `set_rate_limit_weight` method.
     """
 
     def decorator(func):
@@ -134,7 +133,6 @@ def set_rate_limit_weight(weight: int) -> None:
     """
     Override the request weight for rate limiting.
     """
-
     logging.debug('Overriding rate limit weight to %d', weight)
     state: dict = get_request().state._state  # noqa: SLF001
     state['rate_limit_weight'] = weight

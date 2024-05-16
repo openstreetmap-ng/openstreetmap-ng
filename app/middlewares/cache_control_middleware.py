@@ -49,7 +49,6 @@ def cache_control(max_age: timedelta, stale: timedelta):
     """
     Decorator to set the Cache-Control header for an endpoint.
     """
-
     header = f'public, max-age={int(max_age.total_seconds())}, stale-while-revalidate={int(stale.total_seconds())}'
 
     def decorator(func):

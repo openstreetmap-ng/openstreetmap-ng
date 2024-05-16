@@ -1,5 +1,9 @@
 from collections.abc import Callable
 from types import GenericAlias
+from typing import ParamSpec, TypeVar
+
+P = ParamSpec('P')
+R = TypeVar('R')
 
 _not_found = object()
 
@@ -7,9 +11,9 @@ _not_found = object()
 # inspired by functools.cached_property
 class updating_cached_property:  # noqa: N801
     """
-    A decorator to cache the result of a property with an auto-update condition.
+    Decorator to cache the result of a property with an auto-update condition.
 
-    If `watch_attr_name` changes, the property is re-evaluated.
+    If watch_attr_name changes, the property is re-evaluated.
     """
 
     __slots__ = ('_watch_attr_name', '_set_attr_name', '_cache_name', '_func')
@@ -20,7 +24,7 @@ class updating_cached_property:  # noqa: N801
         self._cache_name = None
         self._func = None
 
-    def __call__(self, func: Callable) -> 'updating_cached_property':
+    def __call__(self, func: Callable[P, R]) -> R:
         self._func = func
         return self
 
