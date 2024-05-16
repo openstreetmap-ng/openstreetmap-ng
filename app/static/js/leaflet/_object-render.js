@@ -54,8 +54,7 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMNode} node
      */
     const processNode = (node) => {
-        const [lon, lat] = node.geom
-        const layer = L.circleMarker(L.latLng(lat, lon), styles.element)
+        const layer = L.circleMarker(node.geom, styles.element)
         layer.object = node
         layers.push(layer)
     }
@@ -64,23 +63,14 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMWay} way
      */
     const processWay = (way) => {
-        const latLngs = []
         const geom = way.geom
-
-        for (let i = 0; i < geom.length; i += 2) {
-            const lon = geom[i]
-            const lat = geom[i + 1]
-            latLngs.push(L.latLng(lat, lon))
-        }
-
         let layer
         if (renderAreas && way.area) {
-            latLngs.pop() // remove last == first
-            layer = L.polygon(latLngs, styles.element)
+            geom.pop() // remove last == first
+            layer = L.polygon(geom, styles.element)
         } else {
-            layer = L.polyline(latLngs, styles.element)
+            layer = L.polyline(geom, styles.element)
         }
-
         layer.object = way
         layers.push(layer)
     }

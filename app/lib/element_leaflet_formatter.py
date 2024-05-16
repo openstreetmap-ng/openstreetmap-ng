@@ -34,13 +34,15 @@ def format_leaflet_elements(elements: Sequence[Element], *, detailed: cython.cha
             if node is None:
                 continue
             geom.extend(get_coordinates(node.point)[0].tolist())
+        geom.reverse()
         area = _is_way_area(way)
         result.append(ElementLeafletWay('way', way_id, geom, area))
 
     for node_id, node in node_id_map.items():
         if not _is_node_interesting(node, way_nodes_ids, detailed=detailed):
             continue
-        geom = tuple(get_coordinates(node.point)[0])
+        geom: list[float] = get_coordinates(node.point)[0].tolist()
+        geom.reverse()
         result.append(ElementLeafletNode('node', node_id, geom))
 
     return result
