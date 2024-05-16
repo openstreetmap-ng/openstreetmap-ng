@@ -4,7 +4,7 @@ from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.config import POSTGRES_LOG, POSTGRES_URL, TEST_ENV, VALKEY_URL
+from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
 from app.utils import JSON_DECODE, JSON_ENCODE
 
 if TEST_ENV:
@@ -27,8 +27,6 @@ _db_engine = create_async_engine(
     # asyncpg enum doesn't play nicely with JIT
     # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#disabling-the-postgresql-jit-to-improve-enum-datatype-handling
     connect_args={'server_settings': {'jit': 'off'}},
-    echo=POSTGRES_LOG,
-    echo_pool=POSTGRES_LOG,
     json_deserializer=JSON_DECODE,
     json_serializer=lambda x: JSON_ENCODE(x).decode(),
     query_cache_size=1024,

@@ -104,13 +104,11 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is not.
         """
 
-        many_latest = await ElementRepository.get_many_by_refs((element.element_ref,), limit=1)
+        elements = await ElementRepository.get_many_by_refs((element.element_ref,), limit=1)
+        latest = elements[0] if elements else None
 
-        if not many_latest:
+        if latest is None:
             raise ValueError(f'Element {element.element_ref} does not exist')
-
-        latest = many_latest[0]
-
         if latest.version != element.version:
             raise OptimisticDiffError(
                 f'Element {element.element_ref} is not the latest version ({latest.version} != {element.version})'

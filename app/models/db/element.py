@@ -12,6 +12,7 @@ from sqlalchemy import (
     and_,
     func,
     null,
+    or_,
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
@@ -57,32 +58,12 @@ class Element(Base.NoID):
     # splitting by type allows for faster parallel index rebuilds
     # it also provides more detailed index statistics
     __table_args__ = (
-        PrimaryKeyConstraint(type, id, version, name='element_pkey'),
-        Index('element_sequence_id_idx', sequence_id, unique=True),
-        Index('element_changeset_id_idx', changeset_id),
+        PrimaryKeyConstraint(sequence_id, name='element_pkey'),
+        Index('element_changeset_idx', changeset_id),
+        Index('element_version_idx', type, id, version),
+        Index('element_current_idx', type, id, next_sequence_id, postgresql_include=('sequence_id',)),
         Index(
-            'element_current_node_idx',
-            id,
-            next_sequence_id,
-            postgresql_include=('sequence_id',),
-            postgresql_where=(type == 'node'),
-        ),
-        Index(
-            'element_current_way_idx',
-            id,
-            next_sequence_id,
-            postgresql_include=('sequence_id',),
-            postgresql_where=(type == 'way'),
-        ),
-        Index(
-            'element_current_relation_idx',
-            id,
-            next_sequence_id,
-            postgresql_include=('sequence_id',),
-            postgresql_where=(type == 'relation'),
-        ),
-        Index(
-            'element_point_idx',
+            'element_node_point_idx',
             point,
             postgresql_where=and_(type == 'node', visible == true(), next_sequence_id == null()),
             postgresql_using='gist',
@@ -100,6 +81,11 @@ class Element(Base.NoID):
             postgresql_where=and_(type == 'relation', visible == true(), next_sequence_id == null()),
             postgresql_using='gin',
             postgresql_ops={'members': 'jsonb_path_ops'},
+        ),
+        Index(
+            'element_next_sequence_idx',
+            next_sequence_id,
+            postgresql_where=and_(or_(type == 'way', type == 'relation'), next_sequence_id != null()),
         ),
     )
 

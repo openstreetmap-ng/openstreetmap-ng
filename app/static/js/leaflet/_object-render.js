@@ -54,7 +54,7 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMNode} node
      */
     const processNode = (node) => {
-        const layer = L.circleMarker(node.geom, styles.element)
+                const layer = L.circleMarker(node.geom, styles.element)
         layer.object = node
         layers.push(layer)
     }
@@ -63,7 +63,7 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMWay} way
      */
     const processWay = (way) => {
-        const geom = way.geom
+                const geom = way.geom
         let layer
         if (renderAreas && way.area) {
             geom.pop() // remove last == first

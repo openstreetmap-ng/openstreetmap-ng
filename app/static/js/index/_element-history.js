@@ -108,7 +108,7 @@ export const getElementHistoryController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ type, id }) => {
-        const url = `/api/partial/element/${type}/${id}/history${location.search}`
+        const url = `/api/partial/${type}/${id}/history${location.search}`
         baseLoad({ url })
     }
 

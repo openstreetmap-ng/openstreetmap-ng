@@ -36,8 +36,8 @@ export const getElementController = (map) => {
 
     base.load = ({ type, id, version }) => {
         const url = version
-            ? `/api/partial/element/${type}/${id}/history/${version}`
-            : `/api/partial/element/${type}/${id}`
+            ? `/api/partial/${type}/${id}/history/${version}`
+            : `/api/partial/${type}/${id}`
         baseLoad({ url })
     }
 

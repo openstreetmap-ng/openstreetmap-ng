@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from typing import Literal
 
 from shapely.ops import BaseGeometry
 from sqlalchemy import func, null, select
@@ -23,8 +24,8 @@ class NoteRepository:
         geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
         date_to: datetime | None = None,
-        sort_by_created: bool = True,
-        sort_asc: bool = False,
+        sort_by: Literal['created_at', 'updated_at'] = 'created_at',
+        sort_ascending: bool = False,
         limit: int | None,
     ) -> Sequence[Note]:
         """
@@ -35,7 +36,7 @@ class NoteRepository:
             stmt = select(Note)
             stmt = apply_options_context(stmt)
             where_and = [Note.visible_to(auth_user())]
-            sort_by_key = Note.created_at if sort_by_created else Note.updated_at
+            sort_key = Note.created_at if sort_by == 'created_at' else Note.updated_at
 
             if note_ids:
                 where_and.append(Note.id.in_(note_ids))
@@ -51,15 +52,15 @@ class NoteRepository:
             if geometry is not None:
                 where_and.append(func.ST_Intersects(Note.point, func.ST_GeomFromText(geometry.wkt, 4326)))
             if date_from is not None:
-                where_and.append(sort_by_key >= date_from)
+                where_and.append(sort_key >= date_from)
             if date_to is not None:
-                where_and.append(sort_by_key < date_to)
+                where_and.append(sort_key < date_to)
 
             stmt = stmt.where(*where_and)
 
             # logical optimization, skip sort if at most one note will be returned
             if not (note_ids is not None and len(note_ids) == 1):
-                stmt = stmt.order_by(sort_by_key.asc() if sort_asc else sort_by_key.desc())
+                stmt = stmt.order_by(sort_key.asc() if sort_ascending else sort_key.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

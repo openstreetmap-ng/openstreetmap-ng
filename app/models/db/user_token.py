@@ -21,4 +21,4 @@ class UserToken(Base.Snowflake, CreatedAtMixin):
     @declared_attr
     @classmethod
     def user(cls) -> Mapped[User]:
-        return relationship(User, foreign_keys=(cls.user_id,), lazy='joined', init=False, innerjoin=True)
+        return relationship(User, foreign_keys=(cls.user_id,), lazy='raise', init=False, innerjoin=True)

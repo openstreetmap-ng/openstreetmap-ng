@@ -335,8 +335,8 @@ async def notes_query(
         geometry=geometry,
         date_from=from_,
         date_to=to,
-        sort_by_created=sort == _SearchSort.created_at,
-        sort_asc=order == _SearchOrder.oldest,
+        sort_by='created_at' if sort == _SearchSort.created_at else 'updated_at',
+        sort_ascending=order == _SearchOrder.oldest,
         limit=limit,
     )
 

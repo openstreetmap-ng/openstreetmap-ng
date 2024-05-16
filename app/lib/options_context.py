@@ -2,9 +2,11 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TypeVar
 
+from sqlalchemy import Select
+
 _options_context = ContextVar('OptionsContext')
 
-T = TypeVar('T')
+T = TypeVar('T', bound=Select)
 
 
 @contextmanager
@@ -26,7 +28,4 @@ def apply_options_context(stmt: T) -> T:
     Apply options context.
     """
     options = _options_context.get(None)
-    if options is not None:
-        stmt = stmt.options(*options)
-
-    return stmt
+    return stmt.options(*options) if (options is not None) else stmt

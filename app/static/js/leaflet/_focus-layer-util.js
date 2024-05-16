@@ -110,7 +110,6 @@ export const focusManyMapObjects = (map, objects, options) => {
             const latLngSize = getLatLngBoundsSize(latLngBounds)
             const mapBoundsSize = getLatLngBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize
-            console.warn(proportion)
             if (proportion > 0 && proportion < 0.00035) {
                 console.debug("Fitting map to", layers.length, "focus layers (small)")
                 map.fitBounds(latLngBounds, { animate: false })

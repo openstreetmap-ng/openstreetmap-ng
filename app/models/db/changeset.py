@@ -26,7 +26,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'changeset'
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(init=False, lazy='joined', innerjoin=True)
+    user: Mapped[User | None] = relationship(init=False, lazy='raise', innerjoin=True)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     # TODO: normalize unicode, check unicode, check length
 

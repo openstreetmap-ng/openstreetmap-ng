@@ -20,7 +20,7 @@ USER_AGENT = f'{NAME}/{VERSION} (+{WEBSITE})'
 
 DEFAULT_LANGUAGE = 'en'
 
-GENERATOR = 'OpenStreetMap-NextGen'
+GENERATOR = 'OpenStreetMap-NG'
 COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
@@ -51,28 +51,35 @@ def _path(s: str, *, mkdir: bool = False) -> Path:
 # Configuration (optional)
 TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
+GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 
 LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in ('1', 'true', 'yes')
+LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in ('1', 'true', 'yes')
+
 CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
+LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
+LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
+
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))  # TODO: implement?
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
-GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
-LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
-LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
-POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
-# see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@/postgres?host=/tmp/osm-postgres')
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
+
+# see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
+POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@/postgres?host=/tmp/osm-postgres')
+
+VALKEY_URL = os.getenv('VALKEY_URL', 'unix:///tmp/osm-valkey.sock?password=valkey&protocol=3')
+
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
-VALKEY_URL = os.getenv('VALKEY_URL', 'unix:///tmp/osm-valkey.sock?password=valkey&protocol=3')
 
 API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
+RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
+
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
-RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
 TEST_USER_PASSWORD = 'openstreetmap'  # noqa: S105
 TEST_USER_DOMAIN = 'test.test'
@@ -85,7 +92,7 @@ dictConfig(
         'formatters': {
             'default': {
                 '()': 'uvicorn.logging.DefaultFormatter',
-                'fmt': '%(levelprefix)s | %(asctime)s | %(message)s',
+                'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
                 'datefmt': '%Y-%m-%d %H:%M:%S',
             },
         },
@@ -108,6 +115,15 @@ dictConfig(
                     'multipart',
                     'PIL',
                 )
+            },
+            **{
+                # conditional database logging
+                module: {'handlers': [], 'level': 'INFO'}
+                for module in (
+                    'sqlalchemy.engine',
+                    'sqlalchemy.pool',
+                )
+                if POSTGRES_LOG
             },
         },
     }

@@ -8,6 +8,7 @@ from aiosmtplib import SMTP
 from anyio import CancelScope, Lock, WouldBlock, create_task_group, fail_after
 from anyio.abc import TaskGroup
 from sqlalchemy import null, or_, select
+from sqlalchemy.orm import joinedload
 
 from app.config import (
     APP_URL,
@@ -117,6 +118,10 @@ async def _process_task_inner() -> None:
             now = utcnow()
             stmt = (
                 select(Mail)
+                .options(
+                    joinedload(Mail.from_user).load_only(User.display_name),
+                    joinedload(Mail.to_user).load_only(User.display_name, User.email),
+                )
                 .where(
                     or_(
                         Mail.processing_at == null(),

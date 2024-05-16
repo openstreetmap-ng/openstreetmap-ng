@@ -1,7 +1,9 @@
+import logging
 from collections.abc import Sequence
 
 import cython
-from shapely import get_coordinates
+import numpy as np
+from shapely import Point, get_coordinates
 
 from app.models.db.element import Element
 from app.models.msgspec.element_leaflet import (
@@ -28,21 +30,40 @@ def format_leaflet_elements(elements: Sequence[Element], *, detailed: cython.cha
             way_nodes_ids.update(member.id for member in element.members)
 
     for way_id, way in way_id_map.items():
-        geom: list[float] = []
+        points: list[Point] = []
+
         for node_ref in way.members:
             node = node_id_map.get(node_ref.id)
             if node is None:
                 continue
-            geom.extend(get_coordinates(node.point)[0].tolist())
-        geom.reverse()
+
+            point = node.point
+            if point is None:
+                logging.warning(
+                    'Missing point for node %d version %d (part of way %d version %d)',
+                    node.id,
+                    node.version,
+                    way.id,
+                    way.version,
+                )
+                continue
+
+            points.append(point)
+
+        geom = np.fliplr(get_coordinates(points)).tolist()
         area = _is_way_area(way)
         result.append(ElementLeafletWay('way', way_id, geom, area))
 
     for node_id, node in node_id_map.items():
         if not _is_node_interesting(node, way_nodes_ids, detailed=detailed):
             continue
-        geom: list[float] = get_coordinates(node.point)[0].tolist()
-        geom.reverse()
+
+        point = node.point
+        if point is None:
+            logging.warning('Missing point for node %d version %d ', node.id, node.version)
+            continue
+
+        geom: list[float] = get_coordinates(point)[0][::-1].tolist()
         result.append(ElementLeafletNode('node', node_id, geom))
 
     return result

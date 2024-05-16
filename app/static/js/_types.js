@@ -10,14 +10,14 @@
  * @typedef {object} OSMNode
  * @property {"node"} type Object type
  * @property {number} id Object id
- * @property {number[]} geom Object geometry [lon, lat]
+ * @property {number[]} geom Object geometry [lat, lon]
  */
 
 /**
  * @typedef {object} OSMWay
  * @property {"way"} type Object type
  * @property {number} id Object id
- * @property {number[]} geom Object geometry [lon1, lat1, lon2, lat2, ...]
+ * @property {number[][]} geom Object geometry [[lat, lon], ...]
  */
 
 /**

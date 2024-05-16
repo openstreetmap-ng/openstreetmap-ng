@@ -9,9 +9,9 @@ class ElementLeaflet(msgspec.Struct):
 
 
 class ElementLeafletNode(ElementLeaflet):
-    geom: tuple[float, float]  # (lon, lat)
+    geom: list[float]  # [lat, lon]
 
 
 class ElementLeafletWay(ElementLeaflet):
-    geom: list[float]  # [lon1, lat1, lon2, lat2, ...]
+    geom: list[list[float]]  # [[lat, lon], ...]
     area: bool

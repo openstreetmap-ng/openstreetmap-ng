@@ -11,6 +11,7 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
+from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.element_list_entry import ChangesetElementEntry
 from app.models.tag_format import TagFormatCollection
@@ -25,8 +26,9 @@ router = APIRouter(prefix='/api/partial/changeset')
 
 @router.get('/{id:int}')
 async def get_changeset(id: PositiveInt):
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(id,), limit=1)
-    changeset = changesets[0] if changesets else None
+    with options_context(joinedload(Changeset.user)):
+        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(id,), limit=1)
+        changeset = changesets[0] if changesets else None
 
     if changeset is None:
         return render_response(

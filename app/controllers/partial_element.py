@@ -24,7 +24,7 @@ from app.models.tag_format import TagFormatCollection
 from app.repositories.element_repository import ElementRepository
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/api/partial/element')
+router = APIRouter(prefix='/api/partial')
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, parents: bool) -> dict:
@@ -43,14 +43,13 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, parents: b
 
     async def data_task():
         nonlocal full_data, list_elements
-        with options_context(joinedload(Element.changeset).load_only(Changeset.user_id)):
-            members_element_refs = frozenset(member.element_ref for member in element.members)
-            members_elements = await ElementRepository.get_many_by_refs(
-                members_element_refs,
-                at_sequence_id=at_sequence_id,
-                recurse_ways=True,
-                limit=None,
-            )
+        members_element_refs = frozenset(member.element_ref for member in element.members)
+        members_elements = await ElementRepository.get_many_by_refs(
+            members_element_refs,
+            at_sequence_id=at_sequence_id,
+            recurse_ways=True,
+            limit=None,
+        )
         direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
         full_data = (element, *members_elements)
         list_elements = format_element_members_list(element.members, direct_members)
@@ -105,7 +104,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, parents: b
 async def get_latest(type: ElementType, id: PositiveInt):
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
-    with options_context(joinedload(Element.changeset)):
+    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
         ref = ElementRef(type, id)
         elements = await ElementRepository.get_many_by_refs(
             (ref,),
@@ -133,7 +132,7 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
     at_sequence_id = await ElementRepository.get_current_sequence_id()
     parents = True
 
-    with options_context(joinedload(Element.changeset)):
+    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
         ref = VersionedElementRef(type, id, version)
         elements = await ElementRepository.get_many_by_versioned_refs(
             (ref,),
@@ -167,19 +166,21 @@ async def get_history(
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
+    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id_shortlived=at_sequence_id)
 
-    num_pages = (current_version + ELEMENT_HISTORY_PAGE_SIZE - 1) // ELEMENT_HISTORY_PAGE_SIZE
-    from_inclusive = current_version - ELEMENT_HISTORY_PAGE_SIZE * (page - 1)
-    to_exclusive = from_inclusive - ELEMENT_HISTORY_PAGE_SIZE
+    # TODO: cython?
+    # TODO: not found
+    page_size = ELEMENT_HISTORY_PAGE_SIZE
+    num_pages = (current_version + page_size - 1) // page_size
+    version_max = current_version - page_size * (page - 1)
+    version_min = version_max - page_size + 1
 
-    with options_context(joinedload(Element.changeset)):
+    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
         elements = await ElementRepository.get_versions_by_ref(
             ref,
             at_sequence_id=at_sequence_id,
-            ascending=False,
-            max_version=from_inclusive,
-            min_version=to_exclusive - 1,
+            version_range=(version_min, version_max),
+            sort_ascending=False,
             limit=ELEMENT_HISTORY_PAGE_SIZE,
         )
 
@@ -191,7 +192,7 @@ async def get_history(
 
         # if the element was superseded, get data just before
         if element.next_sequence_id is not None:
-            at_sequence_id_ = element.next_sequence_id - 1
+            at_sequence_id_ = await ElementRepository.get_last_visible_sequence_id(element)
             parents = False
 
         element_data = await _get_element_data(element, at_sequence_id_, parents=parents)
