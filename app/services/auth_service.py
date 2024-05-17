@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import cython
 from fastapi import Request
 from sqlalchemy import delete, update
+from sqlalchemy.orm import joinedload
 
 from app.config import SECRET, TEST_ENV
 from app.db import db_commit
@@ -14,8 +15,11 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
+from app.lib.options_context import options_context
 from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
 from app.middlewares.request_context_middleware import get_request
+from app.models.db.oauth1_token import OAuth1Token
+from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
@@ -48,7 +52,6 @@ class AuthService:
 
         Returns the authenticated user (if any) and scopes.
         """
-
         user = None
         scopes = ()
         request = get_request()
@@ -125,9 +128,7 @@ class AuthService:
 
         Returns None if the user is not found or the password is incorrect.
         """
-
         # TODO: normalize unicode & strip
-
         # dot in string indicates email, display name can't have a dot
         if '.' in display_name_or_email:
             try:
@@ -201,7 +202,6 @@ class AuthService:
 
         Raises OAuthError if the request is an invalid OAuth request.
         """
-
         oauth_version: cython.int
         if scheme is None:
             # oauth1 requests may use query params or body params
@@ -222,9 +222,11 @@ class AuthService:
             timestamp = request_.timestamp
             await OAuth1NonceService.spend(nonce, timestamp)
 
-            token = await OAuth1.parse_and_validate(request_)
+            with options_context(joinedload(OAuth1Token.user)):
+                token = await OAuth1.parse_and_validate(request_)
         elif oauth_version == 2:
-            token = await OAuth2.parse_and_validate(scheme, param)
+            with options_context(joinedload(OAuth2Token.user)):
+                token = await OAuth2.parse_and_validate(scheme, param)
         else:
             raise NotImplementedError(f'Unsupported OAuth version {oauth_version}')
 
@@ -240,8 +242,8 @@ class AuthService:
 
         Returns None if the session is not found or the session key is incorrect.
         """
-
-        token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
+        with options_context(joinedload(UserTokenSession.user)):
+            token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
 
         if token is None:
             logging.debug('Session not found %r', token_struct.id)
@@ -254,7 +256,6 @@ class AuthService:
         """
         Create a new user session token.
         """
-
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes, context=None)
 
@@ -264,10 +265,7 @@ class AuthService:
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
             )
-
             session.add(token)
-
-            # TODO: test token.id assigned
 
         return UserTokenStruct.v1(id=token.id, token=token_bytes)
 
@@ -276,9 +274,7 @@ class AuthService:
         """
         Destroy a user session token.
         """
-
         async with db_commit() as session:
             stmt = delete(UserTokenSession).where(UserTokenSession.id == token_struct.id)
-
             if (await session.execute(stmt)).rowcount != 1:
                 logging.warning('Session not found %r', token_struct.id)

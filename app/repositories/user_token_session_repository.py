@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.lib.options_context import apply_options_context
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
 
@@ -15,13 +16,12 @@ class UserTokenSessionRepository:
         """
         Find a user session token by token struct.
         """
-
         async with db() as session:
             stmt = select(UserTokenSession).where(
                 UserTokenSession.id == token_struct.id,
                 UserTokenSession.expires_at > func.statement_timestamp(),  # TODO: expires at check
             )
-
+            stmt = apply_options_context(stmt)
             token = await session.scalar(stmt)
 
         if token is None:

@@ -4,6 +4,7 @@ from sqlalchemy import null, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.lib.options_context import apply_options_context
 from app.models.db.oauth2_token import OAuth2Token
 
 
@@ -13,7 +14,6 @@ class OAuth2TokenRepository:
         """
         Find an authorized OAuth2 token by token string.
         """
-
         token_hashed = hash_bytes(token_str, context=None)
 
         async with db() as session:
@@ -21,7 +21,7 @@ class OAuth2TokenRepository:
                 OAuth2Token.token_hashed == token_hashed,
                 OAuth2Token.authorized_at != null(),
             )
-
+            stmt = apply_options_context(stmt)
             return await session.scalar(stmt)
 
     @staticmethod
@@ -34,7 +34,6 @@ class OAuth2TokenRepository:
         """
         Find all authorized OAuth2 tokens for a user-application pair.
         """
-
         async with db() as session:
             stmt = (
                 select(OAuth2Token)
@@ -45,6 +44,7 @@ class OAuth2TokenRepository:
                 )
                 .order_by(OAuth2Token.created_at.desc())
             )
+            stmt = apply_options_context(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit)

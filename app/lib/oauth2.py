@@ -11,7 +11,6 @@ class OAuth2:
 
         Raises exception if the request is not OAuth2 valid.
         """
-
         if scheme != 'Bearer':
             raise_for().oauth2_bearer_missing()
 
