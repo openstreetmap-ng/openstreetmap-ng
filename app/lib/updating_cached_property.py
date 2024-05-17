@@ -16,12 +16,11 @@ class updating_cached_property:  # noqa: N801
     If watch_attr_name changes, the property is re-evaluated.
     """
 
-    __slots__ = ('_watch_attr_name', '_set_attr_name', '_cache_name', '_func')
+    __slots__ = ('_watch_attr_name', '_set_attr_name', '_func')
 
     def __init__(self, watch_attr_name: str) -> None:
         self._watch_attr_name = watch_attr_name
         self._set_attr_name = None
-        self._cache_name = None
         self._func = None
 
     def __call__(self, func: Callable[P, R]) -> R:
@@ -36,7 +35,6 @@ class updating_cached_property:  # noqa: N801
                 )
 
             self._set_attr_name = name
-            self._cache_name = f'_{type(self).__qualname__}_{name}'
 
         elif self._set_attr_name != name:
             raise TypeError(
@@ -51,24 +49,23 @@ class updating_cached_property:  # noqa: N801
         # read property once for performance
         watch_attr_name = self._watch_attr_name
         set_attr_name = self._set_attr_name
-        cache_name = self._cache_name
 
         if set_attr_name is None:
             raise TypeError(f'Cannot use {type(self).__name__} instance without calling __set_name__ on it.')
 
         # check for existing cache data (pessimistic)
         cache_data: dict
-        if hasattr(instance, cache_name):
-            cache_data = getattr(instance, cache_name)
+        if hasattr(instance, '_UCP'):
+            cache_data = instance._UCP  # noqa: SLF001
+            prev_watch_val = cache_data.get(watch_attr_name, _not_found)
+            cached_val = cache_data.get(set_attr_name, _not_found)
         else:
-            cache_data = {}
-            setattr(instance, cache_name, cache_data)
+            instance._UCP = cache_data = {}  # noqa: SLF001
+            prev_watch_val = _not_found
+            cached_val = _not_found
 
         watch_val = getattr(instance, watch_attr_name)
-        prev_watch_val = cache_data.get(watch_attr_name, _not_found)
-        cached_val = cache_data.get(set_attr_name, _not_found)
-
-        if watch_val != prev_watch_val or cached_val is _not_found:
+        if prev_watch_val is _not_found or cached_val is _not_found or prev_watch_val != watch_val:
             cached_val = self._func(instance)
             cache_data[watch_attr_name] = watch_val
             cache_data[set_attr_name] = cached_val

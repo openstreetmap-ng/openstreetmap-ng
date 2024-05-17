@@ -9,7 +9,7 @@ from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.models.db.element import Element
-from app.models.element_member_ref import ElementMemberRef
+from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
 from app.models.osmchange_action import OSMChangeAction
 from app.validators.element import ElementValidating
@@ -153,11 +153,11 @@ class Element06Mixin:
 
 
 @cython.cfunc
-def _encode_nodes(nodes: Sequence[ElementMemberRef], *, is_json: cython.char) -> tuple[dict | int, ...]:
+def _encode_nodes(nodes: Sequence[ElementMember], *, is_json: cython.char) -> tuple[dict | int, ...]:
     """
     >>> _encode_nodes([
-    ...     ElementMemberRef(type=ElementType.node, id=1, role=''),
-    ...     ElementMemberRef(type=ElementType.node, id=2, role=''),
+    ...     ElementMember(type='node', id=1, role=''),
+    ...     ElementMember(type='node', id=2, role=''),
     ... ])
     [{'@ref': 1}, {'@ref': 2}]
     """
@@ -168,29 +168,28 @@ def _encode_nodes(nodes: Sequence[ElementMemberRef], *, is_json: cython.char) ->
 
 
 @cython.cfunc
-def _decode_nodes_unsafe(nodes: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
+def _decode_nodes(nodes: Sequence[dict]) -> tuple[ElementMember, ...]:
     """
-    This method does not validate the input data.
-
-    >>> _decode_nodes_unsafe([{'@ref': '1'}])
-    [ElementMemberRef(type=ElementType.node, id=1, role='')]
+    >>> _decode_nodes([{'@ref': '1'}])
+    [ElementMember(type='node', id=1, role='')]
     """
     return tuple(
-        ElementMemberRef(
+        ElementMember(
+            order=i,
             type='node',
             id=int(node['@ref']),
             role='',
         )
-        for node in nodes
+        for i, node in enumerate(nodes)
     )
 
 
 @cython.cfunc
-def _encode_members(members: Sequence[ElementMemberRef], *, is_json: cython.char) -> tuple[dict, ...]:
+def _encode_members(members: Sequence[ElementMember], *, is_json: cython.char) -> tuple[dict, ...]:
     """
     >>> _encode_members([
-    ...     ElementMemberRef(type=ElementType.node, id=1, role='a'),
-    ...     ElementMemberRef(type=ElementType.way, id=2, role='b'),
+    ...     ElementMember(type='node', id=1, role='a'),
+    ...     ElementMember(type='way', id=2, role='b'),
     ... ], is_json=False)
     [
         {'@type': 'node', '@ref': 1, '@role': 'a'},
@@ -217,23 +216,26 @@ def _encode_members(members: Sequence[ElementMemberRef], *, is_json: cython.char
         )
 
 
+# TODO: validate role length
+# TODO: validate type
 @cython.cfunc
-def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMemberRef, ...]:
+def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMember, ...]:
     """
     This method does not validate the input data.
 
     >>> _decode_members_unsafe([
     ...     {'@type': 'node', '@ref': '1', '@role': 'a'},
     ... ])
-    [ElementMemberRef(type=ElementType.node, id=1, role='a')]
+    [ElementMember(type='node', id=1, role='a')]
     """
     return tuple(
-        ElementMemberRef(
+        ElementMember(
+            order=i,
             type=member['@type'],
             id=int(member['@ref']),
             role=member['@role'],
         )
-        for member in members
+        for i, member in enumerate(members)
     )
 
 
@@ -246,7 +248,6 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     # read property once for performance
     element_type = element.type
     changeset = element.changeset
-
     is_node: cython.char = element_type == 'node'
     is_way: cython.char = not is_node and element_type == 'way'
     is_relation: cython.char = not is_node and not is_way
@@ -315,7 +316,7 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
 
     # decode members from either nd or member
     if (data_nodes := data.get('nd')) is not None:
-        members = _decode_nodes_unsafe(data_nodes)
+        members = _decode_nodes(data_nodes)
     elif (data_members := data.get('member')) is not None:
         members = _decode_members_unsafe(data_members)
     else:

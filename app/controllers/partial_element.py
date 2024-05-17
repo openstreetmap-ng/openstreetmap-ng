@@ -4,7 +4,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Query, Response
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from starlette import status
 
 from app.lib.element_leaflet_formatter import format_leaflet_elements
@@ -21,42 +21,46 @@ from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
+from app.repositories.element_member_repository import ElementMemberRepository
 from app.repositories.element_repository import ElementRepository
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/api/partial')
 
 
-async def _get_element_data(element: Element, at_sequence_id: int, *, parents: bool) -> dict:
+async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
     list_parents: Sequence[ElementMemberEntry] = ()
     full_data: Sequence[Element] = ()
     list_elements: Sequence[ElementMemberEntry] = ()
 
     async def parents_task():
         nonlocal list_parents
+        element_ref = element.element_ref
         parents = await ElementRepository.get_many_parents_by_refs(
-            (element.element_ref,),
-            at_sequence_id_shortlived=at_sequence_id,
+            (element_ref,),
+            at_sequence_id=at_sequence_id,
             limit=None,
         )
-        list_parents = format_element_parents_list(element.element_ref, parents)
+        await ElementMemberRepository.resolve_members(parents)
+        list_parents = format_element_parents_list(element_ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
-        members_element_refs = frozenset(member.element_ref for member in element.members)
+        members_refs = element.members_element_refs
         members_elements = await ElementRepository.get_many_by_refs(
-            members_element_refs,
+            members_refs,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,
             limit=None,
         )
-        direct_members = tuple(member for member in members_elements if member.element_ref in members_element_refs)
+        await ElementMemberRepository.resolve_members(members_elements)
+        direct_members = tuple(member for member in members_elements if member.element_ref in members_refs)
         full_data = (element, *members_elements)
         list_elements = format_element_members_list(element.members, direct_members)
 
     if element.visible:
         async with create_task_group() as tg:
-            if parents:
+            if include_parents:
                 tg.start_soon(parents_task)
             if element.members:
                 tg.start_soon(data_task)
@@ -119,11 +123,12 @@ async def get_latest(type: ElementType, id: PositiveInt):
             {'type': type, 'id': id},
         )
 
-    # return error if element is no longer latest (small chance race condition)
+    # if the element was superseded (very small chance), get data just before
     if element.next_sequence_id is not None:
-        return Response(None, status.HTTP_503_SERVICE_UNAVAILABLE)
+        at_sequence_id = await ElementRepository.get_last_visible_sequence_id(element)
 
-    data = await _get_element_data(element, at_sequence_id, parents=True)
+    await ElementMemberRepository.resolve_members((element,))
+    data = await _get_element_data(element, at_sequence_id, include_parents=True)
     return render_response('partial/element.jinja2', data)
 
 
@@ -150,10 +155,11 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
 
     # if the element was superseded, get data just before
     if element.next_sequence_id is not None:
-        at_sequence_id = element.next_sequence_id - 1
+        at_sequence_id = await ElementRepository.get_last_visible_sequence_id(element)
         parents = False
 
-    data = await _get_element_data(element, at_sequence_id, parents=parents)
+    await ElementMemberRepository.resolve_members((element,))
+    data = await _get_element_data(element, at_sequence_id, include_parents=parents)
     return render_response('partial/element.jinja2', data)
 
 
@@ -166,7 +172,7 @@ async def get_history(
     at_sequence_id = await ElementRepository.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id_shortlived=at_sequence_id)
+    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
     # TODO: cython?
     # TODO: not found
@@ -184,6 +190,7 @@ async def get_history(
             limit=ELEMENT_HISTORY_PAGE_SIZE,
         )
 
+    await ElementMemberRepository.resolve_members(elements)
     elements_data = [None] * len(elements)
 
     async def data_task(i: int, element: Element):
@@ -195,7 +202,7 @@ async def get_history(
             at_sequence_id_ = await ElementRepository.get_last_visible_sequence_id(element)
             parents = False
 
-        element_data = await _get_element_data(element, at_sequence_id_, parents=parents)
+        element_data = await _get_element_data(element, at_sequence_id_, include_parents=parents)
         elements_data[i] = element_data
 
     async with create_task_group() as tg:

@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from pydantic import PositiveInt, model_validator
 
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
-from app.models.element_member_ref import ElementMemberRef
+from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
 from app.models.geometry import PointPrecisionGeometry
 from app.validators.tags import TagsValidating
@@ -16,7 +16,7 @@ class ElementValidating(TagsValidating):
     version: PositiveInt
     visible: bool
     point: PointPrecisionGeometry | None
-    members: Sequence[ElementMemberRef]
+    members: Sequence[ElementMember]
 
     @model_validator(mode='after')
     def validate_node(self):
@@ -58,6 +58,11 @@ class ElementValidating(TagsValidating):
         #     raise ValueError('Relation must have at least one member')
         if len(self.members) > ELEMENT_RELATION_MEMBERS_LIMIT:
             raise ValueError(f'Relation cannot have more than {ELEMENT_RELATION_MEMBERS_LIMIT} members')
+        if any(len(member.role) > 255 for member in self.members):
+            raise ValueError('Relation member role cannot be longer than 255 characters')
+        types = {'node', 'way', 'relation'}
+        if any(member.type not in types for member in self.members):
+            raise ValueError('Relation member type must be node, way or relation')
 
         return self
 

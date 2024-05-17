@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from shapely import Point
 from sqlalchemy import (
@@ -12,7 +13,6 @@ from sqlalchemy import (
     and_,
     func,
     null,
-    or_,
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
@@ -21,10 +21,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
-from app.models.element_member_ref import ElementMemberRef, ElementMemberRefJSONB
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.geometry import PointType
+
+if TYPE_CHECKING:
+    from app.models.db.element_member import ElementMember
 
 
 class Element(Base.NoID):
@@ -39,7 +41,6 @@ class Element(Base.NoID):
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
-    members: Mapped[list[ElementMemberRef]] = mapped_column(ElementMemberRefJSONB, nullable=False)
 
     # defaults
     created_at: Mapped[datetime] = mapped_column(
@@ -55,8 +56,9 @@ class Element(Base.NoID):
         server_default=None,
     )
 
-    # splitting by type allows for faster parallel index rebuilds
-    # it also provides more detailed index statistics
+    # runtime
+    members: list['ElementMember'] | None = None
+
     __table_args__ = (
         PrimaryKeyConstraint(sequence_id, name='element_pkey'),
         Index('element_changeset_idx', changeset_id),
@@ -67,25 +69,6 @@ class Element(Base.NoID):
             point,
             postgresql_where=and_(type == 'node', visible == true(), next_sequence_id == null()),
             postgresql_using='gist',
-        ),
-        Index(
-            'element_way_members_idx',
-            members,
-            postgresql_where=and_(type == 'way', visible == true(), next_sequence_id == null()),
-            postgresql_using='gin',
-            postgresql_ops={'members': 'jsonb_path_ops'},
-        ),
-        Index(
-            'element_relation_members_idx',
-            members,
-            postgresql_where=and_(type == 'relation', visible == true(), next_sequence_id == null()),
-            postgresql_using='gin',
-            postgresql_ops={'members': 'jsonb_path_ops'},
-        ),
-        Index(
-            'element_next_sequence_idx',
-            next_sequence_id,
-            postgresql_where=and_(or_(type == 'way', type == 'relation'), next_sequence_id != null()),
         ),
     )
 
@@ -98,5 +81,5 @@ class Element(Base.NoID):
         return VersionedElementRef(self.type, self.id, self.version)
 
     @updating_cached_property('members')
-    def members_element_refs_set(self) -> frozenset[ElementRef]:
-        return frozenset(member.element_ref for member in self.members)
+    def members_element_refs(self) -> frozenset[ElementRef]:
+        return frozenset(ElementRef(member.type, member.id) for member in self.members)

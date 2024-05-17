@@ -8,8 +8,8 @@ import cython
 from app.config import CONFIG_DIR
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
+from app.models.db.element_member import ElementMember
 from app.models.element_list_entry import ChangesetElementEntry, ElementMemberEntry
-from app.models.element_member_ref import ElementMemberRef
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.repositories.element_repository import ElementRepository
@@ -111,14 +111,14 @@ def format_element_parents_list(ref: ElementRef, parents: Sequence[Element]) -> 
 
 
 def format_element_members_list(
-    member_refs: Sequence[ElementMemberRef],
-    members: Sequence[Element],
+    members: Sequence[ElementMember],
+    members_elements: Sequence[Element],
 ) -> Sequence[ElementMemberEntry]:
-    ref_map: dict[ElementRef, Element] = {member.element_ref: member for member in members}
+    ref_map: dict[ElementRef, Element] = {member.element_ref: member for member in members_elements}
     result: list[ElementMemberEntry] = []
 
-    for ref in member_refs:
-        element = ref_map.get(ref.element_ref)
+    for member in members:
+        element = ref_map.get(member.element_ref)
         if element is None:
             continue
 
@@ -134,12 +134,12 @@ def format_element_members_list(
 
         result.append(
             ElementMemberEntry(
-                type=ref.type,
-                id=ref.id,
+                type=member.type,
+                id=member.id,
                 name=feature_name(tags) if tags else None,
                 icon=icon,
                 icon_title=icon_title,
-                role=ref.role,
+                role=member.role,
             )
         )
 
@@ -156,7 +156,6 @@ def _resolve_icon(type: ElementType, tags: dict[str, str]):
     >>> _resolve_icon(...)
     'aeroway_terminal.webp', 'aeroway=terminal'
     """
-
     # small optimization, most elements don't have any tags
     if not tags:
         return None

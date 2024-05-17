@@ -314,23 +314,50 @@ let
           --threads "$(( $(nproc) * 2 ))" \
           "$file"
       done
+      sha256sum data/preload/*.csv.zst > data/preload/checksums.sha256
+    '')
+    (writeShellScriptBin "preload-upload" ''
+      rsync \
+        --verbose \
+        --archive \
+        --whole-file \
+        --delay-updates \
+        --human-readable \
+        --progress \
+        data/preload/*.csv.zst \
+        data/preload/checksums.sha256 \
+        edge:/var/www/files.monicz.dev/openstreetmap-ng/preload/
     '')
     (writeShellScriptBin "preload-download" ''
       set -e
       mkdir -p data/preload
-      for name in "user" "changeset" "element"; do
-        final_file="data/preload/$name.csv"
 
-        if [ -f "$final_file" ]; then
-          echo "File $final_file already exists. Skipping $name preload data download."
+      echo "Checking for preload data updates"
+      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/checksums.sha256"
+      remote_checsums=$(curl --silent --location "$remote_check_url")
+
+      for name in "user" "changeset" "element" "element_member"; do
+        remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$name.csv.zst"
+        local_file="data/preload/$name.csv.zst"
+        local_check_file="data/preload/$name.csv.zst.sha256"
+
+        remote_checksum=$(grep "$local_file" <<< "$remote_checsums" | cut -d' ' -f1)
+        local_checksum=$(cat "$local_check_file" 2> /dev/null || echo "x")
+        if [ "$remote_checksum" = "$local_checksum" ]; then
+          echo "File $local_file is up to date"
           continue
         fi
 
         echo "Downloading $name preload data"
-        curl \
-          --location \
-          "https://files.monicz.dev/openstreetmap-ng/preload/$name.csv.zst" \
-          -o "data/preload/$name.csv.zst"
+        curl --location "$remote_url" -o "$local_file"
+
+        local_checksum=$(sha256sum "$local_file" | cut -d' ' -f1)
+        echo "$local_checksum" > "$local_check_file"
+        if [ "$remote_checksum" != "$local_checksum" ]; then
+          echo "[!] Checksum mismatch for $local_file"
+          echo "[!] Please retry this command after a few minutes"
+          exit 1
+        fi
       done
     '')
     (writeShellScriptBin "preload-load" "python scripts/preload_load.py")
@@ -450,7 +477,6 @@ let
     # Development environment variables
     export PYTHONNOUSERSITE=1
     export TZ=UTC
-
     export TEST_ENV=1
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000

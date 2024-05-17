@@ -33,7 +33,6 @@ class PointType(UserDefinedType):
         def process(value: Point | None):
             if value is None:
                 return None
-
             x, y = get_coordinates(value)[0]
             return f'POINT({x} {y})'  # WKT
 
@@ -46,7 +45,6 @@ class PointType(UserDefinedType):
         def process(value: bytes | None):
             if value is None:
                 return None
-
             return from_wkb(value)
 
         return process
@@ -65,7 +63,6 @@ class PolygonType(UserDefinedType):
         def process(value: Polygon | None):
             if value is None:
                 return None
-
             return value.wkt
 
         return process
@@ -77,7 +74,6 @@ class PolygonType(UserDefinedType):
         def process(value: bytes | None):
             if value is None:
                 return None
-
             return from_wkb(value)
 
         return process

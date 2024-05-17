@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.format07 import Format07
 from app.lib.exceptions_context import raise_for
@@ -10,12 +10,13 @@ from app.lib.options_context import options_context
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.repositories.element_member_repository import ElementMemberRepository
 from app.repositories.element_repository import ElementRepository
 
 router = APIRouter(prefix='/api/0.7')
 
 
-# TODO: limits + cursor
+# TODO: limits + cursor (1min expiration?)
 @router.get('/map')
 async def get_map(
     bbox: Annotated[str, Query()],
@@ -31,4 +32,5 @@ async def get_map(
             legacy_nodes_limit=True,
         )
 
+    await ElementMemberRepository.resolve_members(elements)
     return Format07.encode_elements(elements)

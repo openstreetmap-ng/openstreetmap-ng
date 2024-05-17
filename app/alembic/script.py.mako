@@ -12,7 +12,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import Text
 
-import app.models.element_member_ref
 import app.models.geometry
 
 ${imports if imports else ""}

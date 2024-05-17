@@ -3,7 +3,8 @@ from typing import override
 
 from pydantic import PositiveInt
 
-from app.models.element_type import ElementType, element_type
+from app.models.element_type import ElementType
+from app.validators.element_type import element_type
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,10 +14,7 @@ class ElementRef:
 
     @property
     def element_ref(self) -> 'ElementRef':
-        return ElementRef(
-            type=self.type,
-            id=self.id,
-        )
+        return ElementRef(type=self.type, id=self.id)
 
     def __str__(self) -> str:
         """

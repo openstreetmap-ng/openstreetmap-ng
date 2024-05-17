@@ -16,20 +16,15 @@ from app.models.db import *  # noqa: F403
 from app.utils import JSON_ENCODE
 
 input_path = pathlib.Path(PRELOAD_DIR / 'preload.osm')
-if not input_path.is_file():
-    raise FileNotFoundError(f'File not found: {input_path}')
-
 data_parquet_path = pathlib.Path(PRELOAD_DIR / 'preload.parquet')
 
-user_csv_path = pathlib.Path(PRELOAD_DIR / 'user.csv')
-changeset_csv_path = pathlib.Path(PRELOAD_DIR / 'changeset.csv')
-element_csv_path = pathlib.Path(PRELOAD_DIR / 'element.csv')
+if not input_path.is_file():
+    raise FileNotFoundError(f'File not found: {input_path}')
 
 buffering = 32 * 1024 * 1024  # 32 MB
 read_memory_limit = 2 * 1024 * 1024 * 1024  # 2 GB => ~50 GB total memory usage
 
 num_workers = os.cpu_count()
-
 input_size = input_path.stat().st_size
 task_read_memory_limit = read_memory_limit // num_workers
 num_tasks = input_size // task_read_memory_limit
@@ -39,6 +34,11 @@ task_size = input_size // num_tasks
 gc.collect()
 gc.freeze()
 gc.disable()
+
+
+@cache
+def get_csv_path(name: str) -> pathlib.Path:
+    return pathlib.Path(PRELOAD_DIR / f'{name}.csv')
 
 
 @cache
@@ -58,7 +58,16 @@ def worker(args: tuple[int, int, int]) -> None:
         'visible': pl.Boolean,
         'tags': pl.String,
         'point': pl.String,
-        'members': pl.String,
+        'members': pl.List(
+            pl.Struct(
+                {
+                    'order': pl.UInt16,
+                    'type': pl.String,
+                    'id': pl.UInt64,
+                    'role': pl.String,
+                }
+            )
+        ),
         'created_at': pl.Datetime,
         'user_id': pl.UInt64,
         'display_name': pl.String,
@@ -95,7 +104,7 @@ def worker(args: tuple[int, int, int]) -> None:
         if tag not in ('node', 'way', 'relation'):
             continue
 
-        tags = {}
+        tags_list = []
         members = []
 
         child: ET.ElementBase
@@ -104,10 +113,11 @@ def worker(args: tuple[int, int, int]) -> None:
             child_attrib: dict = child.attrib
 
             if child_tag == 'tag':
-                tags[child_attrib['k']] = child_attrib['v']
+                tags_list.append((child_attrib['k'], child_attrib['v']))
             elif child_tag == 'nd':
                 members.append(
                     {
+                        'order': len(members),
                         'type': 'node',
                         'id': int(child_attrib['ref']),
                         'role': '',
@@ -116,6 +126,7 @@ def worker(args: tuple[int, int, int]) -> None:
             elif child_tag == 'member':
                 members.append(
                     {
+                        'order': len(members),
                         'type': child_attrib['type'],
                         'id': int(child_attrib['ref']),
                         'role': child_attrib['role'],
@@ -130,7 +141,7 @@ def worker(args: tuple[int, int, int]) -> None:
         if tag == 'node':
             visible = point is not None
         elif tag == 'way' or tag == 'relation':
-            visible = bool(tags or members)
+            visible = bool(tags_list or members)
 
         uid = attrib.get('uid')
         if uid is not None:
@@ -147,9 +158,9 @@ def worker(args: tuple[int, int, int]) -> None:
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
                 visible,  # visible
-                JSON_ENCODE(tags).decode() if tags else '{}',  # tags
+                JSON_ENCODE(dict(tags_list)).decode() if tags_list else '{}',  # tags
                 point,  # point
-                JSON_ENCODE(members).decode() if members else '[]',  # members
+                members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at
                 user_id,  # user_id
                 user_display_name,  # display_name
@@ -210,7 +221,7 @@ def merge_worker_files() -> None:
         created_at_all.extend(created_at)
 
     print('Assigning sequence IDs (step 2/2)...')
-    created_at_argsort = np.argsort(created_at_all, kind='stable').astype(np.uint64)
+    created_at_argsort = np.argsort(created_at_all).astype(np.uint64)
 
     # free memory
     del created_at_all
@@ -264,11 +275,19 @@ def write_element_csv() -> None:
         'visible',
         'tags',
         'point',
-        'members',
         'created_at',
         'next_sequence_id',
     )
-    df.sink_csv(element_csv_path)
+    df.sink_csv(get_csv_path('element'))
+
+
+def write_element_member_csv() -> None:
+    df: pl.LazyFrame = pl.scan_parquet(data_parquet_path)
+    df = df.select('sequence_id', 'members')
+    df = df.filter(pl.col('members').list.len() > 0)
+    df = df.explode('members')
+    df = df.unnest('members')
+    df.sink_csv(get_csv_path('element_member'))
 
 
 def write_user_csv() -> None:
@@ -287,7 +306,7 @@ def write_user_csv() -> None:
         pl.lit(True).alias('activity_tracking'),
         pl.lit(True).alias('crash_reporting'),
     )
-    df.sink_csv(user_csv_path)
+    df.sink_csv(get_csv_path('user'))
 
 
 def write_changeset_csv() -> None:
@@ -300,7 +319,7 @@ def write_changeset_csv() -> None:
         pl.len().alias('size'),
     )
     df = df.with_columns(pl.lit('{}').alias('tags'))
-    df.sink_csv(changeset_csv_path)
+    df.sink_csv(get_csv_path('changeset'))
 
 
 async def convert_xml2csv() -> None:
@@ -309,12 +328,12 @@ async def convert_xml2csv() -> None:
 
     print('Writing user CSV...')
     write_user_csv()
-
     print('Writing changeset CSV...')
     write_changeset_csv()
-
     print('Writing element CSV...')
     write_element_csv()
+    print('Writing element member CSV...')
+    write_element_member_csv()
 
 
 async def main():

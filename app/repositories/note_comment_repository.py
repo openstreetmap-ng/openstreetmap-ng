@@ -69,7 +69,7 @@ class NoteCommentRepository:
 
             stmt = (
                 select(NoteComment)
-                .where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
+                .where(NoteComment.id.in_(union_all(*stmts).scalar_subquery()))
                 .order_by(NoteComment.created_at.desc())
             )
             stmt = apply_options_context(stmt)

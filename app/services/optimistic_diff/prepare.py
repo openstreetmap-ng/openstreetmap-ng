@@ -318,8 +318,8 @@ class OptimisticDiffPrepare:
 
         Returns the removed and added references.
         """
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs_set if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs_set
+        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
+        next_refs: frozenset[ElementRef] = element.members_element_refs
 
         # read property once for performance
         element_ref = element.element_ref
@@ -437,8 +437,8 @@ class OptimisticDiffPrepare:
         element_state = self.element_state
 
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs_set if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs_set
+        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
+        next_refs: frozenset[ElementRef] = element.members_element_refs
 
         union_refs = next_refs | prev_refs
 
@@ -458,8 +458,8 @@ class OptimisticDiffPrepare:
         element_state = self.element_state
 
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs_set if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs_set
+        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
+        next_refs: frozenset[ElementRef] = element.members_element_refs
 
         changed_refs = prev_refs ^ next_refs
 

@@ -4,7 +4,7 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.models.db.element import Element
-from app.models.element_member_ref import ElementMemberRef
+from app.models.db.element_member import ElementMember
 
 
 class Element07Mixin:
@@ -18,7 +18,7 @@ class Element07Mixin:
 
 
 @cython.cfunc
-def _encode_members(members: Sequence[ElementMemberRef]) -> tuple[dict, ...]:
+def _encode_members(members: Sequence[ElementMember]) -> tuple[dict, ...]:
     return tuple(
         {
             'type': member.type,
@@ -41,7 +41,7 @@ def _encode_element(element: Element) -> dict:
         'visible': element.visible,
         **(_encode_point(element.point) if (element.point is not None) else {}),
         'tags': element.tags,
-        'members': _encode_members(element.members),
+        'members': _encode_members(element.members) if (element.members is not None) else (),
     }
 
 
