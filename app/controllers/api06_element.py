@@ -4,7 +4,7 @@ from typing import Annotated
 import cython
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user

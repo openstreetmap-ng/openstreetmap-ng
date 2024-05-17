@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.exceptions_context import raise_for

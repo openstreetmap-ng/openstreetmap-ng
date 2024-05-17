@@ -2,10 +2,9 @@ from collections.abc import Sequence
 from typing import Annotated
 
 from anyio import create_task_group
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Query
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload, selectinload
-from starlette import status
+from sqlalchemy.orm import joinedload
 
 from app.lib.element_leaflet_formatter import format_leaflet_elements
 from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list

@@ -13,7 +13,12 @@ from app.models.msgspec.element_leaflet import (
 )
 
 
-def format_leaflet_elements(elements: Sequence[Element], *, detailed: cython.char) -> list[ElementLeaflet]:
+def format_leaflet_elements(
+    elements: Sequence[Element],
+    *,
+    detailed: cython.char,
+    areas: cython.char = True,
+) -> list[ElementLeaflet]:
     """
     Format elements into a minimal structure, suitable for Leaflet rendering.
     """
@@ -51,7 +56,7 @@ def format_leaflet_elements(elements: Sequence[Element], *, detailed: cython.cha
             points.append(point)
 
         geom = np.fliplr(get_coordinates(points)).tolist()
-        area = _is_way_area(way)
+        area = _is_way_area(way) if areas else False
         result.append(ElementLeafletWay('way', way_id, geom, area))
 
     for node_id, node in node_id_map.items():
@@ -107,8 +112,10 @@ def _is_node_interesting(node: Element, way_nodes_ids: set[int], *, detailed: cy
 
 _area_tags: frozenset[str] = frozenset(
     (
+        'amenity',
         'area',
         'building',
+        'building:part',
         'leisure',
         'tourism',
         'ruins',

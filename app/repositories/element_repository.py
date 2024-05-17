@@ -6,7 +6,7 @@ from typing import Literal
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
 from sqlalchemy import and_, func, null, or_, select, text, true
-from sqlalchemy.orm import defaultload, defer
+from sqlalchemy.orm import defer
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
 from app.db import db

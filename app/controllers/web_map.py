@@ -1,14 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import selectinload
 
 from app.lib.element_leaflet_formatter import format_leaflet_elements
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.options_context import options_context
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
-from app.models.db.element import Element
 from app.repositories.element_member_repository import ElementMemberRepository
 from app.repositories.element_repository import ElementRepository
 
@@ -25,10 +22,10 @@ async def get_map(
 
     elements = await ElementRepository.find_many_by_geom(
         geometry,
-        partial_ways=True,
         include_relations=False,
         nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
         legacy_nodes_limit=True,
     )
 
-    return format_leaflet_elements(elements, detailed=True)
+    await ElementMemberRepository.resolve_members(elements)
+    return format_leaflet_elements(elements, detailed=True, areas=False)

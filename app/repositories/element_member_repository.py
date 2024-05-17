@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import defer, deferred
+from sqlalchemy.orm import defer
 
 from app.db import db
 from app.models.db.element import Element
