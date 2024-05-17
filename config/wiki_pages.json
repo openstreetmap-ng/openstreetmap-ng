@@ -360,6 +360,9 @@
     "JA",
     "RU"
   ],
+  "Key:access:carriages": [
+    ""
+  ],
   "Key:access:covid19": [
     ""
   ],
@@ -414,7 +417,7 @@
     "Uk",
     "Vi"
   ],
-  "Key:addr:*/Convenções_Brasil": [
+  "Key:addr:*/Conven\u00e7\u00f5es_Brasil": [
     "Pt"
   ],
   "Key:addr:TW:dataset": [
@@ -567,6 +570,7 @@
   ],
   "Key:addr:state": [
     "",
+    "Cs",
     "Uk"
   ],
   "Key:addr:street": [
@@ -589,7 +593,8 @@
     "Sk"
   ],
   "Key:addr:subdistrict": [
-    ""
+    "",
+    "Cs"
   ],
   "Key:addr:suburb": [
     "",
@@ -631,10 +636,14 @@
     "Pl",
     "Pt",
     "RU",
+    "UZ",
     "Uk",
     "Zh-hans"
   ],
   "Key:admin_title": [
+    ""
+  ],
+  "Key:admin_type:PH": [
     ""
   ],
   "Key:adr_les": [
@@ -647,9 +656,11 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Key:aerial": [
     "",
@@ -670,6 +681,9 @@
     "Pt",
     "RU",
     "Uk"
+  ],
+  "Key:aerialway:*": [
+    ""
   ],
   "Key:aerialway:drag_lift": [
     "",
@@ -868,6 +882,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Key:area:aeroway": [
@@ -885,6 +900,9 @@
     "Pl",
     "RU",
     "Uk"
+  ],
+  "Key:area=yes": [
+    "SV"
   ],
   "Key:armrest": [
     "",
@@ -1313,6 +1331,9 @@
     "RU",
     "Uk"
   ],
+  "Key:bicycle_parking:security_chain": [
+    ""
+  ],
   "Key:bike_friend": [
     ""
   ],
@@ -1335,7 +1356,7 @@
     "Pl",
     "RU"
   ],
-  "Key:biosphärenwirt": [
+  "Key:biosph\u00e4renwirt": [
     "DE"
   ],
   "Key:biotic_reef:type": [
@@ -1407,6 +1428,10 @@
     "NL",
     "Pl"
   ],
+  "Key:bond": [
+    "",
+    "DE"
+  ],
   "Key:booking": [
     "",
     "JA",
@@ -1424,7 +1449,8 @@
     "RU"
   ],
   "Key:boot_scraper": [
-    ""
+    "",
+    "DE"
   ],
   "Key:booth": [
     "",
@@ -1543,6 +1569,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk",
     "Zh-hant"
   ],
@@ -1650,7 +1677,7 @@
   "Key:building/Gallery": [
     ""
   ],
-  "Key:building/Галерея": [
+  "Key:building/\u0413\u0430\u043b\u0435\u0440\u0435\u044f": [
     "RU"
   ],
   "Key:building:*": [
@@ -1711,6 +1738,9 @@
     "Pl",
     "Pt",
     "RU"
+  ],
+  "Key:building:floor_area": [
+    ""
   ],
   "Key:building:foundation_height": [
     "",
@@ -1916,7 +1946,8 @@
     "ES",
     "FR",
     "Ko",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Key:bus_class": [
     "RU"
@@ -1943,7 +1974,8 @@
     "FR",
     "JA",
     "Ko",
-    "Pl"
+    "Pl",
+    "Sv"
   ],
   "Key:butcher": [
     ""
@@ -2070,6 +2102,9 @@
     "RU"
   ],
   "Key:capacity:*": [
+    ""
+  ],
+  "Key:capacity:baby": [
     ""
   ],
   "Key:capacity:beds": [
@@ -2209,6 +2244,7 @@
   ],
   "Key:carpool": [
     "",
+    "DE",
     "FR"
   ],
   "Key:carriage": [
@@ -2229,6 +2265,7 @@
     "",
     "Cs",
     "DE",
+    "FR",
     "Pl",
     "RU"
   ],
@@ -2300,6 +2337,9 @@
   "Key:changing_table:adult": [
     ""
   ],
+  "Key:changing_table:height:adjustable": [
+    ""
+  ],
   "Key:changing_table:hoist": [
     ""
   ],
@@ -2330,6 +2370,9 @@
     "JA",
     "Pl",
     "RU"
+  ],
+  "Key:check_date:*": [
+    ""
   ],
   "Key:checkpoint": [
     "",
@@ -2531,6 +2574,7 @@
   "Key:communication:amateur_radio": [
     "",
     "Cs",
+    "DE",
     "ES",
     "RU"
   ],
@@ -2565,7 +2609,8 @@
     ""
   ],
   "Key:communication:amateur_radio:repeater:shift": [
-    ""
+    "",
+    "DE"
   ],
   "Key:communication:amateur_radio:repeater:toneburst": [
     ""
@@ -2643,6 +2688,9 @@
     ""
   ],
   "Key:community/Table": [
+    ""
+  ],
+  "Key:community_adopted": [
     ""
   ],
   "Key:community_centre": [
@@ -2820,6 +2868,7 @@
     "JA"
   ],
   "Key:contact:instagram": [
+    "",
     "ES"
   ],
   "Key:contact:linkedin": [
@@ -2884,7 +2933,8 @@
     "RU"
   ],
   "Key:contact:whatsapp": [
-    "ES"
+    "ES",
+    "Pt"
   ],
   "Key:contact:xing": [
     "",
@@ -3081,7 +3131,8 @@
     ""
   ],
   "Key:crossing:continuous": [
-    ""
+    "",
+    "FR"
   ],
   "Key:crossing:island": [
     "",
@@ -3287,6 +3338,7 @@
   ],
   "Key:cycleway:lane": [
     "",
+    "DE",
     "ES",
     "FR",
     "JA",
@@ -3576,7 +3628,9 @@
     ""
   ],
   "Key:destination:ref": [
-    "DE"
+    "",
+    "DE",
+    "ES"
   ],
   "Key:destination:symbol": [
     "",
@@ -3619,6 +3673,9 @@
     "DE",
     "JA",
     "Pl"
+  ],
+  "Key:diameter:range": [
+    ""
   ],
   "Key:diaper": [
     "",
@@ -3891,7 +3948,8 @@
     "DE",
     "FR",
     "JA",
-    "Pl"
+    "Pl",
+    "RU"
   ],
   "Key:door:height": [
     "",
@@ -4141,6 +4199,15 @@
   "Key:elevator": [
     ""
   ],
+  "Key:elevator:door:width": [
+    ""
+  ],
+  "Key:elevator:length": [
+    ""
+  ],
+  "Key:elevator:width": [
+    ""
+  ],
   "Key:email": [
     "",
     "Cs",
@@ -4363,6 +4430,9 @@
   "Key:extinguishing:medium": [
     ""
   ],
+  "Key:faa": [
+    ""
+  ],
   "Key:facebook": [
     "",
     "Ca",
@@ -4461,6 +4531,7 @@
   ],
   "Key:fee:conditional": [
     "",
+    "FR",
     "Pt"
   ],
   "Key:fee:disabled": [
@@ -4805,6 +4876,7 @@
     "JA",
     "Pl",
     "RU",
+    "Sv",
     "Uk",
     "Zh-hant"
   ],
@@ -5030,7 +5102,8 @@
     ""
   ],
   "Key:generator:solar:tracking": [
-    ""
+    "",
+    "FR"
   ],
   "Key:generator:source": [
     "",
@@ -5110,6 +5183,33 @@
     "DE",
     "RU"
   ],
+  "Key:gnis:Class": [
+    ""
+  ],
+  "Key:gnis:County": [
+    ""
+  ],
+  "Key:gnis:County_num": [
+    ""
+  ],
+  "Key:gnis:ST_alph": [
+    ""
+  ],
+  "Key:gnis:ST_alpha": [
+    ""
+  ],
+  "Key:gnis:ST_num": [
+    ""
+  ],
+  "Key:gnis:county": [
+    ""
+  ],
+  "Key:gnis:county_id": [
+    ""
+  ],
+  "Key:gnis:county_name": [
+    ""
+  ],
   "Key:gnis:created": [
     ""
   ],
@@ -5119,10 +5219,22 @@
   "Key:gnis:feature_id": [
     ""
   ],
+  "Key:gnis:feature_type": [
+    ""
+  ],
   "Key:gnis:ftype": [
     ""
   ],
   "Key:gnis:import_uuid": [
+    ""
+  ],
+  "Key:gnis:state": [
+    ""
+  ],
+  "Key:gnis:state_alpha": [
+    ""
+  ],
+  "Key:gnis:state_id": [
     ""
   ],
   "Key:golf": [
@@ -5173,6 +5285,9 @@
     "Pt",
     "RU"
   ],
+  "Key:graffiti": [
+    ""
+  ],
   "Key:graham": [
     ""
   ],
@@ -5213,7 +5328,13 @@
   "Key:gtfs:feed": [
     ""
   ],
+  "Key:gtfs:location_type": [
+    ""
+  ],
   "Key:gtfs:name": [
+    ""
+  ],
+  "Key:gtfs:platform_code": [
     ""
   ],
   "Key:gtfs:release_date": [
@@ -5222,19 +5343,34 @@
   "Key:gtfs:route_id": [
     ""
   ],
+  "Key:gtfs:route_long_name": [
+    ""
+  ],
+  "Key:gtfs:route_short_name": [
+    ""
+  ],
   "Key:gtfs:shape_id": [
     ""
   ],
   "Key:gtfs:source_date": [
     ""
   ],
+  "Key:gtfs:stop_code": [
+    ""
+  ],
   "Key:gtfs:stop_id": [
+    ""
+  ],
+  "Key:gtfs:stop_name": [
     ""
   ],
   "Key:gtfs:trip_id": [
     ""
   ],
   "Key:gtfs:trip_id:sample": [
+    ""
+  ],
+  "Key:gtfs_id": [
     ""
   ],
   "Key:guest_house": [
@@ -5453,6 +5589,9 @@
   "Key:height:range": [
     ""
   ],
+  "Key:helipad": [
+    ""
+  ],
   "Key:heritage": [
     "",
     "DE",
@@ -5554,6 +5693,15 @@
   "Key:highway_authority_ref": [
     ""
   ],
+  "Key:highway_construction:*": [
+    ""
+  ],
+  "Key:highway_construction:project": [
+    ""
+  ],
+  "Key:highway_construction:work": [
+    ""
+  ],
   "Key:hiking": [
     "",
     "Cs",
@@ -5639,7 +5787,8 @@
     ""
   ],
   "Key:hot_water": [
-    ""
+    "",
+    "FR"
   ],
   "Key:hour_off": [
     ""
@@ -6033,6 +6182,9 @@
     "JA",
     "RU"
   ],
+  "Key:kayak": [
+    ""
+  ],
   "Key:kct_blue": [
     "",
     "Cs"
@@ -6177,11 +6329,11 @@
   ],
   "Key:lamp_type": [
     "",
-    "DE"
+    "DE",
+    "RU"
   ],
   "Key:landcover": [
-    "",
-    "Pl"
+    ""
   ],
   "Key:landfill:waste": [
     "",
@@ -6227,7 +6379,8 @@
     "FR",
     "JA",
     "Pl",
-    "Pt"
+    "Pt",
+    "Uk"
   ],
   "Key:lanes": [
     "",
@@ -6250,6 +6403,7 @@
     ""
   ],
   "Key:lanes:bus": [
+    "",
     "DE"
   ],
   "Key:lanes:psv": [
@@ -6630,6 +6784,7 @@
   ],
   "Key:luminous": [
     "",
+    "IT",
     "Pl"
   ],
   "Key:lunch": [
@@ -6841,6 +6996,9 @@
   "Key:maxcharge": [
     ""
   ],
+  "Key:maxdiameter:physical": [
+    ""
+  ],
   "Key:maxdraft": [
     ""
   ],
@@ -6875,6 +7033,7 @@
   "Key:maxheight:physical": [
     "",
     "Cs",
+    "DE",
     "FR",
     "JA",
     "No",
@@ -6882,6 +7041,9 @@
     "Pt"
   ],
   "Key:maxheight:signed": [
+    ""
+  ],
+  "Key:maximum_height_requirement": [
     ""
   ],
   "Key:maxlength": [
@@ -6913,6 +7075,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk",
     "Zh-hant"
   ],
@@ -7042,8 +7205,12 @@
     "",
     "NL"
   ],
+  "Key:mdt_base_route": [
+    ""
+  ],
   "Key:meadow": [
     "",
+    "Cs",
     "DE"
   ],
   "Key:measurement": [
@@ -7109,6 +7276,9 @@
   "Key:memorial:subject": [
     "",
     "RU"
+  ],
+  "Key:memorial:subject:wikidata": [
+    ""
   ],
   "Key:memorial:type": [
     "",
@@ -7190,6 +7360,9 @@
   "Key:mineshaft_type": [
     "",
     "DE"
+  ],
+  "Key:minimum_height_requirement": [
+    ""
   ],
   "Key:minspeed": [
     "",
@@ -7347,10 +7520,6 @@
   ],
   "Key:monorail": [
     ""
-  ],
-  "Key:monument": [
-    "",
-    "RU"
   ],
   "Key:monument:genesis": [
     "",
@@ -8402,6 +8571,15 @@
   "Key:name:nan": [
     ""
   ],
+  "Key:name:nan-Hant": [
+    ""
+  ],
+  "Key:name:nan-Latn-pehoeji": [
+    ""
+  ],
+  "Key:name:nan-Latn-tailo": [
+    ""
+  ],
   "Key:name:nap": [
     ""
   ],
@@ -8461,6 +8639,9 @@
   "Key:name:os": [
     ""
   ],
+  "Key:name:osa": [
+    ""
+  ],
   "Key:name:ota": [
     ""
   ],
@@ -8509,6 +8690,9 @@
   "Key:name:pnt": [
     ""
   ],
+  "Key:name:pot": [
+    ""
+  ],
   "Key:name:prefix": [
     "",
     "Uk"
@@ -8527,6 +8711,9 @@
     ""
   ],
   "Key:name:qu": [
+    ""
+  ],
+  "Key:name:qua": [
     ""
   ],
   "Key:name:rgn": [
@@ -8860,6 +9047,9 @@
   "Key:name:zh-Latn-pinyin": [
     ""
   ],
+  "Key:name:zh-Latn-tongyong": [
+    ""
+  ],
   "Key:name:zu": [
     ""
   ],
@@ -9051,6 +9241,7 @@
   ],
   "Key:newspaper_tubes": [
     "",
+    "DE",
     "RU"
   ],
   "Key:next_check_date": [
@@ -9097,6 +9288,7 @@
     "Gl",
     "IT",
     "Pt",
+    "RU",
     "Uk"
   ],
   "Key:non_existent_levels": [
@@ -9121,6 +9313,7 @@
   ],
   "Key:not:*": [
     "",
+    "DE",
     "ES"
   ],
   "Key:not:brand:wikidata": [
@@ -9128,7 +9321,8 @@
   ],
   "Key:not:name": [
     "",
-    "IT"
+    "IT",
+    "Zh-hans"
   ],
   "Key:not:wikidata": [
     ""
@@ -9213,10 +9407,13 @@
   "Key:nvdb:id": [
     ""
   ],
+  "Key:nwsr": [
+    ""
+  ],
   "Key:nycdoitt:bin": [
     ""
   ],
-  "Key:object": [
+  "Key:object:*": [
     "",
     "DE",
     "ES"
@@ -9249,11 +9446,12 @@
     "Uk",
     "Zh-hant"
   ],
-  "Key:office/Обзор_офисов": [
+  "Key:office/\u041e\u0431\u0437\u043e\u0440_\u043e\u0444\u0438\u0441\u043e\u0432": [
     "RU"
   ],
   "Key:official_name": [
     "",
+    "DE",
     "ES",
     "Uk"
   ],
@@ -9378,6 +9576,9 @@
   "Key:ons_code": [
     ""
   ],
+  "Key:open": [
+    ""
+  ],
   "Key:openGeoDB:loc_id": [
     ""
   ],
@@ -9467,7 +9668,7 @@
   "Key:opening_hours/specification_table/doc": [
     "Template"
   ],
-  "Key:opening_hours/仕様": [
+  "Key:opening_hours/\u4ed5\u69d8": [
     "JA"
   ],
   "Key:opening_hours:*": [
@@ -9548,6 +9749,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Key:operator:MNC": [
@@ -9804,9 +10006,20 @@
   ],
   "Key:parking:both": [
     "",
-    "ES"
+    "ES",
+    "FR"
   ],
   "Key:parking:both:capacity": [
+    ""
+  ],
+  "Key:parking:both:markings": [
+    ""
+  ],
+  "Key:parking:both:orientation": [
+    "",
+    "FR"
+  ],
+  "Key:parking:both:restriction": [
     ""
   ],
   "Key:parking:both:staggered": [
@@ -9822,6 +10035,7 @@
   ],
   "Key:parking:condition": [
     "",
+    "Cs",
     "DE",
     "ES",
     "RU"
@@ -9829,7 +10043,7 @@
   "Key:parking:condition/complex": [
     ""
   ],
-  "Key:parking:condition/Сложные_знаки": [
+  "Key:parking:condition/\u0421\u043b\u043e\u0436\u043d\u044b\u0435_\u0437\u043d\u0430\u043a\u0438": [
     "RU"
   ],
   "Key:parking:condition:both:maxstay": [
@@ -9855,7 +10069,7 @@
     "RU",
     "Zh-hans"
   ],
-  "Key:parking:lane/Примеры": [
+  "Key:parking:lane/\u041f\u0440\u0438\u043c\u0435\u0440\u044b": [
     "RU"
   ],
   "Key:parking:lane:both": [
@@ -9880,9 +10094,20 @@
   ],
   "Key:parking:left": [
     "",
-    "ES"
+    "ES",
+    "FR"
   ],
   "Key:parking:left:capacity": [
+    ""
+  ],
+  "Key:parking:left:markings": [
+    ""
+  ],
+  "Key:parking:left:orientation": [
+    "",
+    "FR"
+  ],
+  "Key:parking:left:restriction": [
     ""
   ],
   "Key:parking:orientation": [
@@ -9897,9 +10122,20 @@
   ],
   "Key:parking:right": [
     "",
-    "ES"
+    "ES",
+    "FR"
   ],
   "Key:parking:right:capacity": [
+    ""
+  ],
+  "Key:parking:right:markings": [
+    ""
+  ],
+  "Key:parking:right:orientation": [
+    "",
+    "FR"
+  ],
+  "Key:parking:right:restriction": [
     ""
   ],
   "Key:parking:zone": [
@@ -9910,6 +10146,12 @@
     "DE",
     "FR",
     "RU"
+  ],
+  "Key:parking_space:length": [
+    ""
+  ],
+  "Key:parking_space:width": [
+    ""
   ],
   "Key:parking_space_IO": [
     ""
@@ -9984,6 +10226,9 @@
   "Key:payment:bitcoin": [
     ""
   ],
+  "Key:payment:cash": [
+    ""
+  ],
   "Key:payment:cash:machine": [
     ""
   ],
@@ -10020,7 +10265,8 @@
     ""
   ],
   "Key:pet": [
-    ""
+    "",
+    "DE"
   ],
   "Key:pets": [
     "",
@@ -10087,6 +10333,9 @@
     "Cs",
     "Pl",
     "RU"
+  ],
+  "Key:piste:*": [
+    ""
   ],
   "Key:piste:difficulty": [
     "",
@@ -10270,6 +10519,7 @@
   ],
   "Key:playground:theme": [
     "",
+    "DE",
     "RU"
   ],
   "Key:pmfsefin:idedif": [
@@ -10332,6 +10582,13 @@
   "Key:port": [
     ""
   ],
+  "Key:portable": [
+    "",
+    "Zh-hans"
+  ],
+  "Key:portage": [
+    ""
+  ],
   "Key:position": [
     ""
   ],
@@ -10379,6 +10636,9 @@
     "Pt",
     "RU",
     "Uk"
+  ],
+  "Key:postcode": [
+    ""
   ],
   "Key:potholes": [
     "",
@@ -10454,7 +10714,8 @@
     "IT",
     "JA",
     "Pl",
-    "Pt"
+    "Pt",
+    "Uk"
   ],
   "Key:priority_road": [
     "",
@@ -10489,6 +10750,9 @@
     "RU"
   ],
   "Key:project:eurosha_2012": [
+    ""
+  ],
+  "Key:project:name": [
     ""
   ],
   "Key:prominence": [
@@ -10535,6 +10799,9 @@
     "JA"
   ],
   "Key:protected=*": [
+    ""
+  ],
+  "Key:protected_area": [
     ""
   ],
   "Key:protected_nature": [
@@ -10630,7 +10897,7 @@
     "",
     "FR"
   ],
-  "Key:pyörä_väistää_aina_autoa": [
+  "Key:py\u00f6r\u00e4_v\u00e4ist\u00e4\u00e4_aina_autoa": [
     "",
     "Fi"
   ],
@@ -10680,6 +10947,12 @@
   "Key:railway:atb": [
     ""
   ],
+  "Key:railway:ballastless": [
+    ""
+  ],
+  "Key:railway:block_section": [
+    ""
+  ],
   "Key:railway:etcs": [
     "",
     "DE",
@@ -10722,6 +10995,9 @@
     "FR"
   ],
   "Key:railway:signal:combined": [
+    ""
+  ],
+  "Key:railway:signal:country": [
     ""
   ],
   "Key:railway:signal:distant": [
@@ -10784,12 +11060,10 @@
     "FR"
   ],
   "Key:ramp:maxweight": [
-    "",
-    "DE"
+    ""
   ],
   "Key:ramp:maxwidth:physical": [
-    "",
-    "DE"
+    ""
   ],
   "Key:ramp:portable": [
     "",
@@ -10812,12 +11086,14 @@
     "DE"
   ],
   "Key:ramp:supervised": [
-    "",
-    "DE"
+    ""
   ],
   "Key:ramsar": [
     "",
     "Cs"
+  ],
+  "Key:rapids": [
+    ""
   ],
   "Key:razed:*": [
     "",
@@ -10890,6 +11166,7 @@
   ],
   "Key:recycling:plastic_bottle_caps": [
     "",
+    "Pl",
     "RU"
   ],
   "Key:recycling:plastic_bottle_tops": [
@@ -10917,18 +11194,24 @@
   "Key:red_turn:left": [
     ""
   ],
+  "Key:red_turn:left:bicycle": [
+    "",
+    "FR"
+  ],
   "Key:red_turn:right": [
     ""
   ],
   "Key:red_turn:right:bicycle": [
     "",
-    "DE"
+    "DE",
+    "FR"
   ],
   "Key:red_turn:straight": [
     ""
   ],
   "Key:red_turn:straight:bicycle": [
-    ""
+    "",
+    "FR"
   ],
   "Key:rednap:latitud": [
     ""
@@ -10954,6 +11237,9 @@
     "Zh-hans"
   ],
   "Key:ref:AGESIC": [
+    ""
+  ],
+  "Key:ref:AQ:apa": [
     ""
   ],
   "Key:ref:ATIS": [
@@ -11097,6 +11383,10 @@
   "Key:ref:FR:SNCF_Reseau": [
     "FR"
   ],
+  "Key:ref:FR:TUC": [
+    "",
+    "FR"
+  ],
   "Key:ref:FR:commune": [
     "FR"
   ],
@@ -11125,6 +11415,9 @@
   "Key:ref:GB:nhs_ods": [
     ""
   ],
+  "Key:ref:GB:the_circuit": [
+    ""
+  ],
   "Key:ref:GB:uprn": [
     ""
   ],
@@ -11132,6 +11425,9 @@
     ""
   ],
   "Key:ref:GB:wpd_site": [
+    ""
+  ],
+  "Key:ref:HR:e-matica": [
     ""
   ],
   "Key:ref:HU:edid": [
@@ -11183,6 +11479,9 @@
     ""
   ],
   "Key:ref:LV:addr": [
+    ""
+  ],
+  "Key:ref:La": [
     ""
   ],
   "Key:ref:NBd": [
@@ -11334,6 +11633,9 @@
     "",
     "DE"
   ],
+  "Key:ref:bukea": [
+    ""
+  ],
   "Key:ref:bygningsnr": [
     ""
   ],
@@ -11401,9 +11703,6 @@
     ""
   ],
   "Key:ref:dove": [
-    ""
-  ],
-  "Key:ref:e-matica": [
     ""
   ],
   "Key:ref:edubase": [
@@ -11492,6 +11791,9 @@
     "",
     "RU"
   ],
+  "Key:ref:kozterkep": [
+    ""
+  ],
   "Key:ref:landcode": [
     ""
   ],
@@ -11519,6 +11821,9 @@
   "Key:ref:lor": [
     ""
   ],
+  "Key:ref:masaf": [
+    "IT"
+  ],
   "Key:ref:mhs": [
     "",
     "FR"
@@ -11545,6 +11850,9 @@
   "Key:ref:msal": [
     "",
     "IT"
+  ],
+  "Key:ref:nces": [
+    ""
   ],
   "Key:ref:neispuo": [
     ""
@@ -12111,6 +12419,9 @@
   "Key:route_ref:TECX": [
     ""
   ],
+  "Key:routing:bicycle": [
+    ""
+  ],
   "Key:routing:entrance": [
     ""
   ],
@@ -12303,6 +12614,9 @@
   "Key:sculpture_type": [
     "",
     "RU"
+  ],
+  "Key:sea_kayak": [
+    ""
   ],
   "Key:seamark:*": [
     "",
@@ -12866,6 +13180,10 @@
     "",
     "FR"
   ],
+  "Key:service:bicycle:parking": [
+    "",
+    "DE"
+  ],
   "Key:service:bicycle:parts": [
     ""
   ],
@@ -12910,7 +13228,19 @@
   "Key:service:electricity": [
     ""
   ],
+  "Key:service:photo_printing": [
+    "",
+    "DE"
+  ],
+  "Key:service:press": [
+    "",
+    "DE"
+  ],
   "Key:service:vehicle:*": [
+    "",
+    "DE"
+  ],
+  "Key:service:vehicle:body_repair": [
     "",
     "DE"
   ],
@@ -12922,14 +13252,25 @@
     "",
     "DE"
   ],
+  "Key:service:vehicle:glass": [
+    "",
+    "DE"
+  ],
   "Key:service:vehicle:inspection": [
     ""
   ],
   "Key:service:vehicle:lpg": [
     ""
   ],
+  "Key:service:vehicle:transmission": [
+    "",
+    "DE"
+  ],
   "Key:service:vehicle:truck_repair": [
     ""
+  ],
+  "Key:service:vehicle:tyres=yes": [
+    "DE"
   ],
   "Key:service_branch": [
     ""
@@ -13029,6 +13370,7 @@
     "Pt",
     "RU",
     "Sk",
+    "Sv",
     "Tr",
     "Uk",
     "Zh-hant"
@@ -13068,6 +13410,9 @@
     ""
   ],
   "Key:shrubbery:shape": [
+    ""
+  ],
+  "Key:side": [
     ""
   ],
   "Key:side_road": [
@@ -13182,7 +13527,8 @@
     "DE"
   ],
   "Key:small_electric_vehicle": [
-    ""
+    "",
+    "RU"
   ],
   "Key:smokefree": [
     "",
@@ -13197,6 +13543,9 @@
     "JA",
     "Pl",
     "RU"
+  ],
+  "Key:smoking:cannabis": [
+    "DE"
   ],
   "Key:smoothness": [
     "",
@@ -13297,6 +13646,9 @@
     "Pt",
     "RU",
     "Uk"
+  ],
+  "Key:source:*": [
+    ""
   ],
   "Key:source:ProRail": [
     ""
@@ -13435,11 +13787,18 @@
     "",
     "Cs"
   ],
+  "Key:speech_input:lg": [
+    ""
+  ],
   "Key:speech_output": [
     "",
     "Cs",
     "DE",
+    "IT",
     "JA"
+  ],
+  "Key:speech_output:lg": [
+    ""
   ],
   "Key:speed_pedelec": [
     "",
@@ -13526,6 +13885,7 @@
     "Cs"
   ],
   "Key:step:condition": [
+    "",
     "FR"
   ],
   "Key:step:contrast": [
@@ -13542,25 +13902,25 @@
     "Pl",
     "RU"
   ],
-  "Key:stećak": [
+  "Key:ste\u0107ak": [
     ""
   ],
-  "Key:stećak:format": [
+  "Key:ste\u0107ak:format": [
     ""
   ],
-  "Key:stećak:relocated": [
+  "Key:ste\u0107ak:relocated": [
     ""
   ],
-  "Key:stećak:replica": [
+  "Key:ste\u0107ak:replica": [
     ""
   ],
-  "Key:stećak:stećak_count": [
+  "Key:ste\u0107ak:ste\u0107ak_count": [
     ""
   ],
-  "Key:stećak:stećak_necropolis": [
+  "Key:ste\u0107ak:ste\u0107ak_necropolis": [
     ""
   ],
-  "Key:stećak_necropolis": [
+  "Key:ste\u0107ak_necropolis": [
     ""
   ],
   "Key:stilts": [
@@ -13634,7 +13994,8 @@
     "DE"
   ],
   "Key:subject:wikidata": [
-    ""
+    "",
+    "IT"
   ],
   "Key:subject:wikipedia": [
     ""
@@ -13831,6 +14192,9 @@
     "FR",
     "JA"
   ],
+  "Key:tactile_writing:braille:lg": [
+    ""
+  ],
   "Key:tailor:alteration_service": [
     ""
   ],
@@ -13904,6 +14268,9 @@
   "Key:technology": [
     "",
     "RU"
+  ],
+  "Key:tee": [
+    ""
   ],
   "Key:telecom": [
     "",
@@ -14068,6 +14435,18 @@
     "Pl",
     "RU"
   ],
+  "Key:toilets:*": [
+    "",
+    "RU"
+  ],
+  "Key:toilets:hands_drying": [
+    ""
+  ],
+  "Key:toilets:menstrual_products": [
+    "",
+    "DE",
+    "FR"
+  ],
   "Key:toilets:paper_supplied": [
     ""
   ],
@@ -14098,6 +14477,7 @@
     "Cs",
     "DE",
     "ES",
+    "El",
     "FR",
     "JA",
     "Ko",
@@ -14142,7 +14522,8 @@
     "NL",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Key:tourism:level:CN": [
     ""
@@ -14153,6 +14534,9 @@
     "ES",
     "JA",
     "RU"
+  ],
+  "Key:tours": [
+    ""
   ],
   "Key:tower:construction": [
     "",
@@ -14361,10 +14745,12 @@
   ],
   "Key:trailblazed": [
     "",
+    "DE",
     "ES"
   ],
   "Key:trailblazed:visibility": [
     "",
+    "DE",
     "ES"
   ],
   "Key:trailer": [
@@ -14418,6 +14804,9 @@
     "Pl"
   ],
   "Key:trench": [
+    ""
+  ],
+  "Key:trip_ref": [
     ""
   ],
   "Key:trolley:deposit": [
@@ -14917,8 +15306,12 @@
     "",
     "DE"
   ],
+  "Key:waterbody:name": [
+    ""
+  ],
   "Key:waterway": [
     "",
+    "Ar",
     "Cs",
     "DE",
     "ES",
@@ -14936,6 +15329,9 @@
     "Zh-hans"
   ],
   "Key:waterway/Narrow_variants": [
+    ""
+  ],
+  "Key:waterway:name": [
     ""
   ],
   "Key:waterway:type": [
@@ -14956,7 +15352,8 @@
     "JA",
     "Ko",
     "Pl",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Key:website:*": [
     ""
@@ -15025,11 +15422,13 @@
     "FR",
     "Pl"
   ],
+  "Key:wheelchair:turning_circle": [
+    ""
+  ],
   "Key:whitewater": [
     ""
   ],
   "Key:whitewater:rapid_grade": [
-    "",
     "DE"
   ],
   "Key:whitewater:section_grade": [
@@ -15095,6 +15494,9 @@
     "FR",
     "JA"
   ],
+  "Key:wikimedia_commons:path": [
+    ""
+  ],
   "Key:wikipedia": [
     "",
     "Cs",
@@ -15157,7 +15559,8 @@
     "DE",
     "FR",
     "Fi",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Key:winter_service:gritting": [
     ""
@@ -15310,9 +15713,6 @@
   ],
   "Tag:FR": [
     "Category"
-  ],
-  "Tag:Healthcare:speciality=equine-assisted": [
-    ""
   ],
   "Tag:abandoned:amenity=prison": [
     "",
@@ -15514,6 +15914,10 @@
   "Tag:access=use_sidepath": [
     ""
   ],
+  "Tag:access=yes": [
+    "",
+    "RU"
+  ],
   "Tag:actuator=electric_motor": [
     "",
     "FR"
@@ -15548,13 +15952,18 @@
     "Uk",
     "Zh-hans"
   ],
+  "Tag:admin_type:PH=barangay": [
+    ""
+  ],
   "Tag:advertising=billboard": [
     "",
     "Cs",
     "ES",
     "FR",
+    "IT",
     "JA",
-    "Pl"
+    "Pl",
+    "RU"
   ],
   "Tag:advertising=board": [
     "",
@@ -15571,8 +15980,11 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
-    "Pl"
+    "Pl",
+    "RU",
+    "Uk"
   ],
   "Tag:advertising=flag": [
     "",
@@ -15580,15 +15992,18 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:advertising=poster_box": [
     "",
     "Cs",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl"
   ],
@@ -15599,9 +16014,11 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:advertising=sculpture": [
     "",
@@ -15609,9 +16026,11 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:advertising=sign": [
     "",
@@ -15619,8 +16038,10 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
-    "Pl"
+    "Pl",
+    "Uk"
   ],
   "Tag:advertising=tarp": [
     "",
@@ -15629,6 +16050,7 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl"
   ],
@@ -15638,7 +16060,8 @@
     "ES",
     "FR",
     "JA",
-    "Pl"
+    "Pl",
+    "RU"
   ],
   "Tag:advertising=wall_painting": [
     "",
@@ -15647,9 +16070,11 @@
     "DE",
     "ES",
     "FR",
+    "IT",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:aerialway:drag_lift=j-bar": [
     "",
@@ -15775,7 +16200,8 @@
     "ES",
     "JA",
     "Pt",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:aerialway=rope_tow": [
     "",
@@ -16020,6 +16446,10 @@
     "",
     "ES",
     "RU"
+  ],
+  "Tag:aeroway=model_runway": [
+    "",
+    "DE"
   ],
   "Tag:aeroway=navigationaid": [
     "",
@@ -16548,6 +16978,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "Fi",
     "JA",
     "Ko",
@@ -16569,6 +17000,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk",
     "Zh-hans"
   ],
@@ -16682,6 +17114,7 @@
   "Tag:amenity=chair": [
     "",
     "ES",
+    "FR",
     "RU",
     "Uk"
   ],
@@ -17302,6 +17735,7 @@
   ],
   "Tag:amenity=freeshop": [
     "",
+    "NL",
     "RU",
     "Uk"
   ],
@@ -17374,6 +17808,7 @@
     "DE",
     "ES",
     "FR",
+    "NL",
     "RU",
     "Uk"
   ],
@@ -17607,7 +18042,8 @@
     "Uk"
   ],
   "Tag:amenity=left_luggage": [
-    ""
+    "",
+    "Pl"
   ],
   "Tag:amenity=letter_box": [
     "",
@@ -17701,6 +18137,8 @@
   ],
   "Tag:amenity=luggage_locker": [
     "",
+    "DE",
+    "Pl",
     "Uk"
   ],
   "Tag:amenity=mailroom": [
@@ -17938,6 +18376,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk",
     "Zh-hant"
   ],
@@ -18263,7 +18702,7 @@
   "Tag:amenity=recycling/Quality_Assurance": [
     ""
   ],
-  "Tag:amenity=recycling/в_России": [
+  "Tag:amenity=recycling/\u0432_\u0420\u043e\u0441\u0441\u0438\u0438": [
     "RU"
   ],
   "Tag:amenity=refugee_housing": [
@@ -18446,6 +18885,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "JA",
     "Pl",
     "Pt",
@@ -18534,6 +18974,7 @@
   ],
   "Tag:amenity=stage": [
     "",
+    "Cs",
     "ES",
     "JA",
     "RU",
@@ -18978,6 +19419,9 @@
   "Tag:amenity=yacht_club": [
     ""
   ],
+  "Tag:amenity=yes": [
+    ""
+  ],
   "Tag:amenity=youth_centre": [
     "",
     "Cs",
@@ -19133,7 +19577,8 @@
     ""
   ],
   "Tag:archaeological_site=tomb": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:archaeological_site=tumulus": [
     "",
@@ -19169,6 +19614,9 @@
   "Tag:area:highway=steps": [
     "",
     "Uk"
+  ],
+  "Tag:area:highway=traffic_island": [
+    ""
   ],
   "Tag:area:highway=trunk": [
     "",
@@ -19213,7 +19661,9 @@
     "",
     "DE",
     "JA",
-    "RU"
+    "Pl",
+    "RU",
+    "Uk"
   ],
   "Tag:artwork_type=relief": [
     "",
@@ -19290,25 +19740,32 @@
     ""
   ],
   "Tag:athletics=high_jump": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=javelin_throw": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=long_jump": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=pole_vault": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=running": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=shot_put": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=sprint": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:athletics=steeplechase": [
     ""
@@ -19351,6 +19808,10 @@
     "",
     "RU"
   ],
+  "Tag:attraction=bumper_car": [
+    "",
+    "RU"
+  ],
   "Tag:attraction=carousel": [
     "",
     "RU"
@@ -19386,6 +19847,9 @@
     "FR",
     "RU"
   ],
+  "Tag:audio_loop=yes": [
+    ""
+  ],
   "Tag:autonomy=excluded": [
     ""
   ],
@@ -19398,6 +19862,9 @@
   "Tag:avalanche_protection=snow_bridge": [
     "",
     "ES"
+  ],
+  "Tag:barrier:personnel=yes": [
+    ""
   ],
   "Tag:barrier=avalanche_protection": [
     "",
@@ -19530,6 +19997,7 @@
   "Tag:barrier=coupure": [
     "",
     "ES",
+    "JA",
     "RU"
   ],
   "Tag:barrier=curb": [
@@ -19555,6 +20023,10 @@
     "IT",
     "RU",
     "Uk"
+  ],
+  "Tag:barrier=delineators": [
+    "",
+    "RU"
   ],
   "Tag:barrier=ditch": [
     "",
@@ -20077,6 +20549,7 @@
   ],
   "Tag:beacon:type=DVOR/DME": [
     "",
+    "DE",
     "RU"
   ],
   "Tag:beacon:type=ILS": [
@@ -20127,12 +20600,22 @@
     "",
     "RU"
   ],
+  "Tag:bicycle": [
+    ""
+  ],
+  "Tag:bicycle=customers": [
+    "",
+    "RU"
+  ],
   "Tag:bicycle=designated": [
     "",
     "DE",
     "FR",
     "RU",
     "Uk"
+  ],
+  "Tag:bicycle=discouraged": [
+    ""
   ],
   "Tag:bicycle=dismount": [
     "",
@@ -20200,7 +20683,7 @@
     "Pt",
     "RU"
   ],
-  "Tag:biosphärenwirt=yes": [
+  "Tag:biosph\u00e4renwirt=yes": [
     "",
     "DE"
   ],
@@ -20369,7 +20852,8 @@
   "Tag:boundary=marker": [
     "",
     "DE",
-    "ES"
+    "ES",
+    "Pl"
   ],
   "Tag:boundary=military_district": [
     "",
@@ -20598,6 +21082,11 @@
     "Pl",
     "RU"
   ],
+  "Tag:bridge:structure=clapper": [
+    "",
+    "DE",
+    "RU"
+  ],
   "Tag:bridge:structure=floating": [
     "",
     "Cs",
@@ -20657,7 +21146,8 @@
   ],
   "Tag:bridge:support=pylon": [
     "",
-    "RU"
+    "RU",
+    "Tl"
   ],
   "Tag:bridge=aqueduct": [
     "",
@@ -20831,6 +21321,7 @@
   "Tag:building=beach_hut": [
     "",
     "ES",
+    "FR",
     "RU",
     "Uk"
   ],
@@ -21185,6 +21676,7 @@
     "JA",
     "Pl",
     "RU",
+    "Sv",
     "Uk",
     "Yue"
   ],
@@ -21198,6 +21690,7 @@
     "JA",
     "Pl",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Tag:building=gatehouse": [
@@ -21455,7 +21948,8 @@
     "",
     "DE",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:building=pagoda": [
     ""
@@ -21688,7 +22182,8 @@
     "",
     "ES",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:building=sports_hall": [
     "",
@@ -21945,6 +22440,7 @@
     "IT",
     "Pt",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Tag:bunker_type=bomb_shelter": [
@@ -22164,7 +22660,7 @@
   "Tag:cave=grotto": [
     ""
   ],
-  "Tag:cemetery=cillín": [
+  "Tag:cemetery=cill\u00edn": [
     "",
     "ES"
   ],
@@ -22334,6 +22830,9 @@
     "ES",
     "Pl"
   ],
+  "Tag:club=model_railway": [
+    ""
+  ],
   "Tag:club=motorcycle": [
     "",
     "ES",
@@ -22404,6 +22903,9 @@
     ""
   ],
   "Tag:collection_times:signed=no": [
+    ""
+  ],
+  "Tag:commons=lets": [
     ""
   ],
   "Tag:communication:radio=fm": [
@@ -22545,6 +23047,7 @@
     ""
   ],
   "Tag:construction=minor": [
+    "",
     "DE"
   ],
   "Tag:construction=office": [
@@ -22689,12 +23192,14 @@
   ],
   "Tag:craft=atelier": [
     "",
+    "Cs",
     "DE",
     "ES",
     "Pt"
   ],
   "Tag:craft=bag_repair": [
     "",
+    "Cs",
     "ES"
   ],
   "Tag:craft=bakery": [
@@ -22762,7 +23267,8 @@
     "Oc",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Zh-hans"
   ],
   "Tag:craft=bookbinder": [
     "",
@@ -22806,6 +23312,7 @@
   ],
   "Tag:craft=cabinet_maker": [
     "",
+    "Cs",
     "DE",
     "ES",
     "FR",
@@ -22947,6 +23454,7 @@
   ],
   "Tag:craft=door_construction": [
     "",
+    "Cs",
     "DE",
     "ES"
   ],
@@ -23130,6 +23638,7 @@
   ],
   "Tag:craft=joiner": [
     "",
+    "Cs",
     "DE",
     "ES",
     "FR",
@@ -23189,6 +23698,7 @@
     "JA",
     "Pl",
     "Pt",
+    "Sv",
     "Uk"
   ],
   "Tag:craft=mint": [
@@ -23750,6 +24260,7 @@
     "Ca",
     "DE",
     "ES",
+    "FR",
     "IT",
     "Ko",
     "Pt",
@@ -23801,7 +24312,7 @@
     "ES",
     "Zh-hans"
   ],
-  "Tag:cuisine=açaí": [
+  "Tag:cuisine=a\u00e7a\u00ed": [
     ""
   ],
   "Tag:cuisine=bagel": [
@@ -23811,6 +24322,7 @@
   "Tag:cuisine=barbecue": [
     "",
     "ES",
+    "FR",
     "JA"
   ],
   "Tag:cuisine=beef_bowl": [
@@ -24144,6 +24656,9 @@
   "Tag:cycle_network=BE-VLG:cycle_highway": [
     ""
   ],
+  "Tag:cycle_network=DE:BW:RadNETZ": [
+    "DE"
+  ],
   "Tag:cycle_network=EuroVelo": [
     "",
     "RU"
@@ -24209,6 +24724,13 @@
     "",
     "RU"
   ],
+  "Tag:cycleway:lane=exclusive": [
+    "",
+    "DE"
+  ],
+  "Tag:cycleway:lane=share_parking": [
+    ""
+  ],
   "Tag:cycleway:left=no": [
     "",
     "RU"
@@ -24265,6 +24787,9 @@
     "JA",
     "Pl",
     "RU"
+  ],
+  "Tag:cycleway=link": [
+    ""
   ],
   "Tag:cycleway=no": [
     "",
@@ -24346,10 +24871,12 @@
     "ES",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:cycling=pump_track": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:damage:event=war": [
     ""
@@ -24475,9 +25002,6 @@
     ""
   ],
   "Tag:denotation=windbreak": [
-    ""
-  ],
-  "Tag:designation=barangay": [
     ""
   ],
   "Tag:designation=byway_open_to_all_traffic": [
@@ -24752,6 +25276,12 @@
     "",
     "DE"
   ],
+  "Tag:emergency:plan": [
+    ""
+  ],
+  "Tag:emergency:plan=yes": [
+    "DE"
+  ],
   "Tag:emergency:social_facility:for=displaced_people": [
     ""
   ],
@@ -24794,6 +25324,7 @@
     "FR",
     "IT",
     "JA",
+    "RU",
     "Uk"
   ],
   "Tag:emergency=bleed_control_kit": [
@@ -24821,7 +25352,8 @@
   ],
   "Tag:emergency=designated": [
     "",
-    "DE"
+    "DE",
+    "JA"
   ],
   "Tag:emergency=disaster_help_point": [
     "",
@@ -24829,7 +25361,11 @@
   ],
   "Tag:emergency=disaster_response": [
     "",
-    "FR"
+    "DE",
+    "FR",
+    "IT",
+    "JA",
+    "RU"
   ],
   "Tag:emergency=drinking_water": [
     "",
@@ -24889,6 +25425,7 @@
     "Cs",
     "DE",
     "FR",
+    "JA",
     "Pl",
     "RU"
   ],
@@ -24925,12 +25462,15 @@
   "Tag:emergency=fire_point_stand": [
     "",
     "DE",
+    "JA",
     "RU"
   ],
   "Tag:emergency=fire_sand_bin": [
     "",
     "DE",
-    "FR"
+    "FR",
+    "JA",
+    "Pl"
   ],
   "Tag:emergency=fire_service_inlet": [
     "",
@@ -24964,7 +25504,12 @@
   ],
   "Tag:emergency=ladder_site": [
     "",
-    "DE"
+    "DE",
+    "ES",
+    "El",
+    "IT",
+    "Pt",
+    "RU"
   ],
   "Tag:emergency=landing_site": [
     "",
@@ -24986,7 +25531,9 @@
     "Cs",
     "DE",
     "ES",
-    "FR"
+    "FR",
+    "JA",
+    "RU"
   ],
   "Tag:emergency=lifeboat_station": [
     "",
@@ -24996,7 +25543,9 @@
     "",
     "DE",
     "ES",
-    "FR"
+    "FR",
+    "JA",
+    "RU"
   ],
   "Tag:emergency=lifeguard_base": [
     "",
@@ -25038,7 +25587,8 @@
     "",
     "DE",
     "ES",
-    "FR"
+    "FR",
+    "RU"
   ],
   "Tag:emergency=phone": [
     "",
@@ -25065,7 +25615,8 @@
   ],
   "Tag:emergency=shower": [
     "",
-    "ES"
+    "ES",
+    "FR"
   ],
   "Tag:emergency=siamese": [
     "",
@@ -25105,13 +25656,15 @@
     "JA",
     "Pl",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Tag:emergency=throw_bag": [
     ""
   ],
   "Tag:emergency=water_rescue": [
-    ""
+    "",
+    "RU"
   ],
   "Tag:emergency=water_rescue_station": [
     "",
@@ -25469,7 +26022,8 @@
     "JA",
     "Ko",
     "Pl",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:ford=yes": [
     "",
@@ -25932,6 +26486,9 @@
   "Tag:genus=Acer": [
     ""
   ],
+  "Tag:genus=Tilia": [
+    ""
+  ],
   "Tag:geological=columnar_jointing": [
     "",
     "ES",
@@ -26022,6 +26579,12 @@
     ""
   ],
   "Tag:glacier:type=rock": [
+    ""
+  ],
+  "Tag:golf:course=driving_range": [
+    ""
+  ],
+  "Tag:golf:course=pitch_and_putt": [
     ""
   ],
   "Tag:golf=bunker": [
@@ -26297,6 +26860,9 @@
     "",
     "JA"
   ],
+  "Tag:hairdresser=barber": [
+    ""
+  ],
   "Tag:handle=crank": [
     ""
   ],
@@ -26439,7 +27005,8 @@
     ""
   ],
   "Tag:hazard=hole": [
-    ""
+    "",
+    "ES"
   ],
   "Tag:hazard=horse_riders": [
     "",
@@ -26570,6 +27137,9 @@
   "Tag:healthcare:speciality=analytic": [
     ""
   ],
+  "Tag:healthcare:speciality=angiology": [
+    ""
+  ],
   "Tag:healthcare:speciality=animal-assisted": [
     ""
   ],
@@ -26638,6 +27208,9 @@
     ""
   ],
   "Tag:healthcare:speciality=expressive": [
+    ""
+  ],
+  "Tag:healthcare:speciality=family_planning": [
     ""
   ],
   "Tag:healthcare:speciality=fertility": [
@@ -26713,7 +27286,8 @@
     ""
   ],
   "Tag:healthcare:speciality=occupational": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:healthcare:speciality=oncology": [
     ""
@@ -26837,9 +27411,7 @@
     "ES"
   ],
   "Tag:healthcare=birthing_center": [
-    "",
-    "DE",
-    "ES"
+    ""
   ],
   "Tag:healthcare=birthing_centre": [
     "",
@@ -26850,6 +27422,7 @@
     "",
     "DE",
     "ES",
+    "FR",
     "RU"
   ],
   "Tag:healthcare=blood_donation": [
@@ -26872,7 +27445,8 @@
     "",
     "DE",
     "ES",
-    "FR"
+    "FR",
+    "Uk"
   ],
   "Tag:healthcare=community_health_worker": [
     "",
@@ -26903,7 +27477,8 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:healthcare=health_post": [
     ""
@@ -27080,6 +27655,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Uk",
     "Zh-hans",
     "Zh-hant"
   ],
@@ -27189,7 +27765,8 @@
     "JA",
     "NL",
     "Pl",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:highway=escape": [
     "",
@@ -27358,6 +27935,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "JA",
     "Pl",
     "Pt",
@@ -27393,9 +27971,14 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
+    "Template",
     "Uk",
     "Zh-hans",
     "Zh-hant"
+  ],
+  "Tag:highway=pedestrian/doc": [
+    "Template"
   ],
   "Tag:highway=piste": [
     ""
@@ -27448,6 +28031,7 @@
     "JA",
     "Pl",
     "RU",
+    "Uk",
     "Zh-hans"
   ],
   "Tag:highway=raceway": [
@@ -27484,6 +28068,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk",
     "Vi",
     "Yue",
@@ -27501,7 +28086,8 @@
     "Pl",
     "Pt",
     "RU",
-    "Sv"
+    "Sv",
+    "Uk"
   ],
   "Tag:highway=road": [
     "",
@@ -27905,6 +28491,7 @@
     "FR",
     "JA",
     "Ko",
+    "Pl",
     "Pt",
     "RU"
   ],
@@ -27914,6 +28501,9 @@
     "ES",
     "JA",
     "RU"
+  ],
+  "Tag:historic=bullaun_stone": [
+    ""
   ],
   "Tag:historic=cannon": [
     "",
@@ -28139,6 +28729,9 @@
     "DE",
     "ES"
   ],
+  "Tag:historic=minecart": [
+    ""
+  ],
   "Tag:historic=missile": [
     ""
   ],
@@ -28217,6 +28810,9 @@
     "JA",
     "RU"
   ],
+  "Tag:historic=round_tower": [
+    ""
+  ],
   "Tag:historic=ruins": [
     "",
     "Cs",
@@ -28250,7 +28846,7 @@
     "RU",
     "Uk"
   ],
-  "Tag:historic=stećak": [
+  "Tag:historic=ste\u0107ak": [
     ""
   ],
   "Tag:historic=stone": [
@@ -28606,6 +29202,7 @@
     "RU"
   ],
   "Tag:industrial=mobile_equipment": [
+    "",
     "Cs",
     "JA",
     "Pl",
@@ -28866,25 +29463,32 @@
     "RU"
   ],
   "Tag:inlet=bell_mouth": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=direct": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=grate": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=kerb_grate": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=kerb_opening": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=screen": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:inlet=valve": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:insurance=health": [
     "",
@@ -28989,6 +29593,9 @@
     "IT",
     "JA",
     "Ko"
+  ],
+  "Tag:k=v": [
+    ""
   ],
   "Tag:karst=yes": [
     "",
@@ -29490,7 +30097,8 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:landuse=paddy": [
     "",
@@ -29744,6 +30352,9 @@
     "",
     "JA"
   ],
+  "Tag:lane_markings=yes": [
+    ""
+  ],
   "Tag:lawyer=bailiff": [
     ""
   ],
@@ -29834,6 +30445,9 @@
     "JA",
     "Pl",
     "RU"
+  ],
+  "Tag:leaf_type=palm": [
+    ""
   ],
   "Tag:leisure=adult_gaming_centre": [
     "",
@@ -29943,6 +30557,10 @@
   "Tag:leisure=casino": [
     "",
     "RU"
+  ],
+  "Tag:leisure=children_club": [
+    "",
+    "FR"
   ],
   "Tag:leisure=club": [
     "",
@@ -30238,7 +30856,9 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk",
+    "Zh-hans"
   ],
   "Tag:leisure=pitch": [
     "",
@@ -30250,6 +30870,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Zh-hant"
   ],
   "Tag:leisure=playground": [
@@ -30714,6 +31335,9 @@
   "Tag:man_made=aircraft": [
     ""
   ],
+  "Tag:man_made=animal_ramp": [
+    ""
+  ],
   "Tag:man_made=animal_trap": [
     "",
     "JA",
@@ -30772,13 +31396,18 @@
     ""
   ],
   "Tag:man_made=bioswale": [
-    ""
+    "",
+    "FR"
   ],
   "Tag:man_made=bird_feeder": [
     ""
   ],
   "Tag:man_made=bird_perch": [
     ""
+  ],
+  "Tag:man_made=birdhouse": [
+    "",
+    "RU"
   ],
   "Tag:man_made=borehole": [
     ""
@@ -30848,7 +31477,8 @@
   ],
   "Tag:man_made=charge_point": [
     "",
-    "DE"
+    "DE",
+    "FR"
   ],
   "Tag:man_made=chiller": [
     "",
@@ -30968,7 +31598,8 @@
     "RU"
   ],
   "Tag:man_made=desalination_plant": [
-    ""
+    "",
+    "RU"
   ],
   "Tag:man_made=dolphin": [
     "",
@@ -31061,7 +31692,8 @@
     ""
   ],
   "Tag:man_made=frost_fan": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:man_made=fuel_column": [
     "",
@@ -31070,7 +31702,8 @@
   "Tag:man_made=fuel_pump": [
     "",
     "DE",
-    "Pl"
+    "Pl",
+    "Uk"
   ],
   "Tag:man_made=gantry": [
     "",
@@ -31078,7 +31711,8 @@
     "DE",
     "ES",
     "FR",
-    "JA"
+    "JA",
+    "Zh-hans"
   ],
   "Tag:man_made=gas_dehydrator": [
     ""
@@ -31513,7 +32147,7 @@
     "",
     "DE"
   ],
-  "Tag:man_made=stećak": [
+  "Tag:man_made=ste\u0107ak": [
     ""
   ],
   "Tag:man_made=storage_tank": [
@@ -31806,6 +32440,12 @@
     "DE",
     "FR"
   ],
+  "Tag:marker=borderpole": [
+    ""
+  ],
+  "Tag:marker=borderstone": [
+    ""
+  ],
   "Tag:marker=ground": [
     "",
     "FR"
@@ -31891,6 +32531,10 @@
     "",
     "RU"
   ],
+  "Tag:meadow=meadow_orchard": [
+    "",
+    "DE"
+  ],
   "Tag:meadow=paddock": [
     "",
     "RU"
@@ -31952,6 +32596,7 @@
     "",
     "Cs",
     "DE",
+    "FR",
     "Ko",
     "Pl"
   ],
@@ -31990,7 +32635,7 @@
   "Tag:megalith_type=round_barrow": [
     ""
   ],
-  "Tag:megalith_type=stećak": [
+  "Tag:megalith_type=ste\u0107ak": [
     ""
   ],
   "Tag:megalith_type=stone_circle": [
@@ -32082,7 +32727,8 @@
     "ES",
     "FR",
     "JA",
-    "Pl"
+    "Pl",
+    "RU"
   ],
   "Tag:memorial=sculpture": [
     "",
@@ -32105,6 +32751,10 @@
     "JA",
     "Pl",
     "RU"
+  ],
+  "Tag:memorial=stolperschwelle": [
+    "",
+    "DE"
   ],
   "Tag:memorial=stolperstein": [
     "",
@@ -32455,6 +33105,10 @@
     "DE",
     "RU"
   ],
+  "Tag:museum=person": [
+    "",
+    "RU"
+  ],
   "Tag:museum=railway": [
     "",
     "DE",
@@ -32531,7 +33185,7 @@
   "Tag:name=Wendy's": [
     ""
   ],
-  "Tag:name=Продукты": [
+  "Tag:name=\u041f\u0440\u043e\u0434\u0443\u043a\u0442\u044b": [
     "RU"
   ],
   "Tag:naptan:verified=no": [
@@ -32802,7 +33456,8 @@
     "Uk"
   ],
   "Tag:natural=gulf": [
-    ""
+    "",
+    "Tl"
   ],
   "Tag:natural=gully": [
     "",
@@ -33323,6 +33978,10 @@
     "Zh-hans"
   ],
   "Tag:network=CN:JS": [
+    "",
+    "Zh-hans"
+  ],
+  "Tag:network=CN:YN": [
     "",
     "Zh-hans"
   ],
@@ -34642,7 +35301,8 @@
     "RU"
   ],
   "Tag:office=natural_gas_utility": [
-    ""
+    "",
+    "ES"
   ],
   "Tag:office=newspaper": [
     "",
@@ -35036,7 +35696,7 @@
   "Tag:operator=Land_Aruba": [
     ""
   ],
-  "Tag:operator=Land_Curaçao": [
+  "Tag:operator=Land_Cura\u00e7ao": [
     ""
   ],
   "Tag:operator=Land_Sint_Maarten": [
@@ -35056,11 +35716,11 @@
   "Tag:operator=Rijkswaterstaat": [
     ""
   ],
-  "Tag:operator=Régie_Gaz_Électricité_de_Sallanches": [
+  "Tag:operator=R\u00e9gie_Gaz_\u00c9lectricit\u00e9_de_Sallanches": [
     "",
     "FR"
   ],
-  "Tag:operator=SNCF_Réseau": [
+  "Tag:operator=SNCF_R\u00e9seau": [
     "FR"
   ],
   "Tag:operator=Staat_der_Nederlanden": [
@@ -35138,16 +35798,30 @@
     "DE",
     "RU"
   ],
+  "Tag:parking:both=lane": [
+    "",
+    "FR"
+  ],
+  "Tag:parking:both=no": [
+    "",
+    "FR"
+  ],
   "Tag:parking:lane:hgv=on_street": [
     "",
     "DE",
     "Pl"
   ],
   "Tag:parking:left=lane": [
-    ""
+    "",
+    "FR"
+  ],
+  "Tag:parking:right=lane": [
+    "",
+    "FR"
   ],
   "Tag:parking=lane": [
     "",
+    "Ca",
     "DE",
     "ES",
     "RU"
@@ -35519,6 +36193,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Tag:place=municipality": [
@@ -35627,6 +36302,7 @@
     "Pl",
     "Pt",
     "RU",
+    "Sv",
     "Uk"
   ],
   "Tag:place=state": [
@@ -35643,6 +36319,10 @@
     "Uk"
   ],
   "Tag:place=subcounty": [
+    "",
+    "RU"
+  ],
+  "Tag:place=subdistrict": [
     "",
     "RU"
   ],
@@ -35711,6 +36391,9 @@
   "Tag:place_of_worship=prayer_flags": [
     ""
   ],
+  "Tag:place_of_worship=sacred_tree": [
+    ""
+  ],
   "Tag:placement=right_of:1": [
     ""
   ],
@@ -35745,6 +36428,9 @@
   "Tag:plant:method=run-of-the-river": [
     "",
     "DE"
+  ],
+  "Tag:plant:method=stream": [
+    ""
   ],
   "Tag:plant:method=thermal": [
     "",
@@ -35820,6 +36506,9 @@
     "",
     "DE"
   ],
+  "Tag:plant:type=boiler": [
+    ""
+  ],
   "Tag:plant:type=combined_cycle": [
     "",
     "DE"
@@ -35856,6 +36545,9 @@
     "",
     "Pl",
     "RU"
+  ],
+  "Tag:playground=cushion": [
+    ""
   ],
   "Tag:playground=funnel_ball": [
     "",
@@ -35908,6 +36600,9 @@
     "",
     "Pl",
     "RU"
+  ],
+  "Tag:playground=trampoline": [
+    ""
   ],
   "Tag:playground=tunnel_tube": [
     "",
@@ -36277,13 +36972,22 @@
     "DE",
     "RU"
   ],
+  "Tag:private=employees": [
+    ""
+  ],
   "Tag:private=government": [
     ""
   ],
   "Tag:private=members": [
     ""
   ],
+  "Tag:private=residents": [
+    ""
+  ],
   "Tag:private=students": [
+    ""
+  ],
+  "Tag:private=yes": [
     ""
   ],
   "Tag:product=beer": [
@@ -36388,10 +37092,16 @@
     "",
     "ES"
   ],
+  "Tag:protected_area=conservation": [
+    ""
+  ],
   "Tag:protected_area=nature_reserve": [
     ""
   ],
   "Tag:protected_area=recreation": [
+    ""
+  ],
+  "Tag:protected_area=wildlife": [
     ""
   ],
   "Tag:protection_title=Site_of_Special_Scientific_Interest": [
@@ -36775,7 +37485,8 @@
     "ES",
     "JA",
     "Pl",
-    "Pt"
+    "Pt",
+    "RU"
   ],
   "Tag:railway=platform_edge": [
     "",
@@ -37036,6 +37747,9 @@
     "FR",
     "JA",
     "RU"
+  ],
+  "Tag:ref:FR:RNB": [
+    ""
   ],
   "Tag:ref=SS676": [
     ""
@@ -37467,7 +38181,8 @@
     "IT",
     "JA",
     "Pt",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:route=fitness_trail": [
     "",
@@ -37524,6 +38239,9 @@
   "Tag:route=minibus": [
     ""
   ],
+  "Tag:route=mobility_scooter": [
+    ""
+  ],
   "Tag:route=monorail": [
     "",
     "DE",
@@ -37558,6 +38276,9 @@
     "ES",
     "FR",
     "RU"
+  ],
+  "Tag:route=portage": [
+    ""
   ],
   "Tag:route=railway": [
     "",
@@ -37659,10 +38380,19 @@
   "Tag:route=waterway": [
     ""
   ],
+  "Tag:route=wheelchair": [
+    ""
+  ],
   "Tag:route=worship": [
     "",
     "ES",
     "Pl"
+  ],
+  "Tag:routing:bicycle": [
+    ""
+  ],
+  "Tag:routing:bicycle=use_sidepath": [
+    ""
   ],
   "Tag:rugby=league": [
     ""
@@ -37696,9 +38426,6 @@
   "Tag:school=entrance": [
     "",
     "RU"
-  ],
-  "Tag:seamark:beacon_cardinal:colour_pattern=horizontal": [
-    ""
   ],
   "Tag:seamark:beacon_lateral:category=channel_left": [
     ""
@@ -37751,19 +38478,7 @@
   "Tag:seamark:beacon_lateral:colour=red;green;red": [
     ""
   ],
-  "Tag:seamark:beacon_lateral:shape=perch": [
-    ""
-  ],
-  "Tag:seamark:beacon_lateral:shape=pole": [
-    ""
-  ],
   "Tag:seamark:beacon_lateral:shape=tower": [
-    ""
-  ],
-  "Tag:seamark:beacon_lateral:shape=withy": [
-    ""
-  ],
-  "Tag:seamark:beacon_safe_water:shape=tower": [
     ""
   ],
   "Tag:seamark:beacon_special_purpose:category=cable": [
@@ -37781,30 +38496,6 @@
   "Tag:seamark:beacon_special_purpose:category=warning": [
     ""
   ],
-  "Tag:seamark:beacon_special_purpose:colour=black": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=blue": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=green": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=grey": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=orange": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=red": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=white": [
-    ""
-  ],
-  "Tag:seamark:beacon_special_purpose:colour=yellow": [
-    ""
-  ],
   "Tag:seamark:beacon_special_purpose:shape=cairn": [
     ""
   ],
@@ -37814,37 +38505,7 @@
   "Tag:seamark:beacon_special_purpose:shape=pile": [
     ""
   ],
-  "Tag:seamark:beacon_special_purpose:shape=pole": [
-    ""
-  ],
   "Tag:seamark:beacon_special_purpose:shape=tower": [
-    ""
-  ],
-  "Tag:seamark:buoy_cardinal:shape=can": [
-    ""
-  ],
-  "Tag:seamark:buoy_cardinal:shape=conical": [
-    ""
-  ],
-  "Tag:seamark:buoy_cardinal:shape=pillar": [
-    ""
-  ],
-  "Tag:seamark:buoy_cardinal:shape=spar": [
-    ""
-  ],
-  "Tag:seamark:buoy_cardinal:shape=spherical": [
-    ""
-  ],
-  "Tag:seamark:buoy_isolated_danger:shape=can": [
-    ""
-  ],
-  "Tag:seamark:buoy_isolated_danger:shape=conical": [
-    ""
-  ],
-  "Tag:seamark:buoy_isolated_danger:shape=pillar": [
-    ""
-  ],
-  "Tag:seamark:buoy_isolated_danger:shape=spar": [
     ""
   ],
   "Tag:seamark:buoy_isolated_danger:shape=spherical": [
@@ -37994,31 +38655,7 @@
   "Tag:seamark:buoy_special_purpose:colour_pattern=vertical": [
     ""
   ],
-  "Tag:seamark:buoy_special_purpose:shape=barrel": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=can": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=conical": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=pillar": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=spar": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=spherical": [
-    ""
-  ],
-  "Tag:seamark:buoy_special_purpose:shape=super-buoy": [
-    ""
-  ],
   "Tag:seamark:cable_overhead:category=power": [
-    ""
-  ],
-  "Tag:seamark:cable_overhead:category=telephone": [
     ""
   ],
   "Tag:seamark:cable_overhead:category=transmission": [
@@ -38569,7 +39206,8 @@
     ""
   ],
   "Tag:seamark:type=harbour": [
-    ""
+    "",
+    "Pt"
   ],
   "Tag:seamark:type=hulk": [
     ""
@@ -38905,6 +39543,7 @@
     "",
     "Cs",
     "DE",
+    "Da",
     "ES",
     "FR",
     "Fi",
@@ -38929,7 +39568,8 @@
     "FR",
     "IT",
     "Ko",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:shelter_type=rock_shelter": [
     "",
@@ -39044,7 +39684,7 @@
     "",
     "Cs"
   ],
-  "Tag:shop=açaí": [
+  "Tag:shop=a\u00e7a\u00ed": [
     "Pt"
   ],
   "Tag:shop=baby_care": [
@@ -39068,6 +39708,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "Gcf",
     "JA",
     "Ko",
@@ -39467,7 +40108,8 @@
     "Pl",
     "Pt",
     "RU",
-    "Uk"
+    "Uk",
+    "Zh-hans"
   ],
   "Tag:shop=convenience": [
     "",
@@ -39603,6 +40245,7 @@
   ],
   "Tag:shop=doors": [
     "",
+    "Cs",
     "DE",
     "ES",
     "Gcf",
@@ -40018,6 +40661,7 @@
   ],
   "Tag:shop=groundskeeping": [
     "",
+    "Cs",
     "ES"
   ],
   "Tag:shop=growshop": [
@@ -40129,6 +40773,7 @@
   ],
   "Tag:shop=honey": [
     "",
+    "Cs",
     "ES",
     "Gcf",
     "Pl"
@@ -40288,6 +40933,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "JA",
     "Pl",
     "Pt"
@@ -40489,7 +41135,8 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:shop=musical_instruments": [
     ""
@@ -40670,7 +41317,8 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:shop=pharmacy": [
     "",
@@ -40753,7 +41401,7 @@
     "Pt",
     "RU"
   ],
-  "Tag:shop=pépinière": [
+  "Tag:shop=p\u00e9pini\u00e8re": [
     ""
   ],
   "Tag:shop=radiotechnics": [
@@ -40985,6 +41633,8 @@
     "FR",
     "JA",
     "Pl",
+    "RU",
+    "Sv",
     "Zh-hans"
   ],
   "Tag:shop=street_vendor": [
@@ -41019,9 +41669,6 @@
     "Pl",
     "Pt",
     "RU"
-  ],
-  "Tag:shop=systembolaget": [
-    ""
   ],
   "Tag:shop=tailor": [
     "",
@@ -41283,6 +41930,9 @@
     "JA",
     "Pl"
   ],
+  "Tag:shop=weaver": [
+    ""
+  ],
   "Tag:shop=weighing_scale": [
     ""
   ],
@@ -41427,6 +42077,9 @@
   "Tag:site=piste": [
     ""
   ],
+  "Tag:site=planet_trail": [
+    ""
+  ],
   "Tag:site=venue": [
     ""
   ],
@@ -41533,6 +42186,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "JA"
   ],
   "Tag:social_facility=clothing_bank": [
@@ -41551,6 +42205,9 @@
     "DE",
     "JA"
   ],
+  "Tag:social_facility=equine_assisted_centre": [
+    ""
+  ],
   "Tag:social_facility=food_bank": [
     "",
     "Cs",
@@ -41563,6 +42220,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "JA",
     "RU"
   ],
@@ -41575,6 +42233,7 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
     "Gl",
     "JA"
   ],
@@ -41613,7 +42272,7 @@
   "Tag:source:addr=GURS": [
     ""
   ],
-  "Tag:source:addr=ЕГРН": [
+  "Tag:source:addr=\u0415\u0413\u0420\u041d": [
     "",
     "RU"
   ],
@@ -41668,6 +42327,9 @@
   "Tag:source:population=IBGE_2022": [
     ""
   ],
+  "Tag:source:postal_code=Isle_of_Man_Government_Land_Registry_Land_Transactions": [
+    ""
+  ],
   "Tag:source=ACT2016": [
     ""
   ],
@@ -41680,10 +42342,10 @@
   "Tag:source=ACTMapiTP": [
     ""
   ],
-  "Tag:source=Arild_Bjørk": [
+  "Tag:source=Arild_Bj\u00f8rk": [
     ""
   ],
-  "Tag:source=Bymiljøetaten": [
+  "Tag:source=Bymilj\u00f8etaten": [
     ""
   ],
   "Tag:source=DNT_Oslo_og_Omegn": [
@@ -41762,7 +42424,7 @@
   "Tag:source=Swedish_Environmental_Agency_Trails": [
     ""
   ],
-  "Tag:source=Sørum_kommune": [
+  "Tag:source=S\u00f8rum_kommune": [
     ""
   ],
   "Tag:source=VicMap_ParkRes": [
@@ -41855,7 +42517,8 @@
     "",
     "Cs",
     "DE",
-    "ES"
+    "ES",
+    "Sv"
   ],
   "Tag:sport=australian_football": [
     "",
@@ -42239,6 +42902,9 @@
     "ES",
     "RU"
   ],
+  "Tag:sport=kick_scooter": [
+    ""
+  ],
   "Tag:sport=kickboxing": [
     "",
     "ES"
@@ -42272,6 +42938,10 @@
     "",
     "ES",
     "Ko"
+  ],
+  "Tag:sport=mind_body_interventions": [
+    "",
+    "DE"
   ],
   "Tag:sport=miniature_golf": [
     "",
@@ -42364,7 +43034,7 @@
     "FR",
     "Uk"
   ],
-  "Tag:sport=pesäpallo": [
+  "Tag:sport=pes\u00e4pallo": [
     "",
     "ES"
   ],
@@ -42506,6 +43176,7 @@
     "JA",
     "Pl",
     "Pt",
+    "Sv",
     "Uk"
   ],
   "Tag:sport=softball": [
@@ -42692,7 +43363,7 @@
     "",
     "RU"
   ],
-  "Tag:stećak=stećak_necropolis": [
+  "Tag:ste\u0107ak=ste\u0107ak_necropolis": [
     ""
   ],
   "Tag:stile=stepover": [
@@ -42778,13 +43449,16 @@
     "RU"
   ],
   "Tag:substance=rainwater": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:substance=sewage": [
-    ""
+    "",
+    "DE"
   ],
   "Tag:substance=water": [
     "",
+    "DE",
     "RU"
   ],
   "Tag:substation=compensation": [
@@ -42862,7 +43536,8 @@
     "DE",
     "ES",
     "JA",
-    "Pl"
+    "Pl",
+    "Sv"
   ],
   "Tag:surface=bitmac": [
     ""
@@ -42945,7 +43620,8 @@
   "Tag:surface=grass": [
     "",
     "DE",
-    "ES"
+    "ES",
+    "Sv"
   ],
   "Tag:surface=grass_paver": [
     "",
@@ -42955,7 +43631,8 @@
   "Tag:surface=gravel": [
     "",
     "DE",
-    "ES"
+    "ES",
+    "Sv"
   ],
   "Tag:surface=ground": [
     "",
@@ -43086,7 +43763,8 @@
     "DE",
     "ES",
     "Pt",
-    "RU"
+    "RU",
+    "Sv"
   ],
   "Tag:surface=wood": [
     "",
@@ -43183,7 +43861,7 @@
     "DE",
     "FR"
   ],
-  "Tag:symbol=Knafelčeva_markacija": [
+  "Tag:symbol=Knafel\u010deva_markacija": [
     ""
   ],
   "Tag:tactile_paving=incorrect": [
@@ -43421,7 +44099,8 @@
     "FR",
     "JA",
     "Pl",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:tourism=aquarium": [
     "",
@@ -43433,6 +44112,7 @@
     "JA",
     "Pl",
     "RU",
+    "Uk",
     "Zh-hans"
   ],
   "Tag:tourism=artwork": [
@@ -43445,7 +44125,8 @@
     "JA",
     "Pl",
     "Pt",
-    "RU"
+    "RU",
+    "Uk"
   ],
   "Tag:tourism=attraction": [
     "",
@@ -43462,6 +44143,7 @@
     "Zh-hans"
   ],
   "Tag:tourism=bed_and_breakfast": [
+    "",
     "Cs",
     "JA",
     "Pl",
@@ -43628,6 +44310,9 @@
     "Pt",
     "RU"
   ],
+  "Tag:tourism=tours": [
+    ""
+  ],
   "Tag:tourism=trail_riding_rest": [
     "",
     "DE",
@@ -43717,6 +44402,9 @@
     "DE",
     "FR",
     "Pl"
+  ],
+  "Tag:tower:type": [
+    ""
   ],
   "Tag:tower:type=anchor": [
     ""
@@ -43880,6 +44568,10 @@
     "",
     "RU"
   ],
+  "Tag:trade=metal": [
+    "",
+    "DE"
+  ],
   "Tag:trade=timber": [
     "",
     "DE",
@@ -44004,6 +44696,9 @@
   ],
   "Tag:traffic_sign=AT:53.9c": [
     ""
+  ],
+  "Tag:traffic_sign=AT:WVO_F.1": [
+    "DE"
   ],
   "Tag:traffic_sign=DE:1022-10": [
     "DE"
@@ -44245,6 +44940,12 @@
   "Tag:traffic_sign=DE:439": [
     "DE"
   ],
+  "Tag:traffic_sign=DE:440": [
+    "DE"
+  ],
+  "Tag:traffic_sign=DE:441": [
+    "DE"
+  ],
   "Tag:traffic_sign=DE:448": [
     "DE"
   ],
@@ -44302,7 +45003,76 @@
     "",
     "Pl"
   ],
+  "Tag:traffic_sign=US:D3-1": [
+    ""
+  ],
   "Tag:traffic_sign=US:MD:M1-5": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R1-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R1-1;US:R1-3P": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R1-1;US:W4-4P": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R1-2": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R4-7": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R5-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R5-1a": [
+    ""
+  ],
+  "Tag:traffic_sign=US:R6-2R": [
+    ""
+  ],
+  "Tag:traffic_sign=US:S1-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:S1-1;US:W16-7PL": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W1-7": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W10-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W10-1,US:W10-9P": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W10-5,US:W10-5P": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W11-2": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W11-3": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W12-2": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W12-2a": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W14-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W14-2": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W3-1": [
+    ""
+  ],
+  "Tag:traffic_sign=US:W3-3": [
     ""
   ],
   "Tag:traffic_sign=city_limit": [
@@ -44527,9 +45297,6 @@
     "RU"
   ],
   "Tag:type=observation_spot": [
-    ""
-  ],
-  "Tag:type=provides_feature": [
     ""
   ],
   "Tag:type=public_transport": [
@@ -45182,6 +45949,11 @@
     "Pl",
     "RU"
   ],
+  "Tag:vending=wood_pellet": [
+    "",
+    "DE",
+    "RU"
+  ],
   "Tag:vending_machine=fuel": [
     "",
     "DE",
@@ -45287,6 +46059,7 @@
     "RU"
   ],
   "Tag:wall=pise": [
+    "",
     "ES",
     "RU"
   ],
@@ -45336,6 +46109,9 @@
     "DE",
     "ES",
     "RU"
+  ],
+  "Tag:waste=flags": [
+    ""
   ],
   "Tag:waste=oil": [
     "",
@@ -45557,6 +46333,13 @@
     "",
     "RU"
   ],
+  "Tag:water_works=desalination": [
+    "",
+    "RU"
+  ],
+  "Tag:waterway=access_point": [
+    ""
+  ],
   "Tag:waterway=artificial": [
     ""
   ],
@@ -45720,6 +46503,9 @@
     "Pl",
     "Uk"
   ],
+  "Tag:waterway=link": [
+    ""
+  ],
   "Tag:waterway=lock_gate": [
     "",
     "Cs",
@@ -45764,6 +46550,7 @@
     "",
     "DE",
     "ES",
+    "IT",
     "RU"
   ],
   "Tag:waterway=river": [
@@ -45788,6 +46575,8 @@
     "Cs",
     "DE",
     "ES",
+    "FR",
+    "JA",
     "Pl",
     "Pt",
     "RU",
@@ -45997,6 +46786,7 @@
     "RU"
   ],
   "Tag:wood=deciduous": [
+    "",
     "Pl",
     "RU"
   ],
@@ -46008,10 +46798,14 @@
     "Pl"
   ],
   "Tag:wood=mixed": [
+    "",
     "Pl",
     "RU"
   ],
   "Tag:wood=nipa_palm": [
+    ""
+  ],
+  "Tag:wood=palm": [
     ""
   ],
   "Tag:worship=stations_of_the_cross": [
@@ -46115,6 +46909,7 @@
     "",
     "Cs",
     "DE",
+    "ES",
     "FR",
     "RU"
   ],
@@ -46122,6 +46917,7 @@
     "",
     "Cs",
     "DE",
+    "ES",
     "FR",
     "RU"
   ]
