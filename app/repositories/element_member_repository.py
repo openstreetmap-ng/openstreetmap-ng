@@ -34,8 +34,14 @@ class ElementMemberRepository:
                 .where(ElementMember.sequence_id.in_(text(','.join(map(str, id_members_map)))))
                 .order_by(ElementMember.sequence_id.asc(), ElementMember.order.asc())
             )
-
             members: Sequence[ElementMember] = (await session.scalars(stmt)).all()
 
+        current_sequence_id: int = 0
+        current_members: list[ElementMember] = []
+
         for member in members:
-            id_members_map[member.sequence_id].append(member)
+            member_sequence_id = member.sequence_id
+            if current_sequence_id != member_sequence_id:
+                current_sequence_id = member_sequence_id
+                current_members = id_members_map[member_sequence_id]
+            current_members.append(member)
