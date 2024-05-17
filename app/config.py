@@ -109,6 +109,7 @@ dictConfig(
                 # reduce logging verbosity of some modules
                 module: {'handlers': ['default'], 'level': 'INFO'}
                 for module in (
+                    'hpack',
                     'httpx',
                     'httpcore',
                     'markdown_it',
