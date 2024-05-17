@@ -55,10 +55,10 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ✅ Migration of rate limiting
 - ⬛ Migration of changeset history RSS feed
 - ✅ Improved GPX traces processing
-- [40%] Migration of website API
+- [60%] Migration of website API
 - ✅ Migration and refactoring of stylesheets
 - ✅ Migration and refactoring of scripts
-- [40%] Migration of templates
+- [60%] Migration of templates
 - ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
 - ✅ Development translation overrides
 - [20%] Anti-vandalism stage 1
@@ -72,7 +72,7 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ⬛ Scheduled account delete
 - ⬛ Identification of anonymous note users
 - ⬛ Anti-vandalism stage 2
-- [20%] Design finalization of API 0.7
+- [30%] Design finalization of API 0.7
 - [10%] Development of API 0.7
 - [10%] 2FA and U2F support
 - ⬛ Community profiles
