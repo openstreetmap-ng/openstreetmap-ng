@@ -464,7 +464,6 @@ let
     [ "$current_python" != "${wrappedPython}" ] && rm -r .venv
 
     echo "Installing Python dependencies"
-    export POETRY_VIRTUALENVS_IN_PROJECT=1
     poetry env use "${wrappedPython}/bin/python"
     poetry install --compile
 
