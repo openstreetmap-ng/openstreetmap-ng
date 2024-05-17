@@ -77,7 +77,7 @@ export const configureDataLayer = (map) => {
         if (renderedBounds?.contains(viewBounds)) return
 
         // Pad the bounds to reduce refreshes
-        const bounds = viewBounds.pad(0.2)
+        const bounds = viewBounds.pad(0.3)
 
         // Skip updates if the area is too big
         const area = getLatLngBoundsSize(bounds)

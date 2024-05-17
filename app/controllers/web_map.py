@@ -22,6 +22,7 @@ async def get_map(
 
     elements = await ElementRepository.find_many_by_geom(
         geometry,
+        partial_ways=True,
         include_relations=False,
         nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
         legacy_nodes_limit=True,
