@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Sequence
 
 from shapely import Point
@@ -7,6 +8,8 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
 from app.limits import NEARBY_USERS_RADIUS_METERS
+from app.models.db.changeset import Changeset
+from app.models.db.element import Element
 from app.models.db.user import User
 
 
@@ -118,3 +121,34 @@ class UserQuery:
             # check if the email is available
             other_user = await UserQuery.find_one_by_email(email)
             return other_user is None
+
+    @staticmethod
+    async def resolve_elements_users(elements: Sequence[Element], display_name: bool) -> None:
+        """
+        Resolve the user of elements.
+        """
+        elements_ = []
+        changeset_id_elements_map = defaultdict(list)
+        for element in elements:
+            if element.user_id is None:
+                elements_.append(element)
+                changeset_id_elements_map[element.changeset_id].append(element)
+
+        if not elements_:
+            return
+
+        async with db() as session:
+            stmt = select(Changeset.id, User.id, User.display_name) if display_name else select(Changeset.id, User.id)
+            stmt = stmt.join(User, Changeset.user_id == User.id)
+            stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
+            rows = (await session.execute(stmt)).all()
+
+        if display_name:
+            for changeset_id, user_id, display_name in rows:
+                for element in changeset_id_elements_map[changeset_id]:
+                    element.user_id = user_id
+                    element.user_display_name = display_name
+        else:
+            for changeset_id, user_id in rows:
+                for element in changeset_id_elements_map[changeset_id]:
+                    element.user_id = user_id

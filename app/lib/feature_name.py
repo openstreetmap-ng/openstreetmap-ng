@@ -39,8 +39,6 @@ def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
     'Restaurant'
     """
     tags_len: cython.int = len(tags)
-
-    # small optimization, most elements don't have tags
     if tags_len > 0:
         if tags.get('boundary') == 'administrative':
             return _feature_prefix_administrative(tags)

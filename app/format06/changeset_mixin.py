@@ -94,7 +94,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                     'uid': changeset.user_id,
                     'user': changeset.user.display_name,
                 }
-                if (changeset.user_id is not None)
+                if (changeset.user is not None)
                 else {}
             ),
             **bounds_dict,
@@ -124,7 +124,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                     '@uid': changeset.user_id,
                     '@user': changeset.user.display_name,
                 }
-                if (changeset.user_id is not None)
+                if (changeset.user is not None)
                 else {}
             ),
             **bounds_dict,

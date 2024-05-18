@@ -91,7 +91,6 @@ class TracePointQuery:
                 traces_.append(trace)
                 id_points_map[trace.id] = trace.image_coords = []
 
-        # small optimization
         if not traces_:
             return
 

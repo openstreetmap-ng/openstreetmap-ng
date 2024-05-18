@@ -51,7 +51,6 @@ class NoteCommentQuery:
                 notes_.append(note)
                 id_comments_map[note.id] = note.comments = []
 
-        # small optimization
         if not notes_:
             return
 

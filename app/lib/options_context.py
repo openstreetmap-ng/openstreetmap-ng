@@ -23,6 +23,13 @@ def options_context(*options):
         _options_context.reset(token)
 
 
+def is_options_context() -> bool:
+    """
+    Check if options context is set.
+    """
+    return _options_context.get(None) is not None
+
+
 def apply_options_context(stmt: T) -> T:
     """
     Apply options context.

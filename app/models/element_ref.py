@@ -1,10 +1,13 @@
 from dataclasses import dataclass
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from pydantic import PositiveInt
 
 from app.models.element_type import ElementType
 from app.validators.element_type import element_type
+
+if TYPE_CHECKING:
+    from app.models.db.element import Element
 
 
 @dataclass(frozen=True, slots=True)
@@ -12,9 +15,31 @@ class ElementRef:
     type: ElementType
     id: int
 
-    @property
-    def element_ref(self) -> 'ElementRef':
-        return ElementRef(type=self.type, id=self.id)
+    @classmethod
+    def from_element(cls, element: 'Element') -> 'ElementRef':
+        """
+        Create an element reference from an element.
+
+        >>> ElementRef.from_element(Element(ElementType.node, 123, 1, True, {}))
+        ElementRef(type='node', id=123)
+        """
+        return cls(element.type, element.id)
+
+    @classmethod
+    def from_str(cls, s: str) -> 'ElementRef':
+        """
+        Parse an element reference from a string representation.
+
+        >>> ElementRef.from_str('n123')
+        ElementRef(type='node', id=123)
+        """
+        type = element_type(s)
+        id = int(s[1:])
+
+        if id == 0:
+            raise ValueError('Element id cannot be 0')
+
+        return cls(type, id)
 
     def __str__(self) -> str:
         """
@@ -25,35 +50,20 @@ class ElementRef:
         """
         return f'{self.type[0]}{self.id}'
 
-    @classmethod
-    def from_str(cls, s: str) -> 'ElementRef':
-        """
-        Parse an element reference from a string representation.
-
-        >>> ElementRef.from_str('n123')
-        ElementRef(type=<ElementType.node: 'node'>, id=123)
-        """
-        type = element_type(s)
-        id = int(s[1:])
-
-        if id == 0:
-            raise ValueError('Element id cannot be 0')
-
-        return cls(type, id)
-
 
 @dataclass(frozen=True, slots=True)
 class VersionedElementRef(ElementRef):
     version: PositiveInt
 
-    def __str__(self) -> str:
+    @classmethod
+    def from_element(cls, element: 'Element') -> 'VersionedElementRef':
         """
-        Produce a string representation of the versioned element reference.
+        Create a versioned element reference from an element.
 
-        >>> VersionedElementRef(ElementType.node, 123, 1)
-        'n123v1'
+        >>> VersionedElementRef.from_element(Element(ElementType.node, 123, 1, True, {}))
+        VersionedElementRef(type='node', id=123, version=1)
         """
-        return f'{self.type[0]}{self.id}v{self.version}'
+        return cls(element.type, element.id, element.version)
 
     @override
     @classmethod
@@ -62,7 +72,7 @@ class VersionedElementRef(ElementRef):
         Parse a versioned element reference from a string representation.
 
         >>> VersionedElementRef.from_str('n123v1')
-        VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
+        VersionedElementRef(type='node', id=123, version=1)
         """
         type = element_type(s)
 
@@ -83,7 +93,7 @@ class VersionedElementRef(ElementRef):
         Parse a versioned element reference from a string.
 
         >>> VersionedElementRef.from_type_str(ElementType.node, '123v1')
-        VersionedElementRef(type=<ElementType.node: 'node'>, id=123, version=1)
+        VersionedElementRef(type='node', id=123, version=1)
         """
         idx = s.rindex('v')
         id = int(s[:idx])
@@ -95,3 +105,12 @@ class VersionedElementRef(ElementRef):
             raise ValueError('Element version must be positive')
 
         return cls(type, id, version)
+
+    def __str__(self) -> str:
+        """
+        Produce a string representation of the versioned element reference.
+
+        >>> VersionedElementRef(ElementType.node, 123, 1)
+        'n123v1'
+        """
+        return f'{self.type[0]}{self.id}v{self.version}'

@@ -16,12 +16,10 @@ from sqlalchemy import (
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
-from app.lib.updating_cached_property import updating_cached_property
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
-from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.geometry import PointType
 
@@ -34,7 +32,6 @@ class Element(Base.NoID):
 
     sequence_id: Mapped[int] = mapped_column(BigInteger, Identity(minvalue=1), init=False, nullable=False)
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
-    changeset: Mapped[Changeset] = relationship(init=False, lazy='raise', innerjoin=True)
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)
     id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -58,6 +55,8 @@ class Element(Base.NoID):
 
     # runtime
     members: list['ElementMember'] | None = None
+    user_id: int | None = None
+    user_display_name: str | None = None
 
     __table_args__ = (
         PrimaryKeyConstraint(sequence_id, name='element_pkey'),
@@ -71,15 +70,3 @@ class Element(Base.NoID):
             postgresql_using='gist',
         ),
     )
-
-    @updating_cached_property('id')
-    def element_ref(self) -> ElementRef:
-        return ElementRef(self.type, self.id)
-
-    @updating_cached_property('id')
-    def versioned_ref(self) -> VersionedElementRef:
-        return VersionedElementRef(self.type, self.id, self.version)
-
-    @updating_cached_property('members')
-    def members_element_refs(self) -> frozenset[ElementRef]:
-        return frozenset(ElementRef(member.type, member.id) for member in self.members)

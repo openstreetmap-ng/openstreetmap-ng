@@ -117,7 +117,7 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.id > 0:
-                        raise_for().diff_create_bad_id(element.versioned_ref)
+                        raise_for().diff_create_bad_id(element)
 
                     result.append(element)
 
@@ -126,7 +126,7 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version < 2:
-                        raise_for().diff_update_bad_version(element.versioned_ref)
+                        raise_for().diff_update_bad_version(element)
 
                     result.append(element)
 
@@ -142,7 +142,7 @@ class Element06Mixin:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
                     if element.version < 2:
-                        raise_for().diff_update_bad_version(element.versioned_ref)
+                        raise_for().diff_update_bad_version(element)
 
                     result.append(element)
 
@@ -247,7 +247,6 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     """
     # read property once for performance
     element_type = element.type
-    changeset = element.changeset
     is_node: cython.char = element_type == 'node'
     is_way: cython.char = not is_node and element_type == 'way'
     is_relation: cython.char = not is_node and not is_way
@@ -259,10 +258,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             'version': element.version,
             **(
                 {
-                    'uid': changeset.user_id,
-                    'user': changeset.user.display_name,
+                    'uid': element.user_id,
+                    'user': element.user_display_name,
                 }
-                if changeset.user_id is not None
+                if element.user_display_name is not None
                 else {}
             ),
             'changeset': element.changeset_id,
@@ -279,10 +278,10 @@ def _encode_element(element: Element, *, is_json: cython.char) -> dict:
             '@version': element.version,
             **(
                 {
-                    '@uid': changeset.user_id,
-                    '@user': changeset.user.display_name,
+                    '@uid': element.user_id,
+                    '@user': element.user_display_name,
                 }
-                if changeset.user_id is not None
+                if element.user_display_name is not None
                 else {}
             ),
             '@changeset': element.changeset_id,

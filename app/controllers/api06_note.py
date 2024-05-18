@@ -45,7 +45,6 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
     """
     Resolve note comments and their rich text.
     """
-    # small optimization
     if not notes_or_comments:
         return
 

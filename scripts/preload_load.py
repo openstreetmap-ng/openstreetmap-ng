@@ -5,7 +5,7 @@ from functools import cache
 from subprocess import Popen
 
 import anyio
-from anyio import create_task_group
+from anyio import Semaphore, create_task_group
 from sqlalchemy import Index, select, text
 
 from app.config import PRELOAD_DIR
@@ -16,6 +16,8 @@ from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
+
+index_semaphore = Semaphore(6)
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -84,15 +86,15 @@ async def load_tables() -> None:
                 ),
             )
 
-    async def sql_task(sql: str) -> None:
-        async with db() as session:
+    async def index_task(sql: str) -> None:
+        async with index_semaphore, db() as session:
             await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
             await session.execute(text(sql))
 
     async with create_task_group() as tg:
         for key, sql in index_sqls.items():
             print(f'Recreating index {key!r}')
-            tg.start_soon(sql_task, sql)
+            tg.start_soon(index_task, sql)
 
 
 async def main() -> None:

@@ -20,6 +20,7 @@ from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
+from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.utils import JSON_ENCODE
@@ -27,94 +28,17 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/api/partial')
 
 
-async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
-    list_parents: Sequence[ElementMemberEntry] = ()
-    full_data: Sequence[Element] = ()
-    list_elements: Sequence[ElementMemberEntry] = ()
-
-    async def parents_task():
-        nonlocal list_parents
-        element_ref = element.element_ref
-        parents = await ElementQuery.get_many_parents_by_refs(
-            (element_ref,),
-            at_sequence_id=at_sequence_id,
-            limit=None,
-        )
-        await ElementMemberQuery.resolve_members(parents)
-        list_parents = format_element_parents_list(element_ref, parents)
-
-    async def data_task():
-        nonlocal full_data, list_elements
-        members_refs = element.members_element_refs
-        members_elements = await ElementQuery.get_many_by_refs(
-            members_refs,
-            at_sequence_id=at_sequence_id,
-            recurse_ways=True,
-            limit=None,
-        )
-        await ElementMemberQuery.resolve_members(members_elements)
-        direct_members = tuple(member for member in members_elements if member.element_ref in members_refs)
-        full_data = (element, *members_elements)
-        list_elements = format_element_members_list(element.members, direct_members)
-
-    if element.visible:
-        async with create_task_group() as tg:
-            if include_parents:
-                tg.start_soon(parents_task)
-            if element.members:
-                tg.start_soon(data_task)
-            else:
-                full_data = (element,)
-
-    changeset_tags_ = element.changeset.tags
-    if 'comment' in changeset_tags_:
-        changeset_tags = tags_format(changeset_tags_)
-        comment_tag = changeset_tags['comment']
-    else:
-        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
-
-    prev_version = element.version - 1 if element.version > 1 else None
-    next_version = element.version + 1 if (element.next_sequence_id is not None) else None
-    name = feature_name(element.tags)
-    tags = tags_format(element.tags)
-    leaflet = format_leaflet_elements(full_data, detailed=False)
-
-    return {
-        'element': element,
-        'prev_version': prev_version,
-        'next_version': next_version,
-        'name': name,
-        'tags': tags.values(),
-        'comment_tag': comment_tag,
-        'show_elements': bool(list_elements),
-        'show_part_of': bool(list_parents),
-        'params': JSON_ENCODE(
-            {
-                'type': element.type,
-                'id': element.id,
-                'version': element.version,
-                'lists': {
-                    'part_of': list_parents,
-                    'elements': list_elements,
-                },
-            }
-        ).decode(),
-        'leaflet': JSON_ENCODE(leaflet).decode(),
-    }
-
-
 @router.get('/{type:element_type}/{id:int}')
 async def get_latest(type: ElementType, id: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
-    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
-        ref = ElementRef(type, id)
-        elements = await ElementQuery.get_many_by_refs(
-            (ref,),
-            at_sequence_id=at_sequence_id,
-            limit=1,
-        )
-        element = elements[0] if elements else None
+    ref = ElementRef(type, id)
+    elements = await ElementQuery.get_many_by_refs(
+        (ref,),
+        at_sequence_id=at_sequence_id,
+        limit=1,
+    )
+    element = elements[0] if elements else None
 
     if element is None:
         return render_response(
@@ -132,18 +56,17 @@ async def get_latest(type: ElementType, id: PositiveInt):
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
-async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
+async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     parents = True
 
-    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
-        ref = VersionedElementRef(type, id, version)
-        elements = await ElementQuery.get_many_by_versioned_refs(
-            (ref,),
-            at_sequence_id=at_sequence_id,
-            limit=1,
-        )
-        element = elements[0] if elements else None
+    ref = VersionedElementRef(type, id, version)
+    elements = await ElementQuery.get_many_by_versioned_refs(
+        (ref,),
+        at_sequence_id=at_sequence_id,
+        limit=1,
+    )
+    element = elements[0] if elements else None
 
     if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
@@ -180,14 +103,13 @@ async def get_history(
     version_max = current_version - page_size * (page - 1)
     version_min = version_max - page_size + 1
 
-    with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
-        elements = await ElementQuery.get_versions_by_ref(
-            ref,
-            at_sequence_id=at_sequence_id,
-            version_range=(version_min, version_max),
-            sort_ascending=False,
-            limit=ELEMENT_HISTORY_PAGE_SIZE,
-        )
+    elements = await ElementQuery.get_versions_by_ref(
+        ref,
+        at_sequence_id=at_sequence_id,
+        version_range=(version_min, version_max),
+        sort_ascending=False,
+        limit=ELEMENT_HISTORY_PAGE_SIZE,
+    )
 
     await ElementMemberQuery.resolve_members(elements)
     elements_data = [None] * len(elements)
@@ -218,3 +140,91 @@ async def get_history(
             'elements_data': elements_data,
         },
     )
+
+
+async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
+    changeset: Changeset = None
+    list_parents: Sequence[ElementMemberEntry] = ()
+    full_data: Sequence[Element] = ()
+    list_elements: Sequence[ElementMemberEntry] = ()
+
+    async def changeset_user_task():
+        nonlocal changeset
+        with options_context(joinedload(Changeset.user)):
+            changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(element.changeset_id,), limit=1)
+            changeset = changesets[0]
+
+    async def parents_task():
+        nonlocal list_parents
+        ref = ElementRef.from_element(element)
+        parents = await ElementQuery.get_many_parents_by_refs(
+            (ref,),
+            at_sequence_id=at_sequence_id,
+            limit=None,
+        )
+        await ElementMemberQuery.resolve_members(parents)
+        list_parents = format_element_parents_list(ref, parents)
+
+    async def data_task():
+        nonlocal full_data, list_elements
+        members_refs = {ElementRef.from_element(member) for member in element.members}
+        members_elements = await ElementQuery.get_many_by_refs(
+            members_refs,
+            at_sequence_id=at_sequence_id,
+            recurse_ways=True,
+            limit=None,
+        )
+        await ElementMemberQuery.resolve_members(members_elements)
+        direct_members = tuple(
+            member
+            for member in members_elements  #
+            if ElementRef.from_element(member) in members_refs
+        )
+        full_data = (element, *members_elements)
+        list_elements = format_element_members_list(element.members, direct_members)
+
+    async with create_task_group() as tg:
+        tg.start_soon(changeset_user_task)
+        if element.visible:
+            if include_parents:
+                tg.start_soon(parents_task)
+            if element.members:
+                tg.start_soon(data_task)
+            else:
+                full_data = (element,)
+
+    comment = changeset.tags.get('comment')
+    if comment is not None:
+        comment_tag = tags_format({'comment': comment})['comment']
+    else:
+        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
+
+    prev_version = element.version - 1 if element.version > 1 else None
+    next_version = element.version + 1 if (element.next_sequence_id is not None) else None
+    name = feature_name(element.tags)
+    tags = tags_format(element.tags)
+    leaflet = format_leaflet_elements(full_data, detailed=False)
+
+    return {
+        'element': element,
+        'changeset': changeset,
+        'prev_version': prev_version,
+        'next_version': next_version,
+        'name': name,
+        'tags': tags.values(),
+        'comment_tag': comment_tag,
+        'show_elements': bool(list_elements),
+        'show_part_of': bool(list_parents),
+        'params': JSON_ENCODE(
+            {
+                'type': element.type,
+                'id': element.id,
+                'version': element.version,
+                'lists': {
+                    'part_of': list_parents,
+                    'elements': list_elements,
+                },
+            }
+        ).decode(),
+        'leaflet': JSON_ENCODE(leaflet).decode(),
+    }

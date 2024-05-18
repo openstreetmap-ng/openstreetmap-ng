@@ -1,19 +1,16 @@
 from typing import Annotated
 
+from anyio import create_task_group
 from fastapi import APIRouter, Query
-from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.options_context import options_context
 from app.lib.xmltodict import get_xattr
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
-from app.models.db.changeset import Changeset
-from app.models.db.element import Element
-from app.models.db.user import User
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
+from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/0.6')
 
@@ -28,19 +25,16 @@ async def map_read(
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 
-    with options_context(
-        joinedload(Element.changeset)
-        .load_only(Changeset.user_id)
-        .joinedload(Changeset.user)
-        .load_only(User.display_name)
-    ):
-        elements = await ElementQuery.find_many_by_geom(
-            geometry,
-            nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
-            legacy_nodes_limit=True,
-        )
+    elements = await ElementQuery.find_many_by_geom(
+        geometry,
+        nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
+        legacy_nodes_limit=True,
+    )
 
-    await ElementMemberQuery.resolve_members(elements)
+    with create_task_group() as tg:
+        tg.start_soon(UserQuery.resolve_elements_users, elements, True)
+        tg.start_soon(ElementMemberQuery.resolve_members, elements)
+
     xattr = get_xattr()
     minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 

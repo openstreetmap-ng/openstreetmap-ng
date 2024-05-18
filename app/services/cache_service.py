@@ -37,7 +37,6 @@ class CacheService:
 
         If the value is not in the cache, call the async factory to generate it.
         """
-
         cache_key = f'{context}:{cache_id.hex()}'
 
         async with valkey() as conn:
@@ -82,7 +81,6 @@ class CacheService:
 
         If the value is not in the cache, call the async factory to generate it.
         """
-
         cache_id = hash_bytes(key, context=None)
 
         return await CacheService.get_one_by_cache_id(cache_id, context, factory, ttl=ttl)

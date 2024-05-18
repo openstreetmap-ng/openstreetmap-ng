@@ -33,14 +33,14 @@ async def format_changeset_elements_list(
 
     if prev_refs:
         prev_elements = await ElementQuery.get_many_by_versioned_refs(prev_refs, limit=len(prev_refs))
-        prev_ref_map = {element.element_ref: element for element in prev_elements}
+        prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
     else:
-        prev_ref_map = {}
+        prev_type_id_map = {}
 
     result: dict[ElementType, list[ChangesetElementEntry]] = {'node': [], 'way': [], 'relation': []}
 
     for element in elements:
-        prev = prev_ref_map.get(element.element_ref)
+        prev = prev_type_id_map.get((element.type, element.id))
         tags = prev.tags if (prev is not None) else element.tags
         resolved = _resolve_icon(element.type, tags)
 
@@ -89,7 +89,7 @@ def format_element_parents_list(ref: ElementRef, parents: Sequence[Element]) -> 
                     {
                         member_ref.role
                         for member_ref in element.members
-                        if member_ref.role and member_ref.type == ref.type and member_ref.id == ref.id
+                        if member_ref.role and member_ref.id == ref.id and member_ref.type == ref.type
                     }
                 )
             )
@@ -162,7 +162,6 @@ def _resolve_icon(type: ElementType, tags: dict[str, str]):
     >>> _resolve_icon(...)
     'aeroway_terminal.webp', 'aeroway=terminal'
     """
-    # small optimization, most elements don't have any tags
     if not tags:
         return None
 

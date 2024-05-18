@@ -35,7 +35,7 @@ def _encode_element(element: Element) -> dict:
         'type': element.type,
         'id': element.id,
         'version': element.version,
-        'user_id': element.changeset.user_id,
+        'user_id': element.user_id,
         'changeset_id': element.changeset_id,
         'created_at': element.created_at,
         'visible': element.visible,

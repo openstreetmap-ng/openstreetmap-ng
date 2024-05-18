@@ -1,10 +1,12 @@
-from typing import NoReturn, override
+from typing import TYPE_CHECKING, NoReturn, override
 
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
-from app.models.element_ref import VersionedElementRef
+
+if TYPE_CHECKING:
+    from app.models.db.element import Element
 
 
 class DiffExceptions06Mixin(DiffExceptionsMixin):
@@ -20,28 +22,28 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
         )
 
     @override
-    def diff_create_bad_id(self, versioned_ref: VersionedElementRef) -> NoReturn:
-        if versioned_ref.type == 'node':
+    def diff_create_bad_id(self, element: 'Element') -> NoReturn:
+        if element.type == 'node':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create node: data is invalid.',
             )
-        elif versioned_ref.type == 'way':
+        elif element.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create way: data is invalid.',
             )
-        elif versioned_ref.type == 'relation':
+        elif element.type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
                 detail='Cannot create relation: data or member data is invalid.',
             )
         else:
-            raise NotImplementedError(f'Unsupported element type {versioned_ref.type!r}')
+            raise NotImplementedError(f'Unsupported element type {element.type!r}')
 
     @override
-    def diff_update_bad_version(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def diff_update_bad_version(self, element: 'Element') -> NoReturn:
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
-            detail=f'Update action requires version >= 1, got {versioned_ref.version - 1}',
+            detail=f'Update action requires version >= 1, got {element.version - 1}',
         )

@@ -1,9 +1,10 @@
 from collections.abc import Sequence
 
-from sqlalchemy import select, text
-from sqlalchemy.orm import Bundle
+import cython
+from sqlalchemy import Select, select, text
 
 from app.db import db
+from app.lib.bundle import TupleBundle
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 
@@ -19,21 +20,12 @@ class ElementMemberQuery:
             if element.type != 'node' and element.members is None and element.visible:
                 id_members_map[element.sequence_id] = element.members = []
 
-        # small optimization
         if not id_members_map:
             return
 
         async with db() as session:
-            bundle = Bundle(
-                'member',
-                ElementMember.sequence_id,
-                ElementMember.type,
-                ElementMember.id,
-                ElementMember.role,
-                single_entity=True,
-            )
             stmt = (
-                select(bundle)
+                _select()
                 .where(ElementMember.sequence_id.in_(text(','.join(map(str, id_members_map)))))
                 .order_by(ElementMember.sequence_id.asc(), ElementMember.order.asc())
             )
@@ -48,3 +40,16 @@ class ElementMemberQuery:
                 current_sequence_id = member_sequence_id
                 current_members = id_members_map[member_sequence_id]
             current_members.append(member)
+
+
+@cython.cfunc
+def _select() -> Select[ElementMember]:
+    bundle = TupleBundle(
+        'member',
+        ElementMember.sequence_id,
+        ElementMember.type,
+        ElementMember.id,
+        ElementMember.role,
+        single_entity=True,
+    )
+    return select(bundle)

@@ -7,13 +7,11 @@ from datetime import datetime
 from anyio import create_task_group
 from sqlalchemy import and_, or_, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import load_only
 
 from app.db import db_commit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -84,17 +82,9 @@ class OptimisticDiffApply:
         """
         Check the time integrity of the database.
         """
-        with options_context(load_only(Element.id, Element.type, Element.created_at)):
-            element = await ElementQuery.find_one_latest()
-
-        if (element is not None) and element.created_at > self._now:
-            logging.error(
-                'Element %r/%r was created in the future: %r > %r',
-                element.type,
-                element.id,
-                element.created_at,
-                self._now,
-            )
+        created_at = await ElementQuery.get_current_created_at()
+        if created_at > self._now:
+            logging.error('Element was created in the future: %r > %r', created_at, self._now)
             raise_for().time_integrity()
 
     async def _check_element_is_latest(self, element: Element) -> None:
@@ -121,7 +111,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if they are.
         """
 
-        if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id=after):
+        if await ElementQuery.is_currently_member(element_refs, after_sequence_id=after):
             raise OptimisticDiffError(f'Element is referenced by after {after}')
 
     async def _update_changesets(

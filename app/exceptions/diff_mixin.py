@@ -1,7 +1,8 @@
 from abc import abstractmethod
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
-from app.models.element_ref import VersionedElementRef
+if TYPE_CHECKING:
+    from app.models.db.element import Element
 
 
 class DiffExceptionsMixin:
@@ -14,9 +15,9 @@ class DiffExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_create_bad_id(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def diff_create_bad_id(self, element: 'Element') -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_update_bad_version(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def diff_update_bad_version(self, element: 'Element') -> NoReturn:
         raise NotImplementedError
