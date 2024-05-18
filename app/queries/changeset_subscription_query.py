@@ -5,9 +5,9 @@ from app.lib.auth_context import auth_user
 from app.models.db.changeset_subscription import ChangesetSubscription
 
 
-class ChangesetSubscriptionRepository:
+class ChangesetSubscriptionQuery:
     @staticmethod
-    async def is_subscribed_by_id(changeset_id: int) -> bool:
+    async def is_subscribed(changeset_id: int) -> bool:
         """
         Check if the user is subscribed to the changeset.
         """

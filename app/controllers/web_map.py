@@ -6,8 +6,8 @@ from app.lib.element_leaflet_formatter import format_leaflet_elements
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
-from app.repositories.element_member_repository import ElementMemberRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.element_member_query import ElementMemberQuery
+from app.queries.element_query import ElementQuery
 
 router = APIRouter(prefix='/api/web')
 
@@ -20,7 +20,7 @@ async def get_map(
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
 
-    elements = await ElementRepository.find_many_by_geom(
+    elements = await ElementQuery.find_many_by_geom(
         geometry,
         partial_ways=True,
         include_relations=False,
@@ -28,5 +28,5 @@ async def get_map(
         legacy_nodes_limit=True,
     )
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     return format_leaflet_elements(elements, detailed=True, areas=False)

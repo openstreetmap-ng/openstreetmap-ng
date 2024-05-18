@@ -14,7 +14,7 @@ from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
-from app.repositories.user_repository import UserRepository
+from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.email_service import EmailService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -38,9 +38,9 @@ class UserSignupService:
         """
 
         # some early validation
-        if not await UserRepository.check_display_name_available(display_name):
+        if not await UserQuery.check_display_name_available(display_name):
             collector.raise_error('display_name', t('validation.display_name_taken'))
-        if not await UserRepository.check_email_available(email):
+        if not await UserQuery.check_email_available(email):
             collector.raise_error('email', t('validation.email_taken'))
         if not await validate_email_deliverability(email):
             collector.raise_error('email', t('validation.email_invalid'))

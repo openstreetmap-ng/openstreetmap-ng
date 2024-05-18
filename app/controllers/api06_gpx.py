@@ -14,8 +14,8 @@ from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility
-from app.repositories.trace_point_repository import TracePointRepository
-from app.repositories.trace_repository import TraceRepository
+from app.queries.trace_point_query import TracePointQuery
+from app.queries.trace_query import TraceQuery
 from app.responses.osm_response import GPXResponse
 from app.services.trace_service import TraceService
 
@@ -48,7 +48,7 @@ async def gpx_read(
     trace_id: PositiveInt,
 ):
     with options_context(joinedload(Trace.user)):
-        trace = await TraceRepository.get_one_by_id(trace_id)
+        trace = await TraceQuery.get_one_by_id(trace_id)
     return Format06.encode_gpx_file(trace)
 
 
@@ -58,8 +58,8 @@ async def gpx_read_data(
     trace_id: PositiveInt,
 ):
     # ensures that user has access to the trace
-    trace = await TraceRepository.get_one_by_id(trace_id)
-    trace_points = await TracePointRepository.get_many_by_trace_id(trace_id)
+    trace = await TraceQuery.get_one_by_id(trace_id)
+    trace_points = await TracePointQuery.get_many_by_trace_id(trace_id)
     data = Format06.encode_track(trace_points, trace)
     resp = GPXResponse.serialize(data)
     return Response(
@@ -74,7 +74,7 @@ async def gpx_read_data(
 async def gpx_read_data_raw(
     trace_id: PositiveInt,
 ):
-    content = await TraceRepository.get_one_data_by_id(trace_id)
+    content = await TraceQuery.get_one_data_by_id(trace_id)
     return Response(
         content=content,
         # intentionally not using trace.name here, it's unsafe and difficult to make right, removing in API 0.7

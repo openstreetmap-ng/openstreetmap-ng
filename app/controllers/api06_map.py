@@ -12,8 +12,8 @@ from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.repositories.element_member_repository import ElementMemberRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.element_member_query import ElementMemberQuery
+from app.queries.element_query import ElementQuery
 
 router = APIRouter(prefix='/api/0.6')
 
@@ -34,13 +34,13 @@ async def map_read(
         .joinedload(Changeset.user)
         .load_only(User.display_name)
     ):
-        elements = await ElementRepository.find_many_by_geom(
+        elements = await ElementQuery.find_many_by_geom(
             geometry,
             nodes_limit=MAP_QUERY_LEGACY_NODES_LIMIT,
             legacy_nodes_limit=True,
         )
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     xattr = get_xattr()
     minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
 

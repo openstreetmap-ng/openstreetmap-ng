@@ -16,7 +16,7 @@ from app.models.editor import Editor
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
-from app.repositories.user_repository import UserRepository
+from app.queries.user_query import UserQuery
 from app.responses.osm_response import OSMResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
@@ -32,7 +32,7 @@ router = APIRouter(prefix='/api/web/user')
 async def display_name_available(
     display_name: Annotated[DisplayNameStr, Query()],
 ):
-    return await UserRepository.check_display_name_available(display_name)
+    return await UserQuery.check_display_name_available(display_name)
 
 
 @router.post('/login')

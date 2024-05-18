@@ -4,7 +4,7 @@ from app.db import db
 from app.models.db.message import Message
 
 
-class MessageRepository:
+class MessageQuery:
     @staticmethod
     async def count_received_by_user_id(user_id: int) -> tuple[int, int]:
         """
@@ -12,7 +12,6 @@ class MessageRepository:
 
         Returns a tuple of (total, unread).
         """
-
         async with db() as session:
             stmt_total = select(func.count()).select_from(
                 select(text('1')).where(
@@ -28,7 +27,6 @@ class MessageRepository:
                 )
             )
             stmt = stmt_total.union_all(stmt_unread)
-
             total, unread = (await session.scalars(stmt)).all()
             return total, unread
 
@@ -37,7 +35,6 @@ class MessageRepository:
         """
         Count sent messages by user id.
         """
-
         async with db() as session:
             stmt = select(func.count()).select_from(
                 select(text('1')).where(
@@ -45,6 +42,5 @@ class MessageRepository:
                     Message.from_hidden == false(),
                 )
             )
-
             # TODO: test empty results
             return await session.scalar(stmt)

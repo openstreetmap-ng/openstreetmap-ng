@@ -13,8 +13,8 @@ from app.lib.render_response import render_response
 from app.limits import TRACE_TAG_MAX_LENGTH
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
-from app.repositories.trace_point_repository import TracePointRepository
-from app.repositories.trace_repository import TraceRepository
+from app.queries.trace_point_query import TracePointQuery
+from app.queries.trace_query import TraceQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/traces')
@@ -29,7 +29,7 @@ async def _get_traces_data(
     before: int | None,
 ) -> dict:
     with options_context(joinedload(Trace.user)):
-        traces = await TraceRepository.find_many_recent(
+        traces = await TraceQuery.find_many_recent(
             personal=personal,
             tag=tag,
             after=after,
@@ -41,12 +41,12 @@ async def _get_traces_data(
     new_before: int | None = None
 
     async def resolve_task():
-        await TracePointRepository.resolve_image_coords(traces, limit_per_trace=100, resolution=100)
+        await TracePointQuery.resolve_image_coords(traces, limit_per_trace=100, resolution=100)
 
     async def new_after_task():
         nonlocal new_after
         after = traces[0].id
-        after_traces = await TraceRepository.find_many_recent(
+        after_traces = await TraceQuery.find_many_recent(
             personal=personal,
             tag=tag,
             after=after,
@@ -58,7 +58,7 @@ async def _get_traces_data(
     async def new_before_task():
         nonlocal new_before
         before = traces[-1].id
-        before_traces = await TraceRepository.find_many_recent(
+        before_traces = await TraceQuery.find_many_recent(
             personal=personal,
             tag=tag,
             before=before,

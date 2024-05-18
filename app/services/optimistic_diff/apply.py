@@ -18,8 +18,8 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.repositories.changeset_repository import ChangesetRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 # TODO 0.7 don't reuse placeholder ids for simplicity
@@ -85,7 +85,7 @@ class OptimisticDiffApply:
         Check the time integrity of the database.
         """
         with options_context(load_only(Element.id, Element.type, Element.created_at)):
-            element = await ElementRepository.find_one_latest()
+            element = await ElementQuery.find_one_latest()
 
         if (element is not None) and element.created_at > self._now:
             logging.error(
@@ -104,7 +104,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if it is not.
         """
 
-        elements = await ElementRepository.get_many_by_refs((element.element_ref,), limit=1)
+        elements = await ElementQuery.get_many_by_refs((element.element_ref,), limit=1)
         latest = elements[0] if elements else None
 
         if latest is None:
@@ -121,7 +121,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if they are.
         """
 
-        if not await ElementRepository.is_unreferenced(element_refs, after_sequence_id=after):
+        if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id=after):
             raise OptimisticDiffError(f'Element is referenced by after {after}')
 
     async def _update_changesets(
@@ -138,7 +138,7 @@ class OptimisticDiffApply:
         # read property once for performance
         now = self._now
 
-        for changeset_id, updated_at in (await ChangesetRepository.get_updated_at_by_ids(changesets_next)).items():
+        for changeset_id, updated_at in (await ChangesetQuery.get_updated_at_by_ids(changesets_next)).items():
             local = changesets_next.pop(changeset_id)
 
             # ensure the changeset was not modified
@@ -230,7 +230,7 @@ class OptimisticDiffApply:
         started_type_tasks: set[ElementType] = set()
 
         async def type_next_id_task(type: ElementType) -> None:
-            last_id_by_type = await ElementRepository.get_current_id_by_type(type)
+            last_id_by_type = await ElementQuery.get_current_id_by_type(type)
             type_next_id_map[type] = last_id_by_type + 1
 
         async with create_task_group() as tg:

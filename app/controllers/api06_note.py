@@ -29,9 +29,9 @@ from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
 from app.models.scope import ExtendedScope, Scope
-from app.repositories.note_comment_repository import NoteCommentRepository
-from app.repositories.note_repository import NoteRepository
-from app.repositories.user_repository import UserRepository
+from app.queries.note_comment_query import NoteCommentQuery
+from app.queries.note_query import NoteQuery
+from app.queries.user_query import UserQuery
 from app.responses.osm_response import GPXResponse
 from app.services.note_service import NoteService
 from app.validators.date import DateValidator
@@ -57,7 +57,7 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
                 tg.start_soon(comment.resolve_rich_text)
         else:
             with options_context(joinedload(NoteComment.user)):
-                await NoteCommentRepository.resolve_comments(notes_or_comments, limit_per_note=None)
+                await NoteCommentQuery.resolve_comments(notes_or_comments, limit_per_note=None)
             note: Note
             for note in notes_or_comments:
                 for comment in note.comments:
@@ -75,7 +75,7 @@ async def note_create(
 ) -> dict:
     point = Point(lon, lat)
     note_id = await NoteService.create(point, text)
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
 
@@ -89,7 +89,7 @@ async def note_read(
     request: Request,
     note_id: PositiveInt,
 ) -> dict:
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
 
     if not notes:
         raise_for().note_not_found(note_id)
@@ -119,7 +119,7 @@ async def note_comment(
     _: Annotated[User, api_user(Scope.write_notes)],
 ) -> dict:
     await NoteService.comment(note_id, text, NoteEvent.commented)
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
 
@@ -134,7 +134,7 @@ async def note_close(
     text: Annotated[str, Query()] = '',
 ) -> dict:
     await NoteService.comment(note_id, text, NoteEvent.closed)
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
 
@@ -149,7 +149,7 @@ async def note_reopen(
     text: Annotated[str, Query()] = '',
 ) -> dict:
     await NoteService.comment(note_id, text, NoteEvent.reopened)
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
 
@@ -164,7 +164,7 @@ async def note_hide(
     text: Annotated[str, Query()] = '',
 ) -> dict:
     await NoteService.comment(note_id, text, NoteEvent.hidden)
-    notes = await NoteRepository.find_many_by_query(note_ids=(note_id,), limit=1)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
 
@@ -183,7 +183,7 @@ async def notes_feed(
         geometry = None
 
     with options_context(joinedload(NoteComment.user), joinedload(NoteComment.legacy_note)):
-        comments = await NoteCommentRepository.legacy_find_many_by_query(
+        comments = await NoteCommentQuery.legacy_find_many_by_query(
             geometry=geometry,
             limit=NOTE_QUERY_DEFAULT_LIMIT,
         )
@@ -244,7 +244,7 @@ async def notes_read(
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
         raise_for().notes_query_area_too_big()
 
-    notes = await NoteRepository.find_many_by_query(
+    notes = await NoteQuery.find_many_by_query(
         geometry=geometry,
         max_closed_for=max_closed_for,
         limit=limit,
@@ -311,11 +311,11 @@ async def notes_query(
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
 
     if display_name is not None:
-        user = await UserRepository.find_one_by_display_name(display_name)
+        user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
             raise_for().user_not_found_bad_request(display_name)
     elif user_id is not None:
-        user = await UserRepository.find_one_by_id(user_id)
+        user = await UserQuery.find_one_by_id(user_id)
         if user is None:
             raise_for().user_not_found_bad_request(user_id)
     else:
@@ -328,7 +328,7 @@ async def notes_query(
     else:
         geometry = None
 
-    notes = await NoteRepository.find_many_by_query(
+    notes = await NoteQuery.find_many_by_query(
         text=q,
         user_id=user.id if user is not None else None,
         max_closed_for=max_closed_for,

@@ -1,6 +1,6 @@
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_token import OAuth2Token
-from app.repositories.oauth2_token_repository import OAuth2TokenRepository
+from app.queries.oauth2_token_query import OAuth2TokenQuery
 
 
 class OAuth2:
@@ -14,7 +14,7 @@ class OAuth2:
         if scheme != 'Bearer':
             raise_for().oauth2_bearer_missing()
 
-        token = await OAuth2TokenRepository.find_one_authorized_by_token(param)
+        token = await OAuth2TokenQuery.find_one_authorized_by_token(param)
         if token is None:
             raise_for().oauth_bad_user_token()
 

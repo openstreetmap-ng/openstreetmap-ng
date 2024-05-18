@@ -10,7 +10,7 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
 
-class NoteCommentRepository:
+class NoteCommentQuery:
     @staticmethod
     async def legacy_find_many_by_query(
         *,
@@ -44,42 +44,45 @@ class NoteCommentRepository:
         """
         Resolve comments for notes.
         """
+        notes_: list[Note] = []
+        id_comments_map: dict[int, list[NoteComment]] = {}
+        for note in notes:
+            if note.comments is None:
+                notes_.append(note)
+                id_comments_map[note.id] = note.comments = []
+
         # small optimization
-        if not notes:
+        if not notes_:
             return
 
         async with db() as session:
             stmts = []
 
-            for note in notes:
-                stmt_ = (
-                    select(NoteComment.id)
-                    .where(
-                        NoteComment.note_id == note.id,
-                        NoteComment.created_at <= note.updated_at,
-                    )
-                    .order_by(NoteComment.created_at.desc())
+            for note in notes_:
+                stmt_ = select(NoteComment.id).where(
+                    NoteComment.note_id == note.id,
+                    NoteComment.created_at <= note.updated_at,
                 )
-                stmt_ = apply_options_context(stmt_)
 
                 if limit_per_note is not None:
+                    stmt_ = stmt_.order_by(NoteComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_note)
+                    stmt_ = select(NoteComment.id).select_from(stmt_)
 
+                stmt_ = stmt_.order_by(NoteComment.created_at.asc())
                 stmts.append(stmt_)
 
-            stmt = (
-                select(NoteComment)
-                .where(NoteComment.id.in_(union_all(*stmts).scalar_subquery()))
-                .order_by(NoteComment.created_at.desc())
-            )
+            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).scalar_subquery()))
             stmt = apply_options_context(stmt)
-
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
         # TODO: delete notes without comments
+        current_note_id: int = 0
+        current_comments: list[NoteComment] = []
 
-        id_comments_map: dict[int, list[NoteComment]] = {}
-        for note in notes:
-            id_comments_map[note.id] = note.comments = []
         for comment in comments:
-            id_comments_map[comment.note_id].append(comment)
+            current_note_id = comment.note_id
+            if current_note_id != current_note_id:
+                current_note_id = current_note_id
+                current_comments = id_comments_map[current_note_id]
+            current_comments.append(comment)

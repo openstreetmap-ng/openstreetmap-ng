@@ -4,7 +4,7 @@ from app.db import db
 from app.models.db.user_block import UserBlock
 
 
-class UserBlockRepository:
+class UserBlockQuery:
     @staticmethod
     async def count_received_by_user_id(user_id: int) -> tuple[int, int]:
         """
@@ -12,7 +12,6 @@ class UserBlockRepository:
 
         Returns a tuple of (total, active).
         """
-
         async with db() as session:
             stmt_total = select(func.count()).select_from(
                 select(text('1')).where(
@@ -26,7 +25,6 @@ class UserBlockRepository:
                 )
             )
             stmt = stmt_total.union_all(stmt_active)
-
             total, active = (await session.scalars(stmt)).all()
             return total, active
 
@@ -37,7 +35,6 @@ class UserBlockRepository:
 
         Returns a tuple of (total, active).
         """
-
         async with db() as session:
             stmt_total = select(func.count()).select_from(
                 select(text('1')).where(
@@ -51,6 +48,5 @@ class UserBlockRepository:
                 )
             )
             stmt = stmt_total.union_all(stmt_active)
-
             total, active = (await session.scalars(stmt)).all()
             return total, active

@@ -1,23 +1,19 @@
 from collections.abc import Sequence
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import Bundle, defer
+from sqlalchemy.orm import Bundle
 
 from app.db import db
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 
 
-class ElementMemberRepository:
+class ElementMemberQuery:
     @staticmethod
     async def resolve_members(elements: Sequence[Element]) -> None:
         """
         Resolve members for elements.
         """
-        # small optimization
-        if not elements:
-            return
-
         id_members_map: dict[int, list[ElementMember]] = {}
         for element in elements:
             if element.type != 'node' and element.members is None and element.visible:

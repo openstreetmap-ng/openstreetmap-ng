@@ -9,8 +9,8 @@ from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.repositories.trace_repository import TraceRepository
-from app.repositories.user_repository import UserRepository
+from app.queries.trace_query import TraceQuery
+from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/0.6')
 
@@ -20,7 +20,7 @@ router = APIRouter(prefix='/api/0.6')
 async def user_gpx_files(
     user: Annotated[User, api_user(Scope.read_gpx)],
 ) -> Sequence[dict]:
-    traces = await TraceRepository.find_many_by_user_id(user.id, limit=None)
+    traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
     return Format06.encode_gpx_files(traces)
 
 
@@ -39,7 +39,7 @@ async def user_details(
 async def user_read(
     user_id: PositiveInt,
 ) -> dict:
-    user = await UserRepository.find_one_by_id(user_id)
+    user = await UserQuery.find_one_by_id(user_id)
 
     if user is None:
         raise_for().user_not_found(user_id)
@@ -65,5 +65,5 @@ async def users_read(
     if not user_ids:
         return Response('No users were given to search for', status.HTTP_400_BAD_REQUEST)
 
-    users = await UserRepository.find_many_by_ids(user_ids)
+    users = await UserQuery.find_many_by_ids(user_ids)
     return await Format06.encode_users(users)

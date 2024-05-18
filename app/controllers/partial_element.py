@@ -20,8 +20,8 @@ from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
-from app.repositories.element_member_repository import ElementMemberRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.element_member_query import ElementMemberQuery
+from app.queries.element_query import ElementQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/api/partial')
@@ -35,24 +35,24 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     async def parents_task():
         nonlocal list_parents
         element_ref = element.element_ref
-        parents = await ElementRepository.get_many_parents_by_refs(
+        parents = await ElementQuery.get_many_parents_by_refs(
             (element_ref,),
             at_sequence_id=at_sequence_id,
             limit=None,
         )
-        await ElementMemberRepository.resolve_members(parents)
+        await ElementMemberQuery.resolve_members(parents)
         list_parents = format_element_parents_list(element_ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
         members_refs = element.members_element_refs
-        members_elements = await ElementRepository.get_many_by_refs(
+        members_elements = await ElementQuery.get_many_by_refs(
             members_refs,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,
             limit=None,
         )
-        await ElementMemberRepository.resolve_members(members_elements)
+        await ElementMemberQuery.resolve_members(members_elements)
         direct_members = tuple(member for member in members_elements if member.element_ref in members_refs)
         full_data = (element, *members_elements)
         list_elements = format_element_members_list(element.members, direct_members)
@@ -105,11 +105,11 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
 @router.get('/{type:element_type}/{id:int}')
 async def get_latest(type: ElementType, id: PositiveInt):
-    at_sequence_id = await ElementRepository.get_current_sequence_id()
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_many_by_refs(
+        elements = await ElementQuery.get_many_by_refs(
             (ref,),
             at_sequence_id=at_sequence_id,
             limit=1,
@@ -124,21 +124,21 @@ async def get_latest(type: ElementType, id: PositiveInt):
 
     # if the element was superseded (very small chance), get data just before
     if element.next_sequence_id is not None:
-        at_sequence_id = await ElementRepository.get_last_visible_sequence_id(element)
+        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
 
-    await ElementMemberRepository.resolve_members((element,))
+    await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=True)
     return render_response('partial/element.jinja2', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
 async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt):
-    at_sequence_id = await ElementRepository.get_current_sequence_id()
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
     parents = True
 
     with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
         ref = VersionedElementRef(type, id, version)
-        elements = await ElementRepository.get_many_by_versioned_refs(
+        elements = await ElementQuery.get_many_by_versioned_refs(
             (ref,),
             at_sequence_id=at_sequence_id,
             limit=1,
@@ -154,10 +154,10 @@ async def get_versioned(type: ElementType, id: PositiveInt, version: PositiveInt
 
     # if the element was superseded, get data just before
     if element.next_sequence_id is not None:
-        at_sequence_id = await ElementRepository.get_last_visible_sequence_id(element)
+        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
         parents = False
 
-    await ElementMemberRepository.resolve_members((element,))
+    await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=parents)
     return render_response('partial/element.jinja2', data)
 
@@ -168,10 +168,10 @@ async def get_history(
     id: PositiveInt,
     page: Annotated[PositiveInt, Query()] = 1,
 ):
-    at_sequence_id = await ElementRepository.get_current_sequence_id()
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    current_version = await ElementRepository.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
+    current_version = await ElementQuery.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
     # TODO: cython?
     # TODO: not found
@@ -181,7 +181,7 @@ async def get_history(
     version_min = version_max - page_size + 1
 
     with options_context(joinedload(Element.changeset).joinedload(Changeset.user)):
-        elements = await ElementRepository.get_versions_by_ref(
+        elements = await ElementQuery.get_versions_by_ref(
             ref,
             at_sequence_id=at_sequence_id,
             version_range=(version_min, version_max),
@@ -189,7 +189,7 @@ async def get_history(
             limit=ELEMENT_HISTORY_PAGE_SIZE,
         )
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     elements_data = [None] * len(elements)
 
     async def data_task(i: int, element: Element):
@@ -198,7 +198,7 @@ async def get_history(
 
         # if the element was superseded, get data just before
         if element.next_sequence_id is not None:
-            at_sequence_id_ = await ElementRepository.get_last_visible_sequence_id(element)
+            at_sequence_id_ = await ElementQuery.get_last_visible_sequence_id(element)
             parents = False
 
         element_data = await _get_element_data(element, at_sequence_id_, include_parents=parents)

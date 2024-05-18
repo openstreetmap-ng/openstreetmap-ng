@@ -11,7 +11,7 @@ from app.models.db.user import User
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.user_status import UserStatus
-from app.repositories.user_token_account_confirm_repository import UserTokenAccountConfirmRepository
+from app.queries.user_token_account_confirm_query import UserTokenAccountConfirmQuery
 
 
 class UserTokenAccountConfirmService:
@@ -41,7 +41,7 @@ class UserTokenAccountConfirmService:
         Confirm a user account.
         """
 
-        token = await UserTokenAccountConfirmRepository.find_one_by_token_struct(token_struct)
+        token = await UserTokenAccountConfirmQuery.find_one_by_token_struct(token_struct)
 
         if token is None:
             raise_for().bad_user_token_struct()

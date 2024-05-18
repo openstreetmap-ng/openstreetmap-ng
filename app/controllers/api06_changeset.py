@@ -17,10 +17,10 @@ from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.repositories.changeset_comment_repository import ChangesetCommentRepository
-from app.repositories.changeset_repository import ChangesetRepository
-from app.repositories.element_repository import ElementRepository
-from app.repositories.user_repository import UserRepository
+from app.queries.changeset_comment_query import ChangesetCommentQuery
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.element_query import ElementQuery
+from app.queries.user_query import UserQuery
 from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
@@ -52,13 +52,13 @@ async def changeset_read(
     changeset_id: PositiveInt,
     include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
 ):
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
     if include_discussion:
         with options_context(joinedload(ChangesetComment.user)):
-            await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
+            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
 
     return Format06.encode_changesets(changesets)
 
@@ -75,7 +75,7 @@ async def changeset_update(
         raise_for().bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 
@@ -109,12 +109,12 @@ async def changeset_close(
 async def changeset_download(
     changeset_id: PositiveInt,
 ):
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     changeset = changesets[0] if changesets else None
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
-    elements = await ElementRepository.get_many_by_changeset(changeset_id, sort_by='sequence_id')
+    elements = await ElementQuery.get_many_by_changeset(changeset_id, sort_by='sequence_id')
 
     for element in elements:
         element.changeset = changeset
@@ -164,11 +164,11 @@ async def changesets_query(
     if display_name_provided and user_id_provided:
         return Response('provide either the user ID or display name, but not both', status.HTTP_400_BAD_REQUEST)
     if display_name_provided:
-        user = await UserRepository.find_one_by_display_name(display_name)
+        user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
             raise_for().user_not_found_bad_request(display_name)
     elif user_id_provided:
-        user = await UserRepository.find_one_by_id(user_id)
+        user = await UserQuery.find_one_by_id(user_id)
         if user is None:
             raise_for().user_not_found_bad_request(user_id)
 
@@ -191,7 +191,7 @@ async def changesets_query(
         closed_after = None
         created_before = None
 
-    changesets = await ChangesetRepository.find_many_by_query(
+    changesets = await ChangesetQuery.find_many_by_query(
         changeset_ids=changeset_ids,
         user_id=user.id if (user is not None) else None,
         created_before=created_before,

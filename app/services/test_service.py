@@ -13,7 +13,7 @@ from app.models.db.user import User
 from app.models.str import PasswordStr
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
-from app.repositories.user_repository import UserRepository
+from app.queries.user_query import UserQuery
 
 
 class TestService:
@@ -47,14 +47,14 @@ class TestService:
             Create a test user.
             """
             email = f'{name}@{TEST_USER_DOMAIN}'
-            email_available = await UserRepository.check_email_available(email)
+            email_available = await UserQuery.check_email_available(email)
 
             # skip creation if the user already exists
             if not email_available:
                 logging.debug('Test user %r already exists', name)
                 return
 
-            name_available = await UserRepository.check_display_name_available(name)
+            name_available = await UserQuery.check_display_name_available(name)
             password = PasswordStr(TEST_USER_PASSWORD)
             password_hashed = PasswordHash.default().hash(password)
 

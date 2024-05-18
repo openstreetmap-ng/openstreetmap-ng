@@ -9,7 +9,7 @@ from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 
 
-class ChangesetRepository:
+class ChangesetQuery:
     @staticmethod
     async def get_updated_at_by_ids(changeset_ids: Sequence[int]) -> dict[int, datetime]:
         """
@@ -19,7 +19,9 @@ class ChangesetRepository:
         {1: datetime(...), 2: datetime(...)}
         """
         async with db() as session:
-            stmt = select(Changeset.id, Changeset.updated_at).where(Changeset.id.in_(changeset_ids))
+            stmt = select(Changeset.id, Changeset.updated_at).where(
+                Changeset.id.in_(text(','.join(map(str, changeset_ids))))
+            )
             rows = (await session.execute(stmt)).all()
             return dict(rows)
 
@@ -65,7 +67,7 @@ class ChangesetRepository:
             where_and = []
 
             if changeset_ids:
-                where_and.append(Changeset.id.in_(changeset_ids))
+                where_and.append(Changeset.id.in_(text(','.join(map(str, changeset_ids)))))
             if user_id is not None:
                 where_and.append(Changeset.user_id == user_id)
             if created_before is not None:
@@ -85,7 +87,7 @@ class ChangesetRepository:
             if limit is not None:
                 stmt = stmt.limit(limit)
 
-            return (await session.scalars(stmt)).unique().all()
+            return (await session.scalars(stmt)).all()
 
     @staticmethod
     async def count_by_user_id(user_id: int) -> int:

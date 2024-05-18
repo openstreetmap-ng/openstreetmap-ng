@@ -9,7 +9,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
 from app.models.scope import Scope
-from app.repositories.oauth1_application_repository import OAuth1ApplicationRepository
+from app.queries.oauth1_application_query import OAuth1ApplicationQuery
 from app.utils import extend_query_params
 from app.validators.url import URLValidator
 
@@ -23,7 +23,7 @@ class OAuth1TokenService:
         At this stage, the token only references the application.
         """
 
-        app = await OAuth1ApplicationRepository.find_by_consumer_key(consumer_key)
+        app = await OAuth1ApplicationQuery.find_by_consumer_key(consumer_key)
 
         if app is None:
             raise_for().oauth_bad_app_token()

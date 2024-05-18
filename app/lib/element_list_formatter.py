@@ -12,7 +12,7 @@ from app.models.db.element_member import ElementMember
 from app.models.element_list_entry import ChangesetElementEntry, ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.repositories.element_repository import ElementRepository
+from app.queries.element_query import ElementQuery
 
 
 async def format_changeset_elements_list(
@@ -32,7 +32,7 @@ async def format_changeset_elements_list(
     )
 
     if prev_refs:
-        prev_elements = await ElementRepository.get_many_by_versioned_refs(prev_refs, limit=len(prev_refs))
+        prev_elements = await ElementQuery.get_many_by_versioned_refs(prev_refs, limit=len(prev_refs))
         prev_ref_map = {element.element_ref: element for element in prev_elements}
     else:
         prev_ref_map = {}

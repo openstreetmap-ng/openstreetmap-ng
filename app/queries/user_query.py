@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from shapely import Point
-from sqlalchemy import func, null, select
+from sqlalchemy import func, null, select, text
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -10,7 +10,7 @@ from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.user import User
 
 
-class UserRepository:
+class UserQuery:
     @staticmethod
     async def find_one_by_id(user_id: int) -> User | None:
         """
@@ -47,7 +47,7 @@ class UserRepository:
         Find users by ids.
         """
         async with db() as session:
-            stmt = select(User).where(User.id.in_(user_ids))
+            stmt = select(User).where(User.id.in_(text(','.join(map(str, user_ids)))))
             stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
 
@@ -91,12 +91,12 @@ class UserRepository:
                 return True
 
             # check if the name is available
-            other_user = await UserRepository.find_one_by_display_name(display_name)
+            other_user = await UserQuery.find_one_by_display_name(display_name)
             return other_user is None or other_user.id == user.id
 
         else:
             # check if the name is available
-            other_user = await UserRepository.find_one_by_display_name(display_name)
+            other_user = await UserQuery.find_one_by_display_name(display_name)
             return other_user is None
 
     @staticmethod
@@ -111,10 +111,10 @@ class UserRepository:
                 return True
 
             # check if the email is available
-            other_user = await UserRepository.find_one_by_email(email)
+            other_user = await UserQuery.find_one_by_email(email)
             return other_user is None or other_user.id == user.id
 
         else:
             # check if the email is available
-            other_user = await UserRepository.find_one_by_email(email)
+            other_user = await UserQuery.find_one_by_email(email)
             return other_user is None

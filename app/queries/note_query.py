@@ -13,7 +13,7 @@ from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 
 
-class NoteRepository:
+class NoteQuery:
     @staticmethod
     async def find_many_by_query(
         *,
@@ -31,7 +31,6 @@ class NoteRepository:
         """
         Find notes by query.
         """
-
         async with db() as session:
             stmt = select(Note)
             stmt = apply_options_context(stmt)
@@ -39,7 +38,7 @@ class NoteRepository:
             sort_key = Note.created_at if sort_by == 'created_at' else Note.updated_at
 
             if note_ids:
-                where_and.append(Note.id.in_(note_ids))
+                where_and.append(Note.id.in_(text(','.join(map(str, note_ids)))))
             if text is not None:
                 where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(text)))
             if user_id is not None:

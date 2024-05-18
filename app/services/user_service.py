@@ -14,7 +14,7 @@ from app.models.db.user import User
 from app.models.editor import Editor
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.repositories.user_repository import UserRepository
+from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
 from app.services.email_change_service import EmailChangeService
@@ -107,7 +107,7 @@ class UserService:
         user = auth_user()
 
         # some early validation
-        if not await UserRepository.check_display_name_available(display_name):
+        if not await UserQuery.check_display_name_available(display_name):
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
         # update user data
@@ -142,7 +142,7 @@ class UserService:
 
         if not user.password_hasher.verify(user.password_hashed, user.password_salt, password):
             collector.raise_error('password', t('user.invalid_password'))
-        if not await UserRepository.check_email_available(new_email):
+        if not await UserQuery.check_email_available(new_email):
             collector.raise_error('email', t('user.email_already_taken'))
         if not await validate_email_deliverability(new_email):
             collector.raise_error('email', t('user.invalid_email'))

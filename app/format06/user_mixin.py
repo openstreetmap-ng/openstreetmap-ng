@@ -11,10 +11,10 @@ from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.user import User
 from app.models.db.user_pref import UserPref
-from app.repositories.changeset_repository import ChangesetRepository
-from app.repositories.message_repository import MessageRepository
-from app.repositories.trace_repository import TraceRepository
-from app.repositories.user_block_repository import UserBlockRepository
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.message_query import MessageQuery
+from app.queries.trace_query import TraceQuery
+from app.queries.user_block_query import UserBlockQuery
 from app.validators.user_pref import UserPrefValidating
 
 
@@ -117,33 +117,33 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
 
     async def changesets_count_task() -> None:
         nonlocal changesets_count
-        changesets_count = await ChangesetRepository.count_by_user_id(user.id)
+        changesets_count = await ChangesetQuery.count_by_user_id(user.id)
 
     async def traces_count_task() -> None:
         nonlocal traces_count
-        traces_count = await TraceRepository.count_by_user_id(user.id)
+        traces_count = await TraceQuery.count_by_user_id(user.id)
 
     async def block_received_count_task() -> None:
         nonlocal block_received_count, block_received_active_count
-        total, active = await UserBlockRepository.count_received_by_user_id(user.id)
+        total, active = await UserBlockQuery.count_received_by_user_id(user.id)
         block_received_count = total
         block_received_active_count = active
 
     async def block_issued_count_task() -> None:
         nonlocal block_issued_count, block_issued_active_count
-        total, active = await UserBlockRepository.count_given_by_user_id(user.id)
+        total, active = await UserBlockQuery.count_given_by_user_id(user.id)
         block_issued_count = total
         block_issued_active_count = active
 
     async def messages_received_count_task() -> None:
         nonlocal messages_received_count, messages_received_unread_count
-        total, unread = await MessageRepository.count_received_by_user_id(user.id)
+        total, unread = await MessageQuery.count_received_by_user_id(user.id)
         messages_received_count = total
         messages_received_unread_count = unread
 
     async def messages_sent_count_task() -> None:
         nonlocal messages_sent_count
-        messages_sent_count = await MessageRepository.count_sent_by_user_id(user.id)
+        messages_sent_count = await MessageQuery.count_sent_by_user_id(user.id)
 
     async with create_task_group() as tg:
         tg.start_soon(changesets_count_task)

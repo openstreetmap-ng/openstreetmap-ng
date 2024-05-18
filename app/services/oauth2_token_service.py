@@ -16,8 +16,8 @@ from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from app.models.scope import Scope
-from app.repositories.oauth2_application_repository import OAuth2ApplicationRepository
-from app.repositories.oauth2_token_repository import OAuth2TokenRepository
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
+from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.utils import extend_query_params
 
 # TODO: limit number of access tokens per user+app
@@ -60,7 +60,7 @@ class OAuth2TokenService:
         In `init=False` mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
 
-        app = await OAuth2ApplicationRepository.find_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
 
         if app is None:
             raise_for().oauth_bad_app_token()
@@ -75,7 +75,7 @@ class OAuth2TokenService:
 
         # handle silent authentication
         if init:
-            tokens = await OAuth2TokenRepository.find_many_authorized_by_user_app(
+            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app(
                 user_id=user_id,
                 app_id=app.id,
                 limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,

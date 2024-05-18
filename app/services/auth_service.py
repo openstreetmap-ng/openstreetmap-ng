@@ -25,8 +25,8 @@ from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.scope import ExtendedScope, Scope
 from app.models.str import PasswordStr
-from app.repositories.user_repository import UserRepository
-from app.repositories.user_token_session_repository import UserTokenSessionRepository
+from app.queries.user_query import UserQuery
+from app.queries.user_token_session_query import UserTokenSessionQuery
 from app.services.cache_service import CacheService
 from app.services.oauth1_nonce_service import OAuth1NonceService
 from app.validators.email import validate_email
@@ -107,7 +107,7 @@ class AuthService:
                 scheme, _, param = authorization.partition(' ')
                 if scheme == 'User':
                     logging.debug('Attempting to authenticate with User')
-                    user = await UserRepository.find_one_by_display_name(param)
+                    user = await UserQuery.find_one_by_display_name(param)
                     scopes = _session_auth_scopes
                     if user is None:
                         raise_for().user_not_found(param)
@@ -133,12 +133,12 @@ class AuthService:
         if '.' in display_name_or_email:
             try:
                 email = validate_email(display_name_or_email)
-                user = await UserRepository.find_one_by_email(email)
+                user = await UserQuery.find_one_by_email(email)
             except ValueError:
                 user = None
         else:
             display_name = display_name_or_email
-            user = await UserRepository.find_one_by_display_name(display_name)
+            user = await UserQuery.find_one_by_display_name(display_name)
 
         if user is None:
             logging.debug('User not found %r', display_name_or_email)
@@ -243,7 +243,7 @@ class AuthService:
         Returns None if the session is not found or the session key is incorrect.
         """
         with options_context(joinedload(UserTokenSession.user)):
-            token = await UserTokenSessionRepository.find_one_by_token_struct(token_struct)
+            token = await UserTokenSessionQuery.find_one_by_token_struct(token_struct)
 
         if token is None:
             logging.debug('Session not found %r', token_struct.id)

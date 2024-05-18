@@ -15,10 +15,10 @@ from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.element_list_entry import ChangesetElementEntry
 from app.models.tag_format import TagFormatCollection
-from app.repositories.changeset_comment_repository import ChangesetCommentRepository
-from app.repositories.changeset_repository import ChangesetRepository
-from app.repositories.changeset_subscription_repository import ChangesetSubscriptionRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.changeset_comment_query import ChangesetCommentQuery
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.changeset_subscription_query import ChangesetSubscriptionQuery
+from app.queries.element_query import ElementQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/api/partial/changeset')
@@ -27,7 +27,7 @@ router = APIRouter(prefix='/api/partial/changeset')
 @router.get('/{id:int}')
 async def get_changeset(id: PositiveInt):
     with options_context(joinedload(Changeset.user)):
-        changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(id,), limit=1)
+        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(id,), limit=1)
         changeset = changesets[0] if changesets else None
 
     if changeset is None:
@@ -43,22 +43,22 @@ async def get_changeset(id: PositiveInt):
 
     async def elements_task():
         nonlocal elements
-        elements_ = await ElementRepository.get_many_by_changeset(id, sort_by='id')
+        elements_ = await ElementQuery.get_many_by_changeset(id, sort_by='id')
         elements = await format_changeset_elements_list(elements_)
 
     async def comments_task():
         with options_context(joinedload(ChangesetComment.user)):
-            await ChangesetCommentRepository.resolve_comments(changesets, limit_per_changeset=None, rich_text=True)
+            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
 
     async def adjacent_ids_task():
         nonlocal prev_changeset_id, next_changeset_id
-        t: tuple = await ChangesetRepository.get_adjacent_ids(id, user_id=changeset.user_id)
+        t: tuple = await ChangesetQuery.get_adjacent_ids(id, user_id=changeset.user_id)
         prev_changeset_id = t[0]
         next_changeset_id = t[1]
 
     async def is_subscribed_task():
         nonlocal is_subscribed
-        is_subscribed = await ChangesetSubscriptionRepository.is_subscribed_by_id(id)
+        is_subscribed = await ChangesetSubscriptionQuery.is_subscribed(id)
 
     async with create_task_group() as tg:
         tg.start_soon(elements_task)

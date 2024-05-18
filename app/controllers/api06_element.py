@@ -16,8 +16,8 @@ from app.models.db.user import User
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.scope import Scope
-from app.repositories.element_member_repository import ElementMemberRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.element_member_query import ElementMemberQuery
+from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
 
 router = APIRouter(prefix='/api/0.6')
@@ -66,7 +66,7 @@ async def element_create(
 async def element_read_latest(type: ElementType, id: PositiveInt):
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_many_by_refs((ref,), limit=1)
+        elements = await ElementQuery.get_many_by_refs((ref,), limit=1)
         element = elements[0] if elements else None
 
     if element is None:
@@ -74,7 +74,7 @@ async def element_read_latest(type: ElementType, id: PositiveInt):
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
 
-    await ElementMemberRepository.resolve_members((element,))
+    await ElementMemberQuery.resolve_members((element,))
     return Format06.encode_element(element)
 
 
@@ -84,13 +84,13 @@ async def element_read_latest(type: ElementType, id: PositiveInt):
 async def element_read_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     with options_context(joinedload(Element.changeset)):
         versioned_ref = VersionedElementRef(type, id, version)
-        elements = await ElementRepository.get_many_by_versioned_refs((versioned_ref,), limit=1)
+        elements = await ElementQuery.get_many_by_versioned_refs((versioned_ref,), limit=1)
         element = elements[0] if elements else None
 
     if element is None:
         raise_for().element_not_found(versioned_ref)
 
-    await ElementMemberRepository.resolve_members((element,))
+    await ElementMemberQuery.resolve_members((element,))
     return Format06.encode_element(element)
 
 
@@ -145,12 +145,12 @@ async def element_delete(
 async def element_history(type: ElementType, id: PositiveInt):
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_versions_by_ref(ref, limit=None)
+        elements = await ElementQuery.get_versions_by_ref(ref, limit=None)
 
     if not elements:
         raise_for().element_not_found(ref)
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     return Format06.encode_elements(elements)
 
 
@@ -188,13 +188,13 @@ async def elements_read_many(
         return Response(None, status.HTTP_404_NOT_FOUND)
 
     with options_context(joinedload(Element.changeset)):
-        elements = await ElementRepository.find_many_by_any_refs(parsed_query, limit=None)
+        elements = await ElementQuery.find_many_by_any_refs(parsed_query, limit=None)
 
     for element in elements:
         if element is None:
             return Response(None, status.HTTP_404_NOT_FOUND)
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     return Format06.encode_elements(elements)
 
 
@@ -204,13 +204,13 @@ async def elements_read_many(
 async def element_parent_relations(type: ElementType, id: PositiveInt):
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_many_parents_by_refs(
+        elements = await ElementQuery.get_many_parents_by_refs(
             (ref,),
             parent_type='relation',
             limit=None,
         )
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     return Format06.encode_elements(elements)
 
 
@@ -218,11 +218,11 @@ async def element_parent_relations(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/full.xml')
 @router.get('/{type:element_type}/{id:int}/full.json')
 async def element_full(type: ElementType, id: PositiveInt):
-    at_sequence_id = await ElementRepository.get_current_sequence_id()
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef(type, id)
-        elements = await ElementRepository.get_many_by_refs(
+        elements = await ElementQuery.get_many_by_refs(
             (ref,),
             at_sequence_id=at_sequence_id,
             limit=1,
@@ -234,16 +234,16 @@ async def element_full(type: ElementType, id: PositiveInt):
         if not element.visible:
             return Response(None, status.HTTP_410_GONE)
 
-        await ElementMemberRepository.resolve_members(elements)
+        await ElementMemberQuery.resolve_members(elements)
 
-        members_elements = await ElementRepository.get_many_by_refs(
+        members_elements = await ElementQuery.get_many_by_refs(
             element.members_element_refs,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,
             limit=None,
         )
 
-        await ElementMemberRepository.resolve_members(members_elements)
+        await ElementMemberQuery.resolve_members(members_elements)
 
     return Format06.encode_elements((element, *members_elements))
 
@@ -254,11 +254,11 @@ async def element_full(type: ElementType, id: PositiveInt):
 async def node_parent_ways(id: PositiveInt):
     with options_context(joinedload(Element.changeset)):
         ref = ElementRef('node', id)
-        elements = await ElementRepository.get_many_parents_by_refs(
+        elements = await ElementQuery.get_many_parents_by_refs(
             (ref,),
             parent_type='way',
             limit=None,
         )
 
-    await ElementMemberRepository.resolve_members(elements)
+    await ElementMemberQuery.resolve_members(elements)
     return Format06.encode_elements(elements)

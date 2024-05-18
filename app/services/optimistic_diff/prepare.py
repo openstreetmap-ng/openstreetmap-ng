@@ -17,8 +17,8 @@ from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
-from app.repositories.changeset_repository import ChangesetRepository
-from app.repositories.element_repository import ElementRepository
+from app.queries.changeset_query import ChangesetQuery
+from app.queries.element_query import ElementQuery
 
 
 @dataclass(slots=True)
@@ -158,7 +158,7 @@ class OptimisticDiffPrepare:
             return changeset
 
         with options_context(joinedload(Changeset.user)):
-            changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+            changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
         if not changesets:
             raise_for().changeset_not_found(changeset_id)
@@ -222,7 +222,7 @@ class OptimisticDiffPrepare:
             return
 
         element_refs_len = len(element_refs)
-        elements = await ElementRepository.get_many_by_refs(element_refs, limit=element_refs_len)
+        elements = await ElementQuery.get_many_by_refs(element_refs, limit=element_refs_len)
 
         # check if all elements exist
         if len(elements) != element_refs_len:
@@ -242,7 +242,7 @@ class OptimisticDiffPrepare:
         if self.last_sequence_id is not None:
             raise RuntimeError('Last sequence id already assigned')
 
-        if (element := await ElementRepository.find_one_latest()) is not None:
+        if (element := await ElementQuery.find_one_latest()) is not None:
             if element.created_at > (now := utcnow()):
                 logging.error(
                     'Element %r/%r was created in the future: %r > %r',
@@ -285,7 +285,7 @@ class OptimisticDiffPrepare:
             return local_elements
 
         remote_refs_len = len(remote_refs)
-        remote_elements = await ElementRepository.get_many_by_refs(remote_refs, limit=remote_refs_len)
+        remote_elements = await ElementQuery.get_many_by_refs(remote_refs, limit=remote_refs_len)
 
         # check if all elements exist
         if len(remote_elements) != remote_refs_len:
@@ -371,7 +371,7 @@ class OptimisticDiffPrepare:
 
             if parent_refs is None:
                 # cache miss, fetch from the database
-                parents = await ElementRepository.get_many_parents_by_refs(
+                parents = await ElementQuery.get_many_parents_by_refs(
                     (element_ref,),
                     limit=len(negative_refs) + 1,
                 )
@@ -511,7 +511,7 @@ class OptimisticDiffPrepare:
                     element_refs_map.add(point_or_ref)
 
             # get points for element refs
-            elements = await ElementRepository.get_many_by_refs(
+            elements = await ElementQuery.get_many_by_refs(
                 element_refs_map,
                 recurse_ways=True,
                 limit=None,

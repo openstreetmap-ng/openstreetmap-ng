@@ -11,7 +11,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.str import Str255
-from app.repositories.user_pref_repository import UserPrefRepository
+from app.queries.user_pref_query import UserPrefQuery
 from app.services.user_pref_service import UserPrefService
 
 router = APIRouter(prefix='/api/0.6')
@@ -23,7 +23,7 @@ router = APIRouter(prefix='/api/0.6')
 async def read_user_preferences(
     _: Annotated[User, api_user(Scope.read_prefs)],
 ) -> Sequence[dict]:
-    prefs = await UserPrefRepository.find_many_by_app(app_id=None)
+    prefs = await UserPrefQuery.find_many_by_app(app_id=None)
     return Format06.encode_user_preferences(prefs)
 
 
@@ -45,7 +45,7 @@ async def read_user_preference(
     key: Str255,
     _: Annotated[User, api_user(Scope.read_prefs)],
 ) -> str:
-    pref = await UserPrefRepository.find_one_by_app_key(app_id=None, key=key)
+    pref = await UserPrefQuery.find_one_by_app_key(app_id=None, key=key)
 
     if pref is None:
         raise_for().pref_not_found(app_id=None, key=key)

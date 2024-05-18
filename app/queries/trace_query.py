@@ -11,7 +11,7 @@ from app.models.db.trace_ import Trace
 from app.storage import TRACES_STORAGE
 
 
-class TraceRepository:
+class TraceQuery:
     @staticmethod
     async def get_one_by_id(trace_id: int) -> Trace:
         """
@@ -40,7 +40,7 @@ class TraceRepository:
 
         Returns a tuple of (filename, file).
         """
-        trace = await TraceRepository.get_one_by_id(trace_id)
+        trace = await TraceQuery.get_one_by_id(trace_id)
         file_buffer = await TRACES_STORAGE.load(trace.file_id)
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace.file_id)
         return file_bytes
@@ -89,8 +89,6 @@ class TraceRepository:
         """
         async with db() as session:
             stmt = select(Trace)
-            stmt = apply_options_context(stmt)
-
             where_and = []
 
             if personal:
@@ -110,13 +108,12 @@ class TraceRepository:
 
             if (after is None) or (before is not None):
                 stmt = stmt.order_by(Trace.id.desc())
-                reverse = False
+                stmt = stmt.limit(limit)
             else:
                 stmt = stmt.order_by(Trace.id.asc())
-                reverse = True
+                stmt = stmt.limit(limit)
+                stmt = select(Trace).select_from(stmt).order_by(Trace.id.desc())
 
-            stmt = stmt.limit(limit)
+            stmt = apply_options_context(stmt)
             result = (await session.scalars(stmt)).all()
-            if reverse:
-                result.reverse()
             return result

@@ -73,9 +73,9 @@ let
         app/format07
         app/lib
         app/middlewares
-        app/repositories
         app/responses
         app/services
+        app/queries
         app/validators
       )
       for dir in "''${dirs[@]}"; do

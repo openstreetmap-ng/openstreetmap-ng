@@ -5,7 +5,7 @@ from fastapi import Request
 
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth1_token import OAuth1Token
-from app.repositories.oauth1_token_repository import OAuth1TokenRepository
+from app.queries.oauth1_token_query import OAuth1TokenQuery
 
 
 @cython.cfunc
@@ -43,7 +43,7 @@ class OAuth1:
         if request.signature is None:
             raise_for().oauth1_bad_signature()
 
-        token = await OAuth1TokenRepository.find_one_authorized_by_token(request.token)
+        token = await OAuth1TokenQuery.find_one_authorized_by_token(request.token)
         if token is None:
             raise_for().oauth_bad_user_token()
 

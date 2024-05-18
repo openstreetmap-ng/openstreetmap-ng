@@ -6,17 +6,17 @@ from sqlalchemy import func, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
+from app.lib.options_context import apply_options_context
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.msgspec.user_token_struct import UserTokenStruct
 
 
-class UserTokenEmailReplyRepository:
+class UserTokenEmailReplyQuery:
     @staticmethod
     async def find_one_by_reply_address(reply_address: str) -> UserTokenEmailReply | None:
         """
         Find a user email reply token by reply email address.
         """
-
         # strip the name part: "abc" <foo@bar.com> -> foo@bar.com
         reply_address = parseaddr(reply_address)[1]
 
@@ -32,7 +32,7 @@ class UserTokenEmailReplyRepository:
                 UserTokenEmailReply.id == token_struct.id,
                 UserTokenEmailReply.expires_at > func.statement_timestamp(),
             )
-
+            stmt = apply_options_context(stmt)
             token = await session.scalar(stmt)
 
         if token is None:

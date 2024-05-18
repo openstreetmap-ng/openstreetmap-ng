@@ -9,7 +9,7 @@ from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.user_token_email_reply import UserTokenEmailReply
 from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.repositories.user_token_email_reply_repository import UserTokenEmailReplyRepository
+from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
 
 
@@ -56,7 +56,7 @@ class UserTokenEmailReplyService:
         Reply to a user with a message.
         """
 
-        token = await UserTokenEmailReplyRepository.find_one_by_reply_address(reply_address)
+        token = await UserTokenEmailReplyQuery.find_one_by_reply_address(reply_address)
 
         if token is None:
             raise_for().bad_user_token_struct()

@@ -8,7 +8,7 @@ from app.lib.auth_context import api_user
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.user import User
 from app.models.scope import ExtendedScope, Scope
-from app.repositories.changeset_repository import ChangesetRepository
+from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 
 router = APIRouter(prefix='/api/0.6')
@@ -20,7 +20,7 @@ async def changeset_subscribe(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     await ChangesetCommentService.subscribe(changeset_id)
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 
@@ -30,7 +30,7 @@ async def changeset_unsubscribe(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     await ChangesetCommentService.unsubscribe(changeset_id)
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 
@@ -41,7 +41,7 @@ async def changeset_comment(
     _: Annotated[User, api_user(Scope.write_api)],
 ) -> dict:
     await ChangesetCommentService.comment(changeset_id, text)
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 
@@ -51,7 +51,7 @@ async def changeset_comment_delete(
     _: Annotated[User, api_user(Scope.write_api, ExtendedScope.role_moderator)],
 ) -> dict:
     changeset_id = await ChangesetCommentService.delete_comment_unsafe(comment_id)
-    changesets = await ChangesetRepository.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 

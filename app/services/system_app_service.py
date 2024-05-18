@@ -11,7 +11,7 @@ from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.system_app import SYSTEM_APPS
-from app.repositories.oauth2_application_repository import OAuth2ApplicationRepository
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
 
 class SystemAppService:
@@ -56,7 +56,7 @@ class SystemAppService:
         The access token can be used to make requests on behalf of the user.
         """
 
-        app = await OAuth2ApplicationRepository.find_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
 
         if app is None:
             raise_for().oauth_bad_app_client_id()

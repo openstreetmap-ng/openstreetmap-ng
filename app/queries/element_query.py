@@ -17,10 +17,10 @@ from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.repositories.element_member_repository import ElementMemberRepository
+from app.queries.element_member_query import ElementMemberQuery
 
 
-class ElementRepository:
+class ElementQuery:
     @staticmethod
     async def get_current_sequence_id() -> int:
         """
@@ -210,7 +210,7 @@ class ElementRepository:
                             element.point = None
 
                     if type == 'way' and recurse_ways:
-                        await ElementMemberRepository.resolve_members(elements)
+                        await ElementMemberQuery.resolve_members(elements)
                         node_ids = {member.id for element in elements for member in element.members}
                         node_ids.difference_update(type_id_map['node'])
                         if node_ids:
@@ -240,7 +240,7 @@ class ElementRepository:
             return ()
 
         if at_sequence_id is None:
-            at_sequence_id = await ElementRepository.get_current_sequence_id()
+            at_sequence_id = await ElementQuery.get_current_sequence_id()
 
         # organize refs by kind
         versioned_refs: list[VersionedElementRef] = []
@@ -254,7 +254,7 @@ class ElementRepository:
         ref_map: dict[VersionedElementRef | ElementRef, Element] = {}
 
         async def versioned_refs_task() -> None:
-            elements = await ElementRepository.get_many_by_versioned_refs(
+            elements = await ElementQuery.get_many_by_versioned_refs(
                 versioned_refs,
                 at_sequence_id=at_sequence_id,
                 limit=limit,
@@ -262,7 +262,7 @@ class ElementRepository:
             ref_map.update((element.versioned_ref, element) for element in elements)
 
         async def element_refs_task() -> None:
-            elements = await ElementRepository.get_many_by_refs(
+            elements = await ElementQuery.get_many_by_refs(
                 element_refs,
                 at_sequence_id=at_sequence_id,
                 limit=limit,
@@ -332,9 +332,7 @@ class ElementRepository:
                         *(
                             and_(
                                 Element.type == type,
-                                Element.id.in_(
-                                    text(','.join(map(str, ids))),
-                                ),
+                                Element.id.in_(text(','.join(map(str, ids)))),
                             )
                             for type, ids in type_id_map.items()
                         )
@@ -486,7 +484,7 @@ class ElementRepository:
         result_sequences: list[Sequence[Element]] = [nodes]
 
         async def fetch_parents(element_refs: Sequence[ElementRef], parent_type: ElementType) -> Sequence[Element]:
-            parents = await ElementRepository.get_many_parents_by_refs(
+            parents = await ElementQuery.get_many_parents_by_refs(
                 element_refs,
                 at_sequence_id=at_sequence_id,
                 parent_type=parent_type,
@@ -510,11 +508,11 @@ class ElementRepository:
 
                 # fetch ways' nodes
                 if not partial_ways:
-                    await ElementMemberRepository.resolve_members(ways)
+                    await ElementMemberQuery.resolve_members(ways)
                     members_refs = set()
                     for way in ways:
                         members_refs.update(way.members_element_refs)
-                    ways_nodes = await ElementRepository.get_many_by_refs(
+                    ways_nodes = await ElementQuery.get_many_by_refs(
                         members_refs,
                         at_sequence_id=at_sequence_id,
                         limit=len(members_refs),

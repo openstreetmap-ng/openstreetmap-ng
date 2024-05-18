@@ -6,7 +6,7 @@ from app.lib.options_context import apply_options_context
 from app.models.db.oauth1_token import OAuth1Token
 
 
-class OAuth1TokenRepository:
+class OAuth1TokenQuery:
     @staticmethod
     async def find_one_authorized_by_token(token_str: str) -> OAuth1Token | None:
         """

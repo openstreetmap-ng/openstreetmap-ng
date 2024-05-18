@@ -13,7 +13,7 @@ from app.models.db.trace_point import TracePoint
 
 
 # TODO: limit offset for safety
-class TracePointRepository:
+class TracePointQuery:
     @staticmethod
     async def get_many_by_trace_id(trace_id: int) -> Sequence[TracePoint]:
         """
@@ -84,13 +84,21 @@ class TracePointRepository:
         """
         Resolve image coords for traces.
         """
-        if not traces:
+        traces_: list[Trace] = []
+        id_points_map: dict[int, list[Point]] = {}
+        for trace in traces:
+            if trace.image_coords is not None:
+                traces_.append(trace)
+                id_points_map[trace.id] = trace.image_coords = []
+
+        # small optimization
+        if not traces_:
             return
 
         async with db() as session:
             stmts = []
 
-            for trace in traces:
+            for trace in traces_:
                 stmt_ = (
                     select(
                         TracePoint.trace_id,
@@ -112,19 +120,29 @@ class TracePointRepository:
 
                 stmts.append(stmt_)
 
-            stmt = union_all(*stmts)
-            rows = (await session.execute(stmt)).all()
+            rows = (await session.execute(union_all(*stmts))).all()
 
-        id_points_map: dict[int, list[Point]] = {}
-        for trace in traces:
-            id_points_map[trace.id] = trace.image_coords = []
-        for row in rows:
-            id_points_map[row[0]].append(row[1])
-        for trace in traces:
+        current_trace_id: int = 0
+        current_points: list[Point] = []
+
+        for trace_id, point, _ in rows:
+            if current_trace_id != trace_id:
+                current_trace_id = trace_id
+                current_points = id_points_map[trace_id]
+            current_points.append(point)
+
+        for trace in traces_:
             if trace.size < 2:
                 trace.image_coords.clear()
-            else:
-                coords = (
-                    mercator(get_coordinates(trace.image_coords), resolution, resolution).astype(int).flatten().tolist()
+                continue
+
+            trace.image_coords = (
+                mercator(
+                    get_coordinates(trace.image_coords),
+                    resolution,
+                    resolution,
                 )
-                trace.image_coords = coords
+                .astype(int)
+                .flatten()
+                .tolist()
+            )
