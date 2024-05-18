@@ -1,5 +1,6 @@
 from collections import namedtuple
-from types import SimpleNamespace
+from dataclasses import field, make_dataclass
+from typing import Any
 
 from sqlalchemy import Row
 from sqlalchemy.orm import Bundle
@@ -21,7 +22,22 @@ class NamespaceBundle(Bundle):
         super().__init__(name, *exprs, **kw)
 
     def create_row_processor(self, query, procs, labels):
+        ns = make_dataclass(
+            self.name,
+            (
+                *labels,
+                *(
+                    (k, Any, field(default=v))  #
+                    for k, v in self._extra_fields.items()
+                ),
+            ),
+            repr=False,
+            eq=False,
+            match_args=False,
+            slots=True,
+        )
+
         def proc(row: Row):
-            return SimpleNamespace(**dict(zip(labels, row, strict=True)), **self._extra_fields)
+            return ns(*row)
 
         return proc

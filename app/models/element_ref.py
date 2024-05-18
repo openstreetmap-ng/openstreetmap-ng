@@ -55,6 +55,7 @@ class ElementRef:
 class VersionedElementRef(ElementRef):
     version: PositiveInt
 
+    @override
     @classmethod
     def from_element(cls, element: 'Element') -> 'VersionedElementRef':
         """
