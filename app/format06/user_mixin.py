@@ -1,8 +1,9 @@
 from collections.abc import Sequence
 
 import cython
+import numpy as np
 from anyio import create_task_group
-from shapely import Point, get_coordinates
+from shapely import Point, lib
 
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import legacy_date
@@ -224,9 +225,5 @@ def _encode_point(point: Point, *, is_json: cython.char) -> dict:
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
-
-    if is_json:
-        return {'lon': x, 'lat': y}
-    else:
-        return {'@lon': x, '@lat': y}
+    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    return {'lon': x, 'lat': y} if is_json else {'@lon': x, '@lat': y}

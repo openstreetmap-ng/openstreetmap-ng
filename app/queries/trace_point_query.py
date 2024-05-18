@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 import numpy as np
-from shapely import Point, get_coordinates
+from shapely import Point, lib
 from shapely.ops import BaseGeometry
 from sqlalchemy import func, select, union_all
 
@@ -137,7 +137,7 @@ class TracePointQuery:
 
             trace.image_coords = (
                 mercator(
-                    get_coordinates(trace.image_coords),
+                    lib.get_coordinates(np.asarray(trace.image_coords, dtype=object), False, False),
                     resolution,
                     resolution,
                 )

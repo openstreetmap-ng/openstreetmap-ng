@@ -2,7 +2,7 @@ from typing import Annotated
 
 import numpy as np
 from annotated_types import Interval
-from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
+from shapely import MultiPolygon, Point, Polygon, lib
 from shapely.geometry.base import BaseGeometry
 from shapely.io import DecodingErrorOptions
 from sqlalchemy import BindParameter
@@ -37,7 +37,7 @@ class PointType(UserDefinedType):
         def process(value: Point | None):
             if value is None:
                 return None
-            x, y = get_coordinates(value)[0]
+            x, y = lib.get_coordinates(np.asarray(value, dtype=object), False, False)[0]
             return f'POINT({x} {y})'  # WKT
 
         return process

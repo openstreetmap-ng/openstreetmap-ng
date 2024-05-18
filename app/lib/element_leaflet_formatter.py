@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 import cython
 import numpy as np
-from shapely import Point, get_coordinates
+from shapely import Point, lib
 
 from app.models.db.element import Element
 from app.models.msgspec.element_leaflet import (
@@ -63,14 +63,14 @@ def format_leaflet_elements(
         if len(points2) == 1:
             if not points:
                 continue
-            geom = np.fliplr(get_coordinates(points)).tolist()
+            geom = np.fliplr(lib.get_coordinates(np.asarray(points, dtype=object), False, False)).tolist()
             area = _is_way_area(way) if areas else False
             result.append(ElementLeafletWay('way', way_id, geom, area))
         else:
             for points in points2:
                 if not points:
                     continue
-                geom = np.fliplr(get_coordinates(points)).tolist()
+                geom = np.fliplr(lib.get_coordinates(np.asarray(points, dtype=object), False, False)).tolist()
                 result.append(ElementLeafletWay('way', way_id, geom, False))
 
     for node_id, node in node_id_map.items():
@@ -82,7 +82,7 @@ def format_leaflet_elements(
             logging.warning('Missing point for node %d version %d ', node.id, node.version)
             continue
 
-        geom: list[float] = get_coordinates(point)[0][::-1].tolist()
+        geom: list[float] = lib.get_coordinates(np.asarray(points, dtype=object), False, False)[0][::-1].tolist()
         result.append(ElementLeafletNode('node', node_id, geom))
 
     return result

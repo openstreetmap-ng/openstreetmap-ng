@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 import cython
 import numpy as np
-from shapely import Point, get_coordinates, points
+from shapely import Point, lib
 
 from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
@@ -311,7 +311,7 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
         point = None
     else:
         # numpy automatically parses strings
-        point = points(np.array((lon, lat), np.float64))
+        point = lib.points(np.array((lon, lat), np.float64))
 
     # decode members from either nd or member
     if (data_nodes := data.get('nd')) is not None:
@@ -346,12 +346,8 @@ def _encode_point(point: Point | None, *, is_json: cython.char) -> dict:
     if point is None:
         return {}
 
-    x, y = get_coordinates(point)[0].tolist()
-
-    if is_json:
-        return {'lon': x, 'lat': y}
-    else:
-        return {'@lon': x, '@lat': y}
+    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    return {'lon': x, 'lat': y} if is_json else {'@lon': x, '@lat': y}
 
 
 @cython.cfunc

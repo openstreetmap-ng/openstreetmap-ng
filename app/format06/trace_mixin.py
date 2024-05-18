@@ -3,7 +3,7 @@ from datetime import datetime
 
 import cython
 import numpy as np
-from shapely import Point, get_coordinates, points
+from shapely import Point, lib
 
 from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
@@ -102,7 +102,7 @@ class Trace06Mixin:
                         point = None
                     else:
                         # numpy automatically parses strings
-                        point = points(np.array((lon, lat), np.float64))
+                        point = lib.points(np.array((lon, lat), np.float64))
 
                     result.append(
                         TracePoint(
@@ -161,15 +161,15 @@ def _encode_gpx_file(trace: Trace) -> dict:
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}
     """
-    start_x, start_y = get_coordinates(trace.start_point)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(trace.start_point, dtype=object), False, False)[0].tolist()
     return {
         '@id': trace.id,
         '@uid': trace.user_id,
         '@user': trace.user.display_name,
         '@timestamp': trace.created_at,
         '@name': trace.name,
-        '@lon': start_x,
-        '@lat': start_y,
+        '@lon': x,
+        '@lat': y,
         '@visibility': trace.visibility,
         '@pending': False,
         'description': trace.description,
@@ -183,5 +183,5 @@ def _encode_point_xml(point: Point) -> dict:
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
     return {'@lon': x, '@lat': y}

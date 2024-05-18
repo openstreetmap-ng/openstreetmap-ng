@@ -41,7 +41,6 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
     Returns the distance in meters.
     """
-
     coords1 = get_coordinates(p1)[0]
     lon1: cython.double = coords1[0]
     lat1: cython.double = coords1[1]
@@ -55,7 +54,6 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
     a = sin(delta_lat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(delta_lon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
     return c * 6371000  # R
 
 
@@ -70,7 +68,6 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
     >>> parse_bbox('1,2,3,4')
     POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
     """
-
     try:
         parts = s.strip().split(',', maxsplit=3)
         minx: cython.double = float(parts[0])

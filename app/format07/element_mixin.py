@@ -1,7 +1,8 @@
 from collections.abc import Sequence
 
 import cython
-from shapely import Point, get_coordinates
+import numpy as np
+from shapely import Point, lib
 
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -54,5 +55,5 @@ def _encode_point(point: Point | None) -> dict:
     if point is None:
         return {}
 
-    x, y = get_coordinates(point)[0].tolist()
+    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
     return {'lon': x, 'lat': y}

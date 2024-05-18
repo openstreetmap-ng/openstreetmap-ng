@@ -2,7 +2,8 @@ from collections.abc import Sequence
 
 import cython
 import lxml.etree as ET
-from shapely import Point, get_coordinates
+import numpy as np
+from shapely import Point, lib
 
 from app.config import API_URL
 from app.lib.date_utils import format_sql_date, legacy_date
@@ -87,7 +88,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'type': 'Feature',
             'geometry': {
                 'type': 'Point',
-                'coordinates': get_coordinates(note.point)[0].tolist(),
+                'coordinates': _encode_point(note.point, is_json=True),
             },
             'properties': {
                 'id': note.id,
@@ -110,7 +111,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     elif is_gpx:
         return {
-            **_encode_point_xml(note.point),
+            **_encode_point(note.point, is_json=False),
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': note.permalink},
@@ -135,7 +136,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     else:
         return {
-            **_encode_point_xml(note.point),
+            **_encode_point(note.point, is_json=False),
             'id': note.id,
             'url': f'{API_URL}/api/0.6/notes/{note.id}',
             **(
@@ -156,10 +157,10 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
 
 
 @cython.cfunc
-def _encode_point_xml(point: Point) -> dict:
+def _encode_point(point: Point, *, is_json: cython.char):
     """
-    >>> _encode_point_xml(Point(1, 2))
+    >>> _encode_point(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
-    x, y = get_coordinates(point)[0].tolist()
-    return {'@lon': x, '@lat': y}
+    x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+    return (x, y) if is_json else {'@lon': x, '@lat': y}
