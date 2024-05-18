@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/ad7efee13e0d216bf29992311536fce1d3eefbef.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/0837fbf227364d79cbae8fff2378125526905cbe.tar.gz") { };
 
   pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
@@ -216,15 +216,12 @@ let
             --ctxSeparator "__" \
             --compatibilityJSON "v4"
 
-          # convert format to python-style
+          # convert format to python-style:
           sed -i -E 's/\{\{/{/g; s/\}\}/}/g' "$target_file"
 
-          msgfmt "$target_file" --output-file "$target_file_bin";
-
-          # preserve original timestamps
+          msgfmt "$target_file" --output-file "$target_file_bin"
           touch -r "$source_file" "$target_file" "$target_file_bin"
-
-          echo "[✅] $locale"
+          echo "Generating GNU locale... $locale"
         fi
       done
     '')
@@ -493,6 +490,11 @@ let
       set -o allexport
       source .env set
       set +o allexport
+    fi
+
+    if [ ! -f config/locale/gnu/pl/LC_MESSAGES/messages.mo ]; then
+      echo "Running locale pipeline"
+      locale-pipeline
     fi
   '' + lib.optionalString (!isDevelopment) ''
     make-version

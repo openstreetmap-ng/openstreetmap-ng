@@ -10,7 +10,7 @@
     "bootstrap-icons": "^1.11.3",
     "core-js": "3.35",
     "i18next": "^23.7.18",
-    "iD": "github:openstreetmap/iD#release",
+    "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "leaflet": "^1.8.0",
     "leaflet.locatecontrol": "<1",
     "osm-community-index": "^5.6.1"
@@ -23,6 +23,9 @@
     "i18next-conv": "^14.0.0",
     "postcss-cli": "^11.0.0"
   },
+  "trustedDependencies": [
+    "core-js-bundle"
+  ],
   "babel": {
     "presets": [
       [
