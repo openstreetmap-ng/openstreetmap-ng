@@ -107,7 +107,7 @@ dictConfig(
             'root': {'handlers': ['default'], 'level': LOG_LEVEL},
             **{
                 # reduce logging verbosity of some modules
-                module: {'handlers': ['default'], 'level': 'INFO'}
+                module: {'handlers': [], 'level': 'INFO'}
                 for module in (
                     'hpack',
                     'httpx',

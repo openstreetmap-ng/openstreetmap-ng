@@ -1,11 +1,8 @@
-import logging
-import pathlib
-import tomllib
 from collections.abc import Sequence
 
 import cython
 
-from app.config import CONFIG_DIR
+from app.lib.feature_icon import feature_icon
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -42,7 +39,13 @@ async def format_changeset_elements_list(
     for element in elements:
         prev = prev_type_id_map.get((element.type, element.id))
         tags = prev.tags if (prev is not None) else element.tags
-        resolved = _resolve_icon(element.type, tags)
+
+        if tags:
+            name = feature_name(tags)
+            resolved = feature_icon(element.type, tags)
+        else:
+            name = None
+            resolved = None
 
         if resolved is not None:
             icon = resolved[0]
@@ -55,7 +58,7 @@ async def format_changeset_elements_list(
             ChangesetElementEntry(
                 type=element.type,
                 id=element.id,
-                name=feature_name(tags) if tags else None,
+                name=name,
                 version=element.version,
                 visible=element.visible,
                 icon=icon,
@@ -74,7 +77,13 @@ def format_element_parents_list(ref: ElementRef, parents: Sequence[Element]) -> 
 
     for element in parents:
         tags = element.tags
-        resolved = _resolve_icon(element.type, tags)
+
+        if tags:
+            name = feature_name(tags)
+            resolved = feature_icon(element.type, tags)
+        else:
+            name = None
+            resolved = None
 
         if resolved is not None:
             icon = resolved[0]
@@ -100,7 +109,7 @@ def format_element_parents_list(ref: ElementRef, parents: Sequence[Element]) -> 
             ElementMemberEntry(
                 type=element.type,
                 id=element.id,
-                name=feature_name(tags) if tags else None,
+                name=name,
                 icon=icon,
                 icon_title=icon_title,
                 role=role,
@@ -123,13 +132,18 @@ def format_element_members_list(
     for member in members:
         member_type = member.type
         member_id = member.id
-
         element = type_id_map.get((member_type, member_id))
         if element is None:
             continue
 
         tags = element.tags
-        resolved = _resolve_icon(member_type, tags)
+
+        if tags:
+            name = feature_name(tags)
+            resolved = feature_icon(member_type, tags)
+        else:
+            name = None
+            resolved = None
 
         if resolved is not None:
             icon = resolved[0]
@@ -142,7 +156,7 @@ def format_element_members_list(
             ElementMemberEntry(
                 type=member_type,
                 id=member_id,
-                name=feature_name(tags) if tags else None,
+                name=name,
                 icon=icon,
                 icon_title=icon_title,
                 role=member.role,
@@ -153,80 +167,5 @@ def format_element_members_list(
 
 
 @cython.cfunc
-def _resolve_icon(type: ElementType, tags: dict[str, str]):
-    """
-    Get the filename and title of the icon for an element.
-
-    Returns None if no appropriate icon is found.
-
-    >>> _resolve_icon(...)
-    'aeroway_terminal.webp', 'aeroway=terminal'
-    """
-    if not tags:
-        return None
-
-    matched_keys = _config_keys.intersection(tags)
-
-    # 1. check value-specific configuration
-    for key in matched_keys:
-        key_value = tags[key]
-        key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(type)
-
-        # prefer type-specific configuration
-        if (type_config is not None) and (icon := type_config.get(key_value)) is not None:
-            return icon, f'{key}={key_value}'
-
-        if (icon := key_config.get(key_value)) is not None and isinstance(icon, str):
-            return icon, f'{key}={key_value}'
-
-    # 2. check key-specific configuration (generic)
-    for key in matched_keys:
-        key_config: dict[str, str | dict[str, str]] = _config[key]
-        type_config: dict[str, str] | None = key_config.get(type)
-
-        # prefer type-specific configuration
-        if (type_config is not None) and (icon := type_config.get('*')) is not None:
-            return icon, key
-
-        if (icon := key_config.get('*')) is not None:
-            return icon, key
-
-    return None
-
-
-@cython.cfunc
 def _sort_key(element: Element) -> tuple:
     return (not element.visible, element.id, element.version)
-
-
-@cython.cfunc
-def _get_config() -> dict[str, dict[str, str | dict[str, str]]]:
-    """
-    Get the feature icon configuration.
-
-    Generic icons are stored under the value '*'.
-    """
-    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icons.toml').read_text())
-
-
-# _config[tag_key][tag_value] = icon
-# _config[tag_key][type][tag_value] = icon
-_config = _get_config()
-_config_keys = frozenset(_config)
-_num_icons = 0
-
-# raise an exception if any of the icons are missing
-for key_config in _config.values():
-    for icon_or_type_config in key_config.values():
-        icon_or_type_config: str | dict
-
-        icons = (icon_or_type_config,) if isinstance(icon_or_type_config, str) else icon_or_type_config.values()
-        _num_icons += len(icons)
-
-        for icon in icons:
-            path = pathlib.Path('app/static/img/element/' + icon)
-            if not path.is_file():
-                raise FileNotFoundError(path)
-
-logging.info('Loaded %d feature icons', _num_icons)

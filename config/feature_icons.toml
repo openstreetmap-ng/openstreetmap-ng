@@ -5,7 +5,7 @@ helipad = "aeroway_helipad.webp"
 parking_position = "aeroway_gate.webp"
 terminal = "aeroway_terminal.webp"
 
-[aeroway.way]
+["aeroway.way"]
 runway = "aeroway_runway.20.webp"
 taxiway = "aeroway_taxiway.20.webp"
 
@@ -89,7 +89,7 @@ stile = "barrier_stile.webp"
 toll_booth = "barrier_toll_booth.webp"
 turnstile = "barrier_turnstile.webp"
 
-[barrier.way]
+["barrier.way"]
 fence = "barrier_wall.20.webp"
 # TODO: hedge
 wall = "barrier_wall.20.webp"
@@ -100,7 +100,7 @@ wall = "barrier_wall.20.webp"
 [building]
 bunker = "military_bunker.webp"
 
-[building.way]
+["building.way"]
 "*" = "building.webp"
 
 [crab]
@@ -133,7 +133,7 @@ traffic_signals = "highway_traffic_signals.16.webp"
 turning_circle = "highway_turning_circle.16.webp"
 turning_loop = "highway_turning_circle.16.webp"
 
-[highway.way]
+["highway.way"]
 bridleway = "highway_bridleway.20.webp"
 cycleway = "highway_cycleway.20.webp"
 footway = "highway_footway.20.webp"
@@ -167,10 +167,10 @@ wayside_cross = "historic_wayside_cross.webp"
 wayside_shrine = "historic_wayside_shrine.webp"
 wreck = "historic_wreck.webp"
 
-[industrial.way]
+["industrial.way"]
 port = "industrial_port.webp"
 
-[landuse.way]
+["landuse.way"]
 allotments = "landuse_allotments.webp"
 basin = "waterway_lake.webp"
 brownfield = "landuse_brownfield.webp"
@@ -185,7 +185,7 @@ meadow = "landuse_meadow.webp"
 military = "landuse_military.webp"
 # TODO: orchard
 quarry = "landuse_quarry.webp"
-recreational_ground = "leisure_sports_centre.webp"
+recreation_ground = "leisure_sports_centre.webp"
 reservoir = "waterway_lake.webp"
 residential = "landuse_residential.webp"
 retail = "landuse_retail.webp"
@@ -197,7 +197,7 @@ village_green = "landuse_grass.10.webp"
 marina = "leisure_marina.webp"
 slipway = "leisure_slipway.webp"
 
-[leisure.way]
+["leisure.way"]
 garden = "landuse_grass.10.webp"
 golf_course = "leisure_golf_course.webp"
 nature_reserve = "leisure_natural_reserve.webp"
@@ -221,7 +221,7 @@ utility_pole = "power_pole.webp"
 water_tower = "man_made_water_tower.16.webp"
 windmill = "man_made_windmill.16.webp"
 
-[man_made.way]
+["man_made.way"]
 bridge = "man_made_bridge.20.webp"
 tunnel = "man_made_tunnel.20.webp"
 
@@ -233,7 +233,7 @@ cave_entrance = "natural_cave_entrance.webp"
 peak = "natural_peak.webp"
 tree = "natural_tree.webp"
 
-[natural.way]
+["natural.way"]
 grassland = "natural_grassland.webp"
 heath = "natural_heath.webp"
 scrub = "natural_scrub.webp"
@@ -246,7 +246,7 @@ wood = "natural_wood.webp"
 ["plant:method"]
 combustion = "power_plant_coal.webp"
 photovoltaic = "power_plant_photovoltaic.webp"
-run-of-river = "power_plant_hydro.webp"
+run-of-the-river = "power_plant_hydro.webp"
 water-pumped-storage = "power_plant_hydro.webp"
 water-storage = "power_plant_hydro.webp"
 wind_turbine = "power_plant_wind.webp"
@@ -265,13 +265,13 @@ subway_entrance = "railway_subway_entrance.32.webp"
 tram_level_crossing = "railway_level_crossing.16.webp"
 tram_stop = "railway_subway_entrance.32.webp"
 
-[railway.way]
+["railway.way"]
 light_rail = "railway_light_rail.20.webp"
 rail = "railway_rail.20.webp"
 subway = "railway_subway.20.webp"
 tram = "railway_tram.20.webp"
 
-[restriction.relation]
+["restriction.relation"]
 "*" = "iD/restriction.webp"
 no_left_turn = "iD/restriction-no-left-turn.webp"
 no_right_turn = "iD/restriction-no-right-turn.webp"
@@ -369,18 +369,18 @@ cushion = "traffic_calming_bump.webp"
 hump = "traffic_calming_bump.webp"
 table = "traffic_calming_bump.webp"
 
-[type.relation]
+["type.relation"]
 multipolygon = "iD/multipolygon.webp"
 network = "iD/relation.webp"
 route = "iD/route.webp"
 route_master = "iD/route-master.webp"
 
-[water.way]
+["water.way"]
 "*" = "waterway_lake.webp"
 
 [waterway]
 dam = "waterway_dam.webp"
 weir = "waterway_weir.webp"
 
-[waterway.way]
+["waterway.way"]
 "*" = "waterway_lake.webp"

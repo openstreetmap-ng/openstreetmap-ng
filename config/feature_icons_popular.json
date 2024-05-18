@@ -1,0 +1,380 @@
+{
+  "aeroway": {
+    "aerodrome": 90692,
+    "gate": 37410,
+    "helipad": 124290,
+    "parking_position": 190498,
+    "terminal": 19654
+  },
+  "aeroway.way": {
+    "runway": 63466,
+    "taxiway": 277018
+  },
+  "amenity": {
+    "atm": 426044,
+    "bank": 788902,
+    "bar": 447054,
+    "bench": 4883274,
+    "bicycle_parking": 1319262,
+    "bicycle_rental": 141256,
+    "biergarten": 20570,
+    "bureau_de_change": 37986,
+    "bus_station": 131596,
+    "cafe": 1094670,
+    "car_rental": 55070,
+    "car_sharing": 20768,
+    "casino": 14516,
+    "childcare": 104000,
+    "cinema": 61058,
+    "clinic": 370396,
+    "clock": 53212,
+    "college": 130876,
+    "courthouse": 56944,
+    "dentist": 253878,
+    "doctors": 347836,
+    "drinking_water": 607148,
+    "fast_food": 1110546,
+    "fire_station": 268022,
+    "fountain": 342040,
+    "fuel": 1045842,
+    "grave_yard": 337316,
+    "hospital": 415170,
+    "hunting_stand": 486096,
+    "ice_cream": 102382,
+    "kindergarten": 609176,
+    "library": 205318,
+    "luggage_locker": 1078,
+    "marketplace": 168106,
+    "nightclub": 46348,
+    "parking": 10830204,
+    "pharmacy": 792414,
+    "photo_booth": 6596,
+    "place_of_worship": 2916332,
+    "police": 297734,
+    "post_box": 753730,
+    "post_office": 403298,
+    "prison": 28530,
+    "pub": 374068,
+    "public_building": 83782,
+    "recycling": 881516,
+    "restaurant": 2771104,
+    "school": 2619682,
+    "shelter": 1045254,
+    "stripclub": 2582,
+    "taxi": 92932,
+    "telephone": 169384,
+    "theatre": 93008,
+    "toilets": 861742,
+    "townhall": 320926,
+    "university": 109678,
+    "vending_machine": 525726,
+    "veterinary": 109382,
+    "waste_basket": 1632358,
+    "water_point": 76790
+  },
+  "barrier": {
+    "block": 329014,
+    "bollard": 1424262,
+    "cattle_grid": 144580,
+    "cycle_barrier": 253814,
+    "entrance": 179610,
+    "gate": 10597194,
+    "kissing_gate": 86922,
+    "lift_gate": 972992,
+    "stile": 191660,
+    "toll_booth": 115210,
+    "turnstile": 30040
+  },
+  "barrier.way": {
+    "fence": 7414505,
+    "wall": 4702196
+  },
+  "boundary": {
+    "*": 4827376
+  },
+  "building": {
+    "bunker": 116450
+  },
+  "building.way": {
+    "*": 606282000
+  },
+  "crab": {
+    "yes": 0
+  },
+  "diplomatic": {
+    "embassy": 21712
+  },
+  "emergency": {
+    "assembly_point": 31620,
+    "defibrillator": 182252,
+    "fire_extinguisher": 25720,
+    "fire_hose": 8028,
+    "fire_hydrant": 4083694,
+    "phone": 128044,
+    "siren": 42318
+  },
+  "ford": {
+    "*": 2444380
+  },
+  "highway": {
+    "bus_stop": 7167330,
+    "crossing": 18336248,
+    "elevator": 84218,
+    "mini_roundabout": 114062,
+    "passing_place": 103322,
+    "street_lamp": 8007044,
+    "traffic_signals": 3517562,
+    "turning_circle": 4655370,
+    "turning_loop": 317476
+  },
+  "highway.way": {
+    "bridleway": 109823,
+    "cycleway": 1772484,
+    "footway": 23025222,
+    "living_street": 1871461,
+    "motorway": 1204373,
+    "motorway_link": 839924,
+    "path": 14175607,
+    "pedestrian": 745575,
+    "primary": 3546809,
+    "primary_link": 445914,
+    "residential": 66407789,
+    "secondary": 5139950,
+    "secondary_link": 347665,
+    "service": 55887720,
+    "steps": 1691212,
+    "tertiary": 8019335,
+    "track": 26422851,
+    "trunk": 1731446,
+    "trunk_link": 529428,
+    "unclassified": 17215429
+  },
+  "historic": {
+    "archaeological_site": 367178,
+    "castle": 103000,
+    "memorial": 739812,
+    "mine": 24174,
+    "monument": 142402,
+    "ruins": 306130,
+    "tomb": 123538,
+    "wayside_cross": 369132,
+    "wayside_shrine": 258644,
+    "wreck": 8774
+  },
+  "industrial.way": {
+    "port": 3157
+  },
+  "landuse.way": {
+    "allotments": 320142,
+    "basin": 260158,
+    "brownfield": 119070,
+    "cemetery": 494799,
+    "commercial": 460222,
+    "farmland": 9148284,
+    "farmyard": 1296936,
+    "forest": 5021660,
+    "grass": 5895118,
+    "industrial": 1133512,
+    "meadow": 4103984,
+    "military": 71403,
+    "quarry": 189699,
+    "recreation_ground": 140120,
+    "reservoir": 202425,
+    "residential": 8666158,
+    "retail": 321263,
+    "tourism": 695,
+    "village_green": 100927
+  },
+  "leisure": {
+    "marina": 58890,
+    "slipway": 113268
+  },
+  "leisure.way": {
+    "garden": 1135605,
+    "golf_course": 32030,
+    "nature_reserve": 90436,
+    "park": 1109563,
+    "pitch": 2295529,
+    "playground": 647310,
+    "sports_centre": 186859,
+    "swimming_pool": 2028868,
+    "water_park": 9523
+  },
+  "man_made": {
+    "crane": 46500,
+    "lighthouse": 27636,
+    "mast": 671698,
+    "pipeline": 597154,
+    "storage_tank": 1384992,
+    "surveillance": 446342,
+    "survey_point": 755020,
+    "tower": 807770,
+    "utility_pole": 416664,
+    "water_tower": 299388,
+    "windmill": 24374
+  },
+  "man_made.way": {
+    "bridge": 228298,
+    "tunnel": 4454
+  },
+  "military": {
+    "bunker": 180476
+  },
+  "natural": {
+    "cave_entrance": 126060,
+    "peak": 1918732,
+    "tree": 49328584
+  },
+  "natural.way": {
+    "grassland": 1590146,
+    "heath": 483266,
+    "scrub": 4204107,
+    "water": 14659798,
+    "wood": 9471664
+  },
+  "place": {
+    "*": 16652506
+  },
+  "plant:method": {
+    "combustion": 21540,
+    "photovoltaic": 97398,
+    "run-of-the-river": 7016,
+    "water-pumped-storage": 626,
+    "water-storage": 4788,
+    "wind_turbine": 10952
+  },
+  "power": {
+    "pole": 27446966,
+    "substation": 1356766,
+    "tower": 32614286,
+    "transformer": 380940
+  },
+  "railway": {
+    "halt": 70210,
+    "level_crossing": 1937796,
+    "station": 202514,
+    "subway_entrance": 93412,
+    "tram_level_crossing": 158452,
+    "tram_stop": 105106
+  },
+  "railway.way": {
+    "light_rail": 36725,
+    "rail": 2580159,
+    "subway": 86526,
+    "tram": 108207
+  },
+  "restriction.relation": {
+    "*": 1922724,
+    "no_left_turn": 460817,
+    "no_right_turn": 195613,
+    "no_straight_on": 17303,
+    "no_u_turn": 707208,
+    "only_left_turn": 36731,
+    "only_right_turn": 110115,
+    "only_straight_on": 391963,
+    "only_u_turn": 1018
+  },
+  "route": {
+    "detour": 8612
+  },
+  "shop": {
+    "*": 12182908,
+    "alcohol": 163318,
+    "anime": 1128,
+    "bakery": 455074,
+    "beauty": 278272,
+    "bicycle": 104626,
+    "books": 105234,
+    "boutique": 19166,
+    "butcher": 186636,
+    "camera": 1810,
+    "car": 291304,
+    "car_parts": 167754,
+    "car_repair": 493638,
+    "chocolate": 12760,
+    "clothes": 785416,
+    "computer": 66798,
+    "confectionery": 76086,
+    "convenience": 1463998,
+    "copyshop": 59318,
+    "department_store": 101174,
+    "doityourself": 126392,
+    "e-cigarette": 20366,
+    "electronics": 151312,
+    "erotic": 8744,
+    "estate_agent": 9046,
+    "farm": 53158,
+    "fishing": 11362,
+    "florist": 154144,
+    "furniture": 177224,
+    "garden_centre": 54880,
+    "gift": 123794,
+    "greengrocer": 115572,
+    "hairdresser": 644512,
+    "hairdresser_supply": 6102,
+    "hardware": 186478,
+    "health_food": 12682,
+    "hearing_aids": 18414,
+    "hifi": 10114,
+    "interior_decoration": 46190,
+    "jewelry": 136856,
+    "kiosk": 191608,
+    "laundry": 91660,
+    "mall": 141612,
+    "mobile_phone": 186164,
+    "motorcycle": 59766,
+    "music": 14124,
+    "newsagent": 58850,
+    "optician": 138426,
+    "pastry": 48450,
+    "pet": 84342,
+    "photo": 32168,
+    "seafood": 43048,
+    "shoes": 147694,
+    "supermarket": 915356,
+    "tobacco": 60402,
+    "toys": 44560,
+    "wine": 36228
+  },
+  "tourism": {
+    "alpine_hut": 27460,
+    "artwork": 518856,
+    "attraction": 468030,
+    "camp_site": 283680,
+    "caravan_site": 65160,
+    "chalet": 181366,
+    "gallery": 32666,
+    "hostel": 115334,
+    "hotel": 840192,
+    "information": 2311290,
+    "motel": 92924,
+    "museum": 200266,
+    "picnic_site": 310382,
+    "theme_park": 19570,
+    "viewpoint": 454490,
+    "wilderness_hut": 28302,
+    "zoo": 16838
+  },
+  "traffic_calming": {
+    "bump": 722588,
+    "cushion": 106366,
+    "hump": 640436,
+    "table": 433982
+  },
+  "type.relation": {
+    "multipolygon": 6712056,
+    "network": 4122,
+    "route": 1047061,
+    "route_master": 90369
+  },
+  "water.way": {
+    "*": 4221496
+  },
+  "waterway": {
+    "dam": 468034,
+    "weir": 254182
+  },
+  "waterway.way": {
+    "*": 29921645
+  }
+}
