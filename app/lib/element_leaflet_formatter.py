@@ -36,10 +36,15 @@ def format_leaflet_elements(
 
     for way_id, way in way_id_map.items():
         points: list[Point] = []
+        points2: list[list[Point]] = [points]
 
         for node_ref in way.members:
             node = node_id_map.get(node_ref.id)
             if node is None:
+                # split way on gap
+                if points:
+                    points = []
+                    points2.append(points)
                 continue
 
             point = node.point
@@ -55,9 +60,18 @@ def format_leaflet_elements(
 
             points.append(point)
 
-        geom = np.fliplr(get_coordinates(points)).tolist()
-        area = _is_way_area(way) if areas else False
-        result.append(ElementLeafletWay('way', way_id, geom, area))
+        if len(points2) == 1:
+            if not points:
+                continue
+            geom = np.fliplr(get_coordinates(points)).tolist()
+            area = _is_way_area(way) if areas else False
+            result.append(ElementLeafletWay('way', way_id, geom, area))
+        else:
+            for points in points2:
+                if not points:
+                    continue
+                geom = np.fliplr(get_coordinates(points)).tolist()
+                result.append(ElementLeafletWay('way', way_id, geom, False))
 
     for node_id, node in node_id_map.items():
         if not _is_node_interesting(node, way_nodes_ids, detailed=detailed):
