@@ -114,16 +114,22 @@ def format_element_members_list(
     members: Sequence[ElementMember],
     members_elements: Sequence[Element],
 ) -> Sequence[ElementMemberEntry]:
-    ref_map: dict[ElementRef, Element] = {member.element_ref: member for member in members_elements}
+    type_id_map: dict[tuple[ElementType, int], Element] = {
+        (member.type, member.id): member  #
+        for member in members_elements
+    }
     result: list[ElementMemberEntry] = []
 
     for member in members:
-        element = ref_map.get(member.element_ref)
+        member_type = member.type
+        member_id = member.id
+
+        element = type_id_map.get((member_type, member_id))
         if element is None:
             continue
 
         tags = element.tags
-        resolved = _resolve_icon(element.type, tags)
+        resolved = _resolve_icon(member_type, tags)
 
         if resolved is not None:
             icon = resolved[0]
@@ -134,8 +140,8 @@ def format_element_members_list(
 
         result.append(
             ElementMemberEntry(
-                type=member.type,
-                id=member.id,
+                type=member_type,
+                id=member_id,
                 name=feature_name(tags) if tags else None,
                 icon=icon,
                 icon_title=icon_title,

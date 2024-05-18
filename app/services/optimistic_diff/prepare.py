@@ -21,7 +21,7 @@ from app.repositories.changeset_repository import ChangesetRepository
 from app.repositories.element_repository import ElementRepository
 
 
-@dataclass(init=False, repr=False, eq=False, match_args=False, slots=True)
+@dataclass(slots=True)
 class OptimisticDiffPrepare:
     applied: bool
     """

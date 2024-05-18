@@ -258,7 +258,7 @@ def merge_worker_files() -> None:
 
     print(f'Merging {len(paths)} worker files...')
     df = pl.scan_parquet(paths)
-    df.sink_parquet(data_parquet_path, compression_level=3)
+    df.sink_parquet(data_parquet_path, compression_level=3, row_group_size=50_000, maintain_order=False)
 
     for path in paths:
         path.unlink()

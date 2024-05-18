@@ -385,7 +385,7 @@ let
     '')
 
     # -- Misc
-    (writeShellScriptBin "run-app" ''
+    (writeShellScriptBin "run" ''
       uvicorn app.main:main --reload
     '')
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")

@@ -317,7 +317,7 @@ class ElementRepository:
 
         async with db() as session:
             # 1: find lifetime of each ref
-            stmt_sub1 = (
+            cte_sub = (
                 select(Element.type, Element.id, Element.sequence_id, Element.next_sequence_id)
                 .where(
                     *(
@@ -343,20 +343,21 @@ class ElementRepository:
                 .subquery()
             )
             # 2: find parents that referenced the refs during their lifetime
-            stmt_sub2 = (
+            cte = (
                 select(ElementMember.sequence_id)
                 .where(
-                    ElementMember.type == stmt_sub1.c.type,
-                    ElementMember.id == stmt_sub1.c.id,
-                    ElementMember.sequence_id > stmt_sub1.c.sequence_id,
+                    ElementMember.type == cte_sub.c.type,
+                    ElementMember.id == cte_sub.c.id,
+                    ElementMember.sequence_id > cte_sub.c.sequence_id,
                     *(
-                        (ElementMember.sequence_id < func.coalesce(stmt_sub1.c.next_sequence_id, at_sequence_id + 1),)
+                        (ElementMember.sequence_id < func.coalesce(cte_sub.c.next_sequence_id, at_sequence_id + 1),)
                         if at_sequence_id is not None
                         else ()
                     ),
                 )
                 .distinct()
-                .scalar_subquery()
+                .cte()
+                .prefix_with('MATERIALIZED')
             )
             # 3: filter parents that currently exist
             stmt = select(Element).where(
@@ -373,7 +374,7 @@ class ElementRepository:
                     if parent_type is not None
                     else (or_(Element.type == 'way', Element.type == 'relation'),)
                 ),
-                Element.sequence_id.in_(stmt_sub2),
+                Element.sequence_id.in_(cte),
             )
             stmt = apply_options_context(stmt)
 

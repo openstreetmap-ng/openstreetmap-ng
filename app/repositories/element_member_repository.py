@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import defer
+from sqlalchemy.orm import Bundle, defer
 
 from app.db import db
 from app.models.db.element import Element
@@ -28,13 +28,20 @@ class ElementMemberRepository:
             return
 
         async with db() as session:
+            bundle = Bundle(
+                'member',
+                ElementMember.sequence_id,
+                ElementMember.type,
+                ElementMember.id,
+                ElementMember.role,
+                single_entity=True,
+            )
             stmt = (
-                select(ElementMember)
-                .options(defer(ElementMember.order, raiseload=True))
+                select(bundle)
                 .where(ElementMember.sequence_id.in_(text(','.join(map(str, id_members_map)))))
                 .order_by(ElementMember.sequence_id.asc(), ElementMember.order.asc())
             )
-            members: Sequence[ElementMember] = (await session.scalars(stmt)).all()
+            members = (await session.scalars(stmt)).all()
 
         current_sequence_id: int = 0
         current_members: list[ElementMember] = []

@@ -63,7 +63,7 @@ class Element(Base.NoID):
         PrimaryKeyConstraint(sequence_id, name='element_pkey'),
         Index('element_changeset_idx', changeset_id),
         Index('element_version_idx', type, id, version),
-        Index('element_current_idx', type, id, next_sequence_id, postgresql_include=('sequence_id',)),
+        Index('element_current_idx', type, id, next_sequence_id, sequence_id),
         Index(
             'element_node_point_idx',
             point,
