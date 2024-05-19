@@ -1,8 +1,11 @@
+from functools import lru_cache
+
 from starlette.convertors import Convertor
 
 from app.models.element_type import ElementType
 
 
+@lru_cache(maxsize=512)
 def element_type(s: str) -> ElementType:
     """
     Get the element type from the given string.

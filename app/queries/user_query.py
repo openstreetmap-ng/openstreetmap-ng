@@ -137,18 +137,23 @@ class UserQuery:
         if not elements_:
             return
 
-        async with db() as session:
-            stmt = select(Changeset.id, User.id, User.display_name) if display_name else select(Changeset.id, User.id)
-            stmt = stmt.join(User, Changeset.user_id == User.id)
-            stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
-            rows = (await session.execute(stmt)).all()
-
         if display_name:
+            async with db() as session:
+                stmt = select(Changeset.id, User.id, User.display_name)
+                stmt = stmt.join(User, Changeset.user_id == User.id)
+                stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
+                rows = (await session.execute(stmt)).all()
+
             for changeset_id, user_id, display_name in rows:
                 for element in changeset_id_elements_map[changeset_id]:
                     element.user_id = user_id
                     element.user_display_name = display_name
         else:
+            async with db() as session:
+                stmt = select(Changeset.id, Changeset.user_id)
+                stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
+                rows = (await session.execute(stmt)).all()
+
             for changeset_id, user_id in rows:
                 for element in changeset_id_elements_map[changeset_id]:
                     element.user_id = user_id
