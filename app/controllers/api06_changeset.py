@@ -91,7 +91,7 @@ async def changeset_upload(
     except Exception as e:
         raise_for().bad_xml('osmChange', str(e))
 
-    assigned_ref_map = await OptimisticDiff(elements).run()
+    assigned_ref_map = await OptimisticDiff.run(elements)
     return Format06.encode_diff_result(assigned_ref_map)
 
 

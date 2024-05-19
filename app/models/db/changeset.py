@@ -8,7 +8,6 @@ from sqlalchemy import ForeignKey, Integer, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.config import APP_URL
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
@@ -56,16 +55,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     # runtime
     comments: list['ChangesetComment'] | None = None
 
-    @property
-    def permalink(self) -> str:
-        """
-        Get the changeset's permalink.
-
-        >>> changeset.permalink
-        'https://www.openstreetmap.org/changeset/123456'
-        """
-        return f'{APP_URL}/changeset/{self.id}'
-
     @cached_property
     def max_size(self) -> int:
         """
@@ -77,9 +66,8 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         """
         Increase the changeset size by n.
 
-        Returns `True` if the size was increased successfully.
+        Returns True if the size was increased successfully.
         """
-
         if n < 0:
             raise ValueError('n must be non-negative')
 
@@ -90,26 +78,23 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         self.size = new_size
         return True
 
-    def auto_close_on_size(self, *, now: datetime | None = None) -> bool:
+    def auto_close_on_size(self) -> bool:
         """
         Close the changeset if it is open and reaches the size limit.
 
-        Returns `True` if the changeset was closed.
+        Returns True if the changeset was closed.
         """
-
         if self.closed_at is not None:
             return False
         if self.size < self.max_size:
             return False
-
-        self.closed_at = now if (now is not None) else func.statement_timestamp()
+        self.closed_at = func.statement_timestamp()
         return True
 
     def union_bounds(self, geometry: BaseGeometry) -> None:
         """
         Update the changeset bounds to include the given geometry.
         """
-
         if self.bounds is None:
             self.bounds = box(*geometry.bounds)
         else:

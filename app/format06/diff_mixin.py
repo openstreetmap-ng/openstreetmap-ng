@@ -7,7 +7,7 @@ from app.models.element_type import ElementType
 
 class Diff06Mixin:
     @staticmethod
-    def encode_diff_result(assigned_ref_map: dict[ElementRef, Sequence[Element]]) -> Sequence[tuple[ElementType], dict]:
+    def encode_diff_result(assigned_ref_map: dict[ElementRef, Sequence[Element]]) -> Sequence[tuple[ElementType, dict]]:
         """
         >>> encode_diff_result({
         ...     TypedElementRef(type=ElementType.node, id=-1): [

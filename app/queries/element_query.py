@@ -46,9 +46,9 @@ class ElementQuery:
             return element_id if (element_id is not None) else 0
 
     @staticmethod
-    async def is_currently_member(member_refs: Sequence[ElementRef], *, after_sequence_id: int) -> bool:
+    async def is_unreferenced(member_refs: Sequence[ElementRef], *, after_sequence_id: int) -> bool:
         """
-        Check if the given elements are currently members of any element.
+        Check if the given elements are currently unreferenced.
 
         after_sequence_id is used as an optimization.
         """
@@ -68,7 +68,7 @@ class ElementQuery:
                     ),
                 ),
             )
-            return await session.scalar(stmt) is not None
+            return await session.scalar(stmt) is None
 
     @staticmethod
     async def get_current_version_by_ref(
@@ -206,17 +206,18 @@ class ElementQuery:
                     stmt = stmt.limit(limit)
 
                 elements = (await session.scalars(stmt)).all()
+                if not elements:
+                    return
 
-                if elements:
-                    result.extend(elements)
+                result.extend(elements)
 
-                    if type == 'way' and recurse_ways:
-                        await ElementMemberQuery.resolve_members(elements)
-                        node_ids = {member.id for element in elements for member in element.members}
-                        node_ids.difference_update(type_id_map['node'])
-                        if node_ids:
-                            logging.debug('Found %d nodes for %d recurse ways', len(node_ids), len(ids))
-                            await task('node', node_ids)
+                if type == 'way' and recurse_ways:
+                    await ElementMemberQuery.resolve_members(elements)
+                    node_ids = {member.id for element in elements for member in element.members}
+                    node_ids.difference_update(type_id_map['node'])
+                    if node_ids:
+                        logging.debug('Found %d nodes for %d recurse ways', len(node_ids), len(ids))
+                        await task('node', node_ids)
 
         async with create_task_group() as tg:
             for type, ids in type_id_map.items():
@@ -259,7 +260,7 @@ class ElementQuery:
                 at_sequence_id=at_sequence_id,
                 limit=limit,
             )
-            ref_map.update((VersionedElementRef.from_element(element), element) for element in elements)
+            ref_map.update((VersionedElementRef(e.type, e.id, e.version), e) for e in elements)
 
         async def element_refs_task() -> None:
             elements = await ElementQuery.get_many_by_refs(
@@ -267,7 +268,7 @@ class ElementQuery:
                 at_sequence_id=at_sequence_id,
                 limit=limit,
             )
-            ref_map.update((ElementRef.from_element(element), element) for element in elements)
+            ref_map.update((ElementRef(e.type, e.id), e) for e in elements)
 
         async with create_task_group() as tg:
             if versioned_refs:
@@ -449,7 +450,7 @@ class ElementQuery:
         if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
             raise_for().map_query_nodes_limit_exceeded()
 
-        nodes_refs = tuple(ElementRef.from_element(node) for node in nodes)
+        nodes_refs = tuple(ElementRef('node', node.id) for node in nodes)
         result_sequences: list[Sequence[Element]] = [nodes]
 
         async def fetch_parents(element_refs: Sequence[ElementRef], parent_type: ElementType) -> Sequence[Element]:
@@ -472,13 +473,13 @@ class ElementQuery:
 
                 # fetch ways' parent relations
                 if include_relations:
-                    ways_refs = tuple(ElementRef.from_element(way) for way in ways)
+                    ways_refs = tuple(ElementRef('way', way.id) for way in ways)
                     tg.start_soon(fetch_parents, ways_refs, 'relation')
 
                 # fetch ways' nodes
                 if not partial_ways:
                     await ElementMemberQuery.resolve_members(ways)
-                    members_refs = {ElementRef.from_element(member) for way in ways for member in way.members}
+                    members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}
                     members_refs.difference_update(nodes_refs)
                     if members_refs:
                         ways_nodes = await ElementQuery.get_many_by_refs(

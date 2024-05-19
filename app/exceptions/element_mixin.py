@@ -1,16 +1,19 @@
 from abc import abstractmethod
 from collections.abc import Sequence
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.models.element_ref import ElementRef, VersionedElementRef
 
+if TYPE_CHECKING:
+    from app.models.db.element import Element
+
 
 class ElementExceptionsMixin:
     @abstractmethod
-    def element_not_found(self, element_ref: VersionedElementRef | ElementRef) -> NoReturn:
+    def element_not_found(self, element_ref: ElementRef | VersionedElementRef) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
@@ -22,7 +25,7 @@ class ElementExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def element_already_deleted(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def element_already_deleted(self, element: 'Element') -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
@@ -30,13 +33,13 @@ class ElementExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def element_version_conflict(self, versioned_ref: VersionedElementRef, local_version: int) -> NoReturn:
+    def element_version_conflict(self, element: 'Element', local_version: int) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def element_member_not_found(self, initiator_ref: VersionedElementRef, member_ref: ElementRef) -> NoReturn:
+    def element_member_not_found(self, parent: 'Element', member_ref: ElementRef) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[ElementRef]) -> NoReturn:
+    def element_in_use(self, element: 'Element', used_by: Sequence[ElementRef]) -> NoReturn:
         raise NotImplementedError

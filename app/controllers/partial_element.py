@@ -156,7 +156,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
     async def parents_task():
         nonlocal list_parents
-        ref = ElementRef.from_element(element)
+        ref = ElementRef(element.type, element.id)
         parents = await ElementQuery.get_many_parents_by_refs(
             (ref,),
             at_sequence_id=at_sequence_id,
@@ -167,7 +167,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
     async def data_task():
         nonlocal full_data, list_elements
-        members_refs = {ElementRef.from_element(member) for member in element.members}
+        members_refs = {ElementRef(member.type, member.id) for member in element.members}
         members_elements = await ElementQuery.get_many_by_refs(
             members_refs,
             at_sequence_id=at_sequence_id,
@@ -178,7 +178,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         direct_members = tuple(
             member
             for member in members_elements  #
-            if ElementRef.from_element(member) in members_refs
+            if ElementRef(member.type, member.id) in members_refs
         )
         full_data = (element, *members_elements)
         list_elements = format_element_members_list(element.members, direct_members)

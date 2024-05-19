@@ -44,7 +44,7 @@ async def create(
     except Exception as e:
         raise_for().bad_xml(type, str(e))
 
-    assigned_ref_map = await OptimisticDiff((element,)).run()
+    assigned_ref_map = await OptimisticDiff.run((element,))
     assigned_id = next(iter(assigned_ref_map.values()))[0].id
     return Response(str(assigned_id), media_type='text/plain')
 
@@ -67,7 +67,7 @@ async def update(
     except Exception as e:
         raise_for().bad_xml(type, str(e))
 
-    await OptimisticDiff((element,)).run()
+    await OptimisticDiff.run((element,))
     return Response(str(element.version), media_type='text/plain')
 
 
@@ -90,7 +90,7 @@ async def delete(
     except Exception as e:
         raise_for().bad_xml(type, str(e))
 
-    await OptimisticDiff((element,)).run()
+    await OptimisticDiff.run((element,))
     return Response(str(element.version), media_type='text/plain')
 
 
@@ -199,7 +199,7 @@ async def get_full(type: ElementType, id: PositiveInt):
         tg.start_soon(UserQuery.resolve_elements_users, elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
 
-    members_refs = {ElementRef.from_element(member) for member in element.members}
+    members_refs = {ElementRef(member.type, member.id) for member in element.members}
     members_elements = await ElementQuery.get_many_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,

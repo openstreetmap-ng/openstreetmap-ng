@@ -63,7 +63,7 @@ class OptimisticDiffApply:
                 tg.start_soon(
                     self._check_elements_not_referenced,
                     element_refs,
-                    prepare.last_sequence_id,
+                    prepare.at_sequence_id,
                 )
 
             # update the changesets
@@ -111,7 +111,7 @@ class OptimisticDiffApply:
         Raises `OptimisticDiffError` if they are.
         """
 
-        if await ElementQuery.is_currently_member(element_refs, after_sequence_id=after):
+        if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id=after):
             raise OptimisticDiffError(f'Element is referenced by after {after}')
 
     async def _update_changesets(

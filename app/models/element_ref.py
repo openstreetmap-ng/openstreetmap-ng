@@ -1,29 +1,14 @@
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, override
+from typing import NamedTuple, override
 
 from pydantic import PositiveInt
 
 from app.models.element_type import ElementType
 from app.validators.element_type import element_type
 
-if TYPE_CHECKING:
-    from app.models.db.element import Element
 
-
-@dataclass(frozen=True, slots=True)
-class ElementRef:
+class ElementRef(NamedTuple):
     type: ElementType
     id: int
-
-    @classmethod
-    def from_element(cls, element: 'Element') -> 'ElementRef':
-        """
-        Create an element reference from an element.
-
-        >>> ElementRef.from_element(Element(ElementType.node, 123, 1, True, {}))
-        ElementRef(type='node', id=123)
-        """
-        return cls(element.type, element.id)
 
     @classmethod
     def from_str(cls, s: str) -> 'ElementRef':
@@ -51,20 +36,10 @@ class ElementRef:
         return f'{self.type[0]}{self.id}'
 
 
-@dataclass(frozen=True, slots=True)
-class VersionedElementRef(ElementRef):
+class VersionedElementRef(NamedTuple):
+    type: ElementType
+    id: int
     version: PositiveInt
-
-    @override
-    @classmethod
-    def from_element(cls, element: 'Element') -> 'VersionedElementRef':
-        """
-        Create a versioned element reference from an element.
-
-        >>> VersionedElementRef.from_element(Element(ElementType.node, 123, 1, True, {}))
-        VersionedElementRef(type='node', id=123, version=1)
-        """
-        return cls(element.type, element.id, element.version)
 
     @override
     @classmethod
@@ -76,7 +51,6 @@ class VersionedElementRef(ElementRef):
         VersionedElementRef(type='node', id=123, version=1)
         """
         type = element_type(s)
-
         idx = s.rindex('v')
         id = int(s[1:idx])
         version = int(s[idx + 1 :])

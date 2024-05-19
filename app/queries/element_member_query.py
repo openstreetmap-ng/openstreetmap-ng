@@ -17,8 +17,10 @@ class ElementMemberQuery:
         """
         id_members_map: dict[int, list[ElementMember]] = {}
         for element in elements:
-            if element.type != 'node' and element.members is None and element.visible:
-                id_members_map[element.sequence_id] = element.members = []
+            if element.type != 'node' and element.members is None:
+                element_members = element.members = []
+                if element.visible:
+                    id_members_map[element.sequence_id] = element_members
 
         if not id_members_map:
             return

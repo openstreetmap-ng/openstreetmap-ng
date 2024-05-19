@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import NoReturn, override
+from typing import TYPE_CHECKING, NoReturn, override
 
 from starlette import status
 
@@ -7,10 +7,13 @@ from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
 from app.models.element_ref import ElementRef, VersionedElementRef
 
+if TYPE_CHECKING:
+    from app.models.db.element import Element
+
 
 class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
-    def element_not_found(self, element_ref: VersionedElementRef | ElementRef) -> NoReturn:
+    def element_not_found(self, element_ref: ElementRef | VersionedElementRef) -> NoReturn:
         raise APIError(
             status.HTTP_404_NOT_FOUND,
             detail=f'The {element_ref.type} with the id {element_ref.id} was not found',
@@ -28,10 +31,10 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_already_deleted(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def element_already_deleted(self, element: 'Element') -> NoReturn:
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
-            detail=f'Cannot delete an already deleted {versioned_ref.type} with id {versioned_ref.id}.',
+            detail=f'Cannot delete an already deleted {element.type} with id {element.id}.',
         )
 
     @override
@@ -39,58 +42,58 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         raise APIError(status.HTTP_409_CONFLICT, detail='You need to supply a changeset to be able to make a change')
 
     @override
-    def element_version_conflict(self, versioned_ref: VersionedElementRef, local_version: int) -> NoReturn:
+    def element_version_conflict(self, element: 'Element', local_version: int) -> NoReturn:
         raise APIError(
             status.HTTP_409_CONFLICT,
-            detail=f'Version mismatch: Provided {versioned_ref.version - 1}, server had: {local_version} of {versioned_ref.type} {versioned_ref.id}',
+            detail=f'Version mismatch: Provided {element.version - 1}, server had: {local_version} of {element.type} {element.id}',
         )
 
     @override
-    def element_member_not_found(self, initiator_ref: VersionedElementRef, member_ref: ElementRef) -> NoReturn:
-        if initiator_ref.type == 'way':
+    def element_member_not_found(self, parent: 'Element', member_ref: ElementRef) -> NoReturn:
+        if parent.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Way {initiator_ref.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
+                detail=f'Way {parent.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
             )
-        elif initiator_ref.type == 'relation':
+        elif parent.type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Relation with id {initiator_ref.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
+                detail=f'Relation with id {parent.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
             )
         else:
-            raise NotImplementedError(f'Unsupported element type {initiator_ref.type!r}')
+            raise NotImplementedError(f'Unsupported element type {parent.type!r}')
 
     @override
-    def element_in_use(self, versioned_ref: VersionedElementRef, used_by: Sequence[ElementRef]) -> NoReturn:
+    def element_in_use(self, element: 'Element', used_by: Sequence[ElementRef]) -> NoReturn:
         # wtf is this condition
-        if versioned_ref.type == 'node':
+        if element.type == 'node':
             if ref_ways := tuple(ref for ref in used_by if ref.type == 'way'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Node {versioned_ref.id} is still used by ways {",".join(str(ref.id) for ref in ref_ways)}.',
+                    detail=f'Node {element.id} is still used by ways {",".join(str(ref.id) for ref in ref_ways)}.',
                 )
             elif ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Node {versioned_ref.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
+                    detail=f'Node {element.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif versioned_ref.type == 'way':
+        elif element.type == 'way':
             if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'Way {versioned_ref.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
+                    detail=f'Way {element.id} is still used by relations {",".join(str(ref.id) for ref in ref_relations)}.',
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
-        elif versioned_ref.type == 'relation':
+        elif element.type == 'relation':
             if ref_relations := tuple(ref for ref in used_by if ref.type == 'relation'):
                 raise APIError(
                     status.HTTP_412_PRECONDITION_FAILED,
-                    detail=f'The relation {versioned_ref.id} is used in relation ' f'{ref_relations[0].id}.',
+                    detail=f'The relation {element.id} is used in relation ' f'{ref_relations[0].id}.',
                 )
             else:
                 raise NotImplementedError(f'Unsupported element type {next(iter(used_by)).type!r}')
         else:
-            raise NotImplementedError(f'Unsupported element type {versioned_ref.type!r}')
+            raise NotImplementedError(f'Unsupported element type {element.type!r}')

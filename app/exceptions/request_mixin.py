@@ -16,9 +16,6 @@ class RequestExceptionsMixin:
     def too_many_requests(self) -> NoReturn:
         raise APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too Many Requests')
 
-    def time_integrity(self) -> NoReturn:
-        raise APIError(status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Time integrity error')
-
     def request_decompression_failed(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Request decompression failed')
 

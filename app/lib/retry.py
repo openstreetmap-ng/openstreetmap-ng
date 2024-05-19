@@ -8,7 +8,7 @@ import anyio
 import cython
 
 
-def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: float = 300):
+def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_limit: cython.double = 300):
     """
     Decorator to retry a function until it succeeds or the timeout is reached.
     """
@@ -30,24 +30,23 @@ def retry(timeout: timedelta | None, *, sleep_init: float = 0.15, sleep_limit: f
                     now: cython.double = time.monotonic()
                     next_timeout_seconds: cython.double = now + sleep - ts
 
-                    # retry is still possible
-                    if next_timeout_seconds < timeout_seconds or timeout_seconds < 0:
-                        logging.info(
-                            '%s failed (attempt %d), retrying in %.3f sec',
-                            func.__qualname__,
-                            attempt,
-                            sleep,
-                            exc_info=True,
-                        )
-
-                        await anyio.sleep(sleep)
-                        noise: cython.double = random.random()  # noqa: S311
-                        new_sleep: cython.double = sleep * (1.5 + noise)
-                        sleep = new_sleep if new_sleep < sleep_limit else sleep_limit
-                        continue
-
                     # retry is not possible, re-raise the exception
-                    raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
+                    if next_timeout_seconds >= timeout_seconds or timeout_seconds < 0:
+                        raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
+
+                    # retry is still possible
+                    logging.info(
+                        '%s failed (attempt %d), retrying in %.3f sec',
+                        func.__qualname__,
+                        attempt,
+                        sleep,
+                        exc_info=True,
+                    )
+
+                    await anyio.sleep(sleep)
+                    noise: cython.double = random.random()  # noqa: S311
+                    new_sleep: cython.double = sleep * (1.5 + noise)
+                    sleep = new_sleep if new_sleep < sleep_limit else sleep_limit
 
         return wrapper
 

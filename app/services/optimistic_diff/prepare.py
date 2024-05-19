@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 import cython
@@ -9,28 +9,37 @@ from shapely import Point
 from shapely.ops import unary_union
 from sqlalchemy.orm import joinedload
 
-from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.auth_context import auth_user
-from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
 from app.queries.changeset_query import ChangesetQuery
+from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 
 
 @dataclass(slots=True)
 class OptimisticDiffPrepare:
-    applied: bool
+    at_sequence_id: int | None = None
     """
-    Indicates if the optimistic diff was applied.
+    sequence_id at which the optimistic diff is performed.
     """
 
     elements: Sequence[Element]
     """
     Elements the optimistic diff is performed on.
+    """
+
+    element_state: defaultdict[ElementRef, list[Element]]
+    """
+    Local element state, mapping from element ref to that elements history (from oldest to newest).
+    """
+
+    _element_parent_refs_cache: dict[ElementRef, frozenset[ElementRef]]
+    """
+    Local element parents cache, mapping from element ref to the set of parent element refs.
     """
 
     changeset_state: dict[int, Changeset]
@@ -41,11 +50,6 @@ class OptimisticDiffPrepare:
     _changeset_bbox_info: dict[int, set[Point | ElementRef]]
     """
     Changeset bbox info, mapping from changeset id to the list of points and element refs.
-    """
-
-    element_state: defaultdict[ElementRef, list[Element]]
-    """
-    Local element state, mapping from element ref to that elements history (from oldest to newest).
     """
 
     reference_check_element_refs: set[ElementRef]
@@ -60,111 +64,196 @@ class OptimisticDiffPrepare:
     For example, `(way/1, False)` = `{node/1, node/2}` means that way/1 no longer references node/1 and node/2 locally.
     """
 
-    _element_parent_refs_cache: dict[ElementRef, frozenset[ElementRef]]
-    """
-    Local element parents cache, mapping from element ref to the set of parent element refs.
-    """
-
-    last_sequence_id: int
-
     def __init__(self, elements: Sequence[Element]) -> None:
-        self.applied = False
         self.elements = elements
+        self.element_state = defaultdict(list)
+        self._element_parent_refs_cache = {}
         self.changeset_state = {}
         self._changeset_bbox_info = defaultdict(set)
-        self.element_state = defaultdict(list)
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
-        self._element_parent_refs_cache = {}
-        self.last_sequence_id = None
 
     async def prepare(self) -> None:
-        """
-        Prepare the optimistic update.
-        """
+        await self._set_sequence_id()
+
         async with create_task_group() as tg:
-            # update and validate changesets
-            tg.start_soon(self._update_changesets)
-
-            # preload element state
             tg.start_soon(self._preload_elements)
-
-            # assign last element id
-            tg.start_soon(self._assign_last_sequence_id_and_check_time_integrity)
-
-        # read property once for performance
-        get_latest_elements = self._get_latest_elements
-        update_reference_override = self._update_reference_override
-        check_element_not_referenced = self._check_element_not_referenced
-        check_members_visible = self._check_members_visible
-        push_bbox_info = self._push_bbox_info
-        push_element_state = self._push_element_state
+            tg.start_soon(self._update_changesets_sizes)
 
         for element in self.elements:
+            element_type = element.type
+            element_ref = ElementRef(element_type, element.id)
+
             if element.version == 1:
                 # action: create
                 prev = None
 
                 if element.id >= 0:
-                    raise_for().diff_create_bad_id(element.versioned_ref)
+                    raise_for().diff_create_bad_id(element)
             else:
                 # action: modify | delete
-                prev = (await get_latest_elements((element.element_ref,)))[0]
+                prevs = await self._get_elements_by_refs((element_ref,))
+                prev = prevs[0]
 
                 if prev.version + 1 != element.version:
-                    raise_for().element_version_conflict(element.versioned_ref, prev.version)
+                    raise_for().element_version_conflict(element, prev.version)
                 if not prev.visible and not element.visible:
-                    raise_for().element_already_deleted(element.versioned_ref)
-
-                now = utcnow()
-
-                if prev.created_at > now:
-                    logging.error(
-                        'Element %r/%r was created in the future: %r > %r',
-                        prev.type,
-                        prev.id,
-                        prev.created_at,
-                        now,
-                    )
-                    raise_for().time_integrity()
-
-            # update reference overrides before performing checks
-            # note that elements can self-reference themselves
-            added_members_refs = update_reference_override(prev, element)[1]
+                    raise_for().element_already_deleted(element)
 
             async with create_task_group() as tg:
+                if element_type != 'node':
+                    # update reference overrides before performing checks
+                    # note that elements can self-reference themselves
+                    # TODO: test this^
+                    added_members_refs = self._update_reference_override(prev, element)
+
+                    # check if all newly referenced members are visible
+                    if added_members_refs is not None:
+                        tg.start_soon(self._check_members_visible, element, added_members_refs)
+
                 # if action==deleted, check if not referenced by other elements
                 if (prev is not None) and not element.visible and prev.visible:
-                    tg.start_soon(check_element_not_referenced, element)
-
-                # check if all newly referenced members are visible
-                if added_members_refs:
-                    tg.start_soon(check_members_visible, element, added_members_refs)
+                    tg.start_soon(self._check_element_unreferenced, element)
 
             # push the element bbox info
-            push_bbox_info(prev, element)
-
+            self._push_bbox_info(prev, element)
             # push the element to the local state
-            push_element_state(element)
+            self.element_state[element_ref].append(element)
 
-        # update changeset boundaries
         await self._update_changeset_boundaries()
 
-    async def _get_changeset(self, changeset_id: int) -> Changeset:
+    async def _set_sequence_id(self) -> None:
         """
-        Get the changeset from the local state or the database if not found.
+        Set the current sequence_id.
         """
-        if (changeset := self.changeset_state.get(changeset_id)) is not None:
+        if self.at_sequence_id is not None:
+            raise AssertionError('at_sequence_id is already assigned')
+
+        self.at_sequence_id = await ElementQuery.get_current_sequence_id()
+        logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
+
+    async def _preload_elements(self) -> None:
+        """
+        Preload elements from the database.
+        """
+        # only preload elements that exist in the database (positive id)
+        refs: set[ElementRef] = {
+            ElementRef(element.type, element.id)
+            for element in self.elements  #
+            if element.id > 0
+        }
+        if not refs:
+            return
+
+        refs_len = len(refs)
+        logging.debug('Optimistic preloading %d elements', refs_len)
+        elements = await ElementQuery.get_many_by_refs(
+            refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=refs_len,
+        )
+
+        # check if all elements exist
+        if len(elements) != refs_len:
+            for element in elements:
+                refs.remove(ElementRef(element.type, element.id))
+            raise_for().element_not_found(next(iter(refs)))
+
+        # if they do, push them to the local state
+        element_state = self.element_state
+        for element in elements:
+            element_state[ElementRef(element.type, element.id)] = [element]
+
+        logging.debug('Optimistic preloading members for %d elements', refs_len)
+        await ElementMemberQuery.resolve_members(elements)
+
+    async def _get_elements_by_refs(self, element_refs_unique: Iterable[ElementRef]) -> Sequence[Element]:
+        """
+        Get the latest elements from the local state or the database.
+        """
+        local_elements: list[Element] = []
+        remote_refs: list[ElementRef] = []
+
+        element_state = self.element_state
+        for element_ref in element_refs_unique:
+            elements = element_state.get(element_ref)
+            if elements is not None:
+                # load locally
+                local_elements.append(elements[-1])
+            else:
+                # load remotely
+                if element_ref.id < 0:
+                    raise_for().element_not_found(element_ref)
+                remote_refs.append(element_ref)
+
+        if not remote_refs:
+            return local_elements
+
+        remote_refs_len = len(remote_refs)
+        logging.debug('Optimistic loading %d elements', remote_refs_len)
+        remote_elements = await ElementQuery.get_many_by_refs(
+            remote_refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=remote_refs_len,
+        )
+
+        # check if all elements exist
+        if len(remote_elements) != remote_refs_len:
+            remote_refs_set = set(remote_refs)
+            for element in remote_elements:
+                remote_refs_set.remove(ElementRef(element.type, element.id))
+            raise_for().element_not_found(next(iter(remote_refs_set)))
+
+        # update local state
+        for element in remote_elements:
+            element_state[ElementRef(element.type, element.id)] = [element]
+
+        logging.debug('Optimistic loading members for %d elements', remote_refs_len)
+        await ElementMemberQuery.resolve_members(remote_elements)
+        return local_elements + remote_elements
+
+    async def _update_changesets_sizes(self) -> None:
+        """
+        Update and validate changesets sizes.
+        """
+        # map changeset id to elements
+        changeset_id_elements_map = defaultdict(list)
+        for element in self.elements:
+            changeset_id_elements_map[element.changeset_id].append(element)
+
+        # currently, enforce single changeset updates
+        if len(changeset_id_elements_map) > 1:
+            raise_for().diff_multiple_changesets()
+
+        async def task(changeset_id: int, elements: Sequence[Element]) -> None:
+            logging.debug('Optimistic updating changeset %d', changeset_id)
+
+            with options_context(joinedload(Changeset.user)):
+                changeset = await self._get_open_changeset(changeset_id)
+
+            add_size = len(elements)
+            if not changeset.increase_size(add_size):
+                raise_for().changeset_too_big(changeset.size + add_size)
+
+        # update and validate changesets (exist, belong to the user, not closed, etc.)
+        async with create_task_group() as tg:
+            for changeset_id, changeset_elements in changeset_id_elements_map.items():
+                tg.start_soon(task, changeset_id, changeset_elements)
+
+    async def _get_open_changeset(self, changeset_id: int) -> Changeset:
+        """
+        Get the changeset from the local state or the database.
+        """
+        # check local state first
+        changeset = self.changeset_state.get(changeset_id)
+        if changeset is not None:
             return changeset
 
-        with options_context(joinedload(Changeset.user)):
-            changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-
-        if not changesets:
+        # fallback to database query
+        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+        changeset = changesets[0] if changesets else None
+        if changeset is None:
             raise_for().changeset_not_found(changeset_id)
-
-        changeset = changesets[0]
-
         if changeset.user_id != auth_user().id:
             raise_for().changeset_access_denied()
         if changeset.closed_at is not None:
@@ -173,230 +262,87 @@ class OptimisticDiffPrepare:
         self.changeset_state[changeset_id] = changeset
         return changeset
 
-    async def _update_changesets(self) -> None:
-        """
-        Update and validate elements changesets.
-
-        Boundaries are not updated as a part of this method.
-        """
-        if self.changeset_state:
-            raise RuntimeError('Cannot update changesets with non-empty local state')
-
-        changeset_id_element_map = defaultdict(list)
-
-        # map changeset id to elements
-        for element in self.elements:
-            changeset_id_element_map[element.changeset_id].append(element)
-
-        # currently, enforce single changeset updates
-        if len(changeset_id_element_map) > 1:
-            raise_for().diff_multiple_changesets()
-
-        async def update_changeset_task(changeset_id: int, elements: Sequence[Element]) -> None:
-            changeset = await self._get_changeset(changeset_id)
-            increase_size = len(elements)
-
-            if not changeset.increase_size(increase_size):
-                raise_for().changeset_too_big(changeset.size + increase_size)
-
-        # update and validate changesets (exist, belong to the user, not closed, etc.)
-        async with create_task_group() as tg:
-            for changeset_id, changeset_elements in changeset_id_element_map.items():
-                tg.start_soon(update_changeset_task, changeset_id, changeset_elements)
-
-    async def _preload_elements(self) -> None:
-        """
-        Preload elements from the database.
-        """
-        # read property once for performance
-        element_state = self.element_state
-
-        if element_state:
-            raise RuntimeError('Cannot preload elements with non-empty local state')
-
-        # only preload elements that exist in the database (positive id)
-        element_refs: set[ElementRef] = {e.element_ref for e in self.elements if e.id > 0}
-
-        # small optimization
-        if not element_refs:
-            return
-
-        element_refs_len = len(element_refs)
-        elements = await ElementQuery.get_many_by_refs(element_refs, limit=element_refs_len)
-
-        # check if all elements exist
-        if len(elements) != element_refs_len:
-            for element in elements:
-                element_refs.remove(element.element_ref)
-
-            raise_for().element_not_found(next(iter(element_refs)))
-
-        # if they do, push them to the local state
-        for element in elements:
-            element_state[element.element_ref] = [element]
-
-    async def _assign_last_sequence_id_and_check_time_integrity(self) -> None:
-        """
-        Remember the last sequence id and check the time integrity.
-        """
-        if self.last_sequence_id is not None:
-            raise RuntimeError('Last sequence id already assigned')
-
-        if (element := await ElementQuery.find_one_latest()) is not None:
-            if element.created_at > (now := utcnow()):
-                logging.error(
-                    'Element %r/%r was created in the future: %r > %r',
-                    element.type,
-                    element.id,
-                    element.created_at,
-                    now,
-                )
-                raise_for().time_integrity()
-
-            self.last_sequence_id = element.sequence_id
-        else:
-            self.last_sequence_id = 0
-
-    async def _get_latest_elements(self, element_refs_unique: Sequence[ElementRef]) -> Sequence[Element]:
-        """
-        Get the latest elements from the local state or the database if not found.
-
-        The returned elements order *IS NOT* preserved.
-        """
-        # read property once for performance
-        element_state = self.element_state
-
-        local_elements: list[Element] = []
-        remote_refs: list[ElementRef] = []
-
-        for element_ref in element_refs_unique:
-            if (elements := element_state.get(element_ref)) is not None:
-                # load locally
-                local_elements.append(elements[-1])
-            else:
-                # load remotely
-                if element_ref.id < 0:
-                    raise_for().element_not_found(element_ref)
-
-                remote_refs.append(element_ref)
-
-        # small optimization
-        if not remote_refs:
-            return local_elements
-
-        remote_refs_len = len(remote_refs)
-        remote_elements = await ElementQuery.get_many_by_refs(remote_refs, limit=remote_refs_len)
-
-        # check if all elements exist
-        if len(remote_elements) != remote_refs_len:
-            remote_refs_set = set(remote_refs)
-
-            for element in remote_elements:
-                remote_refs_set.remove(element.element_ref)
-
-            raise_for().element_not_found(next(iter(remote_refs_set)))
-
-        # update local state
-        for element in remote_elements:
-            element_state[element.element_ref] = [element]
-
-        return local_elements + remote_elements
-
-    def _push_element_state(self, element: Element) -> None:
-        """
-        Update the local element state with the new element.
-        """
-        self.element_state[element.element_ref].append(element)
-
     def _update_reference_override(
         self,
         prev: Element | None,
         element: Element,
-    ) -> tuple[frozenset[ElementRef], frozenset[ElementRef]]:
+    ) -> frozenset[ElementRef] | None:
         """
         Update the local reference overrides.
 
-        Returns the removed and added references.
+        Returns the newly added references if any.
         """
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs
+        next_members = element.members
+        prev_members = prev.members if (prev is not None) else ()
+        if not next_members and not prev_members:
+            return None
 
-        # read property once for performance
-        element_ref = element.element_ref
+        next_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in next_members}
+        prev_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in prev_members}
+        element_ref = ElementRef(element.type, element.id)
         reference_override = self._reference_override
 
         # remove old references
-        removed_refs = prev_refs - next_refs
-        for ref in removed_refs:
-            reference_override[(ref, True)].discard(element_ref)
-            reference_override[(ref, False)].add(element_ref)
+        if prev_members:
+            removed_refs = prev_refs - next_refs
+            for ref in removed_refs:
+                reference_override[(ref, True)].discard(element_ref)
+                reference_override[(ref, False)].add(element_ref)
 
         # add new references
-        added_refs = next_refs - prev_refs
-        for ref in added_refs:
-            reference_override[(ref, True)].add(element_ref)
-            reference_override[(ref, False)].discard(element_ref)
+        if next_members:
+            added_refs = next_refs - prev_refs
+            for ref in added_refs:
+                reference_override[(ref, True)].add(element_ref)
+                reference_override[(ref, False)].discard(element_ref)
+            return frozenset(added_refs)
 
-        return removed_refs, added_refs
+        return None
 
-    async def _check_members_visible(self, initiator: Element, element_refs_unique: Sequence[ElementRef]) -> None:
+    async def _check_members_visible(self, parent: Element, member_refs: frozenset[ElementRef]) -> None:
         """
-        Check if the members exists and are visible.
+        Check if the members exist and are visible.
         """
-        elements = await self._get_latest_elements(element_refs_unique)
-
+        elements = await self._get_elements_by_refs(member_refs)
         for element in elements:
             if not element.visible:
-                raise_for().element_member_not_found(initiator.versioned_ref, element.element_ref)
+                raise_for().element_member_not_found(parent, ElementRef(element.type, element.id))
 
-    async def _check_element_not_referenced(self, element: Element) -> None:
+    async def _check_element_unreferenced(self, element: Element) -> None:
         """
         Check if the element is not referenced by other elements.
         """
-        # read property once for performance
-        reference_override = self._reference_override
-        element_parent_refs_cache = self._element_parent_refs_cache
-        element_ref = element.element_ref
+        element_ref = ElementRef(element.type, element.id)
 
         # check if not referenced by local state
-        positive_refs = reference_override[(element_ref, True)]
+        positive_refs = self._reference_override[(element_ref, True)]
         if positive_refs:
-            raise_for().element_in_use(element.versioned_ref, positive_refs)
+            raise_for().element_in_use(element, positive_refs)
 
         # check if not referenced by database elements
         # logical optimization, only pre-existing elements
-        if element.id > 0:
-            negative_refs = reference_override[(element_ref, False)]
-            parent_refs = element_parent_refs_cache.get(element_ref)
+        if element.id <= 0:
+            return
 
-            if parent_refs is None:
-                # cache miss, fetch from the database
-                parents = await ElementQuery.get_many_parents_by_refs(
-                    (element_ref,),
-                    limit=len(negative_refs) + 1,
-                )
+        negative_refs = self._reference_override[(element_ref, False)]
+        parent_refs = self._element_parent_refs_cache.get(element_ref)
 
-                last_sequence_id = self.last_sequence_id
-                parent_refs_list: list[ElementRef] = []
+        # cache miss, fetch from the database
+        if parent_refs is None:
+            logging.debug('Optimistic checking parents of %s', element_ref)
+            parents = await ElementQuery.get_many_parents_by_refs(
+                (element_ref,),
+                at_sequence_id=self.at_sequence_id,
+                limit=len(negative_refs) + 1,
+            )
+            parent_refs = frozenset(ElementRef(parent.type, parent.id) for parent in parents)
+            self._element_parent_refs_cache[element_ref] = parent_refs
 
-                for parent in parents:
-                    parent_sequence_id = parent.sequence_id
-                    parent_ref = parent.element_ref
-
-                    if parent_sequence_id > last_sequence_id:
-                        raise OptimisticDiffError(
-                            f'Parent {parent_ref} has future sequence id {parent_sequence_id} > {last_sequence_id}'
-                        )
-
-                    parent_refs_list.append(parent_ref)
-
-                parent_refs = frozenset(parent_refs_list)
-                element_parent_refs_cache[element_ref] = parent_refs
-
+        if parent_refs:
             for parent_ref in parent_refs - negative_refs:
-                raise_for().element_in_use(element.versioned_ref, (parent_ref,))
+                raise_for().element_in_use(element, (parent_ref,))
 
-            self.reference_check_element_refs.add(element_ref)
+        self.reference_check_element_refs.add(element_ref)
 
     def _push_bbox_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -433,20 +379,20 @@ class OptimisticDiffPrepare:
 
         Way info contains all nodes.
         """
-        # read property once for performance
-        element_state = self.element_state
-
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs
 
-        union_refs = next_refs | prev_refs
+        next_members = element.members
+        prev_members = prev.members if (prev is not None) else ()
+        union_members = (*next_members, *prev_members)
+        node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in union_members}
 
-        for element_ref in union_refs:
-            if (elements := element_state.get(element_ref)) is not None:
-                bbox_info.add(elements[-1].point)
+        element_state = self.element_state
+        for node_ref in node_refs:
+            nodes = element_state.get(node_ref)
+            if nodes is not None:
+                bbox_info.add(nodes[-1].point)
             else:
-                bbox_info.add(element_ref)
+                bbox_info.add(node_ref)
 
     def _push_bbox_relation_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -454,13 +400,12 @@ class OptimisticDiffPrepare:
 
         Relation info contains either all members or only changed members.
         """
-        # read property once for performance
-        element_state = self.element_state
-
         bbox_info = self._changeset_bbox_info[element.changeset_id]
-        prev_refs: frozenset[ElementRef] = prev.members_element_refs if (prev is not None) else frozenset()
-        next_refs: frozenset[ElementRef] = element.members_element_refs
 
+        next_members = element.members
+        prev_members = prev.members if (prev is not None) else ()
+        next_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in next_members}
+        prev_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in prev_members}
         changed_refs = prev_refs ^ next_refs
 
         # check for changed tags
@@ -475,62 +420,66 @@ class OptimisticDiffPrepare:
 
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
 
-        for element_ref in diff_refs:
-            if element_ref.type == 'node':
-                if (elements := element_state.get(element_ref)) is None:
-                    bbox_info.add(elements[-1].point)
-                else:
-                    bbox_info.add(element_ref)
+        element_state = self.element_state
+        for member_ref in diff_refs:
+            member_type = member_ref.type
 
-            elif element_ref.type == 'way':
-                if (elements := element_state.get(element_ref)) is None:
-                    bbox_info.add(element_ref)
+            if member_type == 'node':
+                nodes = element_state.get(member_ref)
+                if nodes is not None:
+                    bbox_info.add(nodes[-1].point)
+                else:
+                    bbox_info.add(member_ref)
+
+            elif member_type == 'way':
+                ways = element_state.get(member_ref)
+                if ways is None:
+                    bbox_info.add(member_ref)
                     continue
 
-                for member_ref in elements[-1].members:
-                    member_element_ref = member_ref.element_ref
-                    if (member_elements := element_state.get(member_element_ref)) is not None:
-                        bbox_info.add(member_elements[-1].point)
+                for node_member in ways[-1].members:
+                    node_ref = ElementRef('node', node_member.id)
+                    nodes = element_state.get(node_ref)
+                    if nodes is not None:
+                        bbox_info.add(nodes[-1].point)
                     else:
-                        bbox_info.add(member_element_ref)
+                        bbox_info.add(node_ref)
 
     async def _update_changeset_boundaries(self) -> None:
         """
-        Update changeset boundaries using the bbox info.
+        Update changeset boundaries using the collected bbox info.
         """
 
         async def task(changeset_id: int, bbox_info: set[Point | ElementRef]) -> None:
+            # unpack bbox info
             points: list[Point] = []
-            element_refs_map: set[ElementRef] = set()
-
-            # organize bbox info into points and element refs
+            refs_set: set[ElementRef] = set()
             for point_or_ref in bbox_info:
                 if isinstance(point_or_ref, Point):
                     points.append(point_or_ref)
                 else:
-                    element_refs_map.add(point_or_ref)
+                    refs_set.add(point_or_ref)
 
-            # get points for element refs
-            elements = await ElementQuery.get_many_by_refs(
-                element_refs_map,
-                recurse_ways=True,
-                limit=None,
-            )
+            if refs_set:
+                logging.debug('Optimistic loading %d bbox elements', len(refs_set))
+                elements = await ElementQuery.get_many_by_refs(
+                    refs_set,
+                    at_sequence_id=self.at_sequence_id,
+                    recurse_ways=True,
+                    limit=None,
+                )
 
-            for element in elements:
-                element_point = element.point
+                for element in elements:
+                    point = element.point
+                    if point is not None:
+                        points.append(point)
+                    elif element.type == 'node':
+                        logging.warning('Node %dv%d is missing coordinates', element.id, element.version)
 
-                if element_point is not None:
-                    points.append(element_point)
-                elif element.type == 'node':
-                    raise ValueError(f'Node {element.id} is missing coordinates')
-
-            # update changeset bounds if any points
             if points:
-                changeset = await self._get_changeset(changeset_id)
+                changeset = self.changeset_state[changeset_id]
                 changeset.union_bounds(unary_union(points))
 
-        # start task for each changeset
         async with create_task_group() as tg:
             for changeset_id, bbox_info in self._changeset_bbox_info.items():
                 tg.start_soon(task, changeset_id, bbox_info)
