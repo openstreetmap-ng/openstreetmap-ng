@@ -25,7 +25,7 @@ async def test_retry():
 
 
 def test_retry_timeout():
-    @retry(timedelta(seconds=1))
+    @retry(timedelta(seconds=0.1))
     async def func():
         raise RuntimeError
 

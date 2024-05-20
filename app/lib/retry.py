@@ -12,7 +12,7 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
     """
     Decorator to retry a function until it succeeds or the timeout is reached.
     """
-    timeout_seconds: cython.double = -1 if timeout is None else timeout.total_seconds()
+    timeout_seconds: cython.double = 0 if timeout is None else timeout.total_seconds()
 
     def decorator(func):
         @wraps(func)
@@ -31,7 +31,7 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                     next_timeout_seconds: cython.double = now + sleep - ts
 
                     # retry is not possible, re-raise the exception
-                    if next_timeout_seconds >= timeout_seconds or timeout_seconds < 0:
+                    if next_timeout_seconds >= timeout_seconds and timeout is not None:
                         raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
 
                     # retry is still possible
