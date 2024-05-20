@@ -53,14 +53,6 @@ def tags_format(tags: dict[str, str]) -> dict[str, TagFormatCollection]:
         _method_map[supported_key_part](tag, key_parts, values)
 
     tags_format_osm_wiki(result_values)
-
-    # TODO: remove after testing
-    # result['colour'] = TagStyleCollection('colour', 'red;blue')
-    # result['email'] = TagStyleCollection('email', '1@example.com;2@example.com')
-    # result['something:email'] = TagStyleCollection('something:email', '1@example.com;2@example.com')
-    # result['phone'] = TagStyleCollection('phone', '+1-234-567-8901')
-    # result['amenity'] = TagStyleCollection('amenity', 'bench')
-
     return result
 
 

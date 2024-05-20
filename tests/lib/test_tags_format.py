@@ -1,12 +1,15 @@
 from collections.abc import Sequence
 
+import pytest
+
 from app.lib.tags_format import tags_format
 from app.lib.translation import translation_context
-from app.models.tag_format import TagFormat, TagFormatCollection
+from app.models.tag_format import TagFormat
 
 
-def test_tags_format():
-    tests: Sequence[tuple[TagFormatCollection, TagFormat, Sequence[TagFormat]]] = [
+@pytest.mark.parametrize(
+    ('tags', 'key', 'vals'),
+    [
         (
             # comment with potentially malicious content
             {'comment': 'https://example.com <script>'},
@@ -96,11 +99,11 @@ def test_tags_format():
             TagFormat('amenity', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Key:amenity?uselang=pl'),
             [TagFormat('bench', 'url-safe', 'https://wiki.openstreetmap.org/wiki/Pl:Tag:amenity=bench?uselang=pl')],
         ),
-    ]
-
+    ],
+)
+def test_tags_format(tags: dict, key: TagFormat, vals: Sequence[TagFormat]):
     with translation_context('pl'):
-        for tags, key, vals in tests:
-            formatted = tags_format(tags)
-            collection = next(iter(formatted.values()))
-            assert key == collection.key
-            assert tuple(vals) == tuple(collection.values)
+        formatted = tags_format(tags)
+        collection = next(iter(formatted.values()))
+        assert key == collection.key
+        assert tuple(vals) == tuple(collection.values)

@@ -51,11 +51,11 @@ class OAuth2TokenService:
 
         The code can be exchanged for an access token.
 
-        In `init=True` mode, silent authentication is performed if the application is already authorized.
+        In init=True mode, silent authentication is performed if the application is already authorized.
         When successful, a redirect url or an authorization code (prefixed with "oob;") is returned.
         Otherwise, the application instance is returned for the user to authorize it.
 
-        In `init=False` mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
+        In init=False mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
         app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
         if app is None:

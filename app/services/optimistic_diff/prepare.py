@@ -20,7 +20,7 @@ from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 
 
-@dataclass(slots=True)
+@dataclass(init=False, repr=False, eq=False, match_args=False, slots=True)
 class OptimisticDiffPrepare:
     at_sequence_id: int | None = None
     """

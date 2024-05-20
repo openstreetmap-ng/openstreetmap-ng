@@ -74,6 +74,7 @@ def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | N
     result: list[tuple[int, str, str]] | None = None
 
     # prefer value-specific icons first
+    specific: cython.char
     for specific in (True, False):
         for key in matched_keys:
             value = tags[key] if specific else '*'

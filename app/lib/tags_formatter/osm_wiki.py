@@ -13,16 +13,17 @@ from app.models.tag_format import TagFormat, TagFormatCollection
 
 
 @cython.cfunc
-def _get_wiki_pages() -> dict[str, frozenset[str]]:
-    data: dict[str, Sequence[str]] = json.loads(pathlib.Path(CONFIG_DIR / 'wiki_pages.json').read_bytes())
+def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str]]:
+    data = json.loads(pathlib.Path(CONFIG_DIR / 'wiki_pages.json').read_bytes())
     return {
-        tag: frozenset(
+        (key, value): frozenset(
             normalize_locale(locale)
             if locale  #
             else DEFAULT_LANGUAGE
             for locale in locales
         )
-        for tag, locales in data.items()
+        for key, value_locales in data.items()
+        for value, locales in value_locales.items()
     }
 
 
@@ -39,28 +40,32 @@ def tags_format_osm_wiki(tags: Sequence[TagFormatCollection]) -> None:
 
     for tag in tags:
         tag_key = tag.key
+        key = tag_key.value
 
-        is_value: cython.char
-        for is_value in (True, False):
-            if is_value:
+        specific: cython.char
+        for specific in (True, False):
+            if specific:
                 tag_values = tag.values
                 tag_value = tag_values[0]
 
-                # skip if already styled
+                # skip already styled
+                # TODO: support styling multiple values
                 if tag_value.format is not None or len(tag_values) != 1:
                     continue
 
-                page = f'Tag:{tag_key.value}={tag_value.value}'
+                value = tag_value.value
             else:
-                # skip if already styled
+                # skip already styled
                 if tag_key.format is not None:
                     continue
 
-                page = f'Key:{tag_key.value}'
+                value = '*'
 
-            locales = _wiki_pages.get(page)
-            if locales is None:  # page does not exist
+            locales = _wiki_pages.get((key, value))
+            if locales is None:
                 continue
+
+            page = f'Tag:{key}={value}' if specific else f'Key:{key}'
 
             # prioritize wiki pages that match the user's language preferences
             # user_langs always include the default language
@@ -75,7 +80,7 @@ def tags_format_osm_wiki(tags: Sequence[TagFormatCollection]) -> None:
                     user_lang_case = user_lang.title()
                     url = f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:{page}?uselang={primary_lang}'
 
-                if is_value:
+                if specific:
                     tag.values = (TagFormat(tag_value.value, 'url-safe', url),)
                 else:
                     tag.key = TagFormat(tag_key.value, 'url-safe', url)
