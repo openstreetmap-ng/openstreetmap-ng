@@ -15,7 +15,7 @@ class AvatarService:
 
         data = await file.read()
         data = Avatar.normalize_image(data)
-        avatar_id = await AVATAR_STORAGE.save(data, '.webp', random=True)
+        avatar_id = await AVATAR_STORAGE.save(data, '.webp')
         return avatar_id
 
     @staticmethod

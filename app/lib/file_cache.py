@@ -23,9 +23,7 @@ class FileCache:
         >>> await FileCache('context')._get_path('file_key')
         Path('.../context/4/68/468e5f...')
         """
-
-        key: str = hash_hex(key_str, context=None)
-
+        key: str = hash_hex(key_str)
         d1 = key[:1]
         d2 = key[1:3]
 
@@ -39,7 +37,6 @@ class FileCache:
         """
         Get a value from the file cache by key string.
         """
-
         path = await self._get_path(key)
 
         try:
@@ -62,7 +59,6 @@ class FileCache:
         """
         Set a value in the file cache by key string.
         """
-
         path = await self._get_path(key)
         expires_at = int(time.time() + ttl.total_seconds()) if ttl is not None else None
         entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
@@ -80,15 +76,12 @@ class FileCache:
         """
         Delete a key from the file cache.
         """
-
         path = await self._get_path(key)
-
         await path.unlink(missing_ok=True)
 
     async def cleanup(self):
         """
         Cleanup the file cache, removing stale entries.
         """
-
         # TODO: implement cleaning logic here, using Lock for distributed-process safety
         raise NotImplementedError

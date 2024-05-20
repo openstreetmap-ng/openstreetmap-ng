@@ -14,7 +14,7 @@ class OAuth2TokenQuery:
         """
         Find an authorized OAuth2 token by token string.
         """
-        token_hashed = hash_bytes(token_str, context=None)
+        token_hashed = hash_bytes(token_str)
 
         async with db() as session:
             stmt = select(OAuth2Token).where(

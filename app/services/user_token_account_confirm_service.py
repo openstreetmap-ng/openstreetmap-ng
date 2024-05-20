@@ -20,9 +20,8 @@ class UserTokenAccountConfirmService:
         """
         Create a new user account confirmation token.
         """
-
         token_bytes = buffered_randbytes(32)
-        token_hashed = hash_bytes(token_bytes, context=None)
+        token_hashed = hash_bytes(token_bytes)
 
         async with db_commit() as session:
             token = UserTokenAccountConfirm(
@@ -30,7 +29,6 @@ class UserTokenAccountConfirmService:
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
             )
-
             session.add(token)
 
         return UserTokenStruct.v1(id=token.id, token=token_bytes)
@@ -40,9 +38,7 @@ class UserTokenAccountConfirmService:
         """
         Confirm a user account.
         """
-
         token = await UserTokenAccountConfirmQuery.find_one_by_token_struct(token_struct)
-
         if token is None:
             raise_for().bad_user_token_struct()
 
@@ -63,5 +59,4 @@ class UserTokenAccountConfirmService:
                 )
                 .values({User.status: UserStatus.active})
             )
-
             await session.execute(stmt)

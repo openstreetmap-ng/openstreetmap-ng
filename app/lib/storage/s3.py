@@ -30,8 +30,8 @@ class S3Storage(StorageBase):
         await self._fc.set(key, data, ttl=S3_CACHE_EXPIRE)
         return data
 
-    async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
-        key = self._make_key(data, suffix, random)
+    async def save(self, data: bytes, suffix: str) -> str:
+        key = self._make_key(data, suffix)
 
         async with _s3.client('s3') as s3:
             await s3.put_object(Bucket=self._context, Key=key, Body=data)

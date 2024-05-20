@@ -27,7 +27,7 @@ class UserTokenAccountConfirmQuery:
         if token is None:
             return None
 
-        token_hashed = hash_bytes(token_struct.token, context=None)
+        token_hashed = hash_bytes(token_struct.token)
 
         if not compare_digest(token.token_hashed, token_hashed):
             logging.debug('Invalid account confirmation token for id %r', token_struct.id)

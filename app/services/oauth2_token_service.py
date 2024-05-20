@@ -28,11 +28,9 @@ def _compute_s256(verifier: str) -> str:
     """
     Compute the S256 code challenge from the verifier.
     """
-
     verifier_bytes = verifier.encode()
     verifier_hashed = sha256(verifier_bytes).digest()
     verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
-
     return verifier_base64
 
 
@@ -59,9 +57,7 @@ class OAuth2TokenService:
 
         In `init=False` mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
-
         app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
-
         if app is None:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
@@ -69,7 +65,6 @@ class OAuth2TokenService:
 
         user_id = auth_user().id
         scopes_set = set(scopes)
-
         if not scopes_set.issubset(app.scopes):
             raise_for().oauth_bad_scopes()
 
@@ -96,7 +91,7 @@ class OAuth2TokenService:
                 return app
 
         authorization_code = buffered_rand_urlsafe(32)
-        authorization_code_hashed = hash_bytes(authorization_code, context=None)
+        authorization_code_hashed = hash_bytes(authorization_code)
 
         async with db_commit() as session:
             token = OAuth2Token(
@@ -108,7 +103,6 @@ class OAuth2TokenService:
                 code_challenge_method=code_challenge_method,
                 code_challenge=code_challenge,
             )
-
             session.add(token)
 
         if token.is_oob:
@@ -128,8 +122,7 @@ class OAuth2TokenService:
 
         The access token can be used to make requests on behalf of the user.
         """
-
-        authorization_code_hashed = hash_bytes(authorization_code, context=None)
+        authorization_code_hashed = hash_bytes(authorization_code)
 
         async with db_commit() as session:
             stmt = (
@@ -142,7 +135,6 @@ class OAuth2TokenService:
             )
 
             token = await session.scalar(stmt)
-
             if token is None:
                 raise_for().oauth_bad_user_token()
 
@@ -166,7 +158,7 @@ class OAuth2TokenService:
                 raise
 
             access_token = buffered_rand_urlsafe(32)
-            access_token_hashed = hash_bytes(access_token, context=None)
+            access_token_hashed = hash_bytes(access_token)
 
             token.token_hashed = access_token_hashed
             token.authorized_at = utcnow()

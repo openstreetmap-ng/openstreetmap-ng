@@ -257,7 +257,7 @@ class AuthService:
         Create a new user session token.
         """
         token_bytes = buffered_randbytes(32)
-        token_hashed = hash_bytes(token_bytes, context=None)
+        token_hashed = hash_bytes(token_bytes)
 
         async with db_commit() as session:
             token = UserTokenSession(

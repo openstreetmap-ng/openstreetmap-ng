@@ -22,16 +22,13 @@ class OAuth1TokenService:
 
         At this stage, the token only references the application.
         """
-
         app = await OAuth1ApplicationQuery.find_by_consumer_key(consumer_key)
-
         if app is None:
             raise_for().oauth_bad_app_token()
 
         token_str = buffered_rand_urlsafe(32)
-        token_hashed = hash_bytes(token_str, context=None)
+        token_hashed = hash_bytes(token_str)
         token_secret = buffered_rand_urlsafe(32)
-
         callback_url = callback_url_param or app.callback_url
 
         # oob requests don't contain a callback url
@@ -80,8 +77,7 @@ class OAuth1TokenService:
 
         Returns either a redirect url or a verifier code (prefixed with "oob;").
         """
-
-        token_hashed = hash_bytes(token_str, context=None)
+        token_hashed = hash_bytes(token_str)
 
         async with db_commit() as session:
             stmt = (
@@ -94,7 +90,6 @@ class OAuth1TokenService:
             )
 
             token = await session.scalar(stmt)
-
             if token is None:
                 raise_for().oauth_bad_user_token()
             if not set(scopes).issubset(token.application.scopes):
@@ -123,8 +118,7 @@ class OAuth1TokenService:
 
         The access token can be used to make requests on behalf of the user.
         """
-
-        token_hashed = hash_bytes(token_str, context=None)
+        token_hashed = hash_bytes(token_str)
 
         async with db_commit() as session:
             stmt = (
@@ -138,7 +132,6 @@ class OAuth1TokenService:
             )
 
             token = await session.scalar(stmt)
-
             if token is None:
                 raise_for().oauth_bad_user_token()
 
@@ -151,7 +144,7 @@ class OAuth1TokenService:
                 raise
 
             token_str = buffered_rand_urlsafe(32)
-            token_hashed = hash_bytes(token_str, context=None)
+            token_hashed = hash_bytes(token_str)
             token_secret = buffered_rand_urlsafe(32)
 
             token.token_hashed = token_hashed

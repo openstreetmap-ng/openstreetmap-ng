@@ -1,6 +1,4 @@
-from base64 import urlsafe_b64encode
 from hashlib import sha256
-from hmac import HMAC
 
 import cython
 from Cryptodome.Cipher import ChaCha20
@@ -12,17 +10,13 @@ HASH_SIZE = 32
 
 
 @cython.cfunc
-def _hash(s: str | bytes, *, context: str | None):
+def _hash(s: str | bytes):
     if isinstance(s, str):
         s = s.encode()
-
-    if context is None:
-        return sha256(s)
-    else:
-        return HMAC(context.encode(), s, sha256)
+    return sha256(s)
 
 
-def hash_bytes(s: str | bytes, *, context: str | None) -> bytes:
+def hash_bytes(s: str | bytes) -> bytes:
     """
     Hash a string using SHA-256.
 
@@ -30,10 +24,10 @@ def hash_bytes(s: str | bytes, *, context: str | None) -> bytes:
 
     Returns a buffer of the hash.
     """
-    return _hash(s, context=context).digest()
+    return _hash(s).digest()
 
 
-def hash_hex(s: str | bytes, *, context: str | None) -> str:
+def hash_hex(s: str | bytes) -> str:
     """
     Hash a string using SHA-256.
 
@@ -41,18 +35,7 @@ def hash_hex(s: str | bytes, *, context: str | None) -> str:
 
     Returns a hex-encoded string of the hash.
     """
-    return _hash(s, context=context).hexdigest()
-
-
-def hash_urlsafe(s: str | bytes, *, context: str | None) -> str:
-    """
-    Hash a string using SHA-256.
-
-    Optionally, provide a context to prevent hash collisions.
-
-    Returns a URL-safe base64-encoded string of the hash.
-    """
-    return urlsafe_b64encode(_hash(s, context=context).digest()).decode()
+    return _hash(s).hexdigest()
 
 
 def encrypt(s: str) -> bytes:

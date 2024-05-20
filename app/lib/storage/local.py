@@ -22,7 +22,6 @@ class LocalStorage(StorageBase):
         >>> await LocalStorage('context')._get_path('file_key.png')
         Path('.../context/file_key.png')
         """
-
         dir_path: Path = FILE_STORE_DIR / self._context
         await dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -33,8 +32,8 @@ class LocalStorage(StorageBase):
         path = await self._get_path(key)
         return await path.read_bytes()
 
-    async def save(self, data: bytes, suffix: str, *, random: bool = True) -> str:
-        key = self._make_key(data, suffix, random)
+    async def save(self, data: bytes, suffix: str) -> str:
+        key = self._make_key(data, suffix)
         path = await self._get_path(key)
 
         temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
@@ -44,7 +43,6 @@ class LocalStorage(StorageBase):
             await f.write(data)
 
         await temp_path.rename(path)
-
         return key
 
     async def delete(self, key: str) -> None:

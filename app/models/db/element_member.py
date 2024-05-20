@@ -1,6 +1,7 @@
 from sqlalchemy import (
     BigInteger,
     Enum,
+    ForeignKey,
     Index,
     PrimaryKeyConstraint,
     SmallInteger,
@@ -9,13 +10,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.db.base import Base
+from app.models.db.element import Element
 from app.models.element_type import ElementType
 
 
 class ElementMember(Base.NoID):
     __tablename__ = 'element_member'
 
-    sequence_id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False)
+    sequence_id: Mapped[int] = mapped_column(ForeignKey(Element.id), init=False, nullable=False)
     order: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)

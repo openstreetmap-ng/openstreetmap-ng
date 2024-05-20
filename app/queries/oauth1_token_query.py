@@ -12,7 +12,7 @@ class OAuth1TokenQuery:
         """
         Find an authorized OAuth1 token by token string.
         """
-        token_hashed = hash_bytes(token_str, context=None)
+        token_hashed = hash_bytes(token_str)
 
         async with db() as session:
             stmt = select(OAuth1Token).where(
