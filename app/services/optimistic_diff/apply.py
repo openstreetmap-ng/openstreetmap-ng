@@ -1,270 +1,239 @@
 import logging
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import replace
-from datetime import datetime
 
 from anyio import create_task_group
-from sqlalchemy import and_, or_, text, update
+from sqlalchemy import and_, insert, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from app.db import db_commit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.models.db.element_member import ElementMember
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
-# TODO 0.7 don't reuse placeholder ids for simplicity
+# allow reads but prevent writes
+_lock_table_sql = text(
+    f'LOCK TABLE "{Changeset.__tablename__}","{Element.__tablename__}","{ElementMember.__tablename__}" IN EXCLUSIVE MODE'
+)
 
 
 class OptimisticDiffApply:
-    __slots__ = ('_now',)
-
-    _now: datetime
-
     async def apply(self, prepare: OptimisticDiffPrepare) -> dict[ElementRef, Sequence[Element]]:
         """
-        Apply the optimistic update.
+        Apply the optimistic diff update.
 
         Returns a dict, mapping original element refs to the new elements.
         """
-
-        if prepare.applied:
-            raise RuntimeError(f'{self.__class__.__qualname__} was reused on the same prepare instance')
-
-        prepare.applied = True
-        assigned_ref_map: dict[ElementRef, Sequence[Element]] = None
+        assigned_ref_map: dict[ElementRef, list[Element]] = defaultdict(list)
+        for element in prepare.elements:
+            assigned_ref_map[ElementRef(element.type, element.id)].append(element)
 
         async with db_commit() as session, create_task_group() as tg:
-            # lock the tables, allowing reads but blocking writes
-            await session.execute(
-                text(f'LOCK TABLE "{Changeset.__tablename__}", "{Element.__tablename__}" IN EXCLUSIVE MODE')
-            )
+            # obtain exclusive lock on the tables
+            await session.execute(_lock_table_sql)
 
-            # get the current time
-            self._now = utcnow()
+            # check if the element_state is valid
+            tg.start_soon(_check_elements_latest, prepare.element_state)
 
-            # check time integrity
-            tg.start_soon(self._check_time_integrity)
-
-            # check if the element state is still valid
-            for element_ref, elements in prepare.element_state.items():
-                if element_ref.id > 0:
-                    tg.start_soon(self._check_element_is_latest, elements[0])  # check the oldest element
-
-            # check if the elements are not referenced by any *new* elements
-            if element_refs := prepare.reference_check_element_refs:
+            # check if the elements have no new references
+            if prepare.reference_check_element_refs:
                 tg.start_soon(
-                    self._check_elements_not_referenced,
-                    element_refs,
+                    _check_elements_unreferenced,
+                    prepare.reference_check_element_refs,
                     prepare.at_sequence_id,
                 )
 
-            # update the changesets
-            tg.start_soon(self._update_changesets, prepare.changeset_state, session)
-
-            # update the elements
-            async def update_elements_task() -> None:
-                nonlocal assigned_ref_map
-                assigned_ref_map = await self._update_elements(prepare.elements, session)
-
-            tg.start_soon(update_elements_task)
+            tg.start_soon(_update_changesets, prepare.changeset_state, session)
+            tg.start_soon(_update_elements, prepare.elements, session)
 
         return assigned_ref_map
 
-    async def _check_time_integrity(self) -> None:
-        """
-        Check the time integrity of the database.
-        """
-        created_at = await ElementQuery.get_current_created_at()
-        if created_at > self._now:
-            logging.error('Element was created in the future: %r > %r', created_at, self._now)
-            raise_for().time_integrity()
 
-    async def _check_element_is_latest(self, element: Element) -> None:
-        """
-        Check if the element is the latest version.
+async def _check_elements_latest(element_state: dict[ElementRef, Sequence[Element]]) -> None:
+    """
+    Check if the elements are the current version.
 
-        Raises `OptimisticDiffError` if it is not.
-        """
+    Raises OptimisticDiffError if they are not.
+    """
+    versioned_refs = tuple(
+        VersionedElementRef(ref.type, ref.id, elements[0].version)
+        for ref, elements in element_state.items()
+        if ref.id > 0
+    )
+    if not versioned_refs:
+        return
+    if not await ElementQuery.is_latest(versioned_refs):
+        raise OptimisticDiffError('Element is outdated')
 
-        elements = await ElementQuery.get_many_by_refs((element.element_ref,), limit=1)
-        latest = elements[0] if elements else None
 
-        if latest is None:
-            raise ValueError(f'Element {element.element_ref} does not exist')
-        if latest.version != element.version:
-            raise OptimisticDiffError(
-                f'Element {element.element_ref} is not the latest version ({latest.version} != {element.version})'
-            )
+async def _check_elements_unreferenced(element_refs: Sequence[ElementRef], after_sequence_id: int) -> None:
+    """
+    Check if the elements are currently unreferenced.
 
-    async def _check_elements_not_referenced(self, element_refs: Sequence[ElementRef], after: int) -> None:
-        """
-        Check if the elements are not referenced by any other elements after the given sequence id.
+    Raises OptimisticDiffError if they are.
+    """
+    if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id):
+        raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
 
-        Raises `OptimisticDiffError` if they are.
-        """
 
-        if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id=after):
-            raise OptimisticDiffError(f'Element is referenced by after {after}')
+async def _update_changesets(changeset_state: dict[int, Changeset], session: AsyncSession) -> None:
+    """
+    Update the changeset table.
 
-    async def _update_changesets(
-        self,
-        changesets_next: dict[int, Changeset],
-        session: AsyncSession,
-    ) -> None:
-        """
-        Update the changeset table.
+    Raises OptimisticDiffError if any of the changesets were modified in the meantime.
+    """
+    changeset_id_updated_map = await ChangesetQuery.get_updated_at_by_ids(changeset_state)
 
-        Raises `OptimisticDiffError` if any of the changesets were modified in the meantime.
-        """
+    for changeset_id, updated_at in changeset_id_updated_map.items():
+        changeset = changeset_state.pop(changeset_id)
+        if changeset.updated_at != updated_at:
+            raise OptimisticDiffError(f'Changeset {changeset_id} is outdated ({changeset.updated_at} != {updated_at})')
 
-        # read property once for performance
-        now = self._now
+        changeset.auto_close_on_size()
+        session.add(changeset)
 
-        for changeset_id, updated_at in (await ChangesetQuery.get_updated_at_by_ids(changesets_next)).items():
-            local = changesets_next.pop(changeset_id)
+    # sanity check
+    if changeset_state:
+        raise ValueError(f'Changesets {tuple(changeset_state)!r} not found')
 
-            # ensure the changeset was not modified
-            if local.updated_at != updated_at:
-                raise OptimisticDiffError(f'Changeset {changeset_id} was modified ({local.updated_at} != {updated_at})')
 
-            # update the changeset
-            local.updated_at = now
-            local.auto_close_on_size(now=now)
-            session.add(local)
+async def _update_elements(elements: Sequence[Element], session: AsyncSession) -> None:
+    """
+    Update the element table by creating new revisions.
+    """
+    current_sequence_id: int | None = None
+    current_id_map: dict[ElementType, int] | None = None
 
-        # sanity check
-        if changesets_next:
-            raise ValueError(f'Changesets {tuple(changesets_next)!r} were not found in the database')
+    async def sequence_task():
+        nonlocal current_sequence_id
+        current_sequence_id = await ElementQuery.get_current_sequence_id()
 
-    async def _update_elements(
-        self,
-        elements: Sequence[Element],
-        session: AsyncSession,
-    ) -> dict[ElementRef, Sequence[Element]]:
-        """
-        Update the element table by creating new revisions.
+    async def type_id_task():
+        nonlocal current_id_map
+        current_id_map = await ElementQuery.get_current_ids()
 
-        Returns a dict, mapping original element refs to the new elements.
-        """
+    async with create_task_group() as tg:
+        tg.start_soon(sequence_task)
+        tg.start_soon(type_id_task)
 
-        assigned_ref_map: dict[ElementRef, list[Element]] = defaultdict(list)
+    update_type_ids: dict[ElementType, list[int]] = defaultdict(list)
+    insert_elements: list[dict] = [None] * len(elements)
+    insert_members: list[dict] = []
 
-        # remember old refs before assigning ids
-        for element in elements:
-            assigned_ref_map[element.element_ref].append(element)
+    prev_map: dict[ElementRef, Element] = {}
+    assigned_id_map: dict[ElementRef, int] = {}
 
-        await self._assign_ids(elements)
+    # process elements
+    for sequence_id, element in enumerate(elements, current_sequence_id + 1):
+        # assign sequence_id
+        element.sequence_id = sequence_id
 
-        # process superseded elements and update the timestamps
-        superseded_refs: set[VersionedElementRef] = set()
+        # assign next_sequence_id
+        element_type = element.type
+        element_id = element.id
+        ref = ElementRef(element_type, element_id)
+        prev = prev_map.get(ref)
+        if prev is not None:
+            prev.next_sequence_id = sequence_id  # update locally
+        elif element.version > 1:
+            update_type_ids[element_type].append(element_id)  # update remotely
+        prev_map[ref] = element
 
-        # read property once for performance
-        now = self._now
-
-        for element in reversed(elements):
-            element_versioned_ref: VersionedElementRef = element.versioned_ref
-            element.created_at = now
-
-            # process superseded elements (local)
-            if element_versioned_ref in superseded_refs:
-                superseded_refs.remove(element_versioned_ref)
-                element.superseded_at = now
-
-            # supersede the previous version
-            if element.version > 1:
-                previous_versioned_ref = replace(element_versioned_ref, version=element_versioned_ref.version - 1)
-                superseded_refs.add(previous_versioned_ref)
-
-        # process superseded elements (remote)
-        if superseded_refs:
-            stmt = (
-                update(Element)
-                .where(
-                    or_(
-                        *(
-                            and_(
-                                Element.type == versioned_ref.type,
-                                Element.id == versioned_ref.id,
-                                Element.version == versioned_ref.version,
-                            )
-                            for versioned_ref in superseded_refs
-                        )
-                    )
-                )
-                .values({Element.superseded_at: now})
-            )
-
-            await session.execute(stmt)
-
-        # create new elements
-        # will raise IntegrityError on unique constraint violation
-        session.add_all(elements)
-
-        return assigned_ref_map
-
-    async def _assign_ids(self, elements: Sequence[Element]) -> None:
-        """
-        Assign ids to the elements placeholders and update their members.
-        """
-
-        elements_without_id: list[Element] = []
-        type_next_id_map: dict[ElementType, int] = {}
-        started_type_tasks: set[ElementType] = set()
-
-        async def type_next_id_task(type: ElementType) -> None:
-            last_id_by_type = await ElementQuery.get_current_id_by_type(type)
-            type_next_id_map[type] = last_id_by_type + 1
-
-        async with create_task_group() as tg:
-            for element in elements:
-                if element.id > 0:
-                    continue
-
-                elements_without_id.append(element)
-
-                element_type = element.type
-                if element_type in started_type_tasks:
-                    continue
-
-                tg.start_soon(type_next_id_task, element_type)
-                started_type_tasks.add(element_type)
-
-        # small optimization, skip if no elements needing assignment
-        if not elements_without_id:
-            return
-
-        # assign ids
-        assigned_id_map: dict[ElementRef, int] = {}
-
-        for element in elements_without_id:
-            original_element_ref = element.element_ref
-
-            # check for already assigned id
-            assigned_id = assigned_id_map.get(original_element_ref)
-            if assigned_id is not None:
-                element.id = assigned_id
-                continue
-
-            # assign new id
-            assigned_id = type_next_id_map[element.type]
-            type_next_id_map[element.type] += 1
+        # assign id
+        if element_id < 0:
+            assigned_id = assigned_id_map.get(ref)
+            if assigned_id is None:
+                assigned_id = current_id_map[element_type] + 1
+                assigned_id_map[ref] = current_id_map[element_type] = assigned_id
             element.id = assigned_id
-            assigned_id_map[original_element_ref] = assigned_id
 
-        # update elements members
-        for element in elements:
-            if element.members:
-                element.members = tuple(
-                    replace(member_ref, id=assigned_id_map[member_ref.element_ref])
-                    if member_ref.id < 0  #
-                    else member_ref
-                    for member_ref in element.members
-                )
+    # process members, populate insert data
+    for i, element in enumerate(elements):
+        sequence_id = element.sequence_id
+        insert_elements[i] = {
+            'sequence_id': sequence_id,
+            'changeset_id': element.changeset_id,
+            'type': element.type,
+            'id': element.id,
+            'version': element.version,
+            'visible': element.visible,
+            'tags': element.tags,
+            'point': element.point,
+            'next_sequence_id': element.next_sequence_id,
+        }
+
+        for member in element.members:
+            # assign sequence_id
+            member.sequence_id = sequence_id
+
+            # assign id
+            if member.id < 0:
+                ref = ElementRef(member.type, member.id)
+                member.id = assigned_id_map[ref]
+
+            insert_members.append(
+                {
+                    'sequence_id': sequence_id,
+                    'order': member.order,
+                    'type': member.type,
+                    'id': member.id,
+                    'role': member.role,
+                }
+            )
+
+    await _update_elements_db(current_sequence_id, update_type_ids, insert_elements, insert_members, session)
+
+
+async def _update_elements_db(
+    current_sequence_id: int,
+    update_type_ids: dict[ElementType, Sequence[int]],
+    insert_elements: Sequence[dict],
+    insert_members: Sequence[dict],
+    session: AsyncSession,
+) -> None:
+    """
+    Update the element table by creating new revisions - push prepared data to the database.
+    """
+    async with create_task_group() as tg:
+        logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
+        tg.start_soon(session.execute, insert(Element).values(insert_elements).inline())
+        tg.start_soon(session.execute, insert(ElementMember).values(insert_members).inline())
+
+    if update_type_ids:
+        E = aliased(Element)  # noqa: N806
+        stmt = (
+            update(Element)
+            .where(
+                Element.sequence_id <= current_sequence_id,
+                Element.next_sequence_id == null(),
+                or_(
+                    and_(
+                        Element.type == type,
+                        Element.id.in_(text(','.join(map(str, ids)))),
+                    )
+                    for type, ids in update_type_ids.items()
+                ),
+            )
+            .values(
+                {
+                    Element.next_sequence_id: select(E.sequence_id)
+                    .where(
+                        E.type == Element.type,
+                        E.id == Element.id,
+                        E.version > Element.version,
+                    )
+                    .order_by(E.version.asc())
+                    .limit(1)
+                    .scalar_subquery()
+                }
+            )
+            .inline()
+        )
+        await session.execute(stmt)

@@ -36,7 +36,6 @@ class UserSignupService:
 
         Returns a new user session token.
         """
-
         # some early validation
         if not await UserQuery.check_display_name_available(display_name):
             collector.raise_error('display_name', t('validation.display_name_taken'))
@@ -74,7 +73,6 @@ class UserSignupService:
         """
         Accept the terms of service and send a confirmation email.
         """
-
         user = auth_user()
 
         async with db_commit() as session:
@@ -82,6 +80,7 @@ class UserSignupService:
                 update(User)
                 .where(User.id == user.id, User.status == UserStatus.pending_terms)
                 .values({User.status: UserStatus.pending_activation})
+                .inline()
             )
 
             if (await session.execute(stmt)).rowcount != 1:
@@ -95,7 +94,6 @@ class UserSignupService:
         """
         Send a confirmation email for the current user.
         """
-
         app_domain = urlsplit(APP_URL).netloc
         token = await UserTokenAccountConfirmService.create()
 
@@ -116,7 +114,6 @@ class UserSignupService:
         """
         Abort the current signup process.
         """
-
         async with db_commit() as session:
             stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
             await session.execute(stmt)

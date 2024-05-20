@@ -310,7 +310,7 @@ class OptimisticDiffPrepare:
 
     async def _check_element_unreferenced(self, element: Element) -> None:
         """
-        Check if the element is not referenced by other elements.
+        Check if the element is unreferenced.
         """
         element_ref = ElementRef(element.type, element.id)
 

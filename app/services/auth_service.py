@@ -160,8 +160,8 @@ class AuthService:
                         update(User)
                         .where(User.id == user.id, User.password_hashed == user.password_hashed)
                         .values({User.password_hashed: new_hash, User.password_salt: None})
+                        .inline()
                     )
-
                     await session.execute(stmt)
 
                 user.password_hashed = new_hash

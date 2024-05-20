@@ -38,8 +38,8 @@ class UserPrefService:
                     index_elements=(UserPref.user_id, UserPref.app_id, UserPref.key),
                     set_={UserPref.value: pref.value},
                 )
+                .inline()
             )
-
             await session.execute(stmt)
 
     @staticmethod
@@ -71,8 +71,8 @@ class UserPrefService:
                     index_elements=(UserPref.user_id, UserPref.app_id, UserPref.key),
                     set_={UserPref.value: UserPref.value},
                 )
+                .inline()
             )
-
             await session.execute(stmt)
 
     @staticmethod
@@ -87,7 +87,6 @@ class UserPrefService:
                 UserPref.app_id == app_id,
                 UserPref.key == key,
             )
-
             await session.execute(stmt)
 
     @staticmethod
@@ -101,5 +100,4 @@ class UserPrefService:
                 UserPref.user_id == auth_user().id,
                 UserPref.app_id == app_id,
             )
-
             await session.execute(stmt)

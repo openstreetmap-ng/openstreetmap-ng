@@ -159,6 +159,7 @@ class RichTextMixin:
                     update(cls)
                     .where(cls.id == self.id, getattr(cls, rich_hash_field_name) == text_rich_hash)
                     .values({rich_hash_field_name: cache_entry_id})
+                    .inline()
                 )
                 await session.execute(stmt)
 

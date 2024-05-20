@@ -58,5 +58,6 @@ class UserTokenAccountConfirmService:
                     User.status == UserStatus.pending_activation,
                 )
                 .values({User.status: UserStatus.active})
+                .inline()
             )
             await session.execute(stmt)

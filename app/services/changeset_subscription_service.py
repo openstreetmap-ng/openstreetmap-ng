@@ -29,8 +29,8 @@ class ChangesetSubscriptionService:
                 .on_conflict_do_nothing(
                     index_elements=(ChangesetSubscription.changeset_id, ChangesetSubscription.user_id),
                 )
+                .inline()
             )
-
             await session.execute(stmt)
 
     @staticmethod
@@ -46,5 +46,4 @@ class ChangesetSubscriptionService:
                 ChangesetSubscription.changeset_id == changeset_id,
                 ChangesetSubscription.user_id == user_id,
             )
-
             await session.execute(stmt)

@@ -44,8 +44,8 @@ class SystemAppService:
                             OAuth2Application.scopes: app.scopes,
                         },
                     )
+                    .inline()
                 )
-
                 await session.execute(stmt)
 
     @staticmethod

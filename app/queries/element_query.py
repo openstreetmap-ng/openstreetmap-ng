@@ -6,7 +6,7 @@ from typing import Literal
 import cython
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
-from sqlalchemy import Select, and_, func, null, or_, select, text, true
+from sqlalchemy import Select, and_, func, null, or_, select, text, true, union_all
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
 from app.db import db
@@ -34,19 +34,48 @@ class ElementQuery:
             return sequence_id if (sequence_id is not None) else 0
 
     @staticmethod
-    async def get_current_id_by_type(type: ElementType) -> int:
+    async def get_current_ids() -> dict[ElementType, int]:
         """
-        Get the last id for the given element type.
+        Get the last id for each element type.
 
         Returns 0 if no elements exist with the given type.
         """
         async with db() as session:
-            stmt = select(func.max(Element.id)).where(Element.type == type)
-            element_id = await session.scalar(stmt)
-            return element_id if (element_id is not None) else 0
+            stmts = tuple(
+                select(Element.type, func.max(Element.id)).where(Element.type == type)  #
+                for type in ('node', 'way', 'relation')
+            )
+            result = await session.execute(union_all(*stmts))
+            return dict(result)
 
     @staticmethod
-    async def is_unreferenced(member_refs: Sequence[ElementRef], *, after_sequence_id: int) -> bool:
+    async def is_latest(versioned_refs: Sequence[VersionedElementRef]) -> bool:
+        """
+        Check if the given elements are currently up-to-date.
+        """
+        if not versioned_refs:
+            return True
+
+        async with db() as session:
+            stmt = (
+                select(text('1'))
+                .where(
+                    Element.next_sequence_id != null(),
+                    or_(
+                        and_(
+                            Element.type == versioned_ref.type,
+                            Element.id == versioned_ref.id,
+                            Element.version == versioned_ref.version,
+                        )
+                        for versioned_ref in versioned_refs
+                    ),
+                )
+                .limit(1)
+            )
+            return await session.scalar(stmt) is None
+
+    @staticmethod
+    async def is_unreferenced(member_refs: Sequence[ElementRef], after_sequence_id: int) -> bool:
         """
         Check if the given elements are currently unreferenced.
 
@@ -56,17 +85,21 @@ class ElementQuery:
             return True
 
         async with db() as session:
-            stmt = select(text('1')).where(
-                ElementMember.sequence_id > after_sequence_id,
-                or_(
-                    *(
-                        and_(
-                            ElementMember.type == member_ref.type,
-                            ElementMember.id == member_ref.id,
-                        )
-                        for member_ref in member_refs
+            stmt = (
+                select(text('1'))
+                .where(
+                    ElementMember.sequence_id > after_sequence_id,
+                    or_(
+                        *(
+                            and_(
+                                ElementMember.type == member_ref.type,
+                                ElementMember.id == member_ref.id,
+                            )
+                            for member_ref in member_refs
+                        ),
                     ),
-                ),
+                )
+                .limit(1)
             )
             return await session.scalar(stmt) is None
 
