@@ -71,7 +71,7 @@ def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | N
     if not matched_keys:
         return None
 
-    result: list[tuple[int, str, str]] = []
+    result: list[tuple[int, str, str]] | None = None
 
     # prefer value-specific icons first
     for specific in (True, False):
@@ -80,7 +80,7 @@ def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | N
 
             # prefer type-specific icons first
             for config_key in (f'{key}.{type}', key):
-                values_icons_map: dict[str, str] | None = _config.get(config_key)
+                values_icons_map = _config.get(config_key)
                 if values_icons_map is None:
                     continue
 
@@ -90,10 +90,14 @@ def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | N
 
                 popularity = _popular_stats.get(config_key, {}).get(value, 0)
                 title = f'{key}={value}' if specific else key
-                result.append((popularity, icon, title))
 
-    if not result:
-        return None
+                if result is None:
+                    result = [(popularity, icon, title)]
+                else:
+                    result.append((popularity, icon, title))
 
-    # pick the least popular tagging icon
-    return min(result)[1:]
+        # pick the least popular tagging icon
+        if result:
+            return min(result)[1:]
+
+    return None
