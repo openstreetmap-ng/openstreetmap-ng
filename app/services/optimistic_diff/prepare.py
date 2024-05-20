@@ -22,7 +22,7 @@ from app.queries.element_query import ElementQuery
 
 @dataclass(init=False, repr=False, eq=False, match_args=False, slots=True)
 class OptimisticDiffPrepare:
-    at_sequence_id: int | None = None
+    at_sequence_id: int | None
     """
     sequence_id at which the optimistic diff is performed.
     """
@@ -65,6 +65,7 @@ class OptimisticDiffPrepare:
     """
 
     def __init__(self, elements: Sequence[Element]) -> None:
+        self.at_sequence_id = None
         self.elements = elements
         self.element_state = defaultdict(list)
         self._element_parent_refs_cache = {}

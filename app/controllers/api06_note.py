@@ -41,7 +41,7 @@ router = APIRouter(prefix='/api/0.6')
 # TODO: validate input lengths
 
 
-async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | NoteComment]) -> None:
+async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note] | Sequence[NoteComment]) -> None:
     """
     Resolve note comments and their rich text.
     """
@@ -51,13 +51,11 @@ async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note | Not
     async with create_task_group() as tg:
         # is it a sequence of comments or notes?
         if isinstance(notes_or_comments[0], NoteComment):
-            comment: NoteComment
             for comment in notes_or_comments:
                 tg.start_soon(comment.resolve_rich_text)
         else:
-            with options_context(joinedload(NoteComment.user)):
+            with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
                 await NoteCommentQuery.resolve_comments(notes_or_comments, limit_per_note=None)
-            note: Note
             for note in notes_or_comments:
                 for comment in note.comments:
                     tg.start_soon(comment.resolve_rich_text)
@@ -328,8 +326,8 @@ async def notes_query(
         geometry = None
 
     notes = await NoteQuery.find_many_by_query(
-        text=q,
-        user_id=user.id if user is not None else None,
+        phrase=q,
+        user_id=user.id if (user is not None) else None,
         max_closed_for=max_closed_for,
         geometry=geometry,
         date_from=from_,

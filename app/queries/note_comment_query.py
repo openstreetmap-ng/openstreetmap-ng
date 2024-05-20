@@ -71,7 +71,7 @@ class NoteCommentQuery:
                 stmt_ = stmt_.order_by(NoteComment.created_at.asc())
                 stmts.append(stmt_)
 
-            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).scalar_subquery()))
+            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
             stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
@@ -80,8 +80,8 @@ class NoteCommentQuery:
         current_comments: list[NoteComment] = []
 
         for comment in comments:
-            current_note_id = comment.note_id
-            if current_note_id != current_note_id:
-                current_note_id = current_note_id
-                current_comments = id_comments_map[current_note_id]
+            note_id = comment.note_id
+            if current_note_id != note_id:
+                current_note_id = note_id
+                current_comments = id_comments_map[note_id]
             current_comments.append(comment)

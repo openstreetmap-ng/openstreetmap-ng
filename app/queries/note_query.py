@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Literal
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, null, select
+from sqlalchemy import func, null, select, text
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -18,7 +18,7 @@ class NoteQuery:
     async def find_many_by_query(
         *,
         note_ids: Sequence[int] | None = None,
-        text: str | None = None,
+        phrase: str | None = None,
         user_id: int | None = None,
         max_closed_for: timedelta | None = None,
         geometry: BaseGeometry | None = None,
@@ -39,8 +39,8 @@ class NoteQuery:
 
             if note_ids:
                 where_and.append(Note.id.in_(text(','.join(map(str, note_ids)))))
-            if text is not None:
-                where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(text)))
+            if phrase is not None:
+                where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
             if user_id is not None:
                 where_and.append(NoteComment.user_id == user_id)
             if max_closed_for is not None:

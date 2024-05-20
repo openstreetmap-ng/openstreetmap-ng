@@ -47,7 +47,7 @@ class ChangesetCommentQuery:
                 stmt_ = stmt_.order_by(ChangesetComment.created_at.asc())
                 stmts.append(stmt_)
 
-            stmt = select(ChangesetComment).where(ChangesetComment.id.in_(union_all(*stmts).scalar_subquery()))
+            stmt = select(ChangesetComment).where(ChangesetComment.id.in_(union_all(*stmts).subquery().select()))
             stmt = apply_options_context(stmt)
             comments: Sequence[ChangesetComment] = (await session.scalars(stmt)).all()
 
@@ -55,10 +55,10 @@ class ChangesetCommentQuery:
         current_comments: list[ChangesetComment] = []
 
         for comment in comments:
-            comment_changeset_id = comment.changeset_id
-            if current_changeset_id != comment_changeset_id:
-                current_changeset_id = comment_changeset_id
-                current_comments = id_comments_map[comment_changeset_id]
+            changeset_id = comment.changeset_id
+            if current_changeset_id != changeset_id:
+                current_changeset_id = changeset_id
+                current_comments = id_comments_map[changeset_id]
             current_comments.append(comment)
 
         if resolve_rich_text:

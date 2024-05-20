@@ -19,9 +19,9 @@ async def test_note_crud(client: AsyncClient):
 
     assert props['status'] == 'open'
     assert len(comments) == 1
-    assert comments[0]['user'] == 'user1'
-    assert comments[0]['action'] == 'opened'
-    assert comments[0]['text'] == 'create'
+    assert comments[-1]['user'] == 'user1'
+    assert comments[-1]['action'] == 'opened'
+    assert comments[-1]['text'] == 'create'
 
     # read note
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
@@ -39,9 +39,9 @@ async def test_note_crud(client: AsyncClient):
 
     assert props['status'] == 'open'
     assert len(comments) == 2
-    assert comments[0]['user'] == 'user1'
-    assert comments[0]['action'] == 'commented'
-    assert comments[0]['text'] == 'comment'
+    assert comments[-1]['user'] == 'user1'
+    assert comments[-1]['action'] == 'commented'
+    assert comments[-1]['text'] == 'comment'
 
     # resolve note
     r = await client.post(
@@ -54,6 +54,6 @@ async def test_note_crud(client: AsyncClient):
 
     assert props['status'] == 'closed'
     assert len(comments) == 3
-    assert comments[0]['user'] == 'user1'
-    assert comments[0]['action'] == 'closed'
-    assert comments[0]['text'] == 'resolve'
+    assert comments[-1]['user'] == 'user1'
+    assert comments[-1]['action'] == 'closed'
+    assert comments[-1]['text'] == 'resolve'
