@@ -28,9 +28,7 @@ class Nominatim:
         """
         Reverse geocode a point into a human-readable name.
         """
-
         x, y = get_coordinates(point)[0].tolist()
-
         path = '/reverse?' + urlencode(
             {
                 'format': 'jsonv2',
@@ -48,13 +46,13 @@ class Nominatim:
             return r.content
 
         try:
-            cache_entry = await CacheService.get_one_by_key(
-                key=path,
+            cache = await CacheService.get(
+                path,
                 context=_cache_context,
                 factory=factory,
                 ttl=NOMINATIM_CACHE_LONG_EXPIRE,
             )
-            return JSON_DECODE(cache_entry.value)['display_name']
+            return JSON_DECODE(cache.value)['display_name']
         except HTTPError:
             logging.warning('Nominatim reverse geocoding failed', exc_info=True)
             # always succeed, return coordinates as a fallback
@@ -67,7 +65,6 @@ class Nominatim:
 
         Returns the first result as a NominatimSearchGeneric object.
         """
-
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
@@ -84,13 +81,14 @@ class Nominatim:
             r.raise_for_status()
             return r.content
 
-        cache_entry = await CacheService.get_one_by_key(
-            key=path,
+        cache = await CacheService.get(
+            path,
             context=_cache_context,
             factory=factory,
+            hash_key=True,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        result: dict = JSON_DECODE(cache_entry.value)[0]
+        result: dict = JSON_DECODE(cache.value)[0]
 
         point = Point(float(result['lon']), float(result['lat']))
         name = result['display_name']
@@ -110,7 +108,6 @@ class Nominatim:
 
         Returns a sequence of ElementRef objects.
         """
-
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
@@ -127,13 +124,14 @@ class Nominatim:
             r.raise_for_status()
             return r.content
 
-        cache_entry = await CacheService.get_one_by_key(
-            key=path,
+        cache = await CacheService.get(
+            path,
             context=_cache_context,
             factory=factory,
+            hash_key=True,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        results: list[dict] = JSON_DECODE(cache_entry.value)
+        results: list[dict] = JSON_DECODE(cache.value)
 
         return tuple(
             ElementRef(osm_type, osm_id)

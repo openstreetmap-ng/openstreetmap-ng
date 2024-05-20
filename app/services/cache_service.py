@@ -25,18 +25,26 @@ _decompress = ZstdDecompressor().decompress
 
 class CacheService:
     @staticmethod
-    async def get_one_by_cache_id(
-        cache_id: bytes,
+    async def get(
+        key: str | bytes,
         context: str,
         factory: Callable[[], Awaitable[bytes]],
         *,
+        hash_key: bool = False,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
     ) -> CacheEntry:
         """
-        Get a value from the cache by id.
+        Get a value from the cache.
 
-        If the value is not in the cache, call the async factory to generate it.
+        If the value is not in the cache, call the async factory to obtain it.
         """
+        if hash_key:
+            cache_id = hash_bytes(key)
+        elif isinstance(key, str):
+            cache_id = key.encode()
+        else:
+            cache_id = key
+
         cache_key = f'{context}:{cache_id.hex()}'
 
         async with valkey() as conn:
@@ -65,21 +73,3 @@ class CacheService:
                 await conn.set(cache_key, value_stored, ex=ttl, nx=True)
 
         return CacheEntry(id=cache_id, value=value)
-
-    @staticmethod
-    async def get_one_by_key(
-        key: str,
-        context: str,
-        factory: Callable[[], Awaitable[bytes]],
-        *,
-        ttl: timedelta = CACHE_DEFAULT_EXPIRE,
-    ) -> CacheEntry:
-        """
-        Get a value from the cache by key string.
-
-        Context is used to namespace the cache and prevent collisions.
-
-        If the value is not in the cache, call the async factory to generate it.
-        """
-        cache_id = hash_bytes(key)
-        return await CacheService.get_one_by_cache_id(cache_id, context, factory, ttl=ttl)

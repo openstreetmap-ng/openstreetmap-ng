@@ -174,10 +174,11 @@ class AuthService:
         password_changed_at = user.password_changed_at
         password_changed_at_str = password_changed_at.isoformat() if (password_changed_at is not None) else 'None'
 
-        key = f'{SECRET}\x00{password_hashed}\x00{password_changed_at_str}\x00{password.get_secret_value()}'
-
-        cache = await CacheService.get_one_by_key(
-            key=key,
+        cache_id = hash_bytes(
+            f'{SECRET}\x00{password_hashed}\x00{password_changed_at_str}\x00{password.get_secret_value()}'
+        )
+        cache = await CacheService.get(
+            cache_id,
             context=_credentials_context,
             factory=factory,
             ttl=AUTH_CREDENTIALS_CACHE_EXPIRE,

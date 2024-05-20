@@ -13,7 +13,7 @@ from app.config import TEST_ENV
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT
 from app.services.cache_service import CacheService
 
-_cache_context = 'EmailDeliverability'
+_cache_context = 'EmailValidator'
 
 _resolver = Resolver()
 _resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
@@ -63,8 +63,8 @@ async def validate_email_deliverability(email: str) -> bool:
         success = await _check_domain_deliverability(domain)
         return b'\xff' if success else b'\x00'
 
-    cache_entry = await CacheService.get_one_by_key(
-        key=domain,
+    cache_entry = await CacheService.get(
+        domain,
         context=_cache_context,
         factory=factory,
         ttl=EMAIL_DELIVERABILITY_CACHE_EXPIRE,

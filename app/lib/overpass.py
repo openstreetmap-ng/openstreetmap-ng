@@ -13,17 +13,6 @@ from app.utils import HTTP, JSON_DECODE
 _cache_context = 'Overpass'
 
 
-@cython.cfunc
-def _get_bounds_size(element: dict) -> float:
-    bounds: dict = element['bounds']
-    minlon: cython.double = bounds['minlon']
-    minlat: cython.double = bounds['minlat']
-    maxlon: cython.double = bounds['maxlon']
-    maxlat: cython.double = bounds['maxlat']
-    size = (maxlon - minlon) * (maxlat - minlat)
-    return size
-
-
 class Overpass:
     @staticmethod
     async def enclosing_elements(point: Point) -> Sequence[Element]:
@@ -34,9 +23,7 @@ class Overpass:
 
         Returns a sequence of simplified element instances.
         """
-
         x, y = get_coordinates(point)[0].tolist()
-
         timeout = 10
         query = (
             f'[out:json][timeout:{timeout}];'
@@ -53,15 +40,30 @@ class Overpass:
             r.raise_for_status()
             return r.content
 
-        cache_entry = await CacheService.get_one_by_key(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements: list[dict] = JSON_DECODE(cache_entry.value)['elements']
+        cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
+        elements: list[dict] = JSON_DECODE(cache.value)['elements']
         elements.sort(key=_get_bounds_size)
 
         return tuple(
             Element(
+                changeset_id=0,
                 type=element['type'],
                 id=element['id'],
+                version=0,
+                visible=True,
                 tags=element['tags'],
+                point=None,
             )
             for element in elements
         )
+
+
+@cython.cfunc
+def _get_bounds_size(element: dict) -> float:
+    bounds: dict = element['bounds']
+    minlon: cython.double = bounds['minlon']
+    minlat: cython.double = bounds['minlat']
+    maxlon: cython.double = bounds['maxlon']
+    maxlat: cython.double = bounds['maxlat']
+    size = (maxlon - minlon) * (maxlat - minlat)
+    return size
