@@ -3,7 +3,7 @@ name: Python tests
 on: [push]
 
 jobs:
-  update:
+  test:
     runs-on: ubuntu-latest
 
     steps:
