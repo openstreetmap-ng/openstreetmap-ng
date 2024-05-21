@@ -338,11 +338,8 @@ class ElementQuery:
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
 
-        # only_nodes = not (type_id_map.get('way') or type_id_map.get('relation'))
-        only_ways_relations = not type_id_map.get('node')
-
         # optimization: ways and relations can only be members of relations
-        if parent_type is None and only_ways_relations:
+        if parent_type is None and (not type_id_map.get('node')):
             parent_type = 'relation'
 
         async with db() as session:
@@ -393,7 +390,7 @@ class ElementQuery:
                     (Element.next_sequence_id == null(),)
                     if at_sequence_id is None
                     else (
-                        Element.sequence_id <= at_sequence_id,
+                        # redundant: Element.sequence_id <= at_sequence_id,
                         or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
                     )
                 ),
@@ -409,6 +406,90 @@ class ElementQuery:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def get_many_parents_refs_by_refs(
+        member_refs: Sequence[ElementRef],
+        *,
+        at_sequence_id: int | None = None,
+        limit: int | None,
+    ) -> dict[ElementRef, Sequence[ElementRef]]:
+        """
+        Get elements refs that reference the given elements.
+        """
+        if not member_refs:
+            return {}
+
+        type_id_map: dict[ElementType, list[int]] = defaultdict(list)
+        for member_ref in member_refs:
+            type_id_map[member_ref.type].append(member_ref.id)
+
+        async with db() as session:
+            # 1: find lifetime of each ref
+            cte_sub = (
+                select(Element.type, Element.id, Element.sequence_id, Element.next_sequence_id)
+                .where(
+                    *(
+                        (Element.next_sequence_id == null(),)
+                        if at_sequence_id is None
+                        else (
+                            Element.sequence_id <= at_sequence_id,
+                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                        )
+                    ),
+                    or_(
+                        *(
+                            and_(
+                                Element.type == type,
+                                Element.id.in_(text(','.join(map(str, ids)))),
+                            )
+                            for type, ids in type_id_map.items()
+                        )
+                    ),
+                )
+                .subquery()
+            )
+            # 2: find parents that referenced the refs during their lifetime
+            cte = (
+                select(ElementMember.sequence_id, ElementMember.type, ElementMember.id)
+                .where(
+                    ElementMember.type == cte_sub.c.type,
+                    ElementMember.id == cte_sub.c.id,
+                    ElementMember.sequence_id > cte_sub.c.sequence_id,
+                    *(
+                        (ElementMember.sequence_id < func.coalesce(cte_sub.c.next_sequence_id, at_sequence_id + 1),)
+                        if at_sequence_id is not None
+                        else ()
+                    ),
+                )
+                .distinct()
+                .cte()
+                .prefix_with('MATERIALIZED')
+            )
+            # 3: filter parents that currently exist
+            stmt = (
+                select(cte.c.type, cte.c.id, Element.type, Element.id)
+                .join_from(cte, Element, cte.c.sequence_id == Element.sequence_id)
+                .where(
+                    *(
+                        (Element.next_sequence_id == null(),)
+                        if at_sequence_id is None
+                        else (
+                            # redundant: Element.sequence_id <= at_sequence_id,
+                            or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                        )
+                    )
+                )
+            )
+
+            if limit is not None:
+                stmt = stmt.limit(limit)
+
+            rows = (await session.execute(stmt)).all()
+            result = {member_ref: [] for member_ref in member_refs}
+            for member_type, member_id, type, id in rows:
+                result[ElementRef(member_type, member_id)].append(ElementRef(type, id))
+            return result
 
     @staticmethod
     async def get_many_by_changeset(

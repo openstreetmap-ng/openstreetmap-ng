@@ -42,6 +42,7 @@ class Element(Base.NoID, CreatedAtMixin):
     members: list['ElementMember'] | None = None
     user_id: int | None = None
     user_display_name: str | None = None
+    delete_if_unused: bool | None = None
 
     __table_args__ = (
         PrimaryKeyConstraint(sequence_id, name='element_pkey'),

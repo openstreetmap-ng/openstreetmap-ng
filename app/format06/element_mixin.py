@@ -128,13 +128,13 @@ class Element06Mixin:
                 for key, data in elements_data:
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
-                    if element.version < 2:
+                    if element.version <= 1:
                         raise_for().diff_update_bad_version(element)
 
                     result.append(element)
 
             elif action == 'delete':
-                delete_if_unused: bool = False  # TODO: finish implementation
+                delete_if_unused: cython.char = False
 
                 for key, data in elements_data:
                     if key == '@if-unused':
@@ -144,8 +144,10 @@ class Element06Mixin:
                     data['@visible'] = False
                     element = _decode_element(key, data, changeset_id=changeset_id)
 
-                    if element.version < 2:
+                    if element.version <= 1:
                         raise_for().diff_update_bad_version(element)
+                    if delete_if_unused:
+                        element.delete_if_unused = True
 
                     result.append(element)
 
