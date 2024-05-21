@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import anyio
 import pytest
 
 from app.lib.retry import retry
@@ -24,10 +23,10 @@ async def test_retry():
     assert runs == 2
 
 
-def test_retry_timeout():
+async def test_retry_timeout():
     @retry(timedelta(seconds=0.1))
     async def func():
         raise RuntimeError
 
     with pytest.raises(TimeoutError):
-        anyio.run(func)
+        await func()

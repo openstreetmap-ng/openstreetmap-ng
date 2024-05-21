@@ -44,6 +44,15 @@ jobs:
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
           path: ~/.bun/install/cache
 
+      - name: Cache locale
+        uses: actions/cache@v4
+        with:
+          key: locale-${{ runner.os }}
+          path: |
+            config/locale/gnu
+            config/locale/i18next
+            config/locale/postprocess
+
       - name: Install dependencies
         run: |
           nix-shell --pure --run true
