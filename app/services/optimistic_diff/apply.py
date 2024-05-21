@@ -3,7 +3,6 @@ from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 
-import cython
 from anyio import create_task_group
 from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
