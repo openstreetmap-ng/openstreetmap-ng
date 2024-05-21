@@ -14,6 +14,7 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
 from app.models.scope import Scope
@@ -32,7 +33,7 @@ router = APIRouter(prefix='/api/0.6')
 
 
 @router.put('/changeset/create')
-async def changeset_create(
+async def create_changeset(
     data: Annotated[dict, xml_body('osm/changeset')],
     _: Annotated[User, api_user(Scope.write_api)],
 ):
@@ -48,23 +49,39 @@ async def changeset_create(
 @router.get('/changeset/{changeset_id:int}')
 @router.get('/changeset/{changeset_id:int}.xml')
 @router.get('/changeset/{changeset_id:int}.json')
-async def changeset_read(
+async def get_changeset(
     changeset_id: PositiveInt,
     include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
 ):
-    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
 
     if not changesets:
         raise_for().changeset_not_found(changeset_id)
     if include_discussion:
-        with options_context(joinedload(ChangesetComment.user)):
+        with options_context(joinedload(ChangesetComment.user).load_only(User.display_name)):
             await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
 
     return Format06.encode_changesets(changesets)
 
 
+@router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
+@router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
+async def download_changeset(
+    changeset_id: PositiveInt,
+):
+    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    changeset = changesets[0] if changesets else None
+    if changeset is None:
+        raise_for().changeset_not_found(changeset_id)
+
+    elements = await ElementQuery.get_many_by_changeset(changeset_id, sort_by='sequence_id')
+    await UserQuery.resolve_elements_users(elements, True)
+    return Format06.encode_osmchange(elements)
+
+
 @router.put('/changeset/{changeset_id:int}')
-async def changeset_update(
+async def update_changeset(
     changeset_id: PositiveInt,
     data: Annotated[dict, xml_body('osm/changeset')],
     _: Annotated[User, api_user(Scope.write_api)],
@@ -75,12 +92,13 @@ async def changeset_update(
         raise_for().bad_xml('changeset', str(e))
 
     await ChangesetService.update_tags(changeset_id, tags)
-    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
     return Format06.encode_changesets(changesets)
 
 
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
-async def changeset_upload(
+async def upload_diff(
     changeset_id: PositiveInt,
     data: Annotated[Sequence[dict], xml_body('osmChange')],
     _: Annotated[User, api_user(Scope.write_api)],
@@ -96,7 +114,7 @@ async def changeset_upload(
 
 
 @router.put('/changeset/{changeset_id:int}/close')
-async def changeset_close(
+async def close_changeset(
     changeset_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_api)],
 ):
@@ -104,29 +122,11 @@ async def changeset_close(
     return Response()
 
 
-@router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
-@router.get('/changeset/{changeset_id:int}/download.xml', response_class=OSMChangeResponse)
-async def changeset_download(
-    changeset_id: PositiveInt,
-):
-    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    changeset = changesets[0] if changesets else None
-    if changeset is None:
-        raise_for().changeset_not_found(changeset_id)
-
-    elements = await ElementQuery.get_many_by_changeset(changeset_id, sort_by='sequence_id')
-
-    for element in elements:
-        element.changeset = changeset
-
-    return Format06.encode_osmchange(elements)
-
-
 @router.get('/changesets')
 @router.get('/changesets.xml')
 @router.get('/changesets.json')
-async def changesets_query(
-    changesets: Annotated[str | None, Query(min_length=1)] = None,
+async def query_changesets(
+    changeset_ids_str: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
     display_name: Annotated[str | None, Query(min_length=1)] = None,
     user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
     time: Annotated[str | None, Query(min_length=1)] = None,
@@ -145,10 +145,10 @@ async def changesets_query(
 
     geometry = parse_bbox(bbox) if (bbox is not None) else None
 
-    if changesets is not None:
+    if changeset_ids_str is not None:
         changeset_ids = set()
 
-        for c in changesets.split(','):
+        for c in changeset_ids_str.split(','):
             c = c.strip()
             if c.isdigit():
                 changeset_ids.add(int(c))
@@ -191,14 +191,14 @@ async def changesets_query(
         closed_after = None
         created_before = None
 
-    changesets = await ChangesetQuery.find_many_by_query(
-        changeset_ids=changeset_ids,
-        user_id=user.id if (user is not None) else None,
-        created_before=created_before,
-        closed_after=closed_after,
-        is_open=True if open else (False if closed else None),
-        geometry=geometry,
-        limit=limit,
-    )
-
+    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+        changesets = await ChangesetQuery.find_many_by_query(
+            changeset_ids=changeset_ids,
+            user_id=user.id if (user is not None) else None,
+            created_before=created_before,
+            closed_after=closed_after,
+            is_open=True if open else (False if closed else None),
+            geometry=geometry,
+            limit=limit,
+        )
     return Format06.encode_changesets(changesets)

@@ -84,7 +84,7 @@ let
     '')
     (writeShellScriptBin "watch-cython" ''
       cython-build
-      while inotifywait -e close_write app/**/*.py; do
+      while inotifywait -e close_write --recursive --include "\.py$" app; do
         cython-build
       done
     '')
@@ -107,7 +107,7 @@ let
     (writeShellScriptBin "watch-sass" ''
       shopt -s globstar
       sass-pipeline
-      while inotifywait -e close_write app/static/sass/**/*.scss; do
+      while inotifywait -e close_write --recursive app/static/sass; do
         sass-pipeline
       done
     '')
@@ -130,11 +130,7 @@ let
     (writeShellScriptBin "watch-js" ''
       shopt -s globstar
       js-pipeline
-      while inotifywait -e close_write $( \
-        find app/static/js \
-        -type f \
-        -name "*.js" \
-        -not -name "bundle-*"); do
+      while inotifywait -e close_write --recursive --exclude "^bundle-" app/static/js; do
         js-pipeline
       done
     '')
@@ -376,7 +372,7 @@ let
     '')
     (writeShellScriptBin "watch-tests" ''
       run-tests || true
-      while inotifywait -e close_write ./**/*.py; do
+      while inotifywait -e close_write --recursive --include "\.py$" .; do
         run-tests || true
       done
     '')

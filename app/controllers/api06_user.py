@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response, status
@@ -8,37 +7,26 @@ from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.user import User
-from app.models.scope import Scope
-from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 
 router = APIRouter(prefix='/api/0.6')
 
 
-@router.get('/user/gpx_files')
-@router.get('/user/gpx_files.xml')
-async def user_gpx_files(
-    user: Annotated[User, api_user(Scope.read_gpx)],
-) -> Sequence[dict]:
-    traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
-    return Format06.encode_gpx_files(traces)
-
-
 @router.get('/user/details')
 @router.get('/user/details.xml')
 @router.get('/user/details.json')
-async def user_details(
+async def get_current_user(
     user: Annotated[User, api_user()],
-) -> dict:
+):
     return await Format06.encode_user(user)
 
 
 @router.get('/user/{user_id:int}')
 @router.get('/user/{user_id:int}.xml')
 @router.get('/user/{user_id:int}.json')
-async def user_read(
+async def get_user(
     user_id: PositiveInt,
-) -> dict:
+):
     user = await UserQuery.find_one_by_id(user_id)
 
     if user is None:
@@ -52,9 +40,9 @@ async def user_read(
 @router.get('/users')
 @router.get('/users.xml')
 @router.get('/users.json')
-async def users_read(
+async def get_many_users(
     users: Annotated[str, Query(min_length=1)],
-) -> Sequence[dict]:
+):
     user_ids = set()
 
     for q in users.split(','):

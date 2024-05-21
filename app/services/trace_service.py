@@ -59,9 +59,7 @@ class TraceService:
                 )
             )
         )
-
         trace.tag_string = tags
-
         compressed_file, compressed_suffix = TraceFile.compress(file_bytes)
         trace.file_id = await TRACES_STORAGE.save(compressed_file, compressed_suffix)
 
@@ -70,9 +68,10 @@ class TraceService:
                 session.add(trace)
                 await session.flush()
 
+                trace_id = trace.id
                 for point in points:
-                    point.trace_id = trace.id
-                    session.add(point)
+                    point.trace_id = trace_id
+                session.add_all(points)
 
         except Exception:
             # clean up trace file on error
@@ -83,7 +82,12 @@ class TraceService:
 
     @staticmethod
     async def update(
-        trace_id: int, *, name: str, description: str, tag_string: str, visibility: TraceVisibility
+        trace_id: int,
+        *,
+        name: str,
+        description: str,
+        tag_string: str,
+        visibility: TraceVisibility,
     ) -> None:
         """
         Update a trace.

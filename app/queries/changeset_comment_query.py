@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from anyio import create_task_group
-from sqlalchemy import select, union_all
+from sqlalchemy import Select, select
 
 from app.db import db
 from app.lib.options_context import apply_options_context
@@ -31,10 +31,10 @@ class ChangesetCommentQuery:
             return
 
         async with db() as session:
-            stmts = []
+            stmt: Select[ChangesetComment] | None = None
 
             for changeset in changesets_:
-                stmt_ = select(ChangesetComment.id).where(
+                stmt_ = select(ChangesetComment).where(
                     ChangesetComment.changeset_id == changeset.id,
                     ChangesetComment.created_at <= changeset.updated_at,
                 )
@@ -42,13 +42,12 @@ class ChangesetCommentQuery:
                 if limit_per_changeset is not None:
                     stmt_ = stmt_.order_by(ChangesetComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_changeset)
-                    stmt_ = select(ChangesetComment.id).select_from(stmt_)
+                    stmt_ = select(ChangesetComment).select_from(stmt_)
 
                 stmt_ = stmt_.order_by(ChangesetComment.created_at.asc())
-                stmts.append(stmt_)
+                stmt_ = apply_options_context(stmt_)
+                stmt = stmt.union_all(stmt_) if (stmt is not None) else stmt_
 
-            stmt = select(ChangesetComment).where(ChangesetComment.id.in_(union_all(*stmts).subquery().select()))
-            stmt = apply_options_context(stmt)
             comments: Sequence[ChangesetComment] = (await session.scalars(stmt)).all()
 
         current_changeset_id: int = 0

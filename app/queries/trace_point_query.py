@@ -64,7 +64,7 @@ class TracePointQuery:
                 )
             )
             stmt2 = apply_options_context(stmt2)
-            stmt = stmt1.union(stmt2)
+            stmt = stmt1.union_all(stmt2)
             # TODO: this may require a correction
 
             if legacy_offset is not None:

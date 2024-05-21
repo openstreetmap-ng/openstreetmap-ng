@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, select, union_all
+from sqlalchemy import Select, func, select
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -55,10 +55,10 @@ class NoteCommentQuery:
             return
 
         async with db() as session:
-            stmts = []
+            stmt: Select[NoteComment] | None = None
 
             for note in notes_:
-                stmt_ = select(NoteComment.id).where(
+                stmt_ = select(NoteComment).where(
                     NoteComment.note_id == note.id,
                     NoteComment.created_at <= note.updated_at,
                 )
@@ -66,13 +66,12 @@ class NoteCommentQuery:
                 if limit_per_note is not None:
                     stmt_ = stmt_.order_by(NoteComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_note)
-                    stmt_ = select(NoteComment.id).select_from(stmt_)
+                    stmt_ = select(NoteComment).select_from(stmt_)
 
                 stmt_ = stmt_.order_by(NoteComment.created_at.asc())
-                stmts.append(stmt_)
+                stmt_ = apply_options_context(stmt_)
+                stmt = stmt.union_all(stmt_) if (stmt is not None) else stmt_
 
-            stmt = select(NoteComment).where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
-            stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
         # TODO: delete notes without comments

@@ -27,7 +27,7 @@ router = APIRouter(prefix='/api/0.6')
 
 
 @router.put('/{type:element_type}/create')
-async def create(
+async def create_element(
     type: ElementType,
     elements: Annotated[Sequence, xml_body('osm')],
     _: Annotated[User, api_user(Scope.write_api)],
@@ -50,7 +50,7 @@ async def create(
 
 
 @router.put('/{type:element_type}/{id:int}')
-async def update(
+async def update_element(
     type: ElementType,
     id: PositiveInt,
     elements: Annotated[Sequence, xml_body('osm')],
@@ -72,7 +72,7 @@ async def update(
 
 
 @router.delete('/{type:element_type}/{id:int}')
-async def delete(
+async def delete_element(
     type: ElementType,
     id: PositiveInt,
     elements: Annotated[Sequence, xml_body('osm')],
@@ -195,7 +195,7 @@ async def get_full(type: ElementType, id: PositiveInt):
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
 
-    with create_task_group() as tg:
+    async with create_task_group() as tg:
         tg.start_soon(UserQuery.resolve_elements_users, elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
 
@@ -207,7 +207,7 @@ async def get_full(type: ElementType, id: PositiveInt):
         limit=None,
     )
 
-    with create_task_group() as tg:
+    async with create_task_group() as tg:
         tg.start_soon(UserQuery.resolve_elements_users, members_elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, members_elements)
 
@@ -256,7 +256,7 @@ async def _encode_element(element: Element):
     Resolve required data fields for element and encode it.
     """
     elements = (element,)
-    with create_task_group() as tg:
+    async with create_task_group() as tg:
         tg.start_soon(UserQuery.resolve_elements_users, elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
     return Format06.encode_element(element)
@@ -266,7 +266,7 @@ async def _encode_elements(elements: Sequence[Element]):
     """
     Resolve required data fields for elements and encode them.
     """
-    with create_task_group() as tg:
+    async with create_task_group() as tg:
         tg.start_soon(UserQuery.resolve_elements_users, elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
     return Format06.encode_elements(elements)

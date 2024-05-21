@@ -13,9 +13,7 @@ router = APIRouter(prefix='/api/web')
 
 
 @router.get('/map')
-async def get_map(
-    bbox: Annotated[str, Query()],
-):
+async def get_map(bbox: Annotated[str, Query()]):
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()

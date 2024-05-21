@@ -21,7 +21,7 @@ _earth_radius_meters = 6371000
         (_earth_radius_meters * math.pi, math.pi),
     ],
 )
-def test_meters_to_radians_and_back(meters, radians):
+def test_meters_radians(meters, radians):
     assert math.isclose(meters_to_radians(meters), radians, rel_tol=1e-9)
     assert math.isclose(radians_to_meters(radians), meters, rel_tol=1e-9)
 

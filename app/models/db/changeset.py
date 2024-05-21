@@ -78,7 +78,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         self.size = new_size
         return True
 
-    def auto_close_on_size(self) -> bool:
+    def auto_close_on_size(self, now: datetime | None = None) -> bool:
         """
         Close the changeset if it is open and reaches the size limit.
 
@@ -88,7 +88,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
             return False
         if self.size < self.max_size:
             return False
-        self.closed_at = func.statement_timestamp()
+        self.closed_at = func.statement_timestamp() if (now is None) else now
         return True
 
     def union_bounds(self, geometry: BaseGeometry) -> None:

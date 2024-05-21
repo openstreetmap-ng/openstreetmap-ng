@@ -1,14 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, Response, UploadFile
-from pydantic import PositiveInt
+from fastapi import APIRouter, File, Form, Query, Response, UploadFile
+from pydantic import NonNegativeInt, PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format06 import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
+from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
+from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
 from app.models.scope import Scope
@@ -23,7 +25,7 @@ router = APIRouter(prefix='/api/0.6')
 
 
 @router.post('/gpx/create')
-async def gpx_create(
+async def upload_trace(
     _: Annotated[User, api_user(Scope.write_gpx)],
     file: Annotated[UploadFile, File()],
     description: Annotated[Str255, Form()],
@@ -44,7 +46,7 @@ async def gpx_create(
 @router.get('/gpx/{trace_id:int}.xml')
 @router.get('/gpx/{trace_id:int}/details')
 @router.get('/gpx/{trace_id:int}/details.xml')
-async def gpx_read(
+async def get_trace(
     trace_id: PositiveInt,
 ):
     with options_context(joinedload(Trace.user)):
@@ -52,9 +54,18 @@ async def gpx_read(
     return Format06.encode_gpx_file(trace)
 
 
+@router.get('/user/gpx_files')
+@router.get('/user/gpx_files.xml')
+async def get_current_user_traces(
+    user: Annotated[User, api_user(Scope.read_gpx)],
+):
+    traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
+    return Format06.encode_gpx_files(traces)
+
+
 @router.get('/gpx/{trace_id:int}/data.xml')
 @router.get('/gpx/{trace_id:int}/data.gpx')
-async def gpx_read_data(
+async def get_trace_gpx(
     trace_id: PositiveInt,
 ):
     # ensures that user has access to the trace
@@ -71,7 +82,7 @@ async def gpx_read_data(
 
 
 @router.get('/gpx/{trace_id:int}/data')
-async def gpx_read_data_raw(
+async def download_trace(
     trace_id: PositiveInt,
 ):
     content = await TraceQuery.get_one_data_by_id(trace_id)
@@ -83,7 +94,7 @@ async def gpx_read_data_raw(
 
 
 @router.put('/gpx/{trace_id:int}')
-async def gpx_update(
+async def update_trace(
     trace_id: PositiveInt,
     data: Annotated[dict, xml_body('osm/gpx_file')],
     _: Annotated[User, api_user(Scope.write_gpx)],
@@ -104,9 +115,27 @@ async def gpx_update(
 
 
 @router.delete('/gpx/{trace_id:int}')
-async def gpx_delete(
+async def delete_trace(
     trace_id: PositiveInt,
     _: Annotated[User, api_user(Scope.write_gpx)],
 ):
     await TraceService.delete(trace_id)
     return Response()
+
+
+@router.get('/trackpoints', response_class=GPXResponse)
+@router.get('/trackpoints.gpx', response_class=GPXResponse)
+async def query_tracepoints(
+    bbox: Annotated[str, Query()],
+    page_number: Annotated[NonNegativeInt, Query(alias='pageNumber')] = 0,
+):
+    geometry = parse_bbox(bbox)
+    if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
+        raise_for().trace_points_query_area_too_big()
+
+    points = await TracePointQuery.find_many_by_geometry(
+        geometry,
+        limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
+        legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
+    )
+    return Format06.encode_track(points)

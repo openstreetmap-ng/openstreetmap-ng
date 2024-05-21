@@ -58,5 +58,4 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
         >>> note_comment.legacy_permalink
         'https://www.openstreetmap.org/note/123456#c123456'
         """
-
         return f'{APP_URL}/note/{self.note_id}#c{self.id}'

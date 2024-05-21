@@ -35,7 +35,7 @@ def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
     """
     Returns a human readable prefix for a feature based on its type and tags.
 
-    >>> feature_prefix(ElementType.node, {'amenity': 'restaurant'})
+    >>> feature_prefix('node', {'amenity': 'restaurant'})
     'Restaurant'
     """
     tags_len: cython.int = len(tags)

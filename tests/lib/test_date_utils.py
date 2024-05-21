@@ -6,13 +6,25 @@ from dateutil.tz import tzoffset
 from app.lib.date_utils import format_sql_date, parse_date, utcnow
 
 
-def test_format_sql_date():
-    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45)) == '2021-12-31 15:30:45 UTC'  # noqa: DTZ001
-    assert format_sql_date(datetime(2021, 12, 31, 15, 30, 45, 123456, UTC)) == '2021-12-31 15:30:45.123456 UTC'
-    assert format_sql_date(None) == 'None'
+@pytest.mark.parametrize(
+    ('input', 'output'),
+    [
+        (datetime(2021, 12, 31, 15, 30, 45), '2021-12-31 15:30:45 UTC'),  # noqa: DTZ001
+        (datetime(2021, 12, 31, 15, 30, 45, 123456, UTC), '2021-12-31 15:30:45.123456 UTC'),
+        (None, 'None'),
+    ],
+)
+def test_format_sql_date(input, output):
+    assert format_sql_date(input) == output
 
+
+def test_format_sql_date_non_utc():
     with pytest.raises(AssertionError):
         format_sql_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=tzoffset(None, 32400)))
+
+
+def test_utcnow():
+    assert utcnow().tzinfo is UTC
 
 
 @pytest.mark.parametrize(

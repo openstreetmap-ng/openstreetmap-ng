@@ -9,7 +9,6 @@ class MessageService:
         """
         Send a message to a user.
         """
-
         async with db_commit() as session:
             session.add(
                 Message(

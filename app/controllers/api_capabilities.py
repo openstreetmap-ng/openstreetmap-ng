@@ -32,7 +32,7 @@ _legacy_imagery_blacklist = (
 @router.get('/0.6/capabilities')
 @router.get('/0.6/capabilities.xml')
 @router.get('/0.6/capabilities.json')
-async def legacy_capabilities() -> dict:
+async def legacy_capabilities():
     user = auth_user()
     user_roles = user.roles if (user is not None) else ()
     changeset_max_size = UserRole.get_changeset_max_size(user_roles)
@@ -90,6 +90,6 @@ async def legacy_capabilities() -> dict:
 @router.get('/versions')
 @router.get('/versions.xml')
 @router.get('/versions.json')
-async def legacy_versions() -> dict:
+async def legacy_versions():
     xattr = get_xattr()
     return {'api': {xattr('versions', xml='version'): ('0.6',)}}

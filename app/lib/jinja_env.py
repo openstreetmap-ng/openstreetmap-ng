@@ -44,7 +44,6 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
     >>> timeago(None)
     'never'
     """
-
     if date is None:
         return t('time.never')
 

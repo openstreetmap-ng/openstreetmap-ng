@@ -18,9 +18,7 @@ router = APIRouter(prefix='/api/0.6')
 @router.get('/map')
 @router.get('/map.xml')
 @router.get('/map.json')
-async def map_read(
-    bbox: Annotated[str, Query()],
-) -> dict:
+async def get_map(bbox: Annotated[str, Query()]):
     geometry = parse_bbox(bbox)
     if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
         raise_for().map_query_area_too_big()
@@ -31,13 +29,12 @@ async def map_read(
         legacy_nodes_limit=True,
     )
 
-    with create_task_group() as tg:
+    async with create_task_group() as tg:
         tg.start_soon(UserQuery.resolve_elements_users, elements, True)
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
 
     xattr = get_xattr()
     minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
-
     return {
         'bounds': {
             xattr('minlon'): minx,

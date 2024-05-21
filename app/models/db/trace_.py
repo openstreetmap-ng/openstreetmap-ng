@@ -30,7 +30,6 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     size: Mapped[int] = mapped_column(Integer, nullable=False)
     start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
-
     file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), init=False, nullable=False)
 
     # defaults

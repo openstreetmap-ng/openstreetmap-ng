@@ -41,37 +41,32 @@ router = APIRouter(prefix='/api/0.6')
 # TODO: validate input lengths
 
 
-async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note] | Sequence[NoteComment]) -> None:
-    """
-    Resolve note comments and their rich text.
-    """
-    if not notes_or_comments:
-        return
-
-    async with create_task_group() as tg:
-        # is it a sequence of comments or notes?
-        if isinstance(notes_or_comments[0], NoteComment):
-            for comment in notes_or_comments:
-                tg.start_soon(comment.resolve_rich_text)
-        else:
-            with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
-                await NoteCommentQuery.resolve_comments(notes_or_comments, limit_per_note=None)
-            for note in notes_or_comments:
-                for comment in note.comments:
-                    tg.start_soon(comment.resolve_rich_text)
-
-
 @router.post('/notes')
 @router.post('/notes.xml')
 @router.post('/notes.json')
 @router.post('/notes.gpx', response_class=GPXResponse)
-async def note_create(
+async def create_note(
     lon: Annotated[Longitude, Query()],
     lat: Annotated[Latitude, Query()],
     text: Annotated[str, Query(min_length=1)],
-) -> dict:
+):
     point = Point(lon, lat)
     note_id = await NoteService.create(point, text)
+    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
+    await _resolve_comments_and_rich_text(notes)
+    return Format06.encode_note(notes[0])
+
+
+@router.post('/notes/{note_id:int}/comment')
+@router.post('/notes/{note_id:int}/comment.xml')
+@router.post('/notes/{note_id:int}/comment.json')
+@router.post('/notes/{note_id:int}/comment.gpx', response_class=GPXResponse)
+async def create_note_comment(
+    note_id: PositiveInt,
+    text: Annotated[str, Query(min_length=1)],
+    _: Annotated[User, api_user(Scope.write_notes)],
+):
+    await NoteService.comment(note_id, text, NoteEvent.commented)
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
     return Format06.encode_note(notes[0])
@@ -82,12 +77,11 @@ async def note_create(
 @router.get('/notes/{note_id:int}.json')
 @router.get('/notes/{note_id:int}.rss')
 @router.get('/notes/{note_id:int}.gpx', response_class=GPXResponse)
-async def note_read(
+async def get_note(
     request: Request,
     note_id: PositiveInt,
-) -> dict:
+):
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
-
     if not notes:
         raise_for().note_not_found(note_id)
 
@@ -106,30 +100,15 @@ async def note_read(
         return Format06.encode_note(notes[0])
 
 
-@router.post('/notes/{note_id:int}/comment')
-@router.post('/notes/{note_id:int}/comment.xml')
-@router.post('/notes/{note_id:int}/comment.json')
-@router.post('/notes/{note_id:int}/comment.gpx', response_class=GPXResponse)
-async def note_comment(
-    note_id: PositiveInt,
-    text: Annotated[str, Query(min_length=1)],
-    _: Annotated[User, api_user(Scope.write_notes)],
-) -> dict:
-    await NoteService.comment(note_id, text, NoteEvent.commented)
-    notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
-    await _resolve_comments_and_rich_text(notes)
-    return Format06.encode_note(notes[0])
-
-
 @router.post('/notes/{note_id:int}/close')
 @router.post('/notes/{note_id:int}/close.xml')
 @router.post('/notes/{note_id:int}/close.json')
 @router.post('/notes/{note_id:int}/close.gpx', response_class=GPXResponse)
-async def note_close(
+async def close_note(
     _: Annotated[User, api_user(Scope.write_notes)],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
-) -> dict:
+):
     await NoteService.comment(note_id, text, NoteEvent.closed)
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
@@ -140,11 +119,11 @@ async def note_close(
 @router.post('/notes/{note_id:int}/reopen.xml')
 @router.post('/notes/{note_id:int}/reopen.json')
 @router.post('/notes/{note_id:int}/reopen.gpx', response_class=GPXResponse)
-async def note_reopen(
+async def reopen_note(
     _: Annotated[User, api_user(Scope.write_notes)],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
-) -> dict:
+):
     await NoteService.comment(note_id, text, NoteEvent.reopened)
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
@@ -155,11 +134,11 @@ async def note_reopen(
 @router.delete('/notes/{note_id:int}.xml')
 @router.delete('/notes/{note_id:int}.json')
 @router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
-async def note_hide(
+async def hide_note(
     _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
-) -> dict:
+):
     await NoteService.comment(note_id, text, NoteEvent.hidden)
     notes = await NoteQuery.find_many_by_query(note_ids=(note_id,), limit=1)
     await _resolve_comments_and_rich_text(notes)
@@ -168,10 +147,10 @@ async def note_hide(
 
 @router.get('/notes/feed')
 @router.get('/notes/feed.rss')
-async def notes_feed(
+async def get_feed(
     request: Request,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
-) -> Sequence[dict]:
+):
     if bbox is not None:
         geometry = parse_bbox(bbox)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
@@ -230,12 +209,12 @@ async def notes_feed(
 @router.get('/notes.json')
 @router.get('/notes.rss')
 @router.get('/notes.gpx', response_class=GPXResponse)
-async def notes_read(
+async def query_notes1(
     request: Request,
     bbox: Annotated[str, Query()],
     closed: Annotated[int, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
     limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
-) -> Sequence[dict]:
+):
     max_closed_for = timedelta(days=closed) if closed >= 0 else None
     geometry = parse_bbox(bbox)
     if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
@@ -246,12 +225,10 @@ async def notes_read(
         max_closed_for=max_closed_for,
         limit=limit,
     )
-
     await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
         minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
-
         fg = FeedGenerator()
         fg.link(href=str(request.url), rel='self')
         fg.title(t('api.notes.rss.title'))
@@ -286,7 +263,7 @@ class _SearchOrder(str, Enum):
 @router.get('/notes/search.json')
 @router.get('/notes/search.rss')
 @router.get('/notes/search.gpx', response_class=GPXResponse)
-async def notes_query(
+async def query_notes2(
     request: Request,
     q: Annotated[str | None, Query()] = None,
     closed: Annotated[float, Query()] = NOTE_QUERY_DEFAULT_CLOSED,
@@ -298,7 +275,7 @@ async def notes_query(
     sort: Annotated[_SearchSort, Query()] = _SearchSort.updated_at,
     order: Annotated[_SearchOrder, Query()] = _SearchOrder.newest,
     limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
-) -> Sequence[dict]:
+):
     # small logical optimizations
     if (from_ is not None) and (to is not None) and (from_ >= to):  # invalid date range
         return Format06.encode_notes(())
@@ -336,7 +313,6 @@ async def notes_query(
         sort_ascending=order == _SearchOrder.oldest,
         limit=limit,
     )
-
     await _resolve_comments_and_rich_text(notes)
 
     if format_is_rss():
@@ -346,7 +322,6 @@ async def notes_query(
 
         if geometry is not None:
             minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
-
             fg.subtitle(
                 t('api.notes.rss.description_area').format(
                     min_lon=minx,
@@ -363,3 +338,23 @@ async def notes_query(
 
     else:
         return Format06.encode_notes(notes)
+
+
+async def _resolve_comments_and_rich_text(notes_or_comments: Sequence[Note] | Sequence[NoteComment]) -> None:
+    """
+    Resolve note comments and their rich text.
+    """
+    if not notes_or_comments:
+        return
+
+    async with create_task_group() as tg:
+        # is it a sequence of comments or notes?
+        if isinstance(notes_or_comments[0], NoteComment):
+            for comment in notes_or_comments:
+                tg.start_soon(comment.resolve_rich_text)
+        else:
+            with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
+                await NoteCommentQuery.resolve_comments(notes_or_comments, limit_per_note=None)
+            for note in notes_or_comments:
+                for comment in note.comments:
+                    tg.start_soon(comment.resolve_rich_text)

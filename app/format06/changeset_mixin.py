@@ -10,16 +10,16 @@ from app.models.db.changeset_comment import ChangesetComment
 
 
 class Changeset06Mixin:
-    @staticmethod
-    def encode_changeset(changeset: Changeset) -> dict:
-        """
-        >>> encode_changeset(Changeset(...))
-        {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
-        """
-        if format_is_json():
-            return _encode_changeset(changeset, is_json=True)
-        else:
-            return {'changeset': _encode_changeset(changeset, is_json=False)}
+    # @staticmethod
+    # def encode_changeset(changeset: Changeset) -> dict:
+    #     """
+    #     >>> encode_changeset(Changeset(...))
+    #     {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
+    #     """
+    #     if format_is_json():
+    #         return _encode_changeset(changeset, is_json=True)
+    #     else:
+    #         return {'changeset': _encode_changeset(changeset, is_json=False)}
 
     @staticmethod
     def encode_changesets(changesets: Sequence[Changeset]) -> dict:

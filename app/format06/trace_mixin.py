@@ -9,7 +9,7 @@ from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.validators.trace_ import TraceValidating
-from app.validators.trace_point import TracePointValidating
+from app.validators.trace_point import TracePointCollectionMember, TracePointCollectionValidating
 
 
 class Trace06Mixin:
@@ -84,7 +84,7 @@ class Trace06Mixin:
         >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TracePoint(...)]
         """
-        result = []
+        points: list[TracePointCollectionMember] = []
 
         trk: dict
         trkseg: dict
@@ -104,20 +104,18 @@ class Trace06Mixin:
                         # numpy automatically parses strings
                         point = lib.points(np.array((lon, lat), np.float64))
 
-                    result.append(
-                        TracePoint(
-                            **dict(
-                                TracePointValidating(
-                                    track_idx=track_idx,
-                                    captured_at=captured_at,
-                                    point=point,
-                                    elevation=trkpt.get('ele'),
-                                )
-                            )
+                    points.append(
+                        TracePointCollectionMember(
+                            track_idx=track_idx,
+                            captured_at=captured_at,
+                            point=point,
+                            elevation=trkpt.get('ele'),
                         )
                     )
 
-        return result
+        # perform bulk validation
+        collection = TracePointCollectionValidating(points=points)
+        return tuple(TracePoint(**point._asdict()) for point in collection.points)
 
     @staticmethod
     def encode_gpx_file(trace: Trace) -> dict:

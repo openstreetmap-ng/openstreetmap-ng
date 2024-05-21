@@ -41,12 +41,9 @@ class ElementQuery:
         Returns 0 if no elements exist with the given type.
         """
         async with db() as session:
-            stmts = tuple(
-                select(Element.type, func.max(Element.id)).where(Element.type == type)  #
-                for type in ('node', 'way', 'relation')
-            )
-            result = await session.execute(union_all(*stmts))
-            return dict(result)
+            stmt = select(Element.type, func.max(Element.id)).group_by(Element.type)
+            rows = (await session.execute(stmt)).all()
+            return {'node': 0, 'way': 0, 'relation': 0, **dict(rows)}
 
     @staticmethod
     async def is_latest(versioned_refs: Sequence[VersionedElementRef]) -> bool:

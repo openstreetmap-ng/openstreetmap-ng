@@ -60,7 +60,7 @@ class FileCache:
         Set a value in the file cache by key string.
         """
         path = await self._get_path(key)
-        expires_at = int(time.time() + ttl.total_seconds()) if ttl is not None else None
+        expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
         entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
 
