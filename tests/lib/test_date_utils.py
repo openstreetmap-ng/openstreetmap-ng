@@ -7,15 +7,15 @@ from app.lib.date_utils import format_sql_date, parse_date, utcnow
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         (datetime(2021, 12, 31, 15, 30, 45), '2021-12-31 15:30:45 UTC'),  # noqa: DTZ001
         (datetime(2021, 12, 31, 15, 30, 45, 123456, UTC), '2021-12-31 15:30:45.123456 UTC'),
         (None, 'None'),
     ],
 )
-def test_format_sql_date(input, output):
-    assert format_sql_date(input) == output
+def test_format_sql_date(input, expected):
+    assert format_sql_date(input) == expected
 
 
 def test_format_sql_date_non_utc():
@@ -28,7 +28,7 @@ def test_utcnow():
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         ('2010-10-31', datetime(2010, 10, 31, tzinfo=UTC)),
         ('2010-10-31T12:34:56', datetime(2010, 10, 31, 12, 34, 56, 0, UTC)),
@@ -42,5 +42,5 @@ def test_utcnow():
         ('Aug 2000', utcnow().replace(month=8, year=2000, hour=0, minute=0, second=0, microsecond=0)),
     ],
 )
-def test_parse_date(input, output):
-    assert parse_date(input) == output
+def test_parse_date(input, expected):
+    assert parse_date(input) == expected

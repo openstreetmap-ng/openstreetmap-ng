@@ -8,16 +8,16 @@ from app.lib.translation import translation_context
 
 
 @pytest.mark.parametrize(
-    ('delta', 'output'),
+    ('delta', 'expected'),
     [
         (timedelta(seconds=-5), 'less than 1 second ago'),
         (timedelta(seconds=35), 'half a minute ago'),
         (timedelta(days=370), '1 year ago'),
     ],
 )
-def test_timeago(delta, output):
+def test_timeago(delta, expected):
     with translation_context('en'):
-        assert timeago(utcnow() - delta) == output
+        assert timeago(utcnow() - delta) == expected
 
 
 def test_timeago_never():
@@ -26,11 +26,11 @@ def test_timeago_never():
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         ('Hello World!', 'Hello World'),
         (', Hello', 'Hello'),
     ],
 )
-def test_stripspecial(input, output):
-    assert stripspecial(input) == output
+def test_stripspecial(input, expected):
+    assert stripspecial(input) == expected

@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from anyio import create_task_group
 from fastapi import APIRouter, Query, Request
@@ -248,14 +247,8 @@ async def query_notes1(
         return Format06.encode_notes(notes)
 
 
-class _SearchSort(str, Enum):
-    created_at = 'created_at'
-    updated_at = 'updated_at'
-
-
-class _SearchOrder(str, Enum):
-    oldest = 'oldest'
-    newest = 'newest'
+_SearchSort = Literal['created_at', 'updated_at']
+_SearchOrder = Literal['oldest', 'newest']
 
 
 @router.get('/notes/search')
@@ -272,8 +265,8 @@ async def query_notes2(
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     from_: Annotated[datetime | None, DateValidator, Query(alias='from')] = None,
     to: Annotated[datetime | None, DateValidator, Query()] = None,
-    sort: Annotated[_SearchSort, Query()] = _SearchSort.updated_at,
-    order: Annotated[_SearchOrder, Query()] = _SearchOrder.newest,
+    sort: Annotated[_SearchSort, Query()] = 'updated_at',
+    order: Annotated[_SearchOrder, Query()] = 'newest',
     limit: Annotated[PositiveInt, Query(le=NOTE_QUERY_LEGACY_MAX_LIMIT)] = NOTE_QUERY_DEFAULT_LIMIT,
 ):
     # small logical optimizations
@@ -309,8 +302,8 @@ async def query_notes2(
         geometry=geometry,
         date_from=from_,
         date_to=to,
-        sort_by='created_at' if sort == _SearchSort.created_at else 'updated_at',
-        sort_ascending=order == _SearchOrder.oldest,
+        sort_by='created_at' if sort == 'created_at' else 'updated_at',
+        sort_ascending=order == 'oldest',
         limit=limit,
     )
     await _resolve_comments_and_rich_text(notes)

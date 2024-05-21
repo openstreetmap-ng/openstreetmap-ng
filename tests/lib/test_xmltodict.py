@@ -6,7 +6,7 @@ from app.lib.xmltodict import XMLToDict, get_xattr
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         (
             b'<root><key1 attr="1"/><key2>text</key2><key1 attr="2"/></root>',
@@ -33,12 +33,12 @@ from app.lib.xmltodict import XMLToDict, get_xattr
         ),
     ],
 )
-def test_xml_parse(input, output):
-    assert XMLToDict.parse(input) == output
+def test_xml_parse(input, expected):
+    assert XMLToDict.parse(input) == expected
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         (
             b'<osmChange><modify id="1"/><create id="2"><tag k="test" v="zebra"/></create><modify id="3"/></osmChange>',
@@ -52,12 +52,12 @@ def test_xml_parse(input, output):
         ),
     ],
 )
-def test_xml_parse_sequence(input, output):
-    assert XMLToDict.parse(input) == output
+def test_xml_parse_sequence(input, expected):
+    assert XMLToDict.parse(input) == expected
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         (
             {
@@ -104,8 +104,8 @@ def test_xml_parse_sequence(input, output):
         ),
     ],
 )
-def test_xml_unparse(input, output):
-    assert XMLToDict.unparse(input) == output
+def test_xml_unparse(input, expected):
+    assert XMLToDict.unparse(input) == expected
 
 
 def test_xml_unparse_xattr():

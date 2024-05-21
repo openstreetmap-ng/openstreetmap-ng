@@ -1,3 +1,4 @@
+import pytest
 
 from app.lib.locale import (
     get_all_installed_locales,
@@ -7,26 +8,35 @@ from app.lib.locale import (
 )
 
 
-def test_is_valid_locale():
-    assert is_valid_locale('en')
-    assert not is_valid_locale('EN')
-    assert not is_valid_locale('NonExistent')
+@pytest.mark.parametrize('locale', ['en', 'pl'])
+def test_valid_locale(locale):
+    assert is_valid_locale(locale)
 
 
-def test_normalize_locale():
-    assert normalize_locale('en') == 'en'
-    assert normalize_locale('EN') == 'en'
-    assert normalize_locale('NonExistent') is None
+@pytest.mark.parametrize('locale', ['EN', 'NonExistent'])
+def test_invalid_locale(locale):
+    assert not is_valid_locale(locale)
 
 
-def test_get_all_installed_locales():
-    locales = get_all_installed_locales()
-    assert 'en' in locales
-    assert 'pl' in locales
+@pytest.mark.parametrize(('locale', 'expected'), [('en', 'en'), ('EN', 'en'), ('NonExistent', None)])
+def test_normalize_locale(locale, expected):
+    assert normalize_locale(locale) == expected
 
 
-def test_get_all_locales_names():
+@pytest.mark.parametrize('locale', ['en', 'pl'])
+def test_installed_locales(locale):
+    assert locale in get_all_installed_locales()
+
+
+@pytest.mark.parametrize(
+    ('code', 'english', 'native'),
+    [
+        ('pl', 'polish', 'polski'),
+        ('en', 'english', 'english'),
+    ],
+)
+def test_locales_names(code, english, native):
     names = get_all_locales_names()
-    pl = next(name for name in names if name.code == 'pl')
-    assert pl.english.casefold() == 'polish'
-    assert pl.native.casefold() == 'polski'
+    pl = next(name for name in names if name.code == code)
+    assert pl.english.casefold() == english
+    assert pl.native.casefold() == native

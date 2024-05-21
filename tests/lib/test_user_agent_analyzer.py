@@ -4,7 +4,7 @@ from app.lib.user_agent_analyzer import is_browser_supported
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         (
             # Old Chrome version
@@ -30,5 +30,5 @@ from app.lib.user_agent_analyzer import is_browser_supported
         ),
     ],
 )
-def test_is_browser_supported(input, output):
-    assert is_browser_supported(input) == output
+def test_is_browser_supported(input, expected):
+    assert is_browser_supported(input) == expected

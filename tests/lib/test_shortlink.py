@@ -27,16 +27,15 @@ def test_encode_decode(input):
 
 
 @pytest.mark.parametrize(
-    ('input', 'output'),
+    ('input', 'expected'),
     [
         ('0OP4tXGMB', (19.57922, 51.87695, 19)),
         ('ecetE--', (-31.113, 64.130, 6)),
     ],
 )
-def test_decode(input, output):
+def test_decode(input, expected):
     decoded = shortlink_decode(input)
-
-    for a, b in zip(output, decoded, strict=True):
+    for a, b in zip(expected, decoded, strict=True):
         assert isclose(a, b, abs_tol=0.01)
 
 
