@@ -33,12 +33,11 @@ class OptimisticDiffApply:
 
         Returns a dict, mapping original element refs to the new elements.
         """
-        if not prepare.apply_elements:
-            return {}
-
         assigned_ref_map: dict[ElementRef, list[Element]] = defaultdict(list)
         for element, element_ref in prepare.apply_elements:
             assigned_ref_map[element_ref].append(element)
+        if not assigned_ref_map:
+            return {}
 
         async with db_commit() as session, create_task_group() as tg:
             # obtain exclusive lock on the tables
