@@ -6,6 +6,7 @@ import numpy as np
 from shapely import Point, lib
 
 from app.lib.auth_context import auth_user
+from app.limits import GEO_COORDINATE_PRECISION
 from app.models.db.trace_ import Trace
 from app.models.db.trace_point import TracePoint
 from app.validators.trace_ import TraceValidating
@@ -85,6 +86,7 @@ class Trace06Mixin:
         [TracePoint(...)]
         """
         points: list[TracePointCollectionMember] = []
+        coordinate_precision = GEO_COORDINATE_PRECISION
 
         trk: dict
         trkseg: dict
@@ -93,21 +95,22 @@ class Trace06Mixin:
         for trk in tracks:
             for track_idx, trkseg in enumerate(trk.get('trkseg', ()), track_idx_start):
                 for trkpt in trkseg.get('trkpt', ()):
-                    if (time := trkpt.get('time')) is not None:
-                        captured_at = datetime.fromisoformat(time)
-                    else:
-                        captured_at = None
+                    time = trkpt.get('time')
+                    if time is None:
+                        continue
 
-                    if (lon := trkpt.get('@lon')) is None or (lat := trkpt.get('@lat')) is None:
-                        point = None
-                    else:
-                        # numpy automatically parses strings
-                        point = lib.points(np.array((lon, lat), np.float64))
+                    lon = trkpt.get('@lon')
+                    lat = trkpt.get('@lat')
+                    if lon is None or lat is None:
+                        continue
+
+                    # numpy automatically parses strings
+                    point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
 
                     points.append(
                         TracePointCollectionMember(
                             track_idx=track_idx,
-                            captured_at=captured_at,
+                            captured_at=datetime.fromisoformat(time),
                             point=point,
                             elevation=trkpt.get('ele'),
                         )

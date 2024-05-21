@@ -5,7 +5,7 @@ from pydantic import PositiveInt, model_validator
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
 from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
-from app.models.geometry import PointPrecisionGeometry
+from app.models.geometry import PointGeometry
 from app.validators.tags import TagsValidating
 
 
@@ -15,7 +15,7 @@ class ElementValidating(TagsValidating):
     id: int
     version: PositiveInt
     visible: bool
-    point: PointPrecisionGeometry | None
+    point: PointGeometry | None
     members: Sequence[ElementMember]
 
     @model_validator(mode='after')

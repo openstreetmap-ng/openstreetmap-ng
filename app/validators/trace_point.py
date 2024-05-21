@@ -4,13 +4,13 @@ from typing import NamedTuple
 from pydantic import NonNegativeInt
 
 from app.models.db.base import Base
-from app.models.geometry import PointPrecisionGeometry
+from app.models.geometry import PointGeometry
 
 
 class TracePointCollectionMember(NamedTuple):
     track_idx: NonNegativeInt
     captured_at: datetime
-    point: PointPrecisionGeometry
+    point: PointGeometry
     elevation: float | None
 
 

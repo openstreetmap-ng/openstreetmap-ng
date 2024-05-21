@@ -8,6 +8,7 @@ from shapely import Point, lib
 from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
+from app.limits import GEO_COORDINATE_PRECISION
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
@@ -19,7 +20,7 @@ class Element06Mixin:
     @staticmethod
     def encode_element(element: Element) -> dict:
         """
-        >>> encode_element(Element(type=ElementType.node, id=1, version=1, ...))
+        >>> encode_element(Element(type='node', id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
         """
         if format_is_json():
@@ -31,7 +32,7 @@ class Element06Mixin:
     def encode_elements(elements: Sequence[Element]) -> dict[str, Sequence[dict]]:
         """
         >>> encode_elements([
-        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type='node', id=1, version=1, ...),
         ...     Element(type=ElementType.way, id=2, version=1,
         ... ])
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
@@ -51,7 +52,7 @@ class Element06Mixin:
     def decode_element(element: tuple[ElementType, dict]) -> Element:
         """
         >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
-        Element(type=ElementType.node, ...)
+        Element(type='node', ...)
         """
         type = element[0]
         data = element[1]
@@ -61,7 +62,7 @@ class Element06Mixin:
     def encode_osmchange(elements: Sequence[Element]) -> Sequence[tuple[OSMChangeAction, dict[ElementType, dict]]]:
         """
         >>> encode_osmchange([
-        ...     Element(type=ElementType.node, id=1, version=1, ...),
+        ...     Element(type='node', id=1, version=1, ...),
         ...     Element(type=ElementType.way, id=2, version=2, ...)
         ... ])
         [
@@ -244,7 +245,7 @@ def _decode_members_unsafe(members: Sequence[dict]) -> tuple[ElementMember, ...]
 @cython.cfunc
 def _encode_element(element: Element, *, is_json: cython.char) -> dict:
     """
-    >>> _encode_element(Element(type=ElementType.node, id=1, version=1, ...))
+    >>> _encode_element(Element(type='node', id=1, version=1, ...))
     {'@id': 1, '@version': 1, ...}
     """
     # read property once for performance
@@ -302,7 +303,7 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
     If `changeset_id` is None, it will be extracted from the element data.
 
     >>> decode_element(('node', {'@id': 1, '@version': 1, ...}))
-    Element(type=ElementType.node, ...)
+    Element(type='node', ...)
     """
     if (data_tags := data.get('tag')) is not None:
         tags = _decode_tags_unsafe(data_tags)
@@ -313,12 +314,13 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
         point = None
     else:
         # numpy automatically parses strings
-        point = lib.points(np.array((lon, lat), np.float64))
+        coordinate_precision = GEO_COORDINATE_PRECISION
+        point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
 
     # decode members from either nd or member
-    if (data_nodes := data.get('nd')) is not None:
+    if type == 'way' and (data_nodes := data.get('nd')) is not None:
         members = _decode_nodes(data_nodes)
-    elif (data_members := data.get('member')) is not None:
+    elif type == 'relation' and (data_members := data.get('member')) is not None:
         members = _decode_members_unsafe(data_members)
     else:
         members = ()
