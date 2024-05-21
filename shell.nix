@@ -368,7 +368,7 @@ let
         --verbose \
         --no-header \
         --cov app \
-        --cov-report xml
+        --cov-report "''${1:-xml}"
     '')
     (writeShellScriptBin "watch-tests" ''
       run-tests || true
