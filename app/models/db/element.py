@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from shapely import Point
 from sqlalchemy import (
@@ -42,6 +42,7 @@ class Element(Base.NoID, CreatedAtMixin):
     members: list['ElementMember'] | None = None
     user_id: int | None = None
     user_display_name: str | None = None
+    delete_if_unused: Literal[True] | None = None
 
     __table_args__ = (
         PrimaryKeyConstraint(sequence_id, name='element_pkey'),
