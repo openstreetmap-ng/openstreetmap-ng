@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.user_agent_analyzer import is_browser_supported
+from app.lib.user_agent_check import is_browser_supported
 
 
 @pytest.mark.parametrize(

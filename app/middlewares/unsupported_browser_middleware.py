@@ -6,7 +6,7 @@ from starlette.datastructures import Headers
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.lib.render_response import render_response
-from app.lib.user_agent_analyzer import is_browser_supported
+from app.lib.user_agent_check import is_browser_supported
 from app.middlewares.request_context_middleware import get_request
 
 

@@ -35,11 +35,13 @@ jobs:
         run: |
           nix-store --import < /tmp/nix-cache
 
-      - name: Cache Poetry packages
+      - name: Cache Python venv
         uses: actions/cache@v4
         with:
-          key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
-          path: ~/.cache/pypoetry
+          key: python-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          path: |
+            ~/.cache/pypoetry
+            .venv
 
       - name: Cache Bun packages
         uses: actions/cache@v4

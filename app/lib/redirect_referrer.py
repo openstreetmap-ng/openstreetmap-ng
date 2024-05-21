@@ -15,20 +15,16 @@ def _process_referrer(referrer: str):
 
     Returns None if the referrer is missing or is in a different domain.
     """
-
     if not referrer:
         return None
-
     # return relative values as-is
     if referrer[0] == '/':
         return referrer
 
     # otherwise, validate the referrer hostname
     parts = urlsplit(referrer, allow_fragments=False)
-
     referrer_hostname = parts.hostname
     request_hostname = get_request().url.hostname
-
     if referrer_hostname != request_hostname:
         logging.debug('Referrer hostname mismatch (%r != %r)', referrer_hostname, request_hostname)
         return None
@@ -43,7 +39,6 @@ def _redirect_url() -> str:
 
     If the referrer is missing or is in a different domain, return '/'.
     """
-
     request = get_request()
 
     # referrer as a query parameter
