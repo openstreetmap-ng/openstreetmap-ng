@@ -51,8 +51,12 @@ class NoteService:
 
             note.updated_at = note_comment.created_at
 
-        logging.debug('Created note %d for user %s', note.id, user_id)
-        await NoteService.subscribe(note.id)
+        if user_id is not None:
+            logging.debug('Created note %d for user %s', note.id, user_id)
+            await NoteService.subscribe(note.id)
+        else:
+            logging.debug('Created note %d for anonymous user', note.id)
+
         return note.id
 
     @staticmethod

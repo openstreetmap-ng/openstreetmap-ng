@@ -136,7 +136,7 @@ class ElementQuery:
         *,
         at_sequence_id: int | None = None,
         version_range: tuple[int, int] | None = None,
-        sort_ascending: bool = True,
+        sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
     ) -> Sequence[Element]:
         """
@@ -154,11 +154,7 @@ class ElementQuery:
                 where_and.append(Element.version.between(*version_range))
 
             stmt = stmt.where(*where_and)
-
-            if sort_ascending:
-                stmt = stmt.order_by(Element.version.asc())
-            else:
-                stmt = stmt.order_by(Element.version.desc())
+            stmt = stmt.order_by(Element.version.asc() if sort == 'asc' else Element.version.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

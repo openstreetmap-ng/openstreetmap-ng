@@ -87,7 +87,7 @@ class TracePointQuery:
         traces_: list[Trace] = []
         id_points_map: dict[int, list[Point]] = {}
         for trace in traces:
-            if trace.image_coords is not None:
+            if trace.image_coords is None:
                 traces_.append(trace)
                 id_points_map[trace.id] = trace.image_coords = []
 

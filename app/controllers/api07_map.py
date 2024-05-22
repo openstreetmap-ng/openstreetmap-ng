@@ -3,7 +3,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Query
 
-from app.format07 import Format07
+from app.format import Format07
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT

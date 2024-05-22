@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shapely import Point
@@ -7,8 +7,6 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.lib.date_utils import utcnow
-from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
@@ -43,12 +41,6 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     # runtime
     comments: list['NoteComment'] | None = None
-
-    @property
-    def freshly_closed_duration(self) -> timedelta | None:
-        if self.closed_at is None:
-            return None
-        return self.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:

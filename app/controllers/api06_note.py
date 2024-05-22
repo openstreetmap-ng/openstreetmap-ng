@@ -303,7 +303,7 @@ async def query_notes2(
         date_from=from_,
         date_to=to,
         sort_by='created_at' if sort == 'created_at' else 'updated_at',
-        sort_ascending=order == 'oldest',
+        sort_dir='asc' if order == 'oldest' else 'desc',
         limit=limit,
     )
     await _resolve_comments_full(notes)
@@ -341,7 +341,7 @@ async def _resolve_comments_full(notes_or_comments: Sequence[Note] | Sequence[No
     if isinstance(notes_or_comments[0], Note):
         notes = notes_or_comments
         with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
-            comments = await NoteCommentQuery.resolve_comments(notes, limit_per_note=None)
+            comments = await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
     else:
         comments = notes_or_comments
 

@@ -25,7 +25,7 @@ class NoteQuery:
         date_from: datetime | None = None,
         date_to: datetime | None = None,
         sort_by: Literal['created_at', 'updated_at'] = 'created_at',
-        sort_ascending: bool = False,
+        sort_dir: Literal['asc', 'desc'] = 'desc',
         limit: int | None,
     ) -> Sequence[Note]:
         """
@@ -61,10 +61,7 @@ class NoteQuery:
                 where_and.append(sort_key < date_to)
 
             stmt = stmt.where(*where_and)
-
-            # logical optimization, skip sort if at most one note will be returned
-            if not (note_ids is not None and len(note_ids) == 1):
-                stmt = stmt.order_by(sort_key.asc() if sort_ascending else sort_key.desc())
+            stmt = stmt.order_by(sort_key.asc() if sort_dir == 'asc' else sort_key.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

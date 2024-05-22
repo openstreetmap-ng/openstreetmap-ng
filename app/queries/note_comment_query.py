@@ -53,8 +53,8 @@ class NoteCommentQuery:
     async def resolve_comments(
         notes: Sequence[Note],
         *,
-        limit_per_note: int | None,
-        limit_per_note_sort: Literal['asc', 'desc'] = 'desc',
+        per_note_sort: Literal['asc', 'desc'] = 'desc',
+        per_note_limit: int | None,
     ) -> Sequence[NoteComment]:
         """
         Resolve comments for notes.
@@ -77,12 +77,11 @@ class NoteCommentQuery:
                     NoteComment.note_id == note.id,
                     NoteComment.created_at <= note.updated_at,
                 )
-                if limit_per_note is not None:
-                    if limit_per_note_sort == 'asc':
-                        stmt_ = stmt_.order_by(NoteComment.created_at.asc())
-                    else:
-                        stmt_ = stmt_.order_by(NoteComment.created_at.desc())
-                    stmt_ = stmt_.limit(limit_per_note)
+                if per_note_limit is not None:
+                    stmt_ = stmt_.order_by(
+                        NoteComment.created_at.asc() if per_note_sort == 'asc' else NoteComment.created_at.desc()
+                    )
+                    stmt_ = stmt_.limit(per_note_limit)
                     stmt_ = select(stmt_.c.id).select_from(stmt_)
                 stmts.append(stmt_)
 

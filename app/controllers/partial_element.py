@@ -107,7 +107,7 @@ async def get_history(
         ref,
         at_sequence_id=at_sequence_id,
         version_range=(version_min, version_max),
-        sort_ascending=False,
+        sort='desc',
         limit=ELEMENT_HISTORY_PAGE_SIZE,
     )
 

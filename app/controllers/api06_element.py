@@ -160,7 +160,6 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     element = elements[0] if elements else None
     if element is None:
         raise_for().element_not_found(ref)
-
     return await _encode_element(element)
 
 
@@ -172,7 +171,6 @@ async def get_history(type: ElementType, id: PositiveInt):
     elements = await ElementQuery.get_versions_by_ref(ref, limit=None)
     if not elements:
         raise_for().element_not_found(ref)
-
     return await _encode_elements(elements)
 
 

@@ -7,7 +7,11 @@ from app.format import FormatLeaflet
 from app.lib.auth_context import web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.limits import NOTE_QUERY_AREA_MAX_SIZE, NOTE_QUERY_DEFAULT_CLOSED, NOTE_QUERY_DEFAULT_LIMIT
+from app.limits import (
+    NOTE_QUERY_AREA_MAX_SIZE,
+    NOTE_QUERY_DEFAULT_CLOSED,
+    NOTE_QUERY_WEB_LIMIT,
+)
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
@@ -75,7 +79,9 @@ async def get_map(bbox: Annotated[str, Query()]):
     notes = await NoteQuery.find_many_by_query(
         geometry=geometry,
         max_closed_days=NOTE_QUERY_DEFAULT_CLOSED,
-        limit=NOTE_QUERY_DEFAULT_LIMIT,
+        sort_by='updated_at',
+        sort_dir='desc',
+        limit=NOTE_QUERY_WEB_LIMIT,
     )
-    await NoteCommentQuery.resolve_comments(notes, limit_per_note=1, limit_per_note_sort='asc')
+    await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
     return FormatLeaflet.encode_notes(notes)

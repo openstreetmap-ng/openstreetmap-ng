@@ -69,8 +69,7 @@ let
         app/controllers
         app/exceptions
         app/exceptions06
-        app/format06
-        app/format07
+        app/format
         app/lib
         app/middlewares
         app/responses

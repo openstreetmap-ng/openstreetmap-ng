@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from math import ceil
 
 from anyio import create_task_group
 from fastapi import APIRouter
@@ -7,8 +8,10 @@ from shapely import get_coordinates
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import utcnow
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
+from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
@@ -44,6 +47,14 @@ async def get_note(id: PositiveInt):
             tg.start_soon(subscription_task)
 
     # TODO: pagination
+
+    disappear_days: int | None = None
+    if note.closed_at is not None:
+        duration = note.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
+        disappear_days = ceil(duration.total_seconds() / 86400)
+        if duration.total_seconds() <= 0:
+            disappear_days = None
+
     x, y = get_coordinates(note.point)[0].tolist()
     return render_response(
         'partial/note.jinja2',
@@ -53,6 +64,7 @@ async def get_note(id: PositiveInt):
             'comments': note.comments[1:],
             'status': note.status.value,
             'is_subscribed': is_subscribed,
+            'disappear_days': disappear_days,
             'params': JSON_ENCODE(
                 {
                     'id': id,
@@ -77,7 +89,7 @@ async def _resolve_comments_full(notes: Sequence[Note]) -> None:
             User.avatar_id,
         )
     ):
-        comments = await NoteCommentQuery.resolve_comments(notes, limit_per_note=None)
+        comments = await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
 
     async with create_task_group() as tg:
         for comment in comments:
