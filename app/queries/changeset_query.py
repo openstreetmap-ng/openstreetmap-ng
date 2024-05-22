@@ -40,6 +40,8 @@ class ChangesetQuery:
         next_id: int | None = None
 
         for id in ids:
+            if id is None:
+                continue
             if id < changeset_id:
                 prev_id = id
             else:

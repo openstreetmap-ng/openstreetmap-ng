@@ -93,9 +93,12 @@ action:
   commented: commented
   deleted: deleted
   edited: edited
+  hid: hid
   upload: Upload
   uploaded: uploaded
+  reactivated: reactivated
   reset_filters: Reset filters
+  resolved: resolved
 state:
   hidden: Hidden
   latest: latest

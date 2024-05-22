@@ -82,7 +82,7 @@ def format_leaflet_elements(
             logging.warning('Missing point for node %d version %d ', node.id, node.version)
             continue
 
-        geom: list[float] = lib.get_coordinates(np.asarray(points, dtype=object), False, False)[0][::-1].tolist()
+        geom: list[float] = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0][::-1].tolist()
         result.append(ElementLeafletNode('node', node_id, geom))
 
     return result

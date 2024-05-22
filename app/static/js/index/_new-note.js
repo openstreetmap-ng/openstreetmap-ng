@@ -71,7 +71,6 @@ export const getNewNoteController = (map) => {
             if (searchParams.lon && searchParams.lat) {
                 const lon = parseFloat(searchParams.lon)
                 const lat = parseFloat(searchParams.lat)
-
                 if (isLongitude(lon) && isLatitude(lat)) {
                     center = L.latLng(lat, lon)
                 }

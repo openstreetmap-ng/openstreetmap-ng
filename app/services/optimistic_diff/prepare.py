@@ -102,9 +102,11 @@ class OptimisticDiffPrepare:
                     raise_for().diff_create_bad_id(element)
             else:
                 action = 'modify' if element.visible else 'delete'
-                prevs = await self._get_elements_by_refs((element_ref,))
-                prev = prevs[0]
+                history = self.element_state.get(element_ref)
+                prev = history[-1] if history else None
 
+                if prev is None:
+                    raise_for().element_not_found(element_ref)
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element, prev.version)
 
@@ -201,51 +203,6 @@ class OptimisticDiffPrepare:
             for member_ref, parents_refs in member_parents_map.items()
         }
 
-    async def _get_elements_by_refs(self, element_refs_unique: Iterable[ElementRef]) -> Sequence[Element]:
-        """
-        Get the latest elements from the local state or the database.
-        """
-        local_elements: list[Element] = []
-        remote_refs: list[ElementRef] = []
-
-        element_state = self.element_state
-        for element_ref in element_refs_unique:
-            elements = element_state.get(element_ref)
-            if elements is not None:
-                # load locally
-                local_elements.append(elements[-1])
-            else:
-                # load remotely
-                if element_ref.id < 0:
-                    raise_for().element_not_found(element_ref)
-                remote_refs.append(element_ref)
-
-        if not remote_refs:
-            return local_elements
-
-        remote_refs_len = len(remote_refs)
-        logging.debug('Optimistic loading %d elements', remote_refs_len)
-        remote_elements = await ElementQuery.get_many_by_refs(
-            remote_refs,
-            at_sequence_id=self.at_sequence_id,
-            limit=remote_refs_len,
-        )
-
-        # check if all elements exist
-        if len(remote_elements) != remote_refs_len:
-            remote_refs_set = set(remote_refs)
-            for element in remote_elements:
-                remote_refs_set.remove(ElementRef(element.type, element.id))
-            raise_for().element_not_found(next(iter(remote_refs_set)))
-
-        # update local state
-        for element in remote_elements:
-            element_state[ElementRef(element.type, element.id)] = [element]
-
-        logging.debug('Optimistic loading members for %d elements', remote_refs_len)
-        await ElementMemberQuery.resolve_members(remote_elements)
-        return local_elements + remote_elements
-
     def _check_element_can_delete(self, element: Element, element_ref: ElementRef) -> bool:
         """
         Check if the element can be deleted.
@@ -320,6 +277,51 @@ class OptimisticDiffPrepare:
         for element in elements:
             if not element.visible:
                 raise_for().element_member_not_found(parent, ElementRef(element.type, element.id))
+
+    async def _get_elements_by_refs(self, element_refs_unique: Iterable[ElementRef]) -> Sequence[Element]:
+        """
+        Get the latest elements from the local state or the database.
+        """
+        local_elements: list[Element] = []
+        remote_refs: list[ElementRef] = []
+
+        element_state = self.element_state
+        for element_ref in element_refs_unique:
+            history = element_state.get(element_ref)
+            if history is not None:
+                # load locally
+                local_elements.append(history[-1])
+            else:
+                # load remotely
+                if element_ref.id < 0:
+                    raise_for().element_not_found(element_ref)
+                remote_refs.append(element_ref)
+
+        if not remote_refs:
+            return local_elements
+
+        remote_refs_len = len(remote_refs)
+        logging.debug('Optimistic loading %d elements', remote_refs_len)
+        remote_elements = await ElementQuery.get_many_by_refs(
+            remote_refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=remote_refs_len,
+        )
+
+        # check if all elements exist
+        if len(remote_elements) != remote_refs_len:
+            remote_refs_set = set(remote_refs)
+            for element in remote_elements:
+                remote_refs_set.remove(ElementRef(element.type, element.id))
+            raise_for().element_not_found(next(iter(remote_refs_set)))
+
+        # update local state
+        for element in remote_elements:
+            element_state[ElementRef(element.type, element.id)] = [element]
+
+        logging.debug('Optimistic loading members for %d elements', remote_refs_len)
+        await ElementMemberQuery.resolve_members(remote_elements)
+        return local_elements + remote_elements
 
     def _push_bbox_info(self, prev: Element | None, element: Element, element_type: ElementType) -> None:
         """

@@ -14,7 +14,14 @@ export const getNoteController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const commentForm = sidebarContent.querySelector("form")
+        const locationButton = sidebarContent.querySelector(".location-btn")
+        const commentForm = sidebarContent.querySelector("form.comment-form")
+        const commentInput = commentForm.elements.text
+        const eventInput = commentForm.elements.event
+        const closeButton = commentForm.querySelector(".close-btn")
+        const commentCloseButton = commentForm.querySelector(".comment-close-btn")
+        const commentButton = commentForm.querySelector(".comment-btn")
+        const submitButtons = commentForm.querySelectorAll("[type=submit]")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -37,22 +44,51 @@ export const getNoteController = (map) => {
             icon: open ? "open" : "closed",
         })
 
-        // Focus on the note if it's offscreen
-        const latLng = L.latLng(lat, lon)
-        if (!map.getBounds().contains(latLng)) {
-            map.panTo(latLng, { animate: false })
+        // On location click, pan the map
+        const onLocationClick = () => {
+            const latLng = L.latLng(lat, lon)
+            const currentZoom = map.getZoom()
+            if (currentZoom < 16) {
+                map.setView(latLng, 18)
+            } else {
+                map.panTo(latLng)
+            }
         }
 
         // On success callback, reload the note and simulate map move (reload notes layer)
-        // TODO: test if reload notes layer works
         const onFormSuccess = () => {
             map.panTo(map.getCenter(), { animate: false })
             base.unload()
             base.load({ id: paramsId })
         }
 
+        // On comment input, update the button state
+        const onCommentInput = () => {
+            const hasValue = commentInput.value.trim().length > 0
+            if (hasValue) {
+                closeButton.classList.add("d-none")
+                commentCloseButton.classList.remove("d-none")
+                commentButton.disabled = false
+            } else {
+                closeButton.classList.remove("d-none")
+                commentCloseButton.classList.add("d-none")
+                commentButton.disabled = true
+            }
+        }
+
+        // On submit click, set action input
+        const onSubmitClick = (event) => {
+            eventInput.value = event.target.dataset.event
+        }
+
         // Listen for events
+        locationButton.addEventListener("click", onLocationClick)
         if (commentForm) configureStandardForm(commentForm, onFormSuccess)
+        if (commentInput) commentInput.addEventListener("input", onCommentInput)
+        for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
+
+        // Initial update
+        if (commentInput) onCommentInput()
     }
 
     const base = getBaseFetchController(map, "note", onLoaded)

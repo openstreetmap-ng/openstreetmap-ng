@@ -40,10 +40,9 @@
 </div>
 
 {% if element.point is not none %}
-<p class="position-relative mb-2">
-    <b class="me-1">•</b>
+<p class="location-btn-container mb-2">
     {{ t('diary_entries.form.location') }}:
-    <button class="location-btn btn btn-link p-0 stretched-link" data-lon="{{ element.point.x }}"
+    <button class="location-btn btn btn-link stretched-link" data-lon="{{ element.point.x }}"
         data-lat="{{ element.point.y }}">
         {{ element.point.y }}, {{ element.point.x }}
     </button>

@@ -11,8 +11,10 @@
                         {% if status == 'open' %}
                         {{ t('state.unresolved') }}
                         {% elif status == 'closed' %}
+                        <i class="bi bi-check-lg"></i>
                         {{ t('state.resolved') }}
                         {% elif status == 'hidden' %}
+                        <i class="bi bi-eye-slash-fill"></i>
                         {{ t('state.hidden') }}
                         {% endif %}
                     </span>
@@ -23,7 +25,7 @@
             </div>
         </div>
 
-        <div class="social-entry status">
+        <div class="social-entry status mb-4">
             <p class="header text-muted d-flex justify-content-between">
                 <span>
                     {% if header.user_id is none %}
@@ -38,12 +40,25 @@
                     {{ timeago(header.created_at, html=True) | safe }}
                 </span>
             </p>
-            <p class="body">
-                {{ header.body_rich }}
-            </p>
+            <div class="body">
+                {% if header.body_rich %}
+                <p class="mb-2">
+                    {{ header.body_rich | safe }}
+                </p>
+                {% endif %}
+                <p class="position-relative">
+                    {{ t('diary_entries.form.location') }}:
+                    <button class="location-btn btn btn-link p-0 stretched-link">
+                        {{ note.point.y }}, {{ note.point.x }}
+                    </button>
+                </p>
+            </div>
+            {% if header.user_id is none %}
+            <div class="alert alert-warning" role="alert">
+                {{ t('notes.show.anonymous_warning') }}
+            </div>
+            {% endif %}
         </div>
-
-        <div class="mb-4"></div>
 
         <div class="row g-1 mb-1">
             <div class="col">
@@ -70,18 +85,31 @@
         {% if comments %}
         <ul class="list-unstyled">
             {% for comment in comments %}
+            {% set event = comment.event.value %}
             <li class="social-entry">
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
                         <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
                         #}{{ comment.user.display_name }}{#
                     #}</a>
+                    {% if event == 'commented' %}
                     {{ t('action.commented') }}
+                    {% elif event == 'closed' %}
+                    {{ t('action.resolved') }}
+                    {% elif event == 'reopened' %}
+                    {{ t('action.reactivated') }}
+                    {% elif event == 'hidden' %}
+                    {{ t('action.hid') }}
+                    {% endif %}
                     {{ timeago(comment.created_at, html=True) | safe }}
                 </p>
+                {% if comment.body_rich %}
                 <p class="body">
                     {{ comment.body_rich | safe }}
                 </p>
+                {% else %}
+                <div class="mb-2"></div>
+                {% endif %}
             </li>
             {% endfor %}
         </ul>
@@ -89,14 +117,32 @@
 
         {% if user is not none %}
         <form class="comment-form mb-2" method="POST" action="/api/web/note/{{ note.id }}/comment">
+            <input type="hidden" name="event">
+            {% if status == 'open' %}
             <div class="mb-3">
-                <textarea class="form-control" name="comment" rows="4" required></textarea>
+                <textarea class="form-control" name="text" rows="5"></textarea>
             </div>
             <div class="text-end">
-                <button class="btn btn-primary" type="submit">
+                {# TODO: hide/unhide #}
+                <button class="close-btn btn btn-primary" type="submit" data-event="closed">
+                    {{ t('notes.show.resolve') }}
+                </button>
+                <button class="comment-close-btn btn btn-primary" type="submit" data-event="closed">
+                    {{ t('notes.show.comment_and_resolve') }}
+                </button>
+                <button class="comment-btn btn btn-primary" type="submit" data-event="commented">
                     {{ t('action.comment') }}
                 </button>
             </div>
+            {% elif status == 'closed' %}
+            <div class="text-end">
+                {# TODO: hide/unhide #}
+                <button class="btn btn-primary" type="submit" data-event="reopened">
+                    {{ t('notes.show.reactivate') }}
+                </button>
+            </div>
+            {% endif %}
+            {# TODO: status hidden #}
         </form>
         {% else %}
         <p class="text-center mb-2">
@@ -110,7 +156,6 @@
     </div>
     <div class="section">
         <small>
-            {% if user is none or user.id != header.user_id %}
             <p>
                 {% set link %}
                 <a href="/report/note/{{ note.id }}">
@@ -121,13 +166,15 @@
                         'notes.show.report_link_html',
                         link=link,
                     ) | safe }}
+
+                {% if user is not none and user.id != header.user_id %}
                 {% if status == 'open' %}
                 {{ t('notes.show.other_problems_resolve') }}
                 {% elif status == 'closed' %}
                 {{ t('notes.show.other_problems_resolved') }}
                 {% endif %}
+                {% endif %}
             </p>
-            {% endif %}
 
             {# TODO: disappear_date_html #}
         </small>

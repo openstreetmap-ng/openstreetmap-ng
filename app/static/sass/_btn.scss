@@ -1,17 +1,3 @@
-// .btn-outline-light-gray {
-//     @include button-outline-variant(#888, $color-hover: $light, $active-color: $light);
-// }
-
 .btn-bg-initial {
     --bs-btn-bg: initial;
 }
-
-// .btn-outline-secondary-soft {
-//     @include button-outline-variant(
-//         $secondary,
-//         $color-hover: shade-color($secondary, 50%),
-//         $active-background: initial,
-//         $active-border: shade-color($secondary, 40%),
-//         $active-color: $secondary
-//     );
-// }
