@@ -4,7 +4,6 @@ from fastapi import APIRouter, Form
 from pydantic import PositiveInt
 
 from app.lib.auth_context import web_user
-from app.lib.message_collector import MessageCollector
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
@@ -32,14 +31,13 @@ async def create_note_comment(
     text: Annotated[str, Form(min_length=1)] = '',
 ):
     note_event: NoteEvent
-    match event:
-        case 'closed':
-            note_event = NoteEvent.closed
-        case 'reopened':
-            note_event = NoteEvent.reopened
-        case 'commented':
-            note_event = NoteEvent.commented
-        case _:
-            raise NotImplementedError(f'Unsupported event {event!r}')
+    if event == 'closed':
+        note_event = NoteEvent.closed
+    elif event == 'reopened':
+        note_event = NoteEvent.reopened
+    elif event == 'commented':
+        note_event = NoteEvent.commented
+    else:
+        raise NotImplementedError(f'Unsupported event {event!r}')
     await NoteService.comment(note_id, text, note_event)
     return {}

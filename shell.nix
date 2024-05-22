@@ -121,9 +121,9 @@ let
         -name "*.js" \
         -not -name "_*" \
         -not -name "bundle-*")
+      # TODO: --sourcemap=inline when https://github.com/oven-sh/bun/issues/7427
       bun build \
         --entry-naming "[dir]/bundle-[name].[ext]" \
-        --sourcemap=inline \
         --outdir app/static/js \
         $src_paths
     '')
@@ -428,10 +428,10 @@ let
         src_stem=$(echo "$src_name" | cut -d. -f1)
         src_ext=$(echo "$src_name" | cut -d. -f2)
 
+        # TODO: --sourcemap=external when https://github.com/oven-sh/bun/issues/7427
         output=$(bun build \
           "$src_path" \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
-          --sourcemap=external \
           --minify \
           --outdir "$dir" | tee /dev/stdout)
 
