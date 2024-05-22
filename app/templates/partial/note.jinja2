@@ -41,9 +41,7 @@
             </p>
             <div class="body">
                 {% if header.body_rich %}
-                <p class="mb-2">
-                    {{ header.body_rich | safe }}
-                </p>
+                <p class="pre mb-2">{{ header.body_rich | safe }}</p>
                 {% endif %}
                 <p class="position-relative">
                     {{ t('diary_entries.form.location') }}:
@@ -103,9 +101,7 @@
                     {{ timeago(comment.created_at, html=True) | safe }}
                 </p>
                 {% if comment.body_rich %}
-                <p class="body">
-                    {{ comment.body_rich | safe }}
-                </p>
+                <p class="body pre">{{ comment.body_rich | safe }}</p>
                 {% else %}
                 <div class="mb-2"></div>
                 {% endif %}

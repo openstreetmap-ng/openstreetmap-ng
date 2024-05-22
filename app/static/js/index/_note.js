@@ -17,12 +17,6 @@ export const getNoteController = (map) => {
         const locationButton = sidebarContent.querySelector(".location-btn")
         const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
         const commentForm = sidebarContent.querySelector("form.comment-form")
-        const commentInput = commentForm.elements.text
-        const eventInput = commentForm.elements.event
-        const closeButton = commentForm.querySelector(".close-btn")
-        const commentCloseButton = commentForm.querySelector(".comment-close-btn")
-        const commentButton = commentForm.querySelector(".comment-btn")
-        const submitButtons = commentForm.querySelectorAll("[type=submit]")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -56,41 +50,52 @@ export const getNoteController = (map) => {
             }
         }
 
-        // On success callback, reload the note and simulate map move (reload notes layer)
-        const onFormSuccess = () => {
-            map.panTo(map.getCenter(), { animate: false })
-            base.unload()
-            base.load({ id: paramsId })
-        }
-
-        // On comment input, update the button state
-        const onCommentInput = () => {
-            const hasValue = commentInput.value.trim().length > 0
-            if (hasValue) {
-                closeButton.classList.add("d-none")
-                commentCloseButton.classList.remove("d-none")
-                commentButton.disabled = false
-            } else {
-                closeButton.classList.remove("d-none")
-                commentCloseButton.classList.add("d-none")
-                commentButton.disabled = true
-            }
-        }
-
-        // On submit click, set action input
-        const onSubmitClick = (event) => {
-            eventInput.value = event.target.dataset.event
-        }
-
         // Listen for events
         locationButton.addEventListener("click", onLocationClick)
-        if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
-        if (commentForm) configureStandardForm(commentForm, onFormSuccess)
-        if (commentInput) commentInput.addEventListener("input", onCommentInput)
-        for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
 
-        // Initial update
-        if (commentInput) onCommentInput()
+        if (commentForm) {
+            const commentInput = commentForm.elements.text
+            const eventInput = commentForm.elements.event
+            const closeButton = commentForm.querySelector(".close-btn")
+            const commentCloseButton = commentForm.querySelector(".comment-close-btn")
+            const commentButton = commentForm.querySelector(".comment-btn")
+            const submitButtons = commentForm.querySelectorAll("[type=submit]")
+
+            // On success callback, reload the note and simulate map move (reload notes layer)
+            const onFormSuccess = () => {
+                map.panTo(map.getCenter(), { animate: false })
+                base.unload()
+                base.load({ id: paramsId })
+            }
+
+            // On comment input, update the button state
+            const onCommentInput = () => {
+                const hasValue = commentInput.value.trim().length > 0
+                if (hasValue) {
+                    closeButton.classList.add("d-none")
+                    commentCloseButton.classList.remove("d-none")
+                    commentButton.disabled = false
+                } else {
+                    closeButton.classList.remove("d-none")
+                    commentCloseButton.classList.add("d-none")
+                    commentButton.disabled = true
+                }
+            }
+
+            // On submit click, set action input
+            const onSubmitClick = (event) => {
+                eventInput.value = event.target.dataset.event
+            }
+
+            // Listen for events
+            configureStandardForm(subscriptionForm, onFormSuccess)
+            configureStandardForm(commentForm, onFormSuccess)
+            commentInput.addEventListener("input", onCommentInput)
+            for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
+
+            // Initial update
+            onCommentInput()
+        }
     }
 
     const base = getBaseFetchController(map, "note", onLoaded)

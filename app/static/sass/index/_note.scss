@@ -12,4 +12,9 @@
             background: $green;
         }
     }
+
+    .social-entry .pre {
+        // Allow line wrapping
+        white-space: pre-wrap;
+    }
 }
