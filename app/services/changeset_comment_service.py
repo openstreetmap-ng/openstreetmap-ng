@@ -1,5 +1,7 @@
+import logging
+
 from sqlalchemy import delete, func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.postgresql import insert
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -10,38 +12,6 @@ from app.models.db.changeset_subscription import ChangesetSubscription
 
 
 class ChangesetCommentService:
-    @staticmethod
-    async def subscribe(changeset_id: int) -> None:
-        """
-        Subscribe current user to changeset discussion.
-        """
-        try:
-            async with db_commit() as session:
-                session.add(
-                    ChangesetSubscription(
-                        user_id=auth_user().id,
-                        changeset_id=changeset_id,
-                    )
-                )
-
-        except IntegrityError:
-            # TODO: raise_for().changeset_not_found(changeset_id)
-            raise_for().changeset_already_subscribed(changeset_id)
-
-    @staticmethod
-    async def unsubscribe(changeset_id: int) -> None:
-        """
-        Unsubscribe current user from changeset discussion.
-        """
-        async with db_commit() as session:
-            stmt = delete(ChangesetSubscription).where(
-                ChangesetSubscription.user_id == auth_user().id,
-                ChangesetSubscription.changeset_id == changeset_id,
-            )
-
-            if (await session.execute(stmt)).rowcount != 1:
-                raise_for().changeset_not_subscribed(changeset_id)
-
     @staticmethod
     async def comment(changeset_id: int, text: str) -> None:
         """
@@ -62,6 +32,8 @@ class ChangesetCommentService:
             await session.flush()
 
             changeset.updated_at = changeset_comment.created_at
+
+        await ChangesetCommentService.subscribe(changeset_id)
 
     @staticmethod
     async def delete_comment_unsafe(comment_id: int) -> int:
@@ -85,3 +57,42 @@ class ChangesetCommentService:
             changeset.updated_at = func.statement_timestamp()
 
             return changeset.id
+
+    @staticmethod
+    async def subscribe(changeset_id: int) -> None:
+        """
+        Subscribe the current user to the changeset.
+        """
+        user_id = auth_user().id
+        logging.debug('Subscribing user %d to changeset %d', user_id, changeset_id)
+
+        async with db_commit() as session:
+            stmt = (
+                insert(ChangesetSubscription)
+                .values(
+                    {
+                        ChangesetSubscription.changeset_id: changeset_id,
+                        ChangesetSubscription.user_id: user_id,
+                    }
+                )
+                .on_conflict_do_nothing(
+                    index_elements=(ChangesetSubscription.changeset_id, ChangesetSubscription.user_id),
+                )
+                .inline()
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def unsubscribe(changeset_id: int) -> None:
+        """
+        Unsubscribe the current user from the changeset.
+        """
+        user_id = auth_user().id
+        logging.debug('Unsubscribing user %d from changeset %d', user_id, changeset_id)
+
+        async with db_commit() as session:
+            stmt = delete(ChangesetSubscription).where(
+                ChangesetSubscription.changeset_id == changeset_id,
+                ChangesetSubscription.user_id == user_id,
+            )
+            await session.execute(stmt)

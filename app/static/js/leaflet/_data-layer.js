@@ -107,9 +107,7 @@ export const configureDataLayer = (map) => {
                 renderedBounds = bounds
 
                 // Listen for events
-                for (const layer of renderLayers) {
-                    layer.addEventListener("click", onLayerClick)
-                }
+                for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
             })
             .catch((error) => {
                 if (error.name === "AbortError") return

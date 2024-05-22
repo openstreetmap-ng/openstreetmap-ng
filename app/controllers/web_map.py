@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from app.lib.element_leaflet_formatter import format_leaflet_elements
+from app.format import FormatLeaflet
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
@@ -27,4 +27,4 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
     await ElementMemberQuery.resolve_members(elements)
-    return format_leaflet_elements(elements, detailed=True, areas=False)
+    return FormatLeaflet.encode_elements(elements, detailed=True, areas=False)

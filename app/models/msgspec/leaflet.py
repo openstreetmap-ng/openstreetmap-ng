@@ -15,3 +15,9 @@ class ElementLeafletNode(ElementLeaflet):
 class ElementLeafletWay(ElementLeaflet):
     geom: list[list[float]]  # [[lat, lon], ...]
     area: bool
+
+
+class NoteLeaflet(ElementLeaflet):
+    geom: list[float]  # [lat, lon]
+    text: str
+    open: bool

@@ -1,16 +1,30 @@
 from collections.abc import Sequence
+from typing import Literal
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import Select, func, select, union_all
+from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
+from app.models.db.note_subscription import NoteSubscription
 
 
 class NoteCommentQuery:
+    @staticmethod
+    async def is_subscribed(note_id: int) -> bool:
+        """
+        Check if the user is subscribed to the note.
+        """
+        async with db() as session:
+            stmt = select(text('1')).where(
+                NoteSubscription.note_id == note_id,
+                NoteSubscription.user_id == auth_user().id,
+            )
+            return await session.scalar(stmt) is not None
+
     @staticmethod
     async def legacy_find_many_by_query(
         *,
@@ -40,6 +54,7 @@ class NoteCommentQuery:
         notes: Sequence[Note],
         *,
         limit_per_note: int | None,
+        limit_per_note_sort: Literal['asc', 'desc'] = 'desc',
     ) -> Sequence[NoteComment]:
         """
         Resolve comments for notes.
@@ -63,9 +78,12 @@ class NoteCommentQuery:
                     NoteComment.created_at <= note.updated_at,
                 )
                 if limit_per_note is not None:
-                    stmt_ = stmt_.order_by(NoteComment.created_at.desc())
+                    if limit_per_note_sort == 'asc':
+                        stmt_ = stmt_.order_by(NoteComment.created_at.asc())
+                    else:
+                        stmt_ = stmt_.order_by(NoteComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_note)
-                    stmt_ = select(NoteComment.id).select_from(stmt_)
+                    stmt_ = select(stmt_.c.id).select_from(stmt_)
                 stmts.append(stmt_)
 
             stmt = (

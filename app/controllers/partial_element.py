@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
-from app.lib.element_leaflet_formatter import format_leaflet_elements
+from app.format import FormatLeaflet
 from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
 from app.lib.feature_name import feature_name
 from app.lib.options_context import options_context
@@ -203,7 +203,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None
     name = feature_name(element.tags)
     tags = tags_format(element.tags)
-    leaflet = format_leaflet_elements(full_data, detailed=False)
+    leaflet = FormatLeaflet.encode_elements(full_data, detailed=False)
 
     return {
         'element': element,

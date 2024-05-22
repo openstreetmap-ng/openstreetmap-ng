@@ -50,7 +50,7 @@ export const configureNotesLayer = (map) => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
 
-        fetch(`/api/0.6/notes.json?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
+        fetch(`/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
             method: "GET",
             mode: "same-origin",
             cache: "no-store", // request params are too volatile to cache
@@ -60,30 +60,22 @@ export const configureNotesLayer = (map) => {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const data = await resp.json()
+                const notes = await resp.json()
                 const markers = []
-                console.debug("Notes layer showing", data.features.length, "notes")
-
-                // data in GeoJSON format
-                for (const feature of data.features) {
-                    const [lon, lat] = feature.geometry.coordinates
-                    const props = feature.properties
-                    const noteId = props.id
-                    const isOpen = props.status === "open"
-
-                    const marker = L.marker(L.latLng(lat, lon), {
-                        icon: getMarkerIcon(isOpen ? "open" : "closed", false),
-                        title: props.comments.length ? props.comments[0].text : "",
+                for (const note of notes) {
+                    const marker = L.marker(note.geom, {
+                        icon: getMarkerIcon(note.open ? "open" : "closed", false),
+                        title: note.text,
                         opacity: 0.8,
                     })
-
-                    marker.noteId = noteId
+                    marker.noteId = note.id
                     marker.addEventListener("click", onMarkerClick)
                     markers.push(marker)
                 }
 
                 notesLayer.clearLayers()
                 if (markers.length) notesLayer.addLayer(L.layerGroup(markers))
+                console.debug("Notes layer showing", markers.length, "notes")
             })
             .catch((error) => {
                 if (error.name === "AbortError") return

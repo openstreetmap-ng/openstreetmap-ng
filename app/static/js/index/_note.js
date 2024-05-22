@@ -15,6 +15,7 @@ export const getNoteController = (map) => {
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
         const locationButton = sidebarContent.querySelector(".location-btn")
+        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
         const commentForm = sidebarContent.querySelector("form.comment-form")
         const commentInput = commentForm.elements.text
         const eventInput = commentForm.elements.event
@@ -83,6 +84,7 @@ export const getNoteController = (map) => {
 
         // Listen for events
         locationButton.addEventListener("click", onLocationClick)
+        if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
         if (commentForm) configureStandardForm(commentForm, onFormSuccess)
         if (commentInput) commentInput.addEventListener("input", onCommentInput)
         for (const button of submitButtons) button.addEventListener("click", onSubmitClick)

@@ -1,15 +1,29 @@
 from collections.abc import Sequence
 
 from anyio import create_task_group
-from sqlalchemy import Select, select, union_all
+from sqlalchemy import Select, select, text, union_all
 
 from app.db import db
+from app.lib.auth_context import auth_user
 from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
+from app.models.db.changeset_subscription import ChangesetSubscription
 
 
 class ChangesetCommentQuery:
+    @staticmethod
+    async def is_subscribed(changeset_id: int) -> bool:
+        """
+        Check if the user is subscribed to the changeset.
+        """
+        async with db() as session:
+            stmt = select(text('1')).where(
+                ChangesetSubscription.changeset_id == changeset_id,
+                ChangesetSubscription.user_id == auth_user().id,
+            )
+            return await session.scalar(stmt) is not None
+
     @staticmethod
     async def resolve_comments(
         changesets: Sequence[Changeset],
@@ -41,7 +55,7 @@ class ChangesetCommentQuery:
                 if limit_per_changeset is not None:
                     stmt_ = stmt_.order_by(ChangesetComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_changeset)
-                    stmt_ = select(ChangesetComment).select_from(stmt_)
+                    stmt_ = select(stmt_.c.id).select_from(stmt_)
                 stmts.append(stmt_)
 
             stmt = (

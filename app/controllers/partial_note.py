@@ -6,6 +6,7 @@ from pydantic import PositiveInt
 from shapely import get_coordinates
 from sqlalchemy.orm import joinedload
 
+from app.lib.auth_context import auth_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.models.db.note import Note
@@ -28,8 +29,21 @@ async def get_note(id: PositiveInt):
             {'type': 'note', 'id': id},
         )
 
+    is_subscribed = False
+
+    async def resolve_comments_task():
+        await _resolve_comments_full(notes)
+
+    async def subscription_task():
+        nonlocal is_subscribed
+        is_subscribed = await NoteCommentQuery.is_subscribed(id)
+
+    async with create_task_group() as tg:
+        tg.start_soon(resolve_comments_task)
+        if auth_user() is not None:
+            tg.start_soon(subscription_task)
+
     # TODO: pagination
-    await _resolve_comments_full(notes)
     x, y = get_coordinates(note.point)[0].tolist()
     return render_response(
         'partial/note.jinja2',
@@ -38,7 +52,7 @@ async def get_note(id: PositiveInt):
             'header': note.comments[0],
             'comments': note.comments[1:],
             'status': note.status.value,
-            'is_subscribed': False,  # TODO:
+            'is_subscribed': is_subscribed,
             'params': JSON_ENCODE(
                 {
                     'id': id,

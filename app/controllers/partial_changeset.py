@@ -17,7 +17,6 @@ from app.models.element_list_entry import ChangesetElementEntry
 from app.models.tag_format import TagFormatCollection
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
-from app.queries.changeset_subscription_query import ChangesetSubscriptionQuery
 from app.queries.element_query import ElementQuery
 from app.utils import JSON_ENCODE
 
@@ -56,9 +55,9 @@ async def get_changeset(id: PositiveInt):
         prev_changeset_id = t[0]
         next_changeset_id = t[1]
 
-    async def is_subscribed_task():
+    async def subscription_task():
         nonlocal is_subscribed
-        is_subscribed = await ChangesetSubscriptionQuery.is_subscribed(id)
+        is_subscribed = await ChangesetCommentQuery.is_subscribed(id)
 
     async with create_task_group() as tg:
         tg.start_soon(elements_task)
@@ -66,7 +65,7 @@ async def get_changeset(id: PositiveInt):
         if changeset.user_id is not None:
             tg.start_soon(adjacent_ids_task)
         if auth_user() is not None:
-            tg.start_soon(is_subscribed_task)
+            tg.start_soon(subscription_task)
 
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment', None)

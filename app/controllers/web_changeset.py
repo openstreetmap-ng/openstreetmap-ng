@@ -6,7 +6,6 @@ from pydantic import PositiveInt
 from app.lib.auth_context import web_user
 from app.models.db.user import User
 from app.services.changeset_comment_service import ChangesetCommentService
-from app.services.changeset_subscription_service import ChangesetSubscriptionService
 
 router = APIRouter(prefix='/api/web/changeset')
 
@@ -26,7 +25,7 @@ async def subscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, web_user()],
 ):
-    await ChangesetSubscriptionService.subscribe(changeset_id)
+    await ChangesetCommentService.subscribe(changeset_id)
     return Response()
 
 
@@ -35,5 +34,5 @@ async def unsubscribe(
     changeset_id: PositiveInt,
     _: Annotated[User, web_user()],
 ):
-    await ChangesetSubscriptionService.unsubscribe(changeset_id)
+    await ChangesetCommentService.unsubscribe(changeset_id)
     return Response()

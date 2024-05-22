@@ -7,7 +7,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset
-from app.models.db.changeset_subscription import ChangesetSubscription
+from app.services.changeset_comment_service import ChangesetCommentService
 
 
 class ChangesetService:
@@ -24,18 +24,10 @@ class ChangesetService:
                 tags=tags,
             )
             session.add(changeset)
-            await session.flush()
 
-            # TODO: test subscribed
-            changeset_id = changeset.id
-            subscription = ChangesetSubscription(
-                user_id=user_id,
-                changeset_id=changeset_id,
-            )
-            session.add(subscription)
-
-            logging.debug('Created changeset %d for user %d', changeset_id, user_id)
-            return changeset_id
+        logging.debug('Created changeset %d for user %d', changeset.id, user_id)
+        await ChangesetCommentService.subscribe(changeset.id)
+        return changeset.id
 
     @staticmethod
     async def update_tags(changeset_id: int, tags: dict[str, str]) -> None:
