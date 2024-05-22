@@ -90,11 +90,11 @@ export const getNoteController = (map) => {
             // Listen for events
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)
-            commentInput.addEventListener("input", onCommentInput)
+            if (commentInput) commentInput.addEventListener("input", onCommentInput)
             for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
 
             // Initial update
-            onCommentInput()
+            if (commentInput) onCommentInput()
         }
     }
 
