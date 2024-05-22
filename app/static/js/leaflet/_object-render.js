@@ -33,11 +33,12 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMNote} note
      */
     const processNote = (note) => {
-        const latLng = L.latLng(note.lat, note.lon)
         const interactive = note.interactive !== undefined ? Boolean(note.interactive) : true
         const draggable = note.draggable !== undefined ? Boolean(note.draggable) : false
+        const latLng = L.latLng(note.lat, note.lon)
         const layer = L.circleMarker(latLng, styles.noteHalo)
         const marker = L.marker(latLng, {
+            ...styles.note,
             icon: getMarkerIcon(note.icon, false),
             keyboard: interactive,
             interactive: interactive,

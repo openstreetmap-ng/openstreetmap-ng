@@ -1,0 +1,135 @@
+<div class="sidebar-content">
+    <div class="section">
+
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h2>
+                    <span class="sidebar-title" data-params="{{ params }}">
+                        {{ t('note.title') }}: {{ note.id }}
+                    </span>
+                    <span class="status-badge badge" data-status="{{ status }}">
+                        {% if status == 'open' %}
+                        {{ t('state.unresolved') }}
+                        {% elif status == 'closed' %}
+                        {{ t('state.resolved') }}
+                        {% elif status == 'hidden' %}
+                        {{ t('state.hidden') }}
+                        {% endif %}
+                    </span>
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+        </div>
+
+        <div class="social-entry status">
+            <p class="header text-muted d-flex justify-content-between">
+                <span>
+                    {% if header.user_id is none %}
+                    {{ t('browse.anonymous') }}
+                    {% else %}
+                    <a href="/user/{{ header.user.display_name }}" rel="author">
+                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                    #}{{ header.user.display_name }}{#
+                    #}</a>
+                    {% endif %}
+                    {{ t('browse.created') | lower }}
+                    {{ timeago(header.created_at, html=True) | safe }}
+                </span>
+            </p>
+            <p class="body">
+                {{ header.body_rich }}
+            </p>
+        </div>
+
+        <div class="mb-4"></div>
+
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h4>{{ t('browse.changeset.discussion') }}</h4>
+            </div>
+            {% if user is not none %}
+            {% if is_subscribed %}
+            <form class="col-auto subscription-form" method="POST" action="/api/web/note/{{ note.id }}/unsubscribe">
+                <button class="btn btn-sm btn-light border" type="submit">
+                    <i class="bi bi-bookmark-check me-1"></i>
+                    {{ t('javascripts.changesets.show.unsubscribe') }}
+                </button>
+            </form>
+            {% else %}
+            <form class="col-auto subscription-form" method="POST" action="/api/web/note/{{ note.id }}/subscribe">
+                <button class="btn btn-sm btn-light border" type="submit">
+                    {{ t('javascripts.changesets.show.subscribe') }}
+                </button>
+            </form>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        {% if comments %}
+        <ul class="list-unstyled">
+            {% for comment in comments %}
+            <li class="social-entry">
+                <p class="header text-muted">
+                    <a href="/user/{{ comment.user.display_name }}">
+                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                        #}{{ comment.user.display_name }}{#
+                    #}</a>
+                    {{ t('action.commented') }}
+                    {{ timeago(comment.created_at, html=True) | safe }}
+                </p>
+                <p class="body">
+                    {{ comment.body_rich | safe }}
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if user is not none %}
+        <form class="comment-form mb-2" method="POST" action="/api/web/note/{{ note.id }}/comment">
+            <div class="mb-3">
+                <textarea class="form-control" name="comment" rows="4" required></textarea>
+            </div>
+            <div class="text-end">
+                <button class="btn btn-primary" type="submit">
+                    {{ t('action.comment') }}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-center mb-2">
+            {# TODO: referer here? #}
+            <a href="/login">
+                {{ t('browse.changeset.join_discussion') }}
+            </a>
+        </p>
+        {% endif %}
+
+    </div>
+    <div class="section">
+        <small>
+            {% if user is none or user.id != header.user_id %}
+            <p>
+                {% set link %}
+                <a href="/report/note/{{ note.id }}">
+                    {{ t('notes.show.report') }}{#
+                #}</a>{#
+                #}{% endset %}
+                {{ t(
+                        'notes.show.report_link_html',
+                        link=link,
+                    ) | safe }}
+                {% if status == 'open' %}
+                {{ t('notes.show.other_problems_resolve') }}
+                {% elif status == 'closed' %}
+                {{ t('notes.show.other_problems_resolved') }}
+                {% endif %}
+            </p>
+            {% endif %}
+
+            {# TODO: disappear_date_html #}
+        </small>
+    </div>
+</div>

@@ -22,8 +22,10 @@ export const focusStyles = {
         fillOpacity: 0.5,
         interactive: false,
     },
-    noteHalo: {
+    note: {
         pane: "focus",
+    },
+    noteHalo: {
         radius: 20,
         color: "#FF6200",
         weight: 2.5,
@@ -32,6 +34,8 @@ export const focusStyles = {
         interactive: false,
     },
 }
+
+let paneCreated = false
 
 /**
  * Focus an object on the map and return its layer.
@@ -87,8 +91,12 @@ export const focusManyMapObjects = (map, objects, options) => {
 
     // Create the focus layer if it doesn't exist
     if (!map.hasLayer(focusLayer)) {
+        if (!paneCreated) {
+            console.debug("Creating focus pane")
+            map.createPane("focus")
+            paneCreated = true
+        }
         console.debug("Adding overlay layer", focusLayer.options.layerId)
-        map.createPane("focus")
         map.addLayer(focusLayer)
 
         // Trigger the overlayadd event

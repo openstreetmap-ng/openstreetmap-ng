@@ -56,7 +56,9 @@ class OSMResponse(Response):
         if style == 'json':
             request = get_request()
             request_path: str = request.url.path
-            if request_path.startswith('/api/0.6/'):
+
+            # include json attributes if api 0.6 and not notes
+            if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
                 if isinstance(content, Mapping):
                     content = _json_attributes | content
                 else:
@@ -117,7 +119,6 @@ def setup_api_router_response(router: APIRouter) -> None:
 
     This is quite hacky as FastAPI does not expose an easy way to override it.
     """
-
     for route in router.routes:
         # override only supported endpoints
         if not isinstance(route, APIRoute):

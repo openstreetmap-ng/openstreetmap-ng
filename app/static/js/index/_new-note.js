@@ -35,9 +35,6 @@ export const getNewNoteController = (map) => {
     // On marker drag end, update the form's coordinates and add the halo
     const onMarkerDragEnd = () => {
         const latLng = marker.getLatLng()
-        lonInput.value = latLng.lng
-        latInput.value = latLng.lat
-
         halo.setLatLng(latLng)
         halo.setStyle({
             opacity: focusStyles.noteHalo.opacity,
@@ -46,13 +43,20 @@ export const getNewNoteController = (map) => {
     }
 
     // On success callback, navigate to the new note and simulate map move (reload notes layer)
-    const onFormSuccess = ({ noteId }) => {
+    const onFormSuccess = ({ note_id }) => {
         map.panTo(map.getCenter(), { animate: false })
-        routerNavigateStrict(`/note/${noteId}`)
+        routerNavigateStrict(`/note/${note_id}`)
+    }
+
+    // On client validation, update the form's coordinates
+    const onClientValidation = () => {
+        const latLng = marker.getLatLng()
+        lonInput.value = latLng.lng
+        latInput.value = latLng.lat
     }
 
     // Listen for events
-    configureStandardForm(form, onFormSuccess)
+    configureStandardForm(form, onFormSuccess, onClientValidation)
 
     return {
         load: () => {

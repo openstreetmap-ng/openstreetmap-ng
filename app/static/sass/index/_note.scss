@@ -1,0 +1,15 @@
+.action-sidebar.note {
+    .status-badge {
+        color: $text-muted;
+        background: $gray-200;
+        position: relative;
+        top: -0.25em;
+        padding: 0.3em 0.4em;
+        font-size: 0.5em;
+
+        &[data-status="closed"] {
+            color: $light;
+            background: $green;
+        }
+    }
+}

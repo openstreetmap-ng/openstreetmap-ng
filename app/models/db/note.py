@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from anyio import create_task_group
 from shapely import Point
 from sqlalchemy import ColumnElement, null, true
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.config import APP_URL
 from app.lib.date_utils import utcnow
 from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.base import Base
@@ -50,14 +48,12 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     def freshly_closed_duration(self) -> timedelta | None:
         if self.closed_at is None:
             return None
-
         return self.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:
         if (user is not None) and user.is_moderator:
             return True
-
         return self.hidden_at is None
 
     @visible_to.expression
@@ -65,19 +61,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
         if (user is not None) and user.is_moderator:
             return true()
-
         return cls.hidden_at == null()
-
-    @property
-    def permalink(self) -> str:
-        """
-        Get the note's permalink.
-
-        >>> note.permalink
-        'https://www.openstreetmap.org/note/123456'
-        """
-
-        return f'{APP_URL}/note/{self.id}'
 
     @property
     def status(self) -> NoteStatus:
@@ -87,19 +71,9 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         >>> note.status
         NoteStatus.open
         """
-
         if self.hidden_at:
             return NoteStatus.hidden
         elif self.closed_at:
             return NoteStatus.closed
         else:
             return NoteStatus.open
-
-    async def resolve_comments_rich_text(self) -> None:
-        """
-        Resolve rich text for all comments.
-        """
-
-        async with create_task_group() as tg:
-            for comment in self.comments:
-                tg.start_soon(comment.resolve_rich_text)

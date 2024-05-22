@@ -20,7 +20,7 @@ export const configureNotesLayer = (map) => {
      * @returns {void}
      */
     const onMarkerClick = (event) => {
-        const marker = event.propagatedFrom
+        const marker = event.target
         const noteId = marker.noteId
         routerNavigateStrict(`/note/${noteId}`)
     }
@@ -62,6 +62,7 @@ export const configureNotesLayer = (map) => {
 
                 const data = await resp.json()
                 const markers = []
+                console.debug("Notes layer showing", data.features.length, "notes")
 
                 // data in GeoJSON format
                 for (const feature of data.features) {

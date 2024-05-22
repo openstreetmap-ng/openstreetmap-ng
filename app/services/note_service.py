@@ -1,21 +1,27 @@
-from shapely import Point
+import numpy as np
+from shapely import lib
 from sqlalchemy import func, select
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
+from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
+from app.validators.geometry import validate_geometry
 
 
 class NoteService:
     @staticmethod
-    async def create(point: Point, text: str) -> int:
+    async def create(lon: float, lat: float, text: str) -> int:
         """
         Create a note and return its id.
         """
+        coordinate_precision = GEO_COORDINATE_PRECISION
+        point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
+        point = validate_geometry(point)
 
         if (user := auth_user()) is not None:
             user_id = user.id
@@ -48,7 +54,6 @@ class NoteService:
         """
         Comment on a note.
         """
-
         user = auth_user()
 
         async with db_commit() as session:
@@ -60,16 +65,13 @@ class NoteService:
                 )
                 .with_for_update()
             )
-
             note = await session.scalar(stmt)
-
             if note is None:
                 raise_for().note_not_found(note_id)
 
             if event == NoteEvent.closed:
                 if note.closed_at is not None:
                     raise_for().note_closed(note_id, note.closed_at)
-
                 note.closed_at = func.statement_timestamp()
 
             elif event == NoteEvent.reopened:
@@ -80,7 +82,6 @@ class NoteService:
                 else:
                     if note.closed_at is None:
                         raise_for().note_open(note_id)
-
                     note.closed_at = None
 
             elif event == NoteEvent.commented:

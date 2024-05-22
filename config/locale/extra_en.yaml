@@ -19,8 +19,6 @@ map:
       normal: Normal
       high: High
       very_high: Very high
-  note:
-    title: Note
   routing:
     drag_and_drop:
       start: Drag and drop this marker to set the start position
@@ -30,6 +28,8 @@ map:
 changeset:
   open: Open
   this_changeset_is_state: This changeset is {{state}}
+note:
+  title: Note
 user:
   profile_picture: Profile picture
   settings:
@@ -97,8 +97,11 @@ action:
   uploaded: uploaded
   reset_filters: Reset filters
 state:
+  hidden: Hidden
   latest: latest
   preparing: Preparing
+  resolved: Resolved
+  unresolved: Unresolved
 unsupported_browser:
   title:
     short: Unsupported browser

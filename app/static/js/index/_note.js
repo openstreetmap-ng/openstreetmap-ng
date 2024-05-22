@@ -27,16 +27,14 @@ export const getNoteController = (map) => {
         const paramsId = params.id
         const lon = params.lon
         const lat = params.lat
-        const closedAt = params.closedAt
-        const isOpen = closedAt === null
+        const open = params.open
 
         focusMapObject(map, {
             type: "note",
             id: paramsId,
             lon: lon,
             lat: lat,
-            icon: isOpen ? "open" : "closed",
-            interactive: false,
+            icon: open ? "open" : "closed",
         })
 
         // Focus on the note if it's offscreen
@@ -54,7 +52,7 @@ export const getNoteController = (map) => {
         }
 
         // Listen for events
-        configureStandardForm(commentForm, onFormSuccess)
+        if (commentForm) configureStandardForm(commentForm, onFormSuccess)
     }
 
     const base = getBaseFetchController(map, "note", onLoaded)

@@ -18,7 +18,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.config import APP_URL
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
@@ -171,16 +170,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             result.append(ExtendedScope.role_moderator)
 
         return result
-
-    @property
-    def permalink(self) -> str:
-        """
-        Get the user's permalink.
-
-        >>> user.permalink
-        'https://www.openstreetmap.org/user/permalink/123456'
-        """
-        return f'{APP_URL}/user/permalink/{self.id}'
 
     @property
     def password_hasher(self) -> PasswordHash:

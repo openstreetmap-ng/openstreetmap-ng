@@ -5,7 +5,7 @@ from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
 from shapely import get_coordinates
 
-from app.config import API_URL
+from app.config import API_URL, APP_URL
 from app.lib.jinja_env import render
 from app.lib.nominatim import Nominatim
 from app.lib.translation import t
@@ -45,9 +45,12 @@ async def _encode_note(
     note: Note,
     task_status: TaskStatus = TASK_STATUS_IGNORED,
 ) -> None:
+    api_permalink = f'{API_URL}/api/0.6/notes/{note.id}'
+    web_permalink = f'{APP_URL}/note/{note.id}'
+
     fe = fg.add_entry(order='append')
-    fe.guid(f'{API_URL}/api/0.6/notes/{note.id}', permalink=True)
-    fe.link(href=note.permalink)
+    fe.guid(api_permalink, permalink=True)
+    fe.link(href=web_permalink)
     fe.content(
         render(
             'api06/note_feed_comments.jinja2',
@@ -62,7 +65,8 @@ async def _encode_note(
     fe.geo.point(f'{y} {x}')
 
     if (user := note.comments[0].user) is not None:
-        fe.author(name=user.display_name, uri=user.permalink)
+        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
     # use task_status to preserve the order of the notes
@@ -91,10 +95,11 @@ async def _encode_note_comment(
     task_status: TaskStatus = TASK_STATUS_IGNORED,
 ) -> None:
     point = comment.legacy_note.point
+    permalink = f'{APP_URL}/note/{comment.note_id}#c{comment.id}'
 
     fe = fg.add_entry(order='append')
-    fe.guid(comment.legacy_permalink, permalink=True)
-    fe.link(href=comment.legacy_permalink)
+    fe.guid(permalink, permalink=True)
+    fe.link(href=permalink)
     fe.content(
         render(
             'api06/note_feed_entry.jinja2',
@@ -109,7 +114,8 @@ async def _encode_note_comment(
     fe.geo.point(f'{y} {x}')
 
     if (user := comment.user) is not None:
-        fe.author(name=user.display_name, uri=user.permalink)
+        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
     # use task_status to preserve the order of the notes
@@ -119,7 +125,6 @@ async def _encode_note_comment(
     place = await Nominatim.reverse_name(point, 14)
 
     comment_event = comment.event
-
     if comment_event == NoteEvent.opened:
         fe.title(t('api.notes.rss.opened', place=place))
     elif comment_event == NoteEvent.closed:

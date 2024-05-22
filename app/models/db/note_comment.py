@@ -4,7 +4,6 @@ from sqlalchemy import Computed, Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.dialects.postgresql import INET, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.config import APP_URL
 from app.lib.crypto import HASH_SIZE
 from app.lib.rich_text import RichTextMixin
 from app.limits import NOTE_COMMENT_BODY_MAX_LENGTH
@@ -42,20 +41,10 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     # runtime
-    legacy_note: Mapped[Note] = relationship(init=False, lazy='raise', innerjoin=True)
+    legacy_note: Note | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > NOTE_COMMENT_BODY_MAX_LENGTH:
             raise ValueError(f'Comment body is too long ({len(value)} > {NOTE_COMMENT_BODY_MAX_LENGTH})')
         return value
-
-    @property
-    def legacy_permalink(self) -> str:
-        """
-        Get the note comment's legacy permalink.
-
-        >>> note_comment.legacy_permalink
-        'https://www.openstreetmap.org/note/123456#c123456'
-        """
-        return f'{APP_URL}/note/{self.note_id}#c{self.id}'

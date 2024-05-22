@@ -5,7 +5,7 @@
         {% if comment.user %}
 
         {% set user %}
-        <a href="{{ comment.user.permalink }}">{{ comment.user.display_name }}</a>
+        <a href="{{ APP_URL }}/user/permalink/{{ comment.user_id }}">{{ comment.user.display_name }}</a>
         {% endset %}
 
         {% if comment.event.value == 'opened' %}

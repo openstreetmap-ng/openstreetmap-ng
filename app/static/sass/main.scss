@@ -75,14 +75,17 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "unsupported-browser";
 @import "welcome";
 
-@import "index/action-sidebar-changeset";
-@import "index/action-sidebar-element";
-@import "index/action-sidebar-export";
-@import "index/action-sidebar-index";
-@import "index/action-sidebar-result";
-@import "index/action-sidebar-routing";
+@import "index/changeset";
+@import "index/element";
+@import "index/export";
+@import "index/index";
+@import "index/note";
+@import "index/result";
+@import "index/routing";
+@import "index/search";
 @import "index/tags";
 
+@import "leaflet/focus-layer";
 @import "leaflet/icons";
 @import "leaflet/leaflet";
 @import "leaflet/location-filter";

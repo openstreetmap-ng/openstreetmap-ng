@@ -10,7 +10,7 @@ async def test_note_crud(client: AsyncClient):
     # create note
     r = await client.post(
         '/api/0.6/notes.json',
-        params={'lon': 0, 'lat': 0, 'text': 'create'},
+        json={'lon': 0, 'lat': 0, 'text': 'create'},
     )
     assert r.is_success, r.text
     props: dict = r.json()['properties']

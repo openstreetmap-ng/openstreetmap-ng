@@ -157,3 +157,27 @@ class UserQuery:
             for changeset_id, user_id in rows:
                 for element in changeset_id_elements_map[changeset_id]:
                     element.user_id = user_id
+
+    # @staticmethod
+    # async def resolve_note_comments_users(comments: Sequence[NoteComment]) -> None:
+    #     """
+    #     Resolve the user of note comments.
+    #     """
+    #     comments_ = []
+    #     user_id_comments_map = defaultdict(list)
+    #     for comment in comments:
+    #         if comment.user_id is not None and comment.user is None:
+    #             comments_.append(comment)
+    #             user_id_comments_map[comment.user_id].append(comment)
+
+    #     if not comments_:
+    #         return
+
+    #     async with db() as session:
+    #         stmt = select(User).where(User.id.in_(text(','.join(map(str, user_id_comments_map)))))
+    #         stmt = apply_options_context(stmt)
+    #         users = (await session.scalars(stmt)).all()
+
+    #     for user in users:
+    #         for comment in user_id_comments_map[user.id]:
+    #             comment.user = user

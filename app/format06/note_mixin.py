@@ -5,7 +5,7 @@ import lxml.etree as ET
 import numpy as np
 from shapely import Point, lib
 
-from app.config import API_URL
+from app.config import API_URL, APP_URL
 from app.lib.date_utils import format_sql_date, legacy_date
 from app.lib.format_style_context import format_style
 from app.lib.jinja_env import render
@@ -63,11 +63,11 @@ def _encode_note_comment(comment: NoteComment) -> dict:
             {
                 'uid': comment.user_id,
                 'user': comment.user.display_name,
+                'user_url': f'{APP_URL}/user/permalink/{comment.user_id}',
             }
             if (comment.user_id is not None)
             else {}
         ),
-        'user_url': comment.user.permalink,
         'action': comment.event.value,
         'text': comment.body,
         'html': comment.body_rich,
@@ -114,7 +114,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             **_encode_point(note.point, is_json=False),
             'time': created_at,
             'name': f'Note: {note.id}',
-            'link': {'href': note.permalink},
+            'link': {'href': f'{APP_URL}/note/{note.id}'},
             'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', comments=note.comments)),
             'extensions': {
                 'id': note.id,

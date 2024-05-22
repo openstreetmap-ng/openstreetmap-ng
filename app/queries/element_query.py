@@ -6,7 +6,7 @@ from typing import Literal
 import cython
 from anyio import create_task_group
 from shapely.ops import BaseGeometry
-from sqlalchemy import Select, and_, func, null, or_, select, text, true
+from sqlalchemy import Select, and_, func, null, or_, select, text, true, union_all
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
 from app.db import db
@@ -41,8 +41,11 @@ class ElementQuery:
         Returns 0 if no elements exist with the given type.
         """
         async with db() as session:
-            stmt = select(Element.type, func.max(Element.id)).group_by(Element.type)
-            rows = (await session.execute(stmt)).all()
+            stmts = tuple(
+                select(Element.type, Element.id).where(Element.type == type).order_by(Element.id.desc()).limit(1)
+                for type in ('node', 'way', 'relation')
+            )
+            rows = (await session.execute(union_all(*stmts))).all()
             return {'node': 0, 'way': 0, 'relation': 0, **dict(rows)}
 
     @staticmethod

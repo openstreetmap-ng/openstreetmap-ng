@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Literal
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, null, select, text
+from sqlalchemy import func, null, or_, select, text
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -20,7 +20,7 @@ class NoteQuery:
         note_ids: Sequence[int] | None = None,
         phrase: str | None = None,
         user_id: int | None = None,
-        max_closed_for: timedelta | None = None,
+        max_closed_days: int | None = None,
         geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
         date_to: datetime | None = None,
@@ -43,9 +43,14 @@ class NoteQuery:
                 where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
             if user_id is not None:
                 where_and.append(NoteComment.user_id == user_id)
-            if max_closed_for is not None:
-                if max_closed_for:
-                    where_and.append(Note.closed_at >= utcnow() - max_closed_for)
+            if max_closed_days is not None:
+                if max_closed_days > 0:
+                    where_and.append(
+                        or_(
+                            Note.closed_at == null(),
+                            Note.closed_at >= utcnow() - timedelta(days=max_closed_days),
+                        )
+                    )
                 else:
                     where_and.append(Note.closed_at == null())
             if geometry is not None:

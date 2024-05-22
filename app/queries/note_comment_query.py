@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -40,7 +40,7 @@ class NoteCommentQuery:
         notes: Sequence[Note],
         *,
         limit_per_note: int | None,
-    ) -> None:
+    ) -> Sequence[NoteComment]:
         """
         Resolve comments for notes.
         """
@@ -55,23 +55,25 @@ class NoteCommentQuery:
             return
 
         async with db() as session:
-            stmt: Select[NoteComment] | None = None
+            stmts: list[Select] = []
 
             for note in notes_:
-                stmt_ = select(NoteComment).where(
+                stmt_ = select(NoteComment.id).where(
                     NoteComment.note_id == note.id,
                     NoteComment.created_at <= note.updated_at,
                 )
-
                 if limit_per_note is not None:
                     stmt_ = stmt_.order_by(NoteComment.created_at.desc())
                     stmt_ = stmt_.limit(limit_per_note)
-                    stmt_ = select(NoteComment).select_from(stmt_)
+                    stmt_ = select(NoteComment.id).select_from(stmt_)
+                stmts.append(stmt_)
 
-                stmt_ = stmt_.order_by(NoteComment.created_at.asc())
-                stmt_ = apply_options_context(stmt_)
-                stmt = stmt.union_all(stmt_) if (stmt is not None) else stmt_
-
+            stmt = (
+                select(NoteComment)
+                .where(NoteComment.id.in_(union_all(*stmts).subquery().select()))
+                .order_by(NoteComment.created_at.asc())
+            )
+            stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
         # TODO: delete notes without comments
@@ -84,3 +86,5 @@ class NoteCommentQuery:
                 current_note_id = note_id
                 current_comments = id_comments_map[note_id]
             current_comments.append(comment)
+
+        return comments
