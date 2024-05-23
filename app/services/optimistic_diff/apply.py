@@ -74,7 +74,7 @@ async def _check_elements_latest(element_state: dict[ElementRef, ElementStateEnt
     )
     if not versioned_refs:
         return
-    if not await ElementQuery.is_latest(versioned_refs):
+    if not await ElementQuery.check_is_latest(versioned_refs):
         raise OptimisticDiffError('Element is outdated')
 
 
@@ -84,7 +84,7 @@ async def _check_elements_unreferenced(element_refs: Sequence[ElementRef], after
 
     Raises OptimisticDiffError if they are.
     """
-    if not await ElementQuery.is_unreferenced(element_refs, after_sequence_id):
+    if not await ElementQuery.check_is_unreferenced(element_refs, after_sequence_id):
         raise OptimisticDiffError(f'Element is referenced after {after_sequence_id}')
 
 

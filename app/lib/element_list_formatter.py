@@ -29,7 +29,7 @@ async def format_changeset_elements_list(
     )
 
     if prev_refs:
-        prev_elements = await ElementQuery.get_many_by_versioned_refs(prev_refs, limit=len(prev_refs))
+        prev_elements = await ElementQuery.get_by_versioned_refs(prev_refs, limit=len(prev_refs))
         prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
     else:
         prev_type_id_map = {}

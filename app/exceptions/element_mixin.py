@@ -37,7 +37,7 @@ class ElementExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def element_member_not_found(self, parent: 'Element', member_ref: ElementRef) -> NoReturn:
+    def element_member_not_found(self, parent_ref: ElementRef, member_ref: ElementRef) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

@@ -75,7 +75,7 @@ async def download_changeset(
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
-    elements = await ElementQuery.get_many_by_changeset(changeset_id, sort_by='sequence_id')
+    elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
     await UserQuery.resolve_elements_users(elements, True)
     return Format06.encode_osmchange(elements)
 

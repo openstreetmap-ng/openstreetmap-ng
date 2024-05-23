@@ -49,7 +49,7 @@ class ElementQuery:
             return {'node': 0, 'way': 0, 'relation': 0, **dict(rows)}
 
     @staticmethod
-    async def is_latest(versioned_refs: Sequence[VersionedElementRef]) -> bool:
+    async def check_is_latest(versioned_refs: Sequence[VersionedElementRef]) -> bool:
         """
         Check if the given elements are currently up-to-date.
         """
@@ -75,7 +75,7 @@ class ElementQuery:
             return await session.scalar(stmt) is None
 
     @staticmethod
-    async def is_unreferenced(member_refs: Sequence[ElementRef], after_sequence_id: int) -> bool:
+    async def check_is_unreferenced(member_refs: Sequence[ElementRef], after_sequence_id: int) -> bool:
         """
         Check if the given elements are currently unreferenced.
 
@@ -102,6 +102,46 @@ class ElementQuery:
                 .limit(1)
             )
             return await session.scalar(stmt) is None
+
+    @staticmethod
+    async def filter_visible_refs(
+        element_refs: Sequence[ElementRef],
+        *,
+        at_sequence_id: int | None = None,
+    ) -> Sequence[ElementRef]:
+        """
+        Filter the given element refs to only include the visible elements.
+        """
+        if not element_refs:
+            return ()
+
+        type_id_map: dict[ElementType, set[int]] = defaultdict(set)
+        for element_ref in element_refs:
+            type_id_map[element_ref.type].add(element_ref.id)
+
+        async with db() as session:
+            stmt = select(Element.type, Element.id).where(
+                *(
+                    (Element.next_sequence_id == null(),)
+                    if at_sequence_id is None
+                    else (
+                        Element.sequence_id <= at_sequence_id,
+                        or_(Element.next_sequence_id == null(), Element.next_sequence_id > at_sequence_id),
+                    )
+                ),
+                or_(
+                    *(
+                        and_(
+                            Element.type == type,
+                            Element.id.in_(text(','.join(map(str, ids)))),
+                        )
+                        for type, ids in type_id_map.items()
+                    )
+                ),
+                Element.visible == true(),
+            )
+            rows = (await session.execute(stmt)).all()
+            return tuple(ElementRef(type, id) for type, id in rows)
 
     @staticmethod
     async def get_current_version_by_ref(
@@ -162,7 +202,7 @@ class ElementQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_by_versioned_refs(
+    async def get_by_versioned_refs(
         versioned_refs: Sequence[VersionedElementRef],
         *,
         at_sequence_id: int | None = None,
@@ -195,7 +235,7 @@ class ElementQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_by_refs(
+    async def get_by_refs(
         element_refs: Sequence[ElementRef],
         *,
         at_sequence_id: int | None = None,
@@ -284,7 +324,7 @@ class ElementQuery:
         ref_map: dict[VersionedElementRef | ElementRef, Element] = {}
 
         async def versioned_refs_task() -> None:
-            elements = await ElementQuery.get_many_by_versioned_refs(
+            elements = await ElementQuery.get_by_versioned_refs(
                 versioned_refs,
                 at_sequence_id=at_sequence_id,
                 limit=limit,
@@ -292,7 +332,7 @@ class ElementQuery:
             ref_map.update((VersionedElementRef(e.type, e.id, e.version), e) for e in elements)
 
         async def element_refs_task() -> None:
-            elements = await ElementQuery.get_many_by_refs(
+            elements = await ElementQuery.get_by_refs(
                 element_refs,
                 at_sequence_id=at_sequence_id,
                 limit=limit,
@@ -320,7 +360,7 @@ class ElementQuery:
         return result if (limit is None) else result[:limit]
 
     @staticmethod
-    async def get_many_parents_by_refs(
+    async def get_parents_by_refs(
         member_refs: Sequence[ElementRef],
         *,
         at_sequence_id: int | None = None,
@@ -407,7 +447,7 @@ class ElementQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def get_many_parents_refs_by_refs(
+    async def get_parents_refs_by_refs(
         member_refs: Sequence[ElementRef],
         *,
         at_sequence_id: int | None = None,
@@ -491,11 +531,7 @@ class ElementQuery:
             return result
 
     @staticmethod
-    async def get_many_by_changeset(
-        changeset_id: int,
-        *,
-        sort_by: Literal['id', 'sequence_id'],
-    ) -> Sequence[Element]:
+    async def get_by_changeset(changeset_id: int, *, sort_by: Literal['id', 'sequence_id']) -> Sequence[Element]:
         """
         Get elements by the changeset id.
         """
@@ -564,7 +600,7 @@ class ElementQuery:
         result_sequences: list[Sequence[Element]] = [nodes]
 
         async def fetch_parents(element_refs: Sequence[ElementRef], parent_type: ElementType) -> Sequence[Element]:
-            parents = await ElementQuery.get_many_parents_by_refs(
+            parents = await ElementQuery.get_parents_by_refs(
                 element_refs,
                 at_sequence_id=at_sequence_id,
                 parent_type=parent_type,
@@ -592,7 +628,7 @@ class ElementQuery:
                     members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}
                     members_refs.difference_update(nodes_refs)
                     if members_refs:
-                        ways_nodes = await ElementQuery.get_many_by_refs(
+                        ways_nodes = await ElementQuery.get_by_refs(
                             members_refs,
                             at_sequence_id=at_sequence_id,
                             limit=len(members_refs),

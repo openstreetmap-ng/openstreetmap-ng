@@ -140,7 +140,7 @@ async def get_many(
 @router.get('/{type:element_type}/{id:int}.json')
 async def get_latest(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_many_by_refs((ref,), limit=1)
+    elements = await ElementQuery.get_by_refs((ref,), limit=1)
     element = elements[0] if elements else None
 
     if element is None:
@@ -156,7 +156,7 @@ async def get_latest(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/{version:int}.json')
 async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     ref = VersionedElementRef(type, id, version)
-    elements = await ElementQuery.get_many_by_versioned_refs((ref,), limit=1)
+    elements = await ElementQuery.get_by_versioned_refs((ref,), limit=1)
     element = elements[0] if elements else None
     if element is None:
         raise_for().element_not_found(ref)
@@ -181,7 +181,7 @@ async def get_full(type: ElementType, id: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_many_by_refs(
+    elements = await ElementQuery.get_by_refs(
         (ref,),
         at_sequence_id=at_sequence_id,
         limit=1,
@@ -198,7 +198,7 @@ async def get_full(type: ElementType, id: PositiveInt):
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
 
     members_refs = {ElementRef(member.type, member.id) for member in element.members}
-    members_elements = await ElementQuery.get_many_by_refs(
+    members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
         recurse_ways=True,
@@ -217,7 +217,7 @@ async def get_full(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/relations.json')
 async def get_parent_relations(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_many_parents_by_refs(
+    elements = await ElementQuery.get_parents_by_refs(
         (ref,),
         parent_type='relation',
         limit=None,
@@ -230,7 +230,7 @@ async def get_parent_relations(type: ElementType, id: PositiveInt):
 @router.get('/node/{id:int}/ways.json')
 async def get_parent_ways(id: PositiveInt):
     ref = ElementRef('node', id)
-    elements = await ElementQuery.get_many_parents_by_refs(
+    elements = await ElementQuery.get_parents_by_refs(
         (ref,),
         parent_type='way',
         limit=None,

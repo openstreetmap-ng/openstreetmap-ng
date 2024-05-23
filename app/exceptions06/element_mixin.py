@@ -49,19 +49,19 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_member_not_found(self, parent: 'Element', member_ref: ElementRef) -> NoReturn:
-        if parent.type == 'way':
+    def element_member_not_found(self, parent_ref: ElementRef, member_ref: ElementRef) -> NoReturn:
+        if parent_ref.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Way {parent.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
+                detail=f'Way {parent_ref.id} requires the nodes with id in ({member_ref.id}), which either do not exist, or are not visible.',
             )
-        elif parent.type == 'relation':
+        elif parent_ref.type == 'relation':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
-                detail=f'Relation with id {parent.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
+                detail=f'Relation with id {parent_ref.id} cannot be saved due to {member_ref.type} with id {member_ref.id}',
             )
         else:
-            raise NotImplementedError(f'Unsupported element type {parent.type!r}')
+            raise NotImplementedError(f'Unsupported element type {parent_ref.type!r}')
 
     @override
     def element_in_use(self, element: 'Element', used_by: Sequence[ElementRef]) -> NoReturn:

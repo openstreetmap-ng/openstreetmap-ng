@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import cython
@@ -45,7 +45,7 @@ class OptimisticDiffPrepare:
     Input elements processed during the preparation step.
     """
 
-    element_state: dict[ElementRef, ElementStateEntry] | None
+    element_state: dict[ElementRef, ElementStateEntry]
     """
     Local element state, mapping from element ref to remote and local elements.
     """
@@ -53,6 +53,11 @@ class OptimisticDiffPrepare:
     _elements_parents_refs: dict[ElementRef, frozenset[ElementRef]]
     """
     Local element parents cache, mapping from element ref to the set of parent element refs.
+    """
+
+    _elements_check_members_remote: list[tuple[ElementRef, set[ElementRef]]]
+    """
+    List of element refs and their member refs to be checked remotely.
     """
 
     reference_check_element_refs: set[ElementRef]
@@ -81,8 +86,9 @@ class OptimisticDiffPrepare:
         self.at_sequence_id = None
         self.apply_elements = []
         self._elements = tuple((element, ElementRef(element.type, element.id)) for element in elements)
-        self.element_state = None
+        self.element_state = {}
         self._elements_parents_refs = {}
+        self._elements_check_members_remote = []
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
         self.changeset = None
@@ -98,14 +104,21 @@ class OptimisticDiffPrepare:
         for element_t in self._elements:
             element, element_ref = element_t
             element_type = element.type
-            action: OSMChangeAction
 
+            action: OSMChangeAction
+            entry: ElementStateEntry | None
+            prev: Element | None
             if element.version == 1:
                 action = 'create'
-                prev = None
 
                 if element.id >= 0:
                     raise_for().diff_create_bad_id(element)
+                if element_ref in self.element_state:
+                    raise AssertionError(f'Element {element_ref!r} already exists in the element state')
+
+                entry = ElementStateEntry(None, None)
+                self.element_state[element_ref] = entry
+                prev = None
             else:
                 action = 'modify' if element.visible else 'delete'
                 entry = self.element_state.get(element_ref)
@@ -124,24 +137,25 @@ class OptimisticDiffPrepare:
                         logging.debug('Optimistic skipping delete for %s (is used)', element_ref)
                         continue
 
+            # TODO: test self-referencing elements
+            # update references and check if all newly added members are valid
             if element_type != 'node':
-                # update reference overrides before performing checks
-                # then check if all newly referenced members are visible
-                # note that elements can self-reference themselves
-                # TODO: test this^
                 added_members_refs = self._update_reference_override(prev, element, element_ref)
-                if added_members_refs is not None:
-                    await self._check_members_visible(element, added_members_refs)
+                if added_members_refs:
+                    notfound_refs = self._check_members_local(element_ref, added_members_refs)
+                    if notfound_refs:
+                        self._elements_check_members_remote.append((element_ref, notfound_refs))
 
-            # push bbox info
             self._push_bbox_info(prev, element, element_type)
-            # push to the local state
-            self.element_state[element_ref].local = element
-            # push to the apply list
             self.apply_elements.append(element_t)
+            entry.local = element
 
         self._update_changeset_size()
-        await self._update_changeset_bounds()
+
+        async with create_task_group() as tg:
+            tg.start_soon(self._update_changeset_bounds)
+            if self._elements_check_members_remote:
+                tg.start_soon(self._check_members_remote)
 
     async def _set_sequence_id(self) -> None:
         """
@@ -164,7 +178,7 @@ class OptimisticDiffPrepare:
 
         refs_len = len(refs)
         logging.debug('Optimistic preloading %d elements', refs_len)
-        elements = await ElementQuery.get_many_by_refs(
+        elements = await ElementQuery.get_by_refs(
             refs,
             at_sequence_id=self.at_sequence_id,
             limit=refs_len,
@@ -200,7 +214,7 @@ class OptimisticDiffPrepare:
 
         refs_len = len(refs)
         logging.debug('Optimistic preloading parents for %d elements', refs_len)
-        member_parents_map = await ElementQuery.get_many_parents_refs_by_refs(
+        member_parents_map = await ElementQuery.get_parents_refs_by_refs(
             refs,
             at_sequence_id=self.at_sequence_id,
             limit=None,
@@ -244,7 +258,7 @@ class OptimisticDiffPrepare:
         prev: Element | None,
         element: Element,
         element_ref: ElementRef,
-    ) -> frozenset[ElementRef] | None:
+    ) -> set[ElementRef] | None:
         """
         Update the local reference overrides.
 
@@ -261,76 +275,58 @@ class OptimisticDiffPrepare:
 
         # remove old references
         if prev_members:
-            removed_refs = prev_refs - next_refs
+            removed_refs = prev_refs.difference(next_refs)
             for ref in removed_refs:
                 reference_override[(ref, True)].discard(element_ref)
                 reference_override[(ref, False)].add(element_ref)
 
         # add new references
         if next_members:
-            added_refs = next_refs - prev_refs
+            added_refs = next_refs.difference(prev_refs)
             for ref in added_refs:
                 reference_override[(ref, True)].add(element_ref)
                 reference_override[(ref, False)].discard(element_ref)
-            return frozenset(added_refs)
+            return added_refs
 
         return None
 
-    async def _check_members_visible(self, parent: Element, member_refs: frozenset[ElementRef]) -> None:
+    def _check_members_local(self, parent_ref: ElementRef, member_refs: set[ElementRef]) -> set[ElementRef]:
         """
-        Check if the members exist and are visible.
-        """
-        elements = await self._get_elements_by_refs(member_refs)
-        for element in elements:
-            if not element.visible:
-                raise_for().element_member_not_found(parent, ElementRef(element.type, element.id))
+        Check if the members exist and are visible using element state.
 
-    async def _get_elements_by_refs(self, element_refs_unique: Iterable[ElementRef]) -> Sequence[Element]:
+        Returns a set of not found member refs.
         """
-        Get the latest elements from the element state or the database.
-        """
-        cached_elements: list[Element] = []
-        remote_refs: list[ElementRef] = []
+        notfound: set[ElementRef] = set()
         element_state = self.element_state
-        for element_ref in element_refs_unique:
-            entry = element_state.get(element_ref)
-            if entry is not None:
-                # load cached
-                element = entry.local if (entry.local is not None) else entry.remote
-                cached_elements.append(element)
-            else:
-                # load from db
-                if element_ref.id < 0:
-                    raise_for().element_not_found(element_ref)
-                remote_refs.append(element_ref)
+        for member_ref in member_refs:
+            entry = element_state.get(member_ref)
+            if entry is None:
+                notfound.add(member_ref)
+                continue
+            member = entry.local if (entry.local is not None) else entry.remote
+            if not member.visible:
+                raise_for().element_member_not_found(parent_ref, member_ref)
+        return notfound
 
+    async def _check_members_remote(self) -> None:
+        """
+        Check if the members exist and are visible using the database.
+        """
+        remote_refs: set[ElementRef] = set()
+        for _, member_refs in self._elements_check_members_remote:
+            remote_refs.update(member_refs)
         if not remote_refs:
-            return cached_elements
+            return
 
-        remote_refs_len = len(remote_refs)
-        logging.debug('Optimistic loading %d elements', remote_refs_len)
-        remote_elements = await ElementQuery.get_many_by_refs(
-            remote_refs,
-            at_sequence_id=self.at_sequence_id,
-            limit=remote_refs_len,
-        )
+        visible_refs = await ElementQuery.filter_visible_refs(remote_refs, at_sequence_id=self.at_sequence_id)
+        hidden_refs = remote_refs.difference(visible_refs)
+        hidden_ref = hidden_refs[0] if hidden_refs else None
+        if hidden_ref is None:
+            return
 
-        # check if all elements exist
-        if len(remote_elements) != remote_refs_len:
-            remote_refs_set = set(remote_refs)
-            for element in remote_elements:
-                remote_refs_set.remove(ElementRef(element.type, element.id))
-            raise_for().element_not_found(next(iter(remote_refs_set)))
-
-        # update element state
-        element_state.update(
-            (ElementRef(element.type, element.id), ElementStateEntry(element, None))  #
-            for element in remote_elements
-        )
-
-        logging.debug('Optimistic loading members for %d elements', remote_refs_len)
-        await ElementMemberQuery.resolve_members(remote_elements)
-        return cached_elements + remote_elements
+        for parent_ref, member_refs in self._elements_check_members_remote:
+            if hidden_ref in member_refs:
+                raise_for().element_member_not_found(parent_ref, hidden_ref)
 
     def _push_bbox_info(self, prev: Element | None, element: Element, element_type: ElementType) -> None:
         """
@@ -479,13 +475,12 @@ class OptimisticDiffPrepare:
 
         if elements_refs:
             logging.debug('Optimistic loading %d bbox elements', len(elements_refs))
-            elements = await ElementQuery.get_many_by_refs(
+            elements = await ElementQuery.get_by_refs(
                 elements_refs,
                 at_sequence_id=self.at_sequence_id,
                 recurse_ways=True,
                 limit=None,
             )
-
             for element in elements:
                 point = element.point
                 if point is not None:

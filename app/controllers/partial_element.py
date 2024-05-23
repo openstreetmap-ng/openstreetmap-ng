@@ -33,7 +33,7 @@ async def get_latest(type: ElementType, id: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_many_by_refs(
+    elements = await ElementQuery.get_by_refs(
         (ref,),
         at_sequence_id=at_sequence_id,
         limit=1,
@@ -61,7 +61,7 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     parents = True
 
     ref = VersionedElementRef(type, id, version)
-    elements = await ElementQuery.get_many_by_versioned_refs(
+    elements = await ElementQuery.get_by_versioned_refs(
         (ref,),
         at_sequence_id=at_sequence_id,
         limit=1,
@@ -157,7 +157,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     async def parents_task():
         nonlocal list_parents
         ref = ElementRef(element.type, element.id)
-        parents = await ElementQuery.get_many_parents_by_refs(
+        parents = await ElementQuery.get_parents_by_refs(
             (ref,),
             at_sequence_id=at_sequence_id,
             limit=None,
@@ -168,7 +168,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     async def data_task():
         nonlocal full_data, list_elements
         members_refs = {ElementRef(member.type, member.id) for member in element.members}
-        members_elements = await ElementQuery.get_many_by_refs(
+        members_elements = await ElementQuery.get_by_refs(
             members_refs,
             at_sequence_id=at_sequence_id,
             recurse_ways=True,

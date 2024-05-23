@@ -42,7 +42,7 @@ async def get_changeset(id: PositiveInt):
 
     async def elements_task():
         nonlocal elements
-        elements_ = await ElementQuery.get_many_by_changeset(id, sort_by='id')
+        elements_ = await ElementQuery.get_by_changeset(id, sort_by='id')
         elements = await format_changeset_elements_list(elements_)
 
     async def comments_task():
