@@ -5,7 +5,7 @@ from anyio import to_thread
 from fastapi import UploadFile
 
 from app.db import db_commit
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Form
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.options_context import options_context
 from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH

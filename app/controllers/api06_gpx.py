@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, Form, Query, Response, UploadFile
 from pydantic import NonNegativeInt, PositiveInt
 from sqlalchemy.orm import joinedload
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body

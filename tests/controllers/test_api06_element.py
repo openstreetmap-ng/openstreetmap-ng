@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.xmltodict import XMLToDict
 
 pytestmark = pytest.mark.anyio

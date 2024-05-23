@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.models.db.user import User

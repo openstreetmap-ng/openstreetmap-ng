@@ -3,7 +3,7 @@ from typing import Annotated
 from anyio import create_task_group
 from fastapi import APIRouter, Query
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.xmltodict import get_xattr

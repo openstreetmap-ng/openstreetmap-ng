@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
-from app.format06 import Format06
+from app.format import Format06
 from app.lib.auth_context import api_user
 from app.lib.date_utils import parse_date
 from app.lib.exceptions_context import raise_for

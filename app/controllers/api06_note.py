@@ -9,7 +9,7 @@ from feedgen.feed import FeedGenerator
 from pydantic import BaseModel, PositiveInt
 from sqlalchemy.orm import joinedload
 
-from app.format06 import Format06, FormatRSS06
+from app.format import Format06, FormatRSS06
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_rss
