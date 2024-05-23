@@ -96,6 +96,7 @@ target-version = "py312"
 ignore = [
   "ARG001", # unused-function-argument
   "ARG002", # unused-method-argument
+  "B017", # assert-raises-exception
   "TRY003", # raise-vanilla-args
   "S101", # assert
   "SIM108", # if-else-block-instead-of-if-exp

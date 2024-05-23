@@ -82,5 +82,5 @@ def test_parse_bbox_meridian():
     ],
 )
 def test_parse_bbox_invalid(bbox):
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(Exception):
         parse_bbox(bbox)

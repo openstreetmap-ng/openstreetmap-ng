@@ -130,22 +130,20 @@ class OptimisticDiffPrepare:
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element, prev.version)
 
-                if action == 'delete':
-                    if not prev.visible:
-                        raise_for().element_already_deleted(element)
-                    # on delete, check if not referenced by other elements
-                    if not self._check_element_can_delete(element, element_ref):
-                        logging.debug('Optimistic skipping delete for %s (is used)', element_ref)
-                        continue
+                if action == 'delete' and not prev.visible:
+                    raise_for().element_already_deleted(element)
 
             # TODO: test self-referencing elements
             # update references and check if all newly added members are valid
             if element_type != 'node':
                 added_members_refs = self._update_reference_override(prev, element, element_ref)
                 if added_members_refs:
-                    notfound_refs = self._check_members_local(element_ref, added_members_refs)
-                    if notfound_refs:
-                        self._elements_check_members_remote.append((element_ref, notfound_refs))
+                    self._check_members_local(element, element_ref, added_members_refs)
+
+            # on delete, check if not referenced by other elements
+            if action == 'delete' and not self._check_element_can_delete(element, element_ref):
+                logging.debug('Optimistic skipping delete for %s (is used)', element_ref)
+                continue
 
             self._push_bbox_info(prev, element, element_type)
             self.apply_elements.append(element_t)
@@ -155,8 +153,7 @@ class OptimisticDiffPrepare:
 
         async with create_task_group() as tg:
             tg.start_soon(self._update_changeset_bounds)
-            if self._elements_check_members_remote:
-                tg.start_soon(self._check_members_remote)
+            tg.start_soon(self._check_members_remote)
 
     async def _set_sequence_id(self) -> None:
         """
@@ -189,7 +186,8 @@ class OptimisticDiffPrepare:
         if len(elements) != refs_len:
             for element in elements:
                 refs.remove(ElementRef(element.type, element.id))
-            raise_for().element_not_found(next(iter(refs)))
+            element_ref = next(iter(refs))
+            raise_for().element_not_found(element_ref)
 
         # if they do, push them to the element state
         self.element_state = {
@@ -291,11 +289,11 @@ class OptimisticDiffPrepare:
 
         return None
 
-    def _check_members_local(self, parent_ref: ElementRef, member_refs: set[ElementRef]) -> set[ElementRef]:
+    def _check_members_local(self, parent: Element, parent_ref: ElementRef, member_refs: set[ElementRef]) -> None:
         """
         Check if the members exist and are visible using element state.
 
-        Returns a set of not found member refs.
+        Store the not found member refs for remote check.
         """
         notfound: set[ElementRef] = set()
         element_state = self.element_state
@@ -305,9 +303,12 @@ class OptimisticDiffPrepare:
                 notfound.add(member_ref)
                 continue
             member = entry.local if (entry.local is not None) else entry.remote
+            if member is None and member_ref == parent_ref:
+                member = parent
             if not member.visible:
                 raise_for().element_member_not_found(parent_ref, member_ref)
-        return notfound
+        if notfound:
+            self._elements_check_members_remote.append((parent_ref, notfound))
 
     async def _check_members_remote(self) -> None:
         """
