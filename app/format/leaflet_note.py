@@ -15,7 +15,6 @@ class LeafletNoteMixin:
         """
         return tuple(
             NoteLeaflet(
-                type='note',
                 id=note.id,
                 geom=lib.get_coordinates(np.asarray(note.point, dtype=object), False, False)[0][::-1].tolist(),
                 text=note.comments[0].body[:100],

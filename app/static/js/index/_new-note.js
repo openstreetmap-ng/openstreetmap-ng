@@ -20,6 +20,8 @@ export const getNewNoteController = (map) => {
     const form = sidebar.querySelector("form")
     const lonInput = form.elements.lon
     const latInput = form.elements.lat
+    const commentInput = form.elements.text
+    const submitButton = form.querySelector("[type=submit]")
 
     let halo = null
     let marker = null
@@ -55,8 +57,18 @@ export const getNewNoteController = (map) => {
         latInput.value = latLng.lat
     }
 
+    // On comment input, update the button state
+    const onCommentInput = () => {
+        const hasValue = commentInput.value.trim().length > 0
+        submitButton.disabled = !hasValue
+    }
+
     // Listen for events
     configureStandardForm(form, onFormSuccess, onClientValidation)
+    commentInput.addEventListener("input", onCommentInput)
+
+    // Initial update
+    onCommentInput()
 
     return {
         load: () => {
