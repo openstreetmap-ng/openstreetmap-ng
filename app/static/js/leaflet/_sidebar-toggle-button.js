@@ -17,7 +17,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
         // Find corresponding sidebar
         const sidebar = document.querySelector(`.leaflet-sidebar.${className}`)
         if (!sidebar) console.error("Sidebar", className, "not found")
-        const sidebarCloseButton = sidebar.querySelector(".btn-close")
+        const sidebarCloseButton = sidebar.querySelector(".sidebar-close-btn")
 
         // Create container
         const container = document.createElement("div")
@@ -54,6 +54,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
                 if (otherContainer === container) continue
                 const otherButton = otherContainer.querySelector(".control-button")
                 if (otherButton.classList.contains("active")) {
+                    console.debug("Unselecting sidebar toggle button", otherButton)
                     otherButton.dispatchEvent(new Event("click"))
                 }
             }

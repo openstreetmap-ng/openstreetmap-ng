@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import { routerNavigateStrict } from "./index/_router.js"
 
 const actionSidebars = document.querySelectorAll(".action-sidebar")
+const closeButtons = document.querySelectorAll(".action-sidebar .sidebar-close-btn")
 const searchForms = document.querySelectorAll(".action-sidebar .search-form")
 const routingForms = document.querySelectorAll(".action-sidebar .routing-form")
 
@@ -40,9 +41,13 @@ export const switchActionSidebar = (map, className) => {
  */
 export const configureActionSidebars = () => {
     // On sidebar close button click, navigate to index
-    const onCloseButtonClick = () => routerNavigateStrict("/")
+    const onCloseButtonClick = () => {
+        console.debug("configureActionSidebars", "onCloseButtonClick")
+        routerNavigateStrict("/")
+    }
 
-    for (const sidebarCloseButton of document.querySelectorAll(".sidebar-close-btn")) {
+    // Listen for events
+    for (const sidebarCloseButton of closeButtons) {
         sidebarCloseButton.addEventListener("click", onCloseButtonClick)
     }
 }

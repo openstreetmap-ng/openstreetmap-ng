@@ -11,7 +11,6 @@ import i18next from "i18next"
  */
 export const configureStandardForm = (form, successCallback = null, clientValidationCallback = null) => {
     console.debug("Initializing standard form", form)
-
     const submitElements = form.querySelectorAll("[type=submit]")
 
     /**
@@ -20,9 +19,8 @@ export const configureStandardForm = (form, successCallback = null, clientValida
      * @returns {void}
      */
     const toggleSubmit = (enabled) => {
-        for (const submit of submitElements) {
-            submit.disabled = !enabled
-        }
+        console.debug("configureStandardForm", toggleSubmit, enabled)
+        for (const submit of submitElements) submit.disabled = !enabled
     }
 
     /**
@@ -65,6 +63,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
 
         const onInvalidated = () => {
             if (!feedback) return
+            console.debug("configureStandardForm", "onInvalidated")
             feedback.remove()
             feedback = null
             element.classList.remove("is-valid", "is-invalid")
@@ -167,6 +166,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
 
     // On form submit, build and submit the request
     const onSubmit = (e) => {
+        console.debug("configureStandardForm", "onSubmit", form.action)
         e.preventDefault()
 
         // Check form validity
