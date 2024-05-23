@@ -18,6 +18,7 @@ class ElementLeafletWay(ElementLeaflet):
 
 
 class NoteLeaflet(msgspec.Struct):
+    id: int
     geom: list[float]  # [lat, lon]
     text: str
     open: bool
