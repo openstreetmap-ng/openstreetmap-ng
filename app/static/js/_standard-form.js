@@ -19,7 +19,7 @@ export const configureStandardForm = (form, successCallback = null, clientValida
      * @returns {void}
      */
     const toggleSubmit = (enabled) => {
-        console.debug("configureStandardForm", toggleSubmit, enabled)
+        console.debug("configureStandardForm", "toggleSubmit", enabled)
         for (const submit of submitElements) submit.disabled = !enabled
     }
 
