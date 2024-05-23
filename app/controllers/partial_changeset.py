@@ -13,6 +13,7 @@ from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
+from app.models.db.user import User
 from app.models.element_list_entry import ChangesetElementEntry
 from app.models.tag_format import TagFormatCollection
 from app.queries.changeset_comment_query import ChangesetCommentQuery
@@ -25,7 +26,14 @@ router = APIRouter(prefix='/api/partial/changeset')
 
 @router.get('/{id:int}')
 async def get_changeset(id: PositiveInt):
-    with options_context(joinedload(Changeset.user)):
+    with options_context(
+        joinedload(Changeset.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
         changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(id,), limit=1)
         changeset = changesets[0] if changesets else None
 

@@ -70,8 +70,10 @@ async def get_changeset(
 async def download_changeset(
     changeset_id: PositiveInt,
 ):
-    changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    changeset = changesets[0] if changesets else None
+    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+        changeset = changesets[0] if changesets else None
+
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 

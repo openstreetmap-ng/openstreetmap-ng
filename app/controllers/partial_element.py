@@ -16,6 +16,7 @@ from app.lib.translation import t
 from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.models.db.user import User
 from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
@@ -150,7 +151,14 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
     async def changeset_user_task():
         nonlocal changeset
-        with options_context(joinedload(Changeset.user)):
+        with options_context(
+            joinedload(Changeset.user).load_only(
+                User.id,
+                User.display_name,
+                User.avatar_type,
+                User.avatar_id,
+            )
+        ):
             changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(element.changeset_id,), limit=1)
             changeset = changesets[0]
 

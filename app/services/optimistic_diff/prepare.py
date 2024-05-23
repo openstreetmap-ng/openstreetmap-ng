@@ -14,6 +14,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
+from app.models.db.user import User
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.osmchange_action import OSMChangeAction
@@ -438,7 +439,7 @@ class OptimisticDiffPrepare:
             raise_for().diff_multiple_changesets()
         changeset_id = next(iter(changeset_ids))
 
-        with options_context(joinedload(Changeset.user)):
+        with options_context(joinedload(Changeset.user).load_only(User.roles)):
             changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
             changeset = changesets[0] if changesets else None
 
