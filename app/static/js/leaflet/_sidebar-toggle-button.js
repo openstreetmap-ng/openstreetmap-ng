@@ -2,6 +2,8 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
 
+const sidebarToggleContainers = []
+
 /**
  * Create a sidebar toggle button
  * @param {string} className Class name of the sidebar
@@ -47,7 +49,15 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
         const onButtonClick = () => {
             console.debug("toggleLeafletSidebar", className)
 
-            // TODO: unselect other buttons
+            // unselect other buttons
+            for (const otherContainer of sidebarToggleContainers) {
+                if (otherContainer === container) continue
+                const otherButton = otherContainer.querySelector(".control-button")
+                if (otherButton.classList.contains("active")) {
+                    otherButton.dispatchEvent(new Event("click"))
+                }
+            }
+
             button.blur() // lose focus
 
             const isActive = button.classList.toggle("active")
@@ -63,6 +73,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
         control.button = button
         control.tooltip = tooltip
 
+        sidebarToggleContainers.push(container)
         return container
     }
 

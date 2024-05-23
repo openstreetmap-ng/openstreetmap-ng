@@ -4,6 +4,8 @@ import * as L from "leaflet"
 import { routerNavigateStrict } from "../index/_router.js"
 import { newNoteMinZoom } from "./_context-menu.js"
 
+let newNoteContainer = null
+
 export const getNewNoteControl = () => {
     const control = new L.Control()
 
@@ -35,10 +37,6 @@ export const getNewNoteControl = () => {
         }
     }
 
-    // TODO: active state
-    // On button click, navigate to the new note page
-    const onButtonClick = () => routerNavigateStrict("/note/new")
-
     control.onAdd = (map) => {
         if (control.map) console.error("NewNoteControl has already been added to a map")
 
@@ -66,6 +64,17 @@ export const getNewNoteControl = () => {
         control.tooltip = tooltip
         control.map = map
 
+        // On button click, navigate to the new note page
+        const onButtonClick = () => {
+            const isActive = button.classList.contains("active")
+            if (!isActive) {
+                routerNavigateStrict("/note/new")
+            } else {
+                routerNavigateStrict("/")
+            }
+            button.blur() // lose focus
+        }
+
         // Listen for events
         map.addEventListener("zoomend", onZoomEnd)
         button.addEventListener("click", onButtonClick)
@@ -73,8 +82,19 @@ export const getNewNoteControl = () => {
         // Initial update to set button states
         onZoomEnd()
 
+        newNoteContainer = container
         return container
     }
 
     return control
+}
+
+export const setNewNoteButtonState = (active) => {
+    console.debug("setNewNoteButtonState", active)
+    if (!newNoteContainer) {
+        console.warn("Setting newNoteButtonState before getNewNoteControl")
+        return
+    }
+    const button = newNoteContainer.querySelector(".control-button")
+    button.classList.toggle("active", active)
 }

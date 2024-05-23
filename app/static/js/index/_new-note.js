@@ -7,6 +7,7 @@ import { isLatitude, isLongitude } from "../_utils.js"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { getMapState, setMapState } from "../leaflet/_map-utils.js"
+import { setNewNoteButtonState } from "../leaflet/_new-note-control.js"
 import { routerNavigateStrict } from "./_router.js"
 
 /**
@@ -111,8 +112,12 @@ export const getNewNoteController = (map) => {
                 state.layersCode += notesLayerCode
                 setMapState(map, state)
             }
+
+            // Update note button state
+            setNewNoteButtonState(true)
         },
         unload: () => {
+            setNewNoteButtonState(false)
             focusMapObject(map, null)
             halo = null
             marker = null
