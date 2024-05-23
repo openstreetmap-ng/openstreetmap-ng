@@ -18,7 +18,7 @@ from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
+from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
 
 # allow reads but prevent writes
 _lock_table_sql = text(
@@ -61,16 +61,16 @@ class OptimisticDiffApply:
         return assigned_ref_map
 
 
-async def _check_elements_latest(element_state: dict[ElementRef, Sequence[Element]]) -> None:
+async def _check_elements_latest(element_state: dict[ElementRef, ElementStateEntry]) -> None:
     """
     Check if the elements are the current version.
 
     Raises OptimisticDiffError if they are not.
     """
     versioned_refs = tuple(
-        VersionedElementRef(ref.type, ref.id, elements[0].version)
-        for ref, elements in element_state.items()
-        if ref.id > 0
+        VersionedElementRef(ref.type, ref.id, entry.remote.version)
+        for ref, entry in element_state.items()
+        if entry.remote is not None
     )
     if not versioned_refs:
         return

@@ -22,7 +22,13 @@ from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 
 
-@dataclass(init=False, repr=False, eq=False, match_args=False, slots=True)
+@dataclass(slots=True)
+class ElementStateEntry:
+    remote: Element | None
+    local: Element | None
+
+
+@dataclass(slots=True)
 class OptimisticDiffPrepare:
     at_sequence_id: int | None
     """
@@ -39,9 +45,9 @@ class OptimisticDiffPrepare:
     Input elements processed during the preparation step.
     """
 
-    element_state: defaultdict[ElementRef, list[Element]]
+    element_state: dict[ElementRef, ElementStateEntry] | None
     """
-    Local element state, mapping from element ref to that elements history (from oldest to newest).
+    Local element state, mapping from element ref to remote and local elements.
     """
 
     _elements_parents_refs: dict[ElementRef, frozenset[ElementRef]]
@@ -75,7 +81,7 @@ class OptimisticDiffPrepare:
         self.at_sequence_id = None
         self.apply_elements = []
         self._elements = tuple((element, ElementRef(element.type, element.id)) for element in elements)
-        self.element_state = defaultdict(list)
+        self.element_state = None
         self._elements_parents_refs = {}
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
@@ -102,11 +108,11 @@ class OptimisticDiffPrepare:
                     raise_for().diff_create_bad_id(element)
             else:
                 action = 'modify' if element.visible else 'delete'
-                history = self.element_state.get(element_ref)
-                prev = history[-1] if history else None
-
-                if prev is None:
+                entry = self.element_state.get(element_ref)
+                if entry is None:
                     raise_for().element_not_found(element_ref)
+
+                prev = entry.local if (entry.local is not None) else entry.remote
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element, prev.version)
 
@@ -130,7 +136,7 @@ class OptimisticDiffPrepare:
             # push bbox info
             self._push_bbox_info(prev, element, element_type)
             # push to the local state
-            self.element_state[element_ref].append(element)
+            self.element_state[element_ref].local = element
             # push to the apply list
             self.apply_elements.append(element_t)
 
@@ -170,10 +176,11 @@ class OptimisticDiffPrepare:
                 refs.remove(ElementRef(element.type, element.id))
             raise_for().element_not_found(next(iter(refs)))
 
-        # if they do, push them to the local state
-        element_state = self.element_state
-        for element in elements:
-            element_state[ElementRef(element.type, element.id)] = [element]
+        # if they do, push them to the element state
+        self.element_state = {
+            ElementRef(element.type, element.id): ElementStateEntry(element, None)  #
+            for element in elements
+        }
 
         logging.debug('Optimistic preloading members for %d elements', refs_len)
         await ElementMemberQuery.resolve_members(elements)
@@ -207,7 +214,7 @@ class OptimisticDiffPrepare:
         """
         Check if the element can be deleted.
         """
-        # check if not referenced by local state
+        # check if not referenced by element state
         positive_refs = self._reference_override[(element_ref, True)]
         if positive_refs:
             if element.delete_if_unused is True:
@@ -280,25 +287,25 @@ class OptimisticDiffPrepare:
 
     async def _get_elements_by_refs(self, element_refs_unique: Iterable[ElementRef]) -> Sequence[Element]:
         """
-        Get the latest elements from the local state or the database.
+        Get the latest elements from the element state or the database.
         """
-        local_elements: list[Element] = []
+        cached_elements: list[Element] = []
         remote_refs: list[ElementRef] = []
-
         element_state = self.element_state
         for element_ref in element_refs_unique:
-            history = element_state.get(element_ref)
-            if history is not None:
-                # load locally
-                local_elements.append(history[-1])
+            entry = element_state.get(element_ref)
+            if entry is not None:
+                # load cached
+                element = entry.local if (entry.local is not None) else entry.remote
+                cached_elements.append(element)
             else:
-                # load remotely
+                # load from db
                 if element_ref.id < 0:
                     raise_for().element_not_found(element_ref)
                 remote_refs.append(element_ref)
 
         if not remote_refs:
-            return local_elements
+            return cached_elements
 
         remote_refs_len = len(remote_refs)
         logging.debug('Optimistic loading %d elements', remote_refs_len)
@@ -315,13 +322,15 @@ class OptimisticDiffPrepare:
                 remote_refs_set.remove(ElementRef(element.type, element.id))
             raise_for().element_not_found(next(iter(remote_refs_set)))
 
-        # update local state
-        for element in remote_elements:
-            element_state[ElementRef(element.type, element.id)] = [element]
+        # update element state
+        element_state.update(
+            (ElementRef(element.type, element.id), ElementStateEntry(element, None))  #
+            for element in remote_elements
+        )
 
         logging.debug('Optimistic loading members for %d elements', remote_refs_len)
         await ElementMemberQuery.resolve_members(remote_elements)
-        return local_elements + remote_elements
+        return cached_elements + remote_elements
 
     def _push_bbox_info(self, prev: Element | None, element: Element, element_type: ElementType) -> None:
         """
@@ -364,9 +373,10 @@ class OptimisticDiffPrepare:
         bbox_info = self._bbox_info
         element_state = self.element_state
         for node_ref in node_refs:
-            nodes = element_state.get(node_ref)
-            if nodes is not None:
-                bbox_info.add(nodes[-1].point)
+            entry = element_state.get(node_ref)
+            if entry is not None:
+                node = entry.local if (entry.local is not None) else entry.remote
+                bbox_info.add(node.point)
             else:
                 bbox_info.add(node_ref)
 
@@ -400,9 +410,10 @@ class OptimisticDiffPrepare:
             member_type = member_ref.type
 
             if member_type == 'node':
-                nodes = element_state.get(member_ref)
-                if nodes is not None:
-                    bbox_info.add(nodes[-1].point)
+                entry = element_state.get(member_ref)
+                if entry is not None:
+                    node = entry.local if (entry.local is not None) else entry.remote
+                    bbox_info.add(node.point)
                 else:
                     bbox_info.add(member_ref)
 
@@ -414,9 +425,10 @@ class OptimisticDiffPrepare:
 
                 for node_member in ways[-1].members:
                     node_ref = ElementRef('node', node_member.id)
-                    nodes = element_state.get(node_ref)
-                    if nodes is not None:
-                        bbox_info.add(nodes[-1].point)
+                    entry = element_state.get(node_ref)
+                    if entry is not None:
+                        node = entry.local if (entry.local is not None) else entry.remote
+                        bbox_info.add(node.point)
                     else:
                         bbox_info.add(node_ref)
 
