@@ -1,10 +1,10 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 
 /**
  * Create a new query features controller

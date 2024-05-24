@@ -1,6 +1,5 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { formatDistance, formatHeight, formatSimpleDistance, formatTime } from "../_format-utils.js"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage.js"
 import { qsEncode, qsParse } from "../_qs.js"
@@ -10,6 +9,7 @@ import "../_types.js"
 import { zoomPrecision } from "../_utils.js"
 import { encodeMapState, getMapState } from "../leaflet/_map-utils.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 import { GraphHopperEngines } from "./routing-engines/_graphhopper.js"
 import { OSRMEngines } from "./routing-engines/_osrm.js"
 import { ValhallaEngines } from "./routing-engines/_valhalla.js"
@@ -67,7 +67,7 @@ export const getRoutingController = (map) => {
     let toMarker = null // red
     let routePolyline = null
     let highlightPolyline = null
-    let highlightPopup = null // TODO: autoPanPadding: [100, 100]
+    const highlightPopup = null // TODO: autoPanPadding: [100, 100]
 
     // Set default routing engine
     const lastRoutingEngine = getLastRoutingEngine()

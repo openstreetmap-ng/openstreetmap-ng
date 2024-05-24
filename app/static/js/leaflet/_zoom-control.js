@@ -65,17 +65,12 @@ export const getZoomControl = () => {
         container.appendChild(zoomInButton)
         container.appendChild(zoomOutButton)
 
-        const onZoomInButtonClick = () => {
-            map.zoomIn(1)
-        }
-
-        const onZoomOutButtonClick = () => {
-            map.zoomOut(1)
-        }
-
         control.zoomInButton = zoomInButton
         control.zoomOutButton = zoomOutButton
         control.map = map
+
+        const onZoomInButtonClick = () => map.zoomIn(1)
+        const onZoomOutButtonClick = () => map.zoomOut(1)
 
         // Listen for events
         map.addEventListener("zoomend zoomlevelschange", onMapZoomChange)

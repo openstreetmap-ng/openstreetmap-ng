@@ -1,9 +1,9 @@
 import * as L from "leaflet"
-import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { mapQueryAreaMaxSize } from "../_config.js"
 import { getPageTitle } from "../_title.js"
 import { zoomPrecision } from "../_utils.js"
 import { getLocationFilter } from "../leaflet/_location-filter.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 
 /**
  * Create a new export controller

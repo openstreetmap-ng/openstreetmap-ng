@@ -1,5 +1,4 @@
 import * as L from "leaflet"
-import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
 import { qsParse } from "../_qs.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
@@ -8,6 +7,7 @@ import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { getMapState, setMapState } from "../leaflet/_map-utils.js"
 import { setNewNoteButtonState } from "../leaflet/_new-note-control.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 import { routerNavigateStrict } from "./_router.js"
 
 /**

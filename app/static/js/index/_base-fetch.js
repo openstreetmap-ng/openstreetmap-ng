@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { getActionSidebar, switchActionSidebar } from "../_action-sidebar.js"
+import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 
 /**
  * Create a base fetch controller
@@ -25,6 +25,7 @@ export const getBaseFetchController = (map, className, successCallback) => {
     // On sidebar loaded, display content and call callback
     const onSidebarLoaded = (html) => {
         dynamicContent.innerHTML = html
+        configureActionSidebar(sidebar)
     }
 
     return {
