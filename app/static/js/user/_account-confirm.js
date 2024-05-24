@@ -6,7 +6,7 @@ if (accountConfirmBody) {
 
     const onResendSuccess = (data) => {
         console.debug("onResendSuccess", data)
-        if (data.is_active) location = "/welcome"
+        if (data.is_active) window.location = "/welcome"
     }
 
     configureStandardForm(resendForm, onResendSuccess)

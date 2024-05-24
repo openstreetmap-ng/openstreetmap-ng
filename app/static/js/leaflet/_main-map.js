@@ -50,7 +50,7 @@ const getMainMap = (container) => {
         zoomControl: false,
         maxBoundsViscosity: 1,
         minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(L.latLng(-85, -Infinity), L.latLng(85, Infinity)),
+        maxBounds: L.latLngBounds(L.latLng(-85, -Number.Infinity), L.latLng(85, Number.Infinity)),
     })
 
     // Disable Leaflet's attribution prefix
@@ -80,8 +80,8 @@ const getMainMap = (container) => {
     // Add optional map marker
     const searchParams = qsParse(location.search.substring(1))
     if (searchParams.mlon && searchParams.mlat) {
-        const mlon = parseFloat(searchParams.mlon)
-        const mlat = parseFloat(searchParams.mlat)
+        const mlon = Number.parseFloat(searchParams.mlon)
+        const mlat = Number.parseFloat(searchParams.mlat)
         if (isLongitude(mlon) && isLatitude(mlat)) {
             const marker = L.marker(L.latLng(mlat, mlon), {
                 icon: getMarkerIcon("blue", true),

@@ -1,7 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.4.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.7.0/schema.json",
   "organizeImports": {
     "enabled": true
+  },
+  "formatter": {
+    "enabled": true,
+    "indentWidth": 4,
+    "indentStyle": "space",
+    "lineEnding": "lf",
+    "lineWidth": 120
   },
   "linter": {
     "enabled": true,
@@ -15,42 +22,23 @@
         "noUndeclaredVariables": "warn"
       },
       "style": {
+        "noDefaultExport": "warn",
+        "noNamespace": "error",
         "noParameterProperties": "error",
         "useCollapsedElseIf": "warn",
+        "useForOf": "warn",
         "useNamingConvention": {
           "level": "warn",
           "options": {
             "strictCase": false
           }
         },
-        "useShorthandArrayType": "warn",
         "useShorthandAssign": "warn"
       },
       "suspicious": {
-        "noApproximativeNumericConstant": "warn",
-        "noMisrefactoredShorthandAssign": "error"
-      },
-      "nursery": {
-        "noDuplicateJsonKeys": "error",
-        "noEmptyBlockStatements": "warn",
-        "noInvalidUseBeforeDeclaration": "warn",
-        "noMisleadingCharacterClass": "warn",
-        "noNodejsModules": "error",
-        "noUnusedPrivateClassMembers": "warn",
-        "noUselessLoneBlockStatements": "warn",
-        "noUselessTernary": "warn",
-        "useAwait": "warn",
-        "useForOf": "warn",
-        "useRegexLiterals": "warn"
+        "useAwait": "warn"
       }
     }
-  },
-  "formatter": {
-    "enabled": true,
-    "indentWidth": 4,
-    "indentStyle": "space",
-    "lineEnding": "lf",
-    "lineWidth": 120
   },
   "javascript": {
     "formatter": {

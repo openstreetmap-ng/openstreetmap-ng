@@ -26,8 +26,8 @@ export const getQueryFeaturesController = (map) => {
     const getQueryPosition = () => {
         const searchParams = qsParse(location.search.substring(1))
         if (searchParams.lon && searchParams.lat) {
-            const lon = parseFloat(searchParams.lon)
-            const lat = parseFloat(searchParams.lat)
+            const lon = Number.parseFloat(searchParams.lon)
+            const lat = Number.parseFloat(searchParams.lat)
 
             if (isLongitude(lon) && isLatitude(lat)) {
                 const zoom = map.getZoom()

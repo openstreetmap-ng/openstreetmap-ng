@@ -43,15 +43,19 @@ export const getChangesetController = (map) => {
         // Not all changesets have a bounding box
         if (bounds) {
             const onMapZoomEnd = (e) => {
-                focusMapObject(map, {
-                    type: "changeset",
-                    id: paramsId,
-                    tags: emptyTags, // currently unused
-                    bounds: makeBoundsMinimumSize(map, bounds),
-                }, {
-                    // Fit the bounds only on the initial update
-                    fitBounds: !e,
-                })
+                focusMapObject(
+                    map,
+                    {
+                        type: "changeset",
+                        id: paramsId,
+                        tags: emptyTags, // currently unused
+                        bounds: makeBoundsMinimumSize(map, bounds),
+                    },
+                    {
+                        // Fit the bounds only on the initial update
+                        fitBounds: !e,
+                    },
+                )
             }
 
             // Listen for events
@@ -105,7 +109,7 @@ const renderElements = (elementsSection, elements) => {
     const entryTemplate = elementsSection.querySelector("template.entry")
     const fragment = document.createDocumentFragment()
 
-    for (const type of ['way', 'relation', 'node']) {
+    for (const type of ["way", "relation", "node"]) {
         const elementsType = elements[type]
         if (elementsType.length) {
             fragment.appendChild(renderElementType(groupTemplate, entryTemplate, type, elementsType))
@@ -140,19 +144,23 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
     let currentPage = 1
 
     const updateTitle = () => {
-        const count = totalPages > 1 ? i18next.t('pagination.range', {
-            x: `${(currentPage - 1) * elementsPerPage + 1}-${Math.min(currentPage * elementsPerPage, elementsLength)}`,
-            y: elementsLength,
-        }) : elementsLength
+        let count
+        if (totalPages > 1) {
+            const from = (currentPage - 1) * elementsPerPage + 1
+            const to = Math.min(currentPage * elementsPerPage, elementsLength)
+            count = i18next.t("pagination.range", { x: `${from}-${to}`, y: elementsLength })
+        } else {
+            count = elementsLength
+        }
 
         // prefer static translation strings to ease automation
         let newTitle
-        if (type === 'node') {
-            newTitle = i18next.t('browse.changeset.node', { count })
-        } else if (type === 'way') {
-            newTitle = i18next.t('browse.changeset.way', { count })
-        } else if (type === 'relation') {
-            newTitle = i18next.t('browse.changeset.relation', { count })
+        if (type === "node") {
+            newTitle = i18next.t("browse.changeset.node", { count })
+        } else if (type === "way") {
+            newTitle = i18next.t("browse.changeset.way", { count })
+        } else if (type === "relation") {
+            newTitle = i18next.t("browse.changeset.relation", { count })
         }
         titleElement.textContent = newTitle
     }

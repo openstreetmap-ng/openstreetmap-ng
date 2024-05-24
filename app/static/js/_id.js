@@ -11,7 +11,7 @@ if (iframe) {
 
     // Optional scale instead of zoom (legacy, deprecated)
     if (searchParams.scale) {
-        const scale = parseFloat(searchParams.scale)
+        const scale = Number.parseFloat(searchParams.scale)
         if (scale > 0) zoom = Math.log(360 / (scale * 512)) / Math.log(2)
     }
 
@@ -20,7 +20,7 @@ if (iframe) {
     // Optional object to select
     for (const type of ["node", "way", "relation", "note"]) {
         if (searchParams[type]) {
-            const id = parseInt(searchParams[type], 10)
+            const id = Number.parseInt(searchParams[type], 10)
             if (!Number.isInteger(id) || id <= 0) continue
 
             // Location will be derived from the object

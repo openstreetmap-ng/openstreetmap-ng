@@ -72,8 +72,7 @@ const setMapLayersCode = (map, layersCode) => {
     // whether we need to auto-add the default base layer
     const baseLayers = []
 
-    for (let i = 0; i < layersCode.length; i++) {
-        const layerCode = layersCode[i]
+    for (const layerCode of layersCode) {
         const layerId = getLayerIdByCode(layerCode)
         layersIds.add(layerId)
 
@@ -204,9 +203,9 @@ export const parseMapState = (hash) => {
     const components = params.map.split("/")
     if (components.length !== 3) return null
 
-    const zoom = parseInt(components[0], 10)
-    const lat = parseFloat(components[1])
-    const lon = parseFloat(components[2])
+    const zoom = Number.parseInt(components[0], 10)
+    const lat = Number.parseFloat(components[1])
+    const lon = Number.parseFloat(components[2])
 
     // Each component must be in a valid format
     if (!(isZoom(zoom) && isLatitude(lat) && isLongitude(lon))) return null
@@ -277,7 +276,7 @@ export const getInitialMapState = (map = null) => {
 
     // 2. Use the bounds from the bbox query parameter
     if (searchParams.bbox) {
-        const bbox = searchParams.bbox.split(",").map(parseFloat)
+        const bbox = searchParams.bbox.split(",").map(Number.parseFloat)
         if (bbox.length === 4) {
             const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bbox)
             return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
@@ -286,10 +285,10 @@ export const getInitialMapState = (map = null) => {
 
     // 3. Use the bounds from minlon, minlat, maxlon, maxlat query parameters
     if (searchParams.minlon && searchParams.minlat && searchParams.maxlon && searchParams.maxlat) {
-        const minLon = parseFloat(searchParams.minlon)
-        const minLat = parseFloat(searchParams.minlat)
-        const maxLon = parseFloat(searchParams.maxlon)
-        const maxLat = parseFloat(searchParams.maxlat)
+        const minLon = Number.parseFloat(searchParams.minlon)
+        const minLat = Number.parseFloat(searchParams.minlat)
+        const maxLon = Number.parseFloat(searchParams.maxlon)
+        const maxLat = Number.parseFloat(searchParams.maxlat)
         if (isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat)) {
             const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [minLon, minLat, maxLon, maxLat])
             return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
@@ -298,9 +297,9 @@ export const getInitialMapState = (map = null) => {
 
     // 4. Use the position from the marker
     if (searchParams.mlon && searchParams.mlat) {
-        const mlon = parseFloat(searchParams.mlon)
-        const mlat = parseFloat(searchParams.mlat)
-        const zoom = parseInt(searchParams.zoom ?? 12, 10)
+        const mlon = Number.parseFloat(searchParams.mlon)
+        const mlat = Number.parseFloat(searchParams.mlat)
+        const zoom = Number.parseInt(searchParams.zoom ?? 12, 10)
         if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
             return { lon: mlon, lat: mlat, zoom, layersCode: lastState?.layersCode ?? "" }
         }
@@ -308,9 +307,9 @@ export const getInitialMapState = (map = null) => {
 
     // 5. Use the position from lat/lon search parameters
     if (searchParams.lon && searchParams.lat) {
-        const lon = parseFloat(searchParams.lon)
-        const lat = parseFloat(searchParams.lat)
-        const zoom = parseInt(searchParams.zoom ?? 12, 10)
+        const lon = Number.parseFloat(searchParams.lon)
+        const lat = Number.parseFloat(searchParams.lat)
+        const zoom = Number.parseInt(searchParams.zoom ?? 12, 10)
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             return { lon, lat, zoom, layersCode: lastState?.layersCode ?? "" }
         }

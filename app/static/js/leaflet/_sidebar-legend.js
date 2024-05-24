@@ -20,8 +20,8 @@ export const getLegendSidebarToggleButton = () => {
             const layerId = layerContainer.dataset.layerId
             const elements = Array.from(layerContainer.querySelectorAll("tr")).map((element) => {
                 const [minZoomStr, maxZoomStr] = element.dataset.zoom.split("-")
-                const minZoom = minZoomStr ? parseInt(minZoomStr, 10) : 0
-                const maxZoom = maxZoomStr ? parseInt(maxZoomStr, 10) : precomputeMaxZoom
+                const minZoom = minZoomStr ? Number.parseInt(minZoomStr, 10) : 0
+                const maxZoom = maxZoomStr ? Number.parseInt(maxZoomStr, 10) : precomputeMaxZoom
                 const visibility = new Array(precomputeMaxZoom + 1)
 
                 visibility.fill(false, 0, minZoom)

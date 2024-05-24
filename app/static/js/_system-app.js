@@ -21,12 +21,12 @@ const loadSystemApp = (clientId, successCallback) => {
     const formData = new FormData()
     formData.append("client_id", clientId)
 
-    fetch('/api/web/system-app/create-access-token', {
-        method: 'POST',
+    fetch("/api/web/system-app/create-access-token", {
+        method: "POST",
         body: formData,
-        mode: 'same-origin',
-        cache: 'no-store',
-        priority: 'high',
+        mode: "same-origin",
+        cache: "no-store",
+        priority: "high",
     })
         .then(async (resp) => {
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)

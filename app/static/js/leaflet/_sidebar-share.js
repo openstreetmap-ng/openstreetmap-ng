@@ -25,7 +25,7 @@ export const getShareSidebarToggleButton = () => {
         const customRegionCheckbox = exportForm.querySelector(".custom-region-check")
         // TODO: disable unavailable zoom levels (on zoomend)
         const detailOffsetsWithElements = Array.from(exportForm.querySelectorAll("[name=detail]")).map((input) => [
-            parseInt(input.value),
+            Number.parseInt(input.value),
             [input, input.closest("label").querySelector(".resolution")],
         ])
         const formatSelect = exportForm.querySelector(".format-select")
@@ -186,7 +186,7 @@ export const getShareSidebarToggleButton = () => {
                 const sw = leafletBounds.getSouthWest()
                 const ne = leafletBounds.getNorthEast()
                 const bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
-                const zoomOffset = parseInt(exportForm.querySelector("[name=detail]:checked").value)
+                const zoomOffset = Number.parseInt(exportForm.querySelector("[name=detail]:checked").value)
                 const zoom = optimalExportParams.zoom + zoomOffset
                 const baseLayer = getMapBaseLayer(map)
 

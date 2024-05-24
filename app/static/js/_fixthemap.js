@@ -10,10 +10,10 @@ if (fixthemapBody) {
     let locationProvided = false
     const params = qsParse(location.search.substring(1))
     if (params.lon && params.lat) {
-        params.lon = parseFloat(params.lon)
-        params.lat = parseFloat(params.lat)
+        params.lon = Number.parseFloat(params.lon)
+        params.lat = Number.parseFloat(params.lat)
         // Zoom is optional, defaults to 17
-        params.zoom = parseInt(params.zoom ?? 17, 10)
+        params.zoom = Number.parseInt(params.zoom ?? 17, 10)
 
         if (isLongitude(params.lon) && isLatitude(params.lat) && isZoom(params.zoom)) {
             locationProvided = true

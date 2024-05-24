@@ -46,8 +46,8 @@ if (userSettingsForm) {
 
     // Set initial view
     if (lonInput.value && latInput.value) {
-        const lon = parseFloat(lonInput.value)
-        const lat = parseFloat(latInput.value)
+        const lon = Number.parseFloat(lonInput.value)
+        const lat = Number.parseFloat(latInput.value)
         const latLng = L.latLng(lat, lon)
         map.setView(latLng, defaultHomeZoom)
         marker = markerFactory(latLng)

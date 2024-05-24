@@ -95,5 +95,5 @@ export const isMetricUnit = true
 export const isHrefCurrentPage = (href) => {
     const hrefPathname = new URL(href).pathname
     const locationPathname = location.pathname
-    return hrefPathname === locationPathname || hrefPathname + "/" === locationPathname
+    return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }

@@ -58,8 +58,8 @@ if (useMapContainer) {
         // Attempt to parse the lat/lon from the inputs
         // If they're valid, use them as the initial center and display a marker
         if (lonInput.value && latInput.value) {
-            const lon = parseFloat(lonInput.value)
-            const lat = parseFloat(latInput.value)
+            const lon = Number.parseFloat(lonInput.value)
+            const lat = Number.parseFloat(latInput.value)
             if (isLongitude(lon) && isLatitude(lat)) {
                 center = L.latLng(lat, lon)
                 marker = markerFactory(center)

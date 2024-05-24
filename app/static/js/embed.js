@@ -18,7 +18,7 @@ const searchParams = qsParse(location.search.substring(1))
 
 // Set initial view
 if (searchParams.bbox) {
-    const bbox = searchParams.bbox.split(",").map(parseFloat)
+    const bbox = searchParams.bbox.split(",").map(Number.parseFloat)
     if (bbox.length === 4) {
         const [minLon, minLat, maxLon, maxLat] = bbox
         if (isLongitude(minLon) && isLatitude(minLat) && isLongitude(maxLon) && isLatitude(maxLat)) {
@@ -30,7 +30,7 @@ if (searchParams.bbox) {
 
 // Add optional marker
 if (searchParams.marker) {
-    const coords = searchParams.marker.split(",").map(parseFloat)
+    const coords = searchParams.marker.split(",").map(Number.parseFloat)
     if (coords.length === 2) {
         const [lat, lon] = coords
         if (isLongitude(lon) && isLatitude(lat)) {

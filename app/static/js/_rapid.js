@@ -6,7 +6,7 @@ const iframe = document.querySelector("iframe.rapid-iframe")
 if (iframe) {
     const hashParams = qsParse(location.hash.substring(1))
     const searchParams = qsParse(location.search.substring(1))
-    let { lon, lat, zoom } = getInitialMapState()
+    const { lon, lat, zoom } = getInitialMapState()
     const result = {}
 
     result.map = `${zoom}/${lat}/${lon}`
@@ -14,7 +14,7 @@ if (iframe) {
     // Optional object to select
     for (const type of ["node", "way", "relation", "note"]) {
         if (searchParams[type]) {
-            const id = parseInt(searchParams[type], 10)
+            const id = Number.parseInt(searchParams[type], 10)
             if (!Number.isInteger(id) || id <= 0) continue
 
             // Location will be derived from the object

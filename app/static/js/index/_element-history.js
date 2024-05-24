@@ -61,8 +61,8 @@ export const getElementHistoryController = (map) => {
 
         if (paginationContainer) {
             const dataset = paginationContainer.dataset
-            const currentPage = parseInt(dataset.page)
-            const totalPages = parseInt(dataset.numPages)
+            const currentPage = Number.parseInt(dataset.page)
+            const totalPages = Number.parseInt(dataset.numPages)
             console.debug("Initializing element history pagination", dataset)
 
             const paginationFragment = document.createDocumentFragment()

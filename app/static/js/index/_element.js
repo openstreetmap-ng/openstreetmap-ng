@@ -35,9 +35,7 @@ export const getElementController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ type, id, version }) => {
-        const url = version
-            ? `/api/partial/${type}/${id}/history/${version}`
-            : `/api/partial/${type}/${id}`
+        const url = version ? `/api/partial/${type}/${id}/history/${version}` : `/api/partial/${type}/${id}`
         baseLoad({ url })
     }
 
@@ -71,8 +69,8 @@ export const initializeElementContent = (map, container) => {
         // On location click, pan the map
         const onLocationClick = () => {
             const dataset = locationButton.dataset
-            const lon = parseFloat(dataset.lon)
-            const lat = parseFloat(dataset.lat)
+            const lon = Number.parseFloat(dataset.lon)
+            const lat = Number.parseFloat(dataset.lat)
             const latLng = L.latLng(lat, lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
@@ -117,19 +115,23 @@ const renderElements = (elementsSection, elements, isWay) => {
     let currentPage = 1
 
     const updateTitle = () => {
-        const count = totalPages > 1 ? i18next.t('pagination.range', {
-            x: `${(currentPage - 1) * elementsPerPage + 1}-${Math.min(currentPage * elementsPerPage, elementsLength)}`,
-            y: elementsLength,
-        }) : elementsLength
+        let count
+        if (totalPages > 1) {
+            const from = (currentPage - 1) * elementsPerPage + 1
+            const to = Math.min(currentPage * elementsPerPage, elementsLength)
+            count = i18next.t("pagination.range", { x: `${from}-${to}`, y: elementsLength })
+        } else {
+            count = elementsLength
+        }
 
         // prefer static translation strings to ease automation
         let newTitle
         if (isWay) {
-            newTitle = i18next.t('browse.changeset.node', { count })
+            newTitle = i18next.t("browse.changeset.node", { count })
         } else if (elementsSection.classList.contains("part-of")) {
-            newTitle = i18next.t('browse.part_of') + ` (${count})`
+            newTitle = `${i18next.t("browse.part_of")} (${count})`
         } else {
-            newTitle = i18next.t('browse.relation.members') + ` (${count})`
+            newTitle = `${i18next.t("browse.relation.members")} (${count})`
         }
         titleElement.textContent = newTitle
     }
@@ -156,12 +158,12 @@ const renderElements = (elementsSection, elements, isWay) => {
 
             // prefer static translation strings to ease automation
             let typeStr
-            if (type === 'node') {
-                typeStr = i18next.t('javascripts.query.node')
-            } else if (type === 'way') {
-                typeStr = i18next.t('javascripts.query.way')
-            } else if (type === 'relation') {
-                typeStr = i18next.t('javascripts.query.relation')
+            if (type === "node") {
+                typeStr = i18next.t("javascripts.query.node")
+            } else if (type === "way") {
+                typeStr = i18next.t("javascripts.query.way")
+            } else if (type === "relation") {
+                typeStr = i18next.t("javascripts.query.relation")
             }
 
             const linkLatest = document.createElement("a")
@@ -180,14 +182,14 @@ const renderElements = (elementsSection, elements, isWay) => {
             if (isWay) {
                 content.appendChild(linkLatest)
             } else if (element.role) {
-                content.innerHTML = i18next.t('browse.relation_member.entry_role_html', {
+                content.innerHTML = i18next.t("browse.relation_member.entry_role_html", {
                     type: typeStr,
                     name: linkLatest.outerHTML,
                     role: element.role,
                     interpolation: { escapeValue: false },
                 })
             } else {
-                content.innerHTML = i18next.t('browse.relation_member.entry_html', {
+                content.innerHTML = i18next.t("browse.relation_member.entry_html", {
                     type: typeStr,
                     name: linkLatest.outerHTML,
                     interpolation: { escapeValue: false },

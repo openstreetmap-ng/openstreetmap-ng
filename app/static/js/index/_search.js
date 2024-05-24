@@ -19,8 +19,8 @@ export const getSearchController = (map) => {
         for (const resultAction of resultActions) {
             // Get params
             const dataset = resultAction.dataset
-            const lon = parseFloat(dataset.lon)
-            const lat = parseFloat(dataset.lat)
+            const lon = Number.parseFloat(dataset.lon)
+            const lat = Number.parseFloat(dataset.lat)
             let marker = null
 
             // On hover, show a marker
