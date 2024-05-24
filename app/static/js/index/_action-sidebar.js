@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import { routerNavigateStrict } from "./../_router.js"
+import { routerNavigateStrict } from "./_router.js"
 
 const actionSidebars = document.querySelectorAll(".action-sidebar")
 const searchForms = document.querySelectorAll(".action-sidebar .search-form")
