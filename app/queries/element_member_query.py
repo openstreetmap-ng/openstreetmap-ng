@@ -45,7 +45,7 @@ class ElementMemberQuery:
 
 
 @cython.cfunc
-def _select() -> Select[ElementMember]:
+def _select():
     bundle = TupleBundle(
         'member',
         ElementMember.sequence_id,
@@ -54,4 +54,5 @@ def _select() -> Select[ElementMember]:
         ElementMember.role,
         single_entity=True,
     )
-    return select(bundle)
+    result: Select[ElementMember] = select(bundle)
+    return result

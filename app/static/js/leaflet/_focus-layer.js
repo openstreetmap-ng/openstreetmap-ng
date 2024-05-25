@@ -8,7 +8,7 @@ export const focusStyles = {
     changeset: {
         pane: "focus",
         color: "#FF9500",
-        weight: 4,
+        weight: 3,
         opacity: 1,
         fillColor: "#FFFFAF",
         fillOpacity: 0,

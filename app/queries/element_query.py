@@ -680,7 +680,7 @@ class ElementQuery:
 
 
 @cython.cfunc
-def _select() -> Select[Element]:
+def _select():
     bundle = NamespaceBundle(
         'element',
         Element.sequence_id,
@@ -700,4 +700,5 @@ def _select() -> Select[Element]:
         },
         single_entity=True,
     )
-    return select(bundle)
+    result: Select[Element] = select(bundle)
+    return result

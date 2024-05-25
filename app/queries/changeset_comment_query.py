@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from anyio import create_task_group
-from sqlalchemy import Select, select, text, union_all
+from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
 from app.lib.auth_context import auth_user
@@ -23,6 +23,25 @@ class ChangesetCommentQuery:
                 ChangesetSubscription.user_id == auth_user().id,
             )
             return await session.scalar(stmt) is not None
+
+    @staticmethod
+    async def resolve_num_comments(changesets: Sequence[Changeset]) -> None:
+        """
+        Resolve the number of comments for each changeset.
+        """
+        id_changeset_map = {changeset.id: changeset for changeset in changesets if changeset.num_comments is None}
+        if not id_changeset_map:
+            return
+
+        async with db() as session:
+            stmt_ = select(ChangesetComment.changeset_id).where(
+                ChangesetComment.changeset_id.in_(text(','.join(map(str, id_changeset_map))))
+            )
+            stmt = select(stmt_.c.changeset_id, func.count()).select_from(stmt_).group_by(stmt_.c.changeset_id)
+            id_num_map: dict[int, int] = dict((await session.execute(stmt)).all())
+
+        for changeset_id, changeset in id_changeset_map.items():
+            changeset.num_comments = id_num_map.get(changeset_id, 0)
 
     @staticmethod
     async def resolve_comments(
@@ -75,6 +94,9 @@ class ChangesetCommentQuery:
                 current_changeset_id = changeset_id
                 current_comments = id_comments_map[changeset_id]
             current_comments.append(comment)
+
+        for changeset in changesets_:
+            changeset.num_comments = len(changeset.comments)
 
         if resolve_rich_text:
             async with create_task_group() as tg:

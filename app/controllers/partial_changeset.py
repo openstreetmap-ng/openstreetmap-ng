@@ -34,8 +34,7 @@ async def get_changeset(id: PositiveInt):
             User.avatar_id,
         )
     ):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(id,), limit=1)
-        changeset = changesets[0] if changesets else None
+        changeset = await ChangesetQuery.get_by_id(id)
 
     if changeset is None:
         return render_response(
@@ -55,11 +54,11 @@ async def get_changeset(id: PositiveInt):
 
     async def comments_task():
         with options_context(joinedload(ChangesetComment.user)):
-            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
+            await ChangesetCommentQuery.resolve_comments((changeset,), limit_per_changeset=None, resolve_rich_text=True)
 
     async def adjacent_ids_task():
         nonlocal prev_changeset_id, next_changeset_id
-        t: tuple = await ChangesetQuery.get_adjacent_ids(id, user_id=changeset.user_id)
+        t: tuple = await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset.user_id)
         prev_changeset_id = t[0]
         next_changeset_id = t[1]
 

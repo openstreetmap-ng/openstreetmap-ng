@@ -159,8 +159,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
                 User.avatar_id,
             )
         ):
-            changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(element.changeset_id,), limit=1)
-            changeset = changesets[0]
+            changeset = await ChangesetQuery.get_by_id(element.changeset_id)
 
     async def parents_task():
         nonlocal list_parents

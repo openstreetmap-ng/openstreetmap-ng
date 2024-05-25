@@ -1,5 +1,5 @@
 /**
- * Discover and render color previews.
+ * Discover and render tag color previews.
  * @return {void}
  */
 export const renderColorPreviews = () => {

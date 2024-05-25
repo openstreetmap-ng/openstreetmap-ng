@@ -54,15 +54,15 @@ async def get_changeset(
     include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
 
-    if not changesets:
+    if changeset is None:
         raise_for().changeset_not_found(changeset_id)
     if include_discussion:
         with options_context(joinedload(ChangesetComment.user).load_only(User.display_name)):
-            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
+            await ChangesetCommentQuery.resolve_comments((changeset,), limit_per_changeset=None, resolve_rich_text=True)
 
-    return Format06.encode_changesets(changesets)
+    return Format06.encode_changesets((changeset,))
 
 
 @router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
@@ -71,8 +71,7 @@ async def download_changeset(
     changeset_id: PositiveInt,
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-        changeset = changesets[0] if changesets else None
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
 
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
@@ -95,8 +94,8 @@ async def update_changeset(
 
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    return Format06.encode_changesets(changesets)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
+    return Format06.encode_changesets((changeset,))
 
 
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)

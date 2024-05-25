@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from shapely import Polygon, box
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy import ForeignKey, Integer, func
+from sqlalchemy import ForeignKey, Index, Integer, and_, func, null
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,8 +17,6 @@ from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
     from app.models.db.changeset_comment import ChangesetComment
-
-# TODO: 0.7 180th meridian ?
 
 
 class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
@@ -50,10 +48,23 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         server_default=None,
     )
 
-    __table_args__ = ()
-
     # runtime
+    num_comments: int | None = None
     comments: list['ChangesetComment'] | None = None
+
+    __table_args__ = (
+        Index('changeset_user_idx', user_id, 'id', postgresql_where=user_id != null()),
+        Index('changeset_created_at_idx', 'created_at'),
+        Index('changeset_closed_at_idx', closed_at, postgresql_where=closed_at != null()),
+        Index('changeset_open_idx', 'updated_at', postgresql_where=closed_at == null()),
+        Index('changeset_empty_idx', closed_at, postgresql_where=and_(closed_at != null(), size == 0)),
+        Index(
+            'changeset_bounds_idx',
+            bounds,
+            postgresql_where=bounds != null(),
+            postgresql_using='gist',
+        ),
+    )
 
     @cached_property
     def max_size(self) -> int:

@@ -3,11 +3,9 @@ import * as L from "leaflet"
 import { renderColorPreviews } from "../_color-preview.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
-import { focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { focusMapObject } from "../leaflet/_focus-layer.js"
 import { makeBoundsMinimumSize } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
-
-const emptyTags = new Map()
 
 const elementsPerPage = 20
 const paginationDistance = 2
@@ -18,6 +16,24 @@ const paginationDistance = 2
  * @returns {object} Controller
  */
 export const getChangesetController = (map) => {
+    let params = null
+
+    // On map update, refocus the changeset
+    const onMapZoomEnd = (e) => {
+        focusMapObject(
+            map,
+            {
+                type: "changeset",
+                id: params.id,
+                bounds: makeBoundsMinimumSize(map, params.bounds),
+            },
+            {
+                // Fit the bounds only on the initial update
+                fitBounds: !e,
+            },
+        )
+    }
+
     const onLoaded = (sidebarContent) => {
         renderColorPreviews()
 
@@ -35,33 +51,14 @@ export const getChangesetController = (map) => {
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
+        params = JSON.parse(sidebarTitleElement.dataset.params)
         const paramsId = params.id
         const bounds = params.bounds
         const elements = params.elements
 
-        // Not all changesets have a bounding box
         if (bounds) {
-            const onMapZoomEnd = (e) => {
-                focusMapObject(
-                    map,
-                    {
-                        type: "changeset",
-                        id: paramsId,
-                        tags: emptyTags, // currently unused
-                        bounds: makeBoundsMinimumSize(map, bounds),
-                    },
-                    {
-                        // Fit the bounds only on the initial update
-                        fitBounds: !e,
-                    },
-                )
-            }
-
-            // Listen for events
+            // Listen for events and run initial update
             map.addEventListener("zoomend", onMapZoomEnd)
-
-            // Initial update
             onMapZoomEnd()
         }
 
@@ -89,6 +86,7 @@ export const getChangesetController = (map) => {
     }
 
     base.unload = () => {
+        map.removeEventListener("zoomend", onMapZoomEnd)
         focusMapObject(map, null)
         baseUnload()
     }

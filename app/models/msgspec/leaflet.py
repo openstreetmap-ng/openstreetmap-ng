@@ -17,6 +17,15 @@ class ElementLeafletWay(ElementLeaflet):
     area: bool
 
 
+class ChangesetLeaflet(msgspec.Struct):
+    id: int
+    geom: list[float]  # [minLon, minLat, maxLon, maxLat]
+    user: str | None
+    closed: bool
+    timeago: str
+    num_comments: int
+
+
 class NoteLeaflet(msgspec.Struct):
     id: int
     geom: list[float]  # [lat, lon]

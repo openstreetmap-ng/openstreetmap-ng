@@ -49,7 +49,7 @@ const getMainMap = (container) => {
         zoomControl: false,
         maxBoundsViscosity: 1,
         minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(L.latLng(-85, -Number.Infinity), L.latLng(85, Number.Infinity)),
+        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
     })
 
     // Disable Leaflet's attribution prefix

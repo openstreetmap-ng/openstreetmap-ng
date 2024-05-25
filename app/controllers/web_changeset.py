@@ -1,10 +1,18 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Response
+from fastapi import APIRouter, Form, Query, Response
 from pydantic import PositiveInt
+from sqlalchemy.orm import joinedload
 
+from app.format import FormatLeaflet
 from app.lib.auth_context import web_user
+from app.lib.geo_utils import parse_bbox
+from app.lib.options_context import options_context
+from app.limits import CHANGESET_QUERY_WEB_LIMIT
+from app.models.db.changeset import Changeset
 from app.models.db.user import User
+from app.queries.changeset_comment_query import ChangesetCommentQuery
+from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 
 router = APIRouter(prefix='/api/web/changeset')
@@ -36,3 +44,19 @@ async def unsubscribe(
 ):
     await ChangesetCommentService.unsubscribe(changeset_id)
     return Response()
+
+
+@router.get('/map')
+async def get_map(
+    bbox: Annotated[str, Query()],
+    before: Annotated[PositiveInt | None, Query()] = None,
+):
+    geometry = parse_bbox(bbox)
+    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+        changesets = await ChangesetQuery.find_many_by_query(
+            changeset_id_before=before,
+            geometry=geometry,
+            limit=CHANGESET_QUERY_WEB_LIMIT,
+        )
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return FormatLeaflet.encode_changesets(changesets)

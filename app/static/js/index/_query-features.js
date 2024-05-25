@@ -3,7 +3,7 @@ import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
 import { isLatitude, isLongitude } from "../_utils.js"
-import { focusMapObject, focusStyles } from "../leaflet/_focus-layer-util.js"
+import { focusMapObject, focusStyles } from "../leaflet/_focus-layer.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 
 /**

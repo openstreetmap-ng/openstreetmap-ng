@@ -7,6 +7,7 @@ from app.format.api06_tag import Tag06Mixin
 from app.format.api06_trace import Trace06Mixin
 from app.format.api06_user import User06Mixin
 from app.format.api07_element import Element07Mixin
+from app.format.leaflet_changeset import LeafletChangesetMixin
 from app.format.leaflet_element import LeafletElementMixin
 from app.format.leaflet_note import LeafletNoteMixin
 
@@ -33,6 +34,7 @@ class FormatRSS06(
 
 
 class FormatLeaflet(
+    LeafletChangesetMixin,
     LeafletElementMixin,
     LeafletNoteMixin,
 ): ...

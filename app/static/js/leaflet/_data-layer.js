@@ -69,8 +69,6 @@ export const configureDataLayer = (map) => {
         if (abortController) abortController.abort()
         abortController = new AbortController()
 
-        // TODO: handle 180th meridian: send 2 requests
-
         const viewBounds = map.getBounds()
 
         // Skip updates if the view is satisfied
@@ -122,8 +120,10 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const onOverlayAdd = ({ name }) => {
-        // Handle only the data layer
         if (name !== "data") return
+
+        // Listen for events and run initial update
+        map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         onMapZoomOrMoveEnd()
     }
 
@@ -133,9 +133,9 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const onOverlayRemove = ({ name }) => {
-        // Handle only the data layer
         if (name !== "data") return
 
+        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         if (abortController) abortController.abort()
         abortController = null
         renderedBounds = null
@@ -143,7 +143,6 @@ export const configureDataLayer = (map) => {
     }
 
     // Listen for events
-    map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
     map.addEventListener("overlayadd", onOverlayAdd)
     map.addEventListener("overlayremove", onOverlayRemove)
 }

@@ -1,6 +1,6 @@
 import * as L from "leaflet"
 import { getPageTitle } from "../_title.js"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { initializeElementContent } from "./_element.js"
 import { routerNavigateStrict } from "./_router.js"

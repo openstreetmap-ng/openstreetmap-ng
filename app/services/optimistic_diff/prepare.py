@@ -441,8 +441,7 @@ class OptimisticDiffPrepare:
         changeset_id = next(iter(changeset_ids))
 
         with options_context(joinedload(Changeset.user).load_only(User.roles)):
-            changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-            changeset = changesets[0] if changesets else None
+            changeset = await ChangesetQuery.get_by_id(changeset_id)
 
         if changeset is None:
             raise_for().changeset_not_found(changeset_id)

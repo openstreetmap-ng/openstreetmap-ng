@@ -2,7 +2,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { getPageTitle } from "../_title.js"
 import "../_types.js"
-import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer-util.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 
 const elementsPerPage = 20

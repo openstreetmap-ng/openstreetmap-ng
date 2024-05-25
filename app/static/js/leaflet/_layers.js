@@ -109,14 +109,20 @@ const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.pn
     pane: "overlayPane",
 })
 
-const noteLayer = L.featureGroup(undefined, {
-    layerCode: "N",
-    layerId: "notes",
-})
-
 const dataLayer = L.featureGroup(undefined, {
     layerCode: "D",
     layerId: "data",
+})
+
+const changesetLayer = L.featureGroup(undefined, {
+    inaccessible: true,
+    layerCode: "", // This layer is not possible to toggle manually
+    layerId: "changesets",
+})
+
+const noteLayer = L.featureGroup(undefined, {
+    layerCode: "N",
+    layerId: "notes",
 })
 
 const focusLayer = L.featureGroup(undefined, {
@@ -125,10 +131,28 @@ const focusLayer = L.featureGroup(undefined, {
     layerId: "focus",
 })
 
-const baseLayerIdMap = [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm].reduce(
-    (map, layer) => map.set(layer.options.layerId, layer),
-    new Map(),
-)
+const baseLayerIdMap = new Map()
+for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm]) {
+    const options = layer.options
+    baseLayerIdMap.set(options.layerId, layer)
+}
+
+const overlayLayerIdMap = new Map()
+for (const layer of [gps, dataLayer, changesetLayer, noteLayer, focusLayer]) {
+    const options = layer.options
+    overlayLayerIdMap.set(options.layerId, layer)
+    if (options.legacyLayerIds) {
+        for (const legacyLayerId of options.legacyLayerIds) {
+            overlayLayerIdMap.set(legacyLayerId, layer)
+        }
+    }
+}
+
+const layerCodeIdMap = new Map()
+for (const layer of [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()]) {
+    const options = layer.options
+    if (!options.inaccessible) layerCodeIdMap.set(options.layerCode, options.layerId)
+}
 
 /**
  * Get base layer instance by id
@@ -137,28 +161,12 @@ const baseLayerIdMap = [standardLayer, cyclosm, cycleMap, transportMap, tracestr
  */
 export const getBaseLayerById = (layerId) => baseLayerIdMap.get(layerId)
 
-const overlayLayerIdMap = [gps, noteLayer, dataLayer, focusLayer].reduce((map, layer) => {
-    const options = layer.options
-    map.set(options.layerId, layer)
-    if (options.legacyLayerIds) {
-        for (const legacyLayerId of options.legacyLayerIds) {
-            map.set(legacyLayerId, layer)
-        }
-    }
-    return map
-}, new Map())
-
 /**
  * Get overlay layer instance by id
  * @param {string} layerId Layer id
  * @returns {L.Layer|L.FeatureGroup} Layer instance
  */
 export const getOverlayLayerById = (layerId) => overlayLayerIdMap.get(layerId)
-
-const layerCodeIdMap = [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()].reduce((map, layer) => {
-    const options = layer.options
-    return options.inaccessible ? map : map.set(options.layerCode, options.layerId)
-}, new Map())
 
 /**
  * Get layer id by code
@@ -173,6 +181,5 @@ export const getLayerIdByCode = (layerCode) => {
         console.error("Invalid layer code", layerCode)
         return getLayerIdByCode("")
     }
-
     return layerCodeIdMap.get(layerCode)
 }

@@ -25,9 +25,9 @@ async def create_changeset_comment(
 ):
     await ChangesetCommentService.comment(changeset_id, text)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
     # TODO: auto subscribe
-    return Format06.encode_changesets(changesets)
+    return Format06.encode_changesets((changeset,))
 
 
 @router.delete('/changeset/comment/{comment_id:int}')
@@ -37,8 +37,8 @@ async def delete_changeset_comment(
 ):
     changeset_id = await ChangesetCommentService.delete_comment_unsafe(comment_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    return Format06.encode_changesets(changesets)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
+    return Format06.encode_changesets((changeset,))
 
 
 @router.post('/changeset/{changeset_id:int}/subscribe')
@@ -48,8 +48,8 @@ async def changeset_subscribe(
 ):
     await ChangesetCommentService.subscribe(changeset_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    return Format06.encode_changesets(changesets)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
+    return Format06.encode_changesets((changeset,))
 
 
 @router.post('/changeset/{changeset_id:int}/unsubscribe')
@@ -59,8 +59,8 @@ async def changeset_unsubscribe(
 ):
     await ChangesetCommentService.unsubscribe(changeset_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changesets = await ChangesetQuery.find_many_by_query(changeset_ids=(changeset_id,), limit=1)
-    return Format06.encode_changesets(changesets)
+        changeset = await ChangesetQuery.get_by_id(changeset_id)
+    return Format06.encode_changesets((changeset,))
 
 
 # TODO: hide/unhide

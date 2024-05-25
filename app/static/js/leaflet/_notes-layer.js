@@ -37,8 +37,6 @@ export const configureNotesLayer = (map) => {
         if (abortController) abortController.abort()
         abortController = new AbortController()
 
-        // TODO: handle 180th meridian: send 2 requests
-
         const bounds = map.getBounds()
 
         // Skip updates if the area is too big
@@ -90,8 +88,10 @@ export const configureNotesLayer = (map) => {
      * @returns {void}
      */
     const onOverlayAdd = ({ name }) => {
-        // Handle only the notes layer
         if (name !== "notes") return
+
+        // Listen for events and run initial update
+        map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         onMapZoomOrMoveEnd()
     }
 
@@ -101,17 +101,15 @@ export const configureNotesLayer = (map) => {
      * @returns {void}
      */
     const onOverlayRemove = ({ name }) => {
-        // Handle only the notes layer
         if (name !== "notes") return
 
+        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         if (abortController) abortController.abort()
         abortController = null
-
         notesLayer.clearLayers()
     }
 
     // Listen for events
-    map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
     map.addEventListener("overlayadd", onOverlayAdd)
     map.addEventListener("overlayremove", onOverlayRemove)
 }

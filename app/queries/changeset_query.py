@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from shapely.ops import BaseGeometry
-from sqlalchemy import func, null, select, text
+from sqlalchemy import and_, func, null, select, text
 
 from app.db import db
 from app.lib.options_context import apply_options_context
@@ -26,7 +26,16 @@ class ChangesetQuery:
             return dict(rows)
 
     @staticmethod
-    async def get_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
+    async def count_by_user_id(user_id: int) -> int:
+        """
+        Count changesets by user id.
+        """
+        async with db() as session:
+            stmt = select(func.count()).select_from(select(text('1')).where(Changeset.user_id == user_id))
+            return await session.scalar(stmt)
+
+    @staticmethod
+    async def get_user_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
         """
         Get the user's previous and next changeset ids.
         """
@@ -50,9 +59,20 @@ class ChangesetQuery:
         return prev_id, next_id
 
     @staticmethod
+    async def get_by_id(changeset_id: int) -> Changeset | None:
+        """
+        Get a changeset by id.
+        """
+        async with db() as session:
+            stmt = select(Changeset).where(Changeset.id == changeset_id)
+            stmt = apply_options_context(stmt)
+            return await session.scalar(stmt)
+
+    @staticmethod
     async def find_many_by_query(
         *,
         changeset_ids: Sequence[int] | None = None,
+        changeset_id_before: int | None = None,
         user_id: int | None = None,
         created_before: datetime | None = None,
         closed_after: datetime | None = None,
@@ -70,32 +90,35 @@ class ChangesetQuery:
 
             if changeset_ids:
                 where_and.append(Changeset.id.in_(text(','.join(map(str, changeset_ids)))))
+            if changeset_id_before is not None:
+                where_and.append(Changeset.id < changeset_id_before)
             if user_id is not None:
                 where_and.append(Changeset.user_id == user_id)
             if created_before is not None:
                 where_and.append(Changeset.created_at < created_before)
             if closed_after is not None:
-                where_and.append(Changeset.closed_at >= closed_after)
+                where_and.append(
+                    and_(
+                        Changeset.closed_at != null(),
+                        Changeset.closed_at >= closed_after,
+                    )
+                )
             if is_open is not None:
-                if is_open:
-                    where_and.append(Changeset.closed_at == null())
-                else:
-                    where_and.append(Changeset.closed_at != null())
+                where_and.append(Changeset.closed_at == null if is_open else Changeset.closed_at != null())
             if geometry is not None:
-                where_and.append(func.ST_Intersects(Changeset.bounds, func.ST_GeomFromText(geometry.wkt, 4326)))
+                where_and.append(
+                    and_(
+                        Changeset.bounds != null(),
+                        func.ST_Intersects(Changeset.bounds, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    )
+                )
 
             if where_and:
                 stmt = stmt.where(*where_and)
+
+            stmt = stmt.order_by(Changeset.id.asc())
+
             if limit is not None:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
-
-    @staticmethod
-    async def count_by_user_id(user_id: int) -> int:
-        """
-        Count changesets by user id.
-        """
-        async with db() as session:
-            stmt = select(func.count()).select_from(select(text('1')).where(Changeset.user_id == user_id))
-            return await session.scalar(stmt)

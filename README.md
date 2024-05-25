@@ -55,10 +55,10 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ✅ Migration of rate limiting
 - ⬛ Migration of changeset history RSS feed
 - ✅ Improved GPX traces processing
-- [60%] Migration of website API
+- [65%] Migration of website API
 - ✅ Migration and refactoring of stylesheets
 - ✅ Migration and refactoring of scripts
-- [60%] Migration of templates
+- [65%] Migration of templates
 - ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
 - ✅ Development translation overrides
 - [20%] Anti-vandalism stage 1

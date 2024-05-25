@@ -10,12 +10,30 @@ const loadSystemApp = (clientId, successCallback) => {
     console.debug("loadSystemApp", clientId)
 
     const accessToken = getSystemAppAccessToken(clientId)
-    if (accessToken) {
-        console.debug("Using cached system app access token")
-        successCallback(accessToken)
+    if (!accessToken) {
+        createAccessToken(clientId, successCallback)
         return
     }
 
+    return fetch("/api/0.6/user/details", {
+        method: "GET",
+        headers: { authorization: `Bearer ${accessToken}` },
+        mode: "same-origin",
+        cache: "no-store",
+        priority: "high",
+    })
+        .then((resp) => {
+            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            console.debug("Using cached system app access token")
+            successCallback(accessToken)
+        })
+        .catch((error) => {
+            console.debug("Cached system app access token is invalid")
+            createAccessToken(clientId, successCallback)
+        })
+}
+
+const createAccessToken = (clientId, successCallback) => {
     console.debug("Creating system app access token")
 
     const formData = new FormData()
