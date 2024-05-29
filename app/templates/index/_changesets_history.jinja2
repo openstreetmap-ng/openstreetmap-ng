@@ -13,14 +13,26 @@
                 </div>
             </div>
 
-            <template class="entry">
-                <div class="result-action">
-                    {# TODO #}
-                </div>
-            </template>
+            <div>
+                <template class="entry">
+                    <div class="result-action social-entry position-relative">
+                        <p class="header text-muted">
+                            <span class="user"></span>
+                            <span class="date"></span>
+                        </p>
+                        <div class="body d-flex justify-content-between">
+                            <div><span class="tag-value fst-italic"></span></div>
+                            <div class="extra">
+                                <a class="changeset-id stretched-link"></a>
+                                ·
+                                <span class="comments"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
 
-            {# TODO: load more + spinner #}
-            <div class="text-center mt-4">
+            <div class="spinner-container text-center mt-4">
                 <div class="spinner-border text-secondary" role="status">
                     <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
                 </div>

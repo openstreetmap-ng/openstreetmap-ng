@@ -165,9 +165,9 @@ export const exportMapImage = async (mimeType, bounds, zoom, baseLayer) => {
         }
     }
 
-    console.log("Fetching", fetchTilesPromises.length, "tiles...")
+    console.debug("Fetching", fetchTilesPromises.length, "tiles...")
     await Promise.all(fetchTilesPromises)
-    console.log("Finished fetching tiles")
+    console.debug("Finished fetching tiles")
 
     // Export the canvas to an image
     return new Promise((resolve, reject) => {

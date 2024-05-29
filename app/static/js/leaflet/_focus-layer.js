@@ -7,7 +7,7 @@ import { getLatLngBoundsSize } from "./_utils.js"
 export const focusStyles = {
     changeset: {
         pane: "focus",
-        color: "#FF9500",
+        color: "#F90",
         weight: 3,
         opacity: 1,
         fillColor: "#FFFFAF",
@@ -16,7 +16,7 @@ export const focusStyles = {
     },
     element: {
         pane: "focus",
-        color: "#FF6200",
+        color: "#F60",
         weight: 4,
         opacity: 1,
         fillOpacity: 0.5,
@@ -27,7 +27,7 @@ export const focusStyles = {
     },
     noteHalo: {
         radius: 20,
-        color: "#FF6200",
+        color: "#F60",
         weight: 2.5,
         opacity: 1,
         fillOpacity: 0.5,

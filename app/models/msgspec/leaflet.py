@@ -20,9 +20,11 @@ class ElementLeafletWay(ElementLeaflet):
 class ChangesetLeaflet(msgspec.Struct):
     id: int
     geom: list[float]  # [minLon, minLat, maxLon, maxLat]
-    user: str | None
+    user_name: str | None
+    user_avatar: str | None
     closed: bool
     timeago: str
+    comment: str | None
     num_comments: int
 
 

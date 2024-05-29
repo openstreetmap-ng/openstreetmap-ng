@@ -1,0 +1,41 @@
+.action-sidebar.changesets-history {
+    .result-action {
+        padding-bottom: 0.5rem;
+
+        &:not(:last-child) {
+            margin-bottom: 0.625rem;
+        }
+    }
+
+    a:not(.stretched-link),
+    time {
+        position: relative;
+        z-index: 10;
+    }
+
+    .extra {
+        font-size: 0.875em;
+        margin: 0.125rem 0.25rem 0 1rem;
+    }
+
+    .changeset-id {
+        color: $gray-600;
+
+        &:hover {
+            text-decoration: unset;
+        }
+    }
+
+    .comments {
+        color: $gray-600;
+
+        &.no-comments {
+            color: $gray-500;
+        }
+
+        .bi {
+            margin-left: 0.3rem;
+            font-size: 0.9em;
+        }
+    }
+}

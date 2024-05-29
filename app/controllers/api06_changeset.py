@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Annotated
+from typing import Annotated, Literal
 
 import cython
 from fastapi import APIRouter, Query, Response, status
@@ -134,6 +134,7 @@ async def query_changesets(
     open_str: Annotated[str | None, Query(alias='open')] = None,
     closed_str: Annotated[str | None, Query(alias='closed')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
+    order: Annotated[Literal['newest', 'oldest'], Query()] = 'newest',
     limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     # treat any non-empty string as True
@@ -200,6 +201,7 @@ async def query_changesets(
             closed_after=closed_after,
             is_open=True if open else (False if closed else None),
             geometry=geometry,
+            sort='asc' if (order == 'newest') else 'desc',
             limit=limit,
         )
     return Format06.encode_changesets(changesets)

@@ -2,7 +2,6 @@ import * as L from "leaflet"
 import "../_types.js"
 import { getMarkerIcon } from "./_utils.js"
 
-
 /**
  * Add objects to the feature group layer
  * @param {L.LayerGroup} layerGroup Layer group
@@ -64,10 +63,10 @@ export const renderObjects = (layerGroup, objects, styles, renderAreas = true) =
      * @param {OSMWay} way
      */
     const processWay = (way) => {
-        const geom = way.geom
+        let geom = way.geom
         let layer
         if (renderAreas && way.area) {
-            geom.pop() // remove last == first
+            geom = geom.slice(0, -1) // remove last == first
             layer = L.polygon(geom, styles.element)
         } else {
             layer = L.polyline(geom, styles.element)

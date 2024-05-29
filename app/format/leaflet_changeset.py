@@ -15,12 +15,14 @@ class LeafletChangesetMixin:
             ChangesetLeaflet(
                 id=changeset.id,
                 geom=changeset.bounds.bounds,
-                user=changeset.user.display_name if (changeset.user_id is not None) else None,
+                user_name=changeset.user.display_name if (changeset.user_id is not None) else None,
+                user_avatar=changeset.user.avatar_url if (changeset.user_id is not None) else None,
                 closed=changeset.closed_at is not None,
                 timeago=timeago(
                     changeset.closed_at if (changeset.closed_at is not None) else changeset.created_at,
                     html=True,
                 ),
+                comment=changeset.tags.get('comment'),
                 num_comments=changeset.num_comments,
             )
             for changeset in changesets

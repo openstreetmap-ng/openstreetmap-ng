@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime
+from typing import Literal
 
 from shapely.ops import BaseGeometry
 from sqlalchemy import and_, func, null, select, text
@@ -78,6 +79,7 @@ class ChangesetQuery:
         closed_after: datetime | None = None,
         is_open: bool | None = None,
         geometry: BaseGeometry | None = None,
+        sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
     ) -> Sequence[Changeset]:
         """
@@ -116,7 +118,7 @@ class ChangesetQuery:
             if where_and:
                 stmt = stmt.where(*where_and)
 
-            stmt = stmt.order_by(Changeset.id.asc())
+            stmt = stmt.order_by(Changeset.id.asc() if (sort == 'asc') else Changeset.id.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

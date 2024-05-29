@@ -15,7 +15,7 @@
                         <span>
                             <a href="/user/{{ trace.user.display_name }}">
                                 <img class="avatar" src="{{ trace.user.avatar_url }}"
-                                    alt="{{ t('user.profile_picture') }}">{#
+                                    alt="{{ t('user.profile_picture') }}" loading="lazy">{#
                                 #}{{ trace.user.display_name }}{#
                             #}</a>
                             {{ t('action.uploaded') }}

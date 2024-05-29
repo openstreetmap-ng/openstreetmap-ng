@@ -1,11 +1,12 @@
-<div class="social-entry status">
+<div class="social-entry">
     <p class="header text-muted d-flex justify-content-between">
         <span>
             {% if changeset.user is none %}
             {{ t('browse.anonymous') }}
             {% else %}
             <a href="/user/{{ changeset.user.display_name }}">
-                <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('user.profile_picture') }}"
+                    loading="lazy">{#
             #}{{ changeset.user.display_name }}{#
             #}</a>
             {% endif %}

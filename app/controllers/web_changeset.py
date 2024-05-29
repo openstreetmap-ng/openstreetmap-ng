@@ -52,10 +52,18 @@ async def get_map(
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
     geometry = parse_bbox(bbox)
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+    with options_context(
+        joinedload(Changeset.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
         changesets = await ChangesetQuery.find_many_by_query(
             changeset_id_before=before,
             geometry=geometry,
+            sort='desc',
             limit=CHANGESET_QUERY_WEB_LIMIT,
         )
     await ChangesetCommentQuery.resolve_num_comments(changesets)

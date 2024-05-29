@@ -12,7 +12,7 @@
             </div>
         </div>
 
-        <div class="social-entry status">
+        <div class="social-entry">
             <p class="header text-muted d-flex justify-content-between">
                 <span>
                     {% if changeset.user_id is none %}
@@ -101,7 +101,8 @@
             <li class="social-entry">
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
-                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}"
+                            loading="lazy">{#
                         #}{{ comment.user.display_name }}{#
                     #}</a>
                     {{ t('action.commented') }}
