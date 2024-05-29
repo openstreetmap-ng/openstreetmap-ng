@@ -76,7 +76,7 @@ export const getChangesetsHistoryController = (map) => {
             }
 
             dateContainer.textContent = (
-                changeset.closed ? i18next.t("browse.closed") : i18next.t("browse.open")
+                changeset.closed ? i18next.t("browse.closed") : i18next.t("browse.created")
             ).toLowerCase()
             dateContainer.innerHTML += ` ${changeset.timeago}`
             tagValue.textContent = changeset.comment || i18next.t("browse.no_comment")
