@@ -225,8 +225,6 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'params': JSON_ENCODE(
             {
                 'type': element.type,
-                'id': element.id,
-                'version': element.version,
                 'lists': {
                     'part_of': list_parents,
                     'elements': list_elements,

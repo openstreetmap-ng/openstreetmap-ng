@@ -3,7 +3,6 @@ import { getPageTitle } from "../_title.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { initializeElementContent } from "./_element.js"
-import { routerNavigateStrict } from "./_router.js"
 
 const paginationDistance = 2
 
@@ -42,21 +41,9 @@ export const getElementHistoryController = (map) => {
                 focusMapObject(map, null)
             }
 
-            // On click, navigate to version
-            const onVersionClick = (e) => {
-                const target = e.target
-                if (target.closest("a, button, details")) return
-
-                console.debug("onVersionClick")
-                const { type, id, version } = JSON.parse(versionSection.dataset.params)
-                const path = `/${type}/${id}/history/${version}`
-                routerNavigateStrict(path)
-            }
-
             // Listen for events
             versionSection.addEventListener("mouseenter", onVersionMouseEnter)
             versionSection.addEventListener("mouseleave", onVersionMouseLeave)
-            versionSection.addEventListener("click", onVersionClick)
         }
 
         if (paginationContainer) {

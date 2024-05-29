@@ -77,12 +77,19 @@
 }
 
 .action-sidebar.element-history {
+    a:not(.stretched-link),
+    time,
+    details,
+    button {
+        position: relative;
+        z-index: 10;
+    }
+
     .version-badge {
         font-size: initial;
     }
 
     .version-section:hover {
-        cursor: pointer;
         background: $list-highlight;
     }
 }
