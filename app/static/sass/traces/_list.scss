@@ -1,6 +1,10 @@
 .traces-list {
     height: 100%;
 
+    td {
+        background: initial;
+    }
+
     td:first-child {
         svg {
             width: 5em;
@@ -13,13 +17,15 @@
         width: 100%;
     }
 
-    .hashtag {
-        &:not(:last-child) {
-            &::after {
-                content: ",";
-                color: black;
-            }
-        }
+    a:not(.stretched-link),
+    time {
+        position: relative;
+        z-index: 10;
+    }
+
+    .hashtag:not(:last-child)::after {
+        content: ",";
+        color: black;
     }
 
     .btn-group {

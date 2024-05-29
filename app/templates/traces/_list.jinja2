@@ -1,29 +1,27 @@
 {% if traces %}
 {% include 'traces/_list_nav.jinja2' %}
-<table class="table table-striped traces-list" data-coords="{{ image_coords | safe }}">
+<table class="table table-borderless traces-list" data-coords="{{ image_coords | safe }}">
     <tbody>
         {% for trace in traces %}
         <tr>
             <td>
-                <a href="/trace/{{ trace.id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1.0 -1.0 102 102"></svg>
-                </a>
+                <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1 -1 102 102"></svg>
             </td>
             <td>
-                <div class="social-entry">
+                <div class="result-action social-entry position-relative h-100">
                     <p class="header text-muted d-flex justify-content-between">
                         <span>
                             <a href="/user/{{ trace.user.display_name }}">
                                 <img class="avatar" src="{{ trace.user.avatar_url }}"
                                     alt="{{ t('user.profile_picture') }}" loading="lazy">{#
-                                #}{{ trace.user.display_name }}{#
-                            #}</a>
+                            #}{{ trace.user.display_name }}{#
+                        #}</a>
                             {{ t('action.uploaded') }}
                             {{ timeago(trace.created_at, html=True) | safe }}
                             &mdash;
-                            (<a href="/trace/{{ trace.id }}">{#
-                                #}{{ trace.name }}{#
-                            #}</a>)
+                            (<a class="stretched-link" href="/trace/{{ trace.id }}">{#
+                            #}{{ trace.name }}{#
+                        #}</a>)
                         </span>
                         <span>
                             <span class="badge text-bg-secondary">
@@ -40,7 +38,7 @@
                             {% endif %}
                         </span>
                     </p>
-                    <p class="body mb-0">
+                    <p class="body mb-2">
                         <span class="fst-italic me-1">
                             {{ trace.description }}
                         </span>

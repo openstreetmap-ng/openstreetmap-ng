@@ -1,0 +1,15 @@
+// Style generic result actions (clickable) in the sidebar
+// (search results, changesets, etc.)
+.result-action {
+    cursor: pointer;
+    border-radius: $border-radius-sm;
+
+    &.social-entry {
+        border-bottom: 6px solid transparentize($gray-200, 0.73);
+    }
+
+    &:hover,
+    &.hover {
+        background: $list-highlight;
+    }
+}

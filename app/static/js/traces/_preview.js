@@ -1,7 +1,6 @@
-const svg = document.querySelector(".trace-preview svg")
-if (svg) {
-    console.debug("Rendering", 1, "animated trace SVG")
-    const coords = JSON.parse(svg.dataset.coords)
+export const renderAnimatedTrace = (svg, coords) => {
+    console.debug("Rendering animated trace SVG")
+    coords ??= JSON.parse(svg.dataset.coords)
     const ds = []
     for (let i = 0; i < coords.length; i += 2) {
         const x = coords[i]
@@ -44,3 +43,6 @@ if (svg) {
         svg.appendChild(path)
     }
 }
+
+const svg = document.querySelector(".trace-preview svg")
+if (svg) renderAnimatedTrace(svg)
