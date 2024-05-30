@@ -22,16 +22,7 @@ const enableMatomoTracking = () => {
     newScript.defer = true
     document.head.appendChild(newScript)
 
-    // TODO: matomogoal meta[name=matomo-goal] trackGoal
-    // map.addEventListener("layeradd", function (e) {
-    //     if (e.layer.options) {
-    //         var goal = OSM.MATOMO.goals[e.layer.options.keyid]
-
-    //         if (goal) {
-    //             $("body").trigger("matomogoal", goal)
-    //         }
-    //     }
-    // })
+    // TODO: matomogoal meta[name=matomo-goal] trackGoal layeradd, layerid
 }
 
 if (crashReporting) enableSentryTracking()
