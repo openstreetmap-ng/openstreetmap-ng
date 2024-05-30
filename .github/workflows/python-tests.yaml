@@ -20,7 +20,7 @@ jobs:
 
       - name: Extract nixpkgs hash
         run: |
-          nixpkgs_hash=$(grep -o -P '(?<=archive/)[0-9a-f]{40}(?=\.tar\.gz)' shell.nix)
+          nixpkgs_hash=$(egrep -o 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
           echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
 
       - name: Cache Nix store
