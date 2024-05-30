@@ -54,9 +54,9 @@ let
       if [ -z "$name" ]; then
         read -p "Database migration name: " name
       fi
-      alembic -c config/alembic.ini revision --autogenerate --message "$name"
+      python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
-    (writeShellScriptBin "alembic-upgrade" "alembic -c config/alembic.ini upgrade head")
+    (writeShellScriptBin "alembic-upgrade" "python -m alembic -c config/alembic.ini upgrade head")
 
     # -- Cython
     (writeShellScriptBin "cython-build" "python setup.py build_ext --inplace --parallel $(nproc --all)")
@@ -247,8 +247,9 @@ let
       if [ ! -f data/postgres/PG_VERSION ]; then
         initdb -D data/postgres \
           --no-instructions \
-          --locale=C.UTF-8 \
-          --encoding=UTF8 \
+          --locale-provider=icu \
+          --icu-locale=und \
+          --no-locale \
           --text-search-config=pg_catalog.simple \
           --auth=password \
           --username=postgres \
@@ -256,7 +257,7 @@ let
       fi
 
       mkdir -p /tmp/osm-postgres data/supervisor data/mailpit
-      supervisord -c config/supervisord.conf
+      python -m supervisor.supervisord -c config/supervisord.conf
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
@@ -360,7 +361,7 @@ let
     # -- Testing
     (writeShellScriptBin "run-tests" ''
       set -e
-      pytest . \
+      python -m pytest . \
         --verbose \
         --no-header \
         --cov app \
@@ -375,7 +376,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "run" ''
-      uvicorn app.main:main --reload
+      python -m uvicorn app.main:main --reload
     '')
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")

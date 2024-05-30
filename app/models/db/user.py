@@ -21,7 +21,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.password_hash import PasswordHash
 from app.lib.rich_text import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
 from app.limits import (
@@ -50,7 +49,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
     display_name: Mapped[str] = mapped_column(Unicode(DISPLAY_NAME_MAX_LENGTH), nullable=False)
-    password_hashed: Mapped[str] = mapped_column(Unicode, nullable=False)
+    password_hashed: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
@@ -69,8 +68,8 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=func.statement_timestamp(),
     )
-    password_salt: Mapped[str | None] = mapped_column(
-        Unicode,
+    password_extra: Mapped[str | None] = mapped_column(
+        Unicode(255),
         init=False,
         nullable=True,
         server_default=None,
@@ -170,13 +169,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             result.append(ExtendedScope.role_moderator)
 
         return result
-
-    @property
-    def password_hasher(self) -> PasswordHash:
-        """
-        Get the password hash class for this user.
-        """
-        return PasswordHash(UserRole.get_password_hasher(self.roles))
 
     @property
     def avatar_url(self) -> str:

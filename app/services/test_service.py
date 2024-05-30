@@ -56,7 +56,7 @@ class TestService:
 
             name_available = await UserQuery.check_display_name_available(name)
             password = PasswordStr(TEST_USER_PASSWORD)
-            password_hashed = PasswordHash.default().hash(password)
+            password_hashed = PasswordHash.hash(password)
 
             async with db_commit() as session:
                 if name_available:

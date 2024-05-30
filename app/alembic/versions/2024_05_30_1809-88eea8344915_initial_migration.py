@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 112c8fc63a28
+Revision ID: 88eea8344915
 Revises:
-Create Date: 2024-05-18 10:47:12.104340+00:00
+Create Date: 2024-05-30 18:09:33.234742+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '112c8fc63a28'
+revision: str = '88eea8344915'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -68,7 +68,7 @@ def upgrade() -> None:
     op.create_table('user',
     sa.Column('email', sa.Unicode(length=254), nullable=False),
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
-    sa.Column('password_hashed', sa.Unicode(), nullable=False),
+    sa.Column('password_hashed', sa.Unicode(length=255), nullable=False),
     sa.Column('created_ip', postgresql.INET(), nullable=False),
     sa.Column('status', sa.Enum('pending_terms', 'pending_activation', 'active', name='userstatus'), nullable=False),
     sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
@@ -77,7 +77,7 @@ def upgrade() -> None:
     sa.Column('activity_tracking', sa.Boolean(), nullable=False),
     sa.Column('crash_reporting', sa.Boolean(), nullable=False),
     sa.Column('password_changed_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
-    sa.Column('password_salt', sa.Unicode(), nullable=True),
+    sa.Column('password_extra', sa.Unicode(length=255), nullable=True),
     sa.Column('roles', sa.ARRAY(sa.Enum('moderator', 'administrator', name='userrole'), dimensions=1), server_default='{}', nullable=False),
     sa.Column('description', sa.UnicodeText(), server_default='', nullable=False),
     sa.Column('description_rich_hash', sa.LargeBinary(length=32), nullable=True),
@@ -103,6 +103,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('changeset_bounds_idx', 'changeset', ['bounds'], unique=False, postgresql_where=sa.text('bounds IS NOT NULL'), postgresql_using='gist')
+    op.create_index('changeset_closed_at_idx', 'changeset', ['closed_at'], unique=False, postgresql_where=sa.text('closed_at IS NOT NULL'))
+    op.create_index('changeset_created_at_idx', 'changeset', ['created_at'], unique=False)
+    op.create_index('changeset_empty_idx', 'changeset', ['closed_at'], unique=False, postgresql_where=sa.text('closed_at IS NOT NULL AND size = 0'))
+    op.create_index('changeset_open_idx', 'changeset', ['updated_at'], unique=False, postgresql_where=sa.text('closed_at IS NULL'))
+    op.create_index('changeset_user_idx', 'changeset', ['user_id', 'id'], unique=False, postgresql_where=sa.text('user_id IS NOT NULL'))
     op.create_table('diary',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(length=255), nullable=False),
@@ -179,6 +185,13 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['note_id'], ['note.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('note_subscription',
+    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('note_id', sa.BigInteger(), nullable=False),
+    sa.ForeignKeyConstraint(['note_id'], ['note.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('note_id', 'user_id')
     )
     op.create_table('oauth1_application',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
@@ -297,14 +310,15 @@ def upgrade() -> None:
     sa.Column('body_rich_hash', sa.LargeBinary(length=32), nullable=True),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-    sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
+    sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('changeset_comment_idx', 'changeset_comment', ['changeset_id', 'created_at'], unique=False)
     op.create_table('changeset_subscription',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('changeset_id', sa.BigInteger(), nullable=False),
-    sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
+    sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('changeset_id', 'user_id')
     )
@@ -327,7 +341,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('diary_id', 'user_id')
     )
     op.create_table('element',
-    sa.Column('sequence_id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
+    sa.Column('sequence_id', sa.BigInteger(), nullable=False),
     sa.Column('changeset_id', sa.BigInteger(), nullable=False),
     sa.Column('type', sa.Enum('node', 'way', 'relation', name='element_type'), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
@@ -335,8 +349,8 @@ def upgrade() -> None:
     sa.Column('visible', sa.Boolean(), nullable=False),
     sa.Column('tags', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('point', app.models.geometry.PointType(), nullable=True),
-    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('next_sequence_id', sa.BigInteger(), nullable=True),
+    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ),
     sa.PrimaryKeyConstraint('sequence_id', name='element_pkey')
     )
@@ -425,6 +439,7 @@ def downgrade() -> None:
     op.drop_table('diary_subscription')
     op.drop_table('diary_comment')
     op.drop_table('changeset_subscription')
+    op.drop_index('changeset_comment_idx', table_name='changeset_comment')
     op.drop_table('changeset_comment')
     op.drop_table('user_token_session')
     op.drop_table('user_token_email_reply')
@@ -436,12 +451,19 @@ def downgrade() -> None:
     op.drop_index('client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('oauth1_application')
+    op.drop_table('note_subscription')
     op.drop_table('note_comment')
     op.drop_table('message')
     op.drop_table('mail')
     op.drop_table('issue')
     op.drop_table('friendship')
     op.drop_table('diary')
+    op.drop_index('changeset_user_idx', table_name='changeset', postgresql_where=sa.text('user_id IS NOT NULL'))
+    op.drop_index('changeset_open_idx', table_name='changeset', postgresql_where=sa.text('closed_at IS NULL'))
+    op.drop_index('changeset_empty_idx', table_name='changeset', postgresql_where=sa.text('closed_at IS NOT NULL AND size = 0'))
+    op.drop_index('changeset_created_at_idx', table_name='changeset')
+    op.drop_index('changeset_closed_at_idx', table_name='changeset', postgresql_where=sa.text('closed_at IS NOT NULL'))
+    op.drop_index('changeset_bounds_idx', table_name='changeset', postgresql_where=sa.text('bounds IS NOT NULL'), postgresql_using='gist')
     op.drop_table('changeset')
     op.drop_index('user_email_idx', table_name='user')
     op.drop_index('user_display_name_idx', table_name='user')

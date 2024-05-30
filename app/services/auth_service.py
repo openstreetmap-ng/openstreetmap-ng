@@ -16,6 +16,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.oauth1 import OAuth1
 from app.lib.oauth2 import OAuth2
 from app.lib.options_context import options_context
+from app.lib.password_hash import PasswordHash
 from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth1_token import OAuth1Token
@@ -146,8 +147,8 @@ class AuthService:
 
         async def factory() -> bytes:
             logging.debug('Credentials auth cache miss for user %d', user.id)
-            ph = user.password_hasher
-            success = ph.verify(user.password_hashed, user.password_salt, password)
+            ph = PasswordHash()
+            success = ph.verify(user.password_hashed, user.password_extra, password)
 
             if not success:
                 return b'\x00'
@@ -159,13 +160,13 @@ class AuthService:
                     stmt = (
                         update(User)
                         .where(User.id == user.id, User.password_hashed == user.password_hashed)
-                        .values({User.password_hashed: new_hash, User.password_salt: None})
+                        .values({User.password_hashed: new_hash, User.password_extra: None})
                         .inline()
                     )
                     await session.execute(stmt)
 
                 user.password_hashed = new_hash
-                user.password_salt = None
+                user.password_extra = None
                 logging.debug('Rehashed password for user %d', user.id)
 
             return b'\xff'
