@@ -8,7 +8,7 @@
     "@rapideditor/rapid": "^2.2.5",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.3",
-    "core-js": "3.35",
+    "core-js": "3.37.1",
     "i18next": "^23.7.18",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "leaflet": "^1.8.0",
@@ -34,7 +34,7 @@
           "modules": false,
           "useBuiltIns": "usage",
           "corejs": {
-            "version": "3.35"
+            "version": "3.37.1"
           }
         }
       ]

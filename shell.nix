@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/0837fbf227364d79cbae8fff2378125526905cbe.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/14de0380da76de3f4cd662a9ef2352eed0c95b7d.tar.gz") { };
 
   pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
@@ -28,14 +28,14 @@ let
   packages' = with pkgs; [
     coreutils
     curl
-    inotify-tools
+    fswatch
     brotli
     zstd
     # Python:
     wrappedPython
     poetry
     ruff
-    gcc
+    gcc14
     gettext
     # Frontend:
     bun
@@ -83,7 +83,7 @@ let
     '')
     (writeShellScriptBin "watch-cython" ''
       cython-build
-      while inotifywait -e close_write --recursive --include "\.py$" app; do
+      while fswatch -1 --latency 0.1 --event Updated --recursive --include "\.py$" app; do
         cython-build
       done
     '')
@@ -104,9 +104,8 @@ let
         --no-map
     '')
     (writeShellScriptBin "watch-sass" ''
-      shopt -s globstar
       sass-pipeline
-      while inotifywait -e close_write --recursive app/static/sass; do
+      while fswatch -1 --latency 0.1 --event Updated --recursive app/static/sass; do
         sass-pipeline
       done
     '')
@@ -127,9 +126,8 @@ let
         $src_paths
     '')
     (writeShellScriptBin "watch-js" ''
-      shopt -s globstar
       js-pipeline
-      while inotifywait -e close_write --recursive --exclude "^bundle-" app/static/js; do
+      while fswatch -1 --latency 0.1 --event Updated --recursive --exclude "^bundle-" app/static/js; do
         js-pipeline
       done
     '')
@@ -233,7 +231,7 @@ let
     '')
     (writeShellScriptBin "watch-locale" ''
       locale-pipeline
-      while inotifywait -e close_write config/locale/extra_en.yaml; do
+      while fswatch -1 --latency 0.1 --event Updated config/locale/extra_en.yaml; do
         locale-pipeline
       done
     '')
@@ -371,7 +369,7 @@ let
     '')
     (writeShellScriptBin "watch-tests" ''
       run-tests || true
-      while inotifywait -e close_write --recursive --include "\.py$" .; do
+      while fswatch -1 --latency 0.1 --event Updated --recursive --include "\.py$" .; do
         run-tests || true
       done
     '')
