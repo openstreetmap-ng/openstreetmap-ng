@@ -45,7 +45,6 @@ let
     (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
     valkey
     mailpit
-    spamassassin
 
     # Scripts:
     # -- Alembic

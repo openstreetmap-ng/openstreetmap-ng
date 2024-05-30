@@ -16,7 +16,7 @@ Last update: 2024-03-17
 - Refactor the codebase for better maintainability and simplicity
 - Start using [nix](https://nixos.org/) for development environment management
 - Configure [mailpit](https://mailpit.axllent.org/) for email testing
-- Configure [spamassassin](https://spamassassin.apache.org/) for email spam scoring
+- Integrate [spamassassin](https://spamassassin.apache.org/) for email spam analysis
 - Automatically transpile locale to i18n JSON and GNU GetText formats
 - Support for [i18next JSON v4](https://www.i18next.com/misc/json-format) translation format
 - Configure [supervisord](https://supervisord.org/) for permission-less process management (instead of Docker)
