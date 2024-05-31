@@ -2,6 +2,8 @@ import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import * as L from "leaflet"
 
+const zoomAcceleration = 3
+
 export const getZoomControl = () => {
     const control = new L.Control()
 
@@ -69,8 +71,15 @@ export const getZoomControl = () => {
         control.zoomOutButton = zoomOutButton
         control.map = map
 
-        const onZoomInButtonClick = () => map.zoomIn(1)
-        const onZoomOutButtonClick = () => map.zoomOut(1)
+        /**
+         * @param {PointerEvent} e
+         */
+        const onZoomInButtonClick = (e) => map.zoomIn(e.altKey || e.shiftKey ? zoomAcceleration : 1)
+
+        /**
+         * @param {PointerEvent} e
+         */
+        const onZoomOutButtonClick = (e) => map.zoomOut(e.altKey || e.shiftKey ? zoomAcceleration : 1)
 
         // Listen for events
         map.addEventListener("zoomend zoomlevelschange", onMapZoomChange)
