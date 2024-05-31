@@ -1,23 +1,27 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" height="100px"> OpenStreetMap-NG
 
 ![Python version](https://shields.monicz.dev/badge/python-v3.12-blue)
-[![Support my work](https://shields.monicz.dev/badge/%E2%99%A5%EF%B8%8F%20Support%20my%20work-purple)](https://monicz.dev/#support-my-work)
-[![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay)](https://liberapay.com/Zaczero/)
+[![Discord Developers Chat](https://shields.monicz.dev/discord/1246123404613128203?logo=discord&logoColor=FFF&label=Developers&color=5865F2&cacheSeconds=600)](https://discord.gg/GM89hdjSCB)
+[![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay&label=Patrons)](https://liberapay.com/Zaczero/)
 [![GitHub repo stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
 
 OpenStreetMap-NG is an unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). It's on a mission to push the boundaries of OpenStreetMap and provide a better experience for all users. It's simply the Next Generation of OpenStreetMap.
-
-**Active development alert**: Please note that this project is in a very active development. Code is continuously evolving in significant ways. As a result, **I am not currently accepting pull requests and issues**.
 
 ## 📢 Development Updates
 
 I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary). You can also subscribe to the [RSS feed](https://www.openstreetmap.org/user/NorthCrab/diary/rss) to stay up-to-date.
 
+## 👷 Contributing
+
+To get started contributing, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for contributors. We support Linux, macOS, and Windows (WSL2) operating systems.
+
+You can also join our [Discord server](https://discord.gg/GM89hdjSCB) to receive personalized support and discuss development topics. This is our primary internal communication channel. It's free to join and we're always happy to help you get started!
+
 ## ✨ The Vision
 
-- **Simple to contribute**: OpenStreetMap-NG requires just basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We use Nix to provide stress-free and streamlined developer experience.
+- **Simple to contribute**: OpenStreetMap-NG requires just basic Python knowledge to contribute. There are no complex abstractions or frameworks to learn. We use Nix to provide stress-free and streamlined developer experience on all platforms.
 
-- **Super efficient**: OpenStreetMap-NG uses modern programming techniques to provide high performance and low latency. Most of the codebase is compiled to C language with Cython Pure Python Mode.
+- **Super efficient**: OpenStreetMap-NG uses modern programming techniques to provide high performance and low latency. Most of the codebase is compiled to C language with Cython's [Pure Python Mode](https://cython.readthedocs.io/en/latest/src/tutorial/pure.html).
 
 - **Privacy first**: OpenStreetMap-NG is designed with privacy first approach. We give users the control over their data and privacy. The new builtin proxy for third-party requests additionally protects users identity.
 
@@ -55,10 +59,10 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ✅ Migration of rate limiting
 - ⬛ Migration of changeset history RSS feed
 - ✅ Improved GPX traces processing
-- [65%] Migration of website API
+- [70%] Migration of website API
 - ✅ Migration and refactoring of stylesheets
 - ✅ Migration and refactoring of scripts
-- [65%] Migration of templates
+- [70%] Migration of templates
 - ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
 - ✅ Development translation overrides
 - [20%] Anti-vandalism stage 1
