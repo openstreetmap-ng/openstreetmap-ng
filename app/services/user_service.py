@@ -130,7 +130,7 @@ class UserService:
         if user.email == new_email:
             return
 
-        if not PasswordHash().verify(user.password_hashed, user.password_extra, password):
+        if not PasswordHash.verify(user.password_hashed, user.password_extra, password).success:
             collector.raise_error('password', t('user.invalid_password'))
         if not await UserQuery.check_email_available(new_email):
             collector.raise_error('email', t('user.email_already_taken'))
@@ -151,12 +151,11 @@ class UserService:
         Update user password.
         """
         user = auth_user()
-        ph = PasswordHash()
 
-        if not ph.verify(user.password_hashed, user.password_extra, old_password):
+        if not PasswordHash.verify(user.password_hashed, user.password_extra, old_password).success:
             collector.raise_error('old_password', t('user.invalid_password'))
 
-        password_hashed = ph.hash(new_password)
+        password_hashed = PasswordHash.hash(new_password)
 
         # update user data
         async with db_commit() as session:
