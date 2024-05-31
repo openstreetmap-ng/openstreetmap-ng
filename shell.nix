@@ -261,7 +261,18 @@ let
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
-      while ! pg_isready -q -h /tmp/osm-postgres -t 10; do sleep 0.1; done
+      count=0
+      while ! pg_isready -q -h /tmp/osm-postgres -t 1; do
+        count=$((count + 1))
+        if [ $count -gt 100 ]; then
+          tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
+          echo "Postgres startup timeout, see above logs for details"
+          dev-stop
+          exit 1
+        fi
+        sleep 0.1
+      done
+
       echo "Postgres started, running migrations"
       alembic-upgrade
     '')
