@@ -13,6 +13,7 @@ let
     libyaml.out
     zlib.out
   ];
+  wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   wrappedPython = with pkgs; (symlinkJoin {
     name = "python";
     paths = [
@@ -21,7 +22,7 @@ let
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.12" --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath pythonLibs}"
+      wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   });
 
