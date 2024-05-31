@@ -22,7 +22,7 @@ def test_password_hash_md5():
     hashed = '67a1e09bb1f83f5007dc119c14d663aa'
     verified = PasswordHash.verify(hashed, salt, password)
     assert verified.success
-    assert not verified.rehash_needed
+    assert verified.rehash_needed
 
 
 def test_password_hash_invalid():
