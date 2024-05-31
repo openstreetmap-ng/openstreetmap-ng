@@ -4,6 +4,8 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/14de0380da76de3f4cd662a9ef2352eed0c95b7d.tar.gz") { };
 
+  supervisordConf = import ./config/supervisord.nix { inherit pkgs; };
+
   pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
     file.out
@@ -11,8 +13,6 @@ let
     libyaml.out
     zlib.out
   ];
-
-  # Override LD_LIBRARY_PATH to load Python libraries
   wrappedPython = with pkgs; (symlinkJoin {
     name = "python";
     paths = [
@@ -257,14 +257,14 @@ let
       fi
 
       mkdir -p /tmp/osm-postgres data/supervisor data/mailpit
-      python -m supervisor.supervisord -c config/supervisord.conf
+      python -m supervisor.supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
-      count=0
-      while ! pg_isready -q -h /tmp/osm-postgres -t 1; do
-        count=$((count + 1))
-        if [ $count -gt 100 ]; then
+      time_start=$(date +%s)
+      while ! pg_isready -q -h /tmp/osm-postgres; do
+        elapsed=$(($(date +%s) - $time_start))
+        if [ $elapsed -gt 10 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
           echo "Postgres startup timeout, see above logs for details"
           dev-stop

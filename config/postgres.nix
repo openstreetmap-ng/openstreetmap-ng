@@ -1,3 +1,5 @@
+{ pkgs }:
+
 # ( Developer Configuration )
 # ===========================
 # Targeted Specification:
@@ -5,6 +7,7 @@
 # - 8GB RAM
 # - 300GB SSD
 
+pkgs.writeText "postgres.conf" (''
 # listen on socket
 # reason: reduce latency
 unix_socket_directories = '/tmp/osm-postgres'
@@ -69,9 +72,11 @@ min_wal_size = 1GB
 
 # adjust configuration for SSDs
 # reason: improved performance on expected hardware
+random_page_cost = 1
+'' + pkgs.lib.optionalString (!pkgs.stdenv.isDarwin) ''
 effective_io_concurrency = 200
 maintenance_io_concurrency = 200
-random_page_cost = 1
+'' + ''
 
 # increase logging verbosity
 # reason: useful for troubleshooting
@@ -97,3 +102,4 @@ shared_preload_libraries = 'auto_explain'
 # automatically explain slow queries
 # reason: useful for troubleshooting
 auto_explain.log_min_duration = 100ms
+'')

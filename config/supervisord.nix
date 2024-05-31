@@ -1,10 +1,16 @@
+{ pkgs }:
+
+let
+  postgresConf = import ./postgres.nix { inherit pkgs; };
+in
+pkgs.writeText "supervisord.conf" ''
 [supervisord]
 logfile=data/supervisor/supervisord.log
 pidfile=data/supervisor/supervisord.pid
 strip_ansi=true
 
 [program:postgres]
-command=postgres -c config_file=config/postgres.conf -D data/postgres
+command=postgres -c config_file=${postgresConf} -D data/postgres
 stopsignal=INT
 stdout_logfile=data/supervisor/postgres.log
 stderr_logfile=data/supervisor/postgres.log
@@ -38,3 +44,4 @@ command=watch-sass
 stopsignal=TERM
 stdout_logfile=data/supervisor/watch-sass.log
 stderr_logfile=data/supervisor/watch-sass.log
+''
