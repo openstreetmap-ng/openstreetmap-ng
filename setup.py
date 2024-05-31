@@ -8,9 +8,7 @@ from setuptools import Extension, setup
 Options.docstrings = False
 Options.annotate = True
 
-
-dirs = [
-    # not supported by pydantic: 'app/controllers',
+dirs = (
     'app/exceptions',
     'app/exceptions06',
     'app/format',
@@ -20,10 +18,20 @@ dirs = [
     'app/services',
     'app/queries',
     'app/validators',
-]
+)
 
-paths = [p for d in dirs for p in Path(d).rglob('*.py')]
+blacklist = {
+    'app/services': {
+        'email_service.py',
+    }
+}
 
+paths = []
+for dir in dirs:
+    dir_blacklist = blacklist.get(dir, {})
+    for p in Path(dir).rglob('*.py'):
+        if p.name not in dir_blacklist:
+            paths.append(p)  # noqa: PERF401
 
 setup(
     ext_modules=cythonize(
@@ -32,27 +40,15 @@ setup(
                 path.with_suffix('').as_posix().replace('/', '.'),
                 [str(path)],
                 extra_compile_args=[
-                    '-march=x86-64-v2',
+                    '-march=x86-64-v3',
                     '-mtune=generic',
                     '-ffast-math',
-                    '-flto=auto',
                     '-fharden-compares',
                     '-fharden-conditional-branches',
-                    # https://gcc.gnu.org/pipermail/gcc-patches/2023-August/628748.html
-                    '-D_FORTIFY_SOURCE=3',
-                    '-ftrivial-auto-var-init=zero',
-                    # (incompatible) '-fPIE',
-                    '-fstack-protector-strong',
-                    '-fstack-clash-protection',
-                    '-fcf-protection=full',
+                    '-fharden-control-flow-redundancy',
+                    '-fhardened',
                     # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
                     '-mshstk',
-                ],
-                extra_link_args=[
-                    '-flto=auto',
-                    # https://gcc.gnu.org/pipermail/gcc-patches/2023-August/628748.html
-                    # (incompatible) '-pie',
-                    '-Wl,-z,relro,-z,now',
                 ],
             )
             for path in paths

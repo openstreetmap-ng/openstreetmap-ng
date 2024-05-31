@@ -74,7 +74,7 @@ async def lifespan(_):
     await TestService.on_startup()
     await SystemAppService.on_startup()
 
-    async with EmailService():
+    async with EmailService.context():
         yield
 
 

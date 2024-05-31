@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
@@ -34,18 +35,21 @@ _process_lock = Lock()
 
 
 class EmailService:
-    async def __aenter__(self):
+    @asynccontextmanager
+    @staticmethod
+    async def context():
+        """
+        Context manager for email service.
+        """
         global _tg
         if _tg is not None:
-            raise RuntimeError(f'{self.__aenter__.__qualname__} was reused')
-        _tg = create_task_group()
-        await _tg.__aenter__()
-        _tg.start_soon(_process_task)
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        _tg.cancel_scope.cancel()
-        await _tg.__aexit__(exc_type, exc, tb)
+            raise RuntimeError(f'{EmailService.__qualname__} is already running')
+        async with create_task_group() as tg:
+            _tg = tg
+            tg.start_soon(_process_task)
+            yield
+            tg.cancel_scope.cancel()
+            _tg = None
 
     @staticmethod
     async def schedule(
@@ -61,7 +65,6 @@ class EmailService:
         """
         Schedule a mail and start async processing.
         """
-
         # render in the to_user's language
         with translation_context(to_user.language):
             body = render(
@@ -84,7 +87,6 @@ class EmailService:
                 ref=ref,
                 priority=priority,
             )
-
             logging.info('Scheduling mail %r to user %d with subject %r', mail.id, to_user.id, subject)
             session.add(mail)
 
@@ -94,19 +96,19 @@ class EmailService:
 async def _process_task() -> None:
     """
     Process scheduled mail in the database.
-
-    In rare cases, there will be more than one task running at the time (per process).
     """
-
     try:
         _process_lock.acquire_nowait()
-        await _process_task_inner()
     except WouldBlock:
         return
+
+    try:
+        await _process_task_inner()
     finally:
         _process_lock.release()
 
     # avoids race conditions in which scheduled mail is not processed immediately
+    # in rare cases, there will be more than one task running at the time (per process)
     await _process_task_inner()
 
 

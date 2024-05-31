@@ -174,7 +174,7 @@ quote-style = "single"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "input", "open", "type", "map", "copyright", "help", "format"]
+builtins-ignorelist = ["id", "input", "open", "type", "map", "copyright", "help", "format", "dir"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["pgettext", "npgettext"]

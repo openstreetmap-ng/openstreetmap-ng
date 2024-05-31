@@ -506,7 +506,7 @@ let
     make-version
   '';
 in
-pkgs.mkShell {
+pkgs.mkShellNoCC {
   buildInputs = packages';
   shellHook = shell';
 }
