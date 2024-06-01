@@ -13,7 +13,7 @@
   },
   "*:conditional": {
     "*": [
-      "",
+      "Pl",
       "Uk"
     ]
   },
@@ -793,6 +793,12 @@
   "access_JP": {
     "*": [
       ""
+    ]
+  },
+  "accommodation": {
+    "*": [
+      "",
+      "RU"
     ]
   },
   "accuracy:meters": {
@@ -3560,6 +3566,7 @@
       "",
       "FR",
       "JA",
+      "Pl",
       "RU",
       "Uk"
     ],
@@ -5489,7 +5496,8 @@
     ],
     "long_jump": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "pole_vault": [
       "",
@@ -10311,6 +10319,11 @@
       "RU"
     ]
   },
+  "charge:conditional": {
+    "*": [
+      ""
+    ]
+  },
   "charity": {
     "*": [
       "",
@@ -13040,6 +13053,9 @@
       "FR",
       "IT",
       "Pl"
+    ],
+    "zebra": [
+      ""
     ]
   },
   "crossing:on_demand": {
@@ -13853,7 +13869,8 @@
     ],
     "exclusive": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "share_parking": [
       ""
@@ -14882,7 +14899,8 @@
   },
   "disused:amenity": {
     "*": [
-      ""
+      "",
+      "RU"
     ],
     "fountain": [
       ""
@@ -16838,6 +16856,15 @@
     "sit-up": [
       "",
       "RU"
+    ],
+    "squat": [
+      ""
+    ]
+  },
+  "fitting_room": {
+    "*": [
+      "",
+      "RU"
     ]
   },
   "fix_guidepost": {
@@ -17249,7 +17276,8 @@
       "Cs",
       "DE",
       "FR",
-      "JA"
+      "JA",
+      "RU"
     ]
   },
   "fortification_type": {
@@ -19726,7 +19754,8 @@
       ""
     ],
     "stomatology": [
-      ""
+      "",
+      "DE"
     ],
     "surgery": [
       ""
@@ -21845,6 +21874,7 @@
       "ES",
       "JA",
       "Pl",
+      "Pt",
       "RU"
     ],
     "factory": [
@@ -24759,6 +24789,11 @@
       "RU"
     ]
   },
+  "light:colour": {
+    "*": [
+      ""
+    ]
+  },
   "light_rail": {
     "*": [
       ""
@@ -27144,7 +27179,8 @@
       "Pl"
     ],
     "gallery_grave": [
-      ""
+      "",
+      "DE"
     ],
     "long_barrow": [
       "",
@@ -30515,6 +30551,21 @@
       ""
     ]
   },
+  "name:zh-Latn-CN-pinyin": {
+    "*": [
+      ""
+    ]
+  },
+  "name:zh-Latn-TW-pinyin": {
+    "*": [
+      ""
+    ]
+  },
+  "name:zh-Latn-TW-tongyong": {
+    "*": [
+      ""
+    ]
+  },
   "name:zh-Latn-pinyin": {
     "*": [
       ""
@@ -33693,6 +33744,11 @@
       "RU"
     ]
   },
+  "oneway:boat": {
+    "*": [
+      ""
+    ]
+  },
   "oneway:bus": {
     "*": [
       "",
@@ -33762,6 +33818,11 @@
     "*": [
       "",
       "FR"
+    ]
+  },
+  "open_water": {
+    "*": [
+      ""
     ]
   },
   "openbenches:id": {
@@ -35504,7 +35565,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "ocean": [
       "",
@@ -37080,6 +37142,9 @@
       "RU",
       "Yue"
     ],
+    "entrance": [
+      ""
+    ],
     "entrance_pass": [
       "RU"
     ],
@@ -37881,11 +37946,6 @@
       ""
     ]
   },
-  "railway:signal:country": {
-    "*": [
-      ""
-    ]
-  },
   "railway:signal:distant": {
     "*": [
       "",
@@ -37893,6 +37953,33 @@
     ]
   },
   "railway:signal:main": {
+    "*": [
+      ""
+    ],
+    "FR:CARRE": [
+      ""
+    ]
+  },
+  "railway:signal:main:states": {
+    "FR:C": [
+      ""
+    ]
+  },
+  "railway:signal:main:type": {
+    "FR:A": [
+      ""
+    ],
+    "FR:C": [
+      ""
+    ],
+    "FR:F": [
+      ""
+    ],
+    "FR:H": [
+      ""
+    ]
+  },
+  "railway:signal:prefix": {
     "*": [
       ""
     ]
@@ -38479,6 +38566,7 @@
   },
   "ref:FR:SIS": {
     "*": [
+      "",
       "FR"
     ]
   },
@@ -40244,6 +40332,7 @@
     "gabled": [
       "",
       "DE",
+      "FR",
       "JA"
     ],
     "gabled_height_moved": [
@@ -43762,6 +43851,7 @@
       "FR",
       "JA",
       "Pl",
+      "Pt",
       "RU"
     ],
     "catalogue": [
@@ -47965,7 +48055,18 @@
       "JA",
       "Pl"
     ],
+    "conciliation_cross": [
+      "",
+      "DE",
+      "RU"
+    ],
+    "hunger_stone": [
+      ""
+    ],
     "khachkar": [
+      ""
+    ],
+    "ruhstein": [
       ""
     ]
   },
@@ -48141,6 +48242,9 @@
       "",
       "Cs",
       "Pl"
+    ],
+    "bank": [
+      ""
     ]
   },
   "substance": {
@@ -48317,6 +48421,7 @@
       "",
       "DE",
       "ES",
+      "JA",
       "Zh-hans"
     ],
     "asphalt": [
@@ -49433,6 +49538,9 @@
       "",
       "DE",
       "RU"
+    ],
+    "loculi": [
+      ""
     ],
     "mausoleum": [
       "",
@@ -50674,7 +50782,8 @@
     ],
     "variable_message": [
       "",
-      "Gcf"
+      "Gcf",
+      "Pl"
     ]
   },
   "traffic_sign:2": {
@@ -51165,6 +51274,7 @@
       "ES",
       "FR",
       "JA",
+      "Pl",
       "RU",
       "Uk"
     ],
@@ -51682,6 +51792,7 @@
   "valve": {
     "*": [
       "",
+      "DE",
       "FR"
     ],
     "ball": [
@@ -52325,6 +52436,7 @@
     ],
     "shield": [
       "",
+      "DE",
       "RU"
     ],
     "stratovolcano": [
@@ -52398,6 +52510,7 @@
       "",
       "DE",
       "ES",
+      "Pl",
       "RU"
     ],
     "brick": [
@@ -52935,6 +53048,9 @@
       "",
       "FR"
     ],
+    "confluence": [
+      ""
+    ],
     "dam": [
       "",
       "Cs",
@@ -53043,6 +53159,9 @@
       ""
     ],
     "flow_control": [
+      ""
+    ],
+    "flowline": [
       ""
     ],
     "fuel": [
