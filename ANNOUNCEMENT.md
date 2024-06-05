@@ -2,8 +2,6 @@
 
 Welcome to the next generation of OpenStreetMap, an improved website and API developed in Python!
 
-🚧 **Active development alert**: Please note that this project is in a very active development. Code is continuously evolving, and significant changes are happening daily. As a result, **I am not currently accepting pull requests**.
-
 This is one of my most significant undertakings to date, and I have put all my heart and soul into it. My goal is not just to benefit myself but to create something incredible for our entire community. It's time to give OpenStreetMap the love and attention it truly deserves. This document is here to guide you through the exciting new features—there's quite a lot!
 
 📢 **One final announcement**. I am now a full-time FOSS (Free and Open Source Software) developer. This is a dream I've had for a long time, and it's time to make it into reality. After you've finished reading, I kindly ask you to consider supporting me with a small monthly contribution. Your support will enable me to continue my work on OpenStreetMap, making it even better. **This project is my testimony.**
