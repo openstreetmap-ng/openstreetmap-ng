@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/14de0380da76de3f4cd662a9ef2352eed0c95b7d.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a4ecb0ab415c9fccfb005567a215e6a9564cdf5.tar.gz") { };
 
   supervisordConf = import ./config/supervisord.nix { inherit pkgs; };
 
@@ -440,8 +440,8 @@ let
         # TODO: --sourcemap=external when https://github.com/oven-sh/bun/issues/7427
         output=$(bun build \
           "$src_path" \
-          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
           --minify \
+          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
           --outdir "$dir" | tee /dev/stdout)
 
         bundle_name=$(grep \

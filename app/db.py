@@ -7,21 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
 from app.utils import JSON_DECODE, JSON_ENCODE
 
-if TEST_ENV:
-
-    @asynccontextmanager
-    async def valkey():
-        async with Redis.from_url(VALKEY_URL) as r:
-            yield r
-else:
-    _valkey_pool = ConnectionPool().from_url(VALKEY_URL)
-
-    @asynccontextmanager
-    async def valkey():
-        async with Redis(connection_pool=_valkey_pool) as r:
-            yield r
-
-
 _db_engine = create_async_engine(
     POSTGRES_URL,
     # asyncpg enum doesn't play nicely with JIT
@@ -74,5 +59,19 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
         await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
         await session.execute(text('VACUUM ANALYZE') if vacuum else text('ANALYZE'))
 
+
+if TEST_ENV:
+
+    @asynccontextmanager
+    async def valkey():
+        async with Redis.from_url(VALKEY_URL) as r:
+            yield r
+else:
+    _valkey_pool = ConnectionPool().from_url(VALKEY_URL)
+
+    @asynccontextmanager
+    async def valkey():
+        async with Redis(connection_pool=_valkey_pool) as r:
+            yield r
 
 # TODO: test unicode normalization comparison
