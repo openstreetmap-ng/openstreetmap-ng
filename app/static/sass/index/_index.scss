@@ -1,6 +1,8 @@
 .action-sidebar.index {
     // Style the welcome banner
     .welcome-banner {
+        background: $body-bg;
+
         p {
             font-size: 1.1em;
             font-weight: 300;
@@ -8,22 +10,25 @@
     }
 
     // Style generic image banner
-    // TODO: test this
     .image-banner {
+        padding: unset;
+        position: relative;
+
         img {
             width: 100%;
         }
 
-        .btn-close {
+        .btn-close-wrapper {
             position: absolute;
-            top: 0;
-            right: 0;
-            margin: 1.1rem;
-            padding: 0.4rem;
+            top: calc(1.1em - 0.5em / 2);
+            right: calc(1em - 0.5em / 2);
+            background: $body-bg;
+            border-radius: $border-radius-sm;
 
-            // Increase the contrast
-            opacity: 1;
-            background: rgba(255, 255, 255, 0.5);
+            .btn-close {
+                position: initial;
+                padding: 0.5em;
+            }
         }
     }
 }

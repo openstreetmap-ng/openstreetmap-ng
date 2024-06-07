@@ -25,22 +25,10 @@
             <p class="lead mb-4">{{ t('site.about.lede_text') }}</p>
 
             <h3>
-                <span class="icon open"></span>
-                {{ t('site.about.open_data_title') }}
+                <span class="icon local"></span>
+                {{ t('site.about.local_knowledge_title') }}
             </h3>
-            <p>
-                {% set open_data %}<i>{{ t('site.about.open_data_open_data') }}</i>{% endset %}
-                {% set copyright_license_link %}
-                <a href="/copyright" rel="license">
-                    {{ t('site.about.open_data_copyright_license') }}
-                </a>
-                {% endset %}
-                {{ t(
-                        'site.about.open_data_1_html',
-                        open_data=open_data,
-                        copyright_license_link=copyright_license_link,
-                    ) | safe }}
-            </p>
+            <p>{{ t('site.about.local_knowledge_html') }}</p>
 
             <h3>
                 <span class="icon community"></span>
@@ -77,10 +65,22 @@
             </p>
 
             <h3>
-                <span class="icon local"></span>
-                {{ t('site.about.local_knowledge_title') }}
+                <span class="icon open"></span>
+                {{ t('site.about.open_data_title') }}
             </h3>
-            <p>{{ t('site.about.local_knowledge_html') }}</p>
+            <p>
+                {% set open_data %}<i>{{ t('site.about.open_data_open_data') }}</i>{% endset %}
+                {% set copyright_license_link %}
+                <a href="/copyright" rel="license">
+                    {{ t('site.about.open_data_copyright_license') }}
+                </a>
+                {% endset %}
+                {{ t(
+                        'site.about.open_data_1_html',
+                        open_data=open_data,
+                        copyright_license_link=copyright_license_link,
+                    ) | safe }}
+            </p>
 
             <h3>
                 <span class="icon legal"></span>
@@ -145,31 +145,31 @@
             <p class="mb-0">
                 {% set ucl %}
                 <a href="https://www.ucl.ac.uk">
-                    {{ t('layouts.partners_ucl') }}
-                </a>
-                {% endset %}
+                    {{ t('layouts.partners_ucl') }}{#
+                #}</a>{#
+                #}{% endset %}
                 {% set fastly %}
                 <a href="https://www.fastly.com">
-                    {{ t('layouts.partners_fastly') }}
-                </a>
-                {% endset %}
+                    {{ t('layouts.partners_fastly') }}{#
+                #}</a>{#
+                #}{% endset %}
                 {% set bytemark %}
                 <a href="https://www.bytemark.co.uk">
-                    {{ t('layouts.partners_bytemark') }}
-                </a>
-                {% endset %}
+                    {{ t('layouts.partners_bytemark') }}{#
+                #}</a>{#
+                #}{% endset %}
                 {% set partners %}
                 <a href="https://hardware.openstreetmap.org/thanks/">
-                    {{ t('layouts.partners_partners') }}
-                </a>
-                {% endset %}
+                    {{ t('layouts.partners_partners') }}{#
+                #}</a>{#
+                #}{% endset %}
                 {{ t(
-                        'layouts.hosting_partners_html',
-                        ucl=ucl,
-                        fastly=fastly,
-                        bytemark=bytemark,
-                        partners=partners,
-                    ) | safe }}
+                            'layouts.hosting_partners_html',
+                            ucl=ucl,
+                            fastly=fastly,
+                            bytemark=bytemark,
+                            partners=partners,
+                        ) | safe }}
             </p>
         </div>
 

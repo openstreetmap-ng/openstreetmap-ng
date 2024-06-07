@@ -97,3 +97,12 @@ export const isHrefCurrentPage = (href) => {
     const locationPathname = location.pathname
     return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
+
+/**
+ * Get the current unix timestamp
+ * @returns {number} Unix timestamp
+ * @example
+ * getUnixTimestamp()
+ * // => 1717761123
+ */
+export const getUnixTimestamp = () => Math.floor(Date.now() / 1000)

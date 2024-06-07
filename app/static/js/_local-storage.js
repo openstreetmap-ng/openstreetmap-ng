@@ -1,5 +1,5 @@
 import "./_types.js"
-import { isLatitude, isLongitude, isZoom } from "./_utils.js"
+import { getUnixTimestamp, isLatitude, isLongitude, isZoom } from "./_utils.js"
 
 const mapStateVersion = 1
 
@@ -52,14 +52,14 @@ export const setLastMapState = (state) => {
  * @example
  * isBannerHidden("welcome")
  */
-export const isBannerHidden = (name) => localStorage.getItem(`banner-hidden-${name}`) === "1"
+export const isBannerHidden = (name) => localStorage.getItem(`bannerHidden-${name}`) !== null
 
 /**
  * Mark a banner as hidden in local storage
  * @param {string} name Banner name
  * @returns {void}
  */
-export const markBannerHidden = (name) => localStorage.setItem(`banner-hidden-${name}`, "1")
+export const markBannerHidden = (name) => localStorage.setItem(`bannerHidden-${name}`, getUnixTimestamp())
 
 /**
  * Get last routing engine from local storage
