@@ -70,7 +70,7 @@ async def legacy_capabilities():
                 xattr('gpx'): 'online',
             },
             'timeout': {
-                xattr('seconds'): 'TODO',  # TODO: timeout
+                xattr('seconds'): 15,
             },
             'tracepoints': {
                 xattr('per_page'): TRACE_POINT_QUERY_DEFAULT_LIMIT,

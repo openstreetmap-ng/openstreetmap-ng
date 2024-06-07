@@ -55,14 +55,18 @@ async def get_changeset(
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
+        changesets = (changeset,)
 
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
+
     if include_discussion:
         with options_context(joinedload(ChangesetComment.user).load_only(User.display_name)):
-            await ChangesetCommentQuery.resolve_comments((changeset,), limit_per_changeset=None, resolve_rich_text=True)
+            await ChangesetCommentQuery.resolve_comments(changesets, limit_per_changeset=None, resolve_rich_text=True)
+    else:
+        await ChangesetCommentQuery.resolve_num_comments(changesets)
 
-    return Format06.encode_changesets((changeset,))
+    return Format06.encode_changesets(changesets)
 
 
 @router.get('/changeset/{changeset_id:int}/download', response_class=OSMChangeResponse)
@@ -95,7 +99,10 @@ async def update_changeset(
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-    return Format06.encode_changesets((changeset,))
+
+    changesets = (changeset,)
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return Format06.encode_changesets(changesets)
 
 
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
@@ -204,4 +211,6 @@ async def query_changesets(
             sort='asc' if (order == 'newest') else 'desc',
             limit=limit,
         )
+
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
     return Format06.encode_changesets(changesets)

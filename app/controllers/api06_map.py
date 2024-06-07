@@ -34,7 +34,7 @@ async def get_map(bbox: Annotated[str, Query()]):
         tg.start_soon(ElementMemberQuery.resolve_members, elements)
 
     xattr = get_xattr()
-    minx, miny, maxx, maxy = geometry.bounds  # TODO: MultiPolygon support
+    minx, miny, maxx, maxy = geometry.bounds
     return {
         'bounds': {
             xattr('minlon'): minx,

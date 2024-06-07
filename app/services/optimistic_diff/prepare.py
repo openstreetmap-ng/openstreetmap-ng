@@ -133,7 +133,6 @@ class OptimisticDiffPrepare:
                 if action == 'delete' and not prev.visible:
                     raise_for().element_already_deleted(element)
 
-            # TODO: test self-referencing elements
             # update references and check if all newly added members are valid
             if element_type != 'node':
                 added_members_refs = self._update_reference_override(prev, element, element_ref)

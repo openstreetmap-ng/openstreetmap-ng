@@ -98,7 +98,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                 else {}
             ),
             **bounds_dict,
-            'comments_count': 0,  # TODO: count if needed
+            'comments_count': changeset.num_comments,
             'changes_count': changeset.size,
             'tags': changeset.tags,
             **(
@@ -128,7 +128,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
                 else {}
             ),
             **bounds_dict,
-            '@comments_count': 0,  # TODO: count if needed
+            '@comments_count': changeset.num_comments,
             '@changes_count': changeset.size,
             'tag': tuple({'@k': k, '@v': v} for k, v in changeset.tags.items()),
             **(

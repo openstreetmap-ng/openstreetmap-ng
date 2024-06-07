@@ -11,6 +11,7 @@ from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
 from app.models.scope import ExtendedScope, Scope
+from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 
@@ -26,8 +27,9 @@ async def create_changeset_comment(
     await ChangesetCommentService.comment(changeset_id, text)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-    # TODO: auto subscribe
-    return Format06.encode_changesets((changeset,))
+    changesets = (changeset,)
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return Format06.encode_changesets(changesets)
 
 
 @router.delete('/changeset/comment/{comment_id:int}')
@@ -38,7 +40,9 @@ async def delete_changeset_comment(
     changeset_id = await ChangesetCommentService.delete_comment_unsafe(comment_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-    return Format06.encode_changesets((changeset,))
+    changesets = (changeset,)
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return Format06.encode_changesets(changesets)
 
 
 @router.post('/changeset/{changeset_id:int}/subscribe')
@@ -49,7 +53,9 @@ async def changeset_subscribe(
     await ChangesetCommentService.subscribe(changeset_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-    return Format06.encode_changesets((changeset,))
+    changesets = (changeset,)
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return Format06.encode_changesets(changesets)
 
 
 @router.post('/changeset/{changeset_id:int}/unsubscribe')
@@ -60,7 +66,9 @@ async def changeset_unsubscribe(
     await ChangesetCommentService.unsubscribe(changeset_id)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-    return Format06.encode_changesets((changeset,))
+    changesets = (changeset,)
+    await ChangesetCommentQuery.resolve_num_comments(changesets)
+    return Format06.encode_changesets(changesets)
 
 
 # TODO: hide/unhide
