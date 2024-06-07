@@ -57,7 +57,18 @@ let
       fi
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
-    (writeShellScriptBin "alembic-upgrade" "python -m alembic -c config/alembic.ini upgrade head")
+    (writeShellScriptBin "alembic-upgrade" ''
+      set -e
+      lataest_version=1
+      current_version=$(cat data/alembic/version.txt)
+      if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
+        echo "NOTICE: Database migrations are not compatible"
+        echo "NOTICE: Run 'dev-clean' to reset the database before proceeding"
+        exit 1
+      fi
+      python -m alembic -c config/alembic.ini upgrade head
+      echo $lataest_version > data/alembic/version.txt
+    '')
 
     # -- Cython
     (writeShellScriptBin "cython-build" "python setup.py build_ext --inplace --parallel $(nproc --all)")
@@ -257,7 +268,7 @@ let
           --pwfile=<(echo postgres)
       fi
 
-      mkdir -p /tmp/osm-postgres data/supervisor data/mailpit
+      mkdir -p /tmp/osm-postgres data/alembic data/mailpit data/supervisor
       python -m supervisor.supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
@@ -297,7 +308,7 @@ let
     (writeShellScriptBin "dev-clean" ''
       set -e
       dev-stop
-      rm -rf data/postgres data/mailpit
+      rm -rf data/alembic data/postgres
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")
