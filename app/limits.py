@@ -61,7 +61,7 @@ LANGUAGE_CODE_MAX_LENGTH = 15
 
 MAIL_PROCESSING_TIMEOUT = timedelta(minutes=1)
 MAIL_UNPROCESSED_EXPONENT = 2  # 1 min, 2 mins, 4 mins, etc.
-MAIL_UNPROCESSED_EXPIRE = timedelta(days=3)  # TODO: expire index
+MAIL_UNPROCESSED_EXPIRE = timedelta(days=3)
 
 MAP_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees
 MAP_QUERY_LEGACY_NODES_LIMIT = 50_000

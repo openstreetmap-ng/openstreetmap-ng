@@ -1,13 +1,21 @@
 import logging
 import time
 from datetime import timedelta
+from typing import NamedTuple
 
 from anyio import Path
 
-from app.config import FILE_CACHE_DIR
+from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_hex
+from app.lib.naturalsize import naturalsize
 from app.models.msgspec.file_cache_meta import FileCacheMeta
+
+
+class _CleanupInfo(NamedTuple):
+    expires_at: int | float
+    size: int
+    path: Path
 
 
 class FileCache:
@@ -42,7 +50,7 @@ class FileCache:
         try:
             entry_bytes = await path.read_bytes()
         except OSError:
-            logging.debug('Cache miss for %r', key)
+            logging.debug('Cache read error for %r', key)
             return None
 
         entry = FileCacheMeta.from_bytes(entry_bytes)
@@ -79,9 +87,50 @@ class FileCache:
         path = await self._get_path(key)
         await path.unlink(missing_ok=True)
 
+    # TODO: runner, with lock
     async def cleanup(self):
         """
         Cleanup the file cache, removing stale entries.
         """
-        # TODO: implement cleaning logic here, using Lock for distributed-process safety
-        raise NotImplementedError
+        now = int(time.time())
+        infos: list[_CleanupInfo] = []
+        total_size = 0
+        limit_size = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
+
+        async for path in self._base_dir.rglob('*'):
+            key = path.name
+
+            try:
+                entry_bytes = await path.read_bytes()
+            except OSError:
+                logging.debug('Cache read error for %r', key)
+                continue
+
+            entry = FileCacheMeta.from_bytes(entry_bytes)
+            expires_at = entry.expires_at
+
+            if (expires_at is not None) and expires_at < now:
+                logging.debug('Cache cleanup for %r (reason: time)', key)
+                await path.unlink(missing_ok=True)
+                continue
+
+            if expires_at is None:
+                expires_at = float('inf')
+
+            size = (await path.stat()).st_size
+            infos.append(_CleanupInfo(expires_at, size, path))
+            total_size += size
+
+        logging.debug('File cache usage is %s of %s', naturalsize(total_size), naturalsize(limit_size))
+
+        if total_size <= limit_size:
+            return
+
+        infos.sort(key=lambda info: info.expires_at, reverse=True)
+
+        while total_size > limit_size:
+            info = infos.pop()
+            key = info.path.name
+            logging.debug('Cache cleanup for %r (reason: size)', key)
+            await info.path.unlink(missing_ok=True)
+            total_size -= info.size

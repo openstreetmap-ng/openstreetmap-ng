@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, SmallInteger, UnicodeText
+from sqlalchemy import Enum, ForeignKey, Index, SmallInteger, UnicodeText
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,3 +36,5 @@ class Mail(Base.Snowflake, CreatedAtMixin):
         nullable=True,
         server_default=None,
     )
+
+    __table_args__ = (Index('mail_processing_at_idx', processing_at),)
