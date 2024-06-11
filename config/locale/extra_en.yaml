@@ -28,9 +28,25 @@ map:
 changeset:
   open: Open
   this_changeset_is_state: This changeset is {{state}}
+  map_edits_one: 'map edit'
+  map_edits_other: 'map edits'
 note:
   title: Note
+  count_one: 'note'
+  count_other: 'notes'
+trace:
+  count_one: 'trace'
+  count_other: 'traces'
+diary:
+  count_one: 'diary'
+  count_other: 'diaries'
+comment:
+  count_one: 'comment'
+  count_other: 'comments'
 user:
+  new: New
+  i_am_new_here: I'm new here!
+  no_activity_yet: No activity yet
   profile_picture: Profile picture
   settings:
     password_and_security: Password and security
@@ -99,6 +115,7 @@ action:
   reactivated: reactivated
   reset_filters: Reset filters
   resolved: resolved
+  view_all: View all
 state:
   hidden: Hidden
   latest: latest
@@ -111,3 +128,4 @@ unsupported_browser:
     long: This browser is not supported
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
+showcase: Showcase

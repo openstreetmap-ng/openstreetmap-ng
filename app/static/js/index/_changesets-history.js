@@ -56,9 +56,9 @@ export const getChangesetsHistoryController = (map) => {
 
             const userContainer = div.querySelector(".user")
             const dateContainer = div.querySelector(".date")
-            const tagValue = div.querySelector(".tag-value")
-            const changesetAnchor = div.querySelector("a.changeset-id")
-            const commentsContainer = div.querySelector(".comments")
+            const commentValue = div.querySelector(".comment")
+            const changesetAnchor = div.querySelector("a.stretched-link")
+            const numCommentsValue = div.querySelector(".num-comments")
 
             if (changeset.user_name) {
                 const anchor = document.createElement("a")
@@ -79,13 +79,13 @@ export const getChangesetsHistoryController = (map) => {
                 changeset.closed ? i18next.t("browse.closed") : i18next.t("browse.created")
             ).toLowerCase()
             dateContainer.innerHTML += ` ${changeset.timeago}`
-            tagValue.textContent = changeset.comment || i18next.t("browse.no_comment")
+            commentValue.textContent = changeset.comment || i18next.t("browse.no_comment")
 
             const icon = document.createElement("i")
             icon.classList.add("bi", changeset.num_comments ? "bi-chat-left-text" : "bi-chat-left")
-            commentsContainer.classList.toggle("no-comments", !changeset.num_comments)
-            commentsContainer.appendChild(document.createTextNode(changeset.num_comments))
-            commentsContainer.appendChild(icon)
+            numCommentsValue.classList.toggle("no-comments", !changeset.num_comments)
+            numCommentsValue.appendChild(document.createTextNode(changeset.num_comments))
+            numCommentsValue.appendChild(icon)
 
             changesetAnchor.href = `/changeset/${changeset.id}`
             changesetAnchor.textContent = changeset.id
@@ -170,7 +170,7 @@ export const getChangesetsHistoryController = (map) => {
      * @returns {void}
      */
     const onSidebarMouseover = (event) => {
-        const div = event.target.closest(".result-action")
+        const div = event.target.closest(".social-action")
         const changesetId = Number.parseInt(div.dataset.changesetId)
         const layer = idLayerMap.get(changesetId)
         layer.setStyle(styles.hover)
@@ -182,7 +182,7 @@ export const getChangesetsHistoryController = (map) => {
      * @returns {void}
      */
     const onSidebarMouseout = (event) => {
-        const div = event.target.closest(".result-action")
+        const div = event.target.closest(".social-action")
         const changesetId = Number.parseInt(div.dataset.changesetId)
         const layer = idLayerMap.get(changesetId)
         layer.setStyle(styles.default)

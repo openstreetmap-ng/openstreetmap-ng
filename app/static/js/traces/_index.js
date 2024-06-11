@@ -23,7 +23,7 @@ if (tracesIndexBody) {
     const tracesList = tracesIndexBody.querySelector(".traces-list")
     const coordsAll = JSON.parse(tracesList.dataset.coords)
     const svgs = tracesList.querySelectorAll("svg")
-    const resultActions = tracesList.querySelectorAll(".result-action")
+    const resultActions = tracesList.querySelectorAll(".social-action")
 
     console.debug("Rendering", svgs.length, "trace SVGs")
     for (let i = 0; i < svgs.length; i++) {

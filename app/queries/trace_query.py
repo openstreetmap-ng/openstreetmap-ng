@@ -1,4 +1,6 @@
 from collections.abc import Sequence
+from re import T
+from typing import Literal
 
 from sqlalchemy import func, select, text
 
@@ -49,6 +51,7 @@ class TraceQuery:
     async def find_many_by_user_id(
         user_id: int,
         *,
+        sort: Literal['asc', 'desc'] = 'desc',
         limit: int | None,
     ) -> Sequence[Trace]:
         """
@@ -60,6 +63,7 @@ class TraceQuery:
                 Trace.visible_to(*auth_user_scopes()),
             )
             stmt = apply_options_context(stmt)
+            stmt = stmt.order_by(Trace.id.asc() if (sort == 'asc') else Trace.id.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)
@@ -72,7 +76,12 @@ class TraceQuery:
         Count traces by user id.
         """
         async with db() as session:
-            stmt = select(func.count()).select_from(select(text('1')).where(Trace.user_id == user_id))
+            stmt = select(func.count()).select_from(
+                select(text('1')).where(
+                    Trace.user_id == user_id,
+                    Trace.visible_to(*auth_user_scopes()),
+                )
+            )
             return await session.scalar(stmt)
 
     @staticmethod

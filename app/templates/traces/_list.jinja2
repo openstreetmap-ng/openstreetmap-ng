@@ -1,72 +1,70 @@
 {% if traces %}
 {% include 'traces/_list_nav.jinja2' %}
-<table class="table table-borderless traces-list" data-coords="{{ image_coords | safe }}">
-    <tbody>
-        {% for trace in traces %}
-        <tr>
-            <td>
-                <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1 -1 102 102"></svg>
-            </td>
-            <td>
-                <div class="result-action social-entry position-relative h-100">
-                    <p class="header text-muted d-flex justify-content-between">
-                        <span>
-                            <a href="/user/{{ trace.user.display_name }}">
-                                <img class="avatar" src="{{ trace.user.avatar_url }}"
-                                    alt="{{ t('user.profile_picture') }}" loading="lazy">{#
-                            #}{{ trace.user.display_name }}{#
-                        #}</a>
-                            {{ t('action.uploaded') }}
-                            {{ timeago(trace.created_at, html=True) | safe }}
-                            &mdash;
-                            (<a class="stretched-link" href="/trace/{{ trace.id }}">{#
-                            #}{{ trace.name }}{#
-                        #}</a>)
+<ul class="traces-list list-unstyled" data-coords="{{ image_coords | safe }}">
+    {% for trace in traces %}
+    <li class="row g-2">
+        <div class="col-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1 -1 102 102"></svg>
+        </div>
+        <div class="col">
+            <div class="social-action social-entry position-relative">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        <a href="/user/{{ trace.user.display_name }}">
+                            <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('user.profile_picture') }}"
+                                loading="lazy">{#
+                        #}{{ trace.user.display_name }}{#
+                    #}</a>
+                        {{ t('action.uploaded') }}
+                        {{ timeago(trace.created_at, html=True) | safe }}
+                        &mdash;
+                        (<a class="stretched-link" href="/trace/{{ trace.id }}">{#
+                        #}{{ trace.name }}{#
+                    #}</a>)
+                    </span>
+                    <span>
+                        <span class="badge text-bg-secondary">
+                            {{ nt('traces.trace.count_points', trace.size) }}
                         </span>
-                        <span>
-                            <span class="badge text-bg-secondary">
-                                {{ nt('traces.trace.count_points', trace.size) }}
-                            </span>
-                            {% if trace.visibility == 'identifiable' %}
-                            <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
-                            {% elif trace.visibility == 'public' %}
-                            <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
-                            {% elif trace.visibility == 'trackable' %}
-                            <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
-                            {% elif trace.visibility == 'private' %}
-                            <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
-                            {% endif %}
-                        </span>
-                    </p>
-                    <p class="body mb-2">
-                        <span class="fst-italic me-1">
-                            {{ trace.description }}
-                        </span>
-                        <span>
-                            {% for tag in trace.tags %}
-                            <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>
-                            {% endfor %}
-                        </span>
-                    </p>
-                </div>
-            </td>
-            <td>
-                <div class="btn-group" role="group">
-                    <a class="btn btn-sm btn-link"
-                        href="/?mlon={{ trace.start_point.x }}&mlat={{ trace.start_point.y }}&zoom=14">
-                        <i class="bi bi-geo-alt fs-5"></i>
-                        <span>{{ t('traces.trace.view_map') }}</span>
-                    </a>
-                    <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
-                        <i class="bi bi-pencil fs-5"></i>
-                        <span>{{ t('traces.trace.edit_map') }}</span>
-                    </a>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                        {% if trace.visibility == 'identifiable' %}
+                        <span class="badge text-bg-green">{{ t('traces.trace.identifiable') }}</span>
+                        {% elif trace.visibility == 'public' %}
+                        <span class="badge text-bg-green">{{ t('traces.trace.public') }}</span>
+                        {% elif trace.visibility == 'trackable' %}
+                        <span class="badge text-bg-danger">{{ t('traces.trace.trackable') }}</span>
+                        {% elif trace.visibility == 'private' %}
+                        <span class="badge text-bg-danger">{{ t('traces.trace.private') }}</span>
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="body">
+                    <span class="fst-italic me-1">
+                        {{ trace.description }}
+                    </span>
+                    <span>
+                        {% for tag in trace.tags %}
+                        <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>
+                        {% endfor %}
+                    </span>
+                </p>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group" role="group">
+                <a class="btn btn-sm btn-link"
+                    href="/?mlon={{ trace.start_point.x }}&mlat={{ trace.start_point.y }}&zoom=14">
+                    <i class="bi bi-geo-alt fs-5"></i>
+                    <span>{{ t('traces.trace.view_map') }}</span>
+                </a>
+                <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
+                    <i class="bi bi-pencil fs-5"></i>
+                    <span>{{ t('traces.trace.edit_map') }}</span>
+                </a>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
 {% include 'traces/_list_nav.jinja2' %}
 {% else %}
 <h3>{{ t('traces.index.empty_title') }}</h3>

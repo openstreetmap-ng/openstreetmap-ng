@@ -1,0 +1,168 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ profile.display_name }} | {% endblock %}
+{% block body_class %}user-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-7 offset-3">
+        <div class="d-flex">
+            <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('user.profile_picture') }}">
+            <div class="info">
+                <h1 class="d-flex align-items-center">
+                    {{ profile.display_name }}
+                    {% if is_new_user %}
+                    <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
+                        data-bs-title="{{ t('user.i_am_new_here') }}">
+                        {{ t('user.new') }}
+                    </span>
+                    {% endif %}
+                </h1>
+                <p class="mapper-since mb-0">
+                    {{ t('users.show.mapper since') | title }}
+                    <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
+                    {{ profile.created_at.strftime('%B %d, %Y') }}
+                    </time>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-5 offset-2">
+
+        <h3 class="ms-1">{{ t('showcase') }}</h3>
+        <div class="row">
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body pb-0">
+                        <h5 class="card-title d-flex justify-content-between align-items-center ms-1">
+                            <a href="/user/{{ profile.display_name }}/history">
+                                <b>{{ changesets_count }}</b>
+                                {{ nt('changeset.map_edits', changesets_count) }}
+                            </a>
+                            <span class="dropdown">
+                                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item"
+                                            href="/user/{{ profile.display_name }}/history/comments">
+                                            {{ changeset_comments_count }}
+                                            {{ nt('comment.count', changeset_comments_count) }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </span>
+                        </h5>
+
+                        <ul class="content-list changesets-list changesets-list-sm list-unstyled">
+                            {% for changeset in changesets %}
+                            {% set comment = changeset.tags.get('comment') %}
+                            <li class="social-action social-entry position-relative">
+                                <p class="header text-muted d-flex justify-content-between">
+                                    <span>
+                                        {{ t('browse.created') }}
+                                        {{ timeago(changeset.created_at, html=True) | safe }}
+                                    </span>
+                                    <a class="stretched-link"
+                                        href="/changeset/{{ changeset.id }}">{{ changeset.id }}</a>
+                                </p>
+                                <div class="body d-flex justify-content-between">
+                                    <div class="comment comment-nowrap">
+                                        {% if comment is not none %}
+                                        {{ comment }}
+                                        {% else %}
+                                        {{ t('browse.no_comment') }}
+                                        {% endif %}
+                                    </div>
+                                    {% if changeset.num_comments %}
+                                    <div class="num-comments">
+                                        {{ changeset.num_comments }}<i class="bi bi-chat-left-text"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="num-comments no-comments">
+                                        0<i class="bi bi-chat-left"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-footer position-relative small text-center">
+                        <a class="stretched-link" href="/user/{{ profile.display_name }}/history">
+                            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body pb-0">
+                        <h5 class="card-title d-flex justify-content-between align-items-center ms-1">
+                            <a href="/user/{{ profile.display_name }}/notes?event=opened">
+                                <b>{{ notes_count }}</b>
+                                {{ nt('note.count', notes_count) }}
+                            </a>
+                            <span class="dropdown">
+                                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item"
+                                            href="/user/{{ profile.display_name }}/notes?event=commented">
+                                            {{ note_comments_count }}
+                                            {{ nt('comment.count', note_comments_count) }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            </span>
+                        </h5>
+
+                        <ul class="content-list notes-list notes-list-sm list-unstyled">
+                            {% for note in notes %}
+                            <li class="row g-2">
+                                <div class="col-auto">
+                                    {% if note.closed_at is none %}
+                                    <img src="/static/img/marker/open.webp" alt="{{ t('state.unresolved') }}">
+                                    {% else %}
+                                    <img src="/static/img/marker/closed.webp" alt="{{ t('state.resolved') }}">
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    <div class="social-action social-entry position-relative h-100">
+                                        <p class="header text-muted d-flex justify-content-between">
+                                            <span>
+                                                {{ t('browse.created') }}
+                                                {{ timeago(note.created_at, html=True) | safe }}
+                                            </span>
+                                            <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
+                                        </p>
+                                        <p class="body">{{ note.comments[0].body_rich }}</p>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-footer position-relative small text-center">
+                        <a class="stretched-link" href="/user/{{ profile.display_name }}/notes?event=opened">
+                            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="col-3">
+    </div>
+</div>
+
+{% endblock %}

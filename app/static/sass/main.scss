@@ -69,11 +69,10 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "illustration";
 @import "message";
 @import "navbar";
-@import "result-action";
 @import "required";
 @import "rich-text";
 @import "rss";
-@import "social-entry";
+@import "social";
 @import "unsupported-browser";
 @import "welcome";
 
@@ -100,10 +99,10 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "leaflet/sidebar";
 @import "leaflet/user-popup";
 
-@import "traces/list";
 @import "traces/preview";
 
 @import "user/account-confirm";
+@import "user/index";
 @import "user/login";
 @import "user/settings";
 @import "user/signup";
