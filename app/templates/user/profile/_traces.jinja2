@@ -1,0 +1,51 @@
+<div class="card">
+    <div class="card-body pb-0">
+        <h5 class="card-title ms-1">
+            <a href="/user/{{ profile.display_name }}/traces">
+                <b>{{ traces_count }}</b>
+                {{ nt('trace.count', traces_count) }}
+            </a>
+        </h5>
+
+        <ul class="content-list content-list-sm traces-list traces-list-sm list-unstyled"
+            data-coords="{{ image_coords | safe }}">
+            {% for trace in traces %}
+            <li class="row g-2">
+                <div class="col-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="102" height="102" viewBox="-1 -1 102 102"></svg>
+                </div>
+                <div class="col">
+                    <div class="social-action social-entry position-relative h-100">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                {{ t('action.uploaded') | title }}
+                                {{ timeago(trace.created_at, html=True) | safe }}
+                            </span>
+                            <a class="stretched-link" href="/trace/{{ trace.id }}">{{ trace.id }}</a>
+                        </p>
+                        <p class="body">
+                            <span class="fst-italic me-1">
+                                {{ trace.description }}
+                            </span>
+                            <span>
+                                {% for tag in trace.tags %}
+                                <a class="hashtag"
+                                    href="/user/{{ profile.display_name }}/traces/tag/{{ tag }}">#{{ tag }}</a>
+                                {% endfor %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+            {% if not traces %}
+            <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="card-footer position-relative small text-center">
+        <a class="stretched-link" href="/user/{{ profile.display_name }}/traces">
+            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+        </a>
+    </div>
+</div>

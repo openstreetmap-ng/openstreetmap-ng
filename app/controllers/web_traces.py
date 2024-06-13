@@ -57,7 +57,7 @@ async def update(
 
 @router.post('/{trace_id:int}/delete')
 async def delete(
-    _: Annotated[User, web_user()],
+    user: Annotated[User, web_user()],
     trace_id: Annotated[PositiveInt, Path()],
 ):
     try:
@@ -66,4 +66,4 @@ async def delete(
         # convert api errors to standard form responses
         collector = MessageCollector()
         collector.raise_error(None, e.detail)
-    return {}
+    return {'redirect_url': f'/user/{user.display_name}/traces'}

@@ -1,0 +1,53 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ profile.display_name }} | {% endblock %}
+{% block body_class %}user-profile-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-7 offset-3">
+        <div class="d-flex">
+            <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('user.profile_picture') }}">
+            <div class="info">
+                <h1 class="d-flex align-items-center">
+                    {{ profile.display_name }}
+                    {% if is_new_user %}
+                    <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
+                        data-bs-title="{{ t('user.i_am_new_here') }}">
+                        {{ t('user.new') }}
+                    </span>
+                    {% endif %}
+                </h1>
+                <p class="mapper-since mb-0">
+                    {{ t('users.show.mapper since') | title }}
+                    <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
+                    {{ profile.created_at.strftime('%B %d, %Y') }}
+                    </time>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-5 offset-2">
+
+        <h3 class="ms-1">{{ t('showcase') }}</h3>
+        <div class="row">
+            <div class="col-6 mb-3">
+                {% include 'user/profile/_edits.jinja2' %}
+            </div>
+            <div class="col-6 mb-3">
+                {% include 'user/profile/_notes.jinja2' %}
+            </div>
+            <div class="col-6 mb-3">
+                {% include 'user/profile/_traces.jinja2' %}
+            </div>
+            <div class="col-6 mb-3">
+                {% include 'user/profile/_diaries.jinja2' %}
+            </div>
+        </div>
+    </div>
+    <div class="col-3">
+    </div>
+</div>
+
+{% endblock %}

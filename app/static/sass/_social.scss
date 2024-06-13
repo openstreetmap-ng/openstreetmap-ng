@@ -67,12 +67,6 @@
         font-style: italic;
     }
 
-    .comment-nowrap {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
     .num-comments {
         white-space: nowrap;
         font-size: 0.875em;
@@ -163,5 +157,11 @@
 .traces-list-sm {
     li:not(:last-child) {
         margin-bottom: 0.5rem;
+    }
+
+    svg {
+        margin-top: 0.375rem;
+        width: 3.5em;
+        height: 3.5em;
     }
 }

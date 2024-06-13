@@ -20,7 +20,7 @@
                         &mdash;
                         (<a class="stretched-link" href="/trace/{{ trace.id }}">{#
                         #}{{ trace.name }}{#
-                    #}</a>)
+                        #}</a>)
                     </span>
                     <span>
                         <span class="badge text-bg-secondary">
@@ -70,7 +70,7 @@
 <h3>{{ t('traces.index.empty_title') }}</h3>
 <p>
     {% set upload_link %}
-    <a href="/traces/new">
+    <a href="/trace/upload">
         {{ t('traces.index.upload_new') }}
     </a>
     {% endset %}

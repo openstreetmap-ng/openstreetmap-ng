@@ -1,0 +1,37 @@
+<div class="card">
+    <div class="card-body pb-0">
+        <h5 class="card-title d-flex justify-content-between align-items-center ms-1">
+            <a href="/user/{{ profile.display_name }}/diary">
+                <b>{{ diaries_count }}</b>
+                {{ nt('diary.count', diaries_count) }}
+            </a>
+            <span class="dropdown">
+                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="/user/{{ profile.display_name }}/diary/comments">
+                            {{ changeset_comments_count }}
+                            {{ nt('comment.count', changeset_comments_count) }}
+                        </a>
+                    </li>
+                </ul>
+            </span>
+        </h5>
+
+        <ul class="content-list content-list-sm diaries-list diaries-list-sm list-unstyled">
+            {% for diary in diaries %}
+            TODO
+            {% endfor %}
+            {% if not diaries %}
+            <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="card-footer position-relative small text-center">
+        <a class="stretched-link" href="/user/{{ profile.display_name }}/diary">
+            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+        </a>
+    </div>
+</div>

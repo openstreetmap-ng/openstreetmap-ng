@@ -28,8 +28,8 @@ map:
 changeset:
   open: Open
   this_changeset_is_state: This changeset is {{state}}
-  map_edits_one: 'map edit'
-  map_edits_other: 'map edits'
+  count_one: 'changeset'
+  count_other: 'changesets'
 note:
   title: Note
   count_one: 'note'

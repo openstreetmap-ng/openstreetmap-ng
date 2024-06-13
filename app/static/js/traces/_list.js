@@ -1,27 +1,10 @@
-import { renderAnimatedTrace } from "./_preview.js"
+import { renderAnimatedTrace, renderTrace } from "../_svg.js"
 
-const renderTrace = (svg, coords) => {
-    const ds = []
-    for (let j = 0; j < coords.length; j += 2) {
-        const x = coords[j]
-        const y = coords[j + 1]
-        const prefix = j === 0 ? "M" : "L"
-        ds.push(`${prefix}${x},${y}`)
-    }
+for (const tracesList of document.querySelectorAll(".traces-list")) {
+    const coordsStr = tracesList.dataset.coords
+    if (!coordsStr) continue
 
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
-    path.setAttribute("d", ds.join(" "))
-    path.setAttribute("fill", "none")
-    path.setAttribute("stroke", "black")
-    path.setAttribute("stroke-width", "2")
-    path.setAttribute("stroke-linecap", "round")
-    svg.appendChild(path)
-}
-
-const tracesIndexBody = document.querySelector("body.traces-index-body")
-if (tracesIndexBody) {
-    const tracesList = tracesIndexBody.querySelector(".traces-list")
-    const coordsAll = JSON.parse(tracesList.dataset.coords)
+    const coordsAll = JSON.parse(coordsStr)
     const svgs = tracesList.querySelectorAll("svg")
     const resultActions = tracesList.querySelectorAll(".social-action")
 

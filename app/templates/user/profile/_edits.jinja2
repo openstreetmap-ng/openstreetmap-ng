@@ -1,0 +1,64 @@
+<div class="card">
+    <div class="card-body pb-0">
+        <h5 class="card-title d-flex justify-content-between align-items-center ms-1">
+            <a href="/user/{{ profile.display_name }}/history">
+                <b>{{ changesets_count }}</b>
+                {{ nt('changeset.count', changesets_count) }}
+            </a>
+            <span class="dropdown">
+                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="/user/{{ profile.display_name }}/history/comments">
+                            {{ changeset_comments_count }}
+                            {{ nt('comment.count', changeset_comments_count) }}
+                        </a>
+                    </li>
+                </ul>
+            </span>
+        </h5>
+
+        <ul class="content-list changesets-list changesets-list-sm list-unstyled">
+            {% for changeset in changesets %}
+            {% set comment = changeset.tags.get('comment') %}
+            <li class="social-action social-entry position-relative">
+                <p class="header text-muted d-flex justify-content-between">
+                    <span>
+                        {{ t('browse.created') }}
+                        {{ timeago(changeset.created_at, html=True) | safe }}
+                    </span>
+                    <a class="stretched-link" href="/changeset/{{ changeset.id }}">{{ changeset.id }}</a>
+                </p>
+                <div class="body d-flex justify-content-between">
+                    <div class="comment">
+                        {% if comment is not none %}
+                        {{ comment }}
+                        {% else %}
+                        {{ t('browse.no_comment') }}
+                        {% endif %}
+                    </div>
+                    {% if changeset.num_comments %}
+                    <div class="num-comments">
+                        {{ changeset.num_comments }}<i class="bi bi-chat-left-text"></i>
+                    </div>
+                    {% else %}
+                    <div class="num-comments no-comments">
+                        0<i class="bi bi-chat-left"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+            {% if not changesets %}
+            <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    <div class="card-footer position-relative small text-center">
+        <a class="stretched-link" href="/user/{{ profile.display_name }}/history">
+            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+        </a>
+    </div>
+</div>

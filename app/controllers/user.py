@@ -10,7 +10,7 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.legal import legal_terms
 from app.lib.render_response import render_response
-from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_NEW_DAYS
+from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
@@ -18,8 +18,10 @@ from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
+from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
+from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
@@ -50,8 +52,7 @@ async def legacy_signup():
     return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
 
 
-# TODO: not found, https://www.openstreetmap.org/user/abafaegfeagaeg
-# TODO: /u/UserName ?
+# TODO: not found page, https://www.openstreetmap.org/user/abafaegfeagaeg
 # TODO: optimize
 @router.get('/{display_name:str}')
 async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)]):
@@ -66,12 +67,21 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
 
     changesets_count = await ChangesetQuery.count_by_user_id(user.id)
     changeset_comments_count = 0  # TODO:
-    changesets = await ChangesetQuery.find_many_by_query(user_id=user.id, sort='desc', limit=5)
+    changesets = await ChangesetQuery.find_many_by_query(
+        user_id=user.id,
+        sort='desc',
+        limit=USER_RECENT_ACTIVITY_ENTRIES,
+    )
     await ChangesetCommentQuery.resolve_num_comments(changesets)
 
     notes_count = await NoteQuery.count_by_user_id(user.id)
     note_comments_count = 0  # TODO:
-    notes = await NoteQuery.find_many_by_query(user_id=user.id, event=NoteEvent.opened, sort_dir='desc', limit=5)
+    notes = await NoteQuery.find_many_by_query(
+        user_id=user.id,
+        event=NoteEvent.opened,
+        sort_dir='desc',
+        limit=USER_RECENT_ACTIVITY_ENTRIES,
+    )
     await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
 
     async with create_task_group() as tg:
@@ -79,12 +89,20 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             tg.start_soon(note.comments[0].resolve_rich_text)
 
     traces_count = await TraceQuery.count_by_user_id(user.id)
-    traces = await TraceQuery.find_many_by_user_id(user.id, sort='desc', limit=5)
+    traces = await TraceQuery.find_many_by_user_id(
+        user.id,
+        sort='desc',
+        limit=USER_RECENT_ACTIVITY_ENTRIES,
+    )
+    await TracePointQuery.resolve_image_coords(traces, limit_per_trace=100, resolution=100)
+    image_coords = JSON_ENCODE(tuple(trace.image_coords for trace in traces)).decode()
 
     # TODO: diaries
+    diaries_count = 0
+    diaries = ()
 
     return render_response(
-        'user/index.jinja2',
+        'user/profile/index.jinja2',
         {
             'profile': user,
             'is_self': is_self,
@@ -97,5 +115,8 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'notes': notes,
             'traces_count': traces_count,
             'traces': traces,
+            'image_coords': image_coords,
+            'diaries_count': diaries_count,
+            'diaries': diaries,
         },
     )

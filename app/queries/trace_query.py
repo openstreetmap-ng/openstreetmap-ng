@@ -87,7 +87,7 @@ class TraceQuery:
     @staticmethod
     async def find_many_recent(
         *,
-        personal: bool,
+        user_id: int | None = None,
         tag: str | None = None,
         after: int | None = None,
         before: int | None = None,
@@ -100,8 +100,8 @@ class TraceQuery:
             stmt = select(Trace)
             where_and = []
 
-            if personal:
-                where_and.append(Trace.user_id == auth_user().id)
+            if user_id is not None:
+                where_and.append(Trace.user_id == user_id)
             else:
                 where_and.append(Trace.visible_to(None, auth_scopes()))
 

@@ -1,4 +1,4 @@
-.user-body {
+.user-profile-body {
     .content-header {
         position: relative;
         padding-top: unset;
@@ -31,7 +31,7 @@
     }
 
     .content-list {
-        height: 200px;
+        height: 190px;
         overflow-x: hidden;
         overflow-y: auto;
         margin-bottom: 0;
@@ -39,6 +39,11 @@
     }
 
     .content-list-sm {
-        height: 170px;
+        height: 160px;
+    }
+
+    .no-activity {
+        margin-left: 0.25rem;
+        color: $text-muted;
     }
 }
