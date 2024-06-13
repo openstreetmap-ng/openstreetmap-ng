@@ -84,7 +84,7 @@ export const getShareSidebarToggleButton = () => {
                 // Skip updates if the input is already in the correct state
                 if (input.disabled === isDisabled) continue
 
-                // Don't show resolution for now: it's not compatible wtih SVG, PDF
+                // Don't show resolution for now: it's not compatible with SVG, PDF
                 // const xResolution = Math.round(optimalExportParams.xResolution * 2 ** zoomOffset)
                 // const yResolution = Math.round(optimalExportParams.yResolution * 2 ** zoomOffset)
                 // resolutionSpan.textContent = `${xResolution}⨯${yResolution} px`

@@ -157,7 +157,7 @@ One of the key features of this project is the commitment to preventing map vand
 
 ### Stage 3, Next-Year Plans
 
-- **Pro-Active Vandalism Migitation**: The adaptive rate limit gets replaced with a smarter metric that takes into account factors like timing, the nature and quality of changes, and more. This new metric powers an AI model trained to proactively detect vandalism, using historical OpenStreetMap data and past moderation actions for training. The model self-updates daily to stay current with the latest map events. A new dashboard allows the moderation team to oversee the AI's decisions and adjust settings in real-time, enhancing overall map integrity.
+- **Pro-Active Vandalism Mitigation**: The adaptive rate limit gets replaced with a smarter metric that takes into account factors like timing, the nature and quality of changes, and more. This new metric powers an AI model trained to proactively detect vandalism, using historical OpenStreetMap data and past moderation actions for training. The model self-updates daily to stay current with the latest map events. A new dashboard allows the moderation team to oversee the AI's decisions and adjust settings in real-time, enhancing overall map integrity.
 
 I am confident in my ability to deliver on this project, especially given my past experience in creating AI-powered tools for OpenStreetMap. This experience includes developing [osm-yolo-crossings](https://github.com/Zaczero/osm-yolo-crossings) for automatic visual detection and import of zebra crossings, and [osm-budynki-orto-import](https://github.com/Zaczero/osm-budynki-orto-import) for automated validation and import of buildings in Poland. My expertise also extends to various AI applications beyond the scope of OpenStreetMap.
 
@@ -188,7 +188,7 @@ Let's take a simplified look at how the original and new diff processing methods
 2. 🐢 Create database objects
 3. Lock database
 4. 🔒 ⚡ Quickly look up the database and check if the diff state remains unchanged \
-   4.1. If any of the state elments have changed, free the lock and retry the entire operation from step 1. This is why it's called "optimistic" – it assumes that two map diffs operate on disjoint sets of elements (disjoint regions of the map), which is true most of the time.
+   4.1. If any of the state elements have changed, free the lock and retry the entire operation from step 1. This is why it's called "optimistic" – it assumes that two map diffs operate on disjoint sets of elements (disjoint regions of the map), which is true most of the time.
 5. 🔒 Assign sequential IDs
 6. 🔒 Insert new data into the database
 7. Free the database lock

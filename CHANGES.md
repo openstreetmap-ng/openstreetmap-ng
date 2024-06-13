@@ -123,7 +123,7 @@ Last update: 2024-03-17
 - Improve performance of basic auth
 - Add optimistic changeset diff processing
 - Reduce trace files disk usage (regenerate trace files from database, auto-compress, on-demand trace images)
-- Use stronger password hashes for moderator and administator accounts
+- Use stronger password hashes for moderator and administrator accounts
 - Update to latest nominatim and routing engines API
 - Add support for zstd-compressed trace files
 - Add support for zstd and brotli compressed HTTP requests

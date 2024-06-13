@@ -173,7 +173,7 @@ let
             "$file"
           zst_size=$(stat --printf="%s" "$file.zst")
           if [ $zst_size -gt $min_size ]; then
-            echo "$file.zst is not compressable"
+            echo "$file.zst is not compressible"
             rm "$file.zst"
           fi
 
@@ -183,7 +183,7 @@ let
             "$file"
           br_size=$(stat --printf="%s" "$file.br")
           if [ $br_size -gt $min_size ]; then
-            echo "$file.br is not compressable"
+            echo "$file.br is not compressible"
             rm "$file.br"
           fi
         done
