@@ -1,5 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
+import { getLastSelectedExportFormat, setLastSelectedExportFormat } from "../_local-storage"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
 import { getMapBaseLayer, getMapEmbedHtml, getMapGeoUri, getMapShortUrl } from "./_map-utils.js"
@@ -206,6 +207,26 @@ export const getShareSidebarToggleButton = () => {
             }
         }
 
+        const onFormatSelectChange = (e) => {
+            const format = e.target.value
+            setLastSelectedExportFormat(format)
+        }
+
+        const restoreLastSelectedExportFormat = () => {
+            const lastSelectedExportFormat = getLastSelectedExportFormat()
+            if (lastSelectedExportFormat !== null) {
+                // for loop instead of
+                //   formatSelect.value = lastSelectedExportFormat
+                // to avoid setting invalid value from local storage
+                for (const option of formatSelect.options) {
+                    if (option.value === lastSelectedExportFormat) {
+                        option.selected = true
+                        break
+                    }
+                }
+            }
+        }
+
         // On custom region checkbox change, enable/disable the location filter
         const onCustomRegionCheckboxChange = () => {
             if (customRegionCheckbox.checked) {
@@ -261,6 +282,8 @@ export const getShareSidebarToggleButton = () => {
         customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
         // TODO: support svg/pdf fallback
         exportForm.addEventListener("submit", onExportFormSubmit)
+        formatSelect.addEventListener("change", onFormatSelectChange)
+        restoreLastSelectedExportFormat()
 
         return container
     }
