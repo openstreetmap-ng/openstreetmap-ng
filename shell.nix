@@ -138,7 +138,7 @@ let
     '')
     (writeShellScriptBin "watch-js" ''
       js-pipeline
-      while fswatch -1 --latency 0.1 --event Updated --recursive --exclude "^bundle-" app/static/js; do
+      while LC_NUMERIC=en_US.UTF-8 fswatch -1 --latency 0.1 --event Updated --recursive --exclude "^bundle-" app/static/js; do
         js-pipeline
       done
     '')
