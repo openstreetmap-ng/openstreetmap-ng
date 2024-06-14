@@ -46,7 +46,7 @@ SQLAlchemy has been chosen for interacting with PostgreSQL for the following rea
 2. It is battle-tested, well-known, and highly flexible.
 3. It also offers good support for asynchronous operations.
 
-### Will there initially be backwards compability with API 0.6 clients? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
+### Will there initially be backwards compatibility with API 0.6 clients? ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
 
 Yes, /api/0.6/ will work without any notable changes. When /api/0.7/ is released, both versions will be able to operate concurrently, and changes made in one version are compatible with the other.
 
@@ -91,7 +91,7 @@ I plan to run performance benchmarks once the project completes its rapid develo
 <details>
   <summary>Show me</summary>
 
-### What is the technical reason for mowing away from PostgreSQL/PostGIS? I do not see an objective benefit that does outweight the work involved in migrating the database engine. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
+### What is the technical reason for mowing away from PostgreSQL/PostGIS? I do not see an objective benefit that does outweigh the work involved in migrating the database engine. ([src](https://community.openstreetmap.org/t/the-next-generation-of-openstreetmap-in-python/105621/2))
 
 **Notice**: I am considering a switch to PostgreSQL having received the community feedback, I will post more updates soon!
 

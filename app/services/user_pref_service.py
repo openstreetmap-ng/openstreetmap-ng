@@ -12,7 +12,7 @@ from app.models.db.user_pref import UserPref
 
 # TODO: make it clear not to store sensitive data or to encrypt it
 # TODO: limit app prefs count
-# TOOD: limit gpx count, cleanup raw files?
+# TODO: limit gpx count, cleanup raw files?
 # TODO: 0.7 struct, 1 entry per app
 
 
