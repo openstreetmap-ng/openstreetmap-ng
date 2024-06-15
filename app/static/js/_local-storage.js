@@ -94,3 +94,19 @@ export const getSystemAppAccessToken = (clientId) => localStorage.getItem(`syste
  */
 export const setSystemAppAccessToken = (clientId, accessToken) =>
     localStorage.setItem(`systemAppAccessToken-${clientId}`, accessToken)
+
+const lastSelectedExportFormatKey = "lastSelectedExportFormat"
+
+/**
+ * Get last selected export format from local storage
+ * @returns {string|null} Last selected export format
+ */
+export const getLastSelectedExportFormat = () => localStorage.getItem(lastSelectedExportFormatKey)
+
+/**
+ * Set last selected export format to local storage
+ * @param {string} lastSelectedExportFormat Last selected export format
+ * @returns {void}
+ */
+export const setLastSelectedExportFormat = (lastSelectedExportFormat) =>
+    localStorage.setItem(lastSelectedExportFormatKey, lastSelectedExportFormat)
