@@ -31,15 +31,26 @@
     }
 
     .content-list {
-        height: 190px;
+        height: 220px;
         overflow-x: hidden;
         overflow-y: auto;
         margin-bottom: 0;
         padding-bottom: 1rem;
     }
 
+    .content-list-lg {
+        height: 380px;
+    }
+
     .content-list-sm {
-        height: 160px;
+        height: 180px;
+    }
+
+    .view-more {
+        a {
+            display: block;
+            margin-top: 0.625rem;
+        }
     }
 
     .no-activity {

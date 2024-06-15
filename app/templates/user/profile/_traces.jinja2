@@ -38,14 +38,15 @@
                 </div>
             </li>
             {% endfor %}
-            {% if not traces %}
+            {% if traces_count > USER_RECENT_ACTIVITY_ENTRIES %}
+            <li class="view-more">
+                <a class="btn btn-sm btn-light border" href="/user/{{ profile.display_name }}/traces">
+                    {{ t('action.view_more') }}
+                </a>
+            </li>
+            {% elif not traces_count %}
             <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
             {% endif %}
         </ul>
-    </div>
-    <div class="card-footer position-relative small text-center">
-        <a class="stretched-link" href="/user/{{ profile.display_name }}/traces">
-            {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
-        </a>
     </div>
 </div>

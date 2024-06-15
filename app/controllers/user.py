@@ -101,6 +101,10 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     diaries_count = 0
     diaries = ()
 
+    # TODO: groups
+    groups_count = 0
+    groups = ()
+
     return render_response(
         'user/profile/index.jinja2',
         {
@@ -118,5 +122,8 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'image_coords': image_coords,
             'diaries_count': diaries_count,
             'diaries': diaries,
+            'groups_count': groups_count,
+            'groups': groups,
+            'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
         },
     )

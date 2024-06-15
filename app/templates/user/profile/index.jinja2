@@ -10,6 +10,7 @@
             <div class="info">
                 <h1 class="d-flex align-items-center">
                     {{ profile.display_name }}
+                    {# TODO: moderator/admin icon #}
                     {% if is_new_user %}
                     <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
                         data-bs-title="{{ t('user.i_am_new_here') }}">
@@ -28,25 +29,31 @@
     </div>
 </div>
 <div class="content-body">
-    <div class="col-5 offset-2">
-
-        <h3 class="ms-1">{{ t('showcase') }}</h3>
-        <div class="row">
-            <div class="col-6 mb-3">
-                {% include 'user/profile/_edits.jinja2' %}
-            </div>
-            <div class="col-6 mb-3">
-                {% include 'user/profile/_notes.jinja2' %}
-            </div>
-            <div class="col-6 mb-3">
-                {% include 'user/profile/_traces.jinja2' %}
-            </div>
-            <div class="col-6 mb-3">
-                {% include 'user/profile/_diaries.jinja2' %}
-            </div>
+    <div class="row">
+        <div class="offset-2">
+            <h3 class="ms-1">{{ t('showcase') }}</h3>
         </div>
     </div>
-    <div class="col-3">
+    <div class="row">
+        <div class="col-5 offset-2">
+            <div class="row">
+                <div class="col-6 mb-3">
+                    {% include 'user/profile/_edits.jinja2' %}
+                </div>
+                <div class="col-6 mb-3">
+                    {% include 'user/profile/_notes.jinja2' %}
+                </div>
+                <div class="col-6 mb-3">
+                    {% include 'user/profile/_traces.jinja2' %}
+                </div>
+                <div class="col-6 mb-3">
+                    {% include 'user/profile/_diaries.jinja2' %}
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            {% include 'user/profile/_groups.jinja2' %}
+        </div>
     </div>
 </div>
 

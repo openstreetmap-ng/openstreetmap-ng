@@ -1,0 +1,94 @@
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title ms-1">
+            <a href="/user/{{ profile.display_name }}/groups">
+                <b>5</b>
+                {{ nt('group.count', groups_count) }}
+            </a>
+        </h5>
+
+        <ul class="groups-list groups-list-sm list-unstyled">
+            <li class="row g-2">
+                <div class="col-auto">
+                    <img src="/static/img/banner/example1.webp">
+                </div>
+                <div class="col">
+                    <div class="social-action social-entry position-relative h-100">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                Invite-only<i class="bi bi-dot"></i>32 members
+                            </span>
+                            <a class="stretched-link" href="/group/TODO">osmng-founders</a>
+                        </p>
+                        <div class="body">
+                            <h6 class="title">OpenStreetMap-NG Founders <i class="bi bi-stars exclusive"></i></h6>
+                            <p class="description">
+                                The OpenStreetMap-NG Founders is a group of early-stage contributors
+                                who helped shape the future of OpenStreetMap.
+                                We build the next generation of the OpenStreetMap project.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="row g-2">
+                <div class="col-auto">
+                    <img src="/static/img/banner/example2.webp">
+                </div>
+                <div class="col">
+                    <div class="social-action social-entry position-relative h-100">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                Public<i class="bi bi-dot"></i>13,540 members
+                            </span>
+                            <a class="stretched-link" href="/group/TODO">osm-community</a>
+                        </p>
+                        <div class="body">
+                            <h6 class="title">OpenStreetMap Community</h6>
+                            <p class="description">
+                                The OpenStreetMap Community is a group of volunteers who are dedicated to improving the
+                                OpenStreetMap project. We work together to create and maintain a free and open map of
+                                the world, and we are always looking for new members to join our community.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="row g-2">
+                <div class="col-auto">
+                    <img src="/static/img/banner/example1.webp">
+                </div>
+                <div class="col">
+                    <div class="social-action social-entry position-relative h-100">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                Public<i class="bi bi-dot"></i>128 members
+                            </span>
+                            <a class="stretched-link" href="/group/TODO">osm-pl</a>
+                        </p>
+                        <div class="body">
+                            <h6 class="title">OpenStreetMap Polska</h6>
+                            <p class="description">
+                                Polska grupa fanów i kontrybutorów OpenStreetMap. Jesteśmy w stanie pomóc
+                                w rozwijaniu i poprawieniu mapy na terenie Polski.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {# {% if not groups %}
+            <li class="no-activity">{{ t('user.not_member_of_any_group') }}</li>
+            {% endif %} #}
+        </ul>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="btn btn-sm btn-outline-primary" href="/groups">
+                <i class="bi bi-globe2 me-2"></i>Discover groups
+            </a>
+            {# TODO: if groups_count > 3 #}
+            <a class="me-1" href="/user/{{ profile.display_name }}/groups">
+                {{ t('action.view_all') }}<i class="bi bi-arrow-right-short"></i>
+            </a>
+        </div>
+    </div>
+</div>

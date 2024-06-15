@@ -43,10 +43,18 @@ diary:
 comment:
   count_one: 'comment'
   count_other: 'comments'
+group:
+  count_one: 'group'
+  count_other: 'groups'
+access:
+  public: Public
+  private: Private
+  invite_only: Invite-only
 user:
   new: New
   i_am_new_here: I'm new here!
   no_activity_yet: No activity yet
+  not_member_of_any_group: Not a member of any group
   profile_picture: Profile picture
   settings:
     password_and_security: Password and security
@@ -116,6 +124,7 @@ action:
   reset_filters: Reset filters
   resolved: resolved
   view_all: View all
+  view_more: View more
 state:
   hidden: Hidden
   latest: latest

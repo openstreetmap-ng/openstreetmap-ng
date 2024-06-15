@@ -192,14 +192,17 @@ export const getShareSidebarToggleButton = () => {
 
                 // Create image blob and download it
                 const blob = await exportMapImage(mimeType, bounds, zoom, baseLayer)
+                const url = URL.createObjectURL(blob)
 
                 const now = new Date()
                 const date = `${now.toISOString().slice(0, 10)} ${now.toLocaleTimeString().replace(/:/g, "-")}`
 
                 const a = document.createElement("a")
-                a.href = URL.createObjectURL(blob)
+                a.href = url
                 a.download = `Map ${date}${fileSuffix}`
                 a.click()
+
+                URL.revokeObjectURL(url)
             } finally {
                 submitButton.innerHTML = originalInner
                 submitButton.disabled = false
