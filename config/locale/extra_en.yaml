@@ -44,8 +44,8 @@ comment:
   count_one: 'comment'
   count_other: 'comments'
 group:
-  count_one: 'group'
-  count_other: 'groups'
+  member_of_count_one: 'Member of {{text}} group'
+  member_of_count_other: 'Member of {{text}} groups'
 access:
   public: Public
   private: Private
