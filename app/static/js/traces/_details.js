@@ -14,9 +14,9 @@ if (tracesDetailsBody) {
     }
 
     // On success callback, navigate to my traces
-    const onFormSuccess = () => {
-        console.debug("onFormSuccess")
-        location.href = "/traces/mine"
+    const onFormSuccess = ({ redirect_url }) => {
+        console.debug("onFormSuccess", redirect_url)
+        location.href = redirect_url
     }
 
     deleteButton.addEventListener("click", onDeleteClick)

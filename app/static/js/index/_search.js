@@ -14,7 +14,7 @@ export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
 
     const onLoaded = (sidebarContent) => {
-        const resultActions = sidebarContent.querySelectorAll(".result-action")
+        const resultActions = sidebarContent.querySelectorAll(".social-action")
 
         for (const resultAction of resultActions) {
             // Get params

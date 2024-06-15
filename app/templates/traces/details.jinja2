@@ -17,7 +17,7 @@
                 viewBox="-2 -2 204 204"></svg>
         </div>
 
-        <div class="row traces-list mb-4">
+        <div class="traces-list row g-2 mb-4">
             <div class="col social-entry">
                 <p class="header text-muted d-flex justify-content-between">
                     <span>
@@ -80,7 +80,7 @@
         <div class="d-flex justify-content-between">
             <span>
                 {# intentionally without API_URL, to not require user authorization #}
-                <a class="btn btn-primary px-4" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
+                <a class="btn btn-primary" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
                     {{ t('javascripts.share.download') }}
                 </a>
             </span>

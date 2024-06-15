@@ -28,9 +28,33 @@ map:
 changeset:
   open: Open
   this_changeset_is_state: This changeset is {{state}}
+  count_one: 'changeset'
+  count_other: 'changesets'
 note:
   title: Note
+  count_one: 'note'
+  count_other: 'notes'
+trace:
+  count_one: 'trace'
+  count_other: 'traces'
+diary:
+  count_one: 'diary'
+  count_other: 'diaries'
+comment:
+  count_one: 'comment'
+  count_other: 'comments'
+group:
+  member_of_count_one: 'Member of {{text}} group'
+  member_of_count_other: 'Member of {{text}} groups'
+access:
+  public: Public
+  private: Private
+  invite_only: Invite-only
 user:
+  new: New
+  i_am_new_here: I'm new here!
+  no_activity_yet: No activity yet
+  not_member_of_any_group: Not a member of any group
   profile_picture: Profile picture
   settings:
     password_and_security: Password and security
@@ -85,8 +109,10 @@ validation:
   email_missmatch: The email addresses do not match
   password_missmatch: The passwords do not match
 action:
+  block_user: Block user
   cancel: Cancel
   copy: Copy
+  follow_user: Follow user
   save: Save
   save_as: Save as
   comment: Comment
@@ -94,11 +120,16 @@ action:
   deleted: deleted
   edited: edited
   hid: hid
+  unblock_user: Unblock user
+  unfollow_user: Unfollow user
   upload: Upload
   uploaded: uploaded
   reactivated: reactivated
+  report_abuse: Report abuse
   reset_filters: Reset filters
   resolved: resolved
+  view_all: View all
+  view_more: View more
 state:
   hidden: Hidden
   latest: latest
@@ -111,3 +142,4 @@ unsupported_browser:
     long: This browser is not supported
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
+showcase: Showcase

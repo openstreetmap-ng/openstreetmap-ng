@@ -1,0 +1,112 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ profile.display_name }} | {% endblock %}
+{% block body_class %}user-profile-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-7 offset-3">
+        <div class="d-flex">
+            <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('user.profile_picture') }}">
+            <div class="info">
+                <h1 class="d-flex align-items-center">
+                    {{ profile.display_name }}
+                    {# TODO: moderator/admin icon #}
+                    {% if is_new_user %}
+                    <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
+                        data-bs-title="{{ t('user.i_am_new_here') }}">
+                        {{ t('user.new') }}
+                    </span>
+                    {% endif %}
+                </h1>
+                <p class="mapper-since mb-0">
+                    {{ t('users.show.mapper since') | title }}
+                    <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
+                    {{ profile.created_at.strftime('%B %d, %Y') }}
+                    </time>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-body container-fluid">
+    <div class="row g-5">
+        <div class="col-5 offset-2">
+            <h3 class="ms-1 mb-3">About me</h3>
+            {# TODO: Showcase title on missing description text #}
+            <div class="mb-4">
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum
+                    mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit.
+                </p>
+                <p>
+                    Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam
+                    tincidunt
+                    congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a
+                    non
+                    tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem.
+                </p>
+            </div>
+
+            <h3 class="ms-1 mb-3">Contributions</h3>
+            <div class="row g-3">
+                <div class="col-6">
+                    {% include 'user/profile/_edits.jinja2' %}
+                </div>
+                <div class="col-6">
+                    {% include 'user/profile/_notes.jinja2' %}
+                </div>
+                <div class="col-6">
+                    {% include 'user/profile/_traces.jinja2' %}
+                </div>
+                <div class="col-6">
+                    {% include 'user/profile/_diaries.jinja2' %}
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <h3 class="ms-1">Recent activity</h3>
+            <p>
+                270 mapping days with 7,223 changesets in the last year
+            </p>
+            <img class="img-fluid mb-3" src="/static/img/TODO/activity.png">
+            <div class="text-end">
+                <a class="small me-1" href="/user/{{ profile.display_name }}/groups">
+                    View full statistics<i class="bi bi-box-arrow-up-right ms-2"></i>
+                </a>
+            </div>
+
+            <hr>
+
+            {% include 'user/profile/_groups.jinja2' %}
+
+            {# TODO: if user is none or user.id != profile.id #}
+            <button class="btn btn-light border w-100 mt-4">
+                {{ t('action.follow_user') }}
+                <i class="bi bi-bookmark-plus"></i>
+            </button>
+            <p class="form-text mx-1">
+                Following a user will allow you to quickly access their profile and see their activity.
+                You can always unfollow any user from your follow list.
+            </p>
+
+            <div class="text-end">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger">{{ t('action.report_abuse') }}</button>
+                    <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">{{ t('action.show_more') }}</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item">
+                                {{ t('action.block_user') }}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

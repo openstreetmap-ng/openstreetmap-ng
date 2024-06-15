@@ -11,15 +11,31 @@ from app.lib.date_utils import utcnow
 from app.lib.options_context import apply_options_context
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
+from app.models.note_event import NoteEvent
 
 
 class NoteQuery:
+    @staticmethod
+    async def count_by_user_id(user_id: int) -> int:
+        """
+        Count notes by user id.
+        """
+        async with db() as session:
+            stmt = select(func.count()).select_from(
+                select(text('1')).where(
+                    NoteComment.user_id == user_id,
+                    NoteComment.event == NoteEvent.opened,
+                )
+            )
+            return await session.scalar(stmt)
+
     @staticmethod
     async def find_many_by_query(
         *,
         note_ids: Sequence[int] | None = None,
         phrase: str | None = None,
         user_id: int | None = None,
+        event: NoteEvent | None = None,
         max_closed_days: int | None = None,
         geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
@@ -32,17 +48,36 @@ class NoteQuery:
         Find notes by query.
         """
         async with db() as session:
+            cte_where_and = []
+
+            if phrase is not None:
+                cte_where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
+            if user_id is not None:
+                cte_where_and.append(NoteComment.user_id == user_id)
+            if event is not None:
+                cte_where_and.append(NoteComment.event == event)
+
             stmt = select(Note)
             stmt = apply_options_context(stmt)
             where_and = [Note.visible_to(auth_user())]
             sort_key = Note.created_at if sort_by == 'created_at' else Note.updated_at
 
-            if note_ids:
+            if cte_where_and:
+                if note_ids:
+                    cte_where_and.append(NoteComment.note_id.in_(text(','.join(map(str, note_ids)))))
+                cte = (
+                    select(NoteComment.note_id)
+                    .where(
+                        *cte_where_and,
+                    )
+                    .distinct()
+                    .cte()
+                    .prefix_with('MATERIALIZED')
+                )
+                where_and.append(Note.id.in_(cte))
+            elif note_ids:
                 where_and.append(Note.id.in_(text(','.join(map(str, note_ids)))))
-            if phrase is not None:
-                where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
-            if user_id is not None:
-                where_and.append(NoteComment.user_id == user_id)
+
             if max_closed_days is not None:
                 if max_closed_days > 0:
                     where_and.append(

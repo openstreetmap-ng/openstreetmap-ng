@@ -1,0 +1,56 @@
+.user-profile-body {
+    .content-header {
+        position: relative;
+        padding-top: unset;
+
+        .avatar {
+            position: absolute;
+            top: 1.75rem;
+            font-size: 8em;
+            border: 1px solid $border-color;
+            box-shadow: 0px 0.25em 16px -0.3em rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            align-content: end;
+            min-height: calc(8em * 1.5 - 0.5em);
+            margin-left: calc(8em * 1.5 + 1.5em);
+
+            .badge {
+                margin-left: 0.55em;
+                position: relative;
+                font-size: 0.5em;
+                top: 0.1em;
+                cursor: help;
+            }
+        }
+
+        .mapper-since {
+            color: $text-muted;
+        }
+    }
+
+    .content-list {
+        height: 250px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        margin-bottom: 0;
+        padding-bottom: 1rem;
+    }
+
+    .content-list-sm {
+        height: 200px;
+    }
+
+    .view-more {
+        a {
+            display: block;
+            margin-top: 0.625rem;
+        }
+    }
+
+    .no-activity {
+        margin-left: 0.25rem;
+        color: $text-muted;
+    }
+}

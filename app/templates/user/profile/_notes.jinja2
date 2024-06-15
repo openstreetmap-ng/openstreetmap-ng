@@ -1,0 +1,58 @@
+<div class="card">
+    <div class="card-body pb-0">
+        <h5 class="card-title d-flex justify-content-between align-items-center ms-1">
+            <a href="/user/{{ profile.display_name }}/notes?event=opened">
+                <b>{{ notes_count }}</b>
+                {{ nt('note.count', notes_count) }}
+            </a>
+            <span class="dropdown">
+                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="/user/{{ profile.display_name }}/notes?event=commented">
+                            {{ note_comments_count }}
+                            {{ nt('comment.count', note_comments_count) }}
+                        </a>
+                    </li>
+                </ul>
+            </span>
+        </h5>
+
+        <ul class="content-list notes-list notes-list-sm list-unstyled">
+            {% for note in notes %}
+            <li class="row g-2">
+                <div class="col-auto">
+                    {% if note.closed_at is none %}
+                    <img src="/static/img/marker/open.webp" alt="{{ t('state.unresolved') }}">
+                    {% else %}
+                    <img src="/static/img/marker/closed.webp" alt="{{ t('state.resolved') }}">
+                    {% endif %}
+                </div>
+                <div class="col">
+                    <div class="social-action social-entry position-relative h-100">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                {{ t('browse.created') }}
+                                {{ timeago(note.created_at, html=True) | safe }}
+                            </span>
+                            <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
+                        </p>
+                        <p class="body">{{ note.comments[0].body_rich }}</p>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+            {% if notes_count > USER_RECENT_ACTIVITY_ENTRIES %}
+            <li class="view-more">
+                <a class="btn btn-sm btn-light border" href="/user/{{ profile.display_name }}/notes?event=opened">
+                    {{ t('action.view_more') }}
+                </a>
+            </li>
+            {% elif not notes_count %}
+            <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

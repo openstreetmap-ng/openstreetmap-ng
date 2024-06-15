@@ -40,7 +40,7 @@ export const getQueryFeaturesController = (map) => {
 
     // Configure result actions to handle focus and clicks
     const configureResultActions = (container) => {
-        const resultActions = container.querySelectorAll(".result-action")
+        const resultActions = container.querySelectorAll(".social-action")
 
         for (const resultAction of resultActions) {
             // Get params

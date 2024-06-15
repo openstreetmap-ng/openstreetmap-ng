@@ -13,24 +13,23 @@
                 </div>
             </div>
 
-            <div>
+            <ul class="changesets-list list-unstyled mb-0">
                 <template class="entry">
-                    <div class="result-action social-entry position-relative">
-                        <p class="header text-muted">
-                            <span class="user"></span>
-                            <span class="date"></span>
+                    <li class="social-action social-entry position-relative">
+                        <p class="header text-muted d-flex justify-content-between">
+                            <span>
+                                <span class="user"></span>
+                                <span class="date"></span>
+                            </span>
+                            <a class="stretched-link"></a>
                         </p>
-                        <div class="body d-flex justify-content-between">
-                            <div><span class="tag-value fst-italic"></span></div>
-                            <div class="extra">
-                                <a class="changeset-id stretched-link"></a>
-                                ·
-                                <span class="comments"></span>
-                            </div>
+                        <div class=" body d-flex justify-content-between">
+                            <div class="comment"></div>
+                            <div class="num-comments"></div>
                         </div>
-                    </div>
+                    </li>
                 </template>
-            </div>
+            </ul>
 
             <div class="spinner-container text-center mt-4">
                 <div class="spinner-border text-secondary" role="status">
