@@ -6,6 +6,7 @@ let
 
   supervisordConf = import ./config/supervisord.nix { inherit pkgs; };
 
+  wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
     stdenv.cc.cc.lib
     file.out
@@ -13,8 +14,7 @@ let
     libyaml.out
     zlib.out
   ];
-  wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
-  wrappedPython = with pkgs; (symlinkJoin {
+  python' = with pkgs; (symlinkJoin {
     name = "python";
     paths = [
       # Enable compiler optimizations when in production
@@ -25,15 +25,27 @@ let
       wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   });
+  fswatch' = with pkgs; (symlinkJoin {
+    # Locale workaround for https://github.com/emcrisostomo/fswatch/issues/166
+    name = "fswatch";
+    paths = [ fswatch ];
+    buildInputs = [ makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/fswatch" \
+        --set LC_ALL POSIX \
+        --set LANG POSIX \
+        --add-flags "-1 --latency 0.1 --event Updated"
+    '';
+  });
 
   packages' = with pkgs; [
     coreutils
     curl
-    fswatch
+    fswatch'
     brotli
     zstd
     # Python:
-    wrappedPython
+    python'
     poetry
     ruff
     gcc14
@@ -94,7 +106,7 @@ let
     '')
     (writeShellScriptBin "watch-cython" ''
       cython-build
-      while fswatch -1 --latency 0.1 --event Updated --recursive --include "\.py$" app; do
+      while ${fswatch'}/bin/fswatch --recursive --include "\.py$" app; do
         cython-build
       done
     '')
@@ -116,7 +128,7 @@ let
     '')
     (writeShellScriptBin "watch-sass" ''
       sass-pipeline
-      while fswatch -1 --latency 0.1 --event Updated --recursive app/static/sass; do
+      while ${fswatch'}/bin/fswatch --recursive app/static/sass; do
         sass-pipeline
       done
     '')
@@ -138,7 +150,7 @@ let
     '')
     (writeShellScriptBin "watch-js" ''
       js-pipeline
-      while fswatch -1 --latency 0.1 --event Updated --recursive --exclude "^bundle-" app/static/js; do
+      while ${fswatch'}/bin/fswatch --recursive --exclude "^bundle-" app/static/js; do
         js-pipeline
       done
     '')
@@ -242,7 +254,7 @@ let
     '')
     (writeShellScriptBin "watch-locale" ''
       locale-pipeline
-      while fswatch -1 --latency 0.1 --event Updated config/locale/extra_en.yaml; do
+      while ${fswatch'}/bin/fswatch config/locale/extra_en.yaml; do
         locale-pipeline
       done
     '')
@@ -392,7 +404,7 @@ let
     '')
     (writeShellScriptBin "watch-tests" ''
       run-tests || true
-      while fswatch -1 --latency 0.1 --event Updated --recursive --include "\.py$" .; do
+      while ${fswatch'}/bin/fswatch --recursive --include "\.py$" .; do
         run-tests || true
       done
     '')
@@ -475,10 +487,10 @@ let
   shell' = with pkgs; lib.optionalString isDevelopment ''
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
-    [ "$current_python" != "${wrappedPython}" ] && rm -r .venv
+    [ "$current_python" != "${python'}" ] && rm -r .venv
 
     echo "Installing Python dependencies"
-    poetry env use "${wrappedPython}/bin/python"
+    poetry env use "${python'}/bin/python"
     poetry install --compile
 
     echo "Installing Bun dependencies"
