@@ -28,9 +28,9 @@
         </div>
     </div>
 </div>
-<div class="content-body">
+<div class="content-body container-fluid">
     <div class="row">
-        <div class="offset-2">
+        <div class="col-10 offset-2">
             <h3 class="ms-1">{{ t('showcase') }}</h3>
         </div>
     </div>
@@ -53,6 +53,47 @@
         </div>
         <div class="col-3">
             {% include 'user/profile/_groups.jinja2' %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-5 offset-2">
+            <h3 class="ms-1">About me</h3>
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum
+                mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit.
+            </p>
+            <p>
+                Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt
+                congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non
+                tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem.
+            </p>
+        </div>
+        <div class="col-3">
+            <button class="btn btn-light border w-100">
+                {{ t('action.follow_user') }}
+                <i class="bi bi-bookmark-plus"></i>
+            </button>
+            <p class="form-text mx-1">
+                Following a user will allow you to quickly access their profile and see their activity.
+                You can always unfollow any user from your follow list.
+            </p>
+
+            <div class="text-end">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger">{{ t('action.report_abuse') }}</button>
+                    <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">{{ t('action.show_more') }}</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item">
+                                {{ t('action.block_user') }}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
