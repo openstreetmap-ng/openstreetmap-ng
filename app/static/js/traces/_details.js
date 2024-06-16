@@ -4,21 +4,23 @@ import { configureStandardForm } from "../_standard-form.js"
 const tracesDetailsBody = document.querySelector("body.traces-details-body")
 if (tracesDetailsBody) {
     const deleteForm = tracesDetailsBody.querySelector("form.delete-form")
-    const deleteButton = deleteForm.querySelector('button[type="submit"]')
+    if (deleteForm !== null) {
+        const deleteButton = deleteForm.querySelector('button[type="submit"]')
 
-    // On button click, request confirmation
-    const onDeleteClick = (event) => {
-        if (!confirm(t("traces.show.confirm_delete"))) {
-            event.preventDefault()
+        // On button click, request confirmation
+        const onDeleteClick = (event) => {
+            if (!confirm(t("traces.show.confirm_delete"))) {
+                event.preventDefault()
+            }
         }
-    }
 
-    // On success callback, navigate to my traces
-    const onFormSuccess = ({ redirect_url }) => {
-        console.debug("onFormSuccess", redirect_url)
-        location.href = redirect_url
-    }
+        // On success callback, navigate to my traces
+        const onFormSuccess = ({redirect_url}) => {
+            console.debug("onFormSuccess", redirect_url)
+            location.href = redirect_url
+        }
 
-    deleteButton.addEventListener("click", onDeleteClick)
-    configureStandardForm(deleteForm, onFormSuccess)
+        deleteButton.addEventListener("click", onDeleteClick)
+        configureStandardForm(deleteForm, onFormSuccess)
+    }
 }
