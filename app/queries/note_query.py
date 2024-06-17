@@ -74,7 +74,7 @@ class NoteQuery:
                     .cte()
                     .prefix_with('MATERIALIZED')
                 )
-                where_and.append(Note.id.in_(cte))
+                where_and.append(Note.id.in_(cte.select()))
             elif note_ids:
                 where_and.append(Note.id.in_(text(','.join(map(str, note_ids)))))
 

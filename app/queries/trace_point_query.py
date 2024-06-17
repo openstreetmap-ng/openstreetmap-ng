@@ -110,11 +110,11 @@ class TracePointQuery:
 
                 if trace.size > limit_per_trace:
                     indices = np.round(np.linspace(1, trace.size, limit_per_trace)).astype(int)
-                    stmt_subq = stmt_.subquery()
+                    subq = stmt_.subquery()
                     stmt_ = (
-                        stmt_subq.select()
-                        .where(stmt_subq.c.row_number.in_(indices))  #
-                        .order_by(stmt_subq.c.row_number)
+                        subq.select()
+                        .where(subq.c.row_number.in_(indices))  #
+                        .order_by(subq.c.row_number)
                     )
 
                 stmts.append(stmt_)

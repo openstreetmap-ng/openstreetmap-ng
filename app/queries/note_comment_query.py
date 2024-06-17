@@ -78,11 +78,14 @@ class NoteCommentQuery:
                     NoteComment.created_at <= note.updated_at,
                 )
                 if per_note_limit is not None:
-                    stmt_ = stmt_.order_by(
-                        NoteComment.created_at.asc() if per_note_sort == 'asc' else NoteComment.created_at.desc()
+                    subq = (
+                        stmt_.order_by(
+                            NoteComment.created_at.asc() if per_note_sort == 'asc' else NoteComment.created_at.desc()
+                        )
+                        .limit(per_note_limit)
+                        .subquery()
                     )
-                    stmt_ = stmt_.limit(per_note_limit)
-                    stmt_ = select(stmt_.c.id).select_from(stmt_)
+                    stmt_ = select(subq.c.id).select_from(subq)
                 stmts.append(stmt_)
 
             stmt = (

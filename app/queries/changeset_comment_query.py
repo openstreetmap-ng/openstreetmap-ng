@@ -34,10 +34,12 @@ class ChangesetCommentQuery:
             return
 
         async with db() as session:
-            stmt_ = select(ChangesetComment.changeset_id).where(
-                ChangesetComment.changeset_id.in_(text(','.join(map(str, id_changeset_map))))
+            subq = (
+                select(ChangesetComment.changeset_id)
+                .where(ChangesetComment.changeset_id.in_(text(','.join(map(str, id_changeset_map)))))
+                .subquery()
             )
-            stmt = select(stmt_.c.changeset_id, func.count()).select_from(stmt_).group_by(stmt_.c.changeset_id)
+            stmt = select(subq.c.changeset_id, func.count()).select_from(subq).group_by(subq.c.changeset_id)
             id_num_map: dict[int, int] = dict((await session.execute(stmt)).all())
 
         for changeset_id, changeset in id_changeset_map.items():
@@ -72,9 +74,12 @@ class ChangesetCommentQuery:
                     ChangesetComment.created_at <= changeset.updated_at,
                 )
                 if limit_per_changeset is not None:
-                    stmt_ = stmt_.order_by(ChangesetComment.created_at.desc())
-                    stmt_ = stmt_.limit(limit_per_changeset)
-                    stmt_ = select(stmt_.c.id).select_from(stmt_)
+                    subq = (
+                        stmt_.order_by(ChangesetComment.created_at.desc())
+                        .limit(limit_per_changeset)  #
+                        .subquery()
+                    )
+                    stmt_ = select(subq.c.id).select_from(subq)
                 stmts.append(stmt_)
 
             stmt = (

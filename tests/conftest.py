@@ -1,7 +1,7 @@
 import pytest
 from anyio import Path
 from asgi_lifespan import LifespanManager
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 from app.exceptions06 import Exceptions06
 from app.lib.auth_context import auth_context
@@ -24,7 +24,7 @@ async def _lifespan():
 
 @pytest.fixture()
 def client(_lifespan) -> AsyncClient:
-    return AsyncClient(app=main, base_url='http://127.0.0.1:8000')
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))
 
 
 @pytest.fixture()

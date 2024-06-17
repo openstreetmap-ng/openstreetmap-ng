@@ -438,7 +438,7 @@ class ElementQuery:
                     if parent_type is not None
                     else (or_(Element.type == 'way', Element.type == 'relation'),)
                 ),
-                Element.sequence_id.in_(cte),
+                Element.sequence_id.in_(cte.select()),
             )
 
             if limit is not None:

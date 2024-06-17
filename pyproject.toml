@@ -191,6 +191,6 @@ extend-ignore-names = ["ET"]
 max-args = 10
 
 [tool.pytest.ini_options]
-addopts = "-ra --quiet --disable-pytest-warnings"
+addopts = "--quiet"
 minversion = "6.0"
 testpaths = ["tests"]
