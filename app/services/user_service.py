@@ -130,7 +130,7 @@ class UserService:
         if user.email == new_email:
             return
 
-        if not PasswordHash.verify(user.password_hashed, user.password_extra, password).success:
+        if not PasswordHash.verify(user.password_hashed, password).success:
             collector.raise_error('password', t('user.invalid_password'))
         if not await UserQuery.check_email_available(new_email):
             collector.raise_error('email', t('user.email_already_taken'))
@@ -152,7 +152,7 @@ class UserService:
         """
         user = auth_user()
 
-        if not PasswordHash.verify(user.password_hashed, user.password_extra, old_password).success:
+        if not PasswordHash.verify(user.password_hashed, old_password).success:
             collector.raise_error('old_password', t('user.invalid_password'))
 
         password_hashed = PasswordHash.hash(new_password)
@@ -162,7 +162,6 @@ class UserService:
             user = await session.get(User, user.id, with_for_update=True)
             user.password_hashed = password_hashed
             user.password_changed_at = func.statement_timestamp()
-            user.password_extra = None
 
         collector.success(None, t('user.password_changed'))
         logging.debug('Changed password for user %r', user.id)

@@ -68,12 +68,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=func.statement_timestamp(),
     )
-    password_extra: Mapped[str | None] = mapped_column(
-        Unicode(255),
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
     roles: Mapped[list[UserRole]] = mapped_column(
         ARRAY(Enum(UserRole), dimensions=1),
         init=False,

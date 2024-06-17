@@ -147,7 +147,7 @@ class AuthService:
 
         async def factory() -> bytes:
             logging.debug('Credentials auth cache miss for user %d', user.id)
-            verified = PasswordHash.verify(user.password_hashed, user.password_extra, password)
+            verified = PasswordHash.verify(user.password_hashed, password)
 
             if not verified.success:
                 return b'\x00'
@@ -159,13 +159,12 @@ class AuthService:
                     stmt = (
                         update(User)
                         .where(User.id == user.id, User.password_hashed == user.password_hashed)
-                        .values({User.password_hashed: new_hash, User.password_extra: None})
+                        .values({User.password_hashed: new_hash})
                         .inline()
                     )
                     await session.execute(stmt)
 
                 user.password_hashed = new_hash
-                user.password_extra = None
                 logging.debug('Rehashed password for user %d', user.id)
 
             return b'\xff'

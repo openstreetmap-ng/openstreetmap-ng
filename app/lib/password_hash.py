@@ -1,5 +1,4 @@
 import base64
-import logging
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
 from typing import NamedTuple
@@ -20,15 +19,12 @@ class VerifyResult(NamedTuple):
 
 class PasswordHash:
     @staticmethod
-    def verify(password_hashed: str, extra: str | None, password: PasswordStr) -> VerifyResult:
+    def verify(password_hashed: str, password: PasswordStr) -> VerifyResult:
         """
         Verify a password against a hash and optional extra data.
         """
         # argon2
         if password_hashed.startswith('$argon2'):
-            if extra is not None:
-                logging.warning('Unexpected extra data for argon2 password hash')
-
             try:
                 _hasher.verify(password_hashed, password.get_secret_value())
             except VerifyMismatchError:
@@ -36,6 +32,8 @@ class PasswordHash:
             else:
                 rehash_needed = _hasher.check_needs_rehash(password_hashed)
                 return VerifyResult(True, rehash_needed)
+
+        password_hashed, _, extra = password_hashed.partition('.')
 
         # md5 (deprecated)
         if len(password_hashed) == 32:
@@ -45,7 +43,7 @@ class PasswordHash:
             return VerifyResult(success, True)
 
         # pbkdf2 (deprecated)
-        if (extra is not None) and '!' in extra:
+        if '!' in extra:
             password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = extra.split('!')
             iterations = int(iterations_)
