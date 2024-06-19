@@ -1,4 +1,4 @@
-{ pkgs }:
+{ pkgs, project_root }:
 
 # ( Developer Configuration )
 # ===========================
@@ -10,7 +10,7 @@
 pkgs.writeText "postgres.conf" (''
 # listen on socket
 # reason: reduce latency
-unix_socket_directories = '/tmp/osm-postgres'
+unix_socket_directories = '${project_root}/data/postgres_unix'
 
 # increase buffers and memory usage
 shared_buffers = 2GB

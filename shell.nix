@@ -4,7 +4,8 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a4ecb0ab415c9fccfb005567a215e6a9564cdf5.tar.gz") { };
 
-  supervisordConf = import ./config/supervisord.nix { inherit pkgs; };
+  project_root = builtins.toString ./.;
+  supervisordConf = import ./config/supervisord.nix { inherit pkgs project_root; };
 
   wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
@@ -280,13 +281,13 @@ let
           --pwfile=<(echo postgres)
       fi
 
-      mkdir -p /tmp/osm-postgres data/alembic data/mailpit data/supervisor
+      mkdir -p data/alembic data/mailpit data/postgres_unix data/supervisor
       python -m supervisor.supervisord -c ${supervisordConf}
       echo "Supervisor started"
 
       echo "Waiting for Postgres to start..."
       time_start=$(date +%s)
-      while ! pg_isready -q -h /tmp/osm-postgres; do
+      while ! pg_isready -q -h ${project_root}/data/postgres_unix; do
         elapsed=$(($(date +%s) - $time_start))
         if [ $elapsed -gt 10 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
@@ -320,7 +321,7 @@ let
     (writeShellScriptBin "dev-clean" ''
       set -e
       dev-stop
-      rm -rf data/alembic data/postgres
+      rm -rf data/alembic data/postgres data/postgres_unix
     '')
     (writeShellScriptBin "dev-logs-postgres" "tail -f data/supervisor/postgres.log")
     (writeShellScriptBin "dev-logs-watch-js" "tail -f data/supervisor/watch-js.log")

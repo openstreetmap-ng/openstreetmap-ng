@@ -1,7 +1,7 @@
-{ pkgs }:
+{ pkgs, project_root }:
 
 let
-  postgresConf = import ./postgres.nix { inherit pkgs; };
+  postgresConf = import ./postgres.nix { inherit pkgs project_root; };
 in
 pkgs.writeText "supervisord.conf" ''
 [supervisord]
