@@ -287,7 +287,7 @@ let
 
       echo "Waiting for Postgres to start..."
       time_start=$(date +%s)
-      while ! pg_isready -q -h ${project_root}/data/postgres_unix; do
+      while ! pg_isready -q -h "${project_root}/data/postgres_unix"; do
         elapsed=$(($(date +%s) - $time_start))
         if [ $elapsed -gt 10 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
@@ -488,7 +488,7 @@ let
   shell' = with pkgs; lib.optionalString isDevelopment ''
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
-    [ "$current_python" != "${python'}" ] && rm -r .venv
+    [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
     poetry env use "${python'}/bin/python"
