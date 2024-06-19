@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from shapely import lib
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, join, null, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.db import db_commit
@@ -154,5 +154,19 @@ class NoteService:
             stmt = delete(NoteSubscription).where(
                 NoteSubscription.note_id == note_id,
                 NoteSubscription.user_id == user_id,
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def delete_notes_without_comments() -> None:
+        """
+        Find all notes without comments and delete them.
+        """
+        logging.debug('Deleting notes without comments')
+
+        async with db_commit() as session:
+            j = join(Note, NoteComment, Note.id == NoteComment.note_id, isouter=True)
+            stmt = delete(Note).where(
+                Note.id.in_(select(Note.id).select_from(j).where(NoteComment.note_id.is_(null())))
             )
             await session.execute(stmt)
