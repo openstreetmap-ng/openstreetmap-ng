@@ -68,7 +68,7 @@ PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv(
-    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path("data/postgres_unix")}'
+    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path('data/postgres_unix')}'
 )
 
 VALKEY_URL = os.getenv('VALKEY_URL', f'unix://{_path('data/valkey.sock')}?password=valkey&protocol=3')
