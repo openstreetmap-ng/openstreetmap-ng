@@ -1,10 +1,14 @@
+from collections.abc import Sequence
+
 import cython
 
 from app.lib.translation import t, translation_languages
 from app.limits import FEATURE_PREFIX_TAGS_LIMIT
+from app.models.db.element import Element
 from app.models.element_type import ElementType
 
 
+# TODO: batch, features_names
 def feature_name(tags: dict[str, str]) -> str | None:
     """
     Returns a human readable name for a feature.
@@ -31,13 +35,18 @@ def feature_name(tags: dict[str, str]) -> str | None:
     return None
 
 
-def feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
+def features_prefixes(elements: Sequence[Element | None]) -> Sequence[str | None]:
     """
     Returns a human readable prefix for a feature based on its type and tags.
 
-    >>> feature_prefix('node', {'amenity': 'restaurant'})
-    'Restaurant'
+    >>> feature_prefix(...)
+    ['Restaurant', 'City', ...]
     """
+    return tuple(_feature_prefix(e.type, e.tags) if (e is not None) else None for e in elements)
+
+
+@cython.cfunc
+def _feature_prefix(type: ElementType, tags: dict[str, str]) -> str:
     tags_len: cython.int = len(tags)
     if tags_len > 0:
         if tags.get('boundary') == 'administrative':

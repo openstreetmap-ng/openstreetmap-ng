@@ -2,8 +2,10 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
-import { getMarkerIcon } from "../leaflet/_utils.js"
+import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
+
+const searchInput = document.querySelector(".search-form").elements.q
 
 /**
  * Create a new search controller
@@ -14,36 +16,29 @@ export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
 
     const onLoaded = (sidebarContent) => {
-        const resultActions = sidebarContent.querySelectorAll(".social-action")
+        const searchList = sidebarContent.querySelector(".search-list")
+        const groupedElements = JSON.parse(searchList.dataset.leaflet)
+        const results = searchList.querySelectorAll(".social-action")
 
-        for (const resultAction of resultActions) {
-            // Get params
-            const dataset = resultAction.dataset
-            const lon = Number.parseFloat(dataset.lon)
-            const lat = Number.parseFloat(dataset.lat)
-            let marker = null
+        for (let i = 0; i < results.length; i++) {
+            const elements = groupedElements[i]
+            const result = results[i]
 
-            // On hover, show a marker
-            const onResultActionMouseEnter = () => {
-                if (!marker) {
-                    marker = L.marker(L.latLng(lat, lon), {
-                        icon: getMarkerIcon("red", true),
-                        keyboard: false,
-                        interactive: false,
-                    })
-                }
-
-                map.addLayer(marker)
+            // On mouse enter, focus elements
+            const onResultMouseEnter = () => {
+                console.debug("onResultMouseEnter")
+                focusManyMapObjects(map, elements)
             }
 
-            // On hover end, remove the marker
-            const onResultActionMouseLeave = () => {
-                map.removeLayer(marker)
+            // On mouse leave, remove focus
+            const onResultMouseLeave = () => {
+                console.debug("onResultMouseLeave")
+                focusMapObject(map, null)
             }
 
             // Listen for events
-            resultAction.addEventListener("mouseenter", onResultActionMouseEnter)
-            resultAction.addEventListener("mouseleave", onResultActionMouseLeave)
+            result.addEventListener("mouseenter", onResultMouseEnter)
+            result.addEventListener("mouseleave", onResultMouseLeave)
         }
     }
 
@@ -53,12 +48,18 @@ export const getSearchController = (map) => {
 
     base.load = () => {
         const searchParams = qsParse(location.search.substring(1))
-        const query = searchParams.query || ""
+        const query = searchParams.q || searchParams.query || ""
+
+        // Pad the bounds to gather more local results
+        const bbox = map.getBounds().pad(1).toBBoxString()
 
         // Set page title
         document.title = getPageTitle(query || defaultTitle)
 
-        const url = `/api/partial/search?${qsEncode({ query })}`
+        // Set search input if unset
+        if (!searchInput.value) searchInput.value = query
+
+        const url = `/api/partial/search?${qsEncode({ q: query, bbox })}`
         baseLoad({ url })
     }
 

@@ -6,16 +6,20 @@ from httpx import HTTPError
 from shapely import Point, Polygon, box, get_coordinates
 
 from app.config import NOMINATIM_URL
+from app.lib.feature_name import features_prefixes
 from app.lib.translation import primary_translation_language
 from app.limits import (
     NOMINATIM_CACHE_LONG_EXPIRE,
     NOMINATIM_CACHE_SHORT_EXPIRE,
     NOMINATIM_HTTP_LONG_TIMEOUT,
     NOMINATIM_HTTP_SHORT_TIMEOUT,
-    NOMINATIM_SEARCH_RESULTS_LIMIT,
+    SEARCH_RESULTS_LIMIT,
 )
+from app.models.db.element import Element
 from app.models.element_ref import ElementRef
 from app.models.nominatim_result import NominatimResult
+from app.queries.element_member_query import ElementMemberQuery
+from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
 
@@ -58,6 +62,7 @@ class Nominatim:
             # always succeed, return coordinates as a fallback
             return f'{y:.5f}, {x:.5f}'
 
+    # TODO: use single method
     @staticmethod
     async def search(*, q: str, bounds: Polygon | None = None) -> NominatimResult:
         """
@@ -69,7 +74,7 @@ class Nominatim:
             {
                 'format': 'jsonv2',
                 'q': q,
-                'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
+                'limit': SEARCH_RESULTS_LIMIT,
                 **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
                 'accept-language': primary_translation_language(),
             }
@@ -102,17 +107,23 @@ class Nominatim:
         return NominatimResult(point=point, name=name, bounds=geometry)
 
     @staticmethod
-    async def search_elements(*, q: str, bounds: Polygon | None = None) -> Sequence[ElementRef]:
+    async def search_elements(
+        *,
+        q: str,
+        bounds: Polygon | None = None,
+        at_sequence_id: int | None,
+        limit: int,
+    ) -> Sequence[NominatimResult]:
         """
         Search for a location by name.
 
-        Returns a sequence of ElementRef objects.
+        Returns a sequence of NominatimResult.
         """
         path = '/search?' + urlencode(
             {
                 'format': 'jsonv2',
                 'q': q,
-                'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
+                'limit': limit,
                 **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
                 'accept-language': primary_translation_language(),
             }
@@ -131,11 +142,49 @@ class Nominatim:
             hash_key=True,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        results: list[dict] = JSON_DECODE(cache.value)
 
-        return tuple(
-            ElementRef(osm_type, osm_id)
-            for result in results
+        refs: list[ElementRef] = []
+        entries: list[dict] = []
+        for entry in JSON_DECODE(cache.value):
             # some results are abstract and have no osm_type/osm_id
-            if (osm_type := result.get('osm_type')) is not None and (osm_id := result.get('osm_id')) is not None
-        )
+            osm_type = entry.get('osm_type')
+            osm_id = entry.get('osm_id')
+            if (osm_type is None) or (osm_id is None):
+                continue
+
+            ref = ElementRef(osm_type, osm_id)
+            refs.append(ref)
+            entries.append(entry)
+
+        elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
+
+        # reorder elements to match the order of entries
+        ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
+        elements = tuple(ref_element_map.get(ref) for ref in refs)
+
+        prefixes = features_prefixes(elements)
+        result = []
+        for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
+            # skip non-existing elements
+            if element is None or not element.visible:
+                continue
+
+            point = Point(float(entry['lon']), float(entry['lat']))
+            bbox = entry['boundingbox']
+            miny = float(bbox[0])
+            maxy = float(bbox[1])
+            minx = float(bbox[2])
+            maxx = float(bbox[3])
+            geometry = box(minx, miny, maxx, maxy)
+            result.append(
+                NominatimResult(
+                    element=element,
+                    rank=entry['place_rank'],
+                    importance=entry['importance'],
+                    prefix=prefix,
+                    display_name=entry['display_name'],
+                    point=point,
+                    bounds=geometry,
+                )
+            )
+        return result

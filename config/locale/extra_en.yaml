@@ -132,6 +132,7 @@ action:
   report_abuse: Report abuse
   reset_filters: Reset filters
   resolved: resolved
+  submit: Submit
   view_all: View all
   view_more: View more
 state:

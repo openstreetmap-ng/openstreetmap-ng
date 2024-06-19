@@ -67,11 +67,9 @@ class NoteQuery:
                     cte_where_and.append(NoteComment.note_id.in_(text(','.join(map(str, note_ids)))))
                 cte = (
                     select(NoteComment.note_id)
-                    .where(
-                        *cte_where_and,
-                    )
+                    .where(*cte_where_and)
                     .distinct()
-                    .cte()
+                    .cte()  #
                     .prefix_with('MATERIALIZED')
                 )
                 where_and.append(Note.id.in_(cte.select()))

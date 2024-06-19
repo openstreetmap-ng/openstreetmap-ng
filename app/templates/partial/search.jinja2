@@ -1,0 +1,14 @@
+<ul class="search-list list-unstyled" data-leaflet="{{ leaflet }}">
+    {% for result in results %}
+    {% set element = result.element %}
+    <li class="social-action social-entry">
+        <p class="header text-muted d-flex justify-content-between">
+            <span>{{ result.prefix }}</span>
+            <a class="stretched-link" href="/{{ element.type }}/{{ element.id }}">
+                {{ element.type }}/{{ element.id }}
+            </a>
+        </p>
+        <p class="body">{{ result.display_name }}</p>
+    </li>
+    {% endfor %}
+</ul>
