@@ -165,8 +165,17 @@ class NoteService:
         logging.debug('Deleting notes without comments')
 
         async with db_commit() as session:
-            j = join(Note, NoteComment, Note.id == NoteComment.note_id, isouter=True)
+            j = join(
+                Note,
+                NoteComment,
+                Note.id == NoteComment.note_id,
+                isouter=True,
+            )
             stmt = delete(Note).where(
-                Note.id.in_(select(Note.id).select_from(j).where(NoteComment.note_id.is_(null())))
+                Note.id.in_(
+                    select(Note.id)  #
+                    .select_from(j)
+                    .where(NoteComment.note_id == null())
+                )
             )
             await session.execute(stmt)
