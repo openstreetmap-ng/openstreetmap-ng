@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ryanluker.vscode-coverage-gutters",
+        "biomejs.biome",
+        "ms-python.python",
+        "charliermarsh.ruff"
+    ]
+}
