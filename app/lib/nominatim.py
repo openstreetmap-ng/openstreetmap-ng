@@ -2,9 +2,8 @@ import logging
 from collections.abc import Sequence
 from urllib.parse import urlencode
 
-import numpy as np
 from httpx import HTTPError
-from shapely import Point, Polygon, STRtree, box, get_coordinates
+from shapely import Point, Polygon, box, get_coordinates
 
 from app.config import NOMINATIM_URL
 from app.lib.feature_name import features_prefixes
@@ -18,8 +17,8 @@ from app.limits import (
 )
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
 from app.models.nominatim_result import NominatimResult
+from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
@@ -170,12 +169,13 @@ class Nominatim:
             if element is None or not element.visible:
                 continue
 
+            point = Point(float(entry['lon']), float(entry['lat']))
             bbox = entry['boundingbox']
             miny = float(bbox[0])
             maxy = float(bbox[1])
             minx = float(bbox[2])
             maxx = float(bbox[3])
-            geometry: Polygon = box(minx, miny, maxx, maxy)
+            geometry = box(minx, miny, maxx, maxy)
             result.append(
                 NominatimResult(
                     element=element,
@@ -183,47 +183,8 @@ class Nominatim:
                     importance=entry['importance'],
                     prefix=prefix,
                     display_name=entry['display_name'],
-                    point=geometry.representative_point(),
+                    point=point,
                     bounds=geometry,
                 )
             )
         return result
-
-    @staticmethod
-    def deduplicate_similar_results(results: Sequence[NominatimResult]) -> Sequence[NominatimResult]:
-        """
-        Deduplicate similar results.
-        """
-        # Deduplicate by type and id
-        seen_type_id: set[tuple[ElementType, int]] = set()
-        dedup1: list[NominatimResult] = []
-        geoms: list[Point] = []
-        for result in results:
-            element = result.element
-            type_id = (element.type, element.id)
-            if type_id in seen_type_id:
-                continue
-            seen_type_id.add(type_id)
-            dedup1.append(result)
-            geoms.append(result.point)
-
-        if len(dedup1) <= 1:
-            return dedup1
-
-        # Deduplicate by location and name
-        tree = STRtree(geoms)
-        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001).T
-        nearby_all = np.unique(nearby_all, axis=0)
-        nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
-        nearby_all = np.sort(nearby_all, axis=1)
-        mask = np.ones(len(geoms), dtype=bool)
-        for i1, i2 in nearby_all:
-            if not mask[i1]:
-                continue
-            name1 = dedup1[i1].display_name
-            name2 = dedup1[i2].display_name
-            if name1 != name2:
-                continue
-            mask[i2] = False
-
-        return tuple(dedup1[i] for i in np.nonzero(mask)[0])
