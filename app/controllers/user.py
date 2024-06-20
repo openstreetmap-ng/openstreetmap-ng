@@ -60,7 +60,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     # user not found page
     if user == None:
         res = render_response("user/profile/not_found.jinja2", {"name": display_name})
-        res.status_code = 404 # 404 not found
+        res.status_code = status.HTTP_404_NOT_FOUND
         return res
     
     await user.resolve_rich_text()
