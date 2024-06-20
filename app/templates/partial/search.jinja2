@@ -1,3 +1,4 @@
+{% if results %}
 <ul class="search-list list-unstyled" data-leaflet="{{ leaflet }}">
     {% for result in results %}
     {% set element = result.element %}
@@ -12,3 +13,7 @@
     </li>
     {% endfor %}
 </ul>
+<p class="form-text text-center mt-4">{{ t('results.no_more_results') }}</p>
+{% else %}
+<p>{{ t('results.we_did_not_find_any_results') }}</p>
+{% endif %}

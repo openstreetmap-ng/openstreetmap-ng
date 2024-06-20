@@ -80,6 +80,9 @@ privacy:
     description: |-
       By enabling crash reporting, you allow us to collect and store information about crashes and errors that occur on the website.
       We will use this information to fix bugs and improve your experience.
+results:
+  we_did_not_find_any_results: We did not find any results for your search.
+  no_more_results: No more results
 fixthemap:
   title: Fix the map
 alt:

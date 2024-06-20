@@ -120,6 +120,12 @@ const changesetLayer = L.featureGroup(undefined, {
     layerId: "changesets",
 })
 
+const searchLayer = L.featureGroup(undefined, {
+    inaccessible: true,
+    layerCode: "", // This layer is not possible to toggle manually
+    layerId: "search",
+})
+
 const noteLayer = L.featureGroup(undefined, {
     layerCode: "N",
     layerId: "notes",
@@ -138,7 +144,7 @@ for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrack
 }
 
 const overlayLayerIdMap = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, noteLayer, focusLayer]) {
+for (const layer of [gps, dataLayer, changesetLayer, searchLayer, noteLayer, focusLayer]) {
     const options = layer.options
     overlayLayerIdMap.set(options.layerId, layer)
     if (options.legacyLayerIds) {

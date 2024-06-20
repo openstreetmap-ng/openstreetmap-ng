@@ -50,16 +50,30 @@ export const getChangesetsHistoryController = (map) => {
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
             const div = entryTemplate.content.cloneNode(true).children[0]
-            div.dataset.changesetId = changeset.id
+
+            // On sidebar mouseover, focus the changeset layer
+            const onSidebarMouseover = () => {
+                const layer = idLayerMap.get(changeset.id)
+                layer.setStyle(styles.hover)
+            }
+
+            // On sidebar mouseout, unfocus the changeset layer
+            const onSidebarMouseout = () => {
+                const layer = idLayerMap.get(changeset.id)
+                layer.setStyle(styles.default)
+            }
+
             div.addEventListener("mouseover", onSidebarMouseover)
             div.addEventListener("mouseout", onSidebarMouseout)
 
+            // Find elements to populate
             const userContainer = div.querySelector(".user")
             const dateContainer = div.querySelector(".date")
             const commentValue = div.querySelector(".comment")
             const changesetAnchor = div.querySelector("a.stretched-link")
             const numCommentsValue = div.querySelector(".num-comments")
 
+            // Populate elements
             if (changeset.user_name) {
                 const anchor = document.createElement("a")
                 anchor.href = `/user/${changeset.user_name}`
@@ -162,30 +176,6 @@ export const getChangesetsHistoryController = (map) => {
         const layer = event.target
         layer.setStyle(styles.default)
         idSidebarMap.get(layer.changesetId).classList.remove("hover")
-    }
-
-    /**
-     * On sidebar mouseover, highlight the changeset layer
-     * @param {MouseEvent} event
-     * @returns {void}
-     */
-    const onSidebarMouseover = (event) => {
-        const div = event.target.closest(".social-action")
-        const changesetId = Number.parseInt(div.dataset.changesetId)
-        const layer = idLayerMap.get(changesetId)
-        layer.setStyle(styles.hover)
-    }
-
-    /**
-     * On sidebar mouseout, un-highlight the changeset layer
-     * @param {MouseEvent} event
-     * @returns {void}
-     */
-    const onSidebarMouseout = (event) => {
-        const div = event.target.closest(".social-action")
-        const changesetId = Number.parseInt(div.dataset.changesetId)
-        const layer = idLayerMap.get(changesetId)
-        layer.setStyle(styles.default)
     }
 
     /**
