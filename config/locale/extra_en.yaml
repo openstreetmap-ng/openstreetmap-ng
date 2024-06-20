@@ -19,6 +19,9 @@ map:
       normal: Normal
       high: High
       very_high: Very high
+    description: |-
+      The exported file will contain only the map background.
+      It will not contain any pins, routes, selections or other dynamic elements.
   routing:
     drag_and_drop:
       start: Drag and drop this marker to set the start position
