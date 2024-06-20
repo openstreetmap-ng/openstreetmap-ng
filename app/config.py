@@ -67,9 +67,11 @@ PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
 POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
-POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv('POSTGRES_URL', 'postgres:postgres@/postgres?host=/tmp/osm-postgres')
+POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv(
+    'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path('data/postgres_unix')}'
+)
 
-VALKEY_URL = os.getenv('VALKEY_URL', 'unix:///tmp/osm-valkey.sock?password=valkey&protocol=3')
+VALKEY_URL = os.getenv('VALKEY_URL', f'unix://{_path('data/valkey.sock')}?password=valkey&protocol=3')
 
 SMTP_NOREPLY_FROM = os.getenv('SMTP_NOREPLY_FROM', SMTP_USER)
 SMTP_MESSAGES_FROM = os.getenv('SMTP_MESSAGES_FROM', SMTP_USER)
