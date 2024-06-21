@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Type
 
 import numpy as np
 from shapely import Point, lib
@@ -21,8 +22,7 @@ class TracePointQuery:
         """
         async with db() as session:
             stmt = (
-                select(TracePoint)
-                .where(TracePoint.trace_id == trace_id)
+                select(TracePoint).where(TracePoint.trace_id == trace_id)
                 # this order_by is important for proper formatting
                 .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
             )
@@ -43,8 +43,10 @@ class TracePointQuery:
             stmt1 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
-                    Trace.visibility.in_(('identifiable', 'trackable')),
+                    func.ST_Intersects(
+                        TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)
+                    ),
+                    Trace.visibility.in_(("identifiable", "trackable")),
                 )
                 .order_by(
                     TracePoint.trace_id.desc(),
@@ -56,8 +58,10 @@ class TracePointQuery:
             stmt2 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
-                    Trace.visibility.in_(('public', 'private')),
+                    func.ST_Intersects(
+                        TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)
+                    ),
+                    Trace.visibility.in_(("public", "private")),
                 )
                 .order_by(
                     TracePoint.point.asc(),
@@ -75,21 +79,22 @@ class TracePointQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def resolve_image_and_points_coords(
+    async def resolve_coords(
         traces: Sequence[Trace],
         *,
         limit_per_trace: int,
-        resolution: int,
+        resolution: int | None = None,
+        type: Type[int | float] = int,
     ) -> None:
         """
-        Resolve image coords and points coords for traces.
+        Resolve coords for traces.
         """
         traces_: list[Trace] = []
         id_points_map: dict[int, list[Point]] = {}
         for trace in traces:
-            if trace.image_coords is None:
+            if trace.coords is None:
                 traces_.append(trace)
-                id_points_map[trace.id] = trace.image_coords = []
+                id_points_map[trace.id] = trace.coords = []
 
         if not traces_:
             return
@@ -102,14 +107,16 @@ class TracePointQuery:
                     select(
                         TracePoint.trace_id,
                         TracePoint.point,
-                        func.row_number().over().label('row_number'),
+                        func.row_number().over().label("row_number"),
                     )
                     .where(TracePoint.trace_id == trace.id)
                     .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
                 )
 
                 if trace.size > limit_per_trace:
-                    indices = np.round(np.linspace(1, trace.size, limit_per_trace)).astype(int)
+                    indices = np.round(
+                        np.linspace(1, trace.size, limit_per_trace)
+                    ).astype(int)
                     subq = stmt_.subquery()
                     stmt_ = (
                         subq.select()
@@ -123,29 +130,22 @@ class TracePointQuery:
 
         current_trace_id: int = 0
         current_points: list[Point] = []
-        current_reverse_points_coords: list[list[float, float]] = []
-        
+
         for trace_id, point, _ in rows:
             if current_trace_id != trace_id:
                 current_trace_id = trace_id
                 current_points = id_points_map[trace_id]
             current_points.append(point)
-            current_reverse_points_coords.append([point.y, point.x]) # swap [lon, lat] to [lat, lon] (from postgres to leaflet). Maybe there is a better way of doing this?
 
         for trace in traces_:
             if trace.size < 2:
-                trace.image_coords.clear()
+                trace.coords.clear()
                 continue
 
-            trace.points_coords = current_reverse_points_coords
-
-            trace.image_coords = (
-                mercator(
-                    lib.get_coordinates(np.asarray(trace.image_coords, dtype=object), False, False),
-                    resolution,
-                    resolution,
-                )
-                .astype(int)
-                .flatten()
-                .tolist()
+            array = lib.get_coordinates(
+                np.asarray(trace.coords, dtype=object), False, False
             )
+            if resolution:
+                array = mercator(array, resolution, resolution)
+
+            trace.coords = array.astype(type).flatten().tolist()

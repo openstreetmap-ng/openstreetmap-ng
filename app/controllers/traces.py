@@ -44,7 +44,7 @@ async def _get_traces_data(
     new_before: int | None = None
 
     async def resolve_task():
-        await TracePointQuery.resolve_image_and_points_coords(traces, limit_per_trace=100, resolution=100)
+        await TracePointQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
 
     async def new_after_task():
         nonlocal new_after
@@ -81,7 +81,7 @@ async def _get_traces_data(
     if tag is not None:
         base_url += f'/tag/{tag}'
 
-    image_coords = JSON_ENCODE(tuple(trace.image_coords for trace in traces)).decode()
+    image_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
 
     active_tab = 0
     if user is not None:

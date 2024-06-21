@@ -12,7 +12,12 @@ const tracesDetailsMapContainer = document.querySelector("#trace-map");
 
 if (tracesDetailsMapContainer) {
   console.debug("Initializing trace preview map");
-  const coords = JSON.parse(tracesDetailsMapContainer.dataset.coords);
+  const coords1D = JSON.parse(tracesDetailsMapContainer.dataset.coords);
+  let coords2D = [];
+  for (let i = 0; i < coords1D.length; i += 2) {
+    coords2D.push(coords1D.slice(i, i + 2).reverse());
+  }
+  console.log("COORDS", coords2D);
   const map = L.map(tracesDetailsMapContainer, {
     zoomControl: false,
     maxBoundsViscosity: 1,
@@ -48,6 +53,6 @@ if (tracesDetailsMapContainer) {
     pulseColor: "black",
     opacity: 0.9,
   };
-  const path = antPath(coords, options).addTo(map);
+  const path = antPath(coords2D, options).addTo(map);
   map.fitBounds(path.getBounds());
 }
