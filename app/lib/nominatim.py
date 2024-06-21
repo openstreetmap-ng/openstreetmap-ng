@@ -194,10 +194,6 @@ class Nominatim:
         """
         Deduplicate similar results.
         """
-        # TODO: remove later
-        results = list(results)
-        print(results)
-
         # Deduplicate by type and id
         seen_type_id: set[tuple[ElementType, int]] = set()
         dedup1: list[NominatimResult] = []
@@ -216,12 +212,13 @@ class Nominatim:
 
         # Deduplicate by location and name
         tree = STRtree(geoms)
-        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001)
-        nearby_all = np.sort(nearby_all.T, axis=1)
+        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001).T
         nearby_all = np.unique(nearby_all, axis=0)
+        nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
+        nearby_all = np.sort(nearby_all, axis=1)
         mask = np.ones(len(geoms), dtype=bool)
         for i1, i2 in nearby_all:
-            if i1 >= i2 or not mask[i1]:
+            if not mask[i1]:
                 continue
             name1 = dedup1[i1].display_name
             name2 = dedup1[i2].display_name
