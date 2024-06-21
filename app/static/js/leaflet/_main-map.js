@@ -17,11 +17,8 @@ import { getRoutingController } from "../index/_routing.js"
 import { getSearchController } from "../index/_search.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { configureFindHomeButton } from "./_find-home-button.js"
-import { getGeolocateControl } from "./_geolocate-control.js"
 import {
     addControlGroup,
-    disableControlClickPropagation,
-    getInitialMapState,
     getMapState,
     parseMapState,
     setMapState,
@@ -33,7 +30,7 @@ import { getLayersSidebarToggleButton } from "./_sidebar-layers.js"
 import { getLegendSidebarToggleButton } from "./_sidebar-legend.js"
 import { getShareSidebarToggleButton } from "./_sidebar-share.js"
 import { getMarkerIcon } from "./_utils.js"
-import { getZoomControl } from "./_zoom-control.js"
+import { createBasicMap } from "./_basic-map.js"
 
 // TODO: map.invalidateSize(false) on sidebar-content
 
@@ -44,22 +41,9 @@ import { getZoomControl } from "./_zoom-control.js"
  */
 const getMainMap = (container) => {
     console.debug("Initializing main map")
-
-    const map = L.map(container, {
-        zoomControl: false,
-        maxBoundsViscosity: 1,
-        minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
-    })
-
-    // Disable Leaflet's attribution prefix
-    map.attributionControl.setPrefix(false)
-
-    // Add native controls
-    map.addControl(L.control.scale())
+    const map = createBasicMap(container)
 
     // Add custom controls
-    addControlGroup(map, [getZoomControl(), getGeolocateControl()])
     addControlGroup(map, [
         getLayersSidebarToggleButton(),
         getLegendSidebarToggleButton(),
@@ -67,9 +51,6 @@ const getMainMap = (container) => {
     ])
     addControlGroup(map, [getNewNoteControl()])
     addControlGroup(map, [getQueryFeaturesControl()])
-
-    // Disable click propagation on controls
-    disableControlClickPropagation(map)
 
     // Configure map handlers
     configureNotesLayer(map)
@@ -121,11 +102,6 @@ const getMainMap = (container) => {
     window.addEventListener("hashchange", onHashChange)
     map.addEventListener("baselayerchange", onBaseLayerChange)
     map.addEventListener("zoomend moveend baselayerchange overlayadd overlayremove", onMapStateChange)
-
-    // TODO: support this on more maps
-    // Initialize map state after configuring events
-    const initialMapState = getInitialMapState(map)
-    setMapState(map, initialMapState, { animate: false })
 
     return map
 }

@@ -75,14 +75,14 @@ class TracePointQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def resolve_image_coords(
+    async def resolve_image_and_points_coords(
         traces: Sequence[Trace],
         *,
         limit_per_trace: int,
         resolution: int,
     ) -> None:
         """
-        Resolve image coords for traces.
+        Resolve image coords and points coords for traces.
         """
         traces_: list[Trace] = []
         id_points_map: dict[int, list[Point]] = {}
@@ -123,17 +123,21 @@ class TracePointQuery:
 
         current_trace_id: int = 0
         current_points: list[Point] = []
-
+        current_reverse_points_coords: list[list[float, float]] = []
+        
         for trace_id, point, _ in rows:
             if current_trace_id != trace_id:
                 current_trace_id = trace_id
                 current_points = id_points_map[trace_id]
             current_points.append(point)
+            current_reverse_points_coords.append([point.y, point.x]) # swap [lon, lat] to [lat, lon] (from postgres to leaflet). Maybe there is a better way of doing this?
 
         for trace in traces_:
             if trace.size < 2:
                 trace.image_coords.clear()
                 continue
+
+            trace.points_coords = current_reverse_points_coords
 
             trace.image_coords = (
                 mercator(

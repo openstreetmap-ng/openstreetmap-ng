@@ -29,9 +29,8 @@ async def upload(_: Annotated[User, web_user()]):
 async def details(trace_id: PositiveInt):
     with options_context(joinedload(Trace.user)):
         trace = await TraceQuery.get_one_by_id(trace_id)
-    await TracePointQuery.resolve_image_coords((trace,), limit_per_trace=300, resolution=200)
-    image_coords = JSON_ENCODE(trace.image_coords).decode()
-    return render_response('traces/details.jinja2', {'trace': trace, 'image_coords': image_coords})
+    await TracePointQuery.resolve_image_and_points_coords((trace,), limit_per_trace=300, resolution=200)
+    return render_response('traces/details.jinja2', {'trace': trace})
 
 
 @router.get('/{trace_id:int}/edit')
@@ -41,7 +40,7 @@ async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
     if trace.user_id != user.id:
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)
-    await TracePointQuery.resolve_image_coords((trace,), limit_per_trace=300, resolution=200)
+    await TracePointQuery.resolve_image_and_points_coords((trace,), limit_per_trace=300, resolution=200)
     image_coords = JSON_ENCODE(trace.image_coords).decode()
     return render_response('traces/edit.jinja2', {'trace': trace, 'image_coords': image_coords})
 

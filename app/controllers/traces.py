@@ -44,7 +44,7 @@ async def _get_traces_data(
     new_before: int | None = None
 
     async def resolve_task():
-        await TracePointQuery.resolve_image_coords(traces, limit_per_trace=100, resolution=100)
+        await TracePointQuery.resolve_image_and_points_coords(traces, limit_per_trace=100, resolution=100)
 
     async def new_after_task():
         nonlocal new_after
