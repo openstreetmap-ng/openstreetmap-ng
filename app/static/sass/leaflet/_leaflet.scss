@@ -1,33 +1,4 @@
 .leaflet-container {
-    // Hint to the browser that the map will be animated
-    .leaflet-map-pane,
-    .leaflet-zoom-animated {
-        will-change: transform;
-    }
-
-    // Stick controls to the edges of the map
-    .leaflet-top.leaflet-left .leaflet-control {
-        margin-left: 0;
-    }
-    .leaflet-top.leaflet-right .leaflet-control {
-        margin-right: 0;
-    }
-
-    .leaflet-control-group {
-        margin-top: 0rem;
-
-        &.first {
-            margin-top: 0.625rem;
-            border-start-start-radius: $border-radius-sm;
-            overflow: hidden;
-        }
-
-        &.last {
-            border-end-start-radius: $border-radius-sm;
-            overflow: hidden;
-        }
-    }
-
     // Style buttons displayed on the side of the map
     // (e.g. zoom in/out, layers, etc.)
     .control-button {
@@ -52,25 +23,20 @@
         }
     }
 
-    // // Support activation via btn-check (radio input)
-    // .btn-check:checked + .control-button {
-    //     background: $vibrant-green;
+    // // Style the map popup
+    // .leaflet-popup-content-wrapper {
+    //     border-radius: $border-radius;
     // }
 
-    // Style the map popup
-    .leaflet-popup-content-wrapper {
-        border-radius: $border-radius;
-    }
+    // // Style the cursor depending on the action
+    // &.query-features {
+    //     cursor: help;
 
-    // Style the cursor depending on the action
-    &.query-features {
-        cursor: help;
-
-        // TODO: ESC to cancel
-        &.query-features-disabled {
-            cursor: not-allowed;
-        }
-    }
+    //     // TODO: ESC to cancel
+    //     &.query-features-disabled {
+    //         cursor: not-allowed;
+    //     }
+    // }
 
     // TODO: is this necessary?
     // .leaflet-marker-draggable {
@@ -80,4 +46,39 @@
     //         cursor: grabbing;
     //     }
     // }
+
+    // Fix white grid lines on browser zoom-in
+    img.leaflet-tile {
+        mix-blend-mode: initial;
+    }
+}
+
+// Hint the browser that the map will be animated
+.leaflet-map-pane,
+.leaflet-zoom-animated {
+    will-change: transform;
+}
+
+// Stick controls to the edges of the map
+.leaflet-top.leaflet-left .leaflet-control {
+    margin-left: 0;
+}
+.leaflet-top.leaflet-right .leaflet-control {
+    margin-right: 0;
+}
+
+// Style the control group
+.leaflet-control.leaflet-control-group {
+    margin-top: 0;
+
+    &.first {
+        margin-top: 0.625rem;
+        border-start-start-radius: $border-radius-sm;
+        overflow: hidden;
+    }
+
+    &.last {
+        border-end-start-radius: $border-radius-sm;
+        overflow: hidden;
+    }
 }
