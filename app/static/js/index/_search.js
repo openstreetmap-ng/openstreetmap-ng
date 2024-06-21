@@ -2,11 +2,14 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
+import { isLongitude } from "../_utils.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
+import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
+import { routerNavigateStrict } from "./_router.js"
 
-const styles = {}
+const markerOpacity = 0.8
 
 /**
  * Create a new search controller
@@ -19,6 +22,7 @@ export const getSearchController = (map) => {
     const searchInput = document.querySelector(".search-form").elements.q
 
     const onLoaded = (sidebarContent) => {
+        const sidebar = sidebarContent.closest(".sidebar")
         const searchList = sidebarContent.querySelector(".search-list")
 
         // Handle no results
@@ -28,33 +32,71 @@ export const getSearchController = (map) => {
         const results = searchList.querySelectorAll(".social-action")
         const layerGroup = L.layerGroup()
 
-        // Iterate in reverse add layers in priority order
-        for (let i = results.length - 1; i >= 0; i--) {
+        for (let i = 0; i < results.length; i++) {
             const elements = groupedElements[i]
             const result = results[i]
+            const dataset = result.dataset
 
-            // On mouse enter, focus elements
-            const onResultMouseover = () => {
-                console.debug("onResultMouseover")
-                focusManyMapObjects(map, elements, { padBounds: 0.3, maxZoom: 17 })
+            const lon = Number.parseFloat(dataset.lon)
+            const lat = Number.parseFloat(dataset.lat)
+            const marker = isLongitude(lon)
+                ? L.marker(L.latLng(lat, lon), {
+                      icon: getMarkerIcon("red", true),
+                      opacity: markerOpacity,
+                  })
+                : null
+
+            // On mouse enter, scroll result into view and focus elements
+            const onMouseover = () => {
+                const sidebarRect = sidebar.getBoundingClientRect()
+                const resultRect = result.getBoundingClientRect()
+                const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+                if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+
+                result.classList.add("hover")
+                focusManyMapObjects(map, elements, {
+                    padBounds: 0.5,
+                    maxZoom: 17,
+                    intersects: true,
+                    proportionCheck: false,
+                })
+                marker?.setOpacity(1)
             }
 
             // On mouse leave, unfocus elements
-            const onResultMouseout = () => {
-                console.debug("onResultMouseout")
+            const onMouseout = () => {
+                result.classList.remove("hover")
                 focusMapObject(map, null)
+                marker?.setOpacity(markerOpacity)
+            }
+
+            // On marker click, navigate to the element
+            const onMarkerClick = (e) => {
+                const type = dataset.type
+                const id = dataset.id
+                const url = `/${type}/${id}`
+
+                if (e.originalEvent.ctrlKey) {
+                    window.open(url, "_blank")
+                } else {
+                    routerNavigateStrict(url)
+                }
             }
 
             // Listen for events
-            result.addEventListener("mouseover", onResultMouseover)
-            result.addEventListener("mouseout", onResultMouseout)
-
-            // TODO: marker
+            result.addEventListener("mouseover", onMouseover)
+            result.addEventListener("mouseout", onMouseout)
+            if (marker) {
+                marker.addEventListener("mouseover", onMouseover)
+                marker.addEventListener("mouseout", onMouseout)
+                marker.addEventListener("click", onMarkerClick)
+                layerGroup.addLayer(marker)
+            }
         }
 
         searchLayer.clearLayers()
         if (results.length) searchLayer.addLayer(layerGroup)
-        console.debug("Search layer showing", results.length, "results")
+        console.debug("Search showing", results.length, "results")
     }
 
     const base = getBaseFetchController(map, "search", onLoaded)

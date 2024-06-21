@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 
 import numpy as np
 from httpx import HTTPError
-from shapely import Point, Polygon, STRtree, box, get_coordinates
+from shapely import Point, Polygon, STRtree, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
 from app.lib.feature_name import features_prefixes
@@ -17,6 +17,7 @@ from app.limits import (
     SEARCH_RESULTS_LIMIT,
 )
 from app.models.db.element import Element
+from app.models.db.element_member import ElementMember
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
 from app.models.nominatim_result import NominatimResult
@@ -164,7 +165,7 @@ class Nominatim:
         elements = tuple(ref_element_map.get(ref) for ref in refs)
 
         prefixes = features_prefixes(elements)
-        result = []
+        result: list[NominatimResult] = []
         for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
             # skip non-existing elements
             if element is None or not element.visible:
@@ -176,6 +177,11 @@ class Nominatim:
             minx = float(bbox[2])
             maxx = float(bbox[3])
             geometry: Polygon = box(minx, miny, maxx, maxy)
+
+            lon = (minx + maxx) / 2
+            lat = (miny + maxy) / 2
+            point = lib.points(np.array((lon, lat), np.float64))
+
             result.append(
                 NominatimResult(
                     element=element,
@@ -183,7 +189,7 @@ class Nominatim:
                     importance=entry['importance'],
                     prefix=prefix,
                     display_name=entry['display_name'],
-                    point=geometry.representative_point(),
+                    point=point,
                     bounds=geometry,
                 )
             )
@@ -227,3 +233,50 @@ class Nominatim:
             mask[i2] = False
 
         return tuple(dedup1[i] for i in np.nonzero(mask)[0])
+
+    @staticmethod
+    def improve_point_accuracy(
+        results: Sequence[NominatimResult],
+        members_map: dict[tuple[ElementType, int], Element],
+    ) -> None:
+        """
+        Improve accuracy of points by analyzing relations members.
+        """
+        for result in results:
+            element = result.element
+            if element.type != 'relation':
+                continue
+
+            label_node: ElementMember | None = None
+            for member in element.members:
+                if member.type != 'node':
+                    continue
+                if member.role == 'admin_centre':
+                    label_node = member
+                    break
+                if label_node is None:
+                    label_node = member
+
+            if label_node is not None:
+                node = members_map[('node', label_node.id)]
+                result.point = node.point
+
+    @staticmethod
+    def remove_overlapping_points(results: Sequence[NominatimResult]) -> None:
+        """
+        Remove overlapping points, preserving most important results.
+        """
+        relations = tuple(result for result in results if result.element.type == 'relation')
+        if len(relations) <= 1:
+            return
+
+        geoms = tuple(result.point for result in relations)
+        tree = STRtree(geoms)
+        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001).T
+        nearby_all = np.unique(nearby_all, axis=0)
+        nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
+        nearby_all = np.sort(nearby_all, axis=1)
+        for i1, i2 in nearby_all:
+            if relations[i1].point is None:
+                continue
+            relations[i2].point = None

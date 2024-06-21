@@ -10,7 +10,9 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.nominatim import Nominatim
 from app.lib.render_response import render_response
 from app.limits import SEARCH_QUERY_MAX_LENGTH, SEARCH_RESULTS_LIMIT
+from app.models.db.element import Element
 from app.models.element_ref import ElementRef
+from app.models.element_type import ElementType
 from app.models.msgspec.leaflet import ElementLeaflet
 from app.models.nominatim_result import NominatimResult
 from app.queries.element_member_query import ElementMemberQuery
@@ -57,14 +59,16 @@ async def search(
         tg.start_soon(local_task)
 
     # TODO: prioritize global vs local results, use rank and importance
+    results = chain(global_results, local_results)
+    results = Nominatim.deduplicate_similar_results(results)
 
-    results = Nominatim.deduplicate_similar_results(chain(global_results, local_results))
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
+
     members_refs = {
         ElementRef(member.type, member.id)
         for element in elements
-        if element.type != 'node'
+        if element.members is not None
         for member in element.members
     }
     members_elements = await ElementQuery.get_by_refs(
@@ -73,18 +77,27 @@ async def search(
         recurse_ways=True,
         limit=None,
     )
-    type_id_member_map = {(member.type, member.id): member for member in members_elements}
+    members_map: dict[tuple[ElementType, int], Element] = {
+        (member.type, member.id): member  #
+        for member in members_elements
+    }
+
+    Nominatim.improve_point_accuracy(results, members_map)
+    Nominatim.remove_overlapping_points(results)
 
     # prepare data for leaflet rendering
     leaflet: list[list[ElementLeaflet]] = []
     for element in elements:
-        if element.type == 'node':
+        if element.members is None:
             full_data = (element,)
         else:
-            full_data = [element, *(type_id_member_map[member.type, member.id] for member in element.members)]
-            for member in full_data[1:]:
-                if member.type == 'way':  # recurse_ways
-                    full_data.extend(type_id_member_map[member_.type, member_.id] for member_ in member.members)
+            full_data = [element, *(members_map[member.type, member.id] for member in element.members)]
+            full_data.extend(
+                members_map[member_.type, member_.id]
+                for member in full_data[1:]
+                if member.type == 'way'  # recurse_ways
+                for member_ in member.members
+            )
         leaflet.append(FormatLeaflet.encode_elements(full_data, detailed=False))
 
     return render_response(

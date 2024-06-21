@@ -37,7 +37,6 @@ export const configureDataLayer = (map) => {
     const onLayerClick = (event) => {
         const layer = event.target
         const object = layer.object
-        console.debug("onLayerClick", object)
         routerNavigateStrict(`/${object.type}/${object.id}`)
     }
 

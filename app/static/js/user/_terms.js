@@ -27,7 +27,6 @@ if (userTermsBody) {
             residenceInput.dispatchEvent(new Event("change"))
         }
     }
-
     autoDetectResidence()
 
     const onAbortSignupClick = () => userTermsBody.querySelector("form.abort-signup-form").submit()

@@ -46,6 +46,8 @@ let paneCreated = false
  * @param {boolean} options.fitBounds Fit the map to the focused object
  * @param {number} options.padBounds Amount of padding to add to the bounds
  * @param {number} options.maxZoom Maximum zoom level to focus on
+ * @param {boolean} options.intersects Whether to perform intersection check instead of containment
+ * @param {boolean} options.proportionCheck Perform a proportion check when fitting the map
  * @returns {L.Layer[]} The layers of the focused object
  */
 export const focusMapObject = (map, object, options) => {
@@ -68,6 +70,8 @@ export const focusMapObject = (map, object, options) => {
  * @param {boolean} options.fitBounds Fit the map to the focused objects
  * @param {number} options.padBounds Amount of padding to add to the bounds
  * @param {number} options.maxZoom Maximum zoom level to focus on
+ * @param {boolean} options.intersects Whether to perform intersection check instead of containment
+ * @param {boolean} options.proportionCheck Perform a proportion check when fitting the map
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects, options) => {
@@ -121,10 +125,10 @@ export const focusManyMapObjects = (map, objects, options) => {
         const currentZoom = map.getZoom()
         const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : null
 
-        if (!mapBounds.contains(latLngBounds)) {
+        if (options?.intersects ? !mapBounds.intersects(latLngBounds) : !mapBounds.contains(latLngBounds)) {
             console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(offscreen)")
             map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
-        } else {
+        } else if (options?.proportionCheck ?? true) {
             const latLngSize = getLatLngBoundsSize(latLngBounds)
             const mapBoundsSize = getLatLngBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize

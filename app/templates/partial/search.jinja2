@@ -2,7 +2,9 @@
 <ul class="search-list list-unstyled" data-leaflet="{{ leaflet }}">
     {% for result in results %}
     {% set element = result.element %}
-    <li class="social-action social-entry">
+    {% set point = result.point %}
+    <li class="social-action social-entry" data-type="{{ element.type }}" data-id="{{ element.id }}"
+        {% if point is not none %} data-lon="{{ point.x }}" data-lat="{{ point.y }}" {% endif %}>
         <p class="header text-muted d-flex justify-content-between">
             <span>{{ result.prefix }}</span>
             <a class="stretched-link" href="/{{ element.type }}/{{ element.id }}">

@@ -5,7 +5,7 @@ const loginBody = document.querySelector("body.login-body")
 if (loginBody) {
     const loginForm = loginBody.querySelector("form.login-form")
     const loginInputs = loginForm.elements
-    const loginButtons = loginBody.querySelectorAll("button[data-login][data-password]")
+    const autofillButtons = loginBody.querySelectorAll("button[data-login][data-password]")
 
     const onLoginSuccess = () => {
         // Redirect to refer from query string and hash
@@ -16,9 +16,10 @@ if (loginBody) {
         location.href = referer
     }
 
-    const onLoginButtonClick = (e) => {
+    // Autofill buttons are present in development environment
+    const onAutofillButtonClick = (e) => {
         const dataset = e.target.dataset
-        console.debug("onLoginButtonClick", dataset)
+        console.debug("onAutofillButtonClick", dataset)
         loginInputs.display_name_or_email.value = dataset.login
         loginInputs.password.value = dataset.password
         loginInputs.remember.checked = true
@@ -27,7 +28,7 @@ if (loginBody) {
 
     // Listen for events
     configureStandardForm(loginForm, onLoginSuccess)
-    for (const loginButton of loginButtons) {
-        loginButton.addEventListener("click", onLoginButtonClick)
+    for (const loginButton of autofillButtons) {
+        loginButton.addEventListener("click", onAutofillButtonClick)
     }
 }

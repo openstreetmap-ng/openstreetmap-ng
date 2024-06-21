@@ -6,7 +6,6 @@ if (tracesEditBody) {
 
     // On success callback, navigate to the trace details
     const onFormSuccess = ({ trace_id }) => {
-        console.debug("onFormSuccess", trace_id)
         location.href = `/trace/${trace_id}`
     }
 
