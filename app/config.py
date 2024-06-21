@@ -2,18 +2,12 @@ import contextlib
 import os
 import pathlib
 import re
-import time
 from hashlib import sha256
 from logging.config import dictConfig
 
 from anyio import Path
 
 from app.lib.yarn_lock_version import yarn_lock_version
-
-# Set the timezone to UTC
-# Note: "export TZ=UTC" from shell.nix is unreliable for some users
-os.environ['TZ'] = 'UTC'
-time.tzset()
 
 VERSION = '0.1.0'
 VERSION_DATE = ''
