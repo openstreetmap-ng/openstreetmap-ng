@@ -1,0 +1,24 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('users.no_such_user.title') }} | {% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-7 offset-3">
+        <div class="d-flex">
+            <div class="info">
+                <h1 class="d-flex align-items-center">
+                    {{ t('users.no_such_user.heading', user=name) }}
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-body container-fluid">
+    <div class="g-5">
+        <div class="col-5 offset-3">
+            {{ t('users.no_such_user.body', user=name) }}       
+        </div>
+    </div>
+</div>
+
+{% endblock %}

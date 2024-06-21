@@ -52,11 +52,17 @@ async def legacy_signup():
     return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
 
 
-# TODO: not found page, https://www.openstreetmap.org/user/abafaegfeagaeg
 # TODO: optimize
 @router.get('/{display_name:str}')
 async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)]):
     user = await UserQuery.find_one_by_display_name(display_name)
+
+    # user not found page
+    if user is None:
+        res = render_response("user/profile/not_found.jinja2", {"name": display_name})
+        res.status_code = status.HTTP_404_NOT_FOUND
+        return res
+    
     await user.resolve_rich_text()
 
     me = auth_user()
