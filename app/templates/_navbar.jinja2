@@ -16,35 +16,34 @@
                 <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
                     data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle editor selection">
                 </button>
-                <ul class="dropdown-menu dropdown-menu-green">
-                    <li>
-                        <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
-                            {% set editor %}
-                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.id.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
-                            {% set editor %}
-                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.rapid.name') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </a>
-                    </li>
-                    <li>
-                        <button class="dropdown-item map-link edit-link remote-edit">
-                            {% set editor %}
-                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.remote.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </button>
-                    </li>
-                </ul>
+                <div class="dropdown-menu dropdown-menu-green">
+                    <div class="form-check mx-3">
+                        <input class="form-check-input" type="checkbox" />
+                        <label class="form-check-label">Remember my choice</label>
+                    </div>
+                    <hr class="dropdown-divider" />
+                    <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
+                        {% set editor %}
+                        <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.id.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </a>
+                    <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
+                        {% set editor %}
+                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.rapid.name') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </a>
+                    <button class="dropdown-item map-link edit-link remote-edit">
+                        {% set editor %}
+                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.remote.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                    </button>
+                </div>
             </div>
 
             <a class="btn btn-outline-green map-link" href="/history">
