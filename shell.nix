@@ -46,6 +46,8 @@ let
     fswatch'
     brotli
     zstd
+    nil
+    nixpkgs-fmt
     # Python:
     python'
     poetry
