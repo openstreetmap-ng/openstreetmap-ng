@@ -15,9 +15,8 @@ if (tracesDetailsMapContainer) {
   const coords1D = JSON.parse(tracesDetailsMapContainer.dataset.coords);
   let coords2D = [];
   for (let i = 0; i < coords1D.length; i += 2) {
-    coords2D.push(coords1D.slice(i, i + 2).reverse());
+    coords2D.push([coords1D[i + 1], coords1D[i]]);
   }
-  console.log("COORDS", coords2D);
   const map = L.map(tracesDetailsMapContainer, {
     zoomControl: false,
     maxBoundsViscosity: 1,
