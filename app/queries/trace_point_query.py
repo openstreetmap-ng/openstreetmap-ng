@@ -22,7 +22,8 @@ class TracePointQuery:
         """
         async with db() as session:
             stmt = (
-                select(TracePoint).where(TracePoint.trace_id == trace_id)
+                select(TracePoint)
+                .where(TracePoint.trace_id == trace_id)
                 # this order_by is important for proper formatting
                 .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
             )
@@ -43,10 +44,8 @@ class TracePointQuery:
             stmt1 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(
-                        TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)
-                    ),
-                    Trace.visibility.in_(("identifiable", "trackable")),
+                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    Trace.visibility.in_(('identifiable', 'trackable')),
                 )
                 .order_by(
                     TracePoint.trace_id.desc(),
@@ -58,10 +57,8 @@ class TracePointQuery:
             stmt2 = (
                 select(TracePoint)
                 .where(
-                    func.ST_Intersects(
-                        TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)
-                    ),
-                    Trace.visibility.in_(("public", "private")),
+                    func.ST_Intersects(TracePoint.point, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    Trace.visibility.in_(('public', 'private')),
                 )
                 .order_by(
                     TracePoint.point.asc(),
@@ -83,7 +80,7 @@ class TracePointQuery:
         traces: Sequence[Trace],
         *,
         limit_per_trace: int,
-        resolution: int | None = None,
+        resolution: int | None,
     ) -> None:
         """
         Resolve coords for traces.
@@ -106,16 +103,14 @@ class TracePointQuery:
                     select(
                         TracePoint.trace_id,
                         TracePoint.point,
-                        func.row_number().over().label("row_number"),
+                        func.row_number().over().label('row_number'),
                     )
                     .where(TracePoint.trace_id == trace.id)
                     .order_by(TracePoint.track_idx.asc(), TracePoint.captured_at.asc())
                 )
 
                 if trace.size > limit_per_trace:
-                    indices = np.round(
-                        np.linspace(1, trace.size, limit_per_trace)
-                    ).astype(int)
+                    indices = np.round(np.linspace(1, trace.size, limit_per_trace)).astype(int)
                     subq = stmt_.subquery()
                     stmt_ = (
                         subq.select()
@@ -141,10 +136,8 @@ class TracePointQuery:
                 trace.coords.clear()
                 continue
 
-            array = lib.get_coordinates(
-                np.asarray(trace.coords, dtype=object), False, False
-            )
-            if resolution:
+            array = lib.get_coordinates(np.asarray(trace.coords, dtype=object), False, False)
+            if resolution is not None:
                 array = mercator(array, resolution, resolution).astype(int)
 
             trace.coords = array.flatten().tolist()

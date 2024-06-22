@@ -81,7 +81,7 @@ async def _get_traces_data(
     if tag is not None:
         base_url += f'/tag/{tag}'
 
-    image_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
+    traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
 
     active_tab = 0
     if user is not None:
@@ -100,7 +100,7 @@ async def _get_traces_data(
         'new_after': new_after,
         'new_before': new_before,
         'traces': traces,
-        'image_coords': image_coords,
+        'traces_coords': traces_coords,
     }
 
 

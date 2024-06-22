@@ -21,5 +21,4 @@ class Exceptions(
     RequestExceptionsMixin,
     TraceExceptionsMixin,
     UserExceptionsMixin,
-):
-    ...
+): ...

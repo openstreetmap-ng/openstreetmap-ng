@@ -4,7 +4,7 @@ import { configureStandardForm } from "../_standard-form.js"
 const tracesDetailsBody = document.querySelector("body.traces-details-body")
 if (tracesDetailsBody) {
     const deleteForm = tracesDetailsBody.querySelector("form.delete-form")
-    if (deleteForm !== null) {
+    if (deleteForm) {
         const deleteButton = deleteForm.querySelector('button[type="submit"]')
 
         // On button click, request confirmation
@@ -15,7 +15,7 @@ if (tracesDetailsBody) {
         }
 
         // On success callback, navigate to my traces
-        const onFormSuccess = ({redirect_url}) => {
+        const onFormSuccess = ({ redirect_url }) => {
             console.debug("onFormSuccess", redirect_url)
             location.href = redirect_url
         }

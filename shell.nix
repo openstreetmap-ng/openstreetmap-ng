@@ -414,6 +414,16 @@ let
     (writeShellScriptBin "run" ''
       python -m uvicorn app.main:main --reload
     '')
+    (writeShellScriptBin "format" ''
+      set -e
+      js_paths=$(find app/static/js \
+        -type f \
+        -name "*.js" \
+        -not -name "bundle-*")
+      biome format --write $js_paths
+      ruff check --select I --fix  # sort imports
+      ruff format
+    '')
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")

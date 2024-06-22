@@ -11,9 +11,7 @@
 </div>
 <div class="content-body">
     <div class="col-6 offset-3">
-        <div class="trace-preview trace-preview-sm mb-3">
-            <svg class="trace-preview-svg" data-coords="{{ image_coords | safe }}" xmlns="http://www.w3.org/2000/svg" width="102" height="102"
-                viewBox="-2.0 -2.0 204 204"></svg>
+        <div class="trace-preview trace-preview-sm leaflet-container mb-3" data-coords="{{ trace_coords | safe }}">
         </div>
 
         <form class="update-form" method="POST" action="/api/web/traces/{{ trace.id }}/update">

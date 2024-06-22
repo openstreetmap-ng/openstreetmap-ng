@@ -21,5 +21,4 @@ class Exceptions06(
     RequestExceptions06Mixin,
     TraceExceptions06Mixin,
     UserExceptions06Mixin,
-):
-    ...
+): ...

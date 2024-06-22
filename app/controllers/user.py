@@ -100,7 +100,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
     await TracePointQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
-    image_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
+    traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
 
     # TODO: diaries
     diaries_count = 0
@@ -124,7 +124,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'notes': notes,
             'traces_count': traces_count,
             'traces': traces,
-            'image_coords': image_coords,
+            'traces_coords': traces_coords,
             'diaries_count': diaries_count,
             'diaries': diaries,
             'groups_count': groups_count,

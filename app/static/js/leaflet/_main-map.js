@@ -48,96 +48,92 @@ const getMainMap = (container) => {
         zoomControl: false,
         maxBoundsViscosity: 1,
         minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-        maxBounds: L.latLngBounds(
-          L.latLng(-85, Number.NEGATIVE_INFINITY),
-          L.latLng(85, Number.POSITIVE_INFINITY)
-        ),
-      });
+        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
+    })
 
-      // Disable Leaflet's attribution prefix
-      map.attributionControl.setPrefix(false);
+    // Disable Leaflet's attribution prefix
+    map.attributionControl.setPrefix(false)
 
-      // Add native controls
-      map.addControl(L.control.scale());
+    // Add native controls
+    map.addControl(L.control.scale())
 
-      // Disable click propagation on controls
-      disableControlClickPropagation(map);
+    // Disable click propagation on controls
+    disableControlClickPropagation(map)
 
+    // Add custom controls
+    addControlGroup(map, [getZoomControl(), getGeolocateControl()])
+    addControlGroup(map, [
+        getLayersSidebarToggleButton(),
+        getLegendSidebarToggleButton(),
+        getShareSidebarToggleButton(),
+    ])
+    addControlGroup(map, [getNewNoteControl()])
+    addControlGroup(map, [getQueryFeaturesControl()])
 
-      // Add custom controls
-      addControlGroup(map, [getZoomControl(), getGeolocateControl()]);
-      addControlGroup(map, [
-          getLayersSidebarToggleButton(),
-          getLegendSidebarToggleButton(),
-          getShareSidebarToggleButton(),
-        ])
-        addControlGroup(map, [getNewNoteControl()])
-        addControlGroup(map, [getQueryFeaturesControl()])
+    // Configure map handlers
+    configureNotesLayer(map)
+    configureDataLayer(map)
+    // configureContextMenu(map)
 
-        // Configure map handlers
-        configureNotesLayer(map)
-        configureDataLayer(map)
-        // configureContextMenu(map)
-
-        // Add optional map marker
-        const searchParams = qsParse(location.search.substring(1))
-        if (searchParams.mlon && searchParams.mlat) {
-            const mlon = Number.parseFloat(searchParams.mlon)
-            const mlat = Number.parseFloat(searchParams.mlat)
-            if (isLongitude(mlon) && isLatitude(mlat)) {
-                const marker = L.marker(L.latLng(mlat, mlon), {
-                    icon: getMarkerIcon("blue", true),
-                    keyboard: false,
-                    interactive: false,
-                })
-                map.addLayer(marker)
-            }
+    // Add optional map marker
+    const searchParams = qsParse(location.search.substring(1))
+    if (searchParams.mlon && searchParams.mlat) {
+        const mlon = Number.parseFloat(searchParams.mlon)
+        const mlat = Number.parseFloat(searchParams.mlat)
+        if (isLongitude(mlon) && isLatitude(mlat)) {
+            const marker = L.marker(L.latLng(mlat, mlon), {
+                icon: getMarkerIcon("blue", true),
+                keyboard: false,
+                interactive: false,
+            })
+            map.addLayer(marker)
         }
-
-        // On hash change, update the map view
-        const onHashChange = () => {
-            // TODO: check if no double setMapState triggered
-            console.debug("onHashChange", location.hash)
-            let newState = parseMapState(location.hash)
-
-            // Get the current state if empty/invalid and replace the hash
-            if (!newState) {
-                newState = getMapState(map)
-                updateNavbarAndHash(newState)
-            }
-
-            // Change the map view
-            setMapState(map, newState)
-        }
-
-        // On base layer change, limit max zoom and zoom to max if needed
-        const onBaseLayerChange = ({ layer }) => {
-            const maxZoom = layer.options.maxZoom
-            map.setMaxZoom(maxZoom)
-            if (map.getZoom() > maxZoom) map.setZoom(maxZoom)
-            }
-
-        // On map state change, update the navbar and hash
-        const onMapStateChange = () => updateNavbarAndHash(getMapState(map))
-
-        // Listen for events
-        window.addEventListener("hashchange", onHashChange)
-        map.addEventListener("baselayerchange", onBaseLayerChange)
-        map.addEventListener("zoomend moveend baselayerchange overlayadd overlayremove", onMapStateChange)
-
-        // TODO: support this on more maps
-        const initialMapState = getInitialMapState(map);
-        setMapState(map, initialMapState, { animate: false });
-
-        return map
     }
 
-    /**
-     * Configure the main map and all its components
-     * @param {HTMLDivElement} container The container element
-     * @returns {void}
-    */
-   export const configureMainMap = (container) => {
+    // On hash change, update the map view
+    const onHashChange = () => {
+        // TODO: check if no double setMapState triggered
+        console.debug("onHashChange", location.hash)
+        let newState = parseMapState(location.hash)
+
+        // Get the current state if empty/invalid and replace the hash
+        if (!newState) {
+            newState = getMapState(map)
+            updateNavbarAndHash(newState)
+        }
+
+        // Change the map view
+        setMapState(map, newState)
+    }
+
+    // On base layer change, limit max zoom and zoom to max if needed
+    const onBaseLayerChange = ({ layer }) => {
+        const maxZoom = layer.options.maxZoom
+        map.setMaxZoom(maxZoom)
+        if (map.getZoom() > maxZoom) map.setZoom(maxZoom)
+    }
+
+    // On map state change, update the navbar and hash
+    const onMapStateChange = () => updateNavbarAndHash(getMapState(map))
+
+    // Listen for events
+    window.addEventListener("hashchange", onHashChange)
+    map.addEventListener("baselayerchange", onBaseLayerChange)
+    map.addEventListener("zoomend moveend baselayerchange overlayadd overlayremove", onMapStateChange)
+
+    // TODO: support this on more maps
+    const initialMapState = getInitialMapState(map)
+    setMapState(map, initialMapState, { animate: false })
+
+    return map
+}
+
+/**
+ * Configure the main map and all its components
+ * @param {HTMLDivElement} container The container element
+ * @returns {void}
+ */
+export const configureMainMap = (container) => {
     const map = getMainMap(container)
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)

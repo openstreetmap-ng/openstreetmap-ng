@@ -1,6 +1,6 @@
 {% if traces %}
 {% include 'traces/_list_nav.jinja2' %}
-<ul class="traces-list list-unstyled" data-coords="{{ image_coords | safe }}">
+<ul class="traces-list list-unstyled" data-coords="{{ traces_coords | safe }}">
     {% for trace in traces %}
     <li class="row g-2">
         <div class="col-auto">
@@ -51,11 +51,6 @@
         </div>
         <div class="col-auto">
             <div class="btn-group" role="group">
-                <a class="btn btn-sm btn-link"
-                    href="/?mlon={{ trace.start_point.x }}&mlat={{ trace.start_point.y }}&zoom=14">
-                    <i class="bi bi-geo-alt fs-5"></i>
-                    <span>{{ t('traces.trace.view_map') }}</span>
-                </a>
                 <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
                     <i class="bi bi-pencil fs-5"></i>
                     <span>{{ t('traces.trace.edit_map') }}</span>

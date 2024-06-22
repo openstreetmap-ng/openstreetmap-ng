@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import { zoomPrecision } from "./_utils.js"
 import { getGeolocateControl } from "./leaflet/_geolocate-control.js"
 import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
+import { addControlGroup } from "./leaflet/_map-utils.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 import { getZoomControl } from "./leaflet/_zoom-control.js"
 
@@ -30,8 +31,7 @@ if (userSettingsForm) {
     map.addLayer(getBaseLayerById(getLayerIdByCode("")))
 
     // Add custom zoom and location controls
-    map.addControl(getZoomControl())
-    map.addControl(getGeolocateControl())
+    addControlGroup(map, [getZoomControl(), getGeolocateControl()])
 
     // Null value until the marker is initialized
     let marker = null

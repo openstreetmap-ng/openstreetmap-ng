@@ -6,7 +6,7 @@ console.debug("Discovered i18next locales", Object.keys(resources))
 
 i18next.init({
     lng: primaryLanguage,
-    fallbackLng: primaryLanguage === 'en' ? false : 'en',
+    fallbackLng: primaryLanguage === "en" ? false : "en",
     contextSeparator: "__",
     resources: resources,
 })

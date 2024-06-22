@@ -1,57 +1,56 @@
-import { antPath } from "leaflet-ant-path";
-import {
-  addControlGroup,
-  disableControlClickPropagation,
-  getInitialMapState,
-  setMapState,
-} from "../leaflet/_map-utils";
-import { getZoomControl } from "../leaflet/_zoom-control";
-import { getGeolocateControl } from "../leaflet/_geolocate-control";
+import * as L from "leaflet"
+import { antPath } from "leaflet-ant-path"
+import { getGeolocateControl } from "../leaflet/_geolocate-control"
+import { getBaseLayerById, getLayerIdByCode } from "../leaflet/_layers.js"
+import { addControlGroup } from "../leaflet/_map-utils"
+import { getZoomControl } from "../leaflet/_zoom-control"
 
-const tracesDetailsMapContainer = document.querySelector("#trace-map");
+const antPathOptions = {
+    delay: 1000,
+    dashArray: [30, 70],
+    weight: 3.5,
+    color: "#F60",
+    pulseColor: "#220",
+    opacity: 0.8,
+}
 
-if (tracesDetailsMapContainer) {
-  console.debug("Initializing trace preview map");
-  const coords1D = JSON.parse(tracesDetailsMapContainer.dataset.coords);
-  let coords2D = [];
-  for (let i = 0; i < coords1D.length; i += 2) {
-    coords2D.push([coords1D[i + 1], coords1D[i]]);
-  }
-  const map = L.map(tracesDetailsMapContainer, {
-    zoomControl: false,
-    maxBoundsViscosity: 1,
-    minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
-    maxBounds: L.latLngBounds(
-      L.latLng(-85, Number.NEGATIVE_INFINITY),
-      L.latLng(85, Number.POSITIVE_INFINITY)
-    ),
-  });
+const tracePreviewContainer = document.querySelector(".trace-preview")
+if (tracePreviewContainer) {
+    console.debug("Initializing trace preview map")
+    const isSmall = tracePreviewContainer.classList.contains("trace-preview-sm")
+    const coords = JSON.parse(tracePreviewContainer.dataset.coords)
+    const coords2D = []
+    for (let i = 0; i < coords.length; i += 2) {
+        coords2D.push([coords[i + 1], coords[i]])
+    }
 
-  // Disable Leaflet's attribution prefix
-  map.attributionControl.setPrefix(false);
+    const map = L.map(tracePreviewContainer, {
+        attributionControl: !isSmall,
+        zoomControl: false,
+        maxBoundsViscosity: 1,
+        minZoom: 3, // 2 would be better, but is buggy with leaflet animated pan
+        maxBounds: L.latLngBounds(L.latLng(-85, Number.NEGATIVE_INFINITY), L.latLng(85, Number.POSITIVE_INFINITY)),
+    })
 
-  // Add native controls
-  map.addControl(L.control.scale());
+    if (!isSmall) {
+        // Disable Leaflet's attribution prefix
+        map.attributionControl.setPrefix(false)
 
-  // Add controls
-  addControlGroup(map, [getZoomControl(), getGeolocateControl()]);
+        // Add native controls
+        map.addControl(L.control.scale())
 
-  // Disable click propagation on controls
-  disableControlClickPropagation(map);
+        // Add custom zoom and location controls
+        addControlGroup(map, [getZoomControl(), getGeolocateControl()])
+    } else {
+        // Add custom zoom controls
+        addControlGroup(map, [getZoomControl()])
+    }
 
-  // TODO: support this on more maps
-  const initialMapState = getInitialMapState(map);
-  setMapState(map, initialMapState, { animate: false });
+    // Add default layer
+    map.addLayer(getBaseLayerById(getLayerIdByCode("")))
 
-  // Trace path
-  const options = {
-    delay: 600,
-    dashArray: [20, 60],
-    weight: 3,
-    color: "#999",
-    pulseColor: "black",
-    opacity: 0.9,
-  };
-  const path = antPath(coords2D, options).addTo(map);
-  map.fitBounds(path.getBounds());
+    // Add trace path
+    const path = antPath(coords2D, antPathOptions)
+    map.addLayer(path)
+    map.fitBounds(path.getBounds(), { animate: false })
 }
