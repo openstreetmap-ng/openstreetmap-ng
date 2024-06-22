@@ -26,35 +26,27 @@ for (const link of navLinks) {
 }
 
 // Check for remembering user's choice before switching to the editor
-let defaultEditorProcessed = false;
 const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 for (const editButton of editButtons) {
     editButton.addEventListener("click", (event) => {
         if (rememberChoice.checked) {
-            if (!defaultEditorProcessed) {
-                event.preventDefault();
-
-                const userSettings = new FormData()
-                switch (event.currentTarget.id) {
-                    case "edit-id":
-                        userSettings.append("editor", "id")
-                        break;
-                    case "edit-rapid":
-                        userSettings.append("editor", "rapid")
-                        break;
-                    case "edit-remote":
-                        userSettings.append("editor", "remote")
-                        break;
-                }
-                const response = fetch("/api/web/user/settings/editor", {
-                    method: "POST",
-                    body: userSettings
-                });
-
-                defaultEditorProcessed = true;
+            const userSettings = new FormData()
+            switch (event.currentTarget.id) {
+                case "edit-id":
+                    userSettings.append("editor", "id")
+                    break;
+                case "edit-rapid":
+                    userSettings.append("editor", "rapid")
+                    break;
+                case "edit-remote":
+                    userSettings.append("editor", "remote")
+                    break;
             }
-            event.currentTarget.click();
+            const response = fetch("/api/web/user/settings/editor", {
+                method: "POST",
+                body: userSettings
+            });
         }
     });
 }
