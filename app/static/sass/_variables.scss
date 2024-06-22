@@ -24,7 +24,7 @@ $custom-colors: (
     "primary": $primary,
     "blue": $blue,
     "green": $green,
-    "light-green": $light-green
+    "light-green": $light-green,
 );
 $theme-colors: map-merge($theme-colors, $custom-colors);
 

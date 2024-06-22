@@ -4,6 +4,7 @@
         "biomejs.biome",
         "ms-python.python",
         "charliermarsh.ruff",
-        "jnoortheen.nix-ide"
+        "jnoortheen.nix-ide",
+        "esbenp.prettier-vscode"
     ]
 }

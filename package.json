@@ -22,7 +22,8 @@
     "autoprefixer": "^10.4.16",
     "bun-types": "latest",
     "i18next-conv": "^14.0.0",
-    "postcss-cli": "^11.0.0"
+    "postcss-cli": "^11.0.0",
+    "prettier": "^3.3.2"
   },
   "trustedDependencies": [
     "core-js-bundle"
@@ -43,5 +44,10 @@
   },
   "browserslist": [
     "partially supports bigint and partially supports es6-module and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
-  ]
+  ],
+  "prettier": {
+    "printWidth": 120,
+    "semi": false,
+    "tabWidth": 4
+  }
 }

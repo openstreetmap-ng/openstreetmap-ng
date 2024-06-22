@@ -93,7 +93,7 @@ async def main():
         for key, values in key_values_locales.items()
     }
 
-    buffer = json.dumps(result, indent=2, sort_keys=True)
+    buffer = json.dumps(result, indent=2, sort_keys=True) + '\n'
     await _wiki_pages_path.write_text(buffer)
 
 
