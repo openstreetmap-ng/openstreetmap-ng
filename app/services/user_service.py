@@ -115,6 +115,21 @@ class UserService:
                 user.language = language
 
     @staticmethod
+    async def update_editor(
+        collector: MessageCollector,
+        *,
+        editor: Editor | None,
+    ) -> None:
+        """
+        Update default editor
+        """
+        user = auth_user()
+
+        async with db_commit() as session:
+            user = await session.get(User, user.id, with_for_update=True)
+            user.editor = editor
+
+    @staticmethod
     async def update_email(
         collector: MessageCollector,
         *,
