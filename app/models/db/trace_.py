@@ -40,7 +40,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # runtime
-    image_coords: list[int] | None = None
+    coords: list[int | float] | None = None
 
     @validates('tags')
     def validate_tags(self, _: str, value: Sequence[str]):

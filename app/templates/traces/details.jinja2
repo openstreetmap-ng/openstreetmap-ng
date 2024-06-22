@@ -11,11 +11,7 @@
 </div>
 <div class="content-body">
     <div class="col-6 offset-3">
-
-        <div class="trace-preview mb-3">
-            <svg data-coords="{{ image_coords | safe }}" xmlns="http://www.w3.org/2000/svg" width="102" height="102"
-                viewBox="-2 -2 204 204"></svg>
-        </div>
+        <div id="trace-map" class="trace-preview mb-3" data-coords="{{trace.coords}}" style="height: 500px"></div>
 
         <div class="traces-list row g-2 mb-4">
             <div class="col social-entry">
