@@ -25,6 +25,20 @@ for (const link of navLinks) {
     }
 }
 
+// Check for remembering user's choice before switching to the editor
+let defaultEditorProcessed = false;
+const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
+for (const editButton of editButtons) {
+    editButton.addEventListener("click", (event) => {
+        console.log(event.currentTarget)
+        if (!defaultEditorProcessed) {
+            event.preventDefault();
+            defaultEditorProcessed = true;
+        }
+        event.currentTarget.click();
+    });
+}
+
 /**
  * Map of navbar elements to their base href
  * @type {Map<HTMLElement, string>}
