@@ -84,7 +84,6 @@ class TracePointQuery:
         *,
         limit_per_trace: int,
         resolution: int | None = None,
-        type: Type[int | float] = int,
     ) -> None:
         """
         Resolve coords for traces.
@@ -146,6 +145,6 @@ class TracePointQuery:
                 np.asarray(trace.coords, dtype=object), False, False
             )
             if resolution:
-                array = mercator(array, resolution, resolution)
+                array = mercator(array, resolution, resolution).astype(int)
 
-            trace.coords = array.astype(type).flatten().tolist()
+            trace.coords = array.flatten().tolist()

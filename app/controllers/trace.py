@@ -29,7 +29,7 @@ async def upload(_: Annotated[User, web_user()]):
 async def details(trace_id: PositiveInt):
     with options_context(joinedload(Trace.user)):
         trace = await TraceQuery.get_one_by_id(trace_id)
-    await TracePointQuery.resolve_coords((trace,), limit_per_trace=300, type=float)
+    await TracePointQuery.resolve_coords((trace,), limit_per_trace=300)
     return render_response('traces/details.jinja2', {'trace': trace})
 
 
