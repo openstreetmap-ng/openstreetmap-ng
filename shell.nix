@@ -6,6 +6,7 @@ let
 
   project_root = builtins.toString ./.;
   supervisordConf = import ./config/supervisord.nix { inherit pkgs project_root; };
+  preCommitConf = import ./config/pre-commit.nix { inherit pkgs; };
 
   wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
@@ -234,7 +235,7 @@ let
             --compatibilityJSON "v4"
 
           # convert format to python-style:
-          sed -i -E 's/\{\{/{/g; s/\}\}/}/g' "$target_file"
+          sed -i -E "s/\{\{/{/g; s/\}\}/}/g" "$target_file"
 
           msgfmt "$target_file" --output-file "$target_file_bin"
           touch -r "$source_file" "$target_file" "$target_file_bin"
@@ -412,7 +413,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "run" "python -m uvicorn app.main:main --reload")
-    (writeShellScriptBin "format" "pre-commit run --all-files")
+    (writeShellScriptBin "format" "pre-commit run --config ${preCommitConf} --all-files")
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -501,7 +502,9 @@ let
 
     if [ -d .git ]; then
       echo "Installing pre-commit hooks"
-      pre-commit install
+      pre-commit install --config ${preCommitConf}
+      # fix config path to be absolute
+      sed -i -E "s|=\.\.(\/\.\.)*|=|g" .git/hooks/pre-commit
     fi
 
     # Development environment variables
