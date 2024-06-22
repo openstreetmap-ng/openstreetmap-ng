@@ -8,7 +8,10 @@
     "indentWidth": 4,
     "indentStyle": "space",
     "lineEnding": "lf",
-    "lineWidth": 120
+    "lineWidth": 120,
+    "ignore": [
+      "app/static/js/bundle-*.js"
+    ]
   },
   "linter": {
     "enabled": true,

@@ -411,19 +411,8 @@ let
     '')
 
     # -- Misc
-    (writeShellScriptBin "run" ''
-      python -m uvicorn app.main:main --reload
-    '')
-    (writeShellScriptBin "format" ''
-      set -e
-      js_paths=$(find app/static/js \
-        -type f \
-        -name "*.js" \
-        -not -name "bundle-*")
-      biome format --write $js_paths
-      ruff check --select I --fix  # sort imports
-      ruff format
-    '')
+    (writeShellScriptBin "run" "python -m uvicorn app.main:main --reload")
+    (writeShellScriptBin "format" "pre-commit run --all-files")
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -509,6 +498,11 @@ let
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
+
+    if [ -d .git ]; then
+      echo "Installing pre-commit hooks"
+      pre-commit install
+    fi
 
     # Development environment variables
     export PYTHONNOUSERSITE=1
