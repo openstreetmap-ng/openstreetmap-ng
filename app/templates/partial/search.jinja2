@@ -1,5 +1,5 @@
 {% if results %}
-<ul class="search-list list-unstyled" data-leaflet="{{ leaflet }}">
+<ul class="search-list list-unstyled" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}">
     {% for result in results %}
     {% set element = result.element %}
     {% set point = result.point %}

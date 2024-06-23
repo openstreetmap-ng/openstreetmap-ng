@@ -59,7 +59,7 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 
 def parse_bbox(s: str) -> Polygon | MultiPolygon:
     """
-    Parse a bbox string.
+    Parse a bbox string or bounds.
 
     Returns a Polygon or MultiPolygon (if crossing the antimeridian).
 
@@ -80,6 +80,12 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
         raise_for().bad_bbox(s, 'min longitude > max longitude')
     if miny > maxy:
         raise_for().bad_bbox(s, 'min latitude > max latitude')
+
+    # normalize latitude
+    if miny < -90:
+        miny = -90
+    if maxy > 90:
+        maxy = 90
 
     # special case, bbox wraps around the whole world
     if maxx - minx >= 360:

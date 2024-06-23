@@ -1,11 +1,10 @@
 from collections.abc import Sequence
-from re import T
 from typing import Literal
 
 from sqlalchemy import func, select, text
 
 from app.db import db
-from app.lib.auth_context import auth_scopes, auth_user, auth_user_scopes
+from app.lib.auth_context import auth_scopes, auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import apply_options_context
 from app.lib.trace_file import TraceFile

@@ -120,9 +120,8 @@ export const getSearchController = (map) => {
         // Set search input if unset
         if (!searchInput.value) searchInput.value = query
 
-        // Pad the bounds to gather more local results
-        const bbox = map.getBounds().pad(1).toBBoxString()
-
+        // Pad the bounds to avoid floating point errors
+        const bbox = map.getBounds().pad(-0.01).toBBoxString()
         const url = `/api/partial/search?${qsEncode({ q: query, bbox })}`
         baseLoad({ url })
     }
