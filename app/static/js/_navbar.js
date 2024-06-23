@@ -52,14 +52,10 @@ for (const editButton of editButtons) {
 }
 
 // Uncheck "remember my choice" checkbox when edit dropdown hides
-const editDropdown = editGroup.querySelector("div.dropdown-menu");
-const uncheckRememberChoice = (list) => {
-    if (!editDropdown.classList.contains("show")) {
-        rememberChoice.checked = false;
-    }
+const uncheckRememberChoice = () => {
+    rememberChoice.checked = false;
 }
-const editDropdownHideObserver = new MutationObserver(uncheckRememberChoice)
-editDropdownHideObserver.observe(editDropdown, {attributes: true});
+editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice);
 
 
 /**
