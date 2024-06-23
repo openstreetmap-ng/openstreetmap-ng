@@ -1,8 +1,10 @@
 from collections.abc import Sequence
 from typing import Annotated
 
+import numpy as np
 from anyio import create_task_group
 from fastapi import APIRouter, Query
+from shapely import lib
 
 from app.format import FormatLeaflet
 from app.lib.nominatim import Nominatim
@@ -15,7 +17,7 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
-from app.models.msgspec.leaflet import ElementLeaflet
+from app.models.msgspec.leaflet import ElementLeaflet, ElementLeafletNode
 from app.models.search_result import SearchResult
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -79,7 +81,8 @@ async def search(
 
     # prepare data for leaflet rendering
     leaflet: list[list[ElementLeaflet]] = []
-    for element in elements:
+    for result in results:
+        element = result.element
         if element.members is None:
             full_data = (element,)
         else:
@@ -90,7 +93,16 @@ async def search(
                 if member.type == 'way'  # recurse_ways
                 for member_ in member.members
             )
-        leaflet.append(FormatLeaflet.encode_elements(full_data, detailed=False))
+        leaflet_elements = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
+        # ensure there is always a node (nice visually)
+        if result.point is not None:
+            for leaflet_element in leaflet_elements:
+                if leaflet_element.type == 'node':
+                    break
+            else:
+                x, y = lib.get_coordinates(np.asarray(result.point, dtype=object), False, False)[0].tolist()
+                leaflet_elements.append(ElementLeafletNode('node', 0, [y, x]))
+        leaflet.append(leaflet_elements)
 
     return render_response(
         'partial/search.jinja2',

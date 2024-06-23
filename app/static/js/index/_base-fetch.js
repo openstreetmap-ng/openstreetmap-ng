@@ -31,6 +31,7 @@ export const getBaseFetchController = (map, className, successCallback) => {
     return {
         load: ({ url }) => {
             switchActionSidebar(map, className)
+            if (!url) return
 
             // Abort any pending request
             if (abortController) abortController.abort()

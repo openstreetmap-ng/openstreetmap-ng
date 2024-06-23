@@ -19,7 +19,8 @@ const markerOpacity = 0.8
 export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
     const searchLayer = getOverlayLayerById("search")
-    const searchInput = document.querySelector(".search-form").elements.q
+    const searchForm = document.querySelector(".search-form")
+    const searchInput = searchForm.elements.q
 
     const onLoaded = (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
@@ -28,7 +29,10 @@ export const getSearchController = (map) => {
         // Handle no results
         if (!searchList) return
 
-        const groupedElements = JSON.parse(searchList.dataset.leaflet)
+        const dataset = searchList.dataset
+        const boundsStr = dataset.bounds
+        const globalSearch = !boundsStr
+        const groupedElements = JSON.parse(dataset.leaflet)
         const results = searchList.querySelectorAll(".social-action")
         const layerGroup = L.layerGroup()
 
@@ -55,8 +59,10 @@ export const getSearchController = (map) => {
 
                 result.classList.add("hover")
                 focusManyMapObjects(map, elements, {
+                    // Focus on hover only during global search
+                    fitBounds: globalSearch,
                     padBounds: 0.5,
-                    maxZoom: 17,
+                    maxZoom: globalSearch ? 14 : 17,
                     intersects: true,
                     proportionCheck: false,
                 })
@@ -97,6 +103,12 @@ export const getSearchController = (map) => {
         searchLayer.clearLayers()
         if (results.length) searchLayer.addLayer(layerGroup)
         console.debug("Search showing", results.length, "results")
+
+        if (!globalSearch) {
+            const bounds = boundsStr.split(",").map(Number.parseFloat)
+            map.flyToBounds(L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2])))
+            console.debug("Search focusing on", boundsStr)
+        }
     }
 
     const base = getBaseFetchController(map, "search", onLoaded)
@@ -104,6 +116,9 @@ export const getSearchController = (map) => {
     const baseUnload = base.unload
 
     base.load = () => {
+        // Stick the search form
+        searchForm.classList.add("sticky-top")
+
         // Create the search layer if it doesn't exist
         if (!map.hasLayer(searchLayer)) {
             console.debug("Adding overlay layer", searchLayer.options.layerId)
@@ -120,6 +135,8 @@ export const getSearchController = (map) => {
         // Set search input if unset
         if (!searchInput.value) searchInput.value = query
 
+        // Load empty sidebar to ensure proper bbox
+        baseLoad({ url: null })
         // Pad the bounds to avoid floating point errors
         const bbox = map.getBounds().pad(-0.01).toBBoxString()
         const url = `/api/partial/search?${qsEncode({ q: query, bbox })}`
@@ -129,6 +146,9 @@ export const getSearchController = (map) => {
     base.unload = () => {
         baseUnload()
 
+        // Clear the search layer
+        searchLayer.clearLayers()
+
         // Remove the search layer
         if (map.hasLayer(searchLayer)) {
             console.debug("Removing overlay layer", searchLayer.options.layerId)
@@ -136,8 +156,8 @@ export const getSearchController = (map) => {
             map.fire("overlayremove", { layer: searchLayer, name: searchLayer.options.layerId })
         }
 
-        // Clear the search layer
-        searchLayer.clearLayers()
+        // Unstick the search form
+        searchForm.classList.remove("sticky-top")
     }
 
     return base

@@ -55,7 +55,7 @@ class Search:
             bounds_maxx = bbox_center_x + bounds_width_2
             bounds_maxy = bbox_center_y + bounds_height_2
 
-            leaflet_bounds = f'{bounds_minx},{bounds_miny},{bounds_maxx},{bounds_maxy}'
+            leaflet_bounds = f'{bounds_minx:.7f},{bounds_miny:.7f},{bounds_maxx:.7f},{bounds_maxy:.7f}'
             shapely_bounds = parse_bbox(leaflet_bounds)
             result.append((leaflet_bounds, shapely_bounds))
 

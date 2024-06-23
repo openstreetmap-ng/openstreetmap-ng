@@ -117,7 +117,14 @@ async def _search(
             'format': 'jsonv2',
             'q': q,
             'limit': limit,
-            **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
+            **(
+                {
+                    'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds),
+                    'bounded': 1,
+                }
+                if (bounds is not None)
+                else {}
+            ),
             'accept-language': primary_translation_language(),
         }
     )
