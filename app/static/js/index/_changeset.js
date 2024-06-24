@@ -66,7 +66,6 @@ export const getChangesetController = (map) => {
 
         // On success callback, reload the changeset
         const onFormSuccess = () => {
-            console.debug("onFormSuccess", paramsId)
             base.unload()
             base.load({ id: paramsId })
         }

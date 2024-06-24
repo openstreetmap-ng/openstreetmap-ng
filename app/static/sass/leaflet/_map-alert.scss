@@ -1,9 +1,15 @@
-.map-container {
-    // Style the alert container that appears on top of the map
-    .alert-container {
-        position: absolute;
-        top: 0.625rem;
-        display: flex;
-        justify-content: center;
-    }
+// Style the alert container that appears on top of the map
+.map-alert-container {
+    z-index: 1000;
+    position: absolute;
+    top: 2rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.map-alert {
+    cursor: initial;
+    box-shadow: $box-shadow;
 }

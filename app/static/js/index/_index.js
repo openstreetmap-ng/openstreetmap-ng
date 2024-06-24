@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import { isBannerHidden, markBannerHidden } from "../_local-storage.js"
 import { getPageTitle } from "../_title.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
+import { setSearchFormQuery } from "./_search-form.js"
 
 /**
  * Create a new index controller
@@ -39,6 +40,7 @@ export const getIndexController = (map) => {
         load: () => {
             switchActionSidebar(map, "index")
             document.title = getPageTitle()
+            setSearchFormQuery("")
         },
         unload: () => {
             // do nothing

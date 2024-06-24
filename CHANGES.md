@@ -32,6 +32,8 @@ Last update: 2024-03-17
 - Trace have now simpler and more consistent URLs
 - Element view supports pagination and icons for part of, members, and nodes
 - Replace markdown formatter with [CommonMark](https://spec.commonmark.org/)-compliant [implementation](https://github.com/executablebooks/markdown-it-py)
+- Search query now uses commonly used `q` parameter instead of `query`
+- Improved search experience
 
 ## Frontend
 

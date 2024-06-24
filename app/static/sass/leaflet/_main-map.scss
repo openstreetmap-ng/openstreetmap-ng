@@ -18,13 +18,11 @@
     }
 }
 
-// Disable outline on main map (appears too often by accident)
 .main-map {
+    // Disable outline on main map (appears too often by accident)
     outline: none;
-}
 
-// Merge zoom and geolocate controls
-.main-map {
+    // Merge zoom and geolocate controls
     .leaflet-control.zoom {
         .control-button:last-child {
             border-end-start-radius: 0;

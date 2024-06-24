@@ -17,12 +17,13 @@ import { getRoutingController } from "../index/_routing.js"
 import { getSearchController } from "../index/_search.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { configureFindHomeButton } from "./_find-home-button.js"
+import { getGeolocateControl } from "./_geolocate-control"
 import {
     addControlGroup,
+    disableControlsClickPropagation,
+    getInitialMapState,
     getMapState,
     parseMapState,
-    disableControlClickPropagation,
-    getInitialMapState,
     setMapState,
 } from "./_map-utils.js"
 import { getNewNoteControl } from "./_new-note-control.js"
@@ -33,7 +34,6 @@ import { getLegendSidebarToggleButton } from "./_sidebar-legend.js"
 import { getShareSidebarToggleButton } from "./_sidebar-share.js"
 import { getMarkerIcon } from "./_utils.js"
 import { getZoomControl } from "./_zoom-control"
-import { getGeolocateControl } from "./_geolocate-control"
 
 // TODO: map.invalidateSize(false) on sidebar-content
 
@@ -58,7 +58,7 @@ const getMainMap = (container) => {
     map.addControl(L.control.scale())
 
     // Disable click propagation on controls
-    disableControlClickPropagation(map)
+    disableControlsClickPropagation(map)
 
     // Add custom controls
     addControlGroup(map, [getZoomControl(), getGeolocateControl()])

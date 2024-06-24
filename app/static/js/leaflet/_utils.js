@@ -39,6 +39,36 @@ export const getLatLngBoundsSize = (bounds) => {
 }
 
 /**
+ * Get the intersection of two bounds
+ * @param {L.LatLngBounds} bounds1 First bounds
+ * @param {L.LatLngBounds} bounds2 Second bounds
+ * @returns {L.LatLngBounds} Intersection bounds
+ */
+export const getLatLngBoundsIntersection = (bounds1, bounds2) => {
+    const minLat1 = bounds1.getSouth()
+    const maxLat1 = bounds1.getNorth()
+    const minLon1 = bounds1.getWest()
+    const maxLon1 = bounds1.getEast()
+
+    const minLat2 = bounds2.getSouth()
+    const maxLat2 = bounds2.getNorth()
+    const minLon2 = bounds2.getWest()
+    const maxLon2 = bounds2.getEast()
+
+    const minLat = Math.max(minLat1, minLat2)
+    const maxLat = Math.min(maxLat1, maxLat2)
+    const minLon = Math.max(minLon1, minLon2)
+    const maxLon = Math.min(maxLon1, maxLon2)
+
+    // Return null bounds if no intersection
+    if (minLat > maxLat || minLon > maxLon) {
+        return L.latLngBounds(L.latLng(0, 0), L.latLng(0, 0))
+    }
+
+    return L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+}
+
+/**
  * Make bounds minimum size to make them easier to click
  * @param {L.Map} map Leaflet map
  * @param {number[]} bounds The bounds in [minLon, minLat, maxLon, maxLat]

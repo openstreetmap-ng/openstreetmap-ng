@@ -31,13 +31,11 @@ export const getElementHistoryController = (map) => {
 
             // On mouse enter, focus elements
             const onVersionMouseEnter = () => {
-                console.debug("onVersionMouseEnter")
                 focusManyMapObjects(map, elements)
             }
 
             // On mouse leave, remove focus
             const onVersionMouseLeave = () => {
-                console.debug("onVersionMouseLeave")
                 focusMapObject(map, null)
             }
 

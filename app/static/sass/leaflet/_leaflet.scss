@@ -82,3 +82,8 @@
         overflow: hidden;
     }
 }
+
+// Increase the priority of the focus pane
+.leaflet-focus-pane {
+    z-index: 450;
+}

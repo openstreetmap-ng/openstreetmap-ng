@@ -35,7 +35,6 @@ class ElementMemberQuery:
 
         current_sequence_id: int = 0
         current_members: list[ElementMember] = []
-
         for member in members:
             member_sequence_id = member.sequence_id
             if current_sequence_id != member_sequence_id:

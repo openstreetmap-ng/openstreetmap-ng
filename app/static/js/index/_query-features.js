@@ -77,7 +77,7 @@ export const getQueryFeaturesController = (map) => {
 
         // Fade out circle in steps
         const radius = 10 * 1.5 ** (19 - zoom)
-        const circle = L.circle(latLng, radius, focusStyles.element)
+        const circle = L.circle(latLng, { ...focusStyles.element, radius })
         const steps = 25
         const stepDuration = 30
         const opacityStep = 1 / steps

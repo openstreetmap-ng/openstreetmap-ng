@@ -6,7 +6,6 @@ if (tracesUploadBody) {
 
     // On success callback, navigate to the new trace
     const onFormSuccess = ({ trace_id }) => {
-        console.debug("onFormSuccess", trace_id)
         location.href = `/trace/${trace_id}`
     }
 

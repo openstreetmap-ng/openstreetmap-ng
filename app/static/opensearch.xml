@@ -8,7 +8,7 @@
 	<Attribution>Copyright (c) OpenStreetMap contributors</Attribution>
 	<InputEncoding>UTF-8</InputEncoding>
 	<Url template="https://www.openstreetmap.org/search" type="text/html" method="get">
-	  <Param name="query" value="{searchTerms}"/>
+	  <Param name="q" value="{searchTerms}"/>
 	</Url>
 	<Query role="example" searchTerms="Paris"/>
 	<Url template="https://www.openstreetmap.org/static/opensearch.xml" type="application/opensearchdescription+xml" rel="self"/>

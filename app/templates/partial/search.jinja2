@@ -1,0 +1,19 @@
+<ul class="search-list list-unstyled mb-0" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}">
+    {% for result in results %}
+    {% set element = result.element %}
+    {% set point = result.point %}
+    <li class="social-action social-entry" data-type="{{ element.type }}" data-id="{{ element.id }}"
+        {% if point is not none %} data-lon="{{ point.x }}" data-lat="{{ point.y }}" {% endif %}>
+        <p class="header text-muted d-flex justify-content-between">
+            <span>{{ result.prefix }}</span>
+            <a class="stretched-link" href="/{{ element.type }}/{{ element.id }}">
+                {{ element.type }}/{{ element.id }}
+            </a>
+        </p>
+        <p class="body">{{ result.display_name }}</p>
+    </li>
+    {% endfor %}
+</ul>
+{% if not results %}
+<p>{{ t('results.we_did_not_find_any_results') }}</p>
+{% endif %}

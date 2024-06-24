@@ -24,32 +24,28 @@ if (settingsBody) {
     const removeAvatarButton = avatarForm.querySelector("button.remove-avatar")
 
     const onAvatarFileChange = () => {
-        console.debug("onAvatarFileChange")
         avatarTypeInput.value = "custom"
         avatarForm.requestSubmit()
     }
 
     const onUploadAvatarClick = () => {
-        console.debug("onUploadAvatarClick")
         avatarFileInput.click()
     }
 
     const onUseGravatarClick = () => {
-        console.debug("onUseGravatarClick")
         avatarTypeInput.value = "gravatar"
         avatarFileInput.value = ""
         avatarForm.requestSubmit()
     }
 
     const onRemoveAvatarClick = () => {
-        console.debug("onRemoveAvatarClick")
         avatarTypeInput.value = "default"
         avatarFileInput.value = ""
         avatarForm.requestSubmit()
     }
 
+    // On successful avatar upload, update avatar images
     const onAvatarFormSuccess = (data) => {
-        console.debug("onAvatarFormSuccess", data)
         for (const avatar of avatars) avatar.src = data.avatar_url
     }
 

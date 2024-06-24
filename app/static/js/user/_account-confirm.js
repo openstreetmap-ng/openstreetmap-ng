@@ -4,10 +4,11 @@ const accountConfirmBody = document.querySelector("body.account-confirm-body")
 if (accountConfirmBody) {
     const resendForm = accountConfirmBody.querySelector("form.resend-form")
 
-    const onResendSuccess = (data) => {
+    // On successful resend, redirect to welcome if account is already active
+    const onResendFormSuccess = (data) => {
         console.debug("onResendSuccess", data)
         if (data.is_active) window.location = "/welcome"
     }
 
-    configureStandardForm(resendForm, onResendSuccess)
+    configureStandardForm(resendForm, onResendFormSuccess)
 }

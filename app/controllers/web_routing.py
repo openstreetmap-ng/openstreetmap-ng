@@ -7,7 +7,7 @@ from shapely.geometry.base import BaseGeometry
 
 from app.lib.geo_utils import parse_bbox
 from app.lib.nominatim import Nominatim
-from app.models.nominatim_result import NominatimResult
+from app.models.search_result import SearchResult
 
 router = APIRouter(prefix='/api/web/routing')
 
@@ -19,8 +19,8 @@ async def resolve_names(
     bounds: Annotated[str, Form(min_length=1)],
 ) -> dict:
     bounds_shape = parse_bbox(bounds)  # TODO: MultiPolygon support
-    resolve_from: NominatimResult = None
-    resolve_to: NominatimResult = None
+    resolve_from: SearchResult = None
+    resolve_to: SearchResult = None
 
     async def from_task() -> None:
         nonlocal resolve_from

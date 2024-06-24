@@ -2,20 +2,24 @@ import logging
 from collections.abc import Sequence
 from urllib.parse import urlencode
 
+import numpy as np
+from anyio import create_task_group
 from httpx import HTTPError
-from shapely import Point, Polygon, box, get_coordinates
+from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
+from app.lib.feature_name import features_prefixes
 from app.lib.translation import primary_translation_language
 from app.limits import (
     NOMINATIM_CACHE_LONG_EXPIRE,
     NOMINATIM_CACHE_SHORT_EXPIRE,
     NOMINATIM_HTTP_LONG_TIMEOUT,
     NOMINATIM_HTTP_SHORT_TIMEOUT,
-    NOMINATIM_SEARCH_RESULTS_LIMIT,
 )
+from app.models.db.element import Element
 from app.models.element_ref import ElementRef
-from app.models.nominatim_result import NominatimResult
+from app.models.search_result import SearchResult
+from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheService
 from app.utils import HTTP, JSON_DECODE
 
@@ -59,28 +63,80 @@ class Nominatim:
             return f'{y:.5f}, {x:.5f}'
 
     @staticmethod
-    async def search(*, q: str, bounds: Polygon | None = None) -> NominatimResult:
+    async def search(
+        *,
+        q: str,
+        bounds: Polygon | MultiPolygon | None = None,
+        at_sequence_id: int | None,
+        limit: int,
+    ) -> Sequence[SearchResult]:
         """
-        Search for a location by name.
+        Search for a location by name and optional bounds.
 
-        Returns the first result as a NominatimSearchGeneric object.
+        Returns a sequence of NominatimResult.
         """
-        path = '/search?' + urlencode(
-            {
-                'format': 'jsonv2',
-                'q': q,
-                'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
-                'accept-language': primary_translation_language(),
-            }
-        )
+        polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else (bounds,)
+        results: list[SearchResult] = []
 
-        async def factory() -> bytes:
-            logging.debug('Nominatim search cache miss for path %r', path)
-            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
-            r.raise_for_status()
-            return r.content
+        async def task(polygon: Polygon | None):
+            results.extend(
+                await _search(
+                    q=q,
+                    bounds=polygon,
+                    at_sequence_id=at_sequence_id,
+                    limit=limit,
+                )
+            )
 
+        # small optimization, skip task group if only one polygon
+        if len(polygons) <= 1:
+            await task(polygons[0])
+        else:
+            async with create_task_group() as tg:
+                for polygon in polygons:
+                    tg.start_soon(task, polygon)
+            results.sort(key=lambda r: r.importance, reverse=True)
+
+        return results
+
+
+async def _search(
+    *,
+    q: str,
+    bounds: Polygon | None = None,
+    at_sequence_id: int | None,
+    limit: int,
+) -> Sequence[SearchResult]:
+    """
+    Search for a location by name and optional simple bounds.
+
+    Returns a sequence of NominatimResult.
+    """
+    path = '/search?' + urlencode(
+        {
+            'format': 'jsonv2',
+            'q': q,
+            'limit': limit,
+            **(
+                {
+                    'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds),
+                    'bounded': 1,
+                }
+                if (bounds is not None)
+                else {}
+            ),
+            'accept-language': primary_translation_language(),
+        }
+    )
+
+    async def factory() -> bytes:
+        logging.debug('Nominatim search cache miss for path %r', path)
+        r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
+        r.raise_for_status()
+        return r.content
+
+    # cache only stable queries
+    if bounds is None:
         cache = await CacheService.get(
             path,
             context=_cache_context,
@@ -88,54 +144,56 @@ class Nominatim:
             hash_key=True,
             ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
         )
-        result: dict = JSON_DECODE(cache.value)[0]
+        response = cache.value
+    else:
+        response = await factory()
 
-        point = Point(float(result['lon']), float(result['lat']))
-        name = result['display_name']
-        result_bbox = result['boundingbox']
-        miny = float(result_bbox[0])
-        maxy = float(result_bbox[1])
-        minx = float(result_bbox[2])
-        maxx = float(result_bbox[3])
-        geometry = box(minx, miny, maxx, maxy)
+    refs: list[ElementRef] = []
+    entries: list[dict] = []
+    for entry in JSON_DECODE(response):
+        # some results are abstract and have no osm_type/osm_id
+        osm_type = entry.get('osm_type')
+        osm_id = entry.get('osm_id')
+        if (osm_type is None) or (osm_id is None):
+            continue
 
-        return NominatimResult(point=point, name=name, bounds=geometry)
+        ref = ElementRef(osm_type, osm_id)
+        refs.append(ref)
+        entries.append(entry)
 
-    @staticmethod
-    async def search_elements(*, q: str, bounds: Polygon | None = None) -> Sequence[ElementRef]:
-        """
-        Search for a location by name.
+    elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
 
-        Returns a sequence of ElementRef objects.
-        """
-        path = '/search?' + urlencode(
-            {
-                'format': 'jsonv2',
-                'q': q,
-                'limit': NOMINATIM_SEARCH_RESULTS_LIMIT,
-                **({'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds)} if (bounds is not None) else {}),
-                'accept-language': primary_translation_language(),
-            }
+    # reorder elements to match the order of entries
+    ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
+    elements = tuple(ref_element_map.get(ref) for ref in refs)
+
+    prefixes = features_prefixes(elements)
+    result: list[SearchResult] = []
+    for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
+        # skip non-existing elements
+        if element is None or not element.visible:
+            continue
+
+        bbox = entry['boundingbox']
+        miny = float(bbox[0])
+        maxy = float(bbox[1])
+        minx = float(bbox[2])
+        maxx = float(bbox[3])
+        geometry: Polygon = box(minx, miny, maxx, maxy)
+
+        lon = (minx + maxx) / 2
+        lat = (miny + maxy) / 2
+        point = lib.points(np.array((lon, lat), np.float64))
+
+        result.append(
+            SearchResult(
+                element=element,
+                rank=entry['place_rank'],
+                importance=entry['importance'],
+                prefix=prefix,
+                display_name=entry['display_name'],
+                point=point,
+                bounds=geometry,
+            )
         )
-
-        async def factory() -> bytes:
-            logging.debug('Nominatim search cache miss for path %r', path)
-            r = await HTTP.get(NOMINATIM_URL + path, timeout=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
-            r.raise_for_status()
-            return r.content
-
-        cache = await CacheService.get(
-            path,
-            context=_cache_context,
-            factory=factory,
-            hash_key=True,
-            ttl=NOMINATIM_CACHE_SHORT_EXPIRE,
-        )
-        results: list[dict] = JSON_DECODE(cache.value)
-
-        return tuple(
-            ElementRef(osm_type, osm_id)
-            for result in results
-            # some results are abstract and have no osm_type/osm_id
-            if (osm_type := result.get('osm_type')) is not None and (osm_id := result.get('osm_id')) is not None
-        )
+    return result

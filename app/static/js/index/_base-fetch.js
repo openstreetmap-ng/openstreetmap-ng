@@ -31,6 +31,7 @@ export const getBaseFetchController = (map, className, successCallback) => {
     return {
         load: ({ url }) => {
             switchActionSidebar(map, className)
+            if (!url) return
 
             // Abort any pending request
             if (abortController) abortController.abort()
@@ -52,14 +53,12 @@ export const getBaseFetchController = (map, className, successCallback) => {
                     if (successCallback) successCallback(dynamicContent)
                 })
                 .catch((error) => {
-                    // TODO: handle exceptions nicely
                     if (error.name === "AbortError") return
                     console.error("Failed to fetch sidebar", error)
+                    dynamicContent.textContent = error.message
                     alert(error.message)
                 })
         },
-        unload: () => {
-            // do nothing
-        },
+        unload: () => {}, // do nothing
     }
 }

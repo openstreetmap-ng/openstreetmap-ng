@@ -2,8 +2,10 @@ import gc
 import importlib
 import logging
 import mimetypes
+import os
 import pathlib
 import sys
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
@@ -45,6 +47,11 @@ from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
 from app.validators.element_type import ElementTypeConvertor
+
+# set the timezone to UTC
+# note that "export TZ=UTC" from shell.nix is unreliable for some users
+os.environ['TZ'] = 'UTC'
+time.tzset()
 
 # register additional mimetypes
 mimetypes.init()

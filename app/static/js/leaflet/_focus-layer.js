@@ -44,15 +44,16 @@ let paneCreated = false
  * @param {OSMObject|null} object Object to focus
  * @param {object} options Options
  * @param {boolean} options.fitBounds Fit the map to the focused object
+ * @param {number} options.padBounds Amount of padding to add to the bounds
+ * @param {number} options.maxZoom Maximum zoom level to focus on
+ * @param {boolean} options.intersects Whether to perform intersection check instead of containment
+ * @param {boolean} options.proportionCheck Perform a proportion check when fitting the map
  * @returns {L.Layer[]} The layers of the focused object
  */
 export const focusMapObject = (map, object, options) => {
-    console.debug("focusMapObject", object)
-
     if (object) {
         return focusManyMapObjects(map, [object], options)
     }
-
     focusManyMapObjects(map, [], options)
     return []
 }
@@ -64,11 +65,13 @@ export const focusMapObject = (map, object, options) => {
  * @param {OSMObject[]} objects Objects to focus
  * @param {object} options Options
  * @param {boolean} options.fitBounds Fit the map to the focused objects
+ * @param {number} options.padBounds Amount of padding to add to the bounds
+ * @param {number} options.maxZoom Maximum zoom level to focus on
+ * @param {boolean} options.intersects Whether to perform intersection check instead of containment
+ * @param {boolean} options.proportionCheck Perform a proportion check when fitting the map
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects, options) => {
-    console.debug("focusManyMapObjects", objects.length)
-
     const focusLayer = getOverlayLayerById("focus")
 
     // Always clear the focus layer
@@ -77,7 +80,7 @@ export const focusManyMapObjects = (map, objects, options) => {
     // If there are no objects to focus, remove the focus layer
     if (!objects.length) {
         if (map.hasLayer(focusLayer)) {
-            console.debug("Removing overlay layer", focusLayer.options.layerId)
+            // Too noisy: console.debug("Removing overlay layer", focusLayer.options.layerId)
             map.removeLayer(focusLayer)
 
             // Trigger the overlayremove event
@@ -96,7 +99,7 @@ export const focusManyMapObjects = (map, objects, options) => {
             map.createPane("focus")
             paneCreated = true
         }
-        console.debug("Adding overlay layer", focusLayer.options.layerId)
+        // Too noisy: console.debug("Adding overlay layer", focusLayer.options.layerId)
         map.addLayer(focusLayer)
 
         // Trigger the overlayadd event
@@ -110,17 +113,23 @@ export const focusManyMapObjects = (map, objects, options) => {
     // Focus on the layers if they are offscreen
     if (layers.length && (options?.fitBounds ?? true)) {
         const latLngBounds = layers.reduce((bounds, layer) => bounds.extend(getLayerBounds(layer)), L.latLngBounds())
+        const latLngBoundsPadded = options?.padBounds ? latLngBounds.pad(options.padBounds) : latLngBounds
         const mapBounds = map.getBounds()
-        if (!mapBounds.contains(latLngBounds)) {
-            console.debug("Fitting map to", layers.length, "focus layers (offscreen)")
-            map.fitBounds(latLngBounds, { animate: false })
-        } else {
+
+        const maxZoom = options?.maxZoom ?? 18
+        const currentZoom = map.getZoom()
+        const fitMaxZoom = maxZoom >= currentZoom ? maxZoom : null
+
+        if (options?.intersects ? !mapBounds.intersects(latLngBounds) : !mapBounds.contains(latLngBounds)) {
+            console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(offscreen)")
+            map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
+        } else if (options?.proportionCheck ?? true) {
             const latLngSize = getLatLngBoundsSize(latLngBounds)
             const mapBoundsSize = getLatLngBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize
             if (proportion > 0 && proportion < 0.00035) {
-                console.debug("Fitting map to", layers.length, "focus layers (small)")
-                map.fitBounds(latLngBounds, { animate: false })
+                console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(small)")
+                map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
             }
         }
     }

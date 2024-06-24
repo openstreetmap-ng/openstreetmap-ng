@@ -10,23 +10,33 @@
 {% block body %}
 
 <div class="map-container">
-    {% include 'index/_banner.jinja2' %}
-    {% include 'index/_changeset.jinja2' %}
-    {% include 'index/_changesets_history.jinja2' %}
-    {% include 'index/_element.jinja2' %}
-    {% include 'index/_element_history.jinja2' %}
-    {% include 'index/_export.jinja2' %}
-    {% include 'index/_new_note.jinja2' %}
-    {% include 'index/_note.jinja2' %}
-    {% include 'index/_query_features.jinja2' %}
-    {% include 'index/_routing.jinja2' %}
-    {% include 'index/_search.jinja2' %}
+    <div class="sidebar sidebar-overlay">
+        {% include 'index/_search_form.jinja2' %}
 
-    <div class="main-map"></div>
+        {% include 'index/_banner.jinja2' %}
+        {% include 'index/_changeset.jinja2' %}
+        {% include 'index/_changesets_history.jinja2' %}
+        {% include 'index/_element.jinja2' %}
+        {% include 'index/_element_history.jinja2' %}
+        {% include 'index/_export.jinja2' %}
+        {% include 'index/_new_note.jinja2' %}
+        {% include 'index/_note.jinja2' %}
+        {% include 'index/_query_features.jinja2' %}
+        {% include 'index/_routing.jinja2' %}
+        {% include 'index/_search.jinja2' %}
+    </div>
 
-    {% include 'leaflet/_sidebar_layers.jinja2' %}
-    {% include 'leaflet/_sidebar_legend.jinja2' %}
-    {% include 'leaflet/_sidebar_share.jinja2' %}
+    <div class="main-map">
+        <div class="map-alert-container">
+            {% include 'index/_search_alert.jinja2' %}
+        </div>
+    </div>
+
+    <div class="sidebar">
+        {% include 'leaflet/_sidebar_layers.jinja2' %}
+        {% include 'leaflet/_sidebar_legend.jinja2' %}
+        {% include 'leaflet/_sidebar_share.jinja2' %}
+    </div>
 </div>
 
 {% endblock %}

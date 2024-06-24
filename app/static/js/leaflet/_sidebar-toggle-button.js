@@ -47,7 +47,7 @@ export const getSidebarToggleButton = (className, tooltipTitle) => {
 
         // On input checked, toggle sidebar visibility and invalidate map size
         const onButtonClick = () => {
-            console.debug("toggleLeafletSidebar", className)
+            console.debug("sidebarToggleButton", className)
 
             // unselect other buttons
             for (const otherContainer of sidebarToggleContainers) {

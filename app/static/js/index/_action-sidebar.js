@@ -2,8 +2,7 @@ import * as L from "leaflet"
 import { routerNavigateStrict } from "./_router.js"
 
 const actionSidebars = document.querySelectorAll(".action-sidebar")
-const searchForms = document.querySelectorAll(".action-sidebar .search-form")
-const routingForms = document.querySelectorAll(".action-sidebar .routing-form")
+const sidebarContainer = actionSidebars ? actionSidebars[0].parentElement : null
 
 /**
  * Get the action sidebar with the given class name
@@ -25,13 +24,11 @@ export const getActionSidebar = (className) => {
 export const switchActionSidebar = (map, className) => {
     console.debug("switchActionSidebar", className)
 
-    // Reset all search and routing forms
-    for (const searchForm of searchForms) searchForm.reset()
-    for (const routingForm of routingForms) routingForm.reset()
-
     // Toggle all action sidebars
     for (const sidebar of actionSidebars) {
-        sidebar.classList.toggle("d-none", !sidebar.classList.contains(className))
+        const isTarget = sidebar.classList.contains(className)
+        if (isTarget) sidebarContainer.classList.toggle("sidebar-overlay", sidebar.dataset.sidebarOverlay === "1")
+        sidebar.classList.toggle("d-none", !isTarget)
     }
 
     // Invalidate the map size
