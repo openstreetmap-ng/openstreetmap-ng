@@ -40,9 +40,18 @@ const setDefaultEditor = (event) => {
         body: userSettings
     });
 
-    const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
-    defaultEditorBadge.remove();
-    editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+    if (rememberChoice.disabled) {
+        const defaultEditorBadge = document.createElement("span");
+        defaultEditorBadge.classList.add("badge", "bg-green", "default-editor");
+        defaultEditorBadge.innerText = "Default";
+        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+
+        rememberChoice.disabled = false;
+    } else {
+        const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+        defaultEditorBadge.remove();
+        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+    }
 }
 
 for (const editButton of editButtons) {
@@ -51,6 +60,7 @@ for (const editButton of editButtons) {
 
 // Uncheck "remember my choice" checkbox when edit dropdown hides
 const uncheckRememberChoice = () => {
+    if (rememberChoice.disabled) return;
     rememberChoice.checked = false;
 }
 editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice);
