@@ -35,7 +35,7 @@ export const getSearchController = (map) => {
     const onSearchAlertClick = () => {
         console.debug("Searching within new area")
         base.unload()
-        base.load({ local_only: true })
+        base.load({ localOnly: true })
     }
 
     // On map update, check if view was changed and show alert if so
@@ -185,7 +185,8 @@ export const getSearchController = (map) => {
         const url = `/api/partial/search?${qsEncode({
             q: query,
             bbox,
-            local_only: options?.local_only ?? false,
+            // biome-ignore lint/style/useNamingConvention:
+            local_only: options?.localOnly ?? false,
         })}`
         baseLoad({ url })
     }
