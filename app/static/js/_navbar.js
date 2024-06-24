@@ -28,21 +28,24 @@ for (const link of navLinks) {
 // Check for remembering user's choice before switching to the editor
 const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
-for (const editButton of editButtons) {
-    editButton.addEventListener("click", (event) => {
-        if (rememberChoice.checked) {
-            const userSettings = new FormData()
-            userSettings.append("editor", event.currentTarget.dataset.osmEditor)
-            const response = fetch("/api/web/user/settings/editor", {
-                method: "POST",
-                body: userSettings
-            });
 
-            const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
-            defaultEditorBadge.remove();
-            event.currentTarget.insertAdjacentElement("beforeend", defaultEditorBadge);
-        }
+const setDefaultEditor = (event) => {
+    if (!rememberChoice.checked) return;
+
+    const userSettings = new FormData()
+    userSettings.append("editor", event.currentTarget.dataset.osmEditor)
+    const response = fetch("/api/web/user/settings/editor", {
+        method: "POST",
+        body: userSettings
     });
+
+    const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+    defaultEditorBadge.remove();
+    event.currentTarget.insertAdjacentElement("beforeend", defaultEditorBadge);
+}
+
+for (const editButton of editButtons) {
+    editButton.addEventListener("click", setDefaultEditor);
 }
 
 // Uncheck "remember my choice" checkbox when edit dropdown hides
