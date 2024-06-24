@@ -5,11 +5,19 @@ import { getPageTitle } from "../_title.js"
 import { isLongitude } from "../_utils.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
-import { getMarkerIcon } from "../leaflet/_utils.js"
+import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { routerNavigateStrict } from "./_router.js"
+import { setSearchFormQuery } from "./_search-form.js"
 
 const markerOpacity = 0.8
+const searchAlertChangeThreshold = 0.9
+const focusOptions = {
+    padBounds: 0.5,
+    maxZoom: 14,
+    intersects: true,
+    proportionCheck: false,
+}
 
 /**
  * Create a new search controller
@@ -20,18 +28,45 @@ export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
     const searchLayer = getOverlayLayerById("search")
     const searchForm = document.querySelector(".search-form")
-    const searchInput = searchForm.elements.q
+    const searchAlert = document.querySelector(".search-alert")
+    let initialBounds = null
+
+    // On search alert click, reload the search with the new area
+    const onSearchAlertClick = () => {
+        console.debug("Searching within new area")
+        base.unload()
+        base.load({ local_only: true })
+    }
+
+    // On map update, check if view was changed and show alert if so
+    const onMapZoomOrMoveEnd = () => {
+        if (!initialBounds) {
+            initialBounds = map.getBounds()
+            console.debug("Search initial bounds set to", initialBounds)
+            return
+        }
+
+        if (!searchAlert.classList.contains("d-none")) return
+
+        const mapBounds = map.getBounds()
+        const intersectionBounds = getLatLngBoundsIntersection(initialBounds, mapBounds)
+        const intersectionBoundsSize = getLatLngBoundsSize(intersectionBounds)
+
+        const mapBoundsSize = getLatLngBoundsSize(mapBounds)
+        const initialBoundsSize = getLatLngBoundsSize(initialBounds)
+        const proportion = Math.min(intersectionBoundsSize / mapBoundsSize, intersectionBoundsSize / initialBoundsSize)
+        if (proportion > searchAlertChangeThreshold) return
+
+        searchAlert.classList.remove("d-none")
+        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+    }
 
     const onLoaded = (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
         const searchList = sidebarContent.querySelector(".search-list")
-
-        // Handle no results
-        if (!searchList) return
-
         const dataset = searchList.dataset
         const boundsStr = dataset.bounds
-        const globalSearch = !boundsStr
+        const isGlobalMode = !boundsStr
         const groupedElements = JSON.parse(dataset.leaflet)
         const results = searchList.querySelectorAll(".social-action")
         const layerGroup = L.layerGroup()
@@ -59,12 +94,9 @@ export const getSearchController = (map) => {
 
                 result.classList.add("hover")
                 focusManyMapObjects(map, elements, {
+                    ...focusOptions,
                     // Focus on hover only during global search
-                    fitBounds: globalSearch,
-                    padBounds: 0.5,
-                    maxZoom: globalSearch ? 14 : 17,
-                    intersects: true,
-                    proportionCheck: false,
+                    fitBounds: isGlobalMode,
                 })
                 marker?.setOpacity(1)
             }
@@ -104,7 +136,19 @@ export const getSearchController = (map) => {
         if (results.length) searchLayer.addLayer(layerGroup)
         console.debug("Search showing", results.length, "results")
 
-        if (!globalSearch) {
+        if (isGlobalMode) {
+            // global mode
+            if (results.length) {
+                focusManyMapObjects(map, groupedElements[0], focusOptions)
+                focusMapObject(map, null)
+            }
+            initialBounds = map.getBounds()
+            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+        } else {
+            // local mode
+            initialBounds = null // will be set after flyToBounds animation
+            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+
             const bounds = boundsStr.split(",").map(Number.parseFloat)
             map.flyToBounds(L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2])))
             console.debug("Search focusing on", boundsStr)
@@ -115,9 +159,12 @@ export const getSearchController = (map) => {
     const baseLoad = base.load
     const baseUnload = base.unload
 
-    base.load = () => {
-        // Stick the search form
+    base.load = (options) => {
+        // Stick the search form and reset search alert
         searchForm.classList.add("sticky-top")
+        searchAlert.classList.add("d-none")
+        searchAlert.addEventListener("click", onSearchAlertClick, { once: true })
+        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
 
         // Create the search layer if it doesn't exist
         if (!map.hasLayer(searchLayer)) {
@@ -128,18 +175,18 @@ export const getSearchController = (map) => {
 
         const searchParams = qsParse(location.search.substring(1))
         const query = searchParams.q || searchParams.query || ""
-
-        // Set page title
         document.title = getPageTitle(query || defaultTitle)
-
-        // Set search input if unset
-        if (!searchInput.value) searchInput.value = query
+        setSearchFormQuery(query)
 
         // Load empty sidebar to ensure proper bbox
         baseLoad({ url: null })
         // Pad the bounds to avoid floating point errors
         const bbox = map.getBounds().pad(-0.01).toBBoxString()
-        const url = `/api/partial/search?${qsEncode({ q: query, bbox })}`
+        const url = `/api/partial/search?${qsEncode({
+            q: query,
+            bbox,
+            local_only: options?.local_only ?? false,
+        })}`
         baseLoad({ url })
     }
 
@@ -156,8 +203,11 @@ export const getSearchController = (map) => {
             map.fire("overlayremove", { layer: searchLayer, name: searchLayer.options.layerId })
         }
 
-        // Unstick the search form
+        // Unstick the search form and reset search alert
         searchForm.classList.remove("sticky-top")
+        searchAlert.classList.add("d-none")
+        searchAlert.removeEventListener("click", onSearchAlertClick)
+        map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
     }
 
     return base

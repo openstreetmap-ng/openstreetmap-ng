@@ -20,7 +20,7 @@ else:
 
 class Search:
     @staticmethod
-    def get_search_bounds(bbox: str) -> Sequence[tuple[str, Polygon | MultiPolygon | None]]:
+    def get_search_bounds(bbox: str, local_only: bool) -> Sequence[tuple[str, Polygon | MultiPolygon | None]]:
         """
         Get search bounds from a bbox string.
 
@@ -43,6 +43,8 @@ class Search:
         local_iterations: cython.int = int(ceil(log2(search_local_area_limit / bbox_area)))
         if local_iterations > search_local_max_iterations:
             local_iterations = search_local_max_iterations
+        if local_only:
+            local_iterations = 1
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
 
         result = []
@@ -59,16 +61,21 @@ class Search:
             shapely_bounds = parse_bbox(leaflet_bounds)
             result.append((leaflet_bounds, shapely_bounds))
 
-        # last iteration is always unbounded
-        result.append(('', None))
+        if not local_only:
+            # append global search bounds
+            result.append(('', None))
         return result
 
     @staticmethod
-    def best_results_index(task_results: Sequence[SearchResult], local_only: bool) -> int:
+    def best_results_index(task_results: Sequence[SearchResult]) -> int:
         """
         Determine the best results index.
         """
-        if not local_only and _should_use_global_search(task_results):
+        # local_only mode
+        if len(task_results) == 1:
+            return 0
+
+        if _should_use_global_search(task_results):
             # global search
             logging.debug('Search performed using global mode')
             return -1
@@ -171,7 +178,7 @@ class Search:
 
 
 @cython.cfunc
-def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) -> bool:
+def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) -> cython.char:
     """
     Determine whether to use global search or local search.
 

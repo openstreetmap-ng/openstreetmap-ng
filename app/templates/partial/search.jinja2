@@ -1,5 +1,4 @@
-{% if results %}
-<ul class="search-list list-unstyled" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}">
+<ul class="search-list list-unstyled mb-0" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}">
     {% for result in results %}
     {% set element = result.element %}
     {% set point = result.point %}
@@ -15,7 +14,6 @@
     </li>
     {% endfor %}
 </ul>
-<p class="form-text text-center mt-4">{{ t('results.no_more_results') }}</p>
-{% else %}
+{% if not results %}
 <p>{{ t('results.we_did_not_find_any_results') }}</p>
 {% endif %}

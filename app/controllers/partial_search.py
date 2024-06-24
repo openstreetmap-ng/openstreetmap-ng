@@ -34,7 +34,7 @@ async def search(
     bbox: Annotated[str, Query(min_length=1)],
     local_only: Annotated[bool, Query()] = False,
 ):
-    search_bounds = Search.get_search_bounds(bbox)
+    search_bounds = Search.get_search_bounds(bbox, local_only)
     task_results: list[Sequence[SearchResult]] = [None] * len(search_bounds)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
@@ -51,7 +51,7 @@ async def search(
         for i in range(len(search_bounds)):
             tg.start_soon(task, i)
 
-    task_index = Search.best_results_index(task_results, local_only)
+    task_index = Search.best_results_index(task_results)
     bounds = search_bounds[task_index][0]
     results = task_results[task_index]
     results = Search.deduplicate_similar_results(results)

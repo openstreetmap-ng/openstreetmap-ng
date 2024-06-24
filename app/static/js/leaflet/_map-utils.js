@@ -497,17 +497,23 @@ export const addControlGroup = (map, controls) => {
 }
 
 /**
- * Disable click propagation for map controls
+ * Disable click propagation for map controls, to avoid map events being triggered by the controls
  * @param {L.Map} map Leaflet map
  * @returns {void}
  */
-export const disableControlClickPropagation = (map) => {
-    const container = map.getContainer().querySelector(".leaflet-control-container")
-    if (!container) {
+export const disableControlsClickPropagation = (map) => {
+    const mapContainer = map.getContainer()
+    const controlContainer = mapContainer.querySelector(".leaflet-control-container")
+    if (controlContainer) {
+        console.debug("Disabled click propagation for map controls")
+        L.DomEvent.disableClickPropagation(controlContainer)
+    } else {
         console.warn("Leaflet control container not found")
-        return
     }
 
-    console.debug("disableControlClickPropagation", container)
-    L.DomEvent.disableClickPropagation(container)
+    const mapAlertsContainer = mapContainer.querySelectorAll(".map-alert")
+    for (const mapAlert of mapAlertsContainer) {
+        L.DomEvent.disableClickPropagation(mapAlert)
+    }
+    console.debug("Disabled click propagation for", mapAlertsContainer.length, "map alerts")
 }

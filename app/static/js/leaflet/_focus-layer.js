@@ -51,12 +51,9 @@ let paneCreated = false
  * @returns {L.Layer[]} The layers of the focused object
  */
 export const focusMapObject = (map, object, options) => {
-    console.debug("focusMapObject", object)
-
     if (object) {
         return focusManyMapObjects(map, [object], options)
     }
-
     focusManyMapObjects(map, [], options)
     return []
 }
@@ -75,8 +72,6 @@ export const focusMapObject = (map, object, options) => {
  * @returns {L.Layer[]} The layers of the focused objects
  */
 export const focusManyMapObjects = (map, objects, options) => {
-    console.debug("focusManyMapObjects", objects.length)
-
     const focusLayer = getOverlayLayerById("focus")
 
     // Always clear the focus layer
@@ -85,7 +80,7 @@ export const focusManyMapObjects = (map, objects, options) => {
     // If there are no objects to focus, remove the focus layer
     if (!objects.length) {
         if (map.hasLayer(focusLayer)) {
-            console.debug("Removing overlay layer", focusLayer.options.layerId)
+            // Too noisy: console.debug("Removing overlay layer", focusLayer.options.layerId)
             map.removeLayer(focusLayer)
 
             // Trigger the overlayremove event
@@ -104,7 +99,7 @@ export const focusManyMapObjects = (map, objects, options) => {
             map.createPane("focus")
             paneCreated = true
         }
-        console.debug("Adding overlay layer", focusLayer.options.layerId)
+        // Too noisy: console.debug("Adding overlay layer", focusLayer.options.layerId)
         map.addLayer(focusLayer)
 
         // Trigger the overlayadd event

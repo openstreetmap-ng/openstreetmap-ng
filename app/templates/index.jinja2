@@ -26,7 +26,11 @@
         {% include 'index/_search.jinja2' %}
     </div>
 
-    <div class="main-map"></div>
+    <div class="main-map">
+        <div class="map-alert-container">
+            {% include 'index/_search_alert.jinja2' %}
+        </div>
+    </div>
 
     <div class="sidebar">
         {% include 'leaflet/_sidebar_layers.jinja2' %}

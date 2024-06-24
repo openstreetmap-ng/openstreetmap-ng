@@ -7,6 +7,12 @@ MessageSeverity = Literal['success', 'info', 'error']
 
 
 class MessageCollector:
+    """
+    Message collector returns messages in OpenAPI-compatible format.
+
+    This format is often used by StandardForm to parse and display form feedback.
+    """
+
     __slots__ = ('_messages',)
 
     def __init__(self) -> None:
