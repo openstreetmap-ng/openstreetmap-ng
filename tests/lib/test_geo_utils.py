@@ -67,6 +67,12 @@ def test_parse_bbox_meridian():
     )
 
 
+def test_parse_normalize_latitude():
+    assert parse_bbox('1,-95,3,4').equals(
+        Polygon([(3, -90), (3, 4), (1, 4), (1, -90), (3, -90)]),
+    )
+
+
 @pytest.mark.parametrize(
     'bbox',
     [
@@ -77,7 +83,6 @@ def test_parse_bbox_meridian():
         '1,4,3,2',
         '190,2,3,4',
         '1,95,3,4',
-        '1,-95,3,4',
         'a,b,c,d',
     ],
 )
