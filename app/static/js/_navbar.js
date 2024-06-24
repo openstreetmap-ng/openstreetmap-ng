@@ -32,8 +32,9 @@ const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 const setDefaultEditor = (event) => {
     if (!rememberChoice.checked) return;
 
+    const editorButton = event.currentTarget;
     const userSettings = new FormData()
-    userSettings.append("editor", event.currentTarget.dataset.osmEditor)
+    userSettings.append("editor", editorButton.dataset.osmEditor)
     const response = fetch("/api/web/user/settings/editor", {
         method: "POST",
         body: userSettings
@@ -41,7 +42,7 @@ const setDefaultEditor = (event) => {
 
     const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
     defaultEditorBadge.remove();
-    event.currentTarget.insertAdjacentElement("beforeend", defaultEditorBadge);
+    editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
 }
 
 for (const editButton of editButtons) {
