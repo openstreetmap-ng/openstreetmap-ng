@@ -22,21 +22,21 @@
                         <label class="form-check-label" for="remember-choice">Remember my choice</label>
                     </div>
                     <hr class="dropdown-divider" />
-                    <a class="dropdown-item map-link edit-link" id="edit-id" href="/edit?editor=id">
+                    <a class="dropdown-item map-link edit-link" osm-editor="id" href="/edit?editor=id">
                         {% set editor %}
                         <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                         {{ t('editor.id.description') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
                     </a>
-                    <a class="dropdown-item map-link edit-link" id="edit-rapid" href="/edit?editor=rapid">
+                    <a class="dropdown-item map-link edit-link" osm-editor="rapid" href="/edit?editor=rapid">
                         {% set editor %}
                         <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                         {{ t('editor.rapid.name') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
                     </a>
-                    <button class="dropdown-item map-link edit-link remote-edit" id="edit-remote">
+                    <button class="dropdown-item map-link edit-link remote-edit" osm-editor="remote">
                         {% set editor %}
                         <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                         {{ t('editor.remote.description') }}

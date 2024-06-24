@@ -32,17 +32,7 @@ for (const editButton of editButtons) {
     editButton.addEventListener("click", (event) => {
         if (rememberChoice.checked) {
             const userSettings = new FormData()
-            switch (event.currentTarget.id) {
-                case "edit-id":
-                    userSettings.append("editor", "id")
-                    break;
-                case "edit-rapid":
-                    userSettings.append("editor", "rapid")
-                    break;
-                case "edit-remote":
-                    userSettings.append("editor", "remote")
-                    break;
-            }
+            userSettings.append("editor", event.currentTarget.getAttribute("osm-editor"))
             const response = fetch("/api/web/user/settings/editor", {
                 method: "POST",
                 body: userSettings
