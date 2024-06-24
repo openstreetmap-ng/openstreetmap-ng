@@ -37,6 +37,10 @@ for (const editButton of editButtons) {
                 method: "POST",
                 body: userSettings
             });
+
+            const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+            defaultEditorBadge.remove();
+            event.currentTarget.insertAdjacentElement("beforeend", defaultEditorBadge);
         }
     });
 }
