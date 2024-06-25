@@ -1,6 +1,5 @@
 import cython
 
-from app.lib.translation import primary_translation_language
 from app.models.tag_format import TagFormat, TagFormatCollection
 
 
@@ -27,14 +26,13 @@ def _is_wiki_id(s: str) -> cython.char:
 
 
 def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
-    user_lang = primary_translation_language()
     success: cython.char = False
     new_styles = []
 
     for value in values:
         if _is_wiki_id(value):
             success = True
-            url = f'https://www.wikidata.org/entity/{value}?uselang={user_lang}'
+            url = f'https://www.wikidata.org/entity/{value}'
             new_styles.append(TagFormat(value, 'url-safe', url))
         else:
             new_styles.append(TagFormat(value))

@@ -68,17 +68,15 @@ def tags_format_osm_wiki(tags: Sequence[TagFormatCollection]) -> None:
             page = f'Tag:{key}={value}' if specific else f'Key:{key}'
 
             # prioritize wiki pages that match the user's language preferences
-            # user_langs always include the default language
-            # TODO: is uselang necessary?
             for user_lang in user_langs:
                 if user_lang not in locales:
                     continue
 
                 if user_lang == DEFAULT_LANGUAGE:
-                    url = f'https://wiki.openstreetmap.org/wiki/{page}?uselang={primary_lang}'
+                    url = f'https://wiki.openstreetmap.org/wiki/{page}'
                 else:
                     user_lang_case = user_lang.title()
-                    url = f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:{page}?uselang={primary_lang}'
+                    url = f'https://wiki.openstreetmap.org/wiki/{user_lang_case}:{page}'
 
                 if specific:
                     tag.values = (TagFormat(tag_value.value, 'url-safe', url),)

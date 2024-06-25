@@ -2,7 +2,6 @@ import re
 
 import cython
 
-from app.lib.translation import primary_translation_language
 from app.models.tag_format import TagFormat, TagFormatCollection
 
 # make sure to match popular locale combinations, full spec is complex
@@ -19,7 +18,6 @@ def _is_url_string(s: str) -> cython.char:
 def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -> None:
     # always default to english
     key_lang = 'en'
-    user_lang = primary_translation_language()
 
     # check for key language override
     for key_part in key_parts:
@@ -51,7 +49,7 @@ def _format(tag: TagFormatCollection, key_parts: list[str], values: list[str]) -
 
         reference, _, fragment = value.partition('#')
 
-        url = f'https://{lang}.wikipedia.org/wiki/{reference}?uselang={user_lang}'
+        url = f'https://{lang}.wikipedia.org/wiki/{reference}'
 
         if fragment:
             url += f'#{fragment}'
