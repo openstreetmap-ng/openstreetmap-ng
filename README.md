@@ -1,4 +1,4 @@
-# <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" height="100px"> OpenStreetMap-NG
+# <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp?cachebuster" alt="OpenStreetMap-NG logo" align="left" height="96px"> OpenStreetMap-NG
 
 ![Python version](https://shields.monicz.dev/badge/python-v3.12-blue)
 [![Discord Developers Chat](https://shields.monicz.dev/discord/1246123404613128203?logo=discord&logoColor=FFF&label=Developers&color=5865F2&cacheSeconds=600)](https://discord.gg/GM89hdjSCB)
