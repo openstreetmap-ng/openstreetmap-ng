@@ -24,13 +24,16 @@
                         </label>
                     </div>
                     <hr class="dropdown-divider" />
+                    {% set default_editor_badge %}
+                    <span class="badge bg-green default-editor">Default</span>
+                    {% endset %}
                     <a class="dropdown-item map-link edit-link" data-osm-editor="id" href="/edit?editor=id">
                         {% set editor %}
                         <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
                         {{ t('editor.id.description') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
-                        {% if user.editor == 'id' %} <span class="badge bg-green default-editor">Default</span> {% endif %}
+                        {% if user.editor == 'id' %} {{ default_editor_badge }} {% endif %}
                     </a>
                     <a class="dropdown-item map-link edit-link" data-osm-editor="rapid" href="/edit?editor=rapid">
                         {% set editor %}
@@ -38,7 +41,7 @@
                         {{ t('editor.rapid.name') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
-                        {% if user.editor == 'rapid' %} <span class="badge bg-green default-editor">Default</span> {% endif %}
+                        {% if user.editor == 'rapid' %} {{ default_editor_badge }} {% endif %}
                     </a>
                     <button class="dropdown-item map-link edit-link remote-edit" data-osm-editor="remote">
                         {% set editor %}
@@ -46,7 +49,7 @@
                         {{ t('editor.remote.description') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
-                        {% if user.editor == 'remote' %} <span class="badge bg-green default-editor">Default</span> {% endif %}
+                        {% if user.editor == 'remote' %} {{ default_editor_badge }} {% endif %}
                     </button>
                 </div>
             </div>
