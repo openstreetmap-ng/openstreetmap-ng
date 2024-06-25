@@ -1,6 +1,7 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
+import numpy as np
 from anyio import create_task_group
 from fastapi import APIRouter, Path
 from starlette import status
@@ -24,6 +25,8 @@ from app.queries.user_query import UserQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
+
+ACTIVITY_CHART_LENGTH = 365
 
 
 @router.get('/terms')
@@ -110,6 +113,18 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups_count = 0
     groups = ()
 
+    changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, days=ACTIVITY_CHART_LENGTH)
+    dates_range = np.arange(
+        utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=ACTIVITY_CHART_LENGTH),
+        utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
+        timedelta(days=1),
+    ).astype(datetime)
+    activity = np.array(
+        [changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range], dtype=float
+    )
+    perc = max(np.percentile(activity, 95), 1)
+    activity = np.clip(activity / perc, 0, 1) * 19
+    activity = np.round(activity).astype(int)
     return render_response(
         'user/profile/index.jinja2',
         {
@@ -130,5 +145,6 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups_count': groups_count,
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
+            'activity': activity,
         },
     )
