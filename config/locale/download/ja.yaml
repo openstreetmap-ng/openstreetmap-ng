@@ -311,12 +311,12 @@ ja:
       current email address: 現在のメール アドレス
       external auth: 外部認証
       openid:
-        link: https://wiki.openstreetmap.org/wiki/JA:OpenID?uselang=ja
+        link: https://wiki.openstreetmap.org/wiki/JA:OpenID
         link text: これは何ですか?
       public editing:
         heading: 公開編集
         enabled: 有効。匿名ではなく、データを編集できます。
-        enabled link: http://wiki.openstreetmap.org/wiki/JA:Anonymous_edits?uselang=ja
+        enabled link: http://wiki.openstreetmap.org/wiki/JA:Anonymous_edits
         enabled link text: これは何ですか?
         disabled: 無効。データを編集できず、これまでの編集はすべて匿名です。
         disabled link text: なぜ編集できないのですか?
@@ -2089,7 +2089,7 @@ ja:
       visibility_help: これはどういう意味?
       visibility_help_url: http://wiki.openstreetmap.org/wiki/JA:Visibility_of_GPS_traces
       help: ヘルプ
-      help_url: http://wiki.openstreetmap.org/wiki/JA:Upload?uselang=ja
+      help_url: http://wiki.openstreetmap.org/wiki/JA:Upload
     create:
       upload_trace: GPSトレースのアップロード
       trace_uploaded: GPX ファイルをアップロードしました。データベースへの登録に多少時間がかかります。通常この作業は 30 分以内に完了し、それをお知らせするメールをお送りします。

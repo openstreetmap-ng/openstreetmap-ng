@@ -1682,7 +1682,7 @@ pt:
       failed_to_import: 'falha ao importar. Veja a mensagem de erro:'
       more_info_html: Mais informações sobre as falhas de importação GPX e como evitá-las
         podem ser encontradas em %{url}.
-      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=pt-br
+      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] Falha ao importar arquivo GPX'
     gpx_success:
       hi: Olá %{to_user},
@@ -1927,7 +1927,7 @@ pt:
       image: Imagem
       gravatar:
         gravatar: Usar o Gravatar
-        link: https://wiki.openstreetmap.org/wiki/Gravatar?uselang=pt-br
+        link: https://wiki.openstreetmap.org/wiki/Gravatar
         what_is_gravatar: O que é o Gravatar?
         disabled: O Gravatar foi desativado.
         enabled: A exibição do seu Gravatar foi ativada.
@@ -2528,9 +2528,9 @@ pt:
     new:
       upload_trace: Envie as trilhas de GPS
       visibility_help: o que isso significa?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=pt-br
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
       help: Ajuda
-      help_url: http://wiki.openstreetmap.org/wiki/Upload?uselang=pt-br
+      help_url: http://wiki.openstreetmap.org/wiki/Upload
     create:
       upload_trace: Envie as trilhas de GPS
       trace_uploaded: Seu arquivo GPX foi recebido e aguarda para ser inserido no
@@ -2550,7 +2550,7 @@ pt:
       title: Editando trilha %{name}
       heading: Editando trilha %{name}
       visibility_help: o que isso significa?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=pt-br
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
     update:
       updated: Rastreamento atualizado
     trace_optionals:
@@ -2824,7 +2824,7 @@ pt:
       readable_summary: resumo legível para humanos
       informal_translations: traduções informais
       continue: Continuar
-      declined: https://wiki.openstreetmap.org/wiki/Pt:Contributor_Terms_Declined?uselang=pt-br
+      declined: https://wiki.openstreetmap.org/wiki/Pt:Contributor_Terms_Declined
       decline: Discordo
       you need to accept or decline: Por favor leia e, em seguida, aceite ou recuse
         os novos termos do contribuidor para continuar.
@@ -2837,7 +2837,7 @@ pt:
       terms_declined_html: Lamentamos que não tenha aceitado os novos termos de contribuidor.
         Para mais informações, consulta %{terms_declined_link}.
       terms_declined_link: esta página wiki
-      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=pt-br
+      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
     no_such_user:
       title: Usuário não existe
       heading: O usuário %{user} não existe

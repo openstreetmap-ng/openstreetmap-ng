@@ -1363,7 +1363,7 @@ sr:
       befriend_them: Можете га/је додати и као пријатеља на %{befriendurl}.
     gpx_failure:
       failed_to_import: 'Увоз није успео. Грешка:'
-      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=sr-ec
+      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] GPX увоз није успео'
     gpx_success:
       hi: Здарво %{to_user},
@@ -1565,7 +1565,7 @@ sr:
       image: Слика
       gravatar:
         gravatar: Користи Граватар
-        link: https://wiki.openstreetmap.org/wiki/Gravatar?uselang=sr
+        link: https://wiki.openstreetmap.org/wiki/Gravatar
         disabled: Граватар је онемогућен.
         enabled: Приказ Вашег Граватара је омогућен.
       new image: Додај слику
@@ -1927,9 +1927,9 @@ sr:
     new:
       upload_trace: Отпреми GPS траг
       visibility_help: шта ово значи?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=sr-ec
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
       help: Помоћ
-      help_url: http://wiki.openstreetmap.org/wiki/Upload?uselang=sr-ec
+      help_url: http://wiki.openstreetmap.org/wiki/Upload
     create:
       upload_trace: Отпремање ГПС трага
       trace_uploaded: GPX датотека је отпремљена и чека убацивање у базу. Ово обично
@@ -1945,7 +1945,7 @@ sr:
       title: Уређивање трага %{name}
       heading: Уређивање трага %{name}
       visibility_help: шта ово значи?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=sr-ec
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
     update:
       updated: Траг је ажуриран
     trace_optionals:
@@ -2151,7 +2151,7 @@ sr:
       readable_summary: сумарум
       informal_translations: неформални преводи
       continue: Настави
-      declined: http://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=sr-ec
+      declined: http://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
       decline: Одбаци
       you need to accept or decline: Молимо вас да прочитате уговор пре него што га
         прихватите.
@@ -2161,7 +2161,7 @@ sr:
         italy: Италија
         rest_of_world: Остатак света
     terms_declined_flash:
-      terms_declined_url: http://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=sr-ec
+      terms_declined_url: http://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
     no_such_user:
       title: Нема таквог корисника
       heading: Корисник %{user} не постоји

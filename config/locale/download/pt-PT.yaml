@@ -1670,7 +1670,7 @@ pt-PT:
       failed_to_import: 'falhou na importação. Eis o erro:'
       more_info_html: Podes encontrar mais informações sobre falhas de importação
         GPX e como evitá-las em %{url}.
-      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=pt
+      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] Erro ao importar GPX'
     gpx_success:
       hi: Olá, %{to_user}.

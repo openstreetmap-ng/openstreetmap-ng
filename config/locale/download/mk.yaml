@@ -282,7 +282,7 @@ mk:
       current email address: Тековна е-пошта
       external auth: Надворешна заверка
       openid:
-        link: https://wiki.openstreetmap.org/wiki/MK:OpenID?uselang=mk
+        link: https://wiki.openstreetmap.org/wiki/MK:OpenID
         link text: што е ова?
       public editing:
         heading: Јавно уредување
@@ -628,7 +628,7 @@ mk:
       profile: Ваши профилни информации
   errors:
     contact:
-      contact_url: https://wiki.openstreetmap.org/wiki/Contact?uselang=mk
+      contact_url: https://wiki.openstreetmap.org/wiki/Contact
       contact_url_title: Објаснување на разните контактни канали
       contact: контакт
       contact_the_community_html: Слободно стапете во %{contact_link} со заедницата
@@ -1630,7 +1630,7 @@ mk:
       failed_to_import: не можеше да се увезе. Еве ја грешката;
       more_info_html: Повеќе информации за неуспесите на увозот на GPX и тоа како
         да ги одбегнете ќе најдете на %{url}.
-      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=mk
+      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] Проблем при увозот на GPX податотека'
     gpx_success:
       hi: Здраво %{to_user},
@@ -1874,7 +1874,7 @@ mk:
       image: Слика
       gravatar:
         gravatar: Користи Gravatar
-        link: https://wiki.openstreetmap.org/wiki/Gravatar?uselang=mk
+        link: https://wiki.openstreetmap.org/wiki/Gravatar
         what_is_gravatar: Што е тоа Gravatar?
         disabled: Граватарот е исклучен.
         enabled: Вашиот граватар е вклучен.
@@ -2475,9 +2475,9 @@ mk:
     new:
       upload_trace: Подигни ГПС-трага
       visibility_help: што значи ова?
-      visibility_help_url: https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=mk
+      visibility_help_url: https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
       help: Помош
-      help_url: https://wiki.openstreetmap.org/wiki/Upload?uselang=mk
+      help_url: https://wiki.openstreetmap.org/wiki/Upload
     create:
       upload_trace: Подигни ГПС-трага
       trace_uploaded: Вашата GPX податотека е подигната и чека да биде вметната во
@@ -2497,7 +2497,7 @@ mk:
       title: Ја уредувате трагата %{name}
       heading: Ја уредувате трагата %{name}
       visibility_help: што значи ова?
-      visibility_help_url: https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=mk
+      visibility_help_url: https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
     update:
       updated: Трагата е подновена
     trace_optionals:
@@ -2766,13 +2766,13 @@ mk:
       read_tou: Ги прочитав Условите на употреба и се согласувам со нив
       consider_pd: Покрај горенаведеното, моите придонеси ги сметам за јавна сопственост
       consider_pd_why: Што е ова?
-      consider_pd_why_url: https://wiki.osmfoundation.org/wiki/Licence_and_Legal_FAQ/Why_would_I_want_my_contributions_to_be_public_domain?uselang=mk
+      consider_pd_why_url: https://wiki.osmfoundation.org/wiki/Licence_and_Legal_FAQ/Why_would_I_want_my_contributions_to_be_public_domain
       guidance_info_html: 'Информации што ќе ви помогнат да ги разберете овие поими:
         %{readable_summary_link} и некои %{informal_translations_link}'
       readable_summary: човечки читлив опис
       informal_translations: неформални преводи
       continue: Продолжи
-      declined: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=mk
+      declined: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
       decline: Одбиј
       you need to accept or decline: Прочитајте ги новите Услови за учество, а потоа
         согласете се или одбијте ги.
@@ -2785,7 +2785,7 @@ mk:
       terms_declined_html: Жалиме што не се согласувате со новите Услови за учество.
         Повеќе информации ќе најдете на %{terms_declined_link}.
       terms_declined_link: оваа викистраница
-      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=mk
+      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
     no_such_user:
       title: Нема таков корисник
       heading: Корисникот %{user} не постои.

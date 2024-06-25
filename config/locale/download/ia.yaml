@@ -1638,7 +1638,7 @@ ia:
       failed_to_import: 'ha fallite de importar. Ecce le error:'
       more_info_html: Plus information sur le fallimento de importation GPX e como
         evitar lo se trova sur %{url}.
-      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=ia
+      import_failures_url: https://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] Importation GPX fallite'
     gpx_success:
       hi: Salute %{to_user},

@@ -406,7 +406,7 @@ ru:
           и подтвердите согласие с новыми Условиями участия.
         agreed_with_pd: Вы также заявили, что вы считаете свои правки находящимися
           в общественном достоянии.
-        link: https://wiki.openstreetmap.org/wiki/RU:Open_Database_License/Contributor_Terms?uselang=ru
+        link: https://wiki.openstreetmap.org/wiki/RU:Open_Database_License/Contributor_Terms
         link text: что это?
       save changes button: Сохранить изменения
       delete_account: Удалить учётную запись…
@@ -1928,7 +1928,7 @@ ru:
       image: Изображение
       gravatar:
         gravatar: Использовать Gravatar
-        link: https://wiki.openstreetmap.org/wiki/Gravatar?uselang=ru
+        link: https://wiki.openstreetmap.org/wiki/Gravatar
         what_is_gravatar: Что такое Gravatar?
         disabled: Gravatar отключён.
         enabled: Отображение вашего Gravatar включено.
@@ -2434,9 +2434,9 @@ ru:
     new:
       upload_trace: Передать GPS-трек на сервер
       visibility_help: Что это значит?
-      visibility_help_url: https://wiki.openstreetmap.org/wiki/RU:%D0%92%D0%B8%D0%B4%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C_GPS-%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2?uselang=ru
+      visibility_help_url: https://wiki.openstreetmap.org/wiki/RU:%D0%92%D0%B8%D0%B4%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C_GPS-%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2
       help: Справка
-      help_url: http://wiki.openstreetmap.org/wiki/RU:%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B0_%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2?uselang=ru
+      help_url: http://wiki.openstreetmap.org/wiki/RU:%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BA%D0%B0_%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2
     create:
       upload_trace: Передать GPS-трек на сервер
       trace_uploaded: Ваш файл GPX был передан на сервер и сейчас вносится в базу
@@ -2456,7 +2456,7 @@ ru:
       title: Редактирование трека %{name}
       heading: Редактирование трека %{name}
       visibility_help: Что это значит?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/RU:%D0%92%D0%B8%D0%B4%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C_GPS-%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2?uselang=ru
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/RU:%D0%92%D0%B8%D0%B4%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C_GPS-%D1%82%D1%80%D0%B5%D0%BA%D0%BE%D0%B2
     update:
       updated: Трек обновлён
     trace_optionals:
@@ -2723,10 +2723,10 @@ ru:
       consider_pd: В дополнение к вышеизложенному, я принимаю во внимание, что мой
         вклад находится в общественном достоянии
       consider_pd_why: что это значит?
-      consider_pd_why_url: https://wiki.osmfoundation.org/wiki/Licence_and_Legal_FAQ/Why_would_I_want_my_contributions_to_be_public_domain?uselang=ru
+      consider_pd_why_url: https://wiki.osmfoundation.org/wiki/Licence_and_Legal_FAQ/Why_would_I_want_my_contributions_to_be_public_domain
       readable_summary: удобочитаемое резюме
       continue: Продолжить
-      declined: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=ru
+      declined: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
       decline: Отклонить
       you need to accept or decline: Пожалуйста, прочитайте, а затем согласитесь или
         отклоните новые Условия участия.
@@ -2739,7 +2739,7 @@ ru:
       terms_declined_html: Нам жаль, что вы решили не принимать Новые Условия участия.
         Для получения дополнительной информации смотрите %{terms_declined_link}.
       terms_declined_link: эта страница вики
-      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined?uselang=ru
+      terms_declined_url: https://wiki.openstreetmap.org/wiki/Contributor_Terms_Declined
     no_such_user:
       title: Нет такого пользователя
       heading: Пользователя %{user} не существует

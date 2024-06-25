@@ -362,7 +362,7 @@ cs:
         review link text: Až se vám to bude hodit, pomocí tohoto odkazu si prosím
           přečtěte a odsouhlaste nové Podmínky pro přispěvatele.
         agreed_with_pd: Také jste prohlásili, že své editace považujete za volné dílo.
-        link: https://wiki.openstreetmap.org/wiki/Cs:Open_Database_License/Contributor_Terms?uselang=cs
+        link: https://wiki.openstreetmap.org/wiki/Cs:Open_Database_License/Contributor_Terms
         link text: co to znamená?
       save changes button: Uložit změny
       delete_account: Smazat účet…
@@ -1696,7 +1696,7 @@ cs:
       failed_to_import: 'se nepodařilo nahrát. Chybové hlášení následuje:'
       more_info_html: Více informací o chybách při importu GPX a jak se jim vyhnout,
         najdete na %{url}.
-      import_failures_url: http://wiki.openstreetmap.org/wiki/GPX_Import_Failures?uselang=cs
+      import_failures_url: http://wiki.openstreetmap.org/wiki/GPX_Import_Failures
       subject: '[OpenStreetMap] Neúspěšný import GPX'
     gpx_success:
       hi: Ahoj %{to_user},
@@ -2320,7 +2320,7 @@ cs:
         description: Jste u organizace, která má plány s OpenStreetMap? Podívejte
           se na uvítací průvodce.
       wiki:
-        url: https://wiki.openstreetmap.org/wiki/Cs:Main_Page?uselang=cs
+        url: https://wiki.openstreetmap.org/wiki/Cs:Main_Page
         title: OpenStreetMap Wiki
         description: Podrobnou dokumentaci OpenStreetMap najdete na wiki.
     potlatch:
@@ -2493,9 +2493,9 @@ cs:
     new:
       upload_trace: Nahrát GPS trasu
       visibility_help: co tohle znamená?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=cs
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
       help: Nápověda
-      help_url: http://wiki.openstreetmap.org/wiki/Upload?uselang=cs
+      help_url: http://wiki.openstreetmap.org/wiki/Upload
     create:
       upload_trace: Nahrát GPS stopu
       trace_uploaded: Váš GPX soubor byl uložen a čeká na zařazení do databáze. Obvykle
@@ -2517,7 +2517,7 @@ cs:
       title: Úprava stopy %{name}
       heading: Úprava stopy %{name}
       visibility_help: co tohle znamená?
-      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces?uselang=cs
+      visibility_help_url: http://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
     update:
       updated: Stopa nahrána
     trace_optionals:
@@ -2792,7 +2792,7 @@ cs:
       readable_summary: lidsky čitelné shrnutí
       informal_translations: neoficiální překlady
       continue: Pokračovat
-      declined: http://wiki.openstreetmap.org/wiki/CS:Contributor_Terms_Declined?uselang=cs
+      declined: http://wiki.openstreetmap.org/wiki/CS:Contributor_Terms_Declined
       decline: Nesouhlasím
       you need to accept or decline: Pro pokračování si prosím přečtěte a přijměte
         nebo odmítněte nové Podmínky pro přispěvatele.
@@ -2805,7 +2805,7 @@ cs:
       terms_declined_html: Je nám líto, že jste se rozhodli nepřijmout nové Podmínky
         pro přispěvatele. Podrobnější informace najdete na %{terms_declined_link}.
       terms_declined_link: této wikistránce
-      terms_declined_url: http://wiki.openstreetmap.org/wiki/CS:Contributor_Terms_Declined?uselang=cs
+      terms_declined_url: http://wiki.openstreetmap.org/wiki/CS:Contributor_Terms_Declined
     no_such_user:
       title: Uživatel nenalezen
       heading: Uživatel %{user} neexistuje

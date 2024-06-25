@@ -2476,7 +2476,7 @@ is:
       visibility_help: hvað þýðir þetta?
       visibility_help_url: https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces
       help: Hjálp
-      help_url: https://wiki.openstreetmap.org/index.php?title=Upload&uselang=is
+      help_url: https://wiki.openstreetmap.org/index.php?title=Upload
     create:
       upload_trace: Senda inn GPS-feril
       trace_uploaded: Búið er að senda inn GPS-ferilinn og bíður hann núna eftir því

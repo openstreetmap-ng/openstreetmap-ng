@@ -2519,7 +2519,7 @@ el:
       upload_trace: Μεταφόρτωση ίχνους GPS
       visibility_help: τι σημαίνει αυτό;
       help: Βοήθεια
-      help_url: https://wiki.openstreetmap.org/wiki/Upload?uselang=el
+      help_url: https://wiki.openstreetmap.org/wiki/Upload
     create:
       upload_trace: Μεταφόρτωση ίχνους GPS
       trace_uploaded: Το GPX αρχείο σας έχει μεταφορτωθεί και αναμένει την εισαγωγή
