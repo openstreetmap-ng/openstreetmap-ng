@@ -343,9 +343,18 @@ let
           --threads "$(( $(nproc) * 2 ))" \
           "$file"
       done
-      sha256sum data/preload/*.csv.zst > data/preload/checksums.sha256
     '')
     (writeShellScriptBin "preload-upload" ''
+      set -e
+      read -p "Preload dataset name: " dataset
+      if [ "$dataset" != "poland" ] && [ "$dataset" != "mazowieckie" ]; then
+        echo "Invalid dataset name, must be one of: poland, mazowieckie"
+        exit 1
+      fi
+      mkdir -p "data/preload/$dataset"
+      cp --archive --link data/preload/*.csv.zst "data/preload/$dataset/"
+      echo "Computing checksums.sha256 file"
+      sha256sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.sha256"
       rsync \
         --verbose \
         --archive \
@@ -353,23 +362,38 @@ let
         --delay-updates \
         --human-readable \
         --progress \
-        data/preload/*.csv.zst \
-        data/preload/checksums.sha256 \
-        edge:/var/www/files.monicz.dev/openstreetmap-ng/preload/
+        "data/preload/$dataset/"*.csv.zst \
+        "data/preload/$dataset/checksums.sha256" \
+        edge:/var/www/files.monicz.dev/openstreetmap-ng/preload/$dataset/
     '')
     (writeShellScriptBin "preload-download" ''
       set -e
-      mkdir -p data/preload
+      echo "Available preload datasets:"
+      echo "  * poland: Country of Poland; 6 GB download; 320 GB disk space; 1-2 hours"
+      echo "  * mazowieckie: Masovian Voivodeship; 1 GB download; 60 GB disk space; 15-30 minutes"
+      read -p "Preload dataset name [default: mazowieckie]: " dataset
+      dataset="''${dataset:-mazowieckie}"
+      if [ "$dataset" != "poland" ] && [ "$dataset" != "mazowieckie" ]; then
+        echo "Invalid dataset name, must be one of: poland, mazowieckie"
+        exit 1
+      fi
 
       echo "Checking for preload data updates"
-      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/checksums.sha256"
+      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.sha256"
       remote_checsums=$(curl --silent --location "$remote_check_url")
 
+      mkdir -p "data/preload/$dataset"
       for name in "user" "changeset" "element" "element_member"; do
-        remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$name.csv.zst"
-        local_file="data/preload/$name.csv.zst"
-        local_check_file="data/preload/$name.csv.zst.sha256"
+        remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
+        local_file="data/preload/$dataset/$name.csv.zst"
+        local_check_file="data/preload/$dataset/$name.csv.zst.sha256"
 
+        # recompute checksum if missing but file exists
+        if [ -f "$local_file" ] && [ ! -f "$local_check_file" ]; then
+          sha256sum "$local_file" | cut -d' ' -f1 > "$local_check_file"
+        fi
+
+        # compare with remote checksum
         remote_checksum=$(grep "$local_file" <<< "$remote_checsums" | cut -d' ' -f1)
         local_checksum=$(cat "$local_check_file" 2> /dev/null || echo "x")
         if [ "$remote_checksum" = "$local_checksum" ]; then
@@ -380,6 +404,7 @@ let
         echo "Downloading $name preload data"
         curl --location "$remote_url" -o "$local_file"
 
+        # recompute checksum
         local_checksum=$(sha256sum "$local_file" | cut -d' ' -f1)
         echo "$local_checksum" > "$local_check_file"
         if [ "$remote_checksum" != "$local_checksum" ]; then
@@ -388,6 +413,7 @@ let
           exit 1
         fi
       done
+      cp --archive --link "data/preload/$dataset/"*.csv.zst data/preload/
     '')
     (writeShellScriptBin "preload-load" "python scripts/preload_load.py")
     (writeShellScriptBin "preload-pipeline" ''

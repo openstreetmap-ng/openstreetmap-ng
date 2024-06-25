@@ -161,9 +161,8 @@ async def _search(
         refs.append(ref)
         entries.append(entry)
 
+    # fetch elements in the order of entries
     elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
-
-    # reorder elements to match the order of entries
     ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
     elements = tuple(ref_element_map.get(ref) for ref in refs)
 

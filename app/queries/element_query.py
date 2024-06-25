@@ -247,6 +247,7 @@ class ElementQuery:
 
         Optionally recurse ways to get their nodes.
         """
+        # TODO: ensure no duplicate elements in the result
         if not element_refs:
             return ()
 
