@@ -40,24 +40,28 @@ const setDefaultEditor = (event) => {
 
     event.preventDefault();
 
+    if (rememberChoice.disabled) {
+        const defaultEditorBadge = document.createElement("span");
+        defaultEditorBadge.classList.add("badge", "bg-secondary", "default-editor");
+        defaultEditorBadge.innerText = "Default";
+        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+
+        rememberChoice.disabled = false;
+    } else {
+        const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+        defaultEditorBadge.remove();
+        defaultEditorBadge.classList.replace("bg-green", "bg-secondary")
+        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+    }
+
     const userSettings = new FormData()
     userSettings.append("editor", editorButton.dataset.osmEditor)
     fetch("/api/web/user/settings/editor", {
 			method: "POST",
 			body: userSettings,
 		}).then((response) => {
-			if (rememberChoice.disabled) {
-				const defaultEditorBadge = document.createElement("span");
-				defaultEditorBadge.classList.add("badge", "bg-green", "default-editor");
-				defaultEditorBadge.innerText = "Default";
-				editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
-
-				rememberChoice.disabled = false;
-			} else {
 				const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
-				defaultEditorBadge.remove();
-				editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
-			}
+            defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
 
             uncheckRememberChoice();
 			editorButton.dispatchEvent(new MouseEvent("click"));
