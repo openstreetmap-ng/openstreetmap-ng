@@ -112,21 +112,16 @@ const remoteEdit = (button, bounds, object = null) => {
  * @param {HTMLButtonElement} button The button element
  * @returns {void}
  */
-export const configureRemoteEditButton = (button) => {
-    console.debug("configureRemoteEditButton", button)
+export const prepareRemoteEdit = (button) => {
+    console.debug("prepareRemoteEdit", button)
 
-    const onClick = () => {
-        const data = button.dataset.remoteEdit
-        if (!data) {
-            console.error("Missing remote edit data")
-            return
-        }
-
-        const { state, object } = JSON.parse(data)
-        const bounds = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
-        remoteEdit(button, bounds, object)
+    const data = button.dataset.remoteEdit
+    if (!data) {
+        console.error("Missing remote edit data")
+        return
     }
 
-    // Listen for events
-    button.addEventListener("click", onClick)
+    const { state, object } = JSON.parse(data)
+    const bounds = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
+    remoteEdit(button, bounds, object)
 }

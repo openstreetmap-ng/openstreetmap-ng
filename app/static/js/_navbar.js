@@ -1,6 +1,6 @@
 import { Tooltip } from "bootstrap"
 import { qsEncode, qsParse } from "./_qs.js"
-import { configureRemoteEditButton } from "./_remote-edit.js"
+import { prepareRemoteEdit } from "./_remote-edit.js"
 import "./_types.js"
 import { isHrefCurrentPage } from "./_utils.js"
 import { routerNavigateStrict } from "./index/_router.js"
@@ -13,7 +13,6 @@ const loginLinks = navbar.querySelectorAll("a[href='/login']")
 
 // Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
-if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
 
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
@@ -30,28 +29,39 @@ const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 
 const setDefaultEditor = (event) => {
-    if (!rememberChoice.checked) return;
-
     const editorButton = event.currentTarget;
+
+    if (!rememberChoice.checked) {
+        if (editorButton.dataset.osmEditor == "remote") {
+            prepareRemoteEdit(editorButton);
+        }
+        return;
+    };
+
+    event.preventDefault();
+
     const userSettings = new FormData()
     userSettings.append("editor", editorButton.dataset.osmEditor)
-    const response = fetch("/api/web/user/settings/editor", {
-        method: "POST",
-        body: userSettings
-    });
+    fetch("/api/web/user/settings/editor", {
+			method: "POST",
+			body: userSettings,
+		}).then((response) => {
+			if (rememberChoice.disabled) {
+				const defaultEditorBadge = document.createElement("span");
+				defaultEditorBadge.classList.add("badge", "bg-green", "default-editor");
+				defaultEditorBadge.innerText = "Default";
+				editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
 
-    if (rememberChoice.disabled) {
-        const defaultEditorBadge = document.createElement("span");
-        defaultEditorBadge.classList.add("badge", "bg-green", "default-editor");
-        defaultEditorBadge.innerText = "Default";
-        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+				rememberChoice.disabled = false;
+			} else {
+				const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+				defaultEditorBadge.remove();
+				editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+			}
 
-        rememberChoice.disabled = false;
-    } else {
-        const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
-        defaultEditorBadge.remove();
-        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
-    }
+            uncheckRememberChoice();
+			editorButton.dispatchEvent(new MouseEvent("click"));
+		});
 }
 
 for (const editButton of editButtons) {
