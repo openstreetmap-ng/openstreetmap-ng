@@ -17,13 +17,6 @@
                     data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Toggle editor selection">
                 </button>
                 <div class="dropdown-menu dropdown-menu-green">
-                    <div class="form-check mx-3">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" {% if user.editor is none %} checked disabled {% endif %} name="remember-choice" />
-                            Remember my choice
-                        </label>
-                    </div>
-                    <hr class="dropdown-divider" />
                     {% set default_editor_badge %}
                     <span class="badge bg-green default-editor">Default</span>
                     {% endset %}
@@ -51,6 +44,13 @@
                         {{ t('layouts.edit_with', editor=editor) | safe }}
                         {% if user.editor == 'remote' %} {{ default_editor_badge }} {% endif %}
                     </button>
+                    <hr class="dropdown-divider" />
+                    <div class="form-check mx-3">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" {% if user.editor is none %} checked disabled {% endif %} name="remember-choice" />
+                            Remember my choice
+                        </label>
+                    </div>
                 </div>
             </div>
 
