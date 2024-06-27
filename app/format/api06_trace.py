@@ -96,8 +96,6 @@ class Trace06Mixin:
             for track_idx, trkseg in enumerate(trk.get('trkseg', ()), track_idx_start):
                 for trkpt in trkseg.get('trkpt', ()):
                     time = trkpt.get('time')
-                    if time is None:
-                        continue
 
                     lon = trkpt.get('@lon')
                     lat = trkpt.get('@lat')
@@ -110,7 +108,7 @@ class Trace06Mixin:
                     points.append(
                         TracePointCollectionMember(
                             track_idx=track_idx,
-                            captured_at=datetime.fromisoformat(time),
+                            captured_at=None if time is None else datetime.fromisoformat(time),
                             point=point,
                             elevation=trkpt.get('ele'),
                         )

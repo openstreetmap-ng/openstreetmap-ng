@@ -134,12 +134,13 @@ def _sort_and_deduplicate(points: Sequence[TracePoint]) -> list[TracePoint]:
     # may lead to invalid deduplication in some edge cases
 
     for point in sorted_points:
-        point_timestamp: cython.double = point.captured_at.timestamp()
-        if point_timestamp - prev_timestamp < 1:
-            continue
+        if point.captured_at is not None:
+            point_timestamp: cython.double = point.captured_at.timestamp()
+            if point_timestamp - prev_timestamp < 1:
+                continue
+            prev_timestamp = point_timestamp
 
         result.append(point)
-        prev_timestamp = point_timestamp
 
     return result
 

@@ -16,6 +16,6 @@ class TracePoint(Base.Sequential):
     trace_id: Mapped[int] = mapped_column(ForeignKey(Trace.id, ondelete='CASCADE'), init=False, nullable=False)
     trace: Mapped[Trace] = relationship(init=False, lazy='raise', innerjoin=True)
     track_idx: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    captured_at: Mapped[datetime] = mapped_column(TIMESTAMP(True), nullable=False)
+    captured_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(True), nullable=True)
     point: Mapped[Point] = mapped_column(PointType, nullable=False)
     elevation: Mapped[float | None] = mapped_column(Float, nullable=True)

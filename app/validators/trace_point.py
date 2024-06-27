@@ -9,7 +9,7 @@ from app.models.geometry import PointGeometry
 
 class TracePointCollectionMember(NamedTuple):
     track_idx: NonNegativeInt
-    captured_at: datetime
+    captured_at: datetime | None
     point: PointGeometry
     elevation: float | None
 
