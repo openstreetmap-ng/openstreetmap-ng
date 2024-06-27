@@ -29,11 +29,11 @@ const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 
 const setDefaultEditor = (event) => {
-    const editorButton = event.currentTarget;
+    const editButtonClicked = event.currentTarget;
 
     if (!rememberChoice.checked) {
-        if (editorButton.dataset.osmEditor == "remote") {
-            prepareRemoteEdit(editorButton);
+        if (editButtonClicked.dataset.osmEditor == "remote") {
+            prepareRemoteEdit(editButtonClicked);
         }
         return;
     };
@@ -44,18 +44,18 @@ const setDefaultEditor = (event) => {
         const defaultEditorBadge = document.createElement("span");
         defaultEditorBadge.classList.add("badge", "bg-secondary", "default-editor");
         defaultEditorBadge.innerText = "Default";
-        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+        editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
 
         rememberChoice.disabled = false;
     } else {
         const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
         defaultEditorBadge.remove();
         defaultEditorBadge.classList.replace("bg-green", "bg-secondary")
-        editorButton.insertAdjacentElement("beforeend", defaultEditorBadge);
+        editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
     }
 
     const userSettings = new FormData()
-    userSettings.append("editor", editorButton.dataset.osmEditor)
+    userSettings.append("editor", editButtonClicked.dataset.osmEditor)
     fetch("/api/web/user/settings/editor", {
 			method: "POST",
 			body: userSettings,
@@ -64,7 +64,7 @@ const setDefaultEditor = (event) => {
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
 
             uncheckRememberChoice();
-			editorButton.dispatchEvent(new MouseEvent("click"));
+			editButtonClicked.dispatchEvent(new MouseEvent("click"));
 		});
 }
 
