@@ -40,19 +40,12 @@ const setDefaultEditor = (event) => {
 
     event.preventDefault();
 
-    if (rememberChoice.disabled) {
-        const defaultEditorBadge = document.createElement("span");
-        defaultEditorBadge.classList.add("badge", "bg-secondary", "default-editor");
-        defaultEditorBadge.innerText = "Default";
-        editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
+    const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+    defaultEditorBadge.remove();
+    defaultEditorBadge.classList.replace("bg-green", "bg-secondary");
+    editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
 
-        rememberChoice.disabled = false;
-    } else {
-        const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
-        defaultEditorBadge.remove();
-        defaultEditorBadge.classList.replace("bg-green", "bg-secondary")
-        editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
-    }
+    rememberChoice.disabled = false;
 
     const userSettings = new FormData()
     userSettings.append("editor", editButtonClicked.dataset.osmEditor)

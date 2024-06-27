@@ -26,7 +26,7 @@
                         {{ t('editor.id.description') }}
                         {% endset %}
                         {{ t('layouts.edit_with', editor=editor) | safe }}
-                        {% if user.editor == 'id' %} {{ default_editor_badge }} {% endif %}
+                        {% if user.editor == 'id' or user.editor is none %} {{ default_editor_badge }} {% endif %}
                     </a>
                     <a class="dropdown-item map-link edit-link" data-osm-editor="rapid" href="/edit?editor=rapid">
                         {% set editor %}
