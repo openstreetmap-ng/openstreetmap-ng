@@ -25,6 +25,13 @@ for (const link of navLinks) {
 const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 
+if (rememberChoice.disabled) {
+    Tooltip.getOrCreateInstance(rememberChoice.parentElement, {
+        title: rememberChoice.parentElement.dataset.bsTitle,
+        placement: "bottom"
+    }).enable();
+}
+
 const prepareEdit = (event) => {
     const editButtonClicked = event.currentTarget;
 

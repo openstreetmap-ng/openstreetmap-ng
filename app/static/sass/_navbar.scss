@@ -19,6 +19,10 @@
         height: 1.2em;
     }
 
+    div:has(> input[name="remember-choice"]) {
+        width: fit-content;
+    }
+
     .navbar-nav {
         font-size: 0.9em;
 
