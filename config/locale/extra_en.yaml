@@ -33,6 +33,8 @@ changeset:
   this_changeset_is_state: This changeset is {{state}}
   count_one: 'changeset'
   count_other: 'changesets'
+layouts:
+  remember_choice: Remember my choice
 note:
   title: Note
   count_one: 'note'
