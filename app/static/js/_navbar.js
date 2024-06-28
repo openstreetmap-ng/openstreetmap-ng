@@ -24,11 +24,10 @@ for (const link of navLinks) {
     }
 }
 
-// Check for remembering user's choice before switching to the editor
 const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 
-const setDefaultEditor = (event) => {
+const prepareEdit = (event) => {
     const editButtonClicked = event.currentTarget;
 
     if (!rememberChoice || !rememberChoice.checked) {
@@ -38,6 +37,7 @@ const setDefaultEditor = (event) => {
         return;
     };
 
+    // Set default editor when user checks "remember my choice"
     event.preventDefault();
 
     const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
@@ -62,7 +62,7 @@ const setDefaultEditor = (event) => {
 }
 
 for (const editButton of editButtons) {
-    editButton.addEventListener("click", setDefaultEditor);
+    editButton.addEventListener("click", prepareEdit);
 }
 
 // Uncheck "remember my choice" checkbox when edit dropdown hides
