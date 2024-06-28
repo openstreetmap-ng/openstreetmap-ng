@@ -10,8 +10,6 @@ const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
-
-// Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
 
 // Add active class to current nav-lik
@@ -54,7 +52,7 @@ const prepareEdit = (event) => {
             cache: "no-store",
             priority: "high",
 		}).then((response) => {
-				const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+			const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
 
             uncheckRememberChoice();
