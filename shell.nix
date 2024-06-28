@@ -4,9 +4,10 @@ let
   # Update packages with `nixpkgs-update` command
   pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a4ecb0ab415c9fccfb005567a215e6a9564cdf5.tar.gz") { };
 
-  project_root = builtins.toString ./.;
-  supervisordConf = import ./config/supervisord.nix { inherit pkgs project_root; };
-  preCommitConf = import ./config/pre-commit.nix { inherit pkgs; };
+  projectDir = builtins.toString ./.;
+  supervisordConf = import ./config/supervisord.nix { inherit pkgs projectDir; };
+  preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
+  preCommitHook = import ./config/pre-commit-hook.nix { inherit pkgs projectDir preCommitConf; };
 
   wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
@@ -290,7 +291,7 @@ let
 
       echo "Waiting for Postgres to start..."
       time_start=$(date +%s)
-      while ! pg_isready -q -h "${project_root}/data/postgres_unix"; do
+      while ! pg_isready -q -h "${projectDir}/data/postgres_unix"; do
         elapsed=$(($(date +%s) - $time_start))
         if [ $elapsed -gt 10 ]; then
           tail -n 15 data/supervisor/supervisord.log data/supervisor/postgres.log
@@ -441,7 +442,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "run" "python -m uvicorn app.main:main --reload")
-    (writeShellScriptBin "format" "pre-commit run --config ${preCommitConf} --all-files")
+    (writeShellScriptBin "format" "python -m pre_commit run --config ${preCommitConf} --all-files")
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -519,7 +520,7 @@ let
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    poetry env use "${python'}/bin/python"
+    poetry env use ${python'}/bin/python
     poetry install --compile
 
     echo "Installing Bun dependencies"
@@ -530,9 +531,8 @@ let
 
     if [ -d .git ]; then
       echo "Installing pre-commit hooks"
-      pre-commit install --overwrite --config ${preCommitConf}
-      # fix config path to be absolute
-      sed -i -E "s|=\.\.(\/\.\.)*|=|g" .git/hooks/pre-commit
+      python -m pre_commit install --overwrite --config ${preCommitConf}
+      cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
     # Development environment variables
