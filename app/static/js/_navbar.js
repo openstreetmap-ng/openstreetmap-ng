@@ -45,13 +45,14 @@ const prepareEdit = (event) => {
     defaultEditorBadge.classList.replace("bg-green", "bg-secondary");
     editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
 
-    rememberChoice.disabled = false;
-
     const userEditor = new FormData()
     userEditor.append("editor", editButtonClicked.dataset.osmEditor)
     fetch("/api/web/user/settings/editor", {
 			method: "POST",
 			body: userEditor,
+            mode: "same-origin",
+            cache: "no-store",
+            priority: "high",
 		}).then((response) => {
 				const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
