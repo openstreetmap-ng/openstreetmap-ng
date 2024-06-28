@@ -7,6 +7,15 @@ from typing import Literal
 class TagFormat:
     value: str
     format: Literal['html', 'url', 'url-safe', 'email', 'phone', 'color'] | None = None
+    """
+    html: HTML code
+    url: Unendorsed URL address
+    url-safe: Endorsed URL address
+    email: Email address
+    phone: Phone number
+    color: Color code
+    None: Plain text
+    """
     data: str | None = None
 
 

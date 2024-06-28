@@ -26,8 +26,6 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/api/partial/search')
 
 
-# TODO: update results when map moves -> local_only
-# TODO: search this area -> local_only
 @router.get('/')
 async def search(
     query: Annotated[str, Query(alias='q', min_length=1, max_length=SEARCH_QUERY_MAX_LENGTH)],
