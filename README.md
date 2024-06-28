@@ -1,9 +1,9 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" align="left" height="96px"> OpenStreetMap-NG
 
-![Python version](https://shields.monicz.dev/badge/python-v3.12-blue)
 [![Discord Developers Chat](https://shields.monicz.dev/discord/1246123404613128203?logo=discord&logoColor=FFF&label=Developers&color=5865F2&cacheSeconds=600)](https://discord.gg/GM89hdjSCB)
 [![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay&label=Patrons)](https://liberapay.com/Zaczero/)
-[![GitHub repo stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
+[![GitHub Sponsors](https://shields.monicz.dev/github/sponsors/Zaczero?logo=github&label=Sponsors&color=%23db61a2)](https://github.com/sponsors/Zaczero)
+[![GitHub Stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
 
 OpenStreetMap-NG is an unofficial Python fork of [openstreetmap.org](https://openstreetmap.org). It's on a mission to push the boundaries of OpenStreetMap and provide a better experience for all users. It's simply the Next Generation of OpenStreetMap.
 
