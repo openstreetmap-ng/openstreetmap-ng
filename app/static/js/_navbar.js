@@ -153,11 +153,12 @@ export const updateNavbarAndHash = (state, object = null) => {
         }
     }
 
-    // Toggle tooltip on edit group
+    // Toggle tooltip on edit group and "remember my choice" checkbox
     if (isEditDisabled) {
         if (!editGroup.classList.contains("disabled")) {
             editGroup.classList.add("disabled")
             editGroup.ariaDisabled = "true"
+            rememberChoice.disabled = true
             Tooltip.getOrCreateInstance(editGroup, {
                 title: editGroup.dataset.bsTitle,
                 placement: "bottom",
@@ -168,6 +169,7 @@ export const updateNavbarAndHash = (state, object = null) => {
         if (editGroup.classList.contains("disabled")) {
             editGroup.classList.remove("disabled")
             editGroup.ariaDisabled = "false"
+            rememberChoice.disabled = false
             Tooltip.getInstance(editGroup).disable()
         }
     }
