@@ -31,7 +31,7 @@ const rememberChoice = navbar.querySelector("input[name='remember-choice']");
 const setDefaultEditor = (event) => {
     const editButtonClicked = event.currentTarget;
 
-    if (!rememberChoice.checked) {
+    if (!rememberChoice || !rememberChoice.checked) {
         if (editButtonClicked.dataset.osmEditor == "remote") {
             prepareRemoteEdit(editButtonClicked);
         }

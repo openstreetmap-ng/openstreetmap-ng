@@ -44,6 +44,7 @@
                         {{ t('layouts.edit_with', editor=editor) | safe }}
                         {% if user.editor == 'remote' %} {{ default_editor_badge }} {% endif %}
                     </button>
+                    {% if user is not none %}
                     <hr class="dropdown-divider" />
                     <div class="form-check mx-3">
                         <label class="form-check-label">
@@ -51,6 +52,7 @@
                             Remember my choice
                         </label>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
