@@ -1,4 +1,4 @@
-import { Tooltip } from "bootstrap"
+import { Dropdown, Tooltip } from "bootstrap"
 import { qsEncode, qsParse } from "./_qs.js"
 import { prepareRemoteEdit } from "./_remote-edit.js"
 import "./_types.js"
@@ -29,6 +29,8 @@ const prepareEdit = (event) => {
     const editButtonClicked = event.currentTarget;
 
     if (!rememberChoice || !rememberChoice.checked) {
+        const editDropdown = Dropdown.getInstance(editGroup.querySelector("button.dropdown-toggle"));
+        editDropdown.hide();
         if (editButtonClicked.dataset.osmEditor == "remote") {
             prepareRemoteEdit(editButtonClicked);
         }
