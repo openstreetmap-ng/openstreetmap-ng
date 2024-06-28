@@ -145,17 +145,13 @@ async def update_settings(
     )
     return collector.result
 
+
 @router.post('/settings/editor')
 async def update_editor(
     editor: Annotated[Editor | None, Form()],
     _: Annotated[User, web_user()],
 ):
-    collector = MessageCollector()
-    await UserService.update_editor(
-        collector,
-        editor=editor,
-    )
-    return collector.result
+    await UserService.update_editor(editor=editor)
 
 
 @router.post('/settings/avatar')

@@ -116,8 +116,6 @@ class UserService:
 
     @staticmethod
     async def update_editor(
-        collector: MessageCollector,
-        *,
         editor: Editor | None,
     ) -> None:
         """
