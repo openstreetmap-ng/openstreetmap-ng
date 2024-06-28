@@ -37,6 +37,7 @@ const prepareEdit = (event) => {
 
     // Set default editor when user checks "remember my choice"
     event.preventDefault();
+    console.debug("Changing user default editor to", editButtonClicked.dataset.osmEditor)
 
     const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
     defaultEditorBadge.remove();
@@ -52,12 +53,19 @@ const prepareEdit = (event) => {
             cache: "no-store",
             priority: "high",
 		}).then((response) => {
+            if (!response.ok) {
+                throw new Error(`${response.status} ${response.statusText}`)
+            }
+
+            console.debug("Changed user default editor to", editButtonClicked.dataset.osmEditor)
 			const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
 
             uncheckRememberChoice();
 			editButtonClicked.dispatchEvent(new MouseEvent("click"));
-		});
+		}).catch((error) => {
+            console.debug("Couldn't change user default editor:", error)
+        });
 }
 
 for (const editButton of editButtons) {
