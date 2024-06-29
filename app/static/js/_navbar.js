@@ -12,18 +12,8 @@ const editGroup = navbar.querySelector(".edit-group")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
 const remoteEditButton = navbar.querySelector(".remote-edit")
 
-// Add active class to current nav-lik
-const navLinks = navbar.querySelectorAll(".nav-link")
-for (const link of navLinks) {
-    if (isHrefCurrentPage(link.href)) {
-        link.classList.add("active")
-        link.ariaCurrent = "page"
-        break
-    }
-}
-
-const editButtons = navbar.querySelectorAll(".dropdown-item.edit-link")
-const rememberChoice = navbar.querySelector("input[name='remember-choice']");
+const editButtons = editGroup.querySelectorAll(".dropdown-item.edit-link")
+const rememberChoice = editGroup.querySelector("input[name='remember-choice']")
 
 if (rememberChoice.disabled) {
     Tooltip.getOrCreateInstance(rememberChoice.parentElement, {
@@ -36,25 +26,27 @@ const prepareEdit = (event) => {
     const editButtonClicked = event.currentTarget;
 
     if (!rememberChoice || !rememberChoice.checked) {
-        const editDropdown = Dropdown.getInstance(editGroup.querySelector("button.dropdown-toggle"));
-        editDropdown.hide();
+        Dropdown.getInstance(
+            editGroup.querySelector("button.dropdown-toggle")
+        ).hide();
+
         if (editButtonClicked.dataset.osmEditor == "remote") {
             prepareRemoteEdit(editButtonClicked);
         }
         return;
     };
 
-    // Set default editor when user checks "remember my choice"
+    // Set default editor when "remember my choice" is checked
     event.preventDefault();
-    console.debug("Changing user default editor to", editButtonClicked.dataset.osmEditor)
+    console.debug("Changing default editor to", editButtonClicked.dataset.osmEditor);
 
     const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
     defaultEditorBadge.remove();
     defaultEditorBadge.classList.replace("bg-green", "bg-secondary");
     editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
 
-    const userEditor = new FormData()
-    userEditor.append("editor", editButtonClicked.dataset.osmEditor)
+    const userEditor = new FormData();
+    userEditor.append("editor", editButtonClicked.dataset.osmEditor);
     fetch("/api/web/user/settings/editor", {
 			method: "POST",
 			body: userEditor,
@@ -63,17 +55,17 @@ const prepareEdit = (event) => {
             priority: "high",
 		}).then((response) => {
             if (!response.ok) {
-                throw new Error(`${response.status} ${response.statusText}`)
+                throw new Error(`${response.status} ${response.statusText}`);
             }
 
-            console.debug("Changed user default editor to", editButtonClicked.dataset.osmEditor)
+            console.debug("Changed default editor to", editButtonClicked.dataset.osmEditor);
 			const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
-
             uncheckRememberChoice();
+
 			editButtonClicked.dispatchEvent(new MouseEvent("click"));
 		}).catch((error) => {
-            console.debug("Couldn't change user default editor:", error)
+            console.debug("Couldn't change default editor:", error);
         });
 }
 
@@ -83,11 +75,20 @@ for (const editButton of editButtons) {
 
 // Uncheck "remember my choice" checkbox when edit dropdown hides
 const uncheckRememberChoice = () => {
-    if (rememberChoice.disabled) return;
+    if (!rememberChoice || rememberChoice.disabled) return;
     rememberChoice.checked = false;
 }
 editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice);
 
+// Add active class to current nav-lik
+const navLinks = navbar.querySelectorAll(".nav-link")
+for (const link of navLinks) {
+    if (isHrefCurrentPage(link.href)) {
+        link.classList.add("active")
+        link.ariaCurrent = "page"
+        break
+    }
+}
 
 /**
  * Map of navbar elements to their base href
