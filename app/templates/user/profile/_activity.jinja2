@@ -1,0 +1,24 @@
+<div class="activity">
+
+    <h3 class="ms-1">Recent activity</h3>
+    <p>
+        270 mapping days with 7,223 changesets in the last year
+    </p>
+
+    <table>
+        {% for weekday in activity %}
+        <tr>
+            {% for day in weekday %}
+            <td class="activity-{{ day  }}"></td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div class="text-end">
+        <a class="small me-1" href="/user/{{ profile.display_name }}/groups">
+            View full statistics<i class="bi bi-box-arrow-up-right ms-2"></i>
+        </a>
+    </div>
+
+</div>

@@ -53,4 +53,25 @@
         margin-left: 0.25rem;
         color: $text-muted;
     }
+    .activity {
+        $width: 383px;
+        $gap: 2px;
+        $cell: ($width - $gap * 52) / 53 ;
+
+        @for $i from 0 through 19 {
+            .activity-#{$i} {
+                background: mix($green, #ddd, ($i / 19) * 100%);
+                height: $cell;
+                width:  $cell;
+
+                aspect-ratio: 1;
+            }
+        }
+        table {
+            table-layout: fixed;
+            width: max-content;
+            border-spacing: $gap;
+            border-collapse: separate;
+        }
+    }
 }
