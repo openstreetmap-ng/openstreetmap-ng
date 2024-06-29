@@ -2,7 +2,7 @@ from typing import Annotated
 
 import numpy as np
 from annotated_types import Interval
-from shapely import MultiPolygon, Point, Polygon, lib
+from shapely import MultiPoint, MultiPolygon, Point, Polygon, lib
 from shapely.geometry.base import BaseGeometry
 from shapely.io import DecodingErrorOptions
 from sqlalchemy import BindParameter
@@ -64,6 +64,35 @@ class PolygonType(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value: Polygon | None):
+            if value is None:
+                return None
+            return value.wkt
+
+        return process
+
+    def column_expression(self, col):
+        return func.ST_AsBinary(col, type_=self)
+
+    def result_processor(self, dialect, coltype):
+        def process(value: bytes | None):
+            if value is None:
+                return None
+            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
+
+        return process
+
+
+class MultiPointType(UserDefinedType):
+    cache_ok = True
+
+    def get_col_spec(self, **kw):
+        return 'geometry(MultiPoint, 4326)'
+
+    def bind_expression(self, bindvalue: BindParameter):
+        return func.ST_GeomFromText(bindvalue, 4326, type_=self)
+
+    def bind_processor(self, dialect):
+        def process(value: MultiPoint | None):
             if value is None:
                 return None
             return value.wkt

@@ -19,8 +19,8 @@ from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
-from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
 from app.utils import JSON_ENCODE
 
@@ -102,7 +102,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
         sort='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
-    await TracePointQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
+    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
     traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
 
     # TODO: diaries

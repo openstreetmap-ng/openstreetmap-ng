@@ -128,7 +128,6 @@ async def account_confirm_resend(
 @router.post('/settings')
 async def update_settings(
     display_name: Annotated[DisplayNameStr, Form()],
-    editor: Annotated[Editor | None, Form()],
     language: Annotated[str, Form()],
     activity_tracking: Annotated[bool, Form()],
     crash_reporting: Annotated[bool, Form()],
@@ -138,7 +137,6 @@ async def update_settings(
     await UserService.update_settings(
         collector,
         display_name=display_name,
-        editor=editor,
         language=language,
         activity_tracking=activity_tracking,
         crash_reporting=crash_reporting,

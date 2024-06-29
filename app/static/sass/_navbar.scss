@@ -1,38 +1,39 @@
 .navbar {
-    .navbar-brand {
-        display: flex;
-        align-items: center;
-        font-weight: 600;
-        --bs-navbar-brand-padding-y: 0;
-        --bs-navbar-brand-font-size: 1.15em;
-
-        img {
-            height: 1.7em;
-            margin-right: 0.25em;
-        }
-    }
-
-    .dropdown-menu img {
+    .edit-link img {
         margin-left: 0.15em;
         position: relative;
         top: -0.1em;
         height: 1.2em;
     }
 
-    div:has(> input[name="remember-choice"]) {
-        width: fit-content;
+    .edit-link.default img {
+        margin-left: 0.2em;
+        filter: grayscale(10%);
     }
+}
 
-    .navbar-nav {
-        font-size: 0.9em;
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    --bs-navbar-brand-padding-y: 0;
+    --bs-navbar-brand-font-size: 1.15em;
 
-        .nav-link {
-            padding-left: 0.4em;
-            padding-right: 0.4em;
+    img {
+        height: 1.7em;
+        margin-right: 0.25em;
+    }
+}
 
-            &.active {
-                transition: none;
-            }
+.navbar-nav {
+    font-size: 0.9em;
+
+    .nav-link {
+        padding-left: 0.4em;
+        padding-right: 0.4em;
+
+        &.active {
+            transition: none;
         }
     }
 }

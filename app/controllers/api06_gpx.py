@@ -5,6 +5,7 @@ from pydantic import NonNegativeInt, PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format import Format06
+from app.format.gpx import FormatGPX
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
@@ -16,8 +17,8 @@ from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility
-from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.trace_segment_query import TraceSegmentQuery
 from app.responses.osm_response import GPXResponse
 from app.services.trace_service import TraceService
 
@@ -70,8 +71,8 @@ async def get_trace_gpx(
 ):
     # ensures that user has access to the trace
     trace = await TraceQuery.get_one_by_id(trace_id)
-    trace_points = await TracePointQuery.get_many_by_trace_id(trace_id)
-    data = Format06.encode_track(trace_points, trace)
+    segments = await TraceSegmentQuery.get_many_by_trace_id(trace_id)
+    data = FormatGPX.encode_track(segments, trace)
     resp = GPXResponse.serialize(data)
     return Response(
         content=resp.body,
