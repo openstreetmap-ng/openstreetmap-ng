@@ -14,37 +14,42 @@
                 </a>
 
                 <button class="btn btn-outline-green dropdown-toggle dropdown-toggle-split rounded-0"
-                    data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle editor selection">
+                    data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Toggle editor selection">
                 </button>
-                <ul class="dropdown-menu dropdown-menu-green">
-                    <li>
-                        <a class="dropdown-item map-link edit-link" href="/edit?editor=id">
-                            {% set editor %}
-                            <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.id.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item map-link edit-link" href="/edit?editor=rapid">
-                            {% set editor %}
-                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.rapid.name') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </a>
-                    </li>
-                    <li>
-                        <button class="dropdown-item map-link edit-link remote-edit">
-                            {% set editor %}
-                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
-                            {{ t('editor.remote.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=editor) | safe }}
-                        </button>
-                    </li>
-                </ul>
+                <div class="dropdown-menu dropdown-menu-green">
+                    {% set default_editor_badge %}
+                    <span class="badge bg-green default-editor">Default</span>
+                    {% endset %}
+                    <a class="dropdown-item map-link edit-link" data-osm-editor="id" href="/edit?editor=id">
+                        {% set editor %}
+                        <img src="/static/img/brand/id.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.id.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                        {% if user.editor == 'id' or user.editor is none %} {{ default_editor_badge }} {% endif %}
+                    </a>
+                    <a class="dropdown-item map-link edit-link" data-osm-editor="rapid" href="/edit?editor=rapid">
+                        {% set editor %}
+                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.rapid.name') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                        {% if user.editor == 'rapid' %} {{ default_editor_badge }} {% endif %}
+                    </a>
+                    <button class="dropdown-item map-link edit-link remote-edit" data-osm-editor="remote">
+                        {% set editor %}
+                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo') }}" loading="lazy">
+                        {{ t('editor.remote.description') }}
+                        {% endset %}
+                        {{ t('layouts.edit_with', editor=editor) | safe }}
+                        {% if user.editor == 'remote' %} {{ default_editor_badge }} {% endif %}
+                    </button>
+                    <hr class="dropdown-divider" />
+                    <div class="form-check mx-3" {% if user is none %} data-bs-toggle="tooltip" data-bs-title="{{ t('javascripts.site.remember_choice_disabled_tooltip') }}" data-bs-placement="bottom" {% endif %}>
+                        <input class="form-check-input" type="checkbox" {% if user is none %} disabled {% endif %} name="remember-choice" id="remember-choice" />
+                        <label class="form-check-label" for="remember-choice">{{ t('layouts.remember_choice') }}</label>
+                    </div>
+                </div>
             </div>
 
             <a class="btn btn-outline-green map-link" href="/history">

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Request, UploadFile
+from fastapi import APIRouter, Form, Query, Request, Response, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -144,6 +144,15 @@ async def update_settings(
         crash_reporting=crash_reporting,
     )
     return collector.result
+
+
+@router.post('/settings/editor')
+async def update_editor(
+    editor: Annotated[Editor | None, Form()],
+    _: Annotated[User, web_user()],
+):
+    await UserService.update_editor(editor=editor)
+    return Response()
 
 
 @router.post('/settings/avatar')

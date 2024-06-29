@@ -1,6 +1,6 @@
-import { Tooltip } from "bootstrap"
+import { Dropdown, Tooltip } from "bootstrap"
 import { qsEncode, qsParse } from "./_qs.js"
-import { configureRemoteEditButton } from "./_remote-edit.js"
+import { prepareRemoteEdit } from "./_remote-edit.js"
 import "./_types.js"
 import { isHrefCurrentPage } from "./_utils.js"
 import { routerNavigateStrict } from "./index/_router.js"
@@ -10,10 +10,68 @@ const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
-
-// Configure the remote edit button (JOSM)
 const remoteEditButton = navbar.querySelector(".remote-edit")
-if (remoteEditButton) configureRemoteEditButton(remoteEditButton)
+
+const editButtons = editGroup.querySelectorAll(".dropdown-item.edit-link")
+const rememberChoice = editGroup.querySelector("input[name='remember-choice']")
+
+const prepareEdit = (event) => {
+    const editButtonClicked = event.currentTarget;
+
+    if (!rememberChoice || !rememberChoice.checked) {
+        Dropdown.getInstance(
+            editGroup.querySelector("button.dropdown-toggle")
+        ).hide();
+
+        if (editButtonClicked.dataset.osmEditor == "remote") {
+            prepareRemoteEdit(editButtonClicked);
+        }
+        return;
+    };
+
+    // Set default editor when "remember my choice" is checked
+    event.preventDefault();
+    console.debug("Changing default editor to", editButtonClicked.dataset.osmEditor);
+
+    const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
+    defaultEditorBadge.remove();
+    defaultEditorBadge.classList.replace("bg-green", "bg-secondary");
+    editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge);
+
+    const userEditor = new FormData();
+    userEditor.append("editor", editButtonClicked.dataset.osmEditor);
+    fetch("/api/web/user/settings/editor", {
+			method: "POST",
+			body: userEditor,
+            mode: "same-origin",
+            cache: "no-store",
+            priority: "high",
+		}).then((response) => {
+            if (!response.ok) {
+                throw new Error(`${response.status} ${response.statusText}`);
+            }
+
+            console.debug("Changed default editor to", editButtonClicked.dataset.osmEditor);
+            defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
+            uncheckRememberChoice();
+
+			editButtonClicked.dispatchEvent(new MouseEvent(event.type, event));
+		}).catch((error) => {
+            console.debug("Couldn't change default editor:", error);
+        });
+}
+
+for (const editButton of editButtons) {
+    editButton.addEventListener("click", prepareEdit);
+}
+
+// Uncheck "remember my choice" checkbox when edit dropdown hides
+const uncheckRememberChoice = () => {
+    if (!rememberChoice || rememberChoice.disabled) return;
+    rememberChoice.checked = false;
+    rememberChoice.dispatchEvent(new Event("change"));
+}
+editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice);
 
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
