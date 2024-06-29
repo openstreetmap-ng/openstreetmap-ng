@@ -59,7 +59,6 @@ const prepareEdit = (event) => {
             }
 
             console.debug("Changed default editor to", editButtonClicked.dataset.osmEditor);
-			const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor");
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
             uncheckRememberChoice();
 
