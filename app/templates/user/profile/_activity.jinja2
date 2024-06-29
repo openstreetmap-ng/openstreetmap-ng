@@ -1,6 +1,6 @@
 {% macro row(weekday, name) %}
 <tr>
-    <td style="width: 40px; position:relative"><span style="position: absolute; top: -5px">{{  name  }}</span></td>
+    <td style="width: 40px; position:relative"><span style="position: absolute; top: -5px">{{ name }}</span></td>
     {% for day in weekday %}
     <td class="activity-{{ day  }}"></td>
     {% endfor %}
@@ -14,15 +14,14 @@
         {{activity_days}} mapping days with {{activity_sum}} changesets in the last year
     </p>
 
-    <table>
-        {{  row(activity.0, "")  }}
-        {{  row(activity.1, "Mon")  }}
-        {{  row(activity.2, "")  }}
-        {{  row(activity.3, "Wed")  }}
-        {{  row(activity.4, "")  }}
-        {{  row(activity.5, "Fri")  }}
-        {{  row(activity.6, "")  }}
-
+    <table id="activity-table">
+        {{ row(activity.0, "") }}
+        {{ row(activity.1, "Mon") }}
+        {{ row(activity.2, "") }}
+        {{ row(activity.3, "Wed") }}
+        {{ row(activity.4, "") }}
+        {{ row(activity.5, "Fri") }}
+        {{ row(activity.6, "") }}
     </table>
 
     <div class="text-end">
@@ -31,7 +30,7 @@
         <span class="activity-6"></span>
         <span class="activity-12"></span>
         <span class="activity-19"></span>
-        More ({{ activity_max  }})
+        More ({{ activity_max }})
     </div>
 
     <div class="text-end">
@@ -41,3 +40,21 @@
     </div>
 
 </div>
+
+{# TODO: move this #}
+<script>
+    const myContainer = document.getElementById('activity-table');
+
+    const f = (width) => {
+        myContainer.style.cssText = `--width: ${width}px`;
+
+    }
+    const observer = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            const { width, height } = entry.contentRect;
+            f(width)
+        }
+    });
+    observer.observe(myContainer);
+    f($0.offsetWidth)
+</script>

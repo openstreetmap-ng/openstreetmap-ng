@@ -56,11 +56,11 @@
     }
     .activity {
 
-        $width: 383px;
+        $width: var(--width);
         $gap: 2px;
         $padding: 40px;
         $weeks: 30;
-        $cell: ($width - $gap * ($weeks - 1) - $padding) / $weeks;
+        $cell: calc(($width - $gap * ($weeks - 1) - $padding) / $weeks);
         $white: #eee;
         $green: rgb(21, 139, 21);
 
@@ -73,7 +73,7 @@
                 border-radius: 25%;
             }
             table .activity-#{$i} {
-                display: inline-block !important;
+                display: table-cell !important;
                 width: $cell;
                 height: $cell;
             }
