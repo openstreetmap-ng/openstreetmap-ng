@@ -1,3 +1,12 @@
+{% macro row(weekday, name) %}
+<tr>
+    <td style="width: 15px; position:relative"><span style="position: absolute; font-size: 8px; top: -5px">{{  name  }}</span></td>
+    {% for day in weekday %}
+    <td class="activity-{{ day  }}"></td>
+    {% endfor %}
+</tr>
+{% endmacro %}
+
 <div class="activity">
 
     <h3 class="ms-1">Recent activity</h3>
@@ -6,13 +15,14 @@
     </p>
 
     <table>
-        {% for weekday in activity %}
-        <tr>
-            {% for day in weekday %}
-            <td class="activity-{{ day  }}"></td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
+        {{  row(activity.0, "")  }}
+        {{  row(activity.1, "Tue")  }}
+        {{  row(activity.2, "")  }}
+        {{  row(activity.3, "Thu")  }}
+        {{  row(activity.4, "")  }}
+        {{  row(activity.5, "Sat")  }}
+        {{  row(activity.6, "")  }}
+
     </table>
 
     <div class="text-end">

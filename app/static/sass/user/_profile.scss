@@ -56,7 +56,8 @@
     .activity {
         $width: 383px;
         $gap: 2px;
-        $cell: ($width - $gap * 52) / 53 ;
+        $padding: 15px;
+        $cell: ($width - $gap * 52 - $padding) / 53 ;
 
         @for $i from 0 through 19 {
             .activity-#{$i} {
