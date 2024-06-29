@@ -1,11 +1,12 @@
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from shapely.ops import BaseGeometry
 from sqlalchemy import and_, func, null, select, text
 
 from app.db import db
+from app.lib.date_utils import utcnow
 from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 
@@ -124,3 +125,21 @@ class ChangesetQuery:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict:
+        """
+        Count changesets per day by user id since given date.
+        """
+        async with db() as session:
+            created_date = func.date_trunc('day', Changeset.created_at)
+            stmt = (
+                select(
+                    created_date,
+                    func.count(Changeset.id),
+                )
+                .where(Changeset.user_id == user_id)
+                .where(created_date >= created_since)
+                .group_by(created_date)
+            )
+            return dict((await session.execute(stmt)).all())
