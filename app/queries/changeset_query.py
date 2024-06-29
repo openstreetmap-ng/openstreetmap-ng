@@ -127,13 +127,11 @@ class ChangesetQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def count_per_day_by_user_id(user_id: int, days: int) -> dict:
+    async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict:
         """
-        Count changesets per day by user id in given days past.
+        Count changesets per day by user id since given date.
         """
         async with db() as session:
-            created_at_limit = utcnow() - timedelta(days=days)
-
             created_date = func.date_trunc('day', Changeset.created_at)
             stmt = (
                 select(

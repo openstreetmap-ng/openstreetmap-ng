@@ -113,7 +113,10 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups_count = 0
     groups = ()
 
-    changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, days=ACTIVITY_CHART_LENGTH)
+    today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH - 1)
+
+    changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, created_since)
     dates_range = np.arange(
         created_since,
         today + timedelta(days=1),
