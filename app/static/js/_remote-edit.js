@@ -108,7 +108,7 @@ const remoteEdit = (button, bounds, object = null) => {
 }
 
 /**
- * Configure the remote edit button
+ * Prepare data for remote edit
  * @param {HTMLButtonElement} button The button element
  * @returns {void}
  */
