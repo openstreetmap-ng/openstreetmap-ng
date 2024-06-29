@@ -76,6 +76,7 @@ for (const editButton of editButtons) {
 const uncheckRememberChoice = () => {
     if (!rememberChoice || rememberChoice.disabled) return;
     rememberChoice.checked = false;
+    rememberChoice.dispatchEvent(new Event("change"));
 }
 editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice);
 
