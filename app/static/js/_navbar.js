@@ -62,7 +62,7 @@ const prepareEdit = (event) => {
             defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
             uncheckRememberChoice();
 
-			editButtonClicked.dispatchEvent(new MouseEvent("click"));
+			editButtonClicked.dispatchEvent(new MouseEvent(event.type, event));
 		}).catch((error) => {
             console.debug("Couldn't change default editor:", error);
         });
