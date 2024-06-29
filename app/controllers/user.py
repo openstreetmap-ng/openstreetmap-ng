@@ -26,7 +26,7 @@ from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
-ACTIVITY_CHART_LENGTH = 364
+ACTIVITY_CHART_LENGTH = 203
 
 
 @router.get('/terms')
@@ -114,7 +114,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups = ()
 
     today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    weekday = today.weekday()
+    weekday = (today.weekday() + 1) % 7 # put sunday on top
 
     created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH + weekday)
 
@@ -135,10 +135,15 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
 
     activity_week = [[] for _ in range(7)]
 
-    activity = [4,4,4,0,4,12,0,8,12,4,0,4,4,0,0,4,4,4,4,8,8,4,0,4,4,0,4,0,0,8,8,8,4,16,8,8,8,4,4,4,4,4,4,0,4,0,4,4,4,0,4,4,4,4,4,4,4,0,12,12,8,4,8,0,8,4,4,0,0,4,0,0,4,4,0,0,4,0,8,8,0,12,12,4,8,12,4,16,4,4,4,4,4,4,8,4,0,0,4,4,8,4,0,4,8,8,8,8,0,4,4,8,16,8,4,4,4,4,4,0,4,4,0,0,4,4,4,0,4,4,0,8,12,0,12,8,12,4,8,8,8,4,8,0,4,4,8,4,8,0,4,16,4,12,4,0,4,0,8,4,8,0,8,4,12,16,8,0,4,0,4,4,4,0,4,0,0,4,0,8,0,4,4,4,4,4,8,12,12,8,4,4,8,4,0,4,0,8,8,8,8,8,4,0,12,4,8,4,4,4,12,0,0,4,4,8,8,16,8,4,4,8,0,12,8,4,4,0,4,4,0,0,0,0,0,4,8,0,4,4,12,8,8,4,8,4,16,8,8,8,4,4,4,0,0,0,4,8,4,8,12,4,4,8,0,0,4,0,4,8,4,4,4,4,0,4,8,4,0,0,0,4,0,4,4,0,0,8,4,4,4,0,0,4,0,8,8,8,8,4,8,8,8,4,8,4,4,0,0,0,8,8,4,8,4,4,8,8,4,4,12,12,12,0,8,12,4,4,0,8,0,4,0,4,4,4,4,4,12,0,8,4,4,4,0,4,16,12,4,4,12,16,4,4,8,4,4,4,4,0,0,4,4,4,8,4,0,0,8,8,4]
+    #debug code REMOVE!!
+    activity = [0,0,4,8,4,4,0,8,8,4,0,4,4,4,8,12,4,4,0,0,0,0,0,8,4,0,4,0,12,12,12,12,4,16,8,12,8,12,8,0,12,8,4,12,8,8,8,4,8,8,4,4,4,8,4,4,12,8,4,8,8,12,16,4,8,8,4,8,16,8,16,8,4,16,4,4,8,4,4,0,8,8,4,8,4,8,4,8,8,8,4,4,0,0,8,8,4,4,4,4,8,4,4,4,4,4,4,8,4,8,4,4,4,8,8,4,4,4,4,8,4,8,0,4,0,4,4,8,8,0,0,0,0,0,0,4,0,0,4,4,0,4,0,4,0,4,0,4,16,12,8,8,4,4,4,4,4,4,8,8,4,8,12,8,8,4,4,4,4,4,4,12,8,0,0,0,0,4,4,4,0,4,4,4,4,4,4,8,4,8,0,12,8,8,8,4,8,8,0,0,8,4]
+    prec = max(activity)
 
     for index, day in enumerate(activity):
         activity_week[index % 7].append(day)
+
+    activity_sum =  sum(activity) # total activities
+    days = len(activity) - activity.count(0) # total mapping days
 
     return render_response(
         'user/profile/index.jinja2',
@@ -161,5 +166,8 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
             'activity': activity_week,
+            'activity_max': prec,
+            'activity_sum': activity_sum,
+            'activity_days': days
         },
     )

@@ -1,6 +1,6 @@
 {% macro row(weekday, name) %}
 <tr>
-    <td style="width: 15px; position:relative"><span style="position: absolute; font-size: 8px; top: -5px">{{  name  }}</span></td>
+    <td style="width: 40px; position:relative"><span style="position: absolute; top: -5px">{{  name  }}</span></td>
     {% for day in weekday %}
     <td class="activity-{{ day  }}"></td>
     {% endfor %}
@@ -11,19 +11,28 @@
 
     <h3 class="ms-1">Recent activity</h3>
     <p>
-        270 mapping days with 7,223 changesets in the last year
+        {{activity_days}} mapping days with {{activity_sum}} changesets in the last year
     </p>
 
     <table>
         {{  row(activity.0, "")  }}
-        {{  row(activity.1, "Tue")  }}
+        {{  row(activity.1, "Mon")  }}
         {{  row(activity.2, "")  }}
-        {{  row(activity.3, "Thu")  }}
+        {{  row(activity.3, "Wed")  }}
         {{  row(activity.4, "")  }}
-        {{  row(activity.5, "Sat")  }}
+        {{  row(activity.5, "Fri")  }}
         {{  row(activity.6, "")  }}
 
     </table>
+
+    <div class="text-end">
+        Less (0)
+        <span class="activity-0"></span>
+        <span class="activity-6"></span>
+        <span class="activity-12"></span>
+        <span class="activity-19"></span>
+        More ({{ activity_max  }})
+    </div>
 
     <div class="text-end">
         <a class="small me-1" href="/user/{{ profile.display_name }}/groups">

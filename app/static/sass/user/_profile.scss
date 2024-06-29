@@ -1,3 +1,4 @@
+@use 'sass:math';
 .user-profile-body {
     .content-header {
         position: relative;
@@ -54,23 +55,34 @@
         color: $text-muted;
     }
     .activity {
+
         $width: 383px;
         $gap: 2px;
-        $padding: 15px;
-        $cell: ($width - $gap * 52 - $padding) / 53 ;
+        $padding: 40px;
+        $weeks: 30;
+        $cell: ($width - $gap * ($weeks - 1) - $padding) / $weeks;
+        $white: #eee;
+        $green: rgb(21, 139, 21);
 
         @for $i from 0 through 19 {
             .activity-#{$i} {
-                background: mix($green, #ddd, ($i / 19) * 100%);
-                height: $cell;
-                width:  $cell;
-
+                background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
+                display: inline-block;
                 aspect-ratio: 1;
+                width: 1em;
+                border-radius: 25%;
+            }
+            table .activity-#{$i} {
+                display: inline-block !important;
+                width: $cell;
+                height: $cell;
             }
         }
+
+
         table {
             table-layout: fixed;
-            width: max-content;
+            width: 100%;
             border-spacing: $gap;
             border-collapse: separate;
         }
