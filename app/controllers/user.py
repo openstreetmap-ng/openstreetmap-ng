@@ -26,7 +26,7 @@ from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
-ACTIVITY_CHART_LENGTH = 365
+ACTIVITY_CHART_LENGTH = 364
 
 
 @router.get('/terms')
@@ -114,8 +114,11 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups = ()
 
     today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH - 1)
+    weekday = today.weekday()
 
+    created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH + weekday)
+
+    # first item is allways on monday
     changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, created_since)
     dates_range = np.arange(
         created_since,
@@ -129,6 +132,12 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     perc = max(np.percentile(activity, 95), 1)
     activity = np.clip(activity / perc, 0, 1) * 19
     activity = np.round(activity).astype(int)
+
+    activity_week = [[] for _ in range(7)]
+
+    for index, day in enumerate(activity):
+        activity_week[index % 7].append(day)
+
     return render_response(
         'user/profile/index.jinja2',
         {
@@ -149,6 +158,6 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups_count': groups_count,
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
-            'activity': activity,
+            'activity': activity_week,
         },
     )
