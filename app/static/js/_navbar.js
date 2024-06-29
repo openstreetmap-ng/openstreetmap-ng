@@ -15,13 +15,6 @@ const remoteEditButton = navbar.querySelector(".remote-edit")
 const editButtons = editGroup.querySelectorAll(".dropdown-item.edit-link")
 const rememberChoice = editGroup.querySelector("input[name='remember-choice']")
 
-if (rememberChoice.disabled) {
-    Tooltip.getOrCreateInstance(rememberChoice.parentElement, {
-        title: rememberChoice.parentElement.dataset.bsTitle,
-        placement: "bottom"
-    }).enable();
-}
-
 const prepareEdit = (event) => {
     const editButtonClicked = event.currentTarget;
 
