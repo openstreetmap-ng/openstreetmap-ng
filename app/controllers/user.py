@@ -115,10 +115,11 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
 
     changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, days=ACTIVITY_CHART_LENGTH)
     dates_range = np.arange(
-        utcnow().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=ACTIVITY_CHART_LENGTH),
-        utcnow().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
+        created_since,
+        today + timedelta(days=1),
         timedelta(days=1),
-    ).astype(datetime)
+        dtype=datetime,
+    )
     activity = np.array(
         [changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range], dtype=float
     )

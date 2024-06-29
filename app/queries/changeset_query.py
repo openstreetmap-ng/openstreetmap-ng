@@ -134,12 +134,14 @@ class ChangesetQuery:
         async with db() as session:
             created_at_limit = utcnow() - timedelta(days=days)
 
+            created_date = func.date_trunc('day', Changeset.created_at)
             stmt = (
                 select(
-                    func.date_trunc('day', Changeset.created_at).label('created_at_day_date'), func.count(Changeset.id)
+                    created_date,
+                    func.count(Changeset.id),
                 )
                 .where(Changeset.user_id == user_id)
-                .where(Changeset.created_at > created_at_limit)
-                .group_by('created_at_day_date')
+                .where(created_date >= created_since)
+                .group_by(created_date)
             )
             return dict((await session.execute(stmt)).all())
