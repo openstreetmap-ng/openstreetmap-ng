@@ -8,12 +8,22 @@
 </tr>
 {% endmacro %}
 
-<div id="activity-container" data-single="{{  t('user.activity.single')  }}"  data-none="{{  t('user.activity.none')  }}" data-multiple="{{  t('user.activity.multiple')  }}">
+<div id="activity-container" data-single="{{  t('user.activity.single')  }}" data-none="{{  t('user.activity.none')  }}"
+    data-multiple="{{  t('user.activity.multiple')  }}">
 
-    <h3 class="ms-1">{{  t('user.activity.recent')  }}</h3>
-    <p>{{  t('user.activity.discreption', day=activity_days, total=activity_sum)  }}</p>
+    <h3 class="ms-1">{{ t('user.activity.recent') }}</h3>
+    <p>{{ t('user.activity.discreption', day=activity_days, total=activity_sum) }}</p>
 
     <table id="activity-table" class="overflow-hidden">
+        <tr class="header">
+            {% for month in months %}
+            {% if month != "" %}
+            <td class="position-relative"><span class="position-absolute small text-muted"> {{ month }}</span></td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            {% endfor %}
+        </tr>
         {{ row(activity.0, "") }}
         {{ row(activity.1, "Mon") }}
         {{ row(activity.2, "") }}
@@ -29,7 +39,7 @@
         <span class="activity-6 activity small"></span>
         <span class="activity-12 activity small"></span>
         <span class="activity-19 activity small"></span>
-        {{  t('user.activity.more')  }} ({{  activity_max  }})
+        {{ t('user.activity.more') }} ({{ activity_max }})
     </div>
 
     <div class="text-end">

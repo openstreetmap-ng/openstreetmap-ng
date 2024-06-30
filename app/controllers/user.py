@@ -136,10 +136,15 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
 
     activity_week = [[] for _ in range(7)]
 
-    for index, day in enumerate(cliped_activity):
+    months = [''] * ACTIVITY_CHART_WEEKS
+
+    for index, level in enumerate(cliped_activity):
         activity_week[index % 7].append(
-            {'level': day, 'total': int(activity[index]), 'date': dates_range[index].date()}
+            {'level': level, 'total': int(activity[index]), 'date': dates_range[index].date()}
         )
+        if dates_range[index].day == 1:
+            months[len(activity_week[index % 7])] = dates_range[index].strftime('%b')
+    print(months)
 
     activity_sum = int(sum(activity))  # total activities
     days = len(activity) - activity.tolist().count(0)  # total mapping days
@@ -169,5 +174,6 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'activity_max': activity_max,
             'activity_sum': activity_sum,
             'activity_days': days,
+            'months': months,
         },
     )

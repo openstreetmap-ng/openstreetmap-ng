@@ -86,6 +86,13 @@
             table-layout: fixed;
             border-spacing: $gap;
             border-collapse: separate;
+
+            .header {
+                height: 1em;
+                span {
+                    top: 0;
+                }
+            }
         }
         .chart-weekday {
             span {
