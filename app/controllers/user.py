@@ -26,7 +26,8 @@ from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
-ACTIVITY_CHART_LENGTH = 203
+ACTIVITY_CHART_WEEKS = 30 # when modyfying change $weeks var in /static/scss/user/_profile.scss
+ACTIVITY_CHART_LENGTH = ACTIVITY_CHART_WEEKS * 7
 
 
 @router.get('/terms')
@@ -136,14 +137,14 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     activity_week = [[] for _ in range(7)]
 
     #debug code REMOVE!!
-    activity = [0,0,4,8,4,4,0,8,8,4,0,4,4,4,8,12,4,4,0,0,0,0,0,8,4,0,4,0,12,12,12,12,4,16,8,12,8,12,8,0,12,8,4,12,8,8,8,4,8,8,4,4,4,8,4,4,12,8,4,8,8,12,16,4,8,8,4,8,16,8,16,8,4,16,4,4,8,4,4,0,8,8,4,8,4,8,4,8,8,8,4,4,0,0,8,8,4,4,4,4,8,4,4,4,4,4,4,8,4,8,4,4,4,8,8,4,4,4,4,8,4,8,0,4,0,4,4,8,8,0,0,0,0,0,0,4,0,0,4,4,0,4,0,4,0,4,0,4,16,12,8,8,4,4,4,4,4,4,8,8,4,8,12,8,8,4,4,4,4,4,4,12,8,0,0,0,0,4,4,4,0,4,4,4,4,4,4,8,4,8,0,12,8,8,8,4,8,8,0,0,8,4]
-    prec = max(activity)
+    # activity = [0,0,4,8,4,4,0,8,8,4,0,4,4,4,8,12,4,4,0,0,0,0,0,8,4,0,4,0,12,12,12,12,4,16,8,12,8,12,8,0,12,8,4,12,8,8,8,4,8,8,4,4,4,8,4,4,12,8,4,8,8,12,16,4,8,8,4,8,16,8,16,8,4,16,4,4,8,4,4,0,8,8,4,8,4,8,4,8,8,8,4,4,0,0,8,8,4,4,4,4,8,4,4,4,4,4,4,8,4,8,4,4,4,8,8,4,4,4,4,8,4,8,0,4,0,4,4,8,8,0,0,0,0,0,0,4,0,0,4,4,0,4,0,4,0,4,0,4,16,12,8,8,4,4,4,4,4,4,8,8,4,8,12,8,8,4,4,4,4,4,4,12,8,0,0,0,0,4,4,4,0,4,4,4,4,4,4,8,4,8,0,12,8,8,8,4,8,8,0,0,8,4]
+    # perc = max(activity)
 
     for index, day in enumerate(activity):
         activity_week[index % 7].append(day)
 
     activity_sum =  sum(activity) # total activities
-    days = len(activity) - activity.count(0) # total mapping days
+    days = len(activity) - activity.tolist().count(0) # total mapping days
 
     return render_response(
         'user/profile/index.jinja2',
@@ -166,7 +167,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
             'activity': activity_week,
-            'activity_max': prec,
+            'activity_max': perc,
             'activity_sum': activity_sum,
             'activity_days': days
         },

@@ -1,4 +1,4 @@
-@use 'sass:math';
+@use "sass:math";
 .user-profile-body {
     .content-header {
         position: relative;
@@ -54,37 +54,46 @@
         margin-left: 0.25rem;
         color: $text-muted;
     }
-    .activity {
 
+    #activity-container {
         $width: var(--width);
-        $gap: 2px;
         $padding: 40px;
         $weeks: 30;
-        $cell: calc(($width - $gap * ($weeks - 1) - $padding) / $weeks);
+        $gap: 2px;
+        $cell: calc(($width + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
         $white: #eee;
         $green: rgb(21, 139, 21);
 
         @for $i from 0 through 19 {
             .activity-#{$i} {
                 background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
-                display: inline-block;
-                aspect-ratio: 1;
-                width: 1em;
-                border-radius: 25%;
-            }
-            table .activity-#{$i} {
-                display: table-cell !important;
-                width: $cell;
-                height: $cell;
             }
         }
-
+        .activity {
+            display: inline-block;
+            aspect-ratio: 1;
+            width: 1em;
+            border-radius: 25%;
+        }
+        table .activity {
+            display: table-cell;
+            width: $cell;
+            height: $cell;
+        }
 
         table {
             table-layout: fixed;
-            width: 100%;
             border-spacing: $gap;
             border-collapse: separate;
+        }
+        .chart-weekday {
+            span {
+                position: absolute;
+                top: -5px;
+            }
+
+            width: 40px;
+            position: relative;
         }
     }
 }
