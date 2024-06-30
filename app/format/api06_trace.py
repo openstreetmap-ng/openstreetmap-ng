@@ -1,8 +1,6 @@
 from collections.abc import Sequence
 
 import cython
-import numpy as np
-from shapely import lib
 
 from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
@@ -51,15 +49,14 @@ def _encode_gpx_file(trace: Trace) -> dict:
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}
     """
-    x, y = lib.get_coordinates(np.asarray(trace.start_point, dtype=object), False, False)[0].tolist()
     return {
         '@id': trace.id,
         '@uid': trace.user_id,
         '@user': trace.user.display_name,
         '@timestamp': trace.created_at,
         '@name': trace.name,
-        '@lon': x,
-        '@lat': y,
+        '@lon': trace.coords[0],
+        '@lat': trace.coords[1],
         '@visibility': trace.visibility,
         '@pending': False,
         'description': trace.description,

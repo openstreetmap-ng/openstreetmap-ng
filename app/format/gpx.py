@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime
+from itertools import zip_longest
 
 import cython
 import numpy as np
@@ -10,10 +11,12 @@ from app.models.db.trace_ import Trace
 from app.models.db.trace_segment import TraceSegment
 from app.validators.geometry import validate_geometry
 
+_default = object()
+
 
 class FormatGPX:
     @staticmethod
-    def encode_track(segments: Sequence[TraceSegment], trace_: Trace | None = None) -> dict:
+    def encode_track(segments: Sequence[TraceSegment], trace_: Trace | None = _default) -> dict:
         """
         >>> encode_track([
         ...     TraceSegment(...),
@@ -21,6 +24,8 @@ class FormatGPX:
         ... ])
         {'trk': [{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}, {'@lon': 3, '@lat': 4}]}]}]}
         """
+        trace_is_default: cython.char = trace_ is _default
+
         trks: list[dict] = []
         trksegs: list[dict] | None = None
         trkpts: list[dict] | None = None
@@ -28,11 +33,11 @@ class FormatGPX:
         last_track_num: cython.int = -1
 
         for segment in segments:
-            trace = segment.trace if (trace_ is None) else trace_
+            trace = segment.trace if trace_is_default else trace_
 
             # if trace is available via api, encode full information
-            if trace.timestamps_via_api:
-                trace_id: cython.int = trace.id
+            if (trace is not None) and trace.timestamps_via_api:
+                trace_id: cython.int = segment.trace_id
                 track_num: cython.int = segment.track_num
 
                 # handle trace change
@@ -42,6 +47,7 @@ class FormatGPX:
                         {
                             'name': trace.name,
                             'desc': trace.description,
+                            'url': f'/trace/{segment.trace_id}',
                             'trkseg': trksegs,
                         }
                     )
@@ -69,12 +75,12 @@ class FormatGPX:
             points = lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False).tolist()
             capture_times = segment.capture_times
             if capture_times is None:
-                capture_times = (None,) * len(points)
+                capture_times = ()
             elevations = segment.elevations
             if elevations is None:
-                elevations = (None,) * len(points)
+                elevations = ()
 
-            for point, capture_time, elevation in zip(points, capture_times, elevations, strict=True):
+            for point, capture_time, elevation in zip_longest(points, capture_times, elevations):
                 data = {'@lon': point[0], '@lat': point[1]}
                 if capture_time is not None:
                     data['time'] = capture_time
@@ -171,6 +177,8 @@ class FormatGPX:
                     capture_times=capture_times,
                     elevations=elevations,
                 )
+
+            track_num_start = track_num + 1
 
         return result
 

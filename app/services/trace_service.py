@@ -41,14 +41,14 @@ class TraceService:
                 segments.extend(FormatGPX.decode_tracks(tracks, track_num_start=track_num_start))
         except Exception as e:
             raise_for().bad_trace_file(str(e))
-        if not segments:
-            raise_for().bad_trace_file('not enough points')
 
         size = sum(
             len(lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False))  #
             for segment in segments
         )
         logging.debug('Organized %d points into %d segments', size, len(segments))
+        if size < 2:
+            raise_for().bad_trace_file('not enough points')
 
         trace = Trace(
             **dict(

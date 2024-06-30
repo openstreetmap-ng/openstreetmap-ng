@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: b8121e81203e
+Revision ID: 67e98550d322
 Revises:
-Create Date: 2024-06-29 19:39:54.725260+00:00
+Create Date: 2024-06-30 18:59:01.618482+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'b8121e81203e'
+revision: str = '67e98550d322'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

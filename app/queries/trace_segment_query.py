@@ -1,7 +1,9 @@
+from collections import Counter
 from collections.abc import Sequence
 
+import cython
 import numpy as np
-from shapely import from_wkb, lib
+from shapely import GeometryType, MultiPoint, STRtree, from_wkb, get_parts, lib
 from shapely.ops import BaseGeometry
 from sqlalchemy import func, literal_column, select, text, union_all
 
@@ -23,7 +25,10 @@ class TraceSegmentQuery:
             stmt = (
                 select(TraceSegment)
                 .where(TraceSegment.trace_id == trace_id)
-                .order_by(TraceSegment.track_num.asc(), TraceSegment.segment_num.asc())
+                .order_by(
+                    TraceSegment.track_num.asc(),
+                    TraceSegment.segment_num.asc(),
+                )
             )
             stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
@@ -32,46 +37,108 @@ class TraceSegmentQuery:
     async def find_many_by_geometry(
         geometry: BaseGeometry,
         *,
+        identifiable_trackable: bool,
         limit: int | None,
         legacy_offset: int | None = None,
     ) -> Sequence[TraceSegment]:
         """
-        Find trace points by geometry.
+        Find trace segments by geometry.
+
+        Returns modified segments, containing only points within the geometry.
         """
+        visibility = ('identifiable', 'trackable') if identifiable_trackable else ('public', 'private')
+
         async with db() as session:
-            stmt1 = (
+            stmt = (
                 select(TraceSegment)
+                .join(TraceSegment.trace)
                 .where(
-                    func.ST_Intersects(TraceSegment.point, func.ST_GeomFromText(geometry.wkt, 4326)),
-                    Trace.visibility.in_(('identifiable', 'trackable')),
+                    func.ST_Intersects(TraceSegment.points, func.ST_GeomFromText(geometry.wkt, 4326)),
+                    Trace.visibility.in_(visibility),
                 )
                 .order_by(
                     TraceSegment.trace_id.desc(),
-                    TraceSegment.track_idx.asc(),
-                    TraceSegment.captured_at.asc(),
+                    TraceSegment.track_num.asc(),
+                    TraceSegment.segment_num.asc(),
                 )
             )
-            stmt1 = apply_options_context(stmt1)
-            stmt2 = (
-                select(TraceSegment)
-                .where(
-                    func.ST_Intersects(TraceSegment.point, func.ST_GeomFromText(geometry.wkt, 4326)),
-                    Trace.visibility.in_(('public', 'private')),
-                )
-                .order_by(
-                    TraceSegment.point.asc(),
-                )
-            )
-            stmt2 = apply_options_context(stmt2)
-            stmt = stmt1.union_all(stmt2)
-            # TODO: this may require a correction
-
+            stmt = apply_options_context(stmt)
             if legacy_offset is not None:
                 stmt = stmt.offset(legacy_offset)
             if limit is not None:
                 stmt = stmt.limit(limit)
+            segments = (await session.scalars(stmt)).all()
 
-            return (await session.scalars(stmt)).all()
+        if not segments:
+            return ()
+
+        # extract points and check for intersections
+        segments_points = tuple(segment.points for segment in segments)
+        segments_parts_: np.ndarray = get_parts(segments_points, return_index=True)
+        segments_parts = segments_parts_[0]
+        segments_indices = segments_parts_[1]
+        tree = STRtree((geometry,))
+        intersect_indices: np.ndarray = tree.query(segments_parts, predicate='intersects')[0]
+        if not intersect_indices.size:
+            return ()
+
+        # filter non-intersecting points
+        segments_parts = segments_parts[intersect_indices]
+        segments_indices = segments_indices[intersect_indices]
+        split_indices = np.unique(segments_indices, return_index=True)[1][1:]
+        new_parts = np.split(segments_parts, split_indices)
+        new_parts_flat = np.concatenate(new_parts)
+
+        if identifiable_trackable:
+            # reconstruct multipoints
+            split_indices_ex = np.empty(len(split_indices) + 2, dtype=split_indices.dtype)
+            split_indices_ex[0] = 0
+            split_indices_ex[1:-1] = split_indices
+            split_indices_ex[-1] = len(segments_parts)
+            new_parts_sizes = split_indices_ex[1:] - split_indices_ex[:-1]
+            new_parts_max_size: int = new_parts_sizes.max()
+            new_parts_fixed = np.empty((len(new_parts), new_parts_max_size), dtype=object)
+            mask = np.arange(new_parts_max_size) < new_parts_sizes[:, None]
+            new_parts_fixed[mask] = new_parts_flat
+            new_points = lib.create_collection(new_parts_fixed, GeometryType.MULTIPOINT)
+
+            # assign filtered multipoints and return
+            for segment, points in zip(segments, new_points, strict=True):
+                segment.points = points
+
+            # filter extra attributes
+            data_flat = np.empty(segments_parts_[0].size, dtype=object)
+            data_lens = Counter(segments_parts_[1]).values()
+            dirty: cython.char = False
+            for attr_name in ('capture_times', 'elevations'):
+                if dirty:
+                    data_flat.fill(None)
+                    dirty = False
+                i: int = 0
+                for segment, data_len in zip(segments, data_lens, strict=True):
+                    data = getattr(segment, attr_name)
+                    if data is not None:
+                        data_flat[i : i + data_len] = data
+                        dirty = True
+                    i += data_len
+                if dirty:
+                    new_data = np.split(data_flat[intersect_indices], split_indices)
+                    for segment, data in zip(segments, new_data, strict=True):
+                        setattr(segment, attr_name, data.tolist())
+
+            return segments
+        else:
+            # reconstruct dummy multipoint
+            new_points: MultiPoint = lib.create_collection(new_parts_flat, GeometryType.MULTIPOINT)
+            return (
+                TraceSegment(
+                    track_num=0,
+                    segment_num=0,
+                    points=new_points,
+                    capture_times=None,
+                    elevations=None,
+                ),
+            )
 
     @staticmethod
     async def resolve_coords(
@@ -127,6 +194,7 @@ class TraceSegmentQuery:
                         select(func.ST_Collect(subq.c.geom).label('geom'))  #
                         .select_from(subq)
                         .where(subq.c.row_number.in_(text(','.join(map(str, indices)))))
+                        .subquery()
                     )
 
                 stmt_ = select(text(str(trace.id)), subq.c.geom).select_from(subq)
@@ -138,9 +206,9 @@ class TraceSegmentQuery:
             trace = id_trace_map[trace_id]
             geom = from_wkb(wkb)
             coords: np.ndarray = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
-            if len(coords) < 2:
-                trace.coords = []
-                continue
             if resolution is not None:
+                if len(coords) < 2:
+                    trace.coords = []
+                    continue
                 coords = mercator(coords, resolution, resolution).astype(int)
             trace.coords = coords.flatten().tolist()

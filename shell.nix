@@ -76,7 +76,7 @@ let
     '')
     (writeShellScriptBin "alembic-upgrade" ''
       set -e
-      lataest_version=1
+      lataest_version=2
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"

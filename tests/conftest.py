@@ -46,5 +46,5 @@ async def changeset_id(client: AsyncClient):
 
 @pytest.fixture()
 async def gpx() -> dict:
-    gpx = await Path('tests/data/11152535.gpx').read_bytes()
+    gpx = await Path('tests/data/8473730.gpx').read_bytes()
     return XMLToDict.parse(gpx)
