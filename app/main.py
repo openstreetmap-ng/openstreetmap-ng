@@ -110,8 +110,10 @@ if TEST_ENV:
     main.add_middleware(ProfilerMiddleware)
 
 main.add_middleware(RequestContextMiddleware)
-main.add_middleware(VersionMiddleware)
-main.add_middleware(RuntimeMiddleware)
+
+if TEST_ENV:
+    main.add_middleware(VersionMiddleware)
+    main.add_middleware(RuntimeMiddleware)
 
 
 # TODO: /static default cache control
