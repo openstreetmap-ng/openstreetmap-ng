@@ -93,3 +93,27 @@ async def test_changeset_crud(client: AsyncClient):
     assert '@min_lon' not in changeset
     assert '@max_lon' not in changeset
     assert changeset['@changes_count'] == 0
+
+
+async def test_changesets_unathorized_get_request(client: AsyncClient):
+    assert LEGACY_HIGH_PRECISION_TIME
+    r = await client.get('/api/0.6/changesets')
+    assert r.is_success, r.text
+    changesets: dict = XMLToDict.parse(r.content)['osm']
+    assert changesets['@version'] == 0.6
+    assert changesets['@generator'] == 'OpenStreetMap-NG'
+    assert changesets['@copyright'] == 'OpenStreetMap contributors'
+    assert changesets['@attribution'] == 'https://www.openstreetmap.org/copyright'
+    assert changesets['@license'] == 'https://opendatacommons.org/licenses/odbl/1-0/'
+    assert changesets['changeset'] is not None
+    assert len(changesets['changeset']) > 0
+    assert '@id' in changesets['changeset'][0]
+    assert '@created_at' in changesets['changeset'][0]
+    assert '@updated_at' in changesets['changeset'][0]
+    assert '@closed_at' in changesets['changeset'][0]
+    assert '@open' in changesets['changeset'][0]
+    assert '@uid' in changesets['changeset'][0]
+    assert '@user' in changesets['changeset'][0]
+    assert '@comments_count' in changesets['changeset'][0]
+    assert '@changes_count' in changesets['changeset'][0]
+    assert 'tag' in changesets['changeset'][0]
