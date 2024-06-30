@@ -133,18 +133,17 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     perc = max(np.percentile(activity, 95), 1)
     cliped_activity = np.clip(activity / perc, 0, 1) * 19
     cliped_activity = np.round(cliped_activity).astype(int)
-
-    activity_week = [[] for _ in range(7)]
-
-    months = [''] * ACTIVITY_CHART_WEEKS
-
+    rows = [[] for _ in range(7)]
+    months = []
     for index, level in enumerate(cliped_activity):
-        activity_week[index % 7].append(
+        rows[index % 7].append(
             {'level': level, 'total': int(activity[index]), 'date': dates_range[index].date()}
         )
         if dates_range[index].day == 1:
-            months[len(activity_week[index % 7])] = dates_range[index].strftime('%b')
-    print(months)
+            i = len(rows[index % 7])
+            while len(months) <= i:
+                months.append('')
+            months[i] = dates_range[index].strftime('%b')
 
     activity_sum = int(sum(activity))  # total activities
     days = len(activity) - activity.tolist().count(0)  # total mapping days
@@ -170,7 +169,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups_count': groups_count,
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
-            'activity': activity_week,
+            'rows': rows,
             'activity_max': activity_max,
             'activity_sum': activity_sum,
             'activity_days': days,

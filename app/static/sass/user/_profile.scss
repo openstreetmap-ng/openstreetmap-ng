@@ -55,56 +55,55 @@
         color: $text-muted;
     }
 
-    #activity-container {
-        $padding: 40px;
-        $weeks: 26;
-        $gap: 2px;
-        $cell: calc((var(--width) + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
-        $white: #eee;
-        $green: rgb(21, 139, 21);
+    $padding: 40px;
+    $weeks: 26;
+    $gap: 2px;
+    $cell: calc((var(--width) + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
+    $white: #eee;
+    $green: rgb(21, 139, 21);
 
-        @for $i from 0 through 19 {
-            .activity-#{$i} {
-                background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
-            }
+    @for $i from 0 through 19 {
+        .activity[data-level="#{$i}"] {
+            background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
         }
-        .activity {
-            display: inline-block;
-            aspect-ratio: 1;
-            width: 1em;
-            border-radius: 25%;
-            cursor: text;
-        }
-        table .activity {
-            display: table-cell;
-            width: $cell;
-            height: $cell;
-            cursor: default;
-        }
+    }
+    .activity {
+        display: inline-block;
+        aspect-ratio: 1;
+        width: 1em;
+        border-radius: 25%;
+        cursor: text;
+    }
+    table .activity {
+        display: table-cell;
+        width: $cell;
+        height: $cell;
+        cursor: default;
+    }
 
-        table {
-            table-layout: fixed;
-            border-spacing: $gap;
-            border-collapse: separate;
+    table {
+        table-layout: fixed;
+        border-spacing: $gap;
+        border-collapse: separate;
 
-            .header {
-                height: 1em;
-                span {
-                    top: 0;
-                }
-            }
-        }
-        .chart-weekday {
+        .header {
             span {
-                position: absolute;
-                top: -5px;
+                top: 0;
             }
+            height: 1em;
+        }
+    }
+    .chart-weekday {
+        span {
+            position: absolute;
+            top: -5px;
+        }
 
-            width: 40px;
-            position: relative;
-        }
-        .comparison {
-            font-size: 0.75em;
-        }
+        width: $padding;
+        position: relative;
+    }
+
+    .comparison {
+        font-size: 0.75em;
     }
 }
