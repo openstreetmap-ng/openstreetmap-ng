@@ -16,9 +16,9 @@ if (container && table) {
     // add tooltips
     table.querySelectorAll('td[class*="activity"]').forEach((element) => {
         const [amount, date] = [+element.dataset.total, element.dataset.date]
-        const text = amount === 0 ? none : amount === 1 ? single : multiple.replace("{{num}}", amount)
+        const text = amount === 0 ? none : amount === 1 ? single : multiple.replace("{num}", amount)
         Tooltip.getOrCreateInstance(element, {
-            title: text.replace("{{date}}", date),
+            title: text.replace("{date}", date),
             placement: "bottom",
         })
     })
