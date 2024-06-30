@@ -1,10 +1,13 @@
+from collections.abc import Sequence
 from typing import Annotated
 
+from anyio import create_task_group
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
 from pydantic import NonNegativeInt, PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format import Format06
+from app.format.gpx import FormatGPX
 from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
@@ -12,12 +15,13 @@ from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
 from app.models.db.trace_ import Trace
+from app.models.db.trace_segment import TraceSegment
 from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility
-from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.trace_segment_query import TraceSegmentQuery
 from app.responses.osm_response import GPXResponse
 from app.services.trace_service import TraceService
 
@@ -49,8 +53,9 @@ async def upload_trace(
 async def get_trace(
     trace_id: PositiveInt,
 ):
-    with options_context(joinedload(Trace.user)):
+    with options_context(joinedload(Trace.user).load_only(User.display_name)):
         trace = await TraceQuery.get_one_by_id(trace_id)
+    await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=1, resolution=None)
     return Format06.encode_gpx_file(trace)
 
 
@@ -59,7 +64,9 @@ async def get_trace(
 async def get_current_user_traces(
     user: Annotated[User, api_user(Scope.read_gpx)],
 ):
-    traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
+    with options_context(joinedload(Trace.user).load_only(User.display_name)):
+        traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
+    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=1, resolution=None)
     return Format06.encode_gpx_files(traces)
 
 
@@ -70,8 +77,8 @@ async def get_trace_gpx(
 ):
     # ensures that user has access to the trace
     trace = await TraceQuery.get_one_by_id(trace_id)
-    trace_points = await TracePointQuery.get_many_by_trace_id(trace_id)
-    data = Format06.encode_track(trace_points, trace)
+    segments = await TraceSegmentQuery.get_many_by_trace_id(trace_id)
+    data = FormatGPX.encode_track(segments, trace)
     resp = GPXResponse.serialize(data)
     return Response(
         content=resp.body,
@@ -96,11 +103,11 @@ async def download_trace(
 @router.put('/gpx/{trace_id:int}')
 async def update_trace(
     trace_id: PositiveInt,
-    data: Annotated[dict, xml_body('osm/gpx_file')],
+    data: Annotated[Sequence[dict], xml_body('osm/gpx_file')],
     _: Annotated[User, api_user(Scope.write_gpx)],
 ):
     try:
-        trace = Format06.decode_gpx_file(data)
+        trace = Format06.decode_gpx_file(data[0])
     except Exception as e:
         raise_for().bad_xml('trace', str(e))
 
@@ -125,7 +132,7 @@ async def delete_trace(
 
 @router.get('/trackpoints', response_class=GPXResponse)
 @router.get('/trackpoints.gpx', response_class=GPXResponse)
-async def query_tracepoints(
+async def trackpoints(
     bbox: Annotated[str, Query()],
     page_number: Annotated[NonNegativeInt, Query(alias='pageNumber')] = 0,
 ):
@@ -133,9 +140,27 @@ async def query_tracepoints(
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
         raise_for().trace_points_query_area_too_big()
 
-    points = await TracePointQuery.find_many_by_geometry(
-        geometry,
-        limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
-        legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
-    )
-    return Format06.encode_track(points)
+    segments: list[list[TraceSegment]] = [None, None]
+
+    async def public_task():
+        with options_context(joinedload(TraceSegment.trace).load_only(Trace.name, Trace.description, Trace.visibility)):
+            segments[0] = await TraceSegmentQuery.find_many_by_geometry(
+                geometry,
+                identifiable_trackable=True,
+                limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
+                legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
+            )
+
+    async def private_task():
+        segments[1] = await TraceSegmentQuery.find_many_by_geometry(
+            geometry,
+            identifiable_trackable=False,
+            limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
+            legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
+        )
+
+    async with create_task_group() as tg:
+        tg.start_soon(public_task)
+        tg.start_soon(private_task)
+
+    return FormatGPX.encode_track((*segments[0], *segments[1]))

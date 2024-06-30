@@ -39,7 +39,11 @@ class ChangesetCommentQuery:
                 .where(ChangesetComment.changeset_id.in_(text(','.join(map(str, id_changeset_map)))))
                 .subquery()
             )
-            stmt = select(subq.c.changeset_id, func.count()).select_from(subq).group_by(subq.c.changeset_id)
+            stmt = (
+                select(subq.c.changeset_id, func.count())  #
+                .select_from(subq)
+                .group_by(subq.c.changeset_id)
+            )
             id_num_map: dict[int, int] = dict((await session.execute(stmt)).all())
 
         for changeset_id, changeset in id_changeset_map.items():

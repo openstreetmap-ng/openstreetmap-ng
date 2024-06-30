@@ -1,12 +1,11 @@
 from collections.abc import Sequence
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Literal
 
 from shapely.ops import BaseGeometry
 from sqlalchemy import and_, func, null, select, text
 
 from app.db import db
-from app.lib.date_utils import utcnow
 from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
 

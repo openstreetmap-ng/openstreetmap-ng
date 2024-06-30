@@ -36,7 +36,6 @@ def tags_format_osm_wiki(tags: Sequence[TagFormatCollection]) -> None:
     Format tags with supported wiki links.
     """
     user_langs = translation_languages()
-    primary_lang = user_langs[0]
 
     for tag in tags:
         tag_key = tag.key

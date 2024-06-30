@@ -13,8 +13,8 @@ from app.lib.render_response import render_response
 from app.limits import DISPLAY_NAME_MAX_LENGTH, TRACE_TAG_MAX_LENGTH
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
-from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
 from app.utils import JSON_ENCODE
 
@@ -44,7 +44,7 @@ async def _get_traces_data(
     new_before: int | None = None
 
     async def resolve_task():
-        await TracePointQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
+        await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
 
     async def new_after_task():
         nonlocal new_after

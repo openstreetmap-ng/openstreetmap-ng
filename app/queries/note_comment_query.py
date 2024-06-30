@@ -96,7 +96,6 @@ class NoteCommentQuery:
             stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
-        # TODO: delete notes without comments
         current_note_id: int = 0
         current_comments: list[NoteComment] = []
 

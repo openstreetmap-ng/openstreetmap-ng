@@ -91,7 +91,6 @@ class UserService:
         collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
-        editor: Editor | None,
         language: str,
         activity_tracking: bool,
         crash_reporting: bool,
@@ -107,7 +106,6 @@ class UserService:
         async with db_commit() as session:
             user = await session.get(User, user.id, with_for_update=True)
             user.display_name = display_name
-            user.editor = editor
             user.activity_tracking = activity_tracking
             user.crash_reporting = crash_reporting
 

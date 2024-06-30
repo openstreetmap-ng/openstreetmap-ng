@@ -1,6 +1,7 @@
 editor:
   rapid:
     name: Rapid
+  default: Default editor
 map:
   overlays:
     title: Map overlays
@@ -33,11 +34,6 @@ changeset:
   this_changeset_is_state: This changeset is {{state}}
   count_one: 'changeset'
   count_other: 'changesets'
-javascripts:
-  site:
-    remember_choice_disabled_tooltip: You must be logged in to have your choice be remembered
-layouts:
-  remember_choice: Remember my choice
 note:
   title: Note
   count_one: 'note'
@@ -121,6 +117,7 @@ validation:
   email_taken: This email address is already taken
   email_missmatch: The email addresses do not match
   password_missmatch: The passwords do not match
+  you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
 action:
   block_user: Block user
   cancel: Cancel
@@ -138,6 +135,7 @@ action:
   upload: Upload
   uploaded: uploaded
   reactivated: reactivated
+  remember_my_choice: Remember my choice
   report_abuse: Report abuse
   reset_filters: Reset filters
   resolved: resolved

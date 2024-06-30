@@ -9,6 +9,7 @@ from app.lib.locale import map_i18next_files
 from app.lib.translation import translation_languages
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
+from app.models.editor import DEFAULT_EDITOR
 from app.utils import JSON_ENCODE
 
 _config_base = {
@@ -38,6 +39,7 @@ def _get_default_data() -> dict:
         'request': get_request(),
         'TEST_ENV': TEST_ENV,
         'APP_URL': APP_URL,
+        'DEFAULT_EDITOR': DEFAULT_EDITOR,
         'lang': languages[0],
         'user': user,
         'config': JSON_ENCODE(config).decode(),

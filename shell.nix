@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/4a4ecb0ab415c9fccfb005567a215e6a9564cdf5.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/1e3deb3d8a86a870d925760db1a5adecc64d329d.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   supervisordConf = import ./config/supervisord.nix { inherit pkgs projectDir; };
@@ -76,7 +76,7 @@ let
     '')
     (writeShellScriptBin "alembic-upgrade" ''
       set -e
-      lataest_version=1
+      lataest_version=2
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"

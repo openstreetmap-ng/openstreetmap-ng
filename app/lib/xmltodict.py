@@ -61,6 +61,7 @@ force_list = {
     'trkpt',
     'preference',
     'comment',
+    'gpx_file',
 }
 
 value_postprocessor: dict[str, Callable[[str], Any]] = {

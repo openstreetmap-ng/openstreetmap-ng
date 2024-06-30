@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from shapely import Point
 from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -11,7 +10,6 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
-from app.models.geometry import PointType
 from app.models.scope import ExtendedScope
 from app.models.trace_visibility import TraceVisibility
 
@@ -29,7 +27,6 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     size: Mapped[int] = mapped_column(Integer, nullable=False)
-    start_point: Mapped[Point] = mapped_column(PointType, nullable=False)
     file_id: Mapped[str] = mapped_column(Unicode(STORAGE_KEY_MAX_LENGTH), init=False, nullable=False)
 
     # defaults
