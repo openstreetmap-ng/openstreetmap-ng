@@ -169,6 +169,7 @@ async def query_changesets(
 
     display_name_provided: cython.char = display_name is not None
     user_id_provided: cython.char = user_id is not None
+    user: User | None = None
 
     if display_name_provided and user_id_provided:
         return Response('provide either the user ID or display name, but not both', status.HTTP_400_BAD_REQUEST)
