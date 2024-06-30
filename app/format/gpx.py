@@ -6,7 +6,12 @@ import cython
 import numpy as np
 from shapely import GeometryType, MultiPoint, lib
 
-from app.limits import GEO_COORDINATE_PRECISION, TRACE_SEGMENT_MAX_AREA, TRACE_SEGMENT_MAX_LENGTH
+from app.limits import (
+    GEO_COORDINATE_PRECISION,
+    TRACE_SEGMENT_MAX_AREA,
+    TRACE_SEGMENT_MAX_AREA_LENGTH,
+    TRACE_SEGMENT_MAX_SIZE,
+)
 from app.models.db.trace_ import Trace
 from app.models.db.trace_segment import TraceSegment
 from app.validators.geometry import validate_geometry
@@ -90,7 +95,8 @@ class FormatGPX:
         [TraceSegment(...)]
         """
         segment_max_area: cython.double = TRACE_SEGMENT_MAX_AREA
-        segment_max_length: cython.int = TRACE_SEGMENT_MAX_LENGTH
+        segment_max_area_length: cython.double = TRACE_SEGMENT_MAX_AREA_LENGTH
+        segment_max_size: cython.int = TRACE_SEGMENT_MAX_SIZE
         result: list[TraceSegment] = []
 
         track_num: cython.int
@@ -141,7 +147,8 @@ class FormatGPX:
 
                     if _should_finish_segment(
                         segment_max_area=segment_max_area,
-                        segment_max_length=segment_max_length,
+                        segment_max_area_length=segment_max_area_length,
+                        segment_max_size=segment_max_size,
                         minx=current_minx,
                         miny=current_miny,
                         maxx=current_maxx,
@@ -184,7 +191,8 @@ class FormatGPX:
 def _should_finish_segment(
     *,
     segment_max_area: cython.double,
-    segment_max_length: cython.int,
+    segment_max_area_length: cython.double,
+    segment_max_size: cython.int,
     minx: cython.double,
     miny: cython.double,
     maxx: cython.double,
@@ -194,9 +202,13 @@ def _should_finish_segment(
     """
     Check if the segment should be finished before adding the point.
     """
+    width: cython.double = maxx - minx
+    height: cython.double = maxy - miny
     return (
-        len(points) + 1 >= segment_max_length  # check length
-        or (maxx - minx) * (maxy - miny) > segment_max_area  # check area
+        len(points) + 1 >= segment_max_size  # check length
+        or width * height > segment_max_area  # check area
+        or width > segment_max_area_length  # check width
+        or height > segment_max_area_length  # check height
     )
 
 
