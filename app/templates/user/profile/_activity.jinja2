@@ -2,12 +2,13 @@
 <tr>
     <td class="chart-weekday text-muted small"><span>{{ name }}</span></td>
     {% for day in weekday %}
-    <td class="activity-{{  day.level  }} activity" data-total="{{  day.total  }}" data-date="{{  day.date  }}"></td>
+    <td class="activity-{{  day.level  }} activity" data-total="{{  day.total  }}"
+        data-date="{{  day.date.strftime('%B %d, %Y')  }}"></td>
     {% endfor %}
 </tr>
 {% endmacro %}
 
-<div id="activity-container">
+<div id="activity-container" data-single="{{  t('user.activity.single')  }}"  data-none="{{  t('user.activity.none')  }}" data-multiple="{{  t('user.activity.multiple')  }}">
 
     <h3 class="ms-1">{{  t('user.activity.recent')  }}</h3>
     <p>{{  t('user.activity.discreption', day=activity_days, total=activity_sum)  }}</p>
@@ -22,37 +23,19 @@
         {{ row(activity.6, "") }}
     </table>
 
-    <div class="text-end x-small text-muted">
-        {{  t('user.activity.less')  }} (0)
+    <div class="text-end comparison text-muted">
+        {{ t('user.activity.less') }} (0)
         <span class="activity-0 activity small"></span>
         <span class="activity-6 activity small"></span>
         <span class="activity-12 activity small"></span>
         <span class="activity-19 activity small"></span>
-        {{  t('user.activity.more')  }} ({{ activity_max }})
+        {{  t('user.activity.more')  }} ({{  activity_max  }})
     </div>
 
     <div class="text-end">
         <a class="small me-1" href="/user/{{ profile.display_name }}/groups">
-            View full statistics<i class="bi bi-box-arrow-up-right ms-2"></i>
+            {{ t('user.activity.view_all') }}<i class="bi bi-box-arrow-up-right ms-2"></i>
         </a>
     </div>
 
 </div>
-
-{# TODO: move this #}
-<script>
-    const container = document.getElementById('activity-container');
-
-    const f = (width) => {
-        container.style.cssText = `--width: ${width}px`;
-
-    }
-    const observer = new ResizeObserver(entries => {
-        for (let entry of entries) {
-            const { width, height } = entry.contentRect;
-            f(width)
-        }
-    });
-    observer.observe(container);
-    f(container.offsetWidth)
-</script>

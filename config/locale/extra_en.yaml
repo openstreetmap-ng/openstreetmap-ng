@@ -76,9 +76,13 @@ user:
     password_last_changed: Password last changed
   activity:
     recent: Recent activity
-    single: {{day}} mapping day with {{total}} changeset in last 6 months
+    discreption: {{day}} mapping days with {{total}} changesets in last 6 months
     less: Less
     more: More
+    view_all: View full statistics
+    single: 1 activitiy on {{date}}
+    multiple: {{num}} activities on {{date}}
+    none: No activities on {{date}}
 privacy:
   enable_activity_tracking:
     title: Enable activity tracking

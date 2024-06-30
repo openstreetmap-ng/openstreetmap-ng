@@ -56,11 +56,10 @@
     }
 
     #activity-container {
-        $width: var(--width);
         $padding: 40px;
-        $weeks: 30;
+        $weeks: 26;
         $gap: 2px;
-        $cell: calc(($width + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
+        $cell: calc((var(--width) + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
         $white: #eee;
         $green: rgb(21, 139, 21);
 
@@ -74,11 +73,13 @@
             aspect-ratio: 1;
             width: 1em;
             border-radius: 25%;
+            cursor: text;
         }
         table .activity {
             display: table-cell;
             width: $cell;
             height: $cell;
+            cursor: default;
         }
 
         table {
@@ -94,6 +95,9 @@
 
             width: 40px;
             position: relative;
+        }
+        .comparison {
+            font-size: 0.75em;
         }
     }
 }

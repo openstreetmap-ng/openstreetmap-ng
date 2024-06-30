@@ -26,7 +26,7 @@ from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
-ACTIVITY_CHART_WEEKS = 30  # when modyfying change $weeks var in /static/scss/user/_profile.scss
+ACTIVITY_CHART_WEEKS = 26  # when modyfying change $weeks var in /static/sass/user/_profile.scss
 ACTIVITY_CHART_LENGTH = ACTIVITY_CHART_WEEKS * 7
 
 
@@ -137,7 +137,9 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     activity_week = [[] for _ in range(7)]
 
     for index, day in enumerate(cliped_activity):
-        activity_week[index % 7].append({'level': day, 'total': int(activity[index]), 'date': dates_range[index].date()})
+        activity_week[index % 7].append(
+            {'level': day, 'total': int(activity[index]), 'date': dates_range[index].date()}
+        )
 
     activity_sum = int(sum(activity))  # total activities
     days = len(activity) - activity.tolist().count(0)  # total mapping days
