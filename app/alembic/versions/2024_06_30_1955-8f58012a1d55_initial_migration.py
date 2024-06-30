@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: fdc218cd0a4e
+Revision ID: 8f58012a1d55
 Revises:
-Create Date: 2024-06-30 19:19:06.962075+00:00
+Create Date: 2024-06-30 19:55:53.603802+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'fdc218cd0a4e'
+revision: str = '8f58012a1d55'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -415,8 +415,8 @@ def upgrade() -> None:
     sa.Column('track_num', sa.SmallInteger(), nullable=False),
     sa.Column('segment_num', sa.SmallInteger(), nullable=False),
     sa.Column('points', app.models.geometry.MultiPointType(), nullable=False),
-    sa.Column('capture_times', sa.ARRAY(postgresql.TIMESTAMP(timezone=True), dimensions=1), nullable=True),
-    sa.Column('elevations', sa.ARRAY(sa.Float()), nullable=True),
+    sa.Column('capture_times', sa.ARRAY(postgresql.TIMESTAMP(timezone=True), dimensions=1), nullable=False),
+    sa.Column('elevations', sa.ARRAY(sa.REAL()), nullable=False),
     sa.ForeignKeyConstraint(['trace_id'], ['trace.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('trace_id', 'track_num', 'segment_num')
     )

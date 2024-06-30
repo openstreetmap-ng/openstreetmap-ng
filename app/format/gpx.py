@@ -73,14 +73,7 @@ class FormatGPX:
 
             points: list[tuple[float, float]]
             points = lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False).tolist()
-            capture_times = segment.capture_times
-            if capture_times is None:
-                capture_times = ()
-            elevations = segment.elevations
-            if elevations is None:
-                elevations = ()
-
-            for point, capture_time, elevation in zip_longest(points, capture_times, elevations):
+            for point, capture_time, elevation in zip_longest(points, segment.capture_times, segment.elevations):
                 data = {'@lon': point[0], '@lat': point[1]}
                 if capture_time is not None:
                     data['time'] = capture_time
@@ -130,8 +123,12 @@ class FormatGPX:
 
                     lon_c: cython.double = lon
                     lat_c: cython.double = lat
-                    time: datetime | None = trkpt.get('@time')
-                    elevation: float | None = trkpt.get('@ele')
+                    time: str | datetime | None = trkpt.get('time')
+                    if time is not None:
+                        time = datetime.fromisoformat(time)
+                    elevation: str | float | None = trkpt.get('ele')
+                    if elevation is not None:
+                        elevation = float(elevation)
 
                     if current_minx > lon_c:
                         current_minx = lon_c
@@ -222,8 +219,8 @@ def _finish_segment(
     points_: np.ndarray = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
     multipoint: MultiPoint = lib.create_collection(points_, GeometryType.MULTIPOINT)
     multipoint = validate_geometry(multipoint)
-    capture_times_ = capture_times if any(v is not None for v in capture_times) else None
-    elevations_ = elevations if any(v is not None for v in elevations) else None
+    capture_times_ = capture_times.copy() if any(v is not None for v in capture_times) else []
+    elevations_ = elevations.copy() if any(v is not None for v in elevations) else []
 
     result.append(
         TraceSegment(

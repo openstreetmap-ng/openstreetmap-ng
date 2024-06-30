@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from shapely import MultiPoint
-from sqlalchemy import ARRAY, Float, ForeignKey, Index, PrimaryKeyConstraint, SmallInteger
+from sqlalchemy import ARRAY, REAL, ForeignKey, Index, PrimaryKeyConstraint, SmallInteger
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,10 +19,8 @@ class TraceSegment(Base.NoID):
     segment_num: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     points: Mapped[MultiPoint] = mapped_column(MultiPointType, nullable=False)
-    capture_times: Mapped[list[datetime | None] | None] = mapped_column(
-        ARRAY(TIMESTAMP(True), dimensions=1), nullable=True
-    )
-    elevations: Mapped[list[float | None] | None] = mapped_column(ARRAY(Float), nullable=True)
+    capture_times: Mapped[list[datetime | None]] = mapped_column(ARRAY(TIMESTAMP(True), dimensions=1), nullable=False)
+    elevations: Mapped[list[float | None]] = mapped_column(ARRAY(REAL), nullable=False)
 
     __table_args__ = (
         PrimaryKeyConstraint(trace_id, track_num, segment_num),

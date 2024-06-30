@@ -117,7 +117,7 @@ class TraceSegmentQuery:
                 i: int = 0
                 for segment, data_len in zip(segments, data_lens, strict=True):
                     data = getattr(segment, attr_name)
-                    if data is not None:
+                    if data:
                         data_flat[i : i + data_len] = data
                         dirty = True
                     i += data_len
@@ -135,8 +135,8 @@ class TraceSegmentQuery:
                     track_num=0,
                     segment_num=0,
                     points=new_points,
-                    capture_times=None,
-                    elevations=None,
+                    capture_times=[],
+                    elevations=[],
                 ),
             )
 

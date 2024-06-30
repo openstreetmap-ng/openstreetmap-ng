@@ -1,3 +1,6 @@
+from datetime import UTC, datetime
+from math import isclose
+
 import pytest
 from httpx import AsyncClient
 
@@ -204,4 +207,8 @@ async def test_trackpoints(client: AsyncClient, gpx: dict):
     trk = next(t for t in trks if t.get('url') == f'/trace/{trace_id}')
     assert trk['name'] == 'test_trackpoints.gpx'
     assert trk['desc'] == 'test_trackpoints'
-    assert 'trkseg' in trk
+    trkpt = trk['trkseg'][0]['trkpt'][0]
+    assert trkpt['@lon'] == 20.8726996
+    assert trkpt['@lat'] == 51.8583922
+    assert datetime.fromisoformat(trkpt['time']) == datetime(2023, 7, 3, 10, 36, 21, tzinfo=UTC)
+    assert isclose(float(trkpt['ele']), 190.8, abs_tol=0.01)
