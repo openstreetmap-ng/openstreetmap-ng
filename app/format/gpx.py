@@ -52,7 +52,7 @@ class FormatGPX:
                         {
                             'name': trace.name,
                             'desc': trace.description,
-                            'url': f'/trace/{segment.trace_id}',
+                            'url': f'/trace/{trace_id}',
                             'trkseg': trksegs,
                         }
                     )
@@ -89,7 +89,7 @@ class FormatGPX:
         return {'trk': trks}
 
     @staticmethod
-    def decode_tracks(tracks: Sequence[dict], *, track_num_start: int = 0) -> Sequence[TraceSegment]:
+    def decode_tracks(tracks: Sequence[dict], *, track_num_start: cython.int = 0) -> Sequence[TraceSegment]:
         """
         >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TraceSegment(...)]
@@ -205,10 +205,10 @@ def _should_finish_segment(
     width: cython.double = maxx - minx
     height: cython.double = maxy - miny
     return (
-        len(points) + 1 >= segment_max_size  # check length
-        or width * height > segment_max_area  # check area
+        width * height > segment_max_area  # check area
         or width > segment_max_area_length  # check width
         or height > segment_max_area_length  # check height
+        or len(points) + 1 >= segment_max_size  # check length
     )
 
 
@@ -221,7 +221,7 @@ def _finish_segment(
     points: list[tuple[float, float]],
     capture_times: list[datetime | None],
     elevations: list[float | None],
-) -> None:
+):
     """
     Finish the segment and add it to the result.
     """
