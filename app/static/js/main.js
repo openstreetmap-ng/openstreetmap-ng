@@ -19,6 +19,7 @@ import "./user/_login.js"
 import "./user/_settings.js"
 import "./user/_signup.js"
 import "./user/_terms.js"
+import "./user/_activity-chart.js"
 
 const mapContainer = document.querySelector(".main-map")
 if (mapContainer) configureMainMap(mapContainer)

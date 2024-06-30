@@ -1,18 +1,16 @@
 {% macro row(weekday, name) %}
 <tr>
-    <td class="chart-weekday"><span>{{ name }}</span></td>
+    <td class="chart-weekday text-muted small"><span>{{ name }}</span></td>
     {% for day in weekday %}
-    <td class="activity-{{ day  }} activity"></td>
+    <td class="activity-{{  day.level  }} activity" data-total="{{  day.total  }}" data-date="{{  day.date  }}"></td>
     {% endfor %}
 </tr>
 {% endmacro %}
 
 <div id="activity-container">
 
-    <h3 class="ms-1">Recent activity</h3>
-    <p>
-        {{activity_days}} mapping days with {{activity_sum}} changesets in the last year
-    </p>
+    <h3 class="ms-1">{{  t('user.activity.recent')  }}</h3>
+    <p>{{  t('user.activity.discreption', day=activity_days, total=activity_sum)  }}</p>
 
     <table id="activity-table" class="overflow-hidden">
         {{ row(activity.0, "") }}
@@ -24,13 +22,13 @@
         {{ row(activity.6, "") }}
     </table>
 
-    <div class="text-end small">
-        Less (0)
-        <span class="activity-0 activity"></span>
-        <span class="activity-6 activity"></span>
-        <span class="activity-12 activity"></span>
-        <span class="activity-19 activity"></span>
-        More ({{ activity_max }})
+    <div class="text-end x-small text-muted">
+        {{  t('user.activity.less')  }} (0)
+        <span class="activity-0 activity small"></span>
+        <span class="activity-6 activity small"></span>
+        <span class="activity-12 activity small"></span>
+        <span class="activity-19 activity small"></span>
+        {{  t('user.activity.more')  }} ({{ activity_max }})
     </div>
 
     <div class="text-end">

@@ -26,7 +26,7 @@ from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
 
-ACTIVITY_CHART_WEEKS = 30 # when modyfying change $weeks var in /static/scss/user/_profile.scss
+ACTIVITY_CHART_WEEKS = 30  # when modyfying change $weeks var in /static/scss/user/_profile.scss
 ACTIVITY_CHART_LENGTH = ACTIVITY_CHART_WEEKS * 7
 
 
@@ -115,7 +115,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups = ()
 
     today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    weekday = (today.weekday() + 1) % 7 # put sunday on top
+    weekday = (today.weekday() + 1) % 7  # put sunday on top
 
     created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH + weekday)
 
@@ -131,20 +131,17 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
         [changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range], dtype=float
     )
     perc = max(np.percentile(activity, 95), 1)
-    activity = np.clip(activity / perc, 0, 1) * 19
-    activity = np.round(activity).astype(int)
+    cliped_activity = np.clip(activity / perc, 0, 1) * 19
+    cliped_activity = np.round(cliped_activity).astype(int)
 
     activity_week = [[] for _ in range(7)]
 
-    #debug code REMOVE!!
-    # activity = [0,0,4,8,4,4,0,8,8,4,0,4,4,4,8,12,4,4,0,0,0,0,0,8,4,0,4,0,12,12,12,12,4,16,8,12,8,12,8,0,12,8,4,12,8,8,8,4,8,8,4,4,4,8,4,4,12,8,4,8,8,12,16,4,8,8,4,8,16,8,16,8,4,16,4,4,8,4,4,0,8,8,4,8,4,8,4,8,8,8,4,4,0,0,8,8,4,4,4,4,8,4,4,4,4,4,4,8,4,8,4,4,4,8,8,4,4,4,4,8,4,8,0,4,0,4,4,8,8,0,0,0,0,0,0,4,0,0,4,4,0,4,0,4,0,4,0,4,16,12,8,8,4,4,4,4,4,4,8,8,4,8,12,8,8,4,4,4,4,4,4,12,8,0,0,0,0,4,4,4,0,4,4,4,4,4,4,8,4,8,0,12,8,8,8,4,8,8,0,0,8,4]
-    # perc = max(activity)
+    for index, day in enumerate(cliped_activity):
+        activity_week[index % 7].append({'level': day, 'total': int(activity[index]), 'date': dates_range[index].date()})
 
-    for index, day in enumerate(activity):
-        activity_week[index % 7].append(day)
-
-    activity_sum =  sum(activity) # total activities
-    days = len(activity) - activity.tolist().count(0) # total mapping days
+    activity_sum = int(sum(activity))  # total activities
+    days = len(activity) - activity.tolist().count(0)  # total mapping days
+    activity_max = int(max(activity))
 
     return render_response(
         'user/profile/index.jinja2',
@@ -167,8 +164,8 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
             'activity': activity_week,
-            'activity_max': perc,
+            'activity_max': activity_max,
             'activity_sum': activity_sum,
-            'activity_days': days
+            'activity_days': days,
         },
     )

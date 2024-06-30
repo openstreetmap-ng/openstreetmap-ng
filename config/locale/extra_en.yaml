@@ -74,6 +74,11 @@ user:
     change_email: Change email
     change_password: Change password
     password_last_changed: Password last changed
+  activity:
+    recent: Recent activity
+    single: {{day}} mapping day with {{total}} changeset in last 6 months
+    less: Less
+    more: More
 privacy:
   enable_activity_tracking:
     title: Enable activity tracking
