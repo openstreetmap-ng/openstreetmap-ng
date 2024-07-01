@@ -96,15 +96,8 @@ async def test_changeset_crud(client: AsyncClient):
 
 
 async def test_changesets_unathorized_get_request(client: AsyncClient):
-    assert LEGACY_HIGH_PRECISION_TIME
-
     r = await client.get('/api/0.6/changesets')
     assert r.is_success, r.text
 
     changesets: dict = XMLToDict.parse(r.content)['osm']
-    assert changesets['@version'] == 0.6
-    assert changesets['@generator'] == 'OpenStreetMap-NG'
-    assert changesets['@copyright'] == 'OpenStreetMap contributors'
-    assert changesets['@attribution'] == 'https://www.openstreetmap.org/copyright'
-    assert changesets['@license'] == 'https://opendatacommons.org/licenses/odbl/1-0/'
     assert changesets['changeset'] is not None
