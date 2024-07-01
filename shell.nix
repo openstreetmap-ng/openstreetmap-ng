@@ -442,7 +442,7 @@ let
 
     # -- Misc
     (writeShellScriptBin "run" "python -m uvicorn app.main:main --reload")
-    (writeShellScriptBin "format" "python -m pre_commit run --config ${preCommitConf} --all-files")
+    (writeShellScriptBin "format" "ruff check . --fix; python -m pre_commit run --config ${preCommitConf} --all-files")
     (writeShellScriptBin "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (writeShellScriptBin "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (writeShellScriptBin "wiki-pages-update" "python scripts/wiki_pages_update.py")
