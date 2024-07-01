@@ -93,3 +93,11 @@ async def test_changeset_crud(client: AsyncClient):
     assert '@min_lon' not in changeset
     assert '@max_lon' not in changeset
     assert changeset['@changes_count'] == 0
+
+
+async def test_changesets_unathorized_get_request(client: AsyncClient):
+    r = await client.get('/api/0.6/changesets')
+    assert r.is_success, r.text
+
+    changesets: dict = XMLToDict.parse(r.content)['osm']
+    assert changesets['changeset'] is not None
