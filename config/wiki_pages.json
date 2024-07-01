@@ -503,7 +503,8 @@
     "*": [
       "",
       "DE",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "landfill": [
       "",
@@ -521,7 +522,8 @@
       "",
       "DE",
       "ES",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "yes": [
       "RU"
@@ -3456,6 +3458,7 @@
     ],
     "kick-scooter_parking": [
       "",
+      "FR",
       "RU"
     ],
     "kick-scooter_rental": [
@@ -5311,6 +5314,9 @@
       "",
       "ES"
     ],
+    "installation": [
+      ""
+    ],
     "land_art": [
       "",
       "RU"
@@ -5594,6 +5600,7 @@
     "maze": [
       "",
       "DE",
+      "ES",
       "RU"
     ],
     "roller_coaster": [
@@ -5695,7 +5702,8 @@
       "DE",
       "JA",
       "Ko",
-      "Pl"
+      "Pl",
+      "Uk"
     ]
   },
   "autonomy": {
@@ -5761,7 +5769,8 @@
       "Cs",
       "DE",
       "FR",
-      "RU"
+      "RU",
+      "Uk"
     ]
   },
   "backrest": {
@@ -5804,7 +5813,8 @@
       "",
       "Cs",
       "JA",
-      "Pl"
+      "Pl",
+      "Uk"
     ]
   },
   "barbecue_grill": {
@@ -6792,6 +6802,12 @@
       "RU"
     ]
   },
+  "bicycle:lanes": {
+    "*": [
+      "",
+      "RU"
+    ]
+  },
   "bicycle:parts": {
     "*": [
       ""
@@ -7138,6 +7154,7 @@
     ],
     "petanque": [
       "",
+      "Eo",
       "FR"
     ]
   },
@@ -9430,7 +9447,8 @@
       "DE",
       "JA",
       "Pl",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "bomb_shelter": [
       "",
@@ -9542,6 +9560,12 @@
     "*": [
       "",
       "Pl"
+    ],
+    "flexible": [
+      ""
+    ],
+    "rigid": [
+      ""
     ]
   },
   "buskerudbyen:cycleway": {
@@ -9661,7 +9685,8 @@
       "Cs",
       "FR",
       "JA",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "board_game": [
       ""
@@ -9777,7 +9802,8 @@
       "",
       "DE",
       "ES",
-      "FR"
+      "FR",
+      "Uk"
     ]
   },
   "campwild": {
@@ -10095,6 +10121,11 @@
       "FR",
       "Pl",
       "RU"
+    ]
+  },
+  "cash_out": {
+    "*": [
+      ""
     ]
   },
   "cash_withdrawal": {
@@ -10574,7 +10605,8 @@
       "Gcf",
       "JA",
       "Pl",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "amateur_radio": [
       "",
@@ -11736,7 +11768,13 @@
   "couplings": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "Pl"
+    ]
+  },
+  "couplings:*": {
+    "*": [
+      "Pl"
     ]
   },
   "couplings:diameters": {
@@ -13378,7 +13416,8 @@
       "Gcf"
     ],
     "ramen": [
-      ""
+      "",
+      "Ko"
     ],
     "regional": [
       "",
@@ -13759,6 +13798,9 @@
       "Pl",
       "RU"
     ],
+    "opposite_share_busway": [
+      ""
+    ],
     "opposite_track": [
       "",
       "Cs",
@@ -13870,6 +13912,7 @@
     "exclusive": [
       "",
       "DE",
+      "FR",
       "RU"
     ],
     "share_parking": [
@@ -16819,7 +16862,8 @@
   },
   "firearms": {
     "*": [
-      ""
+      "",
+      "Uk"
     ]
   },
   "fireplace": {
@@ -17059,7 +17103,8 @@
   "food": {
     "*": [
       "",
-      "JA"
+      "JA",
+      "Uk"
     ]
   },
   "food:*": {
@@ -18871,6 +18916,9 @@
     ]
   },
   "hairdresser": {
+    "*": [
+      ""
+    ],
     "barber": [
       ""
     ]
@@ -19209,6 +19257,9 @@
       "",
       "ES",
       "JA"
+    ],
+    "yes": [
+      ""
     ]
   },
   "hazard_return_period": {
@@ -22912,6 +22963,16 @@
       "RU"
     ]
   },
+  "lamp_operator": {
+    "*": [
+      ""
+    ]
+  },
+  "lamp_ref": {
+    "*": [
+      ""
+    ]
+  },
   "lamp_type": {
     "*": [
       "",
@@ -25819,7 +25880,8 @@
       "",
       "DE",
       "FR",
-      "Pl"
+      "Pl",
+      "Uk"
     ],
     "hongsalmun": [
       "",
@@ -26044,6 +26106,7 @@
     ],
     "planter": [
       "",
+      "DE",
       "ES",
       "FR",
       "JA",
@@ -27499,6 +27562,7 @@
       "Pl",
       "Pt",
       "RU",
+      "Uk",
       "Zh-hans"
     ],
     "academy": [
@@ -28053,6 +28117,7 @@
     ],
     "no": [
       "",
+      "FR",
       "RU"
     ],
     "private": [
@@ -29001,7 +29066,8 @@
   },
   "name:eo": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "name:es": {
@@ -30626,6 +30692,11 @@
     ]
   },
   "name:zza": {
+    "*": [
+      ""
+    ]
+  },
+  "name_v3": {
     "*": [
       ""
     ]
@@ -33850,7 +33921,8 @@
   },
   "open": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "openGeoDB:loc_id": {
@@ -34011,6 +34083,11 @@
       "JA",
       "RU",
       "Zh-hans"
+    ]
+  },
+  "opening_hours:description": {
+    "*": [
+      ""
     ]
   },
   "opening_hours:drive_through": {
@@ -34899,7 +34976,8 @@
   "parking:right:orientation": {
     "*": [
       "",
-      "FR"
+      "FR",
+      "RU"
     ]
   },
   "parking:right:restriction": {
@@ -36094,6 +36172,7 @@
       "",
       "Cs",
       "DE",
+      "ES",
       "FR",
       "IT",
       "JA",
@@ -36124,7 +36203,8 @@
       "RU"
     ],
     "cushion": [
-      ""
+      "",
+      "RU"
     ],
     "funnel_ball": [
       "",
@@ -36179,7 +36259,8 @@
       "RU"
     ],
     "trampoline": [
-      ""
+      "",
+      "RU"
     ],
     "tunnel_tube": [
       "",
@@ -36282,6 +36363,9 @@
       "ES",
       "FR"
     ],
+    "helicopter_unit": [
+      ""
+    ],
     "naval_base": [
       "",
       "DE",
@@ -36331,7 +36415,8 @@
   "political_division": {
     "*": [
       "",
-      "ES"
+      "ES",
+      "Uk"
     ],
     "NL:kamerkieskring": [
       ""
@@ -36361,7 +36446,8 @@
   "polling_station": {
     "*": [
       "",
-      "Ca"
+      "Ca",
+      "Uk"
     ]
   },
   "population": {
@@ -36444,7 +36530,8 @@
     "*": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "Uk"
     ],
     "post_partner": [
       "",
@@ -36858,7 +36945,8 @@
   "private": {
     "*": [
       "",
-      "JA"
+      "JA",
+      "Uk"
     ],
     "employees": [
       ""
@@ -37945,6 +38033,11 @@
       "Zh-hans"
     ]
   },
+  "railway:milestone:catenary_mast": {
+    "*": [
+      ""
+    ]
+  },
   "railway:position": {
     "*": [
       "",
@@ -37997,6 +38090,71 @@
       "DE"
     ]
   },
+  "railway:signal:distant:plates": {
+    "FR:A": [
+      ""
+    ],
+    "FR:D": [
+      ""
+    ]
+  },
+  "railway:signal:distant:shape": {
+    "FR:R": [
+      ""
+    ]
+  },
+  "railway:signal:distant:states": {
+    "FR:(A)": [
+      ""
+    ],
+    "FR:(R)": [
+      ""
+    ],
+    "FR:(R)+(A)": [
+      ""
+    ],
+    "FR:(R)+A": [
+      ""
+    ],
+    "FR:A": [
+      ""
+    ],
+    "FR:D": [
+      ""
+    ],
+    "FR:R": [
+      ""
+    ],
+    "FR:R+(A)": [
+      ""
+    ],
+    "FR:R+A": [
+      ""
+    ],
+    "FR:VL": [
+      ""
+    ]
+  },
+  "railway:signal:distant:type": {
+    "FR:R1": [
+      ""
+    ],
+    "FR:R2": [
+      ""
+    ],
+    "FR:R3": [
+      ""
+    ],
+    "FR:R4": [
+      ""
+    ],
+    "FR:R5": [
+      ""
+    ],
+    "FR:R6": [
+      ""
+    ]
+  },
   "railway:signal:main": {
     "*": [
       ""
@@ -38005,23 +38163,43 @@
       ""
     ]
   },
+  "railway:signal:main:clearing_light": {
+    "no": [
+      ""
+    ],
+    "yes": [
+      ""
+    ]
+  },
+  "railway:signal:main:height": {
+    "high": [
+      ""
+    ],
+    "low": [
+      ""
+    ]
+  },
+  "railway:signal:main:plates": {
+    "FR:BM": [
+      ""
+    ],
+    "FR:F": [
+      ""
+    ],
+    "FR:GA": [
+      ""
+    ],
+    "FR:NF": [
+      ""
+    ],
+    "FR:PR": [
+      ""
+    ]
+  },
   "railway:signal:main:shape": {
     "*": [
       ""
-    ]
-  },
-  "railway:signal:main:states": {
-    "*": [
-      ""
     ],
-    "FR:C": [
-      ""
-    ],
-    "FR:VL": [
-      ""
-    ]
-  },
-  "railway:signal:main:type": {
     "FR:A": [
       ""
     ],
@@ -38033,10 +38211,183 @@
     ],
     "FR:H": [
       ""
+    ],
+    "FR:K": [
+      ""
+    ]
+  },
+  "railway:signal:main:states": {
+    "*": [
+      ""
+    ],
+    "FR:(A)": [
+      ""
+    ],
+    "FR:(M)": [
+      ""
+    ],
+    "FR:(R)": [
+      ""
+    ],
+    "FR:(R)+(A)": [
+      ""
+    ],
+    "FR:(R)+A": [
+      ""
+    ],
+    "FR:(RR)": [
+      ""
+    ],
+    "FR:(RR)+(A)": [
+      ""
+    ],
+    "FR:(RR)+A": [
+      ""
+    ],
+    "FR:(S)": [
+      ""
+    ],
+    "FR:(VL)": [
+      ""
+    ],
+    "FR:A": [
+      ""
+    ],
+    "FR:C": [
+      ""
+    ],
+    "FR:CV": [
+      ""
+    ],
+    "FR:M": [
+      ""
+    ],
+    "FR:R": [
+      ""
+    ],
+    "FR:R+(A)": [
+      ""
+    ],
+    "FR:R+A": [
+      ""
+    ],
+    "FR:RR": [
+      ""
+    ],
+    "FR:RR+(A)": [
+      ""
+    ],
+    "FR:RR+A": [
+      ""
+    ],
+    "FR:S": [
+      ""
+    ],
+    "FR:VL": [
+      ""
+    ]
+  },
+  "railway:signal:main:type": {
+    "FR:A": [
+      ""
+    ],
+    "FR:A1": [
+      ""
+    ],
+    "FR:A2": [
+      ""
+    ],
+    "FR:A3": [
+      ""
+    ],
+    "FR:C": [
+      ""
+    ],
+    "FR:C1": [
+      ""
+    ],
+    "FR:C2": [
+      ""
+    ],
+    "FR:C3": [
+      ""
+    ],
+    "FR:F": [
+      ""
+    ],
+    "FR:F1": [
+      ""
+    ],
+    "FR:F2": [
+      ""
+    ],
+    "FR:F3": [
+      ""
+    ],
+    "FR:F4": [
+      ""
+    ],
+    "FR:F5": [
+      ""
+    ],
+    "FR:H": [
+      ""
+    ],
+    "FR:H1": [
+      ""
+    ],
+    "FR:H2": [
+      ""
+    ],
+    "FR:H3": [
+      ""
+    ],
+    "FR:H4": [
+      ""
+    ],
+    "FR:H5": [
+      ""
+    ],
+    "FR:H6": [
+      ""
+    ],
+    "FR:H7": [
+      ""
+    ],
+    "FR:K1": [
+      ""
+    ],
+    "FR:K2": [
+      ""
+    ],
+    "K1": [
+      ""
+    ],
+    "K2": [
+      ""
     ]
   },
   "railway:signal:prefix": {
     "*": [
+      ""
+    ]
+  },
+  "railway:signal:shunting:shape": {
+    "FR:A": [
+      ""
+    ],
+    "FR:K": [
+      ""
+    ]
+  },
+  "railway:signal:shunting:states": {
+    "FR:(M)": [
+      ""
+    ],
+    "FR:CV": [
+      ""
+    ],
+    "FR:M": [
       ""
     ]
   },
@@ -41090,7 +41441,8 @@
       "",
       "DE",
       "JA",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "entrance": [
       "",
@@ -41128,7 +41480,8 @@
   },
   "school:language": {
     "*": [
-      ""
+      "",
+      "Uk"
     ]
   },
   "school:selective": {
@@ -42982,6 +43335,11 @@
     "*": [
       "",
       "Cs"
+    ]
+  },
+  "sensory": {
+    "*": [
+      ""
     ]
   },
   "service": {
@@ -46969,7 +47327,6 @@
     "*": [
       "",
       "Cs",
-      "DE",
       "ES"
     ]
   },
@@ -47743,6 +48100,7 @@
       "DE",
       "ES",
       "FR",
+      "RU",
       "Uk"
     ],
     "skating": [
@@ -48046,6 +48404,11 @@
     "*": [
       "",
       "Cs"
+    ]
+  },
+  "stele": {
+    "khachkar": [
+      ""
     ]
   },
   "step:condition": {
@@ -48724,7 +49087,8 @@
     "unhewn_cobblestone": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "Uk"
     ],
     "unpaved": [
       "",
@@ -49120,6 +49484,11 @@
     ],
     "Eucalypteae": [
       ""
+    ]
+  },
+  "taxon:de": {
+    "*": [
+      "DE"
     ]
   },
   "taxon:family": {
@@ -50406,7 +50775,8 @@
       "JA"
     ],
     "painted_island": [
-      ""
+      "",
+      "FR"
     ],
     "painted_table": [
       ""
@@ -50431,7 +50801,8 @@
     ],
     "yes": [
       "",
-      "DE"
+      "DE",
+      "FR"
     ]
   },
   "traffic_intervention": {
@@ -52702,6 +53073,7 @@
   "war_memorial": {
     "*": [
       "",
+      "FR",
       "RU"
     ]
   },
@@ -54158,7 +54530,8 @@
       "FR",
       "JA",
       "Pl",
-      "RU"
+      "RU",
+      "Uk"
     ],
     "aviary": [
       "",
