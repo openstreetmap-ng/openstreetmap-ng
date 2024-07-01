@@ -5,6 +5,7 @@ import { getPageTitle } from "../_title.js"
 import { isLongitude } from "../_utils.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
+import { getMapAlert } from "../leaflet/_map-utils.js"
 import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { routerNavigateStrict } from "./_router.js"
@@ -28,7 +29,7 @@ export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
     const searchLayer = getOverlayLayerById("search")
     const searchForm = document.querySelector(".search-form")
-    const searchAlert = document.querySelector(".search-alert")
+    const searchAlert = getMapAlert("search-alert")
     let initialBounds = null
 
     // On search alert click, reload the search with the new area

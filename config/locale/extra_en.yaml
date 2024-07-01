@@ -5,6 +5,14 @@ editor:
 map:
   overlays:
     title: Map overlays
+  data:
+    display_large_data_warning: |-
+      Displaying a large amount of data might slow down your browser.
+    hide_map_data: Hide map data
+    or: or
+    show_map_data: Show map data
+    too_much_data_error: |-
+      Requested too much data. Please zoom in to continue.
   data_export:
     title: Data export
   export:
