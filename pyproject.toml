@@ -29,6 +29,7 @@ jinja2 = "^3.1.2"
 lxml = "^5.0.1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "<1"
+mypy = "^1.10.1"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
 polars = "<1"
@@ -142,7 +143,6 @@ select = [
   "NPY", # numpy
   "Q", # flake8-quotes
   "PERF", # perflint
-  "PGH", # pygrep-hooks
   "PIE", # flake8-pie
   "PT", # flake8-pytest-style
   "PTH", # flake8-use-pathlib
@@ -175,7 +175,7 @@ quote-style = "single"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "input", "open", "type", "map", "copyright", "help", "format", "dir"]
+builtins-ignorelist = ["id", "input", "open", "type", "format", "dir"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["pgettext", "npgettext"]
@@ -190,6 +190,14 @@ extend-ignore-names = ["ET"]
 
 [tool.ruff.lint.pylint]
 max-args = 10
+
+[tool.mypy]
+check_untyped_defs = true
+disable_error_code = "import-untyped"
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR"
+packages = ["app"]
+warn_unused_configs = true
 
 [tool.pytest.ini_options]
 addopts = "--quiet"

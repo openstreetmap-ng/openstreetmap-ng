@@ -147,15 +147,15 @@ def _make_router(path: str, prefix: str) -> APIRouter:
     for p in pathlib.Path(path).glob('*.py'):
         module_name = p.with_suffix('').as_posix().replace('/', '.')
         module = importlib.import_module(module_name)
-        router_attr: Router | None = getattr(module, 'router', None)
+        router_attr: APIRouter | None = getattr(module, 'router', None)
 
-        if router_attr is not None:
+        if isinstance(router_attr, APIRouter):
             setup_api_router_response(router_attr)
             router.include_router(router_attr)
             router_counter += 1
             routes_counter += len(router_attr.routes)
         else:
-            logging.warning('Router not found in %s', module_name)
+            logging.warning('APIRouter not found in %s', module_name)
 
     logging.info('Loaded (%d routers, %d routes) from %s as %r', router_counter, routes_counter, path, prefix)
     return router

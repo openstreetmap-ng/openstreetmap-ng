@@ -48,12 +48,12 @@ async def communities():
 
 
 @router.get('/copyright')
-async def copyright():
+async def copyright_():
     return render_response('copyright.jinja2')
 
 
 @router.get('/help')
-async def help():
+async def help_():
     return render_response('help.jinja2')
 
 

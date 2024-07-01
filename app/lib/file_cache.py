@@ -55,7 +55,7 @@ class FileCache:
 
         entry = FileCacheMeta.from_bytes(entry_bytes)
 
-        if (entry.expires_at is not None) and entry.expires_at < int(time.time()):
+        if (entry.expires_at is not None) and entry.expires_at < time.time():
             logging.debug('Cache miss for %r', key)
             await path.unlink(missing_ok=True)
             return None
@@ -94,8 +94,8 @@ class FileCache:
         """
         now = int(time.time())
         infos: list[_CleanupInfo] = []
-        total_size = 0
-        limit_size = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
+        total_size: int = 0
+        limit_size: int = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
 
         async for path in self._base_dir.rglob('*'):
             key = path.name
@@ -107,7 +107,7 @@ class FileCache:
                 continue
 
             entry = FileCacheMeta.from_bytes(entry_bytes)
-            expires_at = entry.expires_at
+            expires_at: int | float | None = entry.expires_at
 
             if (expires_at is not None) and expires_at < now:
                 logging.debug('Cache cleanup for %r (reason: time)', key)
@@ -122,10 +122,10 @@ class FileCache:
             total_size += size
 
         logging.debug('File cache usage is %s of %s', naturalsize(total_size), naturalsize(limit_size))
-
         if total_size <= limit_size:
             return
 
+        # prioritize cleanup of entries closer to expiration (iterating in reverse)
         infos.sort(key=lambda info: info.expires_at, reverse=True)
 
         while total_size > limit_size:
