@@ -135,8 +135,8 @@ class TraceSegmentQuery:
                     track_num=0,
                     segment_num=0,
                     points=new_points,
-                    capture_times=[],
-                    elevations=[],
+                    capture_times=None,
+                    elevations=None,
                 ),
             )
 
