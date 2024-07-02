@@ -22,7 +22,6 @@ def auth_context(user: User | None, scopes: Sequence[ExtendedScope]):
     """
     Context manager for authenticating the user.
     """
-
     # safety check, prevent test user auth in non-test env
     if (user is not None) and (not TEST_ENV) and user.email.endswith('@' + TEST_USER_DOMAIN):
         raise RuntimeError('Test user authentication is forbidden in non-test environment')
@@ -75,7 +74,6 @@ def _get_user(require_scopes: SecurityScopes) -> User:
 
     Raises an exception if the user is not authenticated or does not have the required scopes.
     """
-
     user, user_scopes = auth_user_scopes()
 
     # user must be authenticated

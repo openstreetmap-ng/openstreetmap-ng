@@ -10,18 +10,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from starlette.convertors import register_url_convertor
-from starlette.routing import Router
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
     GC_LOG,
-    ID_VERSION,
-    LOCALE_DIR,
     NAME,
-    RAPID_VERSION,
     TEST_ENV,
 )
+from app.lib.yarn_lock import ID_VERSION, RAPID_VERSION
 from app.limits import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
@@ -118,7 +115,7 @@ if TEST_ENV:
 
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')
-main.mount('/static-locale', PrecompressedStaticFiles(LOCALE_DIR / 'i18next'), name='static-locale')
+main.mount('/static-locale', PrecompressedStaticFiles('config/locale/i18next'), name='static-locale')
 main.mount(
     '/static-bootstrap-icons',
     PrecompressedStaticFiles('node_modules/bootstrap-icons/font/fonts'),

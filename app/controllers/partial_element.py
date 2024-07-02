@@ -7,7 +7,7 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format import FormatLeaflet
-from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
+from app.format.element_list import FormatElementList, MemberListEntry
 from app.lib.feature_name import feature_name
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -17,7 +17,6 @@ from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
@@ -145,9 +144,9 @@ async def get_history(
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
     changeset: Changeset = None
-    list_parents: Sequence[ElementMemberEntry] = ()
+    list_parents: Sequence[MemberListEntry] = ()
     full_data: Sequence[Element] = ()
-    list_elements: Sequence[ElementMemberEntry] = ()
+    list_elements: Sequence[MemberListEntry] = ()
 
     async def changeset_user_task():
         nonlocal changeset
@@ -170,7 +169,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(parents)
-        list_parents = format_element_parents_list(ref, parents)
+        list_parents = FormatElementList.element_parents(ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
@@ -188,7 +187,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             if ElementRef(member.type, member.id) in members_refs
         )
         full_data = (element, *members_elements)
-        list_elements = format_element_members_list(element.members, direct_members)
+        list_elements = FormatElementList.element_members(element.members, direct_members)
 
     async with create_task_group() as tg:
         tg.start_soon(changeset_user_task)

@@ -7,7 +7,6 @@ from fastapi import APIRouter, Query
 from shapely import lib
 
 from app.format import FormatLeaflet
-from app.lib.nominatim import Nominatim
 from app.lib.render_response import render_response
 from app.lib.search import Search
 from app.limits import (
@@ -21,6 +20,7 @@ from app.models.msgspec.leaflet import ElementLeaflet, ElementLeafletNode
 from app.models.search_result import SearchResult
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
+from app.queries.nominatim_query import NominatimQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/api/partial/search')
@@ -38,7 +38,7 @@ async def search(
 
     async def task(i: int):
         nonlocal task_results
-        task_results[i] = await Nominatim.search(
+        task_results[i] = await NominatimQuery.search(
             q=query,
             bounds=search_bounds[i][1],
             at_sequence_id=at_sequence_id,

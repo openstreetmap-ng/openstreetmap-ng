@@ -30,7 +30,7 @@ class GravatarStorage(StorageBase):
 
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            data = await Avatar.get_default_image()
+            data = Avatar.default_image
         else:
             r.raise_for_status()
             data = r.content

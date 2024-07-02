@@ -10,13 +10,14 @@ _buffer = BytesIO()
 
 @cython.cfunc
 def _randbytes(n: cython.int) -> bytes:
-    result = _buffer.read(n)
+    buffer = _buffer
+    result = buffer.read(n)
     remaining: cython.int = n - len(result)
 
     while remaining > 0:
-        _buffer.write(secrets.token_bytes(_buffer_size))
-        _buffer.seek(0)
-        result += _buffer.read(remaining)
+        buffer.write(secrets.token_bytes(_buffer_size))
+        buffer.seek(0)
+        result += buffer.read(remaining)
         remaining = n - len(result)
 
     return result

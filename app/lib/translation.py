@@ -3,13 +3,12 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache
 from gettext import GNUTranslations, translation
+from pathlib import Path
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
+from app.config import DEFAULT_LANGUAGE
 from app.lib.locale import is_valid_locale
 
-_locale_dir = LOCALE_DIR / 'gnu'
-
-
+_locale_dir = Path('config/locale/gnu')
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
 
 
@@ -34,7 +33,7 @@ def translation_context(primary_lang: str):
 
     Languages order determines the preference, from most to least preferred.
     """
-
+    processed: tuple[str, ...]
     if primary_lang == DEFAULT_LANGUAGE:
         processed = (primary_lang,)
     elif is_valid_locale(primary_lang):

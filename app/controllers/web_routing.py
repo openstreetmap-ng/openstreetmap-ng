@@ -6,8 +6,8 @@ from shapely import get_coordinates, unary_union
 from shapely.geometry.base import BaseGeometry
 
 from app.lib.geo_utils import parse_bbox
-from app.lib.nominatim import Nominatim
 from app.models.search_result import SearchResult
+from app.queries.nominatim_query import NominatimQuery
 
 router = APIRouter(prefix='/api/web/routing')
 
@@ -24,11 +24,11 @@ async def resolve_names(
 
     async def from_task() -> None:
         nonlocal resolve_from
-        resolve_from = await Nominatim.search(q=from_, bounds=bounds_shape)
+        resolve_from = await NominatimQuery.search(q=from_, bounds=bounds_shape)
 
     async def to_task() -> None:
         nonlocal resolve_to
-        resolve_to = await Nominatim.search(q=to, bounds=bounds_shape)
+        resolve_to = await NominatimQuery.search(q=to, bounds=bounds_shape)
 
     async with create_task_group() as tg:
         tg.start_soon(from_task)

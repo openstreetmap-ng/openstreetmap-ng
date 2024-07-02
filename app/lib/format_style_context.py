@@ -36,7 +36,6 @@ def format_style_context(request: Request):
     # extension overrides (legacy)
     if not is_modern_api:
         extension = request_path.rpartition('.')[2]
-
         if extension == 'json':
             style = 'json'
         elif extension == 'xml':

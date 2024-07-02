@@ -9,12 +9,13 @@ from argon2.profiles import RFC_9106_LOW_MEMORY
 
 from app.models.str import PasswordStr
 
-_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
-
 
 class VerifyResult(NamedTuple):
     success: bool
     rehash_needed: bool
+
+
+_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 
 
 class PasswordHash:
@@ -47,14 +48,14 @@ class PasswordHash:
             password_hashed_b = base64.b64decode(password_hashed)
             algorithm, iterations_, salt = extra.split('!')
             iterations = int(iterations_)
-            valid_hash = pbkdf2_hmac(
+            valid_hash_b = pbkdf2_hmac(
                 hash_name=algorithm,
                 password=password.get_secret_value().encode(),
                 salt=salt.encode(),
                 iterations=iterations,
                 dklen=len(password_hashed_b),
             )
-            success = compare_digest(password_hashed_b, valid_hash)
+            success = compare_digest(password_hashed_b, valid_hash_b)
             return VerifyResult(success, True)
 
         raise NotImplementedError(

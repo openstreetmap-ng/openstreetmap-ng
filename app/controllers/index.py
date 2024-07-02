@@ -5,7 +5,7 @@ from starlette import status
 from starlette.responses import FileResponse, RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
-from app.lib.local_chapters import local_chapters
+from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.render_response import render_response
 from app.models.db.user import User
 
@@ -44,7 +44,7 @@ async def index():
 
 @router.get('/communities')
 async def communities():
-    return render_response('communities.jinja2', {'local_chapters': local_chapters()})
+    return render_response('communities.jinja2', {'local_chapters': LOCAL_CHAPTERS})
 
 
 @router.get('/copyright')

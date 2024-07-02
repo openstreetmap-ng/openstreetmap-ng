@@ -1,8 +1,17 @@
 from datetime import UTC, datetime
+from typing import overload
 
 import dateutil.parser
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
+
+
+@overload
+def legacy_date(date: None) -> None: ...
+
+
+@overload
+def legacy_date(date: datetime) -> datetime: ...
 
 
 def legacy_date(date: datetime | None) -> datetime | None:

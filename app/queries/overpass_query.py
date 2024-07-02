@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 
 import cython
 from shapely import Point, get_coordinates
@@ -13,15 +12,15 @@ from app.utils import HTTP, JSON_DECODE
 _cache_context = 'Overpass'
 
 
-class Overpass:
+class OverpassQuery:
     @staticmethod
-    async def enclosing_elements(point: Point) -> Sequence[Element]:
+    async def enclosing_elements(point: Point) -> tuple[Element, ...]:
         """
         Query Overpass for elements enclosing by a point.
 
         Results are sorted by size in ascending order, with the smallest element first.
 
-        Returns a sequence of simplified element instances.
+        Returns simplified element instances.
         """
         x, y = get_coordinates(point)[0].tolist()
         timeout = 10

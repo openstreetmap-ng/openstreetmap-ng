@@ -1,10 +1,10 @@
+import asyncio
 import logging
 import random
 import time
 from datetime import timedelta
 from functools import wraps
 
-import anyio
 import cython
 
 
@@ -43,7 +43,7 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                         exc_info=True,
                     )
 
-                    await anyio.sleep(sleep)
+                    await asyncio.sleep(sleep)
                     noise: cython.double = random.random()  # noqa: S311
                     new_sleep: cython.double = sleep * (1.5 + noise)
                     sleep = new_sleep if new_sleep < sleep_limit else sleep_limit

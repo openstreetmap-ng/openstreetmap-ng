@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Literal, NoReturn
+from typing import Any, Literal, NoReturn
 
 from fastapi import HTTPException, status
 
@@ -46,7 +46,7 @@ class MessageCollector:
         )
 
     @property
-    def result(self) -> dict:
+    def result(self) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
         """
         Return the collected messages as a dict.
         """

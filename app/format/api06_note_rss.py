@@ -7,11 +7,11 @@ from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
 from app.lib.jinja_env import render
-from app.lib.nominatim import Nominatim
 from app.lib.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.note_event import NoteEvent
+from app.queries.nominatim_query import NominatimQuery
 
 
 class NoteRSS06Mixin:
@@ -73,7 +73,7 @@ async def _encode_note(
     task_status.started()
 
     # reverse geocode the note point
-    place = await Nominatim.reverse_name(note.point, 14)
+    place = await NominatimQuery.reverse_name(note.point, 14)
 
     if len(note.comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
@@ -122,7 +122,7 @@ async def _encode_note_comment(
     task_status.started()
 
     # reverse geocode the note point
-    place = await Nominatim.reverse_name(point, 14)
+    place = await NominatimQuery.reverse_name(point, 14)
 
     comment_event = comment.event
     if comment_event == NoteEvent.opened:

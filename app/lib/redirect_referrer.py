@@ -8,28 +8,11 @@ from starlette.responses import RedirectResponse
 from app.middlewares.request_context_middleware import get_request
 
 
-@cython.cfunc
-def _process_referrer(referrer: str):
+def redirect_referrer() -> RedirectResponse:
     """
-    Process the referrer value.
-
-    Returns None if the referrer is missing or is in a different domain.
+    Get a redirect response, respecting the referrer header.
     """
-    if not referrer:
-        return None
-    # return relative values as-is
-    if referrer[0] == '/':
-        return referrer
-
-    # otherwise, validate the referrer hostname
-    parts = urlsplit(referrer, allow_fragments=False)
-    referrer_hostname = parts.hostname
-    request_hostname = get_request().url.hostname
-    if referrer_hostname != request_hostname:
-        logging.debug('Referrer hostname mismatch (%r != %r)', referrer_hostname, request_hostname)
-        return None
-
-    return referrer
+    return RedirectResponse(_redirect_url(), status.HTTP_303_SEE_OTHER)
 
 
 @cython.cfunc
@@ -58,8 +41,25 @@ def _redirect_url() -> str:
     return '/'
 
 
-def redirect_referrer() -> RedirectResponse:
+@cython.cfunc
+def _process_referrer(referrer: str):
     """
-    Get a redirect response, respecting the referrer header.
+    Process the referrer value.
+
+    Returns None if the referrer is missing or is in a different domain.
     """
-    return RedirectResponse(_redirect_url(), status.HTTP_303_SEE_OTHER)
+    if not referrer:
+        return None
+    # return relative values as-is
+    if referrer[0] == '/':
+        return referrer
+
+    # otherwise, validate the referrer hostname
+    parts = urlsplit(referrer, allow_fragments=False)
+    referrer_hostname = parts.hostname
+    request_hostname = get_request().url.hostname
+    if referrer_hostname != request_hostname:
+        logging.debug('Referrer hostname mismatch (%r != %r)', referrer_hostname, request_hostname)
+        return None
+
+    return referrer

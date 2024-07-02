@@ -4,11 +4,11 @@ import cython
 
 from app.lib.buffered_random import buffered_randbytes
 
-_last_time: int = -1
-_last_seq: int = -1
-
 # Mastodon-inspired, Snowflake ID
 # 1 bit zero, 47 bits timestamp, 16 bits random+sequence
+
+_last_time: int = -1
+_last_seq: int = -1
 
 
 def snowflake_id() -> int:
@@ -19,7 +19,6 @@ def snowflake_id() -> int:
 
     # get the time in milliseconds
     time = time // 1_000_000
-
     if time > time_max:
         raise OverflowError('Time value is too large')
 

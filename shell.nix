@@ -460,7 +460,7 @@ let
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
       docker push $(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')
     '')
-    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
+    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION = '.*?'|VERSION = '$(date --iso-8601=seconds)'|\" app/config.py")
     (writeShellScriptBin "make-bundle" ''
       set -e
       dir=app/static/js

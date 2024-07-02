@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import NoReturn
 
 from starlette import status
@@ -18,7 +18,7 @@ class AuthExceptionsMixin:
         )
 
     @abstractmethod
-    def insufficient_scopes(self, scopes: Sequence[str]) -> NoReturn:
+    def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
         raise NotImplementedError
 
     def bad_user_token_struct(self) -> NoReturn:

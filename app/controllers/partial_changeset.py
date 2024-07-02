@@ -5,8 +5,8 @@ from fastapi import APIRouter
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
+from app.format.element_list import ChangesetListEntry, FormatElementList
 from app.lib.auth_context import auth_user
-from app.lib.element_list_formatter import ElementType, format_changeset_elements_list
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
@@ -14,7 +14,7 @@ from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.element_list_entry import ChangesetElementEntry
+from app.models.element_type import ElementType
 from app.models.tag_format import TagFormatCollection
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -42,7 +42,7 @@ async def get_changeset(id: PositiveInt):
             {'type': 'changeset', 'id': id},
         )
 
-    elements: dict[ElementType, Sequence[ChangesetElementEntry]] | None = None
+    elements: dict[ElementType, Sequence[ChangesetListEntry]] | None = None
     prev_changeset_id: int | None = None
     next_changeset_id: int | None = None
     is_subscribed = False
@@ -50,7 +50,7 @@ async def get_changeset(id: PositiveInt):
     async def elements_task():
         nonlocal elements
         elements_ = await ElementQuery.get_by_changeset(id, sort_by='id')
-        elements = await format_changeset_elements_list(elements_)
+        elements = await FormatElementList.changeset_elements(elements_)
 
     async def comments_task():
         with options_context(joinedload(ChangesetComment.user)):

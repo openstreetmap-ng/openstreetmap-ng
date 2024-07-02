@@ -1,3 +1,5 @@
+from typing import Any
+
 import cython
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
@@ -20,12 +22,12 @@ _config_base = {
 
 
 @cython.cfunc
-def _get_default_data() -> dict:
+def _get_default_data() -> dict[str, Any]:
     user = auth_user()
     languages = translation_languages()
 
-    # config: don't include sensitive data, it's exposed to iD/Rapid
-    config: dict = _config_base.copy()
+    # config: don't include sensitive data, it's exposed to JavaScript
+    config: dict[str, Any] = _config_base.copy()
 
     if user is not None:
         config['activityTracking'] = user.activity_tracking

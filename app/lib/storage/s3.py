@@ -42,4 +42,4 @@ class S3Storage(StorageBase):
         async with _s3.client('s3') as s3:
             await s3.delete_object(Bucket=self._context, Key=key)
 
-        await self._fc.delete(key)
+        self._fc.delete(key)

@@ -8,16 +8,6 @@ from app.models.db.oauth1_token import OAuth1Token
 from app.queries.oauth1_token_query import OAuth1TokenQuery
 
 
-@cython.cfunc
-def _compute_hmac_sha1(request: OAuth1Request, consumer_secret: str, token_secret: str) -> str:
-    """
-    Compute the HMAC-SHA1 signature for an OAuth1 request.
-    """
-    base_string = generate_signature_base_string(request)
-    signature = hmac_sha1_signature(base_string, consumer_secret, token_secret)
-    return signature
-
-
 class OAuth1:
     @staticmethod
     async def convert_request(request: Request) -> OAuth1Request:
@@ -60,3 +50,13 @@ class OAuth1:
             raise_for().oauth1_bad_signature()
 
         return token
+
+
+@cython.cfunc
+def _compute_hmac_sha1(request: OAuth1Request, consumer_secret: str, token_secret: str) -> str:
+    """
+    Compute the HMAC-SHA1 signature for an OAuth1 request.
+    """
+    base_string = generate_signature_base_string(request)
+    signature = hmac_sha1_signature(base_string, consumer_secret, token_secret)
+    return signature
