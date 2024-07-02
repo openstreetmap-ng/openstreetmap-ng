@@ -19,7 +19,7 @@ from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.models.tag_format import TagFormatCollection
+from app.models.tag_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -203,7 +203,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     if comment is not None:
         comment_tag = tags_format({'comment': comment})['comment']
     else:
-        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
+        comment_tag = TagFormat('comment', t('browse.no_comment'))
 
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None

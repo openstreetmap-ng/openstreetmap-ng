@@ -13,7 +13,7 @@ class GravatarStorage(StorageBase):
     """
     File storage based on Gravatar (read-only).
 
-    Uses FileCache for local caching.
+    Uses FileCache for response caching.
     """
 
     __slots__ = ('_fc',)

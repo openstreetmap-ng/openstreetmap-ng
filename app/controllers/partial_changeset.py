@@ -15,7 +15,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
 from app.models.element_type import ElementType
-from app.models.tag_format import TagFormatCollection
+from app.models.tag_format import TagFormat
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -77,7 +77,7 @@ async def get_changeset(id: PositiveInt):
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment', None)
     if comment_tag is None:
-        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
+        comment_tag = TagFormat('comment', t('browse.no_comment'))
 
     return render_response(
         'partial/changeset.jinja2',

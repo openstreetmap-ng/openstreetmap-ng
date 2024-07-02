@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from typing import Any
 
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy import NullPool, text
@@ -6,6 +7,17 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
 from app.utils import JSON_DECODE, JSON_ENCODE
+
+_db_engine_kwargs: dict[str, Any]
+if TEST_ENV:
+    _db_engine_kwargs = {
+        'poolclass': NullPool,  # disable connection pooling
+    }
+else:
+    _db_engine_kwargs = {
+        'pool_size': 10,  # concurrent connections target
+        'max_overflow': -1,  # unlimited concurrent connections overflow
+    }
 
 _db_engine = create_async_engine(
     POSTGRES_URL,
@@ -15,17 +27,12 @@ _db_engine = create_async_engine(
     json_deserializer=JSON_DECODE,
     json_serializer=lambda x: JSON_ENCODE(x).decode(),
     query_cache_size=1024,
-    **(
-        {
-            'poolclass': NullPool,
-        }
-        if TEST_ENV
-        else {
-            'pool_size': 10,
-            'max_overflow': -1,
-        }
-    ),
+    **_db_engine_kwargs,
 )
+
+_valkey_pool = ConnectionPool.from_url(VALKEY_URL)
+
+# TODO: test unicode normalization comparison
 
 
 @asynccontextmanager
@@ -60,18 +67,11 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
         await session.execute(text('VACUUM ANALYZE') if vacuum else text('ANALYZE'))
 
 
-if TEST_ENV:
-
-    @asynccontextmanager
-    async def valkey():
+@asynccontextmanager
+async def valkey():
+    if TEST_ENV:
         async with Redis.from_url(VALKEY_URL) as r:
             yield r
-else:
-    _valkey_pool = ConnectionPool().from_url(VALKEY_URL)
-
-    @asynccontextmanager
-    async def valkey():
+    else:
         async with Redis(connection_pool=_valkey_pool) as r:
             yield r
-
-# TODO: test unicode normalization comparison

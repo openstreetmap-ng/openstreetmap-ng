@@ -15,8 +15,6 @@ class StorageBase(ABC):
         """
         Generate a key for a file.
 
-        If random is `False`, the generated key is deterministic.
-
         >>> StorageBase('context')._make_key(b'...', '.png')
         'Drmhze6EPcv0fN_81Bj-nA.png'
         """

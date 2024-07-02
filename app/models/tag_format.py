@@ -1,11 +1,10 @@
-from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
 
 @dataclass(frozen=True, slots=True)
-class TagFormat:
-    value: str
+class ValueFormat:
+    text: str
     format: Literal['html', 'url', 'url-safe', 'email', 'phone', 'color'] | None = None
     """
     html: HTML code
@@ -20,10 +19,10 @@ class TagFormat:
 
 
 @dataclass(init=False, slots=True)
-class TagFormatCollection:
-    key: TagFormat
-    values: Sequence[TagFormat]
+class TagFormat:
+    key: ValueFormat
+    values: list[ValueFormat]
 
     def __init__(self, key: str, value: str):
-        self.key = TagFormat(key)
-        self.values = (TagFormat(value),)
+        self.key = ValueFormat(key)
+        self.values = [ValueFormat(v) for v in value.split(';', maxsplit=8)]
