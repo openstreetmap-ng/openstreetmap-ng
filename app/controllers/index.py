@@ -1,13 +1,11 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Query, Request, status
 from feedgen.feed import FeedGenerator
-from pydantic import PositiveInt
 from starlette import status
 from starlette.responses import FileResponse, RedirectResponse
 
 from app.config import APP_URL
-from app.controllers.api06_changeset import query_changesets
 from app.format import FormatRSS06
 from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import LOCAL_CHAPTERS
@@ -15,6 +13,7 @@ from app.lib.render_response import render_response
 from app.lib.translation import t
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.user import User
+from app.queries.changeset_query import ChangesetQuery
 
 router = APIRouter()
 
@@ -101,24 +100,17 @@ async def settings(_: Annotated[User, web_user()]):
 @router.get('/history/feed')
 async def history_feed(
     request: Request,
-    changeset_ids_str: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
-    display_name: Annotated[str | None, Query(min_length=1)] = None,
-    user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
-    time: Annotated[str | None, Query(min_length=1)] = None,
-    open_str: Annotated[str | None, Query(alias='open')] = None,
-    closed_str: Annotated[str | None, Query(alias='closed')] = None,
-    bbox: Annotated[str | None, Query(min_length=1)] = None,
-    order: Annotated[Literal['newest', 'oldest'], Query()] = 'newest',
     limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
-    changesets = await query_changesets(
-        changeset_ids_str, display_name, user_id, time, open_str, closed_str, bbox, order, limit
+    changesets = await ChangesetQuery.find_many_by_query(
+        limit=limit,
     )
     fg = FeedGenerator()
     fg.link(href=str(request.url), rel='self')
     fg.title(t('changesets.index.title'))
+    # fg.language() TODO: add lang (from where it could be gained)
     fg.id(f'{APP_URL}/history/feed')
-    fg.updated(utcnow())
+    fg.updated(utcnow())  # TODO: format datetime to same syntax as in original feed
     fg.generator('')
     await FormatRSS06.encode_changesets(fg, changesets)
-    return fg.atom_str()
+    return fg.atom_str(pretty=True)
