@@ -1,42 +1,37 @@
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 from weakref import WeakKeyDictionary
 
 R = TypeVar('R')
 
 
 # inspired by functools.cached_property
-class updating_cached_property:  # noqa: N801
+def updating_cached_property(watch_attr_name: str):
     """
     Decorator to cache the result of a property with an auto-update condition.
 
-    If watch_attr_name changes, the property is re-evaluated.
+    The property is re-evaluated when the value of watch_attr_name changes.
     """
 
-    __slots__ = ('_watch_attr_name', '_cache')
+    def decorator(func: Callable[[Any], R]) -> R:
+        return _UpdatingCachedProperty(watch_attr_name, func)  # type: ignore
 
-    def __init__(self, watch_attr_name: str) -> None:
-        self._watch_attr_name = watch_attr_name
-        self._cache: WeakKeyDictionary[object, tuple[Any, Any]] = WeakKeyDictionary()
-
-    def __call__(self, func: Callable[[Any], R]) -> R:
-        return _UpdatingCachedPropertyImpl(self._watch_attr_name, self._cache, func)  # type: ignore
+    return decorator
 
 
-class _UpdatingCachedPropertyImpl:
-    __slots__ = ('_watch_attr_name', '_cache', '_func')
+class _UpdatingCachedProperty(Generic[R]):
+    __slots__ = ('_cache', '_watch_attr_name', '_func')
 
     def __init__(
         self,
         watch_attr_name: str,
-        cache: WeakKeyDictionary[object, tuple[Any, Any]],
         func: Callable[[Any], R],
     ) -> None:
+        self._cache: WeakKeyDictionary[object, tuple[Any, R]] = WeakKeyDictionary()
         self._watch_attr_name = watch_attr_name
-        self._cache = cache
         self._func = func
 
-    def __get__(self, instance: object, _=None):
+    def __get__(self, instance: object, _=None) -> R:
         cache = self._cache
         cached = cache.get(instance)
         watch_val = getattr(instance, self._watch_attr_name)

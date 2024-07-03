@@ -6,7 +6,7 @@ from app.models.tag_format import ValueFormat
 
 
 @pytest.mark.parametrize(
-    ('tags', 'key', 'vals'),
+    ('tags', 'key', 'values'),
     [
         (
             # comment with potentially malicious content
