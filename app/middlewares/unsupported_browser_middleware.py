@@ -10,18 +10,6 @@ from app.lib.user_agent_check import is_browser_supported
 from app.middlewares.request_context_middleware import get_request
 
 
-@cython.cfunc
-def _should_capture(message: Message) -> cython.char:
-    status_code: cython.int = message['status']
-    if status_code != 200:
-        return False
-    headers = Headers(raw=message['headers'])
-    content_type: str | None = headers.get('Content-Type')
-    if content_type is None or not content_type.startswith('text/html'):
-        return False
-    return True
-
-
 class UnsupportedBrowserMiddleware:
     """
     Unsupported browser handling middleware.
@@ -66,3 +54,15 @@ class UnsupportedBrowserMiddleware:
             await response(scope, receive, send)
 
         await self.app(scope, receive, wrapper)
+
+
+@cython.cfunc
+def _should_capture(message: Message) -> cython.char:
+    status_code: cython.int = message['status']
+    if status_code != 200:
+        return False
+    headers = Headers(raw=message['headers'])
+    content_type: str | None = headers.get('Content-Type')
+    if content_type is None or not content_type.startswith('text/html'):
+        return False
+    return True

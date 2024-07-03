@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Container
 
 from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
@@ -10,7 +10,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
-from app.models.scope import ExtendedScope
+from app.models.scope import Scope
 from app.models.trace_visibility import TraceVisibility
 
 
@@ -40,7 +40,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     coords: list[int | float] | None = None
 
     @validates('tags')
-    def validate_tags(self, _: str, value: Sequence[str]):
+    def validate_tags(self, _: str, value: Collection[str]):
         if len(value) > TRACE_TAGS_LIMIT:
             raise ValueError(f'Too many trace tags ({len(value)} > {TRACE_TAGS_LIMIT})')
         return value
@@ -98,16 +98,16 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         return cls.visibility.in_(('identifiable', 'trackable'))
 
     @hybrid_method
-    def visible_to(self, user: User | None, scopes: Sequence[ExtendedScope]) -> bool:
-        if (user is not None) and ExtendedScope.read_gpx in scopes:
+    def visible_to(self, user: User | None, scopes: Container[Scope]) -> bool:
+        if (user is not None) and Scope.read_gpx in scopes:
             return self.linked_to_user_on_site or (self.user_id == user.id)
         else:
             return self.linked_to_user_on_site
 
     @visible_to.expression
     @classmethod
-    def visible_to(cls, user: User | None, scopes: Sequence[ExtendedScope]) -> ColumnElement[bool]:
-        if (user is not None) and ExtendedScope.read_gpx in scopes:
+    def visible_to(cls, user: User | None, scopes: Container[Scope]) -> ColumnElement[bool]:
+        if (user is not None) and Scope.read_gpx in scopes:
             return cls.linked_to_user_on_site | (cls.user_id == user.id)
         else:
             return cls.linked_to_user_on_site

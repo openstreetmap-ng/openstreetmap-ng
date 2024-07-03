@@ -20,7 +20,7 @@ dirs = (
     'app/validators',
 )
 
-blacklist = {
+blacklist: dict[str, set[str]] = {
     'app/services': {
         'email_service.py',
     }
@@ -28,7 +28,7 @@ blacklist = {
 
 paths = []
 for dir in dirs:
-    dir_blacklist = blacklist.get(dir, {})
+    dir_blacklist = blacklist.get(dir, set())
     for p in Path(dir).rglob('*.py'):
         if p.name not in dir_blacklist:
             paths.append(p)  # noqa: PERF401
@@ -40,6 +40,7 @@ setup(
                 path.with_suffix('').as_posix().replace('/', '.'),
                 [str(path)],
                 extra_compile_args=[
+                    # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
                     '-march=x86-64-v3',
                     '-mtune=generic',
                     '-ffast-math',

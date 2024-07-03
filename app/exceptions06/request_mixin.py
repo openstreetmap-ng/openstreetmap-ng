@@ -14,7 +14,7 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
         raise APIError(status.HTTP_400_BAD_REQUEST)
 
     @override
-    def bad_geometry_coordinates(self, lon: float, lat: float) -> NoReturn:
+    def bad_geometry_coordinates(self) -> NoReturn:
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='The latitudes must be between -90 and 90, longitudes between -180 and 180 and the minima must be less than the maxima.',

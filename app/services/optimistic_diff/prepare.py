@@ -1,10 +1,11 @@
 import logging
+from asyncio import TaskGroup
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Final
 
 import cython
-from anyio import create_task_group
 from shapely import Point
 from shapely.ops import unary_union
 from sqlalchemy.orm import joinedload
@@ -23,15 +24,24 @@ from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 
 
-@dataclass(slots=True)
 class ElementStateEntry:
-    remote: Element | None
-    local: Element | None
+    __slots__ = ('remote', '_local', 'current')
+
+    remote: Final[Element | None]
+    _local: Element | None
+    current: Element
+
+    def __init__(self, remote: Element | None):
+        self.current = self.remote = remote  # type: ignore[assignment]
+        self._local = None
+
+    def set_local(self, element: Element) -> None:
+        self.current = self._local = element
 
 
 @dataclass(slots=True)
 class OptimisticDiffPrepare:
-    at_sequence_id: int | None
+    at_sequence_id: int
     """
     sequence_id at which the optimistic diff is performed.
     """
@@ -83,8 +93,8 @@ class OptimisticDiffPrepare:
     Changeset bounding box info, set of points and element refs.
     """
 
-    def __init__(self, elements: Sequence[Element]) -> None:
-        self.at_sequence_id = None
+    def __init__(self, elements: Iterable[Element]) -> None:
+        self.at_sequence_id = 0
         self.apply_elements = []
         self._elements = tuple((element, ElementRef(element.type, element.id)) for element in elements)
         self.element_state = {}
@@ -97,10 +107,10 @@ class OptimisticDiffPrepare:
 
     async def prepare(self) -> None:
         await self._set_sequence_id()
-        async with create_task_group() as tg:
-            tg.start_soon(self._preload_elements_state)
-            tg.start_soon(self._preload_elements_parents)
-            tg.start_soon(self._preload_changeset)
+        async with TaskGroup() as tg:
+            tg.create_task(self._preload_elements_state())
+            tg.create_task(self._preload_elements_parents())
+            tg.create_task(self._preload_changeset())
 
         for element_t in self._elements:
             element, element_ref = element_t
@@ -115,9 +125,9 @@ class OptimisticDiffPrepare:
                 if element.id >= 0:
                     raise_for().diff_create_bad_id(element)
                 if element_ref in self.element_state:
-                    raise AssertionError(f'Element {element_ref!r} already exists in the element state')
+                    raise AssertionError(f'Element {element_ref!r} must not exist in the element state')
 
-                entry = ElementStateEntry(None, None)
+                entry = ElementStateEntry(None)
                 self.element_state[element_ref] = entry
                 prev = None
             else:
@@ -126,7 +136,7 @@ class OptimisticDiffPrepare:
                 if entry is None:
                     raise_for().element_not_found(element_ref)
 
-                prev = entry.local if (entry.local is not None) else entry.remote
+                prev = entry.current
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element, prev.version)
 
@@ -146,21 +156,19 @@ class OptimisticDiffPrepare:
 
             self._push_bbox_info(prev, element, element_type)
             self.apply_elements.append(element_t)
-            entry.local = element
+            entry.set_local(element)
 
         self._update_changeset_size()
-
-        async with create_task_group() as tg:
-            tg.start_soon(self._update_changeset_bounds)
-            tg.start_soon(self._check_members_remote)
+        async with TaskGroup() as tg:
+            tg.create_task(self._update_changeset_bounds())
+            tg.create_task(self._check_members_remote())
 
     async def _set_sequence_id(self) -> None:
         """
         Set the current sequence_id.
         """
-        if self.at_sequence_id is not None:
-            raise AssertionError('at_sequence_id is already assigned')
-
+        if self.at_sequence_id > 0:
+            raise AssertionError('Sequence id must not be set')
         self.at_sequence_id = await ElementQuery.get_current_sequence_id()
         logging.debug('Optimistic preparing at sequence_id %d', self.at_sequence_id)
 
@@ -183,14 +191,13 @@ class OptimisticDiffPrepare:
 
         # check if all elements exist
         if len(elements) != refs_len:
-            for element in elements:
-                refs.remove(ElementRef(element.type, element.id))
+            refs.difference_update(ElementRef(element.type, element.id) for element in elements)
             element_ref = next(iter(refs))
             raise_for().element_not_found(element_ref)
 
         # if they do, push them to the element state
         self.element_state = {
-            ElementRef(element.type, element.id): ElementStateEntry(element, None)  #
+            ElementRef(element.type, element.id): ElementStateEntry(element)  #
             for element in elements
         }
 
@@ -264,6 +271,8 @@ class OptimisticDiffPrepare:
         """
         next_members = element.members
         prev_members = prev.members if (prev is not None) else ()
+        if next_members is None or prev_members is None:
+            raise AssertionError('Element members must be set')
         if not next_members and not prev_members:
             return None
 
@@ -301,7 +310,7 @@ class OptimisticDiffPrepare:
             if entry is None:
                 notfound.add(member_ref)
                 continue
-            member = entry.local if (entry.local is not None) else entry.remote
+            member = entry.current
             if member is None and member_ref == parent_ref:
                 member = parent
             if not member.visible:
@@ -321,10 +330,11 @@ class OptimisticDiffPrepare:
 
         visible_refs = await ElementQuery.filter_visible_refs(remote_refs, at_sequence_id=self.at_sequence_id)
         hidden_refs = remote_refs.difference(visible_refs)
-        hidden_ref = hidden_refs[0] if hidden_refs else None
+        hidden_ref = next(iter(hidden_refs), None)
         if hidden_ref is None:
             return
 
+        # contains a non-visible member, determine the parent ref for a nicer error message
         for parent_ref, member_refs in self._elements_check_members_remote:
             if hidden_ref in member_refs:
                 raise_for().element_member_not_found(parent_ref, hidden_ref)
@@ -364,6 +374,8 @@ class OptimisticDiffPrepare:
         """
         next_members = element.members
         prev_members = prev.members if (prev is not None) else ()
+        if next_members is None or prev_members is None:
+            raise AssertionError('Element members must be set')
         union_members = (*next_members, *prev_members)
         node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in union_members}
 
@@ -372,7 +384,7 @@ class OptimisticDiffPrepare:
         for node_ref in node_refs:
             entry = element_state.get(node_ref)
             if entry is not None:
-                node = entry.local if (entry.local is not None) else entry.remote
+                node = entry.current
                 bbox_info.add(node.point)
             else:
                 bbox_info.add(node_ref)
@@ -385,6 +397,8 @@ class OptimisticDiffPrepare:
         """
         next_members = element.members
         prev_members = prev.members if (prev is not None) else ()
+        if next_members is None or prev_members is None:
+            raise AssertionError('Element members must be set')
         next_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in next_members}
         prev_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in prev_members}
         changed_refs = prev_refs ^ next_refs
@@ -400,7 +414,6 @@ class OptimisticDiffPrepare:
                     break
 
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
-
         bbox_info = self._bbox_info
         element_state = self.element_state
         for member_ref in diff_refs:
@@ -409,22 +422,25 @@ class OptimisticDiffPrepare:
             if member_type == 'node':
                 entry = element_state.get(member_ref)
                 if entry is not None:
-                    node = entry.local if (entry.local is not None) else entry.remote
+                    node = entry.current
                     bbox_info.add(node.point)
                 else:
                     bbox_info.add(member_ref)
 
             elif member_type == 'way':
-                ways = element_state.get(member_ref)
-                if ways is None:
+                entry = element_state.get(member_ref)
+                if entry is None:
                     bbox_info.add(member_ref)
                     continue
 
-                for node_member in ways[-1].members:
+                members = entry.current.members
+                if members is None:
+                    raise AssertionError('Way members must be set')
+                for node_member in members:
                     node_ref = ElementRef('node', node_member.id)
                     entry = element_state.get(node_ref)
                     if entry is not None:
-                        node = entry.local if (entry.local is not None) else entry.remote
+                        node = entry.current
                         bbox_info.add(node.point)
                     else:
                         bbox_info.add(node_ref)
@@ -440,25 +456,26 @@ class OptimisticDiffPrepare:
         changeset_id = next(iter(changeset_ids))
 
         with options_context(joinedload(Changeset.user).load_only(User.roles)):
-            changeset = await ChangesetQuery.get_by_id(changeset_id)
+            self.changeset = changeset = await ChangesetQuery.get_by_id(changeset_id)
 
         if changeset is None:
             raise_for().changeset_not_found(changeset_id)
-        if changeset.user_id != auth_user().id:
+        if changeset.user_id != auth_user(required=True).id:
             raise_for().changeset_access_denied()
         if changeset.closed_at is not None:
             raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
-
-        self.changeset = changeset
 
     def _update_changeset_size(self) -> None:
         """
         Update and validate changeset size.
         """
-        add_size = len(self.apply_elements)
-        logging.debug('Optimistic increasing changeset %d size by %d', self.changeset.id, add_size)
-        if not self.changeset.increase_size(add_size):
-            raise_for().changeset_too_big(self.changeset.size + add_size)
+        changeset = self.changeset
+        if changeset is None:
+            raise AssertionError('Changeset must be set')
+        new_size = changeset.size + len(self.apply_elements)
+        logging.debug('Optimistic increasing changeset %d size to %d', changeset.id, new_size)
+        if not changeset.set_size(new_size):
+            raise_for().changeset_too_big(new_size)
 
     async def _update_changeset_bounds(self) -> None:
         """
@@ -490,4 +507,7 @@ class OptimisticDiffPrepare:
                     logging.warning('Node %s is missing coordinates', versioned_ref)
 
         if points:
-            self.changeset.union_bounds(unary_union(points))
+            changeset = self.changeset
+            if changeset is None:
+                raise AssertionError('Changeset must be set')
+            changeset.union_bounds(unary_union(points))

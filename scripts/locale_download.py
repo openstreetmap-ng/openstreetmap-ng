@@ -1,24 +1,25 @@
+import asyncio
 import json
 import re
-from collections.abc import Sequence
+from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
+from pathlib import Path
 
-import anyio
-from anyio import CapacityLimiter, create_task_group
-
-from app.config import LOCALE_DIR
 from app.lib.retry import retry
 from app.models.locale_name import LocaleName
 from app.utils import HTTP
 
-_download_dir = LOCALE_DIR / 'download'
-_download_limiter = CapacityLimiter(8)  # max concurrent downloads
-_extra_names_path = LOCALE_DIR / 'extra_names.json'
-_names_path = LOCALE_DIR / 'names.json'
+_download_dir = Path('config/locale/download')
+_download_limiter = Semaphore(8)  # max concurrent downloads
+_extra_names_path = Path('config/locale/extra_names.json')
+_names_path = Path('config/locale/names.json')
 
 
-async def get_download_locales() -> Sequence[str]:
-    r = await HTTP.get('https://translatewiki.net/wiki/Special:ExportTranslations?group=out-osm-site')
+async def get_download_locales() -> tuple[str, ...]:
+    r = await HTTP.get(
+        'https://translatewiki.net/wiki/Special:ExportTranslations',
+        params={'group': 'out-osm-site'},
+    )
     r.raise_for_status()
     matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", r.text)
     return tuple(match[1] for match in matches)
@@ -28,33 +29,37 @@ async def get_download_locales() -> Sequence[str]:
 async def download_locale(locale: str) -> LocaleName | None:
     async with _download_limiter:
         r = await HTTP.get(
-            f'https://translatewiki.net/wiki/Special:ExportTranslations?group=out-osm-site&language={locale}&format=export-to-file'
+            'https://translatewiki.net/wiki/Special:ExportTranslations',
+            params={'group': 'out-osm-site', 'language': locale, 'format': 'export-to-file'},
         )
         r.raise_for_status()
 
     content_disposition = r.headers.get('Content-Disposition')
     if content_disposition is None:
-        # missing translation
-        return None
+        return None  # missing translation
 
-    locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)[1]
+    match_locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)
+    if match_locale is None:
+        raise ValueError(f'Failed to match filename for {locale!r}')
 
+    locale = match_locale[1]
     if locale == 'x-invalidLanguageCode':
         print(f'[❔] {locale}: invalid language code')
         return None
 
     match = re.match(r'# Messages for (.+?) \((.+?)\)', r.text)
+    if match is None:
+        raise ValueError(f'Failed to match language names for {locale!r}')
+
     english_name = match[1].strip()
     native_name = match[2].strip()
-
     if english_name == 'Message documentation':
         print(f'[❔] {locale}: not a language')
         return None
 
-    target_path = _download_dir / f'{locale}.yaml'
-
-    if not await target_path.is_file() or (await target_path.read_bytes()) != r.content:
-        await target_path.write_bytes(r.content)
+    target_path = _download_dir.joinpath(f'{locale}.yaml')
+    if not target_path.is_file() or (target_path.read_bytes()) != r.content:
+        target_path.write_bytes(r.content)
         print(f'[✅] Updated: {locale}')
     else:
         print(f'[✅] Already up-to-date: {locale}')
@@ -66,9 +71,8 @@ async def download_locale(locale: str) -> LocaleName | None:
     )
 
 
-async def add_extra_locales_names(locales_names: list[LocaleName]):
-    buffer = await _extra_names_path.read_bytes()
-    extra_locales_names: dict[str, dict] = json.loads(buffer)
+def add_extra_locales_names(locales_names: list[LocaleName]):
+    extra_locales_names: dict[str, dict] = json.loads(_extra_names_path.read_bytes())
 
     for ln in locales_names:
         extra_locales_names.pop(ln.code, None)
@@ -87,26 +91,21 @@ async def add_extra_locales_names(locales_names: list[LocaleName]):
 
 
 async def main():
-    await _download_dir.mkdir(parents=True, exist_ok=True)
+    _download_dir.mkdir(parents=True, exist_ok=True)
 
     locales = await get_download_locales()
-    locales_names: list[LocaleName] = []
 
-    async def process_locale(locale: str):
-        if (locale_name := await download_locale(locale)) is not None:
-            locales_names.append(locale_name)
+    async with TaskGroup() as tg:
+        tasks = tuple(tg.create_task(download_locale(locale)) for locale in locales)
 
-    async with create_task_group() as tg:
-        for locale in locales:
-            tg.start_soon(process_locale, locale)
-
-    await add_extra_locales_names(locales_names)
+    locales_names: list[LocaleName] = list(filter(None, (task.result() for task in tasks)))
+    add_extra_locales_names(locales_names)
 
     locales_names.sort(key=lambda v: v.code)
     locales_names_dict = tuple(ln._asdict() for ln in locales_names)
     buffer = json.dumps(locales_names_dict, indent=2, sort_keys=True)
-    await _names_path.write_text(buffer)
+    _names_path.write_text(buffer)
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())

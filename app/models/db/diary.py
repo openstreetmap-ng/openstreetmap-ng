@@ -22,10 +22,17 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
-    body_rich: str | None = None
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
+
+    # runtime
+    body_rich: str | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

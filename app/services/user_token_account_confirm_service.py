@@ -22,10 +22,9 @@ class UserTokenAccountConfirmService:
         """
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
-
         async with db_commit() as session:
             token = UserTokenAccountConfirm(
-                user_id=auth_user().id,
+                user_id=auth_user(required=True).id,
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
             )
@@ -46,12 +45,11 @@ class UserTokenAccountConfirmService:
             # prevent timing attacks
             await session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
 
-            stmt = delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
-
-            if (await session.execute(stmt)).rowcount != 1:
+            delete_stmt = delete(UserTokenAccountConfirm).where(UserTokenAccountConfirm.id == token_struct.id)
+            if (await session.execute(delete_stmt)).rowcount != 1:
                 raise_for().bad_user_token_struct()
 
-            stmt = (
+            update_stmt = (
                 update(User)
                 .where(
                     User.id == token.user_id,
@@ -60,4 +58,4 @@ class UserTokenAccountConfirmService:
                 .values({User.status: UserStatus.active})
                 .inline()
             )
-            await session.execute(stmt)
+            await session.execute(update_stmt)

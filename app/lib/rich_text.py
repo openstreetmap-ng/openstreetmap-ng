@@ -1,7 +1,6 @@
 import logging
 import tomllib
 from asyncio import TaskGroup
-from collections.abc import Sequence
 from html import escape
 from pathlib import Path
 
@@ -102,7 +101,7 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
 
 
 class RichTextMixin:
-    __rich_text_fields__: Sequence[tuple[str, TextFormat]] = ()
+    __rich_text_fields__: tuple[tuple[str, TextFormat], ...] = ()
 
     async def resolve_rich_text(self) -> None:
         """

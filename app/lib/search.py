@@ -105,7 +105,7 @@ class Search:
 
             members = element.members
             if members is None:
-                raise ValueError('Element is missing members')
+                raise AssertionError('Element members must be set')
 
             label_node: ElementMember | None = None
             for member in members:

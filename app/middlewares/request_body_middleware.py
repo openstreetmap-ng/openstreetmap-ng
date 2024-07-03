@@ -16,33 +16,6 @@ from app.middlewares.request_context_middleware import get_request
 _zstd_decompress = ZstdDecompressor().decompress
 
 
-@cython.cfunc
-def _decompress_zstd(buffer: bytes) -> bytes:
-    return _zstd_decompress(buffer, allow_extra_data=False)
-
-
-@cython.cfunc
-def _decompress_deflate(buffer: bytes) -> bytes:
-    return zlib.decompress(buffer, -zlib.MAX_WBITS)
-
-
-@cython.cfunc
-def _get_decompressor(content_encoding: str | None):
-    if content_encoding is None:
-        return None
-
-    if content_encoding == 'zstd':
-        return _decompress_zstd
-    if content_encoding == 'br':
-        return brotli.decompress
-    if content_encoding == 'gzip':
-        return gzip.decompress
-    if content_encoding == 'deflate':
-        return _decompress_deflate
-
-    return None
-
-
 class RequestBodyMiddleware:
     """
     Request body decompressing and limiting middleware.
@@ -110,3 +83,28 @@ class RequestBodyMiddleware:
             return {'type': 'http.request', 'body': body}
 
         await self.app(scope, wrapper, send)
+
+
+@cython.cfunc
+def _decompress_zstd(buffer: bytes) -> bytes:
+    return _zstd_decompress(buffer, allow_extra_data=False)
+
+
+@cython.cfunc
+def _decompress_deflate(buffer: bytes) -> bytes:
+    return zlib.decompress(buffer, -zlib.MAX_WBITS)
+
+
+@cython.cfunc
+def _get_decompressor(content_encoding: str | None):
+    if content_encoding is None:
+        return None
+    if content_encoding == 'zstd':
+        return _decompress_zstd
+    if content_encoding == 'br':
+        return brotli.decompress
+    if content_encoding == 'gzip':
+        return gzip.decompress
+    if content_encoding == 'deflate':
+        return _decompress_deflate
+    return None

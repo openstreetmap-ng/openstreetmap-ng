@@ -32,7 +32,6 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
-    body_rich: str | None = None
     body_tsvector: Mapped = mapped_column(
         TSVECTOR,
         Computed("to_tsvector('simple', body)", persisted=True),
@@ -41,6 +40,7 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     )
 
     # runtime
+    body_rich: str | None = None
     legacy_note: Note | None = None
 
     @validates('body')

@@ -4,7 +4,7 @@ import logging
 import tarfile
 import zipfile
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Collection
 from io import BytesIO
 from typing import ClassVar, override
 
@@ -25,7 +25,7 @@ from app.limits import (
 
 class TraceFile:
     @staticmethod
-    def extract(buffer: bytes) -> Sequence[bytes]:
+    def extract(buffer: bytes) -> Collection[bytes]:
         """
         Extract the trace files from the buffer.
 
@@ -79,7 +79,7 @@ class _TraceProcessor(ABC):
 
     @classmethod
     @abstractmethod
-    def decompress(cls, buffer: bytes) -> Sequence[bytes] | bytes:
+    def decompress(cls, buffer: bytes) -> Collection[bytes] | bytes:
         """
         Decompress the buffer and return files data or a subsequent buffer.
         """
@@ -127,7 +127,7 @@ class _TarProcessor(_TraceProcessor):
 
     @override
     @classmethod
-    def decompress(cls, buffer: bytes) -> Sequence[bytes]:
+    def decompress(cls, buffer: bytes) -> tuple[bytes, ...]:
         try:
             # pure tar uses no compression, so it's efficient to read files from the memory buffer
             # 'r:' opens for reading exclusively without compression (safety check)
@@ -151,7 +151,7 @@ class _XmlProcessor(_TraceProcessor):
 
     @override
     @classmethod
-    def decompress(cls, buffer: bytes) -> Sequence[bytes]:
+    def decompress(cls, buffer: bytes) -> tuple[bytes]:
         logging.debug('Trace %r uncompressed size is %s', cls.media_type, naturalsize(len(buffer)))
         return (buffer,)
 
@@ -161,7 +161,7 @@ class _ZipProcessor(_TraceProcessor):
 
     @override
     @classmethod
-    def decompress(cls, buffer: bytes) -> Sequence[bytes]:
+    def decompress(cls, buffer: bytes) -> list[bytes]:
         try:
             with zipfile.ZipFile(BytesIO(buffer)) as archive:
                 infos = tuple(info for info in archive.infolist() if not info.is_dir())

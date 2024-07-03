@@ -7,8 +7,6 @@ from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_modify_simple(changeset_id: int):
     elements = (

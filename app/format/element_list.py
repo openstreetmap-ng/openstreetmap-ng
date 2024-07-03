@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass
 
 import cython
@@ -34,7 +34,7 @@ class MemberListEntry(_Base):
 
 class FormatElementList:
     @staticmethod
-    async def changeset_elements(elements: Sequence[Element]) -> dict[ElementType, list[ChangesetListEntry]]:
+    async def changeset_elements(elements: Collection[Element]) -> dict[ElementType, list[ChangesetListEntry]]:
         """
         Format elements for displaying on the website (icons, strikethrough, sort).
 
@@ -59,7 +59,6 @@ class FormatElementList:
         for element in elements:
             prev = prev_type_id_map.get((element.type, element.id))
             tags = prev.tags if (prev is not None) else element.tags
-
             if tags:
                 name = feature_name(tags)
                 resolved = feature_icon(element.type, tags)
@@ -91,14 +90,14 @@ class FormatElementList:
         return result
 
     @staticmethod
-    def element_parents(ref: ElementRef, parents: Sequence[Element]) -> list[MemberListEntry]:
+    def element_parents(ref: ElementRef, parents: Iterable[Element]) -> list[MemberListEntry]:
         result: list[MemberListEntry] = []
 
         for element in parents:
             type = element.type
-            tags = element.tags
             members = element.members
 
+            tags = element.tags
             if tags:
                 name = feature_name(tags)
                 resolved = feature_icon(type, tags)
@@ -115,7 +114,7 @@ class FormatElementList:
 
             if type == 'relation':
                 if members is None:
-                    raise ValueError('Element is missing members')
+                    raise AssertionError('Element members must be set')
 
                 role = ', '.join(
                     sorted(
@@ -144,8 +143,8 @@ class FormatElementList:
 
     @staticmethod
     def element_members(
-        members: Sequence[ElementMember],
-        members_elements: Sequence[Element],
+        members: Iterable[ElementMember],
+        members_elements: Iterable[Element],
     ) -> list[MemberListEntry]:
         type_id_map: dict[tuple[ElementType, int], Element] = {
             (member.type, member.id): member  #
@@ -161,7 +160,6 @@ class FormatElementList:
                 continue
 
             tags = element.tags
-
             if tags:
                 name = feature_name(tags)
                 resolved = feature_icon(member_type, tags)

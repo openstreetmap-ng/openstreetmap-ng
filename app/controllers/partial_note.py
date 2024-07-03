@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from math import ceil
 
 from anyio import create_task_group
@@ -77,7 +77,7 @@ async def get_note(id: PositiveInt):
     )
 
 
-async def _resolve_comments_full(notes: Sequence[Note]) -> None:
+async def _resolve_comments_full(notes: Iterable[Note]) -> None:
     """
     Resolve note comments, their rich text and users.
     """

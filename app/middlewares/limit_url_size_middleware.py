@@ -20,8 +20,7 @@ class LimitUrlSizeMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = get_request()
-        request_url = request.url
+        request_url = get_request().url
         path_query_length = len(request_url.path) + len(request_url.query)
         if path_query_length > REQUEST_PATH_QUERY_MAX_LENGTH:
             raise_for().request_uri_too_long()

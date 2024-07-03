@@ -15,11 +15,7 @@ from app.limits import (
 )
 from app.models.cache_entry import CacheEntry
 
-_compress = ZstdCompressor(
-    level=CACHE_COMPRESS_ZSTD_LEVEL,
-    threads=CACHE_COMPRESS_ZSTD_THREADS,
-).compress
-
+_compress = ZstdCompressor(level=CACHE_COMPRESS_ZSTD_LEVEL, threads=CACHE_COMPRESS_ZSTD_THREADS).compress
 _decompress = ZstdDecompressor().decompress
 
 

@@ -60,7 +60,7 @@ def map_i18next_files(locales: Sequence[str]) -> tuple[str, ...]:
     """
     # force reload map in test environment
     if TEST_ENV:
-        global _i18next_map
+        global _i18next_map  # noqa: PLW0603
         _i18next_map = _get_i18next_locale_map()
 
     # i18next supports only primary+fallback locale

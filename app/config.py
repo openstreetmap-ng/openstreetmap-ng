@@ -46,7 +46,7 @@ LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip(
 LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in ('1', 'true', 'yes')
 
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
-FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
+FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 

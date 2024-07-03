@@ -23,7 +23,6 @@ class SystemAppService:
         async with db_commit() as session:
             for app in SYSTEM_APPS:
                 logging.info('Registering system app %r', app.name)
-
                 stmt = (
                     insert(OAuth2Application)
                     .values(
@@ -66,7 +65,7 @@ class SystemAppService:
 
         async with db_commit() as session:
             token = OAuth2Token(
-                user_id=auth_user().id,
+                user_id=auth_user(required=True).id,
                 application_id=app.id,
                 token_hashed=access_token_hashed,
                 scopes=app.scopes,

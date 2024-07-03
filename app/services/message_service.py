@@ -12,7 +12,7 @@ class MessageService:
         async with db_commit() as session:
             session.add(
                 Message(
-                    from_user_id=auth_user().id,
+                    from_user_id=auth_user(required=True).id,
                     to_user_id=to_user_id,
                     subject=subject,
                     body=body,

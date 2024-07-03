@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 import numpy as np
@@ -14,20 +14,13 @@ class Element07Mixin:
         return _encode_element(element)
 
     @staticmethod
-    def encode_elements(elements: Sequence[Element]) -> Sequence[dict]:
+    def encode_elements(elements: Iterable[Element]) -> tuple[dict, ...]:
         return tuple(_encode_element(element) for element in elements)
 
 
 @cython.cfunc
-def _encode_members(members: Sequence[ElementMember]) -> tuple[dict, ...]:
-    return tuple(
-        {
-            'type': member.type,
-            'id': member.id,
-            'role': member.role,
-        }
-        for member in members
-    )
+def _encode_members(members: Iterable[ElementMember]) -> tuple[dict, ...]:
+    return tuple({'type': member.type, 'id': member.id, 'role': member.role} for member in members)
 
 
 @cython.cfunc
@@ -54,6 +47,5 @@ def _encode_point(point: Point | None) -> dict:
     """
     if point is None:
         return {}
-
     x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
     return {'lon': x, 'lat': y}

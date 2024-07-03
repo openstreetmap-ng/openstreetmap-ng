@@ -7,8 +7,6 @@ from app.models.element_ref import ElementRef
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_delete_if_unused(changeset_id: int):
     elements = (

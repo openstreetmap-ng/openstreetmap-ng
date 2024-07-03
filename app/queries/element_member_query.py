@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 from sqlalchemy import Select, select, text
@@ -11,7 +11,7 @@ from app.models.db.element_member import ElementMember
 
 class ElementMemberQuery:
     @staticmethod
-    async def resolve_members(elements: Sequence[Element]) -> None:
+    async def resolve_members(elements: Iterable[Element]) -> None:
         """
         Resolve members for elements.
         """
@@ -21,7 +21,6 @@ class ElementMemberQuery:
                 element_members = element.members = []
                 if element.visible:
                     id_members_map[element.sequence_id] = element_members
-
         if not id_members_map:
             return
 
@@ -53,5 +52,5 @@ def _select():
         ElementMember.role,
         single_entity=True,
     )
-    result: Select[ElementMember] = select(bundle)
+    result: Select[ElementMember] = select(bundle)  # type: ignore
     return result

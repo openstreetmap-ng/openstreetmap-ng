@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sized
 from datetime import datetime
 from itertools import zip_longest
 
@@ -21,7 +21,7 @@ _default = object()
 
 class FormatGPX:
     @staticmethod
-    def encode_track(segments: Sequence[TraceSegment], trace_: Trace | None = _default) -> dict:
+    def encode_track(segments: Iterable[TraceSegment], trace_: Trace | None = _default) -> dict:  # type: ignore[assignment]
         """
         >>> encode_track([
         ...     TraceSegment(...),
@@ -61,6 +61,8 @@ class FormatGPX:
 
                 # handle track change
                 if last_track_num != track_num:
+                    if trksegs is None:
+                        raise AssertionError('Track segments must be set')
                     trkpts = []
                     trksegs.append({'trkpt': trkpts})
                     last_track_num = track_num
@@ -80,11 +82,13 @@ class FormatGPX:
             points = lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False).tolist()
             capture_times = segment.capture_times
             if capture_times is None:
-                capture_times = ()
+                capture_times = []
             elevations = segment.elevations
             if elevations is None:
-                elevations = ()
+                elevations = []
 
+            if trkpts is None:
+                raise AssertionError('Track points must be set')
             for point, capture_time, elevation in zip_longest(points, capture_times, elevations):
                 data = {'@lon': point[0], '@lat': point[1]}
                 if capture_time is not None:
@@ -96,7 +100,7 @@ class FormatGPX:
         return {'trk': trks}
 
     @staticmethod
-    def decode_tracks(tracks: Sequence[dict], *, track_num_start: cython.int = 0) -> Sequence[TraceSegment]:
+    def decode_tracks(tracks: Iterable[dict], *, track_num_start: cython.int = 0) -> list[TraceSegment]:
         """
         >>> decode_tracks([{'trkseg': [{'trkpt': [{'@lon': 1, '@lat': 2}]}]}])
         [TraceSegment(...)]
@@ -136,12 +140,10 @@ class FormatGPX:
 
                     lon_c: cython.double = lon
                     lat_c: cython.double = lat
-                    time: str | datetime | None = trkpt.get('time')
-                    if time is not None:
-                        time = datetime.fromisoformat(time)
-                    elevation: str | float | None = trkpt.get('ele')
-                    if elevation is not None:
-                        elevation = float(elevation)
+                    time_str: str | None = trkpt.get('time')
+                    time = datetime.fromisoformat(time_str) if time_str is not None else None
+                    elevation_str: str | None = trkpt.get('ele')
+                    elevation = float(elevation_str) if elevation_str is not None else None
 
                     if current_minx > lon_c:
                         current_minx = lon_c
@@ -204,7 +206,7 @@ def _should_finish_segment(
     miny: cython.double,
     maxx: cython.double,
     maxy: cython.double,
-    points: Sequence[tuple[float, float]],
+    points: Sized,
 ) -> cython.char:
     """
     Check if the segment should be finished before adding the point.
@@ -240,7 +242,6 @@ def _finish_segment(
     multipoint = validate_geometry(multipoint)
     capture_times_ = capture_times.copy() if any(v is not None for v in capture_times) else None
     elevations_ = elevations.copy() if any(v is not None for v in elevations) else None
-
     result.append(
         TraceSegment(
             track_num=track_num,

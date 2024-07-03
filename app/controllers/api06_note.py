@@ -27,7 +27,7 @@ from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
-from app.models.scope import ExtendedScope, Scope
+from app.models.scope import Scope
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
@@ -144,7 +144,7 @@ async def reopen_note(
 @router.delete('/notes/{note_id:int}.json')
 @router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def hide_note(
-    _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
+    _: Annotated[User, api_user(Scope.write_notes, Scope.role_moderator)],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ):

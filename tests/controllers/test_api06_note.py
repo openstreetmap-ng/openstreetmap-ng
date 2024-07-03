@@ -1,7 +1,4 @@
-import pytest
 from httpx import AsyncClient
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_note_crud(client: AsyncClient):
@@ -14,8 +11,8 @@ async def test_note_crud(client: AsyncClient):
     )
     assert r.is_success, r.text
     props: dict = r.json()['properties']
-    note_id: int = props['id']
     comments: list[dict] = props['comments']
+    note_id: int = props['id']
 
     assert props['status'] == 'open'
     assert len(comments) == 1
@@ -34,7 +31,7 @@ async def test_note_crud(client: AsyncClient):
         params={'text': 'comment'},
     )
     assert r.is_success, r.text
-    props: dict = r.json()['properties']
+    props = r.json()['properties']
     comments = props['comments']
 
     assert props['status'] == 'open'
@@ -49,7 +46,7 @@ async def test_note_crud(client: AsyncClient):
         params={'text': 'resolve'},
     )
     assert r.is_success, r.text
-    props: dict = r.json()['properties']
+    props = r.json()['properties']
     comments = props['comments']
 
     assert props['status'] == 'closed'

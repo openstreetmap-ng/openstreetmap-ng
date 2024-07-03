@@ -47,8 +47,9 @@ async def get_latest(type: ElementType, id: PositiveInt):
         )
 
     # if the element was superseded (very small chance), get data just before
-    if element.next_sequence_id is not None:
-        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    if last_sequence_id is not None:
+        at_sequence_id = last_sequence_id
 
     await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=True)
@@ -58,7 +59,7 @@ async def get_latest(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
 async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    parents = True
+    include_parents = True
 
     ref = VersionedElementRef(type, id, version)
     elements = await ElementQuery.get_by_versioned_refs(
@@ -76,12 +77,13 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
         )
 
     # if the element was superseded, get data just before
-    if element.next_sequence_id is not None:
-        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
-        parents = False
+    last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    if last_sequence_id is not None:
+        at_sequence_id = last_sequence_id
+        include_parents = False
 
     await ElementMemberQuery.resolve_members((element,))
-    data = await _get_element_data(element, at_sequence_id, include_parents=parents)
+    data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
     return render_response('partial/element.jinja2', data)
 
 
@@ -116,14 +118,15 @@ async def get_history(
 
     async def data_task(i: int, element: Element):
         at_sequence_id_ = at_sequence_id
-        parents = True
+        include_parents = True
 
         # if the element was superseded, get data just before
-        if element.next_sequence_id is not None:
-            at_sequence_id_ = await ElementQuery.get_last_visible_sequence_id(element)
-            parents = False
+        last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+        if last_sequence_id is not None:
+            at_sequence_id_ = last_sequence_id
+            include_parents = False
 
-        element_data = await _get_element_data(element, at_sequence_id_, include_parents=parents)
+        element_data = await _get_element_data(element, at_sequence_id_, include_parents=include_parents)
         elements_data[i] = element_data
 
     async with create_task_group() as tg:

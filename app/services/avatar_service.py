@@ -12,7 +12,6 @@ class AvatarService:
 
         Returns the avatar id.
         """
-
         data = await file.read()
         data = Avatar.normalize_image(data)
         avatar_id = await AVATAR_STORAGE.save(data, '.webp')
@@ -23,5 +22,4 @@ class AvatarService:
         """
         Delete a custom avatar image by id.
         """
-
         await AVATAR_STORAGE.delete(avatar_id)

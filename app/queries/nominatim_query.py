@@ -1,5 +1,6 @@
 import logging
 from asyncio import TaskGroup
+from collections.abc import Sequence
 from urllib.parse import urlencode
 
 import numpy as np
@@ -152,15 +153,18 @@ async def _search(
         entries.append(entry)
 
     # fetch elements in the order of entries
+    elements: Sequence[Element | None]
     elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
     ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
-    elements = tuple(ref_element_map.get(ref) for ref in refs)
+    elements = tuple(ref_element_map.get(ref) for ref in refs)  # not all elements may be found in the database
 
     prefixes = features_prefixes(elements)
     result: list[SearchResult] = []
     for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
         # skip non-existing elements
         if element is None or not element.visible:
+            continue
+        if prefix is None:
             continue
 
         bbox = entry['boundingbox']

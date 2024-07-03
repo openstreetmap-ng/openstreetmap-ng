@@ -1,6 +1,6 @@
-import secrets
 from base64 import urlsafe_b64encode
 from io import BytesIO
+from os import urandom
 
 import cython
 
@@ -15,7 +15,7 @@ def _randbytes(n: cython.int) -> bytes:
     remaining: cython.int = n - len(result)
 
     while remaining > 0:
-        buffer.write(secrets.token_bytes(_buffer_size))
+        buffer.write(urandom(_buffer_size))
         buffer.seek(0)
         result += buffer.read(remaining)
         remaining = n - len(result)

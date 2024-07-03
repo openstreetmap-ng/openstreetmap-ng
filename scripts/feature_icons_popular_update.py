@@ -1,25 +1,23 @@
+import asyncio
 import json
-import pathlib
 import tomllib
+from asyncio import Semaphore, Task, TaskGroup
 from datetime import timedelta
+from pathlib import Path
 
-import anyio
-from anyio import CapacityLimiter, create_task_group
-
-from app.config import CONFIG_DIR
 from app.lib.retry import retry
 from app.utils import HTTP
 
-_download_limiter = CapacityLimiter(6)  # max concurrent downloads
+_download_limiter = Semaphore(6)  # max concurrent downloads
 
-# _config[tag_key][tag_value] = icon
-# _config[tag_key][type][tag_value] = icon
-_config = tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icons.toml').read_text())
-_output_path = CONFIG_DIR / 'feature_icons_popular.json'
+# _config[key][value] = icon
+# _config[key.type][value] = icon
+_config = tomllib.loads(Path('config/feature_icons.toml').read_text())
+_output_path = Path('config/feature_icons_popular.json')
 
 
 @retry(timedelta(minutes=1))
-async def get_popularity(key: str, value: str, type: str) -> float:
+async def get_popularity(key: str, type: str, value: str) -> float:
     if value == '*':
         url = 'https://taginfo.openstreetmap.org/api/4/key/stats'
         params = {'key': key}
@@ -36,25 +34,21 @@ async def get_popularity(key: str, value: str, type: str) -> float:
 
 
 async def main():
-    popularity: dict[tuple[str, str], int] = {}
+    async with TaskGroup() as tg:
+        tasks: list[tuple[tuple, Task]] = []
+        for key_orig, values in _config.items():
+            key, _, type = key_orig.partition('.')
+            tasks.extend(
+                ((key_orig, value), tg.create_task(get_popularity(key, type, value)))
+                for value in values  #
+            )
 
-    async def task(key: str, value: str, type: str):
-        popularity[(key, value, type)] = await get_popularity(key, value, type)
-
-    async with create_task_group() as tg:
-        for key, values in _config.items():
-            key, _, type = key.partition('.')
-            for value in values:
-                tg.start_soon(task, key, value, type)
-
-    for key_orig, values in _config.items():
-        key, _, type = key_orig.partition('.')
-        for value in values:
-            _config[key_orig][value] = popularity[(key, value, type)]
+    for (key_orig, value), task in tasks:
+        _config[key_orig][value] = task.result()
 
     buffer = json.dumps(_config, indent=2, sort_keys=True) + '\n'
-    await _output_path.write_text(buffer)
+    _output_path.write_text(buffer)
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())

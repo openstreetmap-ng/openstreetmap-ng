@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from datetime import datetime, timedelta
 from typing import Literal
 
@@ -32,7 +32,7 @@ class NoteQuery:
     @staticmethod
     async def find_many_by_query(
         *,
-        note_ids: Sequence[int] | None = None,
+        note_ids: Collection[int] | None = None,
         phrase: str | None = None,
         user_id: int | None = None,
         event: NoteEvent | None = None,

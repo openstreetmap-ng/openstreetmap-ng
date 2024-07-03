@@ -1,10 +1,7 @@
-import pytest
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.lib.xmltodict import XMLToDict
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_changeset_comment_crud(client: AsyncClient):
@@ -39,7 +36,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     # create comment
     r = await client.post(f'/api/0.6/changeset/{changeset_id}/comment', data={'text': 'comment'})
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@id'] == changeset_id
     assert changeset['@updated_at'] > last_updated_at
@@ -48,7 +45,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     # TODO: assert changeset['@comments_count'] == 1
     assert len(changeset['discussion']['comment']) == 1
@@ -69,7 +66,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}', params={'include_discussion': 'true'})
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at
     # TODO: assert changeset['@comments_count'] == 0

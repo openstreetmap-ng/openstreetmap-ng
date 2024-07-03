@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import overload
 
 import cython
@@ -10,14 +10,14 @@ from app.models.element_type import ElementType
 
 
 @overload
-def features_prefixes(elements: Sequence[Element]) -> tuple[str, ...]: ...
+def features_prefixes(elements: Iterable[Element]) -> tuple[str, ...]: ...
 
 
 @overload
-def features_prefixes(elements: Sequence[Element | None]) -> tuple[str | None, ...]: ...
+def features_prefixes(elements: Iterable[Element | None]) -> tuple[str | None, ...]: ...
 
 
-def features_prefixes(elements: Sequence[Element | None]) -> tuple[str | None, ...]:
+def features_prefixes(elements: Iterable[Element | None]) -> tuple[str | None, ...]:
     """
     Returns a human readable prefix for a feature based on its type and tags.
 

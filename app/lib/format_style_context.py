@@ -2,21 +2,21 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 
 import cython
-from fastapi import Request
 
+from app.middlewares.request_context_middleware import get_request
 from app.models.format_style import FormatStyle
 
 _context: ContextVar[FormatStyle] = ContextVar('FormatStyleContext')
 
 
 @contextmanager
-def format_style_context(request: Request):
+def format_style_context():
     """
     Context manager for setting the format style in ContextVar.
 
     Format style is auto-detected from the request.
     """
-    request_path: str = request.url.path
+    request_path: str = get_request().url.path
     is_modern_api: cython.char
 
     # path defaults

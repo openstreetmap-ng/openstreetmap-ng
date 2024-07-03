@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 
@@ -7,7 +7,7 @@ from app.validators.tags import TagsValidating
 
 class Tag06Mixin:
     @staticmethod
-    def decode_tags_and_validate(tags: Sequence[dict]) -> dict[str, str]:
+    def decode_tags_and_validate(tags: Iterable[dict]) -> dict[str, str]:
         """
         >>> decode_tags_and_validate([
         ...     {'@k': 'a', '@v': '1'},
@@ -19,7 +19,7 @@ class Tag06Mixin:
 
 
 @cython.cfunc
-def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
+def _decode_tags_unsafe(tags: Iterable[dict]) -> dict:
     """
     This method does not validate the input data.
 
@@ -31,8 +31,6 @@ def _decode_tags_unsafe(tags: Sequence[dict]) -> dict:
     """
     items = tuple((tag['@k'], tag['@v']) for tag in tags)
     result = dict(items)
-
     if len(items) != len(result):
         raise ValueError('Duplicate tag keys')
-
     return result

@@ -18,18 +18,25 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
     from_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), lazy='raise', innerjoin=True)
+    from_user: Mapped[User] = relationship(foreign_keys=(from_user_id,), init=False, lazy='raise', innerjoin=True)
     to_user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
-    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), lazy='raise', innerjoin=True)
+    to_user: Mapped[User] = relationship(foreign_keys=(to_user_id,), init=False, lazy='raise', innerjoin=True)
     subject: Mapped[str] = mapped_column(UnicodeText, nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
-    body_rich: str | None = None
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
 
     # defaults
-    is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
-    from_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
-    to_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default='false')
+    is_read: Mapped[bool] = mapped_column(Boolean, init=False, nullable=False, server_default='false')
+    from_hidden: Mapped[bool] = mapped_column(Boolean, init=False, nullable=False, server_default='false')
+    to_hidden: Mapped[bool] = mapped_column(Boolean, init=False, nullable=False, server_default='false')
+
+    # runtime
+    body_rich: str | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:

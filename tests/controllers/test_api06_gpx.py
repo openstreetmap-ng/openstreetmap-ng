@@ -1,12 +1,9 @@
 from datetime import UTC, datetime
 from math import isclose
 
-import pytest
 from httpx import AsyncClient
 
 from app.lib.xmltodict import XMLToDict
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_gpx_crud(client: AsyncClient, gpx: dict):

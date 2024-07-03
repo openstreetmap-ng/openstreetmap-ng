@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from shapely import Point
 from sqlalchemy import func, null, select, text
@@ -45,7 +45,7 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_many_by_ids(user_ids: Sequence[int]) -> Sequence[User]:
+    async def find_many_by_ids(user_ids: Iterable[int]) -> Sequence[User]:
         """
         Find users by ids.
         """
@@ -123,7 +123,7 @@ class UserQuery:
             return other_user is None
 
     @staticmethod
-    async def resolve_elements_users(elements: Sequence[Element], display_name: bool) -> None:
+    async def resolve_elements_users(elements: Iterable[Element], display_name: bool) -> None:
         """
         Resolve the user of elements.
         """

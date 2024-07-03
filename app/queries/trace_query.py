@@ -123,5 +123,4 @@ class TraceQuery:
                 stmt = select(Trace).select_from(stmt).order_by(Trace.id.desc())
 
             stmt = apply_options_context(stmt)
-            result = (await session.scalars(stmt)).all()
-            return result
+            return (await session.scalars(stmt)).all()

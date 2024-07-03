@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Collection
 
 from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
@@ -43,7 +43,7 @@ class UserPrefService:
             await session.execute(stmt)
 
     @staticmethod
-    async def upsert_many(prefs: Sequence[UserPref]) -> None:
+    async def upsert_many(prefs: Collection[UserPref]) -> None:
         """
         Set multiple user preferences.
         """
@@ -83,7 +83,7 @@ class UserPrefService:
         async with db_commit() as session:
             logging.debug('Deleting user pref %r for app %r', key, app_id)
             stmt = delete(UserPref).where(
-                UserPref.user_id == auth_user().id,
+                UserPref.user_id == auth_user(required=True).id,
                 UserPref.app_id == app_id,
                 UserPref.key == key,
             )
@@ -97,7 +97,7 @@ class UserPrefService:
         async with db_commit() as session:
             logging.debug('Deleting user prefs for app %r', app_id)
             stmt = delete(UserPref).where(
-                UserPref.user_id == auth_user().id,
+                UserPref.user_id == auth_user(required=True).id,
                 UserPref.app_id == app_id,
             )
             await session.execute(stmt)

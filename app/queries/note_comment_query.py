@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import Literal
 
 from shapely.ops import BaseGeometry
@@ -21,7 +21,7 @@ class NoteCommentQuery:
         async with db() as session:
             stmt = select(text('1')).where(
                 NoteSubscription.note_id == note_id,
-                NoteSubscription.user_id == auth_user().id,
+                NoteSubscription.user_id == auth_user(required=True).id,
             )
             return await session.scalar(stmt) is not None
 
@@ -51,7 +51,7 @@ class NoteCommentQuery:
 
     @staticmethod
     async def resolve_comments(
-        notes: Sequence[Note],
+        notes: Iterable[Note],
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None,
@@ -67,7 +67,7 @@ class NoteCommentQuery:
                 id_comments_map[note.id] = note.comments = []
 
         if not notes_:
-            return
+            return ()
 
         async with db() as session:
             stmts: list[Select] = []
@@ -98,12 +98,10 @@ class NoteCommentQuery:
 
         current_note_id: int = 0
         current_comments: list[NoteComment] = []
-
         for comment in comments:
             note_id = comment.note_id
             if current_note_id != note_id:
                 current_note_id = note_id
                 current_comments = id_comments_map[note_id]
             current_comments.append(comment)
-
         return comments

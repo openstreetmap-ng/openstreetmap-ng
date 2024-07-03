@@ -13,7 +13,7 @@ from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from app.models.scope import Scope
 
 
-class OAuth2Token(Base.Snowflake, CreatedAtMixin):
+class OAuth2Token(Base.ZID, CreatedAtMixin):
     __tablename__ = 'oauth2_token'
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)
@@ -21,7 +21,7 @@ class OAuth2Token(Base.Snowflake, CreatedAtMixin):
     application_id: Mapped[int] = mapped_column(ForeignKey(OAuth2Application.id, ondelete='CASCADE'), nullable=False)
     application: Mapped[OAuth2Application] = relationship(init=False, lazy='raise', innerjoin=True)
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
-    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
+    scopes: Mapped[tuple[Scope, ...]] = mapped_column(ARRAY(Enum(Scope), as_tuple=True, dimensions=1), nullable=False)
     redirect_uri: Mapped[str | None] = mapped_column(Unicode, nullable=True)
     code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
         Enum(OAuth2CodeChallengeMethod), nullable=True

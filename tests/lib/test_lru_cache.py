@@ -2,7 +2,7 @@ from app.lib.lru_cache import LRUCache
 
 
 def test_lru_cache_maxsize():
-    cache = LRUCache(2)
+    cache: LRUCache[str, int] = LRUCache(2)
     cache['1'] = 1
     cache['2'] = 2
     cache['3'] = 3
@@ -18,7 +18,7 @@ def test_lru_cache_maxsize():
 
 
 def test_lru_cache_move_to_end():
-    cache = LRUCache(2)
+    cache: LRUCache[str, int] = LRUCache(2)
     cache['1'] = 1
     cache['2'] = 2
     cache['3'] = 3

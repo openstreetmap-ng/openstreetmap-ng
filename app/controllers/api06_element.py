@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection, Iterable, Sequence
 from typing import Annotated
 
 import cython
@@ -239,7 +239,7 @@ async def get_parent_ways(id: PositiveInt):
 
 
 @cython.cfunc
-def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType):
+def _get_element_data(elements: Iterable[tuple[str, dict]], type: ElementType):
     """
     Get the first element of the given type from the sequence of elements.
     """
@@ -260,7 +260,7 @@ async def _encode_element(element: Element):
     return Format06.encode_element(element)
 
 
-async def _encode_elements(elements: Sequence[Element]):
+async def _encode_elements(elements: Collection[Element]):
     """
     Resolve required data fields for elements and encode them.
     """

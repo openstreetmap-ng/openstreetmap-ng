@@ -1,5 +1,5 @@
 import json
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from pathlib import Path
 
 import cython
@@ -58,7 +58,7 @@ def tags_format_osm_wiki(tags: Iterable[TagFormat]) -> None:
 @cython.cfunc
 def _transform(
     *,
-    user_langs: Sequence[str],
+    user_langs: Iterable[str],
     key: str,
     processing_values: cython.char,
     value: ValueFormat,

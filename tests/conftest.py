@@ -1,5 +1,6 @@
+from pathlib import Path
+
 import pytest
-from anyio import Path
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
@@ -12,11 +13,6 @@ from app.queries.user_query import UserQuery
 
 
 @pytest.fixture(scope='session')
-def anyio_backend():
-    return 'asyncio'
-
-
-@pytest.fixture(scope='session')
 async def _lifespan():
     async with LifespanManager(main):
         yield
@@ -24,7 +20,7 @@ async def _lifespan():
 
 @pytest.fixture()
 def client(_lifespan) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))  # type: ignore
 
 
 @pytest.fixture()
@@ -38,13 +34,11 @@ async def changeset_id(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    exceptions = Exceptions06()
     user = await UserQuery.find_one_by_display_name('user1')
-    with exceptions_context(exceptions), auth_context(user, ()):
+    with exceptions_context(Exceptions06()), auth_context(user, ()):
         yield int(r.text)
 
 
 @pytest.fixture()
-async def gpx() -> dict:
-    gpx = await Path('tests/data/8473730.gpx').read_bytes()
-    return XMLToDict.parse(gpx)
+def gpx() -> dict:
+    return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())

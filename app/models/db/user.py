@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
@@ -34,7 +33,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry import PointType
-from app.models.scope import ExtendedScope, Scope
+from app.models.scope import Scope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
@@ -68,8 +67,8 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=func.statement_timestamp(),
     )
-    roles: Mapped[list[UserRole]] = mapped_column(
-        ARRAY(Enum(UserRole), dimensions=1),
+    roles: Mapped[tuple[UserRole, ...]] = mapped_column(
+        ARRAY(Enum(UserRole), as_tuple=True, dimensions=1),
         init=False,
         nullable=False,
         server_default='{}',
@@ -147,22 +146,18 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         return UserRole.moderator in self.roles or self.is_administrator
 
-    def extend_scopes(self, scopes: Sequence[Scope]) -> Sequence[ExtendedScope]:
+    def extend_scopes(self, scopes: tuple[Scope, ...]) -> tuple[Scope, ...]:
         """
         Extend the scopes with user-specific scopes.
         """
         if not self.roles:
             return scopes
-
-        result = list(scopes)
-
-        # role-specific scopes
+        extra: list[Scope] = []
         if self.is_administrator:
-            result.append(ExtendedScope.role_administrator)
+            extra.append(Scope.role_administrator)
         if self.is_moderator:
-            result.append(ExtendedScope.role_moderator)
-
-        return result
+            extra.append(Scope.role_moderator)
+        return (*scopes, *extra)
 
     @property
     def avatar_url(self) -> str:

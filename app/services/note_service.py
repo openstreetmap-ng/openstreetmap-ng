@@ -26,8 +26,8 @@ class NoteService:
         coordinate_precision = GEO_COORDINATE_PRECISION
         point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
         point = validate_geometry(point)
-
-        if (user := auth_user()) is not None:
+        user = auth_user()
+        if user is not None:
             user_id = user.id
             user_ip = None
         else:
@@ -64,8 +64,7 @@ class NoteService:
         """
         Comment on a note.
         """
-        user = auth_user()
-
+        user = auth_user(required=True)
         async with db_commit() as session:
             stmt = (
                 select(Note)
@@ -123,9 +122,8 @@ class NoteService:
         """
         Subscribe the current user to the note.
         """
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
         logging.debug('Subscribing user %d to note %d', user_id, note_id)
-
         async with db_commit() as session:
             stmt = (
                 insert(NoteSubscription)
@@ -147,9 +145,8 @@ class NoteService:
         """
         Unsubscribe the current user from the note.
         """
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
         logging.debug('Unsubscribing user %d from note %d', user_id, note_id)
-
         async with db_commit() as session:
             stmt = delete(NoteSubscription).where(
                 NoteSubscription.note_id == note_id,
@@ -163,7 +160,6 @@ class NoteService:
         Find all notes without comments and delete them.
         """
         logging.debug('Deleting notes without comments')
-
         async with db_commit() as session:
             j = join(
                 Note,

@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache
@@ -15,7 +15,7 @@ _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('Tran
 # removing lru_cache will not enable live-reload for translations
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
-def _get_translation(languages: Sequence[str]) -> GNUTranslations:
+def _get_translation(languages: Iterable[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
     """
@@ -49,7 +49,7 @@ def translation_context(primary_lang: str):
         _context.reset(token)
 
 
-def translation_languages() -> Sequence[str]:
+def translation_languages() -> tuple[str, ...]:
     """
     Get the languages from the translation context.
 

@@ -18,7 +18,7 @@ class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     client_id: Mapped[str] = mapped_column(Unicode(50), nullable=False)
     client_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    scopes: Mapped[list[Scope]] = mapped_column(ARRAY(Enum(Scope), dimensions=1), nullable=False)
+    scopes: Mapped[tuple[Scope, ...]] = mapped_column(ARRAY(Enum(Scope), as_tuple=True, dimensions=1), nullable=False)
     is_confidential: Mapped[bool] = mapped_column(Boolean, nullable=False)
     redirect_uris: Mapped[list[str]] = mapped_column(ARRAY(Unicode, dimensions=1), nullable=False)
 

@@ -1,6 +1,6 @@
 import logging
 import time
-from collections.abc import Sequence
+from collections.abc import Collection
 
 import cython
 from sqlalchemy.exc import IntegrityError
@@ -15,7 +15,7 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: Sequence[Element]) -> dict[ElementRef, Sequence[Element]]:
+    async def run(elements: Collection[Element]) -> dict[ElementRef, list[Element]]:
         """
         Perform an optimistic diff update of the elements.
 

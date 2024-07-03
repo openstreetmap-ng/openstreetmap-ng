@@ -274,7 +274,7 @@ def _to_string(v: Any) -> str:
         tzinfo = v.tzinfo
         if tzinfo is not None:
             if tzinfo is not UTC:
-                raise AssertionError(f'Unexpected non-UTC timezone {tzinfo!r}')
+                raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
             v = v.replace(tzinfo=None)
         return v.isoformat() + 'Z'
     elif isinstance(v, bool):

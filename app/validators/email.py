@@ -1,7 +1,7 @@
 import logging
+from asyncio import Task, TaskGroup
 
 from annotated_types import Predicate
-from anyio import create_task_group
 from dns.asyncresolver import Resolver
 from dns.exception import DNSException, Timeout
 from dns.rdatatype import RdataType
@@ -32,15 +32,13 @@ def validate_email(email: str) -> str:
     'example@ツ.life'
     """
     try:
-        info = validate_email_(
+        return validate_email_(
             email,
             check_deliverability=False,
             test_environment=TEST_ENV,
-        )
+        ).normalized
     except EmailNotValidError as e:
         raise ValueError(f'Invalid email address {email!r}') from e
-
-    return info.normalized
 
 
 async def validate_email_deliverability(email: str) -> bool:
@@ -77,8 +75,9 @@ async def validate_email_deliverability(email: str) -> bool:
 
 async def _check_domain_deliverability(domain: str) -> bool:
     success = False
+    tasks: list[Task] = []
 
-    async with create_task_group() as tg:
+    async with TaskGroup() as tg:
 
         async def task(rd: RdataType):
             nonlocal success
@@ -100,8 +99,8 @@ async def _check_domain_deliverability(domain: str) -> bool:
             if rd == RdataType.MX:
                 if not rrset:
                     # on implicit mx, try a/aaaa
-                    tg.start_soon(task, RdataType.A)
-                    tg.start_soon(task, RdataType.AAAA)
+                    tasks.append(tg.create_task(task(RdataType.A)))
+                    tasks.append(tg.create_task(task(RdataType.AAAA)))
                     return
 
                 # mx - treat not-null answer as success
@@ -109,15 +108,15 @@ async def _check_domain_deliverability(domain: str) -> bool:
                 rrset_by_preference = sorted(rrset, key=lambda r: r.preference, reverse=True)
                 exchange = str(rrset_by_preference[0].exchange)
                 success = exchange != '.'
-            else:
+            elif rrset:
                 # a/aaaa - treat any answer as success and cancel other tasks
-                if rrset:
-                    success = True
-                    tg.cancel_scope.cancel()
+                success = True
+                for t in tasks:
+                    t.cancel()
 
-        tg.start_soon(task, RdataType.MX)
+        tasks.append(tg.create_task(task(RdataType.MX)))
 
     return success
 
 
-EmailStrValidator = Predicate(validate_email)
+EmailStrValidator = Predicate(validate_email)  # type: ignore[arg-type]

@@ -33,7 +33,6 @@ class TranslationMiddleware:
             return
 
         lang = _get_request_language()
-
         with translation_context(lang):
             await self.app(scope, receive, send)
 
@@ -44,8 +43,7 @@ def _get_request_language() -> str:
     if user is not None:
         return user.language
 
-    request = get_request()
-    accept_language = request.headers.get('Accept-Language')
+    accept_language = get_request().headers.get('Accept-Language')
     if accept_language:
         return _parse_accept_language(accept_language)
 
@@ -62,7 +60,6 @@ def _parse_accept_language(accept_language: str) -> str:
     >>> _parse_accept_language('en-US;q=0.8,*;q=0.5,pl,es;q=0.9')
     'pl'
     """
-
     current_q: cython.double = 0
     current_lang: str = DEFAULT_LANGUAGE
 

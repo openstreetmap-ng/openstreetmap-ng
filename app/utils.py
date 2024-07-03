@@ -55,7 +55,6 @@ def extend_query_params(uri: str, params: dict) -> str:
     """
     if not params:
         return uri
-
     uri_ = urlsplit(uri)
     query = parse_qsl(uri_.query, keep_blank_values=True)
     query.extend(params.items())

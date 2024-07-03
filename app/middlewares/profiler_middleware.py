@@ -10,7 +10,7 @@ class ProfilerMiddleware:
     """
     Request profiling middleware.
 
-    Simply add `profile=1` to the query params.
+    Simply add profile=1 to the query params.
     """
 
     __slots__ = ('app',)
@@ -23,8 +23,7 @@ class ProfilerMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = get_request()
-        if 'profile' not in request.query_params:
+        if 'profile' not in get_request().query_params:
             await self.app(scope, receive, send)
             return
 

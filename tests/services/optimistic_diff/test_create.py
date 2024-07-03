@@ -9,8 +9,6 @@ from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_create_simple(changeset_id: int):
     element = Element(

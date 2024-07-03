@@ -21,7 +21,14 @@ class Report(Base.Sequential, CreatedAtMixin, RichTextMixin):
     issue_id: Mapped[int] = mapped_column(ForeignKey(Issue.id), nullable=False)
     category: Mapped[ReportCategory] = mapped_column(Enum(ReportCategory), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+
+    # runtime
     body_rich: str | None = None
 
     @validates('body')

@@ -1,5 +1,5 @@
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 import cython
 import numpy as np
@@ -142,7 +142,7 @@ class TraceSegmentQuery:
 
     @staticmethod
     async def resolve_coords(
-        traces: Sequence[Trace],
+        traces: Iterable[Trace],
         *,
         limit_per_trace: int,
         resolution: int | None,

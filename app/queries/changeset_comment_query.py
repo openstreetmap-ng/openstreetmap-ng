@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 from anyio import create_task_group
 from sqlalchemy import Select, func, select, text, union_all
@@ -20,12 +20,12 @@ class ChangesetCommentQuery:
         async with db() as session:
             stmt = select(text('1')).where(
                 ChangesetSubscription.changeset_id == changeset_id,
-                ChangesetSubscription.user_id == auth_user().id,
+                ChangesetSubscription.user_id == auth_user(required=True).id,
             )
             return await session.scalar(stmt) is not None
 
     @staticmethod
-    async def resolve_num_comments(changesets: Sequence[Changeset]) -> None:
+    async def resolve_num_comments(changesets: Iterable[Changeset]) -> None:
         """
         Resolve the number of comments for each changeset.
         """
@@ -51,7 +51,7 @@ class ChangesetCommentQuery:
 
     @staticmethod
     async def resolve_comments(
-        changesets: Sequence[Changeset],
+        changesets: Iterable[Changeset],
         *,
         limit_per_changeset: int | None,
         resolve_rich_text: bool = True,
@@ -65,7 +65,6 @@ class ChangesetCommentQuery:
             if changeset.comments is None:
                 changesets_.append(changeset)
                 id_comments_map[changeset.id] = changeset.comments = []
-
         if not changesets_:
             return
 
@@ -92,7 +91,7 @@ class ChangesetCommentQuery:
                 .order_by(ChangesetComment.created_at.asc())
             )
             stmt = apply_options_context(stmt)
-            comments: Sequence[ChangesetComment] = (await session.scalars(stmt)).all()
+            comments = (await session.scalars(stmt)).all()
 
         current_changeset_id: int = 0
         current_comments: list[ChangesetComment] = []

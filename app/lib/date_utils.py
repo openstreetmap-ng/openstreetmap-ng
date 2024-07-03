@@ -39,7 +39,7 @@ def format_sql_date(date: datetime | None) -> str:
         return 'None'
     tzinfo = date.tzinfo
     if tzinfo is not None and tzinfo is not UTC:
-        raise AssertionError(f'Unexpected non-UTC timezone {tzinfo!r}')
+        raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
     format = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
     return date.strftime(format)
 

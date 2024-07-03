@@ -8,16 +8,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
 from app.utils import JSON_DECODE, JSON_ENCODE
 
-_db_engine_kwargs: dict[str, Any]
-if TEST_ENV:
-    _db_engine_kwargs = {
+_db_engine_kwargs: dict[str, Any] = (
+    {
         'poolclass': NullPool,  # disable connection pooling
     }
-else:
-    _db_engine_kwargs = {
+    if TEST_ENV
+    else {
         'pool_size': 10,  # concurrent connections target
         'max_overflow': -1,  # unlimited concurrent connections overflow
     }
+)
 
 _db_engine = create_async_engine(
     POSTGRES_URL,
