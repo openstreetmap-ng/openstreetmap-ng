@@ -8,10 +8,11 @@
     },
     "files.exclude": {
         "**/__pycache__/": true,
+        "**/.direnv/": true,
+        "**/.mypy_cache/": true,
         "**/.pytest_cache/": true,
         "**/.ruff_cache/": true,
         "**/.sass-cache/": true,
-        "**/.direnv/": true,
         "**/.venv/": true,
         "**/bootstrap*": true,
         "**/build/": true,
