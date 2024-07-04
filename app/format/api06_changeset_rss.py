@@ -5,9 +5,9 @@ from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
-from app.lib.date_utils import utcnow
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
+from app.queries.user_query import UserQuery
 
 
 class ChangesetRSS06Mixin:
@@ -32,5 +32,15 @@ async def _encode_changeset(
     fe = fg.add_entry(order='append')
     fe.title(f'{t("browse.changeset.feed.title",id=changeset.id)}')
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
-    fe.link(href='http://a.com')  # TODO: replace placeholder with real links
-    fe.updated(utcnow())  # TODO: replace placeholder with time
+    fe.updated(changeset.updated_at)
+    fe.published(changeset.created_at)
+    user = await UserQuery.find_one_by_id(user_id=changeset.user_id)
+    fe.author(
+        name=user.display_name,
+        uri=f'{APP_URL}/user/{user.display_name}',
+    )
+    fe.link(rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset.id}')
+    fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}')
+    fe.link(
+        rel='alternate', type='application/osmChange+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}/download'
+    )

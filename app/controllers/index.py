@@ -99,18 +99,22 @@ async def settings(_: Annotated[User, web_user()]):
 
 @router.get('/history/feed')
 async def history_feed(
-    request: Request,
     limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     changesets = await ChangesetQuery.find_many_by_query(
         limit=limit,
     )
     fg = FeedGenerator()
-    fg.link(href=str(request.url), rel='self')
+    fg.link(rel='self', type='text/html', href=f'{APP_URL}/history/feed')
+    fg.link(
+        rel='alternate',
+        type='application/atom+xml',
+        href=f'{APP_URL}/history/feed',
+    )
     fg.title(t('changesets.index.title'))
     # fg.language() TODO: add lang (from where it could be gained)
     fg.id(f'{APP_URL}/history/feed')
-    fg.updated(utcnow())  # TODO: format datetime to same syntax as in original feed
+    fg.updated(utcnow())
     fg.generator('')
     await FormatRSS06.encode_changesets(fg, changesets)
     return fg.atom_str(pretty=True)
