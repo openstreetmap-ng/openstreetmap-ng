@@ -50,6 +50,7 @@ sqlalchemy = {extras = ["postgresql-asyncpg"], version = "^2.0.28"}
 starlette-compress = "^1.0.1"
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
+types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
 uvicorn = {extras = ["standard"], version = "<1"}
 zid = "^1.0.0"
 zstandard = "<1"
