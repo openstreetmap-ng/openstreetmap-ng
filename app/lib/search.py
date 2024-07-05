@@ -107,19 +107,14 @@ class Search:
             if members is None:
                 raise AssertionError('Element members must be set')
 
-            label_node: ElementMember | None = None
+            success: cython.char = False
             for member in members:
-                if member.type != 'node':
+                if member.type != 'node' or (success and member.role != 'admin_centre'):
                     continue
-                if member.role == 'admin_centre':
-                    label_node = member
-                    break
-                if label_node is None:
-                    label_node = member
-
-            if label_node is not None:
-                node = members_map[('node', label_node.id)]
-                result.point = node.point
+                node = members_map[('node', member.id)]
+                if node.point is not None:
+                    result.point = node.point
+                    success = True
 
     @staticmethod
     def remove_overlapping_points(results: Iterable[SearchResult]) -> None:

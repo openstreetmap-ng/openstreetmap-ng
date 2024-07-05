@@ -1,9 +1,9 @@
 from hashlib import sha256
 
 import cython
-from Cryptodome.Cipher import ChaCha20
+from Cryptodome.Cipher import AES
 
-from app.config import SECRET_32bytes
+from app.config import SECRET_32b
 from app.lib.buffered_random import buffered_randbytes
 
 HASH_SIZE = 32
@@ -40,23 +40,26 @@ def hash_hex(s: str | bytes) -> str:
 
 def encrypt(s: str) -> bytes:
     """
-    Encrypt a string using XChaCha20.
-
-    Returns a buffer of the nonce and cipher text.
+    Encrypt a string using AES-CTR.
     """
-    nonce_bytes = buffered_randbytes(24)
-    cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
+    if not s:
+        raise AssertionError('Empty string must not be encrypted')
+    nonce = buffered_randbytes(15)  # +1 byte for the counter
+    cipher = AES.new(key=SECRET_32b, mode=AES.MODE_CTR, nonce=nonce)
     cipher_text_bytes = cipher.encrypt(s.encode())
-    return nonce_bytes + cipher_text_bytes
+    return b''.join((b'\x00', nonce, cipher_text_bytes))
 
 
 def decrypt(buffer: bytes) -> str:
     """
-    Decrypt a buffer using XChaCha20.
-
-    Expects a buffer of the nonce and cipher text.
+    Decrypt an encrypted buffer.
     """
-    nonce_bytes = buffer[:24]
-    cipher_text_bytes = buffer[24:]
-    cipher = ChaCha20.new(key=SECRET_32bytes, nonce=nonce_bytes)
-    return cipher.decrypt(cipher_text_bytes).decode()
+    if not buffer:
+        return ''
+    marker = buffer[0]
+    if marker == 0x00:
+        nonce_bytes = buffer[1:16]
+        cipher_text_bytes = buffer[16:]
+        cipher = AES.new(key=SECRET_32b, mode=AES.MODE_CTR, nonce=nonce_bytes)
+        return cipher.decrypt(cipher_text_bytes).decode()
+    raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

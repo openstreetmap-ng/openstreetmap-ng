@@ -1,7 +1,7 @@
+from asyncio import TaskGroup
 from typing import Annotated
 
 import cython
-from anyio import create_task_group
 from fastapi import APIRouter, Path, Query
 from sqlalchemy.orm import joinedload
 from starlette import status
@@ -40,14 +40,7 @@ async def _get_traces_data(
             limit=30,
         )
 
-    new_after: int | None = None
-    new_before: int | None = None
-
-    async def resolve_task():
-        await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
-
     async def new_after_task():
-        nonlocal new_after
         after = traces[0].id
         after_traces = await TraceQuery.find_many_recent(
             user_id=user_id,
@@ -55,11 +48,9 @@ async def _get_traces_data(
             after=after,
             limit=1,
         )
-        if after_traces:
-            new_after = after
+        return after if after_traces else None
 
     async def new_before_task():
-        nonlocal new_before
         before = traces[-1].id
         before_traces = await TraceQuery.find_many_recent(
             user_id=user_id,
@@ -67,14 +58,18 @@ async def _get_traces_data(
             before=before,
             limit=1,
         )
-        if before_traces:
-            new_before = before
+        return before if before_traces else None
 
     if traces:
-        async with create_task_group() as tg:
-            tg.start_soon(resolve_task)
-            tg.start_soon(new_after_task)
-            tg.start_soon(new_before_task)
+        async with TaskGroup() as tg:
+            tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100))
+            new_after_t = tg.create_task(new_after_task())
+            new_before_t = tg.create_task(new_before_task())
+        new_after = new_after_t.result()
+        new_before = new_before_t.result()
+    else:
+        new_after = None
+        new_before = None
 
     base_url = f'/user/{user.display_name}/traces' if (user is not None) else '/traces'
     base_url_notag = base_url
@@ -83,13 +78,14 @@ async def _get_traces_data(
 
     traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
 
-    active_tab = 0
-    if user is not None:
-        user_ = auth_user()
-        if (user_ is not None) and user.id == user_.id:
-            active_tab = 1
+    if user is None:
+        active_tab = 0  # viewing public traces
+    else:
+        current_user = auth_user()
+        if (current_user is not None) and user.id == current_user.id:
+            active_tab = 1  # viewing own traces
         else:
-            active_tab = 2  # TODO: implement
+            active_tab = 2  # viewing other user's traces
 
     return {
         'profile': user,

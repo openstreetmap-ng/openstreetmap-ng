@@ -549,7 +549,6 @@ let
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
     export LEGACY_HIGH_PRECISION_TIME=1
     export LEGACY_SEQUENCE_ID_MARGIN=1
-    export AUTHLIB_INSECURE_TRANSPORT=1
 
     if [ -f .env ]; then
       echo "Loading .env file"

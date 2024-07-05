@@ -1,6 +1,6 @@
+from asyncio import TaskGroup
 from collections.abc import Iterable
 
-from anyio import create_task_group
 from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
@@ -95,7 +95,6 @@ class ChangesetCommentQuery:
 
         current_changeset_id: int = 0
         current_comments: list[ChangesetComment] = []
-
         for comment in comments:
             changeset_id = comment.changeset_id
             if current_changeset_id != changeset_id:
@@ -104,9 +103,9 @@ class ChangesetCommentQuery:
             current_comments.append(comment)
 
         for changeset in changesets_:
-            changeset.num_comments = len(changeset.comments)
+            changeset.num_comments = len(changeset.comments)  # type: ignore[arg-type]
 
         if resolve_rich_text:
-            async with create_task_group() as tg:
+            async with TaskGroup() as tg:
                 for comment in comments:
-                    tg.start_soon(comment.resolve_rich_text)
+                    tg.create_task(comment.resolve_rich_text())

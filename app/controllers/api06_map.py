@@ -1,6 +1,6 @@
+from asyncio import TaskGroup
 from typing import Annotated
 
-from anyio import create_task_group
 from fastapi import APIRouter, Query
 
 from app.format import Format06
@@ -29,9 +29,9 @@ async def get_map(bbox: Annotated[str, Query()]):
         legacy_nodes_limit=True,
     )
 
-    async with create_task_group() as tg:
-        tg.start_soon(UserQuery.resolve_elements_users, elements, True)
-        tg.start_soon(ElementMemberQuery.resolve_members, elements)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
+        tg.create_task(ElementMemberQuery.resolve_members(elements))
 
     xattr = get_xattr()
     minx, miny, maxx, maxy = geometry.bounds

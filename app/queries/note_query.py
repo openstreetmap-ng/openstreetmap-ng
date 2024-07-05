@@ -36,7 +36,7 @@ class NoteQuery:
         phrase: str | None = None,
         user_id: int | None = None,
         event: NoteEvent | None = None,
-        max_closed_days: int | None = None,
+        max_closed_days: float | None = None,
         geometry: BaseGeometry | None = None,
         date_from: datetime | None = None,
         date_to: datetime | None = None,
@@ -48,7 +48,7 @@ class NoteQuery:
         Find notes by query.
         """
         async with db() as session:
-            cte_where_and = []
+            cte_where_and: list = []
 
             if phrase is not None:
                 cte_where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))

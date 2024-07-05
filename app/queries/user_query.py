@@ -133,7 +133,6 @@ class UserQuery:
             if element.user_id is None:
                 elements_.append(element)
                 changeset_id_elements_map[element.changeset_id].append(element)
-
         if not elements_:
             return
 

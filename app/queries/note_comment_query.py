@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
 from typing import Literal
 
@@ -55,6 +56,7 @@ class NoteCommentQuery:
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None,
+        resolve_rich_text: bool = True,
     ) -> Sequence[NoteComment]:
         """
         Resolve comments for notes.
@@ -104,4 +106,10 @@ class NoteCommentQuery:
                 current_note_id = note_id
                 current_comments = id_comments_map[note_id]
             current_comments.append(comment)
+
+        if resolve_rich_text:
+            async with TaskGroup() as tg:
+                for comment in comments:
+                    tg.create_task(comment.resolve_rich_text())
+
         return comments

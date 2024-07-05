@@ -119,7 +119,7 @@ dictConfig(
 
 
 # Derived configuration
-SECRET_32bytes = sha256(SECRET.encode()).digest()
+SECRET_32b = sha256(SECRET.encode()).digest()
 
 SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None

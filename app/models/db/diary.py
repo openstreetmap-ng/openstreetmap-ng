@@ -1,4 +1,5 @@
-from anyio import create_task_group
+from typing import TYPE_CHECKING
+
 from shapely import Point
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -12,6 +13,9 @@ from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PointType
 from app.models.text_format import TextFormat
+
+if TYPE_CHECKING:
+    from app.models.db.diary_comment import DiaryComment
 
 
 class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
@@ -33,18 +37,10 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
 
     # runtime
     body_rich: str | None = None
+    comments: list['DiaryComment'] | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > DIARY_BODY_MAX_LENGTH:
             raise ValueError(f'Diary body is too long ({len(value)} > {DIARY_BODY_MAX_LENGTH})')
         return value
-
-    async def resolve_comments_rich_text(self) -> None:
-        """
-        Resolve rich text for all comments.
-        """
-
-        async with create_task_group() as tg:
-            for comment in self.comments:
-                tg.start_soon(comment.resolve_rich_text)
