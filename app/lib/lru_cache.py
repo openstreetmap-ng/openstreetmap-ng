@@ -39,4 +39,4 @@ class LRUCache(Generic[K, V]):
         if value is not_found:
             return default
         cache.move_to_end(key)
-        return value  # type: ignore
+        return value  # type: ignore[return-value]

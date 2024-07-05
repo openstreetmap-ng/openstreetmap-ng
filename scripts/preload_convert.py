@@ -165,7 +165,7 @@ def worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    df = pl.DataFrame(data, schema=schema)  # type: ignore
+    df = pl.DataFrame(data, schema=schema)  # type: ignore[arg-type]
     df.write_parquet(get_worker_output_path(i), compression_level=1, statistics=False)
     gc.collect()
 

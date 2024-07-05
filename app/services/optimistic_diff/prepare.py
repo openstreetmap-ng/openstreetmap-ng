@@ -3,6 +3,7 @@ from asyncio import TaskGroup
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from itertools import chain
 from typing import Final
 
 import cython
@@ -376,8 +377,7 @@ class OptimisticDiffPrepare:
         prev_members = prev.members if (prev is not None) else ()
         if next_members is None or prev_members is None:
             raise AssertionError('Element members must be set')
-        union_members = (*next_members, *prev_members)
-        node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in union_members}
+        node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in chain(next_members, prev_members)}
 
         bbox_info = self._bbox_info
         element_state = self.element_state
@@ -436,6 +436,7 @@ class OptimisticDiffPrepare:
                 members = entry.current.members
                 if members is None:
                     raise AssertionError('Way members must be set')
+
                 for node_member in members:
                     node_ref = ElementRef('node', node_member.id)
                     entry = element_state.get(node_ref)

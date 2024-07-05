@@ -1,5 +1,7 @@
 from email.message import EmailMessage
+from typing import Self
 
+import cython
 from bs4 import BeautifulSoup
 from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -45,31 +47,19 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
         return value
 
     @classmethod
-    def from_email(cls, mail: EmailMessage, from_user_id: int, to_user_id: int) -> 'Message':
+    def from_email(cls, mail: EmailMessage, from_user_id: int, to_user_id: int) -> Self:
         """
         Create a message instance from an email message.
         """
-
         subject = mail.get('Subject')
-
         if subject is None:
             raise ValueError('Email message has no subject')
-
-        def get_body(part: EmailMessage) -> str | None:
-            content_type = part.get_content_type()
-            if content_type == 'text/plain':
-                payload: str = part.get_payload(decode=True).decode()
-                return payload.strip()
-            elif content_type == 'text/html':
-                payload: str = part.get_payload(decode=True).decode()
-                return BeautifulSoup(payload, 'lxml').get_text(separator=' ').strip()  # TODO: test this
-            else:
-                return None
 
         if mail.is_multipart():
             body = None
             for part in mail.iter_parts():
-                if (body := get_body(part)) is not None:
+                body = get_body(part)
+                if body is not None:
                     break
         else:
             body = get_body(mail)
@@ -83,3 +73,19 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
             subject=subject,
             body=body,  # TODO: body check etc.
         )
+
+
+@cython.cfunc
+def get_body(part: EmailMessage):
+    content_type = part.get_content_type()
+    if content_type not in ('text/plain', 'text/html'):
+        return None
+
+    payload_bytes: bytes | None = part.get_payload(decode=True)  # type: ignore[assignment]
+    if payload_bytes is None:
+        return None
+
+    payload: str = payload_bytes.decode()
+    if content_type == 'text/html':
+        payload = BeautifulSoup(payload, 'lxml').get_text(separator=' ')
+    return payload.strip()

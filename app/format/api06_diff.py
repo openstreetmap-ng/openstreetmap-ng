@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
@@ -7,7 +7,7 @@ from app.models.element_type import ElementType
 
 class Diff06Mixin:
     @staticmethod
-    def encode_diff_result(assigned_ref_map: dict[ElementRef, Iterable[Element]]) -> list[tuple[ElementType, dict]]:
+    def encode_diff_result(assigned_ref_map: Mapping[ElementRef, Iterable[Element]]) -> list[tuple[ElementType, dict]]:
         """
         >>> encode_diff_result({
         ...     TypedElementRef(type=ElementType.node, id=-1): [

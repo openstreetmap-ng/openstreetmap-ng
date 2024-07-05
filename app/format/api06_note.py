@@ -60,7 +60,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
         **(
             {
                 'uid': comment.user_id,
-                'user': comment.user.display_name,  # type: ignore
+                'user': comment.user.display_name,  # type: ignore[union-attr]
                 'user_url': f'{APP_URL}/user/permalink/{comment.user_id}',
             }
             if (comment.user_id is not None)

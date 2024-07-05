@@ -14,7 +14,7 @@ def updating_cached_property(watch_attr_name: str):
     """
 
     def decorator(func: Callable[[Any], R]) -> R:
-        return _UpdatingCachedProperty(watch_attr_name, func)  # type: ignore
+        return _UpdatingCachedProperty(watch_attr_name, func)  # type: ignore[return-value]
 
     return decorator
 

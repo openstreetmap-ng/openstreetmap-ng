@@ -21,7 +21,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
 
     @override
     def element_redacted(self, versioned_ref: VersionedElementRef) -> NoReturn:
-        return self.element_not_found(versioned_ref)
+        self.element_not_found(versioned_ref)
 
     @override
     def element_redact_latest(self) -> NoReturn:

@@ -100,10 +100,10 @@ class TraceSegmentQuery:
             new_parts_fixed = np.empty((len(new_parts), new_parts_max_size), dtype=object)
             mask = np.arange(new_parts_max_size) < new_parts_sizes[:, None]
             new_parts_fixed[mask] = new_parts_flat
-            new_points = lib.create_collection(new_parts_fixed, GeometryType.MULTIPOINT)
+            new_points_list: Sequence[MultiPoint] = lib.create_collection(new_parts_fixed, GeometryType.MULTIPOINT)
 
             # assign filtered multipoints and return
-            for segment, points in zip(segments, new_points, strict=True):
+            for segment, points in zip(segments, new_points_list, strict=True):
                 segment.points = points
 
             # filter extra attributes

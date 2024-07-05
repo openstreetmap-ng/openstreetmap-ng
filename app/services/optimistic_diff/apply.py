@@ -39,10 +39,6 @@ class OptimisticDiffApply:
         if not assigned_ref_map:
             return {}
 
-        changeset = prepare.changeset
-        if changeset is None:
-            raise AssertionError('Changeset must be set')
-
         async with db_commit() as session, TaskGroup() as tg:
             # obtain exclusive lock on the tables
             await session.execute(_lock_table_sql)
@@ -60,7 +56,7 @@ class OptimisticDiffApply:
                 )
 
             now = utcnow()
-            tg.create_task(_update_changeset(changeset, now, session))
+            tg.create_task(_update_changeset(prepare.changeset, now, session))  # type: ignore[arg-type]
             tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
         return assigned_ref_map

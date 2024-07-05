@@ -9,7 +9,7 @@ from sqlalchemy.orm import Bundle
 class TupleBundle(Bundle):
     @override
     def create_row_processor(self, query, procs, labels):
-        t = namedtuple('t', labels)  # type: ignore  # noqa: PYI024
+        t = namedtuple('t', labels)  # type: ignore[misc]  # noqa: PYI024
 
         def proc(row: Row):
             return t(*row)

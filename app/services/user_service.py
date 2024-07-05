@@ -65,7 +65,7 @@ class UserService:
         Returns the new avatar URL.
         """
         # handle custom avatar
-        if avatar_type == AvatarType.custom:
+        if avatar_type == AvatarType.custom and avatar_file is not None:
             avatar_id = await AvatarService.upload(avatar_file)
         else:
             avatar_id = None

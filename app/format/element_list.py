@@ -95,8 +95,6 @@ class FormatElementList:
 
         for element in parents:
             type = element.type
-            members = element.members
-
             tags = element.tags
             if tags:
                 name = feature_name(tags)
@@ -113,9 +111,9 @@ class FormatElementList:
                 icon_title = None
 
             if type == 'relation':
+                members = element.members
                 if members is None:
-                    raise AssertionError('Element members must be set')
-
+                    raise AssertionError('Relation members must be set')
                 role = ', '.join(
                     sorted(
                         {

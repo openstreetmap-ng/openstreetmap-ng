@@ -140,7 +140,7 @@ class _TarProcessor(_TraceProcessor):
 
                 # not checking for the total size of the files - there is no compression
                 # the output size will not exceed the input size
-                return tuple(archive.extractfile(info).read() for info in infos)  # type: ignore
+                return tuple(archive.extractfile(info).read() for info in infos)  # type: ignore[union-attr]
 
         except tarfile.TarError:
             raise_for().trace_file_archive_corrupted(cls.media_type)
@@ -218,7 +218,7 @@ class _ZstdProcessor(_TraceProcessor):
 
 
 _trace_processors: dict[str, type[_TraceProcessor]] = {
-    processor.media_type: processor  # type: ignore
+    processor.media_type: processor  # type: ignore[type-abstract]
     for processor in (
         _Bzip2Processor,
         _GzipProcessor,

@@ -24,7 +24,7 @@ class Avatar:
     default_image: bytes = Path('app/static/img/avatar.webp').read_bytes()
 
     @staticmethod
-    def get_url(avatar_type: AvatarType, avatar_id: str | int) -> str:
+    def get_url(avatar_type: AvatarType, avatar_id: str | int | None) -> str:
         """
         Get the url of the avatar image.
 
@@ -50,7 +50,7 @@ class Avatar:
         - Megapixels: downscale
         - File size: reduce quality
         """
-        img = Image.open(BytesIO(data))
+        img: Image.Image = Image.open(BytesIO(data))
 
         # normalize orientation
         ImageOps.exif_transpose(img, in_place=True)

@@ -25,11 +25,7 @@ async def create_changeset_comment(
     _: Annotated[User, api_user(Scope.write_api)],
 ):
     await ChangesetCommentService.comment(changeset_id, text)
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
-    changesets = (changeset,)
-    await ChangesetCommentQuery.resolve_num_comments(changesets)
-    return Format06.encode_changesets(changesets)
+    return await _get_response(changeset_id)
 
 
 @router.delete('/changeset/comment/{comment_id:int}')
@@ -38,11 +34,7 @@ async def delete_changeset_comment(
     _: Annotated[User, api_user(Scope.write_api, Scope.role_moderator)],
 ):
     changeset_id = await ChangesetCommentService.delete_comment_unsafe(comment_id)
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
-    changesets = (changeset,)
-    await ChangesetCommentQuery.resolve_num_comments(changesets)
-    return Format06.encode_changesets(changesets)
+    return await _get_response(changeset_id)
 
 
 @router.post('/changeset/{changeset_id:int}/subscribe')
@@ -51,11 +43,7 @@ async def changeset_subscribe(
     _: Annotated[User, api_user(Scope.write_api)],
 ):
     await ChangesetCommentService.subscribe(changeset_id)
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
-    changesets = (changeset,)
-    await ChangesetCommentQuery.resolve_num_comments(changesets)
-    return Format06.encode_changesets(changesets)
+    return await _get_response(changeset_id)
 
 
 @router.post('/changeset/{changeset_id:int}/unsubscribe')
@@ -64,8 +52,14 @@ async def changeset_unsubscribe(
     _: Annotated[User, api_user(Scope.write_api)],
 ):
     await ChangesetCommentService.unsubscribe(changeset_id)
+    return await _get_response(changeset_id)
+
+
+async def _get_response(changeset_id: int):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
+    if changeset is None:
+        raise AssertionError(f'Changeset {changeset_id} must exist in database')
     changesets = (changeset,)
     await ChangesetCommentQuery.resolve_num_comments(changesets)
     return Format06.encode_changesets(changesets)

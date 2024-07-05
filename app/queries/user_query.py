@@ -125,34 +125,35 @@ class UserQuery:
     @staticmethod
     async def resolve_elements_users(elements: Iterable[Element], display_name: bool) -> None:
         """
-        Resolve the user of elements.
+        Resolve the elements users ids.
+
+        If display_name is True, the users display name is also resolved.
         """
-        elements_ = []
-        changeset_id_elements_map = defaultdict(list)
+        changeset_id_elements_map: dict[int, list[Element]] = defaultdict(list)
         for element in elements:
             if element.user_id is None:
-                elements_.append(element)
                 changeset_id_elements_map[element.changeset_id].append(element)
-        if not elements_:
+        if not changeset_id_elements_map:
             return
 
         if display_name:
             async with db() as session:
-                stmt = select(Changeset.id, User.id, User.display_name)
-                stmt = stmt.join(User, Changeset.user_id == User.id)
-                stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
+                stmt = (
+                    select(Changeset.id, Changeset.user_id, User.display_name)
+                    .join(User, Changeset.user_id == User.id)
+                    .where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
+                )
                 rows = (await session.execute(stmt)).all()
-
-            for changeset_id, user_id, display_name in rows:
+            for changeset_id, user_id, display_name_str in rows:
                 for element in changeset_id_elements_map[changeset_id]:
                     element.user_id = user_id
-                    element.user_display_name = display_name
+                    element.user_display_name = display_name_str
         else:
             async with db() as session:
-                stmt = select(Changeset.id, Changeset.user_id)
-                stmt = stmt.where(Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map)))))
-                rows = (await session.execute(stmt)).all()
-
+                stmt2 = select(Changeset.id, Changeset.user_id).where(
+                    Changeset.id.in_(text(','.join(map(str, changeset_id_elements_map))))
+                )
+                rows = (await session.execute(stmt2)).all()
             for changeset_id, user_id in rows:
                 for element in changeset_id_elements_map[changeset_id]:
                     element.user_id = user_id

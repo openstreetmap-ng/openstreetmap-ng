@@ -104,7 +104,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         else:
             return self.linked_to_user_on_site
 
-    @visible_to.expression
+    @visible_to.expression  # type: ignore[no-redef]
     @classmethod
     def visible_to(cls, user: User | None, scopes: Container[Scope]) -> ColumnElement[bool]:
         if (user is not None) and Scope.read_gpx in scopes:

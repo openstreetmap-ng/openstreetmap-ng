@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Literal
 
-from sqlalchemy import func, select, text
+from sqlalchemy import any_, func, select, text
 
 from app.db import db
 from app.lib.auth_context import auth_scopes, auth_user_scopes
@@ -105,7 +105,7 @@ class TraceQuery:
                 where_and.append(Trace.visible_to(None, auth_scopes()))
 
             if tag is not None:
-                where_and.append(Trace.tags.any(tag))
+                where_and.append(any_(Trace.tags) == tag)
 
             if after is not None:
                 where_and.append(Trace.id > after)

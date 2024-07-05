@@ -8,7 +8,6 @@ from shapely import MultiPolygon, Point, Polygon, STRtree
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
 from app.models.search_result import SearchResult
 
@@ -105,7 +104,7 @@ class Search:
 
             members = element.members
             if members is None:
-                raise AssertionError('Element members must be set')
+                raise AssertionError('Relation members must be set')
 
             success: cython.char = False
             for member in members:

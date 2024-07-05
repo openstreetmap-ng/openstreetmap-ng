@@ -1,4 +1,4 @@
-from typing import NamedTuple, override
+from typing import NamedTuple, Self
 
 from pydantic import PositiveInt
 
@@ -11,7 +11,7 @@ class ElementRef(NamedTuple):
     id: int
 
     @classmethod
-    def from_str(cls, s: str) -> 'ElementRef':
+    def from_str(cls, s: str) -> Self:
         """
         Parse an element reference from a string representation.
 
@@ -41,9 +41,8 @@ class VersionedElementRef(NamedTuple):
     id: int
     version: PositiveInt
 
-    @override
     @classmethod
-    def from_str(cls, s: str) -> 'VersionedElementRef':
+    def from_str(cls, s: str) -> Self:
         """
         Parse a versioned element reference from a string representation.
 
@@ -63,7 +62,7 @@ class VersionedElementRef(NamedTuple):
         return cls(type, id, version)
 
     @classmethod
-    def from_type_str(cls, type: ElementType, s: str) -> 'VersionedElementRef':
+    def from_type_str(cls, type: ElementType, s: str) -> Self:
         """
         Parse a versioned element reference from a string.
 

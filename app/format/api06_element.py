@@ -44,7 +44,7 @@ class Element06Mixin:
             # merge elements of the same type together
             for element in elements:
                 result[element.type].append(_encode_element(element, is_json=False))
-            return result  # type: ignore
+            return result  # type: ignore[return-value]
 
     @staticmethod
     def decode_element(element: tuple[ElementType, dict]) -> Element:

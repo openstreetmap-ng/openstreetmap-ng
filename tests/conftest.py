@@ -20,7 +20,7 @@ async def _lifespan():
 
 @pytest.fixture()
 def client(_lifespan) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))  # type: ignore
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))  # type: ignore[arg-type]
 
 
 @pytest.fixture()
