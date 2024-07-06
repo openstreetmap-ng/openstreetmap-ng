@@ -1,4 +1,5 @@
 from hashlib import md5
+from typing import override
 
 from starlette import status
 
@@ -22,6 +23,7 @@ class GravatarStorage(StorageBase):
         super().__init__(context)
         self._fc = FileCache(context)
 
+    @override
     async def load(self, email: str) -> bytes:
         key = md5(email.lower().encode()).hexdigest()  # noqa: S324
         data = await self._fc.get(key)

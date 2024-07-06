@@ -1,12 +1,13 @@
 from fastapi import UploadFile
 
 from app.lib.avatar import Avatar
+from app.lib.storage.base import StorageKey
 from app.storage import AVATAR_STORAGE
 
 
 class AvatarService:
     @staticmethod
-    async def upload(file: UploadFile) -> str:
+    async def upload(file: UploadFile) -> StorageKey:
         """
         Process upload of a custom avatar image.
 
@@ -18,7 +19,7 @@ class AvatarService:
         return avatar_id
 
     @staticmethod
-    async def delete_by_id(avatar_id: str) -> None:
+    async def delete_by_id(avatar_id: StorageKey) -> None:
         """
         Delete a custom avatar image by id.
         """

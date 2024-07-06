@@ -56,6 +56,7 @@ class FileCache:
         """
         path = _get_path(self._base_dir, key)
         path.parent.mkdir(parents=True, exist_ok=True)
+
         expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
         entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
@@ -132,9 +133,7 @@ def _get_path(base_dir: Path, key_str: str) -> Path:
     Get the path to a file in the file cache by key string.
 
     >>> _get_path(Path('context'), 'file_key')
-    Path('.../context/4/68/468e5f...')
+    Path('.../context/46/8e/468e5f...')
     """
     key: str = hash_hex(key_str)
-    d1 = key[:1]
-    d2 = key[1:3]
-    return base_dir.joinpath(d1, d2, key)
+    return base_dir.joinpath(key[:2], key[2:4], key)

@@ -1,7 +1,9 @@
+from typing import override
+
 import aioboto3
 
 from app.lib.file_cache import FileCache
-from app.lib.storage.base import StorageBase
+from app.lib.storage.base import StorageBase, StorageKey
 from app.limits import S3_CACHE_EXPIRE
 
 _s3 = aioboto3.Session()
@@ -20,7 +22,8 @@ class S3Storage(StorageBase):
         super().__init__(context)
         self._fc = FileCache(context)
 
-    async def load(self, key: str) -> bytes:
+    @override
+    async def load(self, key: StorageKey) -> bytes:
         if (data := await self._fc.get(key)) is not None:
             return data
 
@@ -30,15 +33,17 @@ class S3Storage(StorageBase):
         await self._fc.set(key, data, ttl=S3_CACHE_EXPIRE)
         return data
 
-    async def save(self, data: bytes, suffix: str) -> str:
-        key = self._make_key(data, suffix)
+    @override
+    async def save(self, data: bytes, suffix: str) -> StorageKey:
+        key = self._make_key(suffix)
 
         async with _s3.client('s3') as s3:
             await s3.put_object(Bucket=self._context, Key=key, Body=data)
 
         return key
 
-    async def delete(self, key: str) -> None:
+    @override
+    async def delete(self, key: StorageKey) -> None:
         async with _s3.client('s3') as s3:
             await s3.delete_object(Bucket=self._context, Key=key)
 

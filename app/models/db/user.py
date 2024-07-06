@@ -21,7 +21,7 @@ from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.rich_text import RichTextMixin
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH
+from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH, StorageKey
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     LANGUAGE_CODE_MAX_LENGTH,
@@ -98,7 +98,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=False,
         server_default=AvatarType.default.value,
     )
-    avatar_id: Mapped[str | None] = mapped_column(
+    avatar_id: Mapped[StorageKey | None] = mapped_column(
         Unicode(STORAGE_KEY_MAX_LENGTH),
         init=False,
         nullable=True,
