@@ -1,12 +1,13 @@
+import asyncio
 import gc
-import pathlib
 import subprocess
+from asyncio import Semaphore, TaskGroup
 from functools import cache
+from pathlib import Path
 from subprocess import Popen
 
-import anyio
-from anyio import Semaphore, create_task_group
-from sqlalchemy import Index, select, text
+from sqlalchemy import Index, quoted_name, select, text
+from sqlalchemy.orm import DeclarativeBase
 
 from app.config import PRELOAD_DIR
 from app.db import db, db_commit, db_update_stats
@@ -17,7 +18,7 @@ from app.models.db.element_member import ElementMember
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
 
-index_semaphore = Semaphore(6)
+_index_limiter = Semaphore(6)
 
 # freeze all gc objects before starting for improved performance
 gc.collect()
@@ -26,15 +27,15 @@ gc.disable()
 
 
 @cache
-def get_csv_path(name: str) -> pathlib.Path:
-    p = pathlib.Path(PRELOAD_DIR / f'{name}.csv.zst')
+def get_csv_path(name: str) -> Path:
+    p = PRELOAD_DIR.joinpath(f'{name}.csv.zst')
     if not p.is_file():
         raise FileNotFoundError(f'File not found: {p}')
     return p
 
 
 @cache
-def get_csv_header(path: pathlib.Path) -> str:
+def get_csv_header(path: Path) -> str:
     with Popen(
         (  # noqa: S603
             'zstd',
@@ -44,14 +45,15 @@ def get_csv_header(path: pathlib.Path) -> str:
         ),
         stdout=subprocess.PIPE,
     ) as proc:
+        assert proc.stdout is not None
         line = proc.stdout.readline().decode().strip()
         proc.kill()
     return line
 
 
 async def load_tables() -> None:
-    tables = (User, Changeset, Element, ElementMember)
-    index_sqls: dict[str, str] = {}
+    tables: tuple[type[DeclarativeBase], ...] = (User, Changeset, Element, ElementMember)
+    index_sqls: dict[quoted_name, str] = {}
 
     async with db_commit() as session:
         # disable triggers
@@ -68,10 +70,12 @@ async def load_tables() -> None:
 
             indexes = (arg for arg in table.__table_args__ if isinstance(arg, Index))
             for index in indexes:
-                print(f'Dropping index {index.name!r}')
-                sql = await session.scalar(text(f'SELECT pg_get_indexdef({index.name!r}::regclass)'))
-                index_sqls[index.name] = sql
-                await session.execute(text(f'DROP INDEX {index.name}'))
+                index_name = index.name
+                assert index_name is not None
+                print(f'Dropping index {index_name!r}')
+                sql = await session.scalar(text(f'SELECT pg_get_indexdef({index_name!r}::regclass)'))
+                index_sqls[index_name] = sql
+                await session.execute(text(f'DROP INDEX {index_name}'))
 
             path = get_csv_path(table_name)
             header = get_csv_header(path)
@@ -87,14 +91,14 @@ async def load_tables() -> None:
             )
 
     async def index_task(sql: str) -> None:
-        async with index_semaphore, db() as session:
+        async with _index_limiter, db() as session:
             await session.connection(execution_options={'isolation_level': 'AUTOCOMMIT'})
             await session.execute(text(sql))
 
-    async with create_task_group() as tg:
+    async with TaskGroup() as tg:
         for key, sql in index_sqls.items():
             print(f'Recreating index {key!r}')
-            tg.start_soon(index_task, sql)
+            tg.create_task(index_task(sql))
 
 
 async def main() -> None:
@@ -114,5 +118,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())
     print('Done! Done! Done!')

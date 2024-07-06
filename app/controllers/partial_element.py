@@ -1,13 +1,14 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Collection, Iterable
+from itertools import chain
 from typing import Annotated
 
-from anyio import create_task_group
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format import FormatLeaflet
-from app.lib.element_list_formatter import format_element_members_list, format_element_parents_list
+from app.format.element_list import FormatElementList, MemberListEntry
 from app.lib.feature_name import feature_name
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -17,10 +18,9 @@ from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_list_entry import ElementMemberEntry
 from app.models.element_ref import ElementRef, VersionedElementRef
 from app.models.element_type import ElementType
-from app.models.tag_format import TagFormatCollection
+from app.models.tag_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -48,8 +48,9 @@ async def get_latest(type: ElementType, id: PositiveInt):
         )
 
     # if the element was superseded (very small chance), get data just before
-    if element.next_sequence_id is not None:
-        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    if last_sequence_id is not None:
+        at_sequence_id = last_sequence_id
 
     await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=True)
@@ -59,7 +60,7 @@ async def get_latest(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
 async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-    parents = True
+    include_parents = True
 
     ref = VersionedElementRef(type, id, version)
     elements = await ElementQuery.get_by_versioned_refs(
@@ -77,12 +78,13 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
         )
 
     # if the element was superseded, get data just before
-    if element.next_sequence_id is not None:
-        at_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
-        parents = False
+    last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+    if last_sequence_id is not None:
+        at_sequence_id = last_sequence_id
+        include_parents = False
 
     await ElementMemberQuery.resolve_members((element,))
-    data = await _get_element_data(element, at_sequence_id, include_parents=parents)
+    data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
     return render_response('partial/element.jinja2', data)
 
 
@@ -92,12 +94,10 @@ async def get_history(
     id: PositiveInt,
     page: Annotated[PositiveInt, Query()] = 1,
 ):
-    at_sequence_id = await ElementQuery.get_current_sequence_id()
-
     ref = ElementRef(type, id)
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
     current_version = await ElementQuery.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
-    # TODO: cython?
     # TODO: not found
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
@@ -111,26 +111,24 @@ async def get_history(
         sort='desc',
         limit=ELEMENT_HISTORY_PAGE_SIZE,
     )
-
     await ElementMemberQuery.resolve_members(elements)
-    elements_data = [None] * len(elements)
 
-    async def data_task(i: int, element: Element):
+    async def data_task(element: Element):
         at_sequence_id_ = at_sequence_id
-        parents = True
+        include_parents = True
 
         # if the element was superseded, get data just before
-        if element.next_sequence_id is not None:
-            at_sequence_id_ = await ElementQuery.get_last_visible_sequence_id(element)
-            parents = False
+        last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+        if last_sequence_id is not None:
+            at_sequence_id_ = last_sequence_id
+            include_parents = False
 
-        element_data = await _get_element_data(element, at_sequence_id_, include_parents=parents)
-        elements_data[i] = element_data
+        return await _get_element_data(element, at_sequence_id_, include_parents=include_parents)
 
-    async with create_task_group() as tg:
-        for i, element in enumerate(elements):
-            tg.start_soon(data_task, i, element)
+    async with TaskGroup() as tg:
+        tasks = tuple(tg.create_task(data_task(element)) for element in elements)
 
+    elements_data = tuple(task.result() for task in tasks)
     return render_response(
         'partial/element_history.jinja2',
         {
@@ -144,13 +142,15 @@ async def get_history(
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
-    changeset: Changeset = None
-    list_parents: Sequence[ElementMemberEntry] = ()
-    full_data: Sequence[Element] = ()
-    list_elements: Sequence[ElementMemberEntry] = ()
+    element_members = element.members
+    if element_members is None:
+        raise AssertionError('Element members must be set')
 
-    async def changeset_user_task():
-        nonlocal changeset
+    list_parents: Collection[MemberListEntry] = ()
+    full_data: Iterable[Element] = ()
+    list_elements: Collection[MemberListEntry] = ()
+
+    async def changeset_task():
         with options_context(
             joinedload(Changeset.user).load_only(
                 User.id,
@@ -159,7 +159,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
                 User.avatar_id,
             )
         ):
-            changeset = await ChangesetQuery.get_by_id(element.changeset_id)
+            return await ChangesetQuery.get_by_id(element.changeset_id)
 
     async def parents_task():
         nonlocal list_parents
@@ -170,11 +170,11 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(parents)
-        list_parents = format_element_parents_list(ref, parents)
+        list_parents = FormatElementList.element_parents(ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
-        members_refs = {ElementRef(member.type, member.id) for member in element.members}
+        members_refs = {ElementRef(member.type, member.id) for member in element_members}
         members_elements = await ElementQuery.get_by_refs(
             members_refs,
             at_sequence_id=at_sequence_id,
@@ -182,29 +182,31 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(members_elements)
-        direct_members = tuple(
+        direct_members = (
             member
             for member in members_elements  #
             if ElementRef(member.type, member.id) in members_refs
         )
-        full_data = (element, *members_elements)
-        list_elements = format_element_members_list(element.members, direct_members)
+        full_data = chain((element,), members_elements)
+        list_elements = FormatElementList.element_members(element_members, direct_members)
 
-    async with create_task_group() as tg:
-        tg.start_soon(changeset_user_task)
+    async with TaskGroup() as tg:
+        changeset_t = tg.create_task(changeset_task())
         if element.visible:
             if include_parents:
-                tg.start_soon(parents_task)
-            if element.members:
-                tg.start_soon(data_task)
+                tg.create_task(parents_task())
+            if element_members:
+                tg.create_task(data_task())
             else:
                 full_data = (element,)
 
-    comment = changeset.tags.get('comment')
-    if comment is not None:
-        comment_tag = tags_format({'comment': comment})['comment']
-    else:
-        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
+    changeset = changeset_t.result()
+    comment_str = changeset.tags.get('comment')
+    comment_tag = (
+        tags_format({'comment': comment_str})['comment']
+        if (comment_str is not None)
+        else TagFormat('comment', t('browse.no_comment'))
+    )
 
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None

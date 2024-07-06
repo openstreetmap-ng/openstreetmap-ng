@@ -10,7 +10,7 @@ from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
 
 
-class UserToken(Base.Snowflake, CreatedAtMixin):
+class UserToken(Base.ZID, CreatedAtMixin):
     __abstract__ = True
 
     user_id: Mapped[int] = mapped_column(ForeignKey(User.id), nullable=False)

@@ -12,5 +12,5 @@ class SearchResult:
     importance: float  # for sorting results
     prefix: str
     display_name: str
-    point: Point | None
+    point: Point
     bounds: Polygon

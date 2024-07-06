@@ -1,14 +1,14 @@
 import logging
+from asyncio import TaskGroup
 from collections.abc import Sequence
 from urllib.parse import urlencode
 
 import numpy as np
-from anyio import create_task_group
 from httpx import HTTPError
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
-from app.lib.feature_name import features_prefixes
+from app.lib.feature_prefix import features_prefixes
 from app.lib.translation import primary_translation_language
 from app.limits import (
     NOMINATIM_CACHE_LONG_EXPIRE,
@@ -26,7 +26,7 @@ from app.utils import HTTP, JSON_DECODE
 _cache_context = 'Nominatim'
 
 
-class Nominatim:
+class NominatimQuery:
     @staticmethod
     async def reverse_name(point: Point, zoom: int) -> str:
         """
@@ -69,35 +69,31 @@ class Nominatim:
         bounds: Polygon | MultiPolygon | None = None,
         at_sequence_id: int | None,
         limit: int,
-    ) -> Sequence[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Search for a location by name and optional bounds.
-
-        Returns a sequence of NominatimResult.
         """
         polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else (bounds,)
-        results: list[SearchResult] = []
 
-        async def task(polygon: Polygon | None):
-            results.extend(
-                await _search(
-                    q=q,
-                    bounds=polygon,
-                    at_sequence_id=at_sequence_id,
-                    limit=limit,
+        async with TaskGroup() as tg:
+            tasks = tuple(
+                tg.create_task(
+                    _search(
+                        q=q,
+                        bounds=polygon,
+                        at_sequence_id=at_sequence_id,
+                        limit=limit,
+                    )
                 )
+                for polygon in polygons
             )
 
-        # small optimization, skip task group if only one polygon
-        if len(polygons) <= 1:
-            await task(polygons[0])
-        else:
-            async with create_task_group() as tg:
-                for polygon in polygons:
-                    tg.start_soon(task, polygon)
-            results.sort(key=lambda r: r.importance, reverse=True)
-
-        return results
+        # results are sorted from highest to lowest importance
+        return sorted(
+            (result for task in tasks for result in task.result()),
+            key=lambda r: r.importance,
+            reverse=True,
+        )
 
 
 async def _search(
@@ -106,12 +102,7 @@ async def _search(
     bounds: Polygon | None = None,
     at_sequence_id: int | None,
     limit: int,
-) -> Sequence[SearchResult]:
-    """
-    Search for a location by name and optional simple bounds.
-
-    Returns a sequence of NominatimResult.
-    """
+) -> list[SearchResult]:
     path = '/search?' + urlencode(
         {
             'format': 'jsonv2',
@@ -162,15 +153,18 @@ async def _search(
         entries.append(entry)
 
     # fetch elements in the order of entries
+    elements: Sequence[Element | None]
     elements = await ElementQuery.get_by_refs(refs, at_sequence_id=at_sequence_id, limit=len(refs))
     ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
-    elements = tuple(ref_element_map.get(ref) for ref in refs)
+    elements = tuple(ref_element_map.get(ref) for ref in refs)  # not all elements may be found in the database
 
     prefixes = features_prefixes(elements)
     result: list[SearchResult] = []
     for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
         # skip non-existing elements
         if element is None or not element.visible:
+            continue
+        if prefix is None:
             continue
 
         bbox = entry['boundingbox']

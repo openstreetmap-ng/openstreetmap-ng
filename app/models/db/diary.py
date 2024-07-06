@@ -1,4 +1,5 @@
-from anyio import create_task_group
+from typing import TYPE_CHECKING
+
 from shapely import Point
 from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -13,6 +14,9 @@ from app.models.db.user import User
 from app.models.geometry import PointType
 from app.models.text_format import TextFormat
 
+if TYPE_CHECKING:
+    from app.models.db.diary_comment import DiaryComment
+
 
 class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     __tablename__ = 'diary'
@@ -22,22 +26,21 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
     user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     title: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
-    body_rich: str | None = None
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
     language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
+
+    # runtime
+    body_rich: str | None = None
+    comments: list['DiaryComment'] | None = None
 
     @validates('body')
     def validate_body(self, _: str, value: str) -> str:
         if len(value) > DIARY_BODY_MAX_LENGTH:
             raise ValueError(f'Diary body is too long ({len(value)} > {DIARY_BODY_MAX_LENGTH})')
         return value
-
-    async def resolve_comments_rich_text(self) -> None:
-        """
-        Resolve rich text for all comments.
-        """
-
-        async with create_task_group() as tg:
-            for comment in self.comments:
-                tg.start_soon(comment.resolve_rich_text)

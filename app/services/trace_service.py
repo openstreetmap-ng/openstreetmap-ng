@@ -1,7 +1,6 @@
 import logging
 
 import numpy as np
-from anyio import to_thread
 from fastapi import UploadFile
 from shapely import lib
 
@@ -27,10 +26,11 @@ class TraceService:
 
         Returns the created trace object.
         """
-        if file.size > TRACE_FILE_UPLOAD_MAX_SIZE:
-            raise_for().input_too_big(file.size)
+        file_size = file.size
+        if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
+            raise_for().input_too_big(file_size or -1)
 
-        file_bytes = await to_thread.run_sync(file.file.read)
+        file_bytes = await file.read()
         segments: list[TraceSegment] = []
 
         # process multiple files in the archive
@@ -53,7 +53,7 @@ class TraceService:
         trace = Trace(
             **dict(
                 TraceValidating(
-                    user_id=auth_user().id,
+                    user_id=auth_user(required=True).id,
                     name=file.filename,
                     description=description,
                     visibility=visibility,
@@ -99,7 +99,7 @@ class TraceService:
 
             if trace is None:
                 raise_for().trace_not_found(trace_id)
-            if trace.user_id != auth_user().id:
+            if trace.user_id != auth_user(required=True).id:
                 raise_for().trace_access_denied(trace_id)
 
             trace.name = name
@@ -117,7 +117,7 @@ class TraceService:
 
             if trace is None:
                 raise_for().trace_not_found(trace_id)
-            if trace.user_id != auth_user().id:
+            if trace.user_id != auth_user(required=True).id:
                 raise_for().trace_access_denied(trace_id)
 
             await session.delete(trace)

@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from shapely import MultiPolygon, Point, Polygon
+from shapely import MultiPolygon, Point, box
 
 from app.lib.geo_utils import (
     haversine_distance,
@@ -39,38 +39,30 @@ def test_haversine_distance(p1, p2, expected_meters):
 
 
 def test_parse_bbox_simple():
-    assert parse_bbox('-1,-2,3.3,4.4').equals(
-        Polygon([(-1, -2), (3.3, -2), (3.3, 4.4), (-1, 4.4), (-1, -2)]),
-    )
+    assert parse_bbox('-1,-2,3.3,4.4').equals(box(-1, -2, 3.3, 4.4))
 
 
 def test_parse_bbox_wrap_around():
-    assert parse_bbox('-560,20,-550,30').equals(
-        Polygon([(160, 20), (170, 20), (170, 30), (160, 30), (160, 20)]),
-    )
+    assert parse_bbox('-560,20,-550,30').equals(box(160, 20, 170, 30))
 
 
 def test_parse_bbox_cover_world():
-    assert parse_bbox('100,20,900,30').equals(
-        Polygon([(-180, 20), (180, 20), (180, 30), (-180, 30), (-180, 20)]),
-    )
+    assert parse_bbox('100,20,900,30').equals(box(-180, 20, 180, 30))
 
 
 def test_parse_bbox_meridian():
     assert parse_bbox('175,10,195,20').equals(
         MultiPolygon(
-            [
-                Polygon([(175, 10), (180, 10), (180, 20), (175, 20), (175, 10)]),
-                Polygon([(-180, 10), (-165, 10), (-165, 20), (-180, 20), (-180, 10)]),
-            ]
+            (
+                box(175, 10, 180, 20),
+                box(-180, 10, -165, 20),
+            )
         )
     )
 
 
 def test_parse_normalize_latitude():
-    assert parse_bbox('1,-95,3,4').equals(
-        Polygon([(3, -90), (3, 4), (1, 4), (1, -90), (3, -90)]),
-    )
+    assert parse_bbox('1,-95,3,4').equals(box(1, -90, 3, 4))
 
 
 @pytest.mark.parametrize(

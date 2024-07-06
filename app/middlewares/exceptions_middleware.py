@@ -21,11 +21,11 @@ class ExceptionsMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = get_request()
-        if request.url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities')):
-            implementation = Exceptions06()
-        else:
-            implementation = Exceptions()
+        implementation = (
+            Exceptions06()
+            if get_request().url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities'))
+            else Exceptions()  # type: ignore[abstract]
+        )
 
         with exceptions_context(implementation):
             await self.app(scope, receive, send)

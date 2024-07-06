@@ -49,8 +49,6 @@ class UserSignupService:
         language = primary_translation_language()
 
         # TODO: purge stale pending terms accounts
-
-        # create user
         async with db_commit() as session:
             user = User(
                 email=email,
@@ -73,8 +71,7 @@ class UserSignupService:
         """
         Accept the terms of service and send a confirmation email.
         """
-        user = auth_user()
-
+        user = auth_user(required=True)
         async with db_commit() as session:
             stmt = (
                 update(User)
@@ -82,7 +79,6 @@ class UserSignupService:
                 .values({User.status: UserStatus.pending_activation})
                 .inline()
             )
-
             if (await session.execute(stmt)).rowcount != 1:
                 return
 
@@ -96,11 +92,10 @@ class UserSignupService:
         """
         app_domain = urlsplit(APP_URL).netloc
         token = await UserTokenAccountConfirmService.create()
-
         await EmailService.schedule(
             source=MailSource.system,
             from_user=None,
-            to_user=auth_user(),
+            to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
             template_data={
@@ -115,5 +110,8 @@ class UserSignupService:
         Abort the current signup process.
         """
         async with db_commit() as session:
-            stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
+            stmt = delete(User).where(
+                User.id == auth_user(required=True).id,
+                User.status == UserStatus.pending_terms,
+            )
             await session.execute(stmt)

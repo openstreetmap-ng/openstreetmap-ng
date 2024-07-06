@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
+from typing import Self
 
 import msgspec
 
@@ -18,14 +19,14 @@ class UserTokenStruct(msgspec.Struct, forbid_unknown_fields=True, array_like=Tru
         return urlsafe_b64encode(MSGPACK_ENCODE(self)).decode()
 
     @classmethod
-    def v1(cls, id: int, token: bytes) -> 'UserTokenStruct':
+    def v1(cls, id: int, token: bytes) -> Self:
         """
         Create a user token struct with version 1.
         """
         return cls(version=1, id=id, token=token)
 
     @classmethod
-    def from_str(cls, s: str) -> 'UserTokenStruct':
+    def from_str(cls, s: str) -> Self:
         """
         Parse the given string into a user token struct.
         """

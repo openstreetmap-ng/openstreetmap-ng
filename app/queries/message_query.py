@@ -14,17 +14,21 @@ class MessageQuery:
         """
         async with db() as session:
             stmt_total = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     Message.to_user_id == user_id,
                     Message.to_hidden == false(),
                 )
+                .subquery()
             )
             stmt_unread = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     Message.to_user_id == user_id,
                     Message.to_hidden == false(),
                     Message.is_read == false(),
                 )
+                .subquery()
             )
             stmt = stmt_total.union_all(stmt_unread)
             total, unread = (await session.scalars(stmt)).all()
@@ -37,10 +41,12 @@ class MessageQuery:
         """
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     Message.from_user_id == user_id,
                     Message.from_hidden == false(),
                 )
+                .subquery()
             )
             # TODO: test empty results
             return await session.scalar(stmt)

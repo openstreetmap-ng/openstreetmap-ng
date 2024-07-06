@@ -1,12 +1,12 @@
 import json
 import logging
-import pathlib
 import re
 from collections.abc import Sequence
+from pathlib import Path
 
 import cython
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR, TEST_ENV
+from app.config import DEFAULT_LANGUAGE, TEST_ENV
 from app.limits import LANGUAGE_CODE_MAX_LENGTH
 from app.models.locale_name import LocaleName
 
@@ -15,14 +15,14 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 @cython.cfunc
 def _get_i18next_locale_map() -> dict[str, str]:
-    return json.loads(pathlib.Path(LOCALE_DIR / 'i18next' / 'map.json').read_bytes())
+    return json.loads(Path('config/locale/i18next/map.json').read_bytes())
 
 
 @cython.cfunc
-def _get_locales_names() -> list[LocaleName]:
-    data = json.loads(pathlib.Path(LOCALE_DIR / 'names.json').read_bytes())
-    structured = (LocaleName(**d) for d in data)
-    return sorted(structured, key=lambda v: v.code)
+def _get_locales_names() -> tuple[LocaleName, ...]:
+    names = json.loads(Path('config/locale/names.json').read_bytes())
+    structured = (LocaleName(**d) for d in names)
+    return tuple(sorted(structured, key=lambda v: v.code))
 
 
 @cython.cfunc
@@ -34,25 +34,22 @@ def _normalize(code: str) -> str:
 
 
 _i18next_map = _get_i18next_locale_map()
-
-_locales = frozenset(_i18next_map.keys())
-_locales_normalized_map = {_normalize(k): k for k in _locales}
-logging.info('Loaded %d locales', len(_locales))
+LOCALES = frozenset(_i18next_map.keys())
+_locales_normalized_map = {_normalize(k): k for k in LOCALES}
+LOCALES_NAMES = _get_locales_names()
+logging.info('Loaded %d locales and %d locales names', len(LOCALES), len(LOCALES_NAMES))
 
 # check that default locale exists
-if DEFAULT_LANGUAGE not in _locales:
+if DEFAULT_LANGUAGE not in LOCALES:
     raise ValueError(f'Default locale {DEFAULT_LANGUAGE!r} not found in locales')
 
 # check that all language codes are short enough
-for code in _locales:
+for code in LOCALES:
     if len(code) > LANGUAGE_CODE_MAX_LENGTH:
         raise ValueError(f'Language code {code!r} is too long ({len(code)} > {LANGUAGE_CODE_MAX_LENGTH})')
 
-_locales_names = _get_locales_names()
-logging.info('Loaded %d locales names', len(_locales_names))
 
-
-def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
+def map_i18next_files(locales: Sequence[str]) -> tuple[str, ...]:
     """
     Map the locales to i18next files.
 
@@ -61,7 +58,6 @@ def map_i18next_files(locales: Sequence[str]) -> Sequence[str]:
     >>> map_i18next_files(['pl', 'de', 'en'])
     ['pl-e4c39a792074d67c.js', 'en-c39c7633ceb0ce46.js']
     """
-
     # force reload map in test environment
     if TEST_ENV:
         global _i18next_map
@@ -86,7 +82,7 @@ def is_valid_locale(code: str) -> bool:
     >>> is_valid_locale('NonExistent')
     False
     """
-    return code in _locales
+    return code in LOCALES
 
 
 def normalize_locale(code: str) -> str | None:
@@ -100,29 +96,7 @@ def normalize_locale(code: str) -> str | None:
     >>> normalize_locale('NonExistent')
     None
     """
-
     # skip if already normalized
-    if code in _locales:
+    if code in LOCALES:
         return code
-
     return _locales_normalized_map.get(_normalize(code))
-
-
-def get_all_installed_locales() -> frozenset[str]:
-    """
-    Get all installed locales.
-
-    >>> get_all_installed_locales()
-    frozenset({'en', 'pl', ...})
-    """
-    return _locales
-
-
-def get_all_locales_names() -> Sequence[LocaleName]:
-    """
-    Get all locales names sorted by code.
-
-    >>> get_all_locales_names()
-    [LocaleName(code='pl', english='Polish', native='Polski'), ...]
-    """
-    return _locales_names

@@ -14,10 +14,9 @@ class UserTokenEmailChangeService:
         """
         Create a new user email change token.
         """
-        user = auth_user()
+        user = auth_user(required=True)
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
-
         async with db_commit() as session:
             token = UserTokenEmailChange(
                 user_id=user.id,

@@ -83,5 +83,5 @@ async def get_map(bbox: Annotated[str, Query()]):
         sort_dir='desc',
         limit=NOTE_QUERY_WEB_LIMIT,
     )
-    await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
+    await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1, resolve_rich_text=False)
     return FormatLeaflet.encode_notes(notes)

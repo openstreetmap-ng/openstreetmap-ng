@@ -1,13 +1,12 @@
 import logging
-from contextlib import asynccontextmanager
+from asyncio import Lock, get_running_loop, timeout
+from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
 
 import cython
 from aiosmtplib import SMTP
-from anyio import CancelScope, Lock, WouldBlock, create_task_group, fail_after
-from anyio.abc import TaskGroup
 from sqlalchemy import null, or_, select
 from sqlalchemy.orm import joinedload
 
@@ -30,7 +29,6 @@ from app.models.db.user import User
 from app.models.mail_source import MailSource
 from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
-_tg: TaskGroup | None = None
 _process_lock = Lock()
 
 
@@ -41,15 +39,10 @@ class EmailService:
         """
         Context manager for email service.
         """
-        global _tg
-        if _tg is not None:
-            raise RuntimeError(f'{EmailService.__qualname__} is already running')
-        async with create_task_group() as tg:
-            _tg = tg
-            tg.start_soon(_process_task)
-            yield
-            tg.cancel_scope.cancel()
-            _tg = None
+        loop = get_running_loop()
+        task = loop.create_task(_process_task())
+        yield
+        task.cancel()  # avoid "Task was destroyed" warning during tests
 
     @staticmethod
     async def schedule(
@@ -90,22 +83,19 @@ class EmailService:
             logging.info('Scheduling mail %r to user %d with subject %r', mail.id, to_user.id, subject)
             session.add(mail)
 
-        _tg.start_soon(_process_task)
+        loop = get_running_loop()
+        loop.create_task(_process_task())  # noqa: RUF006
 
 
 async def _process_task() -> None:
     """
     Process scheduled mail in the database.
     """
-    try:
-        _process_lock.acquire_nowait()
-    except WouldBlock:
+    if _process_lock.locked():
         return
-
-    try:
-        await _process_task_inner()
-    finally:
-        _process_lock.release()
+    async with _process_lock:
+        with suppress(Exception):
+            await _process_task_inner()
 
     # avoids race conditions in which scheduled mail is not processed immediately
     # in rare cases, there will be more than one task running at the time (per process)
@@ -140,18 +130,14 @@ async def _process_task_inner() -> None:
             )
 
             mail = await session.scalar(stmt)
-
             if mail is None:
                 logging.debug('Finished scheduled mail processing')
                 break
 
             try:
                 logging.debug('Processing mail %r', mail.id)
-
-                with CancelScope(shield=True):
-                    await _send_mail(smtp, mail)
-                    await session.delete(mail)
-
+                await _send_mail(smtp, mail)
+                await session.delete(mail)
             except Exception:
                 expires_at = mail.created_at + MAIL_UNPROCESSED_EXPIRE
                 processing_at = now + timedelta(minutes=mail.processing_counter**MAIL_UNPROCESSED_EXPONENT)
@@ -168,7 +154,6 @@ async def _process_task_inner() -> None:
                     logging.info('Requeuing unprocessed mail %r', mail.id, exc_info=True)
                     mail.processing_counter += 1
                     mail.processing_at = processing_at
-
             finally:
                 await session.commit()
 
@@ -184,11 +169,14 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
     if mail.source == MailSource.system:
         message['From'] = SMTP_NOREPLY_FROM
     else:
+        from_user = mail.from_user
+        if from_user is None:
+            raise AssertionError('Mail from user must be set')
         reply_address = await UserTokenEmailReplyService.create_address(
             replying_user_id=mail.to_user_id,
             mail_source=mail.source,
         )
-        message['From'] = formataddr((mail.from_user.display_name, reply_address))
+        message['From'] = formataddr((from_user.display_name, reply_address))
 
     message['To'] = formataddr((mail.to_user.display_name, mail.to_user.email))
     message['Date'] = formatdate()
@@ -202,7 +190,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         message['References'] = full_ref
         message['X-Entity-Ref-ID'] = full_ref  # disables threading in gmail
 
-    with fail_after(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
+    async with timeout(MAIL_PROCESSING_TIMEOUT.total_seconds() - 5):
         await smtp.send_message(message)
 
     logging.info('Sent mail %r to user %d with subject %r', mail.id, mail.to_user_id, mail.subject)

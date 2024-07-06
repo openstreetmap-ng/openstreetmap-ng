@@ -24,7 +24,7 @@ _j2 = Environment(
 )
 
 
-def render(template_name: str, **template_data: dict) -> str:
+def render(template_name: str, **template_data) -> str:
     """
     Render the given Jinja2 template with translation.
     """

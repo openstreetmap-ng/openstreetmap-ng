@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 
@@ -17,7 +17,7 @@ class Trace06Mixin:
         return {'gpx_file': _encode_gpx_file(trace)}
 
     @staticmethod
-    def encode_gpx_files(traces: Sequence[Trace]) -> dict:
+    def encode_gpx_files(traces: Iterable[Trace]) -> dict:
         """
         >>> encode_gpx_files([
         ...     Trace(...),
@@ -32,7 +32,7 @@ class Trace06Mixin:
         return Trace(
             **dict(
                 TraceValidating(
-                    user_id=auth_user().id,
+                    user_id=auth_user(required=True).id,
                     name=gpx_file.get('@name'),
                     description=gpx_file.get('description'),
                     visibility=gpx_file.get('@visibility'),
@@ -49,14 +49,17 @@ def _encode_gpx_file(trace: Trace) -> dict:
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}
     """
+    trace_coords = trace.coords
+    if trace_coords is None:
+        raise AssertionError('Trace coords must be set')
     return {
         '@id': trace.id,
         '@uid': trace.user_id,
         '@user': trace.user.display_name,
         '@timestamp': trace.created_at,
         '@name': trace.name,
-        '@lon': trace.coords[0],
-        '@lat': trace.coords[1],
+        '@lon': trace_coords[0],
+        '@lat': trace_coords[1],
         '@visibility': trace.visibility,
         '@pending': False,
         'description': trace.description,

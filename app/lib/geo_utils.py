@@ -5,14 +5,14 @@ from app.lib.exceptions_context import raise_for
 from app.validators.geometry import validate_geometry
 
 if cython.compiled:
-    from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
+    from cython.cimports.libc.math import atan2, cos, sin, sqrt
 else:
-    from math import atan2, cos, pi, sin, sqrt
+    from math import atan2, cos, sin, sqrt
 
 
 @cython.cfunc
 def radians(x: cython.double) -> cython.double:
-    return x * (pi / 180)
+    return x * 0.017453292519943295  # pi / 180
 
 
 def meters_to_radians(meters: float) -> float:

@@ -1,6 +1,6 @@
 import logging
 import time
-from collections.abc import Sequence
+from collections.abc import Collection
 
 import cython
 from sqlalchemy.exc import IntegrityError
@@ -15,7 +15,7 @@ from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
 class OptimisticDiff:
     @staticmethod
-    async def run(elements: Sequence[Element]) -> dict[ElementRef, Sequence[Element]]:
+    async def run(elements: Collection[Element]) -> dict[ElementRef, list[Element]]:
         """
         Perform an optimistic diff update of the elements.
 
@@ -26,19 +26,15 @@ class OptimisticDiff:
 
         ts = time.monotonic()
         attempt: cython.int = 0
-
         while True:
-            attempt += 1
-
             try:
+                attempt += 1
                 prep = OptimisticDiffPrepare(elements)
                 await prep.prepare()
                 return await OptimisticDiffApply().apply(prep)
-
-            except (OptimisticDiffError, IntegrityError) as e:
-                timeout_seconds = time.monotonic() - ts
-
+            except* (OptimisticDiffError, IntegrityError) as e:
                 # retry is not possible, re-raise the exception
+                timeout_seconds = time.monotonic() - ts
                 if timeout_seconds >= OPTIMISTIC_DIFF_RETRY_TIMEOUT.total_seconds():
                     raise TimeoutError(f'OptimisticDiff failed and timed out after {attempt} attempts') from e
 

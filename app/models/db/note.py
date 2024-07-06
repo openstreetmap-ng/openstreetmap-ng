@@ -48,7 +48,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
             return True
         return self.hidden_at is None
 
-    @visible_to.expression
+    @visible_to.expression  # type: ignore[no-redef]
     @classmethod
     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
         if (user is not None) and user.is_moderator:

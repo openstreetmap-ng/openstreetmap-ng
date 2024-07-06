@@ -1,12 +1,9 @@
-import pytest
 from shapely import Point
 from sqlalchemy import select
 
 from app.db import db, db_commit
 from app.models.db.note import Note
 from app.services.note_service import NoteService
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_delete_note_without_comments():

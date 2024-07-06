@@ -1,22 +1,18 @@
 import json
 import os
-import pathlib
+from pathlib import Path
 
-import anyio
 import yaml
 from fastapi.utils import deep_dict_update
 from tqdm import tqdm
 
-from app.config import LOCALE_DIR
-
-_download_dir = pathlib.Path(LOCALE_DIR / 'download')
-_postprocess_dir = pathlib.Path(LOCALE_DIR / 'postprocess')
-_locale_extra_en_path = pathlib.Path(LOCALE_DIR / 'extra_en.yaml')
+_download_dir = Path('config/locale/download')
+_postprocess_dir = Path('config/locale/postprocess')
+_locale_extra_en_path = Path('config/locale/extra_en.yaml')
 
 
 def get_source_mtime(locale: str) -> float:
-    source_path = _download_dir / f'{locale}.yaml'
-
+    source_path = _download_dir.joinpath(f'{locale}.yaml')
     if locale == 'en':
         stat1 = source_path.stat()
         stat2 = _locale_extra_en_path.stat()
@@ -27,14 +23,12 @@ def get_source_mtime(locale: str) -> float:
 
 
 def needs_processing(locale: str) -> bool:
-    source_path = _download_dir / f'{locale}.yaml'
-    target_path = _postprocess_dir / f'{locale}.json'
-
+    source_path = _download_dir.joinpath(f'{locale}.yaml')
+    target_path = _postprocess_dir.joinpath(f'{locale}.json')
     if not source_path.is_file():
         return False
     if not target_path.is_file():
         return True
-
     return get_source_mtime(locale) > target_path.stat().st_mtime
 
 
@@ -42,7 +36,6 @@ def resolve_community_name(community: dict, locale: dict) -> str:
     """
     Resolve the translated name for a community.
     """
-
     # if theres an explicitly translated name then use that
     if (translated := locale.get(community['id'], {}).get('name')) is not None:
         return translated
@@ -50,8 +43,6 @@ def resolve_community_name(community: dict, locale: dict) -> str:
     # if not, then look up the default translated name for this type of community, and interpolate the template
     if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:  # noqa: SIM102
         if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
-            template: str
-            community_name: str
             return template.format(community=community_name)
 
     # otherwise fall back to the english resource name
@@ -66,9 +57,8 @@ def extract_local_chapters_map() -> dict[str, dict]:
     """
     Returns a mapping of locale to locale overrides.
     """
-
-    package_dir = pathlib.Path('node_modules/osm-community-index')
-    resources = (package_dir / 'dist/resources.min.json').read_bytes()
+    package_dir = Path('node_modules/osm-community-index')
+    resources = (package_dir.joinpath('dist/resources.min.json')).read_bytes()
     communities_dict: dict[str, dict] = json.loads(resources)['resources']
 
     # filter only local chapters
@@ -77,18 +67,13 @@ def extract_local_chapters_map() -> dict[str, dict]:
 
     for source_path in tqdm(tuple((package_dir / 'i18n').glob('*.yaml')), desc='Processing local chapters'):
         locale = source_path.stem.replace('_', '-')
-
         if not needs_processing(locale):
             continue
 
         source_data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
+        source_data = next(iter(source_data.values()))  # strip first level of nesting
 
-        # strip first level of nesting
-        source_data = next(iter(source_data.values()))
-
-        communities_data = {}
-        result[locale] = {'osm_community_index': {'communities': communities_data}}
-
+        communities_data: dict[str, dict] = {}
         for community in communities:
             community_id: str = community['id']
 
@@ -100,6 +85,8 @@ def extract_local_chapters_map() -> dict[str, dict]:
 
             communities_data[community_id] = strings
 
+        result[locale] = {'osm_community_index': {'communities': communities_data}}
+
     return result
 
 
@@ -107,7 +94,6 @@ def trim_values(data: dict):
     """
     Trim all string values.
     """
-
     for key, value in data.items():
         if isinstance(value, dict):
             trim_values(value)
@@ -124,7 +110,6 @@ def convert_variable_format(data: dict):
     """
     Convert %{variable} to {variable} in all strings.
     """
-
     for key, value in data.items():
         if isinstance(value, dict):
             convert_variable_format(value)
@@ -137,7 +122,6 @@ def convert_format_format(data: dict):
     Convert %e to %-d in all strings.
     """
     # backwards compatibility: remove leading zero from day
-
     for key, value in data.items():
         if isinstance(value, dict):
             convert_format_format(value)
@@ -149,11 +133,9 @@ def convert_plural_format(data: dict):
     """
     Convert plural dicts to singular keys.
     """
-
     # {'example': {'one': 'one', 'two': 'two', 'three': 'three'}}
     # to:
     # {'example_one': 'one', 'example_two': 'two', 'example_three': 'three'}
-
     for k, v in tuple(data.items()):
         # skip non-dict values
         if not isinstance(v, dict):
@@ -177,14 +159,11 @@ def postprocess():
 
     for source_path in tqdm(tuple(_download_dir.glob('*.yaml')), desc='Postprocessing'):
         locale = source_path.stem
-
         if not needs_processing(locale):
             continue
 
         data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
-
-        # strip first level of nesting
-        data = next(iter(data.values()))
+        data = next(iter(data.values()))  # strip first level of nesting
 
         trim_values(data)
         convert_variable_format(data)
@@ -200,17 +179,17 @@ def postprocess():
             deep_dict_update(data, extra_data)
 
         buffer = json.dumps(data, indent=2, sort_keys=True)
-        target_path = _postprocess_dir / f'{locale}.json'
+        target_path = _postprocess_dir.joinpath(f'{locale}.json')
         target_path.write_text(buffer)
 
         mtime = get_source_mtime(locale)
         os.utime(target_path, (mtime, mtime))
 
 
-async def main():
+def main():
     _postprocess_dir.mkdir(parents=True, exist_ok=True)
     postprocess()
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    main()

@@ -1,7 +1,8 @@
+from asyncio import TaskGroup
 from collections.abc import Sequence
+from itertools import chain
 from typing import Annotated
 
-from anyio import create_task_group
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile
 from pydantic import NonNegativeInt, PositiveInt
 from sqlalchemy.orm import joinedload
@@ -140,11 +141,9 @@ async def trackpoints(
     if geometry.area > TRACE_POINT_QUERY_AREA_MAX_SIZE:
         raise_for().trace_points_query_area_too_big()
 
-    segments: list[list[TraceSegment]] = [None, None]
-
     async def public_task():
         with options_context(joinedload(TraceSegment.trace).load_only(Trace.name, Trace.description, Trace.visibility)):
-            segments[0] = await TraceSegmentQuery.find_many_by_geometry(
+            return await TraceSegmentQuery.find_many_by_geometry(
                 geometry,
                 identifiable_trackable=True,
                 limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
@@ -152,15 +151,17 @@ async def trackpoints(
             )
 
     async def private_task():
-        segments[1] = await TraceSegmentQuery.find_many_by_geometry(
+        return await TraceSegmentQuery.find_many_by_geometry(
             geometry,
             identifiable_trackable=False,
             limit=TRACE_POINT_QUERY_DEFAULT_LIMIT,
             legacy_offset=page_number * TRACE_POINT_QUERY_DEFAULT_LIMIT,
         )
 
-    async with create_task_group() as tg:
-        tg.start_soon(public_task)
-        tg.start_soon(private_task)
+    async with TaskGroup() as tg:
+        public_t = tg.create_task(public_task())
+        private_t = tg.create_task(private_task())
 
-    return FormatGPX.encode_track((*segments[0], *segments[1]))
+    public_segments = public_t.result()
+    private_segments = private_t.result()
+    return FormatGPX.encode_track(chain(public_segments, private_segments))

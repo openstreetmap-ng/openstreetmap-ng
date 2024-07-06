@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 
@@ -10,19 +10,8 @@ from app.models.db.changeset_comment import ChangesetComment
 
 
 class Changeset06Mixin:
-    # @staticmethod
-    # def encode_changeset(changeset: Changeset) -> dict:
-    #     """
-    #     >>> encode_changeset(Changeset(...))
-    #     {'changeset': {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}}
-    #     """
-    #     if format_is_json():
-    #         return _encode_changeset(changeset, is_json=True)
-    #     else:
-    #         return {'changeset': _encode_changeset(changeset, is_json=False)}
-
     @staticmethod
-    def encode_changesets(changesets: Sequence[Changeset]) -> dict:
+    def encode_changesets(changesets: Iterable[Changeset]) -> dict:
         """
         >>> encode_changesets([
         ...     Changeset(...),
@@ -43,7 +32,6 @@ def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.char
     {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}
     """
     xattr = get_xattr(is_json=is_json)
-
     return {
         xattr('id'): comment.id,
         xattr('date'): legacy_date(comment.created_at),

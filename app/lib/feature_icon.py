@@ -1,63 +1,55 @@
 import json
 import logging
-import pathlib
 import tomllib
+from pathlib import Path
 
 import cython
 
-from app.config import CONFIG_DIR
 from app.models.element_type import ElementType
 
 
 @cython.cfunc
 def _get_config() -> dict[str, dict[str, str]]:
     """
-    Get the feature icon configuration.
+    Load the feature icon configuration.
 
-    Generic icons are stored under the value '*'.
+    Configuration schema:
+    - [key][value] = icon
+    - [key.type][value] = icon
+
+    Generic icons are stored under the '*' value:
+    - [key][*] = icon
     """
-    return tomllib.loads(pathlib.Path(CONFIG_DIR / 'feature_icons.toml').read_text())
+    return tomllib.loads(Path('config/feature_icons.toml').read_text())
 
 
 @cython.cfunc
 def _get_popular_stats() -> dict[str, dict[str, int]]:
     """
-    Get the popularity data of the feature icons.
-
-    The popularity is a simple number of elements with the given tag.
+    Load the feature icon popularity data.
     """
-    return json.loads(pathlib.Path(CONFIG_DIR / 'feature_icons_popular.json').read_bytes())
+    return json.loads(Path('config/feature_icons_popular.json').read_bytes())
 
 
 @cython.cfunc
 def _check_config():
-    _num_icons = 0
-
-    # raise an exception if any of the icons are missing
+    # ensure all icons are present
+    total_icons: cython.int = 0
     for key_config in _config.values():
-        for icon_or_type_config in key_config.values():
-            icon_or_type_config: str | dict
-
-            icons = (icon_or_type_config,) if isinstance(icon_or_type_config, str) else icon_or_type_config.values()
-            _num_icons += len(icons)
-
-            for icon in icons:
-                path = pathlib.Path('app/static/img/element/' + icon)
-                if not path.is_file():
-                    raise FileNotFoundError(path)
-
-    logging.info('Loaded %d feature icons', _num_icons)
+        for icon in key_config.values():
+            with Path('app/static/img/element', icon).open('rb'):
+                pass
+        total_icons += len(key_config)
+    logging.info('Loaded %d feature icons', total_icons)
 
 
-# format:
-# _config[tag_key][tag_value] = icon
-# _config[tag_key.type][tag_value] = icon
 _config = _get_config()
 _config_keys = frozenset(k.split('.', 1)[0] for k in _config)
 _popular_stats = _get_popular_stats()
 _check_config()
 
 
+# TODO: batch, features_icons
 def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | None:
     """
     Get the filename and title of the icon for an element.

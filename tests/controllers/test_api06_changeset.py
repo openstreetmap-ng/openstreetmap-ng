@@ -1,11 +1,8 @@
-import pytest
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_changeset_crud(client: AsyncClient):
@@ -65,7 +62,7 @@ async def test_changeset_crud(client: AsyncClient):
         ),
     )
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
     assert changeset['@updated_at'] > last_updated_at
@@ -83,7 +80,7 @@ async def test_changeset_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@open'] is False
     assert changeset['@updated_at'] > last_updated_at
@@ -95,7 +92,7 @@ async def test_changeset_crud(client: AsyncClient):
     assert changeset['@changes_count'] == 0
 
 
-async def test_changesets_unathorized_get_request(client: AsyncClient):
+async def test_changesets_unauthorized_get_request(client: AsyncClient):
     r = await client.get('/api/0.6/changesets')
     assert r.is_success, r.text
 

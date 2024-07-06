@@ -460,7 +460,7 @@ let
       if command -v podman &> /dev/null; then docker() { podman "$@"; } fi
       docker push $(docker load < "$(nix-build --no-out-link)" | sed -n -E 's/Loaded image: (\S+)/\1/p')
     '')
-    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION_DATE = '.*?'|VERSION_DATE = '$(date +%y%m%d)'|\" app/config.py")
+    (writeShellScriptBin "make-version" "sed -i -E \"s|VERSION = '.*?'|VERSION = '$(date --iso-8601=seconds)'|\" app/config.py")
     (writeShellScriptBin "make-bundle" ''
       set -e
       dir=app/static/js
@@ -549,7 +549,6 @@ let
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
     export LEGACY_HIGH_PRECISION_TIME=1
     export LEGACY_SEQUENCE_ID_MARGIN=1
-    export AUTHLIB_INSECURE_TRANSPORT=1
 
     if [ -f .env ]; then
       echo "Loading .env file"

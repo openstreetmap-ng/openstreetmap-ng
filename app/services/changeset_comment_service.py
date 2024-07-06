@@ -24,7 +24,7 @@ class ChangesetCommentService:
                 raise_for().changeset_not_found(changeset_id)
 
             changeset_comment = ChangesetComment(
-                user_id=auth_user().id,
+                user_id=auth_user(required=True).id,
                 changeset_id=changeset_id,
                 body=text,
             )
@@ -43,13 +43,13 @@ class ChangesetCommentService:
         Returns the parent changeset id.
         """
         async with db_commit() as session:
-            stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
-            comment = await session.scalar(stmt)
+            comment_stmt = select(ChangesetComment).where(ChangesetComment.id == comment_id)
+            comment = await session.scalar(comment_stmt)
             if comment is None:
                 raise_for().changeset_comment_not_found(comment_id)
 
-            stmt = select(Changeset).where(Changeset.id == comment.changeset_id).with_for_update()
-            changeset = await session.scalar(stmt)
+            changeset_stmt = select(Changeset).where(Changeset.id == comment.changeset_id).with_for_update()
+            changeset = await session.scalar(changeset_stmt)
             if changeset is None:
                 raise_for().changeset_comment_not_found(comment_id)
 
@@ -63,7 +63,7 @@ class ChangesetCommentService:
         """
         Subscribe the current user to the changeset.
         """
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
         logging.debug('Subscribing user %d to changeset %d', user_id, changeset_id)
 
         async with db_commit() as session:
@@ -87,7 +87,7 @@ class ChangesetCommentService:
         """
         Unsubscribe the current user from the changeset.
         """
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
         logging.debug('Unsubscribing user %d from changeset %d', user_id, changeset_id)
 
         async with db_commit() as session:

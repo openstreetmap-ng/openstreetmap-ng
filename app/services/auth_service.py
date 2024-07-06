@@ -1,9 +1,6 @@
 import logging
 from base64 import b64decode
-from collections.abc import Sequence
 
-import cython
-from fastapi import Request
 from sqlalchemy import delete, update
 from sqlalchemy.orm import joinedload
 
@@ -13,37 +10,34 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.oauth1 import OAuth1
-from app.lib.oauth2 import OAuth2
 from app.lib.options_context import options_context
 from app.lib.password_hash import PasswordHash
 from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.oauth1_token import OAuth1Token
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
 from app.models.db.user_token_session import UserTokenSession
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.models.scope import ExtendedScope, Scope
+from app.models.scope import BASIC_SCOPES, Scope
 from app.models.str import PasswordStr
+from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_token_session_query import UserTokenSessionQuery
 from app.services.cache_service import CacheService
-from app.services.oauth1_nonce_service import OAuth1NonceService
 from app.validators.email import validate_email
 
 _credentials_context = 'AuthCredentials'
 
-# all scopes when using basic auth
-_basic_auth_scopes = tuple(Scope.__members__.values())
+# default scopes when using basic auth
+_basic_auth_scopes: tuple[Scope, ...] = BASIC_SCOPES
 
-# all scopes when using session auth
-_session_auth_scopes = (*_basic_auth_scopes, ExtendedScope.web_user)
+# default scopes when using session auth
+_session_auth_scopes: tuple[Scope, ...] = (*_basic_auth_scopes, Scope.web_user)
 
 
 class AuthService:
     @staticmethod
-    async def authenticate_request() -> tuple[User | None, Sequence[ExtendedScope]]:
+    async def authenticate_request() -> tuple[User | None, tuple[Scope, ...]]:
         """
         Authenticate with the request.
 
@@ -53,8 +47,8 @@ class AuthService:
 
         Returns the authenticated user (if any) and scopes.
         """
-        user = None
-        scopes = ()
+        user: User | None = None
+        scopes: tuple[Scope, ...] = ()
         request = get_request()
         request_path: str = request.url.path
 
@@ -62,30 +56,32 @@ class AuthService:
         if request_path.startswith('/static'):
             return user, scopes
 
+        scheme: str
+        param: str
+
         # api endpoints support basic auth and oauth
         if request_path.startswith(('/api/0.6/', '/api/0.7/')):
             authorization = request.headers.get('Authorization')
             if authorization is not None:
                 scheme, _, param = authorization.partition(' ')
             else:
-                scheme = param = None
+                scheme = param = ''
 
             # handle basic auth
             if scheme == 'Basic':
                 logging.debug('Attempting to authenticate with Basic')
                 username, _, password = b64decode(param).decode().partition(':')
-                password = PasswordStr(password)
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
-                basic_user = await AuthService.authenticate_credentials(username, password)
+                basic_user = await AuthService.authenticate_credentials(username, PasswordStr(password))
                 if basic_user is not None:
                     user, scopes = basic_user, _basic_auth_scopes
 
-            # handle oauth: don't rely on scheme for oauth, 1.0 may use query params
-            else:
-                logging.debug('Attempting to authenticate with OAuth')
-                oauth_result = await AuthService.authenticate_oauth(request, scheme, param)
+            # handle oauth2
+            elif scheme == 'Bearer':
+                logging.debug('Attempting to authenticate with OAuth2')
+                oauth_result = await AuthService.authenticate_oauth2(param)
                 if oauth_result is not None:
                     user, scopes = oauth_result
 
@@ -120,12 +116,9 @@ class AuthService:
         return user, scopes
 
     @staticmethod
-    async def authenticate_credentials(
-        display_name_or_email: str,
-        password: PasswordStr,
-    ) -> User | None:
+    async def authenticate_credentials(display_name_or_email: str, password: PasswordStr) -> User | None:
         """
-        Authenticate a user by (display name or email) and password.
+        Authenticate a user with (display name or email) and password.
 
         Returns None if the user is not found or the password is incorrect.
         """
@@ -190,65 +183,35 @@ class AuthService:
         return user
 
     @staticmethod
-    async def authenticate_oauth(
-        request: Request,
-        scheme: str | None,
-        param: str | None,
-    ) -> tuple[User, Sequence[Scope]] | None:
+    async def authenticate_oauth2(param: str) -> tuple[User, tuple[Scope, ...]] | None:
         """
-        Authenticate a user by OAuth1.0 or OAuth2.0.
+        Authenticate a user with OAuth2.
 
-        Returns None if the request is not an OAuth request.
+        Returns None if the token is not found.
 
-        Raises OAuthError if the request is an invalid OAuth request.
+        Raises an exception if the token is not authorized.
         """
-        oauth_version: cython.int
-        if scheme is None:
-            # oauth1 requests may use query params or body params
-            oauth_version = 1
-        elif scheme == 'OAuth':
-            oauth_version = 1
-        elif scheme == 'Bearer':
-            oauth_version = 2
-        else:
-            return None  # not an OAuth request
-
-        if oauth_version == 1:
-            request_ = await OAuth1.convert_request(request)
-            if request_.signature is None:
-                return None  # not an OAuth request
-
-            nonce = request_.oauth_params.get('oauth_nonce')
-            timestamp = request_.timestamp
-            await OAuth1NonceService.spend(nonce, timestamp)
-
-            with options_context(joinedload(OAuth1Token.user)):
-                token = await OAuth1.parse_and_validate(request_)
-        elif oauth_version == 2:
-            with options_context(joinedload(OAuth2Token.user)):
-                token = await OAuth2.parse_and_validate(scheme, param)
-        else:
-            raise NotImplementedError(f'Unsupported OAuth version {oauth_version}')
-
+        # TODO: PATs
+        with options_context(joinedload(OAuth2Token.user)):
+            token = await OAuth2TokenQuery.find_one_authorized_by_token(param)
+        if token is None:
+            return None
         if token.authorized_at is None:
             raise_for().oauth_bad_user_token()
-
         return token.user, token.scopes
 
     @staticmethod
     async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
         """
-        Authenticate a user by user session token.
+        Authenticate a user with session token.
 
         Returns None if the session is not found or the session key is incorrect.
         """
         with options_context(joinedload(UserTokenSession.user)):
             token = await UserTokenSessionQuery.find_one_by_token_struct(token_struct)
-
         if token is None:
             logging.debug('Session not found %r', token_struct.id)
             return None
-
         return token.user
 
     @staticmethod
@@ -258,7 +221,6 @@ class AuthService:
         """
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
-
         async with db_commit() as session:
             token = UserTokenSession(
                 user_id=user_id,
@@ -266,7 +228,6 @@ class AuthService:
                 expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
             )
             session.add(token)
-
         return UserTokenStruct.v1(id=token.id, token=token_bytes)
 
     @staticmethod

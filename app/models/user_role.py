@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from enum import Enum
 
 
@@ -7,7 +6,7 @@ class UserRole(str, Enum):
     administrator = 'administrator'
 
     @staticmethod
-    def get_changeset_max_size(roles: Sequence['UserRole']) -> int:
+    def get_changeset_max_size(roles: tuple['UserRole', ...]) -> int:
         """
         Get the maximum size of a changeset for the given roles.
 
@@ -16,11 +15,10 @@ class UserRole(str, Enum):
         """
         if not roles:
             return _changeset_max_size[None]
-
         return max(_changeset_max_size[r] for r in roles)
 
     @staticmethod
-    def get_rate_limit_quota(roles: Sequence['UserRole']) -> int:
+    def get_rate_limit_quota(roles: tuple['UserRole', ...]) -> int:
         """
         Get the rate limit quota for the given roles.
 
@@ -29,7 +27,6 @@ class UserRole(str, Enum):
         """
         if not roles:
             return _rate_limit_quota[None]
-
         return max(_rate_limit_quota[r] for r in roles)
 
 

@@ -1,4 +1,5 @@
-import anyio
+import asyncio
+
 import numpy as np
 
 from app.utils import HTTP
@@ -47,4 +48,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())

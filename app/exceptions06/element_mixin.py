@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Collection
 from typing import TYPE_CHECKING, NoReturn, override
 
 from starlette import status
@@ -21,7 +21,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
 
     @override
     def element_redacted(self, versioned_ref: VersionedElementRef) -> NoReturn:
-        return self.element_not_found(versioned_ref)
+        self.element_not_found(versioned_ref)
 
     @override
     def element_redact_latest(self) -> NoReturn:
@@ -64,7 +64,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
             raise NotImplementedError(f'Unsupported element type {parent_ref.type!r}')
 
     @override
-    def element_in_use(self, element: 'Element', used_by: Sequence[ElementRef]) -> NoReturn:
+    def element_in_use(self, element: 'Element', used_by: Collection[ElementRef]) -> NoReturn:
         # wtf is this condition
         if element.type == 'node':
             if ref_ways := tuple(ref for ref in used_by if ref.type == 'way'):

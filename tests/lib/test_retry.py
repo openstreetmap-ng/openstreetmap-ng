@@ -4,8 +4,6 @@ import pytest
 
 from app.lib.retry import retry
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_retry():
     runs = 0

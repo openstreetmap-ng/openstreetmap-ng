@@ -4,8 +4,8 @@ from abc import ABC
 from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import BigInteger, Identity
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
+from zid import zid
 
-from app.lib.snowflake import snowflake_id
 from app.utils import unicode_normalize
 
 _bad_xml_re = re.compile(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F\uFFFE\uFFFF]')  # XML/1.0
@@ -26,7 +26,7 @@ class Base:
             primary_key=True,
         )
 
-    class Snowflake(NoID):
+    class ZID(NoID):
         __abstract__ = True
 
         id: Mapped[int] = mapped_column(
@@ -34,7 +34,7 @@ class Base:
             init=False,
             nullable=False,
             primary_key=True,
-            default_factory=snowflake_id,
+            default_factory=zid,
         )
 
     class Validating(BaseModel, ABC):

@@ -2,7 +2,6 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import numpy as np
-from anyio import create_task_group
 from fastapi import APIRouter, Path
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -91,10 +90,6 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
     await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
-
-    async with create_task_group() as tg:
-        for note in notes:
-            tg.start_soon(note.comments[0].resolve_rich_text)
 
     traces_count = await TraceQuery.count_by_user_id(user.id)
     traces = await TraceQuery.find_many_by_user_id(

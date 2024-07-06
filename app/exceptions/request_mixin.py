@@ -30,7 +30,7 @@ class RequestExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def bad_geometry_coordinates(self, lon: float, lat: float) -> NoReturn:
+    def bad_geometry_coordinates(self) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod

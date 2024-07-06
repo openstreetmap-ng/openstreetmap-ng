@@ -10,7 +10,7 @@ from app.models.db.user import User
 from app.models.mail_source import MailSource
 
 
-class Mail(Base.Snowflake, CreatedAtMixin):
+class Mail(Base.ZID, CreatedAtMixin):
     __tablename__ = 'mail'
 
     source: Mapped[MailSource] = mapped_column(Enum(MailSource), nullable=False)

@@ -1,3 +1,4 @@
+from app.exceptions import Exceptions
 from app.exceptions06.auth_mixin import AuthExceptions06Mixin
 from app.exceptions06.avatar_mixin import AvatarExceptions06Mixin
 from app.exceptions06.changeset_mixin import ChangesetExceptions06Mixin
@@ -11,6 +12,7 @@ from app.exceptions06.user_mixin import UserExceptions06Mixin
 
 
 class Exceptions06(
+    Exceptions,
     AuthExceptions06Mixin,
     AvatarExceptions06Mixin,
     ChangesetExceptions06Mixin,

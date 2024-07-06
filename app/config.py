@@ -1,25 +1,16 @@
 import contextlib
 import os
-import pathlib
-import re
 from hashlib import sha256
 from logging.config import dictConfig
+from pathlib import Path
 
-from anyio import Path
-
-from app.lib.yarn_lock_version import yarn_lock_version
-
-VERSION = '0.1.0'
-VERSION_DATE = ''
-if VERSION_DATE:
-    VERSION += f'.{VERSION_DATE}'
+VERSION = 'dev'
 
 NAME = 'openstreetmap-website'
 WEBSITE = 'https://www.openstreetmap.org'
 USER_AGENT = f'{NAME}/{VERSION} (+{WEBSITE})'
 
 DEFAULT_LANGUAGE = 'en'
-
 GENERATOR = 'OpenStreetMap-NG'
 COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
@@ -38,14 +29,12 @@ def _path(s: str, *, mkdir: bool = False) -> Path:
     """
     Convert a string to a Path object and resolve it.
     """
-    p = pathlib.Path(s)
-
+    p = Path(s)
     with contextlib.suppress(FileNotFoundError):
         p = p.resolve(strict=True)
     if mkdir:
         p.mkdir(parents=True, exist_ok=True)
-
-    return Path(p)
+    return p
 
 
 # Configuration (optional)
@@ -56,12 +45,8 @@ GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
 LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in ('1', 'true', 'yes')
 LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in ('1', 'true', 'yes')
 
-CONFIG_DIR = _path(os.getenv('CONFIG_DIR', 'config'))
-LEGAL_DIR = _path(os.getenv('LEGAL_DIR', 'config/legal'))
-LOCALE_DIR = _path(os.getenv('LOCALE_DIR', 'config/locale'))
-
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
-FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', 128))
+FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
 FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 
@@ -134,10 +119,7 @@ dictConfig(
 
 
 # Derived configuration
-SECRET_32bytes = sha256(SECRET.encode()).digest()
+SECRET_32b = sha256(SECRET.encode()).digest()
 
-SMTP_NOREPLY_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_NOREPLY_FROM)[1] if SMTP_NOREPLY_FROM else None
-SMTP_MESSAGES_FROM_HOST = re.search(r'@([a-zA-Z0-9.-]+)', SMTP_MESSAGES_FROM)[1] if SMTP_MESSAGES_FROM else None
-
-ID_VERSION = yarn_lock_version('iD')
-RAPID_VERSION = yarn_lock_version('@rapideditor/rapid')
+SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
+SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None

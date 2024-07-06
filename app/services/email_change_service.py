@@ -10,13 +10,11 @@ class EmailChangeService:
         """
         Send a confirmation email for the email change.
         """
-
         token = await UserTokenEmailChangeService.create(to_email)
-
         await EmailService.schedule(
             source=MailSource.system,
             from_user=None,
-            to_user=auth_user(),
+            to_user=auth_user(required=True),
             subject='TODO',  # TODO:
             template_name='TODO',
             template_data={'token': str(token)},

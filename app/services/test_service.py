@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 from ipaddress import IPv4Address
 
 from sqlalchemy import select
@@ -41,7 +40,7 @@ class TestService:
             name: str,
             *,
             status: UserStatus = UserStatus.active,
-            roles: Sequence[UserRole] = (),
+            roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
             Create a test user.

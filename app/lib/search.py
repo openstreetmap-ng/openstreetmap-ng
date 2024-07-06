@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 import cython
 import numpy as np
@@ -8,7 +8,6 @@ from shapely import MultiPolygon, Point, Polygon, STRtree
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
-from app.models.db.element_member import ElementMember
 from app.models.element_type import ElementType
 from app.models.search_result import SearchResult
 
@@ -20,11 +19,11 @@ else:
 
 class Search:
     @staticmethod
-    def get_search_bounds(bbox: str, local_only: bool) -> Sequence[tuple[str, Polygon | MultiPolygon | None]]:
+    def get_search_bounds(bbox: str, local_only: bool) -> list[tuple[str, Polygon | MultiPolygon | None]]:
         """
         Get search bounds from a bbox string.
 
-        Returns a sequence of (leaflet, shapely) bounds.
+        Returns a list of (leaflet, shapely) bounds.
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.int = SEARCH_LOCAL_MAX_ITERATIONS
@@ -67,7 +66,7 @@ class Search:
         return result
 
     @staticmethod
-    def best_results_index(task_results: Sequence[SearchResult]) -> int:
+    def best_results_index(task_results: Sequence[Sequence[SearchResult]]) -> int:
         """
         Determine the best results index.
         """
@@ -92,7 +91,7 @@ class Search:
 
     @staticmethod
     def improve_point_accuracy(
-        results: Sequence[SearchResult],
+        results: Iterable[SearchResult],
         members_map: dict[tuple[ElementType, int], Element],
     ) -> None:
         """
@@ -103,22 +102,21 @@ class Search:
             if element.type != 'relation':
                 continue
 
-            label_node: ElementMember | None = None
-            for member in element.members:
-                if member.type != 'node':
-                    continue
-                if member.role == 'admin_centre':
-                    label_node = member
-                    break
-                if label_node is None:
-                    label_node = member
+            members = element.members
+            if members is None:
+                raise AssertionError('Relation members must be set')
 
-            if label_node is not None:
-                node = members_map[('node', label_node.id)]
-                result.point = node.point
+            success: cython.char = False
+            for member in members:
+                if member.type != 'node' or (success and member.role != 'admin_centre'):
+                    continue
+                node = members_map[('node', member.id)]
+                if node.point is not None:
+                    result.point = node.point
+                    success = True
 
     @staticmethod
-    def remove_overlapping_points(results: Sequence[SearchResult]) -> None:
+    def remove_overlapping_points(results: Iterable[SearchResult]) -> None:
         """
         Remove overlapping points, preserving most important results.
         """
@@ -138,7 +136,7 @@ class Search:
             relations[i2].point = None
 
     @staticmethod
-    def deduplicate_similar_results(results: Sequence[SearchResult]) -> Sequence[SearchResult]:
+    def deduplicate_similar_results(results: Iterable[SearchResult]) -> tuple[SearchResult, ...]:
         """
         Deduplicate similar results.
         """
@@ -156,7 +154,7 @@ class Search:
             geoms.append(result.point)
 
         if len(dedup1) <= 1:
-            return dedup1
+            return tuple(dedup1)
 
         # Deduplicate by location and name
         tree = STRtree(geoms)

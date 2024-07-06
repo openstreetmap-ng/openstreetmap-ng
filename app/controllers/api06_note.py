@@ -1,9 +1,9 @@
+from asyncio import TaskGroup
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated, Literal
 
 from annotated_types import MinLen
-from anyio import create_task_group
 from fastapi import APIRouter, Query, Request
 from feedgen.feed import FeedGenerator
 from pydantic import BaseModel, PositiveInt
@@ -27,7 +27,7 @@ from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
 from app.models.note_event import NoteEvent
-from app.models.scope import ExtendedScope, Scope
+from app.models.scope import Scope
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
@@ -144,7 +144,7 @@ async def reopen_note(
 @router.delete('/notes/{note_id:int}.json')
 @router.delete('/notes/{note_id:int}.gpx', response_class=GPXResponse)
 async def hide_note(
-    _: Annotated[User, api_user(Scope.write_notes, ExtendedScope.role_moderator)],
+    _: Annotated[User, api_user(Scope.write_notes, Scope.role_moderator)],
     note_id: PositiveInt,
     text: Annotated[str, Query()] = '',
 ):
@@ -183,9 +183,8 @@ async def get_feed(
             note.comments = []
             note_id_map[note.id] = note
         for comment in comments:
-            note = note_id_map[comment.note_id]
-            note.comments.append(comment)
-            comment.legacy_note = note
+            comment.legacy_note = note = note_id_map[comment.note_id]
+            note.comments.append(comment)  # type: ignore[union-attr]
 
     fg = FeedGenerator()
     fg.link(href=str(request.url), rel='self')
@@ -339,12 +338,11 @@ async def _resolve_comments_full(notes_or_comments: Sequence[Note] | Sequence[No
         return
 
     if isinstance(notes_or_comments[0], Note):
-        notes = notes_or_comments
+        notes: Sequence[Note] = notes_or_comments  # type: ignore[assignment]
         with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
-            comments = await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
+            await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
     else:
-        comments = notes_or_comments
-
-    async with create_task_group() as tg:
-        for comment in comments:
-            tg.start_soon(comment.resolve_rich_text)
+        comments: Sequence[NoteComment] = notes_or_comments  # type: ignore[assignment]
+        async with TaskGroup() as tg:
+            for comment in comments:
+                tg.create_task(comment.resolve_rich_text())

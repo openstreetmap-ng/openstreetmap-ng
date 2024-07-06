@@ -49,8 +49,7 @@ class UserService:
         Update user's about me.
         """
         async with db_commit() as session:
-            user = await session.get(User, auth_user().id, with_for_update=True)
-
+            user = await session.get(User, auth_user(required=True).id, with_for_update=True)
             if user.description != description:
                 user.description = description
                 user.description_rich_hash = None
@@ -65,15 +64,14 @@ class UserService:
 
         Returns the new avatar URL.
         """
-        current_user = auth_user()
-
         # handle custom avatar
-        if avatar_type == AvatarType.custom:
+        if avatar_type == AvatarType.custom and avatar_file is not None:
             avatar_id = await AvatarService.upload(avatar_file)
         else:
             avatar_id = None
 
         # update user data
+        current_user = auth_user(required=True)
         async with db_commit() as session:
             user = await session.get(User, current_user.id, with_for_update=True)
             old_avatar_id = user.avatar_id
@@ -98,17 +96,15 @@ class UserService:
         """
         Update user settings.
         """
-        user = auth_user()
         if not await UserQuery.check_display_name_available(display_name):
             collector.raise_error('display_name', t('user.display_name_already_taken'))
 
-        # update user data
+        current_user = auth_user(required=True)
         async with db_commit() as session:
-            user = await session.get(User, user.id, with_for_update=True)
+            user = await session.get(User, current_user.id, with_for_update=True)
             user.display_name = display_name
             user.activity_tracking = activity_tracking
             user.crash_reporting = crash_reporting
-
             if is_valid_locale(language):
                 user.language = language
 
@@ -119,10 +115,9 @@ class UserService:
         """
         Update default editor
         """
-        user = auth_user()
-
+        current_user = auth_user(required=True)
         async with db_commit() as session:
-            user = await session.get(User, user.id, with_for_update=True)
+            user = await session.get(User, current_user.id, with_for_update=True)
             user.editor = editor
 
     @staticmethod
@@ -137,7 +132,7 @@ class UserService:
 
         Sends a confirmation email for the email change.
         """
-        user = auth_user()
+        user = auth_user(required=True)
         if user.email == new_email:
             return
 
@@ -155,20 +150,18 @@ class UserService:
     async def update_password(
         collector: MessageCollector,
         *,
-        old_password: str,
+        old_password: PasswordStr,
         new_password: PasswordStr,
     ) -> None:
         """
         Update user password.
         """
-        user = auth_user()
+        user = auth_user(required=True)
 
         if not PasswordHash.verify(user.password_hashed, old_password).success:
             collector.raise_error('old_password', t('user.invalid_password'))
 
         password_hashed = PasswordHash.hash(new_password)
-
-        # update user data
         async with db_commit() as session:
             user = await session.get(User, user.id, with_for_update=True)
             user.password_hashed = password_hashed

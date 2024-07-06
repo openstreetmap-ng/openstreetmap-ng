@@ -46,7 +46,7 @@ _gpx_attributes = {
 class OSMResponse(Response):
     xml_root = 'osm'
 
-    def render(self, content) -> NoReturn:
+    def render(self, _) -> NoReturn:
         raise RuntimeError('Setup APIRouter with setup_api_router_response')
 
     @classmethod
@@ -54,13 +54,11 @@ class OSMResponse(Response):
         style = format_style()
 
         if style == 'json':
-            request = get_request()
-            request_path: str = request.url.path
-
             # include json attributes if api 0.6 and not notes
+            request_path: str = get_request().url.path
             if request_path.startswith('/api/0.6/') and not request_path.startswith('/api/0.6/notes'):
                 if isinstance(content, Mapping):
-                    content = _json_attributes | content
+                    content = {**_json_attributes, **content}
                 else:
                     raise TypeError(f'Invalid json content type {type(content)}')
 
@@ -69,7 +67,7 @@ class OSMResponse(Response):
 
         elif style == 'xml':
             if isinstance(content, Mapping):
-                content = {cls.xml_root: _xml_attributes | content}
+                content = {cls.xml_root: {**_xml_attributes, **content}}
             elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {cls.xml_root: (*_xml_attributes.items(), *content)}
             else:
@@ -86,7 +84,7 @@ class OSMResponse(Response):
 
         elif style == 'gpx':
             if isinstance(content, Mapping):
-                content = {cls.xml_root: _gpx_attributes | content}
+                content = {cls.xml_root: {**_gpx_attributes, **content}}
             elif isinstance(content, Sequence) and not isinstance(content, str):
                 content = {cls.xml_root: (*_gpx_attributes.items(), *content)}
             else:
@@ -130,8 +128,7 @@ def setup_api_router_response(router: APIRouter) -> None:
             response_class = OSMResponse
 
         route.endpoint = _get_serializing_endpoint(route.endpoint, response_class)
-
-        # fixup other fields
+        # fixup other fields:
         route.dependant = get_dependant(path=route.path_format, call=route.endpoint)
         route.app = request_response(route.get_route_handler())
 

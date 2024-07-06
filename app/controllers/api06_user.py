@@ -41,11 +41,10 @@ async def get_user(
 @router.get('/users.xml')
 @router.get('/users.json')
 async def get_many_users(
-    users: Annotated[str, Query(min_length=1)],
+    query: Annotated[str, Query(alias='users', min_length=1)],
 ):
     user_ids = set()
-
-    for q in users.split(','):
+    for q in query.split(','):
         q = q.strip()
         if q.isdigit():
             user_ids.add(int(q))

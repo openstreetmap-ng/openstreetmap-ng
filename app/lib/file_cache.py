@@ -1,9 +1,10 @@
 import logging
 import time
+from asyncio import get_running_loop
 from datetime import timedelta
+from functools import lru_cache
+from pathlib import Path
 from typing import NamedTuple
-
-from anyio import Path
 
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
 from app.lib.buffered_random import buffered_randbytes
@@ -22,42 +23,28 @@ class FileCache:
     __slots__ = ('_base_dir',)
 
     def __init__(self, context: str, *, cache_dir: Path = FILE_CACHE_DIR):
-        self._base_dir: Path = cache_dir / context
-
-    async def _get_path(self, key_str: str) -> Path:
-        """
-        Get the path to a file in the file cache by key string.
-
-        >>> await FileCache('context')._get_path('file_key')
-        Path('.../context/4/68/468e5f...')
-        """
-        key: str = hash_hex(key_str)
-        d1 = key[:1]
-        d2 = key[1:3]
-
-        dir_path: Path = self._base_dir / d1 / d2
-        await dir_path.mkdir(parents=True, exist_ok=True)
-
-        full_path: Path = dir_path / key
-        return full_path
+        self._base_dir: Path = cache_dir.joinpath(context)
 
     async def get(self, key: str) -> bytes | None:
         """
         Get a value from the file cache by key string.
+
+        Returns None if the cache is not found.
         """
-        path = await self._get_path(key)
+        path = _get_path(self._base_dir, key)
 
         try:
-            entry_bytes = await path.read_bytes()
+            loop = get_running_loop()
+            entry_bytes = await loop.run_in_executor(None, path.read_bytes)
         except OSError:
             logging.debug('Cache read error for %r', key)
             return None
 
         entry = FileCacheMeta.from_bytes(entry_bytes)
 
-        if (entry.expires_at is not None) and entry.expires_at < int(time.time()):
+        if (entry.expires_at is not None) and entry.expires_at < time.time():
             logging.debug('Cache miss for %r', key)
-            await path.unlink(missing_ok=True)
+            path.unlink(missing_ok=True)
             return None
 
         logging.debug('Cache hit for %r', key)
@@ -67,7 +54,9 @@ class FileCache:
         """
         Set a value in the file cache by key string.
         """
-        path = await self._get_path(key)
+        path = _get_path(self._base_dir, key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
         expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
         entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
         entry_bytes = entry.to_bytes()
@@ -75,62 +64,76 @@ class FileCache:
         temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
         temp_path = path.with_name(temp_name)
 
-        async with await temp_path.open('xb') as f:
-            await f.write(entry_bytes)
+        with temp_path.open('xb') as f:
+            loop = get_running_loop()
+            await loop.run_in_executor(None, f.write, entry_bytes)
 
-        await temp_path.rename(path)
+        temp_path.rename(path)
 
-    async def delete(self, key: str) -> None:
+    def delete(self, key: str) -> None:
         """
         Delete a key from the file cache.
         """
-        path = await self._get_path(key)
-        await path.unlink(missing_ok=True)
+        path = _get_path(self._base_dir, key)
+        path.unlink(missing_ok=True)
 
     # TODO: runner, with lock
     async def cleanup(self):
         """
         Cleanup the file cache, removing stale entries.
         """
-        now = int(time.time())
         infos: list[_CleanupInfo] = []
-        total_size = 0
-        limit_size = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
+        total_size: int = 0
+        limit_size: int = FILE_CACHE_SIZE_GB * 1024 * 1024 * 1024
+        now = time.time()
 
-        async for path in self._base_dir.rglob('*'):
+        for path in self._base_dir.rglob('*'):
             key = path.name
 
             try:
-                entry_bytes = await path.read_bytes()
+                loop = get_running_loop()
+                entry_bytes = await loop.run_in_executor(None, path.read_bytes)
             except OSError:
                 logging.debug('Cache read error for %r', key)
                 continue
 
             entry = FileCacheMeta.from_bytes(entry_bytes)
-            expires_at = entry.expires_at
+            expires_at: int | float | None = entry.expires_at
 
             if (expires_at is not None) and expires_at < now:
                 logging.debug('Cache cleanup for %r (reason: time)', key)
-                await path.unlink(missing_ok=True)
+                path.unlink(missing_ok=True)
                 continue
 
             if expires_at is None:
                 expires_at = float('inf')
 
-            size = (await path.stat()).st_size
+            size = path.stat().st_size
             infos.append(_CleanupInfo(expires_at, size, path))
             total_size += size
 
         logging.debug('File cache usage is %s of %s', naturalsize(total_size), naturalsize(limit_size))
-
         if total_size <= limit_size:
             return
 
+        # prioritize cleanup of entries closer to expiration (iterating in reverse)
         infos.sort(key=lambda info: info.expires_at, reverse=True)
 
         while total_size > limit_size:
             info = infos.pop()
             key = info.path.name
             logging.debug('Cache cleanup for %r (reason: size)', key)
-            await info.path.unlink(missing_ok=True)
+            info.path.unlink(missing_ok=True)
             total_size -= info.size
+
+
+@lru_cache(maxsize=1024)
+def _get_path(base_dir: Path, key_str: str) -> Path:
+    """
+    Get the path to a file in the file cache by key string.
+
+    >>> _get_path(Path('context'), 'file_key')
+    Path('.../context/46/8e/468e5f...')
+    """
+    key: str = hash_hex(key_str)
+    return base_dir.joinpath(key[:2], key[2:4], key)
