@@ -1,4 +1,3 @@
-from asyncio import all_tasks
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
@@ -14,7 +13,6 @@ from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
 from app.queries.user_query import UserQuery
-from app.services.optimistic_diff import OptimisticDiff
 from tests.event_loop_policy import CustomEventLoopPolicy
 
 
@@ -26,14 +24,14 @@ def event_loop_policy():
 
 
 @pytest_asyncio.fixture(scope='session')
-async def lifespan():
+async def transport():
     async with LifespanManager(main) as manager:
-        yield manager
+        yield ASGITransport(manager.app)  # type: ignore[arg-type]
 
 
 @pytest.fixture()
-def client(lifespan: LifespanManager) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(lifespan.app))  # type: ignore[arg-type]
+def client(transport: ASGITransport) -> AsyncClient:
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
 
 
 @pytest_asyncio.fixture()
