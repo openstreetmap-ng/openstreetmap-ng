@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 import pytest_asyncio
-from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
 from app.exceptions06 import Exceptions06
@@ -13,7 +12,8 @@ from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
 from app.queries.user_query import UserQuery
-from tests.event_loop_policy import CustomEventLoopPolicy
+from tests.utils.event_loop_policy import CustomEventLoopPolicy
+from tests.utils.lifespan_manager import LifespanManager
 
 
 @pytest.fixture(scope='session')
@@ -25,8 +25,8 @@ def event_loop_policy():
 
 @pytest_asyncio.fixture(scope='session')
 async def transport():
-    async with LifespanManager(main) as manager:
-        yield ASGITransport(manager.app)  # type: ignore[arg-type]
+    async with LifespanManager(main):
+        yield ASGITransport(main)  # type: ignore[arg-type]
 
 
 @pytest.fixture()
