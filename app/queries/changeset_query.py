@@ -35,7 +35,13 @@ class ChangesetQuery:
         Count changesets by user id.
         """
         async with db() as session:
-            stmt = select(func.count()).select_from(select(text('1')).where(Changeset.user_id == user_id))
+            stmt = select(func.count()).select_from(
+                select(text('1'))
+                .where(
+                    Changeset.user_id == user_id,
+                )
+                .subquery()
+            )
             return await session.scalar(stmt)
 
     @staticmethod

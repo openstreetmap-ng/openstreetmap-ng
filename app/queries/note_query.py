@@ -22,10 +22,12 @@ class NoteQuery:
         """
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     NoteComment.user_id == user_id,
                     NoteComment.event == NoteEvent.opened,
                 )
+                .subquery()
             )
             return await session.scalar(stmt)
 

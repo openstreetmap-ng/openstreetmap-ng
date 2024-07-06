@@ -76,10 +76,12 @@ class TraceQuery:
         """
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     Trace.user_id == user_id,
                     Trace.visible_to(*auth_user_scopes()),
                 )
+                .subquery()
             )
             return await session.scalar(stmt)
 
@@ -115,12 +117,10 @@ class TraceQuery:
             stmt = stmt.where(*where_and)
 
             if (after is None) or (before is not None):
-                stmt = stmt.order_by(Trace.id.desc())
-                stmt = stmt.limit(limit)
+                stmt = stmt.order_by(Trace.id.desc()).limit(limit)
             else:
-                stmt = stmt.order_by(Trace.id.asc())
-                stmt = stmt.limit(limit)
-                stmt = select(Trace).select_from(stmt).order_by(Trace.id.desc())
+                stmt = stmt.order_by(Trace.id.asc()).limit(limit)
+                stmt = select(Trace).select_from(stmt.subquery()).order_by(Trace.id.desc())
 
             stmt = apply_options_context(stmt)
             return (await session.scalars(stmt)).all()
