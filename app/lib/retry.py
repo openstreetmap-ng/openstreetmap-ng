@@ -27,10 +27,9 @@ def retry(timeout: timedelta | None, *, sleep_init: cython.double = 0.15, sleep_
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
+                    # retry is not possible, re-raise the exception
                     now: cython.double = time.monotonic()
                     next_timeout_seconds: cython.double = now + sleep - ts
-
-                    # retry is not possible, re-raise the exception
                     if next_timeout_seconds >= timeout_seconds and timeout is not None:
                         raise TimeoutError(f'{func.__qualname__} failed and timed out after {attempt} attempts') from e
 
