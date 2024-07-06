@@ -1,6 +1,6 @@
 import logging
 from asyncio import Lock, get_running_loop, timeout
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate
@@ -40,8 +40,9 @@ class EmailService:
         Context manager for email service.
         """
         loop = get_running_loop()
-        loop.create_task(_process_task())  # noqa: RUF006
+        task = loop.create_task(_process_task())
         yield
+        task.cancel()  # avoid "Task was destroyed" warning during tests
 
     @staticmethod
     async def schedule(
@@ -92,10 +93,9 @@ async def _process_task() -> None:
     """
     if _process_lock.locked():
         return
-    try:
-        await _process_task_inner()
-    finally:
-        _process_lock.release()
+    async with _process_lock:
+        with suppress(Exception):
+            await _process_task_inner()
 
     # avoids race conditions in which scheduled mail is not processed immediately
     # in rare cases, there will be more than one task running at the time (per process)
@@ -130,7 +130,6 @@ async def _process_task_inner() -> None:
             )
 
             mail = await session.scalar(stmt)
-
             if mail is None:
                 logging.debug('Finished scheduled mail processing')
                 break
@@ -139,7 +138,6 @@ async def _process_task_inner() -> None:
                 logging.debug('Processing mail %r', mail.id)
                 await _send_mail(smtp, mail)
                 await session.delete(mail)
-
             except Exception:
                 expires_at = mail.created_at + MAIL_UNPROCESSED_EXPIRE
                 processing_at = now + timedelta(minutes=mail.processing_counter**MAIL_UNPROCESSED_EXPONENT)
@@ -156,7 +154,6 @@ async def _process_task_inner() -> None:
                     logging.info('Requeuing unprocessed mail %r', mail.id, exc_info=True)
                     mail.processing_counter += 1
                     mail.processing_at = processing_at
-
             finally:
                 await session.commit()
 

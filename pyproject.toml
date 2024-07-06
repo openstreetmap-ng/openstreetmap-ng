@@ -13,7 +13,6 @@ aiohttp = {extras = ["speedups"], version = "^3.9.3"}
 aiosmtplib = "^3.0.1"
 alembic = "^1.13.1"
 argon2-cffi = "^23.1.0"
-asgi-lifespan = "^2.1.0"
 beautifulsoup4 = {extras = ["charset-normalizer", "lxml"], version = "^4.12.3"}
 bleach = "^6.1.0"
 brotli = "^1.1.0"
@@ -55,6 +54,7 @@ zid = "^1.0.0"
 zstandard = "<1"
 
 [tool.poetry.group.test.dependencies]
+asgi-lifespan = "^2.1.0"
 pytest = "^8.0.0"
 pytest-asyncio = "^0.23.7"
 pytest-cov = "^5.0.0"
@@ -95,6 +95,7 @@ ignore = [
   "S101", # assert
   "SIM108", # if-else-block-instead-of-if-exp
   "PT011", # pytest-raises-too-broad
+  "PLW0603", # global-statement
   "PLW2901", # redefined-loop-name
   "W191", # tab-indentation
   "E111", # indentation-with-invalid-multiple

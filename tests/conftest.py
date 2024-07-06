@@ -1,6 +1,10 @@
+from asyncio import all_tasks
+from copy import deepcopy
+from functools import cache
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
@@ -10,20 +14,29 @@ from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
 from app.queries.user_query import UserQuery
+from app.services.optimistic_diff import OptimisticDiff
+from tests.event_loop_policy import CustomEventLoopPolicy
 
 
 @pytest.fixture(scope='session')
-async def _lifespan():
-    async with LifespanManager(main):
-        yield
+def event_loop_policy():
+    policy = CustomEventLoopPolicy()
+    yield policy
+    policy.get_event_loop().close()
+
+
+@pytest_asyncio.fixture(scope='session')
+async def lifespan():
+    async with LifespanManager(main) as manager:
+        yield manager
 
 
 @pytest.fixture()
-def client(_lifespan) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))  # type: ignore[arg-type]
+def client(lifespan: LifespanManager) -> AsyncClient:
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(lifespan.app))  # type: ignore[arg-type]
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def changeset_id(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
@@ -39,6 +52,11 @@ async def changeset_id(client: AsyncClient):
         yield int(r.text)
 
 
+@cache
+def _gpx_data() -> dict:
+    return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
+
+
 @pytest.fixture()
 def gpx() -> dict:
-    return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
+    return deepcopy(_gpx_data())
