@@ -13,7 +13,7 @@ from app.queries.user_query import UserQuery
 
 class ChangesetRSS06Mixin:
     @staticmethod
-    async def encode_changesets(fg: FeedGenerator, changesets: Sequence[Changeset]) -> dict:
+    async def encode_changesets(fg: FeedGenerator, changesets: Sequence[Changeset]) -> None:
         """
         Encode changesets into a feed.
         """
@@ -35,10 +35,14 @@ async def _encode_changeset(
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
     fe.updated(changeset.updated_at)
     fe.published(changeset.created_at)
-    user = await UserQuery.find_one_by_id(user_id=changeset.user_id)
+    if changeset.user_id:
+        user = await UserQuery.find_one_by_id(user_id=changeset.user_id)
+        author_name = user.display_name if user else ''
+    else:
+        author_name = ''
     fe.author(
-        name=user.display_name,
-        uri=f'{APP_URL}/user/{user.display_name}',
+        name=author_name,
+        uri=f'{APP_URL}/user/{author_name}',
     )
     fe.link(rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset.id}')
     fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}')
