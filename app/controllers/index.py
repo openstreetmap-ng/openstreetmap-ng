@@ -9,6 +9,8 @@ from app.config import APP_URL
 from app.format import FormatRSS06
 from app.lib.auth_context import auth_user, web_user
 from app.lib.local_chapters import LOCAL_CHAPTERS
+from app.lib.date_utils import utcnow
+from app.lib.jinja_env import render
 from app.lib.render_response import render_response
 from app.lib.translation import t
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
@@ -116,5 +118,8 @@ async def history_feed(
     fg.id(f'{APP_URL}/history/feed')
     fg.updated(utcnow())
     fg.generator('')
+    fg.rights(
+        render('index/history_feed_cc.jinja2', cc_button_img=f'{APP_URL}/static/img/cc-by-sa.svg'),
+    )
     await FormatRSS06.encode_changesets(fg, changesets)
     return fg.atom_str(pretty=True)
