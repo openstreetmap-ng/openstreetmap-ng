@@ -117,9 +117,6 @@ async def history_feed(
     # fg.language() TODO: add lang (from where it could be gained)
     fg.id(f'{APP_URL}/history/feed')
     fg.updated(utcnow())
-    fg.generator('')
-    fg.rights(
-        render('index/history_feed_cc.jinja2', cc_button_img=f'{APP_URL}/static/img/cc-by-sa.svg'),
-    )  # TODO: redefine rights block as the current feed module parse right to plain text
+    fg.rights('CC BY-SA 2.0')
     await FormatRSS06.encode_changesets(fg, changesets)
     return fg.atom_str(pretty=True)
