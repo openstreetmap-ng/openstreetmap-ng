@@ -10,6 +10,8 @@ from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.queries.user_query import UserQuery
 
+FE_DATETIME_FORMAT = '%a, %d %b %Y %H:%M:%S +0000'
+
 
 class ChangesetRSS06Mixin:
     @staticmethod
@@ -49,10 +51,15 @@ async def _encode_changeset(
     fe.link(
         rel='alternate', type='application/osmChange+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}/download'
     )
+    if changeset.closed_at is not None:
+        closed = changeset.closed_at.strftime(FE_DATETIME_FORMAT)
+    else:
+        closed = ''
     fe.content(
         render(
             'index/history_feed_entry_content.jinja2',
-            created=changeset.created_at.strftime('%a, %d %b %Y %H:%M:%S +0000'),
+            created=changeset.created_at.strftime(FE_DATETIME_FORMAT),
+            closed=closed,
         ),
-        type='CDATA',
+        type='xhtml',
     )
