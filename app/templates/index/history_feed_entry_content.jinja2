@@ -1,4 +1,4 @@
-        <div xmlns="http://www.w3.org/1999/xhtml">
+
           <style>th { text-align: left } tr { vertical-align: top }</style>
           <table>
             <tr>
@@ -21,17 +21,12 @@
               <th>Tags</th>
               <td>
                 <table cellpadding="0">
+                  {% for key, value in tags.items() %}
                   <tr>
-                    <td>comment = added water</td>
+                    <td>{{ key }} = {{ value }}</td>
                   </tr>
-                  <tr>
-                    <td>created_by = JOSM/1.5 (19096 en)</td>
-                  </tr>
-                  <tr>
-                    <td>source = Bing</td>
-                  </tr>
+                  {% endfor %}
                 </table>
               </td>
             </tr>
           </table>
-        </div>

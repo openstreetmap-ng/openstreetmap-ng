@@ -68,6 +68,7 @@ async def _encode_changeset(
             closed=closed,
             author_name=author_name,
             author_uri=author_uri,
+            tags=changeset.tags,
         ),
         type='xhtml',
     )
