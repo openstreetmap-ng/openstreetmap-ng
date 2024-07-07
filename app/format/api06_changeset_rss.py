@@ -32,34 +32,42 @@ async def _encode_changeset(
 ) -> None:
     # use task_status to preserve the order of the changesets
     task_status.started()
+
     fe = fg.add_entry(order='append')
     fe.title(f'{t("browse.changeset.feed.title",id=changeset.id)}')
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
     fe.updated(changeset.updated_at)
     fe.published(changeset.created_at)
+
     if changeset.user_id:
         user = await UserQuery.find_one_by_id(user_id=changeset.user_id)
         author_name = user.display_name if user else ''
     else:
         author_name = ''
+    author_uri = f'{APP_URL}/user/{author_name}'
     fe.author(
         name=author_name,
-        uri=f'{APP_URL}/user/{author_name}',
+        uri=author_uri,
     )
+
     fe.link(rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset.id}')
     fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}')
     fe.link(
         rel='alternate', type='application/osmChange+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}/download'
     )
+
     if changeset.closed_at is not None:
         closed = changeset.closed_at.strftime(FE_DATETIME_FORMAT)
     else:
         closed = ''
+
     fe.content(
         render(
             'index/history_feed_entry_content.jinja2',
             created=changeset.created_at.strftime(FE_DATETIME_FORMAT),
             closed=closed,
+            author_name=author_name,
+            author_uri=author_uri,
         ),
         type='xhtml',
     )
