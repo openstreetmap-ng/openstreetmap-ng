@@ -114,6 +114,8 @@ async def history_feed(
         href=f'{APP_URL}/history/feed',
     )
     fg.title(t('changesets.index.title'))
+    fg.logo(f'{APP_URL}/static/img/favicon/logo.svg')
+    fg.icon(f'{APP_URL}/static/img/favicon/64.webp')
     # fg.language() TODO: add lang (from where it could be gained)
     fg.id(f'{APP_URL}/history/feed')
     fg.updated(utcnow())
