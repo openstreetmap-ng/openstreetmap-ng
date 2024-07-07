@@ -5,6 +5,7 @@ from anyio.abc import TaskStatus
 from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
+from app.lib.jinja_env import render
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.queries.user_query import UserQuery
@@ -43,4 +44,11 @@ async def _encode_changeset(
     fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}')
     fe.link(
         rel='alternate', type='application/osmChange+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}/download'
+    )
+    fe.content(
+        render(
+            'index/history_feed_entry_content.jinja2',
+            created=changeset.created_at.strftime('%a, %d %b %Y %H:%M:%S +0000'),
+        ),
+        type='CDATA',
     )
