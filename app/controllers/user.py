@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import numpy as np
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, Path, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 

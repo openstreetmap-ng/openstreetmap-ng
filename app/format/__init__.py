@@ -30,8 +30,8 @@ class Format06(
 
 
 class FormatRSS06(
-    NoteRSS06Mixin,
     ChangesetRSS06Mixin,
+    NoteRSS06Mixin,
 ): ...
 
 
