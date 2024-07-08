@@ -40,9 +40,15 @@ const makeEngine = (profile) => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.message) {
+                        throw new Error(`${data.message} (${resp.status})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const path = data.paths[0]
                 const points = polylineDecode(path.points, 5)
                 const steps = []

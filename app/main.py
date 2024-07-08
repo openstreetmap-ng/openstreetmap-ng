@@ -8,7 +8,9 @@ import sys
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
+from fastapi.exception_handlers import http_exception_handler
+from starlette import status
 from starlette.convertors import register_url_convertor
 from starlette_compress import CompressMiddleware
 
@@ -159,3 +161,14 @@ def _make_router(path: str, prefix: str) -> APIRouter:
 
 
 main.include_router(_make_router('app/controllers', ''))
+
+
+@main.exception_handler(ExceptionGroup)
+async def exception_group_handler(request: Request, exc: ExceptionGroup):
+    """
+    Unpack supported exception groups.
+    """
+    http_exception = next((e for e in exc.exceptions if isinstance(e, HTTPException)), None)
+    if http_exception is not None:
+        return await http_exception_handler(request, http_exception)
+    return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)

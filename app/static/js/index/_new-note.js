@@ -64,12 +64,7 @@ export const getNewNoteController = (map) => {
         submitButton.disabled = !hasValue
     }
 
-    // Listen for events
     configureStandardForm(form, onFormSuccess, onClientValidation)
-    commentInput.addEventListener("input", onCommentInput)
-
-    // Initial update
-    onCommentInput()
 
     return {
         load: () => {
@@ -113,11 +108,16 @@ export const getNewNoteController = (map) => {
                 setMapState(map, state)
             }
 
-            // Update note button state
+            // Listen for events
+            commentInput.addEventListener("input", onCommentInput)
+
+            // Initial update
+            onCommentInput()
             setNewNoteButtonState(true)
         },
         unload: () => {
             setNewNoteButtonState(false)
+            commentInput.removeEventListener("input", onCommentInput)
             focusMapObject(map, null)
             halo = null
             marker = null

@@ -32,7 +32,7 @@ async def search(
     bbox: Annotated[str, Query(min_length=1)],
     local_only: Annotated[bool, Query()] = False,
 ):
-    search_bounds = Search.get_search_bounds(bbox, local_only)
+    search_bounds = Search.get_search_bounds(bbox, local_only=local_only)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     async with TaskGroup() as tg:

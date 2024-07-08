@@ -24,7 +24,6 @@ from app.validators.email import validate_email_deliverability
 class UserSignupService:
     @staticmethod
     async def signup(
-        collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
         email: EmailStr,
@@ -38,11 +37,11 @@ class UserSignupService:
         """
         # some early validation
         if not await UserQuery.check_display_name_available(display_name):
-            collector.raise_error('display_name', t('validation.display_name_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_taken'))
         if not await UserQuery.check_email_available(email):
-            collector.raise_error('email', t('validation.email_taken'))
+            MessageCollector.raise_error('email', t('validation.email_taken'))
         if not await validate_email_deliverability(email):
-            collector.raise_error('email', t('validation.email_invalid'))
+            MessageCollector.raise_error('email', t('validation.email_invalid'))
 
         password_hashed = PasswordHash.hash(password)
         created_ip = get_request_ip()

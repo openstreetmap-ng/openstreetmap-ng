@@ -17,7 +17,6 @@ from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
-from app.responses.osm_response import OSMResponse
 from app.services.auth_service import AuthService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
@@ -41,14 +40,12 @@ async def login(
     password: Annotated[PasswordStr, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
-    collector = MessageCollector()
     token = await UserService.login(
-        collector,
         display_name_or_email=display_name_or_email,
         password=password,
     )
     max_age = COOKIE_AUTH_MAX_AGE if remember else None
-    response = OSMResponse.serialize(collector.result)
+    response = Response()
     response.set_cookie('auth', str(token), max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
     return response
 
@@ -72,15 +69,13 @@ async def signup(
     password: Annotated[PasswordStr, Form()],
     tracking: Annotated[bool, Form()],
 ):
-    collector = MessageCollector()
     token = await UserSignupService.signup(
-        collector,
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
     )
-    response = OSMResponse.serialize(collector.result)
+    response = Response()
     response.set_cookie('auth', str(token), None, secure=not TEST_ENV, httponly=True, samesite='lax')
     return response
 
@@ -133,15 +128,13 @@ async def update_settings(
     crash_reporting: Annotated[bool, Form()],
     _: Annotated[User, web_user()],
 ):
-    collector = MessageCollector()
     await UserService.update_settings(
-        collector,
         display_name=display_name,
         language=language,
         activity_tracking=activity_tracking,
         crash_reporting=crash_reporting,
     )
-    return collector.result
+    return Response()
 
 
 @router.post('/settings/editor')

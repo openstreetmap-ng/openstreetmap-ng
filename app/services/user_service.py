@@ -25,7 +25,6 @@ from app.validators.email import validate_email_deliverability
 class UserService:
     @staticmethod
     async def login(
-        collector: MessageCollector,
         *,
         display_name_or_email: str,
         password: PasswordStr,
@@ -37,7 +36,7 @@ class UserService:
         """
         user = await AuthService.authenticate_credentials(display_name_or_email, password)
         if user is None:
-            collector.raise_error(None, t('users.auth_failure.invalid_credentials'))
+            MessageCollector.raise_error(None, t('users.auth_failure.invalid_credentials'))
         return await AuthService.create_session(user.id)
 
     @staticmethod
@@ -86,7 +85,6 @@ class UserService:
 
     @staticmethod
     async def update_settings(
-        collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
         language: str,
@@ -97,7 +95,7 @@ class UserService:
         Update user settings.
         """
         if not await UserQuery.check_display_name_available(display_name):
-            collector.raise_error('display_name', t('user.display_name_already_taken'))
+            MessageCollector.raise_error('display_name', t('user.display_name_already_taken'))
 
         current_user = auth_user(required=True)
         async with db_commit() as session:
@@ -137,11 +135,11 @@ class UserService:
             return
 
         if not PasswordHash.verify(user.password_hashed, password).success:
-            collector.raise_error('password', t('user.invalid_password'))
+            MessageCollector.raise_error('password', t('user.invalid_password'))
         if not await UserQuery.check_email_available(new_email):
-            collector.raise_error('email', t('user.email_already_taken'))
+            MessageCollector.raise_error('email', t('user.email_already_taken'))
         if not await validate_email_deliverability(new_email):
-            collector.raise_error('email', t('user.invalid_email'))
+            MessageCollector.raise_error('email', t('user.invalid_email'))
 
         await EmailChangeService.send_confirm_email(new_email)
         collector.info('email', t('user.email_change_confirm_sent'))
@@ -159,7 +157,7 @@ class UserService:
         user = auth_user(required=True)
 
         if not PasswordHash.verify(user.password_hashed, old_password).success:
-            collector.raise_error('old_password', t('user.invalid_password'))
+            MessageCollector.raise_error('old_password', t('user.invalid_password'))
 
         password_hashed = PasswordHash.hash(new_password)
         async with db_commit() as session:

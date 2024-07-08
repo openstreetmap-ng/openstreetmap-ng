@@ -30,21 +30,6 @@ class MessageCollector:
         """
         self._messages[field].append(('info', message))
 
-    def raise_error(self, field: str | None, message: str) -> NoReturn:
-        """
-        Collect an error message for a field and raise a HTTPException.
-        """
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail=(
-                {
-                    'type': 'error',
-                    'loc': (None, field),
-                    'msg': message,
-                },
-            ),
-        )
-
     @property
     def result(self) -> dict[Literal['detail'], tuple[dict[str, Any], ...]]:
         """
@@ -61,6 +46,22 @@ class MessageCollector:
                 for severity, message in messages
             )
         }
+
+    @staticmethod
+    def raise_error(field: str | None, message: str) -> NoReturn:
+        """
+        Collect an error message for a field and raise a HTTPException.
+        """
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail=(
+                {
+                    'type': 'error',
+                    'loc': (None, field),
+                    'msg': message,
+                },
+            ),
+        )
 
 
 # _context = ContextVar('MessageCollector_context')

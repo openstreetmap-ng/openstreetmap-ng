@@ -32,6 +32,7 @@ map:
       The exported file will contain only the map background.
       It will not contain any pins, routes, selections or other dynamic elements.
   routing:
+    failed_to_retrieve_directions: 'Failed to retrieve directions'
     drag_and_drop:
       start: Drag and drop this marker to set the start position
       end: Drag and drop this marker to set the end position

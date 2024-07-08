@@ -19,14 +19,21 @@ else:
 
 class Search:
     @staticmethod
-    def get_search_bounds(bbox: str, local_only: bool) -> list[tuple[str, Polygon | MultiPolygon | None]]:
+    def get_search_bounds(
+        bbox: str,
+        *,
+        local_only: bool = False,
+        local_max_iterations: int | None = None,
+    ) -> list[tuple[str, Polygon | MultiPolygon | None]]:
         """
         Get search bounds from a bbox string.
 
         Returns a list of (leaflet, shapely) bounds.
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
-        search_local_max_iterations: cython.int = SEARCH_LOCAL_MAX_ITERATIONS
+        search_local_max_iterations: cython.int = (
+            local_max_iterations if (local_max_iterations is not None) else SEARCH_LOCAL_MAX_ITERATIONS
+        )
 
         parts = bbox.strip().split(',', maxsplit=3)
         minx: cython.double = float(parts[0])
@@ -182,9 +189,10 @@ def _should_use_global_search(task_results: Sequence[Sequence[SearchResult]]) ->
     Global search is used when there are no relevant local results.
     """
     local_results = task_results[:-1]
-    global_results = task_results[-1]
-    if not global_results or not any(local_results):
+    if not any(local_results):
         return True
-
+    global_results = task_results[-1]
+    if not global_results:
+        return False
     # https://nominatim.org/release-docs/latest/customize/Ranking/
     return global_results[0].rank <= 16

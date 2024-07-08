@@ -41,29 +41,36 @@ const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OS
  * @returns {object} Controller
  */
 export const getRoutingController = (map) => {
+    const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("routing")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
     const fromInput = form.elements.from
+    const fromLoadedInput = form.elements.from_loaded
     const fromDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${fromMarkerGuid}"]`)
     const toInput = form.elements.to
+    const toLoadedInput = form.elements.to_loaded
     const toDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${toMarkerGuid}"]`)
     const reverseButton = form.querySelector(".reverse-btn")
     const engineInput = form.elements.engine
-    const boundsInput = form.elements.bounds
-    const routeSection = sidebar.querySelector(".section.route")
-    const routeDistance = routeSection.querySelector(".route-info .distance")
-    const routeTime = routeSection.querySelector(".route-info .time")
-    const routeElevationGroup = routeSection.querySelector(".elevation-group")
+    const bboxInput = form.elements.bbox
+    const loadingContainer = sidebar.querySelector(".loading")
+    const routingErrorAlert = sidebar.querySelector(".routing-error-alert")
+    const routeContainer = sidebar.querySelector(".route")
+    const routeDistance = routeContainer.querySelector(".route-info .distance")
+    const routeTime = routeContainer.querySelector(".route-info .time")
+    const routeElevationGroup = routeContainer.querySelector(".elevation-group")
     const routeAscend = routeElevationGroup.querySelector(".ascend")
     const routeDescend = routeElevationGroup.querySelector(".descend")
-    const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
-    const attribution = routeSection.querySelector(".attribution")
-    let loaded = false
+    const turnTableBody = routeContainer.querySelector(".turn-by-turn tbody")
+    const attribution = routeContainer.querySelector(".attribution")
+    const stepTemplate = routeContainer.querySelector("template.step")
     let abortController = null
 
     // Null values until initialized
+    let fromBounds = null
     let fromMarker = null // green
+    let toBounds = null
     let toMarker = null // red
     let routePolyline = null
     let highlightPolyline = null
@@ -93,11 +100,9 @@ export const getRoutingController = (map) => {
         dt.effectAllowed = "move"
         dt.setData("text/plain", "")
         dt.setData(dragDataType, markerGuid)
-
         const canvas = document.createElement("canvas")
         canvas.width = 25
         canvas.height = 41
-
         const ctx = canvas.getContext("2d")
         ctx.drawImage(target, 0, 0, 25, 41)
         dt.setDragImage(canvas, 12, 21)
@@ -133,13 +138,16 @@ export const getRoutingController = (map) => {
     }
 
     /**
+     * On map drag over, prevent default behavior
+     * @param {DragEvent} event
+     */
+    const onMapDragOver = (event) => event.preventDefault()
+
+    /**
      * On map marker drop, update the marker's coordinates
      * @param {DragEvent} event
      */
     const onMapDrop = (event) => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
         let marker
         const dragData = event.dataTransfer.getData(dragDataType)
         console.debug("onMapDrop", dragData)
@@ -164,7 +172,6 @@ export const getRoutingController = (map) => {
 
         const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
         mousePosition.y += 20 // offset position to account for the marker's height
-
         const latLng = map.containerPointToLatLng(mousePosition)
         marker.setLatLng(latLng)
         marker.fire("dragend", { propagatedFrom: marker })
@@ -172,14 +179,7 @@ export const getRoutingController = (map) => {
 
     // On map update, update the form's bounding box
     const onMapZoomOrMoveEnd = () => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-        boundsInput.value = map.getBounds().toBBoxString()
-    }
-
-    // On input enter, submit the form
-    const onInput = (event) => {
-        if (event.key === "Enter") submitFormIfFilled()
+        bboxInput.value = map.getBounds().toBBoxString()
     }
 
     // On engine input change, remember the last routing engine
@@ -190,11 +190,25 @@ export const getRoutingController = (map) => {
 
     // On reverse button click, swap the from and to inputs
     const onReverseButtonClick = () => {
-        const fromValue = fromInput.value
-        fromInput.value = toInput.value
-        toInput.value = fromValue
+        const newFromValue = toInput.value
+        const newToValue = fromInput.value
+        fromInput.value = newFromValue
         fromInput.dispatchEvent(new Event("input"))
+        toInput.value = newToValue
         toInput.dispatchEvent(new Event("input"))
+        if (
+            fromMarker &&
+            toMarker &&
+            fromInput.value === fromLoadedInput.value &&
+            toInput.value === toLoadedInput.value
+        ) {
+            const newFromLatLng = toMarker.getLatLng()
+            const newToLatLng = fromMarker.getLatLng()
+            fromMarker.setLatLng(newFromLatLng)
+            fromLoadedInput.value = newFromValue
+            toMarker.setLatLng(newToLatLng)
+            toLoadedInput.value = newToValue
+        }
         submitFormIfFilled()
     }
 
@@ -202,39 +216,53 @@ export const getRoutingController = (map) => {
         if (fromInput.value && toInput.value) form.requestSubmit()
     }
 
+    // On client validation, hide previous route data
+    const onClientValidation = () => {
+        routingErrorAlert.classList.add("d-none")
+        routeContainer.classList.add("d-none")
+    }
+
     // On success callback, call routing engine, display results, and update search params
-    const onFormSuccess = ({ from, to, bounds }) => {
-        console.debug("onFormSuccess", from, to, bounds)
+    const onFormSuccess = (data) => {
+        console.debug("onFormSuccess", data)
 
-        fromInput.value = from.name
-        toInput.value = to.name
-        fromInput.dispatchEvent(new Event("input"))
-        toInput.dispatchEvent(new Event("input"))
-
-        if (!fromMarker) {
-            fromMarker = markerFactory("green")
-            fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
-            map.addLayer(fromMarker)
+        if (data.from) {
+            const { bounds, geom, name } = data.from
+            fromBounds = L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2]))
+            fromInput.value = name
+            fromInput.dispatchEvent(new Event("input"))
+            if (!fromMarker) {
+                fromMarker = markerFactory("green")
+                fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(fromMarker)
+            }
+            const [lon, lat] = geom
+            fromMarker.setLatLng(L.latLng(lat, lon))
+            fromLoadedInput.value = name
         }
 
-        if (!toMarker) {
-            toMarker = markerFactory("red")
-            toMarker.addEventListener("dragend", onMapMarkerDragEnd)
-            map.addLayer(toMarker)
+        if (data.to) {
+            const { bounds, geom, name } = data.to
+            toBounds = L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2]))
+            toInput.value = name
+            toInput.dispatchEvent(new Event("input"))
+            if (!toMarker) {
+                toMarker = markerFactory("red")
+                toMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(toMarker)
+            }
+            const [lon, lat] = geom
+            toMarker.setLatLng(L.latLng(lat, lon))
+            toLoadedInput.value = name
         }
-
-        const [fromLon, fromLat] = from.point
-        const [toLon, toLat] = to.point
-        fromMarker.setLatLng(L.latLng(fromLat, fromLon))
-        toMarker.setLatLng(L.latLng(toLat, toLon))
-        callRoutingEngine()
 
         // Focus on the makers if they're offscreen
-        const [minLon, minLat, maxLon, maxLat] = bounds
-        const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-        if (!map.getBounds().contains(latLngBounds)) {
-            map.fitBounds(latLngBounds)
+        const markerBounds = fromBounds.extend(toBounds)
+        if (!map.getBounds().contains(markerBounds)) {
+            map.fitBounds(markerBounds)
         }
+
+        callRoutingEngine()
     }
 
     const callRoutingEngine = () => {
@@ -260,11 +288,9 @@ export const getRoutingController = (map) => {
             route: routeParam,
         })
         const hash = encodeMapState(getMapState(map))
-
-        // TODO: will this not remove path?
         history.replaceState(null, "", `?${searchParams}${hash}`)
 
-        // TODO: show loading animation
+        loadingContainer.classList.remove("d-none")
         routingEngine(abortController.signal, fromCoords, toCoords, onRoutingSuccess, onRoutingError)
     }
 
@@ -275,6 +301,7 @@ export const getRoutingController = (map) => {
      */
     const onRoutingSuccess = (route) => {
         console.debug("onRoutingSuccess", route)
+        loadingContainer.classList.add("d-none")
 
         // Display general route information
         const totalDistance = route.steps.reduce((acc, step) => acc + step.distance, 0)
@@ -292,50 +319,33 @@ export const getRoutingController = (map) => {
         }
 
         // Render the turn-by-turn table
-        const newRows = []
+        const fragment = document.createDocumentFragment()
 
         let stepNumber = 0
         for (const step of route.steps) {
             stepNumber += 1
 
-            // TODO: template
+            const stepFragment = stepTemplate.content.cloneNode(true)
+            const iconDiv = stepFragment.querySelector(".icon div")
+            const tdNumber = stepFragment.querySelector(".number")
+            const tdInstruction = stepFragment.querySelector(".instruction")
+            const tdDistance = stepFragment.querySelector(".distance")
 
-            const row = document.createElement("tr")
-            newRows.push(row)
-
-            // Icon
-            const tdIcon = document.createElement("td")
-            tdIcon.classList.add("icon")
-            const iconDiv = document.createElement("div")
             iconDiv.classList.add(`icon-${step.code}`)
-            tdIcon.appendChild(iconDiv)
-            row.appendChild(tdIcon)
-
-            // Number
-            const tdNumber = document.createElement("td")
-            tdNumber.classList.add("number")
             tdNumber.textContent = `${stepNumber}.`
-            row.appendChild(tdNumber)
-
-            // Text instruction
-            const tdText = document.createElement("td")
-            tdText.classList.add("instruction")
-            tdText.textContent = step.text
-            row.appendChild(tdText)
-
-            // Distance
-            const tdDistance = document.createElement("td")
-            tdDistance.classList.add("distance")
+            tdInstruction.textContent = step.text
             tdDistance.textContent = formatSimpleDistance(step.distance)
-            row.appendChild(tdDistance)
+
+            fragment.appendChild(stepFragment)
         }
 
-        turnTableBody.replaceChildren(...newRows)
-
+        turnTableBody.innerHTML = ""
+        turnTableBody.appendChild(fragment)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
         })
+        routeContainer.classList.remove("d-none")
     }
 
     /**
@@ -344,22 +354,12 @@ export const getRoutingController = (map) => {
      * @returns {void}
      */
     const onRoutingError = (error) => {
-        // TODO: standard error
-        alert(error.message)
+        loadingContainer.classList.add("d-none")
+        routingErrorAlert.querySelector("p").textContent = error.message
+        routingErrorAlert.classList.remove("d-none")
     }
 
-    // Listen for events
-    configureStandardForm(form, onFormSuccess)
-    const mapContainer = map.getContainer()
-    mapContainer.addEventListener("dragover", (event) => event.preventDefault())
-    mapContainer.addEventListener("drop", onMapDrop)
-    map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-    fromInput.addEventListener("input", onInput)
-    fromDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
-    toInput.addEventListener("input", onInput)
-    toDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
-    reverseButton.addEventListener("click", onReverseButtonClick)
-    engineInput.addEventListener("input", onEngineInputChange)
+    configureStandardForm(form, onFormSuccess, onClientValidation)
 
     return {
         load: () => {
@@ -367,14 +367,25 @@ export const getRoutingController = (map) => {
             switchActionSidebar(map, "routing")
             document.title = getPageTitle(sidebarTitle)
 
+            // Listen for events
+            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            mapContainer.addEventListener("dragover", onMapDragOver)
+            mapContainer.addEventListener("drop", onMapDrop)
+            fromDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
+            toDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
+            reverseButton.addEventListener("click", onReverseButtonClick)
+            engineInput.addEventListener("input", onEngineInputChange)
+
+            // Initial update to set the inputs
+            onMapZoomOrMoveEnd()
+
             // Allow default form setting via URL search parameters
             const searchParams = qsParse(location.search.substring(1))
-
             if (searchParams.route?.includes(";")) {
                 const [from, to] = searchParams.route.split(";")
                 fromInput.value = from
-                toInput.value = to
                 fromInput.dispatchEvent(new Event("input"))
+                toInput.value = to
                 toInput.dispatchEvent(new Event("input"))
             }
 
@@ -387,21 +398,29 @@ export const getRoutingController = (map) => {
                     console.warn("Unsupported routing engine", routingEngine)
                 }
             }
-
-            loaded = true
-
-            // Initial update to set the inputs
-            onMapZoomOrMoveEnd()
-            submitFormIfFilled()
         },
         unload: () => {
+            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            mapContainer.removeEventListener("dragover", onMapDragOver)
+            mapContainer.removeEventListener("drop", onMapDrop)
+            fromDraggableMarker.removeEventListener("dragstart", onInterfaceMarkerDragStart)
+            toDraggableMarker.removeEventListener("dragstart", onInterfaceMarkerDragStart)
+            reverseButton.removeEventListener("click", onReverseButtonClick)
+            engineInput.removeEventListener("input", onEngineInputChange)
+
+            loadingContainer.classList.add("d-none")
+            routingErrorAlert.classList.add("d-none")
+            routeContainer.classList.add("d-none")
+
             if (fromMarker) {
                 map.removeLayer(fromMarker)
                 fromMarker = null
+                fromLoadedInput.value = ""
             }
             if (toMarker) {
                 map.removeLayer(toMarker)
                 toMarker = null
+                toLoadedInput.value = ""
             }
             if (routePolyline) {
                 map.removeLayer(routePolyline)
@@ -412,8 +431,6 @@ export const getRoutingController = (map) => {
                 highlightPolyline = null
             }
             if (highlightPopup) map.closePopup(highlightPopup)
-
-            loaded = false
         },
     }
 }

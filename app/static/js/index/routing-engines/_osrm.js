@@ -38,9 +38,15 @@ const makeEngine = (profile) => {
             },
         )
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.message && data.code) {
+                        throw new Error(`${data.message} (${data.code})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const leg = data.routes[0].legs[0]
                 const steps = []
 

@@ -8,6 +8,7 @@ from app.lib.geo_utils import (
     meters_to_radians,
     parse_bbox,
     radians_to_meters,
+    try_parse_point,
 )
 
 _earth_radius_meters = 6371000
@@ -81,3 +82,18 @@ def test_parse_normalize_latitude():
 def test_parse_bbox_invalid(bbox):
     with pytest.raises(Exception):
         parse_bbox(bbox)
+
+
+@pytest.mark.parametrize(
+    ('lat_lon', 'expected'),
+    [
+        ('1,2', Point(2, 1)),
+        ('1 2', Point(2, 1)),
+        ('1, 2', Point(2, 1)),
+        ('1 , 2', Point(2, 1)),
+        ('1,2,3', None),
+        ('1,2,3,4', None),
+    ],
+)
+def test_try_parse_point(lat_lon, expected):
+    assert try_parse_point(lat_lon) == expected

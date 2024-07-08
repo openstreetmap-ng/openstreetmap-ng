@@ -2,7 +2,7 @@
     <div class="sidebar-content">
         <form class="section" method="POST" action="/api/web/routing/resolve-names">
 
-            <div class="row g-1 mb-1">
+            <div class="row g-1">
                 <div class="col">
                     <h2 class="sidebar-title">
                         {{ t('javascripts.directions.directions') }}
@@ -17,7 +17,8 @@
             <div class="d-flex align-items-end mb-1">
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.from') }}</label>
-                    <input type="text" class="form-control" name="from">
+                    <input type="text" class="form-control" name="from" required>
+                    <input type="hidden" name="from_loaded">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/green.webp"
                     alt="{{ t('alt.marker.green') }}" loading="lazy" data-guid="1beabe239ed0"
@@ -27,7 +28,8 @@
             <div class="d-flex align-items-end mb-1">
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.to') }}</label>
-                    <input type="text" class="form-control" name="to">
+                    <input type="text" class="form-control" name="to" required>
+                    <input type="hidden" name="to_loaded">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/red.webp"
                     alt="{{ t('alt.marker.red') }}" loading="lazy" data-guid="038e3b39ed0b"
@@ -42,7 +44,7 @@
 
                 <div class="col">
                     <label class="form-label">{{ t('map.routing.engine.title') }}</label>
-                    <select class="form-select format-select" name="engine">
+                    <select class="form-select format-select" name="engine" required>
                         <option value="graphhopper_car">
                             {{ t('javascripts.directions.engines.graphhopper_car') }}
                         </option>
@@ -74,7 +76,7 @@
                 </div>
 
                 <div class="col-auto">
-                    <input type="hidden" name="bounds">
+                    <input type="hidden" name="bbox">
                     <button class="btn btn-primary" type="submit">
                         {{ t('site.search.submit_text') }}
                     </button>
@@ -83,37 +85,64 @@
             </div>
 
         </form>
-        <div class="section route">
-            <div class="route-info mb-3">
-                <div class="mb-1">
-                    <span class="me-2">
-                        <i class="bi bi-signpost-2"></i>
-                        <span>{{ t('javascripts.directions.distance') }}:</span>
-                        <span class="distance"></span>
-                    </span>
-                    <span>
-                        <i class="bi bi-stopwatch"></i>
-                        <span>{{ t('javascripts.directions.time') }}:</span>
-                        <span class="time"></span>
-                    </span>
-                </div>
-                <div class="elevation-group">
-                    <span class="me-2">
-                        <span>{{ t('javascripts.directions.ascend') }}:</span>
-                        <span class="ascend"></span>
-                    </span>
-                    <span>
-                        <span>{{ t('javascripts.directions.descend') }}:</span>
-                        <span class="descend"></span>
-                    </span>
+        <div class="section border-bottom-0">
+            <div class="loading text-center mt-2 d-none">
+                <div class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
                 </div>
             </div>
 
-            <table class="turn-by-turn table table-sm align-middle mb-4">
-                <tbody></tbody>
-            </table>
+            <div class="routing-error-alert alert alert-warning d-none" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-send-exclamation-fill me-1"></i>
+                    {{ t('map.routing.failed_to_retrieve_directions') }}
+                </h6>
+                <p class="mb-0"></p>
+            </div>
 
-            <div class="attribution"></div>
+            <div class="route d-none">
+                <div class="route-info mb-3">
+                    <div class="mb-1">
+                        <span class="me-2">
+                            <i class="bi bi-signpost-2"></i>
+                            <span>{{ t('javascripts.directions.distance') }}:</span>
+                            <span class="distance"></span>
+                        </span>
+                        <span>
+                            <i class="bi bi-stopwatch"></i>
+                            <span>{{ t('javascripts.directions.time') }}:</span>
+                            <span class="time"></span>
+                        </span>
+                    </div>
+                    <div class="elevation-group">
+                        <span class="me-2">
+                            <span>{{ t('javascripts.directions.ascend') }}:</span>
+                            <span class="ascend"></span>
+                        </span>
+                        <span>
+                            <span>{{ t('javascripts.directions.descend') }}:</span>
+                            <span class="descend"></span>
+                        </span>
+                    </div>
+                </div>
+
+                <template class="step">
+                    <tr>
+                        <td class="icon">
+                            <div></div>
+                        </td>
+                        <td class="number"></td>
+                        <td class="instruction"></td>
+                        <td class="distance"></td>
+                    </tr>
+                </template>
+
+                <table class="turn-by-turn table table-sm align-middle mb-4">
+                    <tbody></tbody>
+                </table>
+
+                <div class="attribution"></div>
+            </div>
         </div>
     </div>
 </div>

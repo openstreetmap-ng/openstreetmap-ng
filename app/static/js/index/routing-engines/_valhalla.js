@@ -46,9 +46,15 @@ const makeEngine = (costing) => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.error && data.error_code) {
+                        throw new Error(`${data.error} (${data.error_code})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const leg = data.trip.legs[0]
                 const points = polylineDecode(leg.shape, 6)
                 const steps = []

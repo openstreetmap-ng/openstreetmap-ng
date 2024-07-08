@@ -99,7 +99,7 @@ class NominatimQuery:
 async def _search(
     *,
     q: str,
-    bounds: Polygon | None = None,
+    bounds: Polygon | None,
     at_sequence_id: int | None,
     limit: int,
 ) -> list[SearchResult]:

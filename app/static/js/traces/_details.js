@@ -20,7 +20,7 @@ if (tracesDetailsBody) {
             location.href = redirect_url
         }
 
-        deleteButton.addEventListener("click", onDeleteClick)
         configureStandardForm(deleteForm, onFormSuccess)
+        deleteButton.addEventListener("click", onDeleteClick)
     }
 }

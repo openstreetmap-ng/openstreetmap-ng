@@ -27,8 +27,7 @@ async def upload(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        collector = MessageCollector()
-        collector.raise_error(None, detail)
+        MessageCollector.raise_error(None, detail)
     return {'trace_id': trace.id}
 
 
@@ -52,8 +51,7 @@ async def update(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        collector = MessageCollector()
-        collector.raise_error(None, detail)
+        MessageCollector.raise_error(None, detail)
     return {'trace_id': trace_id}
 
 
@@ -67,6 +65,5 @@ async def delete(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        collector = MessageCollector()
-        collector.raise_error(None, detail)
+        MessageCollector.raise_error(None, detail)
     return {'redirect_url': f'/user/{user.display_name}/traces'}
