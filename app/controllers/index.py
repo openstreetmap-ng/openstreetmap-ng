@@ -1,14 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from starlette import status
 from starlette.responses import FileResponse, RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
-from app.lib.feed import get_history_feed
 from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.render_response import render_response
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.models.db.user import User
 
 router = APIRouter()
@@ -91,10 +89,3 @@ async def welcome(_: Annotated[User, web_user()]):
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
     return render_response('user/settings/index.jinja2')
-
-
-@router.get('/history/feed')
-async def history_feed(
-    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
-):
-    return await get_history_feed(limit=limit)
