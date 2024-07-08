@@ -80,8 +80,161 @@ export const getRoutingController = (map) => {
             autoPan: true,
         }).addTo(map)
 
+    /**
+     * On draggable marker drag start, set data and drag image
+     * @param {DragEvent} event
+     */
+    const onInterfaceMarkerDragStart = (event) => {
+        const target = event.target
+        const markerGuid = target.dataset.guid
+        console.debug("onInterfaceMarkerDragStart", markerGuid)
+
+        const dt = event.dataTransfer
+        dt.effectAllowed = "move"
+        dt.setData("text/plain", "")
+        dt.setData(dragDataType, markerGuid)
+
+        const canvas = document.createElement("canvas")
+        canvas.width = 25
+        canvas.height = 41
+
+        const ctx = canvas.getContext("2d")
+        ctx.drawImage(target, 0, 0, 25, 41)
+        dt.setDragImage(canvas, 12, 21)
+    }
+
+    /**
+     * On marker drag end, update the form's coordinates
+     * @param {L.DragEndEvent} event
+     * @returns {void}
+     */
+    const onMapMarkerDragEnd = (event) => {
+        console.debug("onMapMarkerDragEnd", event)
+
+        const marker = event.propagatedFrom || event.target
+        const latLng = marker.getLatLng()
+        const zoom = map.getZoom()
+        const precision = zoomPrecision(zoom)
+        const lon = latLng.lng.toFixed(precision)
+        const lat = latLng.lat.toFixed(precision)
+        const value = `${lat}, ${lon}`
+
+        if (marker === fromMarker) {
+            fromInput.value = value
+            fromInput.dispatchEvent(new Event("input"))
+        } else if (marker === toMarker) {
+            toInput.value = value
+            toInput.dispatchEvent(new Event("input"))
+        } else {
+            console.warn("Unknown routing marker", marker)
+        }
+
+        submitFormIfFilled()
+    }
+
+    /**
+     * On map marker drop, update the marker's coordinates
+     * @param {DragEvent} event
+     */
+    const onMapDrop = (event) => {
+        // Skip updates if the sidebar is hidden
+        if (!loaded) return
+
+        let marker
+        const dragData = event.dataTransfer.getData(dragDataType)
+        console.debug("onMapDrop", dragData)
+
+        if (dragData === fromMarkerGuid) {
+            if (!fromMarker) {
+                fromMarker = markerFactory("green")
+                fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(fromMarker)
+            }
+            marker = fromMarker
+        } else if (dragData === toMarkerGuid) {
+            if (!toMarker) {
+                toMarker = markerFactory("red")
+                toMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(toMarker)
+            }
+            marker = toMarker
+        } else {
+            return
+        }
+
+        const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
+        mousePosition.y += 20 // offset position to account for the marker's height
+
+        const latLng = map.containerPointToLatLng(mousePosition)
+        marker.setLatLng(latLng)
+        marker.fire("dragend", { propagatedFrom: marker })
+    }
+
+    // On map update, update the form's bounding box
+    const onMapZoomOrMoveEnd = () => {
+        // Skip updates if the sidebar is hidden
+        if (!loaded) return
+        boundsInput.value = map.getBounds().toBBoxString()
+    }
+
+    // On input enter, submit the form
+    const onInput = (event) => {
+        if (event.key === "Enter") submitFormIfFilled()
+    }
+
+    // On engine input change, remember the last routing engine
+    const onEngineInputChange = () => {
+        setLastRoutingEngine(engineInput.value)
+        submitFormIfFilled()
+    }
+
+    // On reverse button click, swap the from and to inputs
+    const onReverseButtonClick = () => {
+        const fromValue = fromInput.value
+        fromInput.value = toInput.value
+        toInput.value = fromValue
+        fromInput.dispatchEvent(new Event("input"))
+        toInput.dispatchEvent(new Event("input"))
+        submitFormIfFilled()
+    }
+
     const submitFormIfFilled = () => {
         if (fromInput.value && toInput.value) form.requestSubmit()
+    }
+
+    // On success callback, call routing engine, display results, and update search params
+    const onFormSuccess = ({ from, to, bounds }) => {
+        console.debug("onFormSuccess", from, to, bounds)
+
+        fromInput.value = from.name
+        toInput.value = to.name
+        fromInput.dispatchEvent(new Event("input"))
+        toInput.dispatchEvent(new Event("input"))
+
+        if (!fromMarker) {
+            fromMarker = markerFactory("green")
+            fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
+            map.addLayer(fromMarker)
+        }
+
+        if (!toMarker) {
+            toMarker = markerFactory("red")
+            toMarker.addEventListener("dragend", onMapMarkerDragEnd)
+            map.addLayer(toMarker)
+        }
+
+        const [fromLon, fromLat] = from.point
+        const [toLon, toLat] = to.point
+        fromMarker.setLatLng(L.latLng(fromLat, fromLon))
+        toMarker.setLatLng(L.latLng(toLat, toLon))
+        callRoutingEngine()
+
+        // Focus on the makers if they're offscreen
+        const [minLon, minLat, maxLon, maxLat] = bounds
+        const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+        if (!map.getBounds().contains(latLngBounds)) {
+            map.fitBounds(latLngBounds)
+        }
     }
 
     const callRoutingEngine = () => {
@@ -195,161 +348,6 @@ export const getRoutingController = (map) => {
         alert(error.message)
     }
 
-    /**
-     * On marker drag end, update the form's coordinates
-     * @param {L.DragEndEvent} event
-     * @returns {void}
-     */
-    const onMarkerDragEnd = (event) => {
-        console.debug("onMarkerDragEnd", event)
-
-        const marker = event.propagatedFrom || event.target
-        const latLng = marker.getLatLng()
-        const zoom = map.getZoom()
-        const precision = zoomPrecision(zoom)
-        const lon = latLng.lng.toFixed(precision)
-        const lat = latLng.lat.toFixed(precision)
-        const value = `${lat}, ${lon}`
-
-        if (marker === fromMarker) {
-            fromInput.value = value
-            fromInput.dispatchEvent(new Event("input"))
-        } else if (marker === toMarker) {
-            toInput.value = value
-            toInput.dispatchEvent(new Event("input"))
-        } else {
-            console.warn("Unknown routing marker", marker)
-        }
-
-        submitFormIfFilled()
-    }
-
-    /**
-     * On map marker drop, update the marker's coordinates
-     * @param {DragEvent} event
-     */
-    const onMapDrop = (event) => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
-        let marker
-        const dragData = event.dataTransfer.getData(dragDataType)
-        console.debug("onMapDrop", dragData)
-
-        if (dragData === fromMarkerGuid) {
-            if (!fromMarker) {
-                fromMarker = markerFactory("green")
-                fromMarker.addEventListener("dragend", onMarkerDragEnd)
-                map.addLayer(fromMarker)
-            }
-            marker = fromMarker
-        } else if (dragData === toMarkerGuid) {
-            if (!toMarker) {
-                toMarker = markerFactory("red")
-                toMarker.addEventListener("dragend", onMarkerDragEnd)
-                map.addLayer(toMarker)
-            }
-            marker = toMarker
-        } else {
-            return
-        }
-
-        const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
-        mousePosition.y += 20 // offset position to account for the marker's height
-
-        const latLng = map.containerPointToLatLng(mousePosition)
-        marker.setLatLng(latLng)
-        marker.fire("dragend", { propagatedFrom: marker })
-    }
-
-    // On map update, update the form's bounding box
-    const onMapZoomOrMoveEnd = () => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
-        // TODO: handle 180th meridian
-        boundsInput.value = map.getBounds().toBBoxString()
-    }
-
-    /**
-     * On draggable marker drag start, set data and drag image
-     * @param {DragEvent} event
-     */
-    const onDraggableMarkerDragStart = (event) => {
-        const target = event.target
-        const markerGuid = target.dataset.guid
-        console.debug("onDraggableMarkerDragStart", markerGuid)
-
-        const dt = event.dataTransfer
-        dt.effectAllowed = "move"
-        dt.setData("text/plain", "")
-        dt.setData(dragDataType, markerGuid)
-
-        const canvas = document.createElement("canvas")
-        canvas.width = 25
-        canvas.height = 41
-
-        const ctx = canvas.getContext("2d")
-        ctx.drawImage(target, 0, 0, 25, 41)
-        dt.setDragImage(canvas, 12, 21)
-    }
-
-    // On input enter, submit the form
-    const onInput = (event) => {
-        if (event.key === "Enter") submitFormIfFilled()
-    }
-
-    // On engine input change, remember the last routing engine
-    const onEngineInputChange = () => {
-        setLastRoutingEngine(engineInput.value)
-        submitFormIfFilled()
-    }
-
-    // On reverse button click, swap the from and to inputs
-    const onReverseButtonClick = () => {
-        const fromValue = fromInput.value
-        fromInput.value = toInput.value
-        toInput.value = fromValue
-        fromInput.dispatchEvent(new Event("input"))
-        toInput.dispatchEvent(new Event("input"))
-        submitFormIfFilled()
-    }
-
-    // On success callback, call routing engine, display results, and update search params
-    const onFormSuccess = ({ from, to, bounds }) => {
-        console.debug("onFormSuccess", from, to, bounds)
-
-        fromInput.value = from.name
-        toInput.value = to.name
-        fromInput.dispatchEvent(new Event("input"))
-        toInput.dispatchEvent(new Event("input"))
-
-        if (!fromMarker) {
-            fromMarker = markerFactory("green")
-            fromMarker.addEventListener("dragend", onMarkerDragEnd)
-            map.addLayer(fromMarker)
-        }
-
-        if (!toMarker) {
-            toMarker = markerFactory("red")
-            toMarker.addEventListener("dragend", onMarkerDragEnd)
-            map.addLayer(toMarker)
-        }
-
-        const [fromLon, fromLat] = from.point
-        const [toLon, toLat] = to.point
-        fromMarker.setLatLng(L.latLng(fromLat, fromLon))
-        toMarker.setLatLng(L.latLng(toLat, toLon))
-        callRoutingEngine()
-
-        // Focus on the makers if they're offscreen
-        const [minLon, minLat, maxLon, maxLat] = bounds
-        const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-        if (!map.getBounds().contains(latLngBounds)) {
-            map.fitBounds(latLngBounds)
-        }
-    }
-
     // Listen for events
     configureStandardForm(form, onFormSuccess)
     const mapContainer = map.getContainer()
@@ -357,16 +355,16 @@ export const getRoutingController = (map) => {
     mapContainer.addEventListener("drop", onMapDrop)
     map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
     fromInput.addEventListener("input", onInput)
-    fromDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
+    fromDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
     toInput.addEventListener("input", onInput)
-    toDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
+    toDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
     reverseButton.addEventListener("click", onReverseButtonClick)
     engineInput.addEventListener("input", onEngineInputChange)
 
     return {
         load: () => {
             form.reset()
-            switchActionSidebar(map, "directions")
+            switchActionSidebar(map, "routing")
             document.title = getPageTitle(sidebarTitle)
 
             // Allow default form setting via URL search parameters

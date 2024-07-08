@@ -21,7 +21,7 @@ async def resolve_names(
     bounds: Annotated[str, Form(min_length=1)],
 ) -> dict:
     collector = MessageCollector()
-    bounds_shape = parse_bbox(bounds)  # TODO: MultiPolygon support
+    bounds_shape = parse_bbox(bounds)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     async with TaskGroup() as tg:
