@@ -30,7 +30,7 @@ async def history_feed(
     limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     geometry = parse_bbox(bbox) if (bbox is not None) else None
-    return await get_history_feed(geometry=geometry, limit=limit)
+    return await _get_feed(geometry=geometry, limit=limit)
 
 
 @router.get('/user/{display_name:str}/history/feed')
@@ -43,7 +43,7 @@ async def user_history_feed(
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
     geometry = parse_bbox(bbox) if (bbox is not None) else None
-    return await get_history_feed(user=user, geometry=geometry, limit=limit)
+    return await _get_feed(user=user, geometry=geometry, limit=limit)
 
 
 @router.get('/user/permalink/{user_id:int}/history/feed')
@@ -56,10 +56,10 @@ async def user_permalink_history_feed(
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml')
     geometry = parse_bbox(bbox) if (bbox is not None) else None
-    return await get_history_feed(user=user, geometry=geometry, limit=limit)
+    return await _get_feed(user=user, geometry=geometry, limit=limit)
 
 
-async def get_history_feed(
+async def _get_feed(
     *,
     user: User | None = None,
     geometry: BaseGeometry | None,
