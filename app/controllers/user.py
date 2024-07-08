@@ -2,15 +2,22 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import numpy as np
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Query, status
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
+from app.lib.feed import get_history_feed
 from app.lib.legal import legal_terms
 from app.lib.render_response import render_response
-from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
+from app.limits import (
+    CHANGESET_QUERY_DEFAULT_LIMIT,
+    CHANGESET_QUERY_MAX_LIMIT,
+    DISPLAY_NAME_MAX_LENGTH,
+    USER_NEW_DAYS,
+    USER_RECENT_ACTIVITY_ENTRIES,
+)
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
@@ -147,3 +154,11 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'activity': activity,
         },
     )
+
+
+@router.get('/{display_name:str}/history/feed')
+async def user_history_feed(
+    display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+):
+    return await get_history_feed(user_display_name=display_name, limit=limit)
