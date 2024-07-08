@@ -5,7 +5,7 @@ from feedgen.feed import FeedGenerator
 from starlette import status
 from starlette.responses import HTMLResponse
 
-from app.config import APP_URL
+from app.config import APP_URL, ATTRIBUTION_URL
 from app.format import FormatRSS06
 from app.lib.date_utils import utcnow
 from app.lib.translation import primary_translation_language, t
@@ -45,6 +45,6 @@ async def get_history_feed(
     fg.language(primary_translation_language())
     fg.id(f'{APP_URL}/history/feed')
     fg.updated(utcnow())
-    fg.rights('CC BY-SA 2.0')
+    fg.rights(ATTRIBUTION_URL)
     await FormatRSS06.encode_changesets(fg, changesets)
     return fg.atom_str(pretty=True)
