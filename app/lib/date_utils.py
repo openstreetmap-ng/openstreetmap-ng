@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from email import utils
 from typing import overload
 
 import dateutil.parser
@@ -42,6 +43,13 @@ def format_sql_date(date: datetime | None) -> str:
         raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
     format = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
     return date.strftime(format)
+
+
+def format_rfc2822_date(date: datetime) -> str:
+    """
+    Format a datetime object as an RFC2822 date string.
+    """
+    return utils.format_datetime(date)
 
 
 def utcnow() -> datetime:

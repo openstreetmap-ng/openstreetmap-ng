@@ -1,4 +1,5 @@
 from app.format.api06_changeset import Changeset06Mixin
+from app.format.api06_changeset_rss import ChangesetRSS06Mixin
 from app.format.api06_diff import Diff06Mixin
 from app.format.api06_element import Element06Mixin
 from app.format.api06_note import Note06Mixin
@@ -29,6 +30,7 @@ class Format06(
 
 
 class FormatRSS06(
+    ChangesetRSS06Mixin,
     NoteRSS06Mixin,
 ): ...
 

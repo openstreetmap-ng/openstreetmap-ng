@@ -10,7 +10,11 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.legal import legal_terms
 from app.lib.render_response import render_response
-from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
+from app.limits import (
+    DISPLAY_NAME_MAX_LENGTH,
+    USER_NEW_DAYS,
+    USER_RECENT_ACTIVITY_ENTRIES,
+)
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
