@@ -18,6 +18,7 @@ class ChangesetRSS06Mixin:
         """
         Encode changesets into a feed.
         """
+        fg.load_extension('geo')
         async with TaskGroup() as tg:
             for changeset in changesets:
                 await tg.create_task(_encode_changeset(fg, changeset))
@@ -54,6 +55,9 @@ async def _encode_changeset(
         closed = changeset.closed_at.strftime(FE_DATETIME_FORMAT)
     else:
         closed = ''
+
+    if changeset.bounds:
+        fe.geo.box(' '.join(str(bound) for bound in changeset.bounds.bounds))
 
     fe.content(
         render(
