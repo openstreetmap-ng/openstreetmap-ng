@@ -116,16 +116,15 @@ def _get_phone_info(s: str):
 
 @cython.cfunc
 def _format_phone(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
-    result: list[ValueFormat] = []
-    for value in values:
+    result: list[ValueFormat] = values.copy()
+    i: cython.int
+    for i, value in enumerate(values):
         if value.format is not None:
-            result.append(value)
             continue
         info = _get_phone_info(value.text)
         if info is None or not is_possible_number(info) or not is_valid_number(info):
-            result.append(value)
             continue
-        result.append(ValueFormat(value.text, 'phone', f'tel:{format_number(info, PhoneNumberFormat.E164)}'))
+        result[i] = ValueFormat(value.text, 'phone', f'tel:{format_number(info, PhoneNumberFormat.E164)}')
     return result
 
 

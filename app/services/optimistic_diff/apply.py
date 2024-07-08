@@ -4,6 +4,7 @@ from collections import defaultdict
 from collections.abc import Collection, Iterable, Mapping
 from datetime import datetime
 
+import cython
 from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -119,7 +120,6 @@ async def _update_elements(
     current_sequence_id = current_sequence_task.result()
     current_id_map = current_id_task.result()
     update_type_ids: dict[ElementType, list[int]] = defaultdict(list)
-    insert_elements: list[Element] = []
     insert_members: list[ElementMember] = []
     prev_map: dict[ElementRef, Element] = {}
     assigned_id_map: dict[ElementRef, int] = {}
@@ -147,20 +147,19 @@ async def _update_elements(
             element.id = assigned_id
 
     # process members
-    for element_t in elements:
-        element = element_t[0]
-        insert_elements.append(element)
+    insert_elements: list[Element] = [None] * len(elements)  # type: ignore[list-item]
+    i: cython.int
+    for i, element_t in enumerate(elements):
+        element = insert_elements[i] = element_t[0]
         element_members = element.members
         if not element_members:
             continue
 
         insert_members.extend(element_members)
         sequence_id = element.sequence_id
-
         for member in element_members:
             # assign sequence_id
             member.sequence_id = sequence_id
-
             # assign id
             if member.id < 0:
                 member_ref = ElementRef(member.type, member.id)

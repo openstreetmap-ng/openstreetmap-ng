@@ -55,135 +55,135 @@ class FormatElementList:
             prev_type_id_map = {}
 
         result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
-
         for element in elements:
-            prev = prev_type_id_map.get((element.type, element.id))
-            tags = prev.tags if (prev is not None) else element.tags
-            if tags:
-                name = feature_name(tags)
-                resolved = feature_icon(element.type, tags)
-            else:
-                name = None
-                resolved = None
-
-            if resolved is not None:
-                icon = resolved[0]
-                icon_title = resolved[1]
-            else:
-                icon = None
-                icon_title = None
-
-            result[element.type].append(
-                ChangesetListEntry(
-                    type=element.type,
-                    id=element.id,
-                    name=name,
-                    version=element.version,
-                    visible=element.visible,
-                    icon=icon,
-                    icon_title=icon_title,
-                )
-            )
-
+            result[element.type].append(_encode_element(prev_type_id_map, element))
         for v in result.values():
             v.sort(key=_sort_key)
         return result
 
     @staticmethod
-    def element_parents(ref: ElementRef, parents: Iterable[Element]) -> list[MemberListEntry]:
-        result: list[MemberListEntry] = []
-
-        for element in parents:
-            type = element.type
-            tags = element.tags
-            if tags:
-                name = feature_name(tags)
-                resolved = feature_icon(type, tags)
-            else:
-                name = None
-                resolved = None
-
-            if resolved is not None:
-                icon = resolved[0]
-                icon_title = resolved[1]
-            else:
-                icon = None
-                icon_title = None
-
-            if type == 'relation':
-                members = element.members
-                if members is None:
-                    raise AssertionError('Relation members must be set')
-                role = ', '.join(
-                    sorted(
-                        {
-                            member_ref.role
-                            for member_ref in members
-                            if member_ref.role and member_ref.id == ref.id and member_ref.type == ref.type
-                        }
-                    )
-                )
-            else:
-                role = ''
-
-            result.append(
-                MemberListEntry(
-                    type=type,
-                    id=element.id,
-                    name=name,
-                    icon=icon,
-                    icon_title=icon_title,
-                    role=role,
-                )
-            )
-
-        return result
+    def element_parents(ref: ElementRef, parents: Iterable[Element]) -> tuple[MemberListEntry, ...]:
+        return tuple(_encode_parent(ref, element) for element in parents)
 
     @staticmethod
     def element_members(
         members: Iterable[ElementMember],
         members_elements: Iterable[Element],
-    ) -> list[MemberListEntry]:
+    ) -> tuple[MemberListEntry, ...]:
         type_id_map: dict[tuple[ElementType, int], Element] = {
             (member.type, member.id): member  #
             for member in members_elements
         }
-        result: list[MemberListEntry] = []
+        return tuple(filter(None, (_encode_member(type_id_map, member) for member in members)))
 
-        for member in members:
-            member_type = member.type
-            member_id = member.id
-            element = type_id_map.get((member_type, member_id))
-            if element is None:
-                continue
 
-            tags = element.tags
-            if tags:
-                name = feature_name(tags)
-                resolved = feature_icon(member_type, tags)
-            else:
-                name = None
-                resolved = None
+@cython.cfunc
+def _encode_element(prev_type_id_map: dict[tuple[ElementType, int], Element], element: Element):
+    element_type = element.type
+    element_id = element.id
+    prev = prev_type_id_map.get((element_type, element_id))
+    tags = prev.tags if (prev is not None) else element.tags
 
-            if resolved is not None:
-                icon = resolved[0]
-                icon_title = resolved[1]
-            else:
-                icon = None
-                icon_title = None
+    if tags:
+        name = feature_name(tags)
+        resolved = feature_icon(element_type, tags)
+    else:
+        name = None
+        resolved = None
 
-            result.append(
-                MemberListEntry(
-                    type=member_type,
-                    id=member_id,
-                    name=name,
-                    icon=icon,
-                    icon_title=icon_title,
-                    role=member.role,
-                )
+    if resolved is not None:
+        icon = resolved[0]
+        icon_title = resolved[1]
+    else:
+        icon = None
+        icon_title = None
+
+    return ChangesetListEntry(
+        type=element_type,
+        id=element_id,
+        name=name,
+        version=element.version,
+        visible=element.visible,
+        icon=icon,
+        icon_title=icon_title,
+    )
+
+
+@cython.cfunc
+def _encode_parent(ref: ElementRef, element: Element):
+    element_type = element.type
+    element_id = element.id
+
+    if tags := element.tags:
+        name = feature_name(tags)
+        resolved = feature_icon(element_type, tags)
+    else:
+        name = None
+        resolved = None
+
+    if resolved is not None:
+        icon = resolved[0]
+        icon_title = resolved[1]
+    else:
+        icon = None
+        icon_title = None
+
+    if element_type == 'relation':
+        members = element.members
+        if members is None:
+            raise AssertionError('Relation members must be set')
+        role = ', '.join(
+            sorted(
+                {
+                    member_ref.role
+                    for member_ref in members
+                    if member_ref.role and member_ref.id == ref.id and member_ref.type == ref.type
+                }
             )
+        )
+    else:
+        role = ''
 
-        return result
+    return MemberListEntry(
+        type=element_type,
+        id=element_id,
+        name=name,
+        icon=icon,
+        icon_title=icon_title,
+        role=role,
+    )
+
+
+@cython.cfunc
+def _encode_member(type_id_map: dict[tuple[ElementType, int], Element], member: ElementMember):
+    member_type = member.type
+    member_id = member.id
+    element = type_id_map.get((member_type, member_id))
+    if element is None:
+        return None
+
+    if tags := element.tags:
+        name = feature_name(tags)
+        resolved = feature_icon(member_type, tags)
+    else:
+        name = None
+        resolved = None
+
+    if resolved is not None:
+        icon = resolved[0]
+        icon_title = resolved[1]
+    else:
+        icon = None
+        icon_title = None
+
+    return MemberListEntry(
+        type=member_type,
+        id=member_id,
+        name=name,
+        icon=icon,
+        icon_title=icon_title,
+        role=member.role,
+    )
 
 
 @cython.cfunc

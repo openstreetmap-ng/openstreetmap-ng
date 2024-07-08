@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from collections import defaultdict
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated, Literal
@@ -176,15 +177,15 @@ async def get_feed(
 
     # resolve legacy_note field
     if comments:
-        notes_ids = {comment.note_id for comment in comments}
-        notes = await NoteQuery.find_many_by_query(note_ids=notes_ids, limit=len(notes_ids))
-        note_id_map: dict[int, Note] = {}
-        for note in notes:
-            note.comments = []
-            note_id_map[note.id] = note
+        note_comments_map = defaultdict(list)
         for comment in comments:
-            comment.legacy_note = note = note_id_map[comment.note_id]
-            note.comments.append(comment)  # type: ignore[union-attr]
+            note_comments_map[comment.note_id].append(comment)
+        notes_ids = note_comments_map.keys()
+        notes = await NoteQuery.find_many_by_query(note_ids=notes_ids, limit=len(notes_ids))
+        for note in notes:
+            note_comments = note.comments = note_comments_map[note.id]
+            for comment in note_comments:
+                comment.legacy_note = note
 
     fg = FeedGenerator()
     fg.link(href=str(request.url), rel='self')

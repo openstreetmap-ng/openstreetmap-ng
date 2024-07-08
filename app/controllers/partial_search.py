@@ -1,8 +1,8 @@
 from asyncio import TaskGroup
-from collections.abc import Iterable
 from itertools import chain
 from typing import Annotated
 
+import cython
 import numpy as np
 from fastapi import APIRouter, Query
 from shapely import lib
@@ -56,12 +56,7 @@ async def search(
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
 
-    members_refs = {
-        ElementRef(member.type, member.id)
-        for element in elements
-        if element.members is not None
-        for member in element.members
-    }
+    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # type: ignore[union-attr]
     members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
@@ -77,23 +72,22 @@ async def search(
     Search.remove_overlapping_points(results)
 
     # prepare data for leaflet rendering
-    leaflet: list[list[ElementLeaflet]] = []
+    leaflet: list[list[ElementLeaflet]] = [None] * len(results)  # type: ignore[list-item]
 
-    for result in results:
+    i: cython.int
+    for i, result in enumerate(results):
         element = result.element
-        full_data: Iterable[Element] = (element,)
-        if element.members is not None:
-            element_members = tuple(members_map[member.type, member.id] for member in element.members)
-            full_data = chain(
-                full_data,
-                element_members,
-                (
-                    members_map[mm.type, mm.id]
-                    for member in element_members
-                    if member.type == 'way'  # recurse_ways
-                    for mm in member.members  # type: ignore[union-attr]
-                ),
-            )
+        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # type: ignore[union-attr]
+        full_data = chain(
+            (element,),
+            element_members,
+            (
+                members_map[mm.type, mm.id]
+                for member in element_members
+                if member.type == 'way'  # recurse_ways
+                for mm in member.members  # type: ignore[union-attr]
+            ),
+        )
 
         leaflet_elements = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
 
@@ -102,7 +96,7 @@ async def search(
             x, y = lib.get_coordinates(np.asarray(result.point, dtype=object), False, False)[0].tolist()
             leaflet_elements.append(ElementLeafletNode('node', 0, [y, x]))
 
-        leaflet.append(leaflet_elements)
+        leaflet[i] = leaflet_elements
 
     return render_response(
         'partial/search.jinja2',

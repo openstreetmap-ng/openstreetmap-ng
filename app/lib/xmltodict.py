@@ -189,12 +189,13 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
 
         # encode sequence of scalars
         else:
-            result = []
+            result = [None] * len(value)
             key_bytes = key.encode()
-            for v in value:
+            i: cython.int
+            for i, v in enumerate(value):
                 element = ET.Element(key_bytes)
                 element.text = _to_string(v)
-                result.append(element)
+                result[i] = element
             return tuple(result)
 
     # encode scalar

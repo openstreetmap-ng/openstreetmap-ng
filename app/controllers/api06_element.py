@@ -142,12 +142,10 @@ async def get_latest(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_by_refs((ref,), limit=1)
     element = elements[0] if elements else None
-
     if element is None:
         raise_for().element_not_found(ref)
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
-
     return await _encode_element(element)
 
 
@@ -216,11 +214,7 @@ async def get_full(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/relations.json')
 async def get_parent_relations(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_parents_by_refs(
-        (ref,),
-        parent_type='relation',
-        limit=None,
-    )
+    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='relation', limit=None)
     return await _encode_elements(elements)
 
 
@@ -229,11 +223,7 @@ async def get_parent_relations(type: ElementType, id: PositiveInt):
 @router.get('/node/{id:int}/ways.json')
 async def get_parent_ways(id: PositiveInt):
     ref = ElementRef('node', id)
-    elements = await ElementQuery.get_parents_by_refs(
-        (ref,),
-        parent_type='way',
-        limit=None,
-    )
+    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='way', limit=None)
     return await _encode_elements(elements)
 
 

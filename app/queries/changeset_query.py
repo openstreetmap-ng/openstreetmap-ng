@@ -57,7 +57,6 @@ class ChangesetQuery:
 
         prev_id: int | None = None
         next_id: int | None = None
-
         for id in ids:
             if id is None:
                 continue

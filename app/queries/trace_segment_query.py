@@ -1,11 +1,12 @@
 from collections import Counter
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Sequence
 
 import cython
 import numpy as np
 from shapely import GeometryType, MultiPoint, STRtree, from_wkb, get_parts, lib
 from shapely.ops import BaseGeometry
 from sqlalchemy import func, literal_column, select, text, union_all
+from sqlalchemy.sql.selectable import Select
 
 from app.db import db
 from app.lib.mercator import mercator
@@ -142,7 +143,7 @@ class TraceSegmentQuery:
 
     @staticmethod
     async def resolve_coords(
-        traces: Iterable[Trace],
+        traces: Collection[Trace],
         *,
         limit_per_trace: int,
         resolution: int | None,
@@ -150,14 +151,14 @@ class TraceSegmentQuery:
         """
         Resolve coords for traces.
         """
-        id_trace_map: dict[int, Trace] = {trace.id: trace for trace in traces if trace.coords is None}
-        if not id_trace_map:
+        trace_id_map: dict[int, Trace] = {trace.id: trace for trace in traces}
+        if not trace_id_map:
             return
 
         async with db() as session:
-            stmts = []
-
-            for trace in id_trace_map.values():
+            stmts: list[Select] = [None] * len(traces)  # type: ignore[list-item]
+            i: cython.int
+            for i, trace in enumerate(traces):
                 subq = (
                     select(TraceSegment.points)
                     .where(TraceSegment.trace_id == trace.id)
@@ -198,12 +199,12 @@ class TraceSegmentQuery:
                     )
 
                 stmt_ = select(text(str(trace.id)), subq.c.geom).select_from(subq)
-                stmts.append(stmt_)
+                stmts[i] = stmt_
 
             rows = (await session.execute(union_all(*stmts))).all()
 
         for trace_id, wkb in rows:
-            trace = id_trace_map[trace_id]
+            trace = trace_id_map[trace_id]
             geom = from_wkb(wkb)
             coords: np.ndarray = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
             if resolution is not None:

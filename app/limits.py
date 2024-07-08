@@ -106,7 +106,7 @@ RICH_TEXT_CACHE_EXPIRE = timedelta(hours=8)
 S3_CACHE_EXPIRE = timedelta(days=1)
 
 SEARCH_LOCAL_AREA_LIMIT = 100  # in square degrees
-SEARCH_LOCAL_MAX_ITERATIONS = 8
+SEARCH_LOCAL_MAX_ITERATIONS = 7
 SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller is prefer more local
 SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50

@@ -36,7 +36,7 @@ async def test_create_simple(changeset_id: int):
     assert element.visible
     assert element.tags == {}
     assert element.point == Point(0, 0)
-    assert element.members is None
+    assert not element.members
 
 
 async def test_create_invalid_changeset_id():

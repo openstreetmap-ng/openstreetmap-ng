@@ -61,7 +61,6 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         # remove duplicates and preserve order
         result_set: set[str] = set()
         result: list[str] = []
-
         for tag in s.split(sep):
             tag = tag.strip()[:TRACE_TAG_MAX_LENGTH].strip()
             if tag and (tag not in result_set):

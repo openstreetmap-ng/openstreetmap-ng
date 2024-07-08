@@ -170,14 +170,13 @@ class _ZipProcessor(_TraceProcessor):
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
                     raise_for().trace_file_archive_too_many_files()
 
-                result = []
+                result: list[bytes] = [None] * len(infos)  # type: ignore[list-item]
                 result_size: cython.int = 0
-
-                for info in infos:
+                i: cython.int
+                for i, info in enumerate(infos):
                     file = archive.read(info)
-                    result.append(file)
+                    result[i] = file
                     result_size += len(file)
-
                     if result_size > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
                         raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 

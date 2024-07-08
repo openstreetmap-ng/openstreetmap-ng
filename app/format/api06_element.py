@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Iterable, Sequence
 
 import cython
 import numpy as np
@@ -57,7 +57,7 @@ class Element06Mixin:
         return _decode_element(type, data, changeset_id=None)
 
     @staticmethod
-    def encode_osmchange(elements: Iterable[Element]) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
+    def encode_osmchange(elements: Collection[Element]) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
         """
         >>> encode_osmchange([
         ...     Element(type='node', id=1, version=1, ...),
@@ -68,9 +68,10 @@ class Element06Mixin:
             ('modify', {'way': {'@id': 2, '@version': 2, ...}}),
         ]
         """
-        result = []
+        result: list[tuple[OSMChangeAction, dict[ElementType, dict]]] = [None] * len(elements)  # type: ignore[list-item]
         action: OSMChangeAction
-        for element in elements:
+        i: cython.int
+        for i, element in enumerate(elements):
             # determine the action automatically
             if element.version == 1:
                 action = 'create'
@@ -78,7 +79,7 @@ class Element06Mixin:
                 action = 'modify'
             else:
                 action = 'delete'
-            result.append((action, {element.type: _encode_element(element, is_json=False)}))
+            result[i] = (action, {element.type: _encode_element(element, is_json=False)})
         return result
 
     @staticmethod

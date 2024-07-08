@@ -1,7 +1,8 @@
 from asyncio import TaskGroup
-from collections.abc import Iterable, Sequence
+from collections.abc import Collection, Sequence
 from typing import Literal
 
+import cython
 from shapely.ops import BaseGeometry
 from sqlalchemy import Select, func, select, text, union_all
 
@@ -52,7 +53,7 @@ class NoteCommentQuery:
 
     @staticmethod
     async def resolve_comments(
-        notes: Iterable[Note],
+        notes: Collection[Note],
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None,
@@ -61,20 +62,16 @@ class NoteCommentQuery:
         """
         Resolve comments for notes.
         """
-        notes_: list[Note] = []
+        if not notes:
+            return ()
         id_comments_map: dict[int, list[NoteComment]] = {}
         for note in notes:
-            if note.comments is None:
-                notes_.append(note)
-                id_comments_map[note.id] = note.comments = []
-
-        if not notes_:
-            return ()
+            id_comments_map[note.id] = note.comments = []
 
         async with db() as session:
-            stmts: list[Select] = []
-
-            for note in notes_:
+            stmts: list[Select] = [None] * len(notes)  # type: ignore[list-item]
+            i: cython.int
+            for i, note in enumerate(notes):
                 stmt_ = select(NoteComment.id).where(
                     NoteComment.note_id == note.id,
                     NoteComment.created_at <= note.updated_at,
@@ -88,7 +85,7 @@ class NoteCommentQuery:
                         .subquery()
                     )
                     stmt_ = select(subq.c.id).select_from(subq)
-                stmts.append(stmt_)
+                stmts[i] = stmt_
 
             stmt = (
                 select(NoteComment)

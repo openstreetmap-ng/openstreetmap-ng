@@ -146,9 +146,9 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     if element_members is None:
         raise AssertionError('Element members must be set')
 
-    list_parents: Collection[MemberListEntry] = ()
     full_data: Iterable[Element] = ()
     list_elements: Collection[MemberListEntry] = ()
+    list_parents: Collection[MemberListEntry] = ()
 
     async def changeset_task():
         with options_context(
@@ -160,17 +160,6 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             )
         ):
             return await ChangesetQuery.get_by_id(element.changeset_id)
-
-    async def parents_task():
-        nonlocal list_parents
-        ref = ElementRef(element.type, element.id)
-        parents = await ElementQuery.get_parents_by_refs(
-            (ref,),
-            at_sequence_id=at_sequence_id,
-            limit=None,
-        )
-        await ElementMemberQuery.resolve_members(parents)
-        list_parents = FormatElementList.element_parents(ref, parents)
 
     async def data_task():
         nonlocal full_data, list_elements
@@ -190,15 +179,23 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         full_data = chain((element,), members_elements)
         list_elements = FormatElementList.element_members(element_members, direct_members)
 
+    async def parents_task():
+        nonlocal list_parents
+        ref = ElementRef(element.type, element.id)
+        parents = await ElementQuery.get_parents_by_refs(
+            (ref,),
+            at_sequence_id=at_sequence_id,
+            limit=None,
+        )
+        await ElementMemberQuery.resolve_members(parents)
+        list_parents = FormatElementList.element_parents(ref, parents)
+
     async with TaskGroup() as tg:
         changeset_t = tg.create_task(changeset_task())
         if element.visible:
+            tg.create_task(data_task())
             if include_parents:
                 tg.create_task(parents_task())
-            if element_members:
-                tg.create_task(data_task())
-            else:
-                full_data = (element,)
 
     changeset = changeset_t.result()
     comment_str = changeset.tags.get('comment')
@@ -228,8 +225,8 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             {
                 'type': element.type,
                 'lists': {
-                    'part_of': list_parents,
                     'elements': list_elements,
+                    'part_of': list_parents,
                 },
             }
         ).decode(),

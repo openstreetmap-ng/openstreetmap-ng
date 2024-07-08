@@ -1,5 +1,5 @@
 from asyncio import TaskGroup
-from collections.abc import Iterable
+from collections.abc import Collection
 from math import ceil
 
 from fastapi import APIRouter
@@ -71,7 +71,7 @@ async def get_note(id: PositiveInt):
     )
 
 
-async def _resolve_comments_task(notes: Iterable[Note]) -> None:
+async def _resolve_comments_task(notes: Collection[Note]) -> None:
     """
     Resolve note comments, their rich text and users.
     """

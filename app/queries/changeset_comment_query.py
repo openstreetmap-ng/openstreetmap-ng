@@ -1,6 +1,7 @@
 from asyncio import TaskGroup
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 
+import cython
 from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
@@ -29,14 +30,14 @@ class ChangesetCommentQuery:
         """
         Resolve the number of comments for each changeset.
         """
-        id_changeset_map = {changeset.id: changeset for changeset in changesets if changeset.num_comments is None}
-        if not id_changeset_map:
+        changeset_id_map = {changeset.id: changeset for changeset in changesets}
+        if not changeset_id_map:
             return
 
         async with db() as session:
             subq = (
                 select(ChangesetComment.changeset_id)
-                .where(ChangesetComment.changeset_id.in_(text(','.join(map(str, id_changeset_map)))))
+                .where(ChangesetComment.changeset_id.in_(text(','.join(map(str, changeset_id_map)))))
                 .subquery()
             )
             stmt = (
@@ -46,12 +47,12 @@ class ChangesetCommentQuery:
             )
             id_num_map: dict[int, int] = dict((await session.execute(stmt)).all())
 
-        for changeset_id, changeset in id_changeset_map.items():
+        for changeset_id, changeset in changeset_id_map.items():
             changeset.num_comments = id_num_map.get(changeset_id, 0)
 
     @staticmethod
     async def resolve_comments(
-        changesets: Iterable[Changeset],
+        changesets: Collection[Changeset],
         *,
         limit_per_changeset: int | None,
         resolve_rich_text: bool = True,
@@ -59,19 +60,16 @@ class ChangesetCommentQuery:
         """
         Resolve comments for changesets.
         """
-        changesets_: list[Changeset] = []
+        if not changesets:
+            return
         id_comments_map: dict[int, list[ChangesetComment]] = {}
         for changeset in changesets:
-            if changeset.comments is None:
-                changesets_.append(changeset)
-                id_comments_map[changeset.id] = changeset.comments = []
-        if not changesets_:
-            return
+            id_comments_map[changeset.id] = changeset.comments = []
 
         async with db() as session:
-            stmts: list[Select] = []
-
-            for changeset in changesets_:
+            stmts: list[Select] = [None] * len(changesets)  # type: ignore[list-item]
+            i: cython.int
+            for i, changeset in enumerate(changesets):
                 stmt_ = select(ChangesetComment.id).where(
                     ChangesetComment.changeset_id == changeset.id,
                     ChangesetComment.created_at <= changeset.updated_at,
@@ -83,7 +81,7 @@ class ChangesetCommentQuery:
                         .subquery()
                     )
                     stmt_ = select(subq.c.id).select_from(subq)
-                stmts.append(stmt_)
+                stmts[i] = stmt_
 
             stmt = (
                 select(ChangesetComment)
@@ -102,7 +100,7 @@ class ChangesetCommentQuery:
                 current_comments = id_comments_map[changeset_id]
             current_comments.append(comment)
 
-        for changeset in changesets_:
+        for changeset in changesets:
             changeset.num_comments = len(changeset.comments)  # type: ignore[arg-type]
 
         if resolve_rich_text:

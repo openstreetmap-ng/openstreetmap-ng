@@ -1,7 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Collection
 from dataclasses import dataclass
 from itertools import chain
 from typing import Final
@@ -94,7 +94,7 @@ class OptimisticDiffPrepare:
     Changeset bounding box info, set of points and element refs.
     """
 
-    def __init__(self, elements: Iterable[Element]) -> None:
+    def __init__(self, elements: Collection[Element]) -> None:
         self.at_sequence_id = 0
         self.apply_elements = []
         self._elements = tuple((element, ElementRef(element.type, element.id)) for element in elements)

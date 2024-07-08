@@ -238,7 +238,7 @@ class ElementQuery:
 
     @staticmethod
     async def get_by_refs(
-        element_refs: Iterable[ElementRef],
+        element_refs: Collection[ElementRef],
         *,
         at_sequence_id: int | None = None,
         recurse_ways: bool = False,
@@ -249,11 +249,11 @@ class ElementQuery:
 
         Optionally recurse ways to get their nodes.
         """
+        if not element_refs:
+            return []
         type_id_map: dict[ElementType, set[int]] = defaultdict(set)
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
-        if not type_id_map:
-            return []
 
         async def task(type: ElementType, ids: set[int]) -> Iterable[Element]:
             async with db() as session:
@@ -275,7 +275,7 @@ class ElementQuery:
 
                 elements = (await session.scalars(stmt)).all()
 
-                if type == 'way' and recurse_ways and elements:
+                if type == 'way' and recurse_ways:
                     await ElementMemberQuery.resolve_members(elements)
                     node_ids = {member.id for element in elements for member in element.members}
                     node_ids.difference_update(type_id_map['node'])
@@ -301,7 +301,7 @@ class ElementQuery:
 
     @staticmethod
     async def find_many_by_any_refs(
-        refs: Iterable[VersionedElementRef | ElementRef],
+        refs: Collection[VersionedElementRef | ElementRef],
         *,
         at_sequence_id: int | None = None,
         limit: int | None,
@@ -311,6 +311,8 @@ class ElementQuery:
 
         Results are returned in the same order as the refs but the duplicates are skipped.
         """
+        if not refs:
+            return []
         # organize refs by kind
         versioned_refs: list[VersionedElementRef] = []
         element_refs: list[ElementRef] = []
@@ -319,8 +321,6 @@ class ElementQuery:
                 versioned_refs.append(ref)
             else:
                 element_refs.append(ref)
-        if not versioned_refs and not element_refs:
-            return []
         if at_sequence_id is None:
             at_sequence_id = await ElementQuery.get_current_sequence_id()
 
@@ -363,7 +363,7 @@ class ElementQuery:
 
     @staticmethod
     async def get_parents_by_refs(
-        member_refs: Iterable[ElementRef],
+        member_refs: Collection[ElementRef],
         *,
         at_sequence_id: int | None = None,
         parent_type: ElementType | None = None,
@@ -372,11 +372,11 @@ class ElementQuery:
         """
         Get elements that reference the given elements.
         """
+        if not member_refs:
+            return ()
         type_id_map: dict[ElementType, list[int]] = defaultdict(list)
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
-        if not type_id_map:
-            return ()
         # optimization: ways and relations can only be members of relations
         if parent_type is None and (not type_id_map.get('node')):
             parent_type = 'relation'
@@ -456,11 +456,11 @@ class ElementQuery:
         """
         Get elements refs that reference the given elements.
         """
+        if not member_refs:
+            return {}
         type_id_map: dict[ElementType, list[int]] = defaultdict(list)
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
-        if not type_id_map:
-            return {}
 
         async with db() as session:
             # 1: find lifetime of each ref
@@ -598,7 +598,7 @@ class ElementQuery:
         nodes_refs = tuple(ElementRef('node', node.id) for node in nodes)
         result_sequences: list[Iterable[Element]] = [nodes]
 
-        async def fetch_parents(element_refs: Iterable[ElementRef], parent_type: ElementType) -> Sequence[Element]:
+        async def fetch_parents(element_refs: Collection[ElementRef], parent_type: ElementType) -> Sequence[Element]:
             parents = await ElementQuery.get_parents_by_refs(
                 element_refs,
                 at_sequence_id=at_sequence_id,
@@ -616,7 +616,7 @@ class ElementQuery:
 
                 # fetch ways' parent relations
                 if include_relations:
-                    ways_refs = (ElementRef('way', way.id) for way in ways)
+                    ways_refs = tuple(ElementRef('way', way.id) for way in ways)
                     tg.create_task(fetch_parents(ways_refs, 'relation'))
 
                 # fetch ways' nodes

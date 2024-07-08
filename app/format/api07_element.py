@@ -25,6 +25,9 @@ def _encode_members(members: Iterable[ElementMember]) -> tuple[dict, ...]:
 
 @cython.cfunc
 def _encode_element(element: Element) -> dict:
+    element_members = element.members
+    if element_members is None:
+        raise AssertionError('Element members must be set')
     return {
         'type': element.type,
         'id': element.id,
@@ -35,7 +38,7 @@ def _encode_element(element: Element) -> dict:
         'visible': element.visible,
         **(_encode_point(element.point) if (element.point is not None) else {}),
         'tags': element.tags,
-        'members': _encode_members(element.members) if (element.members is not None) else (),
+        'members': _encode_members(element_members),
     }
 
 
