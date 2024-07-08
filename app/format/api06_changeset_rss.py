@@ -1,15 +1,13 @@
-from asyncio import TaskGroup
 from collections.abc import Sequence
 
+import cython
 from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
+from app.lib.date_utils import format_rfc2822_date
 from app.lib.jinja_env import render
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
-from app.queries.user_query import UserQuery
-
-FE_DATETIME_FORMAT = '%a, %d %b %Y %H:%M:%S +0000'
 
 
 class ChangesetRSS06Mixin:
@@ -19,54 +17,52 @@ class ChangesetRSS06Mixin:
         Encode changesets into a feed.
         """
         fg.load_extension('geo')
-        async with TaskGroup() as tg:
-            for changeset in changesets:
-                await tg.create_task(_encode_changeset(fg, changeset))
+        for changeset in changesets:
+            _encode_changeset(fg, changeset)
 
 
-async def _encode_changeset(
-    fg: FeedGenerator,
-    changeset: Changeset,
-) -> None:
+@cython.cfunc
+def _encode_changeset(fg: FeedGenerator, changeset: Changeset) -> None:
     fe = fg.add_entry(order='append')
-    fe.title(f'{t("browse.changeset.feed.title",id=changeset.id)}')
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
-    fe.updated(changeset.updated_at)
     fe.published(changeset.created_at)
-
-    if changeset.user_id:
-        user = await UserQuery.find_one_by_id(user_id=changeset.user_id)
-        author_name = user.display_name if user else ''
-    else:
-        author_name = ''
-    author_uri = f'{APP_URL}/user/{author_name}'
-    fe.author(
-        name=author_name,
-        uri=author_uri,
-    )
-
+    fe.updated(changeset.updated_at)
     fe.link(rel='alternate', type='text/html', href=f'{APP_URL}/changeset/{changeset.id}')
     fe.link(rel='alternate', type='application/osm+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}')
     fe.link(
         rel='alternate', type='application/osmChange+xml', href=f'{APP_URL}/api/0.6/changeset/{changeset.id}/download'
     )
 
-    if changeset.closed_at is not None:
-        closed = changeset.closed_at.strftime(FE_DATETIME_FORMAT)
+    tags = changeset.tags
+    comment = tags.get('comment')
+    if comment is not None:
+        fe.title(f'{t("browse.changeset.feed.title_comment", id=changeset.id, comment=comment)}')
     else:
-        closed = ''
+        fe.title(f'{t("browse.changeset.feed.title", id=changeset.id)}')
 
-    if changeset.bounds:
-        fe.geo.box(' '.join(str(bound) for bound in changeset.bounds.bounds))
+    if changeset.user_id is not None:
+        user = changeset.user
+        if user is None:
+            raise AssertionError('Changeset user must be set')
+        user_display_name = user.display_name
+        user_permalink = f'{APP_URL}/user/permalink/{user.id}'
+        fe.author(name=user_display_name, uri=user_permalink)
+    else:
+        user_display_name = None
+        user_permalink = None
+
+    if changeset.bounds is not None:
+        minx, miny, maxx, maxy = changeset.bounds.bounds
+        fe.geo.box(f'{miny} {minx} {maxy} {maxx}')
 
     fe.content(
         render(
-            'index/history_feed_entry_content.jinja2',
-            created=changeset.created_at.strftime(FE_DATETIME_FORMAT),
-            closed=closed,
-            author_name=author_name,
-            author_uri=author_uri,
-            tags=changeset.tags,
+            'api06/history_feed_entry.jinja2',
+            created=format_rfc2822_date(changeset.created_at),
+            closed=format_rfc2822_date(changeset.closed_at) if (changeset.closed_at is not None) else None,
+            user_display_name=user_display_name,
+            user_permalink=user_permalink,
+            tags=tags,
         ),
         type='xhtml',
     )
