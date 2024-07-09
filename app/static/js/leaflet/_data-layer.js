@@ -138,12 +138,11 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const loadData = () => {
-        const group = L.layerGroup()
-        const renderLayers = renderObjects(group, fetchedElements, dataStyles, { renderAreas: false })
+        const layerGroup = L.layerGroup()
+        const renderLayers = renderObjects(layerGroup, fetchedElements, dataStyles, { renderAreas: false })
 
         dataLayer.clearLayers()
-        if (fetchedElements.length) dataLayer.addLayer(group)
-
+        dataLayer.addLayer(layerGroup)
         // Listen for events
         for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
     }

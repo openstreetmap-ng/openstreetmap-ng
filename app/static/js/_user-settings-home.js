@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { zoomPrecision } from "./_utils.js"
 import { getGeolocateControl } from "./leaflet/_geolocate-control.js"
-import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
+import { getDefaultBaseLayer } from "./leaflet/_layers.js"
 import { addControlGroup } from "./leaflet/_map-utils.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 import { getZoomControl } from "./leaflet/_zoom-control.js"
@@ -28,7 +28,7 @@ if (userSettingsForm) {
     // TODO: icon licenses
 
     // Add default layer
-    map.addLayer(getBaseLayerById(getLayerIdByCode("")))
+    map.addLayer(getDefaultBaseLayer())
 
     // Add custom zoom and location controls
     addControlGroup(map, [getZoomControl(), getGeolocateControl()])

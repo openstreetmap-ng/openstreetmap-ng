@@ -72,7 +72,7 @@ export const configureNotesLayer = (map) => {
                 }
 
                 notesLayer.clearLayers()
-                if (markers.length) notesLayer.addLayer(L.layerGroup(markers))
+                notesLayer.addLayer(L.layerGroup(markers))
                 console.debug("Notes layer showing", markers.length, "notes")
             })
             .catch((error) => {

@@ -21,7 +21,7 @@
                     <input type="hidden" name="from_loaded">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/green.webp"
-                    alt="{{ t('alt.marker.green') }}" loading="lazy" data-guid="1beabe239ed0"
+                    alt="{{ t('alt.marker.green') }}" loading="lazy" data-direction="from"
                     title="{{ t('map.routing.drag_and_drop.start') }}">
             </div>
 
@@ -32,7 +32,7 @@
                     <input type="hidden" name="to_loaded">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/red.webp"
-                    alt="{{ t('alt.marker.red') }}" loading="lazy" data-guid="038e3b39ed0b"
+                    alt="{{ t('alt.marker.red') }}" loading="lazy" data-direction="to"
                     title="{{ t('map.routing.drag_and_drop.end') }}">
             </div>
 
@@ -85,7 +85,7 @@
             </div>
 
         </form>
-        <div class="section border-bottom-0">
+        <div class="section">
             <div class="loading text-center mt-2 d-none">
                 <div class="spinner-border text-secondary" role="status">
                     <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>

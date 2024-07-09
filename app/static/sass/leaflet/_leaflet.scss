@@ -83,6 +83,11 @@
     }
 }
 
+// Increase the priority of the routing pane
+.leaflet-focus-routing {
+    z-index: 420;
+}
+
 // Increase the priority of the focus pane
 .leaflet-focus-pane {
     z-index: 450;

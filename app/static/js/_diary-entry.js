@@ -1,7 +1,7 @@
 import i18next from "i18next"
 import * as L from "leaflet"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
-import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
+import { getDefaultBaseLayer } from "./leaflet/_layers.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 import { getZoomControl } from "./leaflet/_zoom-control.js"
 
@@ -48,7 +48,7 @@ if (useMapContainer) {
         })
 
         // Add default layer
-        map.addLayer(getBaseLayerById(getLayerIdByCode("")))
+        map.addLayer(getDefaultBaseLayer())
 
         // Add custom zoom control
         map.addControl(getZoomControl())

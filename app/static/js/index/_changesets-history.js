@@ -141,7 +141,7 @@ export const getChangesetsHistoryController = (map) => {
         }
 
         changesetLayer.clearLayers()
-        if (layers.length) changesetLayer.addLayer(L.layerGroup(layers))
+        changesetLayer.addLayer(L.layerGroup(layers))
         console.debug("Changesets layer showing", layers.length, "changesets")
     }
 

@@ -1,4 +1,3 @@
-import * as L from "leaflet"
 import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
 import { polylineDecode } from "../../_polyline-decoder.js"
@@ -55,11 +54,8 @@ const makeEngine = (profile) => {
 
                 for (const instr of path.instructions) {
                     const instrPoints = points.slice(instr.interval[0], instr.interval[1] + 1)
-                    const [lon, lat] = instrPoints[0]
                     steps.push({
-                        lon: lon,
-                        lat: lat,
-                        line: L.polyline(instrPoints.map(([lon, lat]) => L.latLng(lat, lon))),
+                        geom: instrPoints.map(([lon, lat]) => [lat, lon]),
                         distance: instr.distance,
                         time: instr.time / 1000,
                         code: signToCodeMap.get(instr.sign) ?? 0,
