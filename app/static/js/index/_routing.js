@@ -83,7 +83,7 @@ export const getRoutingController = (map) => {
     let toMarker = null
 
     const popup = L.popup({
-        autoPanPadding: [50, 50],
+        autoPanPadding: [80, 80],
         bubblingMouseEvents: false,
         className: "route-steps",
     })
