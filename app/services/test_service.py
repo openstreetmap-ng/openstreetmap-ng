@@ -41,6 +41,7 @@ class TestService:
             *,
             status: UserStatus = UserStatus.active,
             roles: tuple[UserRole, ...] = (),
+            language: str = DEFAULT_LANGUAGE,
         ) -> None:
             """
             Create a test user.
@@ -67,7 +68,7 @@ class TestService:
                         status=status,
                         auth_provider=None,
                         auth_uid=None,
-                        language=DEFAULT_LANGUAGE,
+                        language=language,
                         activity_tracking=False,
                         crash_reporting=False,
                     )
