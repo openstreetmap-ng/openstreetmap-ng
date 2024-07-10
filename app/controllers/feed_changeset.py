@@ -1,7 +1,6 @@
-from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Path, Query, Response
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry.base import BaseGeometry
