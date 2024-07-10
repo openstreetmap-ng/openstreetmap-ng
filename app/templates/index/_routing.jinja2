@@ -114,7 +114,7 @@
                             <span class="time"></span>
                         </span>
                     </div>
-                    <div class="elevation-group">
+                    <div class="route-elevation-info">
                         <span class="me-2">
                             <span>{{ t('javascripts.directions.ascend') }}:</span>
                             <span class="ascend"></span>
@@ -125,6 +125,13 @@
                         </span>
                     </div>
                 </div>
+
+                <template class="popup">
+                    <div>
+                        <span class="number"></span>
+                        <span class="instruction"></span>
+                    </div>
+                </template>
 
                 <template class="step">
                     <tr>
@@ -137,7 +144,7 @@
                     </tr>
                 </template>
 
-                <table class="turn-by-turn table table-sm align-middle mb-4">
+                <table class="route-steps table table-sm align-middle mb-4">
                     <tbody></tbody>
                 </table>
 

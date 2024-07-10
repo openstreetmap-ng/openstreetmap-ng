@@ -27,8 +27,6 @@ export const configureContextMenu = (map) => {
         bubblingMouseEvents: false,
     })
 
-    map.addLayer(popup)
-
     const getPopupPosition = () => {
         const latLng = popup.getLatLng()
         const zoom = map.getZoom()

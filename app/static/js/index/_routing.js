@@ -67,11 +67,12 @@ export const getRoutingController = (map) => {
     const routeContainer = sidebar.querySelector(".route")
     const routeDistance = routeContainer.querySelector(".route-info .distance")
     const routeTime = routeContainer.querySelector(".route-info .time")
-    const routeElevationGroup = routeContainer.querySelector(".elevation-group")
-    const routeAscend = routeElevationGroup.querySelector(".ascend")
-    const routeDescend = routeElevationGroup.querySelector(".descend")
-    const turnTableBody = routeContainer.querySelector(".turn-by-turn tbody")
+    const routeElevationContainer = routeContainer.querySelector(".route-elevation-info")
+    const routeAscend = routeElevationContainer.querySelector(".ascend")
+    const routeDescend = routeElevationContainer.querySelector(".descend")
+    const stepsTableBody = routeContainer.querySelector(".route-steps tbody")
     const attribution = routeContainer.querySelector(".attribution")
+    const popupTemplate = routeContainer.querySelector("template.popup")
     const stepTemplate = routeContainer.querySelector("template.step")
     let abortController = null
 
@@ -80,7 +81,12 @@ export const getRoutingController = (map) => {
     let fromMarker = null
     let toBounds = null
     let toMarker = null
-    let highlightPopup = null // TODO: autoPanPadding: [100, 100]
+
+    const popup = L.popup({
+        autoPanPadding: [50, 50],
+        bubblingMouseEvents: false,
+        className: "route-steps",
+    })
 
     const markerFactory = (color) =>
         L.marker(L.latLng(0, 0), {
@@ -215,6 +221,7 @@ export const getRoutingController = (map) => {
     }
 
     const submitFormIfFilled = () => {
+        map.closePopup(popup)
         if (fromInput.value && toInput.value) form.requestSubmit()
     }
 
@@ -313,11 +320,11 @@ export const getRoutingController = (map) => {
 
         // Display the optional elevation information
         if (route.ascend !== null && route.descend !== null) {
-            routeElevationGroup.classList.remove("d-none")
+            routeElevationContainer.classList.remove("d-none")
             routeAscend.textContent = formatHeight(route.ascend)
             routeDescend.textContent = formatHeight(route.descend)
         } else {
-            routeElevationGroup.classList.add("d-none")
+            routeElevationContainer.classList.add("d-none")
         }
 
         // Render the turn-by-turn table
@@ -363,9 +370,16 @@ export const getRoutingController = (map) => {
                 layer.setStyle(styles.hover)
             }
 
-            // On click, show the popup and focus if off-screen
+            // On click, show the popup
             const onClick = () => {
-                // TODO: popup
+                const content = popupTemplate.content.children[0]
+                content.querySelector(".number").innerHTML = div.querySelector(".number").innerHTML
+                content.querySelector(".instruction").innerHTML = div.querySelector(".instruction").innerHTML
+                popup.setContent(content.innerHTML)
+                const latLng = L.latLng(step.geom[0])
+                popup.setLatLng(latLng)
+                console.log(content.innerHTML)
+                map.openPopup(popup)
             }
 
             // Listen for events
@@ -377,8 +391,8 @@ export const getRoutingController = (map) => {
             layer.addEventListener("click", onClick)
         }
 
-        turnTableBody.innerHTML = ""
-        turnTableBody.appendChild(fragment)
+        stepsTableBody.innerHTML = ""
+        stepsTableBody.appendChild(fragment)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
@@ -486,10 +500,8 @@ export const getRoutingController = (map) => {
                 toMarker = null
                 toLoadedInput.value = ""
             }
-            if (highlightPopup) {
-                map.closePopup(highlightPopup)
-                highlightPopup = null
-            }
+
+            map.closePopup(popup)
         },
     }
 }
