@@ -5,8 +5,13 @@
 <div class="content-header">
     {% if should_show_notice %}
         <div class="container">
-            <h1>{{ copyright_notice_title }}</h1>
-            <p>{{ copyright_notice_html | safe }}</p>
+            <h1>{{ t('site.copyright.foreign.title') }}</h1>
+            {% set english_original_link %}
+               <a href="/copyright/en">{{ t('site.copyright.foreign.english_link') }}</a>
+            {% endset %}
+            <p>
+                {{ t('site.copyright.foreign.html', english_original_link=english_original_link) | safe }}
+            </p>
             <hr>
         </div>
     {% endif %}
