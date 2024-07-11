@@ -40,8 +40,8 @@ class TestService:
             name: str,
             *,
             status: UserStatus = UserStatus.active,
-            roles: tuple[UserRole, ...] = (),
             language: str = DEFAULT_LANGUAGE,
+            roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
             Create a test user.
@@ -81,6 +81,7 @@ class TestService:
                     user.email = email
                     user.password_hashed = password_hashed
                     user.status = status
+                    user.language = language
                     user.roles = roles
 
             logging.info('Test user %r created', name)
