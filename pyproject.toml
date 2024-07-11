@@ -13,6 +13,7 @@ aiohttp = {extras = ["speedups"], version = "^3.9.3"}
 aiosmtplib = "^3.0.1"
 alembic = "^1.13.1"
 argon2-cffi = "^23.1.0"
+arrow = "^1.3.0"
 beautifulsoup4 = {extras = ["charset-normalizer", "lxml"], version = "^4.12.3"}
 bleach = "^6.1.0"
 brotli = "^1.1.0"
