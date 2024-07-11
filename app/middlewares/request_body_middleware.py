@@ -91,11 +91,6 @@ def _decompress_zstd(buffer: bytes) -> bytes:
 
 
 @cython.cfunc
-def _decompress_deflate(buffer: bytes) -> bytes:
-    return zlib.decompress(buffer, -zlib.MAX_WBITS)
-
-
-@cython.cfunc
 def _get_decompressor(content_encoding: str | None):
     if content_encoding is None:
         return None
@@ -106,5 +101,5 @@ def _get_decompressor(content_encoding: str | None):
     if content_encoding == 'gzip':
         return gzip.decompress
     if content_encoding == 'deflate':
-        return _decompress_deflate
+        return zlib.decompress
     return None

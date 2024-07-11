@@ -1,19 +1,70 @@
 import gzip
 import json
+import zlib
+from collections.abc import Callable
+from urllib.parse import urlencode
 
+import brotli
+import pytest
 from httpx import AsyncClient
+from zstandard import ZstdCompressor
+
+from app.lib.xmltodict import XMLToDict
 
 
-async def test_gzipped_request(client: AsyncClient):
+@pytest.mark.parametrize(
+    ('encoding', 'compress'),
+    [
+        ('gzip', gzip.compress),
+        ('deflate', zlib.compress),
+        ('br', brotli.compress),
+        ('zstd', ZstdCompressor().compress),
+    ],
+)
+async def test_compressed_form(
+    client: AsyncClient, changeset_id: int, encoding: str, compress: Callable[[bytes], bytes]
+):
     client.headers['Authorization'] = 'User user1'
 
-    note_payload = {'lon': 0, 'lat': 0, 'text': 'gzipped note'}
-    payload_compressed = gzip.compress(bytes(json.dumps(note_payload), 'utf-8'))
+    text = f'{encoding}-compressed comment'
+    content = compress(urlencode({'text': text}).encode())
+
+    # create changeset comment
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/comment',
+        content=content,
+        headers={
+            'Content-Encoding': encoding,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    )
+    assert r.is_success, r.text
+    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+
+    assert changeset['@id'] == changeset_id
+    assert changeset['@comments_count'] == 1
+
+
+@pytest.mark.parametrize(
+    ('encoding', 'compress'),
+    [
+        ('gzip', gzip.compress),
+        ('deflate', zlib.compress),
+        ('br', brotli.compress),
+        ('zstd', ZstdCompressor().compress),
+    ],
+)
+async def test_compressed_json(client: AsyncClient, encoding: str, compress: Callable[[bytes], bytes]):
+    client.headers['Authorization'] = 'User user1'
+
+    text = f'{encoding}-compressed note'
+    content = compress(json.dumps({'lon': 0, 'lat': 0, 'text': text}).encode())
+
     # create note
     r = await client.post(
         '/api/0.6/notes.json',
-        content=payload_compressed,
-        headers={'Content-Encoding': 'gzip'},
+        content=content,
+        headers={'Content-Encoding': encoding},
     )
     assert r.is_success, r.text
     props: dict = r.json()['properties']
@@ -24,4 +75,4 @@ async def test_gzipped_request(client: AsyncClient):
 
     assert comments[-1]['user'] == 'user1'
     assert comments[-1]['action'] == 'opened'
-    assert comments[-1]['text'] == 'gzipped note'
+    assert comments[-1]['text'] == text
