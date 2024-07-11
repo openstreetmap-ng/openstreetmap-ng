@@ -49,13 +49,6 @@ class TestService:
             Create a test user.
             """
             email = f'{name}@{TEST_USER_DOMAIN}'
-            email_available = await UserQuery.check_email_available(email)
-
-            # skip creation if the user already exists
-            if not email_available:
-                logging.debug('Test user %r already exists', name)
-                return
-
             name_available = await UserQuery.check_display_name_available(name)
             password_hashed = PasswordHash.hash(PasswordStr(TEST_USER_PASSWORD))
 
@@ -86,8 +79,8 @@ class TestService:
                     user.password_hashed = password_hashed
                     user.status = status
                     user.language = language
-                    user.roles = roles
                     if created_at is not None:
                         user.created_at = created_at
+                    user.roles = roles
 
             logging.info('Test user %r created', name)
