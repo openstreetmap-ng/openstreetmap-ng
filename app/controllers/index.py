@@ -56,15 +56,17 @@ async def copyright_i18n(locale: str):
     if not is_valid_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
     with translation_context(locale):
+        title = t('layouts.copyright')
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
         copyright_content = render('copyright_content.jinja2', **_get_default_data())
-    should_show_notice = locale != primary_translation_language() or primary_translation_language() != DEFAULT_LANGUAGE
+    show_notice = locale != primary_translation_language() != DEFAULT_LANGUAGE
     return render_response(
         'copyright.jinja2',
         {
+            'title': title,
             'copyright_content': copyright_content,
-            'should_show_notice': should_show_notice,
             'copyright_translated_title': copyright_translated_title,
+            'show_notice': show_notice,
         },
     )
 
@@ -74,23 +76,30 @@ async def copyright_():
     return await copyright_i18n(locale=primary_translation_language())
 
 
-@router.get('/help')
-async def help_():
-    return render_response('help.jinja2')
-
-
 @router.get('/about/{locale:str}')
 async def about_i18n(locale: str):
     if not is_valid_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
     with translation_context(locale):
+        title = t('layouts.about')
         about_content = render('about_content.jinja2', **_get_default_data())
-    return render_response('about.jinja2', {'about_content': about_content})
+    return render_response(
+        'about.jinja2',
+        {
+            'title': title,
+            'about_content': about_content,
+        },
+    )
 
 
 @router.get('/about')
 async def about():
     return await about_i18n(locale=primary_translation_language())
+
+
+@router.get('/help')
+async def help_():
+    return render_response('help.jinja2')
 
 
 @router.get('/fixthemap')
