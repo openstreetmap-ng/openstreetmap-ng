@@ -58,11 +58,13 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset) -> None:
     fe.content(
         render(
             'api06/history_feed_entry.jinja2',
-            created=format_rfc2822_date(changeset.created_at),
-            closed=format_rfc2822_date(changeset.closed_at) if (changeset.closed_at is not None) else None,
-            user_display_name=user_display_name,
-            user_permalink=user_permalink,
-            tags=tags,
+            {
+                'created': format_rfc2822_date(changeset.created_at),
+                'closed': format_rfc2822_date(changeset.closed_at) if (changeset.closed_at is not None) else None,
+                'user_display_name': user_display_name,
+                'user_permalink': user_permalink,
+                'tags': tags,
+            },
         ),
         type='xhtml',
     )

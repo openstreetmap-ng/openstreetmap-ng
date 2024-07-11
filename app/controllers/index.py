@@ -9,8 +9,8 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.jinja_env import render
 from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.locale import is_valid_locale
-from app.lib.render_response import _get_default_data, render_response
-from app.lib.translation import primary_translation_language, t, translation_context
+from app.lib.render_response import render_response
+from app.lib.translation import primary_translation_locale, t, translation_context
 from app.models.db.user import User
 
 router = APIRouter()
@@ -58,8 +58,9 @@ async def copyright_i18n(locale: str):
     with translation_context(locale):
         title = t('layouts.copyright')
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
-        copyright_content = render('copyright_content.jinja2', **_get_default_data())
-    show_notice = locale != primary_translation_language() != DEFAULT_LANGUAGE
+        copyright_content = render('copyright_content.jinja2')
+    primary_locale = primary_translation_locale()
+    show_notice = locale != primary_locale or primary_locale != DEFAULT_LANGUAGE
     return render_response(
         'copyright.jinja2',
         {
@@ -73,7 +74,7 @@ async def copyright_i18n(locale: str):
 
 @router.get('/copyright')
 async def copyright_():
-    return await copyright_i18n(locale=primary_translation_language())
+    return await copyright_i18n(locale=primary_translation_locale())
 
 
 @router.get('/about/{locale:str}')
@@ -82,7 +83,7 @@ async def about_i18n(locale: str):
         return Response(None, status.HTTP_404_NOT_FOUND)
     with translation_context(locale):
         title = t('layouts.about')
-        about_content = render('about_content.jinja2', **_get_default_data())
+        about_content = render('about_content.jinja2')
     return render_response(
         'about.jinja2',
         {
@@ -94,7 +95,7 @@ async def about_i18n(locale: str):
 
 @router.get('/about')
 async def about():
-    return await about_i18n(locale=primary_translation_language())
+    return await about_i18n(locale=primary_translation_locale())
 
 
 @router.get('/help')

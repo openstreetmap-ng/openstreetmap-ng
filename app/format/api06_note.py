@@ -115,7 +115,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': f'{APP_URL}/note/{note.id}'},
-            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', comments=note_comments)),
+            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', {'comments': note_comments})),
             'extensions': {
                 'id': note.id,
                 'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',

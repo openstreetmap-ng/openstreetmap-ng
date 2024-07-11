@@ -50,10 +50,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     fe.guid(api_permalink, permalink=True)
     fe.link(href=web_permalink)
     fe.content(
-        render(
-            'api06/note_feed_comments.jinja2',
-            comments=note_comments,
-        ),
+        render('api06/note_feed_comments.jinja2', {'comments': note_comments}),
         type='CDATA',
     )
     fe.published(note.created_at)
@@ -94,11 +91,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
     fe.guid(permalink, permalink=True)
     fe.link(href=permalink)
     fe.content(
-        render(
-            'api06/note_feed_entry.jinja2',
-            comment=comment,
-            comments=legacy_note.comments,
-        ),
+        render('api06/note_feed_entry.jinja2', {'comment': comment, 'comments': legacy_note.comments}),
         type='CDATA',
     )
     fe.published(comment.created_at)

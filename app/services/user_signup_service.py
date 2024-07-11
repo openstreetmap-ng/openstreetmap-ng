@@ -7,7 +7,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
-from app.lib.translation import primary_translation_language, t
+from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User
 from app.models.mail_source import MailSource
@@ -45,7 +45,7 @@ class UserSignupService:
 
         password_hashed = PasswordHash.hash(password)
         created_ip = get_request_ip()
-        language = primary_translation_language()
+        language = primary_translation_locale()
 
         # TODO: purge stale pending terms accounts
         async with db_commit() as session:
@@ -97,10 +97,7 @@ class UserSignupService:
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
-            template_data={
-                'app_domain': app_domain,
-                'token': str(token),
-            },
+            template_data={'app_domain': app_domain, 'token': str(token)},
         )
 
     @staticmethod

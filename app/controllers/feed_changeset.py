@@ -12,7 +12,7 @@ from app.format import FormatRSS06
 from app.lib.date_utils import utcnow
 from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
-from app.lib.translation import primary_translation_language, t
+from app.lib.translation import primary_translation_locale, t
 from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT, DISPLAY_NAME_MAX_LENGTH
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.changeset import Changeset
@@ -76,7 +76,7 @@ async def _get_feed(
     html_url = request_url.replace('/feed', '')
 
     fg = FeedGenerator()
-    fg.language(primary_translation_language())
+    fg.language(primary_translation_locale())
     fg.id(request_url)
     fg.updated(utcnow())
 

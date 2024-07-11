@@ -9,7 +9,7 @@ from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
 from app.lib.feature_prefix import features_prefixes
-from app.lib.translation import primary_translation_language
+from app.lib.translation import primary_translation_locale
 from app.limits import (
     NOMINATIM_CACHE_LONG_EXPIRE,
     NOMINATIM_CACHE_SHORT_EXPIRE,
@@ -39,7 +39,7 @@ class NominatimQuery:
                 'lon': f'{x:.7f}',
                 'lat': f'{y:.7f}',
                 'zoom': zoom,
-                'accept-language': primary_translation_language(),
+                'accept-language': primary_translation_locale(),
             }
         )
 
@@ -116,7 +116,7 @@ async def _search(
                 if (bounds is not None)
                 else {}
             ),
-            'accept-language': primary_translation_language(),
+            'accept-language': primary_translation_locale(),
         }
     )
 

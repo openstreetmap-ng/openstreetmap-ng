@@ -1,4 +1,4 @@
-from app.lib.translation import translation_languages
+from app.lib.translation import translation_locales
 
 
 # TODO: batch, features_names
@@ -9,7 +9,7 @@ def feature_name(tags: dict[str, str]) -> str | None:
     >>> feature_name({'name': 'Foo'})
     'Foo'
     """
-    for locale in translation_languages():
+    for locale in translation_locales():
         if name := tags.get(f'name:{locale}'):
             return name
 
