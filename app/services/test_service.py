@@ -40,6 +40,7 @@ class TestService:
             name: str,
             *,
             status: UserStatus = UserStatus.active,
+            language: str = DEFAULT_LANGUAGE,
             roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
@@ -67,7 +68,7 @@ class TestService:
                         status=status,
                         auth_provider=None,
                         auth_uid=None,
-                        language=DEFAULT_LANGUAGE,
+                        language=language,
                         activity_tracking=False,
                         crash_reporting=False,
                     )
@@ -80,6 +81,7 @@ class TestService:
                     user.email = email
                     user.password_hashed = password_hashed
                     user.status = status
+                    user.language = language
                     user.roles = roles
 
             logging.info('Test user %r created', name)

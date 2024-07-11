@@ -2,11 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter
 from starlette import status
-from starlette.responses import FileResponse, RedirectResponse
+from starlette.responses import FileResponse, RedirectResponse, Response
 
+from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user, web_user
+from app.lib.jinja_env import render
 from app.lib.local_chapters import LOCAL_CHAPTERS
-from app.lib.render_response import render_response
+from app.lib.locale import is_valid_locale
+from app.lib.render_response import _get_default_data, render_response
+from app.lib.translation import primary_translation_language, t, translation_context
 from app.models.db.user import User
 
 router = APIRouter()
@@ -47,9 +51,27 @@ async def communities():
     return render_response('communities.jinja2', {'local_chapters': LOCAL_CHAPTERS})
 
 
+@router.get('/copyright/{locale:str}')
+async def copyright_i18n(locale: str):
+    if not is_valid_locale(locale):
+        return Response(None, status.HTTP_404_NOT_FOUND)
+    with translation_context(locale):
+        copyright_translated_title = t('site.copyright.legal_babble.title_html')
+        copyright_content = render('copyright_content.jinja2', **_get_default_data())
+    should_show_notice = locale != primary_translation_language() or primary_translation_language() != DEFAULT_LANGUAGE
+    return render_response(
+        'copyright.jinja2',
+        {
+            'copyright_content': copyright_content,
+            'should_show_notice': should_show_notice,
+            'copyright_translated_title': copyright_translated_title,
+        },
+    )
+
+
 @router.get('/copyright')
 async def copyright_():
-    return render_response('copyright.jinja2')
+    return await copyright_i18n(locale=primary_translation_language())
 
 
 @router.get('/help')
@@ -57,9 +79,18 @@ async def help_():
     return render_response('help.jinja2')
 
 
+@router.get('/about/{locale:str}')
+async def about_i18n(locale: str):
+    if not is_valid_locale(locale):
+        return Response(None, status.HTTP_404_NOT_FOUND)
+    with translation_context(locale):
+        about_content = render('about_content.jinja2', **_get_default_data())
+    return render_response('about.jinja2', {'about_content': about_content})
+
+
 @router.get('/about')
 async def about():
-    return render_response('about.jinja2')
+    return await about_i18n(locale=primary_translation_language())
 
 
 @router.get('/fixthemap')
