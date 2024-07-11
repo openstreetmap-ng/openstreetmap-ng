@@ -17,6 +17,7 @@ ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
 LICENSE_URL = 'https://opendatacommons.org/licenses/odbl/1-0/'
 
 # Configuration (required)
+os.chdir(os.environ['PROJECT_DIR'])
 SECRET = os.environ['SECRET']
 APP_URL = os.environ['APP_URL'].rstrip('/')
 SMTP_HOST = os.environ['SMTP_HOST']

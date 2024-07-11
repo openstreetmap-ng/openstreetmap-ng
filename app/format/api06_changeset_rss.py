@@ -22,7 +22,7 @@ class ChangesetRSS06Mixin:
 
 
 @cython.cfunc
-def _encode_changeset(fg: FeedGenerator, changeset: Changeset) -> None:
+def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
     fe = fg.add_entry(order='append')
     fe.id(f'{APP_URL}/changeset/{changeset.id}')
     fe.published(changeset.created_at)

@@ -5,6 +5,8 @@ import Cython.Compiler.Options as Options
 from Cython.Build import cythonize
 from setuptools import Extension, setup
 
+import app.config  # DO NOT REMOVE  # noqa: F401
+
 Options.docstrings = False
 Options.annotate = True
 
