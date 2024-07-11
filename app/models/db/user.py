@@ -13,6 +13,7 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     func,
+    or_,
 )
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -124,6 +125,14 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __table_args__ = (
         Index('user_email_idx', email, unique=True),
         Index('user_display_name_idx', display_name, unique=True),
+        Index(
+            'user_pending_idx',
+            'created_at',
+            postgresql_where=or_(
+                status == UserStatus.pending_activation,
+                status == UserStatus.pending_terms,
+            ),
+        ),
     )
 
     @validates('description')

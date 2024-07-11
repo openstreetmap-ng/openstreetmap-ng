@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import UploadFile
-from sqlalchemy import delete, func
+from sqlalchemy import delete, func, or_
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -189,7 +189,10 @@ class UserService:
         logging.debug('Deleting old pending users')
         async with db_commit() as session:
             stmt = delete(User).where(
-                User.status.in_((UserStatus.pending_activation, UserStatus.pending_terms)),
+                or_(
+                    User.status == UserStatus.pending_activation,
+                    User.status == UserStatus.pending_terms,
+                ),
                 User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
             )
             await session.execute(stmt)
