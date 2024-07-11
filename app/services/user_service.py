@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import UploadFile
-from sqlalchemy import func
+from sqlalchemy import delete, func
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -9,12 +9,14 @@ from app.lib.locale import is_valid_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
+from app.limits import USER_PENDING_EXPIRE
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
+from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
@@ -178,3 +180,16 @@ class UserService:
         """
         # TODO: implement
         raise NotImplementedError
+
+    @staticmethod
+    async def delete_old_pending_users():
+        """
+        Find old pending users and delete them.
+        """
+        logging.debug('Deleting old pending users')
+        async with db_commit() as session:
+            stmt = delete(User).where(
+                User.status.in_((UserStatus.pending_activation, UserStatus.pending_terms)),
+                User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
+            )
+            await session.execute(stmt)

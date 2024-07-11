@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from ipaddress import IPv4Address
 
 from sqlalchemy import select
@@ -41,6 +42,7 @@ class TestService:
             *,
             status: UserStatus = UserStatus.active,
             language: str = DEFAULT_LANGUAGE,
+            created_at: datetime | None = None,
             roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
@@ -72,6 +74,8 @@ class TestService:
                         activity_tracking=False,
                         crash_reporting=False,
                     )
+                    if created_at is not None:
+                        user.created_at = created_at
                     user.roles = roles
                     session.add(user)
                 else:
@@ -83,5 +87,7 @@ class TestService:
                     user.status = status
                     user.language = language
                     user.roles = roles
+                    if created_at is not None:
+                        user.created_at = created_at
 
             logging.info('Test user %r created', name)
