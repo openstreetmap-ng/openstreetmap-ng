@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from ipaddress import IPv4Address
 
 from sqlalchemy import select
@@ -41,19 +42,13 @@ class TestService:
             *,
             status: UserStatus = UserStatus.active,
             language: str = DEFAULT_LANGUAGE,
+            created_at: datetime | None = None,
             roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
             Create a test user.
             """
             email = f'{name}@{TEST_USER_DOMAIN}'
-            email_available = await UserQuery.check_email_available(email)
-
-            # skip creation if the user already exists
-            if not email_available:
-                logging.debug('Test user %r already exists', name)
-                return
-
             name_available = await UserQuery.check_display_name_available(name)
             password_hashed = PasswordHash.hash(PasswordStr(TEST_USER_PASSWORD))
 
@@ -72,6 +67,8 @@ class TestService:
                         activity_tracking=False,
                         crash_reporting=False,
                     )
+                    if created_at is not None:
+                        user.created_at = created_at
                     user.roles = roles
                     session.add(user)
                 else:
@@ -82,6 +79,8 @@ class TestService:
                     user.password_hashed = password_hashed
                     user.status = status
                     user.language = language
+                    if created_at is not None:
+                        user.created_at = created_at
                     user.roles = roles
 
             logging.info('Test user %r created', name)
