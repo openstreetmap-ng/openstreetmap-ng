@@ -31,7 +31,7 @@ class OptimisticDiff:
                 attempt += 1
                 prep = OptimisticDiffPrepare(elements)
                 await prep.prepare()
-                return await OptimisticDiffApply().apply(prep)
+                return await OptimisticDiffApply.apply(prep)
             except* (OptimisticDiffError, IntegrityError) as e:
                 # retry is not possible, re-raise the exception
                 timeout_seconds = time.monotonic() - ts

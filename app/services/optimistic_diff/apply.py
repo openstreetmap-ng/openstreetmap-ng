@@ -1,5 +1,5 @@
 import logging
-from asyncio import TaskGroup
+from asyncio import Lock, TaskGroup
 from collections import defaultdict
 from collections.abc import Collection, Iterable, Mapping
 from datetime import datetime
@@ -26,9 +26,12 @@ _lock_table_sql = text(
     f'LOCK TABLE "{Changeset.__tablename__}","{Element.__tablename__}","{ElementMember.__tablename__}" IN EXCLUSIVE MODE'
 )
 
+_flush_lock = Lock()
+
 
 class OptimisticDiffApply:
-    async def apply(self, prepare: OptimisticDiffPrepare) -> dict[ElementRef, list[Element]]:
+    @staticmethod
+    async def apply(prepare: OptimisticDiffPrepare) -> dict[ElementRef, list[Element]]:
         """
         Apply the optimistic diff update.
 
@@ -102,7 +105,9 @@ async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncS
 
     changeset.updated_at = now
     changeset.auto_close_on_size(now)
-    session.add(changeset)
+    async with _flush_lock:
+        # session.add() during .flush() is not supported
+        session.add(changeset)
 
 
 async def _update_elements(
@@ -181,7 +186,8 @@ async def _update_elements_db(
     logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
     session.add_all(insert_elements)
     session.add_all(insert_members)
-    await session.flush()
+    async with _flush_lock:
+        await session.flush()
 
     if update_type_ids:
         E = aliased(Element)  # noqa: N806
