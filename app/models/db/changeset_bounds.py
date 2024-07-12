@@ -10,11 +10,8 @@ from app.models.geometry import PolygonType
 class ChangesetBounds(Base.ZID):
     __tablename__ = 'changeset_bounds'
 
-    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id, ondelete='CASCADE'), nullable=False)
+    changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id, ondelete='CASCADE'), init=False, nullable=False)
     bounds: Mapped[Polygon] = mapped_column(PolygonType, nullable=False)
-
-    # runtime
-    dirty: bool = False
 
     __table_args__ = (
         Index('changeset_bounds_id_idx', changeset_id),

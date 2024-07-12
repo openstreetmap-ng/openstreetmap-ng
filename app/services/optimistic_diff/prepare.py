@@ -9,7 +9,7 @@ from typing import Final
 import cython
 import numpy as np
 from rtree.index import Index
-from shapely import Point, get_coordinates, measurement
+from shapely import Point, box, get_coordinates, measurement, unary_union
 from sklearn.cluster import AgglomerativeClustering
 from sqlalchemy.orm import joinedload
 
@@ -93,11 +93,6 @@ class OptimisticDiffPrepare:
     Local changeset state.
     """
 
-    new_bounds: list[ChangesetBounds] | None
-    """
-    New changeset bounds.
-    """
-
     _bbox_points: list[Point]
     """
     Changeset bounding box collection of points.
@@ -118,7 +113,6 @@ class OptimisticDiffPrepare:
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
         self.changeset = None
-        self.new_bounds = None
         self._bbox_points = []
         self._bbox_refs = set()
 
@@ -522,20 +516,20 @@ class OptimisticDiffPrepare:
         changeset = self.changeset
         if changeset is None:
             raise AssertionError('Changeset must be set')
-        changeset_id = changeset.id
         changeset_bounds = changeset.bounds
+        changeset_union_bounds = changeset.union_bounds
 
-        bounds_limit: cython.int = CHANGESET_BBOX_LIMIT
-        bounds: list[tuple[float, float, float, float]]
-        bounds = measurement.bounds(tuple(cb.bounds for cb in changeset_bounds)).tolist()
-        buffer_bounds: list[tuple[float, float, float, float]]
-        buffer_bounds = [_get_buffer_bound(bound) for bound in bounds]
+        bbox_limit: cython.int = CHANGESET_BBOX_LIMIT
+        bboxes: list[tuple[float, float, float, float]]
+        bboxes = measurement.bounds(tuple(cb.bounds for cb in changeset_bounds)).tolist()
+        buffer_bboxes: list[tuple[float, float, float, float]]
+        buffer_bboxes = [_get_buffer_bbox(bound) for bound in bboxes]
         current_dirty_indices: set[int] = set()
         deleted_indices: set[int] = set()
 
         # create index
         index = Index()
-        for id, buffer in enumerate(buffer_bounds):
+        for id, buffer in enumerate(buffer_bboxes):
             index.insert(id, buffer)
 
         # process clusters
@@ -544,10 +538,10 @@ class OptimisticDiffPrepare:
             cluster_ = np.array(cluster, np.float64)
             minx, miny = cluster_.min(axis=0).tolist()
             maxx, maxy = cluster_.max(axis=0).tolist()
-            bound = (minx, miny, maxx, maxy)
-            buffer = _get_buffer_bound(bound)
+            bbox = (minx, miny, maxx, maxy)
+            buffer = _get_buffer_bbox(bbox)
 
-            if len(bounds) < bounds_limit:
+            if len(bboxes) < bbox_limit:
                 # below the limit, find the intersection
                 i = next(index.intersection(buffer, False), None)
             else:
@@ -555,49 +549,56 @@ class OptimisticDiffPrepare:
                 i = next(index.nearest(buffer, 1, False))
 
             if i is not None:
-                # merge with the existing bounds
-                index.delete(i, buffer_bounds[i])
-                bound = bounds[i] = _union_bounds(bound, bounds[i])
-                buffer = buffer_bounds[i] = _get_buffer_bound(bound)
+                # merge with the existing bbox
+                index.delete(i, buffer_bboxes[i])
+                bbox = bboxes[i] = _union_bbox(bbox, bboxes[i])
+                buffer = buffer_bboxes[i] = _get_buffer_bbox(bbox)
                 index.insert(i, buffer)
                 current_dirty_indices.add(i)
             else:
-                # add new bounds
-                i = len(bounds)
-                bounds.append(bound)
-                buffer_bounds.append(buffer)
+                # add new bbox
+                i = len(bboxes)
+                bboxes.append(bbox)
+                buffer_bboxes.append(buffer)
                 index.insert(i, buffer)
 
-        # recheck dirty bounds
+        # recheck dirty bboxes
         total_dirty_indices: set[int] = current_dirty_indices.copy()
         while current_dirty_indices:
             dirty_i = current_dirty_indices.pop()
-            i = next(index.intersection(buffer_bounds[dirty_i], False), None)
+            i = next(index.intersection(buffer_bboxes[dirty_i], False), None)
             if i is None:
                 continue
 
-            # merge with the existing bounds
-            index.delete(dirty_i, buffer_bounds[dirty_i])
-            index.delete(i, buffer_bounds[i])
-            bound = bounds[i] = _union_bounds(bounds[dirty_i], bounds[i])
-            buffer = buffer_bounds[i] = _get_buffer_bound(bound)
+            # merge with the existing bbox
+            index.delete(dirty_i, buffer_bboxes[dirty_i])
+            index.delete(i, buffer_bboxes[i])
+            bbox = bboxes[i] = _union_bbox(bboxes[dirty_i], bboxes[i])
+            buffer = buffer_bboxes[i] = _get_buffer_bbox(bbox)
             index.insert(i, buffer)
             current_dirty_indices.add(i)
             total_dirty_indices.add(i)
             deleted_indices.add(dirty_i)
 
         # save result
-        new_bounds = self.new_bounds = []
-        for i, bound in enumerate(bounds):
+        new_bounds: list[ChangesetBounds] = []
+        for i, cb in enumerate(changeset_bounds):
             if i in deleted_indices:
                 continue
-            if i < len(changeset_bounds):
-                cb = changeset_bounds[i]
-                cb.bounds = bound
-                cb.dirty = i in total_dirty_indices
-                new_bounds.append(cb)
-            else:
-                new_bounds.append(ChangesetBounds(changeset_id=changeset_id, bounds=bound))
+            if i in total_dirty_indices:
+                cb.bounds = box(*bboxes[i])
+            new_bounds.append(cb)
+        new_bounds.extend(
+            ChangesetBounds(bounds=box(*bbox))
+            for i, bbox in enumerate(bboxes[len(changeset_bounds) :])
+            if i not in deleted_indices
+        )
+        changeset.bounds = new_bounds
+
+        new_union_bounds = unary_union(tuple(cb.bounds for cb in new_bounds))
+        if changeset_union_bounds is not None:
+            new_union_bounds = unary_union((changeset_union_bounds, new_union_bounds))
+        changeset.union_bounds = box(*new_union_bounds.bounds)
 
 
 @cython.cfunc
@@ -623,7 +624,7 @@ def _cluster_points(points: Collection[Point]) -> tuple[list[np.ndarray], ...]:
 
 
 @cython.cfunc
-def _get_buffer_bound(bound: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
+def _get_buffer_bbox(bound: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
     new_bbox_min_distance: cython.double = CHANGESET_NEW_BBOX_MIN_DISTANCE
     new_bbox_min_ratio: cython.double = CHANGESET_NEW_BBOX_MIN_RATIO
     minx, miny, maxx, maxy = bound
@@ -637,7 +638,7 @@ def _get_buffer_bound(bound: tuple[float, float, float, float]) -> tuple[float, 
 
 
 @cython.cfunc
-def _union_bounds(
+def _union_bbox(
     b1: tuple[float, float, float, float],
     b2: tuple[float, float, float, float],
 ) -> tuple[float, float, float, float]:

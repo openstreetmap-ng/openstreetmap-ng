@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 import cython
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, raiseload
 
 from app.format import Format06
 from app.lib.auth_context import api_user
@@ -193,7 +193,7 @@ async def query_changesets(
         closed_after = None
         created_before = None
 
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+    with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
         changesets = await ChangesetQuery.find_many_by_query(
             changeset_ids=changeset_ids,
             user_id=user.id if (user is not None) else None,
@@ -201,6 +201,7 @@ async def query_changesets(
             closed_after=closed_after,
             is_open=True if open else (False if closed else None),
             geometry=geometry,
+            legacy_geometry=True,
             sort='asc' if (order == 'newest') else 'desc',
             limit=limit,
         )

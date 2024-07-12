@@ -8,6 +8,7 @@ from sqlalchemy import and_, func, null, select, text
 from app.db import db
 from app.lib.options_context import apply_options_context
 from app.models.db.changeset import Changeset
+from app.models.db.changeset_bounds import ChangesetBounds
 
 
 class ChangesetQuery:
@@ -87,6 +88,7 @@ class ChangesetQuery:
         closed_after: datetime | None = None,
         is_open: bool | None = None,
         geometry: BaseGeometry | None = None,
+        legacy_geometry: bool = False,
         sort: Literal['asc', 'desc'] = 'asc',
         limit: int | None,
     ) -> Sequence[Changeset]:
@@ -116,17 +118,32 @@ class ChangesetQuery:
             if is_open is not None:
                 where_and.append(Changeset.closed_at == null if is_open else Changeset.closed_at != null())
             if geometry is not None:
+                geometry_wkt = geometry.wkt
                 where_and.append(
                     and_(
-                        Changeset.bounds != null(),
-                        func.ST_Intersects(Changeset.bounds, func.ST_GeomFromText(geometry.wkt, 4326)),
+                        Changeset.union_bounds != null(),
+                        func.ST_Intersects(Changeset.union_bounds, func.ST_GeomFromText(geometry_wkt, 4326)),
                     )
                 )
+                if not legacy_geometry:
+                    where_and.append(
+                        Changeset.id.in_(
+                            select(ChangesetBounds.changeset_id)
+                            .where(func.ST_Intersects(ChangesetBounds.bounds, func.ST_GeomFromText(geometry_wkt, 4326)))
+                            .order_by(
+                                ChangesetBounds.changeset_id.asc()
+                                if sort == 'asc'
+                                else ChangesetBounds.changeset_id.desc()
+                            )
+                            .subquery()
+                            .select()
+                        )
+                    )
 
             if where_and:
                 stmt = stmt.where(*where_and)
 
-            stmt = stmt.order_by(Changeset.id.asc() if (sort == 'asc') else Changeset.id.desc())
+            stmt = stmt.order_by(Changeset.id.asc() if sort == 'asc' else Changeset.id.desc())
 
             if limit is not None:
                 stmt = stmt.limit(limit)

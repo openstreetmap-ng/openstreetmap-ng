@@ -5,7 +5,7 @@ from collections.abc import Collection, Iterable, Mapping
 from datetime import datetime
 
 import cython
-from sqlalchemy import and_, delete, null, or_, select, text, update
+from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, aliased
 
@@ -62,7 +62,6 @@ class OptimisticDiffApply:
 
             now = utcnow()
             tg.create_task(_update_changeset(prepare.changeset, now, session))  # type: ignore[arg-type]
-            tg.create_task(_update_changeset_bounds(prepare.changeset, prepare.new_bounds, session))  # type: ignore[arg-type]
             tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
         return assigned_ref_map
@@ -109,23 +108,6 @@ async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncS
     changeset.auto_close_on_size(now)
     async with _flush_lock:
         session.add(changeset)
-
-
-async def _update_changeset_bounds(
-    changeset: Changeset,
-    new_bounds: list[ChangesetBounds],
-    session: AsyncSession,
-) -> None:
-    """
-    Update the changeset bounds table.
-    """
-    current_cb_ids = {cb.id for cb in changeset.bounds}
-    delete_cb_ids = current_cb_ids.difference(cb.id for cb in new_bounds)
-    if delete_cb_ids:
-        stmt = delete(ChangesetBounds).where(ChangesetBounds.id.in_(text(','.join(map(str, delete_cb_ids)))))
-        await session.execute(stmt)
-    async with _flush_lock:
-        session.add_all(cb for cb in new_bounds if (cb.id not in current_cb_ids) or cb.dirty)
 
 
 async def _update_elements(

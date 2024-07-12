@@ -51,8 +51,8 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
         user_display_name = None
         user_permalink = None
 
-    if changeset.bounds is not None:
-        minx, miny, maxx, maxy = changeset.bounds.bounds
+    if changeset.union_bounds is not None:
+        minx, miny, maxx, maxy = changeset.union_bounds.bounds
         fe.geo.box(f'{miny} {minx} {maxy} {maxx}')
 
     fe.content(

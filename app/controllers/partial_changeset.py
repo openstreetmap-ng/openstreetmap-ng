@@ -87,7 +87,7 @@ async def get_changeset(id: PositiveInt):
             'params': JSON_ENCODE(
                 {
                     'id': id,
-                    **({'bounds': changeset.bounds.bounds} if (changeset.bounds is not None) else {}),
+                    'bounds': tuple(cb.bounds.bounds for cb in changeset.bounds),
                     'elements': elements,
                 }
             ).decode(),

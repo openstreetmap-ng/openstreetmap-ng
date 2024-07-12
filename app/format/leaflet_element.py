@@ -74,18 +74,14 @@ class LeafletElementMixin:
                 geom = np.fliplr(lib.get_coordinates(np.asarray(segment, dtype=object), False, False)).tolist()
                 result.append(ElementLeafletWay('way', way_id, geom, is_area))
 
-        for node_id, node in node_id_map.items():
-            if not _is_node_interesting(node, way_nodes_ids, detailed=detailed):
-                continue
-
-            point = node.point
-            if point is None:
-                logging.warning('Missing point for node %d version %d ', node.id, node.version)
-                continue
-
-            geom = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0][::-1].tolist()
-            result.append(ElementLeafletNode('node', node_id, geom))
-
+        encode_nodes = tuple(
+            node
+            for node in node_id_map.values()
+            if _is_node_interesting(node, way_nodes_ids, detailed=detailed) and node.point is not None
+        )
+        encode_points = tuple(node.point for node in encode_nodes)
+        geoms = np.fliplr(lib.get_coordinates(np.asarray(encode_points, dtype=object), False, False)).tolist()
+        result.extend(ElementLeafletNode('node', node.id, geom) for node, geom in zip(encode_nodes, geoms, strict=True))
         return result
 
 
