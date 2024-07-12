@@ -36,8 +36,8 @@ def get_csv_path(name: str) -> Path:
 
 @cache
 def get_csv_header(path: Path) -> str:
-    with Popen(
-        (  # noqa: S603
+    with Popen(  # noqa: S603
+        (
             'zstd',
             '-d',
             '--stdout',

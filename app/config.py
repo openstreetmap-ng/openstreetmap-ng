@@ -39,12 +39,12 @@ def _path(s: str, *, mkdir: bool = False) -> Path:
 
 
 # Configuration (optional)
-TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in ('1', 'true', 'yes')
+TEST_ENV = os.getenv('TEST_ENV', '0').strip().lower() in {'1', 'true', 'yes'}
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'DEBUG' if TEST_ENV else 'INFO').upper()
-GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in ('1', 'true', 'yes')
+GC_LOG = os.getenv('GC_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 
-LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in ('1', 'true', 'yes')
-LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in ('1', 'true', 'yes')
+LEGACY_HIGH_PRECISION_TIME = os.getenv('LEGACY_HIGH_PRECISION_TIME', '0').strip().lower() in {'1', 'true', 'yes'}
+LEGACY_SEQUENCE_ID_MARGIN = os.getenv('LEGACY_SEQUENCE_ID_MARGIN', '0').strip().lower() in {'1', 'true', 'yes'}
 
 FILE_CACHE_DIR = _path(os.getenv('FILE_CACHE_DIR', 'data/cache'), mkdir=True)
 FILE_CACHE_SIZE_GB = int(os.getenv('FILE_CACHE_SIZE_GB', '128'))
@@ -52,7 +52,7 @@ FILE_STORE_DIR = _path(os.getenv('FILE_STORE_DIR', 'data/store'), mkdir=True)
 PRELOAD_DIR = _path(os.getenv('PRELOAD_DIR', 'data/preload'))
 
 # see for options: https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.asyncpg
-POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in ('1', 'true', 'yes')
+POSTGRES_LOG = os.getenv('POSTGRES_LOG', '0').strip().lower() in {'1', 'true', 'yes'}
 POSTGRES_URL = 'postgresql+asyncpg://' + os.getenv(
     'POSTGRES_URL', f'postgres:postgres@/postgres?host={_path('data/postgres_unix')}'
 )

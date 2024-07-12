@@ -80,7 +80,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @hybrid_property
     def linked_to_user_on_site(self) -> bool:
-        return self.visibility in ('identifiable', 'public')
+        return self.visibility in {'identifiable', 'public'}
 
     @linked_to_user_on_site.inplace.expression
     @classmethod
@@ -89,7 +89,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @hybrid_property
     def timestamps_via_api(self) -> bool:
-        return self.visibility in ('identifiable', 'trackable')
+        return self.visibility in {'identifiable', 'trackable'}
 
     @timestamps_via_api.inplace.expression
     @classmethod

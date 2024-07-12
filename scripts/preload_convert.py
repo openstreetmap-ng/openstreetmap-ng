@@ -99,7 +99,7 @@ def worker(args: tuple[int, int, int]) -> None:
     for element in root:
         tag: str = element.tag
         attrib: dict = element.attrib
-        if tag not in ('node', 'way', 'relation'):
+        if tag not in {'node', 'way', 'relation'}:
             continue
 
         tags_list: list[tuple[str, str]] = []
@@ -138,7 +138,7 @@ def worker(args: tuple[int, int, int]) -> None:
 
         if tag == 'node':
             visible = point is not None
-        elif tag == 'way' or tag == 'relation':
+        elif tag in {'way', 'relation'}:
             visible = bool(tags_list or members)
 
         uid = attrib.get('uid')

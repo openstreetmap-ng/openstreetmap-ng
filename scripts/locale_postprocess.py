@@ -142,7 +142,7 @@ def convert_plural_format(data: dict):
             continue
 
         # recurse non-plural dicts
-        if any(v_key not in ('zero', 'one', 'two', 'few', 'many', 'other') for v_key in v):
+        if any(v_key not in {'zero', 'one', 'two', 'few', 'many', 'other'} for v_key in v):
             convert_plural_format(v)
             continue
 

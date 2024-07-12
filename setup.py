@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-import Cython.Compiler.Options as Options
 from Cython.Build import cythonize
+from Cython.Compiler import Options
 from setuptools import Extension, setup
 
 import app.config  # DO NOT REMOVE  # noqa: F401

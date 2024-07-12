@@ -63,6 +63,4 @@ def _should_capture(message: Message) -> cython.char:
         return False
     headers = Headers(raw=message['headers'])
     content_type: str | None = headers.get('Content-Type')
-    if content_type is None or not content_type.startswith('text/html'):
-        return False
-    return True
+    return content_type is not None and content_type.startswith('text/html')

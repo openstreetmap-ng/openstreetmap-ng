@@ -78,7 +78,7 @@ class Message(Base.ZID, CreatedAtMixin, RichTextMixin):
 @cython.cfunc
 def get_body(part: EmailMessage):
     content_type = part.get_content_type()
-    if content_type not in ('text/plain', 'text/html'):
+    if content_type not in {'text/plain', 'text/html'}:
         return None
 
     payload_bytes: bytes | None = part.get_payload(decode=True)  # type: ignore[assignment]
