@@ -7,14 +7,18 @@ from itertools import chain
 from typing import Final
 
 import cython
-from shapely import Point
-from shapely.ops import unary_union
+import numpy as np
+from rtree.index import Index
+from shapely import Point, get_coordinates, measurement
+from sklearn.cluster import AgglomerativeClustering
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
+from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 from app.models.db.changeset import Changeset
+from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -89,9 +93,19 @@ class OptimisticDiffPrepare:
     Local changeset state.
     """
 
-    _bbox_info: set[Point | ElementRef]
+    new_bounds: list[ChangesetBounds] | None
     """
-    Changeset bounding box info, set of points and element refs.
+    New changeset bounds.
+    """
+
+    _bbox_points: list[Point]
+    """
+    Changeset bounding box collection of points.
+    """
+
+    _bbox_refs: set[ElementRef]
+    """
+    Changeset bounding box set of element refs.
     """
 
     def __init__(self, elements: Collection[Element]) -> None:
@@ -104,7 +118,9 @@ class OptimisticDiffPrepare:
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
         self.changeset = None
-        self._bbox_info = set()
+        self.new_bounds = None
+        self._bbox_points = []
+        self._bbox_refs = set()
 
     async def prepare(self) -> None:
         await self._set_sequence_id()
@@ -357,15 +373,15 @@ class OptimisticDiffPrepare:
         """
         Push bbox info for a node.
         """
-        bbox_info = self._bbox_info
+        bbox_points = self._bbox_points
         element_point = element.point
         if element_point is not None:
-            bbox_info.add(element_point)
+            bbox_points.append(element_point)
 
         if prev is not None:
             prev_point = prev.point
             if prev_point is not None:
-                bbox_info.add(prev_point)
+                bbox_points.append(prev_point)
 
     def _push_bbox_way_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -379,15 +395,16 @@ class OptimisticDiffPrepare:
             raise AssertionError('Element members must be set')
         node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in chain(next_members, prev_members)}
 
-        bbox_info = self._bbox_info
         element_state = self.element_state
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
         for node_ref in node_refs:
             entry = element_state.get(node_ref)
             if entry is not None:
                 node = entry.current
-                bbox_info.add(node.point)
+                bbox_points.append(node.point)
             else:
-                bbox_info.add(node_ref)
+                bbox_refs.add(node_ref)
 
     def _push_bbox_relation_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -403,19 +420,17 @@ class OptimisticDiffPrepare:
         prev_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in prev_members}
         changed_refs = prev_refs ^ next_refs
 
-        # check for changed tags
-        full_diff: cython.char = (prev is None) or (prev.tags != element.tags)
-
-        # check for any relation members
-        if not full_diff:
-            for ref in changed_refs:
-                if ref.type == 'relation':
-                    full_diff = True
-                    break
+        # check for changed tags or any relation members
+        full_diff: cython.char = (
+            (prev is None)
+            or (prev.tags != element.tags)  #
+            or any(ref.type == 'relation' for ref in changed_refs)
+        )
 
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
-        bbox_info = self._bbox_info
         element_state = self.element_state
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
         for member_ref in diff_refs:
             member_type = member_ref.type
 
@@ -423,14 +438,14 @@ class OptimisticDiffPrepare:
                 entry = element_state.get(member_ref)
                 if entry is not None:
                     node = entry.current
-                    bbox_info.add(node.point)
+                    bbox_points.append(node.point)
                 else:
-                    bbox_info.add(member_ref)
+                    bbox_refs.add(member_ref)
 
             elif member_type == 'way':
                 entry = element_state.get(member_ref)
                 if entry is None:
-                    bbox_info.add(member_ref)
+                    bbox_refs.add(member_ref)
                     continue
 
                 members = entry.current.members
@@ -442,9 +457,9 @@ class OptimisticDiffPrepare:
                     entry = element_state.get(node_ref)
                     if entry is not None:
                         node = entry.current
-                        bbox_info.add(node.point)
+                        bbox_points.append(node.point)
                     else:
-                        bbox_info.add(node_ref)
+                        bbox_refs.add(node_ref)
 
     async def _preload_changeset(self) -> None:
         """
@@ -482,19 +497,13 @@ class OptimisticDiffPrepare:
         """
         Update changeset bounds using the collected bbox info.
         """
-        # unpack bbox info
-        points: list[Point] = []
-        elements_refs: set[ElementRef] = set()
-        for point_or_ref in self._bbox_info:
-            if isinstance(point_or_ref, Point):
-                points.append(point_or_ref)
-            else:
-                elements_refs.add(point_or_ref)
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
 
-        if elements_refs:
-            logging.debug('Optimistic loading %d bbox elements', len(elements_refs))
+        if bbox_refs:
+            logging.debug('Optimistic loading %d bbox elements', len(bbox_refs))
             elements = await ElementQuery.get_by_refs(
-                elements_refs,
+                bbox_refs,
                 at_sequence_id=self.at_sequence_id,
                 recurse_ways=True,
                 limit=None,
@@ -502,13 +511,138 @@ class OptimisticDiffPrepare:
             for element in elements:
                 point = element.point
                 if point is not None:
-                    points.append(point)
+                    bbox_points.append(point)
                 elif element.type == 'node':
                     versioned_ref = VersionedElementRef('node', element.id, element.version)
                     logging.warning('Node %s is missing coordinates', versioned_ref)
 
-        if points:
-            changeset = self.changeset
-            if changeset is None:
-                raise AssertionError('Changeset must be set')
-            changeset.union_bounds(unary_union(points))
+        if not bbox_points:
+            return
+
+        changeset = self.changeset
+        if changeset is None:
+            raise AssertionError('Changeset must be set')
+        changeset_id = changeset.id
+        changeset_bounds = changeset.bounds
+
+        bounds_limit: cython.int = CHANGESET_BBOX_LIMIT
+        bounds: list[tuple[float, float, float, float]]
+        bounds = measurement.bounds(tuple(cb.bounds for cb in changeset_bounds)).tolist()
+        buffer_bounds: list[tuple[float, float, float, float]]
+        buffer_bounds = [_get_buffer_bound(bound) for bound in bounds]
+        current_dirty_indices: set[int] = set()
+        deleted_indices: set[int] = set()
+
+        # create index
+        index = Index()
+        for id, buffer in enumerate(buffer_bounds):
+            index.insert(id, buffer)
+
+        # process clusters
+        i: int | None
+        for cluster in _cluster_points(bbox_points):
+            cluster_ = np.array(cluster, np.float64)
+            minx, miny = cluster_.min(axis=0).tolist()
+            maxx, maxy = cluster_.max(axis=0).tolist()
+            bound = (minx, miny, maxx, maxy)
+            buffer = _get_buffer_bound(bound)
+
+            if len(bounds) < bounds_limit:
+                # below the limit, find the intersection
+                i = next(index.intersection(buffer, False), None)
+            else:
+                # limit is reached, find the nearest
+                i = next(index.nearest(buffer, 1, False))
+
+            if i is not None:
+                # merge with the existing bounds
+                index.delete(i, buffer_bounds[i])
+                bound = bounds[i] = _union_bounds(bound, bounds[i])
+                buffer = buffer_bounds[i] = _get_buffer_bound(bound)
+                index.insert(i, buffer)
+                current_dirty_indices.add(i)
+            else:
+                # add new bounds
+                i = len(bounds)
+                bounds.append(bound)
+                buffer_bounds.append(buffer)
+                index.insert(i, buffer)
+
+        # recheck dirty bounds
+        total_dirty_indices: set[int] = current_dirty_indices.copy()
+        while current_dirty_indices:
+            dirty_i = current_dirty_indices.pop()
+            i = next(index.intersection(buffer_bounds[dirty_i], False), None)
+            if i is None:
+                continue
+
+            # merge with the existing bounds
+            index.delete(dirty_i, buffer_bounds[dirty_i])
+            index.delete(i, buffer_bounds[i])
+            bound = bounds[i] = _union_bounds(bounds[dirty_i], bounds[i])
+            buffer = buffer_bounds[i] = _get_buffer_bound(bound)
+            index.insert(i, buffer)
+            current_dirty_indices.add(i)
+            total_dirty_indices.add(i)
+            deleted_indices.add(dirty_i)
+
+        # save result
+        new_bounds = self.new_bounds = []
+        for i, bound in enumerate(bounds):
+            if i in deleted_indices:
+                continue
+            if i < len(changeset_bounds):
+                cb = changeset_bounds[i]
+                cb.bounds = bound
+                cb.dirty = i in total_dirty_indices
+                new_bounds.append(cb)
+            else:
+                new_bounds.append(ChangesetBounds(changeset_id=changeset_id, bounds=bound))
+
+
+@cython.cfunc
+def _cluster_points(points: Collection[Point]) -> tuple[list[np.ndarray], ...]:
+    if len(points) <= CHANGESET_BBOX_LIMIT:
+        n_clusters = None
+        distance_threshold = CHANGESET_NEW_BBOX_MIN_DISTANCE
+    else:
+        n_clusters = CHANGESET_BBOX_LIMIT
+        distance_threshold = None
+    clustering = AgglomerativeClustering(
+        n_clusters=n_clusters,
+        metric='chebyshev',
+        linkage='single',
+        distance_threshold=distance_threshold,
+    )
+    coords = get_coordinates(points)
+    clustering.fit(coords)
+    clusters: tuple[list[np.ndarray], ...] = tuple([] for _ in range(len(clustering.n_clusters_)))
+    for label, coord in zip(clustering.labels_, coords, strict=True):
+        clusters[label].append(coord)
+    return clusters
+
+
+@cython.cfunc
+def _get_buffer_bound(bound: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
+    new_bbox_min_distance: cython.double = CHANGESET_NEW_BBOX_MIN_DISTANCE
+    new_bbox_min_ratio: cython.double = CHANGESET_NEW_BBOX_MIN_RATIO
+    minx, miny, maxx, maxy = bound
+    distx = (maxx - minx) * new_bbox_min_ratio
+    if distx < new_bbox_min_distance:
+        distx = new_bbox_min_distance
+    disty = (maxy - miny) * new_bbox_min_ratio
+    if disty < new_bbox_min_distance:
+        disty = new_bbox_min_distance
+    return minx - distx, miny - disty, maxx + distx, maxy + disty
+
+
+@cython.cfunc
+def _union_bounds(
+    b1: tuple[float, float, float, float],
+    b2: tuple[float, float, float, float],
+) -> tuple[float, float, float, float]:
+    minx = min(b1[0], b2[0])
+    miny = min(b1[1], b2[1])
+    maxx = max(b1[2], b2[2])
+    maxy = max(b1[3], b2[3])
+    return minx, miny, maxx, maxy

@@ -2,8 +2,6 @@ from datetime import datetime
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from shapely import Polygon, box
-from shapely.geometry.base import BaseGeometry
 from sqlalchemy import ForeignKey, Index, Integer, and_, func, null
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,10 +10,10 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
-from app.models.geometry import PolygonType
 from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
+    from app.models.db.changeset_bounds import ChangesetBounds
     from app.models.db.changeset_comment import ChangesetComment
 
 
@@ -25,6 +23,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
     user: Mapped[User | None] = relationship(init=False, lazy='raise')
     tags: Mapped[dict[str, str]] = mapped_column(JSONB, nullable=False)
+    bounds: Mapped[list['ChangesetBounds']] = relationship(init=False, lazy='selectin', viewonly=True)
     # TODO: normalize unicode, check unicode, check length
 
     # defaults
@@ -41,12 +40,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         nullable=False,
         server_default='0',
     )
-    bounds: Mapped[Polygon | None] = mapped_column(
-        PolygonType,
-        init=False,
-        nullable=True,
-        server_default=None,
-    )
 
     # runtime
     num_comments: int | None = None
@@ -58,12 +51,6 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Index('changeset_closed_at_idx', closed_at, postgresql_where=closed_at != null()),
         Index('changeset_open_idx', 'updated_at', postgresql_where=closed_at == null()),
         Index('changeset_empty_idx', closed_at, postgresql_where=and_(closed_at != null(), size == 0)),
-        Index(
-            'changeset_bounds_idx',
-            bounds,
-            postgresql_where=bounds != null(),
-            postgresql_using='gist',
-        ),
     )
 
     @cached_property
@@ -101,12 +88,3 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
             return False
         self.closed_at = func.statement_timestamp() if (now is None) else now
         return True
-
-    def union_bounds(self, geometry: BaseGeometry) -> None:
-        """
-        Update the changeset bounds to include the given geometry.
-        """
-        if self.bounds is None:
-            self.bounds = box(*geometry.bounds)
-        else:
-            self.bounds = box(*self.bounds.union(geometry).bounds)

@@ -5,14 +5,15 @@ from collections.abc import Collection, Iterable, Mapping
 from datetime import datetime
 
 import cython
-from sqlalchemy import and_, null, or_, select, text, update
+from sqlalchemy import and_, delete, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased
+from sqlalchemy.orm import DeclarativeBase, aliased
 
 from app.db import db_commit
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.date_utils import utcnow
 from app.models.db.changeset import Changeset
+from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -22,10 +23,10 @@ from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
 
 # allow reads but prevent writes
-_lock_table_sql = text(
-    f'LOCK TABLE "{Changeset.__tablename__}","{Element.__tablename__}","{ElementMember.__tablename__}" IN EXCLUSIVE MODE'
-)
+_lock_tables: tuple[type[DeclarativeBase], ...] = (Changeset, ChangesetBounds, Element, ElementMember)
+_lock_tables_sql = text(f'LOCK TABLE {','.join(f'"{t.__tablename__}"' for t in _lock_tables)} IN EXCLUSIVE MODE')
 
+# session.add() during .flush() is not supported
 _flush_lock = Lock()
 
 
@@ -45,7 +46,7 @@ class OptimisticDiffApply:
 
         async with db_commit() as session, TaskGroup() as tg:
             # obtain exclusive lock on the tables
-            await session.execute(_lock_table_sql)
+            await session.execute(_lock_tables_sql)
 
             # check if the element_state is valid
             tg.create_task(_check_elements_latest(prepare.element_state))
@@ -61,6 +62,7 @@ class OptimisticDiffApply:
 
             now = utcnow()
             tg.create_task(_update_changeset(prepare.changeset, now, session))  # type: ignore[arg-type]
+            tg.create_task(_update_changeset_bounds(prepare.changeset, prepare.new_bounds, session))  # type: ignore[arg-type]
             tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
         return assigned_ref_map
@@ -106,8 +108,24 @@ async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncS
     changeset.updated_at = now
     changeset.auto_close_on_size(now)
     async with _flush_lock:
-        # session.add() during .flush() is not supported
         session.add(changeset)
+
+
+async def _update_changeset_bounds(
+    changeset: Changeset,
+    new_bounds: list[ChangesetBounds],
+    session: AsyncSession,
+) -> None:
+    """
+    Update the changeset bounds table.
+    """
+    current_cb_ids = {cb.id for cb in changeset.bounds}
+    delete_cb_ids = current_cb_ids.difference(cb.id for cb in new_bounds)
+    if delete_cb_ids:
+        stmt = delete(ChangesetBounds).where(ChangesetBounds.id.in_(text(','.join(map(str, delete_cb_ids)))))
+        await session.execute(stmt)
+    async with _flush_lock:
+        session.add_all(cb for cb in new_bounds if (cb.id not in current_cb_ids) or cb.dirty)
 
 
 async def _update_elements(
@@ -184,9 +202,9 @@ async def _update_elements_db(
     Update the element table by creating new revisions - push prepared data to the database.
     """
     logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
-    session.add_all(insert_elements)
-    session.add_all(insert_members)
     async with _flush_lock:
+        session.add_all(insert_elements)
+        session.add_all(insert_members)
         await session.flush()
 
     if update_type_ids:

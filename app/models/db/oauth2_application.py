@@ -10,7 +10,7 @@ from app.models.db.user import User
 from app.models.scope import Scope
 
 
-class OAuth2Application(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
+class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth2_application'
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)

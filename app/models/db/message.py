@@ -15,7 +15,7 @@ from app.models.db.user import User
 from app.models.text_format import TextFormat
 
 
-class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
+class Message(Base.ZID, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'message'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
