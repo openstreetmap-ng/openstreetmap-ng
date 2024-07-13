@@ -51,9 +51,6 @@ export const getChangesetsHistoryController = (map) => {
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
             const div = entryTemplate.content.cloneNode(true).children[0]
-            div.changesetId = changeset.id
-            div.addEventListener("mouseover", onMouseover)
-            div.addEventListener("mouseout", onMouseout)
 
             // Find elements to populate
             const userContainer = div.querySelector(".user")
@@ -92,6 +89,9 @@ export const getChangesetsHistoryController = (map) => {
 
             changesetAnchor.href = `/changeset/${changeset.id}`
             changesetAnchor.textContent = changeset.id
+            changesetAnchor.changesetId = changeset.id
+            changesetAnchor.addEventListener("mouseover", onMouseover)
+            changesetAnchor.addEventListener("mouseout", onMouseout)
             fragment.appendChild(div)
 
             idSidebarMap.set(changeset.id, div)
@@ -111,7 +111,7 @@ export const getChangesetsHistoryController = (map) => {
             for (const bounds of changeset.geom) {
                 const minimumBounds = makeBoundsMinimumSize(map, bounds)
                 const boundsArea = (minimumBounds[2] - minimumBounds[0]) * (minimumBounds[3] - minimumBounds[1])
-                changesetsSorted.push([changeset, changesetLayers, bounds, boundsArea])
+                changesetsSorted.push([changeset, changesetLayers, minimumBounds, boundsArea])
             }
         }
         changesetsSorted.sort((a, b) => b[3] - a[3])
