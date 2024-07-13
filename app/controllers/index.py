@@ -11,6 +11,7 @@ from app.lib.local_chapters import LOCAL_CHAPTERS
 from app.lib.locale import is_valid_locale
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
+from app.limits import URLSAFE_BLACKLIST
 from app.models.db.user import User
 
 router = APIRouter()
@@ -119,7 +120,7 @@ async def login():
 async def signup():
     if auth_user() is not None:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response('user/signup.jinja2')
+    return render_response('user/signup.jinja2', {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST})
 
 
 @router.get('/welcome')
@@ -129,4 +130,4 @@ async def welcome(_: Annotated[User, web_user()]):
 
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
-    return render_response('user/settings/index.jinja2')
+    return render_response('user/settings/index.jinja2', {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST})
