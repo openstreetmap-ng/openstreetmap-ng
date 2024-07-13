@@ -7,18 +7,14 @@ from itertools import chain
 from typing import Final
 
 import cython
-import numpy as np
-from rtree.index import Index
-from shapely import Point, box, get_coordinates, measurement, unary_union
-from sklearn.cluster import AgglomerativeClustering
+from shapely import Point, box, multipolygons
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
+from app.lib.change_bounds import change_bounds
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
-from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CHANGESET_NEW_BBOX_MIN_RATIO
 from app.models.db.changeset import Changeset
-from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element_ref import ElementRef, VersionedElementRef
@@ -516,134 +512,11 @@ class OptimisticDiffPrepare:
         changeset = self.changeset
         if changeset is None:
             raise AssertionError('Changeset must be set')
-        changeset_bounds = changeset.bounds
+
+        changeset.bounds = new_bounds = change_bounds(changeset.bounds, bbox_points)
+
         changeset_union_bounds = changeset.union_bounds
-
-        bbox_limit: cython.int = CHANGESET_BBOX_LIMIT
-        bboxes: list[tuple[float, float, float, float]]
-        bboxes = measurement.bounds(tuple(cb.bounds for cb in changeset_bounds)).tolist()
-        buffer_bboxes: list[tuple[float, float, float, float]]
-        buffer_bboxes = [_get_buffer_bbox(bound) for bound in bboxes]
-        current_dirty_indices: set[int] = set()
-        deleted_indices: set[int] = set()
-
-        # create index
-        index = Index()
-        for id, buffer in enumerate(buffer_bboxes):
-            index.insert(id, buffer)
-
-        # process clusters
-        i: int | None
-        for cluster in _cluster_points(bbox_points):
-            cluster_ = np.array(cluster, np.float64)
-            minx, miny = cluster_.min(axis=0).tolist()
-            maxx, maxy = cluster_.max(axis=0).tolist()
-            bbox = (minx, miny, maxx, maxy)
-            buffer = _get_buffer_bbox(bbox)
-
-            if len(bboxes) < bbox_limit:
-                # below the limit, find the intersection
-                i = next(index.intersection(buffer, False), None)
-            else:
-                # limit is reached, find the nearest
-                i = next(index.nearest(buffer, 1, False))
-
-            if i is not None:
-                # merge with the existing bbox
-                index.delete(i, buffer_bboxes[i])
-                bbox = bboxes[i] = _union_bbox(bbox, bboxes[i])
-                buffer = buffer_bboxes[i] = _get_buffer_bbox(bbox)
-                index.insert(i, buffer)
-                current_dirty_indices.add(i)
-            else:
-                # add new bbox
-                i = len(bboxes)
-                bboxes.append(bbox)
-                buffer_bboxes.append(buffer)
-                index.insert(i, buffer)
-
-        # recheck dirty bboxes
-        total_dirty_indices: set[int] = current_dirty_indices.copy()
-        while current_dirty_indices:
-            dirty_i = current_dirty_indices.pop()
-            i = next(index.intersection(buffer_bboxes[dirty_i], False), None)
-            if i is None:
-                continue
-
-            # merge with the existing bbox
-            index.delete(dirty_i, buffer_bboxes[dirty_i])
-            index.delete(i, buffer_bboxes[i])
-            bbox = bboxes[i] = _union_bbox(bboxes[dirty_i], bboxes[i])
-            buffer = buffer_bboxes[i] = _get_buffer_bbox(bbox)
-            index.insert(i, buffer)
-            current_dirty_indices.add(i)
-            total_dirty_indices.add(i)
-            deleted_indices.add(dirty_i)
-
-        # save result
-        new_bounds: list[ChangesetBounds] = []
-        for i, cb in enumerate(changeset_bounds):
-            if i in deleted_indices:
-                continue
-            if i in total_dirty_indices:
-                cb.bounds = box(*bboxes[i])
-            new_bounds.append(cb)
-        new_bounds.extend(
-            ChangesetBounds(bounds=box(*bbox))
-            for i, bbox in enumerate(bboxes[len(changeset_bounds) :])
-            if i not in deleted_indices
-        )
-        changeset.bounds = new_bounds
-
-        new_union_bounds = unary_union(tuple(cb.bounds for cb in new_bounds))
+        new_polygons = [cb.bounds for cb in new_bounds]
         if changeset_union_bounds is not None:
-            new_union_bounds = unary_union((changeset_union_bounds, new_union_bounds))
-        changeset.union_bounds = box(*new_union_bounds.bounds)
-
-
-@cython.cfunc
-def _cluster_points(points: Collection[Point]) -> tuple[list[np.ndarray], ...]:
-    if len(points) <= CHANGESET_BBOX_LIMIT:
-        n_clusters = None
-        distance_threshold = CHANGESET_NEW_BBOX_MIN_DISTANCE
-    else:
-        n_clusters = CHANGESET_BBOX_LIMIT
-        distance_threshold = None
-    clustering = AgglomerativeClustering(
-        n_clusters=n_clusters,
-        metric='chebyshev',
-        linkage='single',
-        distance_threshold=distance_threshold,
-    )
-    coords = get_coordinates(points)
-    clustering.fit(coords)
-    clusters: tuple[list[np.ndarray], ...] = tuple([] for _ in range(len(clustering.n_clusters_)))
-    for label, coord in zip(clustering.labels_, coords, strict=True):
-        clusters[label].append(coord)
-    return clusters
-
-
-@cython.cfunc
-def _get_buffer_bbox(bound: tuple[float, float, float, float]) -> tuple[float, float, float, float]:
-    new_bbox_min_distance: cython.double = CHANGESET_NEW_BBOX_MIN_DISTANCE
-    new_bbox_min_ratio: cython.double = CHANGESET_NEW_BBOX_MIN_RATIO
-    minx, miny, maxx, maxy = bound
-    distx = (maxx - minx) * new_bbox_min_ratio
-    if distx < new_bbox_min_distance:
-        distx = new_bbox_min_distance
-    disty = (maxy - miny) * new_bbox_min_ratio
-    if disty < new_bbox_min_distance:
-        disty = new_bbox_min_distance
-    return minx - distx, miny - disty, maxx + distx, maxy + disty
-
-
-@cython.cfunc
-def _union_bbox(
-    b1: tuple[float, float, float, float],
-    b2: tuple[float, float, float, float],
-) -> tuple[float, float, float, float]:
-    minx = min(b1[0], b2[0])
-    miny = min(b1[1], b2[1])
-    maxx = max(b1[2], b2[2])
-    maxy = max(b1[3], b2[3])
-    return minx, miny, maxx, maxy
+            new_polygons.append(changeset_union_bounds)
+        changeset.union_bounds = box(*multipolygons(new_polygons).bounds)

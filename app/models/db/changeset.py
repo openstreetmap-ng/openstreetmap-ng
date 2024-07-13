@@ -44,8 +44,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     bounds: Mapped[list['ChangesetBounds']] = relationship(
         init=False,
         lazy='selectin',
-        cascade='save-update, delete-orphans',
-        server_default='{}',
+        cascade='save-update, delete, delete-orphan',
     )
     union_bounds: Mapped[Polygon | None] = mapped_column(
         PolygonType,
