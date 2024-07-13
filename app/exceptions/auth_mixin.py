@@ -29,34 +29,6 @@ class AuthExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def oauth1_timestamp_out_of_range(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_nonce_missing(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_bad_nonce(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_nonce_used(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_bad_verifier(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_unsupported_signature_method(self, method: str) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
-    def oauth1_bad_signature(self) -> NoReturn:
-        raise NotImplementedError
-
-    @abstractmethod
     def oauth2_bearer_missing(self) -> NoReturn:
         raise NotImplementedError
 

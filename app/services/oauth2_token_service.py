@@ -2,7 +2,7 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 
 import cython
-from sqlalchemy import null, select
+from sqlalchemy import delete, null, select
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -119,7 +119,6 @@ class OAuth2TokenService:
                 )
                 .with_for_update()
             )
-
             token = await session.scalar(stmt)
             if token is None:
                 raise_for().oauth_bad_user_token()
@@ -158,6 +157,18 @@ class OAuth2TokenService:
             'created_at': int(token.authorized_at.timestamp()),
             # TODO: id_token
         }
+
+    @staticmethod
+    async def revoke(app_id: int) -> None:
+        """
+        Revoke all current user tokens for the given OAuth2 application.
+        """
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.application_id == app_id,
+            )
+            await session.execute(stmt)
 
 
 @cython.cfunc

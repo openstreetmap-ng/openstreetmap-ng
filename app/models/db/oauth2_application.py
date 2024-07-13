@@ -14,7 +14,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth2_application'
 
     user_id: Mapped[int | None] = mapped_column(ForeignKey(User.id), nullable=True)
-    user: Mapped[User | None] = relationship(lazy='raise')
+    user: Mapped[User | None] = relationship(init=False, lazy='raise')
     name: Mapped[str] = mapped_column(Unicode, nullable=False)
     client_id: Mapped[str] = mapped_column(Unicode(50), nullable=False)
     client_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
@@ -22,7 +22,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     is_confidential: Mapped[bool] = mapped_column(Boolean, nullable=False)
     redirect_uris: Mapped[list[str]] = mapped_column(ARRAY(Unicode, dimensions=1), nullable=False)
 
-    __table_args__ = (Index('client_id_idx', 'client_id', unique=True),)
+    __table_args__ = (Index('oauth2_application_client_id_idx', 'client_id', unique=True),)
 
     @updating_cached_property('client_secret_encrypted')
     def client_secret(self) -> str:
