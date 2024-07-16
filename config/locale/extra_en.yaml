@@ -129,6 +129,7 @@ validation:
   email_missmatch: The email addresses do not match
   password_missmatch: The passwords do not match
   you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
+  reached_oauth2_app_limit: You have reached the maximum number of OAuth2 applications
 action:
   block_user: Block user
   cancel: Cancel

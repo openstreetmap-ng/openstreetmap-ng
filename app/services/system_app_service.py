@@ -54,7 +54,7 @@ class SystemAppService:
 
         The access token can be used to make requests on behalf of the user.
         """
-        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             raise_for().oauth_bad_app_client_id()
         if app.user_id is not None:

@@ -45,7 +45,7 @@ class OAuth2TokenService:
 
         In init=False mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
-        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
