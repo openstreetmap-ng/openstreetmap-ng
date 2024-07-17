@@ -34,6 +34,7 @@ Last update: 2024-03-17
 - Replace markdown formatter with [CommonMark](https://spec.commonmark.org/)-compliant [implementation](https://github.com/executablebooks/markdown-it-py)
 - Search query now uses commonly used `q` parameter instead of `query`
 - Where-is-this will now remember zoom level in the URL (affects the result)
+- Where-is-this supports refreshing with "search this area" button
 - Improved search experience
 
 ## Frontend

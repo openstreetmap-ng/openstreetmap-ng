@@ -27,7 +27,7 @@ _cache_context = 'Nominatim'
 
 class NominatimQuery:
     @staticmethod
-    async def reverse(point: Point, zoom: int) -> SearchResult:
+    async def reverse(point: Point, zoom: int) -> SearchResult | None:
         """
         Reverse geocode a point into a human-readable name.
         """
@@ -35,8 +35,8 @@ class NominatimQuery:
         path = '/reverse?' + urlencode(
             {
                 'format': 'jsonv2',
-                'lon': f'{x:.7f}',
-                'lat': f'{y:.7f}',
+                'lon': f'{x:.5f}',
+                'lat': f'{y:.5f}',
                 'zoom': zoom,
                 'accept-language': primary_translation_locale(),
             }
@@ -56,9 +56,7 @@ class NominatimQuery:
         )
         response_entries = (JSON_DECODE(cache.value),)
         result = await _get_result(at_sequence_id=None, response_entries=response_entries)
-        if not result:
-            raise ValueError('Nominatim reverse returned no results')
-        return result[0]
+        return next(iter(result), None)
 
     @staticmethod
     async def search(
@@ -108,7 +106,7 @@ async def _search(
             'limit': limit,
             **(
                 {
-                    'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds),
+                    'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
                     'bounded': 1,
                 }
                 if (bounds is not None)

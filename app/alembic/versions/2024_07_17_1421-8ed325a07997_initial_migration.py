@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 6987abb53b17
+Revision ID: 8ed325a07997
 Revises:
-Create Date: 2024-07-13 14:59:47.652040+00:00
+Create Date: 2024-07-17 14:21:54.938908+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '6987abb53b17'
+revision: str = '8ed325a07997'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -191,19 +191,20 @@ def upgrade() -> None:
     )
     op.create_table('oauth2_application',
     sa.Column('user_id', sa.BigInteger(), nullable=True),
-    sa.Column('name', sa.Unicode(), nullable=False),
+    sa.Column('name', sa.Unicode(length=50), nullable=False),
     sa.Column('client_id', sa.Unicode(length=50), nullable=False),
     sa.Column('client_secret_encrypted', sa.LargeBinary(), nullable=False),
     sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_diary', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
     sa.Column('is_confidential', sa.Boolean(), nullable=False),
-    sa.Column('redirect_uris', sa.ARRAY(sa.Unicode(), dimensions=1), nullable=False),
+    sa.Column('redirect_uris', sa.ARRAY(sa.Unicode(length=1000), dimensions=1), nullable=False),
+    sa.Column('avatar_id', sa.Unicode(length=64), nullable=True),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('client_id_idx', 'oauth2_application', ['client_id'], unique=True)
+    op.create_index('oauth2_application_client_id_idx', 'oauth2_application', ['client_id'], unique=True)
     op.create_table('trace',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('name', sa.Unicode(length=255), nullable=False),
@@ -427,7 +428,7 @@ def downgrade() -> None:
     op.drop_table('user_pref')
     op.drop_table('user_block')
     op.drop_table('trace')
-    op.drop_index('client_id_idx', table_name='oauth2_application')
+    op.drop_index('oauth2_application_client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('note_subscription')
     op.drop_table('note_comment')

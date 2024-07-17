@@ -30,7 +30,7 @@ router = APIRouter(prefix='/api/partial')
 
 
 @router.get('/search')
-async def search(
+async def get_search(
     query: Annotated[str, Query(alias='q', min_length=1, max_length=SEARCH_QUERY_MAX_LENGTH)],
     bbox: Annotated[str, Query(min_length=1)],
     local_only: Annotated[bool, Query()] = False,
@@ -59,24 +59,33 @@ async def search(
         at_sequence_id=at_sequence_id,
         bounds=bounds,
         results=results,
+        where_is_this=False,
     )
 
 
 @router.get('/where-is-this')
-async def where_is_this(
+async def get_where_is_this(
     lon: Annotated[Longitude, Query()],
     lat: Annotated[Latitude, Query()],
     zoom: Annotated[Zoom, Query()],
 ):
     result = await NominatimQuery.reverse(Point(lon, lat), zoom)
+    results = (result,) if (result is not None) else ()
     return await _get_response(
         at_sequence_id=None,
         bounds='',
-        results=(result,),
+        results=results,
+        where_is_this=True,
     )
 
 
-async def _get_response(*, at_sequence_id: int | None, bounds: str, results: Collection[SearchResult]):
+async def _get_response(
+    *,
+    at_sequence_id: int | None,
+    bounds: str,
+    results: Collection[SearchResult],
+    where_is_this: bool,
+):
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
 
@@ -128,5 +137,6 @@ async def _get_response(*, at_sequence_id: int | None, bounds: str, results: Col
             'bounds': bounds,
             'results': results,
             'leaflet': JSON_ENCODE(leaflet).decode(),
+            'where_is_this': where_is_this,
         },
     )

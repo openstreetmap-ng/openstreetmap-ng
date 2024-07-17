@@ -20,6 +20,7 @@ export const configureSearchForm = (map) => {
     }
 
     const onWhereIsThisClick = (e) => {
+        e.preventDefault()
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const latLng = map.getCenter()

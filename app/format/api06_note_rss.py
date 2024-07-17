@@ -3,6 +3,7 @@ from collections.abc import Iterable
 
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
+from httpx import HTTPError
 from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
@@ -65,11 +66,14 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
+    place = f'{y:.5f}, {x:.5f}'
     try:
         # reverse geocode the note point
-        place = (await NominatimQuery.reverse(note.point, 14)).display_name
-    except Exception:
-        place = f'{y:.5f}, {x:.5f}'
+        result = await NominatimQuery.reverse(note.point, 14)
+        if result is not None:
+            place = result.display_name
+    except HTTPError:
+        pass
 
     if len(note_comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
@@ -108,11 +112,14 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
+    place = f'{y:.5f}, {x:.5f}'
     try:
         # reverse geocode the note point
-        place = (await NominatimQuery.reverse(point, 14)).display_name
-    except Exception:
-        place = f'{y:.5f}, {x:.5f}'
+        result = await NominatimQuery.reverse(point, 14)
+        if result is not None:
+            place = result.display_name
+    except HTTPError:
+        pass
 
     comment_event = comment.event
     if comment_event == NoteEvent.opened:

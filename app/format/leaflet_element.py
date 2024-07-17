@@ -37,7 +37,7 @@ class LeafletElementMixin:
                 way_id_map[element.id] = element
 
         for way_id, way in way_id_map.items():
-            way_members = element.members
+            way_members = way.members
             if way_members is None:
                 raise AssertionError('Way members must be set')
 

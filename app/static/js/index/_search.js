@@ -2,7 +2,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
-import { isLongitude } from "../_utils.js"
+import { isLongitude, zoomPrecision } from "../_utils.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { getMapAlert } from "../leaflet/_map-utils.js"
@@ -32,12 +32,20 @@ export const getSearchController = (map) => {
     const searchForm = document.querySelector(".search-form")
     const searchAlert = getMapAlert("search-alert")
     let initialBounds = null
+    let whereIsThisMode = false
 
     // On search alert click, reload the search with the new area
     const onSearchAlertClick = () => {
         console.debug("Searching within new area")
         base.unload()
-        base.load({ localOnly: true })
+        if (whereIsThisMode) {
+            const zoom = map.getZoom()
+            const precision = zoomPrecision(zoom)
+            const latLng = map.getCenter()
+            base.load({ lon: latLng.lng.toFixed(precision), lat: latLng.lat.toFixed(precision), zoom })
+        } else {
+            base.load({ localOnly: true })
+        }
     }
 
     // On map update, check if view was changed and show alert if so
@@ -68,10 +76,12 @@ export const getSearchController = (map) => {
         const searchList = sidebarContent.querySelector(".search-list")
         const dataset = searchList.dataset
         const boundsStr = dataset.bounds
-        const isGlobalMode = !boundsStr
         const groupedElements = JSON.parse(dataset.leaflet)
         const results = searchList.querySelectorAll(".social-action")
         const layers = []
+
+        const globalMode = !boundsStr
+        whereIsThisMode = dataset.whereIsThis === "True"
 
         for (let i = 0; i < results.length; i++) {
             const elements = groupedElements[i]
@@ -98,7 +108,7 @@ export const getSearchController = (map) => {
                 focusManyMapObjects(map, elements, {
                     ...focusOptions,
                     // Focus on hover only during global search
-                    fitBounds: isGlobalMode,
+                    fitBounds: globalMode,
                 })
                 marker?.setOpacity(1)
             }
@@ -138,7 +148,7 @@ export const getSearchController = (map) => {
         searchLayer.addLayer(L.layerGroup(layers))
         console.debug("Search showing", results.length, "results")
 
-        if (isGlobalMode) {
+        if (globalMode) {
             // global mode
             if (results.length) {
                 focusManyMapObjects(map, groupedElements[0], focusOptions)
@@ -177,15 +187,14 @@ export const getSearchController = (map) => {
 
         const searchParams = qsParse(location.search.substring(1))
         const query = searchParams.q || searchParams.query || ""
-        const lon = searchParams.lon
-        const lat = searchParams.lat
-        const whereIsThisMode = !query && lon && lat
+        const lon = options?.lon ?? searchParams.lon
+        const lat = options?.lat ?? searchParams.lat
 
-        if (whereIsThisMode) {
+        if (!query && lon && lat) {
             document.title = getPageTitle(whereIsThisTitle)
             setSearchFormQuery(null)
 
-            const zoom = searchParams.zoom ?? map.getZoom()
+            const zoom = options?.zoom ?? searchParams.zoom ?? map.getZoom()
             const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
             baseLoad({ url })
         } else {
