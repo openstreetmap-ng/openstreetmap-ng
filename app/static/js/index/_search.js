@@ -26,7 +26,8 @@ const focusOptions = {
  * @returns {object} Controller
  */
 export const getSearchController = (map) => {
-    const defaultTitle = i18next.t("site.search.search")
+    const searchTitle = i18next.t("site.search.search")
+    const whereIsThisTitle = i18next.t("site.search.where_am_i")
     const searchLayer = getOverlayLayerById("search")
     const searchForm = document.querySelector(".search-form")
     const searchAlert = getMapAlert("search-alert")
@@ -176,20 +177,33 @@ export const getSearchController = (map) => {
 
         const searchParams = qsParse(location.search.substring(1))
         const query = searchParams.q || searchParams.query || ""
-        document.title = getPageTitle(query || defaultTitle)
-        setSearchFormQuery(query)
+        const lon = searchParams.lon
+        const lat = searchParams.lat
+        const whereIsThisMode = !query && lon && lat
 
-        // Load empty sidebar to ensure proper bbox
-        baseLoad({ url: null })
-        // Pad the bounds to avoid floating point errors
-        const bbox = map.getBounds().pad(-0.01).toBBoxString()
-        const url = `/api/partial/search?${qsEncode({
-            q: query,
-            bbox,
-            // biome-ignore lint/style/useNamingConvention:
-            local_only: options?.localOnly ?? false,
-        })}`
-        baseLoad({ url })
+        if (whereIsThisMode) {
+            document.title = getPageTitle(whereIsThisTitle)
+            setSearchFormQuery(null)
+
+            const zoom = searchParams.zoom ?? map.getZoom()
+            const url = `/api/partial/where-is-this?${qsEncode({ lon, lat, zoom })}`
+            baseLoad({ url })
+        } else {
+            document.title = getPageTitle(query || searchTitle)
+            setSearchFormQuery(query)
+
+            // Load empty sidebar to ensure proper bbox
+            baseLoad({ url: null })
+            // Pad the bounds to avoid floating point errors
+            const bbox = map.getBounds().pad(-0.01).toBBoxString()
+            const url = `/api/partial/search?${qsEncode({
+                q: query,
+                bbox,
+                // biome-ignore lint/style/useNamingConvention:
+                local_only: options?.localOnly ?? false,
+            })}`
+            baseLoad({ url })
+        }
     }
 
     base.unload = () => {

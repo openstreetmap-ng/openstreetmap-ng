@@ -65,8 +65,11 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
-    # reverse geocode the note point
-    place = await NominatimQuery.reverse_name(note.point, 14)
+    try:
+        # reverse geocode the note point
+        place = (await NominatimQuery.reverse(note.point, 14)).display_name
+    except Exception:
+        place = f'{y:.5f}, {x:.5f}'
 
     if len(note_comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
@@ -105,8 +108,11 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
         fe.author(name=user.display_name, uri=user_permalink)
         fe.dc.creator(user.display_name)
 
-    # reverse geocode the note point
-    place = await NominatimQuery.reverse_name(point, 14)
+    try:
+        # reverse geocode the note point
+        place = (await NominatimQuery.reverse(point, 14)).display_name
+    except Exception:
+        place = f'{y:.5f}, {x:.5f}'
 
     comment_event = comment.event
     if comment_event == NoteEvent.opened:
