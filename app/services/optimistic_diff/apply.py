@@ -24,7 +24,8 @@ from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDi
 
 # allow reads but prevent writes
 _lock_tables: tuple[type[DeclarativeBase], ...] = (Changeset, ChangesetBounds, Element, ElementMember)
-_lock_tables_sql = text(f'LOCK TABLE {','.join(f'"{t.__tablename__}"' for t in _lock_tables)} IN EXCLUSIVE MODE')
+_lock_tables_names = (f'"{t.__tablename__}"' for t in _lock_tables)
+_lock_tables_sql = text(f'LOCK TABLE {",".join(_lock_tables_names)} IN EXCLUSIVE MODE')
 
 # session.add() during .flush() is not supported
 _flush_lock = Lock()

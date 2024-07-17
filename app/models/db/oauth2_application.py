@@ -28,6 +28,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # defaults
+    # TODO: avatars
     avatar_id: Mapped[StorageKey | None] = mapped_column(
         Unicode(STORAGE_KEY_MAX_LENGTH),
         init=False,
