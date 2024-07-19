@@ -11,7 +11,7 @@
 {% endmacro %}
 
 <h3 class="ms-1">{{ t('user.activity.recent') }}</h3>
-<div>{{ nt('activity.front.count', activity_days) }} {{ nt('user.activity.end.count', activity_sum) }}</div>
+<div>{{ nt('user.activity.front.count', activity_days) }} {{ nt('user.activity.end.count', activity_sum) }}</div>
 <table id="activity-table" class="overflow-hidden w-100">
     <tr>
         {% for month in activity_months %}
