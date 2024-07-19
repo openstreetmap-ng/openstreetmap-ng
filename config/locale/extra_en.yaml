@@ -76,18 +76,18 @@ user:
     password_last_changed: Password last changed
   activity:
     recent: Recent activity
-    description_front:
-      one: "%{{count}} mapping day with"
-      other: "%{{count}} mapping days with"
-    description_end:
-      one: "%{{count}} changesets in last 6 months"
-      other: "%{{count}} changesets in last 6 months"
+    front:
+      count_one: '{{count}} mapping day with'
+      count_other: '{{count}} mapping days with'
+    end:
+      count_one: '{{count}} changesets in last 6 months'
+      count_other: '{{count}} changesets in last 6 months'
     less: Less
     more: More
     view_all: View full statistics
-    single: 1 activity on {{date}}
-    multiple: "{{count}} activities on {{date}}"
-    none: No activities on {{date}}
+    single: 1 changeset on {{date}}
+    multiple: "{{count}} chengesets on {{date}}"
+    none: No activitiy on {{date}}
 privacy:
   enable_activity_tracking:
     title: Enable activity tracking

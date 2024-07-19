@@ -55,55 +55,46 @@
         color: $text-muted;
     }
 
-    $padding: 40px;
-    $weeks: 26;
-    $gap: 2px;
-    $cell: calc((var(--width) + (0px - $gap * ($weeks - 1) - $padding)) / $weeks);
+    $weekname: 31px;
+    $gap: 1px;
     $white: #eee;
     $green: rgb(21, 139, 21);
 
     @for $i from 0 through 19 {
-        .activity[data-level="#{$i}"] {
+        .activity-#{$i} {
             background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
         }
     }
     .activity {
+        height: 1em;
         display: inline-block;
         aspect-ratio: 1;
-        width: 1em;
         border-radius: 25%;
         cursor: text;
     }
     table .activity {
-        display: table-cell;
-        width: $cell;
-        height: $cell;
         cursor: default;
+        display: block;
+        height: auto;
+
     }
 
     table {
-        table-layout: fixed;
-        border-spacing: $gap;
-        border-collapse: separate;
-
-        .header {
-            span {
-                top: 0;
-            }
+        tr:first-child {
             height: 1em;
         }
+
+        border-spacing: $gap;
+        border-collapse: separate;
     }
-    .chart-weekday {
+
+    td:first-child {
         span {
             position: absolute;
-            top: -5px;
+            translate: 0px -50%;
         }
 
-        width: $padding;
+        width: $weekname;
         position: relative;
-    }
-
-    .comparison {
-        font-size: 0.75em;
     }
 }

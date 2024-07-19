@@ -136,9 +136,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     rows = [[] for _ in range(7)]
     months = []
     for index, level in enumerate(cliped_activity):
-        rows[index % 7].append(
-            {'level': level, 'total': int(activity[index]), 'date': dates_range[index].date()}
-        )
+        rows[index % 7].append({'level': level, 'total': int(activity[index]), 'date': dates_range[index].date()})
         if dates_range[index].day == 1:
             i = len(rows[index % 7])
             while len(months) <= i:
