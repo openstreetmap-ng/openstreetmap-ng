@@ -8,10 +8,8 @@ if (table) {
     const single = i18next.t("user.activity.single")
     const none = i18next.t("user.activity.none")
 
-    const container = table.parentElement
-
     // add tooltips
-    table.querySelectorAll('td[class*="activity"]').forEach((element) => {
+    table.querySelectorAll(".activity").forEach((element) => {
         const [amount, date] = [+element.dataset.total, element.dataset.date]
         const text = amount === 0 ? none : amount === 1 ? single : multiple.replace("{{count}}", amount)
         Tooltip.getOrCreateInstance(element, {

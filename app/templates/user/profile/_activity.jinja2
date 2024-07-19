@@ -2,17 +2,19 @@
 <tr>
     <td class="text-muted small"><span class="">{{ name }}</span></td>
     {% for day in row %}
-    <td data-total="{{  day.total  }}"
-        data-date="{{  day.date.strftime('%B %d, %Y')  }}"><div class="activity activity-{{  day.level  }}"></div></td>
+    <td>
+        <div class="activity activity-{{  day.level  }}" data-total="{{  day.total  }}"
+            data-date="{{  day.date.strftime('%B %d, %Y')  }}"></div>
+    </td>
     {% endfor %}
 </tr>
 {% endmacro %}
 
 <h3 class="ms-1">{{ t('user.activity.recent') }}</h3>
-<p>{{ nt('activity.front.count', activity_days) }} {{ nt('user.activity.end.count', activity_sum) }}</p>
+<div>{{ nt('activity.front.count', activity_days) }} {{ nt('user.activity.end.count', activity_sum) }}</div>
 <table id="activity-table" class="overflow-hidden w-100">
     <tr>
-        {% for month in months %}
+        {% for month in activity_months %}
         {% if month != "" %}
         <td class="position-relative"><span class="position-absolute small text-muted top-0"> {{ month }}</span></td>
         {% else %}
@@ -30,20 +32,19 @@
 </table>
 
 <div class="d-flex justify-content-between small">
-<span>
-    <a class="small me-1" href="/user/{{ profile.display_name }}/statistics">
-        {{ t('user.activity.view_all') }}<i class="bi bi-box-arrow-up-right ms-2"></i>
-    </a>
-</span>
-
-
-<span class="text-end text-muted small">
-    {{ t('user.activity.less') }} (0)
-    <span class="activity activity-0 small" ></span>
-    <span class="activity activity-6 small" ></span>
-    <span class="activity activity-12 small"></span>
-    <span class="activity activity-19 small"></span>
-    {{ t('user.activity.more') }} ({{ activity_max }})
-</span>
+    <span>
+        <a class="small me-1" href="/user/{{ profile.display_name }}/statistics">
+            {{ t('user.activity.view_all') }}<i class="bi bi-box-arrow-up-right ms-2"></i>
+        </a>
+    </span>
+    
+    <span class="text-end text-muted small">
+        {{ t('user.activity.less') }} (0)
+        <span class="activity activity-0 small"></span>
+        <span class="activity activity-6 small"></span>
+        <span class="activity activity-12 small"></span>
+        <span class="activity activity-19 small"></span>
+        {{ t('user.activity.more') }} ({{ activity_max }})
+    </span>
 
 </div>
