@@ -1,6 +1,6 @@
 import { Dropdown, Tooltip } from "bootstrap"
 import { qsEncode, qsParse } from "./_qs.js"
-import { prepareRemoteEdit } from "./_remote-edit.js"
+import { remoteEdit } from "./_remote-edit.js"
 import "./_types.js"
 import { isHrefCurrentPage } from "./_utils.js"
 import { routerNavigateStrict } from "./index/_router.js"
@@ -9,69 +9,12 @@ import { encodeMapState } from "./leaflet/_map-utils.js"
 const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 const editGroup = navbar.querySelector(".edit-group")
+const dropdownButton = editGroup.querySelector(".dropdown-toggle")
+const dropdown = Dropdown.getOrCreateInstance(dropdownButton)
+const dropdownEditButtons = editGroup.querySelectorAll(".dropdown-item.edit-link")
+const remoteEditButton = editGroup.querySelector(".dropdown-item.edit-link[data-editor=remote]")
+const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
-const remoteEditButton = navbar.querySelector(".remote-edit")
-
-const editButtons = editGroup.querySelectorAll(".dropdown-item.edit-link")
-const rememberChoice = editGroup.querySelector("input[name='remember-choice']")
-
-const prepareEdit = (event) => {
-    const editButtonClicked = event.currentTarget
-
-    if (!rememberChoice || !rememberChoice.checked) {
-        Dropdown.getInstance(editGroup.querySelector("button.dropdown-toggle")).hide()
-
-        if (editButtonClicked.dataset.osmEditor == "remote") {
-            prepareRemoteEdit(editButtonClicked)
-        }
-        return
-    }
-
-    // Set default editor when "remember my choice" is checked
-    event.preventDefault()
-    console.debug("Changing default editor to", editButtonClicked.dataset.osmEditor)
-
-    const defaultEditorBadge = editGroup.querySelector("span.badge.default-editor")
-    defaultEditorBadge.remove()
-    defaultEditorBadge.classList.replace("bg-green", "bg-secondary")
-    editButtonClicked.insertAdjacentElement("beforeend", defaultEditorBadge)
-
-    const userEditor = new FormData()
-    userEditor.append("editor", editButtonClicked.dataset.osmEditor)
-    fetch("/api/web/user/settings/editor", {
-        method: "POST",
-        body: userEditor,
-        mode: "same-origin",
-        cache: "no-store",
-        priority: "high",
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`${response.status} ${response.statusText}`)
-            }
-
-            console.debug("Changed default editor to", editButtonClicked.dataset.osmEditor)
-            defaultEditorBadge.classList.replace("bg-secondary", "bg-green")
-            uncheckRememberChoice()
-
-            editButtonClicked.dispatchEvent(new MouseEvent(event.type, event))
-        })
-        .catch((error) => {
-            console.debug("Couldn't change default editor:", error)
-        })
-}
-
-for (const editButton of editButtons) {
-    editButton.addEventListener("click", prepareEdit)
-}
-
-// Uncheck "remember my choice" checkbox when edit dropdown hides
-const uncheckRememberChoice = () => {
-    if (!rememberChoice || rememberChoice.disabled) return
-    rememberChoice.checked = false
-    rememberChoice.dispatchEvent(new Event("change"))
-}
-editGroup.addEventListener("hidden.bs.dropdown", uncheckRememberChoice)
 
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
@@ -82,6 +25,53 @@ for (const link of navLinks) {
         break
     }
 }
+
+const onEditButtonClick = (event) => {
+    const editButton = event.currentTarget
+    const editor = editButton.dataset.editor
+
+    // Without remember choice, continue as usual
+    if (!rememberChoice.checked) {
+        dropdown.hide()
+        if (editor === "remote") remoteEdit(editButton)
+        return
+    }
+
+    // With remember choice, change default editor first
+    event.preventDefault()
+    console.debug("Changing default editor to", editor)
+    dropdown.hide()
+
+    const formData = new FormData()
+    formData.append("editor", editor)
+    fetch("/api/web/user/settings/editor", {
+        method: "POST",
+        body: formData,
+        mode: "same-origin",
+        cache: "no-store",
+        priority: "high",
+    })
+        .then((resp) => {
+            if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+            console.debug("Changed default editor to", editor)
+            editButton.dispatchEvent(new MouseEvent(event.type, event))
+        })
+        .catch((error) => {
+            console.error("Failed to change default editor", error)
+            alert(error.message)
+        })
+}
+for (const editButton of dropdownEditButtons) {
+    editButton.addEventListener("click", onEditButtonClick)
+}
+
+// On dropdown hidden, uncheck remember choice checkbox
+const onDropdownHidden = () => {
+    if (!rememberChoice.checked) return
+    rememberChoice.checked = false
+    rememberChoice.dispatchEvent(new Event("change"))
+}
+editGroup.addEventListener("hidden.bs.dropdown", onDropdownHidden)
 
 /**
  * Map of navbar elements to their base href
@@ -109,7 +99,7 @@ const updateLoginLinks = (hash) => {
  * @returns {void}
  */
 export const handleEditRemotePath = () => {
-    if (location.pathname !== "/edit" || !remoteEditButton) return
+    if (location.pathname !== "/edit") return
 
     const searchParams = qsParse(location.search.substring(1))
     if (searchParams.editor !== "remote") return
@@ -134,9 +124,8 @@ export const updateNavbarAndHash = (state, object = null) => {
     for (const [link, baseHref] of mapLinksHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
         if (isEditLink) {
-            // Remote edit button stores information in dataset
-            const isRemoteEditButton = link.classList.contains("remote-edit")
-            if (isRemoteEditButton) {
+            if (link === remoteEditButton) {
+                // Remote edit button stores information in dataset
                 link.dataset.remoteEdit = JSON.stringify({ state, object })
             } else if (object) {
                 link.href = `${baseHref}?${object.type}=${object.id}${hash}`
@@ -177,7 +166,9 @@ export const updateNavbarAndHash = (state, object = null) => {
         if (editGroup.classList.contains("disabled")) {
             editGroup.classList.remove("disabled")
             editGroup.ariaDisabled = "false"
-            Tooltip.getInstance(editGroup).disable()
+            const tooltip = Tooltip.getInstance(editGroup)
+            tooltip.disable()
+            tooltip.hide()
         }
     }
 
