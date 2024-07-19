@@ -14,7 +14,7 @@ from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
-    USER_RECENT_ACTIVITY_ENTRIES
+    USER_ACTIVITY_CHART_WEEKS
 )
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
