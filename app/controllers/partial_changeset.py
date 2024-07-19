@@ -1,12 +1,11 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
 
-from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
+from app.format.element_list import FormatElementList
 from app.lib.auth_context import auth_user
-from app.lib.element_list_formatter import ElementType, format_changeset_elements_list
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
@@ -14,8 +13,7 @@ from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.element_list_entry import ChangesetElementEntry
-from app.models.tag_format import TagFormatCollection
+from app.models.tag_format import TagFormat
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -42,15 +40,12 @@ async def get_changeset(id: PositiveInt):
             {'type': 'changeset', 'id': id},
         )
 
-    elements: dict[ElementType, Sequence[ChangesetElementEntry]] | None = None
     prev_changeset_id: int | None = None
     next_changeset_id: int | None = None
-    is_subscribed = False
 
     async def elements_task():
-        nonlocal elements
         elements_ = await ElementQuery.get_by_changeset(id, sort_by='id')
-        elements = await format_changeset_elements_list(elements_)
+        return await FormatElementList.changeset_elements(elements_)
 
     async def comments_task():
         with options_context(joinedload(ChangesetComment.user)):
@@ -58,26 +53,27 @@ async def get_changeset(id: PositiveInt):
 
     async def adjacent_ids_task():
         nonlocal prev_changeset_id, next_changeset_id
-        t: tuple = await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset.user_id)
-        prev_changeset_id = t[0]
-        next_changeset_id = t[1]
+        t = await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset.user_id)  # type: ignore[arg-type]
+        prev_changeset_id, next_changeset_id = t
 
-    async def subscription_task():
-        nonlocal is_subscribed
-        is_subscribed = await ChangesetCommentQuery.is_subscribed(id)
-
-    async with create_task_group() as tg:
-        tg.start_soon(elements_task)
-        tg.start_soon(comments_task)
+    async with TaskGroup() as tg:
+        elements_t = tg.create_task(elements_task())
+        tg.create_task(comments_task())
         if changeset.user_id is not None:
-            tg.start_soon(adjacent_ids_task)
-        if auth_user() is not None:
-            tg.start_soon(subscription_task)
+            tg.create_task(adjacent_ids_task())
+        is_subscribed_task = (
+            tg.create_task(ChangesetCommentQuery.is_subscribed(id))
+            if auth_user() is not None  #
+            else None
+        )
+
+    elements = elements_t.result()
+    is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
 
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment', None)
     if comment_tag is None:
-        comment_tag = TagFormatCollection('comment', t('browse.no_comment'))
+        comment_tag = TagFormat('comment', t('browse.no_comment'))
 
     return render_response(
         'partial/changeset.jinja2',

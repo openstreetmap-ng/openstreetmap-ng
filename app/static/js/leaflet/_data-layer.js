@@ -3,11 +3,11 @@ import { mapQueryAreaMaxSize } from "../_config.js"
 import "../_types.js"
 import { routerNavigateStrict } from "../index/_router.js"
 import { getOverlayLayerById } from "./_layers.js"
+import { getMapAlert } from "./_map-utils.js"
 import { renderObjects } from "./_object-render.js"
 import { getLatLngBoundsSize } from "./_utils.js"
 
-// TODO: standard alert
-const maxDataLayerElements = 2000
+const loadDataAlertThreshold = 8000
 
 export const dataStyles = {
     element: {
@@ -26,8 +26,21 @@ export const dataStyles = {
  */
 export const configureDataLayer = (map) => {
     const dataLayer = getOverlayLayerById("data")
+    const errorDataAlert = getMapAlert("data-layer-error-alert")
+    const loadDataAlert = getMapAlert("data-layer-load-alert")
+    const hideDataButton = loadDataAlert.querySelector(".hide-data")
+    const showDataButton = loadDataAlert.querySelector(".show-data")
+    const dataOverlayCheckbox = document.querySelector(".leaflet-sidebar.layers input.overlay[value=data]")
     let abortController = null
-    let renderedBounds = null
+    let fetchedBounds = null
+    let fetchedElements = null
+    let loadDataOverride = null
+
+    const clearData = () => {
+        fetchedBounds = null
+        fetchedElements = null
+        dataLayer.clearLayers()
+    }
 
     /**
      * On layer click, navigate to the object page
@@ -55,15 +68,21 @@ export const configureDataLayer = (map) => {
         const viewBounds = map.getBounds()
 
         // Skip updates if the view is satisfied
-        if (renderedBounds?.contains(viewBounds)) return
+        if (fetchedBounds?.contains(viewBounds)) return
 
         // Pad the bounds to reduce refreshes
         const bounds = viewBounds.pad(0.3)
 
         // Skip updates if the area is too big
         const area = getLatLngBoundsSize(bounds)
-        if (area > mapQueryAreaMaxSize) return
+        if (area > mapQueryAreaMaxSize) {
+            errorDataAlert.classList.remove("d-none")
+            loadDataAlert.classList.add("d-none")
+            clearData()
+            return
+        }
 
+        errorDataAlert.classList.add("d-none")
         const minLon = bounds.getWest()
         const minLat = bounds.getSouth()
         const maxLon = bounds.getEast()
@@ -77,24 +96,73 @@ export const configureDataLayer = (map) => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
-                const elements = await resp.json()
-                const group = L.layerGroup()
-                const renderLayers = renderObjects(group, elements, dataStyles, { renderAreas: false })
-
-                dataLayer.clearLayers()
-                if (elements.length) dataLayer.addLayer(group)
-                renderedBounds = bounds
-
-                // Listen for events
-                for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
+                if (!resp.ok) {
+                    if (resp.status === 400) {
+                        errorDataAlert.classList.remove("d-none")
+                        loadDataAlert.classList.add("d-none")
+                        clearData()
+                        return
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+                fetchedElements = await resp.json()
+                fetchedBounds = bounds
+                tryLoadData()
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
-                dataLayer.clearLayers()
+                clearData()
             })
+    }
+
+    /**
+     * Attempt to load map data, show alert if too much data
+     * @returns {void}
+     */
+    const tryLoadData = () => {
+        if (fetchedElements.length < loadDataAlertThreshold || loadDataOverride) {
+            console.log(fetchedElements.length)
+            loadData()
+            return
+        }
+        if (!loadDataAlert.classList.contains("d-none")) return
+        console.debug("Loaded", fetchedElements.length, "elements, deciding whether to show data")
+        showDataButton.addEventListener("click", onShowDataClick, { once: true })
+        hideDataButton.addEventListener("click", onHideDataClick, { once: true })
+        loadDataAlert.classList.remove("d-none")
+    }
+
+    /**
+     * Load map data into the data layer
+     * @returns {void}
+     */
+    const loadData = () => {
+        const layerGroup = L.layerGroup()
+        const renderLayers = renderObjects(layerGroup, fetchedElements, dataStyles, { renderAreas: false })
+
+        dataLayer.clearLayers()
+        dataLayer.addLayer(layerGroup)
+        // Listen for events
+        for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
+    }
+
+    // On show data click, mark override and load data
+    const onShowDataClick = () => {
+        if (loadDataOverride) return
+        console.debug("Decided to show data layer")
+        loadDataOverride = true
+        loadDataAlert.classList.add("d-none")
+        loadData()
+    }
+
+    // On hide data click, uncheck the data layer checkbox
+    const onHideDataClick = () => {
+        if (dataOverlayCheckbox.checked === false) return
+        console.debug("Decided to hide data layer")
+        dataOverlayCheckbox.checked = false
+        dataOverlayCheckbox.dispatchEvent(new Event("change"))
+        loadDataAlert.classList.add("d-none")
     }
 
     /**
@@ -104,7 +172,6 @@ export const configureDataLayer = (map) => {
      */
     const onOverlayAdd = ({ name }) => {
         if (name !== "data") return
-
         // Listen for events and run initial update
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         onMapZoomOrMoveEnd()
@@ -118,11 +185,14 @@ export const configureDataLayer = (map) => {
     const onOverlayRemove = ({ name }) => {
         if (name !== "data") return
 
+        errorDataAlert.classList.add("d-none")
+        loadDataAlert.classList.add("d-none")
+        showDataButton.removeEventListener("click", onShowDataClick)
+        hideDataButton.removeEventListener("click", onHideDataClick)
         map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         if (abortController) abortController.abort()
         abortController = null
-        renderedBounds = null
-        dataLayer.clearLayers()
+        clearData()
     }
 
     // Listen for events

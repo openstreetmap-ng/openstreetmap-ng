@@ -54,14 +54,20 @@ const getBoundsFromCoords = (lon, lat, zoom, paddingRatio = 0) => {
 }
 
 /**
- * Remotely edit an object
- * @param {HTMLButtonElement} button The button element
- * @param {number[]} bounds Bounds array in the [minLon, minLat, maxLon, maxLat] format
- * @param {OSMObject|null} object Optional OSM object
+ * Start remote edit
+ * @param {HTMLButtonElement} button The remote edit button
  * @returns {void}
  */
-const remoteEdit = (button, bounds, object = null) => {
-    const [minLon, minLat, maxLon, maxLat] = bounds
+export const remoteEdit = (button) => {
+    console.debug("remoteEdit", button)
+    const data = button.dataset.remoteEdit
+    if (!data) {
+        console.error("Missing remote-edit data")
+        return
+    }
+
+    const { state, object } = JSON.parse(data)
+    const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
     const loadQuery = {
         left: minLon,
         bottom: minLat,
@@ -105,23 +111,4 @@ const remoteEdit = (button, bounds, object = null) => {
         .finally(() => {
             button.disabled = false
         })
-}
-
-/**
- * Prepare data for remote edit
- * @param {HTMLButtonElement} button The button element
- * @returns {void}
- */
-export const prepareRemoteEdit = (button) => {
-    console.debug("prepareRemoteEdit", button)
-
-    const data = button.dataset.remoteEdit
-    if (!data) {
-        console.error("Missing remote edit data")
-        return
-    }
-
-    const { state, object } = JSON.parse(data)
-    const bounds = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
-    remoteEdit(button, bounds, object)
 }

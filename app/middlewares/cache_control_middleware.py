@@ -10,7 +10,7 @@ from app.middlewares.request_context_middleware import get_request
 
 class CacheControlMiddleware:
     """
-    Add Cache-Control header from `@cache_control` decorator.
+    Add Cache-Control header from @cache_control decorator.
     """
 
     __slots__ = ('app',)

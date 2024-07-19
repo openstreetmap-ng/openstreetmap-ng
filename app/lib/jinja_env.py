@@ -3,9 +3,10 @@ from datetime import datetime
 import cython
 from jinja2 import Environment, FileSystemLoader
 
-from app.config import TEST_ENV
+from app.config import APP_URL, TEST_ENV
+from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
-from app.lib.translation import nt, t
+from app.lib.translation import nt, primary_translation_locale, t
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -24,11 +25,21 @@ _j2 = Environment(
 )
 
 
-def render(template_name: str, **template_data: dict) -> str:
+def render(template_name: str, template_data: dict | None = None) -> str:
     """
     Render the given Jinja2 template with translation.
     """
-    return _j2.get_template(template_name).render(**template_data)
+    user = auth_user()
+    lang = primary_translation_locale()
+    data = {
+        'TEST_ENV': TEST_ENV,
+        'APP_URL': APP_URL,
+        'user': user,
+        'lang': lang,
+    }
+    if template_data is not None:
+        data.update(template_data)
+    return _j2.get_template(template_name).render(data)
 
 
 def timeago(date: datetime | None, *, html: bool = False) -> str:

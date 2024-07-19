@@ -1,6 +1,8 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Collection, Sequence
 from typing import Literal
 
+import cython
 from shapely.ops import BaseGeometry
 from sqlalchemy import Select, func, select, text, union_all
 
@@ -21,7 +23,7 @@ class NoteCommentQuery:
         async with db() as session:
             stmt = select(text('1')).where(
                 NoteSubscription.note_id == note_id,
-                NoteSubscription.user_id == auth_user().id,
+                NoteSubscription.user_id == auth_user(required=True).id,
             )
             return await session.scalar(stmt) is not None
 
@@ -51,28 +53,25 @@ class NoteCommentQuery:
 
     @staticmethod
     async def resolve_comments(
-        notes: Sequence[Note],
+        notes: Collection[Note],
         *,
         per_note_sort: Literal['asc', 'desc'] = 'desc',
         per_note_limit: int | None,
+        resolve_rich_text: bool = True,
     ) -> Sequence[NoteComment]:
         """
         Resolve comments for notes.
         """
-        notes_: list[Note] = []
+        if not notes:
+            return ()
         id_comments_map: dict[int, list[NoteComment]] = {}
         for note in notes:
-            if note.comments is None:
-                notes_.append(note)
-                id_comments_map[note.id] = note.comments = []
-
-        if not notes_:
-            return
+            id_comments_map[note.id] = note.comments = []
 
         async with db() as session:
-            stmts: list[Select] = []
-
-            for note in notes_:
+            stmts: list[Select] = [None] * len(notes)  # type: ignore[list-item]
+            i: cython.int
+            for i, note in enumerate(notes):
                 stmt_ = select(NoteComment.id).where(
                     NoteComment.note_id == note.id,
                     NoteComment.created_at <= note.updated_at,
@@ -86,7 +85,7 @@ class NoteCommentQuery:
                         .subquery()
                     )
                     stmt_ = select(subq.c.id).select_from(subq)
-                stmts.append(stmt_)
+                stmts[i] = stmt_
 
             stmt = (
                 select(NoteComment)
@@ -96,15 +95,18 @@ class NoteCommentQuery:
             stmt = apply_options_context(stmt)
             comments: Sequence[NoteComment] = (await session.scalars(stmt)).all()
 
-        # TODO: delete notes without comments
         current_note_id: int = 0
         current_comments: list[NoteComment] = []
-
         for comment in comments:
             note_id = comment.note_id
             if current_note_id != note_id:
                 current_note_id = note_id
                 current_comments = id_comments_map[note_id]
             current_comments.append(comment)
+
+        if resolve_rich_text:
+            async with TaskGroup() as tg:
+                for comment in comments:
+                    tg.create_task(comment.resolve_rich_text())
 
         return comments

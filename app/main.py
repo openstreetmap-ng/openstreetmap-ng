@@ -8,20 +8,19 @@ import sys
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
+from fastapi.exception_handlers import http_exception_handler
+from starlette import status
 from starlette.convertors import register_url_convertor
-from starlette.routing import Router
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
     GC_LOG,
-    ID_VERSION,
-    LOCALE_DIR,
     NAME,
-    RAPID_VERSION,
     TEST_ENV,
 )
+from app.lib.yarn_lock import ID_VERSION, RAPID_VERSION
 from app.limits import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
@@ -110,13 +109,15 @@ if TEST_ENV:
     main.add_middleware(ProfilerMiddleware)
 
 main.add_middleware(RequestContextMiddleware)
-main.add_middleware(VersionMiddleware)
-main.add_middleware(RuntimeMiddleware)
+
+if TEST_ENV:
+    main.add_middleware(VersionMiddleware)
+    main.add_middleware(RuntimeMiddleware)
 
 
 # TODO: /static default cache control
 main.mount('/static', PrecompressedStaticFiles('app/static'), name='static')
-main.mount('/static-locale', PrecompressedStaticFiles(LOCALE_DIR / 'i18next'), name='static-locale')
+main.mount('/static-locale', PrecompressedStaticFiles('config/locale/i18next'), name='static-locale')
 main.mount(
     '/static-bootstrap-icons',
     PrecompressedStaticFiles('node_modules/bootstrap-icons/font/fonts'),
@@ -145,18 +146,29 @@ def _make_router(path: str, prefix: str) -> APIRouter:
     for p in pathlib.Path(path).glob('*.py'):
         module_name = p.with_suffix('').as_posix().replace('/', '.')
         module = importlib.import_module(module_name)
-        router_attr: Router | None = getattr(module, 'router', None)
+        router_attr: APIRouter | None = getattr(module, 'router', None)
 
-        if router_attr is not None:
+        if isinstance(router_attr, APIRouter):
             setup_api_router_response(router_attr)
             router.include_router(router_attr)
             router_counter += 1
             routes_counter += len(router_attr.routes)
         else:
-            logging.warning('Router not found in %s', module_name)
+            logging.warning('APIRouter not found in %s', module_name)
 
     logging.info('Loaded (%d routers, %d routes) from %s as %r', router_counter, routes_counter, path, prefix)
     return router
 
 
 main.include_router(_make_router('app/controllers', ''))
+
+
+@main.exception_handler(ExceptionGroup)
+async def exception_group_handler(request: Request, exc: ExceptionGroup):
+    """
+    Unpack supported exception groups.
+    """
+    http_exception = next((e for e in exc.exceptions if isinstance(e, HTTPException)), None)
+    if http_exception is not None:
+        return await http_exception_handler(request, http_exception)
+    return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)

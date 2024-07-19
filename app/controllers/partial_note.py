@@ -1,7 +1,7 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Collection
 from math import ceil
 
-from anyio import create_task_group
 from fastapi import APIRouter
 from pydantic import PositiveInt
 from shapely import get_coordinates
@@ -22,6 +22,7 @@ from app.utils import JSON_ENCODE
 router = APIRouter(prefix='/api/partial/note')
 
 
+# TODO: pagination
 @router.get('/{id:int}')
 async def get_note(id: PositiveInt):
     notes = await NoteQuery.find_many_by_query(note_ids=(id,), limit=1)
@@ -32,36 +33,29 @@ async def get_note(id: PositiveInt):
             {'type': 'note', 'id': id},
         )
 
-    is_subscribed = False
+    async with TaskGroup() as tg:
+        tg.create_task(_resolve_comments_task(notes))
+        is_subscribed_task = tg.create_task(NoteCommentQuery.is_subscribed(id)) if (auth_user() is not None) else None
 
-    async def resolve_comments_task():
-        await _resolve_comments_full(notes)
+    is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
 
-    async def subscription_task():
-        nonlocal is_subscribed
-        is_subscribed = await NoteCommentQuery.is_subscribed(id)
-
-    async with create_task_group() as tg:
-        tg.start_soon(resolve_comments_task)
-        if auth_user() is not None:
-            tg.start_soon(subscription_task)
-
-    # TODO: pagination
-
-    disappear_days: int | None = None
     if note.closed_at is not None:
         duration = note.closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
-        disappear_days = ceil(duration.total_seconds() / 86400)
-        if duration.total_seconds() <= 0:
-            disappear_days = None
+        duration_sec = duration.total_seconds()
+        disappear_days = ceil(duration_sec / 86400) if (duration_sec > 0) else None
+    else:
+        disappear_days = None
 
+    note_comments = note.comments
+    if note_comments is None:
+        raise AssertionError('Note comments must be set')
     x, y = get_coordinates(note.point)[0].tolist()
     return render_response(
         'partial/note.jinja2',
         {
             'note': note,
-            'header': note.comments[0],
-            'comments': note.comments[1:],
+            'header': note_comments[0],
+            'comments': note_comments[1:],
             'status': note.status.value,
             'is_subscribed': is_subscribed,
             'disappear_days': disappear_days,
@@ -77,7 +71,7 @@ async def get_note(id: PositiveInt):
     )
 
 
-async def _resolve_comments_full(notes: Sequence[Note]) -> None:
+async def _resolve_comments_task(notes: Collection[Note]) -> None:
     """
     Resolve note comments, their rich text and users.
     """
@@ -89,8 +83,4 @@ async def _resolve_comments_full(notes: Sequence[Note]) -> None:
             User.avatar_id,
         )
     ):
-        comments = await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
-
-    async with create_task_group() as tg:
-        for comment in comments:
-            tg.start_soon(comment.resolve_rich_text)
+        await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)

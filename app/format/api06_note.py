@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 import lxml.etree as ET
@@ -21,7 +21,6 @@ class Note06Mixin:
         {'note': {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}}
         """
         style = format_style()
-
         if style == 'json':
             return _encode_note(note, is_json=True, is_gpx=False)
         elif style == 'gpx':
@@ -30,7 +29,7 @@ class Note06Mixin:
             return {'note': _encode_note(note, is_json=False, is_gpx=False)}
 
     @staticmethod
-    def encode_notes(notes: Sequence[Note]) -> dict:
+    def encode_notes(notes: Iterable[Note]) -> dict:
         """
         >>> encode_notes([
         ...     Note(...),
@@ -39,7 +38,6 @@ class Note06Mixin:
         {'note': [{'@lon': 1, '@lat': 2, 'id': 1, ...}]}
         """
         style = format_style()
-
         if style == 'json':
             return {
                 'type': 'FeatureCollection',
@@ -62,7 +60,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
         **(
             {
                 'uid': comment.user_id,
-                'user': comment.user.display_name,
+                'user': comment.user.display_name,  # type: ignore[union-attr]
                 'user_url': f'{APP_URL}/user/permalink/{comment.user_id}',
             }
             if (comment.user_id is not None)
@@ -80,9 +78,11 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
     >>> _encode_note(Note(...))
     {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}
     """
+    note_comments = note.comments
+    if note_comments is None:
+        raise AssertionError('Note comments must be set')
     created_at = legacy_date(note.created_at)
     closed_at = legacy_date(note.closed_at)
-
     if is_json:
         return {
             'type': 'Feature',
@@ -106,7 +106,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
                 'date_created': format_sql_date(created_at),
                 **({'closed_at': format_sql_date(closed_at)} if (closed_at is not None) else {}),
                 'status': note.status.value,
-                'comments': tuple(_encode_note_comment(comment) for comment in note.comments),
+                'comments': tuple(_encode_note_comment(comment) for comment in note_comments),
             },
         }
     elif is_gpx:
@@ -115,7 +115,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': f'{APP_URL}/note/{note.id}'},
-            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', comments=note.comments)),
+            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', {'comments': note_comments})),
             'extensions': {
                 'id': note.id,
                 'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',
@@ -152,7 +152,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'date_created': format_sql_date(created_at),
             **({'date_closed': format_sql_date(closed_at)} if (closed_at is not None) else {}),
             'status': note.status.value,
-            'comments': {'comment': tuple(_encode_note_comment(comment) for comment in note.comments)},
+            'comments': {'comment': tuple(_encode_note_comment(comment) for comment in note_comments)},
         }
 
 

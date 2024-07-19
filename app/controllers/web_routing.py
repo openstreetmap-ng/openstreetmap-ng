@@ -1,13 +1,23 @@
-from typing import Annotated
+from asyncio import TaskGroup
+from collections.abc import Sequence
+from typing import Annotated, NamedTuple
 
-from anyio import create_task_group
 from fastapi import APIRouter, Form
-from shapely import get_coordinates, unary_union
-from shapely.geometry.base import BaseGeometry
+from shapely import Polygon, box, get_coordinates
 
-from app.lib.geo_utils import parse_bbox
-from app.lib.nominatim import Nominatim
-from app.models.search_result import SearchResult
+from app.lib.geo_utils import try_parse_point
+from app.lib.message_collector import MessageCollector
+from app.lib.search import Search
+from app.lib.translation import t
+from app.queries.element_query import ElementQuery
+from app.queries.nominatim_query import NominatimQuery
+
+
+class _ResolveResult(NamedTuple):
+    bounds: Polygon
+    coords: Sequence[float]
+    display_name: str
+
 
 router = APIRouter(prefix='/api/web/routing')
 
@@ -16,36 +26,79 @@ router = APIRouter(prefix='/api/web/routing')
 async def resolve_names(
     from_: Annotated[str, Form(alias='from', min_length=1)],
     to: Annotated[str, Form(min_length=1)],
-    bounds: Annotated[str, Form(min_length=1)],
+    bbox: Annotated[str, Form(min_length=1)],
+    from_loaded: Annotated[str, Form()] = '',
+    to_loaded: Annotated[str, Form()] = '',
 ) -> dict:
-    bounds_shape = parse_bbox(bounds)  # TODO: MultiPolygon support
-    resolve_from: SearchResult = None
-    resolve_to: SearchResult = None
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
 
-    async def from_task() -> None:
-        nonlocal resolve_from
-        resolve_from = await Nominatim.search(q=from_, bounds=bounds_shape)
+    async with TaskGroup() as tg:
+        from_task = (
+            tg.create_task(_resolve_name('from', from_, bbox, at_sequence_id))  #
+            if (from_ != from_loaded)
+            else None
+        )
+        to_task = (
+            tg.create_task(_resolve_name('to', to, bbox, at_sequence_id))  #
+            if (to != to_loaded)
+            else None
+        )
 
-    async def to_task() -> None:
-        nonlocal resolve_to
-        resolve_to = await Nominatim.search(q=to, bounds=bounds_shape)
+    resolve_from = from_task.result() if (from_task is not None) else None
+    resolve_to = to_task.result() if (to_task is not None) else None
+    response = {}
+    if resolve_from is not None:
+        response['from'] = {
+            'bounds': resolve_from.bounds.bounds,
+            'geom': resolve_from.coords,
+            'name': resolve_from.display_name,
+        }
+    if resolve_to is not None:
+        response['to'] = {
+            'bounds': resolve_to.bounds.bounds,
+            'geom': resolve_to.coords,
+            'name': resolve_to.display_name,
+        }
+    return response
 
-    async with create_task_group() as tg:
-        tg.start_soon(from_task)
-        tg.start_soon(to_task)
 
-    union_bounds: BaseGeometry = unary_union((resolve_from.bounds, resolve_to.bounds))
-    resolve_from_coords: list[float] = get_coordinates(resolve_from.point)[0].tolist()
-    resolve_to_coords: list[float] = get_coordinates(resolve_to.point)[0].tolist()
+async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) -> _ResolveResult:
+    # try to parse as literal point
+    point = try_parse_point(query)
+    if point is not None:
+        x, y = get_coordinates(point)[0].tolist()
+        return _ResolveResult(
+            bounds=box(x, y, x, y),
+            coords=(x, y),
+            display_name=query,
+        )
 
-    return {
-        'from': {
-            'name': resolve_from.name,
-            'point': resolve_from_coords,
-        },
-        'to': {
-            'name': resolve_to.name,
-            'point': resolve_to_coords,
-        },
-        'bounds': union_bounds.bounds,
-    }
+    # fallback to nominatim search
+    search_bounds = Search.get_search_bounds(bbox, local_max_iterations=1)
+
+    async with TaskGroup() as tg:
+        tasks = tuple(
+            tg.create_task(
+                NominatimQuery.search(
+                    q=query,
+                    bounds=search_bound[1],
+                    at_sequence_id=at_sequence_id,
+                    limit=1,
+                )
+            )
+            for search_bound in search_bounds
+        )
+
+    task_results = tuple(task.result() for task in tasks)
+    task_index = Search.best_results_index(task_results)
+    results = task_results[task_index]
+    if not results:
+        MessageCollector.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
+
+    result = results[0]
+    coords = get_coordinates(result.point)[0].tolist()
+    return _ResolveResult(
+        bounds=result.bounds,
+        coords=coords,
+        display_name=result.display_name,
+    )

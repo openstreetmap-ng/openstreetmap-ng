@@ -1,21 +1,19 @@
+import asyncio
 import gzip
 import json
 import re
+from asyncio import Semaphore, TaskGroup
 from collections import defaultdict
-from collections.abc import Sequence
 from datetime import timedelta
+from pathlib import Path
 from typing import NamedTuple
 from urllib.parse import unquote_plus
 
-import anyio
-from anyio import CapacityLimiter, create_task_group
-
-from app.config import CONFIG_DIR
 from app.lib.retry import retry
 from app.utils import HTTP
 
-_download_limiter = CapacityLimiter(6)  # max concurrent downloads
-_wiki_pages_path = CONFIG_DIR / 'wiki_pages.json'
+_download_limiter = Semaphore(6)  # max concurrent downloads
+_wiki_pages_path = Path('config/wiki_pages.json')
 
 
 class WikiPageInfo(NamedTuple):
@@ -24,7 +22,7 @@ class WikiPageInfo(NamedTuple):
     locale: str
 
 
-async def get_sitemap_links() -> Sequence[str]:
+async def discover_sitemap_urls() -> tuple[str, ...]:
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
     matches = re.finditer(r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text)
@@ -34,9 +32,9 @@ async def get_sitemap_links() -> Sequence[str]:
 
 
 @retry(timedelta(minutes=1))
-async def download_and_analyze(sitemap_url: str) -> Sequence[WikiPageInfo]:
+async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
     async with _download_limiter:
-        r = await HTTP.get(sitemap_url)
+        r = await HTTP.get(url)
         r.raise_for_status()
 
     text = gzip.decompress(r.content).decode()
@@ -66,21 +64,17 @@ async def download_and_analyze(sitemap_url: str) -> Sequence[WikiPageInfo]:
 
         result.append(WikiPageInfo(key, value, locale))
 
-    print(f'[✅] {sitemap_url!r}: {len(result)} pages')
+    print(f'[✅] {url!r}: {len(result)} pages')
     return result
 
 
 async def main():
-    urls = await get_sitemap_links()
-    infos: list[WikiPageInfo] = []
+    urls = await discover_sitemap_urls()
 
-    async def sitemap_task(sitemap_url: str):
-        infos.extend(await download_and_analyze(sitemap_url))
+    async with TaskGroup() as tg:
+        tasks = tuple(tg.create_task(fetch_and_parse_sitemap(url)) for url in urls)
 
-    async with create_task_group() as tg:
-        for url in urls:
-            tg.start_soon(sitemap_task, url)
-
+    infos = tuple(info for task in tasks for info in task.result())
     key_values_locales: dict[str, dict[str | None, set[str]]] = defaultdict(lambda: defaultdict(set))
     for info in infos:
         key_values_locales[info.key][info.value].add(info.locale)
@@ -92,10 +86,9 @@ async def main():
         }
         for key, values in key_values_locales.items()
     }
-
     buffer = json.dumps(result, indent=2, sort_keys=True) + '\n'
-    await _wiki_pages_path.write_text(buffer)
+    _wiki_pages_path.write_text(buffer)
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())

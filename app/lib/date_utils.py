@@ -1,8 +1,19 @@
 from datetime import UTC, datetime
+from typing import overload
 
+import arrow
 import dateutil.parser
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
+from app.lib.translation import primary_translation_locale
+
+
+@overload
+def legacy_date(date: None) -> None: ...
+
+
+@overload
+def legacy_date(date: datetime) -> datetime: ...
 
 
 def legacy_date(date: datetime | None) -> datetime | None:
@@ -30,9 +41,20 @@ def format_sql_date(date: datetime | None) -> str:
         return 'None'
     tzinfo = date.tzinfo
     if tzinfo is not None and tzinfo is not UTC:
-        raise AssertionError(f'Unexpected non-UTC timezone {tzinfo!r}')
+        raise AssertionError(f'Timezone must be UTC, got {tzinfo!r}')
     format = '%Y-%m-%d %H:%M:%S UTC' if date.microsecond == 0 else '%Y-%m-%d %H:%M:%S.%f UTC'
     return date.strftime(format)
+
+
+def format_rfc2822_date(date: datetime) -> str:
+    """
+    Format a datetime object as an RFC2822 date string.
+    """
+    date_ = arrow.get(date)
+    try:
+        return date_.format('ddd, DD MMM YYYY HH:mm:ss Z', locale=primary_translation_locale())
+    except ValueError:
+        return date_.format('ddd, DD MMM YYYY HH:mm:ss Z')
 
 
 def utcnow() -> datetime:

@@ -55,10 +55,9 @@ async def get_changeset(
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-        changesets = (changeset,)
-
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
+    changesets = (changeset,)
 
     if include_discussion:
         with options_context(joinedload(ChangesetComment.user).load_only(User.display_name)):
@@ -76,12 +75,11 @@ async def download_changeset(
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
     elements = await ElementQuery.get_by_changeset(changeset_id, sort_by='sequence_id')
-    await UserQuery.resolve_elements_users(elements, True)
+    await UserQuery.resolve_elements_users(elements, display_name=True)
     return Format06.encode_osmchange(elements)
 
 
@@ -99,8 +97,10 @@ async def update_changeset(
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
         changeset = await ChangesetQuery.get_by_id(changeset_id)
-
+    if changeset is None:
+        raise AssertionError(f'Changeset {changeset_id} must exist in database')
     changesets = (changeset,)
+
     await ChangesetCommentQuery.resolve_num_comments(changesets)
     return Format06.encode_changesets(changesets)
 
@@ -108,7 +108,7 @@ async def update_changeset(
 @router.post('/changeset/{changeset_id:int}/upload', response_class=DiffResultResponse)
 async def upload_diff(
     changeset_id: PositiveInt,
-    data: Annotated[Sequence[dict], xml_body('osmChange')],
+    data: Annotated[Sequence, xml_body('osmChange')],
     _: Annotated[User, api_user(Scope.write_api)],
 ):
     try:
@@ -134,7 +134,7 @@ async def close_changeset(
 @router.get('/changesets.xml')
 @router.get('/changesets.json')
 async def query_changesets(
-    changeset_ids_str: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
+    changesets_query: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
     display_name: Annotated[str | None, Query(min_length=1)] = None,
     user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
     time: Annotated[str | None, Query(min_length=1)] = None,
@@ -147,43 +147,37 @@ async def query_changesets(
     # treat any non-empty string as True
     open: cython.char = bool(open_str)
     closed: cython.char = bool(closed_str)
-
     # small logical optimization
     if open and closed:
         return Format06.encode_changesets(())
 
     geometry = parse_bbox(bbox) if (bbox is not None) else None
 
-    if changeset_ids_str is not None:
+    if changesets_query is not None:
         changeset_ids = set()
-
-        for c in changeset_ids_str.split(','):
+        for c in changesets_query.split(','):
             c = c.strip()
             if c.isdigit():
                 changeset_ids.add(int(c))
-
         if not changeset_ids:
             return Response('No changesets were given to search for', status.HTTP_400_BAD_REQUEST)
     else:
         changeset_ids = None
 
-    display_name_provided: cython.char = display_name is not None
-    user_id_provided: cython.char = user_id is not None
-
-    if display_name_provided and user_id_provided:
+    user: User | None = None
+    if display_name is not None and user_id is not None:
         return Response('provide either the user ID or display name, but not both', status.HTTP_400_BAD_REQUEST)
-    if display_name_provided:
+    if display_name is not None:
         user = await UserQuery.find_one_by_display_name(display_name)
         if user is None:
             raise_for().user_not_found_bad_request(display_name)
-    elif user_id_provided:
+    elif user_id is not None:
         user = await UserQuery.find_one_by_id(user_id)
         if user is None:
             raise_for().user_not_found_bad_request(user_id)
 
     if time is not None:
         time_left, _, time_right = time.partition(',')
-
         try:
             if time_right:
                 created_before = parse_date(time_left)
@@ -193,7 +187,6 @@ async def query_changesets(
                 created_before = None
         except Exception:
             return Response(f'no time information in "{time}"', status.HTTP_400_BAD_REQUEST)
-
         if (closed_after is not None) and (created_before is not None) and closed_after > created_before:
             return Response('The time range is invalid, T1 > T2', status.HTTP_400_BAD_REQUEST)
     else:

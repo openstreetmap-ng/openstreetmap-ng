@@ -1,11 +1,12 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable
 
 import cython
 import numpy as np
 from shapely import Point, lib
 
 from app.models.db.element import Element
+from app.models.db.element_member import ElementMember
 from app.models.msgspec.leaflet import (
     ElementLeaflet,
     ElementLeafletNode,
@@ -16,7 +17,7 @@ from app.models.msgspec.leaflet import (
 class LeafletElementMixin:
     @staticmethod
     def encode_elements(
-        elements: Sequence[Element],
+        elements: Iterable[Element],
         *,
         detailed: cython.char,
         areas: cython.char = True,
@@ -34,19 +35,23 @@ class LeafletElementMixin:
                 node_id_map[element.id] = element
             elif element.type == 'way':
                 way_id_map[element.id] = element
-                way_nodes_ids.update(member.id for member in element.members)
 
         for way_id, way in way_id_map.items():
-            points: list[Point] = []
-            points2: list[list[Point]] = [points]
+            way_members = element.members
+            if way_members is None:
+                raise AssertionError('Way members must be set')
 
-            for node_ref in way.members:
+            way_nodes_ids.update(member.id for member in way_members)
+            current_segment: list[Point] = []
+            segments: list[list[Point]] = [current_segment]
+
+            for node_ref in way_members:
                 node = node_id_map.get(node_ref.id)
                 if node is None:
                     # split way on gap
-                    if points:
-                        points = []
-                        points2.append(points)
+                    if current_segment:
+                        current_segment = []
+                        segments.append(current_segment)
                     continue
 
                 point = node.point
@@ -60,20 +65,14 @@ class LeafletElementMixin:
                     )
                     continue
 
-                points.append(point)
+                current_segment.append(point)
 
-            if len(points2) == 1:
-                if not points:
+            is_area = _is_way_area(way.tags, way_members) if areas and len(segments) == 1 else False
+            for segment in segments:
+                if not segment:
                     continue
-                geom = np.fliplr(lib.get_coordinates(np.asarray(points, dtype=object), False, False)).tolist()
-                area = _is_way_area(way) if areas else False
-                result.append(ElementLeafletWay('way', way_id, geom, area))
-            else:
-                for points in points2:
-                    if not points:
-                        continue
-                    geom = np.fliplr(lib.get_coordinates(np.asarray(points, dtype=object), False, False)).tolist()
-                    result.append(ElementLeafletWay('way', way_id, geom, False))
+                geom = np.fliplr(lib.get_coordinates(np.asarray(segment, dtype=object), False, False)).tolist()
+                result.append(ElementLeafletWay('way', way_id, geom, is_area))
 
         for node_id, node in node_id_map.items():
             if not _is_node_interesting(node, way_nodes_ids, detailed=detailed):
@@ -84,33 +83,26 @@ class LeafletElementMixin:
                 logging.warning('Missing point for node %d version %d ', node.id, node.version)
                 continue
 
-            geom: list[float] = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0][::-1].tolist()
+            geom = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0][::-1].tolist()
             result.append(ElementLeafletNode('node', node_id, geom))
 
         return result
 
 
 @cython.cfunc
-def _is_way_area(way: Element) -> cython.char:
+def _is_way_area(tags: dict[str, str], members: list[ElementMember]) -> cython.char:
     """
     Check if the way should be displayed as an area.
     """
-    if len(way.members) <= 2:
+    if len(members) <= 2:
         return False
-
-    is_closed = way.members[0].id == way.members[-1].id
+    is_closed = members[0].id == members[-1].id
     if not is_closed:
         return False
-
-    area_tags = _area_tags.intersection(way.tags)
+    area_tags = _area_tags.intersection(tags)
     if area_tags:
         return True
-
-    for key in way.tags:  # noqa: SIM110
-        if key.startswith(_area_tags_prefixes):
-            return True
-
-    return False
+    return any(key.startswith(_area_prefixes) for key in tags)
 
 
 @cython.cfunc
@@ -143,4 +135,4 @@ _area_tags: frozenset[str] = frozenset(
     )
 )
 
-_area_tags_prefixes: tuple[str, ...] = ('area:',)
+_area_prefixes: tuple[str, ...] = ('area:',)

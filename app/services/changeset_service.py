@@ -18,7 +18,7 @@ class ChangesetService:
         """
         Create a new changeset and return its id.
         """
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
 
         async with db_commit() as session:
             changeset = Changeset(
@@ -47,7 +47,7 @@ class ChangesetService:
 
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
-            if changeset.user_id != auth_user().id:
+            if changeset.user_id != auth_user(required=True).id:
                 raise_for().changeset_access_denied()
             if changeset.closed_at is not None:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)
@@ -70,7 +70,7 @@ class ChangesetService:
 
             if changeset is None:
                 raise_for().changeset_not_found(changeset_id)
-            if changeset.user_id != auth_user().id:
+            if changeset.user_id != auth_user(required=True).id:
                 raise_for().changeset_access_denied()
             if changeset.closed_at is not None:
                 raise_for().changeset_already_closed(changeset_id, changeset.closed_at)

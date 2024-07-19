@@ -1,4 +1,5 @@
 from hashlib import md5
+from typing import override
 
 from starlette import status
 
@@ -13,7 +14,7 @@ class GravatarStorage(StorageBase):
     """
     File storage based on Gravatar (read-only).
 
-    Uses FileCache for local caching.
+    Uses FileCache for response caching.
     """
 
     __slots__ = ('_fc',)
@@ -22,6 +23,7 @@ class GravatarStorage(StorageBase):
         super().__init__(context)
         self._fc = FileCache(context)
 
+    @override
     async def load(self, email: str) -> bytes:
         key = md5(email.lower().encode()).hexdigest()  # noqa: S324
         data = await self._fc.get(key)
@@ -30,7 +32,7 @@ class GravatarStorage(StorageBase):
 
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            data = await Avatar.get_default_image()
+            data = Avatar.default_image
         else:
             r.raise_for_status()
             data = r.content

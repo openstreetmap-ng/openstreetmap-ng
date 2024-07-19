@@ -1,3 +1,5 @@
+from collections.abc import Collection
+
 import pytest
 from shapely import Point
 
@@ -7,11 +9,9 @@ from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff import OptimisticDiff
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_modify_simple(changeset_id: int):
-    elements = (
+    elements: Collection[Element] = (
         Element(
             changeset_id=changeset_id,
             type='node',
@@ -48,7 +48,7 @@ async def test_modify_simple(changeset_id: int):
     assert element.visible
     assert element.tags == {'modified': 'yes'}
     assert element.point == Point(1, 2)
-    assert element.members is None
+    assert not element.members
 
 
 async def test_modify_invalid_id(changeset_id: int):

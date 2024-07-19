@@ -17,7 +17,7 @@ class UserPrefQuery:
             stmt = (
                 select(UserPref)
                 .where(
-                    UserPref.user_id == auth_user().id,
+                    UserPref.user_id == auth_user(required=True).id,
                     UserPref.app_id == app_id,
                     UserPref.key == key,
                 )
@@ -32,7 +32,7 @@ class UserPrefQuery:
         """
         async with db() as session:
             stmt = select(UserPref).where(
-                UserPref.user_id == auth_user().id,
+                UserPref.user_id == auth_user(required=True).id,
                 UserPref.app_id == app_id,
             )
             return (await session.scalars(stmt)).all()

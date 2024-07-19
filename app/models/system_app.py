@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import NamedTuple
 
 from app.models.scope import Scope
@@ -7,7 +6,7 @@ from app.models.scope import Scope
 class SystemApp(NamedTuple):
     name: str
     client_id: str
-    scopes: Sequence[Scope]
+    scopes: tuple[Scope, ...]
 
 
 SYSTEM_APPS = (

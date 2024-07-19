@@ -1,9 +1,8 @@
 import logging
-import pathlib
+from pathlib import Path
 
 import cython
 
-from app.config import LEGAL_DIR
 from app.lib.rich_text import process_rich_text
 from app.models.text_format import TextFormat
 
@@ -11,13 +10,11 @@ from app.models.text_format import TextFormat
 @cython.cfunc
 def _get_legal_data() -> dict[str, str]:
     result = {}
-
-    for path in pathlib.Path(LEGAL_DIR).glob('*.md'):
+    for path in Path('config/legal').glob('*.md'):
         locale = path.stem
         logging.info('Loading legal document for %s', locale)
         html = process_rich_text(path.read_text(), TextFormat.markdown)
         result[locale] = html
-
     return result
 
 

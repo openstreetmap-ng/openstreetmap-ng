@@ -517,3 +517,14 @@ export const disableControlsClickPropagation = (map) => {
     }
     console.debug("Disabled click propagation for", mapAlertsContainer.length, "map alerts")
 }
+
+/**
+ * Get the map alert element
+ * @param {string} name Alert name
+ * @returns {HTMLElement} Alert element
+ */
+export const getMapAlert = (name) => {
+    const alert = document.querySelector(`.map-alert.${name}`)
+    if (!alert) console.error("Map alert", name, "not found")
+    return alert
+}

@@ -1,11 +1,11 @@
+import asyncio
 import gc
 import os
-import pathlib
 from datetime import datetime
 from functools import cache
 from multiprocessing import Pool
+from pathlib import Path
 
-import anyio
 import lxml.etree as ET
 import numpy as np
 import polars as pl
@@ -15,16 +15,15 @@ from app.config import PRELOAD_DIR
 from app.models.db import *  # noqa: F403
 from app.utils import JSON_ENCODE
 
-input_path = pathlib.Path(PRELOAD_DIR / 'preload.osm')
-data_parquet_path = pathlib.Path(PRELOAD_DIR / 'preload.parquet')
-
+input_path = PRELOAD_DIR.joinpath('preload.osm')
+data_parquet_path = PRELOAD_DIR.joinpath('preload.parquet')
 if not input_path.is_file():
     raise FileNotFoundError(f'File not found: {input_path}')
 
 buffering = 32 * 1024 * 1024  # 32 MB
 read_memory_limit = 2 * 1024 * 1024 * 1024  # 2 GB => ~50 GB total memory usage
 
-num_workers = os.cpu_count()
+num_workers = os.cpu_count() or 1
 input_size = input_path.stat().st_size
 task_read_memory_limit = read_memory_limit // num_workers
 num_tasks = input_size // task_read_memory_limit
@@ -37,12 +36,12 @@ gc.disable()
 
 
 @cache
-def get_csv_path(name: str) -> pathlib.Path:
-    return pathlib.Path(PRELOAD_DIR / f'{name}.csv')
+def get_csv_path(name: str) -> Path:
+    return PRELOAD_DIR.joinpath(f'{name}.csv')
 
 
 @cache
-def get_worker_output_path(i: int) -> pathlib.Path:
+def get_worker_output_path(i: int) -> Path:
     return data_parquet_path.with_suffix(f'.parquet.{i}')
 
 
@@ -100,12 +99,11 @@ def worker(args: tuple[int, int, int]) -> None:
     for element in root:
         tag: str = element.tag
         attrib: dict = element.attrib
-
         if tag not in ('node', 'way', 'relation'):
             continue
 
-        tags_list = []
-        members = []
+        tags_list: list[tuple[str, str]] = []
+        members: list[dict] = []
 
         child: ET.ElementBase
         for child in element:
@@ -167,7 +165,7 @@ def worker(args: tuple[int, int, int]) -> None:
             )
         )
 
-    df = pl.DataFrame(data, schema=schema)
+    df = pl.DataFrame(data, schema=schema)  # type: ignore[arg-type]
     df.write_parquet(get_worker_output_path(i), compression_level=1, statistics=False)
     gc.collect()
 
@@ -177,7 +175,6 @@ def run_workers() -> None:
     from_seeks = []
 
     print(f'Configuring {num_tasks} tasks (using {num_workers} workers)')
-
     with input_path.open('rb') as f_in:
         for i in range(num_tasks):
             from_seek = task_size * i
@@ -185,13 +182,8 @@ def run_workers() -> None:
             if i > 0:
                 f_in.seek(from_seek)
                 lookahead = f_in.read(1024 * 1024)  # 1 MB
-                min_find = float('inf')
-
-                for search in from_seek_search:
-                    if (found := lookahead.find(search)) > -1:
-                        min_find = min(min_find, found)
-
-                assert min_find != float('inf')
+                lookahead_finds = (lookahead.find(search) for search in from_seek_search)
+                min_find = min(find for find in lookahead_finds if find > -1)
                 from_seek += min_find
 
             from_seeks.append(from_seek)
@@ -216,7 +208,7 @@ def merge_worker_files() -> None:
     created_at_all: list[int] = []
 
     for path in tqdm(paths, desc='Assigning sequence IDs (step 1/2)'):
-        df = pl.read_parquet(path, columns=('created_at',), use_statistics=False)
+        df = pl.read_parquet(path, columns=['created_at'], use_statistics=False)
         created_at = df.to_series().dt.epoch('s').to_numpy(allow_copy=False)
         created_at_all.extend(created_at)
 
@@ -257,8 +249,8 @@ def merge_worker_files() -> None:
     del type_id_sequence_map
 
     print(f'Merging {len(paths)} worker files...')
-    df = pl.scan_parquet(paths)
-    df.sink_parquet(data_parquet_path, compression_level=3, row_group_size=50_000, maintain_order=False)
+    lf = pl.scan_parquet(paths)
+    lf.sink_parquet(data_parquet_path, compression_level=3, row_group_size=50_000, maintain_order=False)
 
     for path in paths:
         path.unlink()
@@ -322,7 +314,7 @@ def write_changeset_csv() -> None:
     df.sink_csv(get_csv_path('changeset'))
 
 
-async def convert_xml2csv() -> None:
+async def main() -> None:
     run_workers()
     merge_worker_files()
 
@@ -336,10 +328,6 @@ async def convert_xml2csv() -> None:
     write_element_member_csv()
 
 
-async def main():
-    await convert_xml2csv()
-
-
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())
     print('Done! Done! Done!')

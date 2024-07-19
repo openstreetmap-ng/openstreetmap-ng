@@ -51,25 +51,6 @@
                     </div>
                 </label>
 
-                <label class="form-label">
-                    {{ t('preferences.show.preferred_editor') }}
-                </label>
-                <select class="form-select format-select mb-3" name="editor" required>
-                    {% set editor = user.editor.value %}
-                    <option value="" {% if not editor %}selected{% endif %}>
-                        {{ t('editor.default', name=t('editor.id.name')) }}
-                    </option>
-                    <option value="id" {% if editor == "id" %}selected{% endif %}>
-                        {{ t('editor.id.description') }}
-                    </option>
-                    <option value="rapid" {% if editor == "rapid" %}selected{% endif %}>
-                        {{ t('editor.rapid.name') }}
-                    </option>
-                    <option value="remote" {% if editor == "remote" %}selected{% endif %}>
-                        {{ t('editor.remote.description') }}
-                    </option>
-                </select>
-
                 <label class="form-label d-block">
                     {{ t('user.settings.preferred_language') | title }}
                     <select class="form-select format-select mt-2" name="language" required>

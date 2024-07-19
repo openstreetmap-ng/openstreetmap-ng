@@ -1,6 +1,9 @@
+from copy import deepcopy
+from functools import cache
+from pathlib import Path
+
 import pytest
-from anyio import Path
-from asgi_lifespan import LifespanManager
+import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.exceptions06 import Exceptions06
@@ -9,25 +12,29 @@ from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
 from app.queries.user_query import UserQuery
+from tests.utils.event_loop_policy import CustomEventLoopPolicy
+from tests.utils.lifespan_manager import LifespanManager
 
 
 @pytest.fixture(scope='session')
-def anyio_backend():
-    return 'asyncio'
+def event_loop_policy():
+    policy = CustomEventLoopPolicy()
+    yield policy
+    policy.get_event_loop().close()
 
 
-@pytest.fixture(scope='session')
-async def _lifespan():
+@pytest_asyncio.fixture(scope='session')
+async def transport():
     async with LifespanManager(main):
-        yield
+        yield ASGITransport(main)  # type: ignore[arg-type]
 
 
 @pytest.fixture()
-def client(_lifespan) -> AsyncClient:
-    return AsyncClient(base_url='http://127.0.0.1:8000', transport=ASGITransport(main))
+def client(transport: ASGITransport) -> AsyncClient:
+    return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def changeset_id(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
@@ -38,13 +45,16 @@ async def changeset_id(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    exceptions = Exceptions06()
     user = await UserQuery.find_one_by_display_name('user1')
-    with exceptions_context(exceptions), auth_context(user, ()):
+    with exceptions_context(Exceptions06()), auth_context(user, ()):
         yield int(r.text)
 
 
+@cache
+def _gpx_data() -> dict:
+    return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
+
+
 @pytest.fixture()
-async def gpx() -> dict:
-    gpx = await Path('tests/data/11152535.gpx').read_bytes()
-    return XMLToDict.parse(gpx)
+def gpx() -> dict:
+    return deepcopy(_gpx_data())

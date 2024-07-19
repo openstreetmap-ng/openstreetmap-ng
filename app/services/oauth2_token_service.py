@@ -1,5 +1,4 @@
 from base64 import urlsafe_b64encode
-from collections.abc import Sequence
 from hashlib import sha256
 
 import cython
@@ -23,17 +22,6 @@ from app.utils import extend_query_params
 # TODO: limit number of access tokens per user+app
 
 
-@cython.cfunc
-def _compute_s256(verifier: str) -> str:
-    """
-    Compute the S256 code challenge from the verifier.
-    """
-    verifier_bytes = verifier.encode()
-    verifier_hashed = sha256(verifier_bytes).digest()
-    verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
-    return verifier_base64
-
-
 class OAuth2TokenService:
     @staticmethod
     async def authorize(
@@ -41,7 +29,7 @@ class OAuth2TokenService:
         init: bool,
         client_id: str,
         redirect_uri: str,
-        scopes: Sequence[Scope],
+        scopes: tuple[Scope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
@@ -63,7 +51,7 @@ class OAuth2TokenService:
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
 
-        user_id = auth_user().id
+        user_id = auth_user(required=True).id
         scopes_set = set(scopes)
         if not scopes_set.issubset(app.scopes):
             raise_for().oauth_bad_scopes()
@@ -75,7 +63,6 @@ class OAuth2TokenService:
                 app_id=app.id,
                 limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,
             )
-
             for token in tokens:
                 # ignore different redirect uri
                 if token.redirect_uri != redirect_uri:
@@ -83,7 +70,6 @@ class OAuth2TokenService:
                 # ignore different scopes
                 if scopes_set.symmetric_difference(token.scopes):
                     continue
-
                 # session found, auto-approve
                 break
             else:
@@ -172,3 +158,14 @@ class OAuth2TokenService:
             'created_at': int(token.authorized_at.timestamp()),
             # TODO: id_token
         }
+
+
+@cython.cfunc
+def _compute_s256(verifier: str) -> str:
+    """
+    Compute the S256 code challenge from the verifier.
+    """
+    verifier_bytes = verifier.encode()
+    verifier_hashed = sha256(verifier_bytes).digest()
+    verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
+    return verifier_base64

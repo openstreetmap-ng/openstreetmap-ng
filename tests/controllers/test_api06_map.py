@@ -6,8 +6,6 @@ from httpx import AsyncClient
 from app.lib.xmltodict import XMLToDict
 from app.models.element_type import ElementType
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_map_read(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
@@ -85,10 +83,10 @@ async def test_map_read(client: AsyncClient):
     r = await client.get('/api/0.6/map?bbox=1.234,2.345,1.235,2.346')
     assert r.is_success, r.text
 
-    data: Sequence[tuple[ElementType, dict]] = XMLToDict.parse(r.content)['osm']
+    data = XMLToDict.parse(r.content)['osm']
 
     # completely empty map will be parsed as dict
     if isinstance(data, Sequence):
         nodes = (value for key, value in data if key == 'node')
-        node = next((node for node in nodes if node['@id'] == node_id), None)
-        assert node is None
+        with pytest.raises(StopIteration):
+            node = next(node for node in nodes if node['@id'] == node_id)

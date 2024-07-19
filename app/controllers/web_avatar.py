@@ -4,6 +4,7 @@ import magic
 from fastapi import APIRouter, Path, Response
 from pydantic import PositiveInt
 
+from app.lib.storage.base import StorageKey
 from app.queries.avatar_query import AvatarQuery
 
 router = APIRouter(prefix='/api/web/avatar')
@@ -20,7 +21,7 @@ async def gravatar(
 
 @router.get('/custom/{avatar_id}')
 async def custom(
-    avatar_id: Annotated[str, Path(min_length=1)],
+    avatar_id: Annotated[StorageKey, Path(min_length=1)],
 ) -> Response:
     file = await AvatarQuery.get_custom(avatar_id)
     content_type = magic.from_buffer(file[:2048], mime=True)

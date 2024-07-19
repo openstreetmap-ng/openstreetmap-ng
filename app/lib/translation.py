@@ -1,44 +1,43 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import lru_cache
 from gettext import GNUTranslations, translation
+from pathlib import Path
 
-from app.config import DEFAULT_LANGUAGE, LOCALE_DIR
+from app.config import DEFAULT_LANGUAGE
 from app.lib.locale import is_valid_locale
 
-_locale_dir = LOCALE_DIR / 'gnu'
-
-
+_locale_dir = Path('config/locale/gnu')
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
 
 
 # removing lru_cache will not enable live-reload for translations
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
-def _get_translation(languages: Sequence[str]) -> GNUTranslations:
+def _get_translation(locales: Iterable[str]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
     """
     return translation(
         domain='messages',
         localedir=_locale_dir,
-        languages=languages,
+        languages=locales,
     )
 
 
 @contextmanager
-def translation_context(primary_lang: str):
+def translation_context(primary_locale: str, /):
     """
     Context manager for setting the translation in ContextVar.
 
     Languages order determines the preference, from most to least preferred.
     """
-
-    if primary_lang == DEFAULT_LANGUAGE:
-        processed = (primary_lang,)
-    elif is_valid_locale(primary_lang):
-        processed = (primary_lang, DEFAULT_LANGUAGE)
+    processed: tuple[str, ...]
+    if primary_locale == DEFAULT_LANGUAGE:
+        processed = (primary_locale,)
+    elif is_valid_locale(primary_locale):
+        processed = (primary_locale, DEFAULT_LANGUAGE)
     else:
         processed = (DEFAULT_LANGUAGE,)
 
@@ -50,27 +49,27 @@ def translation_context(primary_lang: str):
         _context.reset(token)
 
 
-def translation_languages() -> Sequence[str]:
+def translation_locales() -> tuple[str, ...]:
     """
-    Get the languages from the translation context.
+    Get the locales from the translation context.
 
-    >>> translation_languages()
+    >>> translation_locales()
     ('pl', 'en')
     """
     return _context.get()[0]
 
 
-def primary_translation_language() -> str:
+def primary_translation_locale() -> str:
     """
-    Get the primary language from the translation context.
+    Get the primary locale from the translation context.
 
-    >>> primary_translation_language()
+    >>> primary_translation_locale()
     'en'
     """
     return _context.get()[0][0]
 
 
-def t(message: str, **kwargs) -> str:
+def t(message: str, /, **kwargs) -> str:
     """
     Get the translation for the given message.
     """
@@ -79,7 +78,7 @@ def t(message: str, **kwargs) -> str:
     return translated.format(**kwargs) if len(kwargs) > 0 else translated
 
 
-def nt(message: str, count: int, **kwargs) -> str:
+def nt(message: str, /, count: int, **kwargs) -> str:
     """
     Get the translation for the given message, with pluralization.
     """

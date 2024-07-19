@@ -2,8 +2,6 @@ import pytest
 
 from app.utils import extend_query_params, unicode_normalize
 
-pytestmark = pytest.mark.anyio
-
 
 @pytest.mark.parametrize(
     ('text', 'expected'),

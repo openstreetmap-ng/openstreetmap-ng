@@ -24,10 +24,10 @@ async def upload(
 ):
     try:
         trace = await TraceService.upload(file, description=description, tags=tags, visibility=visibility)
-    except APIError as e:
+    except* APIError as e:
         # convert api errors to standard form responses
-        collector = MessageCollector()
-        collector.raise_error(None, e.detail)
+        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
+        MessageCollector.raise_error(None, detail)
     return {'trace_id': trace.id}
 
 
@@ -48,10 +48,10 @@ async def update(
             tag_string=tags,
             visibility=visibility,
         )
-    except APIError as e:
+    except* APIError as e:
         # convert api errors to standard form responses
-        collector = MessageCollector()
-        collector.raise_error(None, e.detail)
+        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
+        MessageCollector.raise_error(None, detail)
     return {'trace_id': trace_id}
 
 
@@ -62,8 +62,8 @@ async def delete(
 ):
     try:
         await TraceService.delete(trace_id)
-    except APIError as e:
+    except* APIError as e:
         # convert api errors to standard form responses
-        collector = MessageCollector()
-        collector.raise_error(None, e.detail)
+        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
+        MessageCollector.raise_error(None, detail)
     return {'redirect_url': f'/user/{user.display_name}/traces'}

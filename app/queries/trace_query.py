@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Literal
 
-from sqlalchemy import func, select, text
+from sqlalchemy import any_, func, select, text
 
 from app.db import db
 from app.lib.auth_context import auth_scopes, auth_user_scopes
@@ -76,10 +76,12 @@ class TraceQuery:
         """
         async with db() as session:
             stmt = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     Trace.user_id == user_id,
                     Trace.visible_to(*auth_user_scopes()),
                 )
+                .subquery()
             )
             return await session.scalar(stmt)
 
@@ -105,7 +107,7 @@ class TraceQuery:
                 where_and.append(Trace.visible_to(None, auth_scopes()))
 
             if tag is not None:
-                where_and.append(Trace.tags.any(tag))
+                where_and.append(any_(Trace.tags) == tag)
 
             if after is not None:
                 where_and.append(Trace.id > after)
@@ -115,13 +117,10 @@ class TraceQuery:
             stmt = stmt.where(*where_and)
 
             if (after is None) or (before is not None):
-                stmt = stmt.order_by(Trace.id.desc())
-                stmt = stmt.limit(limit)
+                stmt = stmt.order_by(Trace.id.desc()).limit(limit)
             else:
-                stmt = stmt.order_by(Trace.id.asc())
-                stmt = stmt.limit(limit)
-                stmt = select(Trace).select_from(stmt).order_by(Trace.id.desc())
+                stmt = stmt.order_by(Trace.id.asc()).limit(limit)
+                stmt = select(Trace).select_from(stmt.subquery()).order_by(Trace.id.desc())
 
             stmt = apply_options_context(stmt)
-            result = (await session.scalars(stmt)).all()
-            return result
+            return (await session.scalars(stmt)).all()

@@ -1,8 +1,8 @@
+import asyncio
 import json
 from math import isclose
+from pathlib import Path
 
-import anyio
-from anyio import Path
 from pytz import country_timezones
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
@@ -12,15 +12,12 @@ from app.utils import HTTP
 
 def get_timezone_country_dict() -> dict[str, str]:
     result = {}
-
     print('Processing country timezones')
     for code, timezones in country_timezones.items():
         for timezone in timezones:
             if timezone in result:
                 raise ValueError(f'Duplicate timezone {timezone!r}')
-
             result[timezone] = code
-
     return result
 
 
@@ -31,14 +28,12 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
 
     content = ZstdDecompressor().decompress(r.content)
     features = json.loads(content)['features']
-
     result = {}
 
     print('Processing country boundaries')
     for feature in features:
         tags: dict = feature['properties']['tags']
         country: str | None = tags.get('ISO3166-1:alpha2', tags.get('ISO3166-1'))
-
         if country is None:
             raise ValueError(f'Country code not found in {tags!r}')
 
@@ -69,7 +64,6 @@ def generate_javascript_file(data: dict[str, tuple[float, float, float, float]])
 
     result = []
     items = sorted(data.items())
-
     for timezone, bbox in items:
         result.append(f'    ["{timezone}", [{bbox[0]}, {bbox[1]}, {bbox[2]}, {bbox[3]}]]')
 
@@ -80,7 +74,6 @@ def generate_javascript_file(data: dict[str, tuple[float, float, float, float]])
 async def main():
     country_bbox = await get_country_bbox_dict()
     timezone_country = get_timezone_country_dict()
-
     result = {}
 
     print('Merging timezones with boundaries')
@@ -95,8 +88,8 @@ async def main():
 
     output = generate_javascript_file(result)
     output_path = Path('app/static/js/_timezone-bbox.js')
-    await output_path.write_text(output)
+    output_path.write_text(output)
 
 
 if __name__ == '__main__':
-    anyio.run(main)
+    asyncio.run(main())

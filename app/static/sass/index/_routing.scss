@@ -1,3 +1,13 @@
+// The sprite usage is deprecated.
+// New icons should be kept separate for ease of maintenance.
+// TODO: Split the sprite into separate files.
+@mixin legacy-routing-icon($x, $y) {
+    width: 20px;
+    height: 20px;
+    background: url("/static/img/routing/sprite.webp");
+    background-position: $x $y;
+}
+
 // TODO: hover action
 // TODO: limit navigation updates per sec
 .action-sidebar.routing {
@@ -7,58 +17,57 @@
         padding: 0.6em 0.45em;
     }
 
-    .route-info {
-        text-align: center;
-    }
-
-    .elevation-group {
-        font-size: 0.9em;
-        color: $gray-600;
-    }
-
-    .turn-by-turn {
-        // Disable border on the first, icon column
-        .icon {
-            border-bottom: unset;
-        }
-
-        .number {
-            font-weight: bold;
-        }
-
-        // Style the distance text for each turn
-        .distance {
-            color: $gray-600;
-            font-size: 0.75em;
-            text-align: right;
-            vertical-align: middle;
-        }
-
-        // Disable border on the last row
-        tr:last-child {
-            td {
-                border-bottom: unset;
-            }
-        }
-    }
-
     .attribution {
         text-align: center;
     }
+}
 
-    // The sprite usage is deprecated.
-    // New icons should be kept separate for ease of maintenance.
-    // TODO: Split the sprite into separate files.
-    @mixin legacy-routing-icon($x, $y) {
-        width: 20px;
-        height: 20px;
-        background: url("/static/img/routing/sprite.webp");
-        background-position: $x $y;
+.route-info {
+    text-align: center;
+}
+
+.route-elevation-info {
+    font-size: 0.9em;
+    color: $gray-600;
+}
+
+.route-steps {
+    // Disable border on the first, icon column
+    .icon {
+        border-bottom: unset;
+    }
+
+    .number {
+        font-weight: bold;
+    }
+
+    // Style the distance text for each turn
+    .distance {
+        color: $gray-600;
+        font-size: 0.75em;
+        text-align: right;
+        vertical-align: middle;
     }
 
     @for $i from 0 through 25 {
-        .icon .icon-#{$i} {
+        .icon-#{$i} {
             @include legacy-routing-icon($i * -20px, 0px);
+        }
+    }
+
+    tr:hover,
+    tr.hover {
+        cursor: pointer;
+
+        td {
+            background: $list-highlight;
+        }
+    }
+
+    // Disable border on the last row
+    tr:last-child {
+        td {
+            border-bottom: unset;
         }
     }
 }

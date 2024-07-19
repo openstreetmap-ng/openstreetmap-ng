@@ -1,9 +1,10 @@
 import logging
+from asyncio import Lock, TaskGroup
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Collection, Iterable, Mapping
 from datetime import datetime
 
-from anyio import create_task_group
+import cython
 from sqlalchemy import and_, null, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -25,9 +26,12 @@ _lock_table_sql = text(
     f'LOCK TABLE "{Changeset.__tablename__}","{Element.__tablename__}","{ElementMember.__tablename__}" IN EXCLUSIVE MODE'
 )
 
+_flush_lock = Lock()
+
 
 class OptimisticDiffApply:
-    async def apply(self, prepare: OptimisticDiffPrepare) -> dict[ElementRef, Sequence[Element]]:
+    @staticmethod
+    async def apply(prepare: OptimisticDiffPrepare) -> dict[ElementRef, list[Element]]:
         """
         Apply the optimistic diff update.
 
@@ -39,24 +43,25 @@ class OptimisticDiffApply:
         if not assigned_ref_map:
             return {}
 
-        async with db_commit() as session, create_task_group() as tg:
+        async with db_commit() as session, TaskGroup() as tg:
             # obtain exclusive lock on the tables
             await session.execute(_lock_table_sql)
 
             # check if the element_state is valid
-            tg.start_soon(_check_elements_latest, prepare.element_state)
+            tg.create_task(_check_elements_latest(prepare.element_state))
 
             # check if the elements have no new references
             if prepare.reference_check_element_refs:
-                tg.start_soon(
-                    _check_elements_unreferenced,
-                    prepare.reference_check_element_refs,
-                    prepare.at_sequence_id,
+                tg.create_task(
+                    _check_elements_unreferenced(
+                        prepare.reference_check_element_refs,
+                        prepare.at_sequence_id,
+                    )
                 )
 
             now = utcnow()
-            tg.start_soon(_update_changeset, prepare.changeset, now, session)
-            tg.start_soon(_update_elements, prepare.apply_elements, now, session)
+            tg.create_task(_update_changeset(prepare.changeset, now, session))  # type: ignore[arg-type]
+            tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
         return assigned_ref_map
 
@@ -72,13 +77,11 @@ async def _check_elements_latest(element_state: dict[ElementRef, ElementStateEnt
         for ref, entry in element_state.items()
         if entry.remote is not None
     )
-    if not versioned_refs:
-        return
     if not await ElementQuery.check_is_latest(versioned_refs):
         raise OptimisticDiffError('Element is outdated')
 
 
-async def _check_elements_unreferenced(element_refs: Sequence[ElementRef], after_sequence_id: int) -> None:
+async def _check_elements_unreferenced(element_refs: Collection[ElementRef], after_sequence_id: int) -> None:
     """
     Check if the elements are currently unreferenced.
 
@@ -102,34 +105,26 @@ async def _update_changeset(changeset: Changeset, now: datetime, session: AsyncS
 
     changeset.updated_at = now
     changeset.auto_close_on_size(now)
-    session.add(changeset)
+    async with _flush_lock:
+        # session.add() during .flush() is not supported
+        session.add(changeset)
 
 
 async def _update_elements(
-    elements: Sequence[tuple[Element, ElementRef]],
+    elements: Collection[tuple[Element, ElementRef]],
     now: datetime,
     session: AsyncSession,
 ) -> None:
     """
     Update the element table by creating new revisions.
     """
-    current_sequence_id: int | None = None
-    current_id_map: dict[ElementType, int] | None = None
+    async with TaskGroup() as tg:
+        current_sequence_task = tg.create_task(ElementQuery.get_current_sequence_id())
+        current_id_task = tg.create_task(ElementQuery.get_current_ids())
 
-    async def sequence_task():
-        nonlocal current_sequence_id
-        current_sequence_id = await ElementQuery.get_current_sequence_id()
-
-    async def type_id_task():
-        nonlocal current_id_map
-        current_id_map = await ElementQuery.get_current_ids()
-
-    async with create_task_group() as tg:
-        tg.start_soon(sequence_task)
-        tg.start_soon(type_id_task)
-
+    current_sequence_id = current_sequence_task.result()
+    current_id_map = current_id_task.result()
     update_type_ids: dict[ElementType, list[int]] = defaultdict(list)
-    insert_elements: list[Element] = []
     insert_members: list[ElementMember] = []
     prev_map: dict[ElementRef, Element] = {}
     assigned_id_map: dict[ElementRef, int] = {}
@@ -157,20 +152,19 @@ async def _update_elements(
             element.id = assigned_id
 
     # process members
-    for element_t in elements:
-        element = element_t[0]
-        insert_elements.append(element)
+    insert_elements: list[Element] = [None] * len(elements)  # type: ignore[list-item]
+    i: cython.int
+    for i, element_t in enumerate(elements):
+        element = insert_elements[i] = element_t[0]
         element_members = element.members
         if not element_members:
             continue
 
         insert_members.extend(element_members)
         sequence_id = element.sequence_id
-
         for member in element_members:
             # assign sequence_id
             member.sequence_id = sequence_id
-
             # assign id
             if member.id < 0:
                 member_ref = ElementRef(member.type, member.id)
@@ -181,9 +175,9 @@ async def _update_elements(
 
 async def _update_elements_db(
     current_sequence_id: int,
-    update_type_ids: dict[ElementType, Sequence[int]],
-    insert_elements: Sequence[Element],
-    insert_members: Sequence[ElementMember],
+    update_type_ids: Mapping[ElementType, Iterable[int]],
+    insert_elements: Collection[Element],
+    insert_members: Collection[ElementMember],
     session: AsyncSession,
 ) -> None:
     """
@@ -192,7 +186,8 @@ async def _update_elements_db(
     logging.info('Inserting %d elements and %d members', len(insert_elements), len(insert_members))
     session.add_all(insert_elements)
     session.add_all(insert_members)
-    await session.flush()
+    async with _flush_lock:
+        await session.flush()
 
     if update_type_ids:
         E = aliased(Element)  # noqa: N806
@@ -202,11 +197,13 @@ async def _update_elements_db(
                 Element.sequence_id <= current_sequence_id,
                 Element.next_sequence_id == null(),
                 or_(
-                    and_(
-                        Element.type == type,
-                        Element.id.in_(text(','.join(map(str, ids)))),
-                    )
-                    for type, ids in update_type_ids.items()
+                    *(
+                        and_(
+                            Element.type == type,
+                            Element.id.in_(text(','.join(map(str, ids)))),
+                        )
+                        for type, ids in update_type_ids.items()
+                    ),
                 ),
             )
             .values(

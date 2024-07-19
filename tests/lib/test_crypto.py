@@ -1,3 +1,5 @@
+import pytest
+
 from app.lib.crypto import decrypt, encrypt, hash_bytes, hash_hex
 
 
@@ -15,3 +17,8 @@ def test_encrypt_roundtrip():
 
 def test_encrypt_unique():
     assert encrypt('test1') != encrypt('test1')
+
+
+def test_encrypt_prevent_empty_string():
+    with pytest.raises(AssertionError):
+        encrypt('')

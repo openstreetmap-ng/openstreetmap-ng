@@ -9,8 +9,6 @@ from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 
-pytestmark = pytest.mark.anyio
-
 
 async def test_create_simple(changeset_id: int):
     element = Element(
@@ -38,10 +36,10 @@ async def test_create_simple(changeset_id: int):
     assert element.visible
     assert element.tags == {}
     assert element.point == Point(0, 0)
-    assert element.members is None
+    assert not element.members
 
 
-async def test_create_invalid_changeset_id(changeset_id: int):
+async def test_create_invalid_changeset_id():
     element = Element(
         changeset_id=0,
         type='node',

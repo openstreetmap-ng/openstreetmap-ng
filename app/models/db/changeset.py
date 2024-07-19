@@ -71,21 +71,21 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         """
         Get the maximum size for this changeset.
         """
-        return UserRole.get_changeset_max_size(self.user.roles)
+        user = self.user
+        if user is None:
+            raise AssertionError('Changeset user must be set')
+        return UserRole.get_changeset_max_size(user.roles)
 
-    def increase_size(self, n: int) -> bool:
+    def set_size(self, new_size: int) -> bool:
         """
-        Increase the changeset size by n.
+        Change the changeset size.
 
-        Returns True if the size was increased successfully.
+        Returns True if the size was changed successfully.
         """
-        if n < 0:
-            raise ValueError('n must be non-negative')
-
-        new_size = self.size + n
+        if self.size >= new_size:
+            raise ValueError('New size must be greater than the current size')
         if new_size > self.max_size:
             return False
-
         self.size = new_size
         return True
 

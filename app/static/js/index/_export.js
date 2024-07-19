@@ -24,7 +24,6 @@ export const getExportController = (map) => {
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
     const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.href
-    let loaded = false
 
     // Null values until initialized
     let locationFilter = null
@@ -44,9 +43,6 @@ export const getExportController = (map) => {
 
     // On map move end, update the inputs
     const onMapMoveEnd = () => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const bounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
@@ -83,15 +79,14 @@ export const getExportController = (map) => {
         onMapMoveEnd()
     }
 
-    // Listen for events
-    map.addEventListener("moveend", onMapMoveEnd)
-    customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
-
     return {
         load: () => {
             switchActionSidebar(map, "export")
             document.title = getPageTitle(sidebarTitle)
-            loaded = true
+
+            // Listen for events
+            map.addEventListener("moveend", onMapMoveEnd)
+            customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
 
             // Initial update to set the inputs
             onMapMoveEnd()
@@ -103,7 +98,8 @@ export const getExportController = (map) => {
                 customRegionCheckbox.dispatchEvent(new Event("change"))
             }
 
-            loaded = false
+            map.removeEventListener("moveend", onMapMoveEnd)
+            customRegionCheckbox.removeEventListener("change", onCustomRegionCheckboxChange)
         },
     }
 }

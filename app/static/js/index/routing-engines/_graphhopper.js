@@ -1,4 +1,3 @@
-import * as L from "leaflet"
 import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
 import { polylineDecode } from "../../_polyline-decoder.js"
@@ -40,20 +39,23 @@ const makeEngine = (profile) => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.message) {
+                        throw new Error(`${data.message} (${resp.status})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const path = data.paths[0]
                 const points = polylineDecode(path.points, 5)
                 const steps = []
 
                 for (const instr of path.instructions) {
                     const instrPoints = points.slice(instr.interval[0], instr.interval[1] + 1)
-                    const [lon, lat] = instrPoints[0]
                     steps.push({
-                        lon: lon,
-                        lat: lat,
-                        line: L.polyline(instrPoints.map(([lon, lat]) => L.latLng(lat, lon))),
+                        geom: instrPoints.map(([lon, lat]) => [lat, lon]),
                         distance: instr.distance,
                         time: instr.time / 1000,
                         code: signToCodeMap.get(instr.sign) ?? 0,

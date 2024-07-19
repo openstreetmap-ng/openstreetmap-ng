@@ -29,10 +29,9 @@ def typed_json_decoder(t: type | None) -> msgspec.json.Decoder:
     return msgspec.json.Decoder(t) if (t is not None) else msgspec.json.Decoder()
 
 
-# TODO: sorted keys?
-MSGPACK_ENCODE = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes').encode
+MSGPACK_ENCODE = msgspec.msgpack.Encoder(decimal_format='number', uuid_format='bytes', order='sorted').encode
 MSGPACK_DECODE = typed_msgpack_decoder(None).decode
-JSON_ENCODE = msgspec.json.Encoder(decimal_format='number').encode
+JSON_ENCODE = msgspec.json.Encoder(decimal_format='number', order='sorted').encode
 JSON_DECODE = typed_json_decoder(None).decode
 
 
@@ -56,7 +55,6 @@ def extend_query_params(uri: str, params: dict) -> str:
     """
     if not params:
         return uri
-
     uri_ = urlsplit(uri)
     query = parse_qsl(uri_.query, keep_blank_values=True)
     query.extend(params.items())

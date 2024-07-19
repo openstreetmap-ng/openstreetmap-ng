@@ -2,17 +2,18 @@ import cython
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates
 
 from app.lib.exceptions_context import raise_for
+from app.limits import GEO_COORDINATE_PRECISION
 from app.validators.geometry import validate_geometry
 
 if cython.compiled:
-    from cython.cimports.libc.math import atan2, cos, pi, sin, sqrt
+    from cython.cimports.libc.math import atan2, cos, sin, sqrt
 else:
-    from math import atan2, cos, pi, sin, sqrt
+    from math import atan2, cos, sin, sqrt
 
 
 @cython.cfunc
 def radians(x: cython.double) -> cython.double:
-    return x * (pi / 180)
+    return x * 0.017453292519943295  # pi / 180
 
 
 def meters_to_radians(meters: float) -> float:
@@ -68,12 +69,13 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
     >>> parse_bbox('1,2,3,4')
     POLYGON ((1 2, 1 4, 3 4, 3 2, 1 2))
     """
+    parts = s.strip().split(',', maxsplit=3)
     try:
-        parts = s.strip().split(',', maxsplit=3)
-        minx: cython.double = float(parts[0])
-        miny: cython.double = float(parts[1])
-        maxx: cython.double = float(parts[2])
-        maxy: cython.double = float(parts[3])
+        precision = GEO_COORDINATE_PRECISION
+        minx: cython.double = round(float(parts[0].strip()), precision)
+        miny: cython.double = round(float(parts[1].strip()), precision)
+        maxx: cython.double = round(float(parts[2].strip()), precision)
+        maxy: cython.double = round(float(parts[3].strip()), precision)
     except Exception:
         raise_for().bad_bbox(s)
     if minx > maxx:
@@ -110,3 +112,29 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
             )
         )
     )
+
+
+def try_parse_point(lat_lon: str) -> Point | None:
+    """
+    Try to parse a point string.
+
+    Returns None if the string is not in a valid format.
+
+    >>> try_parse_point('1,2')
+    POINT (2 1)
+    """
+    lat_str, _, lon_str = lat_lon.partition(',')
+    if not lon_str:
+        lat_str, _, lon_str = lat_lon.partition(' ')
+    if not lon_str:
+        return None
+    try:
+        precision = GEO_COORDINATE_PRECISION
+        lon = round(float(lon_str.strip()), precision)
+        lat = round(float(lat_str.strip()), precision)
+    except ValueError:
+        return None
+    try:
+        return validate_geometry(Point(lon, lat))
+    except Exception:
+        return None

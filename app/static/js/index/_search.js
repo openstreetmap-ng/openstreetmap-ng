@@ -5,6 +5,7 @@ import { getPageTitle } from "../_title.js"
 import { isLongitude } from "../_utils.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
+import { getMapAlert } from "../leaflet/_map-utils.js"
 import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { routerNavigateStrict } from "./_router.js"
@@ -28,7 +29,7 @@ export const getSearchController = (map) => {
     const defaultTitle = i18next.t("site.search.search")
     const searchLayer = getOverlayLayerById("search")
     const searchForm = document.querySelector(".search-form")
-    const searchAlert = document.querySelector(".search-alert")
+    const searchAlert = getMapAlert("search-alert")
     let initialBounds = null
 
     // On search alert click, reload the search with the new area
@@ -69,12 +70,12 @@ export const getSearchController = (map) => {
         const isGlobalMode = !boundsStr
         const groupedElements = JSON.parse(dataset.leaflet)
         const results = searchList.querySelectorAll(".social-action")
-        const layerGroup = L.layerGroup()
+        const layers = []
 
         for (let i = 0; i < results.length; i++) {
             const elements = groupedElements[i]
-            const result = results[i]
-            const dataset = result.dataset
+            const div = results[i]
+            const dataset = div.dataset
 
             const lon = Number.parseFloat(dataset.lon)
             const lat = Number.parseFloat(dataset.lat)
@@ -88,11 +89,11 @@ export const getSearchController = (map) => {
             // On mouse enter, scroll result into view and focus elements
             const onMouseover = () => {
                 const sidebarRect = sidebar.getBoundingClientRect()
-                const resultRect = result.getBoundingClientRect()
+                const resultRect = div.getBoundingClientRect()
                 const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
-                if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+                if (!isVisible) div.scrollIntoView({ behavior: "smooth", block: "center" })
 
-                result.classList.add("hover")
+                div.classList.add("hover")
                 focusManyMapObjects(map, elements, {
                     ...focusOptions,
                     // Focus on hover only during global search
@@ -103,7 +104,7 @@ export const getSearchController = (map) => {
 
             // On mouse leave, unfocus elements
             const onMouseout = () => {
-                result.classList.remove("hover")
+                div.classList.remove("hover")
                 focusMapObject(map, null)
                 marker?.setOpacity(markerOpacity)
             }
@@ -122,18 +123,18 @@ export const getSearchController = (map) => {
             }
 
             // Listen for events
-            result.addEventListener("mouseover", onMouseover)
-            result.addEventListener("mouseout", onMouseout)
+            div.addEventListener("mouseover", onMouseover)
+            div.addEventListener("mouseout", onMouseout)
             if (marker) {
                 marker.addEventListener("mouseover", onMouseover)
                 marker.addEventListener("mouseout", onMouseout)
                 marker.addEventListener("click", onMarkerClick)
-                layerGroup.addLayer(marker)
+                layers.push(marker)
             }
         }
 
         searchLayer.clearLayers()
-        if (results.length) searchLayer.addLayer(layerGroup)
+        searchLayer.addLayer(L.layerGroup(layers))
         console.debug("Search showing", results.length, "results")
 
         if (isGlobalMode) {
@@ -194,15 +195,15 @@ export const getSearchController = (map) => {
     base.unload = () => {
         baseUnload()
 
-        // Clear the search layer
-        searchLayer.clearLayers()
-
         // Remove the search layer
         if (map.hasLayer(searchLayer)) {
             console.debug("Removing overlay layer", searchLayer.options.layerId)
             map.removeLayer(searchLayer)
             map.fire("overlayremove", { layer: searchLayer, name: searchLayer.options.layerId })
         }
+
+        // Clear the search layer
+        searchLayer.clearLayers()
 
         // Unstick the search form and reset search alert
         searchForm.classList.remove("sticky-top")

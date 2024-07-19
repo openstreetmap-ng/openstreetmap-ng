@@ -1,4 +1,5 @@
 from app.lib.exceptions_context import raise_for
+from app.lib.storage.base import StorageKey
 from app.queries.user_query import UserQuery
 from app.storage import AVATAR_STORAGE, GRAVATAR_STORAGE
 
@@ -15,7 +16,7 @@ class AvatarQuery:
         return await GRAVATAR_STORAGE.load(user.email)
 
     @staticmethod
-    async def get_custom(avatar_id: str) -> bytes:
+    async def get_custom(avatar_id: StorageKey) -> bytes:
         """
         Get a custom avatar image.
         """

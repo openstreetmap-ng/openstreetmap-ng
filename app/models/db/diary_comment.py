@@ -19,7 +19,14 @@ class DiaryComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     user: Mapped[User] = relationship(lazy='raise', innerjoin=True)
     diary_id: Mapped[int] = mapped_column(ForeignKey(Diary.id), nullable=False)
     body: Mapped[str] = mapped_column(UnicodeText, nullable=False)
-    body_rich_hash: Mapped[bytes | None] = mapped_column(LargeBinary(HASH_SIZE), nullable=True, server_default=None)
+    body_rich_hash: Mapped[bytes | None] = mapped_column(
+        LargeBinary(HASH_SIZE),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+
+    # runtime
     body_rich: str | None = None
 
     @validates('body')

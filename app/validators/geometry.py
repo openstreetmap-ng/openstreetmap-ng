@@ -1,3 +1,5 @@
+from typing import TypeVar, overload
+
 import numpy as np
 from pydantic import PlainValidator
 from shapely import Point, lib
@@ -6,14 +8,22 @@ from shapely.geometry.base import BaseGeometry
 
 from app.lib.exceptions_context import raise_for
 
+T = TypeVar('T', bound=BaseGeometry)
 
-def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
+
+@overload
+def validate_geometry(value: dict) -> BaseGeometry: ...
+
+
+@overload
+def validate_geometry(value: T) -> T: ...
+
+
+def validate_geometry(value: dict | T) -> BaseGeometry | T:
     """
     Validate a geometry.
     """
-    if isinstance(value, dict):
-        value = shape(value)
-
+    geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
     coords: np.ndarray = lib.get_coordinates(np.asarray(value, dtype=object), False, False)
     if not np.all(
         (coords[:, 0] >= -180)
@@ -27,7 +37,7 @@ def validate_geometry(value: dict | BaseGeometry) -> BaseGeometry:
     if isinstance(value, Point):
         if coords.shape != (1, 2):
             raise_for().bad_geometry()
-    elif not value.is_valid:
+    elif not geom.is_valid:
         raise_for().bad_geometry()
 
     return value

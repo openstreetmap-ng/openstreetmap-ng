@@ -14,15 +14,19 @@ class UserBlockQuery:
         """
         async with db() as session:
             stmt_total = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     UserBlock.to_user_id == user_id,
                 )
+                .subquery()
             )
             stmt_active = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     UserBlock.to_user_id == user_id,
                     UserBlock.expired == false(),
                 )
+                .subquery()
             )
             stmt = stmt_total.union_all(stmt_active)
             total, active = (await session.scalars(stmt)).all()
@@ -37,15 +41,19 @@ class UserBlockQuery:
         """
         async with db() as session:
             stmt_total = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     UserBlock.from_user_id == user_id,
                 )
+                .subquery()
             )
             stmt_active = select(func.count()).select_from(
-                select(text('1')).where(
+                select(text('1'))
+                .where(
                     UserBlock.from_user_id == user_id,
                     UserBlock.expired == false(),
                 )
+                .subquery()
             )
             stmt = stmt_total.union_all(stmt_active)
             total, active = (await session.scalars(stmt)).all()

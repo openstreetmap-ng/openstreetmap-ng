@@ -17,7 +17,7 @@ class RateLimitMiddleware:
     """
     Rate limiting middleware.
 
-    The endpoint must be decorated with `@rate_limit` to enable rate limiting.
+    The endpoint must be decorated with @rate_limit to enable rate limiting.
     """
 
     __slots__ = ('app',)
@@ -43,7 +43,49 @@ class RateLimitMiddleware:
         await self.app(scope, receive, wrapper)
 
 
-async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit: bool) -> dict[str, str]:
+def rate_limit(*, weight: int = 1):
+    """
+    Decorator to rate-limit an endpoint.
+
+    The rate limit quota is global and per-deployment.
+
+    The weight can be overridden during execution using set_rate_limit_weight method.
+    """
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            request = get_request()
+            user = auth_user()
+            if user is not None:
+                key = f'RateLimit:user:{user.id}'
+                quota = UserRole.get_rate_limit_quota(user.roles)
+            else:
+                key = f'RateLimit:host:{request.client.host}'  # type: ignore[union-attr]
+                quota = UserRole.get_rate_limit_quota(())
+
+            rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)
+
+            # proceed with the request
+            result = await func(*args, **kwargs)
+
+            state: dict = request.state._state  # noqa: SLF001
+
+            # check if the weight was overridden (only increasing)
+            weight_change: int = state.get('rate_limit_weight', weight) - weight
+            if weight_change > 0:
+                rate_limit_headers = await _increase_counter(key, weight_change, quota, raise_on_limit=False)
+
+            # save the headers to the request state
+            state['rate_limit_headers'] = rate_limit_headers
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+async def _increase_counter(key: str, change: int, quota: cython.int, *, raise_on_limit: bool) -> dict[str, str]:
     """
     Increase the rate limit counter and raise HTTPException if the limit is exceeded.
 
@@ -55,14 +97,13 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
         pipe.ttl(key)
         result = await pipe.execute()
 
-    current_usage: int = result[0]
-    expires_in: int = result[2]
-
+    current_usage: cython.int = result[0]
+    expires_in_str: str = str(result[2])
     remaining_quota: cython.int = quota - current_usage
     if remaining_quota < 0:
         remaining_quota = 0
 
-    rate_limit_header = f'limit={quota}, remaining={remaining_quota}, reset={expires_in}'
+    rate_limit_header = f'limit={quota}, remaining={remaining_quota}, reset={expires_in_str}'
     rate_limit_policy_header = f'{quota};w=3600;burst=0'
 
     # check if the rate limit is exceeded
@@ -73,7 +114,7 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
             headers={
                 'RateLimit': rate_limit_header,
                 'RateLimit-Policy': rate_limit_policy_header,
-                'Retry-After': str(expires_in),
+                'Retry-After': expires_in_str,
             },
         )
 
@@ -81,52 +122,6 @@ async def _increase_counter(key: str, change: int, quota: int, *, raise_on_limit
         'RateLimit': rate_limit_header,
         'RateLimit-Policy': rate_limit_policy_header,
     }
-
-
-def rate_limit(*, weight: int = 1):
-    """
-    Decorator to rate-limit an endpoint.
-
-    The rate limit quota is global and per-deployment.
-
-    The weight can be overridden during execution using `set_rate_limit_weight` method.
-    """
-
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            key: str
-            quota: cython.int
-            user = auth_user()
-
-            if user is not None:
-                key = f'RateLimit:user:{user.id}'
-                quota = UserRole.get_rate_limit_quota(user.roles)
-            else:
-                request = get_request()
-                key = f'RateLimit:host:{request.client.host}'
-                quota = UserRole.get_rate_limit_quota(())
-
-            rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)
-
-            # proceed with the request
-            result = await func(*args, **kwargs)
-
-            state: dict = get_request().state._state  # noqa: SLF001
-
-            # check if the weight was overridden (only increasing)
-            weight_change: int = state.get('rate_limit_weight', weight) - weight
-            if weight_change > 0:
-                rate_limit_headers = await _increase_counter(key, weight_change, quota, raise_on_limit=False)
-
-            # save the headers to the request state
-            state['rate_limit_headers'] = rate_limit_headers
-
-            return result
-
-        return wrapper
-
-    return decorator
 
 
 def set_rate_limit_weight(weight: int) -> None:

@@ -1,8 +1,8 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Collection, Iterable
 
 import cython
 import numpy as np
-from anyio import create_task_group
 from shapely import Point, lib
 
 from app.lib.auth_context import auth_user
@@ -29,7 +29,7 @@ class User06Mixin:
         return {'user': await _encode_user(user, is_json=format_is_json())}
 
     @staticmethod
-    async def encode_users(users: Sequence[User]) -> dict:
+    async def encode_users(users: Iterable[User]) -> dict:
         """
         >>> encode_users([
         ...     User(...),
@@ -38,22 +38,13 @@ class User06Mixin:
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
         is_json = format_is_json()
-        encoded_users = [None] * len(users)
-
-        async def task(i: int, user: User):
-            encoded_users[i] = await _encode_user(user, is_json=is_json)
-
-        async with create_task_group() as tg:
-            for i, user in enumerate(users):
-                tg.start_soon(task, i, user)
-
-        if is_json:
-            return {'users': encoded_users}
-        else:
-            return {'user': encoded_users}
+        async with TaskGroup() as tg:
+            tasks = tuple(tg.create_task(_encode_user(user, is_json=is_json)) for user in users)
+        encoded_users = tuple(task.result() for task in tasks)
+        return {'users': encoded_users} if is_json else {'user': encoded_users}
 
     @staticmethod
-    def encode_user_preferences(prefs: Sequence[UserPref]) -> dict:
+    def encode_user_preferences(prefs: Iterable[UserPref]) -> dict:
         """
         >>> encode_user_preferences([
         ...     UserPref(key='key1', value='value1'),
@@ -67,21 +58,20 @@ class User06Mixin:
             return {'preferences': {'preference': tuple({'@k': pref.key, '@v': pref.value} for pref in prefs)}}
 
     @staticmethod
-    def decode_user_preferences(prefs: Sequence[dict[str, str]]) -> Sequence[UserPref]:
+    def decode_user_preferences(prefs: Collection[dict[str, str]]) -> tuple[UserPref, ...]:
         """
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
         """
-        user_id = auth_user().id
-        seen_keys: set[str] = set()
-
         # check for duplicate keys
+        seen_keys: set[str] = set()
         for pref in prefs:
             key: str = pref['@k']
             if key in seen_keys:
                 raise_for().pref_duplicate_key(key)
             seen_keys.add(key)
 
+        user_id = auth_user(required=True).id
         return tuple(
             UserPref(
                 **dict(
@@ -106,55 +96,28 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
     access_private: cython.char = (current_user is not None) and (current_user.id == user.id)
     xattr = get_xattr(is_json=is_json)
 
-    changesets_count = None
-    traces_count = None
-    block_received_count = None
-    block_received_active_count = None
-    block_issued_count = None
-    block_issued_active_count = None
-    messages_received_count = None
-    messages_received_unread_count = None
-    messages_sent_count = None
-
-    async def changesets_count_task() -> None:
-        nonlocal changesets_count
-        changesets_count = await ChangesetQuery.count_by_user_id(user.id)
-
-    async def traces_count_task() -> None:
-        nonlocal traces_count
-        traces_count = await TraceQuery.count_by_user_id(user.id)
-
-    async def block_received_count_task() -> None:
-        nonlocal block_received_count, block_received_active_count
-        total, active = await UserBlockQuery.count_received_by_user_id(user.id)
-        block_received_count = total
-        block_received_active_count = active
-
-    async def block_issued_count_task() -> None:
-        nonlocal block_issued_count, block_issued_active_count
-        total, active = await UserBlockQuery.count_given_by_user_id(user.id)
-        block_issued_count = total
-        block_issued_active_count = active
-
-    async def messages_received_count_task() -> None:
-        nonlocal messages_received_count, messages_received_unread_count
-        total, unread = await MessageQuery.count_received_by_user_id(user.id)
-        messages_received_count = total
-        messages_received_unread_count = unread
-
-    async def messages_sent_count_task() -> None:
-        nonlocal messages_sent_count
-        messages_sent_count = await MessageQuery.count_sent_by_user_id(user.id)
-
-    async with create_task_group() as tg:
-        tg.start_soon(changesets_count_task)
-        tg.start_soon(traces_count_task)
-        tg.start_soon(block_received_count_task)
-        tg.start_soon(block_issued_count_task)
-
+    async with TaskGroup() as tg:
+        changesets_task = tg.create_task(ChangesetQuery.count_by_user_id(user.id))
+        traces_task = tg.create_task(TraceQuery.count_by_user_id(user.id))
+        block_received_task = tg.create_task(UserBlockQuery.count_received_by_user_id(user.id))
+        block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user_id(user.id))
         if access_private:
-            tg.start_soon(messages_received_count_task)
-            tg.start_soon(messages_sent_count_task)
+            messages_received_task = tg.create_task(MessageQuery.count_received_by_user_id(user.id))
+            messages_sent_task = tg.create_task(MessageQuery.count_sent_by_user_id(user.id))
+        else:
+            messages_received_task = None
+            messages_sent_task = None
+
+    changesets_num = changesets_task.result()
+    traces_num = traces_task.result()
+    block_received_num, block_received_active_num = block_received_task.result()
+    block_issued_num, block_issued_active_num = block_issued_task.result()
+    if messages_received_task is not None and messages_sent_task is not None:
+        messages_received_num, messages_unread_num = messages_received_task.result()
+        messages_sent_num = messages_sent_task.result()
+    else:
+        messages_received_num = messages_unread_num = 0
+        messages_sent_num = 0
 
     return {
         xattr('id'): user.id,
@@ -167,16 +130,16 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
         },
         'img': {xattr('href'): user.avatar_url},
         'roles': tuple(role.value for role in user.roles),
-        'changesets': {xattr('count'): changesets_count},
-        'traces': {xattr('count'): traces_count},
+        'changesets': {xattr('count'): changesets_num},
+        'traces': {xattr('count'): traces_num},
         'blocks': {
             'received': {
-                xattr('count'): block_received_count,
-                xattr('active'): block_received_active_count,
+                xattr('count'): block_received_num,
+                xattr('active'): block_received_active_num,
             },
             'issued': {
-                xattr('count'): block_issued_count,
-                xattr('active'): block_issued_active_count,
+                xattr('count'): block_issued_num,
+                xattr('active'): block_issued_active_num,
             },
         },
         # private section
@@ -195,10 +158,10 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                 'languages': _encode_languages(user.language, is_json=is_json),
                 'messages': {
                     'received': {
-                        xattr('count'): messages_received_count,
-                        xattr('unread'): messages_received_unread_count,
+                        xattr('count'): messages_received_num,
+                        xattr('unread'): messages_unread_num,
                     },
-                    'sent': {xattr('count'): messages_sent_count},
+                    'sent': {xattr('count'): messages_sent_num},
                 },
             }
             if access_private
@@ -213,10 +176,7 @@ def _encode_languages(language: str, *, is_json: cython.char):
     >>> _encode_languages(['en', 'pl'])
     {'lang': ('en', 'pl')}
     """
-    if is_json:
-        return (language,)
-    else:
-        return {'lang': (language,)}
+    return (language,) if is_json else {'lang': (language,)}
 
 
 @cython.cfunc

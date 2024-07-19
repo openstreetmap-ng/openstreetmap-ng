@@ -1,8 +1,9 @@
-from collections.abc import Sequence
+from asyncio import TaskGroup
+from collections.abc import Collection, Iterable, Sequence
+from itertools import chain
 from typing import Annotated
 
 import cython
-from anyio import create_task_group
 from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
@@ -128,11 +129,10 @@ async def get_many(
         return Response(None, status.HTTP_404_NOT_FOUND)
 
     elements = await ElementQuery.find_many_by_any_refs(parsed_query, limit=None)
-    for element in elements:
-        if element is None:
-            return Response(None, status.HTTP_404_NOT_FOUND)
+    if any(element is None for element in elements):
+        return Response(None, status.HTTP_404_NOT_FOUND)
 
-    return await _encode_elements(elements)
+    return await _encode_elements(elements)  # type: ignore[arg-type]
 
 
 @router.get('/{type:element_type}/{id:int}')
@@ -142,12 +142,10 @@ async def get_latest(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_by_refs((ref,), limit=1)
     element = elements[0] if elements else None
-
     if element is None:
         raise_for().element_not_found(ref)
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
-
     return await _encode_element(element)
 
 
@@ -178,9 +176,8 @@ async def get_history(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/full.xml')
 @router.get('/{type:element_type}/{id:int}/full.json')
 async def get_full(type: ElementType, id: PositiveInt):
-    at_sequence_id = await ElementQuery.get_current_sequence_id()
-
     ref = ElementRef(type, id)
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
     elements = await ElementQuery.get_by_refs(
         (ref,),
         at_sequence_id=at_sequence_id,
@@ -193,11 +190,11 @@ async def get_full(type: ElementType, id: PositiveInt):
     if not element.visible:
         return Response(None, status.HTTP_410_GONE)
 
-    async with create_task_group() as tg:
-        tg.start_soon(UserQuery.resolve_elements_users, elements, True)
-        tg.start_soon(ElementMemberQuery.resolve_members, elements)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
+        tg.create_task(ElementMemberQuery.resolve_members(elements))
 
-    members_refs = {ElementRef(member.type, member.id) for member in element.members}
+    members_refs = {ElementRef(member.type, member.id) for member in element.members}  # type: ignore[union-attr]
     members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
@@ -205,11 +202,11 @@ async def get_full(type: ElementType, id: PositiveInt):
         limit=None,
     )
 
-    async with create_task_group() as tg:
-        tg.start_soon(UserQuery.resolve_elements_users, members_elements, True)
-        tg.start_soon(ElementMemberQuery.resolve_members, members_elements)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_elements_users(members_elements, display_name=True))
+        tg.create_task(ElementMemberQuery.resolve_members(members_elements))
 
-    return Format06.encode_elements((element, *members_elements))
+    return Format06.encode_elements(chain((element,), members_elements))
 
 
 @router.get('/{type:element_type}/{id:int}/relations')
@@ -217,11 +214,7 @@ async def get_full(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/relations.json')
 async def get_parent_relations(type: ElementType, id: PositiveInt):
     ref = ElementRef(type, id)
-    elements = await ElementQuery.get_parents_by_refs(
-        (ref,),
-        parent_type='relation',
-        limit=None,
-    )
+    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='relation', limit=None)
     return await _encode_elements(elements)
 
 
@@ -230,23 +223,16 @@ async def get_parent_relations(type: ElementType, id: PositiveInt):
 @router.get('/node/{id:int}/ways.json')
 async def get_parent_ways(id: PositiveInt):
     ref = ElementRef('node', id)
-    elements = await ElementQuery.get_parents_by_refs(
-        (ref,),
-        parent_type='way',
-        limit=None,
-    )
+    elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='way', limit=None)
     return await _encode_elements(elements)
 
 
 @cython.cfunc
-def _get_element_data(elements: Sequence[tuple[str, dict]], type: ElementType):
+def _get_element_data(elements: Iterable[tuple[str, dict]], type: ElementType):
     """
     Get the first element of the given type from the sequence of elements.
     """
-    for s in elements:
-        if s[0] == type:
-            return s
-    return None
+    return next((s for s in elements if s[0] == type), None)
 
 
 async def _encode_element(element: Element):
@@ -254,17 +240,17 @@ async def _encode_element(element: Element):
     Resolve required data fields for element and encode it.
     """
     elements = (element,)
-    async with create_task_group() as tg:
-        tg.start_soon(UserQuery.resolve_elements_users, elements, True)
-        tg.start_soon(ElementMemberQuery.resolve_members, elements)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
+        tg.create_task(ElementMemberQuery.resolve_members(elements))
     return Format06.encode_element(element)
 
 
-async def _encode_elements(elements: Sequence[Element]):
+async def _encode_elements(elements: Collection[Element]):
     """
     Resolve required data fields for elements and encode them.
     """
-    async with create_task_group() as tg:
-        tg.start_soon(UserQuery.resolve_elements_users, elements, True)
-        tg.start_soon(ElementMemberQuery.resolve_members, elements)
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
+        tg.create_task(ElementMemberQuery.resolve_members(elements))
     return Format06.encode_elements(elements)

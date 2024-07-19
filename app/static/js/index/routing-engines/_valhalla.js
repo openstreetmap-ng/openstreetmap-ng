@@ -1,4 +1,3 @@
-import * as L from "leaflet"
 import { primaryLanguage } from "../../_config.js"
 import { polylineDecode } from "../../_polyline-decoder.js"
 import "../../_types.js"
@@ -46,20 +45,23 @@ const makeEngine = (costing) => {
             priority: "high",
         })
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.error && data.error_code) {
+                        throw new Error(`${data.error} (${data.error_code})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const leg = data.trip.legs[0]
                 const points = polylineDecode(leg.shape, 6)
                 const steps = []
 
                 for (const man of leg.maneuvers) {
                     const manPoints = points.slice(man.begin_shape_index, man.end_shape_index + 1)
-                    const [lon, lat] = manPoints[0]
                     steps.push({
-                        lon: lon,
-                        lat: lat,
-                        line: L.polyline(manPoints.map(([lon, lat]) => L.latLng(lat, lon))),
+                        geom: manPoints.map(([lon, lat]) => [lat, lon]),
                         distance: man.length * 1000,
                         time: man.time,
                         code: maneuverTypeToCodeMap.get(man.type) ?? 0,

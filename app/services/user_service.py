@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import UploadFile
-from sqlalchemy import func
+from sqlalchemy import delete, func, or_
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -9,12 +9,14 @@ from app.lib.locale import is_valid_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
+from app.limits import USER_PENDING_EXPIRE
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
+from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
@@ -25,7 +27,6 @@ from app.validators.email import validate_email_deliverability
 class UserService:
     @staticmethod
     async def login(
-        collector: MessageCollector,
         *,
         display_name_or_email: str,
         password: PasswordStr,
@@ -37,7 +38,7 @@ class UserService:
         """
         user = await AuthService.authenticate_credentials(display_name_or_email, password)
         if user is None:
-            collector.raise_error(None, t('users.auth_failure.invalid_credentials'))
+            MessageCollector.raise_error(None, t('users.auth_failure.invalid_credentials'))
         return await AuthService.create_session(user.id)
 
     @staticmethod
@@ -49,8 +50,7 @@ class UserService:
         Update user's about me.
         """
         async with db_commit() as session:
-            user = await session.get(User, auth_user().id, with_for_update=True)
-
+            user = await session.get(User, auth_user(required=True).id, with_for_update=True)
             if user.description != description:
                 user.description = description
                 user.description_rich_hash = None
@@ -65,15 +65,14 @@ class UserService:
 
         Returns the new avatar URL.
         """
-        current_user = auth_user()
-
         # handle custom avatar
-        if avatar_type == AvatarType.custom:
+        if avatar_type == AvatarType.custom and avatar_file is not None:
             avatar_id = await AvatarService.upload(avatar_file)
         else:
             avatar_id = None
 
         # update user data
+        current_user = auth_user(required=True)
         async with db_commit() as session:
             user = await session.get(User, current_user.id, with_for_update=True)
             old_avatar_id = user.avatar_id
@@ -88,10 +87,8 @@ class UserService:
 
     @staticmethod
     async def update_settings(
-        collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
-        editor: Editor | None,
         language: str,
         activity_tracking: bool,
         crash_reporting: bool,
@@ -99,18 +96,15 @@ class UserService:
         """
         Update user settings.
         """
-        user = auth_user()
         if not await UserQuery.check_display_name_available(display_name):
-            collector.raise_error('display_name', t('user.display_name_already_taken'))
+            MessageCollector.raise_error('display_name', t('user.display_name_already_taken'))
 
-        # update user data
+        current_user = auth_user(required=True)
         async with db_commit() as session:
-            user = await session.get(User, user.id, with_for_update=True)
+            user = await session.get(User, current_user.id, with_for_update=True)
             user.display_name = display_name
-            user.editor = editor
             user.activity_tracking = activity_tracking
             user.crash_reporting = crash_reporting
-
             if is_valid_locale(language):
                 user.language = language
 
@@ -121,10 +115,9 @@ class UserService:
         """
         Update default editor
         """
-        user = auth_user()
-
+        current_user = auth_user(required=True)
         async with db_commit() as session:
-            user = await session.get(User, user.id, with_for_update=True)
+            user = await session.get(User, current_user.id, with_for_update=True)
             user.editor = editor
 
     @staticmethod
@@ -139,16 +132,16 @@ class UserService:
 
         Sends a confirmation email for the email change.
         """
-        user = auth_user()
+        user = auth_user(required=True)
         if user.email == new_email:
             return
 
         if not PasswordHash.verify(user.password_hashed, password).success:
-            collector.raise_error('password', t('user.invalid_password'))
+            MessageCollector.raise_error('password', t('user.invalid_password'))
         if not await UserQuery.check_email_available(new_email):
-            collector.raise_error('email', t('user.email_already_taken'))
+            MessageCollector.raise_error('email', t('user.email_already_taken'))
         if not await validate_email_deliverability(new_email):
-            collector.raise_error('email', t('user.invalid_email'))
+            MessageCollector.raise_error('email', t('user.invalid_email'))
 
         await EmailChangeService.send_confirm_email(new_email)
         collector.info('email', t('user.email_change_confirm_sent'))
@@ -157,20 +150,18 @@ class UserService:
     async def update_password(
         collector: MessageCollector,
         *,
-        old_password: str,
+        old_password: PasswordStr,
         new_password: PasswordStr,
     ) -> None:
         """
         Update user password.
         """
-        user = auth_user()
+        user = auth_user(required=True)
 
         if not PasswordHash.verify(user.password_hashed, old_password).success:
-            collector.raise_error('old_password', t('user.invalid_password'))
+            MessageCollector.raise_error('old_password', t('user.invalid_password'))
 
         password_hashed = PasswordHash.hash(new_password)
-
-        # update user data
         async with db_commit() as session:
             user = await session.get(User, user.id, with_for_update=True)
             user.password_hashed = password_hashed
@@ -189,3 +180,19 @@ class UserService:
         """
         # TODO: implement
         raise NotImplementedError
+
+    @staticmethod
+    async def delete_old_pending_users():
+        """
+        Find old pending users and delete them.
+        """
+        logging.debug('Deleting old pending users')
+        async with db_commit() as session:
+            stmt = delete(User).where(
+                or_(
+                    User.status == UserStatus.pending_activation,
+                    User.status == UserStatus.pending_terms,
+                ),
+                User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
+            )
+            await session.execute(stmt)

@@ -1,7 +1,7 @@
 import * as L from "leaflet"
 import { antPath } from "leaflet-ant-path"
 import { getGeolocateControl } from "../leaflet/_geolocate-control"
-import { getBaseLayerById, getLayerIdByCode } from "../leaflet/_layers.js"
+import { getDefaultBaseLayer } from "../leaflet/_layers.js"
 import { addControlGroup } from "../leaflet/_map-utils"
 import { getZoomControl } from "../leaflet/_zoom-control"
 
@@ -47,7 +47,7 @@ if (tracePreviewContainer) {
     }
 
     // Add default layer
-    map.addLayer(getBaseLayerById(getLayerIdByCode("")))
+    map.addLayer(getDefaultBaseLayer())
 
     // Add trace path
     const path = antPath(coords2D, antPathOptions)

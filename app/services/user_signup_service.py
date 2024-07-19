@@ -7,7 +7,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
-from app.lib.translation import primary_translation_language, t
+from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User
 from app.models.mail_source import MailSource
@@ -24,7 +24,6 @@ from app.validators.email import validate_email_deliverability
 class UserSignupService:
     @staticmethod
     async def signup(
-        collector: MessageCollector,
         *,
         display_name: DisplayNameStr,
         email: EmailStr,
@@ -38,19 +37,17 @@ class UserSignupService:
         """
         # some early validation
         if not await UserQuery.check_display_name_available(display_name):
-            collector.raise_error('display_name', t('validation.display_name_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_taken'))
         if not await UserQuery.check_email_available(email):
-            collector.raise_error('email', t('validation.email_taken'))
+            MessageCollector.raise_error('email', t('validation.email_taken'))
         if not await validate_email_deliverability(email):
-            collector.raise_error('email', t('validation.email_invalid'))
+            MessageCollector.raise_error('email', t('validation.email_invalid'))
 
         password_hashed = PasswordHash.hash(password)
         created_ip = get_request_ip()
-        language = primary_translation_language()
+        language = primary_translation_locale()
 
         # TODO: purge stale pending terms accounts
-
-        # create user
         async with db_commit() as session:
             user = User(
                 email=email,
@@ -73,8 +70,7 @@ class UserSignupService:
         """
         Accept the terms of service and send a confirmation email.
         """
-        user = auth_user()
-
+        user = auth_user(required=True)
         async with db_commit() as session:
             stmt = (
                 update(User)
@@ -82,7 +78,6 @@ class UserSignupService:
                 .values({User.status: UserStatus.pending_activation})
                 .inline()
             )
-
             if (await session.execute(stmt)).rowcount != 1:
                 return
 
@@ -96,17 +91,13 @@ class UserSignupService:
         """
         app_domain = urlsplit(APP_URL).netloc
         token = await UserTokenAccountConfirmService.create()
-
         await EmailService.schedule(
             source=MailSource.system,
             from_user=None,
-            to_user=auth_user(),
+            to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
-            template_data={
-                'app_domain': app_domain,
-                'token': str(token),
-            },
+            template_data={'app_domain': app_domain, 'token': str(token)},
         )
 
     @staticmethod
@@ -115,5 +106,8 @@ class UserSignupService:
         Abort the current signup process.
         """
         async with db_commit() as session:
-            stmt = delete(User).where(User.id == auth_user().id, User.status == UserStatus.pending_terms)
+            stmt = delete(User).where(
+                User.id == auth_user(required=True).id,
+                User.status == UserStatus.pending_terms,
+            )
             await session.execute(stmt)

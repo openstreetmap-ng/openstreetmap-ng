@@ -1,7 +1,6 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.lib.format_style_context import format_style_context
-from app.middlewares.request_context_middleware import get_request
 
 
 class FormatStyleMiddleware:
@@ -19,6 +18,5 @@ class FormatStyleMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = get_request()
-        with format_style_context(request):
+        with format_style_context():
             await self.app(scope, receive, send)

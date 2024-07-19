@@ -1,8 +1,8 @@
 import pytest
 
 from app.lib.locale import (
-    get_all_installed_locales,
-    get_all_locales_names,
+    LOCALES,
+    LOCALES_NAMES,
     is_valid_locale,
     normalize_locale,
 )
@@ -25,7 +25,7 @@ def test_normalize_locale(locale, expected):
 
 @pytest.mark.parametrize('locale', ['en', 'pl'])
 def test_installed_locales(locale):
-    assert locale in get_all_installed_locales()
+    assert locale in LOCALES
 
 
 @pytest.mark.parametrize(
@@ -36,7 +36,6 @@ def test_installed_locales(locale):
     ],
 )
 def test_locales_names(code, english, native):
-    names = get_all_locales_names()
-    pl = next(name for name in names if name.code == code)
+    pl = next(name for name in LOCALES_NAMES if name.code == code)
     assert pl.english.casefold() == english
     assert pl.native.casefold() == native

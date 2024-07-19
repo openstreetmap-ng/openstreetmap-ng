@@ -124,7 +124,8 @@ export const configureStandardForm = (form, successCallback = null, clientValida
         }
 
         // Listen for events that invalidate the feedback
-        form.addEventListener("invalidate submit", onInvalidated, { once: true })
+        form.addEventListener("invalidate", onInvalidated, { once: true })
+        form.addEventListener("submit", onInvalidated, { once: true })
     }
 
     /**

@@ -1,14 +1,15 @@
 from collections import namedtuple
 from dataclasses import field, make_dataclass
-from typing import Any
+from typing import Any, override
 
 from sqlalchemy import Row
 from sqlalchemy.orm import Bundle
 
 
 class TupleBundle(Bundle):
+    @override
     def create_row_processor(self, query, procs, labels):
-        t = namedtuple('t', labels)  # noqa: PYI024
+        t = namedtuple('t', labels)  # type: ignore[misc]  # noqa: PYI024
 
         def proc(row: Row):
             return t(*row)
@@ -21,6 +22,7 @@ class NamespaceBundle(Bundle):
         self._extra_fields = extra_fields
         super().__init__(name, *exprs, **kw)
 
+    @override
     def create_row_processor(self, query, procs, labels):
         ns = make_dataclass(
             self.name,

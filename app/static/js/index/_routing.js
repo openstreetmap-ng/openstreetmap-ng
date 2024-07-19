@@ -7,6 +7,7 @@ import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import "../_types.js"
 import { zoomPrecision } from "../_utils.js"
+import { getOverlayLayerById } from "../leaflet/_layers.js"
 import { encodeMapState, getMapState } from "../leaflet/_map-utils.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
@@ -14,26 +15,31 @@ import { GraphHopperEngines } from "./routing-engines/_graphhopper.js"
 import { OSRMEngines } from "./routing-engines/_osrm.js"
 import { ValhallaEngines } from "./routing-engines/_valhalla.js"
 
-export const routingStyles = {
-    route: {
+export const styles = {
+    default: {
+        pane: "routing",
         color: "#0033ff",
         opacity: 0.3,
         weight: 10,
         interactive: false,
     },
-    highlight: {
+    hover: {
+        pane: "routing",
         color: "#ffff00",
+        opacity: 0,
+        weight: 10,
+        interactive: true,
+    },
+    hoverActive: {
         opacity: 0.5,
-        weight: 12,
-        interactive: false,
     },
 }
 
-const dragDataType = "text/osm-marker-guid"
-const fromMarkerGuid = "1beabe239ed0"
-const toMarkerGuid = "038e3b39ed0b"
+const dragDataType = "text/osm-routing-direction"
 
 const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OSRMEngines])
+
+let paneCreated = false
 
 /**
  * Create a new routing controller
@@ -41,37 +47,46 @@ const routingEngines = new Map([...GraphHopperEngines, ...ValhallaEngines, ...OS
  * @returns {object} Controller
  */
 export const getRoutingController = (map) => {
+    const mapContainer = map.getContainer()
+    const routingLayer = getOverlayLayerById("routing")
     const sidebar = getActionSidebar("routing")
+    const parentSidebar = sidebar.closest(".sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
     const fromInput = form.elements.from
-    const fromDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${fromMarkerGuid}"]`)
+    const fromLoadedInput = form.elements.from_loaded
+    const fromDraggableMarker = form.querySelector(".draggable-marker[data-direction=from]")
     const toInput = form.elements.to
-    const toDraggableMarker = form.querySelector(`.draggable-marker[data-guid="${toMarkerGuid}"]`)
+    const toLoadedInput = form.elements.to_loaded
+    const toDraggableMarker = form.querySelector(".draggable-marker[data-direction=to]")
     const reverseButton = form.querySelector(".reverse-btn")
     const engineInput = form.elements.engine
-    const boundsInput = form.elements.bounds
-    const routeSection = sidebar.querySelector(".section.route")
-    const routeDistance = routeSection.querySelector(".route-info .distance")
-    const routeTime = routeSection.querySelector(".route-info .time")
-    const routeElevationGroup = routeSection.querySelector(".elevation-group")
-    const routeAscend = routeElevationGroup.querySelector(".ascend")
-    const routeDescend = routeElevationGroup.querySelector(".descend")
-    const turnTableBody = routeSection.querySelector(".turn-by-turn tbody")
-    const attribution = routeSection.querySelector(".attribution")
-    let loaded = false
+    const bboxInput = form.elements.bbox
+    const loadingContainer = sidebar.querySelector(".loading")
+    const routingErrorAlert = sidebar.querySelector(".routing-error-alert")
+    const routeContainer = sidebar.querySelector(".route")
+    const routeDistance = routeContainer.querySelector(".route-info .distance")
+    const routeTime = routeContainer.querySelector(".route-info .time")
+    const routeElevationContainer = routeContainer.querySelector(".route-elevation-info")
+    const routeAscend = routeElevationContainer.querySelector(".ascend")
+    const routeDescend = routeElevationContainer.querySelector(".descend")
+    const stepsTableBody = routeContainer.querySelector(".route-steps tbody")
+    const attribution = routeContainer.querySelector(".attribution")
+    const popupTemplate = routeContainer.querySelector("template.popup")
+    const stepTemplate = routeContainer.querySelector("template.step")
     let abortController = null
 
     // Null values until initialized
-    let fromMarker = null // green
-    let toMarker = null // red
-    let routePolyline = null
-    let highlightPolyline = null
-    const highlightPopup = null // TODO: autoPanPadding: [100, 100]
+    let fromBounds = null
+    let fromMarker = null
+    let toBounds = null
+    let toMarker = null
 
-    // Set default routing engine
-    const lastRoutingEngine = getLastRoutingEngine()
-    if (routingEngines.has(lastRoutingEngine)) engineInput.value = lastRoutingEngine
+    const popup = L.popup({
+        autoPanPadding: [80, 80],
+        bubblingMouseEvents: false,
+        className: "route-steps",
+    })
 
     const markerFactory = (color) =>
         L.marker(L.latLng(0, 0), {
@@ -80,8 +95,183 @@ export const getRoutingController = (map) => {
             autoPan: true,
         }).addTo(map)
 
+    /**
+     * On draggable marker drag start, set data and drag image
+     * @param {DragEvent} event
+     */
+    const onInterfaceMarkerDragStart = (event) => {
+        const target = event.target
+        const direction = target.dataset.direction
+        console.debug("onInterfaceMarkerDragStart", direction)
+
+        const dt = event.dataTransfer
+        dt.effectAllowed = "move"
+        dt.setData("text/plain", "")
+        dt.setData(dragDataType, direction)
+        const canvas = document.createElement("canvas")
+        canvas.width = 25
+        canvas.height = 41
+        const ctx = canvas.getContext("2d")
+        ctx.drawImage(target, 0, 0, 25, 41)
+        dt.setDragImage(canvas, 12, 21)
+    }
+
+    /**
+     * On marker drag end, update the form's coordinates
+     * @param {L.DragEndEvent} event
+     * @returns {void}
+     */
+    const onMapMarkerDragEnd = (event) => {
+        console.debug("onMapMarkerDragEnd", event)
+
+        const marker = event.propagatedFrom || event.target
+        const latLng = marker.getLatLng()
+        const zoom = map.getZoom()
+        const precision = zoomPrecision(zoom)
+        const lon = latLng.lng.toFixed(precision)
+        const lat = latLng.lat.toFixed(precision)
+        const value = `${lat}, ${lon}`
+
+        if (marker === fromMarker) {
+            fromInput.value = value
+            fromInput.dispatchEvent(new Event("input"))
+        } else if (marker === toMarker) {
+            toInput.value = value
+            toInput.dispatchEvent(new Event("input"))
+        } else {
+            console.warn("Unknown routing marker", marker)
+        }
+
+        submitFormIfFilled()
+    }
+
+    /**
+     * On map drag over, prevent default behavior
+     * @param {DragEvent} event
+     */
+    const onMapDragOver = (event) => event.preventDefault()
+
+    /**
+     * On map marker drop, update the marker's coordinates
+     * @param {DragEvent} event
+     */
+    const onMapDrop = (event) => {
+        let marker
+        const dragData = event.dataTransfer.getData(dragDataType)
+        console.debug("onMapDrop", dragData)
+
+        if (dragData === "from") {
+            if (!fromMarker) {
+                fromMarker = markerFactory("green")
+                fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(fromMarker)
+            }
+            marker = fromMarker
+        } else if (dragData === "to") {
+            if (!toMarker) {
+                toMarker = markerFactory("red")
+                toMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(toMarker)
+            }
+            marker = toMarker
+        } else {
+            return
+        }
+
+        const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
+        mousePosition.y += 20 // offset position to account for the marker's height
+        const latLng = map.containerPointToLatLng(mousePosition)
+        marker.setLatLng(latLng)
+        marker.fire("dragend", { propagatedFrom: marker })
+    }
+
+    // On map update, update the form's bounding box
+    const onMapZoomOrMoveEnd = () => {
+        bboxInput.value = map.getBounds().toBBoxString()
+    }
+
+    // On engine input change, remember the last routing engine
+    const onEngineInputChange = () => {
+        setLastRoutingEngine(engineInput.value)
+        submitFormIfFilled()
+    }
+
+    // On reverse button click, swap the from and to inputs
+    const onReverseButtonClick = () => {
+        const newFromValue = toInput.value
+        const newToValue = fromInput.value
+        fromInput.value = newFromValue
+        fromInput.dispatchEvent(new Event("input"))
+        toInput.value = newToValue
+        toInput.dispatchEvent(new Event("input"))
+        if (
+            fromMarker &&
+            toMarker &&
+            fromInput.value === fromLoadedInput.value &&
+            toInput.value === toLoadedInput.value
+        ) {
+            const newFromLatLng = toMarker.getLatLng()
+            const newToLatLng = fromMarker.getLatLng()
+            fromMarker.setLatLng(newFromLatLng)
+            fromLoadedInput.value = newFromValue
+            toMarker.setLatLng(newToLatLng)
+            toLoadedInput.value = newToValue
+        }
+        submitFormIfFilled()
+    }
+
     const submitFormIfFilled = () => {
+        map.closePopup(popup)
         if (fromInput.value && toInput.value) form.requestSubmit()
+    }
+
+    // On client validation, hide previous route data
+    const onClientValidation = () => {
+        routingErrorAlert.classList.add("d-none")
+        routeContainer.classList.add("d-none")
+    }
+
+    // On success callback, call routing engine, display results, and update search params
+    const onFormSuccess = (data) => {
+        console.debug("onFormSuccess", data)
+
+        if (data.from) {
+            const { bounds, geom, name } = data.from
+            fromBounds = L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2]))
+            fromInput.value = name
+            fromInput.dispatchEvent(new Event("input"))
+            if (!fromMarker) {
+                fromMarker = markerFactory("green")
+                fromMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(fromMarker)
+            }
+            const [lon, lat] = geom
+            fromMarker.setLatLng(L.latLng(lat, lon))
+            fromLoadedInput.value = name
+        }
+
+        if (data.to) {
+            const { bounds, geom, name } = data.to
+            toBounds = L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2]))
+            toInput.value = name
+            toInput.dispatchEvent(new Event("input"))
+            if (!toMarker) {
+                toMarker = markerFactory("red")
+                toMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(toMarker)
+            }
+            const [lon, lat] = geom
+            toMarker.setLatLng(L.latLng(lat, lon))
+            toLoadedInput.value = name
+        }
+
+        // Focus on the makers if they're offscreen
+        const markerBounds = fromBounds.extend(toBounds)
+        if (!map.getBounds().contains(markerBounds)) {
+            map.fitBounds(markerBounds)
+        }
+
+        callRoutingEngine()
     }
 
     const callRoutingEngine = () => {
@@ -107,11 +297,9 @@ export const getRoutingController = (map) => {
             route: routeParam,
         })
         const hash = encodeMapState(getMapState(map))
-
-        // TODO: will this not remove path?
         history.replaceState(null, "", `?${searchParams}${hash}`)
 
-        // TODO: show loading animation
+        loadingContainer.classList.remove("d-none")
         routingEngine(abortController.signal, fromCoords, toCoords, onRoutingSuccess, onRoutingError)
     }
 
@@ -122,6 +310,7 @@ export const getRoutingController = (map) => {
      */
     const onRoutingSuccess = (route) => {
         console.debug("onRoutingSuccess", route)
+        loadingContainer.classList.add("d-none")
 
         // Display general route information
         const totalDistance = route.steps.reduce((acc, step) => acc + step.distance, 0)
@@ -131,58 +320,88 @@ export const getRoutingController = (map) => {
 
         // Display the optional elevation information
         if (route.ascend !== null && route.descend !== null) {
-            routeElevationGroup.classList.remove("d-none")
+            routeElevationContainer.classList.remove("d-none")
             routeAscend.textContent = formatHeight(route.ascend)
             routeDescend.textContent = formatHeight(route.descend)
         } else {
-            routeElevationGroup.classList.add("d-none")
+            routeElevationContainer.classList.add("d-none")
         }
 
         // Render the turn-by-turn table
-        const newRows = []
+        const fragment = document.createDocumentFragment()
+        const layers = []
+
+        // Create a single geometry for the route
+        const fullGeom = []
+        if (route.steps.length) {
+            for (const step of route.steps) {
+                fullGeom.push(...step.geom)
+            }
+            layers.push(L.polyline(fullGeom, styles.default))
+        }
 
         let stepNumber = 0
         for (const step of route.steps) {
             stepNumber += 1
+            const div = stepTemplate.content.cloneNode(true).children[0]
+            div.querySelector(".icon div").classList.add(`icon-${step.code}`)
+            div.querySelector(".number").textContent = `${stepNumber}.`
+            div.querySelector(".instruction").textContent = step.text
+            div.querySelector(".distance").textContent = formatSimpleDistance(step.distance)
+            fragment.appendChild(div)
 
-            // TODO: template
+            const layer = L.polyline(step.geom, styles.hover)
+            layers.push(layer)
 
-            const row = document.createElement("tr")
-            newRows.push(row)
+            // On mouseover, scroll result into view and focus the fragment
+            const onMouseover = () => {
+                const sidebarRect = parentSidebar.getBoundingClientRect()
+                const resultRect = div.getBoundingClientRect()
+                const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+                if (!isVisible) div.scrollIntoView({ behavior: "smooth", block: "center" })
 
-            // Icon
-            const tdIcon = document.createElement("td")
-            tdIcon.classList.add("icon")
-            const iconDiv = document.createElement("div")
-            iconDiv.classList.add(`icon-${step.code}`)
-            tdIcon.appendChild(iconDiv)
-            row.appendChild(tdIcon)
+                div.classList.add("hover")
+                layer.setStyle(styles.hoverActive)
+            }
 
-            // Number
-            const tdNumber = document.createElement("td")
-            tdNumber.classList.add("number")
-            tdNumber.textContent = `${stepNumber}.`
-            row.appendChild(tdNumber)
+            // On mouseout, unfocus the fragment
+            const onMouseout = () => {
+                div.classList.remove("hover")
+                layer.setStyle(styles.hover)
+            }
 
-            // Text instruction
-            const tdText = document.createElement("td")
-            tdText.classList.add("instruction")
-            tdText.textContent = step.text
-            row.appendChild(tdText)
+            // On click, show the popup
+            const onClick = () => {
+                const content = popupTemplate.content.children[0]
+                content.querySelector(".number").innerHTML = div.querySelector(".number").innerHTML
+                content.querySelector(".instruction").innerHTML = div.querySelector(".instruction").innerHTML
+                popup.setContent(content.innerHTML)
+                const latLng = L.latLng(step.geom[0])
+                popup.setLatLng(latLng)
+                console.log(content.innerHTML)
+                map.openPopup(popup)
+            }
 
-            // Distance
-            const tdDistance = document.createElement("td")
-            tdDistance.classList.add("distance")
-            tdDistance.textContent = formatSimpleDistance(step.distance)
-            row.appendChild(tdDistance)
+            // Listen for events
+            div.addEventListener("mouseover", onMouseover)
+            div.addEventListener("mouseout", onMouseout)
+            div.addEventListener("click", onClick)
+            layer.addEventListener("mouseover", onMouseover)
+            layer.addEventListener("mouseout", onMouseout)
+            layer.addEventListener("click", onClick)
         }
 
-        turnTableBody.replaceChildren(...newRows)
-
+        stepsTableBody.innerHTML = ""
+        stepsTableBody.appendChild(fragment)
         attribution.innerHTML = i18next.t("javascripts.directions.instructions.courtesy", {
             link: route.attribution,
             interpolation: { escapeValue: false },
         })
+        routeContainer.classList.remove("d-none")
+
+        routingLayer.clearLayers()
+        routingLayer.addLayer(L.layerGroup(layers))
+        console.debug("Route showing", route.steps.length, "steps")
     }
 
     /**
@@ -191,192 +410,50 @@ export const getRoutingController = (map) => {
      * @returns {void}
      */
     const onRoutingError = (error) => {
-        // TODO: standard error
-        alert(error.message)
+        loadingContainer.classList.add("d-none")
+        routingErrorAlert.querySelector("p").textContent = error.message
+        routingErrorAlert.classList.remove("d-none")
     }
 
-    /**
-     * On marker drag end, update the form's coordinates
-     * @param {L.DragEndEvent} event
-     * @returns {void}
-     */
-    const onMarkerDragEnd = (event) => {
-        console.debug("onMarkerDragEnd", event)
-
-        const marker = event.propagatedFrom || event.target
-        const latLng = marker.getLatLng()
-        const zoom = map.getZoom()
-        const precision = zoomPrecision(zoom)
-        const lon = latLng.lng.toFixed(precision)
-        const lat = latLng.lat.toFixed(precision)
-        const value = `${lat}, ${lon}`
-
-        if (marker === fromMarker) {
-            fromInput.value = value
-            fromInput.dispatchEvent(new Event("input"))
-        } else if (marker === toMarker) {
-            toInput.value = value
-            toInput.dispatchEvent(new Event("input"))
-        } else {
-            console.warn("Unknown routing marker", marker)
-        }
-
-        submitFormIfFilled()
-    }
-
-    /**
-     * On map marker drop, update the marker's coordinates
-     * @param {DragEvent} event
-     */
-    const onMapDrop = (event) => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
-        let marker
-        const dragData = event.dataTransfer.getData(dragDataType)
-        console.debug("onMapDrop", dragData)
-
-        if (dragData === fromMarkerGuid) {
-            if (!fromMarker) {
-                fromMarker = markerFactory("green")
-                fromMarker.addEventListener("dragend", onMarkerDragEnd)
-                map.addLayer(fromMarker)
-            }
-            marker = fromMarker
-        } else if (dragData === toMarkerGuid) {
-            if (!toMarker) {
-                toMarker = markerFactory("red")
-                toMarker.addEventListener("dragend", onMarkerDragEnd)
-                map.addLayer(toMarker)
-            }
-            marker = toMarker
-        } else {
-            return
-        }
-
-        const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
-        mousePosition.y += 20 // offset position to account for the marker's height
-
-        const latLng = map.containerPointToLatLng(mousePosition)
-        marker.setLatLng(latLng)
-        marker.fire("dragend", { propagatedFrom: marker })
-    }
-
-    // On map update, update the form's bounding box
-    const onMapZoomOrMoveEnd = () => {
-        // Skip updates if the sidebar is hidden
-        if (!loaded) return
-
-        // TODO: handle 180th meridian
-        boundsInput.value = map.getBounds().toBBoxString()
-    }
-
-    /**
-     * On draggable marker drag start, set data and drag image
-     * @param {DragEvent} event
-     */
-    const onDraggableMarkerDragStart = (event) => {
-        const target = event.target
-        const markerGuid = target.dataset.guid
-        console.debug("onDraggableMarkerDragStart", markerGuid)
-
-        const dt = event.dataTransfer
-        dt.effectAllowed = "move"
-        dt.setData("text/plain", "")
-        dt.setData(dragDataType, markerGuid)
-
-        const canvas = document.createElement("canvas")
-        canvas.width = 25
-        canvas.height = 41
-
-        const ctx = canvas.getContext("2d")
-        ctx.drawImage(target, 0, 0, 25, 41)
-        dt.setDragImage(canvas, 12, 21)
-    }
-
-    // On input enter, submit the form
-    const onInput = (event) => {
-        if (event.key === "Enter") submitFormIfFilled()
-    }
-
-    // On engine input change, remember the last routing engine
-    const onEngineInputChange = () => {
-        setLastRoutingEngine(engineInput.value)
-        submitFormIfFilled()
-    }
-
-    // On reverse button click, swap the from and to inputs
-    const onReverseButtonClick = () => {
-        const fromValue = fromInput.value
-        fromInput.value = toInput.value
-        toInput.value = fromValue
-        fromInput.dispatchEvent(new Event("input"))
-        toInput.dispatchEvent(new Event("input"))
-        submitFormIfFilled()
-    }
-
-    // On success callback, call routing engine, display results, and update search params
-    const onFormSuccess = ({ from, to, bounds }) => {
-        console.debug("onFormSuccess", from, to, bounds)
-
-        fromInput.value = from.name
-        toInput.value = to.name
-        fromInput.dispatchEvent(new Event("input"))
-        toInput.dispatchEvent(new Event("input"))
-
-        if (!fromMarker) {
-            fromMarker = markerFactory("green")
-            fromMarker.addEventListener("dragend", onMarkerDragEnd)
-            map.addLayer(fromMarker)
-        }
-
-        if (!toMarker) {
-            toMarker = markerFactory("red")
-            toMarker.addEventListener("dragend", onMarkerDragEnd)
-            map.addLayer(toMarker)
-        }
-
-        const [fromLon, fromLat] = from.point
-        const [toLon, toLat] = to.point
-        fromMarker.setLatLng(L.latLng(fromLat, fromLon))
-        toMarker.setLatLng(L.latLng(toLat, toLon))
-        callRoutingEngine()
-
-        // Focus on the makers if they're offscreen
-        const [minLon, minLat, maxLon, maxLat] = bounds
-        const latLngBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-        if (!map.getBounds().contains(latLngBounds)) {
-            map.fitBounds(latLngBounds)
-        }
-    }
-
-    // Listen for events
-    configureStandardForm(form, onFormSuccess)
-    const mapContainer = map.getContainer()
-    mapContainer.addEventListener("dragover", (event) => event.preventDefault())
-    mapContainer.addEventListener("drop", onMapDrop)
-    map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-    fromInput.addEventListener("input", onInput)
-    fromDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
-    toInput.addEventListener("input", onInput)
-    toDraggableMarker.addEventListener("dragstart", onDraggableMarkerDragStart)
-    reverseButton.addEventListener("click", onReverseButtonClick)
-    engineInput.addEventListener("input", onEngineInputChange)
+    configureStandardForm(form, onFormSuccess, onClientValidation)
 
     return {
         load: () => {
-            form.reset()
-            switchActionSidebar(map, "directions")
+            // Listen for events
+            map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            mapContainer.addEventListener("dragover", onMapDragOver)
+            mapContainer.addEventListener("drop", onMapDrop)
+            fromDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
+            toDraggableMarker.addEventListener("dragstart", onInterfaceMarkerDragStart)
+            reverseButton.addEventListener("click", onReverseButtonClick)
+            engineInput.addEventListener("input", onEngineInputChange)
+
+            // Create the routing layer if it doesn't exist
+            if (!map.hasLayer(routingLayer)) {
+                if (!paneCreated) {
+                    console.debug("Creating routing pane")
+                    map.createPane("routing")
+                    paneCreated = true
+                }
+
+                console.debug("Adding overlay layer", routingLayer.options.layerId)
+                map.addLayer(routingLayer)
+                map.fire("overlayadd", { layer: routingLayer, name: routingLayer.options.layerId })
+            }
+
+            switchActionSidebar(map, "routing")
             document.title = getPageTitle(sidebarTitle)
+
+            // Initial update to set the inputs
+            onMapZoomOrMoveEnd()
 
             // Allow default form setting via URL search parameters
             const searchParams = qsParse(location.search.substring(1))
-
             if (searchParams.route?.includes(";")) {
                 const [from, to] = searchParams.route.split(";")
                 fromInput.value = from
-                toInput.value = to
                 fromInput.dispatchEvent(new Event("input"))
+                toInput.value = to
                 toInput.dispatchEvent(new Event("input"))
             }
 
@@ -389,33 +466,42 @@ export const getRoutingController = (map) => {
                     console.warn("Unsupported routing engine", routingEngine)
                 }
             }
-
-            loaded = true
-
-            // Initial update to set the inputs
-            onMapZoomOrMoveEnd()
-            submitFormIfFilled()
         },
         unload: () => {
+            // Remove the routing layer
+            if (map.hasLayer(routingLayer)) {
+                console.debug("Removing overlay layer", routingLayer.options.layerId)
+                map.removeLayer(routingLayer)
+                map.fire("overlayremove", { layer: routingLayer, name: routingLayer.options.layerId })
+            }
+
+            // Clear the routing layer
+            routingLayer.clearLayers()
+
+            map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            mapContainer.removeEventListener("dragover", onMapDragOver)
+            mapContainer.removeEventListener("drop", onMapDrop)
+            fromDraggableMarker.removeEventListener("dragstart", onInterfaceMarkerDragStart)
+            toDraggableMarker.removeEventListener("dragstart", onInterfaceMarkerDragStart)
+            reverseButton.removeEventListener("click", onReverseButtonClick)
+            engineInput.removeEventListener("input", onEngineInputChange)
+
+            loadingContainer.classList.add("d-none")
+            routingErrorAlert.classList.add("d-none")
+            routeContainer.classList.add("d-none")
+
             if (fromMarker) {
                 map.removeLayer(fromMarker)
                 fromMarker = null
+                fromLoadedInput.value = ""
             }
             if (toMarker) {
                 map.removeLayer(toMarker)
                 toMarker = null
+                toLoadedInput.value = ""
             }
-            if (routePolyline) {
-                map.removeLayer(routePolyline)
-                routePolyline = null
-            }
-            if (highlightPolyline) {
-                map.removeLayer(highlightPolyline)
-                highlightPolyline = null
-            }
-            if (highlightPopup) map.closePopup(highlightPopup)
 
-            loaded = false
+            map.closePopup(popup)
         },
     }
 }

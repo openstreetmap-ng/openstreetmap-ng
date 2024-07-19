@@ -16,7 +16,6 @@ def naturalsize(value: float) -> str:
 
     for s in (' KiB', ' MiB', ' GiB', ' TiB', ' PiB', ' EiB', ' ZiB', ' YiB'):
         bytes_ /= base
-
         if bytes_ < base:
             return f'{bytes_:.2f}{s}' if bytes_ < 10 else f'{bytes_:.1f}{s}'
 

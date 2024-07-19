@@ -33,7 +33,7 @@ export const getChangesetsHistoryController = (map) => {
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentNode
-    const spinnerContainer = sidebar.querySelector(".spinner-container")
+    const loadingContainer = sidebar.querySelector(".loading")
 
     let abortController = null
 
@@ -141,7 +141,7 @@ export const getChangesetsHistoryController = (map) => {
         }
 
         changesetLayer.clearLayers()
-        if (layers.length) changesetLayer.addLayer(L.layerGroup(layers))
+        changesetLayer.addLayer(L.layerGroup(layers))
         console.debug("Changesets layer showing", layers.length, "changesets")
     }
 
@@ -217,7 +217,7 @@ export const getChangesetsHistoryController = (map) => {
         }
 
         if (changesetsFinished) return
-        spinnerContainer.classList.remove("d-none")
+        loadingContainer.classList.remove("d-none")
         sidebar.removeEventListener("scroll", onSidebarScroll)
 
         fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
@@ -250,7 +250,7 @@ export const getChangesetsHistoryController = (map) => {
             })
             .finally(() => {
                 if (signal.aborted) return
-                spinnerContainer.classList.add("d-none")
+                loadingContainer.classList.add("d-none")
                 sidebar.addEventListener("scroll", onSidebarScroll)
             })
     }

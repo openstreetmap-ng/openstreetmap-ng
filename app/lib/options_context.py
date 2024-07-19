@@ -2,15 +2,15 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TypeVar
 
-from sqlalchemy import Select
+from sqlalchemy.sql.base import Executable, ExecutableOption
 
-_options_context = ContextVar('OptionsContext')
+T = TypeVar('T', bound=Executable)
 
-T = TypeVar('T', bound=Select)
+_options_context: ContextVar[tuple[ExecutableOption, ...]] = ContextVar('options_context')
 
 
 @contextmanager
-def options_context(*options):
+def options_context(*options: ExecutableOption):
     """
     Context manager for setting options in ContextVar.
 

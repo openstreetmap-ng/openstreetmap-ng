@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Mapping
 
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
@@ -7,7 +7,7 @@ from app.models.element_type import ElementType
 
 class Diff06Mixin:
     @staticmethod
-    def encode_diff_result(assigned_ref_map: dict[ElementRef, Sequence[Element]]) -> Sequence[tuple[ElementType, dict]]:
+    def encode_diff_result(assigned_ref_map: Mapping[ElementRef, Iterable[Element]]) -> list[tuple[ElementType, dict]]:
         """
         >>> encode_diff_result({
         ...     TypedElementRef(type=ElementType.node, id=-1): [
@@ -20,22 +20,19 @@ class Diff06Mixin:
             ('node', {'@old_id': -1, '@new_id': 1, '@new_version': 2})
         ]
         """
-        result = []
-
-        for element_ref, elements in assigned_ref_map.items():
-            type = element_ref.type
-            old_id = element_ref.id
-
-            for element in elements:
-                result.append(  # noqa: PERF401
-                    (
-                        type,
-                        {
-                            '@old_id': old_id,
-                            '@new_id': element.id,
-                            '@new_version': element.version,
-                        },
-                    )
+        result: list[tuple[ElementType, dict]] = []
+        for ref, elements in assigned_ref_map.items():
+            ref_type = ref.type
+            ref_id = ref.id
+            result.extend(
+                (
+                    ref_type,
+                    {
+                        '@old_id': ref_id,
+                        '@new_id': element.id,
+                        '@new_version': element.version,
+                    },
                 )
-
+                for element in elements
+            )
         return result

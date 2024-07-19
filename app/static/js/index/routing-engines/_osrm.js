@@ -1,5 +1,4 @@
 import i18next from "i18next"
-import * as L from "leaflet"
 import { polylineDecode } from "../../_polyline-decoder.js"
 import { qsEncode } from "../../_qs.js"
 import "../../_types.js"
@@ -38,21 +37,23 @@ const makeEngine = (profile) => {
             },
         )
             .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-
                 const data = await resp.json()
+
+                if (!resp.ok) {
+                    if (data.message && data.code) {
+                        throw new Error(`${data.message} (${data.code})`)
+                    }
+                    throw new Error(`${resp.status} ${resp.statusText}`)
+                }
+
                 const leg = data.routes[0].legs[0]
                 const steps = []
 
                 for (const step of leg.steps) {
                     const stepPoints = polylineDecode(step.geometry, 6)
-                    const [lon, lat] = stepPoints[0]
                     const maneuverId = getManeuverId(step.maneuver)
-
                     steps.push({
-                        lon: lon,
-                        lat: lat,
-                        line: L.polyline(stepPoints.map(([lon, lat]) => L.latLng(lat, lon))),
+                        geom: stepPoints.map(([lon, lat]) => [lat, lon]),
                         distance: step.distance,
                         time: step.duration,
                         code: maneuverIdToCodeMap.get(maneuverId) ?? 0,

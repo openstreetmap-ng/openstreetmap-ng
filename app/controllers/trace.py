@@ -12,8 +12,8 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
-from app.queries.trace_point_query import TracePointQuery
 from app.queries.trace_query import TraceQuery
+from app.queries.trace_segment_query import TraceSegmentQuery
 from app.utils import JSON_ENCODE
 
 # TODO: legacy traces url: user profiles
@@ -29,7 +29,7 @@ async def upload(_: Annotated[User, web_user()]):
 async def details(trace_id: PositiveInt):
     with options_context(joinedload(Trace.user)):
         trace = await TraceQuery.get_one_by_id(trace_id)
-    await TracePointQuery.resolve_coords((trace,), limit_per_trace=300, resolution=None)
+    await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
     trace_coords = JSON_ENCODE(trace.coords).decode()
     return render_response('traces/details.jinja2', {'trace': trace, 'trace_coords': trace_coords})
 
@@ -41,7 +41,7 @@ async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
     if trace.user_id != user.id:
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)
-    await TracePointQuery.resolve_coords((trace,), limit_per_trace=300, resolution=None)
+    await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
     trace_coords = JSON_ENCODE(trace.coords).decode()
     return render_response('traces/edit.jinja2', {'trace': trace, 'trace_coords': trace_coords})
 

@@ -120,6 +120,12 @@ const changesetLayer = L.featureGroup(undefined, {
     layerId: "changesets",
 })
 
+const routingLayer = L.featureGroup(undefined, {
+    inaccessible: true,
+    layerCode: "", // This layer is not possible to toggle manually
+    layerId: "routing",
+})
+
 const searchLayer = L.featureGroup(undefined, {
     inaccessible: true,
     layerCode: "", // This layer is not possible to toggle manually
@@ -144,7 +150,7 @@ for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrack
 }
 
 const overlayLayerIdMap = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, searchLayer, noteLayer, focusLayer]) {
+for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer]) {
     const options = layer.options
     overlayLayerIdMap.set(options.layerId, layer)
     if (options.legacyLayerIds) {
@@ -166,6 +172,12 @@ for (const layer of [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()])
  * @returns {L.TileLayer} Layer instance
  */
 export const getBaseLayerById = (layerId) => baseLayerIdMap.get(layerId)
+
+/**
+ * Get the default base layer instance
+ * @returns {L.TileLayer} Layer instance
+ */
+export const getDefaultBaseLayer = () => getBaseLayerById(getLayerIdByCode(""))
 
 /**
  * Get overlay layer instance by id

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Collection
 from typing import TYPE_CHECKING, NoReturn
 
 from starlette import status
@@ -41,5 +41,5 @@ class ElementExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def element_in_use(self, element: 'Element', used_by: Sequence[ElementRef]) -> NoReturn:
+    def element_in_use(self, element: 'Element', used_by: Collection[ElementRef]) -> NoReturn:
         raise NotImplementedError

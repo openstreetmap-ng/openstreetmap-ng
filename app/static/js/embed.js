@@ -4,7 +4,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { qsParse } from "./_qs.js"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils.js"
-import { getBaseLayerById, getLayerIdByCode } from "./leaflet/_layers.js"
+import { getBaseLayerById, getDefaultBaseLayer } from "./leaflet/_layers.js"
 import { getMarkerIcon } from "./leaflet/_utils.js"
 
 const mapContainer = document.getElementById("map")
@@ -45,7 +45,7 @@ if (searchParams.marker) {
 }
 
 // Use default layer when not specified or unknown
-const layer = getBaseLayerById(searchParams.layer) ?? getBaseLayerById(getLayerIdByCode(""))
+const layer = getBaseLayerById(searchParams.layer) ?? getDefaultBaseLayer()
 map.addLayer(layer)
 
 /**

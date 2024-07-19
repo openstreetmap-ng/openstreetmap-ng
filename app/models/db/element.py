@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Literal
 
 from shapely import Point
@@ -39,7 +40,7 @@ class Element(Base.NoID, CreatedAtMixin):
     next_sequence_id: Mapped[int | None] = mapped_column(BigInteger, init=False, nullable=True)
 
     # runtime
-    members: list['ElementMember'] | None = None
+    members: Sequence['ElementMember'] | None = None
     user_id: int | None = None
     user_display_name: str | None = None
     delete_if_unused: Literal[True] | None = None

@@ -1,11 +1,8 @@
-import pytest
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
-
-pytestmark = pytest.mark.anyio
 
 
 async def test_element_crud(client: AsyncClient):
@@ -63,7 +60,7 @@ async def test_element_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at
     assert changeset['@min_lon'] == 1
@@ -124,7 +121,7 @@ async def test_element_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at
     assert changeset['@min_lon'] == 1
@@ -136,12 +133,12 @@ async def test_element_crud(client: AsyncClient):
     # read osmChange
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
-    action: tuple = XMLToDict.parse(r.content)['osmChange'][-1]
+    action = XMLToDict.parse(r.content)['osmChange'][-1]
     assert action[0] == 'modify'
     assert len(action[1]) == 1
-    element: tuple = action[1][0]
+    element = action[1][0]
     assert element[0] == 'node'
-    node: dict = element[1]
+    node = element[1]
     tags = Format06.decode_tags_and_validate(node['tag'])
 
     assert node['@id'] == node_id
@@ -186,7 +183,7 @@ async def test_element_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert changeset['@updated_at'] > last_updated_at
     assert changeset['@min_lon'] == 1
@@ -198,12 +195,12 @@ async def test_element_crud(client: AsyncClient):
     # read osmChange
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
-    action: tuple = XMLToDict.parse(r.content)['osmChange'][-1]
+    action = XMLToDict.parse(r.content)['osmChange'][-1]
     assert action[0] == 'delete'
     assert len(action[1]) == 1
-    element: tuple = action[1][0]
+    element = action[1][0]
     assert element[0] == 'node'
-    node: dict = element[1]
+    node = element[1]
 
     assert node['@id'] == node_id
     assert node['@version'] == 3

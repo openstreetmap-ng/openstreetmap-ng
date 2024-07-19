@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import NoReturn, override
 
 from starlette import status
@@ -18,7 +18,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         )
 
     @override
-    def insufficient_scopes(self, scopes: Sequence[str]) -> NoReturn:
+    def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
         raise APIError(
             status.HTTP_403_FORBIDDEN,
             detail=f'The request requires higher privileges than authorized ({", ".join(scopes)})',
