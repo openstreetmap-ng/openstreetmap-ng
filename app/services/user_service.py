@@ -9,7 +9,7 @@ from app.lib.locale import is_valid_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
-from app.limits import USER_PENDING_EXPIRE
+from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
@@ -217,6 +217,42 @@ class UserService:
         """
         # TODO: implement
         raise NotImplementedError
+
+    # TODO: UI
+    @staticmethod
+    async def request_scheduled_delete() -> None:
+        """
+        Request a scheduled deletion of the user.
+        """
+        async with db_commit() as session:
+            stmt = (
+                update(User)
+                .where(User.id == auth_user(required=True).id)
+                .values(
+                    {
+                        User.scheduled_delete_at: func.statement_timestamp() + USER_SCHEDULED_DELETE_DELAY,
+                    }
+                )
+                .inline()
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def abort_scheduled_delete() -> None:
+        """
+        Abort a scheduled deletion of the user.
+        """
+        async with db_commit() as session:
+            stmt = (
+                update(User)
+                .where(User.id == auth_user(required=True).id)
+                .values(
+                    {
+                        User.scheduled_delete_at: None,
+                    }
+                )
+            )
+            await session.execute(stmt)
 
     @staticmethod
     async def delete_old_pending_users():
