@@ -52,7 +52,7 @@ class OAuth2TokenService:
             raise_for().oauth_bad_redirect_uri()
 
         user_id = auth_user(required=True).id
-        scopes_set = set(scopes)
+        scopes_set = set(scopes)  # TODO: check app scopes
         if not scopes_set.issubset(app.scopes):
             raise_for().oauth_bad_scopes()
 
@@ -159,7 +159,20 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def revoke(app_id: int) -> None:
+    async def revoke_by_token(access_token: str) -> None:
+        """
+        Revoke the given access token.
+        """
+        access_token_hashed = hash_bytes(access_token)
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.token_hashed == access_token_hashed,
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_app(app_id: int) -> None:
         """
         Revoke all current user tokens for the given OAuth2 application.
         """

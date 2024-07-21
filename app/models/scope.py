@@ -13,7 +13,6 @@ class Scope(str, Enum):
     # additional scopes
     read_email = 'read_email'
     skip_authorization = 'skip_authorization'
-
     web_user = 'web_user'
 
     # role-specific scopes

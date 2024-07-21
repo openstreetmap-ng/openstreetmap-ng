@@ -14,13 +14,13 @@ from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
-from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
 from app.services.email_change_service import EmailChangeService
+from app.services.system_app_service import SystemAppService
 from app.validators.email import validate_email_deliverability
 
 
@@ -30,7 +30,7 @@ class UserService:
         *,
         display_name_or_email: str,
         password: PasswordStr,
-    ) -> UserTokenStruct:
+    ) -> str:
         """
         Attempt to log in a user.
 
@@ -39,7 +39,7 @@ class UserService:
         user = await AuthService.authenticate_credentials(display_name_or_email, password)
         if user is None:
             MessageCollector.raise_error(None, t('users.auth_failure.invalid_credentials'))
-        return await AuthService.create_session(user.id)
+        return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
     @staticmethod
     async def update_about_me(

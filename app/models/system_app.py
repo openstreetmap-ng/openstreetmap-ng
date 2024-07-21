@@ -1,5 +1,6 @@
 from typing import NamedTuple
 
+from app.config import NAME
 from app.models.scope import Scope
 
 
@@ -10,6 +11,11 @@ class SystemApp(NamedTuple):
 
 
 SYSTEM_APPS = (
+    SystemApp(
+        name=NAME,
+        client_id='SystemApp.web',
+        scopes=(Scope.web_user,),
+    ),
     SystemApp(
         name='iD',
         client_id='SystemApp.id',

@@ -149,7 +149,7 @@ USER_PREF_BULK_SET_LIMIT = 150
 USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE = timedelta(days=30)  # TODO: delete unconfirmed accounts
 USER_TOKEN_EMAIL_CHANGE_EXPIRE = timedelta(days=1)
 USER_TOKEN_EMAIL_REPLY_EXPIRE = timedelta(days=2 * 365)  # 2 years
-USER_TOKEN_SESSION_EXPIRE = timedelta(days=365)  # 1 year
+USER_TOKEN_SESSION_EXPIRE = timedelta(days=365)  # 1 year  # TODO:
 
 XML_PARSE_MAX_SIZE = 50 * _mb  # the same as CGImap
 

@@ -48,24 +48,22 @@ class SystemAppService:
                 await session.execute(stmt)
 
     @staticmethod
-    async def create_access_token(client_id: str) -> str:
+    async def create_access_token(client_id: str, *, user_id: int | None = None) -> str:
         """
-        Create an access token for a system app.
+        Create an OAuth2-based access token for a system app.
+        """
+        if user_id is None:
+            user_id = auth_user(required=True).id
 
-        The access token can be used to make requests on behalf of the user.
-        """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None:
-            raise_for().oauth_bad_app_client_id()
-        if app.user_id is not None:
+        if (app is None) or (app.user_id is not None):
             raise_for().oauth_bad_app_client_id()
 
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
-
         async with db_commit() as session:
             token = OAuth2Token(
-                user_id=auth_user(required=True).id,
+                user_id=user_id,
                 application_id=app.id,
                 token_hashed=access_token_hashed,
                 scopes=app.scopes,
@@ -75,5 +73,4 @@ class SystemAppService:
             )
             token.authorized_at = func.statement_timestamp()
             session.add(token)
-
         return access_token
