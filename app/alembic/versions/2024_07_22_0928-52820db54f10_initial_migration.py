@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 8ed325a07997
+Revision ID: 52820db54f10
 Revises:
-Create Date: 2024-07-17 14:21:54.938908+00:00
+Create Date: 2024-07-22 09:28:15.414974+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '8ed325a07997'
+revision: str = '52820db54f10'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -71,6 +71,7 @@ def upgrade() -> None:
     sa.Column('language', sa.Unicode(length=15), nullable=False),
     sa.Column('activity_tracking', sa.Boolean(), nullable=False),
     sa.Column('crash_reporting', sa.Boolean(), nullable=False),
+    sa.Column('scheduled_delete_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('password_changed_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=True),
     sa.Column('roles', sa.ARRAY(sa.Enum('moderator', 'administrator', name='userrole'), as_tuple=True, dimensions=1), server_default='{}', nullable=False),
     sa.Column('description', sa.UnicodeText(), server_default='', nullable=False),
@@ -276,15 +277,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('user_token_session',
-    sa.Column('user_id', sa.BigInteger(), nullable=False),
-    sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
-    sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
-    sa.Column('id', sa.BigInteger(), nullable=False),
-    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('changeset_bounds',
     sa.Column('changeset_id', sa.BigInteger(), nullable=False),
     sa.Column('bounds', app.models.geometry.PolygonType(), nullable=False),
@@ -421,7 +413,6 @@ def downgrade() -> None:
     op.drop_index('changeset_bounds_id_idx', table_name='changeset_bounds')
     op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_using='gist')
     op.drop_table('changeset_bounds')
-    op.drop_table('user_token_session')
     op.drop_table('user_token_email_reply')
     op.drop_table('user_token_email_change')
     op.drop_table('user_token_account_confirm')
