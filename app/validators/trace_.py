@@ -7,7 +7,7 @@ from app.models.db.base import Base
 from app.models.filename import FileName
 from app.models.str import Str255
 from app.models.trace_visibility import TraceVisibility
-from app.validators.url import URLSafeValidator
+from app.validators.url import UrlSafeValidator
 
 
 class TraceValidating(Base.Validating):
@@ -19,4 +19,4 @@ class TraceValidating(Base.Validating):
     size: PositiveInt
 
     # defaults
-    tags: Sequence[Annotated[Str255, URLSafeValidator]] = ()
+    tags: Sequence[Annotated[Str255, UrlSafeValidator]] = ()

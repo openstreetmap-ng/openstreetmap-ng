@@ -53,7 +53,7 @@ def tags_format(tags: dict[str, str]) -> dict[str, TagFormat]:
 @cython.cfunc
 def _is_hex_color(s: str) -> cython.char:
     s_len: cython.int = len(s)
-    if s_len != 4 and s_len != 7:
+    if s_len != 4 and s_len != 7:  # noqa: PLR1714
         return False
     if s[0] != '#':
         return False
@@ -149,7 +149,7 @@ def _is_wiki_id(s: str) -> cython.char:
     if s_len < 2:
         return False
     s_0 = s[0]
-    if s_0 != 'Q' and s_0 != 'q':
+    if s_0 != 'Q' and s_0 != 'q':  # noqa: PLR1714
         return False
     s_1 = s[1]
     if not ('1' <= s_1 <= '9'):

@@ -2,7 +2,7 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 
 import cython
-from sqlalchemy import null, select
+from sqlalchemy import delete, null, select
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -45,14 +45,14 @@ class OAuth2TokenService:
 
         In init=False mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
         """
-        app = await OAuth2ApplicationQuery.find_by_client_id(client_id)
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
 
         user_id = auth_user(required=True).id
-        scopes_set = set(scopes)
+        scopes_set = set(scopes)  # TODO: check app scopes
         if not scopes_set.issubset(app.scopes):
             raise_for().oauth_bad_scopes()
 
@@ -119,7 +119,6 @@ class OAuth2TokenService:
                 )
                 .with_for_update()
             )
-
             token = await session.scalar(stmt)
             if token is None:
                 raise_for().oauth_bad_user_token()
@@ -158,6 +157,31 @@ class OAuth2TokenService:
             'created_at': int(token.authorized_at.timestamp()),
             # TODO: id_token
         }
+
+    @staticmethod
+    async def revoke_by_token(access_token: str) -> None:
+        """
+        Revoke the given access token.
+        """
+        access_token_hashed = hash_bytes(access_token)
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.token_hashed == access_token_hashed,
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_app(app_id: int) -> None:
+        """
+        Revoke all current user tokens for the given OAuth2 application.
+        """
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.application_id == app_id,
+            )
+            await session.execute(stmt)
 
 
 @cython.cfunc

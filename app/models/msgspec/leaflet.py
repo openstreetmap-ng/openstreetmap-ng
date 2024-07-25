@@ -1,3 +1,5 @@
+from collections.abc import Collection
+
 import msgspec
 
 from app.models.element_type import ElementType
@@ -9,17 +11,17 @@ class ElementLeaflet(msgspec.Struct):
 
 
 class ElementLeafletNode(ElementLeaflet):
-    geom: list[float]  # [lat, lon]
+    geom: Collection[float]  # [lat, lon]
 
 
 class ElementLeafletWay(ElementLeaflet):
-    geom: list[list[float]]  # [[lat, lon], ...]
+    geom: Collection[Collection[float]]  # [[lat, lon], ...]
     area: bool
 
 
 class ChangesetLeaflet(msgspec.Struct):
     id: int
-    geom: list[float]  # [minLon, minLat, maxLon, maxLat]
+    geom: Collection[Collection[float]]  # [[minLon, minLat, maxLon, maxLat], ...]
     user_name: str | None
     user_avatar: str | None
     closed: bool
@@ -30,6 +32,6 @@ class ChangesetLeaflet(msgspec.Struct):
 
 class NoteLeaflet(msgspec.Struct):
     id: int
-    geom: list[float]  # [lat, lon]
+    geom: Collection[float]  # [lat, lon]
     text: str
     open: bool

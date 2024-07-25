@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-import Cython.Compiler.Options as Options
 from Cython.Build import cythonize
+from Cython.Compiler import Options
 from setuptools import Extension, setup
 
 import app.config  # DO NOT REMOVE  # noqa: F401
@@ -25,15 +25,18 @@ dirs = (
 blacklist: dict[str, set[str]] = {
     'app/services': {
         'email_service.py',
-    }
+    },
+    'app/services/optimistic_diff': {
+        '__init__.py',
+    },
 }
 
-paths = []
-for dir in dirs:
-    dir_blacklist = blacklist.get(dir, set())
-    for p in Path(dir).rglob('*.py'):
-        if p.name not in dir_blacklist:
-            paths.append(p)  # noqa: PERF401
+paths = (
+    p
+    for dir in dirs  #
+    for p in Path(dir).rglob('*.py')
+    if p.name not in blacklist.get(p.parent.as_posix(), set())
+)
 
 setup(
     ext_modules=cythonize(
@@ -50,8 +53,11 @@ setup(
                     '-fharden-conditional-branches',
                     '-fharden-control-flow-redundancy',
                     '-fhardened',
+                    '-fsanitize=address',
                     # https://developers.redhat.com/articles/2022/06/02/use-compiler-flags-stack-protection-gcc-and-clang#safestack_and_shadow_stack
                     '-mshstk',
+                    # https://stackoverflow.com/a/23501290
+                    '--param=max-vartrack-size=0',
                 ],
             )
             for path in paths

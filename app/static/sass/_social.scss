@@ -66,6 +66,10 @@
         &:not(:last-child) {
             margin-bottom: 0.625rem;
         }
+
+        .body {
+            padding: 0.375rem 0.3rem;
+        }
     }
 
     .comment {

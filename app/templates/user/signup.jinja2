@@ -24,7 +24,8 @@
 
                 <label class="form-label d-block">
                     {{ t('activerecord.attributes.user.display_name') }}
-                    <input type="text" class="form-control mt-2" name="display_name" required>
+                    <input type="text" class="form-control mt-2" name="display_name"
+                        data-blacklist="{{ URLSAFE_BLACKLIST }}" required>
                 </label>
                 <p class="form-text">
                     {{ t('users.new.display name description') }}

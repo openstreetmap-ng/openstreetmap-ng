@@ -68,7 +68,7 @@ export const configureDataLayer = (map) => {
         const viewBounds = map.getBounds()
 
         // Skip updates if the view is satisfied
-        if (fetchedBounds?.contains(viewBounds)) return
+        if (fetchedBounds?.contains(viewBounds) && loadDataAlert.classList.contains("d-none")) return
 
         // Pad the bounds to reduce refreshes
         const bounds = viewBounds.pad(0.3)
@@ -122,12 +122,12 @@ export const configureDataLayer = (map) => {
      */
     const tryLoadData = () => {
         if (fetchedElements.length < loadDataAlertThreshold || loadDataOverride) {
-            console.log(fetchedElements.length)
+            loadDataAlert.classList.add("d-none")
             loadData()
             return
         }
         if (!loadDataAlert.classList.contains("d-none")) return
-        console.debug("Loaded", fetchedElements.length, "elements, deciding whether to show data")
+        console.debug("Fetched", fetchedElements.length, "elements, deciding whether to show data")
         showDataButton.addEventListener("click", onShowDataClick, { once: true })
         hideDataButton.addEventListener("click", onHideDataClick, { once: true })
         loadDataAlert.classList.remove("d-none")
@@ -138,6 +138,7 @@ export const configureDataLayer = (map) => {
      * @returns {void}
      */
     const loadData = () => {
+        console.debug("Loading", fetchedElements.length, "elements")
         const layerGroup = L.layerGroup()
         const renderLayers = renderObjects(layerGroup, fetchedElements, dataStyles, { renderAreas: false })
 

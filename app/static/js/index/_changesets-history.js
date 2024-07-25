@@ -30,6 +30,7 @@ export const styles = {
 export const getChangesetsHistoryController = (map) => {
     const changesetLayer = getOverlayLayerById("changesets")
     const sidebar = getActionSidebar("changesets-history")
+    const parentSidebar = sidebar.closest(".sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentNode
@@ -42,7 +43,7 @@ export const getChangesetsHistoryController = (map) => {
     let changesetsBBox = ""
     let changesetsFinished = false
     const idSidebarMap = new Map()
-    const idLayerMap = new Map()
+    const idLayersMap = new Map()
 
     const updateSidebar = () => {
         idSidebarMap.clear()
@@ -50,21 +51,6 @@ export const getChangesetsHistoryController = (map) => {
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
             const div = entryTemplate.content.cloneNode(true).children[0]
-
-            // On sidebar mouseover, focus the changeset layer
-            const onSidebarMouseover = () => {
-                const layer = idLayerMap.get(changeset.id)
-                layer.setStyle(styles.hover)
-            }
-
-            // On sidebar mouseout, unfocus the changeset layer
-            const onSidebarMouseout = () => {
-                const layer = idLayerMap.get(changeset.id)
-                layer.setStyle(styles.default)
-            }
-
-            div.addEventListener("mouseover", onSidebarMouseover)
-            div.addEventListener("mouseout", onSidebarMouseout)
 
             // Find elements to populate
             const userContainer = div.querySelector(".user")
@@ -103,6 +89,9 @@ export const getChangesetsHistoryController = (map) => {
 
             changesetAnchor.href = `/changeset/${changeset.id}`
             changesetAnchor.textContent = changeset.id
+            changesetAnchor.changesetId = changeset.id
+            changesetAnchor.addEventListener("mouseover", onMouseover)
+            changesetAnchor.addEventListener("mouseout", onMouseout)
             fragment.appendChild(div)
 
             idSidebarMap.set(changeset.id, div)
@@ -112,32 +101,37 @@ export const getChangesetsHistoryController = (map) => {
     }
 
     const updateLayers = () => {
-        idLayerMap.clear()
+        idLayersMap.clear()
 
         // Sort by bounds area (descending)
         const changesetsSorted = []
         for (const changeset of changesets) {
-            const bounds = makeBoundsMinimumSize(map, changeset.geom)
-            const boundsArea = (bounds[2] - bounds[0]) * (bounds[3] - bounds[1])
-            changesetsSorted.push([changeset, bounds, boundsArea])
+            const changesetLayers = []
+            idLayersMap.set(changeset.id, changesetLayers)
+            for (const bounds of changeset.geom) {
+                const minimumBounds = makeBoundsMinimumSize(map, bounds)
+                const boundsArea = (minimumBounds[2] - minimumBounds[0]) * (minimumBounds[3] - minimumBounds[1])
+                changesetsSorted.push([changeset, changesetLayers, minimumBounds, boundsArea])
+            }
         }
-        changesetsSorted.sort((a, b) => b[2] - a[2])
+        changesetsSorted.sort((a, b) => b[3] - a[3])
 
         // Create layers
         const layers = []
-        for (const [changeset, bounds] of changesetsSorted) {
-            const geom = [
-                [bounds[1], bounds[0]],
-                [bounds[3], bounds[2]],
-            ]
-            const layer = L.rectangle(geom, styles.default)
+        for (const [changeset, changesetLayers, bounds] of changesetsSorted) {
+            const layer = L.rectangle(
+                [
+                    [bounds[1], bounds[0]],
+                    [bounds[3], bounds[2]],
+                ],
+                styles.default,
+            )
             layer.changesetId = changeset.id
-            layer.addEventListener("mouseover", onLayerMouseover)
-            layer.addEventListener("mouseout", onLayerMouseout)
+            layer.addEventListener("mouseover", onMouseover)
+            layer.addEventListener("mouseout", onMouseout)
             layer.addEventListener("click", onLayerClick)
             layers.push(layer)
-
-            idLayerMap.set(changeset.id, layer)
+            changesetLayers.push(layer)
         }
 
         changesetLayer.clearLayers()
@@ -157,25 +151,35 @@ export const getChangesetsHistoryController = (map) => {
     }
 
     /**
-     * On layer mouseover, highlight the changeset
-     * @param {L.LeafletMouseEvent} event
+     * On mouseover, scroll result into view and focus the changeset
+     * @param {MouseEvent} event
      * @returns {void}
      */
-    const onLayerMouseover = (event) => {
-        const layer = event.target
-        layer.setStyle(styles.hover)
-        idSidebarMap.get(layer.changesetId).classList.add("hover")
+    const onMouseover = (event) => {
+        const changesetId = event.target.changesetId
+        const result = idSidebarMap.get(changesetId)
+
+        const sidebarRect = parentSidebar.getBoundingClientRect()
+        const resultRect = result.getBoundingClientRect()
+        const isVisible = resultRect.top >= sidebarRect.top && resultRect.bottom <= sidebarRect.bottom
+        if (!isVisible) result.scrollIntoView({ behavior: "smooth", block: "center" })
+
+        result.classList.add("hover")
+        const layers = idLayersMap.get(changesetId)
+        for (const layer of layers) layer.setStyle(styles.hover)
     }
 
     /**
-     * On layer mouseout, un-highlight the changeset
-     * @param {L.LeafletMouseEvent} event
+     * On mouseout, unfocus the changeset
+     * @param {MouseEvent} event
      * @returns {void}
      */
-    const onLayerMouseout = (event) => {
-        const layer = event.target
-        layer.setStyle(styles.default)
-        idSidebarMap.get(layer.changesetId).classList.remove("hover")
+    const onMouseout = (event) => {
+        const changesetId = event.target.changesetId
+        const result = idSidebarMap.get(changesetId)
+        result.classList.remove("hover")
+        const layers = idLayersMap.get(changesetId)
+        for (const layer of layers) layer.setStyle(styles.default)
     }
 
     /**
@@ -184,7 +188,7 @@ export const getChangesetsHistoryController = (map) => {
      */
     const onSidebarScroll = () => {
         if (sidebar.offsetHeight + sidebar.scrollTop < sidebar.scrollHeight) return
-        console.debug("Sidebar scrolled to bottom")
+        console.debug("Sidebar scrolled to the bottom")
         onMapZoomOrMoveEnd()
     }
 

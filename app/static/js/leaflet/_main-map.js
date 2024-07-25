@@ -14,6 +14,7 @@ import { getNoteController } from "../index/_note.js"
 import { getQueryFeaturesController } from "../index/_query-features.js"
 import { configureRouter } from "../index/_router.js"
 import { getRoutingController } from "../index/_routing.js"
+import { configureSearchForm } from "../index/_search-form.js"
 import { getSearchController } from "../index/_search.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { configureFindHomeButton } from "./_find-home-button.js"
@@ -162,5 +163,6 @@ export const configureMainMap = (container) => {
         ]),
     )
 
+    configureSearchForm(map)
     handleEditRemotePath()
 }

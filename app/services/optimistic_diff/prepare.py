@@ -7,11 +7,11 @@ from itertools import chain
 from typing import Final
 
 import cython
-from shapely import Point
-from shapely.ops import unary_union
+from shapely import Point, box, multipolygons
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import auth_user
+from app.lib.change_bounds import change_bounds
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
@@ -89,9 +89,14 @@ class OptimisticDiffPrepare:
     Local changeset state.
     """
 
-    _bbox_info: set[Point | ElementRef]
+    _bbox_points: list[Point]
     """
-    Changeset bounding box info, set of points and element refs.
+    Changeset bounding box collection of points.
+    """
+
+    _bbox_refs: set[ElementRef]
+    """
+    Changeset bounding box set of element refs.
     """
 
     def __init__(self, elements: Collection[Element]) -> None:
@@ -104,7 +109,8 @@ class OptimisticDiffPrepare:
         self.reference_check_element_refs = set()
         self._reference_override = defaultdict(set)
         self.changeset = None
-        self._bbox_info = set()
+        self._bbox_points = []
+        self._bbox_refs = set()
 
     async def prepare(self) -> None:
         await self._set_sequence_id()
@@ -357,15 +363,15 @@ class OptimisticDiffPrepare:
         """
         Push bbox info for a node.
         """
-        bbox_info = self._bbox_info
+        bbox_points = self._bbox_points
         element_point = element.point
         if element_point is not None:
-            bbox_info.add(element_point)
+            bbox_points.append(element_point)
 
         if prev is not None:
             prev_point = prev.point
             if prev_point is not None:
-                bbox_info.add(prev_point)
+                bbox_points.append(prev_point)
 
     def _push_bbox_way_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -379,15 +385,16 @@ class OptimisticDiffPrepare:
             raise AssertionError('Element members must be set')
         node_refs: set[ElementRef] = {ElementRef('node', member.id) for member in chain(next_members, prev_members)}
 
-        bbox_info = self._bbox_info
         element_state = self.element_state
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
         for node_ref in node_refs:
             entry = element_state.get(node_ref)
             if entry is not None:
                 node = entry.current
-                bbox_info.add(node.point)
+                bbox_points.append(node.point)
             else:
-                bbox_info.add(node_ref)
+                bbox_refs.add(node_ref)
 
     def _push_bbox_relation_info(self, prev: Element | None, element: Element) -> None:
         """
@@ -403,19 +410,17 @@ class OptimisticDiffPrepare:
         prev_refs: set[ElementRef] = {ElementRef(member.type, member.id) for member in prev_members}
         changed_refs = prev_refs ^ next_refs
 
-        # check for changed tags
-        full_diff: cython.char = (prev is None) or (prev.tags != element.tags)
-
-        # check for any relation members
-        if not full_diff:
-            for ref in changed_refs:
-                if ref.type == 'relation':
-                    full_diff = True
-                    break
+        # check for changed tags or any relation members
+        full_diff: cython.char = (
+            (prev is None)
+            or (prev.tags != element.tags)  #
+            or any(ref.type == 'relation' for ref in changed_refs)
+        )
 
         diff_refs = (prev_refs | next_refs) if full_diff else (changed_refs)
-        bbox_info = self._bbox_info
         element_state = self.element_state
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
         for member_ref in diff_refs:
             member_type = member_ref.type
 
@@ -423,14 +428,14 @@ class OptimisticDiffPrepare:
                 entry = element_state.get(member_ref)
                 if entry is not None:
                     node = entry.current
-                    bbox_info.add(node.point)
+                    bbox_points.append(node.point)
                 else:
-                    bbox_info.add(member_ref)
+                    bbox_refs.add(member_ref)
 
             elif member_type == 'way':
                 entry = element_state.get(member_ref)
                 if entry is None:
-                    bbox_info.add(member_ref)
+                    bbox_refs.add(member_ref)
                     continue
 
                 members = entry.current.members
@@ -442,9 +447,9 @@ class OptimisticDiffPrepare:
                     entry = element_state.get(node_ref)
                     if entry is not None:
                         node = entry.current
-                        bbox_info.add(node.point)
+                        bbox_points.append(node.point)
                     else:
-                        bbox_info.add(node_ref)
+                        bbox_refs.add(node_ref)
 
     async def _preload_changeset(self) -> None:
         """
@@ -482,19 +487,13 @@ class OptimisticDiffPrepare:
         """
         Update changeset bounds using the collected bbox info.
         """
-        # unpack bbox info
-        points: list[Point] = []
-        elements_refs: set[ElementRef] = set()
-        for point_or_ref in self._bbox_info:
-            if isinstance(point_or_ref, Point):
-                points.append(point_or_ref)
-            else:
-                elements_refs.add(point_or_ref)
+        bbox_points = self._bbox_points
+        bbox_refs = self._bbox_refs
 
-        if elements_refs:
-            logging.debug('Optimistic loading %d bbox elements', len(elements_refs))
+        if bbox_refs:
+            logging.debug('Optimistic loading %d bbox elements', len(bbox_refs))
             elements = await ElementQuery.get_by_refs(
-                elements_refs,
+                bbox_refs,
                 at_sequence_id=self.at_sequence_id,
                 recurse_ways=True,
                 limit=None,
@@ -502,13 +501,22 @@ class OptimisticDiffPrepare:
             for element in elements:
                 point = element.point
                 if point is not None:
-                    points.append(point)
+                    bbox_points.append(point)
                 elif element.type == 'node':
                     versioned_ref = VersionedElementRef('node', element.id, element.version)
                     logging.warning('Node %s is missing coordinates', versioned_ref)
 
-        if points:
-            changeset = self.changeset
-            if changeset is None:
-                raise AssertionError('Changeset must be set')
-            changeset.union_bounds(unary_union(points))
+        if not bbox_points:
+            return
+
+        changeset = self.changeset
+        if changeset is None:
+            raise AssertionError('Changeset must be set')
+
+        changeset.bounds = new_bounds = change_bounds(changeset.bounds, bbox_points)
+
+        changeset_union_bounds = changeset.union_bounds
+        new_polygons = [cb.bounds for cb in new_bounds]
+        if changeset_union_bounds is not None:
+            new_polygons.append(changeset_union_bounds)
+        changeset.union_bounds = box(*multipolygons(new_polygons).bounds)

@@ -84,13 +84,12 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
     elif total_seconds < (3600 * 24 * 330):
         # X months ago
         ago = nt('datetime.distance_in_words_ago.x_months', int(total_seconds / (3600 * 24 * 30)))
+    elif total_seconds % (3600 * 24 * 365) < (3600 * 24 * 330):
+        # X years ago
+        ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
     else:
-        if total_seconds % (3600 * 24 * 365) < (3600 * 24 * 330):
-            # X years ago
-            ago = nt('datetime.distance_in_words_ago.x_years', int(total_seconds / (3600 * 24 * 365)))
-        else:
-            # almost X years ago
-            ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
+        # almost X years ago
+        ago = nt('datetime.distance_in_words_ago.almost_x_years', int(ceil(total_seconds / (3600 * 24 * 365))))
 
     if html:
         friendly_date = date.strftime(t('time.formats.friendly'))

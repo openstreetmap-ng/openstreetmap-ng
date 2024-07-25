@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 
 import cython
-from shapely import box
 
 from app.lib.jinja_env import timeago
 from app.models.db.changeset import Changeset
@@ -22,9 +21,6 @@ def _encode_changeset(changeset: Changeset):
     num_comments = changeset.num_comments
     if num_comments is None:
         raise AssertionError('Changeset num comments must be set')
-    bounds = changeset.bounds
-    if bounds is None:
-        bounds = box(0, 0, 0, 0)
     if changeset.user_id is not None:
         changeset_user = changeset.user
         if changeset_user is None:
@@ -36,7 +32,7 @@ def _encode_changeset(changeset: Changeset):
         user_avatar = None
     return ChangesetLeaflet(
         id=changeset.id,
-        geom=bounds.bounds,
+        geom=tuple(cb.bounds.bounds for cb in changeset.bounds),
         user_name=user_name,
         user_avatar=user_avatar,
         closed=changeset.closed_at is not None,

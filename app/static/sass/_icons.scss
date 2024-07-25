@@ -27,11 +27,20 @@
 }
 
 .icon.geolocate {
-    @include legacy-leaflet-icon(-80px, 0);
+    @extend .bi;
+    @extend .bi-crosshair;
+    display: inline-block;
+    font-size: 18px;
+    color: $white;
 
-    &.loading {
+    &::before {
+        padding: 1px;
+        margin: 10px;
+    }
+
+    &.loading::before {
         animation: spin 2s infinite;
-        transform-origin: 50% 48.5%;
+        transform-origin: 50% 50%;
 
         @keyframes spin {
             0% {
@@ -48,7 +57,7 @@
 }
 
 .active .icon.geolocate {
-    @include legacy-leaflet-icon(-80px, -20px);
+    color: #74ff81;
 }
 
 .icon.layers {

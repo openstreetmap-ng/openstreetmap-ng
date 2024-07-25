@@ -1,4 +1,5 @@
-<ul class="search-list list-unstyled mb-0" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}">
+<ul class="search-list list-unstyled mb-0" data-bounds="{{ bounds }}" data-leaflet="{{ leaflet }}"
+    data-where-is-this="{{ where_is_this }}">
     {% for result in results %}
     {% set element = result.element %}
     {% set point = result.point %}

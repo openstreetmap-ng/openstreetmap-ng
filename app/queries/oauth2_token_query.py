@@ -10,14 +10,14 @@ from app.models.db.oauth2_token import OAuth2Token
 
 class OAuth2TokenQuery:
     @staticmethod
-    async def find_one_authorized_by_token(token_str: str) -> OAuth2Token | None:
+    async def find_one_authorized_by_token(access_token: str) -> OAuth2Token | None:
         """
         Find an authorized OAuth2 token by token string.
         """
-        token_hashed = hash_bytes(token_str)
+        access_token_hashed = hash_bytes(access_token)
         async with db() as session:
             stmt = select(OAuth2Token).where(
-                OAuth2Token.token_hashed == token_hashed,
+                OAuth2Token.token_hashed == access_token_hashed,
                 OAuth2Token.authorized_at != null(),
             )
             stmt = apply_options_context(stmt)

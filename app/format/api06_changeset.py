@@ -53,9 +53,9 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.char) -> dict:
     >>> _encode_changeset(Changeset(...))
     {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}
     """
-    if changeset.bounds is not None:
+    if changeset.union_bounds is not None:
         xattr = get_xattr(is_json=is_json)
-        minx, miny, maxx, maxy = changeset.bounds.bounds
+        minx, miny, maxx, maxy = changeset.union_bounds.bounds
         bounds_dict = {
             xattr('minlon', xml='min_lon'): minx,
             xattr('minlat', xml='min_lat'): miny,

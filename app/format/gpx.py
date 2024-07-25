@@ -68,15 +68,14 @@ class FormatGPX:
                     last_track_num = track_num
 
             # otherwise, encode only coordinates
-            else:
-                # handle track and track segment change
-                if (last_trace_id > -1 or trksegs is None) or (last_track_num > -1 or trkpts is None):
-                    trksegs = []
-                    trks.append({'trkseg': trksegs})
-                    trkpts = []
-                    trksegs.append({'trkpt': trkpts})
-                    last_trace_id = -1
-                    last_track_num = -1
+            # handle track and track segment change
+            elif (last_trace_id > -1 or trksegs is None) or (last_track_num > -1 or trkpts is None):
+                trksegs = []
+                trks.append({'trkseg': trksegs})
+                trkpts = []
+                trksegs.append({'trkpt': trkpts})
+                last_trace_id = -1
+                last_track_num = -1
 
             points: list[tuple[float, float]]
             points = lib.get_coordinates(np.asarray(segment.points, dtype=object), False, False).tolist()

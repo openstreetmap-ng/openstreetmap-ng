@@ -1,10 +1,9 @@
 import logging
 from asyncio import TaskGroup
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from urllib.parse import urlencode
 
 import numpy as np
-from httpx import HTTPError
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
@@ -28,7 +27,7 @@ _cache_context = 'Nominatim'
 
 class NominatimQuery:
     @staticmethod
-    async def reverse_name(point: Point, zoom: int) -> str:
+    async def reverse(point: Point, zoom: int) -> SearchResult | None:
         """
         Reverse geocode a point into a human-readable name.
         """
@@ -36,8 +35,8 @@ class NominatimQuery:
         path = '/reverse?' + urlencode(
             {
                 'format': 'jsonv2',
-                'lon': f'{x:.7f}',
-                'lat': f'{y:.7f}',
+                'lon': f'{x:.5f}',
+                'lat': f'{y:.5f}',
                 'zoom': zoom,
                 'accept-language': primary_translation_locale(),
             }
@@ -49,18 +48,15 @@ class NominatimQuery:
             r.raise_for_status()
             return r.content
 
-        try:
-            cache = await CacheService.get(
-                path,
-                context=_cache_context,
-                factory=factory,
-                ttl=NOMINATIM_CACHE_LONG_EXPIRE,
-            )
-            return JSON_DECODE(cache.value)['display_name']
-        except HTTPError:
-            logging.warning('Nominatim reverse geocoding failed', exc_info=True)
-            # always succeed, return coordinates as a fallback
-            return f'{y:.5f}, {x:.5f}'
+        cache = await CacheService.get(
+            path,
+            context=_cache_context,
+            factory=factory,
+            ttl=NOMINATIM_CACHE_LONG_EXPIRE,
+        )
+        response_entries = (JSON_DECODE(cache.value),)
+        result = await _get_result(at_sequence_id=None, response_entries=response_entries)
+        return next(iter(result), None)
 
     @staticmethod
     async def search(
@@ -110,7 +106,7 @@ async def _search(
             'limit': limit,
             **(
                 {
-                    'viewbox': ','.join(f'{x:.7f}' for x in bounds.bounds),
+                    'viewbox': ','.join(f'{x:.5f}' for x in bounds.bounds),
                     'bounded': 1,
                 }
                 if (bounds is not None)
@@ -139,9 +135,17 @@ async def _search(
     else:
         response = await factory()
 
+    return await _get_result(at_sequence_id=at_sequence_id, response_entries=JSON_DECODE(response))
+
+
+async def _get_result(
+    *,
+    at_sequence_id: int | None,
+    response_entries: Iterable[dict],
+) -> list[SearchResult]:
     refs: list[ElementRef] = []
     entries: list[dict] = []
-    for entry in JSON_DECODE(response):
+    for entry in response_entries:
         # some results are abstract and have no osm_type/osm_id
         osm_type = entry.get('osm_type')
         osm_id = entry.get('osm_id')

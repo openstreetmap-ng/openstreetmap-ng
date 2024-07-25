@@ -12,7 +12,7 @@ from app.models.report_category import ReportCategory
 from app.models.text_format import TextFormat
 
 
-class Report(Base.Sequential, CreatedAtMixin, RichTextMixin):
+class Report(Base.ZID, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'report'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 

@@ -1,11 +1,12 @@
 from asyncio import TaskGroup
+from collections.abc import Collection
 from itertools import chain
 from typing import Annotated
 
 import cython
 import numpy as np
 from fastapi import APIRouter, Query
-from shapely import lib
+from shapely import Point, lib
 
 from app.format import FormatLeaflet
 from app.lib.render_response import render_response
@@ -17,17 +18,19 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element_ref import ElementRef
 from app.models.element_type import ElementType
+from app.models.geometry import Latitude, Longitude, Zoom
 from app.models.msgspec.leaflet import ElementLeaflet, ElementLeafletNode
+from app.models.search_result import SearchResult
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/api/partial/search')
+router = APIRouter(prefix='/api/partial')
 
 
-@router.get('/')
-async def search(
+@router.get('/search')
+async def get_search(
     query: Annotated[str, Query(alias='q', min_length=1, max_length=SEARCH_QUERY_MAX_LENGTH)],
     bbox: Annotated[str, Query(min_length=1)],
     local_only: Annotated[bool, Query()] = False,
@@ -52,7 +55,37 @@ async def search(
     task_index = Search.best_results_index(task_results)
     bounds = search_bounds[task_index][0]
     results = Search.deduplicate_similar_results(task_results[task_index])
+    return await _get_response(
+        at_sequence_id=at_sequence_id,
+        bounds=bounds,
+        results=results,
+        where_is_this=False,
+    )
 
+
+@router.get('/where-is-this')
+async def get_where_is_this(
+    lon: Annotated[Longitude, Query()],
+    lat: Annotated[Latitude, Query()],
+    zoom: Annotated[Zoom, Query()],
+):
+    result = await NominatimQuery.reverse(Point(lon, lat), zoom)
+    results = (result,) if (result is not None) else ()
+    return await _get_response(
+        at_sequence_id=None,
+        bounds='',
+        results=results,
+        where_is_this=True,
+    )
+
+
+async def _get_response(
+    *,
+    at_sequence_id: int | None,
+    bounds: str,
+    results: Collection[SearchResult],
+    where_is_this: bool,
+):
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
 
@@ -104,5 +137,6 @@ async def search(
             'bounds': bounds,
             'results': results,
             'leaflet': JSON_ENCODE(leaflet).decode(),
+            'where_is_this': where_is_this,
         },
     )

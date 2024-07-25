@@ -42,4 +42,4 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
 
     @property
     def is_oob(self) -> bool:
-        return self.redirect_uri in ('urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto')
+        return self.redirect_uri in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}

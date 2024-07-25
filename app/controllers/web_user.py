@@ -17,7 +17,7 @@ from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
-from app.services.auth_service import AuthService
+from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -40,13 +40,13 @@ async def login(
     password: Annotated[PasswordStr, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
-    token = await UserService.login(
+    access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
         password=password,
     )
     max_age = COOKIE_AUTH_MAX_AGE if remember else None
     response = Response()
-    response.set_cookie('auth', str(token), max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
+    response.set_cookie('auth', access_token, max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
     return response
 
 
@@ -55,8 +55,8 @@ async def logout(
     request: Request,
     _: Annotated[User, web_user()],
 ):
-    token_struct = UserTokenStruct.from_str(request.cookies['auth'])
-    await AuthService.destroy_session(token_struct)
+    access_token = request.cookies['auth']
+    await OAuth2TokenService.revoke_by_token(access_token)
     response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
     response.delete_cookie('auth')
     return response

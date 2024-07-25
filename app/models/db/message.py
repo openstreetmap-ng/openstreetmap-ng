@@ -15,7 +15,7 @@ from app.models.db.user import User
 from app.models.text_format import TextFormat
 
 
-class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
+class Message(Base.ZID, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'message'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 
@@ -78,7 +78,7 @@ class Message(Base.Sequential, CreatedAtMixin, RichTextMixin):
 @cython.cfunc
 def get_body(part: EmailMessage):
     content_type = part.get_content_type()
-    if content_type not in ('text/plain', 'text/html'):
+    if content_type not in {'text/plain', 'text/html'}:
         return None
 
     payload_bytes: bytes | None = part.get_payload(decode=True)  # type: ignore[assignment]

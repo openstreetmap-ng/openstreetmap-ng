@@ -117,11 +117,10 @@ def _parse_element(element: ET.ElementBase):
                 parsed_children[k] = [parsed_v, v]
 
         # add new value
+        elif k in force_list:
+            parsed_children[k] = [v]
         else:
-            if k in force_list:
-                parsed_children[k] = [v]
-            else:
-                parsed_children[k] = v
+            parsed_children[k] = v
 
     if parsed_children:
         parsed.extend(parsed_children.items())

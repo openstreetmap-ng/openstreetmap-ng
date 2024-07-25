@@ -25,7 +25,7 @@ class CacheControlMiddleware:
 
         request = get_request()
         request_method = request.method
-        if request_method != 'GET' and request_method != 'HEAD':
+        if request_method not in {'GET', 'HEAD'}:
             await self.app(scope, receive, send)
             return
 

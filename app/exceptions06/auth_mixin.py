@@ -29,34 +29,6 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials')
 
     @override
-    def oauth1_timestamp_out_of_range(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth timestamp out of range')
-
-    @override
-    def oauth1_nonce_missing(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce missing')
-
-    @override
-    def oauth1_bad_nonce(self) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth nonce invalid')
-
-    @override
-    def oauth1_nonce_used(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth nonce already used')
-
-    @override
-    def oauth1_bad_verifier(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth verifier invalid')
-
-    @override
-    def oauth1_unsupported_signature_method(self, method: str) -> NoReturn:
-        raise APIError(status.HTTP_400_BAD_REQUEST, detail=f'OAuth unsupported signature method {method!r}')
-
-    @override
-    def oauth1_bad_signature(self) -> NoReturn:
-        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth signature invalid')
-
-    @override
     def oauth2_bearer_missing(self) -> NoReturn:
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth2 bearer authorization header missing')
 

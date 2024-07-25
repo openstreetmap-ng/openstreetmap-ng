@@ -1,28 +1,23 @@
 import logging
 from base64 import b64decode
 
-from sqlalchemy import delete, update
+from sqlalchemy import update
 from sqlalchemy.orm import joinedload
 
 from app.config import SECRET, TEST_ENV
 from app.db import db_commit
-from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
-from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.lib.password_hash import PasswordHash
-from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE, USER_TOKEN_SESSION_EXPIRE
+from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
-from app.models.db.user_token_session import UserTokenSession
-from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.scope import BASIC_SCOPES, Scope
 from app.models.str import PasswordStr
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
-from app.queries.user_token_session_query import UserTokenSessionQuery
 from app.services.cache_service import CacheService
 from app.validators.email import validate_email
 
@@ -88,14 +83,10 @@ class AuthService:
         # all endpoints support session cookies
         if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
-            try:
-                token_struct = UserTokenStruct.from_str(token_str)
-            except Exception:  # noqa: S110
-                pass
-            else:
-                session_user = await AuthService.authenticate_session(token_struct)
-                if session_user is not None:
-                    user, scopes = session_user, _session_auth_scopes
+            oauth_result = await AuthService.authenticate_oauth2(token_str)
+            if (oauth_result is not None) and oauth_result[1] == (Scope.web_user,):
+                user = oauth_result[0]
+                scopes = _session_auth_scopes
 
         # all endpoints on test env support any user auth
         if user is None and TEST_ENV:
@@ -199,43 +190,3 @@ class AuthService:
         if token.authorized_at is None:
             raise_for().oauth_bad_user_token()
         return token.user, token.scopes
-
-    @staticmethod
-    async def authenticate_session(token_struct: UserTokenStruct) -> User | None:
-        """
-        Authenticate a user with session token.
-
-        Returns None if the session is not found or the session key is incorrect.
-        """
-        with options_context(joinedload(UserTokenSession.user)):
-            token = await UserTokenSessionQuery.find_one_by_token_struct(token_struct)
-        if token is None:
-            logging.debug('Session not found %r', token_struct.id)
-            return None
-        return token.user
-
-    @staticmethod
-    async def create_session(user_id: int) -> UserTokenStruct:
-        """
-        Create a new user session token.
-        """
-        token_bytes = buffered_randbytes(32)
-        token_hashed = hash_bytes(token_bytes)
-        async with db_commit() as session:
-            token = UserTokenSession(
-                user_id=user_id,
-                token_hashed=token_hashed,
-                expires_at=utcnow() + USER_TOKEN_SESSION_EXPIRE,
-            )
-            session.add(token)
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
-
-    @staticmethod
-    async def destroy_session(token_struct: UserTokenStruct) -> None:
-        """
-        Destroy a user session token.
-        """
-        async with db_commit() as session:
-            stmt = delete(UserTokenSession).where(UserTokenSession.id == token_struct.id)
-            if (await session.execute(stmt)).rowcount != 1:
-                logging.warning('Session not found %r', token_struct.id)

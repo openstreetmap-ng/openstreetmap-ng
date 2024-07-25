@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/1e3deb3d8a86a870d925760db1a5adecc64d329d.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/6af55cb91ca2005516b9562f707bb99c8f79bf77.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -91,7 +91,7 @@ let
       python -m alembic -c config/alembic.ini revision --autogenerate --message "$name"
     '')
     (makeScript "alembic-upgrade" ''
-      lataest_version=2
+      lataest_version=3
       current_version=$(cat data/alembic/version.txt 2> /dev/null || echo "")
       if [ -n "$current_version" ] && [ "$current_version" -ne "$lataest_version" ]; then
         echo "NOTICE: Database migrations are not compatible"

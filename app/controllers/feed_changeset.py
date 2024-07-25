@@ -4,7 +4,7 @@ from fastapi import APIRouter, Path, Query, Response
 from feedgen.feed import FeedGenerator
 from pydantic import PositiveInt
 from shapely.geometry.base import BaseGeometry
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, raiseload
 from starlette import status
 
 from app.config import APP_URL, ATTRIBUTION_URL
@@ -64,10 +64,11 @@ async def _get_feed(
     geometry: BaseGeometry | None,
     limit: int,
 ):
-    with options_context(joinedload(Changeset.user).load_only(User.display_name)):
+    with options_context(joinedload(Changeset.user).load_only(User.display_name), raiseload(Changeset.bounds)):
         changesets = await ChangesetQuery.find_many_by_query(
             user_id=user.id if (user is not None) else None,
             geometry=geometry,
+            legacy_geometry=True,
             sort='desc',
             limit=limit,
         )

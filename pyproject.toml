@@ -43,6 +43,8 @@ pytz = "*"
 pyyaml = "^6.0.1"
 redis = {extras = ["hiredis"], version = "^5.0.2"}
 rfc3986 = "^2.0.0"
+rtree = "^1.3.0"
+scikit-learn = "^1.5.1"
 setuptools = "*"
 shapely = "^2.0.2"
 sqlalchemy = {extras = ["postgresql-asyncpg"], version = "^2.0.28"}
@@ -97,6 +99,9 @@ ignore = [
   "PT011", # pytest-raises-too-broad
   "PLW0603", # global-statement
   "PLW2901", # redefined-loop-name
+  "PLR09", # too-many-*
+  "PLR1702", # too-many-nested-blocks
+  "PLR2",
   "W191", # tab-indentation
   "E111", # indentation-with-invalid-multiple
   "E114", # indentation-with-invalid-multiple-comment
@@ -126,7 +131,8 @@ select = [
   "E9",
   "F", # pyflakes
   "FA", # flake8-future-annotations
-  "FLY", # flynt  # "FURB", # refurb
+  "FLY", # flynt
+  "FURB", # refurb
   "G", # flake8-logging-format
   "I", # isort
   "ICN", # flake8-import-conventions
@@ -140,6 +146,7 @@ select = [
   "PIE", # flake8-pie
   "PLC", # pylint
   "PLE", # pylint
+  "PLR", # pylint
   "PLW", # pylint
   "PT", # flake8-pytest-style
   "PTH", # flake8-use-pathlib

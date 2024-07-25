@@ -16,7 +16,8 @@ const paginationDistance = 2
  * @returns {object} Controller
  */
 export const getChangesetController = (map) => {
-    let params = null
+    let paramsId = null
+    let paramsBounds = null
 
     // On map update, refocus the changeset
     const onMapZoomEnd = (e) => {
@@ -24,8 +25,8 @@ export const getChangesetController = (map) => {
             map,
             {
                 type: "changeset",
-                id: params.id,
-                bounds: makeBoundsMinimumSize(map, params.bounds),
+                id: paramsId,
+                bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
             },
             {
                 // Fit the bounds only on the initial update
@@ -51,12 +52,12 @@ export const getChangesetController = (map) => {
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
-        params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsId = params.id
-        const bounds = params.bounds
+        const params = JSON.parse(sidebarTitleElement.dataset.params)
+        paramsId = params.id
+        paramsBounds = params.bounds
         const elements = params.elements
 
-        if (bounds) {
+        if (paramsBounds) {
             // Listen for events and run initial update
             map.addEventListener("zoomend", onMapZoomEnd)
             onMapZoomEnd()
