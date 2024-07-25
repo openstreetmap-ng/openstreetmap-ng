@@ -1,4 +1,3 @@
-@use "sass:math";
 .user-profile-body {
     .content-header {
         position: relative;
@@ -53,48 +52,5 @@
     .no-activity {
         margin-left: 0.25rem;
         color: $text-muted;
-    }
-
-    $weekname: 31px;
-    $gap: 1px;
-    $white: #eee;
-    $green: rgb(21, 139, 21);
-
-    @for $i from 0 through 19 {
-        .activity-#{$i} {
-            background: mix($green, $white, math.pow($i / 19, 0.8) * 100%);
-        }
-    }
-    .activity {
-        height: 1em;
-        display: inline-block;
-        aspect-ratio: 1;
-        border-radius: 25%;
-        cursor: text;
-    }
-    table .activity {
-        cursor: default;
-        display: block;
-        height: auto;
-
-    }
-
-    table {
-        tr:first-child {
-            height: 1em;
-        }
-
-        border-spacing: $gap;
-        border-collapse: separate;
-    }
-
-    td:first-child {
-        span {
-            position: absolute;
-            translate: 0px -50%;
-        }
-
-        width: $weekname;
-        position: relative;
     }
 }

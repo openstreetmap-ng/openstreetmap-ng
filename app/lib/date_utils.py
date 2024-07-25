@@ -50,11 +50,48 @@ def format_rfc2822_date(date: datetime) -> str:
     """
     Format a datetime object as an RFC2822 date string.
     """
+    fmt = 'ddd, DD MMM YYYY HH:mm:ss Z'
     date_ = arrow.get(date)
     try:
-        return date_.format('ddd, DD MMM YYYY HH:mm:ss Z', locale=primary_translation_locale())
+        return date_.format(fmt, locale=primary_translation_locale())
     except ValueError:
-        return date_.format('ddd, DD MMM YYYY HH:mm:ss Z')
+        return date_.format(fmt)
+
+
+def format_short_date(date: datetime) -> str:
+    """
+    Format a datetime object as a short date string (MMMM D, YYYY).
+    """
+    fmt = 'MMMM D, YYYY'
+    date_ = arrow.get(date)
+    try:
+        return date_.format(fmt, locale=primary_translation_locale())
+    except ValueError:
+        return date_.format(fmt)
+
+
+def get_month_name(date: datetime, *, short: bool) -> str:
+    """
+    Get the name of the month of a datetime object.
+    """
+    fmt = 'MMM' if short else 'MMMM'
+    date_ = arrow.get(date)
+    try:
+        return date_.format(fmt, locale=primary_translation_locale())
+    except ValueError:
+        return date_.format(fmt)
+
+
+def get_weekday_name(date: datetime, *, short: bool) -> str:
+    """
+    Get the name of the weekday of a datetime object.
+    """
+    fmt = 'ddd' if short else 'dddd'
+    date_ = arrow.get(date)
+    try:
+        return date_.format(fmt, locale=primary_translation_locale())
+    except ValueError:
+        return date_.format(fmt)
 
 
 def utcnow() -> datetime:

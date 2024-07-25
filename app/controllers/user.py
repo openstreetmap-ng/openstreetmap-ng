@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from itertools import cycle
 from typing import Annotated
 
 import numpy as np
@@ -7,15 +8,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
-from app.lib.date_utils import utcnow
+from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
 from app.lib.legal import legal_terms
 from app.lib.render_response import render_response
-from app.limits import (
-    DISPLAY_NAME_MAX_LENGTH,
-    USER_NEW_DAYS,
-    USER_RECENT_ACTIVITY_ENTRIES,
-    USER_ACTIVITY_CHART_WEEKS
-)
+from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_ACTIVITY_CHART_WEEKS, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
@@ -29,8 +25,6 @@ from app.queries.user_query import UserQuery
 from app.utils import JSON_ENCODE
 
 router = APIRouter(prefix='/user')
-
-ACTIVITY_CHART_LENGTH = USER_ACTIVITY_CHART_WEEKS * 7
 
 
 @router.get('/terms')
@@ -113,35 +107,8 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     groups_count = 0
     groups = ()
 
-    today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    weekday = (today.weekday() + 1) % 7  # put sunday on top
-    created_since = today - timedelta(days=ACTIVITY_CHART_LENGTH + weekday)
-    changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, created_since)
-    dates_range = np.arange(
-        created_since,
-        today + timedelta(days=1),
-        timedelta(days=1),
-        dtype=datetime,
-    )
-    activity = np.array(
-        [changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range], dtype=float
-    )
-    perc = max(np.percentile(activity, 95), 1)
-    cliped_activity = np.clip(activity / perc, 0, 1) * 19
-    cliped_activity = np.round(cliped_activity).astype(int)
-    rows = [[] for _ in range(7)]
-    months = []
-    for index, level in enumerate(cliped_activity):
-        rows[index % 7].append({'level': level, 'total': activity[index], 'date': dates_range[index].date()})
-        if dates_range[index].day == 1:
-            i = len(rows[index % 7])
-            while len(months) <= i:
-                months.append('')
-            months[i] = dates_range[index].strftime('%b')
+    activity_data = await _get_activity_data(user)
 
-    activity_sum = int(sum(activity))  # total activities
-    days = len(activity) - activity.tolist().count(0)  # total mapping days
-    activity_max = int(max(activity))
     return render_response(
         'user/profile/index.jinja2',
         {
@@ -162,10 +129,55 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'groups_count': groups_count,
             'groups': groups,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
-            'rows': rows,
-            'activity_max': activity_max,
-            'activity_sum': activity_sum,
-            'activity_days': days,
-            'activity_months': months,
+            **activity_data,
         },
     )
+
+
+async def _get_activity_data(user: User) -> dict:
+    """
+    Get activity data for the given user.
+
+    It is used to render the activity chart on the user pages.
+    """
+    today = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    weekday = (today.weekday() + 1) % 7  # put sunday on top
+    created_since = today - timedelta(days=USER_ACTIVITY_CHART_WEEKS * 7 + weekday)
+    changesets_count_per_day = await ChangesetQuery.count_per_day_by_user_id(user.id, created_since)
+    dates_range = np.arange(
+        created_since,
+        today + timedelta(days=1),
+        timedelta(days=1),
+        dtype=datetime,
+    )
+    activity = np.array(
+        tuple(changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range),
+        dtype=np.uint64,
+    )
+    max_activity_clip = np.clip(np.percentile(activity, 95), 1, None)
+    activity_level_perc = np.clip(activity / max_activity_clip, 0, 1)
+    activity_levels = np.round(activity_level_perc * 19).astype(np.uint8)
+
+    weekdays = tuple(
+        get_weekday_name(date, short=True)
+        if i % 2 == 1  #
+        else ''
+        for i, date in enumerate(dates_range[:7])
+    )
+    months: list[str | None] = []
+    rows: tuple[list[dict], ...] = tuple([] for _ in range(7))
+
+    for week_data, level, value, date in zip(cycle(rows), activity_levels, activity, dates_range):
+        week_data.append({'level': level, 'value': value, 'date': format_short_date(date)})
+        if date.day == 1:  # month change
+            months.extend(None for _ in range(len(week_data) - len(months)))
+            months.append(get_month_name(date, short=True))
+
+    return {
+        'activity_months': months,
+        'activity_weekdays': weekdays,
+        'activity_rows': rows,
+        'activity_max': activity.max(),
+        'activity_sum': activity.sum(),  # total activities
+        'activity_days': (activity > 0).sum(),  # total mapping days
+    }

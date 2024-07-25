@@ -21,7 +21,7 @@
                 <p class="mapper-since mb-0">
                     {{ t('users.show.mapper since') | title }}
                     <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
-                    {{ profile.created_at.strftime('%B %d, %Y') }}
+                    {{ format_short_date(profile.created_at) }}
                     </time>
                 </p>
             </div>
