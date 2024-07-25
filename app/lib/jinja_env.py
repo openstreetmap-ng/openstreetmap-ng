@@ -5,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from app.config import APP_URL, TEST_ENV
 from app.lib.auth_context import auth_user
-from app.lib.date_utils import utcnow
+from app.lib.date_utils import format_short_date, utcnow
 from app.lib.translation import nt, primary_translation_locale, t
 
 if cython.compiled:
@@ -112,6 +112,8 @@ _j2.globals.update(
     t=t,
     nt=nt,
     timeago=timeago,
+    zip=zip,
+    format_short_date=format_short_date,
 )
 
 # configure template filters

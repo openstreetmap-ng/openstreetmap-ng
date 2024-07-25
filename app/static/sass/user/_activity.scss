@@ -1,0 +1,53 @@
+@use "sass:math";
+
+.activity-chart {
+    color: $gray-600;
+    width: 100%;
+    border-spacing: 1px;
+    border-collapse: separate;
+
+    .months-row {
+        position: relative;
+        font-size: 0.875em;
+        height: 1.45em;
+    }
+
+    .month-cell {
+        position: absolute;
+        top: 0;
+    }
+
+    .week-cell {
+        width: 2.5em;
+        font-size: 0.875em;
+        line-height: 1;
+        text-align: end;
+        padding-right: 0.125rem;
+    }
+
+    .activity {
+        border-radius: 25%;
+        aspect-ratio: 1;
+
+        &:hover {
+            box-shadow: 0 0 0 2px black;
+        }
+    }
+}
+
+.inline-activity {
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    width: 0.75em;
+    height: 0.75em;
+    line-height: 1;
+    cursor: text;
+    border-radius: 25%;
+}
+
+@for $i from 0 through 19 {
+    .activity-#{$i} {
+        background: mix(rgb(21, 139, 21), #eee, math.pow($i / 19, 0.8) * 100%);
+    }
+}

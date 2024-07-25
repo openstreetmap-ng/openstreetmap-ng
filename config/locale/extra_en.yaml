@@ -79,6 +79,22 @@ user:
     change_email: Change email
     change_password: Change password
     password_last_changed: Password last changed
+  activity:
+    recent: Recent activity
+    summary: '{{mapping_day}} with {{num_changesets}} in {{last_n_months}}'
+    mapping_day:
+      count_one: '{{count}} mapping day'
+      count_other: '{{count}} mapping days'
+    last_n_months:
+      count_one: 'last {{count}} month'
+      count_other: 'last {{count}} months'
+    details:
+      no_activity: No activity on {{date}}
+      count_one: '{{count}} changeset on {{date}}'
+      count_other: '{{count}} changesets on {{date}}'
+    view_all: View full statistics
+    less: Less
+    more: More
 privacy:
   enable_activity_tracking:
     title: Enable activity tracking
