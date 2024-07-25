@@ -11,12 +11,11 @@ from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.user import User
 from app.models.mail_source import MailSource
-from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
-from app.services.auth_service import AuthService
 from app.services.email_service import EmailService
+from app.services.system_app_service import SystemAppService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 from app.validators.email import validate_email_deliverability
 
@@ -29,7 +28,7 @@ class UserSignupService:
         email: EmailStr,
         password: PasswordStr,
         tracking: bool,
-    ) -> UserTokenStruct:
+    ) -> str:
         """
         Create a new user.
 
@@ -63,7 +62,7 @@ class UserSignupService:
             )
             session.add(user)
 
-        return await AuthService.create_session(user.id)
+        return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
     @staticmethod
     async def accept_terms() -> None:

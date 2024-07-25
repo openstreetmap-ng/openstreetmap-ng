@@ -14,15 +14,23 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _get_i18next_locale_map() -> dict[str, str]:
-    return json.loads(Path('config/locale/i18next/map.json').read_bytes())
-
-
-@cython.cfunc
-def _get_locales_names() -> tuple[LocaleName, ...]:
-    names = json.loads(Path('config/locale/names.json').read_bytes())
-    structured = (LocaleName(**d) for d in names)
-    return tuple(sorted(structured, key=lambda v: v.code))
+def _load_locale() -> tuple[dict[str, str], tuple[LocaleName, ...]]:
+    i18next_map: dict[str, str] = json.loads(Path('config/locale/i18next/map.json').read_bytes())
+    raw_names: list[dict[str, str]] = json.loads(Path('config/locale/names.json').read_bytes())
+    locale_names_map: dict[str, LocaleName] = {}
+    not_found_codes: list[str] = []
+    for raw_name in raw_names:
+        locale_name = LocaleName(**raw_name)
+        if locale_name.code not in i18next_map:
+            not_found_codes.append(locale_name.code)
+            continue
+        locale_names_map[locale_name.code] = locale_name
+    if not_found_codes:
+        logging.warning('Found locale names without localization data: %r', not_found_codes)
+    for code in tuple(i18next_map.keys()):
+        if code not in locale_names_map:
+            raise ValueError(f'Locale {code!r} has no corresponding name')
+    return i18next_map, tuple(sorted(locale_names_map.values(), key=lambda v: v.code))
 
 
 @cython.cfunc
@@ -33,10 +41,9 @@ def _normalize(code: str) -> str:
     return code
 
 
-_i18next_map = _get_i18next_locale_map()
+_i18next_map, LOCALES_NAMES = _load_locale()
 LOCALES = frozenset(_i18next_map.keys())
 _locales_normalized_map = {_normalize(k): k for k in LOCALES}
-LOCALES_NAMES = _get_locales_names()
 logging.info('Loaded %d locales and %d locales names', len(LOCALES), len(LOCALES_NAMES))
 
 # check that default locale exists
@@ -61,7 +68,7 @@ def map_i18next_files(locales: Sequence[str]) -> tuple[str, ...]:
     # force reload map in test environment
     if TEST_ENV:
         global _i18next_map
-        _i18next_map = _get_i18next_locale_map()
+        _i18next_map = _load_locale()[0]
 
     # i18next supports only primary+fallback locale
     primary_locale = locales[0]

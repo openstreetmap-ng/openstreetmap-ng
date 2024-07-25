@@ -69,14 +69,14 @@ async def signup(
     password: Annotated[PasswordStr, Form()],
     tracking: Annotated[bool, Form()],
 ):
-    token = await UserSignupService.signup(
+    access_token = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
     )
     response = Response()
-    response.set_cookie('auth', str(token), None, secure=not TEST_ENV, httponly=True, samesite='lax')
+    response.set_cookie('auth', access_token, None, secure=not TEST_ENV, httponly=True, samesite='lax')
     return response
 
 
