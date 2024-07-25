@@ -57,22 +57,21 @@ The general roadmap of the project. You can use it to track the big picture prog
 - ✅ Migration of API 0.6
 - ⬛ Migration of redactions
 - ✅ Migration of rate limiting
-- ⬛ Migration of changeset history RSS feed
+- ✅ Migration of changeset history RSS feed
 - ✅ Improved GPX traces processing
-- [70%] Migration of website API
+- [75%] Migration of website API
 - ✅ Migration and refactoring of stylesheets
 - ✅ Migration and refactoring of scripts
-- [70%] Migration of templates
+- [75%] Migration of templates
 - ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
 - ✅ Development translation overrides
 - [20%] Anti-vandalism stage 1
 - ✅ Redis in-memory caching
 - [40%] Pagination and limits
-- ⬛ Deprecation of OAuth 1.0 warning
 - ✅ User permalinks
 - ✅ Proxy for Amazon requests (better privacy)
 - ✅ Addition of Rapid editor
-- ⬛ Ability to rotate OAuth keys
+- [50%] Ability to rotate OAuth keys
 - ⬛ Scheduled account delete
 - ⬛ Identification of anonymous note users
 - ⬛ Anti-vandalism stage 2

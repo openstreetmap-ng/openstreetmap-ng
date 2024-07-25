@@ -21,7 +21,7 @@
                 <p class="mapper-since mb-0">
                     {{ t('users.show.mapper since') | title }}
                     <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
-                    {{ profile.created_at.strftime('%B %d, %Y') }}
+                    {{ format_short_date(profile.created_at) }}
                     </time>
                 </p>
             </div>
@@ -64,19 +64,8 @@
             </div>
         </div>
         <div class="col-3">
-            <h3 class="ms-1">Recent activity</h3>
-            <p>
-                270 mapping days with 7,223 changesets in the last year
-            </p>
-            <img class="img-fluid mb-3" src="/static/img/TODO/activity.png">
-            <div class="text-end">
-                <a class="small me-1" href="/user/{{ profile.display_name }}/groups">
-                    View full statistics<i class="bi bi-box-arrow-up-right ms-2"></i>
-                </a>
-            </div>
-
+            {% include 'user/profile/_activity.jinja2' %}
             <hr>
-
             {% include 'user/profile/_groups.jinja2' %}
 
             {# TODO: if user is none or user.id != profile.id #}

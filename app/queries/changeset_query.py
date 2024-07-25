@@ -151,7 +151,7 @@ class ChangesetQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict:
+    async def count_per_day_by_user_id(user_id: int, created_since: datetime) -> dict[datetime, int]:
         """
         Count changesets per day by user id since given date.
         """
