@@ -19,12 +19,18 @@
         color: $black;
         text-decoration: none;
         padding: 4px 12px;
+        border-top: 1px solid transparent;
+        border-bottom: 1px solid transparent;
     }
 
     .leaflet-contextmenu-item:hover {
-        background-color: lightgray;
+        background-color: $off-white;
+        border-top-color: #f0f0f0;
+        border-bottom-color: #f0f0f0;
     }
 
     bottom: unset !important;
     left: unset !important;
+    translate: 5px 5px;
+    transition: none;
 }
