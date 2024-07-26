@@ -234,6 +234,7 @@ export const getRoutingController = (map) => {
     // On success callback, call routing engine, display results, and update search params
     const onFormSuccess = (data) => {
         console.debug("onFormSuccess", data)
+        console.log(fromMarker, data.from)
 
         if (data.from) {
             const { bounds, geom, name } = data.from
@@ -266,9 +267,11 @@ export const getRoutingController = (map) => {
         }
 
         // Focus on the makers if they're offscreen
-        const markerBounds = fromBounds.extend(toBounds)
-        if (!map.getBounds().contains(markerBounds)) {
-            map.fitBounds(markerBounds)
+        if (fromBounds) {
+            const markerBounds = fromBounds.extend(toBounds)
+            if (!map.getBounds().contains(markerBounds)) {
+                map.fitBounds(markerBounds)
+            }
         }
 
         callRoutingEngine()
@@ -278,6 +281,8 @@ export const getRoutingController = (map) => {
         // Abort any pending request
         if (abortController) abortController.abort()
         abortController = new AbortController()
+
+        if (!fromMarker || !toMarker) return
 
         const routingEngineName = engineInput.value
         const routingEngine = routingEngines.get(routingEngineName)
@@ -453,10 +458,18 @@ export const getRoutingController = (map) => {
                 const [from, to] = searchParams.route.split(";")
                 fromInput.value = from
                 fromInput.dispatchEvent(new Event("input"))
-                toInput.value = to
+                toLoadedInput.value = to
                 toInput.dispatchEvent(new Event("input"))
             }
 
+            if (searchParams.from) {
+                fromInput.value = searchParams.from
+                fromInput.dispatchEvent(new Event("input"))
+            }
+            if (searchParams.to) {
+                toInput.value = searchParams.to
+                toInput.dispatchEvent(new Event("input"))
+            }
             const routingEngine = getInitialRoutingEngine(searchParams)
             if (routingEngine) {
                 if (engineInput.querySelector(`option[value=${routingEngine}]`)) {
