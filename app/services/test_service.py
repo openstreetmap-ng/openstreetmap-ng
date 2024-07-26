@@ -10,6 +10,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.models.db.user import User
+from app.models.locale_name import LocaleCode
 from app.models.str import PasswordStr
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
@@ -41,7 +42,7 @@ class TestService:
             name: str,
             *,
             status: UserStatus = UserStatus.active,
-            language: str = DEFAULT_LANGUAGE,
+            language: LocaleCode = DEFAULT_LANGUAGE,
             created_at: datetime | None = None,
             roles: tuple[UserRole, ...] = (),
         ) -> None:

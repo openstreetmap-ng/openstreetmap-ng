@@ -7,15 +7,16 @@ from pathlib import Path
 
 from app.config import DEFAULT_LANGUAGE
 from app.lib.locale import is_installed_locale
+from app.models.locale_name import LocaleCode
 
 _locale_dir = Path('config/locale/gnu')
-_context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
+_context: ContextVar[tuple[tuple[LocaleCode, ...], GNUTranslations]] = ContextVar('TranslationContext')
 
 
 # removing lru_cache will not enable live-reload for translations
 # gettext always caches .mo files internally
 @lru_cache(maxsize=256)
-def _get_translation(locales: Iterable[str]) -> GNUTranslations:
+def _get_translation(locales: Iterable[LocaleCode]) -> GNUTranslations:
     """
     Get the translation object for the given languages.
     """
@@ -27,13 +28,13 @@ def _get_translation(locales: Iterable[str]) -> GNUTranslations:
 
 
 @contextmanager
-def translation_context(primary_locale: str, /):
+def translation_context(primary_locale: LocaleCode, /):
     """
     Context manager for setting the translation in ContextVar.
 
     Languages order determines the preference, from most to least preferred.
     """
-    processed: tuple[str, ...]
+    processed: tuple[LocaleCode, ...]
     if primary_locale == DEFAULT_LANGUAGE:
         processed = (primary_locale,)
     elif is_installed_locale(primary_locale):
@@ -49,7 +50,7 @@ def translation_context(primary_locale: str, /):
         _context.reset(token)
 
 
-def translation_locales() -> tuple[str, ...]:
+def translation_locales() -> tuple[LocaleCode, ...]:
     """
     Get the locales from the translation context.
 
@@ -59,7 +60,7 @@ def translation_locales() -> tuple[str, ...]:
     return _context.get()[0]
 
 
-def primary_translation_locale() -> str:
+def primary_translation_locale() -> LocaleCode:
     """
     Get the primary locale from the translation context.
 

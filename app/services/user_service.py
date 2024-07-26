@@ -14,6 +14,7 @@ from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
+from app.models.locale_name import LocaleCode
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
@@ -100,7 +101,7 @@ class UserService:
     async def update_settings(
         *,
         display_name: DisplayNameStr,
-        language: str,
+        language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
     ) -> None:

@@ -25,7 +25,7 @@ from app.lib.rich_text import RichTextMixin
 from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH, StorageKey
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
-    LANGUAGE_CODE_MAX_LENGTH,
+    LOCALE_CODE_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
 )
 from app.models.auth_provider import AuthProvider
@@ -34,6 +34,7 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.editor import Editor
 from app.models.geometry import PointType
+from app.models.locale_name import LocaleCode
 from app.models.scope import Scope
 from app.models.text_format import TextFormat
 from app.models.user_role import UserRole
@@ -57,7 +58,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
     auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
-    language: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
+    language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
     activity_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False)
     crash_reporting: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
