@@ -5,6 +5,7 @@ class LocaleName(NamedTuple):
     code: str
     english: str
     native: str
+    installed: bool
 
     @property
     def display_name(self) -> str:

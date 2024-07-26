@@ -5,7 +5,7 @@ from sqlalchemy import delete, func, or_, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
-from app.lib.locale import is_valid_locale
+from app.lib.locale import is_installed_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
@@ -109,8 +109,7 @@ class UserService:
         """
         if not await UserQuery.check_display_name_available(display_name):
             MessageCollector.raise_error('display_name', t('user.name_already_taken'))
-        # TODO: only display valid languages
-        if not is_valid_locale(language):
+        if not is_installed_locale(language):
             MessageCollector.raise_error('language', t('validation.invalid_value'))
 
         async with db_commit() as session:

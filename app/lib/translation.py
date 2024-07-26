@@ -6,7 +6,7 @@ from gettext import GNUTranslations, translation
 from pathlib import Path
 
 from app.config import DEFAULT_LANGUAGE
-from app.lib.locale import is_valid_locale
+from app.lib.locale import is_installed_locale
 
 _locale_dir = Path('config/locale/gnu')
 _context: ContextVar[tuple[tuple[str, ...], GNUTranslations]] = ContextVar('TranslationContext')
@@ -36,7 +36,7 @@ def translation_context(primary_locale: str, /):
     processed: tuple[str, ...]
     if primary_locale == DEFAULT_LANGUAGE:
         processed = (primary_locale,)
-    elif is_valid_locale(primary_locale):
+    elif is_installed_locale(primary_locale):
         processed = (primary_locale, DEFAULT_LANGUAGE)
     else:
         processed = (DEFAULT_LANGUAGE,)
