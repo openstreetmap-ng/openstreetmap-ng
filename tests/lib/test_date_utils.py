@@ -3,7 +3,15 @@ from datetime import UTC, datetime
 import pytest
 from dateutil.tz import tzoffset
 
-from app.lib.date_utils import format_rfc2822_date, format_sql_date, parse_date, utcnow
+from app.lib.date_utils import (
+    format_rfc2822_date,
+    format_short_date,
+    format_sql_date,
+    get_month_name,
+    get_weekday_name,
+    parse_date,
+    utcnow,
+)
 from app.lib.translation import translation_context
 
 
@@ -24,11 +32,62 @@ def test_format_sql_date_non_utc():
         format_sql_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=tzoffset(None, 32400)))
 
 
-def test_format_rfc2822_date():
-    with translation_context('en'):
-        assert format_rfc2822_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == 'Fri, 31 Dec 2021 15:30:45 +0000'
-    with translation_context('pl'):
-        assert format_rfc2822_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == 'Pt, 31 gru 2021 15:30:45 +0000'
+@pytest.mark.parametrize(
+    ('locale', 'expected'),
+    [
+        ('en', 'Fri, 31 Dec 2021 15:30:45 +0000'),
+        ('NonExistent', 'Fri, 31 Dec 2021 15:30:45 +0000'),
+        ('pl', 'Pt, 31 gru 2021 15:30:45 +0000'),
+    ],
+)
+def test_format_rfc2822_date(locale, expected):
+    with translation_context(locale):
+        assert format_rfc2822_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == expected
+
+
+@pytest.mark.parametrize(
+    ('locale', 'expected'),
+    [
+        ('en', 'December 31, 2021'),
+        ('NonExistent', 'December 31, 2021'),
+        ('pl', 'grudzień 31, 2021'),
+    ],
+)
+def test_format_short_date(locale, expected):
+    with translation_context(locale):
+        assert format_short_date(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)) == expected
+
+
+@pytest.mark.parametrize(
+    ('locale', 'short', 'expected'),
+    [
+        ('en', True, 'Dec'),
+        ('en', False, 'December'),
+        ('NonExistent', True, 'Dec'),
+        ('NonExistent', False, 'December'),
+        ('pl', True, 'gru'),
+        ('pl', False, 'grudzień'),
+    ],
+)
+def test_get_month_name(locale, short, expected):
+    with translation_context(locale):
+        assert get_month_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short) == expected
+
+
+@pytest.mark.parametrize(
+    ('locale', 'short', 'expected'),
+    [
+        ('en', True, 'Fri'),
+        ('en', False, 'Friday'),
+        ('NonExistent', True, 'Fri'),
+        ('NonExistent', False, 'Friday'),
+        ('pl', True, 'Pt'),
+        ('pl', False, 'piątek'),
+    ],
+)
+def test_get_weekday_name(locale, short, expected):
+    with translation_context(locale):
+        assert get_weekday_name(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC), short=short) == expected
 
 
 def test_utcnow():
