@@ -25,6 +25,7 @@ export const configureContextMenu = (map) => {
         interactive: true,
         content: element,
         bubblingMouseEvents: false,
+        popupAnchor: [0,0]
     })
 
     const getPopupPosition = () => {

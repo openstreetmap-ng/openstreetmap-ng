@@ -12,6 +12,7 @@ import { getIndexController } from "../index/_index.js"
 import { getNewNoteController } from "../index/_new-note.js"
 import { getNoteController } from "../index/_note.js"
 import { getQueryFeaturesController } from "../index/_query-features.js"
+import { configureContextMenu } from "./_context-menu.js"
 import { configureRouter } from "../index/_router.js"
 import { getRoutingController } from "../index/_routing.js"
 import { configureSearchForm } from "../index/_search-form.js"
@@ -74,7 +75,7 @@ const getMainMap = (container) => {
     // Configure map handlers
     configureNotesLayer(map)
     configureDataLayer(map)
-    // configureContextMenu(map)
+    configureContextMenu(map)
 
     // Add optional map marker
     const searchParams = qsParse(location.search.substring(1))
@@ -136,6 +137,7 @@ const getMainMap = (container) => {
  */
 export const configureMainMap = (container) => {
     const map = getMainMap(container)
+    window.map = map
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
     // Find home button is only available for the users with configured home location
