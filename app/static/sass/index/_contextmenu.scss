@@ -1,0 +1,30 @@
+.leaflet-popup:has(.leaflet-context-menu) {
+    .leaflet-context-menu {
+        display: flex;
+        flex-direction: column;
+    }
+    .leaflet-popup-content {
+        margin: 4px 0;
+    }
+    .leaflet-popup-content-wrapper {
+        border-radius: 4px;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    .leaflet-popup-tip-container {
+        display: none;
+    }
+    .leaflet-contextmenu-item {
+        color: $black;
+        text-decoration: none;
+        padding: 4px 12px;
+    }
+
+    .leaflet-contextmenu-item:hover {
+        background-color: lightgray;
+    }
+
+    bottom: unset !important;
+    left: unset !important;
+}
