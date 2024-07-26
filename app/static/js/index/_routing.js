@@ -267,11 +267,9 @@ export const getRoutingController = (map) => {
         }
 
         // Focus on the makers if they're offscreen
-        if (fromBounds) {
-            const markerBounds = fromBounds.extend(toBounds)
-            if (!map.getBounds().contains(markerBounds)) {
-                map.fitBounds(markerBounds)
-            }
+        const markerBounds = fromBounds.extend(toBounds)
+        if (!map.getBounds().contains(markerBounds)) {
+            map.fitBounds(markerBounds)
         }
 
         callRoutingEngine()
@@ -281,8 +279,6 @@ export const getRoutingController = (map) => {
         // Abort any pending request
         if (abortController) abortController.abort()
         abortController = new AbortController()
-
-        if (!fromMarker || !toMarker) return
 
         const routingEngineName = engineInput.value
         const routingEngine = routingEngines.get(routingEngineName)
