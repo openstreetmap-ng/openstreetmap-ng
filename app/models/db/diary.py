@@ -6,12 +6,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
 from app.lib.rich_text import RichTextMixin
-from app.limits import DIARY_BODY_MAX_LENGTH, LANGUAGE_CODE_MAX_LENGTH
+from app.limits import DIARY_BODY_MAX_LENGTH, LOCALE_CODE_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PointType
+from app.models.locale_name import LocaleCode
 from app.models.text_format import TextFormat
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ class Diary(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
-    language_code: Mapped[str] = mapped_column(Unicode(LANGUAGE_CODE_MAX_LENGTH), nullable=False)
+    language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
     point: Mapped[Point | None] = mapped_column(PointType, nullable=True)
 
     # runtime

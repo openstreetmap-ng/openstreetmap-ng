@@ -1,10 +1,13 @@
-from typing import NamedTuple
+from typing import NamedTuple, NewType
+
+LocaleCode = NewType('LocaleCode', str)
 
 
 class LocaleName(NamedTuple):
-    code: str
+    code: LocaleCode
     english: str
     native: str
+    installed: bool
 
     @property
     def display_name(self) -> str:

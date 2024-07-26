@@ -122,7 +122,7 @@
 
         {% if user is not none %}
         <form class="comment-form" method="POST" action="/api/web/note/{{ note.id }}/comment">
-            <input type="hidden" name="event">
+            <input type="hidden" name="event" autocomplete="off" required>
             {% if status == 'open' %}
             <div class="mb-3">
                 <textarea class="form-control" name="text" rows="5"></textarea>

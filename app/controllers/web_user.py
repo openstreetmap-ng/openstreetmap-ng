@@ -13,6 +13,7 @@ from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
+from app.models.locale_name import LocaleCode
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
@@ -123,7 +124,7 @@ async def account_confirm_resend(
 @router.post('/settings')
 async def update_settings(
     display_name: Annotated[DisplayNameStr, Form()],
-    language: Annotated[str, Form()],
+    language: Annotated[LocaleCode, Form()],
     activity_tracking: Annotated[bool, Form()],
     crash_reporting: Annotated[bool, Form()],
     _: Annotated[User, web_user()],

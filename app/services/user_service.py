@@ -5,7 +5,7 @@ from sqlalchemy import delete, func, or_, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
-from app.lib.locale import is_valid_locale
+from app.lib.locale import is_installed_locale
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
@@ -14,6 +14,7 @@ from app.models.auth_provider import AuthProvider
 from app.models.avatar_type import AvatarType
 from app.models.db.user import User
 from app.models.editor import Editor
+from app.models.locale_name import LocaleCode
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
@@ -100,7 +101,7 @@ class UserService:
     async def update_settings(
         *,
         display_name: DisplayNameStr,
-        language: str,
+        language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
     ) -> None:
@@ -109,8 +110,7 @@ class UserService:
         """
         if not await UserQuery.check_display_name_available(display_name):
             MessageCollector.raise_error('display_name', t('user.name_already_taken'))
-        # TODO: only display valid languages
-        if not is_valid_locale(language):
+        if not is_installed_locale(language):
             MessageCollector.raise_error('language', t('validation.invalid_value'))
 
         async with db_commit() as session:

@@ -20,7 +20,7 @@
     <div class="col-6 offset-3">
         <div class="row row-cols-2">
             <form class="col signup-form" method="POST" action="/api/web/user/signup">
-                <input type="hidden" name="tracking">
+                <input type="hidden" name="tracking" autocomplete="off" required>
 
                 <label class="form-label d-block">
                     {{ t('activerecord.attributes.user.display_name') }}
