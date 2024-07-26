@@ -23,6 +23,10 @@
         border-bottom: 1px solid transparent;
     }
 
+    .leaflet-contextmenu-item.disabled {
+        color: gray !important;
+    }
+
     .leaflet-contextmenu-item:hover {
         background-color: $off-white;
         border-top-color: #f0f0f0;

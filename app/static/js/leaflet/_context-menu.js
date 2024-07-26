@@ -19,12 +19,15 @@ export const configureContextMenu = (map) => {
     const showAddressButton = element.querySelector(".show-address")
     const queryFeaturesButton = element.querySelector(".query-features")
     const centerHereButton = element.querySelector(".center-here")
+    const measureDistanceButton = element.querySelector(".measure-distance")
+
 
     const popup = L.popup({
         closeButton: false,
         interactive: true,
         content: element,
         bubblingMouseEvents: false,
+        autoPan: false,
     })
 
     const getPopupPosition = () => {
@@ -103,13 +106,28 @@ export const configureContextMenu = (map) => {
         map.panTo(popup.getLatLng())
     }
 
+    // On measure distance button click, measure distance
+    const onMeasureDistanceButtonClick = () => {
+        const { lon, lat } = getPopupPosition()
+        routerNavigateStrict(
+            `/measure?${qsEncode({pos: `${lat},${lon}`})}`
+        )
+    }
+
+    const closePopup = () => {
+        map.closePopup(popup)
+    }
+
     // Listen for events
     map.addEventListener("contextmenu", onMapContextMenu)
     map.addEventListener("zoomend", onMapZoomEnd)
+    map.addEventListener("zoomstart movestart", closePopup)
     routingFromButton.addEventListener("click", onRoutingFromButtonClick)
     routingToButton.addEventListener("click", onRoutingToButtonClick)
     newNoteButton.addEventListener("click", onNewNoteButtonClick)
     showAddressButton.addEventListener("click", onShowAddressButtonClick)
     queryFeaturesButton.addEventListener("click", onQueryFeaturesButtonClick)
     centerHereButton.addEventListener("click", onCenterHereButtonClick)
+    measureDistanceButton.addEventListener("click", onMeasureDistanceButtonClick)
+
 }
