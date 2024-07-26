@@ -26,7 +26,7 @@ def _load_locale() -> tuple[dict[str, str], tuple[LocaleName, ...]]:
             continue
         locale_names_map[locale_name.code] = locale_name
     if not_found_codes:
-        logging.warning('Found locale names without localization data: %r', not_found_codes)
+        logging.info('Found locale names without localization data: %s', not_found_codes)
     for code in tuple(i18next_map.keys()):
         if code not in locale_names_map:
             raise ValueError(f'Locale {code!r} has no corresponding name')
@@ -42,16 +42,16 @@ def _normalize(code: str) -> str:
 
 
 _i18next_map, LOCALES_NAMES = _load_locale()
-LOCALES = frozenset(_i18next_map.keys())
-_locales_normalized_map = {_normalize(k): k for k in LOCALES}
-logging.info('Loaded %d locales and %d locales names', len(LOCALES), len(LOCALES_NAMES))
+_locales_codes = frozenset(_i18next_map.keys())
+_locales_codes_normalized_map = {_normalize(k): k for k in _locales_codes}
+logging.info('Loaded %d locales and %d locales names', len(_locales_codes), len(LOCALES_NAMES))
 
 # check that default locale exists
-if DEFAULT_LANGUAGE not in LOCALES:
+if DEFAULT_LANGUAGE not in _locales_codes:
     raise ValueError(f'Default locale {DEFAULT_LANGUAGE!r} not found in locales')
 
 # check that all language codes are short enough
-for code in LOCALES:
+for code in _locales_codes:
     if len(code) > LANGUAGE_CODE_MAX_LENGTH:
         raise ValueError(f'Language code {code!r} is too long ({len(code)} > {LANGUAGE_CODE_MAX_LENGTH})')
 
@@ -89,7 +89,7 @@ def is_valid_locale(code: str) -> bool:
     >>> is_valid_locale('NonExistent')
     False
     """
-    return code in LOCALES
+    return code in _locales_codes
 
 
 def normalize_locale(code: str) -> str | None:
@@ -104,6 +104,6 @@ def normalize_locale(code: str) -> str | None:
     None
     """
     # skip if already normalized
-    if code in LOCALES:
+    if code in _locales_codes:
         return code
-    return _locales_normalized_map.get(_normalize(code))
+    return _locales_codes_normalized_map.get(_normalize(code))

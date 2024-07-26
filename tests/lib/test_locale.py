@@ -1,8 +1,8 @@
 import pytest
 
 from app.lib.locale import (
-    LOCALES,
     LOCALES_NAMES,
+    _locales_codes,
     is_valid_locale,
     normalize_locale,
 )
@@ -25,7 +25,7 @@ def test_normalize_locale(locale, expected):
 
 @pytest.mark.parametrize('locale', ['en', 'pl'])
 def test_installed_locales(locale):
-    assert locale in LOCALES
+    assert locale in _locales_codes
 
 
 @pytest.mark.parametrize(
