@@ -26,8 +26,8 @@
                 {{ t('notes.new.advice') }}
             </div>
 
-            <input type="hidden" name="lon">
-            <input type="hidden" name="lat">
+            <input type="hidden" name="lon" autocomplete="off" required>
+            <input type="hidden" name="lat" autocomplete="off" required>
             <button class="btn btn-primary w-100" type="submit">
                 {{ t('notes.new.add') }}
             </button>

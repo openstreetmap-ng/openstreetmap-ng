@@ -18,7 +18,7 @@
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.from') }}</label>
                     <input type="text" class="form-control" name="from" required>
-                    <input type="hidden" name="from_loaded">
+                    <input type="hidden" name="from_loaded" autocomplete="off">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/green.webp"
                     alt="{{ t('alt.marker.green') }}" loading="lazy" data-direction="from"
@@ -29,7 +29,7 @@
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.to') }}</label>
                     <input type="text" class="form-control" name="to" required>
-                    <input type="hidden" name="to_loaded">
+                    <input type="hidden" name="to_loaded" autocomplete="off">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/red.webp"
                     alt="{{ t('alt.marker.red') }}" loading="lazy" data-direction="to"
@@ -76,7 +76,7 @@
                 </div>
 
                 <div class="col-auto">
-                    <input type="hidden" name="bbox">
+                    <input type="hidden" name="bbox" autocomplete="off" required>
                     <button class="btn btn-primary" type="submit">
                         {{ t('site.search.submit_text') }}
                     </button>
