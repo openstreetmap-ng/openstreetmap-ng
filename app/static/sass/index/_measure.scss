@@ -1,0 +1,13 @@
+.measure-label {
+    position:relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    div {
+        position: absolute;
+        background-color: yellow;
+        padding-left: 2px;
+        padding-right: 2px;
+        border-radius: 2px;
+    }
+}
