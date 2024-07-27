@@ -60,7 +60,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
         **(
             {
                 'uid': comment.user_id,
-                'user': comment.user.display_name,  # type: ignore[union-attr]
+                'user': comment.user.display_name,  # pyright: ignore[reportOptionalMemberAccess]
                 'user_url': f'{APP_URL}/user/permalink/{comment.user_id}',
             }
             if (comment.user_id is not None)
@@ -88,7 +88,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'type': 'Feature',
             'geometry': {
                 'type': 'Point',
-                'coordinates': _encode_point(note.point, is_json=True),
+                'coordinates': _encode_point_json(note.point),
             },
             'properties': {
                 'id': note.id,
@@ -111,7 +111,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     elif is_gpx:
         return {
-            **_encode_point(note.point, is_json=False),
+            **_encode_point_xml(note.point),
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': f'{APP_URL}/note/{note.id}'},
@@ -136,7 +136,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
         }
     else:
         return {
-            **_encode_point(note.point, is_json=False),
+            **_encode_point_xml(note.point),
             'id': note.id,
             'url': f'{API_URL}/api/0.6/notes/{note.id}',
             **(
@@ -157,10 +157,19 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
 
 
 @cython.cfunc
-def _encode_point(point: Point, *, is_json: cython.char):
+def _encode_point_json(point: Point) -> list[float]:
     """
-    >>> _encode_point(Point(1, 2))
+    >>> _encode_point_json(Point(1, 2))
+    [1, 2]
+    """
+    return lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
+
+
+@cython.cfunc
+def _encode_point_xml(point: Point) -> dict[str, float]:
+    """
+    >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
     """
     x, y = lib.get_coordinates(np.asarray(point, dtype=object), False, False)[0].tolist()
-    return (x, y) if is_json else {'@lon': x, '@lat': y}
+    return {'@lon': x, '@lat': y}

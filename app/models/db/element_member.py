@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.db.base import Base
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementType
 
 
 class ElementMember(Base.NoID):
@@ -19,7 +19,7 @@ class ElementMember(Base.NoID):
     order: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)
-    id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    id: Mapped[ElementId] = mapped_column(BigInteger, nullable=False)
     role: Mapped[str] = mapped_column(Unicode(255), nullable=False)
 
     __table_args__ = (

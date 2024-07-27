@@ -1,6 +1,7 @@
 import logging
 from base64 import b64decode
 
+from pydantic import SecretStr
 from sqlalchemy import update
 from sqlalchemy.orm import joinedload
 
@@ -69,7 +70,7 @@ class AuthService:
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
-                basic_user = await AuthService.authenticate_credentials(username, PasswordStr(password))
+                basic_user = await AuthService.authenticate_credentials(username, SecretStr(password))
                 if basic_user is not None:
                     user, scopes = basic_user, _basic_auth_scopes
 

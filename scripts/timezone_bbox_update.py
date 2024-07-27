@@ -32,8 +32,8 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
 
     print('Processing country boundaries')
     for feature in features:
-        tags: dict = feature['properties']['tags']
-        country: str | None = tags.get('ISO3166-1:alpha2', tags.get('ISO3166-1'))
+        tags: dict[str, str] = feature['properties']['tags']
+        country = tags.get('ISO3166-1:alpha2', tags.get('ISO3166-1'))
         if country is None:
             raise ValueError(f'Country code not found in {tags!r}')
 

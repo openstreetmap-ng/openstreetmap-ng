@@ -27,7 +27,7 @@ def xml_body(path: str) -> params.Depends:
             if not isinstance(data, dict):
                 raise_for().bad_xml(bad_xml_name, bad_xml_message, xml)
 
-            data = data.get(part)  # type: ignore[assignment]
+            data = data.get(part)
             if data is None:
                 raise_for().bad_xml(bad_xml_name, bad_xml_message, xml)
 

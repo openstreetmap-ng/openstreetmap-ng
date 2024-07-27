@@ -16,8 +16,7 @@ from app.limits import (
     SEARCH_RESULTS_LIMIT,
 )
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
 from app.models.msgspec.leaflet import ElementLeaflet, ElementLeafletNode
 from app.models.search_result import SearchResult
@@ -89,14 +88,14 @@ async def _get_response(
     elements = tuple(r.element for r in results)
     await ElementMemberQuery.resolve_members(elements)
 
-    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # type: ignore[union-attr]
+    members_refs = {ElementRef(member.type, member.id) for element in elements for member in element.members}  # pyright: ignore[reportOptionalIterable]
     members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
         recurse_ways=True,
         limit=None,
     )
-    members_map: dict[tuple[ElementType, int], Element] = {
+    members_map: dict[tuple[ElementType, ElementId], Element] = {
         (member.type, member.id): member  #
         for member in members_elements
     }
@@ -105,12 +104,12 @@ async def _get_response(
     Search.remove_overlapping_points(results)
 
     # prepare data for leaflet rendering
-    leaflet: list[list[ElementLeaflet]] = [None] * len(results)  # type: ignore[list-item]
+    leaflet: list[list[ElementLeaflet]] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
 
     i: cython.int
     for i, result in enumerate(results):
         element = result.element
-        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # type: ignore[union-attr]
+        element_members = tuple(members_map[member.type, member.id] for member in element.members)  # pyright: ignore[reportOptionalIterable]
         full_data = chain(
             (element,),
             element_members,
@@ -118,7 +117,7 @@ async def _get_response(
                 members_map[mm.type, mm.id]
                 for member in element_members
                 if member.type == 'way'  # recurse_ways
-                for mm in member.members  # type: ignore[union-attr]
+                for mm in member.members  # pyright: ignore[reportOptionalIterable]
             ),
         )
 

@@ -24,7 +24,7 @@ class ExceptionsMiddleware:
         implementation = (
             Exceptions06()
             if get_request().url.path.startswith(('/api/0.6/', '/api/versions', '/api/capabilities'))
-            else Exceptions()  # type: ignore[abstract]
+            else Exceptions()
         )
 
         with exceptions_context(implementation):

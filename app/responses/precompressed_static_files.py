@@ -2,6 +2,7 @@ import stat
 from functools import lru_cache
 from mimetypes import guess_type
 from os import PathLike, stat_result
+from typing import override
 
 import cython
 from fastapi import HTTPException
@@ -24,6 +25,7 @@ class PrecompressedStaticFiles(StaticFiles):
         super().__init__(directory=directory)
         self._resolve_cache: LRUCache[_CacheKey, _CacheValue] = LRUCache(maxsize=1024)
 
+    @override
     async def get_response(self, path: str, scope: Scope) -> Response:
         request_headers = Headers(scope=scope)
         accept_encoding = request_headers.get('Accept-Encoding')

@@ -61,7 +61,7 @@ def rate_limit(*, weight: int = 1):
                 key = f'RateLimit:user:{user.id}'
                 quota = UserRole.get_rate_limit_quota(user.roles)
             else:
-                key = f'RateLimit:host:{request.client.host}'  # type: ignore[union-attr]
+                key = f'RateLimit:host:{request.client.host}'  # pyright: ignore[reportOptionalMemberAccess]
                 quota = UserRole.get_rate_limit_quota(())
 
             rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)

@@ -3,7 +3,7 @@ from collections.abc import Collection, Sequence
 from typing import Literal
 
 import cython
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 from sqlalchemy import Select, func, select, text, union_all
 
 from app.db import db
@@ -69,7 +69,7 @@ class NoteCommentQuery:
             id_comments_map[note.id] = note.comments = []
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(notes)  # type: ignore[list-item]
+            stmts: list[Select] = [None] * len(notes)  # pyright: ignore[reportAssignmentType]
             i: cython.int
             for i, note in enumerate(notes):
                 stmt_ = select(NoteComment.id).where(

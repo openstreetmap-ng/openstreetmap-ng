@@ -24,13 +24,16 @@ class GravatarStorage(StorageBase):
         self._fc = FileCache(context)
 
     @override
-    async def load(self, email: str) -> bytes:
-        key = md5(email.lower().encode()).hexdigest()  # noqa: S324
+    async def load(self, key: str) -> bytes:
+        """
+        Load an avatar from Gravatar by email.
+        """
+        key_hashed = md5(key.lower().encode()).hexdigest()  # noqa: S324
         data = await self._fc.get(key)
         if data is not None:
             return data
 
-        r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
+        r = await HTTP.get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404')
         if r.status_code == status.HTTP_404_NOT_FOUND:
             data = Avatar.default_image
         else:
@@ -38,5 +41,5 @@ class GravatarStorage(StorageBase):
             data = r.content
             data = Avatar.normalize_image(data)
 
-        await self._fc.set(key, data, ttl=GRAVATAR_CACHE_EXPIRE)
+        await self._fc.set(key_hashed, data, ttl=GRAVATAR_CACHE_EXPIRE)
         return data

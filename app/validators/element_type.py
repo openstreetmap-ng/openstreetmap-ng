@@ -1,12 +1,14 @@
 from functools import lru_cache
+from typing import TYPE_CHECKING, override
 
 from starlette.convertors import Convertor
 
-from app.models.element_type import ElementType
+if TYPE_CHECKING:
+    from app.models.element_ref import ElementType
 
 
 @lru_cache(maxsize=512)
-def element_type(s: str) -> ElementType:
+def element_type(s: str) -> 'ElementType':
     """
     Get the element type from the given string.
 
@@ -33,5 +35,6 @@ class ElementTypeConvertor(Convertor):
     regex = r'node|way|relation'
     convert = staticmethod(element_type)
 
-    def to_string(self, value: ElementType) -> str:
+    @override
+    def to_string(self, value: 'ElementType') -> str:
         return value

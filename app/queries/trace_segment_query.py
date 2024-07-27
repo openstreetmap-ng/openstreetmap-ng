@@ -4,7 +4,7 @@ from collections.abc import Collection, Sequence
 import cython
 import numpy as np
 from shapely import GeometryType, MultiPoint, STRtree, from_wkb, get_parts, lib
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 from sqlalchemy import func, literal_column, select, text, union_all
 from sqlalchemy.sql.selectable import Select
 
@@ -75,11 +75,11 @@ class TraceSegmentQuery:
 
         # extract points and check for intersections
         segments_points = tuple(segment.points for segment in segments)
-        segments_parts_: np.ndarray = get_parts(segments_points, return_index=True)
+        segments_parts_ = get_parts(segments_points, return_index=True)
         segments_parts = segments_parts_[0]
         segments_indices = segments_parts_[1]
         tree = STRtree((geometry,))
-        intersect_indices: np.ndarray = tree.query(segments_parts, predicate='intersects')[0]
+        intersect_indices = tree.query(segments_parts, predicate='intersects')[0]
         if not intersect_indices.size:
             return ()
 
@@ -156,7 +156,7 @@ class TraceSegmentQuery:
             return
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(traces)  # type: ignore[list-item]
+            stmts: list[Select] = [None] * len(traces)  # pyright: ignore[reportAssignmentType]
             i: cython.int
             for i, trace in enumerate(traces):
                 subq = (
@@ -206,7 +206,7 @@ class TraceSegmentQuery:
         for trace_id, wkb in rows:
             trace = trace_id_map[trace_id]
             geom = from_wkb(wkb)
-            coords: np.ndarray = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
+            coords = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
             if resolution is not None:
                 if len(coords) < 2:
                     trace.coords = []

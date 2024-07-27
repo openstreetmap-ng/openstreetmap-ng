@@ -54,7 +54,7 @@ async def get_changeset(
     include_discussion: Annotated[str | None, Query(alias='include_discussion')] = None,
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
     changesets = (changeset,)
@@ -74,7 +74,7 @@ async def download_changeset(
     changeset_id: PositiveInt,
 ):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for().changeset_not_found(changeset_id)
 
@@ -96,7 +96,7 @@ async def update_changeset(
 
     await ChangesetService.update_tags(changeset_id, tags)
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise AssertionError(f'Changeset {changeset_id} must exist in database')
     changesets = (changeset,)
@@ -187,7 +187,7 @@ async def query_changesets(
                 created_before = None
         except Exception:
             return Response(f'no time information in "{time}"', status.HTTP_400_BAD_REQUEST)
-        if (closed_after is not None) and (created_before is not None) and closed_after > created_before:
+        if (created_before is not None) and closed_after > created_before:
             return Response('The time range is invalid, T1 > T2', status.HTTP_400_BAD_REQUEST)
     else:
         closed_after = None

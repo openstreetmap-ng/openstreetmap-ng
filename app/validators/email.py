@@ -1,10 +1,13 @@
 import logging
 from asyncio import Task, TaskGroup
+from collections.abc import Iterable
+from typing import cast
 
 from annotated_types import Predicate
 from dns.asyncresolver import Resolver
 from dns.exception import DNSException, Timeout
 from dns.rdatatype import RdataType
+from dns.rdtypes.mxbase import MXBase
 from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers
 from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
@@ -75,7 +78,7 @@ async def validate_email_deliverability(email: str) -> bool:
 
 async def _check_domain_deliverability(domain: str) -> bool:
     success = False
-    tasks: list[Task] = []
+    tasks: list[Task[None]] = []
 
     async with TaskGroup() as tg:
 
@@ -105,7 +108,7 @@ async def _check_domain_deliverability(domain: str) -> bool:
 
                 # mx - treat not-null answer as success
                 # sort answers by preference in descending order
-                rrset_by_preference = sorted(rrset, key=lambda r: r.preference, reverse=True)
+                rrset_by_preference = sorted(cast(Iterable[MXBase], rrset), key=lambda r: r.preference, reverse=True)
                 exchange = str(rrset_by_preference[0].exchange)
                 success = exchange != '.'
             elif rrset:
@@ -119,4 +122,4 @@ async def _check_domain_deliverability(domain: str) -> bool:
     return success
 
 
-EmailStrValidator = Predicate(validate_email)  # type: ignore[arg-type]
+EmailStrValidator = Predicate(validate_email)  # pyright: ignore[reportArgumentType]

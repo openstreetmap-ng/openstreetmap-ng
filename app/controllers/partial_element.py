@@ -18,8 +18,7 @@ from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.models.tag_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
@@ -30,7 +29,7 @@ router = APIRouter(prefix='/api/partial')
 
 
 @router.get('/{type:element_type}/{id:int}')
-async def get_latest(type: ElementType, id: PositiveInt):
+async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
 
     ref = ElementRef(type, id)
@@ -58,7 +57,11 @@ async def get_latest(type: ElementType, id: PositiveInt):
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
-async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
+async def get_version(
+    type: ElementType,
+    id: Annotated[ElementId, PositiveInt],
+    version: Annotated[int, PositiveInt],
+):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     include_parents = True
 
@@ -91,7 +94,7 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/history')
 async def get_history(
     type: ElementType,
-    id: PositiveInt,
+    id: Annotated[ElementId, PositiveInt],
     page: Annotated[PositiveInt, Query()] = 1,
 ):
     ref = ElementRef(type, id)
@@ -159,7 +162,10 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
                 User.avatar_id,
             )
         ):
-            return await ChangesetQuery.get_by_id(element.changeset_id)
+            changeset = await ChangesetQuery.find_by_id(element.changeset_id)
+            if changeset is None:
+                raise AssertionError('Parent changeset must exist')
+            return changeset
 
     async def data_task():
         nonlocal full_data, list_elements

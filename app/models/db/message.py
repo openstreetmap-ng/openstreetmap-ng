@@ -1,4 +1,4 @@
-from email.message import EmailMessage
+from email.message import EmailMessage, MIMEPart
 from typing import Self
 
 import cython
@@ -76,12 +76,12 @@ class Message(Base.ZID, CreatedAtMixin, RichTextMixin):
 
 
 @cython.cfunc
-def get_body(part: EmailMessage):
+def get_body(part: MIMEPart):
     content_type = part.get_content_type()
     if content_type not in {'text/plain', 'text/html'}:
         return None
 
-    payload_bytes: bytes | None = part.get_payload(decode=True)  # type: ignore[assignment]
+    payload_bytes: bytes | None = part.get_payload(decode=True)  # pyright: ignore[reportAssignmentType]
     if payload_bytes is None:
         return None
 

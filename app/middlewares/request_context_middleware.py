@@ -18,7 +18,7 @@ def get_request_ip() -> IPv4Address | IPv6Address:
     """
     Get the request IP address.
     """
-    return ip_address(_context.get().client.host)  # type: ignore[union-attr]
+    return ip_address(_context.get().client.host)  # pyright: ignore[reportOptionalMemberAccess]
 
 
 class RequestContextMiddleware:

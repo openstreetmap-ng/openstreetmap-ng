@@ -140,7 +140,7 @@ class _TarProcessor(_TraceProcessor):
 
                 # not checking for the total size of the files - there is no compression
                 # the output size will not exceed the input size
-                return tuple(archive.extractfile(info).read() for info in infos)  # type: ignore[union-attr]
+                return tuple(archive.extractfile(info).read() for info in infos)  # pyright: ignore[reportOptionalMemberAccess]
 
         except tarfile.TarError:
             raise_for().trace_file_archive_corrupted(cls.media_type)
@@ -170,7 +170,7 @@ class _ZipProcessor(_TraceProcessor):
                 if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
                     raise_for().trace_file_archive_too_many_files()
 
-                result: list[bytes] = [None] * len(infos)  # type: ignore[list-item]
+                result: list[bytes] = [None] * len(infos)  # pyright: ignore[reportAssignmentType]
                 result_size: cython.int = 0
                 i: cython.int
                 for i, info in enumerate(infos):
@@ -217,7 +217,7 @@ class _ZstdProcessor(_TraceProcessor):
 
 
 _trace_processors: dict[str, type[_TraceProcessor]] = {
-    processor.media_type: processor  # type: ignore[type-abstract]
+    processor.media_type: processor
     for processor in (
         _Bzip2Processor,
         _GzipProcessor,

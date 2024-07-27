@@ -57,7 +57,7 @@ async def changeset_unsubscribe(
 
 async def _get_response(changeset_id: int):
     with options_context(joinedload(Changeset.user).load_only(User.display_name)):
-        changeset = await ChangesetQuery.get_by_id(changeset_id)
+        changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise AssertionError(f'Changeset {changeset_id} must exist in database')
     changesets = (changeset,)

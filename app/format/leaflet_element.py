@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 import cython
 import numpy as np
@@ -7,6 +7,7 @@ from shapely import Point, lib
 
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
+from app.models.element_ref import ElementId
 from app.models.msgspec.leaflet import (
     ElementLeaflet,
     ElementLeafletNode,
@@ -25,9 +26,9 @@ class LeafletElementMixin:
         """
         Format elements into a minimal structure, suitable for Leaflet rendering.
         """
-        node_id_map: dict[int, Element] = {}
-        way_id_map: dict[int, Element] = {}
-        way_nodes_ids: set[int] = set()
+        node_id_map: dict[ElementId, Element] = {}
+        way_id_map: dict[ElementId, Element] = {}
+        way_nodes_ids: set[ElementId] = set()
         result: list[ElementLeaflet] = []
 
         for element in elements:
@@ -86,7 +87,7 @@ class LeafletElementMixin:
 
 
 @cython.cfunc
-def _is_way_area(tags: dict[str, str], members: list[ElementMember]) -> cython.char:
+def _is_way_area(tags: dict[str, str], members: Sequence[ElementMember]) -> cython.char:
     """
     Check if the way should be displayed as an area.
     """
@@ -102,7 +103,7 @@ def _is_way_area(tags: dict[str, str], members: list[ElementMember]) -> cython.c
 
 
 @cython.cfunc
-def _is_node_interesting(node: Element, way_nodes_ids: set[int], *, detailed: cython.char) -> cython.char:
+def _is_node_interesting(node: Element, way_nodes_ids: set[ElementId], *, detailed: cython.char) -> cython.char:
     """
     Check if the node is interesting enough to be displayed.
     """

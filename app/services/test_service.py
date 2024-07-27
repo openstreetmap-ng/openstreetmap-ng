@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from ipaddress import IPv4Address
 
+from pydantic import SecretStr
 from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
@@ -11,7 +12,6 @@ from app.lib.auth_context import auth_context
 from app.lib.password_hash import PasswordHash
 from app.models.db.user import User
 from app.models.locale_name import LocaleCode
-from app.models.str import PasswordStr
 from app.models.user_role import UserRole
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
@@ -51,7 +51,7 @@ class TestService:
             """
             email = f'{name}@{TEST_USER_DOMAIN}'
             name_available = await UserQuery.check_display_name_available(name)
-            password_hashed = PasswordHash.hash(PasswordStr(TEST_USER_PASSWORD))
+            password_hashed = PasswordHash.hash(SecretStr(TEST_USER_PASSWORD))
 
             async with db_commit() as session:
                 if name_available:

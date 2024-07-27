@@ -6,7 +6,7 @@ import cython
 from app.lib.translation import t
 from app.limits import FEATURE_PREFIX_TAGS_LIMIT
 from app.models.db.element import Element
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementType
 
 
 @overload

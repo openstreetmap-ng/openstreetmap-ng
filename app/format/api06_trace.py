@@ -30,16 +30,14 @@ class Trace06Mixin:
     @staticmethod
     def decode_gpx_file(gpx_file: dict) -> Trace:
         return Trace(
-            **dict(
-                TraceValidating(
-                    user_id=auth_user(required=True).id,
-                    name=gpx_file.get('@name'),
-                    description=gpx_file.get('description'),
-                    visibility=gpx_file.get('@visibility'),
-                    size=1,
-                    tags=gpx_file.get('tag', ()),
-                )
-            )
+            **TraceValidating(
+                user_id=auth_user(required=True).id,
+                name=gpx_file.get('@name'),  # pyright: ignore[reportArgumentType]
+                description=gpx_file.get('description'),  # pyright: ignore[reportArgumentType]
+                visibility=gpx_file.get('@visibility'),  # pyright: ignore[reportArgumentType]
+                size=1,
+                tags=gpx_file.get('tag', ()),
+            ).model_dump()
         )
 
 

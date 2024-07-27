@@ -26,7 +26,7 @@ def event_loop_policy():
 @pytest_asyncio.fixture(scope='session')
 async def transport():
     async with LifespanManager(main):
-        yield ASGITransport(main)  # type: ignore[arg-type]
+        yield ASGITransport(main)  # pyright: ignore[reportArgumentType]
 
 
 @pytest.fixture()

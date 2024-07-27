@@ -1,14 +1,14 @@
-from typing import NamedTuple, Self
+from typing import Literal, NamedTuple, NewType, Self, override
 
-from pydantic import PositiveInt
-
-from app.models.element_type import ElementType
 from app.validators.element_type import element_type
+
+ElementId = NewType('ElementId', int)
+ElementType = Literal['node', 'way', 'relation']
 
 
 class ElementRef(NamedTuple):
     type: ElementType
-    id: int
+    id: ElementId
 
     @classmethod
     def from_str(cls, s: str) -> Self:
@@ -19,13 +19,12 @@ class ElementRef(NamedTuple):
         ElementRef(type='node', id=123)
         """
         type = element_type(s)
-        id = int(s[1:])
-
+        id = ElementId(int(s[1:]))
         if id == 0:
             raise ValueError('Element id cannot be 0')
-
         return cls(type, id)
 
+    @override
     def __str__(self) -> str:
         """
         Produce a string representation of the element reference.
@@ -38,8 +37,8 @@ class ElementRef(NamedTuple):
 
 class VersionedElementRef(NamedTuple):
     type: ElementType
-    id: int
-    version: PositiveInt
+    id: ElementId
+    version: int
 
     @classmethod
     def from_str(cls, s: str) -> Self:
@@ -51,14 +50,12 @@ class VersionedElementRef(NamedTuple):
         """
         type = element_type(s)
         idx = s.rindex('v')
-        id = int(s[1:idx])
+        id = ElementId(int(s[1:idx]))
         version = int(s[idx + 1 :])
-
         if id == 0:
             raise ValueError('Element id cannot be 0')
         if version <= 0:
             raise ValueError('Element version must be positive')
-
         return cls(type, id, version)
 
     @classmethod
@@ -70,16 +67,15 @@ class VersionedElementRef(NamedTuple):
         VersionedElementRef(type='node', id=123, version=1)
         """
         idx = s.rindex('v')
-        id = int(s[:idx])
+        id = ElementId(int(s[:idx]))
         version = int(s[idx + 1 :])
-
         if id == 0:
             raise ValueError('Element id cannot be 0')
         if version <= 0:
             raise ValueError('Element version must be positive')
-
         return cls(type, id, version)
 
+    @override
     def __str__(self) -> str:
         """
         Produce a string representation of the versioned element reference.

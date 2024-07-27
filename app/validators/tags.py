@@ -16,7 +16,7 @@ class TagsValidating(Base.Validating):
     # TODO: test
     @field_validator('tags')
     @classmethod
-    def validate_tags(cls, tags: dict) -> dict:
+    def validate_tags(cls, tags: dict[str, str]) -> dict[str, str]:
         tags_len = len(tags)
 
         if tags_len > ELEMENT_TAGS_LIMIT:

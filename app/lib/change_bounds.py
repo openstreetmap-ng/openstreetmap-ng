@@ -1,7 +1,8 @@
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 
 import cython
 import numpy as np
+from numpy.typing import NDArray
 from rtree.index import Index
 from shapely import Point, box, get_coordinates, measurement
 from sklearn.cluster import AgglomerativeClustering
@@ -10,7 +11,7 @@ from app.limits import CHANGESET_BBOX_LIMIT, CHANGESET_NEW_BBOX_MIN_DISTANCE, CH
 from app.models.db.changeset_bounds import ChangesetBounds
 
 
-def change_bounds(bounds: Collection[ChangesetBounds], points: Collection[Point]) -> list[ChangesetBounds]:
+def change_bounds(bounds: Collection[ChangesetBounds], points: Sequence[Point]) -> list[ChangesetBounds]:
     bbox_limit: cython.int = CHANGESET_BBOX_LIMIT
     bboxes: list[tuple[float, float, float, float]]
     bboxes = measurement.bounds(tuple(cb.bounds for cb in bounds)).tolist()
@@ -85,7 +86,7 @@ def change_bounds(bounds: Collection[ChangesetBounds], points: Collection[Point]
 
 
 @cython.cfunc
-def _cluster_points(points: Collection[Point]) -> tuple[list[np.ndarray], ...]:
+def _cluster_points(points: Sequence[Point]) -> tuple[list[NDArray[np.float64]], ...]:
     coords = get_coordinates(points)
     if len(coords) == 1:
         return ([coords[0]],)
@@ -96,13 +97,13 @@ def _cluster_points(points: Collection[Point]) -> tuple[list[np.ndarray], ...]:
         n_clusters = CHANGESET_BBOX_LIMIT
         distance_threshold = None
     clustering = AgglomerativeClustering(
-        n_clusters=n_clusters,
+        n_clusters=n_clusters,  # pyright: ignore[reportArgumentType]
         metric='chebyshev',
         linkage='single',
         distance_threshold=distance_threshold,
     )
     clustering.fit(coords)
-    clusters: tuple[list[np.ndarray], ...] = tuple([] for _ in range(clustering.n_clusters_))
+    clusters: tuple[list[NDArray[np.float64]], ...] = tuple([] for _ in range(clustering.n_clusters_))
     for label, coord in zip(clustering.labels_, coords, strict=True):
         clusters[label].append(coord)
     return clusters

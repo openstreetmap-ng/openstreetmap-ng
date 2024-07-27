@@ -49,4 +49,4 @@ class MessageQuery:
                 .subquery()
             )
             # TODO: test empty results
-            return await session.scalar(stmt)
+            return (await session.execute(stmt)).scalar_one()

@@ -32,7 +32,7 @@ async def get_changeset(id: PositiveInt):
             User.avatar_id,
         )
     ):
-        changeset = await ChangesetQuery.get_by_id(id)
+        changeset = await ChangesetQuery.find_by_id(id)
 
     if changeset is None:
         return render_response(
@@ -53,14 +53,16 @@ async def get_changeset(id: PositiveInt):
 
     async def adjacent_ids_task():
         nonlocal prev_changeset_id, next_changeset_id
-        t = await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset.user_id)  # type: ignore[arg-type]
+        changeset_user_id = changeset.user_id
+        if changeset_user_id is None:
+            return
+        t = await ChangesetQuery.get_user_adjacent_ids(id, user_id=changeset_user_id)
         prev_changeset_id, next_changeset_id = t
 
     async with TaskGroup() as tg:
         elements_t = tg.create_task(elements_task())
         tg.create_task(comments_task())
-        if changeset.user_id is not None:
-            tg.create_task(adjacent_ids_task())
+        tg.create_task(adjacent_ids_task())
         is_subscribed_task = (
             tg.create_task(ChangesetCommentQuery.is_subscribed(id))
             if auth_user() is not None  #

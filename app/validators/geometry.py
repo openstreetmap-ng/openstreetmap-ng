@@ -1,4 +1,4 @@
-from typing import TypeVar, overload
+from typing import Any, TypeVar, overload
 
 import numpy as np
 from pydantic import PlainValidator
@@ -12,19 +12,19 @@ T = TypeVar('T', bound=BaseGeometry)
 
 
 @overload
-def validate_geometry(value: dict) -> BaseGeometry: ...
+def validate_geometry(value: dict[str, Any]) -> BaseGeometry: ...
 
 
 @overload
 def validate_geometry(value: T) -> T: ...
 
 
-def validate_geometry(value: dict | T) -> BaseGeometry | T:
+def validate_geometry(value: dict[str, Any] | T) -> BaseGeometry | T:
     """
     Validate a geometry.
     """
     geom: BaseGeometry = shape(value) if isinstance(value, dict) else value
-    coords: np.ndarray = lib.get_coordinates(np.asarray(value, dtype=object), False, False)
+    coords = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
     if not np.all(
         (coords[:, 0] >= -180)
         & (coords[:, 0] <= 180)  #
@@ -34,13 +34,13 @@ def validate_geometry(value: dict | T) -> BaseGeometry | T:
         raise_for().bad_geometry_coordinates()
 
     # optimized validation for points
-    if isinstance(value, Point):
+    if isinstance(geom, Point):
         if coords.shape != (1, 2):
             raise_for().bad_geometry()
     elif not geom.is_valid:
         raise_for().bad_geometry()
 
-    return value
+    return geom
 
 
 GeometryValidator = PlainValidator(validate_geometry)

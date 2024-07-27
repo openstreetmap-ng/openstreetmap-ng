@@ -1,6 +1,6 @@
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
-from typing import Any, NoReturn
+from typing import Any, NoReturn, override
 
 import cython
 from fastapi import APIRouter, Response
@@ -46,7 +46,8 @@ _gpx_attributes = {
 class OSMResponse(Response):
     xml_root = 'osm'
 
-    def render(self, _) -> NoReturn:
+    @override
+    def render(self, content) -> NoReturn:
         raise RuntimeError('Setup APIRouter with setup_api_router_response')
 
     @classmethod
@@ -134,7 +135,7 @@ def setup_api_router_response(router: APIRouter) -> None:
 
 
 @cython.cfunc
-def _get_serializing_endpoint(endpoint: Callable, response_class: OSMResponse):
+def _get_serializing_endpoint(endpoint: Callable, response_class: type[OSMResponse]):
     @wraps(endpoint)
     async def serializing_endpoint(*args, **kwargs):
         content = await endpoint(*args, **kwargs)

@@ -2,7 +2,7 @@ from collections.abc import Collection, Sequence
 from datetime import datetime, timedelta
 from typing import Literal
 
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 from sqlalchemy import func, null, or_, select, text
 
 from app.db import db
@@ -29,7 +29,7 @@ class NoteQuery:
                 )
                 .subquery()
             )
-            return await session.scalar(stmt)
+            return (await session.execute(stmt)).scalar_one()
 
     @staticmethod
     async def find_many_by_query(

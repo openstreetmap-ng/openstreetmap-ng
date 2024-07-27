@@ -16,8 +16,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare
@@ -62,7 +61,7 @@ class OptimisticDiffApply:
                 )
 
             now = utcnow()
-            tg.create_task(_update_changeset(prepare.changeset, now, session))  # type: ignore[arg-type]
+            tg.create_task(_update_changeset(prepare.changeset, now, session))  # pyright: ignore[reportArgumentType]
             tg.create_task(_update_elements(prepare.apply_elements, now, session))
 
         return assigned_ref_map
@@ -125,10 +124,10 @@ async def _update_elements(
 
     current_sequence_id = current_sequence_task.result()
     current_id_map = current_id_task.result()
-    update_type_ids: dict[ElementType, list[int]] = defaultdict(list)
+    update_type_ids: dict[ElementType, list[ElementId]] = defaultdict(list)
     insert_members: list[ElementMember] = []
     prev_map: dict[ElementRef, Element] = {}
-    assigned_id_map: dict[ElementRef, int] = {}
+    assigned_id_map: dict[ElementRef, ElementId] = {}
 
     # process elements
     for sequence_id, (element, element_ref) in enumerate(elements, current_sequence_id + 1):
@@ -148,12 +147,12 @@ async def _update_elements(
         if element.id < 0:
             assigned_id = assigned_id_map.get(element_ref)
             if assigned_id is None:
-                assigned_id = current_id_map[element.type] + 1
+                assigned_id = ElementId(current_id_map[element.type] + 1)
                 assigned_id_map[element_ref] = current_id_map[element.type] = assigned_id
             element.id = assigned_id
 
     # process members
-    insert_elements: list[Element] = [None] * len(elements)  # type: ignore[list-item]
+    insert_elements: list[Element] = [None] * len(elements)  # pyright: ignore[reportAssignmentType]
     i: cython.int
     for i, element_t in enumerate(elements):
         element = insert_elements[i] = element_t[0]
@@ -176,7 +175,7 @@ async def _update_elements(
 
 async def _update_elements_db(
     current_sequence_id: int,
-    update_type_ids: Mapping[ElementType, Iterable[int]],
+    update_type_ids: Mapping[ElementType, Iterable[ElementId]],
     insert_elements: Collection[Element],
     insert_members: Collection[ElementMember],
     session: AsyncSession,

@@ -46,7 +46,7 @@ def unicode_normalize(text: str) -> str:
     return unicodedata.normalize('NFC', text)
 
 
-def extend_query_params(uri: str, params: dict) -> str:
+def extend_query_params(uri: str, params: dict[str, str]) -> str:
     """
     Extend the query parameters of a URI.
 

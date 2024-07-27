@@ -1,5 +1,6 @@
 import cython
 import numpy as np
+from numpy.typing import NDArray
 
 if cython.compiled:
     from cython.cimports.libc.math import pi
@@ -7,16 +8,7 @@ else:
     from math import pi
 
 
-@cython.cfunc
-def y_sheet(arr: np.ndarray):
-    return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))
-
-
-def mercator(
-    coords: np.ndarray,
-    width: cython.int,
-    height: cython.int,
-) -> np.ndarray:
+def mercator(coords: NDArray[np.float64], width: cython.int, height: cython.int) -> NDArray[np.float64]:
     xs = coords[:, 0]
     ys = y_sheet(coords[:, 1])
 
@@ -48,3 +40,8 @@ def mercator(
         y = height - ((ys - ty) / (by - ty) * height)
 
     return np.column_stack((x, y))
+
+
+@cython.cfunc
+def y_sheet(arr: NDArray[np.float64]) -> NDArray[np.float64]:
+    return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))

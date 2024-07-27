@@ -1,6 +1,6 @@
 from collections.abc import Collection, Container
 
-from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode
+from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode, true
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -75,7 +75,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @linked_to_user_in_api.inplace.expression
     @classmethod
-    def _linked_to_user_in_api_expression(cls) -> ColumnElement[bool]:
+    def _linked_to_user_in_api(cls) -> ColumnElement[bool]:
         return cls.visibility == 'identifiable'
 
     @hybrid_property
@@ -84,7 +84,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @linked_to_user_on_site.inplace.expression
     @classmethod
-    def _linked_to_user_on_site_expression(cls) -> ColumnElement[bool]:
+    def _linked_to_user_on_site(cls) -> ColumnElement[bool]:
         return cls.visibility.in_(('identifiable', 'public'))
 
     @hybrid_property
@@ -93,20 +93,20 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     @timestamps_via_api.inplace.expression
     @classmethod
-    def _timestamps_via_api_expression(cls) -> ColumnElement[bool]:
+    def _timestamps_via_api(cls) -> ColumnElement[bool]:
         return cls.visibility.in_(('identifiable', 'trackable'))
 
     @hybrid_method
-    def visible_to(self, user: User | None, scopes: Container[Scope]) -> bool:
+    def visible_to(self, user: User | None, scopes: Container[Scope]) -> bool:  # pyright: ignore[reportRedeclaration]
         if (user is not None) and Scope.read_gpx in scopes:
             return self.linked_to_user_on_site or (self.user_id == user.id)
         else:
             return self.linked_to_user_on_site
 
-    @visible_to.expression  # type: ignore[no-redef]
+    @visible_to.expression
     @classmethod
     def visible_to(cls, user: User | None, scopes: Container[Scope]) -> ColumnElement[bool]:
         if (user is not None) and Scope.read_gpx in scopes:
             return cls.linked_to_user_on_site | (cls.user_id == user.id)
         else:
-            return cls.linked_to_user_on_site
+            return cls.linked_to_user_on_site == true()

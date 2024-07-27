@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 import cython
 from jinja2 import Environment, FileSystemLoader
@@ -25,7 +26,7 @@ _j2 = Environment(
 )
 
 
-def render(template_name: str, template_data: dict | None = None) -> str:
+def render(template_name: str, template_data: dict[str, Any] | None = None) -> str:
     """
     Render the given Jinja2 template with translation.
     """

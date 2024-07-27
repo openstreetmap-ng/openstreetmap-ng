@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from shapely import lib
+from shapely import Point, lib
 from sqlalchemy import delete, func, join, null, select
 from sqlalchemy.dialects.postgresql import insert
 
@@ -24,7 +24,7 @@ class NoteService:
         Create a note and return its id.
         """
         coordinate_precision = GEO_COORDINATE_PRECISION
-        point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
+        point: Point = lib.points(np.array((lon, lat), np.float64).round(coordinate_precision))
         point = validate_geometry(point)
         user = auth_user()
         if user is not None:

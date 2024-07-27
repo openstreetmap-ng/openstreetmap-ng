@@ -13,8 +13,7 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.models.scope import Scope
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -122,7 +121,7 @@ async def get_many(
             parsed_query.append(
                 VersionedElementRef.from_type_str(type, q)
                 if 'v' in q  #
-                else ElementRef(type, int(q))
+                else ElementRef(type, ElementId(int(q)))
             )
     except ValueError:
         # return not found on parsing errors, why?, idk
@@ -132,13 +131,13 @@ async def get_many(
     if any(element is None for element in elements):
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    return await _encode_elements(elements)  # type: ignore[arg-type]
+    return await _encode_elements(elements)  # pyright: ignore[reportArgumentType]
 
 
 @router.get('/{type:element_type}/{id:int}')
 @router.get('/{type:element_type}/{id:int}.xml')
 @router.get('/{type:element_type}/{id:int}.json')
-async def get_latest(type: ElementType, id: PositiveInt):
+async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_by_refs((ref,), limit=1)
     element = elements[0] if elements else None
@@ -152,7 +151,11 @@ async def get_latest(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/{version:int}')
 @router.get('/{type:element_type}/{id:int}/{version:int}.xml')
 @router.get('/{type:element_type}/{id:int}/{version:int}.json')
-async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
+async def get_version(
+    type: ElementType,
+    id: Annotated[ElementId, PositiveInt],
+    version: Annotated[int, PositiveInt],
+):
     ref = VersionedElementRef(type, id, version)
     elements = await ElementQuery.get_by_versioned_refs((ref,), limit=1)
     element = elements[0] if elements else None
@@ -164,7 +167,7 @@ async def get_version(type: ElementType, id: PositiveInt, version: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/history')
 @router.get('/{type:element_type}/{id:int}/history.xml')
 @router.get('/{type:element_type}/{id:int}/history.json')
-async def get_history(type: ElementType, id: PositiveInt):
+async def get_history(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_versions_by_ref(ref, limit=None)
     if not elements:
@@ -175,7 +178,7 @@ async def get_history(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/full')
 @router.get('/{type:element_type}/{id:int}/full.xml')
 @router.get('/{type:element_type}/{id:int}/full.json')
-async def get_full(type: ElementType, id: PositiveInt):
+async def get_full(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     elements = await ElementQuery.get_by_refs(
@@ -194,7 +197,7 @@ async def get_full(type: ElementType, id: PositiveInt):
         tg.create_task(UserQuery.resolve_elements_users(elements, display_name=True))
         tg.create_task(ElementMemberQuery.resolve_members(elements))
 
-    members_refs = {ElementRef(member.type, member.id) for member in element.members}  # type: ignore[union-attr]
+    members_refs = {ElementRef(member.type, member.id) for member in element.members}  # pyright: ignore[reportOptionalIterable]
     members_elements = await ElementQuery.get_by_refs(
         members_refs,
         at_sequence_id=at_sequence_id,
@@ -212,7 +215,7 @@ async def get_full(type: ElementType, id: PositiveInt):
 @router.get('/{type:element_type}/{id:int}/relations')
 @router.get('/{type:element_type}/{id:int}/relations.xml')
 @router.get('/{type:element_type}/{id:int}/relations.json')
-async def get_parent_relations(type: ElementType, id: PositiveInt):
+async def get_parent_relations(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef(type, id)
     elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='relation', limit=None)
     return await _encode_elements(elements)
@@ -221,14 +224,14 @@ async def get_parent_relations(type: ElementType, id: PositiveInt):
 @router.get('/node/{id:int}/ways')
 @router.get('/node/{id:int}/ways.xml')
 @router.get('/node/{id:int}/ways.json')
-async def get_parent_ways(id: PositiveInt):
+async def get_parent_ways(id: Annotated[ElementId, PositiveInt]):
     ref = ElementRef('node', id)
     elements = await ElementQuery.get_parents_by_refs((ref,), parent_type='way', limit=None)
     return await _encode_elements(elements)
 
 
 @cython.cfunc
-def _get_element_data(elements: Iterable[tuple[str, dict]], type: ElementType):
+def _get_element_data(elements: Iterable[tuple[ElementType, dict]], type: ElementType):
     """
     Get the first element of the given type from the sequence of elements.
     """

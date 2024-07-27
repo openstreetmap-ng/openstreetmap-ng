@@ -95,23 +95,21 @@ def worker(args: tuple[int, int, int]) -> None:
     # free memory
     del input_buffer
 
-    element: ET.ElementBase
     for element in root:
         tag: str = element.tag
-        attrib: dict = element.attrib
+        attrib = element.attrib
         if tag not in {'node', 'way', 'relation'}:
             continue
 
         tags_list: list[tuple[str, str]] = []
         members: list[dict] = []
 
-        child: ET.ElementBase
         for child in element:
             child_tag: str = child.tag
-            child_attrib: dict = child.attrib
+            child_attrib = child.attrib
 
             if child_tag == 'tag':
-                tags_list.append((child_attrib['k'], child_attrib['v']))
+                tags_list.append((child_attrib['k'], child_attrib['v']))  # pyright: ignore[reportArgumentType]
             elif child_tag == 'nd':
                 members.append(
                     {
@@ -140,6 +138,8 @@ def worker(args: tuple[int, int, int]) -> None:
             visible = point is not None
         elif tag in {'way', 'relation'}:
             visible = bool(tags_list or members)
+        else:
+            raise NotImplementedError(f'Unsupported element type {tag!r}')
 
         uid = attrib.get('uid')
         if uid is not None:
@@ -159,13 +159,13 @@ def worker(args: tuple[int, int, int]) -> None:
                 JSON_ENCODE(dict(tags_list)).decode() if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
-                datetime.fromisoformat(attrib['timestamp']),  # created_at
+                datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
                 user_id,  # user_id
                 user_display_name,  # display_name
             )
         )
 
-    df = pl.DataFrame(data, schema=schema)  # type: ignore[arg-type]
+    df = pl.DataFrame(data, schema=schema)
     df.write_parquet(get_worker_output_path(i), compression_level=1, statistics=False)
     gc.collect()
 

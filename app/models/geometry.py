@@ -1,8 +1,9 @@
-from typing import Annotated
+from abc import ABC
+from typing import Annotated, override
 
 import numpy as np
 from annotated_types import Interval
-from shapely import MultiPoint, MultiPolygon, Point, Polygon, lib
+from shapely import MultiPolygon, Point, Polygon, lib
 from shapely.geometry.base import BaseGeometry
 from shapely.io import DecodingErrorOptions
 from sqlalchemy import BindParameter
@@ -23,17 +24,46 @@ Zoom = Annotated[int, Interval(ge=0, le=25)]
 _invalid_handler = np.uint8(DecodingErrorOptions.get_value('raise'))
 
 
-class PointType(UserDefinedType):
-    cache_ok = True
+class _GeometryType(UserDefinedType, ABC):
+    geometry_type: str
 
     def get_col_spec(self, **kw):
-        return 'geometry(Point, 4326)'
+        return f'geometry({self.geometry_type}, 4326)'
 
+    @override
+    def bind_processor(self, dialect):
+        def process(value: BaseGeometry | None):
+            if value is None:
+                return None
+            return value.wkt
+
+        return process
+
+    @override
     def bind_expression(self, bindvalue: BindParameter):
         return func.ST_GeomFromText(bindvalue, 4326, type_=self)
 
+    @override
+    def column_expression(self, colexpr):
+        return func.ST_AsBinary(colexpr, type_=self)
+
+    @override
+    def result_processor(self, dialect, coltype):
+        def process(value: bytes | None):
+            if value is None:
+                return None
+            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
+
+        return process
+
+
+class PointType(_GeometryType):
+    geometry_type = 'Point'
+    cache_ok = True
+
+    @override
     def bind_processor(self, dialect):
-        def process(value: Point | None):
+        def process(value: BaseGeometry | None):
             if value is None:
                 return None
             x, y = lib.get_coordinates(np.asarray(value, dtype=object), False, False)[0]
@@ -41,71 +71,12 @@ class PointType(UserDefinedType):
 
         return process
 
-    def column_expression(self, col):
-        return func.ST_AsBinary(col, type_=self)
 
-    def result_processor(self, dialect, coltype):
-        def process(value: bytes | None):
-            if value is None:
-                return None
-            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
-
-        return process
-
-
-class PolygonType(UserDefinedType):
+class PolygonType(_GeometryType):
+    geometry_type = 'Polygon'
     cache_ok = True
 
-    def get_col_spec(self, **kw):
-        return 'geometry(Polygon, 4326)'
 
-    def bind_expression(self, bindvalue: BindParameter):
-        return func.ST_GeomFromText(bindvalue, 4326, type_=self)
-
-    def bind_processor(self, dialect):
-        def process(value: Polygon | None):
-            if value is None:
-                return None
-            return value.wkt
-
-        return process
-
-    def column_expression(self, col):
-        return func.ST_AsBinary(col, type_=self)
-
-    def result_processor(self, dialect, coltype):
-        def process(value: bytes | None):
-            if value is None:
-                return None
-            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
-
-        return process
-
-
-class MultiPointType(UserDefinedType):
+class MultiPointType(_GeometryType):
+    geometry_type = 'MultiPoint'
     cache_ok = True
-
-    def get_col_spec(self, **kw):
-        return 'geometry(MultiPoint, 4326)'
-
-    def bind_expression(self, bindvalue: BindParameter):
-        return func.ST_GeomFromText(bindvalue, 4326, type_=self)
-
-    def bind_processor(self, dialect):
-        def process(value: MultiPoint | None):
-            if value is None:
-                return None
-            return value.wkt
-
-        return process
-
-    def column_expression(self, col):
-        return func.ST_AsBinary(col, type_=self)
-
-    def result_processor(self, dialect, coltype):
-        def process(value: bytes | None):
-            if value is None:
-                return None
-            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
-
-        return process

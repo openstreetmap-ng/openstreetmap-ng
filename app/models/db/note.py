@@ -43,12 +43,12 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     comments: list['NoteComment'] | None = None
 
     @hybrid_method
-    def visible_to(self, user: User | None) -> bool:
+    def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]
         if (user is not None) and user.is_moderator:
             return True
         return self.hidden_at is None
 
-    @visible_to.expression  # type: ignore[no-redef]
+    @visible_to.expression
     @classmethod
     def visible_to(cls, user: User | None) -> ColumnElement[bool]:
         if (user is not None) and user.is_moderator:

@@ -1,8 +1,8 @@
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from datetime import datetime
 from typing import Literal
 
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 from sqlalchemy import and_, func, null, select, text
 
 from app.db import db
@@ -27,7 +27,7 @@ class ChangesetQuery:
             stmt = select(Changeset.id, Changeset.updated_at).where(
                 Changeset.id.in_(text(','.join(map(str, changeset_ids))))
             )
-            rows = (await session.execute(stmt)).all()
+            rows: Iterable[tuple[int, datetime]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
             return dict(rows)
 
     @staticmethod
@@ -43,7 +43,7 @@ class ChangesetQuery:
                 )
                 .subquery()
             )
-            return await session.scalar(stmt)
+            return (await session.execute(stmt)).scalar_one()
 
     @staticmethod
     async def get_user_adjacent_ids(changeset_id: int, *, user_id: int) -> tuple[int | None, int | None]:
@@ -54,7 +54,7 @@ class ChangesetQuery:
             stmt_prev = select(func.max(Changeset.id)).where(Changeset.id < changeset_id, Changeset.user_id == user_id)
             stmt_next = select(func.min(Changeset.id)).where(Changeset.id > changeset_id, Changeset.user_id == user_id)
             stmt = stmt_prev.union_all(stmt_next)
-            ids: Sequence[int] = (await session.scalars(stmt)).all()
+            ids: Sequence[int | None] = (await session.scalars(stmt)).all()
 
         prev_id: int | None = None
         next_id: int | None = None
@@ -69,9 +69,9 @@ class ChangesetQuery:
         return prev_id, next_id
 
     @staticmethod
-    async def get_by_id(changeset_id: int) -> Changeset | None:
+    async def find_by_id(changeset_id: int) -> Changeset | None:
         """
-        Get a changeset by id.
+        Find a changeset by id.
         """
         async with db() as session:
             stmt = select(Changeset).where(Changeset.id == changeset_id)
@@ -116,7 +116,7 @@ class ChangesetQuery:
                     )
                 )
             if is_open is not None:
-                where_and.append(Changeset.closed_at == null if is_open else Changeset.closed_at != null())
+                where_and.append(Changeset.closed_at == null() if is_open else Changeset.closed_at != null())
             if geometry is not None:
                 geometry_wkt = geometry.wkt
                 where_and.append(
@@ -166,4 +166,5 @@ class ChangesetQuery:
                 .where(created_date >= created_since)
                 .group_by(created_date)
             )
-            return dict((await session.execute(stmt)).all())
+            rows: Iterable[tuple[datetime, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
+            return dict(rows)

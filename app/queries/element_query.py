@@ -6,7 +6,7 @@ from itertools import chain
 from typing import Literal
 
 import cython
-from shapely.ops import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 from sqlalchemy import Select, and_, func, null, or_, select, text, true, union_all
 
 from app.config import LEGACY_SEQUENCE_ID_MARGIN
@@ -16,8 +16,7 @@ from app.lib.exceptions_context import raise_for
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.element_member_query import ElementMemberQuery
 
 
@@ -35,7 +34,7 @@ class ElementQuery:
             return sequence_id if (sequence_id is not None) else 0
 
     @staticmethod
-    async def get_current_ids() -> dict[ElementType, int]:
+    async def get_current_ids() -> dict[ElementType, ElementId]:
         """
         Get the last id for each element type.
 
@@ -43,11 +42,21 @@ class ElementQuery:
         """
         async with db() as session:
             stmts = tuple(
-                select(Element.type, Element.id).where(Element.type == type).order_by(Element.id.desc()).limit(1)
+                select(Element.type, Element.id)  #
+                .where(Element.type == type)
+                .order_by(Element.id.desc())
+                .limit(1)
                 for type in ('node', 'way', 'relation')
             )
-            rows = (await session.execute(union_all(*stmts))).all()
-            return {'node': 0, 'way': 0, 'relation': 0, **dict(rows)}
+            rows: Iterable[tuple[ElementType, ElementId]] = (await session.execute(union_all(*stmts))).all()  # pyright: ignore[reportAssignmentType]
+            return dict(
+                (
+                    ('node', ElementId(0)),
+                    ('way', ElementId(0)),
+                    ('relation', ElementId(0)),
+                    *rows,
+                )
+            )
 
     @staticmethod
     async def check_is_latest(versioned_refs: Collection[VersionedElementRef]) -> bool:
@@ -115,7 +124,7 @@ class ElementQuery:
         """
         Filter the given element refs to only include the visible elements.
         """
-        type_id_map: dict[ElementType, set[int]] = defaultdict(set)
+        type_id_map: dict[ElementType, set[ElementId]] = defaultdict(set)
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
         if not type_id_map:
@@ -251,11 +260,11 @@ class ElementQuery:
         """
         if not element_refs:
             return []
-        type_id_map: dict[ElementType, set[int]] = defaultdict(set)
+        type_id_map: dict[ElementType, set[ElementId]] = defaultdict(set)
         for element_ref in element_refs:
             type_id_map[element_ref.type].add(element_ref.id)
 
-        async def task(type: ElementType, ids: set[int]) -> Iterable[Element]:
+        async def task(type: ElementType, ids: set[ElementId]) -> Iterable[Element]:
             async with db() as session:
                 stmt = _select().where(
                     *(
@@ -374,7 +383,7 @@ class ElementQuery:
         """
         if not member_refs:
             return ()
-        type_id_map: dict[ElementType, list[int]] = defaultdict(list)
+        type_id_map: dict[ElementType, list[ElementId]] = defaultdict(list)
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
         # optimization: ways and relations can only be members of relations
@@ -458,7 +467,7 @@ class ElementQuery:
         """
         if not member_refs:
             return {}
-        type_id_map: dict[ElementType, list[int]] = defaultdict(list)
+        type_id_map: dict[ElementType, list[ElementId]] = defaultdict(list)
         for member_ref in member_refs:
             type_id_map[member_ref.type].append(member_ref.id)
 
@@ -622,7 +631,7 @@ class ElementQuery:
                 # fetch ways' nodes
                 if not partial_ways:
                     await ElementMemberQuery.resolve_members(ways)
-                    members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}  # type: ignore[union-attr]
+                    members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}  # pyright: ignore[reportOptionalIterable]
                     members_refs.difference_update(nodes_refs)
                     ways_nodes = await ElementQuery.get_by_refs(
                         members_refs,
@@ -689,5 +698,5 @@ def _select():
         },
         single_entity=True,
     )
-    result: Select[Element] = select(bundle)  # type: ignore
+    result: Select[Element] = select(bundle)  # pyright: ignore
     return result

@@ -6,6 +6,5 @@
         "charliermarsh.ruff",
         "jnoortheen.nix-ide",
         "esbenp.prettier-vscode",
-        "ms-python.mypy-type-checker"
     ]
 }

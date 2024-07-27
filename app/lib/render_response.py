@@ -1,3 +1,5 @@
+from typing import Any
+
 from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
@@ -11,7 +13,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.editor import DEFAULT_EDITOR
 from app.utils import JSON_ENCODE
 
-_config_dict_base = {
+_config_dict_base: dict[str, Any] = {
     'apiUrl': API_URL,
     'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
     'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
@@ -20,7 +22,7 @@ _config_dict_base = {
 _config = JSON_ENCODE(_config_dict_base).decode()
 
 
-def render_response(template_name: str, template_data: dict | None = None) -> HTMLResponse:
+def render_response(template_name: str, template_data: dict[str, Any] | None = None) -> HTMLResponse:
     """
     Render the given Jinja2 template with translation, returning an HTMLResponse.
     """
@@ -29,7 +31,7 @@ def render_response(template_name: str, template_data: dict | None = None) -> HT
 
     if user is not None:
         # don't include sensitive data, it's exposed to JavaScript
-        config_dict: dict = _config_dict_base.copy()
+        config_dict = _config_dict_base.copy()
         config_dict['activityTracking'] = user.activity_tracking
         config_dict['crashReporting'] = user.crash_reporting
 

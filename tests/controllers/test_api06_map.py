@@ -4,7 +4,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.lib.xmltodict import XMLToDict
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementType
 
 
 async def test_map_read(client: AsyncClient):

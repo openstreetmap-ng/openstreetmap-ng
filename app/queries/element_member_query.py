@@ -54,5 +54,5 @@ def _select():
         ElementMember.role,
         single_entity=True,
     )
-    result: Select[ElementMember] = select(bundle)  # type: ignore
+    result: Select[ElementMember] = select(bundle)  # pyright: ignore
     return result

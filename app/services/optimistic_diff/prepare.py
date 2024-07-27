@@ -17,8 +17,7 @@ from app.lib.options_context import options_context
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementRef, ElementType, VersionedElementRef
 from app.models.osmchange_action import OSMChangeAction
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
@@ -26,18 +25,14 @@ from app.queries.element_query import ElementQuery
 
 
 class ElementStateEntry:
-    __slots__ = ('remote', '_local', 'current')
+    __slots__ = ('remote', 'current')
 
     remote: Final[Element | None]
-    _local: Element | None
     current: Element
 
-    def __init__(self, remote: Element | None):
-        self.current = self.remote = remote  # type: ignore[assignment]
-        self._local = None
-
-    def set_local(self, element: Element) -> None:
-        self.current = self._local = element
+    def __init__(self, *, remote: Element | None, current: Element):
+        self.remote = remote
+        self.current = current
 
 
 @dataclass(slots=True)
@@ -134,8 +129,7 @@ class OptimisticDiffPrepare:
                 if element_ref in self.element_state:
                     raise AssertionError(f'Element {element_ref!r} must not exist in the element state')
 
-                entry = ElementStateEntry(None)
-                self.element_state[element_ref] = entry
+                entry = None
                 prev = None
             else:
                 action = 'modify' if element.visible else 'delete'
@@ -146,7 +140,6 @@ class OptimisticDiffPrepare:
                 prev = entry.current
                 if prev.version + 1 != element.version:
                     raise_for().element_version_conflict(element, prev.version)
-
                 if action == 'delete' and not prev.visible:
                     raise_for().element_already_deleted(element)
 
@@ -163,7 +156,11 @@ class OptimisticDiffPrepare:
 
             self._push_bbox_info(prev, element, element_type)
             self.apply_elements.append(element_t)
-            entry.set_local(element)
+
+            if entry is None:
+                self.element_state[element_ref] = ElementStateEntry(remote=None, current=element)
+            else:
+                entry.current = element
 
         self._update_changeset_size()
         async with TaskGroup() as tg:
@@ -204,7 +201,7 @@ class OptimisticDiffPrepare:
 
         # if they do, push them to the element state
         self.element_state = {
-            ElementRef(element.type, element.id): ElementStateEntry(element)  #
+            ElementRef(element.type, element.id): ElementStateEntry(remote=element, current=element)
             for element in elements
         }
 
@@ -314,14 +311,16 @@ class OptimisticDiffPrepare:
         element_state = self.element_state
         for member_ref in member_refs:
             entry = element_state.get(member_ref)
+            if entry is None and member_ref == parent_ref:  # self-reference during creation
+                if not parent.visible:
+                    raise_for().element_member_not_found(parent_ref, member_ref)
+                continue
             if entry is None:
                 notfound.add(member_ref)
                 continue
-            member = entry.current
-            if member is None and member_ref == parent_ref:
-                member = parent
-            if not member.visible:
+            if not entry.current.visible:
                 raise_for().element_member_not_found(parent_ref, member_ref)
+
         if notfound:
             self._elements_check_members_remote.append((parent_ref, notfound))
 
@@ -391,8 +390,10 @@ class OptimisticDiffPrepare:
         for node_ref in node_refs:
             entry = element_state.get(node_ref)
             if entry is not None:
-                node = entry.current
-                bbox_points.append(node.point)
+                point = entry.current.point
+                if point is None:
+                    raise AssertionError('Node point must be set')
+                bbox_points.append(point)
             else:
                 bbox_refs.add(node_ref)
 
@@ -427,8 +428,10 @@ class OptimisticDiffPrepare:
             if member_type == 'node':
                 entry = element_state.get(member_ref)
                 if entry is not None:
-                    node = entry.current
-                    bbox_points.append(node.point)
+                    point = entry.current.point
+                    if point is None:
+                        raise AssertionError('Node point must be set')
+                    bbox_points.append(point)
                 else:
                     bbox_refs.add(member_ref)
 
@@ -446,8 +449,10 @@ class OptimisticDiffPrepare:
                     node_ref = ElementRef('node', node_member.id)
                     entry = element_state.get(node_ref)
                     if entry is not None:
-                        node = entry.current
-                        bbox_points.append(node.point)
+                        point = entry.current.point
+                        if point is None:
+                            raise AssertionError('Node point must be set')
+                        bbox_points.append(point)
                     else:
                         bbox_refs.add(node_ref)
 
@@ -462,7 +467,7 @@ class OptimisticDiffPrepare:
         changeset_id = next(iter(changeset_ids))
 
         with options_context(joinedload(Changeset.user).load_only(User.roles)):
-            self.changeset = changeset = await ChangesetQuery.get_by_id(changeset_id)
+            self.changeset = changeset = await ChangesetQuery.find_by_id(changeset_id)
 
         if changeset is None:
             raise_for().changeset_not_found(changeset_id)

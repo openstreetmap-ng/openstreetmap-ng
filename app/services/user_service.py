@@ -86,7 +86,7 @@ class UserService:
 
         # update user data
         async with db_commit() as session:
-            user = await session.get(User, auth_user(required=True).id, with_for_update=True)
+            user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
             old_avatar_id = user.avatar_id
             user.avatar_type = avatar_type
             user.avatar_id = avatar_id

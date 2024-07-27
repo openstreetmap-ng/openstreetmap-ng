@@ -45,7 +45,8 @@ class ChangesetCommentQuery:
                 .select_from(subq)
                 .group_by(subq.c.changeset_id)
             )
-            id_num_map: dict[int, int] = dict((await session.execute(stmt)).all())
+            rows: Iterable[tuple[int, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
+            id_num_map: dict[int, int] = dict(rows)
 
         for changeset_id, changeset in changeset_id_map.items():
             changeset.num_comments = id_num_map.get(changeset_id, 0)
@@ -67,7 +68,7 @@ class ChangesetCommentQuery:
             id_comments_map[changeset.id] = changeset.comments = []
 
         async with db() as session:
-            stmts: list[Select] = [None] * len(changesets)  # type: ignore[list-item]
+            stmts: list[Select] = [None] * len(changesets)  # pyright: ignore[reportAssignmentType]
             i: cython.int
             for i, changeset in enumerate(changesets):
                 stmt_ = select(ChangesetComment.id).where(
@@ -101,7 +102,7 @@ class ChangesetCommentQuery:
             current_comments.append(comment)
 
         for changeset in changesets:
-            changeset.num_comments = len(changeset.comments)  # type: ignore[arg-type]
+            changeset.num_comments = len(changeset.comments)  # pyright: ignore[reportArgumentType]
 
         if resolve_rich_text:
             async with TaskGroup() as tg:

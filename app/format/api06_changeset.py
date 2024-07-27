@@ -35,14 +35,8 @@ def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.char
     return {
         xattr('id'): comment.id,
         xattr('date'): legacy_date(comment.created_at),
-        **(
-            {
-                xattr('uid'): comment.user_id,
-                xattr('user'): comment.user.display_name,
-            }
-            if (comment.user_id is not None)
-            else {}
-        ),
+        xattr('uid'): comment.user_id,
+        xattr('user'): comment.user.display_name,
         'text': comment.body,
     }
 

@@ -21,7 +21,7 @@ _default = object()
 
 class FormatGPX:
     @staticmethod
-    def encode_track(segments: Iterable[TraceSegment], trace_: Trace | None = _default) -> dict:  # type: ignore[assignment]
+    def encode_track(segments: Iterable[TraceSegment], trace_: Trace | None = _default) -> dict:  # pyright: ignore[reportArgumentType]
         """
         >>> encode_track([
         ...     TraceSegment(...),
@@ -124,6 +124,7 @@ class FormatGPX:
         trkpt: dict
 
         for trk in tracks:
+            track_num = track_num_start
             for track_num, trkseg in enumerate(trk.get('trkseg', ()), track_num_start):
                 segment_num = 0
                 current_minx = 180
@@ -236,7 +237,7 @@ def _finish_segment(
     if not points:
         return
 
-    points_: np.ndarray = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
+    points_ = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
     multipoint: MultiPoint = lib.create_collection(points_, GeometryType.MULTIPOINT)
     multipoint = validate_geometry(multipoint)
     capture_times_ = capture_times.copy() if any(v is not None for v in capture_times) else None

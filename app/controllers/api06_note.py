@@ -339,11 +339,11 @@ async def _resolve_comments_full(notes_or_comments: Sequence[Note] | Sequence[No
         return
 
     if isinstance(notes_or_comments[0], Note):
-        notes: Sequence[Note] = notes_or_comments  # type: ignore[assignment]
+        notes: Sequence[Note] = notes_or_comments  # pyright: ignore[reportAssignmentType]
         with options_context(joinedload(NoteComment.user).load_only(User.id, User.display_name)):
             await NoteCommentQuery.resolve_comments(notes, per_note_limit=None)
     else:
-        comments: Sequence[NoteComment] = notes_or_comments  # type: ignore[assignment]
+        comments: Sequence[NoteComment] = notes_or_comments  # pyright: ignore[reportAssignmentType]
         async with TaskGroup() as tg:
             for comment in comments:
                 tg.create_task(comment.resolve_rich_text())

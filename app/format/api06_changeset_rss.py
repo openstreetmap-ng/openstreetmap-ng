@@ -53,7 +53,7 @@ def _encode_changeset(fg: FeedGenerator, changeset: Changeset):
 
     if changeset.union_bounds is not None:
         minx, miny, maxx, maxy = changeset.union_bounds.bounds
-        fe.geo.box(f'{miny} {minx} {maxy} {maxx}')
+        fe.geo.box(f'{miny} {minx} {maxy} {maxx}')  # pyright: ignore[reportAttributeAccessIssue]
 
     fe.content(
         render(

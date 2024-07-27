@@ -1,6 +1,6 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime, timedelta
-from typing import Self
+from typing import Self, override
 
 import msgspec
 
@@ -14,6 +14,7 @@ class Cursor(msgspec.Struct, forbid_unknown_fields=True, array_like=True):
     id: int  # fallback to 0 on None
     time: datetime | None
 
+    @override
     def __str__(self) -> str:
         """
         Return a string representation of the cursor.

@@ -83,7 +83,7 @@ class TraceQuery:
                 )
                 .subquery()
             )
-            return await session.scalar(stmt)
+            return (await session.execute(stmt)).scalar_one()
 
     @staticmethod
     async def find_many_recent(

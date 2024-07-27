@@ -57,7 +57,7 @@ class CacheService:
                 # on cache miss, call the factory to generate the value and cache it
                 value = await factory()
 
-                if not isinstance(value, bytes):
+                if not isinstance(value, bytes):  # pyright: ignore[reportUnnecessaryIsInstance]
                     raise TypeError(f'Cache factory returned {type(value)!r}, expected bytes')
 
                 if len(value) >= CACHE_COMPRESS_MIN_SIZE:

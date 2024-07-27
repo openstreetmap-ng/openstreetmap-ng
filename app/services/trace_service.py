@@ -1,5 +1,6 @@
 import logging
 
+import cython
 import numpy as np
 from fastapi import UploadFile
 from shapely import lib
@@ -7,6 +8,7 @@ from shapely import lib
 from app.db import db_commit
 from app.format.gpx import FormatGPX
 from app.lib.auth_context import auth_user
+from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
@@ -51,15 +53,13 @@ class TraceService:
             raise_for().bad_trace_file('not enough points')
 
         trace = Trace(
-            **dict(
-                TraceValidating(
-                    user_id=auth_user(required=True).id,
-                    name=file.filename,
-                    description=description,
-                    visibility=visibility,
-                    size=size,
-                )
-            )
+            **TraceValidating(
+                user_id=auth_user(required=True).id,
+                name=_get_file_name(file),
+                description=description,
+                visibility=visibility,
+                size=size,
+            ).model_dump()
         )
         trace.tag_string = tags
         compressed_file, compressed_suffix = TraceFile.compress(file_bytes)
@@ -121,3 +121,14 @@ class TraceService:
                 raise_for().trace_access_denied(trace_id)
 
             await session.delete(trace)
+
+
+@cython.cfunc
+def _get_file_name(file: UploadFile) -> str:
+    """
+    Get the file name from the upload file.
+
+    If not provided, use the current time as the file name.
+    """
+    filename = file.filename
+    return filename if (filename is not None) else f'{utcnow().isoformat(timespec='seconds')}.gpx'

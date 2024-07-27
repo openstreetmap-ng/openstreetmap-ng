@@ -9,7 +9,6 @@
     "files.exclude": {
         "**/__pycache__/": true,
         "**/.direnv/": true,
-        "**/.mypy_cache/": true,
         "**/.pytest_cache/": true,
         "**/.ruff_cache/": true,
         "**/.sass-cache/": true,
@@ -26,9 +25,6 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    "mypy-type-checker.importStrategy": "fromEnvironment",
-    "mypy-type-checker.preferDaemon": false,
-    "mypy-type-checker.reportingScope": "file",
     "nix.enableLanguageServer": true,
     "nix.serverPath": "nil",
     "nix.serverSettings": {
@@ -40,8 +36,18 @@
             }
         }
     },
-    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.packageIndexDepths": [
+        {
+            "name": "",
+            "depth": 3,
+            "includeAllSymbols": true
+        }
+    ],
+    "python.analysis.typeCheckingMode": "standard",
+    "python.analysis.useLibraryCodeForTypes": false,
     "python.experiments.enabled": false,
+    "python.terminal.activateEnvironment": false,
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "[javascript]": {

@@ -25,9 +25,9 @@ feedgen = "^1.0.0"
 httpx = {extras = ["brotli", "http2"], version = "<1"}
 jinja2 = "^3.1.2"
 lxml = "^5.0.1"
+lxml-stubs = "<1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "<1"
-mypy = "^1.10.1"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
 polars = "<1"
@@ -71,7 +71,6 @@ exclude = [
   ".direnv",
   ".git",
   ".github",
-  ".mypy_cache",
   ".pytest_cache",
   ".ruff_cache",
   ".sass-cache",
@@ -195,16 +194,33 @@ extend-ignore-names = ["ET"]
 [tool.ruff.lint.pylint]
 max-args = 10
 
-[tool.mypy]
-check_untyped_defs = true
-disable_error_code = "import-untyped"
-explicit_package_bases = true
-mypy_path = "$MYPY_CONFIG_FILE_DIR"
-packages = ["app"]
-plugins = ["numpy.typing.mypy_plugin", "pydantic.mypy"]
-warn_redundant_casts = true
-warn_unused_configs = true
-warn_unused_ignores = true
+[tool.pyright]
+disableBytesTypePromotions = true
+exclude = ["app/alembic/versions"]
+include = ["app"]
+pythonPlatform = "All"
+pythonVersion = "3.12"
+reportCallInDefaultInitializer = "error"
+reportDeprecated = "warning"
+reportImplicitOverride = "warning"
+reportInconsistentConstructor = "error"
+reportInvalidStubStatement = "information"
+reportMatchNotExhaustive = "error"
+reportMissingModuleSource = "none"
+reportPropertyTypeMismatch = "error"
+reportShadowedImports = "warning"
+reportUninitializedInstanceVariable = "error"
+reportUnnecessaryCast = "information"
+reportUnnecessaryComparison = "information"
+reportUnnecessaryContains = "information"
+reportUnnecessaryIsInstance = "information"
+reportUnnecessaryTypeIgnoreComment = "information"
+reportUntypedBaseClass = "warning"
+reportUntypedClassDecorator = "warning"
+reportUntypedFunctionDecorator = "information"
+reportUntypedNamedTuple = "warning"
+strictListInference = true
+strictSetInference = true
 
 [tool.pytest.ini_options]
 addopts = "--quiet"

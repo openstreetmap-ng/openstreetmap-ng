@@ -50,7 +50,7 @@ class OAuth2ApplicationService:
                 )
                 .subquery()
             )
-            count = await session.scalar(stmt)
+            count = (await session.execute(stmt)).scalar_one()
             if count > OAUTH2_APP_USER_LIMIT:
                 MessageCollector.raise_error(None, t('validation.reached_oauth2_app_limit'))
 

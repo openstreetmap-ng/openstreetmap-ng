@@ -138,7 +138,7 @@ class RichTextMixin:
                 stmt = (
                     update(cls)
                     .where(
-                        cls.id == self.id,  # type: ignore[attr-defined]
+                        cls.id == self.id,  # pyright: ignore[reportAttributeAccessIssue]
                         getattr(cls, rich_hash_field_name) == text_rich_hash,
                     )
                     .values({rich_hash_field_name: cache_entry_id})

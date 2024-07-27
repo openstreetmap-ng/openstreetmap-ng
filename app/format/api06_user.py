@@ -74,14 +74,12 @@ class User06Mixin:
         user_id = auth_user(required=True).id
         return tuple(
             UserPref(
-                **dict(
-                    UserPrefValidating(
-                        user_id=user_id,
-                        app_id=None,  # 0.6 api does not support prefs partitioning
-                        key=pref['@k'],
-                        value=pref['@v'],
-                    )
-                )
+                **UserPrefValidating(
+                    user_id=user_id,
+                    app_id=None,  # 0.6 api does not support prefs partitioning
+                    key=pref['@k'],
+                    value=pref['@v'],
+                ).model_dump()
             )
             for pref in prefs
         )
@@ -155,7 +153,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
                     if (user.home_point is not None)
                     else {}
                 ),
-                'languages': _encode_languages(user.language, is_json=is_json),
+                'languages': _encode_language(user.language, is_json=is_json),
                 'messages': {
                     'received': {
                         xattr('count'): messages_received_num,
@@ -171,10 +169,10 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
 
 
 @cython.cfunc
-def _encode_languages(language: str, *, is_json: cython.char):
+def _encode_language(language: str, *, is_json: cython.char):
     """
-    >>> _encode_languages(['en', 'pl'])
-    {'lang': ('en', 'pl')}
+    >>> _encode_language('en')
+    {'lang': ('en',)}
     """
     return (language,) if is_json else {'lang': (language,)}
 

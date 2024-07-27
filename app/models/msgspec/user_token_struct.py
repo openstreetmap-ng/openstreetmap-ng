@@ -1,5 +1,5 @@
 from base64 import urlsafe_b64decode, urlsafe_b64encode
-from typing import Self
+from typing import Self, override
 
 import msgspec
 
@@ -12,6 +12,7 @@ class UserTokenStruct(msgspec.Struct, forbid_unknown_fields=True, array_like=Tru
     id: int
     token: bytes
 
+    @override
     def __str__(self) -> str:
         """
         Return a string representation of the user token struct.

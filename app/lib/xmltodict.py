@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
-from typing import Any, Literal, overload
+from typing import Any, Literal, Protocol, overload
 
 import cython
 import lxml.etree as ET
@@ -74,12 +74,12 @@ class XMLToDict:
 
 
 @cython.cfunc
-def _parse_element(element: ET.ElementBase):
+def _parse_element(element: ET._Element):
     # read property once for performance
     force_sequence_root: set[str] = _force_sequence_root
     force_list: set[str] = _force_list
     value_postprocessor: dict[str, Callable[[str], Any]] = _value_postprocessor
-    element_attrib: ET._Attrib = element.attrib
+    element_attrib = element.attrib
 
     parsed: list[tuple[str, Any]] = []
     parsed_children: dict[str, Any | list[Any]] = {}
@@ -89,7 +89,7 @@ def _parse_element(element: ET.ElementBase):
     k: str
     v: Any
     v_str: str
-    for k, v_str in element_attrib.items():
+    for k, v_str in element_attrib.items():  # pyright: ignore[reportAssignmentType]
         k = '@' + k
         call = value_postprocessor.get(k)
         if call is not None:
@@ -98,7 +98,7 @@ def _parse_element(element: ET.ElementBase):
             parsed.append((k, v_str))
 
     # parse children
-    child: ET.ElementBase
+    child: ET._Element
     for child in element:
         k = _strip_namespace(child.tag)
         v = _parse_element(child)
@@ -141,10 +141,10 @@ def _parse_element(element: ET.ElementBase):
 
 
 @cython.cfunc
-def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
+def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
     k: str
     v: Any
-    element: ET.ElementBase
+    element: ET._Element
     element_attrib: ET._Attrib
 
     # encode dict
@@ -188,7 +188,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET.ElementBase, ...]:
 
         # encode sequence of scalars
         else:
-            result = [None] * len(value)
+            result: list[ET._Element] = [None] * len(value)  # pyright: ignore[reportAssignmentType]
             key_bytes = key.encode()
             i: cython.int
             for i, v in enumerate(value):
@@ -288,7 +288,11 @@ def _strip_namespace(tag: str) -> str:
     return tag.rpartition('}')[2]
 
 
-def _xattr_json(name: str, _=None) -> str:
+class _XAttrCallable(Protocol):
+    def __call__(self, name: str, xml: str | None = None) -> str: ...
+
+
+def _xattr_json(name: str, xml=None) -> str:
     return name
 
 
@@ -296,7 +300,7 @@ def _xattr_xml(name: str, xml: str | None = None) -> str:
     return f'@{xml}' if (xml is not None) else f'@{name}'
 
 
-def get_xattr(*, is_json: bool | None = None):
+def get_xattr(*, is_json: bool | None = None) -> _XAttrCallable:
     """
     Return a function to format attribute names.
 

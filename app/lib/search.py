@@ -8,7 +8,7 @@ from shapely import MultiPolygon, Point, Polygon, STRtree
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementType
 from app.models.search_result import SearchResult
 
 if cython.compiled:
@@ -53,7 +53,7 @@ class Search:
             local_iterations = 1
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)
 
-        result: list[tuple] = [None] * local_iterations  # type: ignore[list-item]
+        result: list[tuple] = [None] * local_iterations  # pyright: ignore[reportAssignmentType]
         i: cython.int
         for i in range(local_iterations):
             bounds_width_2: cython.double = bbox_width_2 * (2**i)
@@ -98,7 +98,7 @@ class Search:
     @staticmethod
     def improve_point_accuracy(
         results: Iterable[SearchResult],
-        members_map: dict[tuple[ElementType, int], Element],
+        members_map: dict[tuple[ElementType, ElementId], Element],
     ) -> None:
         """
         Improve accuracy of points by analyzing relations members.
@@ -132,7 +132,7 @@ class Search:
 
         geoms = tuple(result.point for result in relations)
         tree = STRtree(geoms)
-        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001).T
+        nearby_all = tree.query(geoms, 'dwithin', 0.001).T
         nearby_all = np.unique(nearby_all, axis=0)
         nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
         nearby_all = np.sort(nearby_all, axis=1)
@@ -147,7 +147,7 @@ class Search:
         Deduplicate similar results.
         """
         # Deduplicate by type and id
-        seen_type_id: set[tuple[ElementType, int]] = set()
+        seen_type_id: set[tuple[ElementType, ElementId]] = set()
         dedup1: list[SearchResult] = []
         geoms: list[Point] = []
         for result in results:
@@ -164,7 +164,7 @@ class Search:
 
         # Deduplicate by location and name
         tree = STRtree(geoms)
-        nearby_all: np.ndarray = tree.query(geoms, 'dwithin', 0.001).T
+        nearby_all = tree.query(geoms, 'dwithin', 0.001).T
         nearby_all = np.unique(nearby_all, axis=0)
         nearby_all = nearby_all[nearby_all[:, 0] < nearby_all[:, 1]]
         nearby_all = np.sort(nearby_all, axis=1)

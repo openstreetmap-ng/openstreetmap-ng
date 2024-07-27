@@ -7,8 +7,7 @@ from app.lib.feature_icon import feature_icon
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementRef, VersionedElementRef
-from app.models.element_type import ElementType
+from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.element_query import ElementQuery
 
 
@@ -47,12 +46,9 @@ class FormatElementList:
             for element in elements
             if not element.visible and element.version > 1
         )
-
-        if prev_refs:
-            prev_elements = await ElementQuery.get_by_versioned_refs(prev_refs, limit=len(prev_refs))
-            prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
-        else:
-            prev_type_id_map = {}
+        prev_elements = await ElementQuery.get_by_versioned_refs(prev_refs, limit=len(prev_refs))
+        prev_type_id_map: dict[tuple[ElementType, ElementId], Element]
+        prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
 
         result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
         for element in elements:
@@ -70,15 +66,13 @@ class FormatElementList:
         members: Iterable[ElementMember],
         members_elements: Iterable[Element],
     ) -> tuple[MemberListEntry, ...]:
-        type_id_map: dict[tuple[ElementType, int], Element] = {
-            (member.type, member.id): member  #
-            for member in members_elements
-        }
+        type_id_map: dict[tuple[ElementType, ElementId], Element]
+        type_id_map = {(member.type, member.id): member for member in members_elements}
         return tuple(filter(None, (_encode_member(type_id_map, member) for member in members)))
 
 
 @cython.cfunc
-def _encode_element(prev_type_id_map: dict[tuple[ElementType, int], Element], element: Element):
+def _encode_element(prev_type_id_map: dict[tuple[ElementType, ElementId], Element], element: Element):
     element_type = element.type
     element_id = element.id
     prev = prev_type_id_map.get((element_type, element_id))
@@ -155,7 +149,7 @@ def _encode_parent(ref: ElementRef, element: Element):
 
 
 @cython.cfunc
-def _encode_member(type_id_map: dict[tuple[ElementType, int], Element], member: ElementMember):
+def _encode_member(type_id_map: dict[tuple[ElementType, ElementId], Element], member: ElementMember):
     member_type = member.type
     member_id = member.id
     element = type_id_map.get((member_type, member_id))
@@ -187,5 +181,5 @@ def _encode_member(type_id_map: dict[tuple[ElementType, int], Element], member: 
 
 
 @cython.cfunc
-def _sort_key(element: Element) -> tuple:
+def _sort_key(element: ChangesetListEntry) -> tuple:
     return (not element.visible, element.id, element.version)
