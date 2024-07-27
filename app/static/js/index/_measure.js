@@ -8,18 +8,26 @@ export const getMeasuringController = (map) => {
     const markers = []
     var divIcons = []
     var line = null
+    var distance = 0
     var currentMarker = null
+    var popup = null
+
+    const formatDistance = (distance) => {
+        // TODO: support for miles
+        const precision = Math.pow(10, 2 - Math.floor(Math.log(distance) / logTen)) || 1
+        const roundedMeters = Math.round(distance * precision) / precision || 1
+        const num = roundedMeters < 1000 ? `${roundedMeters}m` : `${roundedMeters / 1000}km`
+        return num
+    }
 
     const updateLabel = (index) => {
         const point = markers[index]?.getLatLng() || currentMarker.getLatLng()
         const previous = markers[index - 1].getLatLng()
         const middle = { lat: (point.lat + previous.lat) / 2, lon: (point.lng + previous.lng) / 2 }
-        const distance = point.distanceTo(previous)
-        const precision = Math.pow(10, 2 - Math.floor(Math.log(distance) / logTen)) || 1
-        const roundedMeters = Math.round(distance * precision) / precision
-        const num = roundedMeters < 1000 ? `${roundedMeters}m` : `${roundedMeters / 1000}km`
+        const _distance = point.distanceTo(previous)
+        const num = formatDistance(_distance)
         var angle = (-Math.atan2(point.lat - previous.lat, point.lng - previous.lng) * 180) / Math.PI
-        console.log(angle)
+
         if (angle > 90) angle -= 180
         if (angle < -90) angle += 180
 
@@ -31,10 +39,15 @@ export const getMeasuringController = (map) => {
             }),
         }).addTo(map)
         divIcons.push(icon)
+        distance += _distance
+        console.log(distance)
+        popup.setContent(`Distance: ${formatDistance(distance)}`)
+        currentMarker.openPopup()
     }
 
     const updateLables = () => {
         var len = markers.length - 1
+        distance = 0
         if (currentMarker.getLatLng().lat != 100) len++
         divIcons.forEach((icon) => icon.remove())
         divIcons = []
@@ -84,7 +97,6 @@ export const getMeasuringController = (map) => {
         // skip adding marker
         map.removeEventListener("click", mouseClick)
         setTimeout(() => map.addEventListener("click", mouseClick), 0)
-        console.log(line.closestLayerPoint(e.latlng))
     }
 
     return {
@@ -110,6 +122,8 @@ export const getMeasuringController = (map) => {
                     updateLine()
                 })
                 line = L.polyline([[lat, lon]], { color: "yellow", weight: 5 }).addTo(map)
+                popup = L.popup("Distance: 0km")
+                currentMarker.bindPopup(popup)
             }
 
             // activeElements.push(currentLine, currentMarker)
