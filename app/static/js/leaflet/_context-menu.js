@@ -6,7 +6,6 @@ import { routerNavigateStrict } from "../index/_router.js"
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
 
-
 /**
  * Format degrees to their correct math representation
  * @param {int} decimalDegree degrees
@@ -28,7 +27,7 @@ export const formatDegrees = (decimalDegree) => {
 }
 
 /**
- * Format lat lon in cordinate system
+ * Format lat lon in cordinate system. See https://en.wikipedia.org/wiki/Geographic_coordinate_system
  * @param {L.LatLng} pos position on map
  * @returns {string}
  * @example formatLatLon({lat: 21.32123, 35.2134})
@@ -89,6 +88,9 @@ export const configureContextMenu = (map) => {
         geolocationUriField.innerText = `geo:${lat},${lon}?z=${map.getZoom()}`
         popup.setLatLng(event.latlng)
         map.openPopup(popup)
+
+        if (element.querySelector("button.show"))
+            element.querySelector("button.show").click()
     }
 
     // On map zoomend, update the available buttons
