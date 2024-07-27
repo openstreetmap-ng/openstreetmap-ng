@@ -60,10 +60,13 @@ export const configureContextMenu = (map) => {
     const centerHereButton = element.querySelector(".center-here")
     const measureDistanceButton = element.querySelector(".measure-distance")
 
+    // remove element from DOM
+    element.parentNode.removeChild(element)
+
     const popup = L.popup({
+        content: element, // readd element to DOM
         closeButton: false,
         interactive: true,
-        content: element,
         bubblingMouseEvents: false,
         autoPan: false,
     })

@@ -454,7 +454,7 @@ export const getRoutingController = (map) => {
                 const [from, to] = searchParams.route.split(";")
                 fromInput.value = from
                 fromInput.dispatchEvent(new Event("input"))
-                toLoadedInput.value = to
+                toInput.value = to
                 toInput.dispatchEvent(new Event("input"))
             }
 
