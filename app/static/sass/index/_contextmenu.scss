@@ -6,12 +6,19 @@
         .btn {
             --bs-btn-padding-x: 0;
             right:5px;
+            font-size:13px;
+            text-align: left;
+            border:none;
         }
         .dropdown-menu {
             font-size: 13px;
-            .leaflet-contextmenu-item {
-                white-space: nowrap;
-            }
+        }
+        .dropdown-toggle {
+            padding-left: 3px;
+            padding-right: 5px;
+        }
+        .dropdown-toggle:hover {
+            background-color: lightgrey;
         }
     }
     .leaflet-popup-content {
@@ -29,13 +36,13 @@
     .leaflet-contextmenu-item {
         color: $black;
         text-decoration: none;
+        white-space: nowrap;
         padding: 4px 12px;
         border-top: 1px solid transparent;
         border-bottom: 1px solid transparent;
-    }
-
-    .leaflet-contextmenu-item.disabled {
-        color: gray !important;
+        > button {
+            padding: 0;
+        }
     }
 
     .leaflet-contextmenu-item:hover {

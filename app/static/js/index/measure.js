@@ -1,7 +1,6 @@
 import { qsEncode, qsParse } from "../_qs.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 
-
 export const getMeasuringController = (map) => {
     var activeMarkers = []
     const markerFactory = (color) =>
@@ -15,14 +14,14 @@ export const getMeasuringController = (map) => {
         load: () => {
             const searchParams = qsParse(location.search.substring(1))
             if (searchParams.pos) {
-                const [lat,lon] = searchParams.pos.split(",")
-                activeMarkers.push( markerFactory("yellow").setLatLng([lat,lon]))
+                const [lat, lon] = searchParams.pos.split(",")
+                activeMarkers.push(markerFactory("yellow").setLatLng([lat, lon]))
             }
         },
         unload: () => {
             activeMarkers.forEach((marker, index) => {
                 marker.remove()
-                delete activeMarkers[index];
+                delete activeMarkers[index]
             })
         },
     }
