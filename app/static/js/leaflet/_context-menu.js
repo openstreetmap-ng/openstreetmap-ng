@@ -6,6 +6,43 @@ import { routerNavigateStrict } from "../index/_router.js"
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
 
+
+/**
+ * Format degrees to their correct math representation
+ * @param {int} decimalDegree degrees
+ * @returns {string}
+ * @example formatDegrees(21.32123)
+ * // => "21°19′16″"
+ */
+export const formatDegrees = (decimalDegree) => {
+    const degrees = Math.floor(decimalDegree)
+    const minutes = Math.floor((decimalDegree - degrees) * 60)
+    const seconds = Math.round(((decimalDegree - degrees) * 60 - minutes) * 60)
+
+    // Pad single digits with a leading zero
+    const formattedDegrees = degrees < 10 ? `0${degrees}` : `${degrees}`
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`
+
+    return `${formattedDegrees}°${formattedMinutes}′${formattedSeconds}″`
+}
+
+/**
+ * Format lat lon in cordinate system
+ * @param {L.LatLng} pos position on map
+ * @returns {string}
+ * @example formatLatLon({lat: 21.32123, 35.2134})
+ * // => "21°19′16″N, 35°12′48″E"
+ */
+
+export const formatLatLon = (latLng) => {
+    const lat = formatDegrees(latLng.lat)
+    const lon = formatDegrees(latLng.lng)
+    const lat_dir = latLng.lat == 0 ? "" : latLng.lat > 0 ? "N" : "S"
+    const lon_dir = latLng.lat == 0 ? "" : latLng.lat > 0 ? "E" : "W"
+    return `${lat}${lat_dir}, ${lon}${lon_dir}`
+}
+
 /**
  * Configure the map context menu
  * @param {L.Map} map Leaflet map
@@ -13,6 +50,9 @@ export const queryFeaturesMinZoom = 14
  */
 export const configureContextMenu = (map) => {
     const element = document.querySelector(".leaflet-context-menu")
+    const geolocationField = element.querySelector(".geolocation-dd")
+    const geolocationGeoField = element.querySelector(".geolocation-geo")
+    const geolocationUriField = element.querySelector(".geolocation-uri")
     const routingFromButton = element.querySelector(".routing-from")
     const routingToButton = element.querySelector(".routing-to")
     const newNoteButton = element.querySelector(".new-note")
@@ -20,7 +60,6 @@ export const configureContextMenu = (map) => {
     const queryFeaturesButton = element.querySelector(".query-features")
     const centerHereButton = element.querySelector(".center-here")
     const measureDistanceButton = element.querySelector(".measure-distance")
-
 
     const popup = L.popup({
         closeButton: false,
@@ -41,6 +80,13 @@ export const configureContextMenu = (map) => {
 
     // On map contextmenu, open the popup
     const onMapContextMenu = (event) => {
+        const precision = zoomPrecision(map.getZoom())
+        const lon = event.latlng.lng.toFixed(precision)
+        const lat = event.latlng.lat.toFixed(precision)
+
+        geolocationGeoField.innerText = formatLatLon(event.latlng)
+        geolocationField.innerText = `${lat}, ${lon}`
+        geolocationUriField.innerText = `geo:${lat},${lon}?z=${map.getZoom()}`
         popup.setLatLng(event.latlng)
         map.openPopup(popup)
     }
@@ -108,14 +154,23 @@ export const configureContextMenu = (map) => {
 
     // On measure distance button click, measure distance
     const onMeasureDistanceButtonClick = () => {
+        map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
-        routerNavigateStrict(
-            `/measure?${qsEncode({pos: `${lat},${lon}`})}`
-        )
+        routerNavigateStrict(`/measure?${qsEncode({ pos: `${lat},${lon}` })}`)
     }
 
     const closePopup = () => {
         map.closePopup(popup)
+    }
+
+    const onGeolocationFieldClick = async (event) => {
+        map.closePopup(popup)
+        try {
+            await navigator.clipboard.writeText(event.target.innerText)
+            console.debug("Text copied to clipboard")
+        } catch (err) {
+            console.error("Failed to copy text: ", err)
+        }
     }
 
     // Listen for events
@@ -129,5 +184,7 @@ export const configureContextMenu = (map) => {
     queryFeaturesButton.addEventListener("click", onQueryFeaturesButtonClick)
     centerHereButton.addEventListener("click", onCenterHereButtonClick)
     measureDistanceButton.addEventListener("click", onMeasureDistanceButtonClick)
-
+    geolocationField.addEventListener("click", onGeolocationFieldClick)
+    geolocationGeoField.addEventListener("click", onGeolocationFieldClick)
+    geolocationUriField.addEventListener("click", onGeolocationFieldClick)
 }

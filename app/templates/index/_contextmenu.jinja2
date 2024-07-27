@@ -1,7 +1,22 @@
-<a class="leaflet-contextmenu-item routing-from" href="#">{{ t('javascripts.context.directions_from') }}</a>
-<a class="leaflet-contextmenu-item routing-to" href="#">{{ t('javascripts.context.directions_to') }}</a>
-<a class="leaflet-contextmenu-item new-note" href="#">{{ t('context.suggest_edit') }}</a>
-<a class="leaflet-contextmenu-item show-address" href="#">{{ t('javascripts.context.show_address') }}</a>
-<a class="leaflet-contextmenu-item query-features disabled" href="#">{{ t('javascripts.context.query_features') }}</a>
-<a class="leaflet-contextmenu-item center-here" href="#">{{ t('javascripts.context.centre_map') }}</a>
-<a class="leaflet-contextmenu-item measure-distance" href="#">{{ t('context.measure_distance') }}</a>
+<span class="leaflet-contextmenu-item position-relative d-flex align-items-center">
+    <span class="geolocation-dd"></span>
+    <button type="button" class="btn dropdown-toggle position-absolute" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        <span class="visually-hidden">{{  t('action.show_more')  }}</span>
+    </button>
+    <ul class="dropdown-menu">
+        <li class="leaflet-context-menu">
+            <span class="leaflet-contextmenu-item geolocation-geo"> </span>
+            <span class="leaflet-contextmenu-item geolocation-uri"> </span>
+
+        </li>
+    </ul>
+
+</span>
+<span class="leaflet-contextmenu-item routing-from">{{ t('javascripts.context.directions_from') }}</span>
+<span class="leaflet-contextmenu-item routing-to">{{ t('javascripts.context.directions_to') }}</span>
+<span class="leaflet-contextmenu-item new-note">{{ t('context.suggest_edit') }}</span>
+<span class="leaflet-contextmenu-item show-address">{{ t('javascripts.context.show_address') }}</span>
+<span class="leaflet-contextmenu-item query-features disabled">{{ t('javascripts.context.query_features') }}</span>
+<span class="leaflet-contextmenu-item center-here">{{ t('javascripts.context.centre_map') }}</span>
+<span class="leaflet-contextmenu-item measure-distance">{{ t('context.measure_distance') }}</span>
