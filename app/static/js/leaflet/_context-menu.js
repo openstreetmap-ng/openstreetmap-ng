@@ -92,8 +92,7 @@ export const configureContextMenu = (map) => {
         popup.setLatLng(event.latlng)
         map.openPopup(popup)
 
-        if (element.querySelector("button.show"))
-            element.querySelector("button.show").click()
+        if (element.querySelector("button.show")) element.querySelector("button.show").click()
     }
 
     // On map zoomend, update the available buttons
