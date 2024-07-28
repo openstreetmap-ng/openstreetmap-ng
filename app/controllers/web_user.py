@@ -123,11 +123,11 @@ async def account_confirm_resend(
 
 @router.post('/settings')
 async def update_settings(
+    _: Annotated[User, web_user()],
     display_name: Annotated[DisplayNameStr, Form()],
     language: Annotated[LocaleCode, Form()],
-    activity_tracking: Annotated[bool, Form()],
-    crash_reporting: Annotated[bool, Form()],
-    _: Annotated[User, web_user()],
+    activity_tracking: Annotated[bool, Form()] = False,
+    crash_reporting: Annotated[bool, Form()] = False,
 ):
     await UserService.update_settings(
         display_name=display_name,

@@ -54,8 +54,12 @@
                 <label class="form-label d-block">
                     {{ t('user.settings.preferred_language') | title }}
                     <select class="form-select format-select mt-2" name="language" required>
-                        {# TODO #}
-                        <option value="en">English</option>
+                        {% for locale_name in INSTALLED_LOCALES_NAMES_MAP.values() %}
+                        <option value="{{ locale_name.code }}"
+                            {% if user.language == locale_name.code %}selected{% endif %}>
+                            {{ locale_name.english }} ({{ locale_name.native }})
+                        </option>
+                        {% endfor %}
                     </select>
                 </label>
                 <p class="form-text mb-3">

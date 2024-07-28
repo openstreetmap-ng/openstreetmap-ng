@@ -8,7 +8,7 @@ from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user, web_user
 from app.lib.jinja_env import render
 from app.lib.local_chapters import LOCAL_CHAPTERS
-from app.lib.locale import is_installed_locale
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP, is_installed_locale
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.limits import URLSAFE_BLACKLIST
@@ -131,4 +131,10 @@ async def welcome(_: Annotated[User, web_user()]):
 
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
-    return render_response('user/settings/index.jinja2', {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST})
+    return render_response(
+        'user/settings/index.jinja2',
+        {
+            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
+            'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
+        },
+    )

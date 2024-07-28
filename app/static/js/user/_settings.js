@@ -25,6 +25,10 @@ if (settingsBody) {
     const removeAvatarButton = avatarForm.querySelector("button.remove-avatar")
     const avatars = document.querySelectorAll("img.avatar")
 
+    const onSettingsFormSuccess = () => {
+        location.reload()
+    }
+
     const onSettingsClientValidation = () => {
         const result = new Array()
 
@@ -66,7 +70,7 @@ if (settingsBody) {
         for (const avatar of avatars) avatar.src = data.avatar_url
     }
 
-    configureStandardForm(settingsForm, null, onSettingsClientValidation)
+    configureStandardForm(settingsForm, onSettingsFormSuccess, onSettingsClientValidation)
     configureStandardForm(avatarForm, onAvatarFormSuccess)
 
     // Listen for events

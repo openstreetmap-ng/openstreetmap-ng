@@ -9,10 +9,10 @@ from app.lib.locale import (
 
 
 def test_locales_names_sorted():
-    codes = [locale_name.code for locale_name in LOCALES_NAMES_MAP.values()]
-    assert sorted(codes) == codes
-    codes = [locale_name.code for locale_name in INSTALLED_LOCALES_NAMES_MAP.values()]
-    assert sorted(codes) == codes
+    strings = [locale_name.english for locale_name in LOCALES_NAMES_MAP.values()]
+    assert sorted(strings) == strings
+    strings = [locale_name.english for locale_name in INSTALLED_LOCALES_NAMES_MAP.values()]
+    assert sorted(strings) == strings
 
 
 @pytest.mark.parametrize(
