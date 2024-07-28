@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Query, Request, Response, UploadFile
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -68,7 +69,7 @@ async def signup(
     display_name: Annotated[DisplayNameStr, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[PasswordStr, Form()],
-    tracking: Annotated[bool, Form()],
+    tracking: Annotated[bool, Form()] = False,
 ):
     access_token = await UserSignupService.signup(
         display_name=display_name,
@@ -155,3 +156,12 @@ async def settings_avatar(
 ):
     avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
     return {'avatar_url': avatar_url}
+
+
+@router.post('/settings/password')
+async def settings_password(
+    _: Annotated[User, web_user()],
+    old_password: Annotated[SecretStr, Form()],
+    new_password: Annotated[SecretStr, Form()],
+    revoke_other_sessions: Annotated[bool, Form()] = False,
+): ...

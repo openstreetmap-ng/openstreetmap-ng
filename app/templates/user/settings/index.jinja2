@@ -17,13 +17,13 @@
             <form class="col settings-form" method="POST" action="/api/web/user/settings">
 
                 <label class="form-label d-block mb-3">
-                    {{ t('activerecord.attributes.user.display_name') }}
+                    {{ t('activerecord.attributes.user.display_name') | capitalize }}
                     <input type="text" class="form-control mt-2" name="display_name"
                         data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ user.display_name }}" required>
                 </label>
 
                 <label class="form-label d-block">
-                    {{ t('passwords.new.email address') }}
+                    {{ t('passwords.new.email address') | capitalize }}
                     <div class="input-group mt-2">
                         <input type="email" class="form-control bg-body-tertiary" value="{{ user.email }}" readonly>
                         <a class="btn btn-light border" href="/settings/email">
@@ -33,15 +33,15 @@
                 </label>
                 <p class="form-text">
                     {% set privacy_policy_link %}
-                    <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
-                        {{ t('users.new.privacy_policy') }}
-                    </a>
+                    <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">{#
+                        #}{{ t('users.new.privacy_policy') }}{#
+                    #}</a>
                     {% endset %}
                     {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
                 </p>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('user.settings.password_last_changed') | title }}
+                    {{ t('user.settings.password_last_changed') }}
                     <div class="input-group mt-2">
                         <input type="text" class="form-control bg-body-tertiary"
                             value="{{ user.password_changed_at | timeago }}" readonly>
@@ -52,7 +52,7 @@
                 </label>
 
                 <label class="form-label d-block">
-                    {{ t('user.settings.preferred_language') | title }}
+                    {{ t('user.settings.preferred_language') }}
                     <select class="form-select format-select mt-2" name="language" required>
                         {% for locale_name in INSTALLED_LOCALES_NAMES_MAP.values() %}
                         <option value="{{ locale_name.code }}"

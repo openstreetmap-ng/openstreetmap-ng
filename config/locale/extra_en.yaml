@@ -80,6 +80,16 @@ user:
     change_email: Change email
     change_password: Change password
     password_last_changed: Password last changed
+    current_password: Current password
+    new_password: New password
+    new_password_repeat: Repeat new password
+    logout_from_browsers: Automatically logout from all other browsers
+    two_factor_auth: Two-factor authentication
+    active_sessions: Active sessions
+    session_id: 'Session ID: {{id}}'
+    current_session: Current session
+    authorized_at: 'Authorized at: {{date}}'
+    terminate: Terminate
   activity:
     recent: Recent activity
     summary: '{{mapping_day}} with {{num_changesets}} in {{last_n_months}}'

@@ -79,14 +79,15 @@ class AuthService:
                 logging.debug('Attempting to authenticate with OAuth2')
                 oauth_result = await AuthService.authenticate_oauth2(param)
                 if oauth_result is not None:
-                    user, scopes = oauth_result
+                    user = oauth_result.user
+                    scopes = oauth_result.scopes
 
         # all endpoints support session cookies
         if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
             oauth_result = await AuthService.authenticate_oauth2(token_str)
-            if (oauth_result is not None) and oauth_result[1] == (Scope.web_user,):
-                user = oauth_result[0]
+            if (oauth_result is not None) and oauth_result.scopes == (Scope.web_user,):
+                user = oauth_result.user
                 scopes = _session_auth_scopes
 
         # all endpoints on test env support any user auth
@@ -175,7 +176,7 @@ class AuthService:
         return user
 
     @staticmethod
-    async def authenticate_oauth2(param: str) -> tuple[User, tuple[Scope, ...]] | None:
+    async def authenticate_oauth2(param: str) -> OAuth2Token | None:
         """
         Authenticate a user with OAuth2.
 
@@ -190,4 +191,4 @@ class AuthService:
             return None
         if token.authorized_at is None:
             raise_for().oauth_bad_user_token()
-        return token.user, token.scopes
+        return token

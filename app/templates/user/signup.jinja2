@@ -23,7 +23,7 @@
                 <input type="hidden" name="tracking" autocomplete="off" required>
 
                 <label class="form-label d-block">
-                    {{ t('activerecord.attributes.user.display_name') }}
+                    {{ t('activerecord.attributes.user.display_name') | capitalize }}
                     <input type="text" class="form-control mt-2" name="display_name"
                         data-blacklist="{{ URLSAFE_BLACKLIST }}" required>
                 </label>
@@ -32,8 +32,9 @@
                 </p>
 
                 <label class="form-label d-block">
-                    {{ t('passwords.new.email address') }}
-                    <input type="email" class="form-control mt-2" name="email" required>
+                    {{ t('passwords.new.email address') | capitalize }}
+                    <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
+                        maxlength="{{ EMAIL_MAX_LENGTH }}" required>
                 </label>
                 <p class="form-text">
                     {% set privacy_policy_link %}
@@ -45,18 +46,20 @@
                 </p>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('activerecord.attributes.user.email_confirmation') }}
+                    {{ t('activerecord.attributes.user.email_confirmation') | capitalize }}
                     <input type="email" class="form-control mt-2" name="email_confirm" required>
                 </label>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('sessions.new.password') }}
-                    <input type="password" class="form-control mt-2" name="password" required>
+                    {{ t('sessions.new.password') | capitalize }}
+                    <input type="password" class="form-control mt-2" name="password"
+                        minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}" required>
                 </label>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('activerecord.attributes.user.pass_crypt_confirmation') }}
-                    <input type="password" class="form-control mt-2" name="password_confirm" required>
+                    {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
+                    <input type="password" class="form-control mt-2" name="password_confirm"
+                        minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}" required>
                 </label>
 
                 <div class="d-flex justify-content-between align-items-center">

@@ -58,7 +58,7 @@ class OAuth2TokenService:
 
         # handle silent authentication
         if init:
-            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app(
+            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
                 user_id=user_id,
                 app_id=app.id,
                 limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,
@@ -172,7 +172,7 @@ class OAuth2TokenService:
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_app(app_id: int) -> None:
+    async def revoke_by_app_id(app_id: int) -> None:
         """
         Revoke all current user tokens for the given OAuth2 application.
         """
@@ -182,6 +182,16 @@ class OAuth2TokenService:
                 OAuth2Token.application_id == app_id,
             )
             await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_client_id(client_id: str) -> None:
+        """
+        Revoke all current user tokens for the given OAuth2 client.
+        """
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None:
+            return
+        await OAuth2TokenService.revoke_by_app_id(app.id)
 
 
 @cython.cfunc
