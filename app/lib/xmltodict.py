@@ -55,16 +55,14 @@ class XMLToDict:
         if len(d) != 1:
             raise ValueError(f'Invalid root element count {len(d)}')
 
-        root_k: str
-        root_v: Any
         root_k, root_v = next(iter(d.items()))
         elements = _unparse_element(root_k, root_v)
 
         # always return the root element, even if it's empty
         if not elements:
-            elements = (ET.Element(root_k.encode()),)
+            elements = (ET.Element(root_k),)
 
-        result: bytes = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
+        result = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
         logging.debug('Unparsed %s XML string', naturalsize(len(result)))
 
         if raw:
@@ -79,7 +77,6 @@ def _parse_element(element: ET._Element):
     force_sequence_root: set[str] = _force_sequence_root
     force_list: set[str] = _force_list
     value_postprocessor: dict[str, Callable[[str], Any]] = _value_postprocessor
-    element_attrib = element.attrib
 
     parsed: list[tuple[str, Any]] = []
     parsed_children: dict[str, Any | list[Any]] = {}
@@ -89,7 +86,7 @@ def _parse_element(element: ET._Element):
     k: str
     v: Any
     v_str: str
-    for k, v_str in element_attrib.items():  # pyright: ignore[reportAssignmentType]
+    for k, v_str in element.attrib.items():  # pyright: ignore[reportAssignmentType]
         k = '@' + k
         call = value_postprocessor.get(k)
         if call is not None:
@@ -98,7 +95,6 @@ def _parse_element(element: ET._Element):
             parsed.append((k, v_str))
 
     # parse children
-    child: ET._Element
     for child in element:
         k = _strip_namespace(child.tag)
         v = _parse_element(child)
@@ -144,12 +140,10 @@ def _parse_element(element: ET._Element):
 def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
     k: str
     v: Any
-    element: ET._Element
-    element_attrib: ET._Attrib
 
     # encode dict
     if isinstance(value, dict):
-        element = ET.Element(key.encode())
+        element = ET.Element(key)
         element_attrib = element.attrib  # read property once for performance
         for k, v in value.items():
             if k and k[0] == '@':
@@ -175,7 +169,7 @@ def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
 
         # encode sequence of (key, value) tuples
         elif isinstance(first, Sequence) and not isinstance(first, str):
-            element = ET.Element(key.encode())
+            element = ET.Element(key)
             element_attrib = element.attrib  # read property once for performance
             for k, v in value:
                 if k and k[0] == '@':
@@ -189,17 +183,16 @@ def _unparse_element(key: str, value: Any) -> tuple[ET._Element, ...]:
         # encode sequence of scalars
         else:
             result: list[ET._Element] = [None] * len(value)  # pyright: ignore[reportAssignmentType]
-            key_bytes = key.encode()
             i: cython.int
             for i, v in enumerate(value):
-                element = ET.Element(key_bytes)
+                element = ET.Element(key)
                 element.text = _to_string(v)
                 result[i] = element
             return tuple(result)
 
     # encode scalar
     else:
-        element = ET.Element(key.encode())
+        element = ET.Element(key)
         element.text = _to_string(value)
         return (element,)
 
