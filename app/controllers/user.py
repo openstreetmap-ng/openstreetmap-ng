@@ -24,7 +24,6 @@ from app.limits import (
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
-from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
@@ -201,7 +200,7 @@ async def settings(_: Annotated[User, web_user()]):
 
 @router.get('/settings/security')
 async def settings_security(user: Annotated[User, web_user()]):
-    current_session = await AuthService.authenticate_oauth2(get_request().cookies['auth'])
+    current_session = await AuthService.authenticate_oauth2(None)
     active_sessions = await OAuth2TokenQuery.find_many_authorized_by_user_client_id(
         user_id=user.id,
         client_id='SystemApp.web',

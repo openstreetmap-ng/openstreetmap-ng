@@ -16,7 +16,7 @@ if (signupBody) {
     trackingInput.value = activityTracking
 
     const onSignupSuccess = () => {
-        location.href = "/user/terms"
+        window.location = "/user/terms"
     }
 
     const onClientValidation = () => {

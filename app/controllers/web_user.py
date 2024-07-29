@@ -58,7 +58,7 @@ async def logout(
     _: Annotated[User, web_user()],
 ):
     access_token = request.cookies['auth']
-    await OAuth2TokenService.revoke_by_token(access_token)
+    await OAuth2TokenService.revoke_by_access_token(access_token)
     response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
     response.delete_cookie('auth')
     return response
@@ -165,3 +165,12 @@ async def settings_password(
     new_password: Annotated[SecretStr, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ): ...
+
+
+@router.post('/settings/revoke-token')
+async def settings_revoke_token(
+    _: Annotated[User, web_user()],
+    token_id: Annotated[int, Form()],
+):
+    await OAuth2TokenService.revoke_by_id(token_id)
+    return Response()

@@ -159,7 +159,19 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def revoke_by_token(access_token: str) -> None:
+    async def revoke_by_id(token_id: int) -> None:
+        """
+        Revoke the given token.
+        """
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.id == token_id,
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_access_token(access_token: str) -> None:
         """
         Revoke the given access token.
         """
@@ -199,7 +211,4 @@ def _compute_s256(verifier: str) -> str:
     """
     Compute the S256 code challenge from the verifier.
     """
-    verifier_bytes = verifier.encode()
-    verifier_hashed = sha256(verifier_bytes).digest()
-    verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
-    return verifier_base64
+    return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')

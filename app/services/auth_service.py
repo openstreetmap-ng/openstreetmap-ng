@@ -176,15 +176,21 @@ class AuthService:
         return user
 
     @staticmethod
-    async def authenticate_oauth2(param: str) -> OAuth2Token | None:
+    async def authenticate_oauth2(param: str | None) -> OAuth2Token | None:
         """
         Authenticate a user with OAuth2.
+
+        If param is None, it will be read from the request cookies.
 
         Returns None if the token is not found.
 
         Raises an exception if the token is not authorized.
         """
         # TODO: PATs
+        if param is None:
+            param = get_request().cookies.get('auth')
+            if param is None:
+                return None
         with options_context(joinedload(OAuth2Token.user)):
             token = await OAuth2TokenQuery.find_one_authorized_by_token(param)
         if token is None:

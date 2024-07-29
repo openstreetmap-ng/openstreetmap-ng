@@ -6,7 +6,7 @@ if (tracesEditBody) {
 
     // On success callback, navigate to the trace details
     const onFormSuccess = ({ trace_id }) => {
-        location.href = `/trace/${trace_id}`
+        window.location = `/trace/${trace_id}`
     }
 
     configureStandardForm(updateForm, onFormSuccess)
