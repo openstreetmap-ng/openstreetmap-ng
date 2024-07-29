@@ -24,9 +24,12 @@ export const getMeasuringController = (map) => {
         const point = markers[index]?.getLatLng() || currentMarker.getLatLng()
         const previous = markers[index - 1].getLatLng()
         const middle = { lat: (point.lat + previous.lat) / 2, lon: (point.lng + previous.lng) / 2 }
+        const screenPoint = map.latLngToContainerPoint(point)
+        const previousScreen = map.latLngToContainerPoint(previous)
         const _distance = point.distanceTo(previous)
         const num = formatDistance(_distance)
-        var angle = (-Math.atan2(point.lat - previous.lat, point.lng - previous.lng) * 180) / Math.PI
+        var angle =
+            (-Math.atan2(screenPoint.x - previousScreen.x, screenPoint.y - previousScreen.y) * 180) / Math.PI + 90
 
         if (angle > 90) angle -= 180
         if (angle < -90) angle += 180
@@ -77,6 +80,14 @@ export const getMeasuringController = (map) => {
             .on("drag", updateLine)
 
     const mouseClick = (e) => {
+        const pos = e.containerPoint
+        const markerPos = map.latLngToContainerPoint(currentMarker.getLatLng())
+        const diff = { x: pos.x - markerPos.x, y: pos.y - markerPos.y }
+        const distance = diff.x * diff.x + diff.y * diff.y
+        console.log("distance:", distance)
+
+        if (distance < 1000) return // skip creating marker if it is close to the previous one
+
         // skip first marker
         if (currentMarker.getLatLng().lat != 100) {
             const marker = markerFactory("blue")
@@ -122,7 +133,13 @@ export const getMeasuringController = (map) => {
                     updateLine()
                 })
                 line = L.polyline([[lat, lon]], { color: "yellow", weight: 5 }).addTo(map)
-                popup = L.popup("Distance: 0km")
+                popup = L.popup("Distance: 0km", {
+                    autoPan: false,
+                    closeButton: false,
+                    autoClose: false,
+                    closeOnEscapeKey: false,
+                    closeOnClick: false,
+                })
                 currentMarker.bindPopup(popup)
             }
 
