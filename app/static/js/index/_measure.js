@@ -23,7 +23,8 @@ export const getMeasuringController = (map) => {
     const updateLabel = (index) => {
         const point = markers[index]?.getLatLng() || currentMarker.getLatLng()
         const previous = markers[index - 1].getLatLng()
-        const middle = { lat: (point.lat + previous.lat) / 2, lon: (point.lng + previous.lng) / 2 }
+        const middle = L.LineUtil.polylineCenter([point, previous], L.CRS.EPSG3857)
+        console.log(middle)
         const screenPoint = map.latLngToContainerPoint(point)
         const previousScreen = map.latLngToContainerPoint(previous)
         const _distance = point.distanceTo(previous)
@@ -43,7 +44,6 @@ export const getMeasuringController = (map) => {
         }).addTo(map)
         divIcons.push(icon)
         distance += _distance
-        console.log(distance)
         popup.setContent(`Distance: ${formatDistance(distance)}`)
         currentMarker.openPopup()
     }
