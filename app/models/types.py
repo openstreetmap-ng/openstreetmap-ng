@@ -17,7 +17,6 @@ from app.validators.whitespace import BoundaryWhitespaceValidator
 
 Str255 = Annotated[str, MinLen(1), MaxLen(255)]
 
-
 DisplayNameType = NewType('DisplayNameType', str)
 ValidatingDisplayNameType = Annotated[
     DisplayNameType,

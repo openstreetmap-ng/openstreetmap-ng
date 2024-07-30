@@ -1,9 +1,32 @@
+from functools import lru_cache
 from typing import Literal, NamedTuple, NewType, Self, override
-
-from app.validators.element_type import element_type
 
 ElementId = NewType('ElementId', int)
 ElementType = Literal['node', 'way', 'relation']
+
+
+@lru_cache(maxsize=512)
+def element_type(s: str) -> ElementType:
+    """
+    Get the element type from the given string.
+
+    >>> _element_type('node')
+    'node'
+    >>> _element_type('w123')
+    'way'
+    """
+    if len(s) == 0:
+        raise ValueError('Element type cannot be empty')
+
+    c = s[0]
+    if c == 'n':
+        return 'node'
+    elif c == 'w':
+        return 'way'
+    elif c == 'r':
+        return 'relation'
+    else:
+        raise ValueError(f'Unknown element type {s!r}')
 
 
 class ElementRef(NamedTuple):

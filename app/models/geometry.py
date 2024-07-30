@@ -21,8 +21,6 @@ Latitude = Annotated[float, Interval(ge=-90, le=90)]
 Zoom = Annotated[int, Interval(ge=0, le=25)]
 # TODO: test if type matches after validation
 
-_invalid_handler = np.uint8(DecodingErrorOptions.get_value('raise'))
-
 
 class _GeometryType(UserDefinedType, ABC):
     geometry_type: str
@@ -49,10 +47,12 @@ class _GeometryType(UserDefinedType, ABC):
 
     @override
     def result_processor(self, dialect, coltype):
+        invalid_handler = np.uint8(DecodingErrorOptions.get_value('raise'))
+
         def process(value: bytes | None):
             if value is None:
                 return None
-            return lib.from_wkb(np.asarray(value, dtype=object), _invalid_handler)
+            return lib.from_wkb(np.asarray(value, dtype=object), invalid_handler)
 
         return process
 
