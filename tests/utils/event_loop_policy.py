@@ -2,6 +2,7 @@ import contextvars
 import traceback
 from asyncio import Task
 from pathlib import Path
+from typing import override
 
 import uvloop
 
@@ -34,6 +35,7 @@ class CustomEventLoopPolicy(uvloop.EventLoopPolicy):
         super().__init__()
         self._context = contextvars.copy_context()
 
+    @override
     def new_event_loop(self):
         loop = self._loop_factory()
         loop.set_task_factory(get_task_factory(self._context))

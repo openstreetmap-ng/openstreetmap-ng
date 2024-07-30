@@ -4,10 +4,9 @@ from pathlib import Path
 
 import cython
 
-from app.config import DEFAULT_LANGUAGE
-from app.lib.locale import normalize_locale
+from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_locales
-from app.models.tag_format import TagFormat, ValueFormat
+from app.models.tags_format import TagFormat, ValueFormat
 
 # TODO: perhaps support glob matches: Key:*:lanes
 
@@ -19,7 +18,7 @@ def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
         (key, value): frozenset(
             normalize_locale(locale)
             if locale  #
-            else DEFAULT_LANGUAGE
+            else DEFAULT_LOCALE
             for locale in locales
         )
         for key, value_locales in data.items()
@@ -77,7 +76,7 @@ def _transform(
     for locale in locales:
         if locale not in wiki_locales:
             continue
-        if locale == DEFAULT_LANGUAGE:
+        if locale == DEFAULT_LOCALE:
             url = f'https://wiki.openstreetmap.org/wiki/{page}'
         else:
             url = f'https://wiki.openstreetmap.org/wiki/{locale.title()}:{page}'

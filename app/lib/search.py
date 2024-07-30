@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
 import cython
 import numpy as np
@@ -8,13 +9,23 @@ from shapely import MultiPolygon, Point, Polygon, STRtree
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
-from app.models.element_ref import ElementId, ElementType
-from app.models.search_result import SearchResult
+from app.models.element import ElementId, ElementType
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2
 else:
     from math import ceil, log2
+
+
+@dataclass(kw_only=True, slots=True)
+class SearchResult:
+    element: Element
+    rank: int  # for determining global vs local relevance
+    importance: float  # for sorting results
+    prefix: str
+    display_name: str
+    point: Point
+    bounds: Polygon
 
 
 class Search:

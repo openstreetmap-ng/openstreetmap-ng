@@ -9,10 +9,9 @@ from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.user import User
-from app.models.mail_source import MailSource
-from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.models.user_status import UserStatus
+from app.models.db.mail import MailSource
+from app.models.db.user import User, UserStatus
+from app.models.types import DisplayNameType, EmailType, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
@@ -24,9 +23,9 @@ class UserSignupService:
     @staticmethod
     async def signup(
         *,
-        display_name: DisplayNameStr,
-        email: EmailStr,
-        password: PasswordStr,
+        display_name: DisplayNameType,
+        email: EmailType,
+        password: PasswordType,
         tracking: bool,
     ) -> str:
         """

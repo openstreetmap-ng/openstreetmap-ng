@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, override
 from starlette.convertors import Convertor
 
 if TYPE_CHECKING:
-    from app.models.element_ref import ElementType
+    from app.models.element import ElementType
 
 
 @lru_cache(maxsize=512)

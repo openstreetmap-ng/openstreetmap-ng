@@ -12,8 +12,8 @@ from app.lib.format_style_context import format_is_json
 from app.limits import GEO_COORDINATE_PRECISION
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementType
-from app.models.osmchange_action import OSMChangeAction
+from app.models.element import ElementType
+from app.models.types import OSMChangeAction
 from app.validators.element import ElementValidating
 
 

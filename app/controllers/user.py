@@ -24,9 +24,8 @@ from app.limits import (
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
-from app.models.db.user import User
-from app.models.note_event import NoteEvent
-from app.models.user_status import UserStatus
+from app.models.db.note_comment import NoteEvent
+from app.models.db.user import User, UserStatus
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -194,6 +193,17 @@ async def settings(_: Annotated[User, web_user()]):
         {
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
             'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
+        },
+    )
+
+
+@router.get('/settings/email')
+async def settings_email(_: Annotated[User, web_user()]):
+    return render_response(
+        'user/settings/email.jinja2',
+        {
+            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
+            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
         },
     )
 

@@ -17,7 +17,6 @@ from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_D
 from app.services.cache_service import CacheService
 
 _cache_context = 'EmailValidator'
-
 _resolver = Resolver()
 _resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
 _resolver.lifetime = _resolver.timeout + 2
@@ -122,4 +121,4 @@ async def _check_domain_deliverability(domain: str) -> bool:
     return success
 
 
-EmailStrValidator = Predicate(validate_email)  # pyright: ignore[reportArgumentType]
+EmailValidator = Predicate(validate_email)  # pyright: ignore[reportArgumentType]

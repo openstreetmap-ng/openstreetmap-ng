@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import cython
 from shapely import Point, get_coordinates
@@ -40,7 +41,7 @@ class OverpassQuery:
             return r.content
 
         cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements: list[dict] = JSON_DECODE(cache.value)['elements']
+        elements: list[dict[str, Any]] = JSON_DECODE(cache.value)['elements']  # pyright: ignore[reportInvalidTypeForm]
         elements.sort(key=_get_bounds_size)
 
         return tuple(

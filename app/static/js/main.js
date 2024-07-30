@@ -17,6 +17,7 @@ import "./user/_account-confirm.js"
 import "./user/_login.js"
 import "./user/_signup.js"
 import "./user/_terms.js"
+import "./user/settings/_email.js"
 import "./user/settings/_index.js"
 import "./user/settings/_security.js"
 

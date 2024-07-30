@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 from shapely import Point
 from sqlalchemy import (
@@ -19,7 +19,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.db.base import Base
 from app.models.db.changeset import Changeset
 from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.element_ref import ElementId, ElementType
+from app.models.element import ElementId, ElementType
 from app.models.geometry import PointType
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class Element(Base.NoID, CreatedAtMixin):
 
     sequence_id: Mapped[int] = mapped_column(BigInteger, init=False, nullable=False)
     changeset_id: Mapped[int] = mapped_column(ForeignKey(Changeset.id), nullable=False)
-    type: Mapped[ElementType] = mapped_column(Enum('node', 'way', 'relation', name='element_type'), nullable=False)
+    type: Mapped[ElementType] = mapped_column(Enum(*get_args(ElementType), name='element_type'), nullable=False)
     id: Mapped[ElementId] = mapped_column(BigInteger, nullable=False)
     version: Mapped[int] = mapped_column(BigInteger, nullable=False)
     visible: Mapped[bool] = mapped_column(Boolean, nullable=False)

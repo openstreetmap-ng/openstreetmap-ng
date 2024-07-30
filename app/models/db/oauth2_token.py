@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 
 from sqlalchemy import ARRAY, Enum, ForeignKey, Index, LargeBinary, Unicode
@@ -10,8 +11,12 @@ from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User
-from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
 from app.models.scope import Scope
+
+
+class OAuth2CodeChallengeMethod(str, enum.Enum):
+    plain = 'plain'
+    S256 = 'S256'
 
 
 class OAuth2Token(Base.ZID, CreatedAtMixin):

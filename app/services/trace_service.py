@@ -13,16 +13,21 @@ from app.lib.exceptions_context import raise_for
 from app.lib.trace_file import TraceFile
 from app.lib.xmltodict import XMLToDict
 from app.limits import TRACE_FILE_UPLOAD_MAX_SIZE
-from app.models.db.trace_ import Trace
+from app.models.db.trace_ import Trace, TraceVisibility
 from app.models.db.trace_segment import TraceSegment
-from app.models.trace_visibility import TraceVisibility
 from app.storage import TRACES_STORAGE
 from app.validators.trace_ import TraceValidating
 
 
 class TraceService:
     @staticmethod
-    async def upload(file: UploadFile, *, description: str, tags: str, visibility: TraceVisibility) -> Trace:
+    async def upload(
+        file: UploadFile,
+        *,
+        description: str,
+        tags: str,
+        visibility: TraceVisibility,
+    ) -> Trace:
         """
         Process upload of a trace file.
 

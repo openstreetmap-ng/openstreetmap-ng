@@ -2,15 +2,14 @@ from sqlalchemy import ARRAY, Boolean, Enum, ForeignKey, Index, LargeBinary, Uni
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import decrypt
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH, StorageKey
 from app.lib.updating_cached_property import updating_cached_property
-from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH
+from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH, STORAGE_KEY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.models.str import Uri
+from app.models.types import StorageKey, Uri
 
 
 class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):

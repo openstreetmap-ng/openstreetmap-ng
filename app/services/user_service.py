@@ -10,13 +10,8 @@ from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.auth_provider import AuthProvider
-from app.models.avatar_type import AvatarType
-from app.models.db.user import User
-from app.models.editor import Editor
-from app.models.locale_name import LocaleCode
-from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.models.user_status import UserStatus
+from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatus
+from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
@@ -30,7 +25,7 @@ class UserService:
     async def login(
         *,
         display_name_or_email: str,
-        password: PasswordStr,
+        password: PasswordType,
     ) -> str:
         """
         Attempt to log in a user.
@@ -100,7 +95,7 @@ class UserService:
     @staticmethod
     async def update_settings(
         *,
-        display_name: DisplayNameStr,
+        display_name: DisplayNameType,
         language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
@@ -153,8 +148,8 @@ class UserService:
     async def update_email(
         collector: MessageCollector,
         *,
-        new_email: EmailStr,
-        password: PasswordStr,
+        new_email: EmailType,
+        password: PasswordType,
     ) -> None:
         """
         Update user email.
@@ -173,14 +168,15 @@ class UserService:
             MessageCollector.raise_error('email', t('user.invalid_email'))
 
         await EmailChangeService.send_confirm_email(new_email)
-        collector.info('email', t('user.email_change_confirm_sent'))
+        # TODO: send to old email too
+        collector.info('email', t('user.settings.email_change_confirmation_sent'))
 
     @staticmethod
     async def update_password(
         collector: MessageCollector,
         *,
-        old_password: PasswordStr,
-        new_password: PasswordStr,
+        old_password: PasswordType,
+        new_password: PasswordType,
     ) -> None:
         """
         Update user password.

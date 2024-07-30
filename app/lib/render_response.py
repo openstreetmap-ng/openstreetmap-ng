@@ -10,7 +10,7 @@ from app.lib.locale import map_i18next_files
 from app.lib.translation import translation_locales
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
-from app.models.editor import DEFAULT_EDITOR
+from app.models.db.user import Editor
 from app.utils import JSON_ENCODE
 
 _config_dict_base: dict[str, Any] = {
@@ -45,7 +45,7 @@ def render_response(template_name: str, template_data: dict[str, Any] | None = N
 
     data = {
         'request': get_request(),
-        'DEFAULT_EDITOR': DEFAULT_EDITOR,
+        'DEFAULT_EDITOR': Editor.get_default(),
         'config': config,
         'i18next_files': map_i18next_files(locales),
     }

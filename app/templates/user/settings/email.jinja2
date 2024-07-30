@@ -1,0 +1,65 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('passwords.new.email address') | capitalize }} | {% endblock %}
+{% block body_class %}settings-email-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        {{ t('passwords.new.email address') | capitalize }}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+
+            {% include 'user/settings/_nav.jinja2' %}
+
+            <div class="col">
+
+                <form class="email-form" method="POST" action="/api/web/user/settings/email">
+                    <h3 class="mb-3">{{ t('user.settings.change_email') }}</h3>
+
+                    <label class="form-label d-block mb-3">
+                        {{ t('user.settings.current_email_address') }}
+                        <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}"
+                            readonly>
+                    </label>
+
+                    <label class="form-label d-block">
+                        {{ t('user.settings.new_email_address') }}
+                        <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
+                            maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
+                    </label>
+                    <p class="form-text">
+                        {% set privacy_policy_link %}
+                        <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
+                            {{ t('users.new.privacy_policy') }}
+                        </a>
+                        {% endset %}
+                        {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
+                    </p>
+
+                    <label class="form-label d-block">
+                        {{ t('sessions.new.password') }}
+                        <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
+                            required>
+                    </label>
+                    <p class="form-text">
+                        <a class="link-primary"
+                            href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>
+                    </p>
+
+                    <div class="text-end">
+                        <button class="btn btn-primary px-3" type="submit">
+                            {{ t('user.settings.change_email') | title }}
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

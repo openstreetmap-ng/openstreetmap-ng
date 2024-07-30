@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING
@@ -21,35 +22,65 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.lib.avatar import Avatar
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
-from app.lib.rich_text import RichTextMixin
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH, StorageKey
+from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     LOCALE_CODE_MAX_LENGTH,
+    STORAGE_KEY_MAX_LENGTH,
     USER_DESCRIPTION_MAX_LENGTH,
 )
-from app.models.auth_provider import AuthProvider
-from app.models.avatar_type import AvatarType
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.editor import Editor
 from app.models.geometry import PointType
-from app.models.locale_name import LocaleCode
 from app.models.scope import Scope
-from app.models.text_format import TextFormat
-from app.models.user_role import UserRole
-from app.models.user_status import UserStatus
+from app.models.types import DisplayNameType, EmailType, LocaleCode, StorageKey
 
 if TYPE_CHECKING:
     from app.models.db.user_block import UserBlock
+
+
+class AuthProvider(str, enum.Enum):
+    openid = 'openid'
+    google = 'google'
+    facebook = 'facebook'
+    microsoft = 'microsoft'
+    github = 'github'
+    wikipedia = 'wikipedia'
+
+
+class AvatarType(str, enum.Enum):
+    default = 'default'
+    gravatar = 'gravatar'
+    custom = 'custom'
+
+
+class Editor(str, enum.Enum):
+    id = 'id'
+    rapid = 'rapid'
+    remote = 'remote'
+
+    @classmethod
+    def get_default(cls):
+        return cls.id
+
+
+class UserRole(str, enum.Enum):
+    moderator = 'moderator'
+    administrator = 'administrator'
+
+
+class UserStatus(str, enum.Enum):
+    pending_terms = 'pending_terms'
+    pending_activation = 'pending_activation'
+    active = 'active'
 
 
 class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'user'
     __rich_text_fields__ = (('description', TextFormat.markdown),)
 
-    email: Mapped[str] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
-    display_name: Mapped[str] = mapped_column(Unicode(DISPLAY_NAME_MAX_LENGTH), nullable=False)
+    email: Mapped[EmailType] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
+    display_name: Mapped[DisplayNameType] = mapped_column(Unicode(DISPLAY_NAME_MAX_LENGTH), nullable=False)
     password_hashed: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 

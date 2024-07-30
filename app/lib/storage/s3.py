@@ -3,8 +3,9 @@ from typing import override
 import aioboto3
 
 from app.lib.file_cache import FileCache
-from app.lib.storage.base import StorageBase, StorageKey
+from app.lib.storage.base import StorageBase
 from app.limits import S3_CACHE_EXPIRE
+from app.models.types import StorageKey
 
 _s3 = aioboto3.Session()
 

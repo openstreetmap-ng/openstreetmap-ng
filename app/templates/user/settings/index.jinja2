@@ -57,7 +57,7 @@
                         {% for locale_name in INSTALLED_LOCALES_NAMES_MAP.values() %}
                         <option value="{{ locale_name.code }}"
                             {% if user.language == locale_name.code %}selected{% endif %}>
-                            {{ locale_name.english }} ({{ locale_name.native }})
+                            {{ locale_name.display_name }}
                         </option>
                         {% endfor %}
                     </select>

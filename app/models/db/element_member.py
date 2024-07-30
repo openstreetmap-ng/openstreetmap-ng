@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.db.base import Base
-from app.models.element_ref import ElementId, ElementType
+from app.models.element import ElementId, ElementType
 
 
 class ElementMember(Base.NoID):

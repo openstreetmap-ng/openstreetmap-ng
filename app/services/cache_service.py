@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
+from typing import NamedTuple
 
 from zstandard import ZstdCompressor, ZstdDecompressor
 
@@ -13,10 +14,14 @@ from app.limits import (
     CACHE_COMPRESS_ZSTD_THREADS,
     CACHE_DEFAULT_EXPIRE,
 )
-from app.models.cache_entry import CacheEntry
 
 _compress = ZstdCompressor(level=CACHE_COMPRESS_ZSTD_LEVEL, threads=CACHE_COMPRESS_ZSTD_THREADS).compress
 _decompress = ZstdDecompressor().decompress
+
+
+class CacheEntry(NamedTuple):
+    id: bytes
+    value: bytes
 
 
 class CacheService:

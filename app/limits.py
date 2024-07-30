@@ -115,6 +115,8 @@ SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller is prefer more local
 SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50
 
+STORAGE_KEY_MAX_LENGTH = 64
+
 TRACE_TAG_MAX_LENGTH = 40
 TRACE_TAGS_LIMIT = 10
 

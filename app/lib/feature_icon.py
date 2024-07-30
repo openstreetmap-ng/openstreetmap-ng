@@ -5,7 +5,7 @@ from pathlib import Path
 
 import cython
 
-from app.models.element_ref import ElementType
+from app.models.element import ElementType
 
 
 @cython.cfunc

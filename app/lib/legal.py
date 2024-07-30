@@ -3,8 +3,7 @@ from pathlib import Path
 
 import cython
 
-from app.lib.rich_text import process_rich_text
-from app.models.text_format import TextFormat
+from app.lib.rich_text import TextFormat, process_rich_text
 
 
 @cython.cfunc

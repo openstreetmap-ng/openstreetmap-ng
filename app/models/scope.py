@@ -19,13 +19,14 @@ class Scope(str, Enum):
     role_moderator = 'role_moderator'
     role_administrator = 'role_administrator'
 
-
-BASIC_SCOPES = (
-    Scope.read_prefs,
-    Scope.write_prefs,
-    Scope.write_diary,
-    Scope.write_api,
-    Scope.read_gpx,
-    Scope.write_gpx,
-    Scope.write_notes,
-)
+    @classmethod
+    def get_basic(cls) -> tuple['Scope', ...]:
+        return (
+            cls.read_prefs,
+            cls.write_prefs,
+            cls.write_diary,
+            cls.write_api,
+            cls.read_gpx,
+            cls.write_gpx,
+            cls.write_notes,
+        )

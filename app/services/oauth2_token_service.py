@@ -13,8 +13,7 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
-from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token
 from app.models.scope import Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery

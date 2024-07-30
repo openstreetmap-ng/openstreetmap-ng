@@ -7,12 +7,12 @@ from sqlalchemy import ForeignKey, Index, Integer, and_, func, null
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PolygonType
-from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
     from app.models.db.changeset_bounds import ChangesetBounds
@@ -79,7 +79,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         user = self.user
         if user is None:
             raise AssertionError('Changeset user must be set')
-        return UserRole.get_changeset_max_size(user.roles)
+        return UserRoleLimits.get_changeset_max_size(user.roles)
 
     def set_size(self, new_size: int) -> bool:
         """

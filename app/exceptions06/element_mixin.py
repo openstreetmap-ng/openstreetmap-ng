@@ -5,7 +5,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
-from app.models.element_ref import ElementRef, VersionedElementRef
+from app.models.element import ElementRef, VersionedElementRef
 
 if TYPE_CHECKING:
     from app.models.db.element import Element

@@ -8,7 +8,7 @@ from PIL import Image, ImageOps
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
-from app.models.avatar_type import AvatarType
+from app.models.db.user import AvatarType
 
 if cython.compiled:
     from cython.cimports.libc.math import sqrt

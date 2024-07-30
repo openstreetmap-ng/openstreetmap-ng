@@ -25,9 +25,8 @@ from app.lib.date_utils import utcnow
 from app.lib.jinja_env import render
 from app.lib.translation import translation_context
 from app.limits import MAIL_PROCESSING_TIMEOUT, MAIL_UNPROCESSED_EXPIRE, MAIL_UNPROCESSED_EXPONENT
-from app.models.db.mail import Mail
+from app.models.db.mail import Mail, MailSource
 from app.models.db.user import User
-from app.models.mail_source import MailSource
 from app.services.user_token_email_reply_service import UserTokenEmailReplyService
 
 _process_lock = Lock()

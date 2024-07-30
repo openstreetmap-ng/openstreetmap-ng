@@ -1,28 +1,29 @@
-from enum import Enum
+from functools import cache
+
+from app.models.db.user import UserRole
 
 
-class UserRole(str, Enum):
-    moderator = 'moderator'
-    administrator = 'administrator'
-
+class UserRoleLimits:
+    @cache
     @staticmethod
-    def get_changeset_max_size(roles: tuple['UserRole', ...]) -> int:
+    def get_changeset_max_size(roles: tuple[UserRole, ...]) -> int:
         """
         Get the maximum size of a changeset for the given roles.
 
-        >>> UserRole.get_changeset_max_size([])
+        >>> UserRoleLimits.get_changeset_max_size([])
         10_000
         """
         if not roles:
             return _changeset_max_size[None]
         return max(_changeset_max_size[r] for r in roles)
 
+    @cache
     @staticmethod
-    def get_rate_limit_quota(roles: tuple['UserRole', ...]) -> int:
+    def get_rate_limit_quota(roles: tuple[UserRole, ...]) -> int:
         """
         Get the rate limit quota for the given roles.
 
-        >>> UserRole.get_rate_limit_quota([])
+        >>> UserRoleLimits.get_rate_limit_quota([])
         10_000
         """
         if not roles:

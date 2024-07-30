@@ -4,15 +4,14 @@ from typing import Annotated
 from pydantic import PositiveInt
 
 from app.models.db.base import Base
-from app.models.filename import FileName
-from app.models.str import Str255
-from app.models.trace_visibility import TraceVisibility
-from app.validators.url import UrlSafeValidator
+from app.models.db.trace_ import TraceVisibility
+from app.models.types import Str255, UrlSafeValidator
+from app.validators.filename import FileNameValidator
 
 
 class TraceValidating(Base.Validating):
     user_id: PositiveInt
-    name: FileName
+    name: Annotated[Str255, FileNameValidator]
     description: Str255
     visibility: TraceVisibility
 

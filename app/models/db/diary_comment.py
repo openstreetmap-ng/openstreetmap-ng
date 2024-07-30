@@ -2,13 +2,12 @@ from sqlalchemy import ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin
+from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import DIARY_COMMENT_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.diary import Diary
 from app.models.db.user import User
-from app.models.text_format import TextFormat
 
 
 class DiaryComment(Base.Sequential, CreatedAtMixin, RichTextMixin):

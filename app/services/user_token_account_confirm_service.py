@@ -7,10 +7,9 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
-from app.models.db.user import User
+from app.models.db.user import User, UserStatus
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.models.user_status import UserStatus
 from app.queries.user_token_account_confirm_query import UserTokenAccountConfirmQuery
 
 

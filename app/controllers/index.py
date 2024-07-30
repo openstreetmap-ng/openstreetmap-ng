@@ -4,16 +4,14 @@ from fastapi import APIRouter
 from starlette import status
 from starlette.responses import FileResponse, RedirectResponse, Response
 
-from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user, web_user
 from app.lib.jinja_env import render
 from app.lib.local_chapters import LOCAL_CHAPTERS
-from app.lib.locale import is_installed_locale
+from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
-from app.limits import URLSAFE_BLACKLIST
 from app.models.db.user import User
-from app.models.locale_name import LocaleCode
+from app.models.types import LocaleCode
 
 router = APIRouter()
 
@@ -62,7 +60,7 @@ async def copyright_i18n(locale: LocaleCode):
         copyright_translated_title = t('site.copyright.legal_babble.title_html')
         copyright_content = render('copyright_content.jinja2')
     primary_locale = primary_translation_locale()
-    show_notice = locale != primary_locale or primary_locale != DEFAULT_LANGUAGE
+    show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
     return render_response(
         'copyright.jinja2',
         {

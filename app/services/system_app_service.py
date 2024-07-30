@@ -1,9 +1,11 @@
 import logging
 from asyncio import TaskGroup
+from typing import NamedTuple
 
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
+from app.config import NAME
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
@@ -11,8 +13,14 @@ from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
-from app.models.system_app import SYSTEM_APPS, SystemApp
+from app.models.scope import Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
+
+
+class SystemApp(NamedTuple):
+    name: str
+    client_id: str
+    scopes: tuple[Scope, ...]
 
 
 class SystemAppService:
@@ -22,7 +30,35 @@ class SystemAppService:
         Register and update system apps in the database.
         """
         async with TaskGroup() as tg:
-            for app in SYSTEM_APPS:
+            for app in (
+                SystemApp(
+                    name=NAME,
+                    client_id='SystemApp.web',
+                    scopes=(Scope.web_user,),
+                ),
+                SystemApp(
+                    name='iD',
+                    client_id='SystemApp.id',
+                    scopes=(
+                        Scope.read_prefs,
+                        Scope.write_prefs,
+                        Scope.write_api,
+                        Scope.read_gpx,
+                        Scope.write_notes,
+                    ),
+                ),
+                SystemApp(
+                    name='Rapid',
+                    client_id='SystemApp.rapid',
+                    scopes=(
+                        Scope.read_prefs,
+                        Scope.write_prefs,
+                        Scope.write_api,
+                        Scope.read_gpx,
+                        Scope.write_notes,
+                    ),
+                ),
+            ):
                 tg.create_task(_register_app(app))
 
     @staticmethod

@@ -1,3 +1,5 @@
+from typing import Any
+
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
@@ -29,7 +31,7 @@ async def test_changeset_comment_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset: Any = XMLToDict.parse(r.content)['osm']['changeset']
 
     last_updated_at = changeset['@updated_at']
 

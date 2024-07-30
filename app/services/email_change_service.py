@@ -1,5 +1,5 @@
 from app.lib.auth_context import auth_user
-from app.models.mail_source import MailSource
+from app.models.db.mail import MailSource
 from app.services.email_service import EmailService
 from app.services.user_token_email_change_service import UserTokenEmailChangeService
 

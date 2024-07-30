@@ -6,8 +6,8 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
+from app.models.db.mail import MailSource
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.mail_source import MailSource
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService

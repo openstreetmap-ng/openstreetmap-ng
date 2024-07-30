@@ -5,7 +5,7 @@ from typing import NoReturn
 from starlette import status
 
 from app.exceptions.api_error import APIError
-from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
 
 
 class AuthExceptionsMixin:
