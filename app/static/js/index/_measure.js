@@ -1,16 +1,18 @@
 import { qsEncode, qsParse } from "../_qs.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
+import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 import * as L from "leaflet"
 
 const logTen = Math.log(10)
 
 export const getMeasuringController = (map) => {
+    const sidebar = getActionSidebar("measure")
+    const totalDistanceLabel = sidebar.querySelector(".total-distance")
     const markers = []
     var divIcons = []
     var line = null
     var distance = 0
     var currentMarker = null
-    var popup = null
 
     const formatDistance = (distance) => {
         // TODO: support for miles
@@ -44,8 +46,7 @@ export const getMeasuringController = (map) => {
         }).addTo(map)
         divIcons.push(icon)
         distance += _distance
-        popup.setContent(`Distance: ${formatDistance(distance)}`)
-        currentMarker.openPopup()
+        totalDistanceLabel.innerText = formatDistance(distance)
     }
 
     const updateLables = () => {
@@ -84,7 +85,6 @@ export const getMeasuringController = (map) => {
         const markerPos = map.latLngToContainerPoint(currentMarker.getLatLng())
         const diff = { x: pos.x - markerPos.x, y: pos.y - markerPos.y }
         const distance = diff.x * diff.x + diff.y * diff.y
-        console.log("distance:", distance)
 
         if (distance < 1000) return // skip creating marker if it is close to the previous one
 
@@ -133,14 +133,8 @@ export const getMeasuringController = (map) => {
                     updateLine()
                 })
                 line = L.polyline([[lat, lon]], { color: "yellow", weight: 5 }).addTo(map)
-                popup = L.popup("Distance: 0km", {
-                    autoPan: false,
-                    closeButton: false,
-                    autoClose: false,
-                    closeOnEscapeKey: false,
-                    closeOnClick: false,
-                })
-                currentMarker.bindPopup(popup)
+                totalDistanceLabel.innerText = "0km"
+                switchActionSidebar(map, "measure")
             }
 
             // activeElements.push(currentLine, currentMarker)
