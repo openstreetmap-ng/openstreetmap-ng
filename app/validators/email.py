@@ -14,9 +14,9 @@ from email_validator import validate_email as validate_email_
 
 from app.config import TEST_ENV
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 
-_cache_context = 'EmailValidator'
+_cache_context = CacheContext('EmailValidator')
 _resolver = Resolver()
 _resolver.timeout = EMAIL_DELIVERABILITY_DNS_TIMEOUT.total_seconds()
 _resolver.lifetime = _resolver.timeout + 2

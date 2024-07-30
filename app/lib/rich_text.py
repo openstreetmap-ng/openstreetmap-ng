@@ -12,7 +12,7 @@ from sqlalchemy import update
 
 from app.db import db_commit
 from app.limits import RICH_TEXT_CACHE_EXPIRE
-from app.services.cache_service import CacheEntry, CacheService
+from app.services.cache_service import CacheContext, CacheEntry, CacheService
 
 
 class TextFormat(str, Enum):
@@ -68,7 +68,7 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
 
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
-    cache_context = f'RichText:{text_format.value}'
+    cache_context = CacheContext(f'RichText:{text_format.value}')
 
     async def factory() -> bytes:
         return process_rich_text(text, text_format).encode()

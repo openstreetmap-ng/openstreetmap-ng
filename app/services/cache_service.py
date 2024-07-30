@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
-from typing import NamedTuple
+from typing import NamedTuple, NewType
 
 from zstandard import ZstdCompressor, ZstdDecompressor
 
@@ -14,6 +14,8 @@ from app.limits import (
     CACHE_COMPRESS_ZSTD_THREADS,
     CACHE_DEFAULT_EXPIRE,
 )
+
+CacheContext = NewType('CacheContext', str)
 
 _compress = ZstdCompressor(level=CACHE_COMPRESS_ZSTD_LEVEL, threads=CACHE_COMPRESS_ZSTD_THREADS).compress
 _decompress = ZstdDecompressor().decompress
@@ -28,7 +30,7 @@ class CacheService:
     @staticmethod
     async def get(
         key: str | bytes,
-        context: str,
+        context: CacheContext,
         factory: Callable[[], Awaitable[bytes]],
         *,
         hash_key: bool = False,

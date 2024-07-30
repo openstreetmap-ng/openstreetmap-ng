@@ -19,10 +19,10 @@ from app.models.scope import Scope
 from app.models.types import PasswordType
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 from app.validators.email import validate_email
 
-_credentials_context = 'AuthCredentials'
+_credentials_context = CacheContext('AuthCredentials')
 
 # default scopes when using basic auth
 _basic_auth_scopes: tuple[Scope, ...] = Scope.get_basic()

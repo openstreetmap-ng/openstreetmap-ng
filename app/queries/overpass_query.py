@@ -7,10 +7,10 @@ from shapely import Point, get_coordinates
 from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.db.element import Element
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP, JSON_DECODE
 
-_cache_context = 'Overpass'
+_cache_context = CacheContext('Overpass')
 
 
 class OverpassQuery:

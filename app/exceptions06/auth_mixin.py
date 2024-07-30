@@ -1,11 +1,13 @@
 from collections.abc import Iterable
-from typing import NoReturn, override
+from typing import TYPE_CHECKING, NoReturn, override
 
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.auth_mixin import AuthExceptionsMixin
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
+
+if TYPE_CHECKING:
+    from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
 
 
 class AuthExceptions06Mixin(AuthExceptionsMixin):
@@ -39,7 +41,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         )
 
     @override
-    def oauth2_bad_verifier(self, code_challenge_method: OAuth2CodeChallengeMethod) -> NoReturn:
+    def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail=f'OAuth2 verifier invalid for {code_challenge_method.value} code challenge method',

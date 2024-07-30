@@ -19,7 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.lib.avatar import Avatar
+from app.lib.avatar import Avatar, AvatarType
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.rich_text import RichTextMixin, TextFormat
@@ -46,12 +46,6 @@ class AuthProvider(str, enum.Enum):
     microsoft = 'microsoft'
     github = 'github'
     wikipedia = 'wikipedia'
-
-
-class AvatarType(str, enum.Enum):
-    default = 'default'
-    gravatar = 'gravatar'
-    custom = 'custom'
 
 
 class Editor(str, enum.Enum):

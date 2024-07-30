@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from io import BytesIO
 from pathlib import Path
 
@@ -8,7 +9,6 @@ from PIL import Image, ImageOps
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
-from app.models.db.user import AvatarType
 
 if cython.compiled:
     from cython.cimports.libc.math import sqrt
@@ -18,6 +18,12 @@ else:
 # Support up to 256MP images
 # TODO: handle errors
 Image.MAX_IMAGE_PIXELS = 2 * int(1024 * 1024 * 1024 // 4 // 3)
+
+
+class AvatarType(str, Enum):
+    default = 'default'
+    gravatar = 'gravatar'
+    custom = 'custom'
 
 
 class Avatar:

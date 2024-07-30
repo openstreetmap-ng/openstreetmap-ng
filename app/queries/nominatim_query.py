@@ -20,10 +20,10 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element import ElementRef
 from app.queries.element_query import ElementQuery
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP, JSON_DECODE
 
-_cache_context = 'Nominatim'
+_cache_context = CacheContext('Nominatim')
 
 
 class NominatimQuery:
