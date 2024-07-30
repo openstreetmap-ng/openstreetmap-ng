@@ -26,38 +26,31 @@
     @include legacy-leaflet-icon(-60px, 0);
 }
 
-.icon.geolocate {
-    @extend .bi;
-    @extend .bi-crosshair;
-    display: inline-block;
-    font-size: 18px;
-    color: $white;
+.icon.geolocate img {
+    width: 20px;
+    height: 20px;
+    margin: 10px;
+}
 
-    &::before {
-        padding: 1px;
-        margin: 10px;
-    }
+.icon.geolocate.loading img {
+    animation: spin 2s infinite;
+    transform-origin: 50% 50%;
 
-    &.loading::before {
-        animation: spin 2s infinite;
-        transform-origin: 50% 50%;
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            75% {
-                transform: rotate(360deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        75% {
+            transform: rotate(360deg);
+        }
+        100% {
+            transform: rotate(360deg);
         }
     }
 }
 
-.active .icon.geolocate {
-    color: #74ff81;
+.active .icon.geolocate img {
+    filter: sepia(1) brightness(0.85) saturate(10) hue-rotate(55deg);
 }
 
 .icon.layers {
