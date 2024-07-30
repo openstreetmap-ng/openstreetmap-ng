@@ -26,13 +26,13 @@
     @include legacy-leaflet-icon(-60px, 0);
 }
 
-.icon.geolocate img {
+.icon.geolocate {
     width: 20px;
     height: 20px;
     margin: 10px;
 }
 
-.icon.geolocate.loading img {
+.icon.geolocate.loading {
     animation: spin 2s infinite;
     transform-origin: 50% 50%;
 
@@ -49,7 +49,7 @@
     }
 }
 
-.active .icon.geolocate img {
+.active .icon.geolocate {
     filter: sepia(1) brightness(0.85) saturate(10) hue-rotate(55deg);
 }
 
