@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Query, Request, Response, UploadFile
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -18,6 +19,7 @@ from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
+from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
@@ -57,7 +59,7 @@ async def logout(
     _: Annotated[User, web_user()],
 ):
     access_token = request.cookies['auth']
-    await OAuth2TokenService.revoke_by_token(access_token)
+    await OAuth2TokenService.revoke_by_access_token(access_token)
     response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
     response.delete_cookie('auth')
     return response
@@ -68,7 +70,7 @@ async def signup(
     display_name: Annotated[DisplayNameStr, Form()],
     email: Annotated[EmailStr, Form()],
     password: Annotated[PasswordStr, Form()],
-    tracking: Annotated[bool, Form()],
+    tracking: Annotated[bool, Form()] = False,
 ):
     access_token = await UserSignupService.signup(
         display_name=display_name,
@@ -123,11 +125,11 @@ async def account_confirm_resend(
 
 @router.post('/settings')
 async def update_settings(
+    _: Annotated[User, web_user()],
     display_name: Annotated[DisplayNameStr, Form()],
     language: Annotated[LocaleCode, Form()],
-    activity_tracking: Annotated[bool, Form()],
-    crash_reporting: Annotated[bool, Form()],
-    _: Annotated[User, web_user()],
+    activity_tracking: Annotated[bool, Form()] = False,
+    crash_reporting: Annotated[bool, Form()] = False,
 ):
     await UserService.update_settings(
         display_name=display_name,
@@ -155,3 +157,27 @@ async def settings_avatar(
 ):
     avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
     return {'avatar_url': avatar_url}
+
+
+@router.post('/settings/password')
+async def settings_password(
+    _: Annotated[User, web_user()],
+    old_password: Annotated[SecretStr, Form()],
+    new_password: Annotated[SecretStr, Form()],
+    revoke_other_sessions: Annotated[bool, Form()] = False,
+):
+    collector = MessageCollector()
+    await UserService.update_password(collector, old_password=old_password, new_password=new_password)
+    if revoke_other_sessions:
+        current_session = await AuthService.authenticate_oauth2(None)
+        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+    return collector.result
+
+
+@router.post('/settings/revoke-token')
+async def settings_revoke_token(
+    _: Annotated[User, web_user()],
+    token_id: Annotated[int, Form()],
+):
+    await OAuth2TokenService.revoke_by_id(token_id)
+    return Response()

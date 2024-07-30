@@ -1,6 +1,6 @@
 import i18next from "i18next"
-import { configureStandardForm } from "../_standard-form.js"
-import { isHrefCurrentPage } from "../_utils.js"
+import { configureStandardForm } from "../../_standard-form.js"
+import { isHrefCurrentPage } from "../../_utils.js"
 
 // Add active class to current nav-lik
 const navLinks = document.querySelectorAll(".settings-nav .nav-link")
@@ -24,6 +24,10 @@ if (settingsBody) {
     const useGravatarButton = avatarForm.querySelector("button.use-gravatar")
     const removeAvatarButton = avatarForm.querySelector("button.remove-avatar")
     const avatars = document.querySelectorAll("img.avatar")
+
+    const onSettingsFormSuccess = () => {
+        location.reload()
+    }
 
     const onSettingsClientValidation = () => {
         const result = new Array()
@@ -66,7 +70,7 @@ if (settingsBody) {
         for (const avatar of avatars) avatar.src = data.avatar_url
     }
 
-    configureStandardForm(settingsForm, null, onSettingsClientValidation)
+    configureStandardForm(settingsForm, onSettingsFormSuccess, onSettingsClientValidation)
     configureStandardForm(avatarForm, onAvatarFormSuccess)
 
     // Listen for events

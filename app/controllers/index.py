@@ -117,18 +117,6 @@ async def login():
     return render_response('user/login.jinja2')
 
 
-@router.get('/signup')
-async def signup():
-    if auth_user() is not None:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response('user/signup.jinja2', {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST})
-
-
 @router.get('/welcome')
 async def welcome(_: Annotated[User, web_user()]):
     return render_response('welcome.jinja2')
-
-
-@router.get('/settings')
-async def settings(_: Annotated[User, web_user()]):
-    return render_response('user/settings/index.jinja2', {'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST})

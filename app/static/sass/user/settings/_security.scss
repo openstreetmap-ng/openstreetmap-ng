@@ -1,0 +1,18 @@
+.settings-security-body {
+    .active-session:not(:last-child) {
+        padding-bottom: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid $border-color;
+    }
+
+    .session-id {
+        font-family: monospace;
+    }
+
+    .current-session {
+        font-size: 0.75em;
+        line-height: 1.1em;
+        position: relative;
+        top: -2px;
+    }
+}

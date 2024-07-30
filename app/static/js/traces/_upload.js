@@ -6,7 +6,7 @@ if (tracesUploadBody) {
 
     // On success callback, navigate to the new trace
     const onFormSuccess = ({ trace_id }) => {
-        location.href = `/trace/${trace_id}`
+        window.location = `/trace/${trace_id}`
     }
 
     configureStandardForm(uploadForm, onFormSuccess)

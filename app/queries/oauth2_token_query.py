@@ -6,6 +6,7 @@ from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.options_context import apply_options_context
 from app.models.db.oauth2_token import OAuth2Token
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
 
 class OAuth2TokenQuery:
@@ -24,7 +25,7 @@ class OAuth2TokenQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_many_authorized_by_user_app(
+    async def find_many_authorized_by_user_app_id(
         user_id: int,
         app_id: int,
         *,
@@ -49,3 +50,15 @@ class OAuth2TokenQuery:
                 stmt = stmt.limit(limit)
 
             return (await session.scalars(stmt)).all()
+
+    @staticmethod
+    async def find_many_authorized_by_user_client_id(
+        user_id: int,
+        client_id: str,
+        *,
+        limit: int | None,
+    ) -> Sequence[OAuth2Token]:
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None:
+            return ()
+        return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(user_id, app.id, limit=limit)

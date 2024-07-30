@@ -17,7 +17,7 @@ if (tracesDetailsBody) {
         // On success callback, navigate to my traces
         const onFormSuccess = ({ redirect_url }) => {
             console.debug("onFormSuccess", redirect_url)
-            location.href = redirect_url
+            window.location = redirect_url
         }
 
         configureStandardForm(deleteForm, onFormSuccess)

@@ -3,6 +3,7 @@ from itertools import cycle
 from typing import Annotated
 
 import numpy as np
+from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Path
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -10,8 +11,19 @@ from starlette.responses import RedirectResponse
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
 from app.lib.legal import legal_terms
+from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.render_response import render_response
-from app.limits import DISPLAY_NAME_MAX_LENGTH, USER_ACTIVITY_CHART_WEEKS, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
+from app.limits import (
+    ACTIVE_SESSIONS_DISPLAY_LIMIT,
+    DISPLAY_NAME_MAX_LENGTH,
+    EMAIL_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    URLSAFE_BLACKLIST,
+    USER_ACTIVITY_CHART_WEEKS,
+    USER_NEW_DAYS,
+    USER_RECENT_ACTIVITY_ENTRIES,
+)
 from app.models.db.user import User
 from app.models.note_event import NoteEvent
 from app.models.user_status import UserStatus
@@ -19,42 +31,18 @@ from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
+from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
+from app.services.auth_service import AuthService
 from app.utils import JSON_ENCODE
 
-router = APIRouter(prefix='/user')
-
-
-@router.get('/terms')
-async def terms(user: Annotated[User, web_user()]):
-    if user.status != UserStatus.pending_terms:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response(
-        'user/terms.jinja2',
-        {
-            'legal_terms_GB': legal_terms('GB'),
-            'legal_terms_FR': legal_terms('FR'),
-            'legal_terms_IT': legal_terms('IT'),
-        },
-    )
-
-
-@router.get('/account-confirm/pending')
-async def account_confirm_pending(user: Annotated[User, web_user()]):
-    if user.status != UserStatus.pending_activation:
-        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
-    return render_response('user/account_confirm_pending.jinja2')
-
-
-@router.get('/new')
-async def legacy_signup():
-    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
+router = APIRouter()
 
 
 # TODO: optimize
-@router.get('/{display_name:str}')
+@router.get('/user/{display_name:str}')
 async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)]):
     user = await UserQuery.find_one_by_display_name(display_name)
 
@@ -181,3 +169,75 @@ async def _get_activity_data(user: User) -> dict:
         'activity_sum': activity.sum(),  # total activities
         'activity_days': (activity > 0).sum(),  # total mapping days
     }
+
+
+@router.get('/signup')
+async def signup():
+    if auth_user() is not None:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response(
+        'user/signup.jinja2',
+        {
+            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
+            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
+            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
+            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
+        },
+    )
+
+
+@router.get('/settings')
+async def settings(_: Annotated[User, web_user()]):
+    return render_response(
+        'user/settings/index.jinja2',
+        {
+            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
+            'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
+        },
+    )
+
+
+@router.get('/settings/security')
+async def settings_security(user: Annotated[User, web_user()]):
+    current_session = await AuthService.authenticate_oauth2(None)
+    active_sessions = await OAuth2TokenQuery.find_many_authorized_by_user_client_id(
+        user_id=user.id,
+        client_id='SystemApp.web',
+        limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
+    )
+    return render_response(
+        'user/settings/security.jinja2',
+        {
+            'current_session_id': current_session.id,  # pyright: ignore[reportOptionalMemberAccess]
+            'active_sessions': active_sessions,
+            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
+        },
+    )
+
+
+@router.get('/user/account-confirm/pending')
+async def account_confirm_pending(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.pending_activation:
+        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
+    return render_response('user/account_confirm_pending.jinja2')
+
+
+@router.get('/user/terms')
+async def terms(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.pending_terms:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return render_response(
+        'user/terms.jinja2',
+        {
+            'legal_terms_GB': legal_terms('GB'),
+            'legal_terms_FR': legal_terms('FR'),
+            'legal_terms_IT': legal_terms('IT'),
+        },
+    )
+
+
+@router.get('/user/new')
+async def legacy_signup():
+    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)

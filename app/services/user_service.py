@@ -166,7 +166,7 @@ class UserService:
             return
 
         if not PasswordHash.verify(user.password_hashed, password).success:
-            MessageCollector.raise_error('password', t('user.invalid_password'))
+            MessageCollector.raise_error('password', t('user.password_is_incorrect'))
         if not await UserQuery.check_email_available(new_email):
             MessageCollector.raise_error('email', t('user.email_already_taken'))
         if not await validate_email_deliverability(new_email):
@@ -187,7 +187,7 @@ class UserService:
         """
         current_user = auth_user(required=True)
         if not PasswordHash.verify(current_user.password_hashed, old_password).success:
-            MessageCollector.raise_error('old_password', t('user.invalid_password'))
+            MessageCollector.raise_error('old_password', t('user.password_is_incorrect'))
 
         password_hashed = PasswordHash.hash(new_password)
         async with db_commit() as session:
@@ -204,7 +204,7 @@ class UserService:
             )
             await session.execute(stmt)
 
-        collector.success(None, t('user.password_changed'))
+        collector.success(None, t('user.password_has_been_changed'))
         logging.debug('Changed password for user %r', current_user.id)
 
     @staticmethod

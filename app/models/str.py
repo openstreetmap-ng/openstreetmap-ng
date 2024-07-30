@@ -7,6 +7,7 @@ from pydantic import SecretStr
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     ELEMENT_TAGS_KEY_MAX_LENGTH,
+    EMAIL_MIN_LENGTH,
     OAUTH_APP_URI_MAX_LENGTH,
     PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
@@ -27,7 +28,7 @@ DisplayNameStr = Annotated[
     UrlSafeValidator,
     BoundaryWhitespaceValidator,
 ]
-EmailStr = Annotated[str, EmailStrValidator, MinLen(5), MaxLen(EMAIL_MAX_LENGTH)]
+EmailStr = Annotated[str, EmailStrValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
 PasswordStr = Annotated[SecretStr, MinLen(PASSWORD_MIN_LENGTH), MaxLen(PASSWORD_MAX_LENGTH)]
 RoleStr = Annotated[str, MaxLen(255)]
 
