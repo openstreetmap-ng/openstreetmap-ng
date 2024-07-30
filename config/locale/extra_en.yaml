@@ -240,3 +240,10 @@ showcase: Showcase
 context:
   suggest_edit: Suggest an edit
   measure_distance: Measure distance
+
+mesaure_distance:
+  introduction: |-
+    Click on the map to add marker.
+    Click on the marker to remove it.
+    Drag the marker to drag it.
+  distanc: Distance
