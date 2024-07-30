@@ -71,6 +71,8 @@ user:
   not_found: User not found
   profile_picture: Profile picture
   name_already_taken: This name is already taken
+  password_is_incorrect: The password is incorrect
+  password_has_been_changed: Your password has been changed
   settings:
     password_and_security: Password and security
     applications: Applications

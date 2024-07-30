@@ -19,6 +19,7 @@ from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.str import DisplayNameStr, EmailStr, PasswordStr
 from app.models.user_status import UserStatus
 from app.queries.user_query import UserQuery
+from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
@@ -164,7 +165,13 @@ async def settings_password(
     old_password: Annotated[SecretStr, Form()],
     new_password: Annotated[SecretStr, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
-): ...
+):
+    collector = MessageCollector()
+    await UserService.update_password(collector, old_password=old_password, new_password=new_password)
+    if revoke_other_sessions:
+        current_session = await AuthService.authenticate_oauth2(None)
+        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+    return collector.result
 
 
 @router.post('/settings/revoke-token')

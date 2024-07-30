@@ -16,26 +16,26 @@
 
             <div class="col">
 
-                <form class="passowrd-form" method="POST" action="/api/web/user/settings/password">
+                <form class="password-form" method="POST" action="/api/web/user/settings/password">
                     <h3 class="mb-3">{{ t('user.settings.change_password') }}</h3>
                     <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}"
                         autocomplete="username">
 
                     <label class="form-label d-block mb-3">
-                        {{ t('user.settings.current_password') }}
+                        <span class="required">{{ t('user.settings.current_password') }}</span>
                         <input type="password" class="form-control mt-2" name="old_password"
                             autocomplete="current-password" required>
                     </label>
 
                     <label class="form-label d-block mb-3">
-                        {{ t('user.settings.new_password') }}
+                        <span class="required">{{ t('user.settings.new_password') }}</span>
                         <input type="password" class="form-control mt-2" name="new_password"
                             minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
                             autocomplete="new-password" required>
                     </label>
 
                     <label class="form-label d-block mb-3">
-                        {{ t('user.settings.new_password_repeat') }}
+                        <span class="required">{{ t('user.settings.new_password_repeat') }}</span>
                         <input type="password" class="form-control mt-2" name="new_password_confirm"
                             minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
                             autocomplete="new-password" required>

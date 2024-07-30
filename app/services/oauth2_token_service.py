@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64encode
+from collections.abc import Iterable
 from hashlib import sha256
 
 import cython
@@ -184,26 +185,29 @@ class OAuth2TokenService:
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_app_id(app_id: int) -> None:
+    async def revoke_by_app_id(app_id: int, *, skip_ids: Iterable[int] | None = None) -> None:
         """
         Revoke all current user tokens for the given OAuth2 application.
         """
+        if skip_ids is None:
+            skip_ids = ()
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(
                 OAuth2Token.user_id == auth_user(required=True).id,
                 OAuth2Token.application_id == app_id,
+                OAuth2Token.id.notin_(skip_ids),
             )
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_client_id(client_id: str) -> None:
+    async def revoke_by_client_id(client_id: str, *, skip_ids: Iterable[int] | None = None) -> None:
         """
         Revoke all current user tokens for the given OAuth2 client.
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             return
-        await OAuth2TokenService.revoke_by_app_id(app.id)
+        await OAuth2TokenService.revoke_by_app_id(app.id, skip_ids=skip_ids)
 
 
 @cython.cfunc
