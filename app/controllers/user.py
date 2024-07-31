@@ -166,9 +166,9 @@ async def _get_activity_data(user: User) -> dict:
     }
 
 
-@router.get('/reset-password')
-async def reset_password():
-    return render_response('user/reset_password.jinja2')
+@router.get('/user/new')
+async def legacy_signup():
+    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
 
 
 @router.get('/signup')
@@ -209,10 +209,10 @@ async def terms(user: Annotated[User, web_user()]):
 
 
 @router.get('/user/forgot-password')
-async def legacy_forgot_password():
+async def legacy_reset_password():
     return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
 
 
-@router.get('/user/new')
-async def legacy_signup():
-    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
+@router.get('/reset-password')
+async def reset_password():
+    return render_response('user/reset_password.jinja2')

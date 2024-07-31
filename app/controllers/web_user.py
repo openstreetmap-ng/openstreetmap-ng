@@ -65,16 +65,6 @@ async def logout(
     return response
 
 
-@router.post('/reset-password')
-async def reset_password(
-    email: Annotated[ValidatingEmailType, Form()],
-):
-    await ResetPasswordService.send_reset_link(email)
-    collector = MessageCollector()
-    collector.success(None, t('settings.password_reset_link_sent'))
-    return collector.result
-
-
 @router.post('/signup')
 async def signup(
     display_name: Annotated[ValidatingDisplayNameType, Form()],
@@ -130,4 +120,14 @@ async def account_confirm_resend(
     await UserSignupService.send_confirm_email()
     collector = MessageCollector()
     collector.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
+    return collector.result
+
+
+@router.post('/reset-password')
+async def reset_password(
+    email: Annotated[ValidatingEmailType, Form()],
+):
+    await ResetPasswordService.send_reset_link(email)
+    collector = MessageCollector()
+    collector.success(None, t('settings.password_reset_link_sent'))
     return collector.result
