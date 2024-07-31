@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 52820db54f10
+Revision ID: 194c0c86a069
 Revises:
-Create Date: 2024-07-22 09:28:15.414974+00:00
+Create Date: 2024-07-31 10:59:47.215883+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '52820db54f10'
+revision: str = '194c0c86a069'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -110,7 +110,7 @@ def upgrade() -> None:
     sa.Column('title', sa.Unicode(length=255), nullable=False),
     sa.Column('body', sa.UnicodeText(), nullable=False),
     sa.Column('body_rich_hash', sa.LargeBinary(length=32), nullable=True),
-    sa.Column('language_code', sa.Unicode(length=15), nullable=False),
+    sa.Column('language', sa.Unicode(length=15), nullable=False),
     sa.Column('point', app.models.geometry.PointType(), nullable=True),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
@@ -247,6 +247,7 @@ def upgrade() -> None:
     )
     op.create_table('user_token_account_confirm',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('user_email_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
@@ -255,9 +256,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_token_email_change',
-    sa.Column('from_email', sa.Unicode(), nullable=False),
-    sa.Column('to_email', sa.Unicode(), nullable=False),
+    sa.Column('new_email', sa.Unicode(length=254), nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('user_email_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
@@ -269,11 +270,22 @@ def upgrade() -> None:
     sa.Column('mail_source', sa.Enum('system', 'message', 'diary_comment', name='mailsource'), nullable=False),
     sa.Column('to_user_id', sa.BigInteger(), nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('user_email_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['to_user_id'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('user_token_reset_password',
+    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('user_email_hashed', sa.LargeBinary(length=32), nullable=False),
+    sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
+    sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -357,9 +369,9 @@ def upgrade() -> None:
     sa.Column('application_id', sa.BigInteger(), nullable=False),
     sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
     sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_diary', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
-    sa.Column('redirect_uri', sa.Unicode(), nullable=True),
+    sa.Column('redirect_uri', sa.Unicode(length=1000), nullable=True),
     sa.Column('code_challenge_method', sa.Enum('plain', 'S256', name='oauth2codechallengemethod'), nullable=True),
-    sa.Column('code_challenge', sa.Unicode(), nullable=True),
+    sa.Column('code_challenge', sa.Unicode(length=255), nullable=True),
     sa.Column('authorized_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
@@ -367,6 +379,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('oauth2_token_hashed_idx', 'oauth2_token', ['token_hashed'], unique=False)
+    op.create_index('oauth2_token_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False)
     op.create_table('report',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('issue_id', sa.BigInteger(), nullable=False),
@@ -398,6 +412,8 @@ def downgrade() -> None:
     op.drop_index('trace_segment_points_idx', table_name='trace_segment', postgresql_using='gist')
     op.drop_table('trace_segment')
     op.drop_table('report')
+    op.drop_index('oauth2_token_user_app_idx', table_name='oauth2_token')
+    op.drop_index('oauth2_token_hashed_idx', table_name='oauth2_token')
     op.drop_table('oauth2_token')
     op.drop_table('issue_comment')
     op.drop_index('element_version_idx', table_name='element')
@@ -413,6 +429,7 @@ def downgrade() -> None:
     op.drop_index('changeset_bounds_id_idx', table_name='changeset_bounds')
     op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_using='gist')
     op.drop_table('changeset_bounds')
+    op.drop_table('user_token_reset_password')
     op.drop_table('user_token_email_reply')
     op.drop_table('user_token_email_change')
     op.drop_table('user_token_account_confirm')
