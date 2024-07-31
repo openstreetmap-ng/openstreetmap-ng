@@ -12,9 +12,9 @@
     <div class="container">
         <div class="row">
 
-            {% include 'user/settings/_nav.jinja2' %}
+            {% include 'settings/_nav.jinja2' %}
 
-            <form class="col settings-form" method="POST" action="/api/web/user/settings">
+            <form class="col settings-form" method="POST" action="/api/web/settings">
 
                 <label class="form-label d-block mb-3">
                     {{ t('activerecord.attributes.user.display_name') | capitalize }}
@@ -27,7 +27,7 @@
                     <div class="input-group mt-2">
                         <input type="email" class="form-control bg-body-tertiary" value="{{ user.email }}" readonly>
                         <a class="btn btn-light border" href="/settings/email">
-                            {{ t('user.settings.change_email') }}
+                            {{ t('settings.change_email') }}
                         </a>
                     </div>
                 </label>
@@ -41,18 +41,18 @@
                 </p>
 
                 <label class="form-label d-block mb-3">
-                    {{ t('user.settings.password_last_changed') }}
+                    {{ t('settings.password_last_changed') }}
                     <div class="input-group mt-2">
                         <input type="text" class="form-control bg-body-tertiary"
                             value="{{ user.password_changed_at | timeago }}" readonly>
                         <a class="btn btn-light border" href="/settings/security">
-                            {{ t('user.settings.change_password') }}
+                            {{ t('settings.change_password') }}
                         </a>
                     </div>
                 </label>
 
                 <label class="form-label d-block">
-                    {{ t('user.settings.preferred_language') }}
+                    {{ t('settings.preferred_language') }}
                     <select class="form-select format-select mt-2" name="language" required>
                         {% for locale_name in INSTALLED_LOCALES_NAMES_MAP.values() %}
                         <option value="{{ locale_name.code }}"
@@ -105,8 +105,7 @@
             </form>
 
             <div class="col-auto">
-                <form class="avatar-form" method="POST" action="/api/web/user/settings/avatar"
-                    enctype="multipart/form-data">
+                <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
                     <input type="hidden" name="avatar_type" autocomplete="off" required>
                     <input class="visually-hidden" type="file" accept="image/*" name="avatar_file">
 
@@ -125,7 +124,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <button class="dropdown-item upload-avatar" type="button">
-                                    {{ t('user.settings.upload_photo') }}...
+                                    {{ t('settings.upload_photo') }}...
                                 </button>
                             </li>
                             <li>
@@ -135,7 +134,7 @@
                             </li>
                             <li>
                                 <button class="dropdown-item remove-avatar" type="button">
-                                    {{ t('user.settings.remove_photo') }}
+                                    {{ t('settings.remove_photo') }}
                                 </button>
                             </li>
                             <li>

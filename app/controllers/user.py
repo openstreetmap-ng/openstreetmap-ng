@@ -11,10 +11,8 @@ from starlette.responses import RedirectResponse
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
 from app.lib.legal import legal_terms
-from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
 from app.lib.render_response import render_response
 from app.limits import (
-    ACTIVE_SESSIONS_DISPLAY_LIMIT,
     DISPLAY_NAME_MAX_LENGTH,
     EMAIL_MIN_LENGTH,
     PASSWORD_MAX_LENGTH,
@@ -30,11 +28,9 @@ from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
-from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
-from app.services.auth_service import AuthService
 from app.utils import JSON_ENCODE
 
 router = APIRouter()
@@ -191,47 +187,6 @@ async def signup():
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
             'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
-            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
-        },
-    )
-
-
-@router.get('/settings')
-async def settings(_: Annotated[User, web_user()]):
-    return render_response(
-        'user/settings/index.jinja2',
-        {
-            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
-            'INSTALLED_LOCALES_NAMES_MAP': INSTALLED_LOCALES_NAMES_MAP,
-        },
-    )
-
-
-@router.get('/settings/email')
-async def settings_email(_: Annotated[User, web_user()]):
-    return render_response(
-        'user/settings/email.jinja2',
-        {
-            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
-            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
-        },
-    )
-
-
-@router.get('/settings/security')
-async def settings_security(user: Annotated[User, web_user()]):
-    current_session = await AuthService.authenticate_oauth2(None)
-    active_sessions = await OAuth2TokenQuery.find_many_authorized_by_user_client_id(
-        user_id=user.id,
-        client_id='SystemApp.web',
-        limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
-    )
-    return render_response(
-        'user/settings/security.jinja2',
-        {
-            'current_session_id': current_session.id,  # pyright: ignore[reportOptionalMemberAccess]
-            'active_sessions': active_sessions,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
             'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
         },

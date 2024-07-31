@@ -168,7 +168,7 @@ class UserService:
 
         # await EmailChangeService.send_confirm_email(new_email)
         # TODO: send to old email too
-        collector.info(None, t('user.settings.email_change_confirmation_sent'))
+        collector.info(None, t('settings.email_change_confirmation_sent'))
 
     @staticmethod
     async def update_password(
@@ -199,7 +199,7 @@ class UserService:
             )
             await session.execute(stmt)
 
-        collector.success(None, t('user.settings.password_has_been_changed'))
+        collector.success(None, t('settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', current_user.id)
 
     @staticmethod

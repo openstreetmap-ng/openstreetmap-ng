@@ -98,14 +98,15 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "leaflet/sidebar";
 @import "leaflet/user-popup";
 
+@import "settings/index";
+@import "settings/security";
+
 @import "traces/preview";
 
 @import "user/account-confirm";
 @import "user/activity";
 @import "user/login";
 @import "user/profile";
-@import "user/settings/index";
-@import "user/settings/security";
 @import "user/signup";
 @import "user/terms";
 

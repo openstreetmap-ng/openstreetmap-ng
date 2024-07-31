@@ -1,4 +1,4 @@
-import { configureStandardForm } from "../../_standard-form.js"
+import { configureStandardForm } from "../_standard-form.js"
 
 const settingsEmailBody = document.querySelector("body.settings-email-body")
 if (settingsEmailBody) {

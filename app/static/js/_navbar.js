@@ -44,7 +44,7 @@ const onEditButtonClick = (event) => {
 
     const formData = new FormData()
     formData.append("editor", editor)
-    fetch("/api/web/user/settings/editor", {
+    fetch("/api/web/settings/editor", {
         method: "POST",
         body: formData,
         mode: "same-origin",

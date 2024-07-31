@@ -12,20 +12,20 @@
     <div class="container">
         <div class="row">
 
-            {% include 'user/settings/_nav.jinja2' %}
+            {% include 'settings/_nav.jinja2' %}
 
             <div class="col">
 
-                <h3 class="mb-3">{{ t('user.settings.change_email') }}</h3>
-                <form class="email-form" method="POST" action="/api/web/user/settings/email">
+                <h3 class="mb-3">{{ t('settings.change_email') }}</h3>
+                <form class="email-form" method="POST" action="/api/web/settings/email">
                     <label class="form-label d-block mb-3">
-                        {{ t('user.settings.current_email_address') }}
+                        {{ t('settings.current_email_address') }}
                         <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}"
                             readonly>
                     </label>
 
                     <label class="form-label d-block">
-                        {{ t('user.settings.new_email_address') }}
+                        {{ t('settings.new_email_address') }}
                         <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
                             maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
                     </label>
@@ -49,7 +49,7 @@
 
                     <div class="text-end">
                         <button class="btn btn-primary px-3" type="submit">
-                            {{ t('user.settings.change_email') | title }}
+                            {{ t('settings.change_email') | title }}
                         </button>
                     </div>
                 </form>

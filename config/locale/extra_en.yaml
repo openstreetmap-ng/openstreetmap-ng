@@ -70,36 +70,6 @@ user:
   not_member_of_any_group: Not a member of any group
   not_found: User not found
   profile_picture: Profile picture
-  settings:
-    password_and_security: Password and security
-    applications: Applications
-    upload_photo: Upload a photo
-    remove_photo: Remove photo
-    preferred_language: Preferred language
-    change_email: Change email
-    current_email_address: Current email address
-    new_email_address: New email address
-    email_change_confirmation_sent: |-
-      We've sent a confirmation email to your new address.
-      Please check your inbox and click on the confirmation link to verify your new email address.
-      It may take a few minutes for the email to arrive.
-    change_password: Change password
-    password_last_changed: Password last changed
-    current_password: Current password
-    new_password: New password
-    new_password_repeat: Repeat new password
-    logout_from_browsers: Automatically logout from all other browsers
-    password_has_been_changed: Your password has been changed
-    two_factor_auth: Two-factor authentication
-    active_sessions: Active sessions
-    session_id: "Session ID: {{id}}"
-    current_session: Current session
-    authorized_at: "Authorized at: {{date}}"
-    send_password_reset_email: Send password reset email
-    password_reset_link_sent: |-
-      If an account with that email address exists, you will receive a password reset link shortly.
-      Please check your inbox and click on the reset link to set a new password.
-      It may take a few minutes for the email to arrive.
   activity:
     recent: Recent activity
     summary: "{{mapping_day}} with {{num_changesets}} in {{last_n_months}}"
@@ -131,6 +101,36 @@ results:
   we_did_not_find_any_results: We did not find any results for your search.
 search:
   search_this_area: Search this area
+settings:
+  password_and_security: Password and security
+  applications: Applications
+  upload_photo: Upload a photo
+  remove_photo: Remove photo
+  preferred_language: Preferred language
+  change_email: Change email
+  current_email_address: Current email address
+  new_email_address: New email address
+  email_change_confirmation_sent: |-
+    We've sent a confirmation email to your new address.
+    Please check your inbox and click on the confirmation link to verify your new email address.
+    It may take a few minutes for the email to arrive.
+  change_password: Change password
+  password_last_changed: Password last changed
+  current_password: Current password
+  new_password: New password
+  new_password_repeat: Repeat new password
+  logout_from_browsers: Automatically logout from all other browsers
+  password_has_been_changed: Your password has been changed
+  two_factor_auth: Two-factor authentication
+  active_sessions: Active sessions
+  session_id: "Session ID: {{id}}"
+  current_session: Current session
+  authorized_at: "Authorized at: {{date}}"
+  send_password_reset_email: Send password reset email
+  password_reset_link_sent: |-
+    If an account with that email address exists, you will receive a password reset link shortly.
+    Please check your inbox and click on the reset link to set a new password.
+    It may take a few minutes for the email to arrive.
 fixthemap:
   title: Fix the map
 alt:

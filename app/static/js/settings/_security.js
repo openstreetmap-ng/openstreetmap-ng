@@ -1,6 +1,6 @@
 import i18next from "i18next"
-import { qsEncode } from "../../_qs.js"
-import { configureStandardForm } from "../../_standard-form.js"
+import { qsEncode } from "../_qs.js"
+import { configureStandardForm } from "../_standard-form.js"
 
 const settingsSecurityBody = document.querySelector("body.settings-security-body")
 if (settingsSecurityBody) {

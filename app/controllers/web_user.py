@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Request, Response, UploadFile
+from fastapi import APIRouter, Form, Query, Request, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -10,17 +10,15 @@ from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.translation import t
 from app.limits import COOKIE_AUTH_MAX_AGE
-from app.models.db.user import AvatarType, Editor, User, UserStatus
+from app.models.db.user import User, UserStatus
 from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.types import (
-    LocaleCode,
     PasswordType,
     ValidatingDisplayNameType,
     ValidatingEmailType,
     ValidatingPasswordType,
 )
 from app.queries.user_query import UserQuery
-from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
@@ -73,7 +71,7 @@ async def reset_password(
 ):
     await ResetPasswordService.send_reset_link(email)
     collector = MessageCollector()
-    collector.success(None, t('user.settings.password_reset_link_sent'))
+    collector.success(None, t('settings.password_reset_link_sent'))
     return collector.result
 
 
@@ -133,74 +131,3 @@ async def account_confirm_resend(
     collector = MessageCollector()
     collector.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
     return collector.result
-
-
-@router.post('/settings')
-async def update_settings(
-    _: Annotated[User, web_user()],
-    display_name: Annotated[ValidatingDisplayNameType, Form()],
-    language: Annotated[LocaleCode, Form()],
-    activity_tracking: Annotated[bool, Form()] = False,
-    crash_reporting: Annotated[bool, Form()] = False,
-):
-    await UserService.update_settings(
-        display_name=display_name,
-        language=language,
-        activity_tracking=activity_tracking,
-        crash_reporting=crash_reporting,
-    )
-    return Response()
-
-
-@router.post('/settings/editor')
-async def update_editor(
-    editor: Annotated[Editor | None, Form()],
-    _: Annotated[User, web_user()],
-):
-    await UserService.update_editor(editor=editor)
-    return Response()
-
-
-@router.post('/settings/avatar')
-async def settings_avatar(
-    _: Annotated[User, web_user()],
-    avatar_type: Annotated[AvatarType, Form()],
-    avatar_file: Annotated[UploadFile | None, Form()] = None,
-):
-    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
-    return {'avatar_url': avatar_url}
-
-
-@router.post('/settings/email')
-async def settings_email(
-    _: Annotated[User, web_user()],
-    email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form()],
-):
-    collector = MessageCollector()
-    await UserService.update_email(collector, new_email=email, password=password)
-    return collector.result
-
-
-@router.post('/settings/password')
-async def settings_password(
-    _: Annotated[User, web_user()],
-    old_password: Annotated[PasswordType, Form()],
-    new_password: Annotated[ValidatingPasswordType, Form()],
-    revoke_other_sessions: Annotated[bool, Form()] = False,
-):
-    collector = MessageCollector()
-    await UserService.update_password(collector, old_password=old_password, new_password=new_password)
-    if revoke_other_sessions:
-        current_session = await AuthService.authenticate_oauth2(None)
-        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
-    return collector.result
-
-
-@router.post('/settings/revoke-token')
-async def settings_revoke_token(
-    _: Annotated[User, web_user()],
-    token_id: Annotated[int, Form()],
-):
-    await OAuth2TokenService.revoke_by_id(token_id)
-    return Response()
