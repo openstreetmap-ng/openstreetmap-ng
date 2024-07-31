@@ -95,7 +95,11 @@ user:
     session_id: "Session ID: {{id}}"
     current_session: Current session
     authorized_at: "Authorized at: {{date}}"
-    terminate: Terminate
+    send_password_reset_email: Send password reset email
+    password_reset_link_sent: |-
+      If an account with that email address exists, you will receive a password reset link shortly.
+      Please check your inbox and click on the reset link to set a new password.
+      It may take a few minutes for the email to arrive.
   activity:
     recent: Recent activity
     summary: "{{mapping_day}} with {{num_changesets}} in {{last_n_months}}"

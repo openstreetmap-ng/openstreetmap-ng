@@ -170,6 +170,17 @@ async def _get_activity_data(user: User) -> dict:
     }
 
 
+@router.get('/reset-password')
+async def reset_password():
+    return render_response(
+        'user/reset_password.jinja2',
+        {
+            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
+        },
+    )
+
+
 @router.get('/signup')
 async def signup():
     if auth_user() is not None:

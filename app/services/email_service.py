@@ -165,7 +165,7 @@ async def _send_mail(smtp: SMTP, mail: Mail) -> None:
         if from_user is None:
             raise AssertionError('Mail from user must be set')
         reply_address = await UserTokenEmailReplyService.create_address(
-            replying_user_id=mail.to_user_id,
+            replying_user=mail.to_user,
             mail_source=mail.source,
         )
         message['From'] = formataddr((from_user.display_name, reply_address))

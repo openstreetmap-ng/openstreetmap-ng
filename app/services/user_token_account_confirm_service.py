@@ -19,11 +19,14 @@ class UserTokenAccountConfirmService:
         """
         Create a new user account confirmation token.
         """
+        user = auth_user(required=True)
+        user_email_hashed = hash_bytes(user.email.encode())
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
         async with db_commit() as session:
             token = UserTokenAccountConfirm(
-                user_id=auth_user(required=True).id,
+                user_id=user.id,
+                user_email_hashed=user_email_hashed,
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
             )

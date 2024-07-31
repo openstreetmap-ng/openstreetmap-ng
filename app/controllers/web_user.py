@@ -22,6 +22,7 @@ from app.models.types import (
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -64,6 +65,16 @@ async def logout(
     response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
     response.delete_cookie('auth')
     return response
+
+
+@router.post('/reset-password')
+async def reset_password(
+    email: Annotated[ValidatingEmailType, Form()],
+):
+    await ResetPasswordService.send_reset_link(email)
+    collector = MessageCollector()
+    collector.success(None, t('user.settings.password_reset_link_sent'))
+    return collector.result
 
 
 @router.post('/signup')
