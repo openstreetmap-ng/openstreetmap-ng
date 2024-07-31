@@ -18,7 +18,6 @@ from app.models.types import (
     ValidatingEmailType,
     ValidatingPasswordType,
 )
-from app.queries.user_query import UserQuery
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
@@ -26,15 +25,6 @@ from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
 
 router = APIRouter(prefix='/api/web/user')
-
-
-# TODO: captcha
-# TODO: frontend implement
-@router.get('/display-name-available')
-async def display_name_available(
-    display_name: Annotated[ValidatingDisplayNameType, Query()],
-):
-    return await UserQuery.check_display_name_available(display_name)
 
 
 @router.post('/login')

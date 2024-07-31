@@ -459,6 +459,3 @@ tmp
 
 # Personal test files
 /test*.py
-/VULN.md
-/TODO.md
-/CHANGELOG.md
