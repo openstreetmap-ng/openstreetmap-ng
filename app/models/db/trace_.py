@@ -1,17 +1,19 @@
 from collections.abc import Collection, Container
+from typing import Literal, get_args
 
 from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode, true
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.lib.storage.base import STORAGE_KEY_MAX_LENGTH, StorageKey
-from app.limits import TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
+from app.limits import STORAGE_KEY_MAX_LENGTH, TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.models.trace_visibility import TraceVisibility
+from app.models.types import StorageKey
+
+TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
 
 
 class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
@@ -22,7 +24,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     name: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     description: Mapped[str] = mapped_column(Unicode(255), nullable=False)
     visibility: Mapped[TraceVisibility] = mapped_column(
-        Enum('identifiable', 'public', 'trackable', 'private', name='trace_visibility'),
+        Enum(*get_args(TraceVisibility), name='trace_visibility'),
         nullable=False,
     )
 

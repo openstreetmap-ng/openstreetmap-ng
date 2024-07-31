@@ -4,7 +4,7 @@ import magic
 from fastapi import APIRouter, Path, Response
 from pydantic import PositiveInt
 
-from app.lib.storage.base import StorageKey
+from app.models.types import StorageKey
 from app.queries.avatar_query import AvatarQuery
 
 router = APIRouter(prefix='/api/web/avatar')

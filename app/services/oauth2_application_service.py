@@ -11,7 +11,7 @@ from app.limits import OAUTH2_APP_USER_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.scope import Scope
-from app.models.str import Uri
+from app.models.types import Uri
 
 
 class OAuth2ApplicationService:
@@ -21,7 +21,7 @@ class OAuth2ApplicationService:
         name: str,
         scopes: tuple[Scope, ...],
         is_confidential: bool,
-        redirect_uris: list[str],
+        redirect_uris: list[Uri],
     ) -> int:
         """
         Create an OAuth2 application.

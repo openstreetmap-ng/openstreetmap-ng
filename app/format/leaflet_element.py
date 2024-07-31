@@ -7,7 +7,7 @@ from shapely import Point, lib
 
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementId
+from app.models.element import ElementId
 from app.models.msgspec.leaflet import (
     ElementLeaflet,
     ElementLeafletNode,

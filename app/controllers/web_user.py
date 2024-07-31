@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Query, Request, Response, UploadFile
-from pydantic import SecretStr
+from fastapi import APIRouter, Form, Query, Request, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -11,16 +10,17 @@ from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.translation import t
 from app.limits import COOKIE_AUTH_MAX_AGE
-from app.models.avatar_type import AvatarType
-from app.models.db.user import User
-from app.models.editor import Editor
-from app.models.locale_name import LocaleCode
+from app.models.db.user import User, UserStatus
 from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.models.user_status import UserStatus
+from app.models.types import (
+    PasswordType,
+    ValidatingDisplayNameType,
+    ValidatingEmailType,
+    ValidatingPasswordType,
+)
 from app.queries.user_query import UserQuery
-from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
+from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
@@ -32,7 +32,7 @@ router = APIRouter(prefix='/api/web/user')
 # TODO: frontend implement
 @router.get('/display-name-available')
 async def display_name_available(
-    display_name: Annotated[DisplayNameStr, Query()],
+    display_name: Annotated[ValidatingDisplayNameType, Query()],
 ):
     return await UserQuery.check_display_name_available(display_name)
 
@@ -40,7 +40,7 @@ async def display_name_available(
 @router.post('/login')
 async def login(
     display_name_or_email: Annotated[str, Form()],
-    password: Annotated[PasswordStr, Form()],
+    password: Annotated[PasswordType, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
@@ -67,9 +67,9 @@ async def logout(
 
 @router.post('/signup')
 async def signup(
-    display_name: Annotated[DisplayNameStr, Form()],
-    email: Annotated[EmailStr, Form()],
-    password: Annotated[PasswordStr, Form()],
+    display_name: Annotated[ValidatingDisplayNameType, Form()],
+    email: Annotated[ValidatingEmailType, Form()],
+    password: Annotated[ValidatingPasswordType, Form()],
     tracking: Annotated[bool, Form()] = False,
 ):
     access_token = await UserSignupService.signup(
@@ -123,61 +123,11 @@ async def account_confirm_resend(
     return collector.result
 
 
-@router.post('/settings')
-async def update_settings(
-    _: Annotated[User, web_user()],
-    display_name: Annotated[DisplayNameStr, Form()],
-    language: Annotated[LocaleCode, Form()],
-    activity_tracking: Annotated[bool, Form()] = False,
-    crash_reporting: Annotated[bool, Form()] = False,
+@router.post('/reset-password')
+async def reset_password(
+    email: Annotated[ValidatingEmailType, Form()],
 ):
-    await UserService.update_settings(
-        display_name=display_name,
-        language=language,
-        activity_tracking=activity_tracking,
-        crash_reporting=crash_reporting,
-    )
-    return Response()
-
-
-@router.post('/settings/editor')
-async def update_editor(
-    editor: Annotated[Editor | None, Form()],
-    _: Annotated[User, web_user()],
-):
-    await UserService.update_editor(editor=editor)
-    return Response()
-
-
-@router.post('/settings/avatar')
-async def settings_avatar(
-    _: Annotated[User, web_user()],
-    avatar_type: Annotated[AvatarType, Form()],
-    avatar_file: Annotated[UploadFile | None, Form()] = None,
-):
-    avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
-    return {'avatar_url': avatar_url}
-
-
-@router.post('/settings/password')
-async def settings_password(
-    _: Annotated[User, web_user()],
-    old_password: Annotated[SecretStr, Form()],
-    new_password: Annotated[SecretStr, Form()],
-    revoke_other_sessions: Annotated[bool, Form()] = False,
-):
+    await ResetPasswordService.send_reset_link(email)
     collector = MessageCollector()
-    await UserService.update_password(collector, old_password=old_password, new_password=new_password)
-    if revoke_other_sessions:
-        current_session = await AuthService.authenticate_oauth2(None)
-        await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
+    collector.success(None, t('settings.password_reset_link_sent'))
     return collector.result
-
-
-@router.post('/settings/revoke-token')
-async def settings_revoke_token(
-    _: Annotated[User, web_user()],
-    token_id: Annotated[int, Form()],
-):
-    await OAuth2TokenService.revoke_by_id(token_id)
-    return Response()

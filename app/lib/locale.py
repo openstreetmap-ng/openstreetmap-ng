@@ -4,12 +4,27 @@ import re
 from collections.abc import Sequence
 from itertools import chain
 from pathlib import Path
+from typing import NamedTuple
 
 import cython
 
-from app.config import DEFAULT_LANGUAGE, TEST_ENV
+from app.config import TEST_ENV
 from app.limits import LOCALE_CODE_MAX_LENGTH
-from app.models.locale_name import LocaleCode, LocaleName
+from app.models.types import LocaleCode
+
+
+class LocaleName(NamedTuple):
+    code: LocaleCode
+    english: str
+    native: str
+    installed: bool
+
+    @property
+    def display_name(self) -> str:
+        return self.english if (self.english == self.native) else f'{self.english} ({self.native})'
+
+
+DEFAULT_LOCALE = LocaleCode('en')
 
 _non_alpha_re = re.compile(r'[^a-z]+')
 
@@ -32,8 +47,8 @@ def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]
         locale_names_map[locale_name.code] = locale_name
 
     # check that default locale exists
-    if DEFAULT_LANGUAGE not in i18next_map:
-        raise ValueError(f'Default locale {DEFAULT_LANGUAGE!r} was not found in installed locales')
+    if DEFAULT_LOCALE not in i18next_map:
+        raise ValueError(f'Default locale {DEFAULT_LOCALE!r} was not found in installed locales')
     # check that all language codes are short enough
     for code in chain(i18next_map, locale_names_map):
         if len(code) > LOCALE_CODE_MAX_LENGTH:

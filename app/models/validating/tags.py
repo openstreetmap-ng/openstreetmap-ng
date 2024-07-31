@@ -1,17 +1,19 @@
+from typing import Annotated
+
 import cython
+from annotated_types import MaxLen
 from pydantic import field_validator
 
 from app.lib.naturalsize import naturalsize
 from app.limits import ELEMENT_TAGS_KEY_MAX_LENGTH, ELEMENT_TAGS_LIMIT, ELEMENT_TAGS_MAX_SIZE
 from app.models.db.base import Base
-from app.models.str import TagKeyStr, TagValueStr
 
 _min_tags_len_to_exceed_size = ELEMENT_TAGS_MAX_SIZE / (ELEMENT_TAGS_KEY_MAX_LENGTH + 255)
 
 
 class TagsValidating(Base.Validating):
     # TODO: test
-    tags: dict[TagKeyStr, TagValueStr]
+    tags: dict[Annotated[str, MaxLen(ELEMENT_TAGS_KEY_MAX_LENGTH)], Annotated[str, MaxLen(255)]]
 
     # TODO: test
     @field_validator('tags')

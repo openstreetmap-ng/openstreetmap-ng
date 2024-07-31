@@ -1,6 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
+from typing import Any
 from urllib.parse import urlencode
 
 import numpy as np
@@ -8,6 +9,7 @@ from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
 from app.lib.feature_prefix import features_prefixes
+from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
 from app.limits import (
     NOMINATIM_CACHE_LONG_EXPIRE,
@@ -16,13 +18,12 @@ from app.limits import (
     NOMINATIM_HTTP_SHORT_TIMEOUT,
 )
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef
-from app.models.search_result import SearchResult
+from app.models.element import ElementRef
 from app.queries.element_query import ElementQuery
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP, JSON_DECODE
 
-_cache_context = 'Nominatim'
+_cache_context = CacheContext('Nominatim')
 
 
 class NominatimQuery:
@@ -144,7 +145,7 @@ async def _get_result(
     response_entries: Iterable[dict],
 ) -> list[SearchResult]:
     refs: list[ElementRef] = []
-    entries: list[dict] = []
+    entries: list[dict[str, Any]] = []
     for entry in response_entries:
         # some results are abstract and have no osm_type/osm_id
         osm_type = entry.get('osm_type')

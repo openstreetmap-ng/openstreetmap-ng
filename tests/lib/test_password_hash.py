@@ -1,9 +1,11 @@
+from pydantic import SecretStr
+
 from app.lib.password_hash import PasswordHash
-from app.models.str import PasswordStr
+from app.models.types import PasswordType
 
 
 def test_password_hash_current():
-    password = PasswordStr('password')
+    password = PasswordType(SecretStr('password'))
     hashed = PasswordHash.hash(password)
     verified = PasswordHash.verify(hashed, password)
     assert verified.success
@@ -11,13 +13,13 @@ def test_password_hash_current():
 
 
 def test_password_hash_argon():
-    password = PasswordStr('password')
+    password = PasswordType(SecretStr('password'))
     hashed = '$argon2id$v=19$m=65536,t=3,p=4$7kKuyNHOoa7+DuH9fNie9A$HeP8nKGegW/SZpf6kxiAPJvFZ0bVIYEzeZwZe3sbjkQ'
     assert PasswordHash.verify(hashed, password).success
 
 
 def test_password_hash_md5():
-    password = PasswordStr('password')
+    password = PasswordType(SecretStr('password'))
     hashed = '67a1e09bb1f83f5007dc119c14d663aa.salt'
     verified = PasswordHash.verify(hashed, password)
     assert verified.success
@@ -25,8 +27,8 @@ def test_password_hash_md5():
 
 
 def test_password_hash_invalid():
-    password1 = PasswordStr('password1')
-    password2 = PasswordStr('password2')
+    password1 = PasswordType(SecretStr('password1'))
+    password2 = PasswordType(SecretStr('password2'))
     hashed = PasswordHash.hash(password1)
     verified = PasswordHash.verify(hashed, password2)
     assert not verified.success

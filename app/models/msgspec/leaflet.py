@@ -2,7 +2,7 @@ from collections.abc import Collection
 
 import msgspec
 
-from app.models.element_ref import ElementType
+from app.models.element import ElementType
 
 
 class ElementLeaflet(msgspec.Struct):

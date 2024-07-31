@@ -20,6 +20,7 @@ from app.config import (
     NAME,
     TEST_ENV,
 )
+from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.yarn_lock import ID_VERSION, RAPID_VERSION
 from app.limits import (
     COMPRESS_HTTP_BROTLI_QUALITY,
@@ -45,7 +46,6 @@ from app.responses.precompressed_static_files import PrecompressedStaticFiles
 from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
-from app.validators.element_type import ElementTypeConvertor
 
 # set the timezone to UTC
 # note that "export TZ=UTC" from shell.nix is unreliable for some users

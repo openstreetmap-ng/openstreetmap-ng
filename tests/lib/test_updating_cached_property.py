@@ -2,7 +2,7 @@ from app.lib.updating_cached_property import updating_cached_property
 
 
 class _Dummy:
-    a: int
+    a: int = 0
     call_count: int = 0
 
     @updating_cached_property('a')

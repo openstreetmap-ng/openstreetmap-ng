@@ -13,7 +13,7 @@ async def test_delete_note_without_comments():
 
     async with db() as session:
         stmt = select(Note).where(Note.id == note.id)
-        note_selected = await session.scalar(stmt)
+        note_selected = (await session.execute(stmt)).scalar_one()
 
     assert note.id == note_selected.id
 

@@ -24,10 +24,9 @@ from app.limits import (
     NOTE_QUERY_LEGACY_MAX_LIMIT,
 )
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
+from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.user import User
 from app.models.geometry import Latitude, Longitude
-from app.models.note_event import NoteEvent
 from app.models.scope import Scope
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery

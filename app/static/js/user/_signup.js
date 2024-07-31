@@ -8,8 +8,6 @@ if (signupBody) {
     const trackingInput = signupForm.elements.tracking
     const displayNameInput = signupForm.elements.display_name
     const displayNameBlacklist = displayNameInput.dataset.blacklist
-    const emailInput = signupForm.elements.email
-    const emailConfirmationInput = signupForm.elements.email_confirm
     const passwordInput = signupForm.elements.password
     const passwordConfirmationInput = signupForm.elements.password_confirm
 
@@ -31,14 +29,8 @@ if (signupBody) {
             result.push({ type: "error", loc: ["", "display_name"], msg })
         }
 
-        if (emailInput.value !== emailConfirmationInput.value) {
-            const msg = i18next.t("validation.email_missmatch")
-            result.push({ type: "error", loc: ["", "email"], msg })
-            result.push({ type: "error", loc: ["", "email_confirm"], msg })
-        }
-
         if (passwordInput.value !== passwordConfirmationInput.value) {
-            const msg = i18next.t("validation.password_missmatch")
+            const msg = i18next.t("validation.passwords_missmatch")
             result.push({ type: "error", loc: ["", "password"], msg })
             result.push({ type: "error", loc: ["", "password_confirm"], msg })
         }

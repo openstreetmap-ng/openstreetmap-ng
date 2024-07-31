@@ -5,22 +5,22 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.element_mixin import ElementExceptionsMixin
-from app.models.element_ref import ElementRef, VersionedElementRef
 
 if TYPE_CHECKING:
     from app.models.db.element import Element
+    from app.models.element import ElementRef, VersionedElementRef
 
 
 class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
-    def element_not_found(self, element_ref: ElementRef | VersionedElementRef) -> NoReturn:
+    def element_not_found(self, element_ref: 'ElementRef | VersionedElementRef') -> NoReturn:
         raise APIError(
             status.HTTP_404_NOT_FOUND,
             detail=f'The {element_ref.type} with the id {element_ref.id} was not found',
         )
 
     @override
-    def element_redacted(self, versioned_ref: VersionedElementRef) -> NoReturn:
+    def element_redacted(self, versioned_ref: 'VersionedElementRef') -> NoReturn:
         self.element_not_found(versioned_ref)
 
     @override
@@ -49,7 +49,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_member_not_found(self, parent_ref: ElementRef, member_ref: ElementRef) -> NoReturn:
+    def element_member_not_found(self, parent_ref: 'ElementRef', member_ref: 'ElementRef') -> NoReturn:
         if parent_ref.type == 'way':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,
@@ -64,7 +64,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
             raise NotImplementedError(f'Unsupported element type {parent_ref.type!r}')
 
     @override
-    def element_in_use(self, element: 'Element', used_by: Collection[ElementRef]) -> NoReturn:
+    def element_in_use(self, element: 'Element', used_by: Collection['ElementRef']) -> NoReturn:
         # wtf is this condition
         if element.type == 'node':
             if ref_ways := tuple(ref for ref in used_by if ref.type == 'way'):

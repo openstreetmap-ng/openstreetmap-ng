@@ -1,7 +1,7 @@
 from pydantic import PositiveInt
 
 from app.models.db.base import Base
-from app.models.str import Str255
+from app.models.types import Str255
 
 
 class UserPrefValidating(Base.Validating):

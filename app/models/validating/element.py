@@ -5,9 +5,9 @@ from pydantic import PositiveInt, model_validator
 
 from app.limits import ELEMENT_RELATION_MEMBERS_LIMIT, ELEMENT_WAY_MEMBERS_LIMIT
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementType
+from app.models.element import ElementType
 from app.models.geometry import PointGeometry
-from app.validators.tags import TagsValidating
+from app.models.validating.tags import TagsValidating
 
 
 class ElementValidating(TagsValidating):

@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Mapping
 
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef, ElementType
+from app.models.element import ElementRef, ElementType
 
 
 class Diff06Mixin:

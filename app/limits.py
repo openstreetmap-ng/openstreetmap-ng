@@ -115,6 +115,8 @@ SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller is prefer more local
 SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50
 
+STORAGE_KEY_MAX_LENGTH = 64
+
 TRACE_TAG_MAX_LENGTH = 40
 TRACE_TAGS_LIMIT = 10
 
@@ -153,7 +155,7 @@ USER_PREF_BULK_SET_LIMIT = 150
 USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE = timedelta(days=30)  # TODO: delete unconfirmed accounts
 USER_TOKEN_EMAIL_CHANGE_EXPIRE = timedelta(days=1)
 USER_TOKEN_EMAIL_REPLY_EXPIRE = timedelta(days=2 * 365)  # 2 years
-USER_TOKEN_SESSION_EXPIRE = timedelta(days=365)  # 1 year  # TODO:
+USER_TOKEN_RESET_PASSWORD_EXPIRE = timedelta(days=1)
 
 XML_PARSE_MAX_SIZE = 50 * _mb  # the same as CGImap
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.lib.auth_context import auth_user
+from app.lib.user_role_limits import UserRoleLimits
 from app.lib.xmltodict import get_xattr
 from app.limits import (
     CHANGESET_QUERY_DEFAULT_LIMIT,
@@ -14,7 +15,6 @@ from app.limits import (
     TRACE_POINT_QUERY_AREA_MAX_SIZE,
     TRACE_POINT_QUERY_DEFAULT_LIMIT,
 )
-from app.models.user_role import UserRole
 
 router = APIRouter(prefix='/api')
 
@@ -35,7 +35,7 @@ _legacy_imagery_blacklist = (
 async def legacy_capabilities():
     user = auth_user()
     user_roles = user.roles if (user is not None) else ()
-    changeset_max_size = UserRole.get_changeset_max_size(user_roles)
+    changeset_max_size = UserRoleLimits.get_changeset_max_size(user_roles)
     xattr = get_xattr()
 
     return {

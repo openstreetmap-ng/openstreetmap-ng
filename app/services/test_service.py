@@ -1,4 +1,5 @@
 import logging
+from asyncio import TaskGroup
 from datetime import datetime
 from ipaddress import IPv4Address
 
@@ -6,14 +7,13 @@ from pydantic import SecretStr
 from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
-from app.config import DEFAULT_LANGUAGE, TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
+from app.config import TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
 from app.db import db_commit
 from app.lib.auth_context import auth_context
+from app.lib.locale import DEFAULT_LOCALE
 from app.lib.password_hash import PasswordHash
-from app.models.db.user import User
-from app.models.locale_name import LocaleCode
-from app.models.user_role import UserRole
-from app.models.user_status import UserStatus
+from app.models.db.user import User, UserRole, UserStatus
+from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 
 
@@ -29,29 +29,30 @@ class TestService:
             return
 
         with auth_context(None, ()):
-            await TestService.create_user('admin', roles=(UserRole.administrator,))
-            await TestService.create_user('moderator', roles=(UserRole.moderator,))
-            await TestService.create_user('user1')
-            await TestService.create_user('user2')
+            async with TaskGroup() as tg:
+                tg.create_task(TestService.create_user(DisplayNameType('admin'), roles=(UserRole.administrator,)))
+                tg.create_task(TestService.create_user(DisplayNameType('moderator'), roles=(UserRole.moderator,)))
+                tg.create_task(TestService.create_user(DisplayNameType('user1')))
+                tg.create_task(TestService.create_user(DisplayNameType('user2')))
 
     # Additional safeguard against running this in production
     if TEST_ENV:
 
         @staticmethod
         async def create_user(
-            name: str,
+            name: DisplayNameType,
             *,
             status: UserStatus = UserStatus.active,
-            language: LocaleCode = DEFAULT_LANGUAGE,
+            language: LocaleCode = DEFAULT_LOCALE,
             created_at: datetime | None = None,
             roles: tuple[UserRole, ...] = (),
         ) -> None:
             """
             Create a test user.
             """
-            email = f'{name}@{TEST_USER_DOMAIN}'
+            email = EmailType(f'{name}@{TEST_USER_DOMAIN}')
             name_available = await UserQuery.check_display_name_available(name)
-            password_hashed = PasswordHash.hash(SecretStr(TEST_USER_PASSWORD))
+            password_hashed = PasswordHash.hash(PasswordType(SecretStr(TEST_USER_PASSWORD)))
 
             async with db_commit() as session:
                 if name_available:

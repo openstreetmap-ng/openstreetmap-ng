@@ -5,6 +5,7 @@ import pytest
 from app.lib.date_utils import utcnow
 from app.lib.jinja_env import stripspecial, timeago
 from app.lib.translation import translation_context
+from app.models.types import LocaleCode
 
 
 @pytest.mark.parametrize(
@@ -16,12 +17,12 @@ from app.lib.translation import translation_context
     ],
 )
 def test_timeago(delta, expected):
-    with translation_context('en'):
+    with translation_context(LocaleCode('en')):
         assert timeago(utcnow() - delta) == expected
 
 
 def test_timeago_never():
-    with translation_context('en'):
+    with translation_context(LocaleCode('en')):
         assert timeago(None) == 'Never'
 
 

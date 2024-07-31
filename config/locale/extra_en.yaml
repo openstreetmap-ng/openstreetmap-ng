@@ -32,7 +32,7 @@ map:
       The exported file will contain only the map background.
       It will not contain any pins, routes, selections or other dynamic elements.
   routing:
-    failed_to_retrieve_directions: 'Failed to retrieve directions'
+    failed_to_retrieve_directions: "Failed to retrieve directions"
     drag_and_drop:
       start: Drag and drop this marker to set the start position
       end: Drag and drop this marker to set the end position
@@ -41,24 +41,24 @@ map:
 changeset:
   open: Open
   this_changeset_is_state: This changeset is {{state}}
-  count_one: 'changeset'
-  count_other: 'changesets'
+  count_one: "changeset"
+  count_other: "changesets"
 note:
   title: Note
-  count_one: 'note'
-  count_other: 'notes'
+  count_one: "note"
+  count_other: "notes"
 trace:
-  count_one: 'trace'
-  count_other: 'traces'
+  count_one: "trace"
+  count_other: "traces"
 diary:
-  count_one: 'diary'
-  count_other: 'diaries'
+  count_one: "diary"
+  count_other: "diaries"
 comment:
-  count_one: 'comment'
-  count_other: 'comments'
+  count_one: "comment"
+  count_other: "comments"
 group:
-  member_of_count_one: 'Member of {{text}} group'
-  member_of_count_other: 'Member of {{text}} groups'
+  member_of_count_one: "Member of {{text}} group"
+  member_of_count_other: "Member of {{text}} groups"
 access:
   public: Public
   private: Private
@@ -70,41 +70,19 @@ user:
   not_member_of_any_group: Not a member of any group
   not_found: User not found
   profile_picture: Profile picture
-  name_already_taken: This name is already taken
-  password_is_incorrect: The password is incorrect
-  password_has_been_changed: Your password has been changed
-  settings:
-    password_and_security: Password and security
-    applications: Applications
-    upload_photo: Upload a photo
-    remove_photo: Remove photo
-    preferred_language: Preferred language
-    change_email: Change email
-    change_password: Change password
-    password_last_changed: Password last changed
-    current_password: Current password
-    new_password: New password
-    new_password_repeat: Repeat new password
-    logout_from_browsers: Automatically logout from all other browsers
-    two_factor_auth: Two-factor authentication
-    active_sessions: Active sessions
-    session_id: 'Session ID: {{id}}'
-    current_session: Current session
-    authorized_at: 'Authorized at: {{date}}'
-    terminate: Terminate
   activity:
     recent: Recent activity
-    summary: '{{mapping_day}} with {{num_changesets}} in {{last_n_months}}'
+    summary: "{{mapping_day}} with {{num_changesets}} in {{last_n_months}}"
     mapping_day:
-      count_one: '{{count}} mapping day'
-      count_other: '{{count}} mapping days'
+      count_one: "{{count}} mapping day"
+      count_other: "{{count}} mapping days"
     last_n_months:
-      count_one: 'last {{count}} month'
-      count_other: 'last {{count}} months'
+      count_one: "last {{count}} month"
+      count_other: "last {{count}} months"
     details:
       no_activity: No activity on {{date}}
-      count_one: '{{count}} changeset on {{date}}'
-      count_other: '{{count}} changesets on {{date}}'
+      count_one: "{{count}} changeset on {{date}}"
+      count_other: "{{count}} changesets on {{date}}"
     view_all: View full statistics
     less: Less
     more: More
@@ -123,6 +101,36 @@ results:
   we_did_not_find_any_results: We did not find any results for your search.
 search:
   search_this_area: Search this area
+settings:
+  password_and_security: Password and security
+  applications: Applications
+  upload_photo: Upload a photo
+  remove_photo: Remove photo
+  preferred_language: Preferred language
+  change_email: Change email
+  current_email_address: Current email address
+  new_email_address: New email address
+  email_change_confirmation_sent: |-
+    We've sent a confirmation email to your new address.
+    Please check your inbox and click on the confirmation link to verify your new email address.
+    It may take a few minutes for the email to arrive.
+  change_password: Change password
+  password_last_changed: Password last changed
+  current_password: Current password
+  new_password: New password
+  new_password_repeat: Repeat new password
+  logout_from_browsers: Automatically logout from all other browsers
+  password_has_been_changed: Your password has been changed
+  two_factor_auth: Two-factor authentication
+  active_sessions: Active sessions
+  session_id: "Session ID: {{id}}"
+  current_session: Current session
+  authorized_at: "Authorized at: {{date}}"
+  send_password_reset_email: Send password reset email
+  password_reset_link_sent: |-
+    If an account with that email address exists, you will receive a password reset link shortly.
+    Please check your inbox and click on the reset link to set a new password.
+    It may take a few minutes for the email to arrive.
 fixthemap:
   title: Fix the map
 alt:
@@ -151,11 +159,12 @@ time:
   never: Never
 validation:
   invalid_value: Invalid value
-  display_name_taken: This display name is already taken
-  email_invalid: Invalid email address
-  email_taken: This email address is already taken
-  email_missmatch: The email addresses do not match
-  password_missmatch: The passwords do not match
+  display_name_is_taken: This display name is already taken
+  new_email_is_current: The new email address is the same as the current one
+  invalid_email_address: Invalid email address
+  email_address_is_taken: This email address is already taken
+  password_is_incorrect: The password is incorrect
+  passwords_missmatch: The passwords do not match
   you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
   reached_oauth2_app_limit: You have reached the maximum number of OAuth2 applications
 action:

@@ -13,7 +13,7 @@ from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
-from app.models.tag_format import TagFormat
+from app.models.tags_format import TagFormat
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery

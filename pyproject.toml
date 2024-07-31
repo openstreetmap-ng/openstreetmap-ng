@@ -197,7 +197,7 @@ max-args = 10
 [tool.pyright]
 disableBytesTypePromotions = true
 exclude = ["app/alembic/versions"]
-include = ["app"]
+include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
 pythonVersion = "3.12"
 reportCallInDefaultInitializer = "error"

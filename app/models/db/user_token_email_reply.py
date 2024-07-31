@@ -1,9 +1,9 @@
 from sqlalchemy import Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token import UserToken
-from app.models.mail_source import MailSource
 
 
 class UserTokenEmailReply(UserToken):

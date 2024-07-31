@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 
 from app.lib.avatar import Avatar
-from app.lib.storage.base import StorageKey
+from app.models.types import StorageKey
 from app.storage import AVATAR_STORAGE
 
 
