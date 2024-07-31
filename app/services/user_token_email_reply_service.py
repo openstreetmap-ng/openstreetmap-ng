@@ -5,11 +5,12 @@ from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.msgspec.user_token_struct import UserTokenStruct
+from app.models.messages_pb2 import UserTokenStruct
 from app.models.types import EmailType
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
@@ -24,7 +25,8 @@ class UserTokenEmailReplyService:
         Replying user can use this address to send a message to the current user.
         """
         token = await _create_token(replying_user, mail_source)
-        return EmailType(f'{token}@{SMTP_MESSAGES_FROM_HOST}')
+        token_str = UserTokenStructUtils.to_str(token)
+        return EmailType(f'{token_str}@{SMTP_MESSAGES_FROM_HOST}')
 
     @staticmethod
     async def reply(reply_address: str, subject: str, body: str) -> None:
@@ -60,4 +62,4 @@ async def _create_token(replying_user: User, mail_source: MailSource) -> UserTok
         )
         session.add(token)
 
-    return UserTokenStruct.v1(id=token.id, token=token_bytes)
+    return UserTokenStruct(id=token.id, token=token_bytes)

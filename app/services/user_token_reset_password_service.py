@@ -5,7 +5,7 @@ from app.lib.date_utils import utcnow
 from app.limits import USER_TOKEN_RESET_PASSWORD_EXPIRE
 from app.models.db.user import User
 from app.models.db.user_token_reset_password import UserTokenResetPassword
-from app.models.msgspec.user_token_struct import UserTokenStruct
+from app.models.messages_pb2 import UserTokenStruct
 
 
 class UserTokenResetPasswordService:
@@ -26,4 +26,4 @@ class UserTokenResetPasswordService:
             )
             session.add(token)
 
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
+        return UserTokenStruct(id=token.id, token=token_bytes)

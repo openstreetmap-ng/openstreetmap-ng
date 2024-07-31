@@ -8,9 +8,9 @@ from sqlalchemy.orm import joinedload
 from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.options_context import apply_options_context
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.msgspec.user_token_struct import UserTokenStruct
 
 
 class UserTokenEmailReplyQuery:
@@ -24,7 +24,7 @@ class UserTokenEmailReplyQuery:
 
         try:
             token_str = reply_address.partition('@')[0]
-            token_struct = UserTokenStruct.from_str(token_str)
+            token_struct = UserTokenStructUtils.from_str(token_str)
         except Exception:
             logging.debug('Invalid reply_address format %r', reply_address)
             return None

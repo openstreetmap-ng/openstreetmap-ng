@@ -4,7 +4,7 @@ import cython
 
 from app.lib.jinja_env import timeago
 from app.models.db.changeset import Changeset
-from app.models.msgspec.leaflet import ChangesetLeaflet
+from app.models.leaflet import ChangesetLeaflet
 
 
 class LeafletChangesetMixin:

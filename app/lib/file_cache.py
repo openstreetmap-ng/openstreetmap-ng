@@ -6,11 +6,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
+from google.protobuf.message import DecodeError
+
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_hex
 from app.lib.naturalsize import naturalsize
-from app.models.msgspec.file_cache_meta import FileCacheMeta
+from app.models.messages_pb2 import FileCacheMeta
 
 
 class _CleanupInfo(NamedTuple):
@@ -36,13 +38,13 @@ class FileCache:
         try:
             loop = get_running_loop()
             entry_bytes = await loop.run_in_executor(None, path.read_bytes)
-        except OSError:
+            entry = FileCacheMeta.FromString(entry_bytes)
+        except (OSError, DecodeError):
             logging.debug('Cache read error for %r', key)
             return None
 
-        entry = FileCacheMeta.from_bytes(entry_bytes)
-
-        if (entry.expires_at is not None) and entry.expires_at < time.time():
+        # if provided, check time-to-live
+        if entry.HasField('expires_at') and entry.expires_at < time.time():
             logging.debug('Cache miss for %r', key)
             path.unlink(missing_ok=True)
             return None
@@ -58,8 +60,8 @@ class FileCache:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         expires_at = int(time.time() + ttl.total_seconds()) if (ttl is not None) else None
-        entry = FileCacheMeta.v1(expires_at=expires_at, data=data)
-        entry_bytes = entry.to_bytes()
+        entry = FileCacheMeta(data=data, expires_at=expires_at)
+        entry_bytes = entry.SerializeToString()
 
         temp_name = f'.{buffered_randbytes(16).hex()}.tmp'
         temp_path = path.with_name(temp_name)
@@ -93,19 +95,18 @@ class FileCache:
             try:
                 loop = get_running_loop()
                 entry_bytes = await loop.run_in_executor(None, path.read_bytes)
-            except OSError:
+                entry = FileCacheMeta.FromString(entry_bytes)
+            except (OSError, DecodeError):
                 logging.debug('Cache read error for %r', key)
                 continue
 
-            entry = FileCacheMeta.from_bytes(entry_bytes)
-            expires_at: int | float | None = entry.expires_at
-
-            if (expires_at is not None) and expires_at < now:
-                logging.debug('Cache cleanup for %r (reason: time)', key)
-                path.unlink(missing_ok=True)
-                continue
-
-            if expires_at is None:
+            if entry.HasField('expires_at'):
+                if entry.expires_at < now:
+                    logging.debug('Cache cleanup for %r (reason: time)', key)
+                    path.unlink(missing_ok=True)
+                    continue
+                expires_at = entry.expires_at
+            else:
                 expires_at = float('inf')
 
             size = path.stat().st_size

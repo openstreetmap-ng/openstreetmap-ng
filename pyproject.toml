@@ -32,6 +32,7 @@ phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
 polars = "<1"
 pre-commit = "^3.7.1"
+protobuf = "^5.27.2"
 pycryptodomex = "^3.20.0"
 pydantic = "^2.5.3"
 pyinstrument = "^4.6.1"
@@ -52,6 +53,7 @@ starlette-compress = "^1.0.1"
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
 types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
+types-protobuf = "^5.27.0.20240626"
 uvicorn = {extras = ["standard"], version = "<1"}
 zid = "^1.0.0"
 zstandard = "<1"
@@ -80,6 +82,7 @@ exclude = [
   "dist",
   "node_modules",
   "app/alembic/versions",
+  "app/models/*_pb2.py",
 ]
 
 indent-width = 4
@@ -196,7 +199,7 @@ max-args = 10
 
 [tool.pyright]
 disableBytesTypePromotions = true
-exclude = ["app/alembic/versions"]
+exclude = ["app/alembic/versions", "app/models/*_pb2.py"]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
 pythonVersion = "3.12"

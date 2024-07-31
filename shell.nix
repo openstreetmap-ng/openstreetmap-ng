@@ -74,6 +74,7 @@ let
     ruff
     gcc14
     gettext
+    protobuf_27
     # Frontend:
     bun
     biome
@@ -270,6 +271,14 @@ let
       while ${fswatch'}/bin/fswatch config/locale/extra_en.yaml; do
         locale-pipeline || true
       done
+    '')
+
+    # -- Protobuf
+    (makeScript "proto-generate" ''
+      protoc \
+        --python_out=. \
+        --pyi_out=typings \
+        app/models/*.proto
     '')
 
     # -- Supervisor
@@ -536,6 +545,8 @@ let
       python -m pre_commit install -c ${preCommitConf} --overwrite
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
+
+    proto-generate
 
     # Development environment variables
     export PYTHONNOUSERSITE=1

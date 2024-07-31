@@ -9,9 +9,9 @@ from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.translation import t
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import COOKIE_AUTH_MAX_AGE
 from app.models.db.user import User, UserStatus
-from app.models.msgspec.user_token_struct import UserTokenStruct
 from app.models.types import (
     PasswordType,
     ValidatingDisplayNameType,
@@ -96,7 +96,7 @@ async def account_confirm(
     token: Annotated[str, Query(min_length=1)],
 ):
     # TODO: check errors
-    token_struct = UserTokenStruct.from_str(token)
+    token_struct = UserTokenStructUtils.from_str(token)
     await UserTokenAccountConfirmService.confirm(token_struct)
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 

@@ -5,7 +5,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
 from app.models.db.user_token_email_change import UserTokenEmailChange
-from app.models.msgspec.user_token_struct import UserTokenStruct
+from app.models.messages_pb2 import UserTokenStruct
 from app.models.types import EmailType
 
 
@@ -29,4 +29,4 @@ class UserTokenEmailChangeService:
             )
             session.add(token)
 
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
+        return UserTokenStruct(id=token.id, token=token_bytes)

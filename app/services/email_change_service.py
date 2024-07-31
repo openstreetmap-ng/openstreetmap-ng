@@ -1,4 +1,5 @@
 from app.lib.auth_context import auth_user
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.mail import MailSource
 from app.models.types import EmailType
 from app.services.email_service import EmailService
@@ -18,5 +19,5 @@ class EmailChangeService:
             to_user=auth_user(required=True),
             subject='TODO',  # TODO:
             template_name='TODO',
-            template_data={'token': str(token)},
+            template_data={'token': UserTokenStructUtils.to_str(token)},
         )

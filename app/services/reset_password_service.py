@@ -3,6 +3,7 @@ import time
 from collections import deque
 from statistics import median
 
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.mail import MailSource
 from app.models.types import EmailType
 from app.queries.user_query import UserQuery
@@ -32,6 +33,6 @@ class ResetPasswordService:
             to_user=user,
             subject='TODO',  # TODO:
             template_name='TODO',
-            template_data={'token': str(token)},
+            template_data={'token': UserTokenStructUtils.to_str(token)},
         )
         _latency_measurements.append(time.perf_counter() - ts)

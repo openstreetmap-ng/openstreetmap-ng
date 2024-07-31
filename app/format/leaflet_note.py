@@ -5,7 +5,7 @@ import numpy as np
 from shapely import lib
 
 from app.models.db.note import Note
-from app.models.msgspec.leaflet import NoteLeaflet
+from app.models.leaflet import NoteLeaflet
 
 
 class LeafletNoteMixin:

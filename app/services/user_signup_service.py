@@ -8,6 +8,7 @@ from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import primary_translation_locale, t
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.mail import MailSource
 from app.models.db.user import User, UserStatus
@@ -95,7 +96,7 @@ class UserSignupService:
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
-            template_data={'app_domain': app_domain, 'token': str(token)},
+            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': app_domain},
         )
 
     @staticmethod
