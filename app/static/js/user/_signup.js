@@ -30,7 +30,7 @@ if (signupBody) {
         }
 
         if (passwordInput.value !== passwordConfirmationInput.value) {
-            const msg = i18next.t("validation.password_missmatch")
+            const msg = i18next.t("validation.passwords_missmatch")
             result.push({ type: "error", loc: ["", "password"], msg })
             result.push({ type: "error", loc: ["", "password_confirm"], msg })
         }

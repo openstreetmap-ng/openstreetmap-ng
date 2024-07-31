@@ -2,7 +2,6 @@ import json
 import logging
 import re
 from collections.abc import Sequence
-from functools import cached_property
 from itertools import chain
 from pathlib import Path
 from typing import NamedTuple
@@ -20,7 +19,7 @@ class LocaleName(NamedTuple):
     native: str
     installed: bool
 
-    @cached_property
+    @property
     def display_name(self) -> str:
         return self.english if (self.english == self.native) else f'{self.english} ({self.native})'
 

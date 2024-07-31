@@ -248,6 +248,11 @@ async def terms(user: Annotated[User, web_user()]):
     )
 
 
+@router.get('/user/forgot-password')
+async def legacy_forgot_password():
+    return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
+
+
 @router.get('/user/new')
 async def legacy_signup():
     return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)

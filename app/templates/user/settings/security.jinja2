@@ -16,8 +16,8 @@
 
             <div class="col">
 
+                <h3 class="mb-3">{{ t('user.settings.change_password') }}</h3>
                 <form class="password-form" method="POST" action="/api/web/user/settings/password">
-                    <h3 class="mb-3">{{ t('user.settings.change_password') }}</h3>
                     <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}"
                         autocomplete="username">
 
@@ -53,7 +53,7 @@
                         </div>
                         <div class="col-auto">
                             <a class="link-primary"
-                                href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>
+                                href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-primary px-3" type="submit">

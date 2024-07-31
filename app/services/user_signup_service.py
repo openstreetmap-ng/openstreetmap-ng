@@ -35,11 +35,11 @@ class UserSignupService:
         """
         # some early validation
         if not await UserQuery.check_display_name_available(display_name):
-            MessageCollector.raise_error('display_name', t('validation.display_name_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_is_taken'))
         if not await UserQuery.check_email_available(email):
-            MessageCollector.raise_error('email', t('validation.email_taken'))
+            MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(email):
-            MessageCollector.raise_error('email', t('validation.email_invalid'))
+            MessageCollector.raise_error('email', t('validation.invalid_email_address'))
 
         password_hashed = PasswordHash.hash(password)
         created_ip = get_request_ip()

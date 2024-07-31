@@ -15,7 +15,6 @@ from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordTyp
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
-from app.services.email_change_service import EmailChangeService
 from app.services.system_app_service import SystemAppService
 from app.validators.email import validate_email_deliverability
 
@@ -104,7 +103,7 @@ class UserService:
         Update user settings.
         """
         if not await UserQuery.check_display_name_available(display_name):
-            MessageCollector.raise_error('display_name', t('user.name_already_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
             MessageCollector.raise_error('language', t('validation.invalid_value'))
 
@@ -158,18 +157,18 @@ class UserService:
         """
         user = auth_user(required=True)
         if user.email == new_email:
-            return
+            MessageCollector.raise_error('email', t('validation.new_email_is_current'))
 
         if not PasswordHash.verify(user.password_hashed, password).success:
-            MessageCollector.raise_error('password', t('user.password_is_incorrect'))
+            MessageCollector.raise_error('password', t('validation.password_is_incorrect'))
         if not await UserQuery.check_email_available(new_email):
-            MessageCollector.raise_error('email', t('user.email_already_taken'))
+            MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(new_email):
-            MessageCollector.raise_error('email', t('user.invalid_email'))
+            MessageCollector.raise_error('email', t('validation.invalid_email_address'))
 
-        await EmailChangeService.send_confirm_email(new_email)
+        # await EmailChangeService.send_confirm_email(new_email)
         # TODO: send to old email too
-        collector.info('email', t('user.settings.email_change_confirmation_sent'))
+        collector.info(None, t('user.settings.email_change_confirmation_sent'))
 
     @staticmethod
     async def update_password(
@@ -183,7 +182,7 @@ class UserService:
         """
         current_user = auth_user(required=True)
         if not PasswordHash.verify(current_user.password_hashed, old_password).success:
-            MessageCollector.raise_error('old_password', t('user.password_is_incorrect'))
+            MessageCollector.raise_error('old_password', t('validation.password_is_incorrect'))
 
         password_hashed = PasswordHash.hash(new_password)
         async with db_commit() as session:
@@ -200,7 +199,7 @@ class UserService:
             )
             await session.execute(stmt)
 
-        collector.success(None, t('user.password_has_been_changed'))
+        collector.success(None, t('user.settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', current_user.id)
 
     @staticmethod

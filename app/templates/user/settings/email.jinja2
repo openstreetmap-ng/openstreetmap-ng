@@ -16,9 +16,8 @@
 
             <div class="col">
 
+                <h3 class="mb-3">{{ t('user.settings.change_email') }}</h3>
                 <form class="email-form" method="POST" action="/api/web/user/settings/email">
-                    <h3 class="mb-3">{{ t('user.settings.change_email') }}</h3>
-
                     <label class="form-label d-block mb-3">
                         {{ t('user.settings.current_email_address') }}
                         <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}"
@@ -45,8 +44,7 @@
                             required>
                     </label>
                     <p class="form-text">
-                        <a class="link-primary"
-                            href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>
+                        <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
                     </p>
 
                     <div class="text-end">
