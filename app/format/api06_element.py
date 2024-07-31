@@ -14,7 +14,7 @@ from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementType
 from app.models.types import OSMChangeAction
-from app.validators.element import ElementValidating
+from app.models.validating.element import ElementValidating
 
 
 class Element06Mixin:
