@@ -60,7 +60,8 @@ class FormatElementList:
 
     @staticmethod
     def element_parents(ref: ElementRef, parents: Iterable[Element]) -> tuple[MemberListEntry, ...]:
-        return tuple(_encode_parent(ref, element) for element in parents)
+        icons = features_icons(parents)
+        return tuple(_encode_parent(ref, element, icon) for element, icon in zip(parents, icons, strict=True))
 
     @staticmethod
     def element_members(
@@ -105,16 +106,14 @@ def _encode_element(
 
 
 @cython.cfunc
-def _encode_parent(ref: ElementRef, element: Element):
+def _encode_parent(ref: ElementRef, element: Element, resolved: tuple[str, str] | None):
     element_type = element.type
     element_id = element.id
 
     if tags := element.tags:
         name = feature_name(tags)
-        resolved = feature_icon(element_type, tags)
     else:
         name = None
-        resolved = None
 
     if resolved is not None:
         icon = resolved[0]
