@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import cython
 
-from app.lib.feature_icon import feature_icon
+from app.lib.feature_icon import feature_icon, features_icons
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -51,8 +51,9 @@ class FormatElementList:
         prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
 
         result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
-        for element in elements:
-            result[element.type].append(_encode_element(prev_type_id_map, element))
+        icons = features_icons(elements)
+        for element, icon in zip(elements, icons, strict=True):
+            result[element.type].append(_encode_element(prev_type_id_map, element, icon))
         for v in result.values():
             v.sort(key=_sort_key)
         return result
@@ -72,7 +73,9 @@ class FormatElementList:
 
 
 @cython.cfunc
-def _encode_element(prev_type_id_map: dict[tuple[ElementType, ElementId], Element], element: Element):
+def _encode_element(
+    prev_type_id_map: dict[tuple[ElementType, ElementId], Element], element: Element, resolved: tuple[str, str] | None
+):
     element_type = element.type
     element_id = element.id
     prev = prev_type_id_map.get((element_type, element_id))
@@ -80,10 +83,8 @@ def _encode_element(prev_type_id_map: dict[tuple[ElementType, ElementId], Elemen
 
     if tags:
         name = feature_name(tags)
-        resolved = feature_icon(element_type, tags)
     else:
         name = None
-        resolved = None
 
     if resolved is not None:
         icon = resolved[0]

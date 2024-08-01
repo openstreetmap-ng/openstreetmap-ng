@@ -1,10 +1,12 @@
 import json
 import logging
 import tomllib
+from collections.abc import Iterable
 from pathlib import Path
 
 import cython
 
+from app.models.db.element import Element
 from app.models.element_ref import ElementType
 
 
@@ -47,6 +49,10 @@ _config = _get_config()
 _config_keys = frozenset(k.split('.', 1)[0] for k in _config)
 _popular_stats = _get_popular_stats()
 _check_config()
+
+
+def features_icons(elements: Iterable[Element | None]) -> tuple[tuple[str, str] | None, ...]:
+    return tuple(feature_icon(e.type, e.tags) if (e is not None) else None for e in elements)
 
 
 # TODO: batch, features_icons
