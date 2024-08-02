@@ -71,10 +71,11 @@ class FormatElementList:
         icons = features_icons(members_elements)
         type_id_map: dict[tuple[ElementType, ElementId], tuple[Element, FeatureIcon | None]]
         type_id_map = {
-            (member.type, member.id): (member, icon)  #
-            for member, icon in zip(members_elements, icons, strict=True)
+            (element.type, element.id): (element, icon)  #
+            for element, icon in zip(members_elements, icons, strict=True)
         }
-        return tuple(filter(None, (_encode_member(type_id_map, member) for member in members)))
+        encoded = (_encode_member(type_id_map, member) for member in members)
+        return tuple(entry for entry in encoded if entry is not None)
 
 
 @cython.cfunc
