@@ -2,7 +2,7 @@ import pytest
 
 from app.lib.feature_icon import features_icons
 from app.models.db.element import Element
-from app.models.element_ref import ElementId
+from app.models.element import ElementId
 
 
 @pytest.mark.parametrize(
