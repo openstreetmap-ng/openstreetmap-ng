@@ -25,7 +25,7 @@
                     </label>
 
                     <label class="form-label d-block">
-                        {{ t('settings.new_email_address') }}
+                        <span class="required">{{ t('settings.new_email_address') }}</span>
                         <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
                             maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
                     </label>
@@ -39,7 +39,7 @@
                     </p>
 
                     <label class="form-label d-block">
-                        {{ t('sessions.new.password') }}
+                        <span class="required">{{ t('sessions.new.password') }}</span>
                         <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
                             required>
                     </label>
