@@ -52,19 +52,18 @@ _check_config()
 
 
 def features_icons(elements: Iterable[Element | None]) -> tuple[tuple[str, str] | None, ...]:
-    return tuple(feature_icon(e.type, e.tags) if (e is not None) else None for e in elements)
-
-
-# TODO: batch, features_icons
-def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | None:
     """
     Get the filename and title of the icon for an element.
 
     Returns None if no appropriate icon is found.
 
-    >>> feature_icon('way', {'aeroway': 'terminal'})
-    'aeroway_terminal.webp', 'aeroway=terminal'
+    >>> features_icons(...)
+    (('aeroway_terminal.webp', 'aeroway=terminal'), ...)
     """
+    return tuple(_feature_icon(e.type, e.tags) if (e is not None) else None for e in elements)
+
+
+def _feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | None:
     matched_keys = _config_keys.intersection(tags)
     if not matched_keys:
         return None
