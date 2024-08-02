@@ -72,6 +72,8 @@ def features_icons(elements: Iterable[Element]) -> tuple[FeatureIcon | None, ...
 
 @cython.cfunc
 def _feature_icon(type: ElementType, tags: dict[str, str]):
+    if not tags:
+        return None
     matched_keys = _config_keys.intersection(tags)
     if not matched_keys:
         return None
