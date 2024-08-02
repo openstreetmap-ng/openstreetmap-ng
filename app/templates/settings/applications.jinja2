@@ -1,0 +1,53 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('settings.applications') | capitalize }} | {% endblock %}
+{% block body_class %}settings-applications-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        {{ t('settings.applications') | capitalize }}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+
+            {% include 'settings/_nav.jinja2' %}
+
+            <div class="col">
+
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <a href="/settings/applications" class="nav-link active" aria-current="page">
+                            {{ t('settings.authorizations') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings/applications/admin" class="nav-link">
+                            {{ t('settings.my_applications') }}
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="applications-list list-unstyled">
+                    {% for token in tokens %}
+                    {% set app = token.application %}
+                    <li>
+                        {% include 'settings/_application_entry.jinja2' %}
+                    </li>
+                    <li>
+                        {% include 'settings/_application_entry.jinja2' %}
+                    </li>
+                    <li>
+                        {% include 'settings/_application_entry.jinja2' %}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

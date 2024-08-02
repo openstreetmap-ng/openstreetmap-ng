@@ -7,7 +7,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from argon2.profiles import RFC_9106_LOW_MEMORY
 
-from app.models.str import PasswordStr
+from app.models.types import PasswordType
 
 
 class VerifyResult(NamedTuple):
@@ -20,7 +20,7 @@ _hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 
 class PasswordHash:
     @staticmethod
-    def verify(password_hashed: str, password: PasswordStr) -> VerifyResult:
+    def verify(password_hashed: str, password: PasswordType) -> VerifyResult:
         """
         Verify a password against a hash and optional extra data.
         """
@@ -63,7 +63,7 @@ class PasswordHash:
         )
 
     @staticmethod
-    def hash(password: PasswordStr) -> str:
+    def hash(password: PasswordType) -> str:
         """
         Hash a password using latest recommended algorithm.
         """

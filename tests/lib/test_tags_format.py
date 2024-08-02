@@ -2,7 +2,8 @@ import pytest
 
 from app.lib.tags_format import tags_format
 from app.lib.translation import translation_context
-from app.models.tag_format import ValueFormat
+from app.models.tags_format import ValueFormat
+from app.models.types import LocaleCode
 
 
 @pytest.mark.parametrize(
@@ -96,7 +97,7 @@ from app.models.tag_format import ValueFormat
     ],
 )
 def test_tags_format(tags: dict[str, str], key: ValueFormat, values: list[ValueFormat]):
-    with translation_context('pl'):
+    with translation_context(LocaleCode('pl')):
         formatted = tags_format(tags)
         collection = next(iter(formatted.values()))
         assert key == collection.key

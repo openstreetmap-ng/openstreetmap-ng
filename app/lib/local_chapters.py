@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Any
 
 import cython
 
@@ -9,7 +10,11 @@ def _get_local_chapters() -> tuple[tuple[str, str], ...]:
     resources = Path('node_modules/osm-community-index/dist/resources.min.json').read_bytes()
     communities_dict: dict[str, dict] = json.loads(resources)['resources']
     # filter local chapters
-    chapters = [c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF']
+    chapters: list[dict[str, Any]] = [
+        c
+        for c in communities_dict.values()  #
+        if c['type'] == 'osm-lc' and c['id'] != 'OSMF'
+    ]
     chapters.sort(key=lambda c: c['id'].casefold())
     return tuple((c['id'], c['strings']['url']) for c in chapters)
 

@@ -13,7 +13,7 @@ if (loginBody) {
         const params = qsParse(location.search.substring(1))
         let referer = (params.referer ?? "/") + location.hash
         if (!referer.startsWith("/")) referer = "/"
-        location.href = referer
+        window.location = referer
     }
 
     // Autofill buttons are present in development environment

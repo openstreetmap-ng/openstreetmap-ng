@@ -1,11 +1,13 @@
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 from starlette import status
 
 from app.exceptions.api_error import APIError
-from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
+
+if TYPE_CHECKING:
+    from app.models.db.oauth2_token import OAuth2CodeChallengeMethod
 
 
 class AuthExceptionsMixin:
@@ -37,7 +39,7 @@ class AuthExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def oauth2_bad_verifier(self, code_challenge_method: OAuth2CodeChallengeMethod) -> NoReturn:
+    def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
         raise NotImplementedError
 
     def oauth_bad_app_client_id(self) -> NoReturn:

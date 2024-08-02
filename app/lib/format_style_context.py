@@ -1,10 +1,12 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
+from typing import Literal
 
 import cython
 
 from app.middlewares.request_context_middleware import get_request
-from app.models.format_style import FormatStyle
+
+FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
 
 _context: ContextVar[FormatStyle] = ContextVar('FormatStyleContext')
 

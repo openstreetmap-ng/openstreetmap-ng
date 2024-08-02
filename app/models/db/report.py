@@ -1,15 +1,25 @@
+import enum
+
 from sqlalchemy import Enum, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin
+from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import REPORT_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.issue import Issue
 from app.models.db.user import User
-from app.models.report_category import ReportCategory
-from app.models.text_format import TextFormat
+
+
+class ReportCategory(str, enum.Enum):
+    spam = 'spam'
+    offensive = 'offensive'
+    threat = 'threat'
+    vandal = 'vandal'
+    personal = 'personal'
+    abusive = 'abusive'
+    other = 'other'
 
 
 class Report(Base.ZID, CreatedAtMixin, RichTextMixin):

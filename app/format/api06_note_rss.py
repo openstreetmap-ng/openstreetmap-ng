@@ -10,8 +10,7 @@ from app.config import API_URL, APP_URL
 from app.lib.jinja_env import render
 from app.lib.translation import t
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
-from app.models.note_event import NoteEvent
+from app.models.db.note_comment import NoteComment, NoteEvent
 from app.queries.nominatim_query import NominatimQuery
 
 

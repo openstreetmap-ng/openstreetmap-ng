@@ -1,0 +1,36 @@
+<div class="row align-items-center">
+    <div class="col-auto">
+        <img class="avatar" src="{{ app.avatar_url }}">
+    </div>
+    <div class="col">
+        <h6 class="mb-1">
+            {{ app.name }}
+        </h6>
+        <p class="form-text mb-0">
+            {% if token %}
+            {% set date %}
+            {{ format_rfc2822_date(token.authorized_at) }}
+            ({{ token.authorized_at | timeago }})
+            {% endset %}
+            {{ t('settings.authorized_at', date=date) }}
+            <br>
+            {% endif %}
+
+            {% if app.is_system_app %}
+            <i class="bi bi-shield-fill-check text-success"></i>
+            {% set name %}
+            <a href="/">
+                {{ t('layouts.project_name.title') }}
+            </a>
+            {% endset %}
+            {% else %}
+            {% set name %}
+            <a href="/user/{{ app.user.display_name }}">
+                {{ app.user.display_name }}
+            </a>
+            {% endset %}
+            {% endif %}
+            {{ t('settings.owned_by', name=name) | safe }}
+        </p>
+    </div>
+</div>

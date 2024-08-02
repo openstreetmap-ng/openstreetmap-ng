@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 import cython
 
-from app.validators.tags import TagsValidating
+from app.models.validating.tags import TagsValidating
 
 
 class Tag06Mixin:

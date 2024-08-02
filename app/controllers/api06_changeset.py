@@ -28,7 +28,6 @@ from app.services.optimistic_diff import OptimisticDiff
 
 router = APIRouter(prefix='/api/0.6')
 
-# TODO: https://www.openstreetmap.org/history/feed
 # TODO: 0.7 mandatory created_by and comment tags
 
 

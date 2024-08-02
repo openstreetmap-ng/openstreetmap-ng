@@ -1,8 +1,13 @@
+from collections.abc import Sequence
+from typing import Any
+
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
+from app.models.element import ElementType
+from app.models.types import OSMChangeAction
 
 
 async def test_element_crud(client: AsyncClient):
@@ -30,7 +35,7 @@ async def test_element_crud(client: AsyncClient):
     # read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
+    changeset: Any = XMLToDict.parse(r.content)['osm']['changeset']
 
     last_updated_at = changeset['@updated_at']
 
@@ -72,12 +77,12 @@ async def test_element_crud(client: AsyncClient):
     # read osmChange
     r = await client.get(f'/api/0.6/changeset/{changeset_id}/download')
     assert r.is_success, r.text
-    action: tuple = XMLToDict.parse(r.content)['osmChange'][-1]
+    action: tuple[OSMChangeAction, Sequence[tuple[ElementType, Any]]] = XMLToDict.parse(r.content)['osmChange'][-1]
     assert action[0] == 'create'
     assert len(action[1]) == 1
-    element: tuple = action[1][0]
+    element = action[1][0]
     assert element[0] == 'node'
-    node: dict = element[1]
+    node = element[1]
     tags = Format06.decode_tags_and_validate(node['tag'])
 
     assert node['@id'] == node_id

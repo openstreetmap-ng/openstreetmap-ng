@@ -1,6 +1,7 @@
 import logging
 import tomllib
 from asyncio import TaskGroup
+from enum import Enum
 from html import escape
 from pathlib import Path
 
@@ -11,9 +12,13 @@ from sqlalchemy import update
 
 from app.db import db_commit
 from app.limits import RICH_TEXT_CACHE_EXPIRE
-from app.models.cache_entry import CacheEntry
-from app.models.text_format import TextFormat
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheEntry, CacheService
+
+
+class TextFormat(str, Enum):
+    html = 'html'
+    markdown = 'markdown'
+    plain = 'plain'
 
 
 @cython.cfunc
@@ -26,23 +31,9 @@ def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozen
 
 _allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
 _global_allowed_attributes = _allowed_attributes['*']
-
 _linkify_skip_tags = ('code', 'kbd', 'pre', 'samp', 'var')
-
 _md = MarkdownIt(options_update={'typographer': True})
 _md.enable(('replacements', 'smartquotes'))
-
-
-@cython.cfunc
-def _is_allowed_attribute(tag: str, attr: str, value: str) -> cython.char:
-    # check global allowed attributes
-    if attr in _global_allowed_attributes:
-        return True
-    # check tag-specific allowed attributes
-    allowed_attributes = _allowed_attributes.get(tag)
-    if allowed_attributes is not None:
-        return attr in allowed_attributes
-    return False
 
 
 def process_rich_text(text: str, text_format: TextFormat) -> str:
@@ -77,7 +68,7 @@ async def rich_text(text: str, cache_id: bytes | None, text_format: TextFormat) 
 
     If cache_id is provided, it will be used to accelerate cache lookup.
     """
-    cache_context = f'RichText:{text_format.value}'
+    cache_context = CacheContext(f'RichText:{text_format.value}')
 
     async def factory() -> bytes:
         return process_rich_text(text, text_format).encode()
@@ -151,3 +142,15 @@ class RichTextMixin:
 
         # assign value to instance
         setattr(self, rich_field_name, cache_entry.value.decode())
+
+
+@cython.cfunc
+def _is_allowed_attribute(tag: str, attr: str, value: str) -> cython.char:
+    # check global allowed attributes
+    if attr in _global_allowed_attributes:
+        return True
+    # check tag-specific allowed attributes
+    allowed_attributes = _allowed_attributes.get(tag)
+    if allowed_attributes is not None:
+        return attr in allowed_attributes
+    return False

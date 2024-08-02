@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 import yaml
 from fastapi.utils import deep_dict_update
@@ -32,7 +33,7 @@ def needs_processing(locale: str) -> bool:
     return get_source_mtime(locale) > target_path.stat().st_mtime
 
 
-def resolve_community_name(community: dict, locale: dict) -> str:
+def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) -> str:
     """
     Resolve the translated name for a community.
     """
@@ -59,7 +60,7 @@ def extract_local_chapters_map() -> dict[str, dict]:
     """
     package_dir = Path('node_modules/osm-community-index')
     resources = (package_dir.joinpath('dist/resources.min.json')).read_bytes()
-    communities_dict: dict[str, dict] = json.loads(resources)['resources']
+    communities_dict: dict[str, dict[str, Any]] = json.loads(resources)['resources']
 
     # filter only local chapters
     communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
@@ -70,10 +71,10 @@ def extract_local_chapters_map() -> dict[str, dict]:
         if not needs_processing(locale):
             continue
 
-        source_data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
+        source_data: dict[str, Any] = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
         source_data = next(iter(source_data.values()))  # strip first level of nesting
 
-        communities_data: dict[str, dict] = {}
+        communities_data: dict[str, dict[str, Any]] = {}
         for community in communities:
             community_id: str = community['id']
 

@@ -10,8 +10,7 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.options_context import apply_options_context
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
-from app.models.note_event import NoteEvent
+from app.models.db.note_comment import NoteComment, NoteEvent
 
 
 class NoteQuery:

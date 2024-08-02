@@ -7,7 +7,7 @@ from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.element_query import ElementQuery
 
 

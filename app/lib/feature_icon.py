@@ -8,7 +8,7 @@ from typing import NamedTuple
 import cython
 
 from app.models.db.element import Element
-from app.models.element_ref import ElementType
+from app.models.element import ElementType
 
 
 class FeatureIcon(NamedTuple):

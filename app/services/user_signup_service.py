@@ -8,11 +8,11 @@ from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import primary_translation_locale, t
+from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.user import User
-from app.models.mail_source import MailSource
-from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.models.user_status import UserStatus
+from app.models.db.mail import MailSource
+from app.models.db.user import User, UserStatus
+from app.models.types import DisplayNameType, EmailType, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
 from app.services.system_app_service import SystemAppService
@@ -24,9 +24,9 @@ class UserSignupService:
     @staticmethod
     async def signup(
         *,
-        display_name: DisplayNameStr,
-        email: EmailStr,
-        password: PasswordStr,
+        display_name: DisplayNameType,
+        email: EmailType,
+        password: PasswordType,
         tracking: bool,
     ) -> str:
         """
@@ -36,11 +36,11 @@ class UserSignupService:
         """
         # some early validation
         if not await UserQuery.check_display_name_available(display_name):
-            MessageCollector.raise_error('display_name', t('validation.display_name_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_is_taken'))
         if not await UserQuery.check_email_available(email):
-            MessageCollector.raise_error('email', t('validation.email_taken'))
+            MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(email):
-            MessageCollector.raise_error('email', t('validation.email_invalid'))
+            MessageCollector.raise_error('email', t('validation.invalid_email_address'))
 
         password_hashed = PasswordHash.hash(password)
         created_ip = get_request_ip()
@@ -96,7 +96,7 @@ class UserSignupService:
             to_user=auth_user(required=True),
             subject=t('user_mailer.signup_confirm.subject'),
             template_name='email/account_confirm.jinja2',
-            template_data={'app_domain': app_domain, 'token': str(token)},
+            template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': app_domain},
         )
 
     @staticmethod

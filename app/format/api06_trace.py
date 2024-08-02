@@ -4,7 +4,7 @@ import cython
 
 from app.lib.auth_context import auth_user
 from app.models.db.trace_ import Trace
-from app.validators.trace_ import TraceValidating
+from app.models.validating.trace_ import TraceValidating
 
 
 class Trace06Mixin:

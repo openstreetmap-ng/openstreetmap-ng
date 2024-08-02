@@ -18,8 +18,8 @@ from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
-from app.models.tag_format import TagFormat
+from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.tags_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -101,7 +101,12 @@ async def get_history(
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     current_version = await ElementQuery.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
-    # TODO: not found
+    if current_version == 0:
+        return render_response(
+            'partial/not_found.jinja2',
+            {'type': type, 'id': id},
+        )
+
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
     version_max = current_version - page_size * (page - 1)

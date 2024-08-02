@@ -1,0 +1,13 @@
+.settings-applications-body {
+    .applications-list {
+        li:not(:last-child) {
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid $border-color;
+        }
+        .avatar {
+            font-size: 2.5em;
+            border: 1px solid $border-color;
+        }
+    }
+}

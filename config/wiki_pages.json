@@ -1091,6 +1091,11 @@
       "Uk"
     ]
   },
+  "addr:street:corner": {
+    "*": [
+      ""
+    ]
+  },
   "addr:street:name": {
     "*": [
       "",
@@ -3155,6 +3160,7 @@
       "Cs",
       "DE",
       "FR",
+      "Pl",
       "Pt"
     ],
     "fire_station": [
@@ -6882,6 +6888,9 @@
       "RU",
       "Uk"
     ],
+    "safe_loops": [
+      ""
+    ],
     "stands": [
       "",
       "RU"
@@ -7936,6 +7945,10 @@
       "Pl",
       "RU"
     ],
+    "annexe": [
+      "",
+      "RU"
+    ],
     "apartments": [
       "",
       "Cs",
@@ -8643,6 +8656,9 @@
       "Uk"
     ],
     "planned": [
+      ""
+    ],
+    "police": [
       ""
     ],
     "porch": [
@@ -9549,6 +9565,7 @@
       "ES",
       "FR",
       "Ko",
+      "Pt",
       "RU",
       "Sv"
     ]
@@ -9627,6 +9644,9 @@
     ]
   },
   "by_night": {
+    "*": [
+      ""
+    ],
     "only": [
       "",
       "DE"
@@ -9726,6 +9746,16 @@
     ]
   },
   "callsign": {
+    "*": [
+      ""
+    ]
+  },
+  "camera:*": {
+    "*": [
+      "Pl"
+    ]
+  },
+  "camera:angle": {
     "*": [
       ""
     ]
@@ -11126,6 +11156,10 @@
       "DE",
       "RU"
     ],
+    "meeting_room": [
+      "",
+      "RU"
+    ],
     "parish_hall": [
       "",
       "DE",
@@ -11157,8 +11191,7 @@
   "company": {
     "*": [
       "",
-      "DE",
-      "RU"
+      "DE"
     ],
     "aerospace": [
       "",
@@ -11171,6 +11204,10 @@
     "construction": [
       "",
       "DE",
+      "RU"
+    ],
+    "distribution": [
+      "",
       "RU"
     ],
     "industrial_climbing": [
@@ -11194,6 +11231,10 @@
       "RU"
     ],
     "robot": [
+      "",
+      "RU"
+    ],
+    "software_development": [
       "",
       "RU"
     ],
@@ -13220,7 +13261,8 @@
       "",
       "ES",
       "FR",
-      "JA"
+      "JA",
+      "Pt"
     ],
     "beef_bowl": [
       ""
@@ -15760,7 +15802,8 @@
       "IT",
       "JA",
       "Pl",
-      "Pt"
+      "Pt",
+      "RU"
     ],
     "designated": [
       "",
@@ -16197,6 +16240,9 @@
     ],
     "average_speed": [
       "",
+      "Pl"
+    ],
+    "maxspeed": [
       "Pl"
     ]
   },
@@ -16945,6 +16991,10 @@
     "*": [
       ""
     ],
+    "horizontal_bar": [
+      "",
+      "RU"
+    ],
     "sit-up": [
       "",
       "RU"
@@ -17264,6 +17314,9 @@
     "left": [
       ""
     ],
+    "link": [
+      ""
+    ],
     "none": [
       ""
     ],
@@ -17436,6 +17489,9 @@
     "bubbler": [
       "",
       "ES"
+    ],
+    "decorative": [
+      ""
     ],
     "drinking": [
       ""
@@ -18163,6 +18219,7 @@
   },
   "genus:de": {
     "*": [
+      "",
       "DE"
     ],
     "Linde": [
@@ -19110,7 +19167,8 @@
       "RU"
     ],
     "archery_range": [
-      ""
+      "",
+      "RU"
     ],
     "avalanche": [
       ""
@@ -19125,6 +19183,9 @@
     "children": [
       "",
       "DE"
+    ],
+    "cliff": [
+      ""
     ],
     "contamination": [
       "",
@@ -19747,6 +19808,10 @@
     "immunology": [
       ""
     ],
+    "implantology": [
+      "",
+      "RU"
+    ],
     "infectious_diseases": [
       ""
     ],
@@ -20028,6 +20093,11 @@
     ]
   },
   "hgv:national_network": {
+    "*": [
+      ""
+    ]
+  },
+  "hgv:repair": {
     "*": [
       ""
     ]
@@ -21127,7 +21197,8 @@
     ],
     "creamery": [
       "",
-      "ES"
+      "ES",
+      "RU"
     ],
     "district": [
       "",
@@ -21149,7 +21220,8 @@
       "RU"
     ],
     "folly": [
-      ""
+      "",
+      "RU"
     ],
     "fort": [
       "",
@@ -21178,7 +21250,8 @@
       "RU"
     ],
     "high_cross": [
-      ""
+      "",
+      "RU"
     ],
     "highwater_mark": [
       "",
@@ -21220,7 +21293,8 @@
       "RU"
     ],
     "machine": [
-      ""
+      "",
+      "RU"
     ],
     "manor": [
       "",
@@ -21267,7 +21341,8 @@
     ],
     "millstone": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "mine": [
       "",
@@ -21281,7 +21356,8 @@
       "ES"
     ],
     "minecart": [
-      ""
+      "",
+      "RU"
     ],
     "missile": [
       ""
@@ -21314,7 +21390,8 @@
       "RU"
     ],
     "ogham_stone": [
-      ""
+      "",
+      "RU"
     ],
     "optical_telegraph": [
       "",
@@ -21345,11 +21422,13 @@
       ""
     ],
     "pound": [
-      ""
+      "",
+      "RU"
     ],
     "railway_car": [
       "",
-      "ES"
+      "ES",
+      "RU"
     ],
     "rampart": [
       ""
@@ -21386,7 +21465,8 @@
       "RU"
     ],
     "shieling": [
-      ""
+      "",
+      "RU"
     ],
     "ship": [
       "",
@@ -21447,6 +21527,7 @@
     "vehicle": [
       "",
       "ES",
+      "RU",
       "Uk"
     ],
     "wayside_chapel": [
@@ -21992,6 +22073,10 @@
       "Pt",
       "RU"
     ],
+    "electrical": [
+      "",
+      "RU"
+    ],
     "factory": [
       "",
       "Cs",
@@ -22126,7 +22211,8 @@
     ],
     "recycling": [
       "",
-      "DE"
+      "DE",
+      "RU"
     ],
     "refinery": [
       "",
@@ -25240,6 +25326,7 @@
     "underground": [
       "",
       "DE",
+      "ES",
       "FR",
       "RU"
     ],
@@ -25848,6 +25935,9 @@
       "Pl",
       "RU"
     ],
+    "flowerbed": [
+      ""
+    ],
     "footwear_decontamination": [
       "",
       "DE"
@@ -25876,6 +25966,7 @@
       "ES",
       "FR",
       "JA",
+      "Pl",
       "Zh-hans"
     ],
     "gas_dehydrator": [
@@ -26019,6 +26110,7 @@
       "",
       "DE",
       "ES",
+      "Pl",
       "Uk"
     ],
     "mast": [
@@ -26177,7 +26269,8 @@
       "ES",
       "FR",
       "JA",
-      "Ko"
+      "Ko",
+      "Pl"
     ],
     "power_hydro": [
       "",
@@ -33698,7 +33791,8 @@
       "RU"
     ],
     "transport": [
-      ""
+      "",
+      "RU"
     ],
     "travel_agent": [
       "",
@@ -33761,6 +33855,7 @@
       "",
       "DE",
       "ES",
+      "Pl",
       "Uk"
     ]
   },
@@ -34660,6 +34755,11 @@
       "RU"
     ]
   },
+  "overgrown": {
+    "*": [
+      ""
+    ]
+  },
   "overlap": {
     "*": [
       "",
@@ -35280,6 +35380,16 @@
     ]
   },
   "payment:notes:denominations": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:pluxee": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:sodexo": {
     "*": [
       ""
     ]
@@ -38057,7 +38167,8 @@
       "RU"
     ],
     "ventilation_shaft": [
-      ""
+      "",
+      "FR"
     ],
     "wash": [
       "",
@@ -38725,7 +38836,8 @@
   },
   "recycling:PET": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "recycling:clothes": {
@@ -38784,6 +38896,11 @@
   "recycling:shoes": {
     "*": [
       ""
+    ]
+  },
+  "recycling:tetrapak": {
+    "*": [
+      "RU"
     ]
   },
   "recycling_type": {
@@ -39082,6 +39199,12 @@
     ]
   },
   "ref:FR:RNA": {
+    "*": [
+      "",
+      "FR"
+    ]
+  },
+  "ref:FR:RNB": {
     "*": [
       "",
       "FR"
@@ -40143,6 +40266,11 @@
       ""
     ]
   },
+  "ref:velopark": {
+    "*": [
+      ""
+    ]
+  },
   "ref:vorwahl": {
     "*": [
       ""
@@ -40661,7 +40789,8 @@
       ""
     ],
     "stop": [
-      ""
+      "",
+      "DE"
     ]
   },
   "retaining_wall": {
@@ -43495,7 +43624,8 @@
   },
   "sensory": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "service": {
@@ -47603,7 +47733,8 @@
       "Pt"
     ],
     "aerobics": [
-      ""
+      "",
+      "RU"
     ],
     "aikido": [
       "",
@@ -47836,10 +47967,12 @@
       "RU"
     ],
     "dance": [
-      ""
+      "",
+      "RU"
     ],
     "dancing": [
-      ""
+      "",
+      "RU"
     ],
     "darts": [
       "",
@@ -47948,7 +48081,8 @@
     ],
     "gymnastics": [
       "",
-      "ES"
+      "ES",
+      "RU"
     ],
     "handball": [
       "",
@@ -49322,14 +49456,18 @@
       "RU"
     ]
   },
+  "surveillance:*": {
+    "*": [
+      "Pl"
+    ]
+  },
   "surveillance:type": {
     "*": [
       "",
       "Cs",
       "DE",
       "ES",
-      "FR",
-      "Pl"
+      "FR"
     ]
   },
   "surveillance:zone": {
@@ -49338,8 +49476,7 @@
       "Cs",
       "DE",
       "ES",
-      "FR",
-      "Pl"
+      "FR"
     ]
   },
   "survey:date": {
@@ -51982,7 +52119,8 @@
   },
   "turn:lanes": {
     "*": [
-      "DE"
+      "DE",
+      "Pl"
     ],
     "slide_left": [
       ""
@@ -53713,6 +53851,9 @@
       "Pt",
       "RU",
       "Uk"
+    ],
+    "debris_screen": [
+      ""
     ],
     "deep_well": [
       "",
