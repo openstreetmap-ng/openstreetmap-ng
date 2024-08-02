@@ -28,18 +28,6 @@ let
       wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   });
-  fswatch' = with pkgs; (symlinkJoin {
-    # Locale workaround for https://github.com/emcrisostomo/fswatch/issues/166
-    name = "fswatch";
-    paths = [ fswatch ];
-    buildInputs = [ makeWrapper ];
-    postBuild = ''
-      wrapProgram "$out/bin/fswatch" \
-        --set LC_ALL POSIX \
-        --set LANG POSIX \
-        --add-flags "-1 --latency 0.1 --event Updated"
-    '';
-  });
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
@@ -63,7 +51,7 @@ let
   packages' = with pkgs; [
     coreutils
     curl
-    fswatch'
+    watchexec
     brotli
     zstd
     nil
@@ -123,12 +111,7 @@ let
       )
       find "''${dirs[@]}" -type f \( -name '*.c' -o -name '*.html' -o -name '*.so' \) -delete
     '')
-    (makeScript "watch-cython" ''
-      cython-build || true
-      while ${fswatch'}/bin/fswatch --recursive --include "\.py$" app; do
-        cython-build || true
-      done
-    '')
+    (makeScript "watch-cython" "watchexec --watch app --exts py cython-build")
 
     # -- SASS
     (makeScript "sass-pipeline" ''
@@ -143,12 +126,7 @@ let
         --replace \
         --no-map
     '')
-    (makeScript "watch-sass" ''
-      sass-pipeline || true
-      while ${fswatch'}/bin/fswatch --recursive app/static/sass; do
-        sass-pipeline || true
-      done
-    '')
+    (makeScript "watch-sass" "watchexec --watch app/static/sass sass-pipeline")
 
     # -- JavaScript
     (makeScript "js-pipeline" ''
@@ -165,12 +143,7 @@ let
         --outdir app/static/js \
         $files
     '')
-    (makeScript "watch-js" ''
-      js-pipeline || true
-      while ${fswatch'}/bin/fswatch --recursive --exclude "^bundle-" app/static/js; do
-        js-pipeline || true
-      done
-    '')
+    (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
 
     # -- Static
     (makeScript "static-precompress" ''
@@ -266,12 +239,7 @@ let
       locale-download
       locale-pipeline
     '')
-    (makeScript "watch-locale" ''
-      locale-pipeline || true
-      while ${fswatch'}/bin/fswatch config/locale/extra_en.yaml; do
-        locale-pipeline || true
-      done
-    '')
+    (makeScript "watch-locale" "watchexec --watch config/locale/extra_en.yaml locale-pipeline")
 
     # -- Protobuf
     (makeScript "proto-generate" ''
@@ -443,15 +411,17 @@ let
         --cov app \
         --cov-report "''${1:-xml}"
     '')
-    (makeScript "watch-tests" ''
-      run-tests || true
-      while ${fswatch'}/bin/fswatch --recursive --include "\.py$" .; do
-        run-tests || true
-      done
-    '')
+    (makeScript "watch-tests" "watchexec --watch app --watch tests --exts py run-tests")
 
     # -- Misc
-    (makeScript "run" "python -m uvicorn app.main:main --reload")
+    (makeScript "run" ''
+      python -m uvicorn app.main:main \
+        --reload \
+        --reload-include "*.mo" \
+        --reload-exclude scripts \
+        --reload-exclude tests \
+        --reload-exclude typings
+    '')
     (makeScript "format" ''
       set +e
       ruff check . --fix
