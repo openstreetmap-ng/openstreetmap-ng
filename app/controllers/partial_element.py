@@ -177,7 +177,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(members_elements)
-        direct_members = (
+        direct_members = tuple(
             member
             for member in members_elements  #
             if ElementRef(member.type, member.id) in members_refs
