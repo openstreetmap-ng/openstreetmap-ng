@@ -150,8 +150,8 @@ async def get_history(
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
-    element_members = element.members
-    if element_members is None:
+    members = element.members
+    if members is None:
         raise AssertionError('Element members must be set')
 
     full_data: Iterable[Element] = ()
@@ -174,7 +174,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
     async def data_task():
         nonlocal full_data, list_elements
-        members_refs = {ElementRef(member.type, member.id) for member in element_members}
+        members_refs = {ElementRef(member.type, member.id) for member in members}
         members_elements = await ElementQuery.get_by_refs(
             members_refs,
             at_sequence_id=at_sequence_id,
@@ -182,13 +182,8 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(members_elements)
-        direct_members = (
-            member
-            for member in members_elements  #
-            if ElementRef(member.type, member.id) in members_refs
-        )
         full_data = chain((element,), members_elements)
-        list_elements = FormatElementList.element_members(element_members, direct_members)
+        list_elements = FormatElementList.element_members(members, members_elements)
 
     async def parents_task():
         nonlocal list_parents

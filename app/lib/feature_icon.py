@@ -1,11 +1,20 @@
 import json
 import logging
 import tomllib
+from collections.abc import Iterable
 from pathlib import Path
+from typing import NamedTuple
 
 import cython
 
+from app.models.db.element import Element
 from app.models.element import ElementType
+
+
+class FeatureIcon(NamedTuple):
+    popularity: int  # first element defines sort order
+    filename: str
+    title: str
 
 
 @cython.cfunc
@@ -49,21 +58,27 @@ _popular_stats = _get_popular_stats()
 _check_config()
 
 
-# TODO: batch, features_icons
-def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | None:
+def features_icons(elements: Iterable[Element]) -> tuple[FeatureIcon | None, ...]:
     """
-    Get the filename and title of the icon for an element.
+    Get the icons filenames and titles for the given elements.
 
-    Returns None if no appropriate icon is found.
+    If no appropriate icon is found, returns None for that element.
 
-    >>> feature_icon('way', {'aeroway': 'terminal'})
-    'aeroway_terminal.webp', 'aeroway=terminal'
+    >>> features_icons(...)
+    (('aeroway_terminal.webp', 'aeroway=terminal'), ...)
     """
+    return tuple(_feature_icon(e.type, e.tags) for e in elements)
+
+
+@cython.cfunc
+def _feature_icon(type: ElementType, tags: dict[str, str]):
+    if not tags:
+        return None
     matched_keys = _config_keys.intersection(tags)
     if not matched_keys:
         return None
 
-    result: list[tuple[int, str, str]] | None = None
+    result: list[FeatureIcon] | None = None
 
     # prefer value-specific icons first
     specific: cython.char
@@ -85,12 +100,12 @@ def feature_icon(type: ElementType, tags: dict[str, str]) -> tuple[str, str] | N
                 title = f'{key}={value}' if specific else key
 
                 if result is None:
-                    result = [(popularity, icon, title)]
+                    result = [FeatureIcon(popularity, icon, title)]
                 else:
-                    result.append((popularity, icon, title))
+                    result.append(FeatureIcon(popularity, icon, title))
 
         # pick the least popular tagging icon
         if result:
-            return min(result)[1:]
+            return min(result)
 
     return None
