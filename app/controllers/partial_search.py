@@ -10,16 +10,15 @@ from shapely import Point, lib
 
 from app.format import FormatLeaflet
 from app.lib.render_response import render_response
-from app.lib.search import Search
+from app.lib.search import Search, SearchResult
 from app.limits import (
     SEARCH_QUERY_MAX_LENGTH,
     SEARCH_RESULTS_LIMIT,
 )
 from app.models.db.element import Element
-from app.models.element_ref import ElementId, ElementRef, ElementType
+from app.models.element import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
-from app.models.msgspec.leaflet import ElementLeaflet, ElementLeafletNode
-from app.models.search_result import SearchResult
+from app.models.leaflet import ElementLeaflet, ElementLeafletNode
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery

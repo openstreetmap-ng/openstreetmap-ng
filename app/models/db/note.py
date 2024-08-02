@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -12,10 +13,15 @@ from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PointType
-from app.models.note_status import NoteStatus
 
 if TYPE_CHECKING:
     from app.models.db.note_comment import NoteComment
+
+
+class NoteStatus(str, enum.Enum):
+    open = 'open'
+    closed = 'closed'
+    hidden = 'hidden'
 
 
 # TODO: ensure updated at on members

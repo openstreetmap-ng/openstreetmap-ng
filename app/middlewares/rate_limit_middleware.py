@@ -9,8 +9,8 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.db import valkey
 from app.lib.auth_context import auth_user
+from app.lib.user_role_limits import UserRoleLimits
 from app.middlewares.request_context_middleware import get_request
-from app.models.user_role import UserRole
 
 
 class RateLimitMiddleware:
@@ -59,10 +59,10 @@ def rate_limit(*, weight: int = 1):
             user = auth_user()
             if user is not None:
                 key = f'RateLimit:user:{user.id}'
-                quota = UserRole.get_rate_limit_quota(user.roles)
+                quota = UserRoleLimits.get_rate_limit_quota(user.roles)
             else:
                 key = f'RateLimit:host:{request.client.host}'  # pyright: ignore[reportOptionalMemberAccess]
-                quota = UserRole.get_rate_limit_quota(())
+                quota = UserRoleLimits.get_rate_limit_quota(())
 
             rate_limit_headers = await _increase_counter(key, weight, quota, raise_on_limit=True)
 

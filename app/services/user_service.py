@@ -10,17 +10,11 @@ from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.auth_provider import AuthProvider
-from app.models.avatar_type import AvatarType
-from app.models.db.user import User
-from app.models.editor import Editor
-from app.models.locale_name import LocaleCode
-from app.models.str import DisplayNameStr, EmailStr, PasswordStr
-from app.models.user_status import UserStatus
+from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatus
+from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
 from app.services.avatar_service import AvatarService
-from app.services.email_change_service import EmailChangeService
 from app.services.system_app_service import SystemAppService
 from app.validators.email import validate_email_deliverability
 
@@ -30,7 +24,7 @@ class UserService:
     async def login(
         *,
         display_name_or_email: str,
-        password: PasswordStr,
+        password: PasswordType,
     ) -> str:
         """
         Attempt to log in a user.
@@ -100,7 +94,7 @@ class UserService:
     @staticmethod
     async def update_settings(
         *,
-        display_name: DisplayNameStr,
+        display_name: DisplayNameType,
         language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
@@ -109,7 +103,7 @@ class UserService:
         Update user settings.
         """
         if not await UserQuery.check_display_name_available(display_name):
-            MessageCollector.raise_error('display_name', t('user.name_already_taken'))
+            MessageCollector.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
             MessageCollector.raise_error('language', t('validation.invalid_value'))
 
@@ -153,8 +147,8 @@ class UserService:
     async def update_email(
         collector: MessageCollector,
         *,
-        new_email: EmailStr,
-        password: PasswordStr,
+        new_email: EmailType,
+        password: PasswordType,
     ) -> None:
         """
         Update user email.
@@ -163,31 +157,32 @@ class UserService:
         """
         user = auth_user(required=True)
         if user.email == new_email:
-            return
+            MessageCollector.raise_error('email', t('validation.new_email_is_current'))
 
         if not PasswordHash.verify(user.password_hashed, password).success:
-            MessageCollector.raise_error('password', t('user.invalid_password'))
+            MessageCollector.raise_error('password', t('validation.password_is_incorrect'))
         if not await UserQuery.check_email_available(new_email):
-            MessageCollector.raise_error('email', t('user.email_already_taken'))
+            MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(new_email):
-            MessageCollector.raise_error('email', t('user.invalid_email'))
+            MessageCollector.raise_error('email', t('validation.invalid_email_address'))
 
-        await EmailChangeService.send_confirm_email(new_email)
-        collector.info('email', t('user.email_change_confirm_sent'))
+        # await EmailChangeService.send_confirm_email(new_email)
+        # TODO: send to old email too
+        collector.info(None, t('settings.email_change_confirmation_sent'))
 
     @staticmethod
     async def update_password(
         collector: MessageCollector,
         *,
-        old_password: PasswordStr,
-        new_password: PasswordStr,
+        old_password: PasswordType,
+        new_password: PasswordType,
     ) -> None:
         """
         Update user password.
         """
         current_user = auth_user(required=True)
         if not PasswordHash.verify(current_user.password_hashed, old_password).success:
-            MessageCollector.raise_error('old_password', t('user.invalid_password'))
+            MessageCollector.raise_error('old_password', t('validation.password_is_incorrect'))
 
         password_hashed = PasswordHash.hash(new_password)
         async with db_commit() as session:
@@ -204,7 +199,7 @@ class UserService:
             )
             await session.execute(stmt)
 
-        collector.success(None, t('user.password_changed'))
+        collector.success(None, t('settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', current_user.id)
 
     @staticmethod

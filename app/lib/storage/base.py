@@ -1,11 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import NewType
 
 from app.lib.buffered_random import buffered_rand_urlsafe
-
-STORAGE_KEY_MAX_LENGTH = 64
-
-StorageKey = NewType('StorageKey', str)
+from app.limits import STORAGE_KEY_MAX_LENGTH
+from app.models.types import StorageKey
 
 
 class StorageBase(ABC):

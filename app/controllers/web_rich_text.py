@@ -3,9 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Form
 
 from app.lib.auth_context import web_user
-from app.lib.rich_text import rich_text
+from app.lib.rich_text import TextFormat, rich_text
 from app.models.db.user import User
-from app.models.text_format import TextFormat
 
 router = APIRouter(prefix='/api/web/rich-text')
 

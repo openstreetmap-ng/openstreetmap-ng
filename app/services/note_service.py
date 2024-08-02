@@ -11,9 +11,8 @@ from app.lib.exceptions_context import raise_for
 from app.limits import GEO_COORDINATE_PRECISION
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment
+from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.note_subscription import NoteSubscription
-from app.models.note_event import NoteEvent
 from app.validators.geometry import validate_geometry
 
 

@@ -16,7 +16,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.changeset_bounds import ChangesetBounds
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.services.optimistic_diff.prepare import ElementStateEntry, OptimisticDiffPrepare

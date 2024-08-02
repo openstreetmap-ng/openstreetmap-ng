@@ -15,12 +15,11 @@ from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
 from app.limits import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
-from app.models.db.trace_ import Trace
+from app.models.db.trace_ import Trace, TraceVisibility
 from app.models.db.trace_segment import TraceSegment
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.models.str import Str255
-from app.models.trace_visibility import TraceVisibility
+from app.models.types import Str255
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.responses.osm_response import GPXResponse

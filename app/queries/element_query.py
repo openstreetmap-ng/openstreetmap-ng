@@ -16,7 +16,7 @@ from app.lib.exceptions_context import raise_for
 from app.limits import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
-from app.models.element_ref import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
 from app.queries.element_member_query import ElementMemberQuery
 
 

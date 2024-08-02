@@ -1,4 +1,5 @@
 from base64 import urlsafe_b64encode
+from collections.abc import Iterable
 from hashlib import sha256
 
 import cython
@@ -12,8 +13,7 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2Token
-from app.models.oauth2_code_challenge_method import OAuth2CodeChallengeMethod
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token
 from app.models.scope import Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -58,7 +58,7 @@ class OAuth2TokenService:
 
         # handle silent authentication
         if init:
-            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app(
+            tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
                 user_id=user_id,
                 app_id=app.id,
                 limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,
@@ -159,7 +159,19 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def revoke_by_token(access_token: str) -> None:
+    async def revoke_by_id(token_id: int) -> None:
+        """
+        Revoke the given token.
+        """
+        async with db_commit() as session:
+            stmt = delete(OAuth2Token).where(
+                OAuth2Token.user_id == auth_user(required=True).id,
+                OAuth2Token.id == token_id,
+            )
+            await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_access_token(access_token: str) -> None:
         """
         Revoke the given access token.
         """
@@ -172,16 +184,29 @@ class OAuth2TokenService:
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_app(app_id: int) -> None:
+    async def revoke_by_app_id(app_id: int, *, skip_ids: Iterable[int] | None = None) -> None:
         """
         Revoke all current user tokens for the given OAuth2 application.
         """
+        if skip_ids is None:
+            skip_ids = ()
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(
                 OAuth2Token.user_id == auth_user(required=True).id,
                 OAuth2Token.application_id == app_id,
+                OAuth2Token.id.notin_(skip_ids),
             )
             await session.execute(stmt)
+
+    @staticmethod
+    async def revoke_by_client_id(client_id: str, *, skip_ids: Iterable[int] | None = None) -> None:
+        """
+        Revoke all current user tokens for the given OAuth2 client.
+        """
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None:
+            return
+        await OAuth2TokenService.revoke_by_app_id(app.id, skip_ids=skip_ids)
 
 
 @cython.cfunc
@@ -189,7 +214,4 @@ def _compute_s256(verifier: str) -> str:
     """
     Compute the S256 code challenge from the verifier.
     """
-    verifier_bytes = verifier.encode()
-    verifier_hashed = sha256(verifier_bytes).digest()
-    verifier_base64 = urlsafe_b64encode(verifier_hashed).decode().rstrip('=')
-    return verifier_base64
+    return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')

@@ -9,7 +9,7 @@ from app.lib.xml_body import xml_body
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.scope import Scope
-from app.models.str import Str255
+from app.models.types import Str255
 from app.queries.user_pref_query import UserPrefQuery
 from app.services.user_pref_service import UserPrefService
 

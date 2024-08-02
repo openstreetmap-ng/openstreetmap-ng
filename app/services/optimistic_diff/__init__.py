@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.limits import OPTIMISTIC_DIFF_RETRY_TIMEOUT
 from app.models.db.element import Element
-from app.models.element_ref import ElementRef
+from app.models.element import ElementRef
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 

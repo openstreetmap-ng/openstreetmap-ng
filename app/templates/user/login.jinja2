@@ -19,15 +19,17 @@
 
             <label class="form-label d-block mb-3">
                 {{ t('sessions.new.email or username') }}
-                <input type="text" class="form-control mt-2" name="display_name_or_email" required>
+                <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
+                    required>
             </label>
 
             <label class="form-label d-block">
                 {{ t('sessions.new.password') }}
-                <input type="password" class="form-control mt-2" name="password" required>
+                <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
+                    required>
             </label>
             <p class="form-text">
-                <a class="link-primary" href="/user/forgot-password">{{ t('sessions.new.lost password link') }}</a>
+                <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
             </p>
 
             <div class="form-check mb-3">

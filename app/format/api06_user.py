@@ -12,11 +12,11 @@ from app.lib.format_style_context import format_is_json
 from app.lib.xmltodict import get_xattr
 from app.models.db.user import User
 from app.models.db.user_pref import UserPref
+from app.models.validating.user_pref import UserPrefValidating
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.message_query import MessageQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_block_query import UserBlockQuery
-from app.validators.user_pref import UserPrefValidating
 
 
 class User06Mixin:

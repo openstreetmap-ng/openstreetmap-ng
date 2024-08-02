@@ -6,9 +6,9 @@ from pydantic import PositiveInt
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
+from app.models.db.trace_ import TraceVisibility
 from app.models.db.user import User
-from app.models.str import Str255
-from app.models.trace_visibility import TraceVisibility
+from app.models.types import Str255
 from app.services.trace_service import TraceService
 
 router = APIRouter(prefix='/api/web/traces')

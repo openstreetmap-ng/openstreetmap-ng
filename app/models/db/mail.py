@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 
 from sqlalchemy import Enum, ForeignKey, Index, SmallInteger, UnicodeText
@@ -7,7 +8,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
-from app.models.mail_source import MailSource
+
+
+class MailSource(str, enum.Enum):
+    system = 'system'
+    message = 'message'
+    diary_comment = 'diary_comment'
 
 
 class Mail(Base.ZID, CreatedAtMixin):

@@ -5,13 +5,12 @@ from functools import lru_cache
 import cython
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.config import DEFAULT_LANGUAGE
 from app.lib.auth_context import auth_user
-from app.lib.locale import normalize_locale
+from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_context
 from app.limits import LOCALE_CODE_MAX_LENGTH
 from app.middlewares.request_context_middleware import get_request
-from app.models.locale_name import LocaleCode
+from app.models.types import LocaleCode
 
 # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#language
 # limit to matches only supported by our translation files: config/locale
@@ -45,7 +44,7 @@ def _get_request_language():
     accept_language = get_request().headers.get('Accept-Language')
     if accept_language:
         return _parse_accept_language(accept_language)
-    return DEFAULT_LANGUAGE
+    return DEFAULT_LOCALE
 
 
 @lru_cache(maxsize=512)
@@ -59,7 +58,7 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
     'pl'
     """
     current_q: cython.double = 0
-    current_lang = DEFAULT_LANGUAGE
+    current_lang = DEFAULT_LOCALE
 
     for match in _accept_language_re.finditer(accept_language):
         q_str: str | None = match['q']
@@ -82,7 +81,7 @@ def _parse_accept_language(accept_language: str) -> LocaleCode:
             continue
 
         if lang == '*':
-            lang = DEFAULT_LANGUAGE
+            lang = DEFAULT_LOCALE
         else:
             lang_normal = normalize_locale(lang)
             if lang_normal is None:

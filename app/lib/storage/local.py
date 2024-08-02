@@ -5,7 +5,8 @@ from typing import override
 
 from app.config import FILE_STORE_DIR
 from app.lib.buffered_random import buffered_randbytes
-from app.lib.storage.base import StorageBase, StorageKey
+from app.lib.storage.base import StorageBase
+from app.models.types import StorageKey
 
 
 class LocalStorage(StorageBase):

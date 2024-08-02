@@ -5,8 +5,9 @@ from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
+from app.lib.locale import LocaleName
 from app.lib.retry import retry
-from app.models.locale_name import LocaleName
+from app.models.types import LocaleCode
 from app.utils import HTTP
 
 _download_dir = Path('config/locale/download')
@@ -15,18 +16,18 @@ _extra_names_path = Path('config/locale/extra_names.json')
 _names_path = Path('config/locale/names.json')
 
 
-async def get_download_locales() -> tuple[str, ...]:
+async def get_download_locales() -> tuple[LocaleCode, ...]:
     r = await HTTP.get(
         'https://translatewiki.net/wiki/Special:ExportTranslations',
         params={'group': 'out-osm-site'},
     )
     r.raise_for_status()
     matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", r.text)
-    return tuple(match[1] for match in matches)
+    return tuple(LocaleCode(match[1]) for match in matches)
 
 
 @retry(timedelta(minutes=2))
-async def download_locale(locale: str) -> LocaleName | None:
+async def download_locale(locale: LocaleCode) -> LocaleName | None:
     async with _download_limiter:
         r = await HTTP.get(
             'https://translatewiki.net/wiki/Special:ExportTranslations',
@@ -42,7 +43,7 @@ async def download_locale(locale: str) -> LocaleName | None:
     if match_locale is None:
         raise ValueError(f'Failed to match filename for {locale!r}')
 
-    locale = match_locale[1]
+    locale = LocaleCode(match_locale[1])
     if locale == 'x-invalidLanguageCode':
         print(f'[❔] {locale}: invalid language code')
         return None
@@ -68,11 +69,12 @@ async def download_locale(locale: str) -> LocaleName | None:
         code=locale,
         english=english_name,
         native=native_name,
+        installed=True,
     )
 
 
 def add_extra_locales_names(locales_names: list[LocaleName]):
-    extra_locales_names: dict[str, dict] = json.loads(_extra_names_path.read_bytes())
+    extra_locales_names: dict[LocaleCode, dict] = json.loads(_extra_names_path.read_bytes())
 
     for ln in locales_names:
         extra_locales_names.pop(ln.code, None)
@@ -85,6 +87,7 @@ def add_extra_locales_names(locales_names: list[LocaleName]):
                 code=code,
                 english=english_name,
                 native=native_name,
+                installed=True,
             )
         )
         print(f'[➕] Added extra name: {code}')  # noqa: RUF001

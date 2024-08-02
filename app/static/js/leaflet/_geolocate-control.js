@@ -34,7 +34,10 @@ export const getGeolocateControl = () => {
             const button = document.createElement("button")
             button.className = "control-button"
             button.ariaLabel = buttonText
-            button.innerHTML = `<span class="${options.icon}"></span>`
+            const icon = document.createElement("img")
+            icon.className = options.icon
+            icon.src = "/static/img/leaflet/geolocate.webp"
+            button.appendChild(icon)
 
             new Tooltip(button, {
                 title: buttonText,
@@ -43,8 +46,7 @@ export const getGeolocateControl = () => {
 
             // Add button to container
             container.appendChild(button)
-
-            return { link: button, icon: button.querySelector("span") }
+            return { link: button, icon }
         },
     })
 

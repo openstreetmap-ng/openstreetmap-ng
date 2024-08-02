@@ -29,7 +29,7 @@ class OAuth2ApplicationQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def get_many_by_user(user_id: int) -> Sequence[OAuth2Application]:
+    async def get_many_by_user_id(user_id: int) -> Sequence[OAuth2Application]:
         """
         Get all OAuth2 applications by user id.
         """

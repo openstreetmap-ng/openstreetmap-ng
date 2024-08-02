@@ -7,10 +7,9 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
-from app.models.db.user import User
+from app.models.db.user import User, UserStatus
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
-from app.models.msgspec.user_token_struct import UserTokenStruct
-from app.models.user_status import UserStatus
+from app.models.messages_pb2 import UserTokenStruct
 from app.queries.user_token_account_confirm_query import UserTokenAccountConfirmQuery
 
 
@@ -20,17 +19,20 @@ class UserTokenAccountConfirmService:
         """
         Create a new user account confirmation token.
         """
+        user = auth_user(required=True)
+        user_email_hashed = hash_bytes(user.email.encode())
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
         async with db_commit() as session:
             token = UserTokenAccountConfirm(
-                user_id=auth_user(required=True).id,
+                user_id=user.id,
+                user_email_hashed=user_email_hashed,
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE,
             )
             session.add(token)
 
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
+        return UserTokenStruct(id=token.id, token=token_bytes)
 
     @staticmethod
     async def confirm(token_struct: UserTokenStruct) -> None:

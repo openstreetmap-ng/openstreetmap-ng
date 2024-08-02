@@ -7,12 +7,11 @@ from sqlalchemy import Boolean, ForeignKey, LargeBinary, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin
+from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import MESSAGE_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.user import User
-from app.models.text_format import TextFormat
 
 
 class Message(Base.ZID, CreatedAtMixin, RichTextMixin):

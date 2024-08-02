@@ -15,17 +15,17 @@ from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
-from app.models.scope import BASIC_SCOPES, Scope
-from app.models.str import PasswordStr
+from app.models.scope import Scope
+from app.models.types import PasswordType
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
-from app.services.cache_service import CacheService
+from app.services.cache_service import CacheContext, CacheService
 from app.validators.email import validate_email
 
-_credentials_context = 'AuthCredentials'
+_credentials_context = CacheContext('AuthCredentials')
 
 # default scopes when using basic auth
-_basic_auth_scopes: tuple[Scope, ...] = BASIC_SCOPES
+_basic_auth_scopes: tuple[Scope, ...] = Scope.get_basic()
 
 # default scopes when using session auth
 _session_auth_scopes: tuple[Scope, ...] = (*_basic_auth_scopes, Scope.web_user)
@@ -70,7 +70,10 @@ class AuthService:
                 if not username or not password:
                     raise_for().bad_basic_auth_format()
 
-                basic_user = await AuthService.authenticate_credentials(username, SecretStr(password))
+                basic_user = await AuthService.authenticate_credentials(
+                    display_name_or_email=username,
+                    password=PasswordType(SecretStr(password)),
+                )
                 if basic_user is not None:
                     user, scopes = basic_user, _basic_auth_scopes
 
@@ -79,14 +82,15 @@ class AuthService:
                 logging.debug('Attempting to authenticate with OAuth2')
                 oauth_result = await AuthService.authenticate_oauth2(param)
                 if oauth_result is not None:
-                    user, scopes = oauth_result
+                    user = oauth_result.user
+                    scopes = oauth_result.scopes
 
         # all endpoints support session cookies
         if user is None and (token_str := request.cookies.get('auth')) is not None:
             logging.debug('Attempting to authenticate with cookies')
             oauth_result = await AuthService.authenticate_oauth2(token_str)
-            if (oauth_result is not None) and oauth_result[1] == (Scope.web_user,):
-                user = oauth_result[0]
+            if (oauth_result is not None) and oauth_result.scopes == (Scope.web_user,):
+                user = oauth_result.user
                 scopes = _session_auth_scopes
 
         # all endpoints on test env support any user auth
@@ -108,7 +112,7 @@ class AuthService:
         return user, scopes
 
     @staticmethod
-    async def authenticate_credentials(display_name_or_email: str, password: PasswordStr) -> User | None:
+    async def authenticate_credentials(display_name_or_email: str, password: PasswordType) -> User | None:
         """
         Authenticate a user with (display name or email) and password.
 
@@ -175,19 +179,25 @@ class AuthService:
         return user
 
     @staticmethod
-    async def authenticate_oauth2(param: str) -> tuple[User, tuple[Scope, ...]] | None:
+    async def authenticate_oauth2(param: str | None) -> OAuth2Token | None:
         """
         Authenticate a user with OAuth2.
+
+        If param is None, it will be read from the request cookies.
 
         Returns None if the token is not found.
 
         Raises an exception if the token is not authorized.
         """
         # TODO: PATs
+        if param is None:
+            param = get_request().cookies.get('auth')
+            if param is None:
+                return None
         with options_context(joinedload(OAuth2Token.user)):
             token = await OAuth2TokenQuery.find_one_authorized_by_token(param)
         if token is None:
             return None
         if token.authorized_at is None:
             raise_for().oauth_bad_user_token()
-        return token.user, token.scopes
+        return token

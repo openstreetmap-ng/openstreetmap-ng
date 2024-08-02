@@ -4,7 +4,6 @@ import cython
 from pydantic import BeforeValidator
 
 _filename_re = re.compile(r'[^a-zA-Z0-9.]')
-
 # TODO: test 255+ chars limit
 
 

@@ -16,7 +16,7 @@ from app.lib.shortlink import shortlink_decode, shortlink_encode
         (15.545454, 45.454545, 13),
     ],
 )
-def test_encode_decode(input):
+def test_encode_decode(input: tuple[float, float, int]):
     encoded = shortlink_encode(*input)
     decoded = shortlink_decode(encoded)
     assert input[2] == decoded[2]  # zoom must be equal

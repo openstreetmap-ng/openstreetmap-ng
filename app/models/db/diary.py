@@ -5,15 +5,14 @@ from sqlalchemy import ForeignKey, LargeBinary, Unicode, UnicodeText
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.lib.crypto import HASH_SIZE
-from app.lib.rich_text import RichTextMixin
+from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import DIARY_BODY_MAX_LENGTH, LOCALE_CODE_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 from app.models.geometry import PointType
-from app.models.locale_name import LocaleCode
-from app.models.text_format import TextFormat
+from app.models.types import LocaleCode
 
 if TYPE_CHECKING:
     from app.models.db.diary_comment import DiaryComment

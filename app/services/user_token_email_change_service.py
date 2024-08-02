@@ -5,26 +5,28 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
 from app.models.db.user_token_email_change import UserTokenEmailChange
-from app.models.msgspec.user_token_struct import UserTokenStruct
+from app.models.messages_pb2 import UserTokenStruct
+from app.models.types import EmailType
 
 
 class UserTokenEmailChangeService:
     @staticmethod
-    async def create(to_email: str) -> UserTokenStruct:
+    async def create(new_email: EmailType) -> UserTokenStruct:
         """
         Create a new user email change token.
         """
         user = auth_user(required=True)
+        user_email_hashed = hash_bytes(user.email.encode())
         token_bytes = buffered_randbytes(32)
         token_hashed = hash_bytes(token_bytes)
         async with db_commit() as session:
             token = UserTokenEmailChange(
                 user_id=user.id,
+                user_email_hashed=user_email_hashed,
                 token_hashed=token_hashed,
                 expires_at=utcnow() + USER_TOKEN_EMAIL_CHANGE_EXPIRE,
-                from_email=user.email,
-                to_email=to_email,
+                new_email=new_email,
             )
             session.add(token)
 
-        return UserTokenStruct.v1(id=token.id, token=token_bytes)
+        return UserTokenStruct(id=token.id, token=token_bytes)

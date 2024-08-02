@@ -13,10 +13,9 @@ from phonenumbers import (
     is_valid_number,
 )
 
-from app.lib.rich_text import process_rich_text
+from app.lib.rich_text import TextFormat, process_rich_text
 from app.lib.wiki_pages import tags_format_osm_wiki
-from app.models.tag_format import TagFormat, ValueFormat
-from app.models.text_format import TextFormat
+from app.models.tags_format import TagFormat, ValueFormat
 from app.validators.email import validate_email
 
 # TODO: 0.7 official reserved tag characters

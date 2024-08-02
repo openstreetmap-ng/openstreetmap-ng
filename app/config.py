@@ -4,15 +4,12 @@ from hashlib import sha256
 from logging.config import dictConfig
 from pathlib import Path
 
-from app.models.locale_name import LocaleCode
-
 VERSION = 'dev'
 
 NAME = 'openstreetmap-website'
 WEBSITE = 'https://www.openstreetmap.org'
 USER_AGENT = f'{NAME}/{VERSION} (+{WEBSITE})'
 
-DEFAULT_LANGUAGE = LocaleCode('en')
 GENERATOR = 'OpenStreetMap-NG'
 COPYRIGHT = 'OpenStreetMap contributors'
 ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright'
