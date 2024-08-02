@@ -75,9 +75,9 @@
                 #}
 
                 <h3 class="mb-3">{{ t('settings.active_sessions') }}</h3>
-                <div>
+                <ul class="active-sessions list-unstyled">
                     {% for session in active_sessions %}
-                    <div class="active-session">
+                    <li>
                         <div class="row align-items-center">
                             <div class="col">
                                 <h6 class="mb-1">
@@ -108,9 +108,9 @@
                                 </form>
                             </div>
                         </div>
-                    </div>
+                    </li>
                     {% endfor %}
-                </div>
+                </ul>
 
             </div>
 

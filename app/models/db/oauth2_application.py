@@ -1,6 +1,7 @@
 from sqlalchemy import ARRAY, Boolean, Enum, ForeignKey, Index, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.lib.avatar import Avatar, AvatarType
 from app.lib.crypto import decrypt
 from app.lib.updating_cached_property import updating_cached_property
 from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH, STORAGE_KEY_MAX_LENGTH
@@ -40,3 +41,21 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     @updating_cached_property('client_secret_encrypted')
     def client_secret(self) -> str:
         return decrypt(self.client_secret_encrypted)
+
+    @property
+    def avatar_url(self) -> str:
+        """
+        Get the url for the application's avatar image.
+        """
+        return (
+            Avatar.get_url(AvatarType.default, None)
+            if self.avatar_id is None
+            else Avatar.get_url(AvatarType.custom, self.avatar_id)
+        )
+
+    @property
+    def is_system_app(self) -> bool:
+        """
+        Check if the application is a system app.
+        """
+        return self.user_id is None

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import ARRAY, Enum, ForeignKey, Index, LargeBinary, Unicode
+from sqlalchemy import ARRAY, Enum, ForeignKey, Index, LargeBinary, Unicode, null
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -45,6 +45,13 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
     __table_args__ = (
         Index('oauth2_token_hashed_idx', token_hashed),
         Index('oauth2_token_user_app_idx', user_id, application_id),
+        Index(
+            'oauth2_token_authorized_user_app_idx',
+            user_id,
+            application_id,
+            'id',
+            postgresql_where=authorized_at != null(),
+        ),
     )
 
     @property

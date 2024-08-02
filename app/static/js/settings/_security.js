@@ -24,7 +24,7 @@ if (settingsSecurityBody) {
     const revokeTokenForms = settingsSecurityBody.querySelectorAll("form.revoke-token-form")
     for (const form of revokeTokenForms) {
         const onRevokeTokenFormSuccess = () => {
-            const row = form.closest(".active-session")
+            const row = form.closest("li")
             const isCurrentSession = row.querySelector(".current-session") !== null
             if (isCurrentSession) {
                 window.location = `/login?${qsEncode({ referer: window.location.pathname + window.location.search })}`

@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import null, select
+from sqlalchemy import func, null, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
@@ -42,7 +42,7 @@ class OAuth2TokenQuery:
                     OAuth2Token.application_id == app_id,
                     OAuth2Token.authorized_at != null(),
                 )
-                .order_by(OAuth2Token.created_at.desc())
+                .order_by(OAuth2Token.id.desc())
             )
             stmt = apply_options_context(stmt)
 
@@ -62,3 +62,26 @@ class OAuth2TokenQuery:
         if app is None:
             return ()
         return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(user_id, app.id, limit=limit)
+
+    @staticmethod
+    async def find_unique_per_app_by_user_id(user_id: int) -> Sequence[OAuth2Token]:
+        """
+        Find unique OAuth2 tokens per app for the given user.
+        """
+        async with db() as session:
+            subq = (
+                select(func.max(OAuth2Token.id))
+                .where(
+                    OAuth2Token.user_id == user_id,
+                    OAuth2Token.authorized_at != null(),
+                )
+                .group_by(OAuth2Token.application_id)
+                .subquery()
+            )
+            stmt = (
+                select(OAuth2Token)  #
+                .where(OAuth2Token.id.in_(subq.select()))
+                .order_by(OAuth2Token.application_id.desc())
+            )
+            stmt = apply_options_context(stmt)
+            return (await session.scalars(stmt)).all()

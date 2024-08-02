@@ -1,5 +1,5 @@
 .settings-security-body {
-    .active-session:not(:last-child) {
+    .active-sessions li:not(:last-child) {
         padding-bottom: 0.75rem;
         margin-bottom: 0.75rem;
         border-bottom: 1px solid $border-color;

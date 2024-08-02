@@ -44,10 +44,8 @@ class OAuth2ApplicationService:
 
             # check count after insert to prevent race conditions
             stmt = select(func.count()).select_from(
-                select(text('1'))
-                .where(
-                    OAuth2Application.user_id == user_id,
-                )
+                select(text('1'))  #
+                .where(OAuth2Application.user_id == user_id)
                 .subquery()
             )
             count = (await session.execute(stmt)).scalar_one()
