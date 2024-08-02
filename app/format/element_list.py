@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import cython
 
-from app.lib.feature_icon import feature_icon, features_icons
+from app.lib.feature_icon import features_icons
 from app.lib.feature_name import feature_name
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
@@ -68,8 +68,12 @@ class FormatElementList:
         members: Iterable[ElementMember],
         members_elements: Iterable[Element],
     ) -> tuple[MemberListEntry, ...]:
-        type_id_map: dict[tuple[ElementType, ElementId], Element]
-        type_id_map = {(member.type, member.id): member for member in members_elements}
+        members_elements = tuple(members_elements)
+        icons = features_icons(members_elements)
+        type_id_map: dict[tuple[ElementType, ElementId], tuple[Element, tuple[str, str] | None]]
+        type_id_map = {
+            (member.type, member.id): (member, icon) for member, icon in zip(members_elements, icons, strict=True)
+        }
         return tuple(filter(None, (_encode_member(type_id_map, member) for member in members)))
 
 
@@ -149,16 +153,18 @@ def _encode_parent(ref: ElementRef, element: Element, resolved: tuple[str, str] 
 
 
 @cython.cfunc
-def _encode_member(type_id_map: dict[tuple[ElementType, ElementId], Element], member: ElementMember):
+def _encode_member(
+    type_id_map: dict[tuple[ElementType, ElementId], tuple[Element, tuple[str, str] | None]], member: ElementMember
+):
     member_type = member.type
     member_id = member.id
     element = type_id_map.get((member_type, member_id))
     if element is None:
         return None
 
-    if tags := element.tags:
+    if tags := element[0].tags:
         name = feature_name(tags)
-        resolved = feature_icon(member_type, tags)
+        resolved = element[1]
     else:
         name = None
         resolved = None
