@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.feature_icon import features_icons
+from app.lib.feature_icon import FeatureIcon, features_icons
 from app.models.db.element import Element
 from app.models.element import ElementId
 
@@ -8,11 +8,19 @@ from app.models.element import ElementId
 @pytest.mark.parametrize(
     ('type', 'tags', 'expected'),
     [
-        ('way', {'crab': 'yes'}, ('crab_yes.webp', 'crab=yes')),
-        ('node', {'non_existing_key': 'aaa'}, None),
+        (
+            'way',
+            {'crab': 'yes'},
+            FeatureIcon(0, 'crab_yes.webp', 'crab=yes'),
+        ),
+        (
+            'node',
+            {'non_existing_key': 'aaa'},
+            None,
+        ),
     ],
 )
-def test_features_icons(type, tags, expected):
+def test_features_icons(type, tags, expected: FeatureIcon | None):
     element = Element(
         changeset_id=1,
         type=type,
@@ -23,4 +31,10 @@ def test_features_icons(type, tags, expected):
         point=None,
         members=[],
     )
-    assert features_icons((element,)) == (expected,)
+    feature_icon = features_icons((element,))[0]
+    if expected is None:
+        assert feature_icon is None
+    else:
+        assert feature_icon is not None
+        assert feature_icon.filename == expected.filename
+        assert feature_icon.title == expected.title
