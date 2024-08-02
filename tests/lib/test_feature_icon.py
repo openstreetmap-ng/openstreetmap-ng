@@ -1,6 +1,7 @@
 import pytest
 
-from app.lib.feature_icon import feature_icon
+from app.lib.feature_icon import features_icons
+from app.models.db.element import Element
 
 
 @pytest.mark.parametrize(
@@ -10,5 +11,15 @@ from app.lib.feature_icon import feature_icon
         ('node', {'non_existing_key': 'aaa'}, None),
     ],
 )
-def test_feature_icon(type, tags, expected):
-    assert feature_icon(type, tags) == expected
+def test_features_icons(type, tags, expected):
+    element = Element(
+        changeset_id=1,
+        type=type,
+        id=1,
+        version=1,
+        visible=False,
+        tags=tags,
+        point=None,
+        members=[],
+    )
+    assert features_icons((element,)) == (expected,)
