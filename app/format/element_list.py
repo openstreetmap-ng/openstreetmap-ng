@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import cython
 
 from app.lib.feature_icon import FeatureIcon, features_icons
-from app.lib.feature_name import feature_name
+from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
@@ -50,29 +50,37 @@ class FormatElementList:
         prev_type_id_map: dict[tuple[ElementType, ElementId], Element]
         prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
 
+        names = features_names(
+            prev if (prev := prev_type_id_map.get((element.type, element.id))) is not None else element
+            for element in elements
+        )
         icons = features_icons(elements)
         result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
-        for element, icon in zip(elements, icons, strict=True):
-            result[element.type].append(_encode_element(prev_type_id_map, element, icon))
+        for element, name, icon in zip(elements, names, icons, strict=True):
+            result[element.type].append(_encode_element(element, name, icon))
         for v in result.values():
             v.sort(key=_sort_key)
         return result
 
     @staticmethod
     def element_parents(ref: ElementRef, parents: Collection[Element]) -> tuple[MemberListEntry, ...]:
+        names = features_names(parents)
         icons = features_icons(parents)
-        return tuple(_encode_parent(ref, element, icon) for element, icon in zip(parents, icons, strict=True))
+        return tuple(
+            _encode_parent(ref, element, name, icon) for element, name, icon in zip(parents, names, icons, strict=True)
+        )
 
     @staticmethod
     def element_members(
         members: Iterable[ElementMember],
         members_elements: Collection[Element],
     ) -> tuple[MemberListEntry, ...]:
+        names = features_names(members_elements)
         icons = features_icons(members_elements)
-        type_id_map: dict[tuple[ElementType, ElementId], tuple[Element, FeatureIcon | None]]
+        type_id_map: dict[tuple[ElementType, ElementId], tuple[str | None, FeatureIcon | None]]
         type_id_map = {
-            (element.type, element.id): (element, icon)  #
-            for element, icon in zip(members_elements, icons, strict=True)
+            (element.type, element.id): (name, icon)  #
+            for element, name, icon in zip(members_elements, names, icons, strict=True)
         }
         encoded = (_encode_member(type_id_map, member) for member in members)
         return tuple(entry for entry in encoded if entry is not None)
@@ -80,16 +88,10 @@ class FormatElementList:
 
 @cython.cfunc
 def _encode_element(
-    prev_type_id_map: dict[tuple[ElementType, ElementId], Element],
     element: Element,
+    name: str | None,
     feature_icon: FeatureIcon | None,
 ):
-    element_type = element.type
-    element_id = element.id
-    prev = prev_type_id_map.get((element_type, element_id))
-    tags = prev.tags if (prev is not None) else element.tags
-    name = feature_name(tags) if tags else None
-
     if feature_icon is not None:
         icon = feature_icon.filename
         icon_title = feature_icon.title
@@ -98,8 +100,8 @@ def _encode_element(
         icon_title = None
 
     return ChangesetListEntry(
-        type=element_type,
-        id=element_id,
+        type=element.type,
+        id=element.id,
         name=name,
         version=element.version,
         visible=element.visible,
@@ -112,11 +114,11 @@ def _encode_element(
 def _encode_parent(
     ref: ElementRef,
     element: Element,
+    name: str | None,
     feature_icon: FeatureIcon | None,
 ):
     element_type = element.type
     element_id = element.id
-    name = feature_name(tags) if (tags := element.tags) else None
 
     if feature_icon is not None:
         icon = feature_icon.filename
@@ -153,7 +155,7 @@ def _encode_parent(
 
 @cython.cfunc
 def _encode_member(
-    type_id_map: dict[tuple[ElementType, ElementId], tuple[Element, FeatureIcon | None]],
+    type_id_map: dict[tuple[ElementType, ElementId], tuple[str | None, FeatureIcon | None]],
     member: ElementMember,
 ):
     member_type = member.type
@@ -161,8 +163,7 @@ def _encode_member(
     data = type_id_map.get((member_type, member_id))
     if data is None:
         return None
-    element, feature_icon = data
-    name = feature_name(tags) if (tags := element.tags) else None
+    name, feature_icon = data
 
     if feature_icon is not None:
         icon = feature_icon.filename
