@@ -1,14 +1,12 @@
 import logging
-from enum import Enum
+from abc import abstractmethod
 from io import BytesIO
-from pathlib import Path
 
 import cython
 from PIL import Image, ImageOps
 
 from app.lib.exceptions_context import raise_for
 from app.lib.naturalsize import naturalsize
-from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
 
 if cython.compiled:
     from cython.cimports.libc.math import sqrt
@@ -20,34 +18,19 @@ else:
 Image.MAX_IMAGE_PIXELS = 2 * int(1024 * 1024 * 1024 // 4 // 3)
 
 
-class AvatarType(str, Enum):
-    default = 'default'
-    gravatar = 'gravatar'
-    custom = 'custom'
-
-
-class Avatar:
-    default_image: bytes = Path('app/static/img/avatar.webp').read_bytes()
+class ProfileImageBase:
+    min_ratio: float | None = None
+    max_ratio: float | None = None
+    max_megapixels: int | None = None
+    max_file_size: int | None = None
 
     @staticmethod
-    def get_url(avatar_type: AvatarType, avatar_id: str | int | None) -> str:
-        """
-        Get the url of the avatar image.
+    @abstractmethod
+    def get_url(image_type, image_id: str | int | None) -> str:  # TODO: maybe image_type type can be specified
+        raise NotImplementedError
 
-        >>> Avatar.get_url(AvatarType.custom, '123456')
-        '/api/web/avatar/custom/123456'
-        """
-        if avatar_type == AvatarType.default:
-            return '/static/img/avatar.webp'
-        elif avatar_type == AvatarType.gravatar:
-            return f'/api/web/avatar/gravatar/{avatar_id}'
-        elif avatar_type == AvatarType.custom:
-            return f'/api/web/avatar/custom/{avatar_id}'
-        else:
-            raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')
-
-    @staticmethod
-    def normalize_image(data: bytes) -> bytes:
+    @classmethod
+    def normalize_image(cls: type['ProfileImageBase'], data: bytes) -> bytes:
         """
         Normalize the avatar image.
 
@@ -67,40 +50,41 @@ class Avatar:
         ratio: cython.double = img_width / img_height
 
         # image is too wide
-        if ratio > AVATAR_MAX_RATIO:
+        if cls.max_ratio and ratio > cls.max_ratio:
             logging.debug('Image is too wide %dx%d', img_width, img_height)
-            new_width: cython.int = int(img_height * AVATAR_MAX_RATIO)
+            new_width: cython.int = int(img_height * cls.max_ratio)
             x1: cython.int = (img_width - new_width) // 2
             x2: cython.int = (img_width + new_width) // 2
             img = img.crop((x1, 0, x2, img_height))
             img_width = img.width
 
         # image is too tall
-        elif ratio < 1 / AVATAR_MAX_RATIO:
+        elif cls.min_ratio and ratio < cls.min_ratio:
             logging.debug('Image is too tall %dx%d', img_width, img_height)
-            new_height: cython.int = int(img_width / AVATAR_MAX_RATIO)
+            new_height: cython.int = int(img_width * cls.min_ratio)
             y1: cython.int = (img_height - new_height) // 2
             y2: cython.int = (img_height + new_height) // 2
             img = img.crop((0, y1, img_width, y2))
             img_height = img.height
 
         # normalize megapixels
-        mp_ratio: cython.double = (img_width * img_height) / AVATAR_MAX_MEGAPIXELS
-        if mp_ratio > 1:
-            logging.debug('Image is too big %dx%d', img_width, img_height)
-            mp_ratio = sqrt(mp_ratio)
-            img_width = int(img_width / mp_ratio)
-            img_height = int(img_height / mp_ratio)
-            img.thumbnail((img_width, img_height))
+        if cls.max_megapixels:
+            mp_ratio: cython.double = (img_width * img_height) / cls.max_megapixels
+            if mp_ratio > 1:
+                logging.debug('Image is too big %dx%d', img_width, img_height)
+                mp_ratio = sqrt(mp_ratio)
+                img_width = int(img_width / mp_ratio)
+                img_height = int(img_height / mp_ratio)
+                img.thumbnail((img_width, img_height))
 
         # optimize file size
-        quality, buffer = _optimize_quality(img)
+        quality, buffer = _optimize_quality(img, cls.max_file_size)
         logging.debug('Optimized avatar quality: Q%d', quality)
         return buffer
 
 
 @cython.cfunc
-def _optimize_quality(img: Image.Image) -> tuple[int, bytes]:
+def _optimize_quality(img: Image.Image, max_file_size: int | None) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
 
@@ -113,7 +97,7 @@ def _optimize_quality(img: Image.Image) -> tuple[int, bytes]:
         size = buffer.tell()
         logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_quality, naturalsize(size))
 
-        if size <= AVATAR_MAX_FILE_SIZE:
+        if max_file_size is None or size <= max_file_size:
             return lossless_quality, buffer.getvalue()
 
         high: cython.int = 90
@@ -132,7 +116,7 @@ def _optimize_quality(img: Image.Image) -> tuple[int, bytes]:
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, naturalsize(size))
 
-            if size > AVATAR_MAX_FILE_SIZE:
+            if size > max_file_size:
                 high = quality - bs_step
             else:
                 low = quality + bs_step
@@ -153,7 +137,7 @@ def _optimize_quality(img: Image.Image) -> tuple[int, bytes]:
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, naturalsize(size))
 
-            if size > AVATAR_MAX_FILE_SIZE:
+            if size > max_file_size:
                 high = quality - bs_step
             else:
                 low = quality + bs_step

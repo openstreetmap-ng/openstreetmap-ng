@@ -1,8 +1,8 @@
 from sqlalchemy import ARRAY, Boolean, Enum, ForeignKey, Index, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.lib.avatar import Avatar, AvatarType
 from app.lib.crypto import decrypt
+from app.lib.profile_image.avatar import Avatar, AvatarType
 from app.lib.updating_cached_property import updating_cached_property
 from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH, STORAGE_KEY_MAX_LENGTH
 from app.models.db.base import Base

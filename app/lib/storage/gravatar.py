@@ -3,8 +3,8 @@ from typing import override
 
 from starlette import status
 
-from app.lib.avatar import Avatar
 from app.lib.file_cache import FileCache
+from app.lib.profile_image.avatar import Avatar
 from app.lib.storage.base import StorageBase
 from app.limits import GRAVATAR_CACHE_EXPIRE
 from app.utils import HTTP
