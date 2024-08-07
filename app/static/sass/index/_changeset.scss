@@ -34,10 +34,8 @@
         .deleted {
             text-decoration: line-through;
 
-            // Fade out the icon
-            .icon {
-                // TODO: adjust
-                opacity: 0.8;
+            img {
+                filter: grayscale(0.5) opacity(0.4);
             }
         }
 

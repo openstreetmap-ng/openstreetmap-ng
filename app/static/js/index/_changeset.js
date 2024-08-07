@@ -184,7 +184,7 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
             }
 
             if (!element.visible) {
-                linkLatest.parentElement.classList.add("deleted")
+                linkLatest.parentElement.parentElement.classList.add("deleted")
             }
 
             if (element.name) {
