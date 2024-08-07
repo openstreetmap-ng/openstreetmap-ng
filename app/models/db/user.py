@@ -22,6 +22,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.profile_image.avatar import Avatar, AvatarType
+from app.lib.profile_image.background import Background, BackgroundType
 from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
@@ -137,6 +138,18 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
+    background_type: Mapped[BackgroundType] = mapped_column(
+        Enum(BackgroundType),
+        init=False,
+        nullable=False,
+        server_default=BackgroundType.default.value,
+    )
+    background_id: Mapped[StorageKey | None] = mapped_column(
+        Unicode(STORAGE_KEY_MAX_LENGTH),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
     home_point: Mapped[Point | None] = mapped_column(
         PointType,
         init=False,
@@ -210,6 +223,13 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             return Avatar.get_url(self.avatar_type, self.id)
         else:
             return Avatar.get_url(self.avatar_type, self.avatar_id)
+
+    @property
+    def background_url(self) -> str:
+        """
+        Get the url for the user's background image.
+        """
+        return Background.get_url(self.background_type, self.background_id)
 
     async def home_distance_to(self, point: Point | None) -> float | None:
         if point is None or self.home_point is None:
