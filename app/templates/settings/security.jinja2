@@ -99,10 +99,10 @@
                                     {{ t('settings.authorized_at', date=date) }}
                                 </p>
                             </div>
-                            <div class="col-auto">
+                            <div class="col-auto align-self-center">
                                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
                                     <input type="hidden" name="token_id" value="{{ session.id }}">
-                                    <button class="btn btn-sm btn-light border align-self-center" type="submit">
+                                    <button class="btn btn-sm btn-light border" type="submit">
                                         {{ t('layouts.logout') }}
                                     </button>
                                 </form>

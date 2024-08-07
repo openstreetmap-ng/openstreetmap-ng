@@ -1,13 +1,22 @@
 .settings-applications-body {
     .applications-list {
-        li:not(:last-child) {
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
+        > li:not(:last-child) {
             border-bottom: 1px solid $border-color;
         }
+
         .avatar {
-            font-size: 2.5em;
+            font-size: 3em;
             border: 1px solid $border-color;
+        }
+
+        .form-text {
+            line-height: 1.75;
+        }
+
+        .scope {
+            font-size: 0.875em;
+            font-family: monospace;
+            color: $gray-600;
         }
     }
 }

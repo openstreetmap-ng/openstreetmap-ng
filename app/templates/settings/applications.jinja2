@@ -19,7 +19,7 @@
                 <ul class="nav nav-tabs mb-3">
                     <li class="nav-item">
                         <a href="/settings/applications" class="nav-link active" aria-current="page">
-                            {{ t('settings.authorizations') }}
+                            {{ t('settings.authorizations.title') }}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -29,18 +29,11 @@
                     </li>
                 </ul>
 
+                <p class="mx-2">{{ t('settings.authorizations.description') }}</p>
                 <ul class="applications-list list-unstyled">
                     {% for token in tokens %}
                     {% set app = token.application %}
-                    <li>
-                        {% include 'settings/_application_entry.jinja2' %}
-                    </li>
-                    <li>
-                        {% include 'settings/_application_entry.jinja2' %}
-                    </li>
-                    <li>
-                        {% include 'settings/_application_entry.jinja2' %}
-                    </li>
+                    <li>{% include 'settings/_application_entry.jinja2' %}</li>
                     {% endfor %}
                 </ul>
 

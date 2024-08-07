@@ -4,7 +4,6 @@ from enum import Enum
 class Scope(str, Enum):
     read_prefs = 'read_prefs'
     write_prefs = 'write_prefs'
-    write_diary = 'write_diary'
     write_api = 'write_api'
     read_gpx = 'read_gpx'
     write_gpx = 'write_gpx'
@@ -24,7 +23,6 @@ class Scope(str, Enum):
         return (
             cls.read_prefs,
             cls.write_prefs,
-            cls.write_diary,
             cls.write_api,
             cls.read_gpx,
             cls.write_gpx,

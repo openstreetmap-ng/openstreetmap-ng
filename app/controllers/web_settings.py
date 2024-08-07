@@ -88,3 +88,12 @@ async def settings_revoke_token(
 ):
     await OAuth2TokenService.revoke_by_id(token_id)
     return Response()
+
+
+@router.post('/settings/revoke-application')
+async def settings_revoke_application(
+    _: Annotated[User, web_user()],
+    application_id: Annotated[int, Form()],
+):
+    await OAuth2TokenService.revoke_by_app_id(application_id)
+    return Response()

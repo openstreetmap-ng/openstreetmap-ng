@@ -17,6 +17,7 @@ const loadSystemApp = (clientId, successCallback) => {
 
     return fetch("/api/0.6/user/details", {
         method: "GET",
+        credentials: "omit",
         headers: { authorization: `Bearer ${accessToken}` },
         mode: "same-origin",
         cache: "no-store",

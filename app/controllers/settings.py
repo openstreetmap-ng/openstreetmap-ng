@@ -70,14 +70,7 @@ async def applications(
     user: Annotated[User, web_user()],
 ):
     with options_context(
-        joinedload(OAuth2Token.application)
-        .load_only(
-            OAuth2Application.id,
-            OAuth2Application.user_id,
-            OAuth2Application.name,
-            OAuth2Application.scopes,
-            OAuth2Application.avatar_id,
-        )
+        joinedload(OAuth2Token.application)  #
         .joinedload(OAuth2Application.user)
         .load_only(User.display_name),
     ):

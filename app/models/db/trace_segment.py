@@ -22,7 +22,7 @@ class TraceSegment(Base.NoID):
     capture_times: Mapped[list[datetime | None] | None] = mapped_column(
         ARRAY(TIMESTAMP(True), dimensions=1), nullable=True
     )
-    elevations: Mapped[list[float | None] | None] = mapped_column(ARRAY(REAL), nullable=True)
+    elevations: Mapped[list[float | None] | None] = mapped_column(ARRAY(REAL, dimensions=1), nullable=True)
 
     __table_args__ = (
         PrimaryKeyConstraint(trace_id, track_num, segment_num),
