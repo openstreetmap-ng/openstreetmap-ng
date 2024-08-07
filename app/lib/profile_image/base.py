@@ -1,5 +1,4 @@
 import logging
-from abc import abstractmethod
 from io import BytesIO
 
 import cython
@@ -23,11 +22,6 @@ class ProfileImageBase:
     max_ratio: float | None = None
     max_megapixels: int | None = None
     max_file_size: int | None = None
-
-    @staticmethod
-    @abstractmethod
-    def get_url(image_type, image_id: str | int | None) -> str:  # TODO: maybe image_type type can be specified
-        raise NotImplementedError
 
     @classmethod
     def normalize_image(cls: type['ProfileImageBase'], data: bytes) -> bytes:

@@ -10,7 +10,7 @@ from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.db.user import AuthProvider, AvatarType, BackgroundType, Editor, User, UserStatus
+from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatus
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
@@ -94,7 +94,6 @@ class UserService:
 
     @staticmethod
     async def update_background(
-        background_type: BackgroundType,
         background_file: UploadFile | None,
     ) -> str:
         """
@@ -103,7 +102,7 @@ class UserService:
         Returns the new background URL.
         """
         # handle custom background
-        if background_type == BackgroundType.custom and background_file is not None:
+        if background_file is not None:
             background_id = await BackgroundService.upload(background_file)
         else:
             background_id = None
@@ -112,7 +111,6 @@ class UserService:
         async with db_commit() as session:
             user = await session.get_one(User, auth_user(required=True).id, with_for_update=True)
             old_background_id = user.background_id
-            user.background_type = background_type
             user.background_id = background_id
 
         # cleanup old background

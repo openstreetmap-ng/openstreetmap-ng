@@ -4,7 +4,7 @@ from fastapi import APIRouter, Form, Response, UploadFile
 
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
-from app.models.db.user import AvatarType, BackgroundType, Editor, User
+from app.models.db.user import AvatarType, Editor, User
 from app.models.types import (
     LocaleCode,
     PasswordType,
@@ -58,10 +58,9 @@ async def settings_avatar(
 @router.post('/settings/background')
 async def settings_background(
     _: Annotated[User, web_user()],
-    background_type: Annotated[BackgroundType, Form()],
     background_file: Annotated[UploadFile | None, Form()] = None,
 ):
-    background_url = await UserService.update_background(background_type, background_file)
+    background_url = await UserService.update_background(background_file)
     return {'background_url': background_url}
 
 
