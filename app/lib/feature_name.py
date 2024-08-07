@@ -1,5 +1,7 @@
 from collections.abc import Iterable
 
+import cython
+
 from app.lib.translation import translation_locales
 from app.models.db.element import Element
 
@@ -11,10 +13,13 @@ def features_names(elements: Iterable[Element]) -> tuple[str | None, ...]:
     >>> features_names(...)
     ('Foo', ...)
     """
-    return tuple(_feature_name(e.tags) if e.tags else None for e in elements)
+    return tuple(_feature_name(e.tags) for e in elements)
 
 
-def _feature_name(tags: dict[str, str]) -> str | None:
+@cython.cfunc
+def _feature_name(tags: dict[str, str]):
+    if not tags:
+        return None
     for locale in translation_locales():
         if name := tags.get(f'name:{locale}'):
             return name

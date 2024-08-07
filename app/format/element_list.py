@@ -49,12 +49,19 @@ class FormatElementList:
         prev_elements = await ElementQuery.get_by_versioned_refs(prev_refs, limit=len(prev_refs))
         prev_type_id_map: dict[tuple[ElementType, ElementId], Element]
         prev_type_id_map = {(element.type, element.id): element for element in prev_elements}
-
-        names = features_names(
-            prev if (prev := prev_type_id_map.get((element.type, element.id))) is not None else element
-            for element in elements
+        tagged_elements = (
+            tuple(
+                prev_type_id_map.get((element.type, element.id), element)
+                if not element.visible and element.version > 1
+                else element
+                for element in elements
+            )
+            if prev_type_id_map
+            else elements
         )
-        icons = features_icons(elements)
+
+        names = features_names(tagged_elements)
+        icons = features_icons(tagged_elements)
         result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
         for element, name, icon in zip(elements, names, icons, strict=True):
             result[element.type].append(_encode_element(element, name, icon))
@@ -67,7 +74,8 @@ class FormatElementList:
         names = features_names(parents)
         icons = features_icons(parents)
         return tuple(
-            _encode_parent(ref, element, name, icon) for element, name, icon in zip(parents, names, icons, strict=True)
+            _encode_parent(ref, element, name, icon)  #
+            for element, name, icon in zip(parents, names, icons, strict=True)
         )
 
     @staticmethod
