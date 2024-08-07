@@ -135,7 +135,6 @@ settings:
   my_applications: My applications
   owned_by: Owned by {{name}}
   requested_permissions: Requested permissions
-  revoke_access: Revoke access
   send_password_reset_email: Send password reset email
   password_reset_link_sent: |-
     If an account with that email address exists, you will receive a password reset link shortly.
@@ -206,6 +205,7 @@ action:
   report_abuse: Report abuse
   reset_filters: Reset filters
   resolved: resolved
+  revoke_access: Revoke access
   submit: Submit
   view_all: View all
   view_more: View more
