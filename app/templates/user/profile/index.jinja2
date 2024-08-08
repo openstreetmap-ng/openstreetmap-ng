@@ -7,6 +7,10 @@
     <div class="col-7 offset-3">
         <div class="d-flex">
             <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('user.profile_picture') }}">
+            <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
+                <input type="hidden" name="avatar_type" autocomplete="off" required>
+                <input class="visually-hidden" type="file" accept="image/*" name="avatar_file">
+            </form>
             <div class="info">
                 <h1 class="d-flex align-items-center">
                     {{ profile.display_name }}
@@ -24,6 +28,39 @@
                     {{ format_short_date(profile.created_at) }}
                     </time>
                 </p>
+            </div>
+            <div class="dropdown edit-dropdown">
+                <button class="btn btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                    <i class="bi bi-pencil"></i>
+                    {{ t('layouts.edit') }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item upload-avatar" type="button">
+                            {{ t('settings.upload_photo') }}...
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item use-gravatar" type="button">
+                            {{ t('profiles.edit.gravatar.gravatar') }}
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item remove-avatar" type="button">
+                            {{ t('settings.remove_photo') }}
+                        </button>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="https://wiki.openstreetmap.org/wiki/Gravatar"
+                            target="_blank">
+                            {{ t('profiles.edit.gravatar.what_is_gravatar') }}
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>

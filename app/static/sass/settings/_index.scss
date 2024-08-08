@@ -7,27 +7,3 @@
         margin-right: 0.3em;
     }
 }
-
-.settings-body {
-    .avatar-form {
-        position: relative;
-
-        &.pending {
-            .avatar {
-                opacity: 0.5;
-            }
-        }
-
-        .avatar {
-            font-size: 10em;
-            border: 1px solid $border-color;
-            transition: opacity 0.3s;
-        }
-
-        .dropdown {
-            position: absolute;
-            left: 0.5em;
-            bottom: 1em;
-        }
-    }
-}

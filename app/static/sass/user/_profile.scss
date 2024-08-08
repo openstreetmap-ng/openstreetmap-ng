@@ -28,6 +28,18 @@
         .mapper-since {
             color: $text-muted;
         }
+
+        .edit-dropdown {
+            position: absolute;
+            right: 1em;
+            bottom: 1em;
+        }
+
+        &:has(.avatar-form.pending) {
+            .avatar {
+                opacity: 0.5;
+            }
+        }
     }
 
     .content-list {
