@@ -1,6 +1,5 @@
 from enum import Enum
 from pathlib import Path
-from typing import override
 
 from app.lib.profile_image.base import ProfileImageBase
 from app.limits import AVATAR_MAX_FILE_SIZE, AVATAR_MAX_MEGAPIXELS, AVATAR_MAX_RATIO
@@ -20,7 +19,6 @@ class Avatar(ProfileImageBase):
     max_megapixels = AVATAR_MAX_MEGAPIXELS
     max_file_size = AVATAR_MAX_FILE_SIZE
 
-    @override
     @staticmethod
     def get_url(image_type: AvatarType, image_id: str | int | None) -> str:
         """

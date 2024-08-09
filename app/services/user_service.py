@@ -95,14 +95,14 @@ class UserService:
     @staticmethod
     async def update_background(
         background_file: UploadFile | None,
-    ) -> str:
+    ) -> str | None:
         """
         Update user's background.
 
         Returns the new background URL.
         """
         # handle custom background
-        if background_file is not None:
+        if background_file is not None and background_file.content_type and 'image/' in background_file.content_type:
             background_id = await BackgroundService.upload(background_file)
         else:
             background_id = None

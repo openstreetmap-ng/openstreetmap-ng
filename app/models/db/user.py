@@ -219,7 +219,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             return Avatar.get_url(self.avatar_type, self.avatar_id)
 
     @property
-    def background_url(self) -> str:
+    def background_url(self) -> str | None:
         """
         Get the url for the user's background image.
         """
