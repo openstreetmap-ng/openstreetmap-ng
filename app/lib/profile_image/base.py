@@ -55,7 +55,7 @@ class ProfileImageBase:
         # image is too tall
         elif cls.min_ratio and ratio < cls.min_ratio:
             logging.debug('Image is too tall %dx%d', img_width, img_height)
-            new_height: cython.int = int(img_width * cls.min_ratio)
+            new_height: cython.int = int(img_width / cls.min_ratio)
             y1: cython.int = (img_height - new_height) // 2
             y2: cython.int = (img_height + new_height) // 2
             img = img.crop((0, y1, img_width, y2))
