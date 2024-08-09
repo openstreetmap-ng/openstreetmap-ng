@@ -1,48 +1,18 @@
 .user-profile-body {
     .content-header {
         position: relative;
-        padding-top: 12em;
-        padding-bottom: unset;
+        padding-top: 2em;
+        transition: padding-top 0.3s;
 
-        &:has(> img.background[src]) {
-            background: none;
-
-            > div.container-fluid {
-                background-color: rgba(255, 255, 255, 0.8);
-            }
-        }
-
-        div:has(> .info) {
-            padding-bottom: 1.5em;
-        }
-
-        .background {
-            display: none;
-            position: absolute;
-            top: 0;
-            z-index: -1;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-
-            &[src] {
-                display: unset;
-            }
-        }
-
-        .avatar {
-            position: absolute;
-            top: 13.75rem;
-            font-size: 8em;
-            border: 1px solid $border-color;
-            box-shadow: 0px 0.25em 16px -0.3em rgba(0, 0, 0, 0.1);
+        &:not(:has(img.background[src])) {
+            padding-top: 0;
         }
 
         .info {
             align-content: end;
             min-height: calc(8em * 1.5 - 0.5em);
             margin-left: calc(8em * 1.5 + 1.5em);
-            padding-top: 1.5em;
+            z-index: 1;
 
             .badge {
                 margin-left: 0.55em;
@@ -56,23 +26,68 @@
         .mapper-since {
             color: $text-muted;
         }
+    }
 
-        .edit-dropdown {
+    .background-form {
+        overflow: hidden;
+
+        &:has(img.background[src])::after {
+            content: "";
+            box-shadow: inset 0 calc(-6em * 2.5) 6em -6em $body-bg;
             position: absolute;
-            top: 1em;
-            right: 1em;
+            height: 100%;
+            width: 100%;
+            top: 0;
         }
 
-        &:has(.avatar-form.pending) {
-            .avatar {
-                opacity: 0.5;
+        img.background {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: opacity(0.6);
+            font-size: 0; // hide alt text
+            pointer-events: none;
+            transition: opacity 0.3s;
+
+            &:not([src]) {
+                opacity: 0;
             }
         }
 
-        &:has(.background-form.pending) {
-            .background {
-                opacity: 0.5;
-            }
+        .dropdown {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 1;
+        }
+
+        &.pending img.background {
+            opacity: 0.5;
+        }
+    }
+
+    .avatar-form {
+        position: absolute;
+        bottom: -0.75rem;
+
+        img.avatar {
+            font-size: 8em;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 0.25em 16px -0.3em rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .dropdown {
+            position: absolute;
+            bottom: 1.125rem;
+            left: -0.75rem;
+        }
+
+        &.pending img.avatar {
+            opacity: 0.5;
         }
     }
 

@@ -9,10 +9,9 @@ AVATAR_MAX_RATIO = 2
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
 AVATAR_MAX_FILE_SIZE = 80 * _kb  # 80 KB
 
+BACKGROUND_MAX_RATIO = 2 * 8  # 2 * ratio on website
 BACKGROUND_MAX_FILE_SIZE = 320 * _kb  # 320 KB
-BACKGROUND_MAX_MEGAPIXELS = 3072 * 768  # (resolution)
-BACKGROUND_MAX_RATIO = 5
-BACKGROUND_MIN_RATIO = 2
+BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
 
 # this is in-memory cache configuration
 CACHE_DEFAULT_EXPIRE = timedelta(days=3)

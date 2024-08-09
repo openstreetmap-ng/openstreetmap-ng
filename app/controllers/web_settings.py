@@ -49,7 +49,7 @@ async def settings_editor(
 async def settings_avatar(
     _: Annotated[User, web_user()],
     avatar_type: Annotated[AvatarType, Form()],
-    avatar_file: Annotated[UploadFile | None, Form()] = None,
+    avatar_file: Annotated[UploadFile, Form()],
 ):
     avatar_url = await UserService.update_avatar(avatar_type, avatar_file)
     return {'avatar_url': avatar_url}
@@ -58,7 +58,7 @@ async def settings_avatar(
 @router.post('/settings/background')
 async def settings_background(
     _: Annotated[User, web_user()],
-    background_file: Annotated[UploadFile | None, Form()] = None,
+    background_file: Annotated[UploadFile, Form()],
 ):
     background_url = await UserService.update_background(background_file)
     return {'background_url': background_url}

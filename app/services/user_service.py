@@ -14,8 +14,7 @@ from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatu
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.auth_service import AuthService
-from app.services.avatar_service import AvatarService
-from app.services.background_service import BackgroundService
+from app.services.image_service import ImageService
 from app.services.system_app_service import SystemAppService
 from app.validators.email import validate_email_deliverability
 
@@ -64,20 +63,14 @@ class UserService:
             await session.execute(stmt)
 
     @staticmethod
-    async def update_avatar(
-        avatar_type: AvatarType,
-        avatar_file: UploadFile | None,
-    ) -> str:
+    async def update_avatar(avatar_type: AvatarType, avatar_file: UploadFile) -> str:
         """
         Update user's avatar.
 
         Returns the new avatar URL.
         """
-        # handle custom avatar
-        if avatar_type == AvatarType.custom and avatar_file is not None:
-            avatar_id = await AvatarService.upload(avatar_file)
-        else:
-            avatar_id = None
+        data = await avatar_file.read()
+        avatar_id = await ImageService.upload_avatar(data) if data and avatar_type == AvatarType.custom else None
 
         # update user data
         async with db_commit() as session:
@@ -88,24 +81,19 @@ class UserService:
 
         # cleanup old avatar
         if old_avatar_id is not None:
-            await AvatarService.delete_by_id(old_avatar_id)
+            await ImageService.delete_avatar_by_id(old_avatar_id)
 
         return user.avatar_url
 
     @staticmethod
-    async def update_background(
-        background_file: UploadFile | None,
-    ) -> str | None:
+    async def update_background(background_file: UploadFile) -> str | None:
         """
         Update user's background.
 
         Returns the new background URL.
         """
-        # handle custom background
-        if background_file is not None and background_file.content_type and 'image/' in background_file.content_type:
-            background_id = await BackgroundService.upload(background_file)
-        else:
-            background_id = None
+        data = await background_file.read()
+        background_id = await ImageService.upload_background(data) if data else None
 
         # update user data
         async with db_commit() as session:
@@ -115,7 +103,7 @@ class UserService:
 
         # cleanup old background
         if old_background_id is not None:
-            await BackgroundService.delete_by_id(old_background_id)
+            await ImageService.delete_background_by_id(old_background_id)
 
         return user.background_url
 
