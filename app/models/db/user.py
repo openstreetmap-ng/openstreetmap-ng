@@ -19,9 +19,9 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from app.lib.avatar import Avatar, AvatarType
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
+from app.lib.image import AvatarType, Image
 from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
@@ -137,6 +137,12 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         nullable=True,
         server_default=None,
     )
+    background_id: Mapped[StorageKey | None] = mapped_column(
+        Unicode(STORAGE_KEY_MAX_LENGTH),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
     home_point: Mapped[Point | None] = mapped_column(
         PointType,
         init=False,
@@ -205,11 +211,23 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         """
         Get the url for the user's avatar image.
         """
-        # when using gravatar, use user id as the avatar id
+        if self.avatar_type == AvatarType.default:
+            return Image.get_avatar_url(AvatarType.default)
         if self.avatar_type == AvatarType.gravatar:
-            return Avatar.get_url(self.avatar_type, self.id)
-        else:
-            return Avatar.get_url(self.avatar_type, self.avatar_id)
+            return Image.get_avatar_url(AvatarType.gravatar, self.id)
+        if self.avatar_type == AvatarType.custom:
+            if self.avatar_id is None:
+                raise AssertionError('Avatar id must be set')
+            return Image.get_avatar_url(AvatarType.custom, self.avatar_id)
+
+        raise NotImplementedError(f'Unsupported avatar type {self.avatar_type!r}')
+
+    @property
+    def background_url(self) -> str | None:
+        """
+        Get the url for the user's background image.
+        """
+        return Image.get_background_url(self.background_id)
 
     async def home_distance_to(self, point: Point | None) -> float | None:
         if point is None or self.home_point is None:

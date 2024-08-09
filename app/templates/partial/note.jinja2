@@ -31,7 +31,7 @@
                     {{ t('browse.anonymous') }}
                     {% else %}
                     <a href="/user/{{ header.user.display_name }}" rel="author">
-                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('user.profile_picture') }}">{#
+                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">{#
                     #}{{ header.user.display_name }}{#
                     #}</a>
                     {% endif %}
@@ -86,7 +86,7 @@
             <li class="social-entry">
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
-                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('user.profile_picture') }}"
+                        <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
                             loading="lazy">{#
                         #}{{ comment.user.display_name }}{#
                     #}</a>

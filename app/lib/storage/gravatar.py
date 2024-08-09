@@ -3,8 +3,8 @@ from typing import override
 
 from starlette import status
 
-from app.lib.avatar import Avatar
 from app.lib.file_cache import FileCache
+from app.lib.image import Image
 from app.lib.storage.base import StorageBase
 from app.limits import GRAVATAR_CACHE_EXPIRE
 from app.utils import HTTP
@@ -35,11 +35,11 @@ class GravatarStorage(StorageBase):
 
         r = await HTTP.get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404')
         if r.status_code == status.HTTP_404_NOT_FOUND:
-            data = Avatar.default_image
+            data = Image.default_avatar
         else:
             r.raise_for_status()
             data = r.content
-            data = Avatar.normalize_image(data)
+            data = Image.normalize_avatar(data)
 
         await self._fc.set(key_hashed, data, ttl=GRAVATAR_CACHE_EXPIRE)
         return data

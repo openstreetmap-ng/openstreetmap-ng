@@ -1,8 +1,8 @@
 from sqlalchemy import ARRAY, Boolean, Enum, ForeignKey, Index, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.lib.avatar import Avatar, AvatarType
 from app.lib.crypto import decrypt
+from app.lib.image import AvatarType, Image
 from app.lib.updating_cached_property import updating_cached_property
 from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH, STORAGE_KEY_MAX_LENGTH
 from app.models.db.base import Base
@@ -48,9 +48,9 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         Get the url for the application's avatar image.
         """
         return (
-            Avatar.get_url(AvatarType.default, None)
+            Image.get_avatar_url(AvatarType.default)
             if self.avatar_id is None
-            else Avatar.get_url(AvatarType.custom, self.avatar_id)
+            else Image.get_avatar_url(AvatarType.custom, self.avatar_id)
         )
 
     @property

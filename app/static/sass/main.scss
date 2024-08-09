@@ -98,9 +98,9 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "leaflet/sidebar";
 @import "leaflet/user-popup";
 
-@import "settings/index";
-@import "settings/security";
 @import "settings/applications";
+@import "settings/nav";
+@import "settings/security";
 
 @import "traces/preview";
 

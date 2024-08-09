@@ -66,7 +66,7 @@ export const getChangesetsHistoryController = (map) => {
                 const img = document.createElement("img")
                 img.classList.add("avatar")
                 img.src = changeset.user_avatar
-                img.alt = i18next.t("user.profile_picture")
+                img.alt = i18next.t("alt.profile_picture")
                 img.loading = "lazy"
                 anchor.appendChild(img)
                 anchor.appendChild(document.createTextNode(changeset.user_name))

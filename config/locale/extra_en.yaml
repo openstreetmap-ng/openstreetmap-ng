@@ -69,7 +69,7 @@ user:
   no_activity_yet: No activity yet
   not_member_of_any_group: Not a member of any group
   not_found: User not found
-  profile_picture: Profile picture
+  edit_background: Edit background
   activity:
     recent: Recent activity
     summary: "{{mapping_day}} with {{num_changesets}} in {{last_n_months}}"
@@ -104,8 +104,6 @@ search:
 settings:
   password_and_security: Password and security
   applications: Applications
-  upload_photo: Upload a photo
-  remove_photo: Remove photo
   preferred_language: Preferred language
   change_email: Change email
   current_email_address: Current email address
@@ -173,6 +171,8 @@ alt:
   arm_pointing_down: An arm pointing down
   elements_page_navigation: Elements page navigation
   traces_page_navigation: Traces page navigation
+  profile_picture: Profile picture
+  background_image: Background image
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.
@@ -219,6 +219,8 @@ action:
   submit: Submit
   view_all: View all
   view_more: View more
+  remove_image: Remove image
+  upload_image: Upload an image
 state:
   hidden: Hidden
   latest: latest

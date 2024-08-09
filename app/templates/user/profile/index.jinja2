@@ -4,9 +4,86 @@
 {% block body %}
 
 <div class="content-header">
-    <div class="col-7 offset-3">
-        <div class="d-flex">
-            <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('user.profile_picture') }}">
+    <form class="background-form" method="POST" action="/api/web/settings/background" enctype="multipart/form-data">
+        <input class="visually-hidden" type="file" name="background_file" accept="image/*">
+        <img class="background" {% if profile.background_url %} src="{{ profile.background_url }}" {% endif %}
+            alt="{{ t('alt.background_image') }}">
+
+        {% if is_self %}
+        <div class="dropdown">
+            <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="bi bi-image text-muted me-1"></i>{{ t('user.edit_background') }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <h6 class="dropdown-header">
+                        {{ t('alt.background_image') }}
+                    </h6>
+                </li>
+                <li>
+                    <button class="dropdown-item upload-btn" type="button">
+                        {{ t('action.upload_image') }}...
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item remove-btn" type="button">
+                        {{ t('action.remove_image') }}
+                    </button>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </form>
+
+    <div class="container-fluid">
+        <div class="col-7 offset-3 d-flex">
+            <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
+                <input type="hidden" name="avatar_type" autocomplete="off" required>
+                <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
+                <img class="avatar" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+
+                {% if is_self %}
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i class="bi bi-person-circle text-muted me-1"></i>{{ t('layouts.edit') }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <h6 class="dropdown-header">
+                                {{ t('alt.profile_picture') }}
+                            </h6>
+                        </li>
+                        <li>
+                            <button class="dropdown-item upload-btn" type="button">
+                                {{ t('action.upload_image') }}...
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item gravatar-btn" type="button">
+                                {{ t('profiles.edit.gravatar.gravatar') }}
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item remove-btn" type="button">
+                                {{ t('action.remove_image') }}
+                            </button>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="https://wiki.openstreetmap.org/wiki/Gravatar"
+                                target="_blank">
+                                {{ t('profiles.edit.gravatar.what_is_gravatar') }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+            </form>
+
             <div class="info">
                 <h1 class="d-flex align-items-center">
                     {{ profile.display_name }}
