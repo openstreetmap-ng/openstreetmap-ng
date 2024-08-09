@@ -1,8 +1,12 @@
 from app.lib.profile_image.base import ProfileImageBase
+from app.limits import BACKGROUND_MAX_FILE_SIZE, BACKGROUND_MAX_MEGAPIXELS, BACKGROUND_MAX_RATIO, BACKGROUND_MIN_RATIO
 
 
 class Background(ProfileImageBase):
-    # TODO: specify min/max ratio, max megapixels, max file size
+    min_ratio = BACKGROUND_MIN_RATIO
+    max_ratio = BACKGROUND_MAX_RATIO
+    max_megapixels = BACKGROUND_MAX_MEGAPIXELS
+    max_file_size = BACKGROUND_MAX_FILE_SIZE
 
     @staticmethod
     def get_url(image_id: str | int | None) -> str | None:
