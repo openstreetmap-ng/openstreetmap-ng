@@ -59,8 +59,8 @@
 
         .edit-dropdown {
             position: absolute;
+            top: 1em;
             right: 1em;
-            bottom: 1em;
         }
 
         &:has(.avatar-form.pending) {

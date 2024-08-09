@@ -69,7 +69,6 @@ user:
   no_activity_yet: No activity yet
   not_member_of_any_group: Not a member of any group
   not_found: User not found
-  profile_picture: Profile picture
   activity:
     recent: Recent activity
     summary: "{{mapping_day}} with {{num_changesets}} in {{last_n_months}}"
