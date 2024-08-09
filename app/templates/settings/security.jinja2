@@ -57,7 +57,7 @@
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-primary px-3" type="submit">
-                                {{ t('settings.change_password') | title }}
+                                {{ t('action.submit') }}
                             </button>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                 <hr class="my-4">
                 #}
 
-                <h3 class="mb-3">{{ t('settings.active_sessions') }}</h3>
+                <h3>{{ t('settings.active_sessions') }}</h3>
                 <ul class="active-sessions list-unstyled">
                     {% for session in active_sessions %}
                     <li>

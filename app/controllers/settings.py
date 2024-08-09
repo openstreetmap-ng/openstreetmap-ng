@@ -11,6 +11,7 @@ from app.lib.render_response import render_response
 from app.limits import (
     ACTIVE_SESSIONS_DISPLAY_LIMIT,
     EMAIL_MIN_LENGTH,
+    OAUTH_APP_NAME_MAX_LENGTH,
     PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
@@ -18,6 +19,7 @@ from app.limits import (
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
+from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.auth_service import AuthService
 
@@ -66,7 +68,7 @@ async def settings_security(user: Annotated[User, web_user()]):
 
 
 @router.get('/settings/applications')
-async def applications(
+async def applications_authorizations(
     user: Annotated[User, web_user()],
 ):
     with options_context(
@@ -76,8 +78,22 @@ async def applications(
     ):
         tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user.id)
     return render_response(
-        'settings/applications.jinja2',
+        'settings/applications/authorizations.jinja2',
         {
             'tokens': tokens,
+        },
+    )
+
+
+@router.get('/settings/applications/admin')
+async def applications_admin(
+    user: Annotated[User, web_user()],
+):
+    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
+    return render_response(
+        'settings/applications/admin.jinja2',
+        {
+            'apps': apps,
+            'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
         },
     )

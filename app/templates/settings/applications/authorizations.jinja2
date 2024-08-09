@@ -24,7 +24,12 @@
                     </li>
                     <li class="nav-item">
                         <a href="/settings/applications/admin" class="nav-link">
-                            {{ t('settings.my_applications') }}
+                            {{ t('settings.my_applications.title') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings/applications/tokens" class="nav-link">
+                            {{ t('settings.my_tokens.title') }}
                         </a>
                     </li>
                 </ul>
@@ -33,7 +38,7 @@
                 <ul class="applications-list list-unstyled">
                     {% for token in tokens %}
                     {% set app = token.application %}
-                    <li>{% include 'settings/_application_entry.jinja2' %}</li>
+                    <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
                     {% endfor %}
                 </ul>
 

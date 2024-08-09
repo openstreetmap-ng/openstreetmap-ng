@@ -16,13 +16,7 @@ from app.models.types import Uri
 
 class OAuth2ApplicationService:
     @staticmethod
-    async def create(
-        *,
-        name: str,
-        scopes: tuple[Scope, ...],
-        is_confidential: bool,
-        redirect_uris: list[Uri],
-    ) -> int:
+    async def create(*, name: str) -> int:
         """
         Create an OAuth2 application.
         """
@@ -35,9 +29,9 @@ class OAuth2ApplicationService:
                 name=name,
                 client_id=client_id,
                 client_secret_encrypted=b'',
-                scopes=scopes,
-                is_confidential=is_confidential,
-                redirect_uris=redirect_uris,
+                scopes=(),
+                is_confidential=False,
+                redirect_uris=[],
             )
             session.add(app)
             await session.flush()
@@ -50,7 +44,7 @@ class OAuth2ApplicationService:
             )
             count = (await session.execute(stmt)).scalar_one()
             if count > OAUTH2_APP_USER_LIMIT:
-                MessageCollector.raise_error(None, t('validation.reached_oauth2_app_limit'))
+                MessageCollector.raise_error(None, t('validation.reached_app_limit'))
 
         return app.id
 

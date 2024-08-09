@@ -10,7 +10,7 @@ from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import COOKIE_AUTH_MAX_AGE
+from app.limits import COOKIE_AUTH_MAX_AGE, OAUTH_APP_NAME_MAX_LENGTH
 from app.models.db.user import User, UserStatus
 from app.models.types import (
     PasswordType,
@@ -121,3 +121,10 @@ async def reset_password(
     collector = MessageCollector()
     collector.success(None, t('settings.password_reset_link_sent'))
     return collector.result
+
+
+@router.post('/settings/applications/admin/create')
+async def create_application(
+    _: Annotated[User, web_user()],
+    name: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_NAME_MAX_LENGTH)],
+): ...

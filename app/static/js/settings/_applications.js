@@ -27,4 +27,16 @@ if (settingsApplicationsBody) {
 
         configureStandardForm(form, onRevokeApplicationFormSuccess)
     }
+
+    const createNewApplicationButton = settingsApplicationsBody.querySelector(".create-new-application-btn")
+    if (createNewApplicationButton) {
+        const onCreateNewApplicationClick = () => {
+            createNewApplicationButton.classList.add("d-none")
+            const form = createNewApplicationButton.parentElement.querySelector("form")
+            form.classList.remove("d-none")
+            form.elements.name.focus()
+        }
+
+        createNewApplicationButton.addEventListener("click", onCreateNewApplicationClick)
+    }
 }

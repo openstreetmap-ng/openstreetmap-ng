@@ -132,10 +132,20 @@ settings:
       The following applications have permission to act on your behalf
       and access your OpenStreetMap data based on the permissions you granted.
       Click an application to see a detailed list of permissions or to revoke its access.
-  my_applications: My applications
+  my_applications:
+    title: My applications
+    description: |-
+      Here, you can manage all the application you own.
+      These applications can be used to integrate with other services, access specific data, or automate tasks.
+      Review the list below to update settings, manage permissions, or delete any application you no longer need.
+    you_dont_have_any_applications_yet: You don't have any applications yet.
+    create_new_application: Create new application
+  my_tokens:
+    title: My tokens
   owned_by: Owned by {{name}}
   requested_permissions: Requested permissions
-  send_password_reset_email: Send password reset email
+  name: Name
+  send_password_reset_link: Send password reset link
   password_reset_link_sent: |-
     If an account with that email address exists, you will receive a password reset link shortly.
     Please check your inbox and click on the reset link to set a new password.
@@ -143,10 +153,10 @@ settings:
 permissions:
   read_user_preferences: Read user preferences
   modify_user_preferences: Modify user preferences
-  modify_changesets_and_map_data: Modify changesets and map data
+  manage_changesets_and_map_data: Manage changesets and map data
   read_all_gps_traces: Read all GPS traces
-  modify_gps_traces: Modify GPS traces
-  modify_notes: Modify notes
+  manage_gps_traces: Manage GPS traces
+  manage_notes: Manage notes
   access_the_website: Access the website
 fixthemap:
   title: Fix the map
@@ -183,7 +193,7 @@ validation:
   password_is_incorrect: The password is incorrect
   passwords_missmatch: The passwords do not match
   you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
-  reached_oauth2_app_limit: You have reached the maximum number of OAuth2 applications
+  reached_app_limit: You have reached the maximum number of applications
 action:
   block_user: Block user
   cancel: Cancel

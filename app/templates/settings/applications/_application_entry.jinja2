@@ -57,13 +57,13 @@
                             {% elif scope == 'write_prefs' %}
                             {{ t('permissions.modify_user_preferences') }}
                             {% elif scope == 'write_api' %}
-                            {{ t('permissions.modify_changesets_and_map_data') }}
+                            {{ t('permissions.manage_changesets_and_map_data') }}
                             {% elif scope == 'read_gpx' %}
                             {{ t('permissions.read_all_gps_traces') }}
                             {% elif scope == 'write_gpx' %}
-                            {{ t('permissions.modify_gps_traces') }}
+                            {{ t('permissions.manage_gps_traces') }}
                             {% elif scope == 'write_notes' %}
-                            {{ t('permissions.modify_notes') }}
+                            {{ t('permissions.manage_notes') }}
                             {% elif scope == 'web_user' %}
                             {{ t('permissions.access_the_website') }}
                             {% endif %}
