@@ -1,5 +1,5 @@
 .measure-label {
-    position:relative;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10,4 +10,9 @@
         padding-right: 2px;
         border-radius: 2px;
     }
+}
+
+.action-sidebar.measure {
+    background: $gray-200;
+    border-bottom-right-radius: 10px;
 }

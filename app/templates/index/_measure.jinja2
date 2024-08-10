@@ -1,21 +1,15 @@
-<div class="action-sidebar measure d-none">
+<div class="action-sidebar measure d-none" data-sidebar-overlay="1">
     <div class="sidebar-content">
-        <div class="section">
+        <div class="section py-2">
             <div class="row g-1">
                 <div class="col">
-                    <h2 class="sidebar-title">
-                        {{ t('context.measure_distance') | title }}
-                    </h2>
-                    <p>
-                        {{ t('mesaure_distance.introduction') }}
-                    </p>
+                    <i class="bi bi-signpost-2"></i><span>{{ t('mesaure_distance.distance') }}</span> <span
+                        class="total-distance"></span>
                 </div>
                 <div class="col-auto">
                     <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
                 </div>
             </div>
-
-            <i class="bi bi-signpost-2"></i><span>{{  t('mesaure_distance.distance')  }}</span> <span class="total-distance"></span>
         </div>
     </div>
 </div>
