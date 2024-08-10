@@ -29,6 +29,10 @@
 .sidebar-overlay {
     position: absolute;
     z-index: 1000;
+
+    .sidebar-content {
+        position: static;
+    }
 }
 
 // Style the action sidebar (left)

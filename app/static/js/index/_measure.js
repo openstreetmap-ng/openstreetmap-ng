@@ -70,6 +70,13 @@ export const getMeasuringController = (map) => {
         updateLabels()
     }
 
+    const onMarkerDrag = () => {
+        // after dragging markers have wrong z-indexes
+        map.fire("viewreset")
+
+        updateLine()
+    }
+
     const markerFactory = (color) =>
         L.marker(L.latLng(0, 0), {
             icon: getMarkerIcon(color, true),
@@ -77,23 +84,32 @@ export const getMeasuringController = (map) => {
             autoPan: true,
         })
             .addTo(map)
-            .on("drag", () => {
-                // after dragging markers have wrong z-indexes
-                map.fire("viewreset")
+            .on("drag", onMarkerDrag)
 
-                updateLine()
-            })
+    const onHeadMarkerClick = () => {
+        if (markers.length === 2) return
+        const lastMarker = markers[markers.length - 2] // remove second to last marker from array
+        markers.splice(markers.length - 2, 1)
+        markers[markers.length - 1].setLatLng(lastMarker.getLatLng())
+        lastMarker.remove() // remove second to last marker from map
+        updateLine()
+    }
 
-    const mouseClick = (e) => {
-        const pos = e.containerPoint
-        const markerPos = map.latLngToContainerPoint(markers[markers.length - 1].getLatLng())
-        const diff = { x: pos.x - markerPos.x, y: pos.y - markerPos.y }
-        const distance = diff.x * diff.x + diff.y * diff.y
-        // TODO: check if distance is screen size dependent
-        if (distance < 1000) return // skip creating marker if it is close to the previous one
+    const onTailMarkerClick = () => {
+        if (!markers[2]) return
+        markers[0].setLatLng(markers[1].getLatLng())
+        markers[1].remove()
+        markers.splice(1, 1)
+        updateLine()
+    }
 
-        // skip first marker
-        if (markers.length > 1) {
+    const addMarker = (e) => {
+        // if there is 1 marker create red marker, else blue
+        if (markers.length === 1) {
+            const headMarker = markerFactory("red")
+            markers.push(headMarker)
+            headMarker.addEventListener("click", onHeadMarkerClick)
+        } else {
             const marker = markerFactory("blue")
                 .setLatLng(markers[markers.length - 1].getLatLng())
                 .addEventListener("click", () => {
@@ -102,18 +118,8 @@ export const getMeasuringController = (map) => {
                     updateLine()
                 })
             markers.splice(markers.length - 1, 0, marker)
-        } else {
-            const headMarker = markerFactory("red")
-            markers.push(headMarker)
-            headMarker.addEventListener("click", () => {
-                if (markers.length === 2) return
-                const lastMarker = markers[markers.length - 2]
-                markers.splice(markers.length - 2, 1)
-                headMarker.setLatLng(lastMarker.getLatLng())
-                lastMarker.remove()
-                updateLine()
-            })
         }
+
         markers[markers.length - 1].setLatLng(e.latlng)
         line.addLatLng(e.latlng)
         updateLabel(markers.length - 1)
@@ -121,8 +127,8 @@ export const getMeasuringController = (map) => {
 
     const onLineClick = (e) => {
         // skip adding marker
-        map.removeEventListener("click", mouseClick)
-        setTimeout(() => map.addEventListener("click", mouseClick), 0)
+        map.removeEventListener("click", addMarker)
+        setTimeout(() => map.addEventListener("click", addMarker), 0)
     }
 
     return {
@@ -133,20 +139,14 @@ export const getMeasuringController = (map) => {
                 const [lat, lon] = searchParams.pos.split(",")
                 const startMarker = markerFactory("green").setLatLng([lat, lon])
                 markers.push(startMarker)
-                startMarker.addEventListener("click", () => {
-                    if (!markers[2]) return
-                    startMarker.setLatLng(markers[1].getLatLng())
-                    markers[1].remove()
-                    markers.splice(1, 1)
-                    updateLine()
-                })
+                startMarker.addEventListener("click", onTailMarkerClick)
 
                 line = L.polyline([[lat, lon]], { color: "yellow", weight: 5 }).addTo(map)
                 totalDistanceLabel.innerText = "0km"
                 switchActionSidebar(map, "measure")
             }
 
-            map.addEventListener("click", mouseClick)
+            map.addEventListener("click", addMarker)
             line.addEventListener("click", onLineClick)
         },
         unload: () => {
@@ -160,7 +160,7 @@ export const getMeasuringController = (map) => {
             markers = []
             line.remove()
 
-            map.removeEventListener("click", mouseClick)
+            map.removeEventListener("click", addMarker)
             line.removeEventListener("click", onLineClick)
         },
     }
