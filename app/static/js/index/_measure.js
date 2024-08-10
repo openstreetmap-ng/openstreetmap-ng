@@ -8,11 +8,14 @@ const logTen = Math.log(10)
 export const getMeasuringController = (map) => {
     const sidebar = getActionSidebar("measure")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
-    const markers = []
+    let markers = []
     let divIcons = []
     let line = null
     let distance = 0
-    let headMarker = null
+
+    map.createPane("labelPane")
+    map.getPane("labelPane").style.zIndex = 450
+    map.getPane("labelPane").style.pointerEvents = "none"
 
     const formatDistance = (distance) => {
         // TODO: support for miles
@@ -36,14 +39,15 @@ export const getMeasuringController = (map) => {
         if (angle > 90) angle -= 180
         if (angle < -90) angle += 180
 
-        const icon = L.marker(middle, {
+        const label = L.marker(middle, {
+            pane: "labelPane",
             icon: L.divIcon({
                 className: "measure-label",
                 html: `<div style="transform:rotate(${angle}deg)">${num}</div>`,
                 iconSize: [0, 0],
             }),
         }).addTo(map)
-        divIcons.push(icon)
+        divIcons.push(label)
         distance += _distance
         totalDistanceLabel.innerText = formatDistance(distance)
     }
@@ -73,13 +77,19 @@ export const getMeasuringController = (map) => {
             autoPan: true,
         })
             .addTo(map)
-            .on("drag", updateLine)
+            .on("drag", () => {
+                // after dragging markers have wrong z-indexes
+                map.fire("viewreset")
+
+                updateLine()
+            })
 
     const mouseClick = (e) => {
         const pos = e.containerPoint
         const markerPos = map.latLngToContainerPoint(markers[markers.length - 1].getLatLng())
         const diff = { x: pos.x - markerPos.x, y: pos.y - markerPos.y }
         const distance = diff.x * diff.x + diff.y * diff.y
+        // TODO: check if distance is screen size dependent
         if (distance < 1000) return // skip creating marker if it is close to the previous one
 
         // skip first marker
@@ -93,7 +103,7 @@ export const getMeasuringController = (map) => {
                 })
             markers.splice(markers.length - 1, 0, marker)
         } else {
-            headMarker = markerFactory("red")
+            const headMarker = markerFactory("red")
             markers.push(headMarker)
             headMarker.addEventListener("click", () => {
                 if (markers.length === 2) return
@@ -104,7 +114,7 @@ export const getMeasuringController = (map) => {
                 updateLine()
             })
         }
-        headMarker.setLatLng(e.latlng)
+        markers[markers.length - 1].setLatLng(e.latlng)
         line.addLatLng(e.latlng)
         updateLabel(markers.length - 1)
     }
@@ -117,6 +127,7 @@ export const getMeasuringController = (map) => {
 
     return {
         load: () => {
+            distance = 0
             const searchParams = qsParse(location.search.substring(1))
             if (searchParams.pos) {
                 const [lat, lon] = searchParams.pos.split(",")
@@ -139,10 +150,16 @@ export const getMeasuringController = (map) => {
             line.addEventListener("click", onLineClick)
         },
         unload: () => {
-            // activeElements.forEach((marker, index) => {
-            //     marker.remove()
-            //     delete activeElements[index]
-            // })
+            for (const label of divIcons) {
+                label.remove()
+            }
+            for (const label of markers) {
+                label.remove()
+            }
+            divIcons = []
+            markers = []
+            line.remove()
+
             map.removeEventListener("click", mouseClick)
             line.removeEventListener("click", onLineClick)
         },

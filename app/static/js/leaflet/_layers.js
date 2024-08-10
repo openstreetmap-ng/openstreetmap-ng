@@ -126,6 +126,12 @@ const routingLayer = L.featureGroup(undefined, {
     layerId: "routing",
 })
 
+const labelLayer = L.featureGroup(undefined, {
+    inaccessible: true,
+    layerCode: "", // This layer is not possible to toggle manually
+    layerId: "label",
+})
+
 const searchLayer = L.featureGroup(undefined, {
     inaccessible: true,
     layerCode: "", // This layer is not possible to toggle manually
@@ -150,7 +156,7 @@ for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrack
 }
 
 const overlayLayerIdMap = new Map()
-for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer]) {
+for (const layer of [gps, dataLayer, changesetLayer, routingLayer, labelLayer, searchLayer, noteLayer, focusLayer]) {
     const options = layer.options
     overlayLayerIdMap.set(options.layerId, layer)
     if (options.legacyLayerIds) {
