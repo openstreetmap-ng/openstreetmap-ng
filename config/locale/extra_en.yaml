@@ -246,4 +246,4 @@ mesaure_distance:
     Click on the map to add marker.
     Click on the marker to remove it.
     Drag the marker to drag it.
-  distanc: Distance
+  distance: Distance
