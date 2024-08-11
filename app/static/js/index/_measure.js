@@ -1,4 +1,3 @@
-import { read } from "bun:ffi"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
@@ -14,6 +13,9 @@ export const getMeasuringController = (map) => {
     let line = null
     let distance = 0
     let param = ""
+    let ghostMarker = null
+    let ghostMarkerIndex = null
+    let supress = false
 
     map.createPane("labelPane")
     map.getPane("labelPane").style.zIndex = 400
@@ -57,7 +59,7 @@ export const getMeasuringController = (map) => {
             }),
         })
             .addTo(map)
-            .on("click", onLineClick)
+            .on("click", onLineHover)
         divIcons.push(label)
         param += `;${point.lat.toFixed(4)},${point.lng.toFixed(4)}`
 
@@ -125,6 +127,8 @@ export const getMeasuringController = (map) => {
     }
 
     const addMarker = (e) => {
+        if (supress) return
+        console.error("adding marker (how)")
         // if there are 0 markers create green one
         if (markers.length === 0) {
             const startMarker = markerFactory("green").setLatLng(e.latlng)
@@ -132,7 +136,16 @@ export const getMeasuringController = (map) => {
             startMarker.addEventListener("click", onTailMarkerClick)
             param = `${e.latlng.lat.toFixed(4)},${e.latlng.lng.toFixed(4)}`
             line = L.polyline([e.latlng], { color: "#6ea8fe", weight: 5, noClip: true }).addTo(map)
-            line.addEventListener("mousedown", onLineClick)
+            line.addEventListener("mousemove", onLineHover)
+            // line.addEventListener("mouseout", (e) => {
+            //     console.log("removing,",e)
+            //     ghostMarker?.remove()
+            //     ghostMarker = null
+            // })
+
+            line.addEventListener("mousedown", () => {
+                if (!ghostMarker) return
+            })
             totalDistanceLabel.innerText = "0km"
             return
         }
@@ -160,19 +173,14 @@ export const getMeasuringController = (map) => {
         saveParam()
     }
 
-    const onLineClick = (e) => {
-        // TODO: clicking on line should add marker
-        // why closestLayerPoint returns null?
-
+    const onLineHover = (e) => {
         // skip adding marker
         map.removeEventListener("click", addMarker)
         setTimeout(() => map.addEventListener("click", addMarker), 0)
 
-        console.log("clicked on line. \nI have no idea what to do")
-
         let minPoint = null
         let minDistance = Number.POSITIVE_INFINITY
-        let index = 0
+        ghostMarkerIndex = 0
 
         for (let i = 1; i < markers.length; i++) {
             const marker = markers[i]
@@ -186,22 +194,50 @@ export const getMeasuringController = (map) => {
             if (distance < minDistance) {
                 minPoint = point
                 minDistance = distance
-                index = i
+                ghostMarkerIndex = i
             }
         }
+        if (!ghostMarker) {
+            let dragged = false
+            const marker = markerFactory("blue")
+                .addEventListener("click", () => {
+                    markers.splice(markers.indexOf(marker), 1)
+                    marker.remove()
+                    ghostMarker = null
+                    reAdd()
+                    saveParam()
+                })
+                .addEventListener("dragstart", (e) => {
+                    if (dragged) return
+                    markers = [...markers.slice(0, ghostMarkerIndex), ghostMarker, ...markers.slice(ghostMarkerIndex)]
+                    ghostMarker._icon.style.pointerEvents = "all"
+                    ghostMarker._icon.style.paddingBottom = "10px"
+                    ghostMarker._icon.style.boxSizing = "content-box"
+                    ghostMarker = null
 
-        const marker = markerFactory("blue")
-            .setLatLng(map.layerPointToLatLng(minPoint))
-            .addEventListener("click", () => {
-                markers.splice(markers.indexOf(marker), 1)
-                marker.remove()
-                reAdd()
-                saveParam()
-            })
-        console.log(minPoint, index)
-        markers = [...markers.slice(0, index), ...markers.slice(index)]
-        reAdd()
-        saveParam()
+                    // skip adding marker
+                    supress = true
+                    map.addEventListener("mouseup", () => {
+                        setTimeout(() => {
+                            supress = false
+                        }, 200)
+                    })
+
+                    reAdd()
+                    saveParam()
+                    dragged = true
+                })
+                .addEventListener("mousemove", (e) => {
+                    const rect = map._container.getBoundingClientRect()
+                    const x = e.originalEvent.clientX - rect.left
+                    const y = e.originalEvent.clientY - rect.top
+                    onLineHover({ latlng: map.containerPointToLatLng([x, y]) })
+                })
+            ghostMarker = marker
+        }
+        ghostMarker.setLatLng(map.layerPointToLatLng(minPoint))
+        ghostMarker._icon.style.paddingBottom = "10px"
+        ghostMarker._icon.style.boxSizing = "content-box"
     }
 
     return {
@@ -243,7 +279,7 @@ export const getMeasuringController = (map) => {
             line?.remove()
 
             map.removeEventListener("click", addMarker)
-            line?.removeEventListener("click", onLineClick)
+            line?.removeEventListener("mousemove", onLineHover)
         },
     }
 }
