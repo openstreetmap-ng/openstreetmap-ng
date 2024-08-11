@@ -1,6 +1,8 @@
 {
     "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
-    "editor.rulers": [120],
+    "editor.rulers": [
+        120
+    ],
     "editor.unicodeHighlight.allowedCharacters": {
         "➕": true
     },
@@ -18,7 +20,7 @@
         "**/*.html": true,
         "**/*.so": true,
         "**/static/js/bundle-*": true,
-        "**/static/**/*.html": false
+        "**/static/**/*.html": false,
     },
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
@@ -28,7 +30,9 @@
     "nix.serverSettings": {
         "nil": {
             "formatting": {
-                "command": ["nixpkgs-fmt"]
+                "command": [
+                    "nixpkgs-fmt"
+                ]
             }
         }
     },
@@ -47,12 +51,12 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "biomejs.biome"
     },
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "[scss]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
 }
