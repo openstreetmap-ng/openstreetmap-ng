@@ -1,4 +1,6 @@
 import { qsEncode, qsParse } from "../_qs.js"
+import { formatDistance } from "../_format-utils.js"
+
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 import * as L from "leaflet"
@@ -20,14 +22,6 @@ export const getMeasuringController = (map) => {
     map.createPane("labelPane")
     map.getPane("labelPane").style.zIndex = 400
     map.getPane("labelPane").style.pointerEvents = "none"
-
-    const formatDistance = (distance) => {
-        // TODO: support for miles
-        const precision = 10 ** (2 - Math.floor(Math.log(distance) / logTen)) || 1
-        const roundedMeters = Math.round(distance * precision) / precision || 1
-        const num = roundedMeters < 1000 ? `${roundedMeters}m` : `${roundedMeters / 1000}km`
-        return num
-    }
 
     const saveParam = () => {
         if (param[0] === ";") param = param.substring(1)
@@ -59,7 +53,7 @@ export const getMeasuringController = (map) => {
             }),
         })
             .addTo(map)
-            .on("click", onLineHover)
+            .addEventListener("mousemove", onLineHover)
         divIcons.push(label)
         param += `;${point.lat.toFixed(4)},${point.lng.toFixed(4)}`
 
@@ -136,15 +130,6 @@ export const getMeasuringController = (map) => {
             param = `${e.latlng.lat.toFixed(4)},${e.latlng.lng.toFixed(4)}`
             line = L.polyline([e.latlng], { color: "#6ea8fe", weight: 5, noClip: true }).addTo(map)
             line.addEventListener("mousemove", onLineHover)
-            // line.addEventListener("mouseout", (e) => {
-            //     console.log("removing,",e)
-            //     ghostMarker?.remove()
-            //     ghostMarker = null
-            // })
-
-            line.addEventListener("mousedown", () => {
-                if (!ghostMarker) return
-            })
             totalDistanceLabel.innerText = "0km"
             return
         }
@@ -158,10 +143,7 @@ export const getMeasuringController = (map) => {
             const marker = markerFactory("blue")
                 .setLatLng(markers[markers.length - 1].getLatLng())
                 .addEventListener("click", () => {
-                    markers.splice(markers.indexOf(marker), 1)
-                    marker.remove()
-                    reAdd()
-                    saveParam()
+                    removeMarker(marker)
                 })
             markers.splice(markers.length - 1, 0, marker)
         }
@@ -172,11 +154,80 @@ export const getMeasuringController = (map) => {
         saveParam()
     }
 
+    const removeMarker = (marker) => {
+        markers.splice(markers.indexOf(marker), 1)
+        marker.remove()
+        reAdd()
+        saveParam()
+    }
+
+    const createGhostMarker = () => {
+        let dragged = false
+
+        // clear unused event listiners after ghost marker has became normal marker
+        const clear = () => {
+            removeEventListener("click", click)
+            removeEventListener("click", selfRemove)
+            removeEventListener("dragstart", selfRemove)
+            removeEventListener("mousemove", mousemove)
+        }
+
+        const mousemove = (e) => {
+            if (dragged) return
+            const rect = map._container.getBoundingClientRect()
+            const x = e.originalEvent.clientX - rect.left
+            const y = e.originalEvent.clientY - rect.top
+            onLineHover({ latlng: map.containerPointToLatLng([x, y]) })
+        }
+
+        const selfRemove = () => {
+            if (dragged) return
+            if (marker !== ghostMarker) return
+
+            // make ghost marker a real marker
+            markers = [...markers.slice(0, ghostMarkerIndex), ghostMarker, ...markers.slice(ghostMarkerIndex)]
+            ghostMarker._icon.style.opacity = "100%"
+            ghostMarker = null
+
+            // skip adding normal marker
+            supress = true
+            const listener = () => {
+                setTimeout(() => {
+                    supress = false
+                    removeEventListener("mouseup", listener)
+                }, 0)
+            }
+            map.addEventListener("mouseup", listener)
+
+            reAdd()
+            saveParam()
+            dragged = true
+            clear()
+        }
+
+        const click = () => {
+            if (!dragged) return
+            ghostMarker = null
+            removeMarker(marker)
+            clear()
+        }
+        const marker = markerFactory("blue")
+            .addEventListener("click", click)
+            .addEventListener("dragstart click", selfRemove)
+            .addEventListener("mousemove", mousemove)
+        marker._icon.style.opacity = "50%"
+        marker._icon.style.paddingBottom = "10px"
+        marker._icon.style.zIndex = "0"
+        marker._icon.style.boxSizing = "content-box"
+        return marker
+    }
+
     const onLineHover = (e) => {
         // skip adding marker
         map.removeEventListener("click", addMarker)
         setTimeout(() => map.addEventListener("click", addMarker), 0)
 
+        // find closest point on line
         let minPoint = null
         let minDistance = Number.POSITIVE_INFINITY
         ghostMarkerIndex = 0
@@ -197,46 +248,17 @@ export const getMeasuringController = (map) => {
             }
         }
         if (!ghostMarker) {
-            let dragged = false
-            const marker = markerFactory("blue")
-                .addEventListener("click", () => {
-                    markers.splice(markers.indexOf(marker), 1)
-                    marker.remove()
-                    ghostMarker = null
-                    reAdd()
-                    saveParam()
-                })
-                .addEventListener("dragstart", (e) => {
-                    if (dragged) return
-                    markers = [...markers.slice(0, ghostMarkerIndex), ghostMarker, ...markers.slice(ghostMarkerIndex)]
-                    ghostMarker._icon.style.opacity = "100%"
-                    ghostMarker = null
-
-                    // skip adding marker
-                    supress = true
-                    map.addEventListener("mouseup", () => {
-                        setTimeout(() => {
-                            supress = false
-                        }, 0)
-                    })
-
-                    reAdd()
-                    saveParam()
-                    dragged = true
-                })
-                .addEventListener("mousemove", (e) => {
-                    const rect = map._container.getBoundingClientRect()
-                    const x = e.originalEvent.clientX - rect.left
-                    const y = e.originalEvent.clientY - rect.top
-                    onLineHover({ latlng: map.containerPointToLatLng([x, y]) })
-                })
+            const marker = createGhostMarker()
             ghostMarker = marker
         }
         ghostMarker.setLatLng(map.layerPointToLatLng(minPoint))
-        ghostMarker._icon.style.opacity = "50%"
-        ghostMarker._icon.style.paddingBottom = "10px"
-        ghostMarker._icon.style.zIndex = "0"
-        ghostMarker._icon.style.boxSizing = "content-box"
+    }
+
+    const checkHover = (e) => {
+        if (e.target === ghostMarker?._icon || e.target === line?._path || e.target in divIcons.map((e) => e._icon))
+            return
+        ghostMarker?.remove()
+        ghostMarker = null
     }
 
     return {
@@ -254,27 +276,18 @@ export const getMeasuringController = (map) => {
 
                     addMarker({ latlng: { lat: lat, lng: lng } })
                 }
+            }
 
-                if (markers.length > 1) {
-                    const bounds = line.getBounds()
-                    map.fitBounds(bounds, {
-                        animate: false,
-                    })
-                }
+            if (markers.length > 1) {
+                const bounds = line.getBounds()
+                map.fitBounds(bounds, {
+                    animate: false,
+                })
             }
 
             switchActionSidebar(map, "measure")
             map.addEventListener("click", addMarker)
-            document.addEventListener("mousemove", (e) => {
-                if (
-                    e.target === ghostMarker?._icon ||
-                    e.target === line?._path ||
-                    e.target in divIcons.map((e) => e._icon)
-                )
-                    return
-                ghostMarker?.remove()
-                ghostMarker = null
-            })
+            document.addEventListener("mousemove", checkHover)
         },
         unload: () => {
             for (const label of divIcons) {
