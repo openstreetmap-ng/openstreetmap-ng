@@ -48,7 +48,7 @@ export const formatLatLon = (latLng) => {
  * @returns {void}
  */
 export const configureContextMenu = (map) => {
-    const element = document.querySelector(".leaflet-context-menu")
+    const element = document.querySelector(".context-menu")
     const geolocationField = element.querySelector(".geolocation-dd")
     const geolocationGeoField = element.querySelector(".geolocation-geo")
     const geolocationUriField = element.querySelector(".geolocation-uri")
@@ -104,7 +104,7 @@ export const configureContextMenu = (map) => {
 
     // On routing from button click, navigate to routing page
     const onRoutingFromButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
             `/directions?${qsEncode({
@@ -115,7 +115,7 @@ export const configureContextMenu = (map) => {
 
     // On routing to button click, navigate to routing page
     const onRoutingToButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
             `/directions?${qsEncode({
@@ -126,14 +126,14 @@ export const configureContextMenu = (map) => {
 
     // On new note button click, navigate to new-note page
     const onNewNoteButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat, zoom } = getPopupPosition()
         routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     }
 
     // On show address button click, navigate to search page
     const onShowAddressButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(
             `/search?${qsEncode({
@@ -145,20 +145,20 @@ export const configureContextMenu = (map) => {
 
     // On query features button click, navigate to query-features page
     const onQueryFeaturesButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat, zoom } = getPopupPosition()
         routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     }
 
     // On center here button click, center the map
     const onCenterHereButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         map.panTo(popup.getLatLng())
     }
 
     // On measure distance button click, measure distance
     const onMeasureDistanceButtonClick = () => {
-        map.closePopup(popup)
+        closePopup()
         const { lon, lat } = getPopupPosition()
         routerNavigateStrict(`/distance?${qsEncode({ pos: `${lat},${lon}` })}`)
     }
@@ -168,7 +168,7 @@ export const configureContextMenu = (map) => {
     }
 
     const onGeolocationFieldClick = async (event) => {
-        map.closePopup(popup)
+        closePopup()
         try {
             await navigator.clipboard.writeText(event.target.innerText)
             console.debug("Text copied to clipboard")
