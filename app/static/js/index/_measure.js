@@ -128,7 +128,6 @@ export const getMeasuringController = (map) => {
 
     const addMarker = (e) => {
         if (supress) return
-        console.error("adding marker (how)")
         // if there are 0 markers create green one
         if (markers.length === 0) {
             const startMarker = markerFactory("green").setLatLng(e.latlng)
@@ -210,9 +209,7 @@ export const getMeasuringController = (map) => {
                 .addEventListener("dragstart", (e) => {
                     if (dragged) return
                     markers = [...markers.slice(0, ghostMarkerIndex), ghostMarker, ...markers.slice(ghostMarkerIndex)]
-                    ghostMarker._icon.style.pointerEvents = "all"
-                    ghostMarker._icon.style.paddingBottom = "10px"
-                    ghostMarker._icon.style.boxSizing = "content-box"
+                    ghostMarker._icon.style.opacity = "100%"
                     ghostMarker = null
 
                     // skip adding marker
@@ -220,7 +217,7 @@ export const getMeasuringController = (map) => {
                     map.addEventListener("mouseup", () => {
                         setTimeout(() => {
                             supress = false
-                        }, 200)
+                        }, 0)
                     })
 
                     reAdd()
@@ -236,7 +233,9 @@ export const getMeasuringController = (map) => {
             ghostMarker = marker
         }
         ghostMarker.setLatLng(map.layerPointToLatLng(minPoint))
+        ghostMarker._icon.style.opacity = "50%"
         ghostMarker._icon.style.paddingBottom = "10px"
+        ghostMarker._icon.style.zIndex = "0"
         ghostMarker._icon.style.boxSizing = "content-box"
     }
 
@@ -266,6 +265,16 @@ export const getMeasuringController = (map) => {
 
             switchActionSidebar(map, "measure")
             map.addEventListener("click", addMarker)
+            document.addEventListener("mousemove", (e) => {
+                if (
+                    e.target === ghostMarker?._icon ||
+                    e.target === line?._path ||
+                    e.target in divIcons.map((e) => e._icon)
+                )
+                    return
+                ghostMarker?.remove()
+                ghostMarker = null
+            })
         },
         unload: () => {
             for (const label of divIcons) {
@@ -277,6 +286,9 @@ export const getMeasuringController = (map) => {
             divIcons = []
             markers = []
             line?.remove()
+            ghostMarker?.remove()
+            line = null
+            ghostMarker = null
 
             map.removeEventListener("click", addMarker)
             line?.removeEventListener("mousemove", onLineHover)
