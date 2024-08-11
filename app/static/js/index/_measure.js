@@ -1,3 +1,4 @@
+import { read } from "bun:ffi"
 import { qsEncode, qsParse } from "../_qs.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
@@ -54,7 +55,9 @@ export const getMeasuringController = (map) => {
                 html: `<div style="transform:rotate(${angle}deg)">${num}</div>`,
                 iconSize: [0, 0],
             }),
-        }).addTo(map)
+        })
+            .addTo(map)
+            .on("click", onLineClick)
         divIcons.push(label)
         param += `;${point.lat.toFixed(4)},${point.lng.toFixed(4)}`
 
@@ -128,8 +131,8 @@ export const getMeasuringController = (map) => {
             markers.push(startMarker)
             startMarker.addEventListener("click", onTailMarkerClick)
             param = `${e.latlng.lat.toFixed(4)},${e.latlng.lng.toFixed(4)}`
-            line = L.polyline([e.latlng], { color: "yellow", weight: 5 }).addTo(map)
-            line.addEventListener("click", onLineClick)
+            line = L.polyline([e.latlng], { color: "#6ea8fe", weight: 5, noClip: true }).addTo(map)
+            line.addEventListener("mousedown", onLineClick)
             totalDistanceLabel.innerText = "0km"
             return
         }
@@ -158,9 +161,47 @@ export const getMeasuringController = (map) => {
     }
 
     const onLineClick = (e) => {
+        // TODO: clicking on line should add marker
+        // why closestLayerPoint returns null?
+
         // skip adding marker
         map.removeEventListener("click", addMarker)
         setTimeout(() => map.addEventListener("click", addMarker), 0)
+
+        console.log("clicked on line. \nI have no idea what to do")
+
+        let minPoint = null
+        let minDistance = Number.POSITIVE_INFINITY
+        let index = 0
+
+        for (let i = 1; i < markers.length; i++) {
+            const marker = markers[i]
+            const previous = markers[i - 1]
+            const point = L.LineUtil.closestPointOnSegment(
+                map.latLngToLayerPoint(e.latlng),
+                map.latLngToLayerPoint(marker.getLatLng()),
+                map.latLngToLayerPoint(previous.getLatLng()),
+            )
+            const distance = map.distance(map.layerPointToLatLng(point), e.latlng)
+            if (distance < minDistance) {
+                minPoint = point
+                minDistance = distance
+                index = i
+            }
+        }
+
+        const marker = markerFactory("blue")
+            .setLatLng(map.layerPointToLatLng(minPoint))
+            .addEventListener("click", () => {
+                markers.splice(markers.indexOf(marker), 1)
+                marker.remove()
+                reAdd()
+                saveParam()
+            })
+        console.log(minPoint, index)
+        markers = [...markers.slice(0, index), ...markers.slice(index)]
+        reAdd()
+        saveParam()
     }
 
     return {
@@ -178,14 +219,16 @@ export const getMeasuringController = (map) => {
 
                     addMarker({ latlng: { lat: lat, lng: lng } })
                 }
-                const bounds = line.getBounds()
-                map.fitBounds(bounds, {
-                    animate: false,
-                })
 
-                switchActionSidebar(map, "measure")
+                if (markers.length > 1) {
+                    const bounds = line.getBounds()
+                    map.fitBounds(bounds, {
+                        animate: false,
+                    })
+                }
             }
 
+            switchActionSidebar(map, "measure")
             map.addEventListener("click", addMarker)
         },
         unload: () => {
