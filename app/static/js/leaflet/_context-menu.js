@@ -160,7 +160,7 @@ export const configureContextMenu = (map) => {
     const onMeasureDistanceButtonClick = () => {
         map.closePopup(popup)
         const { lon, lat } = getPopupPosition()
-        routerNavigateStrict(`/measure?${qsEncode({ pos: `${lat},${lon}` })}`)
+        routerNavigateStrict(`/distance?${qsEncode({ pos: `${lat},${lon}` })}`)
     }
 
     const closePopup = () => {

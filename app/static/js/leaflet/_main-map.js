@@ -15,7 +15,7 @@ import { getQueryFeaturesController } from "../index/_query-features.js"
 import { configureContextMenu } from "./_context-menu.js"
 import { configureRouter } from "../index/_router.js"
 import { getRoutingController } from "../index/_routing.js"
-import { getMeasuringController } from "../index/_measure.js"
+import { getMeasuringController } from "../index/_distance.js"
 import { configureSearchForm } from "../index/_search-form.js"
 import { getSearchController } from "../index/_search.js"
 import { configureDataLayer } from "./_data-layer.js"
@@ -163,7 +163,7 @@ export const configureMainMap = (container) => {
             ["/changeset/(?<id>\\d+)", getChangesetController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)(?:/history/(?<version>\\d+))?", getElementController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)/history", getElementHistoryController(map)],
-            ["/measure", getMeasuringController(map)],
+            ["/distance", getMeasuringController(map)],
         ]),
     )
 

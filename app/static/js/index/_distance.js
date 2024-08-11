@@ -8,7 +8,7 @@ import * as L from "leaflet"
 const logTen = Math.log(10)
 
 export const getMeasuringController = (map) => {
-    const sidebar = getActionSidebar("measure")
+    const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
     let markers = []
     let divIcons = []
@@ -47,7 +47,7 @@ export const getMeasuringController = (map) => {
         const label = L.marker(middle, {
             pane: "labelPane",
             icon: L.divIcon({
-                className: "measure-label",
+                className: "distance-label",
                 html: `<div style="transform:rotate(${angle}deg)">${num}</div>`,
                 iconSize: [0, 0],
             }),
@@ -285,7 +285,7 @@ export const getMeasuringController = (map) => {
                 })
             }
 
-            switchActionSidebar(map, "measure")
+            switchActionSidebar(map, "distance")
             map.addEventListener("click", addMarker)
             document.addEventListener("mousemove", checkHover)
         },

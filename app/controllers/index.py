@@ -26,7 +26,7 @@ async def robots():
 @router.get('/directions')
 @router.get('/search')
 @router.get('/query')
-@router.get('/measure')
+@router.get('/distance')
 @router.get('/history')
 @router.get('/history/nearby')
 @router.get('/history/friends')
