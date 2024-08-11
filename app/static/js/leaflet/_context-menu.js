@@ -37,9 +37,9 @@ export const formatDegrees = (decimalDegree) => {
 export const formatLatLon = (latLng) => {
     const lat = formatDegrees(latLng.lat)
     const lon = formatDegrees(latLng.lng)
-    const lat_dir = latLng.lat == 0 ? "" : latLng.lat > 0 ? "N" : "S"
-    const lon_dir = latLng.lat == 0 ? "" : latLng.lat > 0 ? "E" : "W"
-    return `${lat}${lat_dir}, ${lon}${lon_dir}`
+    const latDir = latLng.lat === 0 ? "" : latLng.lat > 0 ? "N" : "S"
+    const lonDir = latLng.lat === 0 ? "" : latLng.lat > 0 ? "E" : "W"
+    return `${lat}${latDir}, ${lon}${lonDir}`
 }
 
 /**

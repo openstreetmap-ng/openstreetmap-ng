@@ -12,9 +12,10 @@ export const getMeasuringController = (map) => {
     let divIcons = []
     let line = null
     let distance = 0
+    let param = ""
 
     map.createPane("labelPane")
-    map.getPane("labelPane").style.zIndex = 450
+    map.getPane("labelPane").style.zIndex = 400
     map.getPane("labelPane").style.pointerEvents = "none"
 
     const formatDistance = (distance) => {
@@ -25,7 +26,14 @@ export const getMeasuringController = (map) => {
         return num
     }
 
-    const updateLabel = (index) => {
+    const saveParam = () => {
+        if (param[0] === ";") param = param.substring(1)
+        const url = new URL(document.URL)
+        url.searchParams.set("pos", param)
+        history.replaceState(null, "", url)
+    }
+
+    const addLabel = (index) => {
         const point = markers[index].getLatLng()
         const previous = markers[index - 1].getLatLng()
         const middle = L.LineUtil.polylineCenter([point, previous], L.CRS.EPSG3857)
@@ -48,33 +56,40 @@ export const getMeasuringController = (map) => {
             }),
         }).addTo(map)
         divIcons.push(label)
+        param += `;${point.lat.toFixed(4)},${point.lng.toFixed(4)}`
+
         distance += _distance
         totalDistanceLabel.innerText = formatDistance(distance)
     }
 
-    const updateLabels = () => {
+    const addLabels = () => {
         distance = 0
+        const point = markers[0].getLatLng()
+        param = `${point.lat.toFixed(4)},${point.lng.toFixed(4)}`
         for (const icon of divIcons) {
             icon.remove()
         }
         divIcons = []
         for (let index = 1; index < markers.length; index++) {
-            updateLabel(index)
+            addLabel(index)
         }
+    }
+
+    const reAdd = () => {
+        updateLine()
+        addLabels()
     }
 
     const updateLine = () => {
         const latLngs = markers.map((marker) => marker.getLatLng())
-
         line.setLatLngs(latLngs)
-        updateLabels()
     }
 
     const onMarkerDrag = () => {
         // after dragging markers have wrong z-indexes
         map.fire("viewreset")
 
-        updateLine()
+        reAdd()
     }
 
     const markerFactory = (color) =>
@@ -85,6 +100,7 @@ export const getMeasuringController = (map) => {
         })
             .addTo(map)
             .on("drag", onMarkerDrag)
+            .on("dragend", saveParam)
 
     const onHeadMarkerClick = () => {
         if (markers.length === 2) return
@@ -92,7 +108,8 @@ export const getMeasuringController = (map) => {
         markers.splice(markers.length - 2, 1)
         markers[markers.length - 1].setLatLng(lastMarker.getLatLng())
         lastMarker.remove() // remove second to last marker from map
-        updateLine()
+        reAdd()
+        saveParam()
     }
 
     const onTailMarkerClick = () => {
@@ -100,10 +117,23 @@ export const getMeasuringController = (map) => {
         markers[0].setLatLng(markers[1].getLatLng())
         markers[1].remove()
         markers.splice(1, 1)
-        updateLine()
+        reAdd()
+        saveParam()
     }
 
     const addMarker = (e) => {
+        // if there are 0 markers create green one
+        if (markers.length === 0) {
+            const startMarker = markerFactory("green").setLatLng(e.latlng)
+            markers.push(startMarker)
+            startMarker.addEventListener("click", onTailMarkerClick)
+            param = `${e.latlng.lat.toFixed(4)},${e.latlng.lng.toFixed(4)}`
+            line = L.polyline([e.latlng], { color: "yellow", weight: 5 }).addTo(map)
+            line.addEventListener("click", onLineClick)
+            totalDistanceLabel.innerText = "0km"
+            return
+        }
+
         // if there is 1 marker create red marker, else blue
         if (markers.length === 1) {
             const headMarker = markerFactory("red")
@@ -115,14 +145,16 @@ export const getMeasuringController = (map) => {
                 .addEventListener("click", () => {
                     markers.splice(markers.indexOf(marker), 1)
                     marker.remove()
-                    updateLine()
+                    reAdd()
+                    saveParam()
                 })
             markers.splice(markers.length - 1, 0, marker)
         }
 
         markers[markers.length - 1].setLatLng(e.latlng)
         line.addLatLng(e.latlng)
-        updateLabel(markers.length - 1)
+        addLabel(markers.length - 1)
+        saveParam()
     }
 
     const onLineClick = (e) => {
@@ -136,32 +168,39 @@ export const getMeasuringController = (map) => {
             distance = 0
             const searchParams = qsParse(location.search.substring(1))
             if (searchParams.pos) {
-                const [lat, lon] = searchParams.pos.split(",")
-                const startMarker = markerFactory("green").setLatLng([lat, lon])
-                markers.push(startMarker)
-                startMarker.addEventListener("click", onTailMarkerClick)
+                const positions = searchParams.pos.split(";")
+                if (positions.length === 0) return
+                for (const pos of positions) {
+                    const [lat, lng] = pos.split(",").map(Number)
 
-                line = L.polyline([[lat, lon]], { color: "yellow", weight: 5 }).addTo(map)
-                totalDistanceLabel.innerText = "0km"
+                    // Grecefully handle errors
+                    if (Number.isNaN(lat + lng) && !Number.isFinite(lat + lng)) continue
+
+                    addMarker({ latlng: { lat: lat, lng: lng } })
+                }
+                const bounds = line.getBounds()
+                map.fitBounds(bounds, {
+                    animate: false,
+                })
+
                 switchActionSidebar(map, "measure")
             }
 
             map.addEventListener("click", addMarker)
-            line.addEventListener("click", onLineClick)
         },
         unload: () => {
             for (const label of divIcons) {
-                label.remove()
+                label?.remove()
             }
             for (const label of markers) {
-                label.remove()
+                label?.remove()
             }
             divIcons = []
             markers = []
-            line.remove()
+            line?.remove()
 
             map.removeEventListener("click", addMarker)
-            line.removeEventListener("click", onLineClick)
+            line?.removeEventListener("click", onLineClick)
         },
     }
 }
