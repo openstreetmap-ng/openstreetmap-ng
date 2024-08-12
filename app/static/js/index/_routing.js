@@ -234,7 +234,6 @@ export const getRoutingController = (map) => {
     // On success callback, call routing engine, display results, and update search params
     const onFormSuccess = (data) => {
         console.debug("onFormSuccess", data)
-        console.log(fromMarker, data.from)
 
         if (data.from) {
             const { bounds, geom, name } = data.from
@@ -379,7 +378,6 @@ export const getRoutingController = (map) => {
                 popup.setContent(content.innerHTML)
                 const latLng = L.latLng(step.geom[0])
                 popup.setLatLng(latLng)
-                console.log(content.innerHTML)
                 map.openPopup(popup)
             }
 

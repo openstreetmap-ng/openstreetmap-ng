@@ -32,15 +32,18 @@
             {% include 'index/_data_layer_alert.jinja2' %}
             {% include 'index/_search_alert.jinja2' %}
         </div>
-        <div class="context-menu">
-            {% include 'index/_contextmenu.jinja2' %}
-        </div>
     </div>
 
     <div class="sidebar">
         {% include 'leaflet/_sidebar_layers.jinja2' %}
         {% include 'leaflet/_sidebar_legend.jinja2' %}
         {% include 'leaflet/_sidebar_share.jinja2' %}
+    </div>
+</div>
+
+<div class="d-none">
+    <div class="context-menu">
+        {% include 'index/_contextmenu.jinja2' %}
     </div>
 </div>
 
