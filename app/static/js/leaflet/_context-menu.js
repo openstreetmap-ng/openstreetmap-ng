@@ -2,45 +2,10 @@ import * as L from "leaflet"
 import { qsEncode } from "../_qs.js"
 import { zoomPrecision } from "../_utils.js"
 import { routerNavigateStrict } from "../index/_router.js"
+import { formatLatLon } from "../_format-utils.js"
 
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
-
-/**
- * Format degrees to their correct math representation
- * @param {int} decimalDegree degrees
- * @returns {string}
- * @example formatDegrees(21.32123)
- * // => "21°19′16″"
- */
-export const formatDegrees = (decimalDegree) => {
-    const degrees = Math.floor(decimalDegree)
-    const minutes = Math.floor((decimalDegree - degrees) * 60)
-    const seconds = Math.round(((decimalDegree - degrees) * 60 - minutes) * 60)
-
-    // Pad single digits with a leading zero
-    const formattedDegrees = degrees < 10 ? `0${degrees}` : `${degrees}`
-    const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`
-
-    return `${formattedDegrees}°${formattedMinutes}′${formattedSeconds}″`
-}
-
-/**
- * Format lat lon in cordinate system. See https://en.wikipedia.org/wiki/Geographic_coordinate_system
- * @param {L.LatLng} pos position on map
- * @returns {string}
- * @example formatLatLon({lat: 21.32123, 35.2134})
- * // => "21°19′16″N, 35°12′48″E"
- */
-
-export const formatLatLon = (latLng) => {
-    const lat = formatDegrees(latLng.lat)
-    const lon = formatDegrees(latLng.lng)
-    const latDir = latLng.lat === 0 ? "" : latLng.lat > 0 ? "N" : "S"
-    const lonDir = latLng.lat === 0 ? "" : latLng.lat > 0 ? "E" : "W"
-    return `${lat}${latDir}, ${lon}${lonDir}`
-}
 
 /**
  * Configure the map context menu
@@ -93,6 +58,18 @@ export const configureContextMenu = (map) => {
         map.openPopup(popup)
 
         if (element.querySelector("button.show")) element.querySelector("button.show").click()
+
+        const containerPoint = [event.containerPoint.x, event.containerPoint.y]
+        const popupSize = [element.clientWidth, element.clientHeight]
+        const containerSize = [map._container.clientWidth, map._container.clientHeight]
+
+        const isOverflowX = containerPoint[0] + popupSize[0] + 30 >= containerSize[0]
+        const isOverflowY = containerPoint[1] + popupSize[1] + 30 >= containerSize[1]
+
+        const translateX = isOverflowX ? "-100%" : "0%"
+        const translateY = isOverflowY ? "-100%" : "0%"
+
+        popup._container.style.translate = `${translateX} ${translateY}`
     }
 
     // On map zoomend, update the available buttons
@@ -180,7 +157,7 @@ export const configureContextMenu = (map) => {
     // Listen for events
     map.addEventListener("contextmenu", onMapContextMenu)
     map.addEventListener("zoomend", onMapZoomEnd)
-    map.addEventListener("zoomstart movestart", closePopup)
+    // map.addEventListener("zoomstart movestart mouseout", closePopup)
     routingFromButton.addEventListener("click", onRoutingFromButtonClick)
     routingToButton.addEventListener("click", onRoutingToButtonClick)
     newNoteButton.addEventListener("click", onNewNoteButtonClick)
