@@ -183,13 +183,7 @@ unsupported_browser:
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
 showcase: Showcase
-context:
-  suggest_edit: Suggest an edit
-  measure_distance: Measure distance
-
-mesaure_distance:
-  introduction: |-
-    Click on the map to add marker.
-    Click on the marker to remove it.
-    Drag the marker to drag it.
-  distance: Distance
+javascripts:
+  context:
+    suggest_edit: Suggest an edit
+    measure_distance: Measure distance
