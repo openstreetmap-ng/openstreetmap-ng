@@ -157,7 +157,7 @@ export const configureContextMenu = (map) => {
     // Listen for events
     map.addEventListener("contextmenu", onMapContextMenu)
     map.addEventListener("zoomend", onMapZoomEnd)
-    // map.addEventListener("zoomstart movestart mouseout", closePopup)
+    map.addEventListener("zoomstart movestart mouseout", closePopup)
     routingFromButton.addEventListener("click", onRoutingFromButtonClick)
     routingToButton.addEventListener("click", onRoutingToButtonClick)
     newNoteButton.addEventListener("click", onNewNoteButtonClick)
