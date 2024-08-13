@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="32mm"
+   height="32mm"
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   sodipodi:docname="amenity_hospital.16.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="2"
+     inkscape:cx="75.25"
+     inkscape:cy="113.25"
+     inkscape:window-width="1318"
+     inkscape:window-height="719"
+     inkscape:window-x="48"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"><sodipodi:guide
+       position="17.775336,8.4293454"
+       orientation="1,0"
+       id="guide4"
+       inkscape:locked="false" /></sodipodi:namedview><defs
+     id="defs1" /><g
+     inkscape:label="Livello 1"
+     inkscape:groupmode="layer"
+     id="layer1"><g
+       id="path19" /><g
+       id="rect22-0"
+       transform="matrix(-1,0,0,1,30.661761,0.23016813)" /><g
+       id="rect22-7"
+       transform="matrix(-1,0,0,1,30.845845,-1.8811487e-4)" /><g
+       id="path26" /><g
+       id="path52-1"
+       transform="matrix(-1,0,0,1,21.996584,0)" /><path
+       style="color:#000000;fill:#da0092;stroke-linecap:round;stroke-dashoffset:6.03213;-inkscape-stroke:none;paint-order:markers fill stroke;fill-opacity:1"
+       d="M 16,0.30664063 C 7.3372038,0.30664063 0.30664063,7.3372038 0.30664063,16 0.30664063,24.662796 7.3372038,31.693359 16,31.693359 24.662796,31.693359 31.693359,24.662796 31.693359,16 31.693359,7.3372038 24.662796,0.30664063 16,0.30664063 Z M 16,1.1386719 C 24.21261,1.1386719 30.861328,7.78739 30.861328,16 30.861328,24.21261 24.21261,30.861328 16,30.861328 7.78739,30.861328 1.1386719,24.21261 1.1386719,16 1.1386719,7.78739 7.78739,1.1386719 16,1.1386719 Z"
+       id="path6" /><path
+       id="rect74"
+       style="fill:#da0092;fill-opacity:1;stroke:none;stroke-width:0.360377;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:6.03213;stroke-opacity:1;paint-order:stroke markers fill"
+       d="M 11.64058,2.9208943 V 11.64058 H 2.9208943 v 8.719062 H 11.64058 v 8.719061 h 8.719062 v -8.719061 h 8.719061 V 11.64058 H 20.359642 V 2.9208943 Z" /></g></svg>

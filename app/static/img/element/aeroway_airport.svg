@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="32mm"
+   height="32mm"
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   sodipodi:docname="aeroway_airport.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="50.381358"
+     inkscape:cy="59.9273"
+     inkscape:window-width="1318"
+     inkscape:window-height="719"
+     inkscape:window-x="48"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"><sodipodi:guide
+       position="12.681257,4.4432019"
+       orientation="0,-1"
+       id="guide3"
+       inkscape:locked="false" /></sodipodi:namedview><defs
+     id="defs1" /><g
+     inkscape:label="Livello 1"
+     inkscape:groupmode="layer"
+     id="layer1"><g
+       id="path10-9"
+       transform="translate(28.751932,-2.4118866)"><path
+         style="color:#000000;fill:#0092da;fill-opacity:1;-inkscape-stroke:none"
+         d="m -11.812302,31.104806 0.802975,-0.03344 L -9.400887,32 -8.092176,31.649332 v -2.459773 l -2.773448,-2.608191 v -4.487611 h 1.676025 l 6.93651,2.279437 1.181751,1.081496 L 0,25.50146 v -4.159419 l -10.734236,-6.53366 -0.03771,-7.4808478 c -0.06466,-0.9025686 -1.197476,-2.1452032 -1.959086,-2.50376 h -0.0418 c -0.76161,0.3585568 -1.894426,1.6011914 -1.959086,2.50376 l -0.03771,7.4808478 -10.734236,6.53366 v 4.159419 l 1.071338,-0.04677 1.181751,-1.081496 6.93651,-2.279437 h 1.629253 v 4.487611 l -2.726676,2.608191 v 2.459773 L -16.102977,32 l 1.60844,-0.928634 0.802975,0.03344 0.939627,0.03344 z"
+         id="path10"
+         sodipodi:nodetypes="cccccccccccccccccccccccccccccccc" /></g></g></svg>
