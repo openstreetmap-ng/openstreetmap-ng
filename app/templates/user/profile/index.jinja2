@@ -41,7 +41,7 @@
             <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
                 <input type="hidden" name="avatar_type" autocomplete="off" required>
                 <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
-                <img class="avatar" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
 
                 {% if is_self %}
                 <div class="dropdown">
