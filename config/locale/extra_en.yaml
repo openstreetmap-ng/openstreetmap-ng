@@ -107,6 +107,7 @@ settings:
   preferred_language: Preferred language
   change_email: Change email
   current_email_address: Current email address
+  email_settings: Email settings
   new_email_address: New email address
   email_change_confirmation_sent: |-
     We've sent a confirmation email to your new address.
@@ -124,7 +125,7 @@ settings:
   session_id: "Session ID: {{id}}"
   current_session: Current session
   authorized_at: "Authorized at: {{date}}"
-  created_at: "Created at: {{date}}"
+  registered_at: "Registered at: {{date}}"
   authorizations:
     title: Authorizations
     description: |-

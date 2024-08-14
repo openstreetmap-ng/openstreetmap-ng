@@ -1,121 +1,98 @@
-{% extends '_base.jinja2' %}
+{% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('settings.password_and_security') }} | {% endblock %}
 {% block body_class %}settings-security-body{% endblock %}
-{% block body %}
+{% block settings_title %}{{ t('settings.password_and_security') | capitalize }}{% endblock %}
+{% block settings_body %}
 
-<div class="content-header">
-    <h1 class="container">
-        {{ t('settings.password_and_security') }}
-    </h1>
-</div>
-<div class="content-body">
-    <div class="container">
-        <div class="row">
+<h3 class="mb-3">{{ t('settings.change_password') }}</h3>
+<form class="password-form" method="POST" action="/api/web/settings/password">
+    <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}" autocomplete="username">
 
-            {% include 'settings/_nav.jinja2' %}
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.current_password') }}</span>
+        <input type="password" class="form-control mt-2" name="old_password" autocomplete="current-password" required>
+    </label>
 
-            <div class="col">
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.new_password') }}</span>
+        <input type="password" class="form-control mt-2" name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
+            maxlength="{{ PASSWORD_MAX_LENGTH }}" autocomplete="new-password" required>
+    </label>
 
-                <h3 class="mb-3">{{ t('settings.change_password') }}</h3>
-                <form class="password-form" method="POST" action="/api/web/settings/password">
-                    <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}"
-                        autocomplete="username">
+    <label class="form-label d-block mb-3">
+        <span class="required">{{ t('settings.new_password_repeat') }}</span>
+        <input type="password" class="form-control mt-2" name="new_password_confirm"
+            minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}" autocomplete="new-password"
+            required>
+    </label>
 
-                    <label class="form-label d-block mb-3">
-                        <span class="required">{{ t('settings.current_password') }}</span>
-                        <input type="password" class="form-control mt-2" name="old_password"
-                            autocomplete="current-password" required>
-                    </label>
-
-                    <label class="form-label d-block mb-3">
-                        <span class="required">{{ t('settings.new_password') }}</span>
-                        <input type="password" class="form-control mt-2" name="new_password"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
-                            autocomplete="new-password" required>
-                    </label>
-
-                    <label class="form-label d-block mb-3">
-                        <span class="required">{{ t('settings.new_password_repeat') }}</span>
-                        <input type="password" class="form-control mt-2" name="new_password_confirm"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
-                            autocomplete="new-password" required>
-                    </label>
-
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <div class="form-check">
-                                <label class="form-check-label">
-                                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions"
-                                        value="true">
-                                    {{ t('settings.logout_from_browsers') }}
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <a class="link-primary"
-                                href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn btn-primary px-3" type="submit">
-                                {{ t('action.submit') }}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-
-                <hr class="my-4">
-
-                {#
-                <form class="two-factor-form" method="POST" action="/api/web/settings/two-factor">
-                    <h3 class="mb-3">{{ t('settings.two_factor_auth') }}</h3>
-                    TODO: token, u2f, recovery
-                </form>
-
-                <hr class="my-4">
-                #}
-
-                <h3>{{ t('settings.active_sessions') }}</h3>
-                <ul class="active-sessions list-unstyled">
-                    {% for session in active_sessions %}
-                    <li>
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <h6 class="mb-1">
-                                    {% set id %}
-                                    <span class="session-id">{{ session.id }}</span>
-                                    {% endset %}
-                                    {{ t('settings.session_id', id=id) | safe }}
-                                    {% if session.id == current_session_id %}
-                                    <span class="current-session badge text-bg-green ms-1">
-                                        {{ t('settings.current_session') }}
-                                    </span>
-                                    {% endif %}
-                                </h6>
-                                <p class="form-text mb-0">
-                                    {% set date %}
-                                    {{ format_rfc2822_date(session.authorized_at) }}
-                                    ({{ session.authorized_at | timeago }})
-                                    {% endset %}
-                                    {{ t('settings.authorized_at', date=date) }}
-                                </p>
-                            </div>
-                            <div class="col-auto align-self-center">
-                                <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
-                                    <input type="hidden" name="token_id" value="{{ session.id }}">
-                                    <button class="btn btn-sm btn-light border" type="submit">
-                                        {{ t('layouts.logout') }}
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-
+    <div class="row align-items-center">
+        <div class="col">
+            <div class="form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true">
+                    {{ t('settings.logout_from_browsers') }}
+                </label>
             </div>
-
+        </div>
+        <div class="col-auto">
+            <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary px-3" type="submit">
+                {{ t('action.submit') }}
+            </button>
         </div>
     </div>
-</div>
+</form>
+
+<hr class="my-4">
+
+{#
+<form class="two-factor-form" method="POST" action="/api/web/settings/two-factor">
+    <h3 class="mb-3">{{ t('settings.two_factor_auth') }}</h3>
+    TODO: token, u2f, recovery
+</form>
+
+<hr class="my-4">
+#}
+
+<h3>{{ t('settings.active_sessions') }}</h3>
+<ul class="active-sessions list-unstyled">
+    {% for session in active_sessions %}
+    <li>
+        <div class="row align-items-center">
+            <div class="col">
+                <h6 class="mb-1">
+                    {% set id %}
+                    <span class="session-id">{{ session.id }}</span>
+                    {% endset %}
+                    {{ t('settings.session_id', id=id) | safe }}
+                    {% if session.id == current_session_id %}
+                    <span class="current-session badge text-bg-green ms-1">
+                        {{ t('settings.current_session') }}
+                    </span>
+                    {% endif %}
+                </h6>
+                <p class="form-text mb-0">
+                    {% set date %}
+                    {{ format_rfc2822_date(session.authorized_at) }}
+                    ({{ session.authorized_at | timeago }})
+                    {% endset %}
+                    {{ t('settings.authorized_at', date=date) }}
+                </p>
+            </div>
+            <div class="col-auto align-self-center">
+                <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
+                    <input type="hidden" name="token_id" value="{{ session.id }}">
+                    <button class="btn btn-sm btn-light border" type="submit">
+                        {{ t('layouts.logout') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

@@ -1,63 +1,43 @@
-{% extends '_base.jinja2' %}
-{% block title_prefix %}{{ t('passwords.new.email address') | capitalize }} | {% endblock %}
+{% extends 'settings/_base.jinja2' %}
+{% block title_prefix %}{{ t('settings.email_settings') | capitalize }} | {% endblock %}
 {% block body_class %}settings-email-body{% endblock %}
-{% block body %}
+{% block settings_title %}{{ t('settings.email_settings') | capitalize }}{% endblock %}
+{% block settings_body %}
 
-<div class="content-header">
-    <h1 class="container">
-        {{ t('passwords.new.email address') | capitalize }}
-    </h1>
-</div>
-<div class="content-body">
-    <div class="container">
-        <div class="row">
+<h3 class="mb-3">{{ t('settings.change_email') }}</h3>
+<form class="email-form" method="POST" action="/api/web/settings/email">
+    <label class="form-label d-block mb-3">
+        {{ t('settings.current_email_address') }}
+        <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}" readonly>
+    </label>
 
-            {% include 'settings/_nav.jinja2' %}
+    <label class="form-label d-block">
+        <span class="required">{{ t('settings.new_email_address') }}</span>
+        <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
+            maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
+    </label>
+    <p class="form-text">
+        {% set privacy_policy_link %}
+        <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
+            {{ t('users.new.privacy_policy') }}
+        </a>
+        {% endset %}
+        {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
+    </p>
 
-            <div class="col">
+    <label class="form-label d-block">
+        <span class="required">{{ t('sessions.new.password') }}</span>
+        <input type="password" class="form-control mt-2" name="password" autocomplete="current-password" required>
+    </label>
+    <p class="form-text">
+        <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
+    </p>
 
-                <h3 class="mb-3">{{ t('settings.change_email') }}</h3>
-                <form class="email-form" method="POST" action="/api/web/settings/email">
-                    <label class="form-label d-block mb-3">
-                        {{ t('settings.current_email_address') }}
-                        <input type="email" class="form-control bg-body-tertiary mt-2" value="{{ user.email }}"
-                            readonly>
-                    </label>
-
-                    <label class="form-label d-block">
-                        <span class="required">{{ t('settings.new_email_address') }}</span>
-                        <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
-                            maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
-                    </label>
-                    <p class="form-text">
-                        {% set privacy_policy_link %}
-                        <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
-                            {{ t('users.new.privacy_policy') }}
-                        </a>
-                        {% endset %}
-                        {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
-                    </p>
-
-                    <label class="form-label d-block">
-                        <span class="required">{{ t('sessions.new.password') }}</span>
-                        <input type="password" class="form-control mt-2" name="password" autocomplete="current-password"
-                            required>
-                    </label>
-                    <p class="form-text">
-                        <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
-                    </p>
-
-                    <div class="text-end">
-                        <button class="btn btn-primary px-3" type="submit">
-                            {{ t('action.submit') }}
-                        </button>
-                    </div>
-                </form>
-
-            </div>
-
-        </div>
+    <div class="text-end">
+        <button class="btn btn-primary px-3" type="submit">
+            {{ t('action.submit') }}
+        </button>
     </div>
-</div>
+</form>
 
 {% endblock %}

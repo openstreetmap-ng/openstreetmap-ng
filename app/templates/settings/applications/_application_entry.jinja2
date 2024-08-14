@@ -24,7 +24,7 @@
                         {{ format_rfc2822_date(app.created_at) }}
                         ({{ app.created_at | timeago }})
                         {% endset %}
-                        {{ t('settings.created_at', date=date) }}
+                        {{ t('settings.registered_at', date=date) }}
                         {% endif %}
                         <br>
 
