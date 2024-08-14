@@ -36,6 +36,7 @@
 
                 <p class="mx-2">{{ t('settings.authorizations.description') }}</p>
                 <ul class="applications-list list-unstyled">
+                    {% set expanded = false %}
                     {% for token in tokens %}
                     {% set app = token.application %}
                     <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>

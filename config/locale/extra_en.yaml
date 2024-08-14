@@ -124,6 +124,7 @@ settings:
   session_id: "Session ID: {{id}}"
   current_session: Current session
   authorized_at: "Authorized at: {{date}}"
+  created_at: "Created at: {{date}}"
   authorizations:
     title: Authorizations
     description: |-
@@ -149,6 +150,7 @@ settings:
     Please check your inbox and click on the reset link to set a new password.
     It may take a few minutes for the email to arrive.
 permissions:
+  none: None
   read_user_preferences: Read user preferences
   modify_user_preferences: Modify user preferences
   manage_changesets_and_map_data: Manage changesets and map data

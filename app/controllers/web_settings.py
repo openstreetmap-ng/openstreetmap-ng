@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form, Response, UploadFile
 
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
+from app.limits import OAUTH_APP_NAME_MAX_LENGTH
 from app.models.db.user import AvatarType, Editor, User
 from app.models.types import (
     LocaleCode,
@@ -13,6 +14,7 @@ from app.models.types import (
     ValidatingPasswordType,
 )
 from app.services.auth_service import AuthService
+from app.services.oauth2_application_service import OAuth2ApplicationService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
 
@@ -106,3 +108,12 @@ async def settings_revoke_application(
 ):
     await OAuth2TokenService.revoke_by_app_id(application_id)
     return Response()
+
+
+@router.post('/settings/applications/admin/create')
+async def create_application(
+    _: Annotated[User, web_user()],
+    name: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_NAME_MAX_LENGTH)],
+):
+    app_id = await OAuth2ApplicationService.create(name=name)
+    return {'redirect_url': f'/settings/applications/admin/{app_id}'}

@@ -36,6 +36,7 @@
 
                 <p class="mx-2">{{ t('settings.my_applications.description') }}</p>
                 <ul class="applications-list list-unstyled">
+                    {% set expanded = true %}
                     {% for app in apps %}
                     <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
                     {% endfor %}
@@ -45,11 +46,11 @@
                 {% endif %}
 
                 <div class="text-end">
-                    <button class="create-new-application-btn btn btn-primary" type="button">
+                    <button class="create-application-btn btn btn-primary" type="button">
                         <i class="bi bi-plus-lg"></i>
                         {{ t('settings.my_applications.create_new_application') }}
                     </button>
-                    <form class="offset-8 d-flex d-none" method="POST"
+                    <form class="create-application-form offset-8 d-flex d-none" method="POST"
                         action="/api/web/settings/applications/admin/create">
                         <input type="text" class="form-control me-2" name="name" placeholder="{{ t('settings.name') }}"
                             maxlength="{{ OAUTH_APP_NAME_MAX_LENGTH }}" required>

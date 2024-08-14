@@ -28,15 +28,22 @@ if (settingsApplicationsBody) {
         configureStandardForm(form, onRevokeApplicationFormSuccess)
     }
 
-    const createNewApplicationButton = settingsApplicationsBody.querySelector(".create-new-application-btn")
-    if (createNewApplicationButton) {
+    const createApplicationButton = settingsApplicationsBody.querySelector(".create-application-btn")
+    if (createApplicationButton) {
+        const createApplicationForm = settingsApplicationsBody.querySelector(".create-application-form")
+
         const onCreateNewApplicationClick = () => {
-            createNewApplicationButton.classList.add("d-none")
-            const form = createNewApplicationButton.parentElement.querySelector("form")
-            form.classList.remove("d-none")
-            form.elements.name.focus()
+            createApplicationButton.classList.add("d-none")
+            createApplicationForm.classList.remove("d-none")
+            createApplicationForm.elements.name.focus()
         }
 
-        createNewApplicationButton.addEventListener("click", onCreateNewApplicationClick)
+        const onCreateApplicationFormSuccess = ({ redirect_url }) => {
+            console.debug("onCreateApplicationFormSuccess", redirect_url)
+            window.location = redirect_url
+        }
+
+        createApplicationButton.addEventListener("click", onCreateNewApplicationClick)
+        configureStandardForm(createApplicationForm, onCreateApplicationFormSuccess)
     }
 }
