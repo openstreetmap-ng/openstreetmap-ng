@@ -5,6 +5,7 @@
     "@babel/cli": "^7.24.7",
     "@babel/core": "^7.24.7",
     "@babel/preset-env": "^7.24.7",
+    "@googlemaps/polyline-codec": "^1.0.28",
     "@rapideditor/rapid": "^2.3.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",

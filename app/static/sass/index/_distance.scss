@@ -1,20 +1,8 @@
-.distance-label {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    div {
-        position: absolute;
-        background-color: $blue-500;
-        padding-left: 2px;
-        padding-right: 2px;
-        border-radius: 2px;
-        color:$white;
-    }
-}
-
 .action-sidebar.distance {
     background: $white;
-    border-bottom-right-radius: 10px;
+    border-bottom-right-radius: $border-radius;
+
+    .total-distance {
+        font-weight: 600;
+    }
 }
