@@ -1,5 +1,5 @@
+import { decode } from "@googlemaps/polyline-codec"
 import i18next from "i18next"
-import { polylineDecode } from "../../_polyline-decoder.js"
 import { qsEncode } from "../../_qs.js"
 import "../../_types.js"
 
@@ -50,7 +50,7 @@ const makeEngine = (profile) => {
                 const steps = []
 
                 for (const step of leg.steps) {
-                    const stepPoints = polylineDecode(step.geometry, 6)
+                    const stepPoints = decode(step.geometry, 6)
                     const maneuverId = getManeuverId(step.maneuver)
                     steps.push({
                         geom: stepPoints.map(([lon, lat]) => [lat, lon]),

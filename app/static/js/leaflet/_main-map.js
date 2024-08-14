@@ -5,6 +5,7 @@ import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { getChangesetController } from "../index/_changeset.js"
 import { getChangesetsHistoryController } from "../index/_changesets-history.js"
+import { getDistanceController } from "../index/_distance.js"
 import { getElementHistoryController } from "../index/_element-history.js"
 import { getElementController } from "../index/_element.js"
 import { getExportController } from "../index/_export.js"
@@ -12,12 +13,11 @@ import { getIndexController } from "../index/_index.js"
 import { getNewNoteController } from "../index/_new-note.js"
 import { getNoteController } from "../index/_note.js"
 import { getQueryFeaturesController } from "../index/_query-features.js"
-import { configureContextMenu } from "./_context-menu.js"
 import { configureRouter } from "../index/_router.js"
 import { getRoutingController } from "../index/_routing.js"
-import { getMeasuringController } from "../index/_distance.js"
 import { configureSearchForm } from "../index/_search-form.js"
 import { getSearchController } from "../index/_search.js"
+import { configureContextMenu } from "./_context-menu.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { configureFindHomeButton } from "./_find-home-button.js"
 import { getGeolocateControl } from "./_geolocate-control"
@@ -138,7 +138,6 @@ const getMainMap = (container) => {
  */
 export const configureMainMap = (container) => {
     const map = getMainMap(container)
-    window.map = map
 
     // Configure here instead of navbar to avoid global script dependency (navbar is global)
     // Find home button is only available for the users with configured home location
@@ -163,7 +162,7 @@ export const configureMainMap = (container) => {
             ["/changeset/(?<id>\\d+)", getChangesetController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)(?:/history/(?<version>\\d+))?", getElementController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)/history", getElementHistoryController(map)],
-            ["/distance", getMeasuringController(map)],
+            ["/distance", getDistanceController(map)],
         ]),
     )
 

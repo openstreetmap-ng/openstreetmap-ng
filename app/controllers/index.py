@@ -26,7 +26,6 @@ async def robots():
 @router.get('/directions')
 @router.get('/search')
 @router.get('/query')
-@router.get('/distance')
 @router.get('/history')
 @router.get('/history/nearby')
 @router.get('/history/friends')
@@ -43,6 +42,7 @@ async def robots():
 @router.get('/relation/{_:int}')
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
+@router.get('/distance')
 async def index():
     return render_response('index.jinja2')
 

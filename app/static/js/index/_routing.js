@@ -2,13 +2,12 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { formatDistance, formatHeight, formatSimpleDistance, formatTime } from "../_format-utils.js"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage.js"
-import { qsEncode, qsParse } from "../_qs.js"
+import { qsParse } from "../_qs.js"
 import { configureStandardForm } from "../_standard-form.js"
 import { getPageTitle } from "../_title.js"
 import "../_types.js"
 import { zoomPrecision } from "../_utils.js"
 import { getOverlayLayerById } from "../leaflet/_layers.js"
-import { encodeMapState, getMapState } from "../leaflet/_map-utils.js"
 import { getMarkerIcon } from "../leaflet/_utils.js"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar.js"
 import { GraphHopperEngines } from "./routing-engines/_graphhopper.js"
@@ -292,12 +291,10 @@ export const getRoutingController = (map) => {
         const toRouteParam = `${toCoords.lat.toFixed(precision)},${toCoords.lon.toFixed(precision)}`
         const routeParam = `${fromRouteParam};${toRouteParam}`
 
-        const searchParams = qsEncode({
-            engine: routingEngineName,
-            route: routeParam,
-        })
-        const hash = encodeMapState(getMapState(map))
-        history.replaceState(null, "", `?${searchParams}${hash}`)
+        const url = new URL(location.href)
+        url.searchParams.set("engine", routingEngineName)
+        url.searchParams.set("route", routeParam)
+        history.replaceState(null, "", url)
 
         loadingContainer.classList.remove("d-none")
         routingEngine(abortController.signal, fromCoords, toCoords, onRoutingSuccess, onRoutingError)
