@@ -89,7 +89,8 @@ async def applications_authorizations(
 async def applications_admin(
     user: Annotated[User, web_user()],
 ):
-    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
+    with options_context(joinedload(OAuth2Application.user).load_only(User.display_name)):
+        apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
     return render_response(
         'settings/applications/admin.jinja2',
         {

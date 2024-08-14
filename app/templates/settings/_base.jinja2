@@ -1,0 +1,23 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('accounts.edit.my settings') | capitalize }} | {% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        {% block settings_title %}{% endblock %}
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+            <nav class="col-auto">
+                {% include 'settings/_nav.jinja2' %}
+            </nav>
+            <div class="col">
+                {% block settings_body %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
