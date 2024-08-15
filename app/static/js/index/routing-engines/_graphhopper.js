@@ -1,6 +1,6 @@
+import { decode } from "@googlemaps/polyline-codec"
 import { graphhopperApiKey } from "../../_api-keys.js"
 import { primaryLanguage } from "../../_config.js"
-import { polylineDecode } from "../../_polyline-decoder.js"
 import "../../_types.js"
 
 // GraphHopper API Documentation
@@ -49,7 +49,7 @@ const makeEngine = (profile) => {
                 }
 
                 const path = data.paths[0]
-                const points = polylineDecode(path.points, 5)
+                const points = decode(path.points, 5)
                 const steps = []
 
                 for (const instr of path.instructions) {

@@ -106,3 +106,19 @@ export const isHrefCurrentPage = (href) => {
  * // => 1717761123
  */
 export const getUnixTimestamp = () => Math.floor(Date.now() / 1000)
+
+/**
+ * Create a range of numbers
+ * @param {number} start Start number
+ * @param {number} stop Stop number (exclusive)
+ * @param {number} step Step
+ * @returns {number[]} Range
+ * @example
+ * range(1, 5)
+ * // => [1, 2, 3, 4]
+ */
+export const range = (start, stop, step = 1) => {
+    const result = []
+    for (let i = start; i < stop; i += step) result.push(i)
+    return result
+}
