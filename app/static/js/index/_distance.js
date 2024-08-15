@@ -313,20 +313,19 @@ export const getDistanceController = (map) => {
 
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
+            let positions = []
             if (searchParams.line) {
-                let positions = null
                 try {
                     positions = decode(searchParams.line, 5)
                 } catch (error) {
-                    console.error("Failed to decode positions", error)
-                }
-                if (positions) {
-                    for (const [lat, lng] of positions) {
-                        onMapClick({ latlng: { lat, lng }, skipUpdates: true })
-                    }
-                    update(range(0, markers.length))
+                    console.error("Failed to decode line points from", searchParams.line, error)
                 }
             }
+            for (const [lat, lon] of positions) {
+                onMapClick({ latlng: { lat, lng: lon }, skipUpdates: true })
+            }
+            console.debug("Loaded", positions.length, "line points")
+            update(range(0, markers.length))
 
             // Focus on the makers if they're offscreen
             if (markers.length > 1) {

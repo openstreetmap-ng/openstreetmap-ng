@@ -1,0 +1,24 @@
+<template class="context-menu-template">
+    <nav>
+        <div>
+            <button class="btn geolocation-dd"></button>{#
+            #}<button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <button class="btn dropdown-item geolocation-geo"></button>
+                </li>
+                <li>
+                    <button class="btn dropdown-item geolocation-uri"></button>
+                </li>
+            </ul>
+        </div>
+        <button class="btn routing-from">{{ t('javascripts.context.directions_from') }}</button>
+        <button class="btn routing-to">{{ t('javascripts.context.directions_to') }}</button>
+        <button class="btn new-note">{{ t('javascripts.context.suggest_edit') }}</button>
+        <button class="btn show-address">{{ t('javascripts.context.show_address') }}</button>
+        <button class="btn query-features">{{ t('javascripts.context.query_features') }}</button>
+        <button class="btn center-here">{{ t('javascripts.context.centre_map') }}</button>
+        <button class="btn measure-distance">{{ t('javascripts.context.measure_distance') }}</button>
+    </nav>
+</template>
