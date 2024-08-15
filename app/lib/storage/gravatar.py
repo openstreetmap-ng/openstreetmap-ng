@@ -39,7 +39,7 @@ class GravatarStorage(StorageBase):
         else:
             r.raise_for_status()
             data = r.content
-            data = Image.normalize_avatar(data)
+            data = await Image.normalize_avatar(data)
 
         await self._fc.set(key_hashed, data, ttl=GRAVATAR_CACHE_EXPIRE)
         return data

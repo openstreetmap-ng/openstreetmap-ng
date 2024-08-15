@@ -11,7 +11,7 @@ class ImageService:
 
         Returns the avatar id.
         """
-        data = Image.normalize_avatar(data)
+        data = await Image.normalize_avatar(data)
         avatar_id = await AVATAR_STORAGE.save(data, '.webp')
         return avatar_id
 
