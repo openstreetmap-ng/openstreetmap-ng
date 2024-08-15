@@ -63,6 +63,8 @@ export const configureContextMenu = (map) => {
 
     // On map contextmenu, open the popup
     const onMapContextMenu = ({ latlng, containerPoint }) => {
+        console.debug("onMapContextMenu", latlng)
+
         // Update the geolocation fields
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
