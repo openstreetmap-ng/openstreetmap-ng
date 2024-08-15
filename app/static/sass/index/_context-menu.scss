@@ -35,6 +35,10 @@
 
         &:hover {
             background: $gray-200;
+
+            & + .dropdown-toggle {
+                background: $gray-200;
+            }
         }
     }
 
