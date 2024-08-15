@@ -29,7 +29,7 @@ class ImageService:
 
         Returns the background id.
         """
-        data = Image.normalize_background(data)
+        data = await Image.normalize_background(data)
         background_id = await BACKGROUND_STORAGE.save(data, '.webp')
         return background_id
 
