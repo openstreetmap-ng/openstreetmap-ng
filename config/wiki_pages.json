@@ -718,6 +718,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pl",
       "RU",
@@ -4074,6 +4075,7 @@
       "ES",
       "JA",
       "Ko",
+      "Pt",
       "RU",
       "Uk"
     ],
@@ -4541,6 +4543,7 @@
       "Cs",
       "ES",
       "FR",
+      "JA",
       "Pt",
       "RU",
       "Uk"
@@ -4591,6 +4594,9 @@
       "ES",
       "RU",
       "Uk"
+    ],
+    "tent_ground": [
+      ""
     ],
     "theatre": [
       "",
@@ -4643,7 +4649,8 @@
       "Zh-hant"
     ],
     "tool_library": [
-      ""
+      "",
+      "DE"
     ],
     "tourist_bus_parking": [
       "",
@@ -4704,6 +4711,9 @@
       "Pl",
       "RU",
       "Uk"
+    ],
+    "transport_service": [
+      ""
     ],
     "trolley_bay": [
       "",
@@ -4799,6 +4809,7 @@
     ],
     "veterinary_pharmacy": [
       "",
+      "Pt",
       "RU",
       "Uk"
     ],
@@ -5253,6 +5264,7 @@
     "*": [
       "",
       "FR",
+      "JA",
       "RU"
     ]
   },
@@ -5988,6 +6000,7 @@
     ],
     "coupure": [
       "",
+      "DE",
       "ES",
       "JA",
       "RU"
@@ -8321,6 +8334,7 @@
       "DE",
       "ES",
       "FR",
+      "Pl",
       "RU",
       "Uk"
     ],
@@ -9150,6 +9164,7 @@
       "Cs",
       "DE",
       "El",
+      "FR",
       "JA",
       "Pl",
       "RU"
@@ -9518,7 +9533,8 @@
   "buried:wikidata": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "ES"
     ]
   },
   "bus": {
@@ -9722,7 +9738,8 @@
       "Uk"
     ],
     "board_game": [
-      ""
+      "",
+      "FR"
     ],
     "time-cafe": [
       "",
@@ -9939,6 +9956,11 @@
     "*": [
       "",
       "JA"
+    ]
+  },
+  "capacity:men": {
+    "*": [
+      ""
     ]
   },
   "capacity:motorcycle": {
@@ -10430,6 +10452,7 @@
     "*": [
       "",
       "DE",
+      "FR",
       "JA",
       "RU"
     ]
@@ -11190,10 +11213,13 @@
   },
   "company": {
     "*": [
-      "",
       "DE"
     ],
     "aerospace": [
+      "",
+      "RU"
+    ],
+    "agrarian": [
       "",
       "RU"
     ],
@@ -13766,7 +13792,9 @@
   "cycle_rickshaw": {
     "*": [
       "",
-      "ES"
+      "ES",
+      "FR",
+      "RU"
     ]
   },
   "cyclestreet": {
@@ -15403,6 +15431,11 @@
       "RU"
     ]
   },
+  "drive_through:*": {
+    "*": [
+      ""
+    ]
+  },
   "driving_side": {
     "*": [
       "",
@@ -15455,6 +15488,11 @@
   "duty_free": {
     "*": [
       ""
+    ]
+  },
+  "earth_bank": {
+    "*": [
+      "RU"
     ]
   },
   "earthquake": {
@@ -16506,6 +16544,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "factory_outlet": {
+    "yes": [
+      ""
     ]
   },
   "faculty": {
@@ -19025,7 +19068,8 @@
       ""
     ],
     "barber": [
-      ""
+      "",
+      "JA"
     ]
   },
   "hand_basin:wheelchair": {
@@ -19081,6 +19125,20 @@
       "FR",
       "JA",
       "Pt"
+    ]
+  },
+  "harassement_prevention": {
+    "ask_angela": [
+      ""
+    ]
+  },
+  "harassment_prevention": {
+    "*": [
+      "",
+      "FR"
+    ],
+    "ask_angela": [
+      "FR"
     ]
   },
   "harbour": {
@@ -21442,7 +21500,8 @@
       "RU"
     ],
     "round_tower": [
-      ""
+      "",
+      "RU"
     ],
     "ruins": [
       "",
@@ -21479,7 +21538,8 @@
       "Uk"
     ],
     "ste\u0107ak": [
-      ""
+      "",
+      "RU"
     ],
     "stone": [
       "",
@@ -21514,7 +21574,8 @@
     ],
     "tower": [
       "",
-      "ES"
+      "ES",
+      "RU"
     ],
     "tree_shrine": [
       "",
@@ -22293,6 +22354,7 @@
     ],
     "trucking": [
       "",
+      "ES",
       "RU"
     ],
     "warehouse": [
@@ -24569,6 +24631,7 @@
       "Gl",
       "JA",
       "Pl",
+      "Pt",
       "RU"
     ],
     "paddling_pool": [
@@ -24933,6 +24996,11 @@
       "ES",
       "FR",
       "JA"
+    ]
+  },
+  "lgbtq:signed": {
+    "*": [
+      ""
     ]
   },
   "lhv": {
@@ -25940,7 +26008,8 @@
     ],
     "footwear_decontamination": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ],
     "foundation": [
       ""
@@ -26370,7 +26439,8 @@
       "RU"
     ],
     "ski_jump": [
-      ""
+      "",
+      "JA"
     ],
     "slurry_basin": [
       ""
@@ -27620,7 +27690,8 @@
       "Pl"
     ],
     "storm_surge_post": [
-      ""
+      "",
+      "DE"
     ],
     "vehicle": [
       ""
@@ -29233,7 +29304,8 @@
   },
   "name:en": {
     "*": [
-      ""
+      "",
+      "Uk"
     ]
   },
   "name:eo": {
@@ -29289,11 +29361,6 @@
     "*": [
       "",
       "FR"
-    ]
-  },
-  "name:eu-x-gaceria": {
-    "*": [
-      "ES"
     ]
   },
   "name:ext": {
@@ -29379,6 +29446,12 @@
   "name:gan": {
     "*": [
       ""
+    ]
+  },
+  "name:gc": {
+    "*": [
+      "",
+      "ES"
     ]
   },
   "name:gcf": {
@@ -31150,6 +31223,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "IT",
       "JA",
       "Pl"
@@ -33740,6 +33814,7 @@
       "DE",
       "ES",
       "FR",
+      "IT",
       "JA",
       "Pt",
       "RU"
@@ -34182,6 +34257,9 @@
       "ES",
       "RU",
       "Uk"
+    ],
+    "closed": [
+      ""
     ]
   },
   "opening_hours/Deprecated_tags": {
@@ -34564,6 +34642,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "FR",
       "RU"
     ]
@@ -34605,7 +34684,8 @@
   },
   "osak:identifier": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "osak:municipality_name": {
@@ -34744,6 +34824,11 @@
     "valve": [
       "",
       "FR"
+    ]
+  },
+  "outlet_store": {
+    "yes": [
+      ""
     ]
   },
   "oven": {
@@ -34987,6 +35072,12 @@
   "parking:both:restriction": {
     "*": [
       ""
+    ]
+  },
+  "parking:both:restriction:cycle_rickshaw": {
+    "*": [
+      "",
+      "FR"
     ]
   },
   "parking:both:staggered": {
@@ -35588,6 +35679,7 @@
   "piste:grooming": {
     "*": [
       "",
+      "DE",
       "FR",
       "RU"
     ]
@@ -35604,7 +35696,8 @@
   },
   "piste:takeoff": {
     "yes": [
-      ""
+      "",
+      "JA"
     ]
   },
   "piste:type": {
@@ -35633,7 +35726,8 @@
       "FR"
     ],
     "ski_jump": [
-      ""
+      "",
+      "JA"
     ],
     "ski_jump_landing": [
       ""
@@ -35645,6 +35739,9 @@
       "",
       "DE",
       "RU"
+    ],
+    "yes": [
+      ""
     ]
   },
   "pitch:net": {
@@ -36499,6 +36596,7 @@
     "*": [
       "",
       "DE",
+      "JA",
       "RU"
     ]
   },
@@ -37019,6 +37117,7 @@
     "terminal": [
       "",
       "Cs",
+      "DE",
       "ES",
       "FR",
       "Zh-hans"
@@ -38754,7 +38853,8 @@
   },
   "rapids": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "razed:*": {
@@ -39303,6 +39403,11 @@
     ]
   },
   "ref:GB:nhs_ods": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:GB:tflcid": {
     "*": [
       ""
     ]
@@ -41426,6 +41531,9 @@
       "ES",
       "JA"
     ],
+    "via_ferrata": [
+      ""
+    ],
     "waterway": [
       ""
     ],
@@ -43136,7 +43244,8 @@
       ""
     ],
     "fuel_station": [
-      ""
+      "",
+      "DE"
     ],
     "launderette": [
       ""
@@ -44422,7 +44531,8 @@
       "Fa",
       "JA",
       "Pl",
-      "Pt"
+      "Pt",
+      "RU"
     ],
     "books": [
       "",
@@ -45954,7 +46064,8 @@
       "DE",
       "ES",
       "IT",
-      "Pl"
+      "Pl",
+      "Pt"
     ],
     "power_tools": [
       "",
@@ -46365,6 +46476,7 @@
     ],
     "tractor": [
       "",
+      "DE",
       "ES"
     ],
     "trade": [
@@ -48410,7 +48522,8 @@
     ],
     "ski_jumping": [
       "",
-      "ES"
+      "ES",
+      "JA"
     ],
     "skiing": [
       "",
@@ -49196,7 +49309,8 @@
     "clay": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "cobblestone": [
       "",
@@ -49219,12 +49333,14 @@
       "",
       "DE",
       "ES",
+      "JA",
       "Pl"
     ],
     "concrete:plates": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "decoturf": [
       ""
@@ -49260,7 +49376,8 @@
     "grass_paver": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "gravel": [
       "",
@@ -49319,7 +49436,8 @@
     "pebblestone": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "red_sand": [
       "DE"
@@ -49379,6 +49497,7 @@
       "",
       "DE",
       "ES",
+      "JA",
       "Zh-hans"
     ],
     "trail": [
@@ -49712,6 +49831,11 @@
       "Pl",
       "Pt",
       "Zh-hant"
+    ]
+  },
+  "takeaway:*": {
+    "*": [
+      ""
     ]
   },
   "takeoff": {
@@ -53129,6 +53253,11 @@
     "*": [
       "",
       "ES"
+    ]
+  },
+  "via_ferrata": {
+    "start": [
+      ""
     ]
   },
   "via_ferrata_scale": {
