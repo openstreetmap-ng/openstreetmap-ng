@@ -1,8 +1,10 @@
+import { encode } from "@googlemaps/polyline-codec"
+import { Dropdown } from "bootstrap"
 import * as L from "leaflet"
+import { formatCoordinate } from "../_format-utils.js"
 import { qsEncode } from "../_qs.js"
 import { zoomPrecision } from "../_utils.js"
 import { routerNavigateStrict } from "../index/_router.js"
-import { formatLatLon } from "../_format-utils.js"
 
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
@@ -13,63 +15,76 @@ export const queryFeaturesMinZoom = 14
  * @returns {void}
  */
 export const configureContextMenu = (map) => {
-    const element = document.querySelector(".context-menu")
-    const geolocationField = element.querySelector(".geolocation-dd")
-    const geolocationGeoField = element.querySelector(".geolocation-geo")
-    const geolocationUriField = element.querySelector(".geolocation-uri")
-    const routingFromButton = element.querySelector(".routing-from")
-    const routingToButton = element.querySelector(".routing-to")
-    const newNoteButton = element.querySelector(".new-note")
-    const showAddressButton = element.querySelector(".show-address")
-    const queryFeaturesButton = element.querySelector(".query-features")
-    const centerHereButton = element.querySelector(".center-here")
-    const measureDistanceButton = element.querySelector(".measure-distance")
-
-    // remove element from DOM
-    element.parentNode.removeChild(element)
+    const mapContainer = map.getContainer()
+    const container = document.querySelector("template.context-menu-template").content.firstElementChild
+    const dropdownButton = container.querySelector(".dropdown-toggle")
+    const dropdown = Dropdown.getOrCreateInstance(dropdownButton)
+    const geolocationField = container.querySelector(".geolocation-dd")
+    const geolocationGeoField = container.querySelector(".geolocation-geo")
+    const geolocationUriField = container.querySelector(".geolocation-uri")
+    const routingFromButton = container.querySelector(".routing-from")
+    const routingToButton = container.querySelector(".routing-to")
+    const newNoteButton = container.querySelector(".new-note")
+    const showAddressButton = container.querySelector(".show-address")
+    const queryFeaturesButton = container.querySelector(".query-features")
+    const centerHereButton = container.querySelector(".center-here")
+    const measureDistanceButton = container.querySelector(".measure-distance")
 
     const popup = L.popup({
-        content: element, // readd element to DOM
-        closeButton: false,
-        interactive: true,
-        bubblingMouseEvents: false,
+        content: container,
+        className: "context-menu",
         autoPan: false,
+        closeButton: false,
+        bubblingMouseEvents: false,
     })
 
+    /**
+     * Get the simplified position of the popup.
+     * @returns {{lon: string, lat: string, zoom: number}}
+     * @example
+     * getPopupPosition()
+     * // => { lon: "12.345678", lat: "23.456789", zoom: 17 }
+     */
     const getPopupPosition = () => {
-        const latLng = popup.getLatLng()
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
-        const lon = latLng.lng.toFixed(precision)
-        const lat = latLng.lat.toFixed(precision)
-        return { lon, lat, zoom }
+        const { lat, lng } = popup.getLatLng()
+        return {
+            lon: lng.toFixed(precision),
+            lat: lat.toFixed(precision),
+            zoom,
+        }
+    }
+
+    const closePopup = () => {
+        dropdown.hide()
+        map.closePopup(popup)
     }
 
     // On map contextmenu, open the popup
-    const onMapContextMenu = (event) => {
-        const precision = zoomPrecision(map.getZoom())
-        const lon = event.latlng.lng.toFixed(precision)
-        const lat = event.latlng.lat.toFixed(precision)
+    const onMapContextMenu = ({ latlng, containerPoint }) => {
+        // Update the geolocation fields
+        const zoom = map.getZoom()
+        const precision = zoomPrecision(zoom)
+        const lon = latlng.lng.toFixed(precision)
+        const lat = latlng.lat.toFixed(precision)
+        geolocationField.textContent = `${lat}, ${lon}`
+        geolocationGeoField.textContent = formatCoordinate(latlng.lat, latlng.lng)
+        geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom}`
 
-        geolocationGeoField.innerText = formatLatLon(event.latlng)
-        geolocationField.innerText = `${lat}, ${lon}`
-        geolocationUriField.innerText = `geo:${lat},${lon}?z=${map.getZoom()}`
-        popup.setLatLng(event.latlng)
+        // Open the context menu
+        popup.setLatLng(latlng)
         map.openPopup(popup)
 
-        if (element.querySelector("button.show")) element.querySelector("button.show").click()
-
-        const containerPoint = [event.containerPoint.x, event.containerPoint.y]
+        // Ensure the popup is visible
+        const element = popup.getElement()
         const popupSize = [element.clientWidth, element.clientHeight]
-        const containerSize = [map._container.clientWidth, map._container.clientHeight]
-
-        const isOverflowX = containerPoint[0] + popupSize[0] + 30 >= containerSize[0]
-        const isOverflowY = containerPoint[1] + popupSize[1] + 30 >= containerSize[1]
-
+        const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight]
+        const isOverflowX = containerPoint.x + popupSize[0] + 30 >= containerSize[0]
+        const isOverflowY = containerPoint.y + popupSize[1] + 30 >= containerSize[1]
         const translateX = isOverflowX ? "-100%" : "0%"
         const translateY = isOverflowY ? "-100%" : "0%"
-
-        popup._container.style.translate = `${translateX} ${translateY}`
+        element.style.translate = `${translateX} ${translateY}`
     }
 
     // On map zoomend, update the available buttons
@@ -79,26 +94,32 @@ export const configureContextMenu = (map) => {
         queryFeaturesButton.disabled = zoom < queryFeaturesMinZoom
     }
 
+    // On geolocation field click, copy the text
+    const onGeolocationFieldClick = async ({ target }) => {
+        closePopup()
+        try {
+            const value = target.textContent
+            await navigator.clipboard.writeText(value)
+            console.debug("Copied geolocation to clipboard", value)
+        } catch (err) {
+            console.error("Failed to copy geolocation", err)
+        }
+    }
+
     // On routing from button click, navigate to routing page
     const onRoutingFromButtonClick = () => {
         closePopup()
         const { lon, lat } = getPopupPosition()
-        routerNavigateStrict(
-            `/directions?${qsEncode({
-                from: `${lat},${lon}`,
-            })}`,
-        )
+        const from = `${lat}, ${lon}`
+        routerNavigateStrict(`/directions?${qsEncode({ from })}`)
     }
 
     // On routing to button click, navigate to routing page
     const onRoutingToButtonClick = () => {
         closePopup()
         const { lon, lat } = getPopupPosition()
-        routerNavigateStrict(
-            `/directions?${qsEncode({
-                to: `${lat},${lon}`,
-            })}`,
-        )
+        const to = `${lat}, ${lon}`
+        routerNavigateStrict(`/directions?${qsEncode({ to })}`)
     }
 
     // On new note button click, navigate to new-note page
@@ -133,39 +154,26 @@ export const configureContextMenu = (map) => {
         map.panTo(popup.getLatLng())
     }
 
-    // On measure distance button click, measure distance
-    const onMeasureDistanceButtonClick = () => {
+    // On measure distance button click, open the distance tool
+    const onDistanceButtonClick = () => {
         closePopup()
         const { lon, lat } = getPopupPosition()
-        routerNavigateStrict(`/distance?${qsEncode({ pos: `${lat},${lon}` })}`)
-    }
-
-    const closePopup = () => {
-        map.closePopup(popup)
-    }
-
-    const onGeolocationFieldClick = async (event) => {
-        closePopup()
-        try {
-            await navigator.clipboard.writeText(event.target.innerText)
-            console.debug("Text copied to clipboard")
-        } catch (err) {
-            console.error("Failed to copy text: ", err)
-        }
+        const line = encode([[lat, lon]], 5)
+        routerNavigateStrict(`/distance?${qsEncode({ line })}`)
     }
 
     // Listen for events
     map.addEventListener("contextmenu", onMapContextMenu)
     map.addEventListener("zoomend", onMapZoomEnd)
     map.addEventListener("zoomstart movestart mouseout", closePopup)
+    geolocationField.addEventListener("click", onGeolocationFieldClick)
+    geolocationGeoField.addEventListener("click", onGeolocationFieldClick)
+    geolocationUriField.addEventListener("click", onGeolocationFieldClick)
     routingFromButton.addEventListener("click", onRoutingFromButtonClick)
     routingToButton.addEventListener("click", onRoutingToButtonClick)
     newNoteButton.addEventListener("click", onNewNoteButtonClick)
     showAddressButton.addEventListener("click", onShowAddressButtonClick)
     queryFeaturesButton.addEventListener("click", onQueryFeaturesButtonClick)
     centerHereButton.addEventListener("click", onCenterHereButtonClick)
-    measureDistanceButton.addEventListener("click", onMeasureDistanceButtonClick)
-    geolocationField.addEventListener("click", onGeolocationFieldClick)
-    geolocationGeoField.addEventListener("click", onGeolocationFieldClick)
-    geolocationUriField.addEventListener("click", onGeolocationFieldClick)
+    measureDistanceButton.addEventListener("click", onDistanceButtonClick)
 }

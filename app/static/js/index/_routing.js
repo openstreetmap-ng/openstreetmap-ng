@@ -177,7 +177,7 @@ export const getRoutingController = (map) => {
             return
         }
 
-        const mousePosition = L.DomEvent.getMousePosition(event, map.getContainer())
+        const mousePosition = L.DomEvent.getMousePosition(event, mapContainer)
         mousePosition.y += 20 // offset position to account for the marker's height
         const latLng = map.containerPointToLatLng(mousePosition)
         marker.setLatLng(latLng)
