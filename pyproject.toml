@@ -56,6 +56,7 @@ types-protobuf = "^5.27.0.20240626"
 uvicorn = {extras = ["standard"], version = "<1"}
 zid = "^1.0.0"
 zstandard = "<1"
+uvloop = "^0.20.0"
 
 [tool.poetry.group.test.dependencies]
 httpx = "<1"

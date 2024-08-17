@@ -1,5 +1,4 @@
-import asyncio
-
+import uvloop
 from alembic import context
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -37,7 +36,7 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in online mode"""
-    asyncio.run(run_async_migrations())
+    uvloop.run(run_async_migrations())
 
 
 run_migrations_online()

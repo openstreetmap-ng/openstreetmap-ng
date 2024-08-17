@@ -1,4 +1,3 @@
-import asyncio
 import gc
 import os
 from datetime import datetime
@@ -9,6 +8,7 @@ from pathlib import Path
 import lxml.etree as ET
 import numpy as np
 import polars as pl
+import uvloop
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
@@ -329,5 +329,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    uvloop.run(main())
     print('Done! Done! Done!')

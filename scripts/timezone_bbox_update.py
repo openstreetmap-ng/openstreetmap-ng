@@ -1,8 +1,8 @@
-import asyncio
 import json
 from math import isclose
 from pathlib import Path
 
+import uvloop
 from pytz import country_timezones
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
@@ -23,10 +23,13 @@ def get_timezone_country_dict() -> dict[str, str]:
 
 async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]]:
     print('Downloading country data')
-    r = await HTTP.get('https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst')
-    r.raise_for_status()
+    async with HTTP.get(
+        'https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst',
+        raise_for_status=True,
+    ) as r:
+        content = await r.read()
 
-    content = ZstdDecompressor().decompress(r.content)
+    content = ZstdDecompressor().decompress(content)
     features = json.loads(content)['features']
     result = {}
 
@@ -92,4 +95,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    uvloop.run(main())

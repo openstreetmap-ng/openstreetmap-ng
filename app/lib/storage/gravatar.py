@@ -33,13 +33,13 @@ class GravatarStorage(StorageBase):
         if data is not None:
             return data
 
-        r = await HTTP.get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404')
-        if r.status_code == status.HTTP_404_NOT_FOUND:
-            data = Image.default_avatar
-        else:
-            r.raise_for_status()
-            data = r.content
-            data = await Image.normalize_avatar(data)
+        async with HTTP.get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404') as r:
+            if r.status == status.HTTP_404_NOT_FOUND:
+                data = Image.default_avatar
+            else:
+                r.raise_for_status()
+                data = await r.read()
+                data = await Image.normalize_avatar(data)
 
         await self._fc.set(key_hashed, data, ttl=GRAVATAR_CACHE_EXPIRE)
         return data
