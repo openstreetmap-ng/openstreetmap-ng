@@ -17,7 +17,7 @@ from app.models.tags_format import TagFormat
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial/changeset')
 
@@ -86,12 +86,12 @@ async def get_changeset(id: PositiveInt):
             'is_subscribed': is_subscribed,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'params': JSON_ENCODE(
+            'params': json_encodes(
                 {
                     'id': id,
                     'bounds': tuple(cb.bounds.bounds for cb in changeset.bounds),
                     'elements': elements,
                 }
-            ).decode(),
+            ),
         },
     )

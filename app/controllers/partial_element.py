@@ -23,7 +23,7 @@ from app.models.tags_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial')
 
@@ -227,7 +227,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'comment_tag': comment_tag,
         'show_elements': bool(list_elements),
         'show_part_of': bool(list_parents),
-        'params': JSON_ENCODE(
+        'params': json_encodes(
             {
                 'type': element.type,
                 'lists': {
@@ -235,6 +235,6 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
                     'part_of': list_parents,
                 },
             }
-        ).decode(),
-        'leaflet': JSON_ENCODE(leaflet).decode(),
+        ),
+        'leaflet': json_encodes(leaflet),
     }

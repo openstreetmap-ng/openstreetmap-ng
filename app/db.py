@@ -6,7 +6,7 @@ from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
-from app.utils import JSON_DECODE, JSON_ENCODE
+from app.utils import JSON_DECODE, json_encodes
 
 _db_engine_kwargs: dict[str, Any] = (
     {
@@ -25,7 +25,7 @@ _db_engine = create_async_engine(
     # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#disabling-the-postgresql-jit-to-improve-enum-datatype-handling
     connect_args={'server_settings': {'jit': 'off'}},
     json_deserializer=JSON_DECODE,
-    json_serializer=lambda x: JSON_ENCODE(x).decode(),
+    json_serializer=json_encodes,
     query_cache_size=1024,
     **_db_engine_kwargs,
 )

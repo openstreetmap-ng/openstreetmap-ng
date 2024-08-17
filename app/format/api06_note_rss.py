@@ -1,9 +1,9 @@
 from asyncio import TaskGroup
 from collections.abc import Iterable
 
+from aiohttp.web_exceptions import HTTPException
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
-from httpx import HTTPError
 from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
@@ -71,7 +71,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
         result = await NominatimQuery.reverse(note.point, 14)
         if result is not None:
             place = result.display_name
-    except HTTPError:
+    except (TimeoutError, HTTPException):
         pass
 
     if len(note_comments) == 1:
@@ -117,7 +117,7 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
         result = await NominatimQuery.reverse(point, 14)
         if result is not None:
             place = result.display_name
-    except HTTPError:
+    except (TimeoutError, HTTPException):
         pass
 
     comment_event = comment.event

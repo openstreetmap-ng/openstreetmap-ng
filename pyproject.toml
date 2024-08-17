@@ -20,9 +20,8 @@ brotli = "^1.1.0"
 cython = "^3.0.7"
 dnspython = "^2.6.1"
 email-validator = "^2.1.0.post1"
-fastapi = "<0.111"
+fastapi = "<1"
 feedgen = "^1.0.0"
-httpx = {extras = ["brotli", "http2"], version = "<1"}
 jinja2 = "^3.1.2"
 lxml = "^5.0.1"
 lxml-stubs = "<1"
@@ -59,6 +58,7 @@ zid = "^1.0.0"
 zstandard = "<1"
 
 [tool.poetry.group.test.dependencies]
+httpx = "<1"
 pytest = "^8.0.0"
 pytest-asyncio = "<1"
 pytest-cov = "^5.0.0"

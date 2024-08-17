@@ -16,7 +16,7 @@ from app.models.db.user import User
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter()
 
@@ -76,7 +76,7 @@ async def _get_traces_data(
     if tag is not None:
         base_url += f'/tag/{tag}'
 
-    traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
+    traces_coords = json_encodes(tuple(trace.coords for trace in traces))
 
     if user is None:
         active_tab = 0  # viewing public traces
