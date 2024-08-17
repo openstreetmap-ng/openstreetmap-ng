@@ -1,4 +1,5 @@
 import unicodedata
+from functools import cache
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -21,11 +22,17 @@ def json_encodes(obj: Any) -> str:
     return JSON_ENCODE(obj).decode()
 
 
-HTTP = ClientSession(
-    headers={'User-Agent': USER_AGENT},
-    json_serialize=json_encodes,
-    timeout=ClientTimeout(total=15, connect=10),
-)
+@cache
+def http():
+    """
+    Caching HTTP client factory.
+    """
+    return ClientSession(
+        headers={'User-Agent': USER_AGENT},
+        json_serialize=json_encodes,
+        timeout=ClientTimeout(total=15, connect=10),
+    )
+
 
 # TODO: reporting of deleted accounts (prometheus)
 # NOTE: breaking change

@@ -22,7 +22,7 @@ from app.models.db.element import Element
 from app.models.element import ElementRef
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP, JSON_DECODE
+from app.utils import JSON_DECODE, http
 
 _http_short_timeout = ClientTimeout(total=NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
 _http_long_timeout = ClientTimeout(total=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
@@ -49,7 +49,7 @@ class NominatimQuery:
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
-            async with HTTP.get(NOMINATIM_URL + path, timeout=_http_short_timeout, raise_for_status=True) as r:
+            async with http().get(NOMINATIM_URL + path, timeout=_http_short_timeout, raise_for_status=True) as r:
                 return await r.read()
 
         cache = await CacheService.get(
@@ -122,7 +122,7 @@ async def _search(
 
     async def factory() -> bytes:
         logging.debug('Nominatim search cache miss for path %r', path)
-        async with HTTP.get(NOMINATIM_URL + path, timeout=_http_long_timeout, raise_for_status=True) as r:
+        async with http().get(NOMINATIM_URL + path, timeout=_http_long_timeout, raise_for_status=True) as r:
             return await r.read()
 
     # cache only stable queries

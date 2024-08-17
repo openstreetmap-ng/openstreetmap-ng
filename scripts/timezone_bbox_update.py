@@ -7,7 +7,7 @@ from pytz import country_timezones
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
 
-from app.utils import HTTP
+from app.utils import http
 
 
 def get_timezone_country_dict() -> dict[str, str]:
@@ -23,7 +23,7 @@ def get_timezone_country_dict() -> dict[str, str]:
 
 async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]]:
     print('Downloading country data')
-    async with HTTP.get(
+    async with http().get(
         'https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst',
         raise_for_status=True,
     ) as r:
