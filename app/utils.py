@@ -1,10 +1,11 @@
 import unicodedata
 from functools import cache
-from typing import Any
+from typing import Any, Unpack
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import msgspec
 from aiohttp import ClientSession, ClientTimeout
+from aiohttp.client import _RequestContextManager, _RequestOptions
 
 from app.config import USER_AGENT
 
@@ -23,7 +24,7 @@ def json_encodes(obj: Any) -> str:
 
 
 @cache
-def http():
+def _http() -> ClientSession:
     """
     Caching HTTP client factory.
     """
@@ -32,6 +33,20 @@ def http():
         json_serialize=json_encodes,
         timeout=ClientTimeout(total=15, connect=10),
     )
+
+
+def http_get(url: str, **kwargs: Unpack[_RequestOptions]) -> _RequestContextManager:
+    """
+    Perform a HTTP GET request.
+    """
+    return _http().get(url, **kwargs)
+
+
+def http_post(url: str, **kwargs: Unpack[_RequestOptions]) -> _RequestContextManager:
+    """
+    Perform a HTTP POST request.
+    """
+    return _http().post(url, **kwargs)
 
 
 # TODO: reporting of deleted accounts (prometheus)

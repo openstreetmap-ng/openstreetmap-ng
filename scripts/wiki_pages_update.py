@@ -11,7 +11,7 @@ from urllib.parse import unquote_plus
 import uvloop
 
 from app.lib.retry import retry
-from app.utils import http
+from app.utils import http_get
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
@@ -24,7 +24,7 @@ class WikiPageInfo(NamedTuple):
 
 
 async def discover_sitemap_urls() -> tuple[str, ...]:
-    async with http().get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml', raise_for_status=True) as r:
+    async with http_get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml', raise_for_status=True) as r:
         text = await r.text()
 
     matches = re.finditer(r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', text)
@@ -35,7 +35,7 @@ async def discover_sitemap_urls() -> tuple[str, ...]:
 
 @retry(timedelta(minutes=1))
 async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
-    async with _download_limiter, http().get(url, raise_for_status=True) as r:
+    async with _download_limiter, http_get(url, raise_for_status=True) as r:
         content = await r.read()
 
     text = gzip.decompress(content).decode()

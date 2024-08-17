@@ -7,7 +7,7 @@ from pathlib import Path
 import uvloop
 
 from app.lib.retry import retry
-from app.utils import http
+from app.utils import http_get
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 
@@ -26,7 +26,7 @@ async def get_popularity(key: str, type: str, value: str) -> float:
         url = 'https://taginfo.openstreetmap.org/api/4/tag/stats'
         params = {'key': key, 'value': value}
 
-    async with _download_limiter, http().get(url, params=params, raise_for_status=True) as r:
+    async with _download_limiter, http_get(url, params=params, raise_for_status=True) as r:
         data = (await r.json())['data']
 
     return sum(item['count'] for item in data if not type or item['type'].startswith(type))

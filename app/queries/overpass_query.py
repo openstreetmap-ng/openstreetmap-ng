@@ -9,7 +9,7 @@ from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.db.element import Element
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import JSON_DECODE, http
+from app.utils import JSON_DECODE, http_post
 
 _cache_context = CacheContext('Overpass')
 
@@ -37,7 +37,7 @@ class OverpassQuery:
 
         async def factory() -> bytes:
             logging.debug('Querying Overpass for enclosing elements at %r', point)
-            async with http().post(
+            async with http_post(
                 OVERPASS_INTERPRETER_URL,
                 data={'data': query},
                 timeout=ClientTimeout(total=timeout * 2),

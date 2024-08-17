@@ -9,7 +9,7 @@ import uvloop
 from app.lib.locale import LocaleName
 from app.lib.retry import retry
 from app.models.types import LocaleCode
-from app.utils import http
+from app.utils import http_get
 
 _download_dir = Path('config/locale/download')
 _download_limiter = Semaphore(8)  # max concurrent downloads
@@ -18,7 +18,7 @@ _names_path = Path('config/locale/names.json')
 
 
 async def get_download_locales() -> tuple[LocaleCode, ...]:
-    async with http().get(
+    async with http_get(
         'https://translatewiki.net/wiki/Special:ExportTranslations',
         params={'group': 'out-osm-site'},
         raise_for_status=True,
@@ -33,7 +33,7 @@ async def get_download_locales() -> tuple[LocaleCode, ...]:
 async def download_locale(locale: LocaleCode) -> LocaleName | None:
     async with (
         _download_limiter,
-        http().get(
+        http_get(
             'https://translatewiki.net/wiki/Special:ExportTranslations',
             params={'group': 'out-osm-site', 'language': locale, 'format': 'export-to-file'},
             raise_for_status=True,

@@ -7,7 +7,7 @@ from app.lib.file_cache import FileCache
 from app.lib.image import Image
 from app.lib.storage.base import StorageBase
 from app.limits import GRAVATAR_CACHE_EXPIRE
-from app.utils import http
+from app.utils import http_get
 
 
 class GravatarStorage(StorageBase):
@@ -33,7 +33,7 @@ class GravatarStorage(StorageBase):
         if data is not None:
             return data
 
-        async with http().get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404') as r:
+        async with http_get(f'https://www.gravatar.com/avatar/{key_hashed}?s=512&d=404') as r:
             if r.status == status.HTTP_404_NOT_FOUND:
                 data = Image.default_avatar
             else:
