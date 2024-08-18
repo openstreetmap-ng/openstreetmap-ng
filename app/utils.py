@@ -1,13 +1,16 @@
+import ssl
 import unicodedata
 from functools import cache
 from typing import Any, Unpack
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+import certifi
 import msgspec
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
 from aiohttp.client import _RequestContextManager, _RequestOptions
 
 from app.config import USER_AGENT
+from app.limits import DNS_CACHE_EXPIRE
 
 JSON_ENCODE = msgspec.json.Encoder(decimal_format='number', order='sorted').encode
 JSON_DECODE = msgspec.json.Decoder().decode
@@ -29,6 +32,10 @@ def _http() -> ClientSession:
     Caching HTTP client factory.
     """
     return ClientSession(
+        connector=TCPConnector(
+            ssl=ssl.create_default_context(cafile=certifi.where()),
+            ttl_dns_cache=int(DNS_CACHE_EXPIRE.total_seconds()),
+        ),
         headers={'User-Agent': USER_AGENT},
         json_serialize=json_encodes,
         timeout=ClientTimeout(total=15, connect=10),

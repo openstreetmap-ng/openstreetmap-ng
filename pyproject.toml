@@ -17,6 +17,7 @@ arrow = "^1.3.0"
 beautifulsoup4 = {extras = ["charset-normalizer", "lxml"], version = "^4.12.3"}
 bleach = "^6.1.0"
 brotli = "^1.1.0"
+certifi = "*"
 cython = "^3.0.7"
 dnspython = "^2.6.1"
 email-validator = "^2.1.0.post1"
@@ -54,9 +55,9 @@ tqdm = "^4.66.1"
 types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
 types-protobuf = "^5.27.0.20240626"
 uvicorn = {extras = ["standard"], version = "<1"}
+uvloop = "^0.20.0"
 zid = "^1.0.0"
 zstandard = "<1"
-uvloop = "^0.20.0"
 
 [tool.poetry.group.test.dependencies]
 httpx = "<1"
