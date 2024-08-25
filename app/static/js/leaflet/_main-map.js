@@ -5,6 +5,7 @@ import { qsParse } from "../_qs.js"
 import { isLatitude, isLongitude } from "../_utils.js"
 import { getChangesetController } from "../index/_changeset.js"
 import { getChangesetsHistoryController } from "../index/_changesets-history.js"
+import { getDistanceController } from "../index/_distance.js"
 import { getElementHistoryController } from "../index/_element-history.js"
 import { getElementController } from "../index/_element.js"
 import { getExportController } from "../index/_export.js"
@@ -16,6 +17,7 @@ import { configureRouter } from "../index/_router.js"
 import { getRoutingController } from "../index/_routing.js"
 import { configureSearchForm } from "../index/_search-form.js"
 import { getSearchController } from "../index/_search.js"
+import { configureContextMenu } from "./_context-menu.js"
 import { configureDataLayer } from "./_data-layer.js"
 import { configureFindHomeButton } from "./_find-home-button.js"
 import { getGeolocateControl } from "./_geolocate-control"
@@ -74,7 +76,7 @@ const getMainMap = (container) => {
     // Configure map handlers
     configureNotesLayer(map)
     configureDataLayer(map)
-    // configureContextMenu(map)
+    configureContextMenu(map)
 
     // Add optional map marker
     const searchParams = qsParse(location.search.substring(1))
@@ -160,6 +162,7 @@ export const configureMainMap = (container) => {
             ["/changeset/(?<id>\\d+)", getChangesetController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)(?:/history/(?<version>\\d+))?", getElementController(map)],
             ["/(?<type>node|way|relation)/(?<id>\\d+)/history", getElementHistoryController(map)],
+            ["/distance", getDistanceController(map)],
         ]),
     )
 

@@ -1,5 +1,5 @@
+import { decode } from "@googlemaps/polyline-codec"
 import { primaryLanguage } from "../../_config.js"
-import { polylineDecode } from "../../_polyline-decoder.js"
 import "../../_types.js"
 
 // Valhalla API Documentation
@@ -55,7 +55,7 @@ const makeEngine = (costing) => {
                 }
 
                 const leg = data.trip.legs[0]
-                const points = polylineDecode(leg.shape, 6)
+                const points = decode(leg.shape, 6)
                 const steps = []
 
                 for (const man of leg.maneuvers) {

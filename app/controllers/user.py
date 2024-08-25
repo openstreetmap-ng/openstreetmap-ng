@@ -31,7 +31,7 @@ from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter()
 
@@ -80,7 +80,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
     await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
-    traces_coords = JSON_ENCODE(tuple(trace.coords for trace in traces)).decode()
+    traces_coords = json_encodes(tuple(trace.coords for trace in traces))
 
     # TODO: diaries
     diaries_count = 0

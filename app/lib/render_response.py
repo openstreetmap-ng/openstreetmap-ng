@@ -11,7 +11,7 @@ from app.lib.translation import translation_locales
 from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import Editor
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 _config_dict_base: dict[str, Any] = {
     'apiUrl': API_URL,
@@ -19,7 +19,7 @@ _config_dict_base: dict[str, Any] = {
     'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
 }
 
-_config = JSON_ENCODE(_config_dict_base).decode()
+_config = json_encodes(_config_dict_base)
 
 
 def render_response(template_name: str, template_data: dict[str, Any] | None = None) -> HTMLResponse:
@@ -39,7 +39,7 @@ def render_response(template_name: str, template_data: dict[str, Any] | None = N
         if user_home_point is not None:
             config_dict['homePoint'] = get_coordinates(user_home_point)[0].tolist()
 
-        config = JSON_ENCODE(config_dict).decode()
+        config = json_encodes(config_dict)
     else:
         config = _config
 

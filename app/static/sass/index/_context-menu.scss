@@ -1,0 +1,53 @@
+.context-menu {
+    // Display on bottom-right
+    top: 5px !important;
+    left: 5px !important;
+    bottom: unset !important;
+    transition: none !important;
+
+    .leaflet-popup-content-wrapper {
+        border-radius: $border-radius-sm;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    .leaflet-popup-content {
+        margin: 6px 0;
+    }
+
+    // Hide anchor
+    .leaflet-popup-tip-container {
+        display: none;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .btn {
+        font-size: 0.875rem;
+        text-align: left;
+        white-space: nowrap;
+        border: none;
+        border-radius: unset;
+        padding: 2px 12px;
+
+        &:hover {
+            background: $gray-200;
+
+            & + .dropdown-toggle {
+                background: $gray-200;
+            }
+        }
+    }
+
+    .dropdown-toggle {
+        &:hover {
+            background-color: $gray-400;
+        }
+        &::after {
+            margin-left: unset;
+        }
+    }
+}

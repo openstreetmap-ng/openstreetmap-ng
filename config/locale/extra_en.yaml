@@ -237,3 +237,7 @@ unsupported_browser:
   description: For the best experience, please update your browser or pick one from the list below.
   proceed_anyway: Proceed anyway
 showcase: Showcase
+javascripts:
+  context:
+    suggest_edit: Suggest an edit
+    measure_distance: Measure distance

@@ -83,6 +83,27 @@
     }
 }
 
+// Style the distance label from "Measure Distance"
+.leaflet-marker-icon.distance-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    div {
+        padding: 0 0.25rem;
+        color: $white;
+        background: $blue-500;
+        border-radius: $border-radius-sm;
+    }
+}
+
+// Style the ghost marker icon from "Measure Distance"
+.leaflet-marker-icon.ghost-marker {
+    opacity: 0.5;
+    padding-bottom: 10px !important;
+    box-sizing: content-box;
+}
+
 // Increase the priority of the routing pane
 .leaflet-focus-routing {
     z-index: 420;

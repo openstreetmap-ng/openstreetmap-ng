@@ -74,3 +74,41 @@ export const formatTime = (seconds) => {
     const m = Math.floor((seconds % 3600) / 60)
     return `${h}:${m.toString().padStart(2, "0")}`
 }
+
+/**
+ * Format degrees to their correct math representation
+ * @param {int} decimalDegree degrees
+ * @returns {string}
+ * @example formatDegrees(21.32123)
+ * // => "21°19′16″"
+ */
+export const formatDegrees = (decimalDegree) => {
+    const degrees = Math.floor(decimalDegree)
+    const minutes = Math.floor((decimalDegree - degrees) * 60)
+    const seconds = Math.round(((decimalDegree - degrees) * 60 - minutes) * 60)
+
+    // Pad single digits with a leading zero
+    const formattedDegrees = degrees < 10 ? `0${degrees}` : `${degrees}`
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`
+
+    return `${formattedDegrees}°${formattedMinutes}′${formattedSeconds}″`
+}
+
+/**
+ * Format [lat, lon] in the geographic coordinate system.
+ * See https://en.wikipedia.org/wiki/Geographic_coordinate_system.
+ * @param {number} lat Latitude
+ * @param {number} lon Longitude
+ * @returns {string}
+ * @example formatCoordinate(21.32123, 35.2134)
+ * // => "21°19′16″N, 35°12′48″E"
+ */
+
+export const formatCoordinate = (lat, lon) => {
+    const latDegrees = formatDegrees(lat)
+    const lonDegrees = formatDegrees(lon)
+    const latDir = lat === 0 ? "" : lat > 0 ? "N" : "S"
+    const lonDir = lon === 0 ? "" : lon > 0 ? "E" : "W"
+    return `${latDegrees}${latDir} ${lonDegrees}${lonDir}`
+}

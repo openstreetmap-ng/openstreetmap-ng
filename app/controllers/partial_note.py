@@ -17,7 +17,7 @@ from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial/note')
 
@@ -59,14 +59,14 @@ async def get_note(id: PositiveInt):
             'status': note.status.value,
             'is_subscribed': is_subscribed,
             'disappear_days': disappear_days,
-            'params': JSON_ENCODE(
+            'params': json_encodes(
                 {
                     'id': id,
                     'lon': x,
                     'lat': y,
                     'open': note.closed_at is None,
                 }
-            ).decode(),
+            ),
         },
     )
 

@@ -41,10 +41,12 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
     if (translated := locale.get(community['id'], {}).get('name')) is not None:
         return translated
 
-    # if not, then look up the default translated name for this type of community, and interpolate the template
-    if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:  # noqa: SIM102
-        if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
+    # if not, then look up the default translated name for this type of community
+    if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
+        # and optionally interpolate the template
+        if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:
             return template.format(community=community_name)
+        return community_name
 
     # otherwise fall back to the english resource name
     if (translated := community['strings'].get('name')) is not None:

@@ -1,14 +1,15 @@
-import asyncio
 import json
 import re
 from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
+import uvloop
+
 from app.lib.locale import LocaleName
 from app.lib.retry import retry
 from app.models.types import LocaleCode
-from app.utils import HTTP
+from app.utils import http_get
 
 _download_dir = Path('config/locale/download')
 _download_limiter = Semaphore(8)  # max concurrent downloads
@@ -17,38 +18,44 @@ _names_path = Path('config/locale/names.json')
 
 
 async def get_download_locales() -> tuple[LocaleCode, ...]:
-    r = await HTTP.get(
+    async with http_get(
         'https://translatewiki.net/wiki/Special:ExportTranslations',
         params={'group': 'out-osm-site'},
-    )
-    r.raise_for_status()
-    matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", r.text)
+        raise_for_status=True,
+    ) as r:
+        text = await r.text()
+
+    matches = re.finditer(r"<option value='([\w-]+)'.*?>\1 - ", text)
     return tuple(LocaleCode(match[1]) for match in matches)
 
 
 @retry(timedelta(minutes=2))
 async def download_locale(locale: LocaleCode) -> LocaleName | None:
-    async with _download_limiter:
-        r = await HTTP.get(
+    async with (
+        _download_limiter,
+        http_get(
             'https://translatewiki.net/wiki/Special:ExportTranslations',
             params={'group': 'out-osm-site', 'language': locale, 'format': 'export-to-file'},
-        )
-        r.raise_for_status()
+            raise_for_status=True,
+        ) as r,
+    ):
+        content_disposition = r.headers.get('Content-Disposition')
+        if content_disposition is None:
+            return None  # missing translation
 
-    content_disposition = r.headers.get('Content-Disposition')
-    if content_disposition is None:
-        return None  # missing translation
+        match_locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)
+        if match_locale is None:
+            raise ValueError(f'Failed to match filename for {locale!r}')
 
-    match_locale = re.search(r'filename="([\w-]+)\.yml"', content_disposition)
-    if match_locale is None:
-        raise ValueError(f'Failed to match filename for {locale!r}')
+        locale = LocaleCode(match_locale[1])
+        if locale == 'x-invalidLanguageCode':
+            print(f'[❔] {locale}: invalid language code')
+            return None
 
-    locale = LocaleCode(match_locale[1])
-    if locale == 'x-invalidLanguageCode':
-        print(f'[❔] {locale}: invalid language code')
-        return None
+        content = await r.read()
+        text = content.decode()
 
-    match = re.match(r'# Messages for (.+?) \((.+?)\)', r.text)
+    match = re.match(r'# Messages for (.+?) \((.+?)\)', text)
     if match is None:
         raise ValueError(f'Failed to match language names for {locale!r}')
 
@@ -59,8 +66,8 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
         return None
 
     target_path = _download_dir.joinpath(f'{locale}.yaml')
-    if not target_path.is_file() or (target_path.read_bytes()) != r.content:
-        target_path.write_bytes(r.content)
+    if not target_path.is_file() or (target_path.read_bytes()) != content:
+        target_path.write_bytes(content)
         print(f'[✅] Updated: {locale}')
     else:
         print(f'[✅] Already up-to-date: {locale}')
@@ -111,4 +118,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    uvloop.run(main())

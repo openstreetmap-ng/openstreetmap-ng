@@ -22,7 +22,7 @@ from app.models.leaflet import ElementLeaflet, ElementLeafletNode
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial')
 
@@ -134,7 +134,7 @@ async def _get_response(
         {
             'bounds': bounds,
             'results': results,
-            'leaflet': JSON_ENCODE(leaflet).decode(),
+            'leaflet': json_encodes(leaflet),
             'where_is_this': where_is_this,
         },
     )

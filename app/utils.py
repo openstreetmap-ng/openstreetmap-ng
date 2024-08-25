@@ -1,22 +1,59 @@
+import ssl
 import unicodedata
+from functools import cache
+from typing import Any, Unpack
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import httpx
+import certifi
 import msgspec
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
+from aiohttp.client import _RequestContextManager, _RequestOptions
 
 from app.config import USER_AGENT
-
-HTTP = httpx.AsyncClient(
-    headers={'User-Agent': USER_AGENT},
-    timeout=httpx.Timeout(connect=10, read=15, write=10, pool=10),
-    follow_redirects=True,
-    http1=True,
-    http2=True,
-)
-
+from app.limits import DNS_CACHE_EXPIRE
 
 JSON_ENCODE = msgspec.json.Encoder(decimal_format='number', order='sorted').encode
 JSON_DECODE = msgspec.json.Decoder().decode
+
+
+def json_encodes(obj: Any) -> str:
+    """
+    Like JSON_ENCODE, but returns a string.
+
+    >>> json_encodes({'foo': 'bar'})
+    '{"foo": "bar"}'
+    """
+    return JSON_ENCODE(obj).decode()
+
+
+@cache
+def _http() -> ClientSession:
+    """
+    Caching HTTP client factory.
+    """
+    return ClientSession(
+        connector=TCPConnector(
+            ssl=ssl.create_default_context(cafile=certifi.where()),
+            ttl_dns_cache=int(DNS_CACHE_EXPIRE.total_seconds()),
+        ),
+        headers={'User-Agent': USER_AGENT},
+        json_serialize=json_encodes,
+        timeout=ClientTimeout(total=15, connect=10),
+    )
+
+
+def http_get(url: str, **kwargs: Unpack[_RequestOptions]) -> _RequestContextManager:
+    """
+    Perform a HTTP GET request.
+    """
+    return _http().get(url, **kwargs)
+
+
+def http_post(url: str, **kwargs: Unpack[_RequestOptions]) -> _RequestContextManager:
+    """
+    Perform a HTTP POST request.
+    """
+    return _http().post(url, **kwargs)
 
 
 # TODO: reporting of deleted accounts (prometheus)

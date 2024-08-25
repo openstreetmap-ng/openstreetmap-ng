@@ -1,5 +1,7 @@
 import logging
+from asyncio import get_running_loop
 from enum import Enum
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 from typing import Literal, overload
@@ -69,11 +71,11 @@ class Image:
             raise NotImplementedError(f'Unsupported avatar type {image_type!r}')
 
     @staticmethod
-    def normalize_avatar(data: bytes) -> bytes:
+    async def normalize_avatar(data: bytes) -> bytes:
         """
         Normalize the avatar image.
         """
-        return _normalize_image(
+        return await _normalize_image(
             data,
             min_ratio=1 / AVATAR_MAX_RATIO,
             max_ratio=AVATAR_MAX_RATIO,
@@ -95,11 +97,11 @@ class Image:
             return None
 
     @staticmethod
-    def normalize_background(data: bytes) -> bytes:
+    async def normalize_background(data: bytes) -> bytes:
         """
         Normalize the background image.
         """
-        return _normalize_image(
+        return await _normalize_image(
             data,
             min_ratio=1 / BACKGROUND_MAX_RATIO,
             max_ratio=BACKGROUND_MAX_RATIO,
@@ -108,8 +110,7 @@ class Image:
         )
 
 
-@cython.cfunc
-def _normalize_image(
+async def _normalize_image(
     data: bytes,
     *,
     min_ratio: cython.double,
@@ -164,27 +165,36 @@ def _normalize_image(
             img.thumbnail((img_width, img_height))
 
     # optimize file size
-    quality, buffer = _optimize_quality(img, max_file_size)
+    quality, buffer = await _optimize_quality(img, max_file_size)
     logging.debug('Optimized avatar quality: Q%d', quality)
     return buffer
 
 
-@cython.cfunc
-def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> tuple[int, bytes]:
+async def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
 
     Returns the quality and the image buffer.
     """
-    lossless_quality: int = 100
+    lossless_effort: int = 80
+    loop = get_running_loop()
 
     with BytesIO() as buffer:
-        img.save(buffer, format='WEBP', quality=lossless_quality, lossless=True)
+        await loop.run_in_executor(
+            None,
+            partial(
+                img.save,
+                buffer,
+                format='WEBP',
+                lossless=True,
+                quality=lossless_effort,
+            ),
+        )
         size = buffer.tell()
-        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_quality, naturalsize(size))
+        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_effort, naturalsize(size))
 
         if max_file_size is None or size <= max_file_size:
-            return lossless_quality, buffer.getvalue()
+            return lossless_effort, buffer.getvalue()
 
         high: cython.int = 90
         low: cython.int = 20
@@ -198,7 +208,15 @@ def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> tuple[
             buffer.seek(0)
             buffer.truncate()
 
-            img.save(buffer, format='WEBP', quality=quality)
+            await loop.run_in_executor(
+                None,
+                partial(
+                    img.save,
+                    buffer,
+                    format='WEBP',
+                    quality=quality,
+                ),
+            )
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, naturalsize(size))
 
@@ -219,7 +237,15 @@ def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> tuple[
             buffer.seek(0)
             buffer.truncate()
 
-            img.save(buffer, format='WEBP', quality=quality)
+            await loop.run_in_executor(
+                None,
+                partial(
+                    img.save,
+                    buffer,
+                    format='WEBP',
+                    quality=quality,
+                ),
+            )
             size = buffer.tell()
             logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, naturalsize(size))
 

@@ -1,4 +1,3 @@
-import asyncio
 import gc
 import os
 from datetime import datetime
@@ -9,11 +8,12 @@ from pathlib import Path
 import lxml.etree as ET
 import numpy as np
 import polars as pl
+import uvloop
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.models.db import *  # noqa: F403
-from app.utils import JSON_ENCODE
+from app.utils import json_encodes
 
 input_path = PRELOAD_DIR.joinpath('preload.osm')
 data_parquet_path = PRELOAD_DIR.joinpath('preload.parquet')
@@ -156,7 +156,7 @@ def worker(args: tuple[int, int, int]) -> None:
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
                 visible,  # visible
-                JSON_ENCODE(dict(tags_list)).decode() if tags_list else '{}',  # tags
+                json_encodes(dict(tags_list)) if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
@@ -329,5 +329,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    uvloop.run(main())
     print('Done! Done! Done!')
