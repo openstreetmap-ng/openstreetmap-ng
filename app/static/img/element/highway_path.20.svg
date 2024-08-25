@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="20mm"
+   height="3mm"
+   viewBox="0 0 20 3"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   sodipodi:docname="highway_path.20.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2.5045944"
+     inkscape:cx="57.494338"
+     inkscape:cy="22.159276"
+     inkscape:window-width="1318"
+     inkscape:window-height="719"
+     inkscape:window-x="48"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs1" /><g
+     inkscape:label="Livello 1"
+     inkscape:groupmode="layer"
+     id="layer1"><g
+       id="path5"
+       style="fill:#727272;fill-opacity:1"><path
+         style="color:#000000;fill:#727272;stroke-linecap:round;stroke-dasharray:4.825, 2.895;stroke-dashoffset:1.2545;-inkscape-stroke:none;fill-opacity:1"
+         d="M 0.15656947,1.5 H 19.843431"
+         id="path6" /><path
+         style="color:#000000;fill:#727272;fill-opacity:1;stroke-linecap:round;stroke-dasharray:4.825, 2.895;stroke-dashoffset:1.2545;-inkscape-stroke:none"
+         d="M 0.02420101,1.0175781 V 1.9824219 H 3.7265625 C 3.9929789,1.9823788 4.2089413,1.7664164 4.2089844,1.5 4.2089413,1.2335836 3.9929789,1.0176212 3.7265625,1.0175781 Z m 6.59689269,0 C 6.3546773,1.0176213 6.138715,1.2335836 6.1386719,1.5 6.138715,1.7664164 6.3546773,1.9823787 6.6210937,1.9824219 H 11.447266 C 11.713682,1.9823788 11.929645,1.7664164 11.929688,1.5 11.929645,1.2335836 11.713682,1.0176212 11.447266,1.0175781 Z m 7.7207033,0 C 14.075381,1.0176212 13.859418,1.2335836 13.859375,1.5 c 4.3e-5,0.2664164 0.216006,0.4823788 0.482422,0.4824219 h 4.826172 C 19.434385,1.9823788 19.650348,1.7664164 19.650391,1.5 19.650348,1.2335836 19.434385,1.0176212 19.167969,1.0175781 Z"
+         id="path7"
+         sodipodi:nodetypes="cccccccccccccccccccc" /></g></g></svg>
