@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="32mm"
+   height="32mm"
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   sodipodi:docname="amenity_pharmacy_dispensing.svg"
+   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="11.313708"
+     inkscape:cy="62.578948"
+     inkscape:window-width="1318"
+     inkscape:window-height="719"
+     inkscape:window-x="48"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs1" /><g
+     inkscape:label="Livello 1"
+     inkscape:groupmode="layer"
+     id="layer1"><path
+       id="rect2-5"
+       style="color:#000000;fill:#d10000;fill-opacity:1;stroke-width:1.03113;stroke-dashoffset:6.03213;-inkscape-stroke:none;paint-order:markers fill stroke"
+       d="M 1.5745239,1.5745239 V 30.425476 H 30.425476 V 1.5745239 Z M 2.6659301,2.6659301 H 29.33407 V 29.33407 H 2.6659301 Z M 3.997115,3.997115 v 24.00577 h 24.00577 V 3.997115 Z M 5.0885213,5.0880045 H 26.911479 V 26.911479 H 5.0885213 Z" /><g
+       id="path19"
+       transform="translate(-33.676671,-0.88572981)" /><g
+       id="rect22-0"
+       transform="matrix(-1,0,0,1,-3.01491,-0.65556168)" /><g
+       id="rect22-7"
+       transform="matrix(-1,0,0,1,-2.830826,-0.88591792)" /><g
+       id="path26"
+       transform="translate(-33.676671,-0.88572981)" /><g
+       id="path52-1"
+       transform="matrix(-1,0,0,1,-11.680087,-0.88572981)" /><path
+       id="rect74"
+       style="fill:#d10000;fill-opacity:1;stroke:none;stroke-width:0.256734;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:6.03213;stroke-opacity:1;paint-order:stroke markers fill"
+       d="M 12.563416,6.6825762 V 12.563417 H 6.6825758 v 6.873612 h 5.8808402 v 5.880395 h 6.873612 v -5.880395 h 5.880396 V 12.563417 H 19.437028 V 6.6825762 Z"
+       sodipodi:nodetypes="ccccccccccccc" /></g></svg>
