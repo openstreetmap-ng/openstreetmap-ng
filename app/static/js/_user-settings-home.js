@@ -39,7 +39,7 @@ if (userSettingsForm) {
 
     const markerFactory = (latLng) =>
         L.marker(latLng, {
-            icon: getMarkerIcon("blue-home", true),
+            icon: getMarkerIcon("blue-home", true), // TODO: revise icon
             keyboard: false,
             interactive: false,
         }).addTo(map)

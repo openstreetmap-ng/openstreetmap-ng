@@ -18,7 +18,7 @@ export const configureFindHomeButton = (map, button) => {
     const onButtonClick = () => {
         if (!marker) {
             marker = L.marker(latLng, {
-                icon: getMarkerIcon("blue-home", true),
+                icon: getMarkerIcon("blue-home", true), // TODO: revise icon
                 keyboard: false,
                 interactive: false,
             })
