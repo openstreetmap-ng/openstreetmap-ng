@@ -1,10 +1,10 @@
-from collections.abc import Iterable, Sized
+from collections.abc import Iterable, Sequence, Sized
 from datetime import datetime
 from itertools import zip_longest
 
 import cython
 import numpy as np
-from shapely import GeometryType, MultiPoint, lib
+from shapely import Point, lib, multipoints
 
 from app.limits import (
     GEO_COORDINATE_PRECISION,
@@ -145,14 +145,10 @@ class FormatGPX:
                     elevation_str: str | None = trkpt.get('ele')
                     elevation = float(elevation_str) if elevation_str is not None else None
 
-                    if current_minx > lon_c:
-                        current_minx = lon_c
-                    if current_miny > lat_c:
-                        current_miny = lat_c
-                    if current_maxx < lon_c:
-                        current_maxx = lon_c
-                    if current_maxy < lat_c:
-                        current_maxy = lat_c
+                    current_minx = min(current_minx, lon_c)
+                    current_miny = min(current_miny, lat_c)
+                    current_maxx = max(current_maxx, lon_c)
+                    current_maxy = max(current_maxy, lat_c)
 
                     if _should_finish_segment(
                         segment_max_area=segment_max_area,
@@ -237,9 +233,8 @@ def _finish_segment(
     if not points:
         return
 
-    points_ = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
-    multipoint: MultiPoint = lib.create_collection(points_, GeometryType.MULTIPOINT)
-    multipoint = validate_geometry(multipoint)
+    points_: Sequence[Point] = lib.points(np.array(points, np.float64).round(GEO_COORDINATE_PRECISION))
+    multipoint = validate_geometry(multipoints(points_))
     capture_times_ = capture_times.copy() if any(v is not None for v in capture_times) else None
     elevations_ = elevations.copy() if any(v is not None for v in elevations) else None
     result.append(

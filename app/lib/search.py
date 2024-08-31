@@ -58,8 +58,7 @@ class Search:
         bbox_area: cython.double = (maxx - minx) * (maxy - miny)
 
         local_iterations: cython.int = int(ceil(log2(search_local_area_limit / bbox_area)))
-        if local_iterations > search_local_max_iterations:
-            local_iterations = search_local_max_iterations
+        local_iterations = min(local_iterations, search_local_max_iterations)
         if local_only:
             local_iterations = 1
         logging.debug('Searching area of %d with %d local iterations', bbox_area, local_iterations)

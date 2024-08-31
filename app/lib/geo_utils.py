@@ -84,10 +84,8 @@ def parse_bbox(s: str) -> Polygon | MultiPolygon:
         raise_for().bad_bbox(s, 'min latitude > max latitude')
 
     # normalize latitude
-    if miny < -90:
-        miny = -90
-    if maxy > 90:
-        maxy = 90
+    miny = max(miny, -90)
+    maxy = min(maxy, 90)
 
     # special case, bbox wraps around the whole world
     if maxx - minx >= 360:

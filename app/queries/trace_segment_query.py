@@ -3,7 +3,7 @@ from collections.abc import Collection, Sequence
 
 import cython
 import numpy as np
-from shapely import GeometryType, MultiPoint, STRtree, from_wkb, get_parts, lib
+from shapely import MultiPoint, STRtree, from_wkb, get_parts, lib, multipoints
 from shapely.geometry.base import BaseGeometry
 from sqlalchemy import func, literal_column, select, text, union_all
 from sqlalchemy.sql.selectable import Select
@@ -101,7 +101,7 @@ class TraceSegmentQuery:
             new_parts_fixed = np.empty((len(new_parts), new_parts_max_size), dtype=object)
             mask = np.arange(new_parts_max_size) < new_parts_sizes[:, None]
             new_parts_fixed[mask] = new_parts_flat
-            new_points_list: Sequence[MultiPoint] = lib.create_collection(new_parts_fixed, GeometryType.MULTIPOINT)
+            new_points_list: Sequence[MultiPoint] = multipoints(new_parts_fixed)  # pyright: ignore[reportAssignmentType]
 
             # assign filtered multipoints and return
             for segment, points in zip(segments, new_points_list, strict=True):
@@ -130,7 +130,7 @@ class TraceSegmentQuery:
             return segments
         else:
             # reconstruct dummy multipoint
-            new_points: MultiPoint = lib.create_collection(new_parts_flat, GeometryType.MULTIPOINT)
+            new_points: MultiPoint = multipoints(new_parts_flat)  # pyright: ignore[reportAssignmentType]
             return (
                 TraceSegment(
                     track_num=0,

@@ -434,7 +434,11 @@ let
     (makeScript "open-mailpit" "python -m webbrowser http://127.0.0.1:8025")
     (makeScript "open-app" "python -m webbrowser http://127.0.0.1:8000")
     (makeScript "nixpkgs-update" ''
-      hash=$(git ls-remote https://github.com/NixOS/nixpkgs nixpkgs-unstable | cut -f 1)
+      hash=$(
+        curl --silent --location \
+        https://prometheus.nixos.org/api/v1/query \
+        -d "query=channel_revision{channel=\"nixpkgs-unstable\"}" | \
+        grep --only-matching --extended-regexp "[0-9a-f]{40}")
       sed -i -E "s|/nixpkgs/archive/[0-9a-f]{40}\.tar\.gz|/nixpkgs/archive/$hash.tar.gz|" shell.nix
       echo "Nixpkgs updated to $hash"
     '')
@@ -473,17 +477,16 @@ let
         file_stem="''${file_name%.js}"
 
         # TODO: --sourcemap=external when https://github.com/oven-sh/bun/issues/7427
-        output=$(bun build \
-          "$file" \
-          --minify \
+        output=$(
+          bun build --minify \
+          --outdir "$dir" \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
-          --outdir "$dir" | tee /dev/stdout)
+          "$file" | tee /dev/stdout)
 
-        bundle_name=$(grep \
-          --only-matching \
-          --extended-regexp \
-          --max-count=1 \
+        bundle_name=$(
+          grep --only-matching --extended-regexp --max-count 1 \
           "bundle-$file_stem-[0-9a-f]{16}\.js" <<< "$output")
+
         if [ -z "$bundle_name" ]; then
           echo "ERROR: Failed to match bundle name for $file"
           exit 1

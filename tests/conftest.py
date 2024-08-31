@@ -29,7 +29,7 @@ async def transport():
         yield ASGITransport(main)  # pyright: ignore[reportArgumentType]
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(transport: ASGITransport) -> AsyncClient:
     return AsyncClient(base_url='http://127.0.0.1:8000', transport=transport)
 
@@ -55,6 +55,6 @@ def _gpx_data() -> dict:
     return XMLToDict.parse(Path('tests/data/8473730.gpx').read_bytes())
 
 
-@pytest.fixture()
+@pytest.fixture
 def gpx() -> dict:
     return deepcopy(_gpx_data())

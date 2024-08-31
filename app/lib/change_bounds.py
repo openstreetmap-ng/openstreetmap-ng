@@ -115,11 +115,9 @@ def _get_buffer_bbox(bound: tuple[float, float, float, float]) -> tuple[float, f
     new_bbox_min_ratio: cython.double = CHANGESET_NEW_BBOX_MIN_RATIO
     minx, miny, maxx, maxy = bound
     distx = (maxx - minx) * new_bbox_min_ratio
-    if distx < new_bbox_min_distance:
-        distx = new_bbox_min_distance
+    distx = max(distx, new_bbox_min_distance)
     disty = (maxy - miny) * new_bbox_min_ratio
-    if disty < new_bbox_min_distance:
-        disty = new_bbox_min_distance
+    disty = max(disty, new_bbox_min_distance)
     return minx - distx, miny - disty, maxx + distx, maxy + disty
 
 
