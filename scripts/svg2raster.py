@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
@@ -26,26 +27,23 @@ def measure():
 
 
 @click.command()
-@click.argument('input', nargs=-1, type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path))
+@click.argument('input', nargs=-1, type=click.Path(dir_okay=False, path_type=Path))
 @click.option('size', '--size', '-s', default=128, show_default=True)
 @click.option('quality', '--quality', '-q', default=80, show_default=True)
-@click.option(
-    'work_dir', '--work-dir', type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path)
-)
+@click.option('chdir', '--chdir', type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path))
 @click.option('force', '--force', '-f', is_flag=True)
-def svg2raster(input: Iterable[Path], size: int, quality: int, work_dir: Path | None, force: bool) -> None:
-    if work_dir is None:
-        work_dir = Path.cwd()
+def svg2raster(input: Iterable[Path], size: int, quality: int, chdir: Path | None, force: bool) -> None:
+    if chdir is not None:
+        os.chdir(chdir)
 
     for i in input:
-        output_dir = work_dir.joinpath('_generated', i.relative_to(work_dir).parent)
+        output_dir = Path('_generated', i.parent)
         output = output_dir.joinpath(i.stem + '.webp')
-        output_human = output.relative_to(work_dir)
         if not output_dir.is_dir():
             output_dir.mkdir(parents=True)
 
         if not force and output.is_file():
-            click.secho(f'Skipped {output_human} (already exists)', fg='white')
+            click.secho(f'Skipped {output} (already exists)', fg='white')
             continue
 
         with measure() as cairo_time:
@@ -55,7 +53,7 @@ def svg2raster(input: Iterable[Path], size: int, quality: int, work_dir: Path | 
             img.save(output, format='WEBP', quality=quality, alpha_quality=quality, method=6)
 
         check = click.style('✓', fg='bright_green')
-        output_str = click.style(output_human, fg='bright_cyan')
+        output_str = click.style(output, fg='bright_cyan')
         total_time = click.style(f'{cairo_time.ms + pillow_time.ms}ms', fg='bright_white')
         click.echo(f'{check} Converted SVG to {output_str} in {total_time}')
 

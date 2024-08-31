@@ -151,9 +151,19 @@ let
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
     (makeScript "static-img-pipeline" ''
       dir=app/static/img/element
-      find "$dir" -type f -name "*.svg" | \
-        parallel --will-cite --line-buffer --max-args 8 \
-          python scripts/svg2raster.py --work-dir "$dir"
+      files=()
+      pushd "$dir"
+      for file in **/*.svg; do
+        output="_generated/''${file%.svg}.webp"
+        if [ ! -f "$output" ]; then
+          files+=("$file")
+        fi
+      done
+      popd
+
+      parallel --will-cite --line-buffer --max-args 8 \
+        python scripts/svg2raster.py --chdir "$dir" \
+        ::: "''${files[@]}"
     '')
     (makeScript "static-precompress" ''
       dirs=(
@@ -554,13 +564,12 @@ let
     fi
 
     if [ ! -f config/locale/gnu/pl/LC_MESSAGES/messages.mo ]; then
-      echo "Running locale pipeline"
+      echo "Running [locale-pipeline]"
       locale-pipeline
     fi
-    if [ ! -f app/static/img/element/_generated/access_yes.webp ]; then
-      echo "Running static image pipeline"
-      static-img-pipeline
-    fi
+
+    echo "Running [static-img-pipeline]"
+    static-img-pipeline
   '' + lib.optionalString (!isDevelopment) ''
     make-version
   '';
