@@ -11,11 +11,12 @@ let
 
   wrapPrefix = if (!pkgs.stdenv.isDarwin) then "LD_LIBRARY_PATH" else "DYLD_LIBRARY_PATH";
   pythonLibs = with pkgs; [
-    stdenv.cc.cc.lib
+    cairo.out
     file.out
     libxml2.out
     libyaml.out
     zlib.out
+    stdenv.cc.cc.lib
   ];
   python' = with pkgs; (symlinkJoin {
     name = "python";

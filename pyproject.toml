@@ -25,13 +25,10 @@ fastapi = "<1"
 feedgen = "^1.0.0"
 jinja2 = "^3.1.2"
 lxml = "^5.0.1"
-lxml-stubs = "<1"
 markdown-it-py = {extras = ["plugins"], version = "^3.0.0"}
 msgspec = "<1"
 phonenumbers = "^8.13.27"
 pillow = "^10.2.0"
-polars = "<1"
-pre-commit = "^3.7.1"
 protobuf = "~5.27.2"
 pycryptodomex = "^3.20.0"
 pydantic = "^2.5.3"
@@ -52,12 +49,19 @@ sqlalchemy = {extras = ["postgresql-asyncpg"], version = "^2.0.28"}
 starlette-compress = "^1.0.1"
 supervisor = "^4.2.5"
 tqdm = "^4.66.1"
-types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
-types-protobuf = "^5.27.0.20240626"
 uvicorn = {extras = ["standard"], version = "<1"}
-uvloop = "^0.20.0"
+uvloop = "<1"
 zid = "^1.0.0"
 zstandard = "<1"
+
+[tool.poetry.group.dev.dependencies]
+click = "^8.1.7"
+lxml-stubs = "<1"
+polars = "<1"
+pre-commit = "^3.7.1"
+types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
+types-protobuf = "^5.27.0.20240626"
+cairosvg = "^2.7.1"
 
 [tool.poetry.group.test.dependencies]
 httpx = "<1"
