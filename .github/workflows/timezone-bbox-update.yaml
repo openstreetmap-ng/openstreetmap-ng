@@ -16,7 +16,7 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
-          nix_path: nixpkgs=channel:nixpkgs-23.11-darwin
+          nix_path: nixpkgs=channel:nixpkgs-24.05-darwin
 
       - name: Extract nixpkgs hash
         run: |
