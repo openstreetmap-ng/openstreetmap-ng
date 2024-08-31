@@ -55,13 +55,13 @@ zid = "^1.0.0"
 zstandard = "<1"
 
 [tool.poetry.group.dev.dependencies]
+cairosvg = "^2.7.1"
 click = "^8.1.7"
 lxml-stubs = "<1"
 polars = "<1"
 pre-commit = "^3.7.1"
 types-aioboto3 = {extras = ["s3"], version = "^13.1.0"}
 types-protobuf = "^5.27.0.20240626"
-cairosvg = "^2.7.1"
 
 [tool.poetry.group.test.dependencies]
 httpx = "<1"
@@ -233,6 +233,7 @@ strictSetInference = true
 
 [tool.pytest.ini_options]
 addopts = "--quiet"
+asyncio_default_fixture_loop_scope = "session"
 asyncio_mode = "auto"
 minversion = "6.0"
 testpaths = ["tests"]
