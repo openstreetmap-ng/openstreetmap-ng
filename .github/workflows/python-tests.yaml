@@ -24,17 +24,18 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixpkgs-24.05-darwin
 
-      - name: Extract nixpkgs hash
+      - name: Generate cache key
         run: |
           nixpkgs_hash=$(egrep -o 'archive/[0-9a-f]{40}\.tar\.gz' shell.nix | cut -d'/' -f2 | cut -d'.' -f1)
-          echo "NIXPKGS_HASH=$nixpkgs_hash" >> $GITHUB_ENV
+          echo "CACHE_KEY=${{ runner.os }}-$nixpkgs_hash" >> $GITHUB_ENV
 
       - name: Cache Nix store
         uses: actions/cache@v4
         id: nix-cache
         with:
-          key: nix-${{ runner.os }}-${{ env.NIXPKGS_HASH }}
-          path: /tmp/nix-cache
+          key: nix-${{ env.CACHE_KEY }}
+          path: |
+            /tmp/nix-cache
 
       - name: Import Nix store cache
         if: steps.nix-cache.outputs.cache-hit == 'true'
@@ -44,7 +45,7 @@ jobs:
       - name: Cache Python venv
         uses: actions/cache@v4
         with:
-          key: python-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          key: python-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock') }}
           path: |
             ~/.cache/pypoetry
             .venv
@@ -52,14 +53,16 @@ jobs:
       - name: Cache Bun packages
         uses: actions/cache@v4
         with:
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          path: ~/.bun/install/cache
+          key: bun-${{ env.CACHE_KEY }}-${{ hashFiles('bun.lockb') }}
+          path: |
+            ~/.bun/install/cache
 
-      - name: Cache locale
+      - name: Cache generated files
         uses: actions/cache@v4
         with:
-          key: locale-${{ runner.os }}
+          key: locale-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock', 'bun.lockb') }}
           path: |
+            app/static/img/element/_generated
             config/locale/gnu
             config/locale/i18next
             config/locale/postprocess
