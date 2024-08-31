@@ -44,6 +44,10 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
         img = Image.open(BytesIO(png_data))
         img.save(output, format='WEBP', quality=quality, alpha_quality=quality, method=6)
 
+        # preserve mtime
+        mtime = input.stat().st_mtime
+        os.utime(output, (mtime, mtime))
+
     check = click.style('✓', fg='bright_green')
     output_str = click.style(output, fg='bright_cyan')
     total_time = click.style(f'{time.ms}ms', fg='bright_white')
