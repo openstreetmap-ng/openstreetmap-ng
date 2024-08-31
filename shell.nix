@@ -51,7 +51,6 @@ let
 
   packages' = with pkgs; [
     coreutils
-    parallel
     curl
     watchexec
     brotli
@@ -149,22 +148,7 @@ let
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
-    (makeScript "static-img-pipeline" ''
-      dir=app/static/img/element
-      files=()
-      pushd "$dir"
-      for file in **/*.svg; do
-        output="_generated/''${file%.svg}.webp"
-        if [ ! -f "$output" ]; then
-          files+=("$file")
-        fi
-      done
-      popd
-
-      parallel --will-cite --line-buffer --max-args 8 \
-        python scripts/svg2raster.py --chdir "$dir" \
-        ::: "''${files[@]}"
-    '')
+    (makeScript "static-img-pipeline" "python scripts/rasterize.py static-img-pipeline")
     (makeScript "static-precompress" ''
       dirs=(
         app/static
