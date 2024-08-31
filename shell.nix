@@ -51,6 +51,7 @@ let
 
   packages' = with pkgs; [
     coreutils
+    parallel
     curl
     watchexec
     brotli
@@ -147,6 +148,13 @@ let
     (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
 
     # -- Static
+    (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
+    (makeScript "static-img-pipeline" ''
+      dir=app/static/img/element
+      find "$dir" -type f -name "*.svg" | \
+        parallel --will-cite --line-buffer --max-args 8 \
+          python scripts/svg2raster.py --work-dir "$dir"
+    '')
     (makeScript "static-precompress" ''
       dirs=(
         app/static
@@ -548,6 +556,10 @@ let
     if [ ! -f config/locale/gnu/pl/LC_MESSAGES/messages.mo ]; then
       echo "Running locale pipeline"
       locale-pipeline
+    fi
+    if [ ! -f app/static/img/element/_generated/access_yes.webp ]; then
+      echo "Running static image pipeline"
+      static-img-pipeline
     fi
   '' + lib.optionalString (!isDevelopment) ''
     make-version
