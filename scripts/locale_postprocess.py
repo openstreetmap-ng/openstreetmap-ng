@@ -20,14 +20,14 @@ def get_source_mtime(locale: str) -> float:
     return source_mtime if (locale != 'en') else max(source_mtime, _locale_extra_en_path.stat().st_mtime)
 
 
-def needs_processing(locale: str) -> bool:
+def needs_processing(locale: str, source_mtime: float) -> bool:
     source_path = _download_dir.joinpath(f'{locale}.yaml')
     target_path = _postprocess_dir.joinpath(f'{locale}.json')
     if not source_path.is_file():
         return False
     if not target_path.is_file():
         return True
-    return get_source_mtime(locale) > target_path.stat().st_mtime
+    return source_mtime > target_path.stat().st_mtime
 
 
 def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) -> str:
@@ -90,12 +90,13 @@ def main(verbose: bool):
     if verbose:
         click.echo([c['id'] for c in lc_extractor.communities])
 
-    detected_counter = 0
+    discover_counter = 0
     success_counter = 0
     for source_path in _download_dir.glob('*.yaml'):
-        detected_counter += 1
+        discover_counter += 1
         locale = source_path.stem
-        if not needs_processing(locale):
+        source_mtime = get_source_mtime(locale)
+        if not needs_processing(locale, source_mtime):
             continue
 
         data: dict = yaml.load(source_path.read_bytes(), yaml.CSafeLoader)
@@ -118,14 +119,13 @@ def main(verbose: bool):
         target_path.write_text(buffer)
 
         # preserve mtime
-        mtime = get_source_mtime(locale)
-        os.utime(target_path, (mtime, mtime))
+        os.utime(target_path, (source_mtime, source_mtime))
         success_counter += 1
 
-    lc_str = click.style(f'{len(lc_extractor.communities)} local chapters', fg='green')
-    detected_str = click.style(f'{detected_counter} locales', fg='green')
+    discover_str = click.style(f'{discover_counter} locales', fg='green')
     success_str = click.style(f'{success_counter} locales', fg='bright_green')
-    click.echo(f'Discovered {lc_str} and {detected_str}, postprocessed {success_str}')
+    lc_str = click.style(f'{len(lc_extractor.communities)} local chapters', fg='green')
+    click.echo(f'Discovered {discover_str} and {lc_str}, postprocessed {success_str}')
 
 
 def trim_values(data: dict):

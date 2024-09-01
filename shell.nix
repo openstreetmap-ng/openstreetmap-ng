@@ -195,47 +195,13 @@ let
     (makeScript "locale-clean" "rm -rf config/locale/*/")
     (makeScript "locale-download" "python scripts/locale_download.py")
     (makeScript "locale-postprocess" "python scripts/locale_postprocess.py")
-    (makeScript "locale-make-i18next" ''
-      rm -rf config/locale/i18next/
-      python scripts/locale_make_i18next.py
-    '')
-    (makeScript "locale-make-gnu" ''
-      mkdir -p config/locale/gnu
-      echo "Converting to GNU gettext format"
-
-      for file in config/locale/postprocess/*.json; do
-        locale="''${file##*/}"
-        locale="''${locale%.json}"
-        target_file="config/locale/gnu/$locale/LC_MESSAGES/messages.po"
-        target_file_bin="''${target_file%.po}.mo"
-
-        if [ ! -f "$target_file_bin" ] || [ "$file" -nt "$target_file_bin" ]; then
-          target_dir="''${target_file%/*}"
-          mkdir -p "$target_dir"
-
-          bunx i18next-conv \
-            --quiet \
-            --language "$locale" \
-            --source "$file" \
-            --target "$target_file" \
-            --keyseparator "." \
-            --ctxSeparator "__" \
-            --compatibilityJSON "v4"
-
-          # convert format to python-style:
-          sed -i -E "s/\{\{/{/g; s/\}\}/}/g" "$target_file"
-
-          msgfmt "$target_file" --output-file "$target_file_bin"
-          touch -r "$file" "$target_file" "$target_file_bin"
-          echo "Generating GNU locale... $locale"
-        fi
-      done
-    '')
+    (makeScript "locale-make-i18next" "python scripts/locale_make_i18next.py")
+    (makeScript "locale-make-gnu" "python scripts/locale_make_gnu.py")
     (makeScript "locale-pipeline" ''
-      set -x
       locale-postprocess
-      locale-make-i18next
-      locale-make-gnu
+      locale-make-i18next &
+      locale-make-gnu &
+      wait
     '')
     (makeScript "locale-pipeline-with-download" ''
       set -x
@@ -522,8 +488,6 @@ let
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
-    proto-generate
-
     # Development environment variables
     export PYTHONNOUSERSITE=1
     export TZ=UTC
@@ -545,15 +509,17 @@ let
       set -o allexport
       source .env set
       set +o allexport
+    else
+      echo "Skipped loading .env file (not found)"
     fi
 
-    if [ ! -f config/locale/gnu/pl/LC_MESSAGES/messages.mo ]; then
-      echo "Running [locale-pipeline]"
-      locale-pipeline
-    fi
-
+    echo "Running [proto-generate]"
+    proto-generate &
+    echo "Running [locale-pipeline]"
+    locale-pipeline &
     echo "Running [static-img-pipeline]"
-    static-img-pipeline
+    static-img-pipeline &
+    wait
   '' + lib.optionalString (!isDevelopment) ''
     make-version
   '';

@@ -39,19 +39,13 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
     import cairosvg
     from PIL import Image
 
-    with measure() as time:
-        png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)  # pyright: ignore[reportAssignmentType]
-        img = Image.open(BytesIO(png_data))
-        img.save(output, format='WEBP', quality=quality, alpha_quality=quality, method=6)
+    png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)  # pyright: ignore[reportAssignmentType]
+    img = Image.open(BytesIO(png_data))
+    img.save(output, format='WEBP', quality=quality, alpha_quality=quality, method=6)
 
-        # preserve mtime
-        mtime = input.stat().st_mtime
-        os.utime(output, (mtime, mtime))
-
-    check = click.style('✓', fg='bright_green')
-    output_str = click.style(output, fg='bright_cyan')
-    total_time = click.style(f'{time.ms}ms', fg='bright_white')
-    click.echo(f'{check} Rasterized SVG to {output_str} in {total_time}')
+    # preserve mtime
+    mtime = input.stat().st_mtime
+    os.utime(output, (mtime, mtime))
 
 
 @cli.command()
@@ -61,14 +55,22 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
 def file(input: Iterable[Path], size: int, quality: int) -> None:
     for i in input:
         output = get_output_path(i)
-        rasterize(i, output, size=size, quality=quality)
+        with measure() as time:
+            rasterize(i, output, size=size, quality=quality)
+
+        check = click.style('✓', fg='bright_green')
+        output_str = click.style(output, fg='bright_cyan')
+        total_time = click.style(f'{time.ms}ms', fg='bright_white')
+        click.echo(f'{check} Rasterized SVG to {output_str} in {total_time}')
 
 
 @cli.command('static-img-pipeline')
 @click.option('verbose', '--verbose', '-v', is_flag=True)
 def static_img_pipeline(verbose: bool) -> None:
     os.chdir('app/static/img/element')
-    with Pool() as pool:
+
+    with measure() as time, Pool() as pool:
+        success_counter = 0
         for i in Path().rglob('*.svg'):
             output = get_output_path(i)
             if output.is_file() and i.stat().st_mtime <= output.stat().st_mtime:
@@ -76,8 +78,14 @@ def static_img_pipeline(verbose: bool) -> None:
                     click.secho(f'Skipped {output} (already exists)', fg='white')
                 continue
             pool.apply_async(partial(rasterize, i, output, size=128, quality=80))
+            success_counter += 1
         pool.close()
         pool.join()
+
+    if success_counter > 0:
+        output_str = click.style(str(success_counter), fg='bright_cyan')
+        total_time = click.style(f'{time.ms}ms', fg='bright_white', bold=True)
+        click.echo(f'Rasterized {output_str} SVGs in {total_time}')
 
 
 if __name__ == '__main__':

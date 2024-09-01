@@ -3,17 +3,39 @@ import os
 from hashlib import sha256
 from pathlib import Path
 
-from tqdm import tqdm
+import click
 
 _postprocess_dir = Path('config/locale/postprocess')
 _i18next_dir = Path('config/locale/i18next')
+_i18next_dir.mkdir(parents=True, exist_ok=True)
 _i18next_map_path = _i18next_dir.joinpath('map.json')
 
 
-def create_file_map() -> dict[str, str]:
-    file_map = {}
-    for source_path in tqdm(tuple(_postprocess_dir.glob('*.json')), desc='Converting to JavaScript'):
+def find_valid_output(locale: str, source_mtime: float) -> Path | None:
+    target_iter = iter(p for p in _i18next_dir.glob(f'{locale}-*.js') if '-' not in p.stem[len(locale) + 1 :])
+    target_path = next(target_iter, None)
+    if target_path is None:
+        return None
+    if source_mtime > target_path.stat().st_mtime:
+        # cleanup old files
+        target_path.unlink()
+        while (target_path := next(target_iter, None)) is not None:
+            target_path.unlink()
+        return None
+    return target_path
+
+
+@click.command()
+def main() -> None:
+    file_map: dict[str, str] = {}
+    success_counter = 0
+    for source_path in _postprocess_dir.glob('*.json'):
         locale = source_path.stem
+        source_mtime = source_path.stat().st_mtime
+        target_path = find_valid_output(locale, source_mtime)
+        if target_path is not None:
+            file_map[locale] = target_path.name
+            continue
 
         # re-encode json to sort keys
         translation = json.dumps(json.loads(source_path.read_bytes()), sort_keys=True)
@@ -26,18 +48,18 @@ def create_file_map() -> dict[str, str]:
         target_path = _i18next_dir.joinpath(file_name)
         target_path.write_bytes(buffer)
 
-        stat = source_path.stat()
-        os.utime(target_path, (stat.st_atime, stat.st_mtime))
-
+        # preserve mtime
+        os.utime(target_path, (source_mtime, source_mtime))
         file_map[locale] = file_name
-    return file_map
+        success_counter += 1
 
+    if success_counter > 0:
+        buffer = json.dumps(file_map, indent=2, sort_keys=True)
+        _i18next_map_path.write_text(buffer)
 
-def main():
-    _i18next_dir.mkdir(parents=True, exist_ok=True)
-    file_map = create_file_map()
-    buffer = json.dumps(file_map, indent=2, sort_keys=True)
-    _i18next_map_path.write_text(buffer)
+    discover_str = click.style(f'{len(file_map)} locales', fg='green')
+    success_str = click.style(f'{success_counter} locales', fg='bright_green')
+    click.echo(f'[i18next] Discovered {discover_str}, transformed {success_str}')
 
 
 if __name__ == '__main__':
