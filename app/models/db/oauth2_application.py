@@ -48,7 +48,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         Get the url for the application's avatar image.
         """
         return (
-            Image.get_avatar_url(AvatarType.default)
+            Image.get_avatar_url(AvatarType.default, app=True)
             if self.avatar_id is None
             else Image.get_avatar_url(AvatarType.custom, self.avatar_id)
         )

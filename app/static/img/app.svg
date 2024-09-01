@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   id="svg2"
+   viewBox="0 0 30 30"
+   version="1.0"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient2670"
+       y2="23.625"
+       gradientUnits="userSpaceOnUse"
+       x2="19.75"
+       gradientTransform="matrix(0.63753987,0,0,0.63753987,4.5601407,-2.4526666)"
+       y1="18.5"
+       x1="8.125">
+      <stop
+         id="stop14268"
+         style="stop-color:#d6d6ff;stop-opacity:1;"
+         offset="0" />
+      <stop
+         id="stop14270"
+         style="stop-color:#d1d1ff;stop-opacity:1;"
+         offset="1" />
+    </linearGradient>
+  </defs>
+  <path
+     id="path8364"
+     style="fill:#c2c2ff;stroke-width:1.4035;fill-opacity:1;opacity:0.29970058"
+     d="m 15.609714,3.1659954 c -0.135999,0.018161 -0.266665,0.064308 -0.383998,0.135536 L 5.1057793,9.0843724 C 4.7988199,9.2613538 4.6094316,9.5885096 4.6088,9.942753 l -5.2e-6,10.120077 c -0.00112,0.33684 0.1690095,0.652628 0.4517867,0.835083 l 8.6743315,5.783823 c 0.314384,0.202104 0.716066,0.210525 1.039011,0.02246 l 10.119656,-5.78242 c 0.307366,-0.176841 0.496839,-0.50526 0.496839,-0.858942 V 9.942753 c 0.0014,-0.3371207 -0.16842,-0.6519257 -0.451927,-0.8357842 L 16.264862,3.3241277 C 16.0716,3.196704 15.839883,3.1407745 15.609709,3.1660515 Z" />
+  <path
+     id="rect4447"
+     style="fill:#dadaff;stroke-width:0.637999;stroke-dasharray:none;fill-opacity:1"
+     d="m 6.7118377,10.537144 7.6504783,5.100383 v 8.925558 L 6.7118377,19.462766 v -8.925558 z" />
+  <path
+     id="path4450"
+     style="fill:url(#linearGradient2670);stroke-width:0.637999;stroke-dasharray:none"
+     d="m 15.637396,5.4368255 7.650478,5.1003185 -8.925558,5.100383 -7.6504783,-5.100383 z" />
+  <path
+     id="path5421"
+     style="fill:#cbcbff;stroke-width:0.638;stroke-dasharray:none;fill-opacity:1"
+     d="m 23.287874,10.537144 v 8.925559 l -8.925558,5.100319 v -8.925559 l 8.925558,-5.100382 z" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:date>2008-05-26T15:28:45</dc:date>
+        <dc:description />
+        <dc:source>https://openclipart.org/detail/17060/icon_cube_green-by-jean_victor_balin</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>jean_victor_balin</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>cube</rdf:li>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>item</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

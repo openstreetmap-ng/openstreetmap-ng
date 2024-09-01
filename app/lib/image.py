@@ -43,7 +43,7 @@ class Image:
 
     @overload
     @staticmethod
-    def get_avatar_url(image_type: Literal[AvatarType.default]) -> str: ...
+    def get_avatar_url(image_type: Literal[AvatarType.default], *, app: bool = False) -> str: ...
 
     @overload
     @staticmethod
@@ -54,7 +54,7 @@ class Image:
     def get_avatar_url(image_type: Literal[AvatarType.custom], image_id: StorageKey) -> str: ...
 
     @staticmethod
-    def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0) -> str:
+    def get_avatar_url(image_type: AvatarType, image_id: int | StorageKey = 0, *, app: bool = False) -> str:
         """
         Get the url of the avatar image.
 
@@ -62,7 +62,7 @@ class Image:
         '/api/web/avatar/123456'
         """
         if image_type == AvatarType.default:
-            return '/static/img/avatar.webp'
+            return '/static/img/avatar.webp' if not app else '/static/img/app.webp'
         elif image_type == AvatarType.gravatar:
             return f'/api/web/gravatar/{image_id}'
         elif image_type == AvatarType.custom:
