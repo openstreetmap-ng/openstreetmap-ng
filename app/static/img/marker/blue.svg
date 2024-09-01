@@ -11,35 +11,12 @@
    enable-background="new 0 0 211 79"
    y="0px"
    x="0px"
-   sodipodi:docname="red.svg"
-   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/"><defs
-   id="defs1" /><sodipodi:namedview
-   id="namedview1"
-   pagecolor="#ffffff"
-   bordercolor="#000000"
-   borderopacity="0.25"
-   inkscape:showpageshadow="false"
-   inkscape:pageopacity="0.0"
-   inkscape:pagecheckerboard="true"
-   inkscape:deskcolor="#d1d1d1"
-   borderlayer="true"
-   showborder="true"
-   inkscape:zoom="14.492891"
-   inkscape:cx="12.799379"
-   inkscape:cy="18.043329"
-   inkscape:window-width="3840"
-   inkscape:window-height="2036"
-   inkscape:window-x="3840"
-   inkscape:window-y="0"
-   inkscape:window-maximized="1"
-   inkscape:current-layer="Layer_1" /><metadata
+   id="defs1" /><metadata
    id="metadata3147"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
          rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata>
@@ -55,12 +32,12 @@
    id="stop3088"
    stop-color="#286EB5"
    offset="0"
-   style="stop-color:#2a72a2;stop-opacity:1;" />
+   style="stop-color:#045c8b;stop-opacity:1;" />
 	<stop
    id="stop3090"
    stop-color="#4D9CD1"
    offset="1"
-   style="stop-color:#4d9cd1;stop-opacity:1;" />
+   style="stop-color:#058ed9;stop-opacity:1;" />
 </linearGradient>
 <linearGradient
    id="path3873_6_"
@@ -74,12 +51,12 @@
    id="stop3093"
    stop-color="#306D98"
    offset="0"
-   style="stop-color:#215b82;stop-opacity:1;" />
+   style="stop-color:#034163;stop-opacity:1;" />
 	<stop
    id="stop3095"
    stop-color="#3984B8"
    offset="1"
-   style="stop-color:#3289c3;stop-opacity:1;" />
+   style="stop-color:#0576b3;stop-opacity:1;" />
 </linearGradient>
 <rect
    id="rect3149"
