@@ -60,7 +60,7 @@ jobs:
       - name: Cache generated files
         uses: actions/cache@v4
         with:
-          key: locale-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock', 'bun.lockb') }}
+          key: generated-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock', 'bun.lockb') }}
           path: |
             app/static/img/element/_generated
             config/locale/gnu
