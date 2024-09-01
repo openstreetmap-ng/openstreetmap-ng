@@ -33,6 +33,11 @@
       "Uk"
     ]
   },
+  "*:markings": {
+    "*": [
+      ""
+    ]
+  },
   "*:parts": {
     "*": [
       ""
@@ -991,7 +996,8 @@
   },
   "addr:milestone": {
     "*": [
-      ""
+      "",
+      "Pt"
     ]
   },
   "addr:municipality": {
@@ -1930,6 +1936,11 @@
       "Pt",
       "RU",
       "Zh-hans"
+    ]
+  },
+  "aeroway:balloon": {
+    "*": [
+      ""
     ]
   },
   "after_school": {
@@ -3215,6 +3226,7 @@
     ],
     "foot_shower": [
       "",
+      "DE",
       "RU"
     ],
     "fountain": [
@@ -4069,6 +4081,9 @@
       "",
       "RU"
     ],
+    "practice_bicycle_carrier": [
+      ""
+    ],
     "prep_school": [
       "",
       "DE",
@@ -4174,6 +4189,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "Pl",
       "Pt",
       "RU",
@@ -6490,10 +6506,12 @@
       "RU"
     ],
     "aeration": [
-      ""
+      "",
+      "ES"
     ],
     "cooling": [
       "",
+      "ES",
       "RU"
     ],
     "detention": [
@@ -6510,6 +6528,7 @@
     ],
     "footbath": [
       "",
+      "ES",
       "RU"
     ],
     "infiltration": [
@@ -6530,13 +6549,15 @@
       "RU"
     ],
     "settling": [
-      ""
+      "",
+      "ES"
     ],
     "stormwater": [
       ""
     ],
     "water_regeneration": [
       "",
+      "ES",
       "RU"
     ]
   },
@@ -6902,7 +6923,8 @@
       "Uk"
     ],
     "safe_loops": [
-      ""
+      "",
+      "RU"
     ],
     "stands": [
       "",
@@ -8441,6 +8463,7 @@
     ],
     "guardhouse": [
       "",
+      "DE",
       "FR",
       "Pt",
       "RU"
@@ -11172,6 +11195,7 @@
     "cultural_centre": [
       "",
       "DE",
+      "Pt",
       "RU"
     ],
     "family_centre": [
@@ -12069,7 +12093,8 @@
       "Pl"
     ],
     "candlemaker": [
-      ""
+      "",
+      "Cs"
     ],
     "car_painter": [
       "",
@@ -13323,7 +13348,8 @@
     ],
     "chicken": [
       "",
-      "ES"
+      "ES",
+      "Pt"
     ],
     "chinese": [
       "",
@@ -13410,7 +13436,8 @@
     ],
     "grill": [
       "",
-      "ES"
+      "ES",
+      "Pt"
     ],
     "gyros": [
       "",
@@ -13538,7 +13565,8 @@
     ],
     "steak_house": [
       "",
-      "ES"
+      "ES",
+      "Pt"
     ],
     "strudel": [
       "",
@@ -15371,6 +15399,11 @@
       ""
     ]
   },
+  "drinking_straw": {
+    "*": [
+      ""
+    ]
+  },
   "drinking_water": {
     "*": [
       "",
@@ -15967,6 +16000,7 @@
     ],
     "fire_service_inlet": [
       "",
+      "DE",
       "JA",
       "RU"
     ],
@@ -18254,7 +18288,33 @@
       "RU"
     ],
     "Acer": [
-      ""
+      "",
+      "Ar",
+      "Bn",
+      "Cs",
+      "DE",
+      "Da",
+      "ES",
+      "Eo",
+      "Et",
+      "FR",
+      "Fa",
+      "Hi",
+      "IT",
+      "Id",
+      "JA",
+      "Ko",
+      "Lv",
+      "NL",
+      "No",
+      "Pl",
+      "Pt",
+      "Sk",
+      "Sv",
+      "Tr",
+      "Uk",
+      "Vi",
+      "Zh-hans"
     ],
     "Tilia": [
       ""
@@ -18310,6 +18370,9 @@
       "",
       "ES",
       "Ko"
+    ],
+    "dyke": [
+      ""
     ],
     "fault": [
       "",
@@ -19689,6 +19752,7 @@
       "RU"
     ],
     "postpartum_care": [
+      "",
       "ES",
       "Zh-hant"
     ],
@@ -20789,6 +20853,7 @@
       "Pl",
       "Pt",
       "RU",
+      "Uk",
       "Zh-hans"
     ],
     "speed_display": [
@@ -22686,6 +22751,11 @@
     ]
   },
   "internet_access:operator": {
+    "*": [
+      ""
+    ]
+  },
+  "internet_access:password": {
     "*": [
       ""
     ]
@@ -25073,7 +25143,8 @@
   },
   "light:colour": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "light:count": {
@@ -26915,6 +26986,11 @@
       ""
     ]
   },
+  "mascot": {
+    "*": [
+      ""
+    ]
+  },
   "mass_times": {
     "*": [
       ""
@@ -27950,7 +28026,8 @@
   "military_service": {
     "*": [
       "",
-      "JA"
+      "JA",
+      "RU"
     ],
     "air_force": [
       ""
@@ -28340,7 +28417,12 @@
     ],
     "agricultural": [
       "",
+      "DE",
       "RU"
+    ],
+    "agricultural;forestry": [
+      "",
+      "DE"
     ],
     "delivery": [
       "",
@@ -28351,6 +28433,7 @@
     ],
     "forestry": [
       "",
+      "DE",
       "RU"
     ],
     "no": [
@@ -29202,6 +29285,11 @@
       ""
     ]
   },
+  "name:cnr": {
+    "*": [
+      ""
+    ]
+  },
   "name:co": {
     "*": [
       ""
@@ -29438,6 +29526,12 @@
       ""
     ]
   },
+  "name:gaceria": {
+    "*": [
+      "",
+      "ES"
+    ]
+  },
   "name:gag": {
     "*": [
       ""
@@ -29446,12 +29540,6 @@
   "name:gan": {
     "*": [
       ""
-    ]
-  },
-  "name:gc": {
-    "*": [
-      "",
-      "ES"
     ]
   },
   "name:gcf": {
@@ -30055,6 +30143,11 @@
       ""
     ]
   },
+  "name:ms-Arab": {
+    "*": [
+      ""
+    ]
+  },
   "name:mt": {
     "*": [
       ""
@@ -30139,6 +30232,12 @@
   "name:ne": {
     "*": [
       ""
+    ]
+  },
+  "name:network:*": {
+    "*": [
+      "",
+      "Pl"
     ]
   },
   "name:new": {
@@ -31540,9 +31639,12 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
-      "Pt"
+      "Pt",
+      "Zh-hant"
     ],
     "ridge": [
       "",
@@ -31660,6 +31762,7 @@
     "shrubbery": [
       "",
       "ES",
+      "NL",
       "Pl",
       "RU",
       "Zh-hans"
@@ -33863,6 +33966,7 @@
     "translator": [
       "",
       "DE",
+      "JA",
       "RU"
     ],
     "transport": [
@@ -34402,7 +34506,8 @@
   },
   "opening_hours:url": {
     "*": [
-      ""
+      "",
+      "FR"
     ]
   },
   "opening_hours:visitors": {
@@ -35446,6 +35551,7 @@
     "*": [
       "",
       "DE",
+      "ES",
       "Pl",
       "RU"
     ]
@@ -37290,6 +37396,9 @@
       "ES",
       "JA",
       "Pl"
+    ],
+    "vegetables": [
+      ""
     ]
   },
   "product": {
@@ -37974,6 +38083,9 @@
       "Uk"
     ],
     "hirail_access": [
+      ""
+    ],
+    "historic": [
       ""
     ],
     "junction": [
@@ -39257,6 +39369,11 @@
       "FR"
     ]
   },
+  "ref:FR:Grenoble:trees": {
+    "*": [
+      ""
+    ]
+  },
   "ref:FR:Joconde": {
     "*": [
       "",
@@ -39428,6 +39545,11 @@
     ]
   },
   "ref:GB:wpd_site": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:GB:wpd_source_site": {
     "*": [
       ""
     ]
@@ -39856,6 +39978,11 @@
       ""
     ]
   },
+  "ref:deldot": {
+    "*": [
+      ""
+    ]
+  },
   "ref:deniirn": {
     "*": [
       ""
@@ -40004,6 +40131,11 @@
     "*": [
       "",
       "ES"
+    ]
+  },
+  "ref:ipac": {
+    "*": [
+      ""
     ]
   },
   "ref:isil": {
@@ -41130,6 +41262,12 @@
     "dome": [
       ""
     ],
+    "equal_hipped": [
+      ""
+    ],
+    "equal_mansard": [
+      ""
+    ],
     "flat": [
       "",
       "DE"
@@ -41176,6 +41314,9 @@
       ""
     ],
     "round": [
+      ""
+    ],
+    "round_gabled": [
       ""
     ],
     "sawtooth": [
@@ -43627,6 +43768,11 @@
       "JA"
     ]
   },
+  "seats:separated": {
+    "*": [
+      ""
+    ]
+  },
   "second_hand": {
     "*": [
       "",
@@ -43705,7 +43851,11 @@
   },
   "self_harvesting": {
     "*": [
-      "DE"
+      "",
+      "DE",
+      "Eo",
+      "FR",
+      "NL"
     ]
   },
   "self_service": {
@@ -44199,6 +44349,10 @@
       "ES",
       "RU"
     ],
+    "pergola": [
+      "",
+      "ES"
+    ],
     "picnic_shelter": [
       "",
       "DE",
@@ -44346,6 +44500,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "RU",
@@ -45924,6 +46079,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "Pl",
       "RU"
     ],
@@ -46501,6 +46657,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA",
       "Pl",
       "Pt",
@@ -46815,6 +46972,9 @@
       "RU",
       "Uk"
     ],
+    "both": [
+      ""
+    ],
     "separate": [
       "",
       "DE"
@@ -47069,6 +47229,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "ski:repair": {
+    "*": [
+      ""
     ]
   },
   "ski:sales": {
@@ -47736,6 +47901,7 @@
     "*": [
       "",
       "Cs",
+      "DE",
       "ES"
     ]
   },
@@ -47921,6 +48087,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "JA"
     ],
     "batting_cage": [
@@ -48165,6 +48332,9 @@
       "ES",
       "FR",
       "He"
+    ],
+    "freediving": [
+      ""
     ],
     "futsal": [
       "",
@@ -49349,6 +49519,7 @@
       "",
       "DE",
       "ES",
+      "Eo",
       "FR"
     ],
     "earth": [
@@ -49711,6 +49882,7 @@
     "*": [
       "",
       "DE",
+      "FR",
       "JA",
       "RU"
     ],
@@ -51267,6 +51439,9 @@
     "AT:53.9c": [
       ""
     ],
+    "AT:FKV_1.9": [
+      ""
+    ],
     "AT:WVO_F.1": [
       "DE"
     ],
@@ -52777,6 +52952,7 @@
       "",
       "DE",
       "ES",
+      "Pl",
       "RU"
     ],
     "SIM_cards": [
@@ -53584,6 +53760,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "RU"
     ],
     "flags": [
@@ -53593,12 +53770,14 @@
       "",
       "DE",
       "ES",
+      "FR",
       "RU"
     ],
     "organic": [
       "",
       "DE",
       "ES",
+      "FR",
       "RU"
     ],
     "pizza_box": [
@@ -53606,6 +53785,10 @@
       "DE",
       "ES",
       "RU"
+    ],
+    "recycling": [
+      "",
+      "FR"
     ],
     "rubble": [
       "",
@@ -53674,6 +53857,7 @@
     ],
     "drain": [
       "",
+      "DE",
       "ES",
       "RU"
     ],
