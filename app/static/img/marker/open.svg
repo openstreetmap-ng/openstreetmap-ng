@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   id="Layer_1"
+   version="1.1"
+   xml:space="preserve"
+   height="40.225998"
+   viewBox="0 0 25.099001 40.225998"
+   width="25.099001"
+   enable-background="new 0 0 211 79"
+   y="0px"
+   x="0px"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"><defs
+   id="defs1" /><metadata
+   id="metadata3147"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata>
+<linearGradient
+   id="path3873_5_"
+   x1="95.316002"
+   gradientUnits="userSpaceOnUse"
+   y1="-15.335"
+   gradientTransform="matrix(1,0,0,-1,-28.706,44.038)"
+   x2="95.316002"
+   y2="22.229">
+	<stop
+   id="stop3088"
+   stop-color="#286EB5"
+   offset="0" />
+	<stop
+   id="stop3090"
+   stop-color="#4D9CD1"
+   offset="1" />
+</linearGradient>
+<linearGradient
+   id="path3873_6_"
+   x1="3.7354"
+   gradientUnits="userSpaceOnUse"
+   y1="3.1758001"
+   gradientTransform="matrix(1,0,0,-1,62.874,44.037)"
+   x2="3.7354"
+   y2="22.228001">
+	<stop
+   id="stop3093"
+   stop-color="#306D98"
+   offset="0" />
+	<stop
+   id="stop3095"
+   stop-color="#3984B8"
+   offset="1" />
+</linearGradient>
+<path
+   id="path3925"
+   d="m 2.805,9.333 5.7167,-6.1325 9.4586,0.20788 4.4695,7.068 -2.8064,11.33 -8.835,0.72759 -5.4049,-1.4552 -2.3906,-6.4443 z"
+   fill="#ffffff" />
+
+<g
+   id="g3099"
+   stroke-width="1.1"
+   stroke-linecap="round"
+   transform="translate(-14.761,-21.438)">
+		<linearGradient
+   id="path3873_7_"
+   x1="56.016998"
+   gradientUnits="userSpaceOnUse"
+   y1="-15.335"
+   gradientTransform="matrix(1,0,0,-1,-28.706,44.038)"
+   x2="56.016998"
+   y2="22.229">
+		<stop
+   id="stop3102"
+   stop-color="#C72118"
+   offset="0" />
+		<stop
+   id="stop3104"
+   stop-color="#D2534F"
+   offset="1" />
+	</linearGradient>
+		<linearGradient
+   id="path3873_8_"
+   x1="-35.563999"
+   gradientUnits="userSpaceOnUse"
+   y1="3.1758001"
+   gradientTransform="matrix(1,0,0,-1,62.874,44.037)"
+   x2="-35.563999"
+   y2="22.228001">
+		<stop
+   id="stop3107"
+   stop-color="#983A38"
+   offset="0" />
+		<stop
+   id="stop3109"
+   stop-color="#B83D3B"
+   offset="1" />
+	</linearGradient>
+		<path
+   id="path3873_3_"
+   d="m 27.355,21.988 c -6.572,0 -12.044,5.691 -12.044,11.865 0,2.777 1.563,6.309 2.693,8.747 L 27.311,60.471 36.573,42.6 c 1.13,-2.438 2.737,-5.792 2.737,-8.747 10e-4,-6.174 -5.382,-11.865 -11.955,-11.865 z m 2.875,12.86 3.547,-3.547 c 0.781,-0.781 0.781,-2.047 0,-2.828 -0.782,-0.781 -2.049,-0.781 -2.829,0 l -3.547,3.547 -3.547,-3.547 c -0.779,-0.781 -2.047,-0.781 -2.828,0 -0.781,0.781 -0.781,2.047 0,2.828 l 3.547,3.547 -3.547,3.546 c -0.781,0.78 -0.781,2.048 0,2.828 0.391,0.391 0.902,0.586 1.414,0.586 0.512,0 1.024,-0.195 1.414,-0.586 l 3.547,-3.546 3.547,3.546 c 0.39,0.391 0.902,0.586 1.414,0.586 0.512,0 1.023,-0.195 1.415,-0.586 0.781,-0.78 0.781,-2.048 0,-2.828 z"
+   fill-rule="evenodd"
+   connector-curvature="0"
+   export-ydpi="180"
+   stroke="url(#path3873_8_)"
+   export-filename="C:\Users\dave.STK\Desktop\git\Leaflet\Leaflet\dist\images\marker-icon@2x.png"
+   clip-rule="evenodd"
+   fill="url(#path3873_7_)"
+   nodetypes="zscccszcscsc"
+   export-xdpi="180"
+   style="fill:url(#path3873_7_);stroke:url(#path3873_8_)" />
+		<path
+   id="path3792_3_"
+   d="m 27.343,23.093 c -5.944,0 -10.938,5.221 -10.938,10.75 0,2.359 1.442,5.832 2.562,8.25 0.005,0.012 0.025,0.021 0.03,0.031 l 8.313,15.969 8.25,-15.969 c 0.005,-0.012 0.025,-0.02 0.03,-0.031 1.136,-2.448 2.625,-5.706 2.625,-8.25 0.002,-5.537 -4.929,-10.75 -10.872,-10.75 z m 5.02,3.706 c -0.829,0 -1.607,0.323 -2.193,0.909 l -2.768,2.769 -2.769,-2.77 c -0.585,-0.585 -1.363,-0.908 -2.192,-0.908 -0.828,0 -1.607,0.323 -2.191,0.909 -0.586,0.585 -0.908,1.363 -0.908,2.191 0,0.828 0.322,1.606 0.908,2.192 l 2.769,2.768 -2.769,2.77 c -0.586,0.584 -0.908,1.363 -0.908,2.191 0,0.828 0.322,1.607 0.908,2.191 0.585,0.586 1.363,0.908 2.191,0.908 0.829,0 1.607,-0.322 2.193,-0.908 l 2.768,-2.767 2.769,2.767 c 0.585,0.586 1.363,0.908 2.192,0.908 0.828,0 1.607,-0.322 2.191,-0.908 0.586,-0.583 0.908,-1.363 0.908,-2.191 0,-0.828 -0.322,-1.607 -0.908,-2.191 l -2.769,-2.77 2.769,-2.768 c 0.586,-0.586 0.908,-1.364 0.908,-2.192 0,-0.828 -0.322,-1.606 -0.908,-2.192 -0.583,-0.584 -1.363,-0.908 -2.191,-0.908 z"
+   stroke-opacity="0.1216"
+   export-ydpi="180"
+   stroke="#ffffff"
+   export-filename="C:\Users\dave.STK\Desktop\git\Leaflet\Leaflet\dist\images\marker-icon@2x.png"
+   radius="-1.09294"
+   fill="none"
+   type="inkscape:offset"
+   original="M 416.53125 503.625 C 409.95868 503.625 404.5 509.29393 404.5 515.46875 C 404.5 518.24668 406.05726 521.78106 407.1875 524.21875 L 416.5 542.09375 L 425.75 524.21875 C 426.88024 521.78106 428.5 518.42346 428.5 515.46875 C 428.5 509.29393 423.10382 503.625 416.53125 503.625 z M 416.53125 510.78125 C 419.11574 510.79795 421.21875 512.88037 421.21875 515.46875 C 421.21875 518.05715 419.11574 520.13969 416.53125 520.15625 C 413.94676 520.13975 411.875 518.05715 411.875 515.46875 C 411.875 512.88038 413.94676 510.79802 416.53125 510.78125 z "
+   export-xdpi="180" />
+</g>
+
+
+<linearGradient
+   id="path3873_11_"
+   x1="188.85001"
+   gradientUnits="userSpaceOnUse"
+   y1="-15.335"
+   gradientTransform="matrix(1,0,0,-1,-28.706,44.038)"
+   x2="188.85001"
+   y2="22.229">
+	<stop
+   id="stop3129"
+   stop-color="#286EB5"
+   offset="0" />
+	<stop
+   id="stop3131"
+   stop-color="#4D9CD1"
+   offset="1" />
+</linearGradient>
+<linearGradient
+   id="path3873_12_"
+   x1="97.272003"
+   gradientUnits="userSpaceOnUse"
+   y1="3.1758001"
+   gradientTransform="matrix(1,0,0,-1,62.874,44.037)"
+   x2="97.272003"
+   y2="22.228001">
+	<stop
+   id="stop3134"
+   stop-color="#306D98"
+   offset="0" />
+	<stop
+   id="stop3136"
+   stop-color="#3984B8"
+   offset="1" />
+</linearGradient>
+
+
+
+
+
+</svg>

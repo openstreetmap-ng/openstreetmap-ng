@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   id="Layer_1"
+   version="1.1"
+   xml:space="preserve"
+   height="40.225998"
+   viewBox="0 0 25.099001 40.225998"
+   width="25.099001"
+   enable-background="new 0 0 211 79"
+   y="0px"
+   x="0px"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"><defs
+   id="defs1" /><metadata
+   id="metadata3147"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata>
+<linearGradient
+   id="path3873_5_"
+   x1="95.316002"
+   gradientUnits="userSpaceOnUse"
+   y1="-15.335"
+   gradientTransform="matrix(1,0,0,-1,-28.706,44.038)"
+   x2="95.316002"
+   y2="22.229">
+	<stop
+   id="stop3088"
+   stop-color="#286EB5"
+   offset="0" />
+	<stop
+   id="stop3090"
+   stop-color="#4D9CD1"
+   offset="1" />
+</linearGradient>
+<linearGradient
+   id="path3873_6_"
+   x1="3.7354"
+   gradientUnits="userSpaceOnUse"
+   y1="3.1758001"
+   gradientTransform="matrix(1,0,0,-1,62.874,44.037)"
+   x2="3.7354"
+   y2="22.228001">
+	<stop
+   id="stop3093"
+   stop-color="#306D98"
+   offset="0" />
+	<stop
+   id="stop3095"
+   stop-color="#3984B8"
+   offset="1" />
+</linearGradient>
+<rect
+   id="rect3921"
+   fill-rule="evenodd"
+   transform="matrix(0.66178964,-0.74968959,0.66178964,0.74968959,0,0)"
+   height="16.80901"
+   width="15.119009"
+   y="10.619373"
+   x="-7.5018125"
+   fill="#ffffff" />
+
+
+
+
+<linearGradient
+   id="path3873_11_"
+   x1="188.85001"
+   gradientUnits="userSpaceOnUse"
+   y1="-15.335"
+   gradientTransform="matrix(1,0,0,-1,-176.302,22.6)"
+   x2="188.85001"
+   y2="22.229">
+	<stop
+   id="stop3129"
+   stop-color="#286EB5"
+   offset="0" />
+	<stop
+   id="stop3131"
+   stop-color="#4D9CD1"
+   offset="1" />
+</linearGradient>
+<linearGradient
+   id="path3873_12_"
+   x1="97.272003"
+   gradientUnits="userSpaceOnUse"
+   y1="3.1758001"
+   gradientTransform="matrix(1,0,0,-1,-84.722,22.599)"
+   x2="97.272003"
+   y2="22.228001">
+	<stop
+   id="stop3134"
+   stop-color="#306D98"
+   offset="0" />
+	<stop
+   id="stop3136"
+   stop-color="#3984B8"
+   offset="1" />
+</linearGradient>
+<path
+   id="path3873_2_"
+   fill="url(#path3873_11_)"
+   d="M 12.594,0.55000001 C 6.022,0.55000001 0.55000001,6.241 0.55000001,12.415 c 0,2.777 1.56299999,6.309 2.69299999,8.747 l 9.307,17.871 9.262,-17.871 c 1.13,-2.438 2.737,-5.792 2.737,-8.747 C 24.539,6.241 19.159,0.55000001 12.589,0.55000001 v 0 z M 14.644,11.411 V 6.595 c 0,-1.105 -0.895,-2 -2,-2 -1.104,0 -2.001,0.897 -2,2 V 11.41 H 5.829 c -1.104,-10e-4 -2,0.896 -2,2 0,1.104 0.895,2 2,2 h 4.815 v 4.815 c -10e-4,1.104 0.896,2 2,2 0.552,0 1.052,-0.224 1.414,-0.586 0.361,-0.361 0.586,-0.861 0.586,-1.414 V 15.41 h 4.815 c 0.551,0 1.052,-0.224 1.414,-0.586 0.361,-0.362 0.585,-0.862 0.586,-1.415 0.001,-1.104 -0.896,-2.001 -2,-2 -0.008,0.0044 -4.815,0.002 -4.815,0.002 z"
+   fill-rule="evenodd"
+   connector-curvature="0"
+   stroke-linecap="round"
+   export-ydpi="180"
+   stroke="url(#path3873_12_)"
+   export-filename="C:\Users\dave.STK\Desktop\git\Leaflet\Leaflet\dist\images\marker-icon@2x.png"
+   clip-rule="evenodd"
+   stroke-width="1.1"
+   nodetypes="zscccszcscsc"
+   export-xdpi="180"
+   style="fill:url(#path3873_11_);stroke:url(#path3873_12_)" />
+<path
+   id="path3792_2_"
+   fill="none"
+   export-xdpi="180"
+   stroke-opacity="0.1216"
+   export-ydpi="180"
+   stroke="#ffffff"
+   stroke-linecap="round"
+   radius="-1.09294"
+   export-filename="C:\Users\dave.STK\Desktop\git\Leaflet\Leaflet\dist\images\marker-icon@2x.png"
+   stroke-width="1.1"
+   type="inkscape:offset"
+   original="M 416.53125 503.625 C 409.95868 503.625 404.5 509.29393 404.5 515.46875 C 404.5 518.24668 406.05726 521.78106 407.1875 524.21875 L 416.5 542.09375 L 425.75 524.21875 C 426.88024 521.78106 428.5 518.42346 428.5 515.46875 C 428.5 509.29393 423.10382 503.625 416.53125 503.625 z M 416.53125 510.78125 C 419.11574 510.79795 421.21875 512.88037 421.21875 515.46875 C 421.21875 518.05715 419.11574 520.13969 416.53125 520.15625 C 413.94676 520.13975 411.875 518.05715 411.875 515.46875 C 411.875 512.88038 413.94676 510.79802 416.53125 510.78125 z "
+   d="m 12.584,1.655 c -5.944,0 -10.938,5.221 -10.938,10.75 0,2.359 1.442,5.832 2.562,8.25 0.005,0.012 0.025,0.021 0.03,0.031 l 8.313,15.969 8.25,-15.969 c 0.005,-0.012 0.025,-0.02 0.03,-0.031 1.136,-2.448 2.625,-5.706 2.625,-8.25 0.01,-5.537 -4.92,-10.75 -10.86,-10.75 v 0 z m -2.13,2.757 C 9.868,4.998 9.546,5.777 9.546,6.606 L 9.547,10.32 5.831,10.319 c -0.827,0 -1.606,0.322 -2.192,0.908 -0.586,0.585 -0.908,1.365 -0.906,2.193 -10e-4,0.828 0.321,1.606 0.906,2.191 0.586,0.585 1.365,0.908 2.193,0.908 l 3.714,-10e-4 0.001,3.716 c -0.001,0.826 0.321,1.605 0.907,2.191 0.586,0.586 1.365,0.908 2.191,0.907 0.828,10e-4 1.606,-0.322 2.191,-0.907 0.587,-0.587 0.909,-1.365 0.909,-2.193 l 0.001,-3.713 3.714,-10e-4 c 0.827,0 1.605,-0.322 2.191,-0.908 0.586,-0.586 0.909,-1.365 0.908,-2.192 0.002,-0.827 -0.322,-1.606 -0.907,-2.191 -0.585,-0.585 -1.364,-0.909 -2.191,-0.907 h -3.717 l 0.002,-3.715 c 0,-0.828 -0.323,-1.607 -0.908,-2.192 -0.586,-0.585 -1.364,-0.908 -2.193,-0.908 -0.8,-0.002 -1.58,0.321 -2.17,0.907 v 0 z" />
+
+
+
+</svg>
