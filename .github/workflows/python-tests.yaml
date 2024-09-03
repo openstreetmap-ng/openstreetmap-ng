@@ -34,8 +34,7 @@ jobs:
         id: nix-cache
         with:
           key: nix-${{ env.CACHE_KEY }}
-          path: |
-            /tmp/nix-cache
+          path: /tmp/nix-cache
 
       - name: Import Nix store cache
         if: steps.nix-cache.outputs.cache-hit == 'true'
@@ -45,9 +44,9 @@ jobs:
       - name: Cache Python venv
         uses: actions/cache@v4
         with:
-          key: python-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock') }}
+          key: python-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock') }}
           path: |
-            ~/.cache/pypoetry
+            ~/.cache/uv
             .venv
 
       - name: Cache Bun packages
@@ -56,11 +55,12 @@ jobs:
           key: bun-${{ env.CACHE_KEY }}-${{ hashFiles('bun.lockb') }}
           path: |
             ~/.bun/install/cache
+            node_modules
 
       - name: Cache generated files
         uses: actions/cache@v4
         with:
-          key: generated-${{ env.CACHE_KEY }}-${{ hashFiles('poetry.lock', 'bun.lockb') }}
+          key: generated-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lockb') }}
           path: |
             app/static/img/element/_generated
             config/locale/gnu

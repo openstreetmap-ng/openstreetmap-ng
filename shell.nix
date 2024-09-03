@@ -59,7 +59,7 @@ let
     nixpkgs-fmt
     # Python:
     python'
-    poetry
+    uv
     ruff
     gcc14
     gettext
@@ -93,9 +93,7 @@ let
     '')
 
     # -- Cython
-    (makeScript "cython-build" ''
-      python setup.py build_ext --inplace --parallel "$(nproc --all)"
-    '')
+    (makeScript "cython-build" "python scripts/cython_build.py build_ext --inplace --parallel \"$(nproc --all)\"")
     (makeScript "cython-clean" ''
       rm -rf build/
       dirs=(
@@ -473,11 +471,11 @@ let
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    poetry env use ${python'}/bin/python
-    poetry install --compile
+    echo "${python'}/bin/python" > .python-version
+    uv sync --frozen
 
     echo "Installing Bun dependencies"
-    bun install
+    bun install --frozen-lockfile
 
     echo "Activating Python virtual environment"
     source .venv/bin/activate
