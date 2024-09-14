@@ -9,9 +9,9 @@ from typing import Literal, overload
 import cython
 import PIL.Image
 from PIL import ImageOps
+from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
-from app.lib.naturalsize import naturalsize
 from app.limits import (
     AVATAR_MAX_FILE_SIZE,
     AVATAR_MAX_MEGAPIXELS,
@@ -191,7 +191,7 @@ async def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> 
             ),
         )
         size = buffer.tell()
-        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_effort, naturalsize(size))
+        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_effort, sizestr(size))
 
         if max_file_size is None or size <= max_file_size:
             return lossless_effort, buffer.getvalue()
@@ -218,7 +218,7 @@ async def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> 
                 ),
             )
             size = buffer.tell()
-            logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, naturalsize(size))
+            logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size))
 
             if size > max_file_size:
                 high = quality - bs_step
@@ -247,7 +247,7 @@ async def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> 
                 ),
             )
             size = buffer.tell()
-            logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, naturalsize(size))
+            logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size))
 
             if size > max_file_size:
                 high = quality - bs_step

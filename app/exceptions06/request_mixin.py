@@ -1,10 +1,10 @@
 from typing import NoReturn, override
 
+from sizestr import sizestr
 from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.request_mixin import RequestExceptionsMixin
-from app.lib.naturalsize import naturalsize
 from app.middlewares.request_context_middleware import get_request
 
 
@@ -40,5 +40,5 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
     def input_too_big(self, size: int) -> NoReturn:
         raise APIError(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f'Request entity too large: {naturalsize(size)}',
+            detail=f'Request entity too large: {sizestr(size)}',
         )

@@ -5,11 +5,11 @@ from io import BytesIO
 
 import brotli
 import cython
+from sizestr import sizestr
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from zstandard import ZstdDecompressor
 
 from app.lib.exceptions_context import raise_for
-from app.lib.naturalsize import naturalsize
 from app.limits import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
 
@@ -57,8 +57,8 @@ class RequestBodyMiddleware:
 
                 logging.debug(
                     'Request body size: %s -> %s (decompressed; %s)',
-                    naturalsize(input_size),
-                    naturalsize(len(body)),
+                    sizestr(input_size),
+                    sizestr(len(body)),
                     content_encoding,
                 )
 
@@ -67,7 +67,7 @@ class RequestBodyMiddleware:
             else:
                 logging.debug(
                     'Request body size: %s',
-                    naturalsize(input_size),
+                    sizestr(input_size),
                 )
         else:
             body = b''

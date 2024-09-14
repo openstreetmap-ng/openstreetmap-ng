@@ -3,11 +3,11 @@ from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from typing import NamedTuple, NewType
 
+from sizestr import sizestr
 from zstandard import ZstdCompressor, ZstdDecompressor
 
 from app.db import valkey
 from app.lib.crypto import hash_bytes
-from app.lib.naturalsize import naturalsize
 from app.limits import (
     CACHE_COMPRESS_MIN_SIZE,
     CACHE_COMPRESS_ZSTD_LEVEL,
@@ -68,7 +68,7 @@ class CacheService:
                     raise TypeError(f'Cache factory returned {type(value)!r}, expected bytes')
 
                 if len(value) >= CACHE_COMPRESS_MIN_SIZE:
-                    logging.debug('Compressing cache %r value of size %s', cache_key, naturalsize(len(value)))
+                    logging.debug('Compressing cache %r value of size %s', cache_key, sizestr(len(value)))
                     value_stored = b'\xff' + _compress(value)
                 else:
                     value_stored = b'\x00' + value

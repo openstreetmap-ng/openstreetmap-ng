@@ -3,8 +3,8 @@ from typing import Annotated
 import cython
 from annotated_types import MaxLen
 from pydantic import field_validator
+from sizestr import sizestr
 
-from app.lib.naturalsize import naturalsize
 from app.limits import ELEMENT_TAGS_KEY_MAX_LENGTH, ELEMENT_TAGS_LIMIT, ELEMENT_TAGS_MAX_SIZE
 from app.models.db.base import Base
 
@@ -28,6 +28,6 @@ class TagsValidating(Base.Validating):
             for key, value in tags.items():
                 size += len(key) + len(value)
                 if size > ELEMENT_TAGS_MAX_SIZE:
-                    raise ValueError(f'Element tags size cannot exceed {naturalsize(ELEMENT_TAGS_MAX_SIZE)}')
+                    raise ValueError(f'Element tags size cannot exceed {sizestr(ELEMENT_TAGS_MAX_SIZE)}')
 
         return tags

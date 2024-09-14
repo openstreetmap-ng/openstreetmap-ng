@@ -5,10 +5,10 @@ from typing import Any, Literal, Protocol, overload
 
 import cython
 import lxml.etree as ET
+from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
-from app.lib.naturalsize import naturalsize
 from app.limits import XML_PARSE_MAX_SIZE
 
 _parser = ET.XMLParser(
@@ -30,7 +30,7 @@ class XMLToDict:
         if len(xml_bytes) > XML_PARSE_MAX_SIZE:
             raise_for().input_too_big(len(xml_bytes))
 
-        logging.debug('Parsing %s XML string', naturalsize(len(xml_bytes)))
+        logging.debug('Parsing %s XML string', sizestr(len(xml_bytes)))
         root = ET.fromstring(xml_bytes, parser=_parser)  # noqa: S320
         return {_strip_namespace(root.tag): _parse_element(root)}
 
@@ -63,7 +63,7 @@ class XMLToDict:
             elements = (ET.Element(root_k),)
 
         result = ET.tostring(elements[0], encoding='UTF-8', xml_declaration=True)
-        logging.debug('Unparsed %s XML string', naturalsize(len(result)))
+        logging.debug('Unparsed %s XML string', sizestr(len(result)))
 
         if raw:
             return result

@@ -2,10 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter
 
-from app.config import ID_URL, RAPID_URL
+from app.config import ID_URL, ID_VERSION, RAPID_URL, RAPID_VERSION
 from app.lib.auth_context import auth_user, web_user
 from app.lib.render_response import render_response
-from app.lib.yarn_lock import ID_VERSION, RAPID_VERSION
 from app.models.db.user import Editor, User
 
 router = APIRouter()

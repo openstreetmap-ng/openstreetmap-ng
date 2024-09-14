@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import NamedTuple
 
 from google.protobuf.message import DecodeError
+from sizestr import sizestr
 
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_hex
-from app.lib.naturalsize import naturalsize
 from app.models.messages_pb2 import FileCacheMeta
 
 
@@ -113,7 +113,7 @@ class FileCache:
             infos.append(_CleanupInfo(expires_at, size, path))
             total_size += size
 
-        logging.debug('File cache usage is %s of %s', naturalsize(total_size), naturalsize(limit_size))
+        logging.debug('File cache usage is %s of %s', sizestr(total_size), sizestr(limit_size))
         if total_size <= limit_size:
             return
 

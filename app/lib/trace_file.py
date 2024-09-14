@@ -10,10 +10,10 @@ from typing import ClassVar, override
 
 import cython
 import magic
+from sizestr import sizestr
 from zstandard import ZstdCompressor, ZstdDecompressor, ZstdError
 
 from app.lib.exceptions_context import raise_for
-from app.lib.naturalsize import naturalsize
 from app.limits import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
@@ -100,7 +100,7 @@ class _Bzip2Processor(_TraceProcessor):
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result
 
 
@@ -118,7 +118,7 @@ class _GzipProcessor(_TraceProcessor):
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result
 
 
@@ -152,7 +152,7 @@ class _XmlProcessor(_TraceProcessor):
     @override
     @classmethod
     def decompress(cls, buffer: bytes) -> tuple[bytes]:
-        logging.debug('Trace %r uncompressed size is %s', cls.media_type, naturalsize(len(buffer)))
+        logging.debug('Trace %r uncompressed size is %s', cls.media_type, sizestr(len(buffer)))
         return (buffer,)
 
 
@@ -183,7 +183,7 @@ class _ZipProcessor(_TraceProcessor):
         except zipfile.BadZipFile:
             raise_for().trace_file_archive_corrupted(cls.media_type)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(result_size))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(result_size))
         return result
 
 
@@ -202,7 +202,7 @@ class _ZstdProcessor(_TraceProcessor):
         if len(result) > TRACE_FILE_UNCOMPRESSED_MAX_SIZE:
             raise_for().input_too_big(TRACE_FILE_UNCOMPRESSED_MAX_SIZE)
 
-        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, naturalsize(len(result)))
+        logging.debug('Trace %r archive uncompressed size is %s', cls.media_type, sizestr(len(result)))
         return result
 
     @classmethod
@@ -212,7 +212,7 @@ class _ZstdProcessor(_TraceProcessor):
             threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
         ).compress(buffer)
 
-        logging.debug('Trace %r archive compressed size is %s', cls.media_type, naturalsize(len(result)))
+        logging.debug('Trace %r archive compressed size is %s', cls.media_type, sizestr(len(result)))
         return result
 
 

@@ -16,9 +16,12 @@ dependencies = [
   "fastapi",
   "feedgen",
   "jinja2",
+  "lrucache-rs",
   "lxml",
   "markdown-it-py[plugins]",
   "msgspec",
+  "numpy",
+  "osm-shortlink",
   "phonenumbers",
   "pillow",
   "protobuf~=5.27",
@@ -36,15 +39,16 @@ dependencies = [
   "scikit-learn",
   "setuptools",
   "shapely",
-  "numpy",
+  "sizestr",
   "sqlalchemy[postgresql-asyncpg]",
   "starlette-compress",
   "supervisor",
   "tqdm",
+  "uvicorn[standard]",
   "uvloop",
+  "yarnlock",
   "zid",
   "zstandard",
-  "uvicorn[standard]",
 ]
 name = "openstreetmap-ng"
 requires-python = "~=3.12"
@@ -54,15 +58,15 @@ version = "0.0.0"
 dev-dependencies = [
   "cairosvg",
   "click",
-  "lxml-stubs",
-  "polars",
-  "pre-commit",
-  "types-protobuf",
-  "types-aioboto3[s3]",
   "httpx",
+  "lxml-stubs",
+  "polars[numpy]",
+  "pre-commit",
   "pytest",
   "pytest-asyncio",
   "pytest-cov",
+  "types-aioboto3[s3]",
+  "types-protobuf",
 ]
 package = false
 python-downloads = "never"
@@ -82,11 +86,11 @@ exclude = [
   ".sass-cache",
   ".venv",
   ".vscode",
+  "app/alembic/versions",
+  "app/models/*_pb2.py",
   "build",
   "dist",
   "node_modules",
-  "app/alembic/versions",
-  "app/models/*_pb2.py",
 ]
 
 indent-width = 4
@@ -96,79 +100,79 @@ target-version = "py312"
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 ignore = [
-  "ARG001", # unused-function-argument
-  "ARG002", # unused-method-argument
-  "B017", # assert-raises-exception
-  "TRY003", # raise-vanilla-args
-  "S101", # assert
-  "SIM108", # if-else-block-instead-of-if-exp
-  "PT011", # pytest-raises-too-broad
-  "PLW0603", # global-statement
-  "PLW2901", # redefined-loop-name
-  "PLR09", # too-many-*
+  "ARG001",  # unused-function-argument
+  "ARG002",  # unused-method-argument
+  "B017",    # assert-raises-exception
+  "COM812",  # missing-trailing-comma
+  "COM819",  # prohibited-trailing-comma
+  "D206",    # indent-with-spaces
+  "D300",    # triple-single-quotes
+  "E111",    # indentation-with-invalid-multiple
+  "E114",    # indentation-with-invalid-multiple-comment
+  "E117",    # over-indented
+  "E501",    # line-too-long
+  "ISC001",  # single-line-implicit-string-concatenation
+  "ISC002",  # multi-line-implicit-string-concatenation
+  "PLR09",   # too-many-*
   "PLR1702", # too-many-nested-blocks
   "PLR2",
-  "W191", # tab-indentation
-  "E111", # indentation-with-invalid-multiple
-  "E114", # indentation-with-invalid-multiple-comment
-  "E117", # over-indented
-  "E501", # line-too-long
-  "D206", # indent-with-spaces
-  "D300", # triple-single-quotes
-  "Q000", # bad-quotes-inline-string
-  "Q001", # bad-quotes-multiline-string
-  "Q002", # bad-quotes-docstring
-  "Q003", # avoidable-escaped-quote
-  "COM812", # missing-trailing-comma
-  "COM819", # prohibited-trailing-comma
-  "ISC001", # single-line-implicit-string-concatenation
-  "ISC002", # multi-line-implicit-string-concatenation
+  "PLW0603", # global-statement
+  "PLW2901", # redefined-loop-name
+  "PT011",   # pytest-raises-too-broad
+  "Q000",    # bad-quotes-inline-string
+  "Q001",    # bad-quotes-multiline-string
+  "Q002",    # bad-quotes-docstring
+  "Q003",    # avoidable-escaped-quote
+  "S101",    # assert
+  "SIM108",  # if-else-block-instead-of-if-exp
+  "TRY003",  # raise-vanilla-args
+  "W191",    # tab-indentation
 ]
 # see https://docs.astral.sh/ruff/rules/ for rules documentation
 select = [
-  "A", # flake8-builtins
-  "ARG", # flake8-unused-arguments
+  "A",     # flake8-builtins
+  "ARG",   # flake8-unused-arguments
   "ASYNC", # flake8-async
-  "B", # flake8-bugbear
-  "C4", # flake8-comprehensions
-  "DTZ", # flake8-datetimez
-  "E4", # pycodestyle
+  "B",     # flake8-bugbear
+  "C4",    # flake8-comprehensions
+  "DTZ",   # flake8-datetimez
+  "E4",    # pycodestyle
   "E7",
   "E9",
-  "F", # pyflakes
-  "FA", # flake8-future-annotations
-  "FLY", # flynt
-  "FURB", # refurb
-  "G", # flake8-logging-format
-  "I", # isort
-  "ICN", # flake8-import-conventions
-  "INT", # flake8-gettext
-  "ISC", # flake8-implicit-str-concat
-  "LOG", # flake8-logging
-  "N", # pep8-naming
-  "NPY", # numpy
-  "Q", # flake8-quotes
-  "PERF", # perflint
-  "PIE", # flake8-pie
-  "PLC", # pylint
-  "PLE", # pylint
-  "PLR", # pylint
-  "PLW", # pylint
-  "PT", # flake8-pytest-style
-  "PTH", # flake8-use-pathlib
-  "PYI", # flake8-pyi
-  "RSE", # flake8-raise
-  "RUF", # ruff
-  "S", # flake8-bandit
-  "SIM", # flake8-simplify
-  "SLF", # flake8-self
-  "SLOT", # flake8-slots
-  "T10", # flake8-debugger
-  "TID", # flake8-tidy-imports
-  "TRY", # tryceratops
-  "UP", # pyupgrade
+  "F",     # pyflakes
+  "FA",    # flake8-future-annotations
+  "FLY",   # flynt
+  "FURB",  # refurb
+  "G",     # flake8-logging-format
+  "I",     # isort
+  "ICN",   # flake8-import-conventions
+  "INT",   # flake8-gettext
+  "ISC",   # flake8-implicit-str-concat
+  "LOG",   # flake8-logging
+  "N",     # pep8-naming
+  "NPY",   # numpy
+  "PERF",  # perflint
+  "PIE",   # flake8-pie
+  "PLC",   # pylint
+  "PLE",   # pylint
+  "PLR",   # pylint
+  "PLW",   # pylint
+  "PT",    # flake8-pytest-style
+  "PTH",   # flake8-use-pathlib
+  "PYI",   # flake8-pyi
+  "Q",     # flake8-quotes
+  "RSE",   # flake8-raise
+  "RUF",   # ruff
+  "S",     # flake8-bandit
+  "SIM",   # flake8-simplify
+  "SLF",   # flake8-self
+  "SLOT",  # flake8-slots
+  "T10",   # flake8-debugger
+  "TID",   # flake8-tidy-imports
+  "TRY",   # tryceratops
+  "UP",    # pyupgrade
   "W6",
-  "YTT", # flake8-2020
+  "YTT",   # flake8-2020
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -185,10 +189,10 @@ quote-style = "single"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "input", "open", "type", "format", "dir"]
+builtins-ignorelist = ["dir", "format", "id", "input", "open", "type"]
 
 [tool.ruff.lint.flake8-gettext]
-extend-function-names = ["pgettext", "npgettext"]
+extend-function-names = ["npgettext", "pgettext"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
@@ -203,7 +207,14 @@ max-args = 10
 
 [tool.pyright]
 disableBytesTypePromotions = true
-exclude = ["app/alembic/versions", "app/models/*_pb2.py"]
+exclude = [
+  "**/.*",
+  "**/__pycache__",
+  "**/node_modules",
+  "/nix/store/**",
+  "app/alembic/versions",
+  "app/models/*_pb2.py",
+]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
 pythonVersion = "3.12"
@@ -228,6 +239,7 @@ reportUntypedFunctionDecorator = "information"
 reportUntypedNamedTuple = "warning"
 strictListInference = true
 strictSetInference = true
+useLibraryCodeForTypes = false
 
 [tool.pytest.ini_options]
 addopts = "--quiet"

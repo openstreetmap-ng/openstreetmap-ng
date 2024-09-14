@@ -3,10 +3,10 @@ from typing import Annotated
 from urllib.parse import parse_qs, urlencode
 
 from fastapi import APIRouter, Path, Request, Response, status
+from osm_shortlink import shortlink_decode
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL
-from app.lib.shortlink import shortlink_decode
 from app.middlewares.cache_control_middleware import cache_control
 
 router = APIRouter()

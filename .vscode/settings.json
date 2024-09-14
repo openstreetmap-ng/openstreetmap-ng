@@ -1,4 +1,13 @@
 {
+    "[javascript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "[scss]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
     "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
     "editor.rulers": [
         120
@@ -7,20 +16,20 @@
         "➕": true
     },
     "files.exclude": {
-        "**/__pycache__/": true,
         "**/.direnv/": true,
         "**/.pytest_cache/": true,
         "**/.ruff_cache/": true,
         "**/.sass-cache/": true,
         "**/.venv/": true,
+        "**/__pycache__/": true,
         "**/bootstrap*": true,
         "**/build/": true,
         "**/dist/": true,
-        "**/*.c": true,
-        "**/*.html": true,
-        "**/*.so": true,
-        "**/static/js/bundle-*": true,
         "**/static/**/*.html": false,
+        "**/static/js/bundle-*": true,
+        "*.c": true,
+        "*.html": true,
+        "*.so": true
     },
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
@@ -37,26 +46,8 @@
         }
     },
     "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.packageIndexDepths": [
-        {
-            "name": "",
-            "depth": 3,
-            "includeAllSymbols": true
-        }
-    ],
-    "python.analysis.typeCheckingMode": "standard",
-    "python.analysis.useLibraryCodeForTypes": false,
     "python.experiments.enabled": false,
     "python.terminal.activateEnvironment": false,
-    "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "[javascript]": {
-        "editor.defaultFormatter": "biomejs.biome"
-    },
-    "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff"
-    },
-    "[scss]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
+    "python.testing.unittestEnabled": false
 }

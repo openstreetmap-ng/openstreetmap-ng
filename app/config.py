@@ -1,8 +1,11 @@
 import contextlib
+import logging
 import os
 from hashlib import sha256
 from logging.config import dictConfig
 from pathlib import Path
+
+from yarnlock import yarnlock_parse
 
 VERSION = 'dev'
 
@@ -123,3 +126,9 @@ SECRET_32b = sha256(SECRET.encode()).digest()
 
 SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
+
+_yarn_data = yarnlock_parse(Path('yarn.lock').read_text())
+ID_VERSION = _yarn_data['iD']['version']
+RAPID_VERSION = _yarn_data['@rapideditor/rapid']['version']
+logging.info('Yarn lock versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
+del _yarn_data

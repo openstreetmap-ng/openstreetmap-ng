@@ -48,6 +48,7 @@ setup(
                     # docs: https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc.pdf
                     '-march=x86-64-v3',
                     '-mtune=generic',
+                    '-fimplicit-constexpr',
                     '-ffast-math',
                     '-fharden-compares',
                     '-fharden-conditional-branches',
@@ -62,7 +63,7 @@ setup(
             )
             for path in paths
         ],
-        nthreads=os.cpu_count(),
+        nthreads=os.cpu_count(),  # pyright: ignore[reportArgumentType]
         compiler_directives={
             # https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#compiler-directives
             'overflowcheck': True,
