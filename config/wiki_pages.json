@@ -739,7 +739,8 @@
       ""
     ],
     "students": [
-      ""
+      "",
+      "FR"
     ],
     "unknown": [
       "",
@@ -811,6 +812,11 @@
     ]
   },
   "accuracy:meters": {
+    "*": [
+      ""
+    ]
+  },
+  "acres": {
     "*": [
       ""
     ]
@@ -1165,7 +1171,8 @@
   },
   "addr:unit": {
     "*": [
-      ""
+      "",
+      "Pt"
     ]
   },
   "addr:village": {
@@ -3990,6 +3997,7 @@
       "DE",
       "Da",
       "ES",
+      "Eo",
       "FR",
       "IT",
       "JA",
@@ -4256,6 +4264,7 @@
     "rescue_station": [
       "",
       "Cs",
+      "JA",
       "Pt",
       "RU",
       "Uk"
@@ -7016,6 +7025,11 @@
       ""
     ]
   },
+  "blind": {
+    "*": [
+      ""
+    ]
+  },
   "board:title": {
     "*": [
       "",
@@ -8152,6 +8166,7 @@
     ],
     "church": [
       "",
+      "Af",
       "Cs",
       "DE",
       "ES",
@@ -9136,6 +9151,7 @@
       "",
       "DE",
       "ES",
+      "FR",
       "Pl",
       "RU",
       "Uk"
@@ -10133,6 +10149,11 @@
   },
   "caravan_site": {
     "motorhome_stopover": [
+      ""
+    ]
+  },
+  "caravan_site:type": {
+    "*": [
       ""
     ]
   },
@@ -11237,7 +11258,8 @@
   },
   "company": {
     "*": [
-      "DE"
+      "DE",
+      "RU"
     ],
     "aerospace": [
       "",
@@ -11759,6 +11781,9 @@
       ""
     ],
     "oil": [
+      ""
+    ],
+    "rainwater": [
       ""
     ],
     "salt": [
@@ -14240,6 +14265,11 @@
       "Pl"
     ]
   },
+  "deep_draft": {
+    "*": [
+      ""
+    ]
+  },
   "default_language": {
     "*": [
       ""
@@ -15264,6 +15294,11 @@
       "FR"
     ]
   },
+  "door:wings": {
+    "*": [
+      ""
+    ]
+  },
   "doorstep": {
     "*": [
       ""
@@ -15820,6 +15855,7 @@
       "DE",
       "ES",
       "FR",
+      "JA",
       "NL"
     ],
     "aed": [
@@ -15828,7 +15864,8 @@
     ],
     "air_rescue_service": [
       "",
-      "FR"
+      "FR",
+      "JA"
     ],
     "ambulance_station": [
       "",
@@ -15883,7 +15920,8 @@
     ],
     "disaster_help_point": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ],
     "disaster_response": [
       "",
@@ -15896,7 +15934,8 @@
     "drinking_water": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "dry_riser": [
       "",
@@ -16021,12 +16060,14 @@
       "",
       "DE",
       "ES",
+      "JA",
       "NL"
     ],
     "first_aid_kit": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "key_depot": [
       "",
@@ -16118,6 +16159,7 @@
       "DE",
       "ES",
       "FR",
+      "JA",
       "RU"
     ],
     "phone": [
@@ -16133,7 +16175,8 @@
     ],
     "rescue_box": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ],
     "rescue_buoy": [
       ""
@@ -16194,6 +16237,7 @@
     ],
     "water_rescue": [
       "",
+      "JA",
       "RU"
     ],
     "water_rescue_station": [
@@ -16815,6 +16859,9 @@
     ],
     "wood": [
       "ES"
+    ],
+    "wood_bollard": [
+      ""
     ]
   },
   "fenced": {
@@ -17106,6 +17153,9 @@
       "Tl",
       "Zh-hant"
     ],
+    "continue": [
+      "FR"
+    ],
     "name": [
       ""
     ],
@@ -17364,12 +17414,14 @@
     ],
     "access_aisle": [
       "",
+      "DE",
       "ES",
       "FR",
       "RU"
     ],
     "alley": [
       "",
+      "DE",
       "Lv"
     ],
     "both": [
@@ -17392,16 +17444,19 @@
       ""
     ],
     "link": [
-      ""
+      "",
+      "DE"
     ],
     "none": [
       ""
     ],
     "path": [
-      ""
+      "",
+      "DE"
     ],
     "residential": [
-      ""
+      "",
+      "DE"
     ],
     "right": [
       ""
@@ -17424,6 +17479,7 @@
     ],
     "traffic_island": [
       "",
+      "DE",
       "FR",
       "RU"
     ],
@@ -18069,7 +18125,8 @@
       "FR"
     ],
     "electricity": [
-      ""
+      "",
+      "DE"
     ],
     "gas": [
       "",
@@ -18316,8 +18373,84 @@
       "Vi",
       "Zh-hans"
     ],
+    "Platanus": [
+      "",
+      "Ar",
+      "Bn",
+      "Bs",
+      "Cs",
+      "DE",
+      "Diq",
+      "ES",
+      "Eo",
+      "FR",
+      "Fa",
+      "Fi",
+      "Gcf",
+      "Hu",
+      "IT",
+      "Id",
+      "JA",
+      "Ko",
+      "Lv",
+      "Ms",
+      "NL",
+      "Pl",
+      "Pt",
+      "Ro",
+      "Sq",
+      "Sv",
+      "Tr",
+      "Uk",
+      "Vi",
+      "Zh-hans"
+    ],
+    "Quercus": [
+      "",
+      "Ar",
+      "Bn",
+      "Cs",
+      "DE",
+      "ES",
+      "Eo",
+      "FR",
+      "Fa",
+      "Hu",
+      "IT",
+      "JA",
+      "Ko",
+      "NL",
+      "Pl",
+      "Pt",
+      "Ro",
+      "Sl",
+      "Sq",
+      "Tr",
+      "Uk",
+      "Vi",
+      "Zh-hans"
+    ],
     "Tilia": [
-      ""
+      "",
+      "Af",
+      "Bg",
+      "Bs",
+      "El",
+      "Eo",
+      "Et",
+      "FR",
+      "Hr",
+      "Hu",
+      "Lt",
+      "Mk",
+      "NL",
+      "Ro",
+      "Sk",
+      "Sl",
+      "Sq",
+      "Sr",
+      "Tr",
+      "Zh-hans"
     ]
   },
   "genus:de": {
@@ -18379,6 +18512,9 @@
       "DE",
       "ES",
       "JA"
+    ],
+    "fold": [
+      ""
     ],
     "giants_kettle": [
       "",
@@ -19132,6 +19268,7 @@
     ],
     "barber": [
       "",
+      "ES",
       "JA"
     ]
   },
@@ -19349,6 +19486,10 @@
       ""
     ],
     "falling_rocks": [
+      "",
+      "DE"
+    ],
+    "falling_trees": [
       "",
       "DE"
     ],
@@ -20140,6 +20281,11 @@
       "DE"
     ]
   },
+  "height:monitoring": {
+    "*": [
+      "DE"
+    ]
+  },
   "height:range": {
     "*": [
       ""
@@ -20297,6 +20443,8 @@
       "DE",
       "Da",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
       "Pt",
@@ -23252,6 +23400,11 @@
       "RU"
     ]
   },
+  "land_property": {
+    "*": [
+      ""
+    ]
+  },
   "landcover": {
     "*": [
       ""
@@ -24192,6 +24345,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "NL",
       "Pl",
@@ -24450,6 +24605,9 @@
     "children_club": [
       "",
       "FR"
+    ],
+    "climbing": [
+      ""
     ],
     "club": [
       "",
@@ -26040,6 +26198,12 @@
       "Uk",
       "Zh-hant"
     ],
+    "eruv_lechi": [
+      ""
+    ],
+    "eruv_string": [
+      ""
+    ],
     "excavation": [
       ""
     ],
@@ -26235,13 +26399,23 @@
     ],
     "lighthouse": [
       "",
+      "Ar",
+      "Bn",
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
+      "Fa",
       "JA",
+      "Ko",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Tr",
+      "Uk",
+      "Vi",
+      "Zh-hans"
     ],
     "loudspeaker": [
       ""
@@ -26919,6 +27093,16 @@
       "FR",
       "JA",
       "RU"
+    ]
+  },
+  "mapillary:image": {
+    "*": [
+      ""
+    ]
+  },
+  "mapillary:map_feature": {
+    "*": [
+      ""
     ]
   },
   "mapper": {
@@ -27778,7 +27962,8 @@
       "DE",
       "ES",
       "FR",
-      "Pl"
+      "Pl",
+      "RU"
     ]
   },
   "memorial:conflict": {
@@ -28316,6 +28501,9 @@
       "Cs",
       "DE",
       "JA"
+    ],
+    "overhead_power_line": [
+      "DE"
     ]
   },
   "monitoring:wind": {
@@ -34106,12 +34294,14 @@
   "old_addr:housenumber": {
     "*": [
       "",
-      "Pl"
+      "Pl",
+      "Pt"
     ]
   },
   "old_addr:place": {
     "*": [
-      ""
+      "",
+      "Pt"
     ]
   },
   "old_addr:street": {
@@ -34181,6 +34371,7 @@
       "",
       "Cs",
       "DE",
+      "ES",
       "IT",
       "JA",
       "Pl",
@@ -34466,6 +34657,7 @@
     "*": [
       "",
       "DE",
+      "FR",
       "RU"
     ]
   },
@@ -35090,6 +35282,7 @@
     ],
     "layby": [
       "",
+      "DE",
       "JA",
       "Pl",
       "RU"
@@ -35393,6 +35586,9 @@
       "",
       "FR",
       "RU"
+    ],
+    "pickup": [
+      ""
     ]
   },
   "parking_space:length": {
@@ -37724,6 +37920,9 @@
       "Pl",
       "RU"
     ],
+    "platform_edge": [
+      ""
+    ],
     "pole": [
       ""
     ],
@@ -38052,6 +38251,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
       "Pt",
@@ -38066,6 +38267,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
       "Pt"
@@ -38134,6 +38337,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
       "RU",
@@ -38154,6 +38359,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "JA",
       "Pl",
       "RU"
@@ -39030,6 +39237,14 @@
       "Pt"
     ]
   },
+  "recording:remote": {
+    "*": [
+      "",
+      "DE",
+      "ES",
+      "FR"
+    ]
+  },
   "recreation_ground": {
     "*": [
       "",
@@ -39068,6 +39283,11 @@
       "",
       "DE",
       "RU"
+    ]
+  },
+  "recycling:glass_bottles": {
+    "*": [
+      ""
     ]
   },
   "recycling:green_waste": {
@@ -39509,6 +39729,11 @@
     ]
   },
   "ref:GB:mpan": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:GB:nged_source_site": {
     "*": [
       ""
     ]
@@ -40122,6 +40347,12 @@
       "Sk"
     ]
   },
+  "ref:id": {
+    "*": [
+      "",
+      "DE"
+    ]
+  },
   "ref:industrial": {
     "*": [
       ""
@@ -40633,44 +40864,136 @@
     ],
     "buddhist": [
       "",
+      "Bn",
       "Cs",
       "DE",
-      "JA"
+      "Eo",
+      "FR",
+      "Fa",
+      "Hu",
+      "Id",
+      "JA",
+      "Ko",
+      "Ms",
+      "Ne",
+      "Ro",
+      "Th",
+      "Tr",
+      "Vi",
+      "Zh-hans"
     ],
     "christian": [
       "",
       "Cs",
       "DE",
       "ES",
+      "Eo",
       "FR",
+      "Hr",
+      "IT",
+      "Id",
       "JA",
       "Pl",
-      "Uk"
+      "Pt",
+      "Ro",
+      "Tl",
+      "Uk",
+      "Zh-hans"
+    ],
+    "confucian": [
+      "",
+      "Ar",
+      "Bn",
+      "DE",
+      "ES",
+      "Eo",
+      "FR",
+      "Fa",
+      "Id",
+      "JA",
+      "Ko",
+      "Ms",
+      "Pl",
+      "Pt",
+      "Tl",
+      "Tr",
+      "Uk",
+      "Vi",
+      "Zh-hans"
     ],
     "hindu": [
       "",
+      "Bn",
       "Cs",
-      "DE"
+      "DE",
+      "Eo",
+      "FR",
+      "Fa",
+      "Hi",
+      "Id",
+      "Mr",
+      "Ms",
+      "Ne",
+      "Pa",
+      "Ta"
     ],
     "jain": [
       "",
-      "Cs"
+      "Cs",
+      "Eo",
+      "FR"
     ],
     "jewish": [
       "",
+      "Ar",
+      "Bg",
       "Cs",
       "DE",
-      "Pl"
+      "El",
+      "Eo",
+      "FR",
+      "He",
+      "Mk",
+      "Pl",
+      "Sr-latn"
     ],
     "multifaith": [
-      ""
+      "",
+      "Ar",
+      "ES",
+      "Eo",
+      "FR",
+      "Pt",
+      "Uk",
+      "Zh-hans"
     ],
     "muslim": [
       "",
+      "Af",
+      "Ar",
+      "Az",
+      "Bn",
+      "Bs",
       "Cs",
       "DE",
+      "Diq",
+      "Eo",
+      "FR",
+      "Fa",
+      "He",
+      "Id",
       "JA",
-      "Pl"
+      "Ku",
+      "Mk",
+      "Ms",
+      "My",
+      "Pl",
+      "Ps",
+      "Si",
+      "Sq",
+      "Sr",
+      "Tr",
+      "Vi"
     ],
     "none": [
       ""
@@ -40678,6 +41001,8 @@
     "pagan": [
       "",
       "Cs",
+      "Eo",
+      "FR",
       "Pl",
       "RU"
     ],
@@ -40693,16 +41018,34 @@
       "",
       "Cs",
       "DE",
+      "Eo",
+      "FR",
+      "Id",
       "JA",
-      "Pl"
+      "Ko",
+      "Pl",
+      "Th",
+      "Vi",
+      "Zh-hans"
     ],
     "sikh": [
       "",
-      "Cs"
+      "Ar",
+      "Cs",
+      "Eo",
+      "FR",
+      "Pa"
     ],
     "taoist": [
       "",
-      "Cs"
+      "Cs",
+      "Eo",
+      "FR",
+      "Id",
+      "Ko",
+      "Ms",
+      "Vi",
+      "Zh-hans"
     ],
     "zoroastrian": [
       "",
@@ -40839,6 +41182,11 @@
     "aerospace": [
       "",
       "RU"
+    ]
+  },
+  "research:aeroway": {
+    "*": [
+      ""
     ]
   },
   "reservation": {
@@ -43770,7 +44118,8 @@
   },
   "seats:separated": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "second_hand": {
@@ -46406,6 +46755,8 @@
       "Cs",
       "DE",
       "ES",
+      "Eo",
+      "FR",
       "IT",
       "JA",
       "Pl",
@@ -47504,6 +47855,11 @@
       ""
     ]
   },
+  "solitary": {
+    "*": [
+      ""
+    ]
+  },
   "sorting_name": {
     "*": [
       "",
@@ -47721,6 +48077,9 @@
     ]
   },
   "source:ele": {
+    "*": [
+      ""
+    ],
     "barometric": [
       ""
     ]
@@ -47745,6 +48104,9 @@
     ]
   },
   "source:height": {
+    "*": [
+      ""
+    ],
     "estimated": [
       ""
     ]
@@ -47807,6 +48169,7 @@
   },
   "source:name": {
     "*": [
+      "",
       "ES"
     ]
   },
@@ -49497,6 +49860,7 @@
       "",
       "DE",
       "ES",
+      "JA",
       "RU"
     ],
     "concrete:lanes": [
@@ -49548,7 +49912,8 @@
       "",
       "DE",
       "ES",
-      "JA"
+      "JA",
+      "Pt"
     ],
     "gravel": [
       "",
@@ -49594,15 +49959,21 @@
     "paved": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "paving_stones": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "paving_stones:30": [
       ""
+    ],
+    "paving_stones:lanes": [
+      "",
+      "DE"
     ],
     "pebblestone": [
       "",
@@ -49687,6 +50058,7 @@
       "",
       "DE",
       "ES",
+      "JA",
       "Pt",
       "RU",
       "Sv"
@@ -49694,7 +50066,8 @@
     "wood": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "woodchips": [
       "",
@@ -51146,6 +51519,9 @@
       "DE",
       "ES",
       "Pl"
+    ],
+    "pagoda": [
+      ""
     ],
     "popinjay": [
       ""
@@ -52775,6 +53151,9 @@
       "FR",
       "JA"
     ],
+    "eruv": [
+      ""
+    ],
     "gas": [
       "",
       "FR"
@@ -52910,6 +53289,12 @@
       ""
     ]
   },
+  "valves": {
+    "*": [
+      "",
+      "DE"
+    ]
+  },
   "vcgi:e911-addresses:esiteid": {
     "*": [
       ""
@@ -52925,13 +53310,16 @@
       "Uk"
     ],
     "agricultural": [
-      ""
+      "",
+      "DE"
     ],
     "destination": [
-      ""
+      "",
+      "DE"
     ],
     "forestry": [
-      ""
+      "",
+      "DE"
     ],
     "no": [
       "",
@@ -54267,7 +54655,8 @@
       ""
     ],
     "flowline": [
-      ""
+      "",
+      "DE"
     ],
     "fuel": [
       "",
@@ -54475,6 +54864,32 @@
   "waterway:type": {
     "*": [
       ""
+    ]
+  },
+  "weather:anemometer": {
+    "*": [
+      "DE"
+    ]
+  },
+  "weather:hygrometer": {
+    "*": [
+      "",
+      "DE"
+    ]
+  },
+  "weather:pyranometer": {
+    "*": [
+      "DE"
+    ]
+  },
+  "weather:thermometer": {
+    "*": [
+      "DE"
+    ]
+  },
+  "weather:wind_vane": {
+    "*": [
+      "DE"
     ]
   },
   "weather_control": {
