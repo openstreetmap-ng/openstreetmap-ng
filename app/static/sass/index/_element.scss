@@ -3,7 +3,9 @@
     .sidebar-title-icon {
         position: relative;
         top: -0.1em;
+        width: 1em;
         height: 1em;
+        object-fit: contain;
         border: 1px solid $border-color;
         border-radius: $border-radius;
         padding: 0.125em;
