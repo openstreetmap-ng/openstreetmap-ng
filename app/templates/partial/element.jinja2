@@ -3,6 +3,10 @@
         <div class="row g-1 mb-1">
             <div class="col">
                 <h2>
+                    {% if icon is not none %}
+                    <img class="sidebar-title-icon" src="/static/img/element/{{ icon.filename }}"
+                        title="{{ icon.title }}">
+                    {% endif %}
                     <span class="sidebar-title">
                         {% if element.type == 'node' %}
                         {{ t('javascripts.query.node') }}:

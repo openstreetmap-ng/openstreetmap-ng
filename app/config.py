@@ -128,7 +128,7 @@ SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FR
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
 
 _yarn_data = yarnlock_parse(Path('yarn.lock').read_text())
-ID_VERSION = _yarn_data['iD']['version']
+ID_VERSION = _yarn_data['iD']['version'].split('#', maxsplit=1)[1]
 RAPID_VERSION = _yarn_data['@rapideditor/rapid']['version']
 logging.info('Yarn lock versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
 del _yarn_data

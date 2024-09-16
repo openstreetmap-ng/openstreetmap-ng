@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from app.format import FormatLeaflet
 from app.format.element_list import FormatElementList, MemberListEntry
+from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -213,6 +214,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
 
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None
+    icon = features_icons((element,))[0]
     name = features_names((element,))[0]
     tags = tags_format(element.tags)
     leaflet = FormatLeaflet.encode_elements(full_data, detailed=False)
@@ -222,6 +224,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'changeset': changeset,
         'prev_version': prev_version,
         'next_version': next_version,
+        'icon': icon,
         'name': name,
         'tags': tags.values(),
         'comment_tag': comment_tag,
