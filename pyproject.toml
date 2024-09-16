@@ -24,7 +24,7 @@ dependencies = [
   "osm-shortlink",
   "phonenumbers",
   "pillow",
-  "protobuf~=5.27",
+  "protobuf~=5.28",
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
