@@ -2,7 +2,10 @@ from typing import Annotated
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter
+from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
+from starlette import status
+from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
@@ -95,6 +98,23 @@ async def applications_admin(
         'settings/applications/admin.jinja2',
         {
             'apps': apps,
+            'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
+        },
+    )
+
+
+@router.get('/settings/applications/admin/{id:int}/edit')
+async def application_admin(
+    id: PositiveInt,
+    user: Annotated[User, web_user()],
+):
+    app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user.id)
+    if app is None:
+        return RedirectResponse('/settings/applications/admin', status.HTTP_303_SEE_OTHER)
+    return render_response(
+        'settings/applications/edit.jinja2',
+        {
+            'app': app,
             'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
         },
     )

@@ -12,11 +12,14 @@
         .form-text {
             line-height: 1.75;
         }
+    }
+}
 
-        .scope {
-            font-size: 0.875em;
-            font-family: monospace;
-            color: $gray-600;
-        }
+.settings-applications-body,
+.settings-application-edit-body {
+    .scope {
+        font-size: 0.875em;
+        font-family: monospace;
+        color: $gray-600;
     }
 }

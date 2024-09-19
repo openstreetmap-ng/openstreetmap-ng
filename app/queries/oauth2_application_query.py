@@ -9,13 +9,19 @@ from app.models.db.oauth2_application import OAuth2Application
 
 class OAuth2ApplicationQuery:
     @staticmethod
-    async def find_one_by_id(app_id: int) -> OAuth2Application | None:
+    async def find_one_by_id(app_id: int, *, user_id: int | None = None) -> OAuth2Application | None:
         """
         Find an OAuth2 application by id.
         """
         async with db() as session:
-            stmt = select(OAuth2Application).where(OAuth2Application.id == app_id)
+            stmt = select(OAuth2Application)
             stmt = apply_options_context(stmt)
+            where_and = [OAuth2Application.id == app_id]
+
+            if user_id is not None:
+                where_and.append(OAuth2Application.user_id == user_id)
+
+            stmt = stmt.where(*where_and)
             return await session.scalar(stmt)
 
     @staticmethod

@@ -1,5 +1,5 @@
 import { Collapse } from "bootstrap"
-import { configureStandardForm } from "../_standard-form.js"
+import { configureStandardForm } from "../../_standard-form.js"
 
 const settingsApplicationsBody = document.querySelector("body.settings-applications-body")
 if (settingsApplicationsBody) {

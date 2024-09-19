@@ -1,23 +1,11 @@
 from contextlib import asynccontextmanager
-from typing import Any
 
 from redis.asyncio import ConnectionPool, Redis
-from sqlalchemy import NullPool, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from app.config import POSTGRES_URL, TEST_ENV, VALKEY_URL
+from app.config import POSTGRES_URL, VALKEY_URL
 from app.utils import JSON_DECODE, json_encodes
-
-_db_engine_kwargs: dict[str, Any] = (
-    {
-        'poolclass': NullPool,  # disable connection pooling
-    }
-    if TEST_ENV
-    else {
-        'pool_size': 10,  # concurrent connections target
-        'max_overflow': -1,  # unlimited concurrent connections overflow
-    }
-)
 
 _db_engine = create_async_engine(
     POSTGRES_URL,
@@ -27,7 +15,8 @@ _db_engine = create_async_engine(
     json_deserializer=JSON_DECODE,
     json_serializer=json_encodes,
     query_cache_size=1024,
-    **_db_engine_kwargs,
+    pool_size=10,  # concurrent connections target
+    max_overflow=-1,  # unlimited concurrent connections overflow
 )
 
 _valkey_pool = ConnectionPool.from_url(VALKEY_URL)
@@ -69,9 +58,5 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
 
 @asynccontextmanager
 async def valkey():
-    if TEST_ENV:
-        async with Redis.from_url(VALKEY_URL) as r:
-            yield r
-    else:
-        async with Redis(connection_pool=_valkey_pool) as r:
-            yield r
+    async with Redis(connection_pool=_valkey_pool) as r:
+        yield r

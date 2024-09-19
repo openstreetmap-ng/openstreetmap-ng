@@ -5,11 +5,11 @@ const tracesDetailsBody = document.querySelector("body.traces-details-body")
 if (tracesDetailsBody) {
     const deleteForm = tracesDetailsBody.querySelector("form.delete-form")
     if (deleteForm) {
-        const deleteButton = deleteForm.querySelector('button[type="submit"]')
+        const deleteButton = deleteForm.querySelector("button[type=submit]")
 
         // On button click, request confirmation
         const onDeleteClick = (event) => {
-            if (!confirm(t("traces.show.confirm_delete"))) {
+            if (!confirm(t("trace.delete_confirmation"))) {
                 event.preventDefault()
             }
         }

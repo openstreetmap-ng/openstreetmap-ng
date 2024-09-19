@@ -279,7 +279,7 @@ export const getShareSidebarToggleButton = () => {
         for (const copyGroup of copyGroups) {
             const copyInput = copyGroup.querySelector(".form-control")
             copyInput.addEventListener("focus", onCopyInputFocus)
-            const copyButton = copyGroup.querySelector("button")
+            const copyButton = copyGroup.querySelector(".bi-copy").parentElement
             copyButton.addEventListener("click", onCopyButtonClick)
         }
         customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)

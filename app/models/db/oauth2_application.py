@@ -1,9 +1,9 @@
+from pydantic import SecretStr
 from sqlalchemy import ARRAY, Boolean, Enum, ForeignKey, Index, LargeBinary, Unicode
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import decrypt
 from app.lib.image import AvatarType, Image
-from app.lib.updating_cached_property import updating_cached_property
 from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH, STORAGE_KEY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
@@ -38,9 +38,9 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
 
     __table_args__ = (Index('oauth2_application_client_id_idx', 'client_id', unique=True),)
 
-    @updating_cached_property('client_secret_encrypted')
-    def client_secret(self) -> str:
-        return decrypt(self.client_secret_encrypted)
+    @property
+    def client_secret(self) -> SecretStr:
+        return SecretStr(decrypt(self.client_secret_encrypted))
 
     @property
     def avatar_url(self) -> str:

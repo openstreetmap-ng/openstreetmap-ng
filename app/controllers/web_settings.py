@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Response, UploadFile
+from fastapi import APIRouter, Form, Path, Response, UploadFile
 
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
@@ -116,4 +116,22 @@ async def create_application(
     name: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_NAME_MAX_LENGTH)],
 ):
     app_id = await OAuth2ApplicationService.create(name=name)
-    return {'redirect_url': f'/settings/applications/admin/{app_id}'}
+    return {'redirect_url': f'/settings/applications/admin/{app_id}/edit'}
+
+
+@router.post('/settings/applications/admin/{id:int}/reset-client-secret')
+async def reset_client_secret(
+    _: Annotated[User, web_user()],
+    id: Annotated[int, Path()],
+):
+    client_secret = await OAuth2ApplicationService.reset_client_secret(id)
+    return {'client_secret': client_secret.get_secret_value()}
+
+
+@router.post('/settings/applications/admin/{id:int}/delete')
+async def delete_application(
+    _: Annotated[User, web_user()],
+    id: Annotated[int, Path()],
+):
+    await OAuth2ApplicationService.delete(id)
+    return {'redirect_url': '/settings/applications/admin'}

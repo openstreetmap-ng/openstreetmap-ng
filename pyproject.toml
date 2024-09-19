@@ -24,7 +24,7 @@ dependencies = [
   "osm-shortlink",
   "phonenumbers",
   "pillow",
-  "protobuf~=5.28",
+  "protobuf==5.28.0",
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
@@ -210,10 +210,10 @@ disableBytesTypePromotions = true
 exclude = [
   "**/.*",
   "**/__pycache__",
-  "**/node_modules",
   "/nix/store/**",
   "app/alembic/versions",
   "app/models/*_pb2.py",
+  "node_modules",
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"

@@ -1,3 +1,4 @@
+from pydantic import SecretStr
 from sqlalchemy import delete, func, select, text, update
 
 from app.db import db_commit
@@ -49,10 +50,14 @@ class OAuth2ApplicationService:
         return app.id
 
     @staticmethod
-    async def update_basic(
+    async def update(
         *,
         app_id: int,
+        name: str,
         redirect_uris: list[Uri],
+        scopes: tuple[Scope, ...],
+        is_confidential: bool,
+        revoke_all_authorizations: bool,
     ) -> None:
         """
         Update an OAuth2 application.
@@ -66,34 +71,8 @@ class OAuth2ApplicationService:
                 )
                 .values(
                     {
-                        OAuth2Application.redirect_uris: redirect_uris,
-                    }
-                )
-                .inline()
-            )
-            await session.execute(stmt)
-
-    @staticmethod
-    async def update_sensitive(
-        *,
-        app_id: int,
-        name: str,
-        scopes: tuple[Scope, ...],
-        is_confidential: bool,
-    ) -> None:
-        """
-        Update an OAuth2 application and revoke authenticated tokens.
-        """
-        async with db_commit() as session:
-            stmt = (
-                update(OAuth2Application)
-                .where(
-                    OAuth2Application.id == app_id,
-                    OAuth2Application.user_id == auth_user(required=True).id,
-                )
-                .values(
-                    {
                         OAuth2Application.name: name,
+                        OAuth2Application.redirect_uris: redirect_uris,
                         OAuth2Application.scopes: scopes,
                         OAuth2Application.is_confidential: is_confidential,
                     }
@@ -104,12 +83,13 @@ class OAuth2ApplicationService:
             if result.rowcount == 0:
                 raise_for().unauthorized()
 
-            await session.commit()
-            stmt_delete = delete(OAuth2Token).where(OAuth2Token.application_id == app_id)
-            await session.execute(stmt_delete)
+            if revoke_all_authorizations:
+                await session.commit()
+                stmt_delete = delete(OAuth2Token).where(OAuth2Token.application_id == app_id)
+                await session.execute(stmt_delete)
 
     @staticmethod
-    async def reset_client_secret(app_id: int) -> str:
+    async def reset_client_secret(app_id: int) -> SecretStr:
         """
         Reset the client secret and return the new one.
         """
@@ -129,7 +109,7 @@ class OAuth2ApplicationService:
                 )
             )
             await session.execute(stmt)
-        return client_secret
+        return SecretStr(client_secret)
 
     @staticmethod
     async def delete(app_id: int) -> None:

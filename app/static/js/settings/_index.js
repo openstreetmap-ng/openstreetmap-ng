@@ -8,7 +8,7 @@ if (settingsBody) {
     const displayNameBlacklist = displayNameInput.dataset.blacklist
 
     const onSettingsFormSuccess = () => {
-        location.reload()
+        window.location.reload()
     }
 
     const onSettingsClientValidation = () => {

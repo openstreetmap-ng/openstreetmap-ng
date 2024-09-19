@@ -24,8 +24,8 @@
     <p class="form-text">
         {% set privacy_policy_link %}
         <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">{#
-                        #}{{ t('users.new.privacy_policy') }}{#
-                    #}</a>
+            #}{{ t('users.new.privacy_policy') }}{#
+        #}</a>
         {% endset %}
         {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
     </p>
