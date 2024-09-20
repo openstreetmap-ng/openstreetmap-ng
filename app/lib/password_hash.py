@@ -7,6 +7,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from argon2.profiles import RFC_9106_LOW_MEMORY
 
+from app.config import TEST_ENV
 from app.models.types import PasswordType
 
 
@@ -20,10 +21,14 @@ _hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 
 class PasswordHash:
     @staticmethod
-    def verify(password_hashed: str, password: PasswordType) -> VerifyResult:
+    def verify(password_hashed: str, password: PasswordType, *, is_test_user: bool) -> VerifyResult:
         """
         Verify a password against a hash and optional extra data.
         """
+        # test user accepts any password in test environment
+        if is_test_user:
+            return VerifyResult(success=TEST_ENV, rehash_needed=False)
+
         # argon2
         if password_hashed.startswith('$argon2'):
             try:

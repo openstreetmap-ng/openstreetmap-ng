@@ -20,8 +20,6 @@ def hash_bytes(s: str | bytes) -> bytes:
     """
     Hash a string using SHA-256.
 
-    Optionally, provide a context to prevent hash collisions.
-
     Returns a buffer of the hash.
     """
     return _hash(s).digest()
@@ -30,8 +28,6 @@ def hash_bytes(s: str | bytes) -> bytes:
 def hash_hex(s: str | bytes) -> str:
     """
     Hash a string using SHA-256.
-
-    Optionally, provide a context to prevent hash collisions.
 
     Returns a hex-encoded string of the hash.
     """

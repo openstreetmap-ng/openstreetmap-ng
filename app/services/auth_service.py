@@ -136,7 +136,7 @@ class AuthService:
 
         async def factory() -> bytes:
             logging.debug('Credentials auth cache miss for user %d', user.id)
-            verified = PasswordHash.verify(user.password_hashed, password)
+            verified = PasswordHash.verify(user.password_hashed, password, is_test_user=user.is_test_user)
 
             if not verified.success:
                 return b'\x00'

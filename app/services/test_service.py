@@ -3,17 +3,15 @@ from asyncio import TaskGroup
 from datetime import datetime
 from ipaddress import IPv4Address
 
-from pydantic import SecretStr
 from sqlalchemy import select
 from sqlalchemy.orm import load_only
 
-from app.config import TEST_ENV, TEST_USER_DOMAIN, TEST_USER_PASSWORD
+from app.config import TEST_ENV, TEST_USER_DOMAIN
 from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.locale import DEFAULT_LOCALE
-from app.lib.password_hash import PasswordHash
 from app.models.db.user import User, UserRole, UserStatus
-from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
+from app.models.types import DisplayNameType, EmailType, LocaleCode
 from app.queries.user_query import UserQuery
 
 
@@ -52,7 +50,6 @@ class TestService:
             """
             email = EmailType(f'{name}@{TEST_USER_DOMAIN}')
             name_available = await UserQuery.check_display_name_available(name)
-            password_hashed = PasswordHash.hash(PasswordType(SecretStr(TEST_USER_PASSWORD)))
 
             async with db_commit() as session:
                 if name_available:
@@ -60,7 +57,7 @@ class TestService:
                     user = User(
                         email=email,
                         display_name=name,
-                        password_hashed=password_hashed,
+                        password_hashed='',
                         created_ip=IPv4Address('127.0.0.1'),
                         status=status,
                         auth_provider=None,
@@ -78,11 +75,14 @@ class TestService:
                     stmt = select(User).options(load_only(User.id)).where(User.display_name == name).with_for_update()
                     user = (await session.execute(stmt)).scalar_one()
                     user.email = email
-                    user.password_hashed = password_hashed
+                    user.password_hashed = ''
                     user.status = status
                     user.language = language
                     if created_at is not None:
                         user.created_at = created_at
                     user.roles = roles
 
-            logging.info('Test user %r created', name)
+                if not user.is_test_user:
+                    raise AssertionError('Test service must only create test users')
+
+            logging.info('Upserted test user %r', name)

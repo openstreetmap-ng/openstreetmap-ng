@@ -175,7 +175,7 @@ class UserService:
         if user.email == new_email:
             MessageCollector.raise_error('email', t('validation.new_email_is_current'))
 
-        if not PasswordHash.verify(user.password_hashed, password).success:
+        if not PasswordHash.verify(user.password_hashed, password, is_test_user=user.is_test_user).success:
             MessageCollector.raise_error('password', t('validation.password_is_incorrect'))
         if not await UserQuery.check_email_available(new_email):
             MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
@@ -196,15 +196,15 @@ class UserService:
         """
         Update user password.
         """
-        current_user = auth_user(required=True)
-        if not PasswordHash.verify(current_user.password_hashed, old_password).success:
+        user = auth_user(required=True)
+        if not PasswordHash.verify(user.password_hashed, old_password, is_test_user=user.is_test_user).success:
             MessageCollector.raise_error('old_password', t('validation.password_is_incorrect'))
 
         password_hashed = PasswordHash.hash(new_password)
         async with db_commit() as session:
             stmt = (
                 update(User)
-                .where(User.id == current_user.id)
+                .where(User.id == user.id)
                 .values(
                     {
                         User.password_hashed: password_hashed,
@@ -216,7 +216,7 @@ class UserService:
             await session.execute(stmt)
 
         collector.success(None, t('settings.password_has_been_changed'))
-        logging.debug('Changed password for user %r', current_user.id)
+        logging.debug('Changed password for user %r', user.id)
 
     @staticmethod
     async def update_auth_provider(

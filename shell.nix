@@ -490,7 +490,6 @@ let
     # Development environment variables
     export PYTHONNOUSERSITE=1
     export TZ=UTC
-    export PROJECT_DIR="${projectDir}"
     export TEST_ENV=1
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000

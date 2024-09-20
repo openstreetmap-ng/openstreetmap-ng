@@ -19,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from app.config import TEST_USER_DOMAIN
 from app.lib.crypto import HASH_SIZE
 from app.lib.geo_utils import haversine_distance
 from app.lib.image import AvatarType, Image
@@ -178,6 +179,13 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         if len(value) > USER_DESCRIPTION_MAX_LENGTH:
             raise ValueError(f'User description is too long ({len(value)} > {USER_DESCRIPTION_MAX_LENGTH})')
         return value
+
+    @property
+    def is_test_user(self) -> bool:
+        """
+        Check if the user is a test user.
+        """
+        return self.email.endswith('@' + TEST_USER_DOMAIN)
 
     @property
     def is_administrator(self) -> bool:
