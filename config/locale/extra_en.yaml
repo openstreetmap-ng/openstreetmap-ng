@@ -145,6 +145,7 @@ settings:
   my_tokens:
     title: My tokens
   owned_by: Owned by {{name}}
+  owned_by_you: Owned by you
   requested_permissions: Requested permissions
   name: Name
   client_id: Client ID

@@ -28,6 +28,11 @@
                         {% endif %}
                         <br>
 
+                        {% if app.user_id == user.id %}
+                        <i class="bi bi-person-fill text-primary"></i>
+                        {{ t('settings.owned_by_you') }}
+                        {% else %}
+
                         {% if app.is_system_app %}
                         <i class="bi bi-shield-fill-check text-success"></i>
                         {% set name %}
@@ -43,6 +48,8 @@
                         {% endset %}
                         {% endif %}
                         {{ t('settings.owned_by', name=name) | safe }}
+
+                        {% endif %}
                     </p>
                 </div>
             </div>
