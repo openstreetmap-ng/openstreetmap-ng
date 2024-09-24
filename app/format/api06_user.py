@@ -79,7 +79,7 @@ class User06Mixin:
                     app_id=None,  # 0.6 api does not support prefs partitioning
                     key=pref['@k'],
                     value=pref['@v'],
-                ).model_dump()
+                ).__dict__
             )
             for pref in prefs
         )

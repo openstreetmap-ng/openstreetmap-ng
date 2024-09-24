@@ -37,7 +37,7 @@ class Trace06Mixin:
                 visibility=gpx_file.get('@visibility'),  # pyright: ignore[reportArgumentType]
                 size=1,
                 tags=gpx_file.get('tag', ()),
-            ).model_dump()
+            ).__dict__
         )
 
 

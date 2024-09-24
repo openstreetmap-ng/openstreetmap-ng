@@ -343,7 +343,7 @@ def _decode_element(type: ElementType, data: dict, *, changeset_id: int | None):
             tags=tags,
             point=point,
             members=members,
-        ).model_dump()
+        ).__dict__
     )
 
 

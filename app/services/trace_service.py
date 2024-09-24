@@ -64,7 +64,7 @@ class TraceService:
                 description=description,
                 visibility=visibility,
                 size=size,
-            ).model_dump()
+            ).__dict__
         )
         trace.tag_string = tags
         compressed_file, compressed_suffix = TraceFile.compress(file_bytes)

@@ -92,6 +92,63 @@ async def test_changeset_crud(client: AsyncClient):
     assert changeset['@changes_count'] == 0
 
 
+async def test_changeset_upload(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # create changeset
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse(
+            {
+                'osm': {
+                    'changeset': {
+                        'tag': [
+                            {'@k': 'created_by', '@v': test_changeset_upload.__name__},
+                        ]
+                    }
+                }
+            }
+        ),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    # upload changes
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse(
+            {
+                'osmChange': {
+                    'create': [
+                        ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                        ('way', {'@id': -1, 'nd': [{'@ref': -1}]}),
+                    ]
+                }
+            }
+        ),
+    )
+    assert r.is_success, r.text
+
+    # close changeset
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+    assert not r.content
+
+    # read changeset
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}')
+    assert r.is_success, r.text
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
+
+    assert changeset['@open'] is False
+    assert '@updated_at' in changeset
+    assert '@closed_at' in changeset
+    assert changeset['@min_lat'] == 0
+    assert changeset['@max_lat'] == 0
+    assert changeset['@min_lon'] == 0
+    assert changeset['@max_lon'] == 0
+    assert changeset['@changes_count'] == 2
+
+
 async def test_changesets_unauthorized_get_request(client: AsyncClient):
     r = await client.get('/api/0.6/changesets')
     assert r.is_success, r.text
