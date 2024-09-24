@@ -3,12 +3,35 @@ import { configureStandardForm } from "../../_standard-form.js"
 
 const body = document.querySelector("body.settings-application-edit-body")
 if (body) {
+    const avatarForm = body.querySelector("form.avatar-form")
+    const avatar = avatarForm.querySelector("img.avatar")
+    const avatarFileInput = avatarForm.elements.avatar_file
+    const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
+    const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
     const editForm = body.querySelector("form.edit-form")
     const resetClientSecretButton = body.querySelector("button.reset-client-secret")
     const resetClientSecretForm = body.querySelector("form.reset-client-secret-form")
     const deleteForm = body.querySelector("form.delete-form")
     const deleteButton = deleteForm.querySelector("button[type=submit]")
     const copyGroups = body.querySelectorAll(".copy-group")
+
+    const onUploadAvatarClick = () => {
+        avatarFileInput.click()
+    }
+
+    const onRemoveAvatarClick = () => {
+        avatarFileInput.value = ""
+        avatarForm.requestSubmit()
+    }
+
+    const onAvatarFileChange = () => {
+        avatarForm.requestSubmit()
+    }
+
+    // On successful avatar upload, update avatar image
+    const onAvatarFormSuccess = (data) => {
+        avatar.src = data.avatar_url
+    }
 
     const onEditFormSuccess = () => {
         window.location.reload()
@@ -77,6 +100,11 @@ if (body) {
         }, 1500)
     }
 
+    // Listen for events
+    configureStandardForm(avatarForm, onAvatarFormSuccess)
+    avatarFileInput.addEventListener("change", onAvatarFileChange)
+    uploadAvatarButton.addEventListener("click", onUploadAvatarClick)
+    removeAvatarButton.addEventListener("click", onRemoveAvatarClick)
     configureStandardForm(editForm, onEditFormSuccess)
     resetClientSecretButton.addEventListener("click", onResetClientSecretClick)
     configureStandardForm(resetClientSecretForm, onResetClientSecretFormSuccess)

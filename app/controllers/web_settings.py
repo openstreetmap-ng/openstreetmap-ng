@@ -119,6 +119,16 @@ async def create_application(
     return {'redirect_url': f'/settings/applications/admin/{app_id}/edit'}
 
 
+@router.post('/settings/applications/admin/{id:int}/avatar')
+async def upload_avatar(
+    _: Annotated[User, web_user()],
+    id: Annotated[int, Path()],
+    avatar_file: Annotated[UploadFile, Form()],
+):
+    avatar_url = await OAuth2ApplicationService.update_avatar(id, avatar_file)
+    return {'avatar_url': avatar_url}
+
+
 @router.post('/settings/applications/admin/{id:int}/reset-client-secret')
 async def reset_client_secret(
     _: Annotated[User, web_user()],

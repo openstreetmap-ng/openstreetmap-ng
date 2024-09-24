@@ -1,3 +1,4 @@
+from fastapi import UploadFile
 from pydantic import SecretStr
 from sqlalchemy import delete, func, select, text, update
 
@@ -13,6 +14,7 @@ from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.scope import Scope
 from app.models.types import Uri
+from app.services.image_service import ImageService
 
 
 class OAuth2ApplicationService:
@@ -89,6 +91,39 @@ class OAuth2ApplicationService:
                 await session.execute(stmt_delete)
 
     @staticmethod
+    async def update_avatar(app_id: int, avatar_file: UploadFile) -> str:
+        """
+        Update app's avatar.
+
+        Returns the new avatar URL.
+        """
+        data = await avatar_file.read()
+        avatar_id = await ImageService.upload_avatar(data) if data else None
+
+        # update app data
+        async with db_commit() as session:
+            stmt = (
+                select(OAuth2Application)
+                .where(
+                    OAuth2Application.id == app_id,
+                    OAuth2Application.user_id == auth_user(required=True).id,
+                )
+                .with_for_update()
+            )
+            app = await session.scalar(stmt)
+            if app is None:
+                raise_for().unauthorized()
+
+            old_avatar_id = app.avatar_id
+            app.avatar_id = avatar_id
+
+        # cleanup old avatar
+        if old_avatar_id is not None:
+            await ImageService.delete_avatar_by_id(old_avatar_id)
+
+        return app.avatar_url
+
+    @staticmethod
     async def reset_client_secret(app_id: int) -> SecretStr:
         """
         Reset the client secret and return the new one.
@@ -107,6 +142,7 @@ class OAuth2ApplicationService:
                         OAuth2Application.client_secret_encrypted: client_secret_encrypted,
                     }
                 )
+                .inline()
             )
             await session.execute(stmt)
         return SecretStr(client_secret)

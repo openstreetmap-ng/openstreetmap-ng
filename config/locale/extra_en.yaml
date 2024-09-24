@@ -203,6 +203,7 @@ alt:
   elements_page_navigation: Elements page navigation
   traces_page_navigation: Traces page navigation
   profile_picture: Profile picture
+  application_image: Application image
   background_image: Background image
 internalization:
   get_started: |-
