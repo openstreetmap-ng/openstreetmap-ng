@@ -80,3 +80,18 @@ def extend_query_params(uri: str, params: dict[str, str]) -> str:
     query = parse_qsl(uri_.query, keep_blank_values=True)
     query.extend(params.items())
     return urlunsplit(uri_._replace(query=urlencode(query)))
+
+
+def splitlines_trim(s: str) -> list[str]:
+    """
+    Split a string by lines, trim whitespace from each line, and ignore empty lines.
+
+    >>> splitlines_trim('foo\\n\\nbar\\n')
+    ['foo', 'bar']
+    """
+    result: list[str] = []
+    for line in s.splitlines():
+        line = line.strip()
+        if line:
+            result.append(line)
+    return result

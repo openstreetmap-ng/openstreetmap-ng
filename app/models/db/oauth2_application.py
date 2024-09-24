@@ -23,8 +23,8 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     client_secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     scopes: Mapped[tuple[Scope, ...]] = mapped_column(ARRAY(Enum(Scope), as_tuple=True, dimensions=1), nullable=False)
     is_confidential: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    redirect_uris: Mapped[list[Uri]] = mapped_column(
-        ARRAY(Unicode(OAUTH_APP_URI_MAX_LENGTH), dimensions=1), nullable=False
+    redirect_uris: Mapped[tuple[Uri, ...]] = mapped_column(
+        ARRAY(Unicode(OAUTH_APP_URI_MAX_LENGTH), as_tuple=True, dimensions=1), nullable=False
     )
 
     # defaults

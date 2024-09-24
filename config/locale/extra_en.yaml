@@ -231,6 +231,10 @@ validation:
   passwords_missmatch: The passwords do not match
   you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
   reached_app_limit: You have reached the maximum number of applications
+  too_many_redirect_uris: Too many redirect URIs
+  redirect_uri_too_long: Redirect URI is too long
+  invalid_redirect_uri: Invalid redirect URI
+  insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
 action:
   block_user: Block user
   cancel: Cancel
@@ -253,6 +257,7 @@ action:
   reset_filters: Reset filters
   resolved: resolved
   revoke_access: Revoke access
+  save_changes: Save changes
   submit: Submit
   view_all: View all
   view_more: View more
