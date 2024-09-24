@@ -50,7 +50,9 @@ note:
 trace:
   count_one: "trace"
   count_other: "traces"
-  delete_confirmation: Are you sure you want to delete this trace?
+  delete_confirmation: |-
+    Are you sure you want to delete this trace?
+    This action cannot be undone.
 diary:
   count_one: "diary"
   count_other: "diaries"
@@ -178,7 +180,9 @@ settings:
   danger_zone: Danger zone
   delete_account: Delete account
   delete_application: Delete application
-  delete_this_application_question: Are you sure you want to delete this application?
+  delete_this_application_question: |-
+    Are you sure you want to delete this application?
+    This action cannot be undone.
 permissions:
   none: None
   read_user_preferences: Read user preferences
