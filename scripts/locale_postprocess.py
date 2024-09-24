@@ -42,7 +42,12 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
     if (community_name := locale.get('_communities', {}).get(community['strings'].get('communityID'))) is not None:
         # and optionally interpolate the template
         if (template := locale.get('_defaults', {}).get(community['type'], {}).get('name')) is not None:
-            return template.format(community=community_name)
+            try:
+                # workaround around broken templates
+                # https://github.com/osmlab/osm-community-index/issues/739
+                return template.format(community=community_name)
+            except KeyError:
+                pass
         return community_name
 
     # otherwise fall back to the english resource name
