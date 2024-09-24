@@ -1,4 +1,3 @@
-import asyncio
 from datetime import timedelta
 
 from app.lib.file_cache import FileCache
@@ -14,6 +13,5 @@ async def test_file_cache():
 
 async def test_file_cache_expire():
     cache = FileCache('test')
-    await cache.set('key', b'value', ttl=timedelta())
-    await asyncio.sleep(1)
+    await cache.set('key', b'value', ttl=timedelta(seconds=-2))
     assert await cache.get('key') is None
