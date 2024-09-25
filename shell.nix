@@ -18,7 +18,7 @@ let
     zlib.out
     stdenv.cc.cc.lib
   ];
-  python' = with pkgs; (symlinkJoin {
+  python' = with pkgs; symlinkJoin {
     name = "python";
     paths = [
       # Enable compiler optimizations when in production
@@ -28,7 +28,7 @@ let
     postBuild = ''
       wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
-  });
+  };
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
