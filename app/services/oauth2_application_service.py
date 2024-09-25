@@ -64,6 +64,8 @@ class OAuth2ApplicationService:
         for uri in uris:
             if len(uri) > OAUTH_APP_URI_MAX_LENGTH:
                 MessageCollector.raise_error('redirect_uris', t('validation.redirect_uri_too_long'))
+            if uri in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}:
+                continue
             try:
                 UriValidator.validate(uri_reference(uri))
             except Exception:

@@ -67,3 +67,10 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         Check if the application is a system app.
         """
         return self.user_id is None
+
+    @property
+    def redirect_uris_str(self) -> str:
+        """
+        Get the application's redirect URIs as a single string.
+        """
+        return '\n'.join(self.redirect_uris)

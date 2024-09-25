@@ -6,10 +6,16 @@ import i18next from "i18next"
  * @param {HTMLFormElement} form The form element to initialize
  * @param {function|null} successCallback Optional callback to call on success
  * @param {function|null} clientValidationCallback Optional client validation before submitting
+ * @param {boolean|null} options.formAppend Whether the form alert should be appended instead of prepended
  * @returns {void}
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const configureStandardForm = (form, successCallback = null, clientValidationCallback = null) => {
+export const configureStandardForm = (
+    form,
+    successCallback = null,
+    clientValidationCallback = null,
+    options = null,
+) => {
     console.debug("Initializing standard form", form)
     const submitElements = form.querySelectorAll("[type=submit]")
 
@@ -98,7 +104,12 @@ export const configureStandardForm = (form, successCallback = null, clientValida
             closeButton.dataset.bsDismiss = "alert"
             feedback.append(closeButton)
             feedbackAlert = new Alert(feedback)
-            form.prepend(feedback)
+            if (options?.formAppend) {
+                feedback.classList.add("alert-last")
+                form.append(feedback)
+            } else {
+                form.prepend(feedback)
+            }
         }
 
         if (type === "success") {

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form, Path, Response, UploadFile
 
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
+from app.lib.translation import t
 from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH
 from app.models.db.user import AvatarType, Editor, User
 from app.models.scope import Scope
@@ -165,7 +166,9 @@ async def settings_application_update(
         scopes=tuple(scopes),
         revoke_all_authorizations=revoke_all_authorizations,
     )
-    return Response()
+    collector = MessageCollector()
+    collector.success(None, t('settings.changes_have_been_saved'))
+    return collector.result
 
 
 @router.post('/settings/applications/admin/{id:int}/avatar')

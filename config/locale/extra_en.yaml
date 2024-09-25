@@ -117,6 +117,7 @@ settings:
     Please check your inbox and click on the confirmation link to verify your new email address.
     It may take a few minutes for the email to arrive.
   change_password: Change password
+  changes_have_been_saved: Changes have been saved
   password_last_changed: Password last changed
   current_password: Current password
   new_password: New password

@@ -9,6 +9,7 @@ if (body) {
     const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
     const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
     const editForm = body.querySelector("form.edit-form")
+    const revokeAllAuthorizationsCheckbox = editForm.elements.revoke_all_authorizations
     const resetClientSecretButton = body.querySelector("button.reset-client-secret")
     const resetClientSecretForm = body.querySelector("form.reset-client-secret-form")
     const deleteForm = body.querySelector("form.delete-form")
@@ -29,12 +30,15 @@ if (body) {
     }
 
     // On successful avatar upload, update avatar image
-    const onAvatarFormSuccess = (data) => {
-        avatar.src = data.avatar_url
+    const onAvatarFormSuccess = ({ avatar_url }) => {
+        console.debug("onAvatarFormSuccess", avatar_url)
+        avatar.src = avatar_url
     }
 
     const onEditFormSuccess = () => {
-        window.location.reload()
+        console.debug("onEditFormSuccess")
+        revokeAllAuthorizationsCheckbox.checked = false
+        revokeAllAuthorizationsCheckbox.dispatchEvent(new Event("change"))
     }
 
     const onResetClientSecretClick = () => {
@@ -105,7 +109,7 @@ if (body) {
     avatarFileInput.addEventListener("change", onAvatarFileChange)
     uploadAvatarButton.addEventListener("click", onUploadAvatarClick)
     removeAvatarButton.addEventListener("click", onRemoveAvatarClick)
-    configureStandardForm(editForm, onEditFormSuccess)
+    configureStandardForm(editForm, onEditFormSuccess, null, { formAppend: true })
     resetClientSecretButton.addEventListener("click", onResetClientSecretClick)
     configureStandardForm(resetClientSecretForm, onResetClientSecretFormSuccess)
     deleteButton.addEventListener("click", onDeleteClick)

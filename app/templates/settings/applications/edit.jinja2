@@ -86,9 +86,9 @@
             </div>
 
             <label class="form-label d-block">
-                <span class="required">{{ t('settings.redirect_uris') }}</span>
+                {{ t('settings.redirect_uris') }}
                 <textarea class="form-control mt-2" name="redirect_uris" rows="4"
-                    placeholder="http://127.0.0.1/callback" required></textarea>
+                    placeholder="http://127.0.0.1/callback">{{ app.redirect_uris_str }}</textarea>
             </label>
             <p class="form-text mb-3">
                 {{ t('settings.redirect_uris_description') }}

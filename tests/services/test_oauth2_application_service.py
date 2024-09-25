@@ -27,6 +27,12 @@ async def test_validate_redirect_uris_too_long():
             OAuth2ApplicationService.validate_redirect_uris(uris)
 
 
+@pytest.mark.parametrize('uri', ['urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'])
+async def test_validate_redirect_uris_oob(uri):
+    with translation_context(LocaleCode('en')):
+        OAuth2ApplicationService.validate_redirect_uris(uri)
+
+
 @pytest.mark.parametrize('uri', ['https:', 'https://', 'uwu'])
 async def test_validate_redirect_uris_invalid(uri):
     with translation_context(LocaleCode('en')), pytest.raises(HTTPException):

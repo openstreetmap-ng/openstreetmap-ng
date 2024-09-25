@@ -42,9 +42,10 @@ if (userProfileBody) {
         }
 
         // On successful avatar upload, update avatar images
-        const onAvatarFormSuccess = (data) => {
+        const onAvatarFormSuccess = ({ avatar_url }) => {
+            console.debug("onAvatarFormSuccess", avatar_url)
             for (const avatar of avatars) {
-                avatar.src = data.avatar_url
+                avatar.src = avatar_url
             }
         }
 
@@ -62,9 +63,10 @@ if (userProfileBody) {
         }
 
         // On successful background upload, update background images
-        const onBackgroundFormSuccess = (data) => {
-            if (data.background_url) {
-                background.src = data.background_url
+        const onBackgroundFormSuccess = ({ background_url }) => {
+            console.debug("onBackgroundFormSuccess", background_url)
+            if (background_url) {
+                background.src = background_url
             } else {
                 background.removeAttribute("src")
             }
