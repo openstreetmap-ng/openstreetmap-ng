@@ -467,12 +467,17 @@ let
   ];
 
   shell' = with pkgs; ''
+    export PYTHONNOUSERSITE=1
+    export TZ=UTC
+
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    echo "${python'}/bin/python" > .python-version
+    rm -f .python-version
+    export UV_COMPILE_BYTECODE=1
+    export UV_PYTHON="${python'}/bin/python"
     uv sync --frozen
 
     echo "Installing Bun dependencies"
@@ -487,9 +492,6 @@ let
       cp --force --symbolic-link ${preCommitHook}/bin/pre-commit-hook .git/hooks/pre-commit
     fi
 
-    # Development environment variables
-    export PYTHONNOUSERSITE=1
-    export TZ=UTC
     export TEST_ENV=1
     export SECRET=development-secret
     export APP_URL=http://127.0.0.1:8000

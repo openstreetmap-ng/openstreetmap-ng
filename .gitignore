@@ -430,9 +430,6 @@ pyrightconfig.json
 # Direnv
 .direnv
 
-# Python version lock
-.python-version
-
 # Bun yarn lock file (bun.lockb is the primary lock file)
 yarn.lock
 
