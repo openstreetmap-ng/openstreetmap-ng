@@ -15,7 +15,7 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
-from app.limits import ELEMENT_HISTORY_PAGE_SIZE
+from app.limits import ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE, ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
@@ -148,7 +148,7 @@ async def get_history(
             'id': id,
             'page': page,
             'num_pages': num_pages,
-            'elements_data': elements_data,
+            'elements_data': elements_data[:ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE],
         },
     )
 
@@ -156,7 +156,7 @@ async def get_history(
 def _make_tags_diff(elements_data: tuple):
     current_tags = {}
     previous_tags = set()  # Keep track of all previously seen tags
-    for version in reversed(elements_data):
+    for index, version in enumerate(reversed(elements_data)):
         tags = version['tags']
         print('tags', tags, 'list', list(tags))
         current_version_tags = set()  # Track tags for the current version
@@ -165,18 +165,15 @@ def _make_tags_diff(elements_data: tuple):
             name = tag.key.text
             value = tag.values[0].text
             current_version_tags.add(name)
+            if index > 0:
+                if name not in current_tags:
+                    tag.status = 'added'
+                elif current_tags[name] != value:
+                    tag.status = 'modified'
+                else:
+                    tag.status = 'unchanged'
 
-            if name not in current_tags:
-                tag.status = 'added'
-                current_tags[name] = value
-
-            elif current_tags[name] != value:
-                tag.status = 'modified'
-                current_tags[name] = value
-
-            else:
-                tag.status = 'unchanged'
-
+            current_tags[name] = value
         # Check for deleted tags (tags present in previous version but not in current)
         deleted_tags = previous_tags - current_version_tags
         for deleted_tag in deleted_tags:

@@ -103,4 +103,35 @@
     .version-section:hover {
         background: $list-highlight;
     }
+
+    tr[data-status="deleted"] {
+        display: none;
+    }
+
+    // fix border
+    tr:has(+ tr[data-status="deleted"]) {
+        border-bottom: transparent;
+    }
+
+    &:has(#tag-diff:checked) {
+        tr[data-status="added"] > td {
+            background-color: $green-200;
+        }
+
+        tr[data-status="deleted"] {
+            display: table-row;
+            & > td {
+                background-color: #ffcccb;
+                text-decoration: line-through;
+            }
+        }
+
+        tr[data-status="modified"] > td {
+            background-color: #ffffe0;
+        }
+
+        tr {
+            border-bottom: inherit !important;
+        }
+    }
 }
