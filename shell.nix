@@ -18,7 +18,7 @@ let
     zlib.out
     stdenv.cc.cc.lib
   ];
-  python' = with pkgs; (symlinkJoin {
+  python' = with pkgs; symlinkJoin {
     name = "python";
     paths = [
       # Enable compiler optimizations when in production
@@ -28,7 +28,7 @@ let
     postBuild = ''
       wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
-  });
+  };
 
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript = with pkgs; name: text:
@@ -49,6 +49,7 @@ let
       meta.mainProgram = name;
     };
 
+  sandbox = import ./sandbox.nix { inherit pkgs projectDir makeScript; python = python'; };
   packages' = with pkgs; [
     coreutils
     curl
@@ -58,7 +59,7 @@ let
     nil
     nixpkgs-fmt
     # Python:
-    python'
+    sandbox.python
     uv
     ruff
     gcc14
@@ -467,17 +468,16 @@ let
   ];
 
   shell' = with pkgs; ''
-    export PYTHONNOUSERSITE=1
     export TZ=UTC
-
+    export PYTHONNOUSERSITE=1
     current_python=$(readlink -e .venv/bin/python || echo "")
-    current_python=''${current_python%/bin/*}
-    [ "$current_python" != "${python'}" ] && rm -rf .venv/
+    expected_python=$(readlink -e "${sandbox.python}/bin/python-sandbox")
+    [ "$current_python" != "$expected_python" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
     rm -f .python-version
     export UV_COMPILE_BYTECODE=1
-    export UV_PYTHON="${python'}/bin/python"
+    export UV_PYTHON="$expected_python"
     uv sync --frozen
 
     echo "Installing Bun dependencies"
