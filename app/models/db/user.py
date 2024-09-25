@@ -70,6 +70,9 @@ class UserStatus(str, enum.Enum):
     active = 'active'
 
 
+_DEFAULT_AVATAR_URL = Image.get_avatar_url(AvatarType.default)
+
+
 class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'user'
     __rich_text_fields__ = (('description', TextFormat.markdown),)
@@ -220,7 +223,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         Get the url for the user's avatar image.
         """
         if self.avatar_type == AvatarType.default:
-            return Image.get_avatar_url(AvatarType.default)
+            return _DEFAULT_AVATAR_URL
         if self.avatar_type == AvatarType.gravatar:
             return Image.get_avatar_url(AvatarType.gravatar, self.id)
         if self.avatar_type == AvatarType.custom:

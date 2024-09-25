@@ -12,6 +12,14 @@ from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.types import StorageKey, Uri
 
+_CLIENT_ID_AVATAR_MAP = {
+    'SystemApp.web': '/static/img/favicon/256-app.webp',
+    'SystemApp.id': '/static/img/brand/id-app.webp',
+    'SystemApp.rapid': '/static/img/brand/rapid.webp',
+}
+
+_DEFAULT_AVATAR_URL = Image.get_avatar_url(AvatarType.default, app=True)
+
 
 class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = 'oauth2_application'
@@ -48,7 +56,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         Get the url for the application's avatar image.
         """
         return (
-            Image.get_avatar_url(AvatarType.default, app=True)
+            _CLIENT_ID_AVATAR_MAP.get(self.client_id, _DEFAULT_AVATAR_URL)
             if self.avatar_id is None
             else Image.get_avatar_url(AvatarType.custom, self.avatar_id)
         )
