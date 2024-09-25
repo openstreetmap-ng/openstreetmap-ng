@@ -55,7 +55,8 @@
     <table class="table table-sm">
         <tbody dir="auto">
             {% for tag in tags %}
-            <tr>
+            {% set status = tag.status %}
+            <tr data-status="{{ status }}">
                 <td>
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}

@@ -22,6 +22,7 @@ class ValueFormat:
 class TagFormat:
     key: ValueFormat
     values: list[ValueFormat]
+    status: Literal['added', 'removed', 'modifed', 'unchanged'] | None = None
 
     def __init__(self, key: str, value: str):
         self.key = ValueFormat(key)

@@ -91,6 +91,7 @@ async def get_version(
     data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
     return render_response('partial/element.jinja2', data)
 
+_type = type
 
 @router.get('/{type:element_type}/{id:int}/history')
 async def get_history(
@@ -138,6 +139,26 @@ async def get_history(
         tasks = tuple(tg.create_task(data_task(element)) for element in elements)
 
     elements_data = tuple(task.result() for task in tasks)
+    current_tags = {}
+
+    for version in reversed(elements_data):
+        tags = version['tags']
+        for tag in tags:
+            name = tag.key.text
+            value = tag.values[0].text
+
+            if name not in current_tags:
+                tag.status = "added"
+                current_tags[name] = value
+
+            elif current_tags[name] != value:
+                tag.status = "modifed"
+                current_tags[name] = value
+
+            else:
+                tag.status = "unchanged"
+
+
     return render_response(
         'partial/element_history.jinja2',
         {
