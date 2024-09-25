@@ -91,7 +91,6 @@ async def get_version(
     data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
     return render_response('partial/element.jinja2', data)
 
-_type = type
 
 @router.get('/{type:element_type}/{id:int}/history')
 async def get_history(
@@ -139,25 +138,8 @@ async def get_history(
         tasks = tuple(tg.create_task(data_task(element)) for element in elements)
 
     elements_data = tuple(task.result() for task in tasks)
-    current_tags = {}
 
-    for version in reversed(elements_data):
-        tags = version['tags']
-        for tag in tags:
-            name = tag.key.text
-            value = tag.values[0].text
-
-            if name not in current_tags:
-                tag.status = "added"
-                current_tags[name] = value
-
-            elif current_tags[name] != value:
-                tag.status = "modifed"
-                current_tags[name] = value
-
-            else:
-                tag.status = "unchanged"
-
+    _make_tags_diff(elements_data)
 
     return render_response(
         'partial/element_history.jinja2',
@@ -169,6 +151,38 @@ async def get_history(
             'elements_data': elements_data,
         },
     )
+
+
+def _make_tags_diff(elements_data: tuple):
+    current_tags = {}
+    previous_tags = set()  # Keep track of all previously seen tags
+    for version in reversed(elements_data):
+        tags = version['tags']
+        print('tags', tags, 'list', list(tags))
+        current_version_tags = set()  # Track tags for the current version
+
+        for tag in tags:
+            name = tag.key.text
+            value = tag.values[0].text
+            current_version_tags.add(name)
+
+            if name not in current_tags:
+                tag.status = 'added'
+                current_tags[name] = value
+
+            elif current_tags[name] != value:
+                tag.status = 'modified'
+                current_tags[name] = value
+
+            else:
+                tag.status = 'unchanged'
+
+        # Check for deleted tags (tags present in previous version but not in current)
+        deleted_tags = previous_tags - current_version_tags
+        for deleted_tag in deleted_tags:
+            tags.append(TagFormat(key=deleted_tag, value='', status='deleted'))
+
+        previous_tags = current_version_tags  # Update previous_tags for the next iteration
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
@@ -247,7 +261,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'next_version': next_version,
         'icon': icon,
         'name': name,
-        'tags': tags.values(),
+        'tags': list(tags.values()),
         'comment_tag': comment_tag,
         'show_elements': bool(list_elements),
         'show_part_of': bool(list_parents),
