@@ -61,7 +61,7 @@
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}
                 </td>
-                <td>
+                <td {% if tag.previous%} data-bs-title="{{ tag.previous }}" data-bs-placement="right" data-bs-toggle="tooltip" {% endif %}>
                     {% for value in tag.values %}
                     {% include 'partial/_tag_value.jinja2' %}
                     {% endfor %}
@@ -71,6 +71,13 @@
         </tbody>
     </table>
 </div>
+{% endif %}
+{% if deleted_tags %}
+<ul class="deleted_tags">
+    {% for deleted_tag in deleted_tags%}
+        <li>{{deleted_tag}}</li>
+    {% endfor %}
+</ul>
 {% endif %}
 
 {% set table %}

@@ -22,9 +22,11 @@ class ValueFormat:
 class TagFormat:
     key: ValueFormat
     values: list[ValueFormat]
-    status: Literal['added', 'deleted', 'modified', 'unchanged'] | None = None
 
-    def __init__(self, key: str, value: str, status:str|None = None):
+    # data used for tag diff mode
+    status: Literal['added', 'deleted', 'modified', 'unchanged'] | None = None
+    previous: str | None = None
+
+    def __init__(self, key: str, value: str):
         self.key = ValueFormat(key)
         self.values = [ValueFormat(v) for v in value.split(';', maxsplit=8)]
-        self.status = status # type: ignore

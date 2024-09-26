@@ -281,3 +281,5 @@ javascripts:
   context:
     suggest_edit: Suggest an edit
     measure_distance: Measure distance
+  history:
+    diff_mode: Enable tags diff mode

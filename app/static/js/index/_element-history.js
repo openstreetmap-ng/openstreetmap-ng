@@ -3,6 +3,7 @@ import { getPageTitle } from "../_title.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
 import { initializeElementContent } from "./_element.js"
+import { Tooltip } from "bootstrap"
 
 const paginationDistance = 2
 
@@ -85,6 +86,11 @@ export const getElementHistoryController = (map) => {
             }
 
             paginationContainer.appendChild(paginationFragment)
+        }
+        console.log(sidebarContent, sidebarContent.querySelectorAll("[data-bs-toggle=tooltip]"))
+        for (const element of sidebarContent.querySelectorAll("[data-bs-toggle=tooltip]")) {
+            console.log("adding tooltip for", element)
+            new Tooltip(element)
         }
     }
 

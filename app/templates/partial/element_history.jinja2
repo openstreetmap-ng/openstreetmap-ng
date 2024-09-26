@@ -18,7 +18,10 @@
                 <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
             </div>
         </div>
-        <input type="checkbox" name="tag-diff" id="tag-diff"><label for="tag-diff">Display tag diff</label>
+        <div class="small d-flex align-items-center">
+            <input type="checkbox" name="tag-diff" id="tag-diff"><label for="tag-diff">{{
+                t('javascripts.history.diff_mode') }}</label>
+        </div>
     </div>
 
     {% for data in elements_data %}
@@ -29,6 +32,7 @@
     {% set icon = data.icon %}
     {% set name = data.name %}
     {% set tags = data.tags %}
+    {% set deleted_tags = data.deleted_tags %}
     {% set comment_tag = data.comment_tag %}
     {% set show_elements = data.show_elements %}
     {% set show_part_of = data.show_part_of %}

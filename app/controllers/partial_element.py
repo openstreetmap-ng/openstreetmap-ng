@@ -158,7 +158,9 @@ def _make_tags_diff(elements_data: tuple):
     previous_tags = set()  # Keep track of all previously seen tags
     for index, version in enumerate(reversed(elements_data)):
         tags = version['tags']
-        print('tags', tags, 'list', list(tags))
+        added = []
+        modifed = []
+        unchanged = []
         current_version_tags = set()  # Track tags for the current version
 
         for tag in tags:
@@ -168,16 +170,24 @@ def _make_tags_diff(elements_data: tuple):
             if index > 0:
                 if name not in current_tags:
                     tag.status = 'added'
+                    added.append(tag)
                 elif current_tags[name] != value:
                     tag.status = 'modified'
+                    tag.previous = current_tags[name]
+                    modifed.append(tag)
                 else:
-                    tag.status = 'unchanged'
-
+                    unchanged.append(tag)
+            else:
+                unchanged.append(tag)
             current_tags[name] = value
+
+        version['tags'] = [*added, *modifed, *unchanged ]
+
         # Check for deleted tags (tags present in previous version but not in current)
         deleted_tags = previous_tags - current_version_tags
-        for deleted_tag in deleted_tags:
-            tags.append(TagFormat(key=deleted_tag, value='', status='deleted'))
+        version['deleted_tags'] = deleted_tags
+
+
 
         previous_tags = current_version_tags  # Update previous_tags for the next iteration
 
