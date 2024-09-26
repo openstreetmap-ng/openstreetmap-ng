@@ -479,6 +479,8 @@ let
     export UV_COMPILE_BYTECODE=1
     export UV_PYTHON="$expected_python"
     uv sync --frozen
+    rm -f .venv/bin/python3*
+    ln -sf "$expected_python" .venv/bin/python
 
     echo "Installing Bun dependencies"
     bun install --frozen-lockfile
