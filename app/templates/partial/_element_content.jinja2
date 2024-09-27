@@ -69,7 +69,9 @@
                     </div>
                     {% if tag.previous %}
                     <div class="tag-modifed">
-                    {{ tag.previous}}
+                    {% for value in tag.previous.values %}
+                    {% include 'partial/_tag_value.jinja2' %}
+                    {% endfor %}
                     </div>
                 {% endif %}
                 </td>

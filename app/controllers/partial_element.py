@@ -1,5 +1,6 @@
 from asyncio import TaskGroup
 from collections.abc import Collection, Iterable
+from copy import copy
 from itertools import chain
 from typing import Annotated
 
@@ -155,41 +156,33 @@ async def get_history(
 
 def _make_tags_diff(elements_data: tuple):
     current_tags = {}
-    previous_tags = set()  # Keep track of all previously seen tags
     for index, version in enumerate(reversed(elements_data)):
-        tags = version['tags']
+        tags: dict[str, TagFormat] = {tag.key.text: tag for tag in version['tags']}
         added = []
         modifed = []
         unchanged = []
-        current_version_tags = set()  # Track tags for the current version
 
-        for tag in tags:
-            name = tag.key.text
-            value = tag.values[0].text
-            current_version_tags.add(name)
+        print(current_tags)
+        result = [copy(value) for key, value in current_tags.items() if key not in tags]
+        for value in result:
+            value.status = "deleted"
+
+        for key,tag in tags.items():
             if index > 0:
-                if name not in current_tags:
+                if key not in current_tags:
                     tag.status = 'added'
                     added.append(tag)
-                elif current_tags[name] != value:
+                elif current_tags[key].values != tag.values:
                     tag.status = 'modified'
-                    tag.previous = current_tags[name]
+                    tag.previous = current_tags[key]
                     modifed.append(tag)
                 else:
                     unchanged.append(tag)
             else:
                 unchanged.append(tag)
-            current_tags[name] = value
+            current_tags[key] = tag
 
-        version['tags'] = [*added, *modifed, *unchanged ]
-
-        # Check for deleted tags (tags present in previous version but not in current)
-        deleted_tags = previous_tags - current_version_tags
-        version['deleted_tags'] = deleted_tags
-
-
-
-        previous_tags = current_version_tags  # Update previous_tags for the next iteration
+        version['tags'] = [*added, *modifed, *unchanged, *result]
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:

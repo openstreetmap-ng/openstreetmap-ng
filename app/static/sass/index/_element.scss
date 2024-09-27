@@ -113,24 +113,14 @@
         background-color: #ffc98c;
     }
 
+    tr[data-status="deleted"] > td {
+        color: #f05d5a;
+        text-decoration: line-through;
+    }
+
     .tag-modifed {
         text-decoration: line-through;
         border-top: 1px solid $table-border-color;
-    }
-
-    .deleted-tags {
-        background: transparentize($gray-200, 0.7);
-        border-radius: $border-radius-sm;
-        border-bottom-left-radius: unset;
-        padding: 0.16rem 0.3rem;
-        margin-bottom: unset;
-    }
-
-    .deleted-tag {
-        list-style-type: none;
-        color: #f05d5a;
-        text-decoration: line-through;
-        line-height: normal;
     }
 
     .tags td:has(.tag-modifed) {
