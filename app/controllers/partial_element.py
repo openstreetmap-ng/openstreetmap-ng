@@ -140,7 +140,7 @@ async def get_history(
 
     elements_data = tuple(task.result() for task in tasks)
 
-    _make_tags_diff(elements_data)
+    _tags_diff_mode(elements_data)
 
     return render_response(
         'partial/element_history.jinja2',
@@ -154,34 +154,33 @@ async def get_history(
     )
 
 
-def _make_tags_diff(elements_data: tuple):
+def _tags_diff_mode(elements_data: tuple):
     current_tags = {}
     for index, version in enumerate(reversed(elements_data)):
+        if index == 0:
+            continue  # skip first verison from having all tags appear as added
+
         tags: dict[str, TagFormat] = {tag.key.text: tag for tag in version['tags']}
         added = []
         modifed = []
         unchanged = []
 
-        print(current_tags)
         result = [copy(value) for key, value in current_tags.items() if key not in tags]
         for value in result:
-            value.status = "deleted"
+            value.status = 'deleted'
 
-        for key,tag in tags.items():
-            if index > 0:
-                if key not in current_tags:
-                    tag.status = 'added'
-                    added.append(tag)
-                elif current_tags[key].values != tag.values:
-                    tag.status = 'modified'
-                    tag.previous = current_tags[key]
-                    modifed.append(tag)
-                else:
-                    unchanged.append(tag)
+        for key, tag in tags.items():
+            if key not in current_tags:
+                tag.status = 'added'
+                added.append(tag)
+            elif current_tags[key].values != tag.values:
+                tag.status = 'modified'
+                tag.previous = current_tags[key].values
+                modifed.append(tag)
             else:
                 unchanged.append(tag)
-            current_tags[key] = tag
 
+        current_tags = dict(tags)
         version['tags'] = [*added, *modifed, *unchanged, *result]
 
 

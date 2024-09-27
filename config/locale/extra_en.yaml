@@ -281,9 +281,3 @@ javascripts:
   context:
     suggest_edit: Suggest an edit
     measure_distance: Measure distance
-  history:
-    modified: Value of this tag was modifed. Previous value was "{{value}}"
-    added: This tag was added in this version
-    removed:
-      count_one: "{{count}} removed tag"
-      count_other: "{{count}} removed tags"

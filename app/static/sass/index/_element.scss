@@ -106,15 +106,19 @@
     }
 
     tr[data-status="added"] > td {
-        background-color: $green-200;
+        background-color: mix($green-600, white, 20%);
     }
 
     tr[data-status="modified"] > td {
-        background-color: #ffc98c;
+        background-color: mix(darkorange, white, 20%);
     }
 
     tr[data-status="deleted"] > td {
-        color: #f05d5a;
+        a {
+            color: #a82f2d;
+        }
+        background-color: mix(red, white, 20%);
+        color: #a82f2d;
         text-decoration: line-through;
     }
 
@@ -125,11 +129,11 @@
 
     .tags td:has(.tag-modifed) {
         div {
-            padding: .25em .55em;
+            padding: 0.25em 0.55em;
         }
-        .tag-modifed {
-        color: #a82f2d;
-
+        .tag-modifed,
+        .tag-modifed a {
+            color: #a82f2d;
         }
 
         padding: 0 !important;

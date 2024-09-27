@@ -7,8 +7,8 @@
             <a href="/user/{{ changeset.user.display_name }}">
                 <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
                     loading="lazy">{#
-            #}{{ changeset.user.display_name }}{#
-            #}</a>
+                #}{{ changeset.user.display_name }}{#
+                #}</a>
             {% endif %}
             {% if element.visible %}
             {{ t('action.edited') }}
@@ -63,17 +63,17 @@
                 </td>
                 <td>
                     <div>
-                    {% for value in tag.values %}
-                    {% include 'partial/_tag_value.jinja2' %}
-                    {% endfor %}
+                        {% for value in tag.values %}
+                        {% include 'partial/_tag_value.jinja2' %}
+                        {% endfor %}
                     </div>
                     {% if tag.previous %}
                     <div class="tag-modifed">
-                    {% for value in tag.previous.values %}
-                    {% include 'partial/_tag_value.jinja2' %}
-                    {% endfor %}
+                        {% for value in tag.previous %}
+                        {% include 'partial/_tag_value.jinja2' %}
+                        {% endfor %}
                     </div>
-                {% endif %}
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -83,12 +83,12 @@
 {% endif %}
 {% if deleted_tags %}
 <details>
-<summary class="small ">{{ nt('javascripts.history.removed.count', deleted_tags|length) }}</summary>
-<ul class="deleted-tags section">
-    {% for deleted_tag in deleted_tags%}
+    <summary class="small ">{{ nt('javascripts.history.removed.count', deleted_tags|length) }}</summary>
+    <ul class="deleted-tags section">
+        {% for deleted_tag in deleted_tags%}
         <li class="deleted-tag"><i class="bi bi-trash"></i> <span>{{deleted_tag}}</span></li>
-    {% endfor %}
-</ul>
+        {% endfor %}
+    </ul>
 </details>
 {% endif %}
 
