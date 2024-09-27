@@ -61,11 +61,16 @@
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}
                 </td>
-                <td {% if tag.previous%} data-bs-title="{{ tag.previous }}" data-bs-placement="right" data-bs-toggle="tooltip" {% endif %}>
+                <td {% if not tag.previous %} colspan="2" {% endif %} >
                     {% for value in tag.values %}
                     {% include 'partial/_tag_value.jinja2' %}
                     {% endfor %}
                 </td>
+                {% if tag.previous %}
+                <td class="tag-modifed">
+                    {{ tag.previous}}
+                </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
@@ -73,11 +78,14 @@
 </div>
 {% endif %}
 {% if deleted_tags %}
-<ul class="deleted_tags">
+<details>
+<summary class="small ">{{ nt('javascripts.history.removed.count', deleted_tags|length) }}</summary>
+<ul class="deleted-tags section">
     {% for deleted_tag in deleted_tags%}
-        <li>{{deleted_tag}}</li>
+        <li class="deleted-tag"><i class="bi bi-trash"></i> <span>{{deleted_tag}}</span></li>
     {% endfor %}
 </ul>
+</details>
 {% endif %}
 
 {% set table %}

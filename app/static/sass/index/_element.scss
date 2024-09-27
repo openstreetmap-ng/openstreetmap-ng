@@ -91,6 +91,7 @@
     a:not(.stretched-link),
     time,
     details,
+    table,
     button {
         position: relative;
         z-index: 10;
@@ -104,34 +105,31 @@
         background: $list-highlight;
     }
 
-    tr[data-status="deleted"] {
-        display: none;
+    tr[data-status="added"] > td {
+        background-color: $green-200;
     }
 
-    // fix border
-    tr:has(+ tr[data-status="deleted"]) {
-        border-bottom: transparent;
+    tr[data-status="modified"] > td {
+        background-color: #ffc98c;
     }
 
-    &:has(#tag-diff:checked) {
-        tr[data-status="added"] > td {
-            background-color: $green-200;
-        }
+    .tag-modifed {
+        text-decoration: line-through;
+        border-left: 1px solid $table-border-color;
+    }
 
-        tr[data-status="deleted"] {
-            display: table-row;
-            & > td {
-                background-color: #ffcccb;
-                text-decoration: line-through;
-            }
-        }
+    .deleted-tags {
+        background: transparentize($gray-200, 0.7);
+        border-radius: $border-radius-sm;
+        border-bottom-left-radius: unset;
+        padding: 0.16rem 0.3rem;
+        margin-bottom: unset;
+    }
 
-        tr[data-status="modified"] > td {
-            background-color: #ffffe0;
-        }
-
-        tr {
-            border-bottom: inherit !important;
-        }
+    .deleted-tag {
+        list-style-type: none;
+        color: #f05d5a;
+        text-decoration: line-through;
+        line-height: normal;
     }
 }
