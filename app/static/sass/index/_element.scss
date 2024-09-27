@@ -104,53 +104,52 @@
         background: $list-highlight;
     }
 
-    tr[data-status="added"] > td {
-        background-color: mix($green-600, white, 20%);
-    }
+    &:has(#tag-diff-mode:checked) {
+        tr[data-status="added"] > td {
+            background-color: mix($green-600, white, 20%);
+        }
 
-    tr[data-status="modified"] > td {
-        background-color: mix(darkorange, white, 20%);
-    }
+        tr[data-status="modified"] > td {
+            background-color: mix(darkorange, white, 20%);
+        }
 
-    tr[data-status="deleted"] > td {
-        a {
+        tr[data-status="deleted"] > td {
+            a {
+                color: #a82f2d;
+            }
+
+            background-color: mix(red, white, 20%);
             color: #a82f2d;
-        }
-        background-color: mix(red, white, 20%);
-        color: #a82f2d;
-        text-decoration: line-through;
-    }
-
-    .tag-modifed {
-        text-decoration: line-through;
-        border-top: 1px solid $table-border-color;
-    }
-
-    .tags td:has(.tag-modifed) {
-        div {
-            padding: 0.25em 0.55em;
-        }
-        .tag-modifed,
-        .tag-modifed a {
-            color: #a82f2d;
+            text-decoration: line-through;
         }
 
-        padding: 0 !important;
-    }
+        .tag-modifed {
+            text-decoration: line-through;
+            border-top: 1px solid $table-border-color;
+        }
 
-    &:not(:has(#tag-diff-mode:checked)) tr:has(+tr[data-status="deleted"]) > td {
-        border-bottom: none !important;
-    }
+        .tags td:has(.tag-modifed) {
+            div {
+                padding: 0.25em 0.55em;
+            }
 
+            .tag-modifed,
+            .tag-modifed a {
+                color: #a82f2d;
+            }
+
+            padding: 0 !important;
+        }
+    }
 
     &:not(:has(#tag-diff-mode:checked)) {
-        tr[data-status] > td {
-            background-color: white;
-        }
-
         tr[data-status="deleted"],
         .tag-modifed {
             display: none;
+        }
+
+        tr:has(+ tr[data-status="deleted"]) > td {
+            border-bottom: none !important;
         }
     }
 }

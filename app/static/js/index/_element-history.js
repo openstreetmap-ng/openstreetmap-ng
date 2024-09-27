@@ -86,6 +86,13 @@ export const getElementHistoryController = (map) => {
 
             paginationContainer.appendChild(paginationFragment)
         }
+
+        // remember last checkbox state
+        const checkbox = sidebarContent.querySelector("#tag-diff-mode")
+        if (checkbox) {
+            checkbox.checked = localStorage.getItem("tag-diff-enabled") !== "true"
+            checkbox.oninput = () => localStorage.setItem("tag-diff-enabled", !checkbox.checked)
+        }
     }
 
     const base = getBaseFetchController(map, "element-history", onLoaded)
