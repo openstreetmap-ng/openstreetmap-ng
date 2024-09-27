@@ -115,7 +115,7 @@
 
     .tag-modifed {
         text-decoration: line-through;
-        border-left: 1px solid $table-border-color;
+        border-top: 1px solid $table-border-color;
     }
 
     .deleted-tags {
@@ -131,5 +131,17 @@
         color: #f05d5a;
         text-decoration: line-through;
         line-height: normal;
+    }
+
+    .tags td:has(.tag-modifed) {
+        div {
+            padding: .25em .55em;
+        }
+        .tag-modifed {
+        color: #a82f2d;
+
+        }
+
+        padding: 0 !important;
     }
 }

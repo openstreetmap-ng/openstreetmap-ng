@@ -61,16 +61,18 @@
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}
                 </td>
-                <td {% if not tag.previous %} colspan="2" {% endif %} >
+                <td>
+                    <div>
                     {% for value in tag.values %}
                     {% include 'partial/_tag_value.jinja2' %}
                     {% endfor %}
-                </td>
-                {% if tag.previous %}
-                <td class="tag-modifed">
+                    </div>
+                    {% if tag.previous %}
+                    <div class="tag-modifed">
                     {{ tag.previous}}
-                </td>
+                    </div>
                 {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
