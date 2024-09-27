@@ -2,7 +2,7 @@
     {% set data = elements_data[0] %}
     {% set element = data.element %}
     <div class="section pb-1">
-        <div class="row g-1 mb-1">
+        <div class="row ">
             <div class="col">
                 <h2 class="sidebar-title">
                     {% if element.type == 'node' %}
@@ -17,6 +17,9 @@
             <div class="col-auto">
                 <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
             </div>
+        </div>
+        <div class="g-1 mb-1">
+            <input type="checkbox" id="tag-diff-mode"> <label for="tag-diff-mode">{{  t('browse.tag_diff_mode')  }}</label>
         </div>
     </div>
 

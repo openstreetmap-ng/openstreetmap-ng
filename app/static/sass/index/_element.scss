@@ -91,7 +91,6 @@
     a:not(.stretched-link),
     time,
     details,
-    table,
     button {
         position: relative;
         z-index: 10;
@@ -137,5 +136,21 @@
         }
 
         padding: 0 !important;
+    }
+
+    &:not(:has(#tag-diff-mode:checked)) tr:has(+tr[data-status="deleted"]) > td {
+        border-bottom: none !important;
+    }
+
+
+    &:not(:has(#tag-diff-mode:checked)) {
+        tr[data-status] > td {
+            background-color: white;
+        }
+
+        tr[data-status="deleted"],
+        .tag-modifed {
+            display: none;
+        }
     }
 }

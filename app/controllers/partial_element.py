@@ -109,10 +109,10 @@ async def get_history(
             {'type': type, 'id': id},
         )
 
-    page_size = ELEMENT_HISTORY_PAGE_SIZE
+    page_size = ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
     version_max = current_version - page_size * (page - 1)
-    version_min = version_max - page_size + 1
+    version_min = version_max - page_size
 
     elements = await ElementQuery.get_versions_by_ref(
         ref,
@@ -155,33 +155,40 @@ async def get_history(
 
 
 def _tags_diff_mode(elements_data: tuple):
-    current_tags = {}
-    for index, version in enumerate(reversed(elements_data)):
+    previous_tags = {}
+
+    for index, current_version in enumerate(reversed(elements_data)):
         if index == 0:
-            continue  # skip first verison from having all tags appear as added
+            continue  # skip first version from having all tags appear as added
 
-        tags: dict[str, TagFormat] = {tag.key.text: tag for tag in version['tags']}
-        added = []
-        modifed = []
-        unchanged = []
+        current_tags: dict[str, TagFormat] = {tag.key.text: tag for tag in current_version['tags']}
 
-        result = [copy(value) for key, value in current_tags.items() if key not in tags]
-        for value in result:
-            value.status = 'deleted'
+        added_tags: list[TagFormat] = []
+        modified_tags: list[TagFormat] = []
+        unchanged_tags: list[TagFormat] = []
+        deleted_tags: list[TagFormat] = []
 
-        for key, tag in tags.items():
-            if key not in current_tags:
+        for key, tag in current_tags.items():
+            if key not in previous_tags:
                 tag.status = 'added'
-                added.append(tag)
-            elif current_tags[key].values != tag.values:
+                added_tags.append(tag)
+            elif previous_tags[key].values != tag.values:
                 tag.status = 'modified'
-                tag.previous = current_tags[key].values
-                modifed.append(tag)
+                tag.previous = previous_tags[key].values
+                modified_tags.append(tag)
             else:
-                unchanged.append(tag)
+                unchanged_tags.append(tag)
 
-        current_tags = dict(tags)
-        version['tags'] = [*added, *modifed, *unchanged, *result]
+        for key, tag in previous_tags.items():
+            if key not in current_tags:
+                # shallow coppy as only status is changed
+                deleted_tag = copy(tag)
+                deleted_tag.previous = None
+                deleted_tag.status = 'deleted'
+                deleted_tags.append(deleted_tag)
+
+        current_version['tags'] = [*added_tags, *modified_tags, *unchanged_tags, *deleted_tags]
+        previous_tags = current_tags
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
@@ -260,7 +267,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'next_version': next_version,
         'icon': icon,
         'name': name,
-        'tags': list(tags.values()),
+        'tags': tags.values(),
         'comment_tag': comment_tag,
         'show_elements': bool(list_elements),
         'show_part_of': bool(list_parents),
