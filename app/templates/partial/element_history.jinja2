@@ -2,7 +2,7 @@
     {% set data = elements_data[0] %}
     {% set element = data.element %}
     <div class="section pb-1">
-        <div class="row ">
+        <div class="row">
             <div class="col">
                 <h2 class="sidebar-title">
                     {% if element.type == 'node' %}
@@ -19,7 +19,8 @@
             </div>
         </div>
         <div class="g-1 mb-1">
-            <input type="checkbox" id="tag-diff-mode"> <label for="tag-diff-mode">{{  t('browse.tag_diff_mode')  }}</label>
+            <input type="checkbox" id="tag-diff-mode"> <label for="tag-diff-mode">{{ t('browse.tag_diff_mode')
+                }}</label>
         </div>
     </div>
 
@@ -31,7 +32,6 @@
     {% set icon = data.icon %}
     {% set name = data.name %}
     {% set tags = data.tags %}
-    {% set deleted_tags = data.deleted_tags %}
     {% set comment_tag = data.comment_tag %}
     {% set show_elements = data.show_elements %}
     {% set show_part_of = data.show_part_of %}
