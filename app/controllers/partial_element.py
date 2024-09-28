@@ -16,7 +16,7 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
-from app.limits import ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE, ELEMENT_HISTORY_PAGE_SIZE
+from app.limits import ELEMENT_HISTORY_PAGE_SIZE
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
@@ -109,7 +109,7 @@ async def get_history(
             {'type': type, 'id': id},
         )
 
-    page_size = ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE
+    page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
     version_max = current_version - page_size * (page - 1)
     version_min = version_max - page_size
@@ -119,7 +119,7 @@ async def get_history(
         at_sequence_id=at_sequence_id,
         version_range=(version_min, version_max),
         sort='desc',
-        limit=ELEMENT_HISTORY_PAGE_SIZE,
+        limit=ELEMENT_HISTORY_PAGE_SIZE + 1,
     )
     await ElementMemberQuery.resolve_members(elements)
 
@@ -149,7 +149,7 @@ async def get_history(
             'id': id,
             'page': page,
             'num_pages': num_pages,
-            'elements_data': elements_data[:ELEMENT_HISTORY_DISPLAYED_PAGE_SIZE],
+            'elements_data': elements_data[:ELEMENT_HISTORY_PAGE_SIZE],
         },
     )
 
@@ -158,10 +158,10 @@ def _tags_diff_mode(elements_data: tuple):
     previous_tags = {}
 
     for index, current_version in enumerate(reversed(elements_data)):
-        if index == 0:
-            continue  # skip first version from having all tags appear as added
-
         current_tags: dict[str, TagFormat] = {tag.key.text: tag for tag in current_version['tags']}
+        if index == 0:
+            previous_tags = current_tags
+            continue  # skip first version from having all tags appear as added
 
         added_tags: list[TagFormat] = []
         modified_tags: list[TagFormat] = []

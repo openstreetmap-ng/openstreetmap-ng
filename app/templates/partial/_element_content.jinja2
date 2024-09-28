@@ -55,19 +55,18 @@
     <table class="table table-sm">
         <tbody dir="auto">
             {% for tag in tags %}
-            {% set status = tag.status %}
-            <tr data-status="{{ status }}">
+            <tr data-status="{{ tag.status }}">
                 <td>
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}
                 </td>
                 <td>
-                    <div>
+                    {% if tag.previous %} <div> {% endif %}
                         {% for value in tag.values %}
                         {% include 'partial/_tag_value.jinja2' %}
                         {% endfor %}
+                        {% if tag.previous %}
                     </div>
-                    {% if tag.previous %}
                     <div class="tag-modifed">
                         {% for value in tag.previous %}
                         {% include 'partial/_tag_value.jinja2' %}
