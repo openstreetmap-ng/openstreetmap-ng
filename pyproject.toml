@@ -243,6 +243,7 @@ useLibraryCodeForTypes = false
 
 [tool.pytest.ini_options]
 addopts = "--quiet"
+asyncio_default_fixture_loop_scope = "session"
 asyncio_mode = "auto"
 minversion = "6.0"
 testpaths = ["tests"]
