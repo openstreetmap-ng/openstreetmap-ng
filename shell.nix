@@ -373,11 +373,19 @@ let
 
     # -- Testing
     (makeScript "run-tests" ''
-      python -m pytest . \
+      set +e
+      COVERAGE_CORE=sysmon python -m coverage run -m pytest \
         --verbose \
-        --no-header \
-        --cov app \
-        --cov-report "''${1:-xml}"
+        --no-header
+      result=$?
+      set -e
+      if [ "$1" = "term" ]; then
+        python -m coverage report --skip-covered
+      else
+        python -m coverage xml --quiet
+      fi
+      python -m coverage erase
+      exit $result
     '')
     (makeScript "watch-tests" "watchexec --watch app --watch tests --exts py run-tests")
 
