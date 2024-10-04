@@ -75,6 +75,53 @@
             }
         }
     }
+
+    .sidebar-content[data-tags-diff-mode="True"] .tags {
+        tr[data-status="added"] > td {
+            background: $green-100;
+        }
+
+        tr[data-status="modified"] > td {
+            background: $orange-100;
+        }
+
+        tr[data-status="modified"] > td:nth-child(2) {
+            padding-top: 0;
+            padding-bottom: 0;
+
+            > div {
+                display: flex;
+            }
+
+            .tag-values,
+            .tag-previous {
+                padding-top: 0.25em;
+                padding-bottom: 0.25em;
+                flex-grow: 1;
+            }
+
+            .tag-previous {
+                padding-left: 0.55em;
+                border-left: 1px solid $table-border-color;
+
+                .tag-value {
+                    color: $red-600;
+                    text-decoration: line-through;
+                    text-decoration-color: transparentize($red-600, 0.4);
+                }
+            }
+        }
+
+        tr[data-status="deleted"] > td {
+            background: $red-100;
+
+            .tag-value {
+                color: $red-600;
+                text-decoration: line-through;
+                text-decoration-color: transparentize($red-600, 0.4);
+            }
+        }
+    }
 }
 
 .action-sidebar.element {
@@ -102,58 +149,5 @@
 
     .version-section:hover {
         background: $list-highlight;
-    }
-
-    &:has(#tag-diff-mode:checked) {
-        tr[data-status="added"] > td {
-            background-color: mix($green-600, white, 20%);
-        }
-
-        tr[data-status="modified"] > td {
-            background-color: mix(darkorange, white, 20%);
-        }
-
-        tr[data-status="deleted"] > td {
-            a {
-                color: #a82f2d;
-            }
-
-            background-color: mix(red, white, 20%);
-            color: #a82f2d;
-            text-decoration: line-through;
-        }
-
-        .tags td:has(.tag-modifed) {
-            display: flex;
-            height: 100%;
-            > div {
-                flex: 0 0 50%;
-                max-width: 50%;
-                padding: 0.25em 0.55em;
-            }
-
-            .tag-modifed {
-                text-decoration: line-through;
-                border-left: 1px solid $table-border-color;
-            }
-
-            .tag-modifed,
-            .tag-modifed a {
-                color: #a82f2d;
-            }
-
-            padding: 0 !important;
-        }
-    }
-
-    &:not(:has(#tag-diff-mode:checked)) {
-        tr[data-status="deleted"],
-        .tag-modifed {
-            display: none;
-        }
-
-        tr:has(+ tr[data-status="deleted"]) > td {
-            border-bottom: none !important;
-        }
     }
 }

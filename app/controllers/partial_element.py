@@ -1,6 +1,5 @@
 from asyncio import TaskGroup
 from collections.abc import Collection, Iterable
-from copy import copy
 from itertools import chain
 from typing import Annotated
 
@@ -14,6 +13,7 @@ from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
+from app.lib.tags_diff_mode import tags_diff_mode
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
 from app.limits import ELEMENT_HISTORY_PAGE_SIZE
@@ -97,6 +97,7 @@ async def get_version(
 async def get_history(
     type: ElementType,
     id: Annotated[ElementId, PositiveInt],
+    tags_diff_mode_flag: Annotated[bool, Query(alias='tags_diff_mode')],
     page: Annotated[PositiveInt, Query()] = 1,
 ):
     ref = ElementRef(type, id)
@@ -112,35 +113,50 @@ async def get_history(
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
     version_max = current_version - page_size * (page - 1)
-    version_min = version_max - page_size
-
-    elements = await ElementQuery.get_versions_by_ref(
-        ref,
-        at_sequence_id=at_sequence_id,
-        version_range=(version_min, version_max),
-        sort='desc',
-        limit=ELEMENT_HISTORY_PAGE_SIZE + 1,
-    )
-    await ElementMemberQuery.resolve_members(elements)
-
-    async def data_task(element: Element):
-        at_sequence_id_ = at_sequence_id
-        include_parents = True
-
-        # if the element was superseded, get data just before
-        last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
-        if last_sequence_id is not None:
-            at_sequence_id_ = last_sequence_id
-            include_parents = False
-
-        return await _get_element_data(element, at_sequence_id_, include_parents=include_parents)
+    version_min = version_max - page_size + 1
 
     async with TaskGroup() as tg:
-        tasks = tuple(tg.create_task(data_task(element)) for element in elements)
+        previous_task = (
+            tg.create_task(
+                ElementQuery.get_by_versioned_refs(
+                    (VersionedElementRef(type, id, version_min - 1),),
+                    at_sequence_id=at_sequence_id,
+                    limit=1,
+                )
+            )
+            if tags_diff_mode_flag
+            else None
+        )
 
-    elements_data = tuple(task.result() for task in tasks)
+        elements = await ElementQuery.get_versions_by_ref(
+            ref,
+            at_sequence_id=at_sequence_id,
+            version_range=(version_min, version_max),
+            sort='desc',
+            limit=page_size,
+        )
+        await ElementMemberQuery.resolve_members(elements)
 
-    _tags_diff_mode(elements_data)
+        async def data_task(element: Element):
+            at_sequence_id_ = at_sequence_id
+            include_parents = True
+
+            # if the element was superseded, get data just before
+            last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
+            if last_sequence_id is not None:
+                at_sequence_id_ = last_sequence_id
+                include_parents = False
+
+            return await _get_element_data(element, at_sequence_id_, include_parents=include_parents)
+
+        elements_tasks = tuple(tg.create_task(data_task(element)) for element in elements)
+
+    elements_data = tuple(task.result() for task in elements_tasks)
+
+    if tags_diff_mode_flag:
+        previous_element_ = previous_task.result()  # pyright: ignore[reportOptionalMemberAccess]
+        previous_element = previous_element_[0] if previous_element_ else None
+        tags_diff_mode(previous_element, elements_data)
 
     return render_response(
         'partial/element_history.jinja2',
@@ -149,46 +165,11 @@ async def get_history(
             'id': id,
             'page': page,
             'num_pages': num_pages,
-            'elements_data': elements_data[:ELEMENT_HISTORY_PAGE_SIZE],
+            'elements_data': elements_data,
+            'tags_diff_mode': tags_diff_mode_flag,
+            'params': json_encodes({'type': type, 'id': id}),
         },
     )
-
-
-def _tags_diff_mode(elements_data: tuple):
-    previous_tags = {}
-
-    for index, current_version in enumerate(reversed(elements_data)):
-        current_tags: dict[str, TagFormat] = {tag.key.text: tag for tag in current_version['tags']}
-        if index == 0:
-            previous_tags = current_tags
-            continue  # skip first version from having all tags appear as added
-
-        added_tags: list[TagFormat] = []
-        modified_tags: list[TagFormat] = []
-        unchanged_tags: list[TagFormat] = []
-        deleted_tags: list[TagFormat] = []
-
-        for key, tag in current_tags.items():
-            if key not in previous_tags:
-                tag.status = 'added'
-                added_tags.append(tag)
-            elif previous_tags[key].values != tag.values:
-                tag.status = 'modified'
-                tag.previous = previous_tags[key].values
-                modified_tags.append(tag)
-            else:
-                unchanged_tags.append(tag)
-
-        for key, tag in previous_tags.items():
-            if key not in current_tags:
-                # shallow coppy as only status is changed
-                deleted_tag = copy(tag)
-                deleted_tag.previous = None
-                deleted_tag.status = 'deleted'
-                deleted_tags.append(deleted_tag)
-
-        current_version['tags'] = [*added_tags, *modified_tags, *unchanged_tags, *deleted_tags]
-        previous_tags = current_tags
 
 
 async def _get_element_data(element: Element, at_sequence_id: int, *, include_parents: bool) -> dict:
@@ -257,7 +238,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None
     icon = features_icons((element,))[0]
     name = features_names((element,))[0]
-    tags = tags_format(element.tags)
+    tags_map = tags_format(element.tags)
     leaflet = FormatLeaflet.encode_elements(full_data, detailed=False)
 
     return {
@@ -267,7 +248,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'next_version': next_version,
         'icon': icon,
         'name': name,
-        'tags': tags.values(),
+        'tags_map': tags_map,
         'comment_tag': comment_tag,
         'show_elements': bool(list_elements),
         'show_part_of': bool(list_parents),

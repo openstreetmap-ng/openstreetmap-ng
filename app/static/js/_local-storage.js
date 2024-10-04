@@ -59,7 +59,10 @@ export const isBannerHidden = (name) => localStorage.getItem(`bannerHidden-${nam
  * @param {string} name Banner name
  * @returns {void}
  */
-export const markBannerHidden = (name) => localStorage.setItem(`bannerHidden-${name}`, getUnixTimestamp())
+export const markBannerHidden = (name) => {
+    console.debug("markBannerHidden", name)
+    localStorage.setItem(`bannerHidden-${name}`, getUnixTimestamp())
+}
 
 /**
  * Get last routing engine from local storage
@@ -77,7 +80,10 @@ export const getLastRoutingEngine = () => localStorage.getItem("lastRoutingEngin
  * @example
  * setLastRoutingEngine("graphhopper_car")
  */
-export const setLastRoutingEngine = (engine) => localStorage.setItem("lastRoutingEngine", engine)
+export const setLastRoutingEngine = (engine) => {
+    console.debug("setLastRoutingEngine", engine)
+    localStorage.setItem("lastRoutingEngine", engine)
+}
 
 /**
  * Get access token for system app from local storage
@@ -108,5 +114,23 @@ export const getLastSelectedExportFormat = () => localStorage.getItem(lastSelect
  * @param {string} lastSelectedExportFormat Last selected export format
  * @returns {void}
  */
-export const setLastSelectedExportFormat = (lastSelectedExportFormat) =>
+export const setLastSelectedExportFormat = (lastSelectedExportFormat) => {
+    console.debug("setLastSelectedExportFormat", lastSelectedExportFormat)
     localStorage.setItem(lastSelectedExportFormatKey, lastSelectedExportFormat)
+}
+
+/**
+ * Get tags diff mode from local storage
+ * @returns {boolean} Tags diff mode
+ */
+export const getTagsDiffMode = () => (localStorage.getItem("tagsDiffMode") ?? "true") === "true"
+
+/**
+ * Set tags diff mode to local storage
+ * @param {boolean} state Tags diff mode
+ * @returns {void}
+ */
+export const setTagsDiffMode = (state) => {
+    console.debug("setTagsDiffMode", state)
+    localStorage.setItem("tagsDiffMode", state)
+}

@@ -27,7 +27,6 @@ export const getIndexController = (map) => {
 
         // On close button click, hide the banner
         const onClose = () => {
-            console.debug("Hiding banner", bannerName)
             markBannerHidden(bannerName)
             banner.remove()
         }

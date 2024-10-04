@@ -1,4 +1,6 @@
 import * as L from "leaflet"
+import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage.js"
+import { qsEncode, qsParse } from "../_qs.js"
 import { getPageTitle } from "../_title.js"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer.js"
 import { getBaseFetchController } from "./_base-fetch.js"
@@ -16,34 +18,34 @@ export const getElementHistoryController = (map) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const paginationContainer = sidebarContent.querySelector(".history-pagination")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
 
-        // TODO: Handle not found
-        // if (!sidebarTitleElement.dataset.params) return
+        // Handle not found
+        if (!sidebarTitleElement.dataset.params) return
+
+        // Get params
+        const params = JSON.parse(sidebarTitleElement.dataset.params)
+        const paramsType = params.type
+        const paramsId = params.id
+
+        const tagsDiffCheckbox = sidebarContent.querySelector(".tags-diff-mode")
+        tagsDiffCheckbox.checked = getTagsDiffMode()
+        tagsDiffCheckbox.addEventListener("change", () => {
+            setTagsDiffMode(tagsDiffCheckbox.checked)
+            base.unload()
+            base.load({ type: paramsType, id: paramsId })
+        })
 
         const versionSections = sidebarContent.querySelectorAll(".version-section")
-
         for (const versionSection of versionSections) {
             const elements = initializeElementContent(map, versionSection)
-
-            // On mouse enter, focus elements
-            const onVersionMouseEnter = () => {
-                focusManyMapObjects(map, elements)
-            }
-
-            // On mouse leave, remove focus
-            const onVersionMouseLeave = () => {
-                focusMapObject(map, null)
-            }
-
-            // Listen for events
-            versionSection.addEventListener("mouseenter", onVersionMouseEnter)
-            versionSection.addEventListener("mouseleave", onVersionMouseLeave)
+            versionSection.addEventListener("mouseenter", () => focusManyMapObjects(map, elements)) // focus elements
+            versionSection.addEventListener("mouseleave", () => focusMapObject(map, null)) // remove focus
         }
 
+        const paginationContainer = sidebarContent.querySelector(".history-pagination")
         if (paginationContainer) {
             const dataset = paginationContainer.dataset
             const currentPage = Number.parseInt(dataset.page)
@@ -86,13 +88,6 @@ export const getElementHistoryController = (map) => {
 
             paginationContainer.appendChild(paginationFragment)
         }
-
-        // remember last checkbox state
-        const checkbox = sidebarContent.querySelector("#tag-diff-mode")
-        if (checkbox) {
-            checkbox.checked = localStorage.getItem("tag-diff-enabled") !== "true"
-            checkbox.oninput = () => localStorage.setItem("tag-diff-enabled", !checkbox.checked)
-        }
     }
 
     const base = getBaseFetchController(map, "element-history", onLoaded)
@@ -100,7 +95,9 @@ export const getElementHistoryController = (map) => {
     const baseUnload = base.unload
 
     base.load = ({ type, id }) => {
-        const url = `/api/partial/${type}/${id}/history${location.search}`
+        const params = qsParse(location.search.substring(1))
+        params.tags_diff_mode = getTagsDiffMode()
+        const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
         baseLoad({ url })
     }
 
