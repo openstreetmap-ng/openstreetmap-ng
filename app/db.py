@@ -15,7 +15,7 @@ _db_engine = create_async_engine(
     json_deserializer=JSON_DECODE,
     json_serializer=json_encodes,
     query_cache_size=1024,
-    pool_size=10,  # concurrent connections target
+    pool_size=100,  # concurrent connections target
     max_overflow=-1,  # unlimited concurrent connections overflow
 )
 

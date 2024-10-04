@@ -7,8 +7,8 @@
             <a href="/user/{{ changeset.user.display_name }}">
                 <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
                     loading="lazy">{#
-            #}{{ changeset.user.display_name }}{#
-            #}</a>
+                #}{{ changeset.user.display_name }}{#
+                #}</a>
             {% endif %}
             {% if element.visible %}
             {{ t('action.edited') }}
@@ -50,20 +50,31 @@
 </p>
 {% endif %}
 
-{% if tags %}
+{% if tags_map %}
 <div class="tags">
     <table class="table table-sm">
         <tbody dir="auto">
-            {% for tag in tags %}
-            <tr>
+            {% for tag in tags_map.values() %}
+            <tr data-status="{{ tag.status }}">
                 <td>
                     {% set value = tag.key %}
                     {% include 'partial/_tag_value.jinja2' %}
                 </td>
                 <td>
-                    {% for value in tag.values %}
-                    {% include 'partial/_tag_value.jinja2' %}
-                    {% endfor %}
+                    <div>
+                        <div class="tag-values">
+                            {% for value in tag.values %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                            {% endfor %}
+                        </div>
+                        {% if tag.previous %}
+                        <div class="tag-previous">
+                            {% for value in tag.previous %}
+                            {% include 'partial/_tag_value.jinja2' %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% endfor %}
