@@ -13,11 +13,11 @@ from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token, OAuth2TokenOOB
 from app.models.scope import Scope
+from app.models.types import Uri
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
-from app.utils import extend_query_params
 
 # TODO: limit number of access tokens per user+app
 
@@ -28,22 +28,22 @@ class OAuth2TokenService:
         *,
         init: bool,
         client_id: str,
-        redirect_uri: str,
+        redirect_uri: Uri,
         scopes: tuple[Scope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
-    ) -> str | OAuth2Application:
+    ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application:
         """
         Create a new authorization code.
 
         The code can be exchanged for an access token.
 
         In init=True mode, silent authentication is performed if the application is already authorized.
-        When successful, a redirect url or an authorization code (prefixed with "oob;") is returned.
+        When successful, an authorization code is returned.
         Otherwise, the application instance is returned for the user to authorize it.
 
-        In init=False mode, a redirect url or an authorization code (prefixed with "oob;") is returned.
+        In init=False mode, an authorization code is returned.
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
@@ -92,14 +92,15 @@ class OAuth2TokenService:
             session.add(token)
 
         if token.is_oob:
-            return f'oob;{authorization_code}'
+            return OAuth2TokenOOB(authorization_code)
 
         params = {'code': authorization_code}
-
         if state is not None:
             params['state'] = state
+        return params
 
-        return extend_query_params(redirect_uri, params)
+        # TODO: remove
+        # return Uri(extend_query_params(redirect_uri, params))
 
     @staticmethod
     async def token(authorization_code: str, verifier: str | None) -> dict:

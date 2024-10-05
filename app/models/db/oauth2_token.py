@@ -1,5 +1,6 @@
 import enum
 from datetime import datetime
+from typing import override
 
 from sqlalchemy import ARRAY, Enum, ForeignKey, Index, LargeBinary, Unicode, null
 from sqlalchemy.dialects.postgresql import TIMESTAMP
@@ -12,11 +13,37 @@ from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User
 from app.models.scope import Scope
+from app.models.types import Uri
+
+
+class OAuth2ResponseType(str, enum.Enum):
+    code = 'code'
+
+
+class OAuth2ResponseMode(str, enum.Enum):
+    query = 'query'  # TODO:
+    fragment = 'fragment'
+    form_post = 'form_post'
+
+
+class OAuth2GrantType(str, enum.Enum):
+    authorization_code = 'authorization_code'
 
 
 class OAuth2CodeChallengeMethod(str, enum.Enum):
     plain = 'plain'
     S256 = 'S256'
+
+
+class OAuth2TokenOOB:
+    __slots__ = ('authorization_code',)
+
+    def __init__(self, authorization_code: str) -> None:
+        self.authorization_code = authorization_code
+
+    @override
+    def __str__(self) -> str:
+        return self.authorization_code
 
 
 class OAuth2Token(Base.ZID, CreatedAtMixin):
@@ -28,7 +55,7 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
     application: Mapped[OAuth2Application] = relationship(init=False, lazy='raise', innerjoin=True)
     token_hashed: Mapped[bytes] = mapped_column(LargeBinary(HASH_SIZE), nullable=False)
     scopes: Mapped[tuple[Scope, ...]] = mapped_column(ARRAY(Enum(Scope), as_tuple=True, dimensions=1), nullable=False)
-    redirect_uri: Mapped[str | None] = mapped_column(Unicode(OAUTH_APP_URI_MAX_LENGTH), nullable=True)
+    redirect_uri: Mapped[Uri | None] = mapped_column(Unicode(OAUTH_APP_URI_MAX_LENGTH), nullable=True)
     code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
         Enum(OAuth2CodeChallengeMethod), nullable=True
     )
