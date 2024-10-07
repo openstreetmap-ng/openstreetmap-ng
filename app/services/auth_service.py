@@ -15,7 +15,7 @@ from app.limits import AUTH_CREDENTIALS_CACHE_EXPIRE
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
-from app.models.scope import Scope
+from app.models.scope import PUBLIC_SCOPES, Scope
 from app.models.types import PasswordType
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
@@ -24,11 +24,8 @@ from app.validators.email import validate_email
 
 _credentials_context = CacheContext('AuthCredentials')
 
-# default scopes when using basic auth
-_basic_auth_scopes: tuple[Scope, ...] = Scope.get_basic()
-
 # default scopes when using session auth
-_session_auth_scopes: tuple[Scope, ...] = (*_basic_auth_scopes, Scope.web_user)
+_session_auth_scopes: tuple[Scope, ...] = (*PUBLIC_SCOPES, Scope.web_user)
 
 
 class AuthService:
@@ -75,7 +72,7 @@ class AuthService:
                     password=PasswordType(SecretStr(password)),
                 )
                 if basic_user is not None:
-                    user, scopes = basic_user, _basic_auth_scopes
+                    user, scopes = basic_user, PUBLIC_SCOPES
 
             # handle oauth2
             elif scheme == 'Bearer':

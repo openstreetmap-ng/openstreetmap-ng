@@ -34,6 +34,9 @@ class AuthExceptionsMixin:
     def oauth2_bearer_missing(self) -> NoReturn:
         raise NotImplementedError
 
+    def oauth2_bad_code_challenge_params(self) -> NoReturn:
+        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid code challenge parameters')
+
     @abstractmethod
     def oauth2_challenge_method_not_set(self) -> NoReturn:
         raise NotImplementedError

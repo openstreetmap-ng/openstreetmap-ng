@@ -28,7 +28,7 @@ class OAuth2TokenService:
         *,
         init: bool,
         client_id: str,
-        redirect_uri: Uri,
+        redirect_uri: str,
         scopes: tuple[Scope, ...],
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
@@ -45,11 +45,15 @@ class OAuth2TokenService:
 
         In init=False mode, an authorization code is returned.
         """
+        if (code_challenge_method is None) != (code_challenge is None):
+            raise_for().oauth2_bad_code_challenge_params()
+
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
+        redirect_uri = Uri(redirect_uri)  # mark as valid
 
         user_id = auth_user(required=True).id
         scopes_set = set(scopes)  # TODO: check app scopes

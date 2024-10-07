@@ -65,19 +65,14 @@ async def settings_application_update(
     write_notes: Annotated[bool, Form()] = False,
     revoke_all_authorizations: Annotated[bool, Form()] = False,
 ):
-    scopes: list[Scope] = []
-    if read_prefs:
-        scopes.append(Scope.read_prefs)
-    if write_prefs:
-        scopes.append(Scope.write_prefs)
-    if write_api:
-        scopes.append(Scope.write_api)
-    if read_gpx:
-        scopes.append(Scope.read_gpx)
-    if write_gpx:
-        scopes.append(Scope.write_gpx)
-    if write_notes:
-        scopes.append(Scope.write_notes)
+    scopes = Scope.from_kwargs(
+        read_prefs=read_prefs,
+        write_prefs=write_prefs,
+        write_api=write_api,
+        read_gpx=read_gpx,
+        write_gpx=write_gpx,
+        write_notes=write_notes,
+    )
     await OAuth2ApplicationService.update_settings(
         app_id=id,
         name=name,

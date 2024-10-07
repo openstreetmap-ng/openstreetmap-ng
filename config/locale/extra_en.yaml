@@ -195,6 +195,12 @@ permissions:
   manage_gps_traces: Manage GPS traces
   manage_notes: Manage notes
   access_the_website: Access the website
+oauth:
+  authorize_app_to_access_your_account: "Authorize {{name}} to access your account?"
+  you_are_signed_in_as: "You are signed in as {{name}}"
+  app_is_requesting_permission_to: "{{name}} is requesting permission to:"
+  authorizing_will_redirect_you_to: "Authorizing will redirect you to"
+  revoke_access_anytime_in_settings: "You can revoke this access at any time through your account settings."
 fixthemap:
   title: Fix the map
 alt:
@@ -239,6 +245,7 @@ validation:
   invalid_redirect_uri: Invalid redirect URI
   insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
 action:
+  authorize: Authorize
   block_user: Block user
   cancel: Cancel
   copy: Copy
