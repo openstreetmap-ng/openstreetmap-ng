@@ -1,0 +1,107 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('oauth.authorization_request_app', name=app.name) }} | {% endblock %}
+{% block body_class %}oauth-authorize-body{% endblock %}
+{% block body %}
+
+<div class="content-header"></div>
+<div class="content-body mt-5">
+    <div class="col-6 offset-3">
+        <form class="authorize-form card">
+            <div class="card-body p-5">
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    <img class="header-avatar avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}">
+                    <i class="bi bi-arrow-right fs-4 mx-3"></i>
+                    <img class="header-avatar avatar" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                </div>
+                <h4 class="card-title text-center">
+                    {% set app_name %}
+                    <b>{{ app.name }}</b>
+                    {% endset %}
+                    {{ t('oauth.authorize_app_to_access_your_account', name=app_name) | safe }}
+                </h4>
+                <p class="form-text text-center mb-4">
+                    {% set user_link %}
+                    <a href="/user/{{ user.display_name }}" target="_blank">{{ user.display_name }}</a>
+                    {% endset %}
+                    {{ t('oauth.you_are_currently_signed_in_as', name=user_link) | safe }}
+                </p>
+
+                <div class="row g-2 mb-5">
+                    <div class="col">
+                        <h5>{{ t('oauth.app_is_requesting_permissions_to', name=app_name) | safe }}</h5>
+                        <ul class="list-unstyled mb-0">
+                            {% for scope in scopes %}
+                            {% set scope = scope.value %}
+                            <li>
+                                <i class="bi bi-check text-success"></i>
+                                {% if scope == 'read_prefs' %}
+                                {{ t('permissions.read_user_preferences') }}
+                                {% elif scope == 'write_prefs' %}
+                                {{ t('permissions.modify_user_preferences') }}
+                                {% elif scope == 'write_api' %}
+                                {{ t('permissions.manage_changesets_and_map_data') }}
+                                {% elif scope == 'read_gpx' %}
+                                {{ t('permissions.read_all_gps_traces') }}
+                                {% elif scope == 'write_gpx' %}
+                                {{ t('permissions.manage_gps_traces') }}
+                                {% elif scope == 'write_notes' %}
+                                {{ t('permissions.manage_notes') }}
+                                {% elif scope == 'web_user' %}
+                                {{ t('permissions.access_the_website') }}
+                                {% endif %}
+                                <span class="scope">({{ scope }})</span>
+                            </li>
+                            {% endfor %}
+                            {% if not app.scopes %}
+                            <li>
+                                <i class="bi bi-dot text-muted"></i>
+                                {{ t('permissions.none') }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="col">
+                        <h5>{{ t('oauth.authorizing_will_redirect_you_to') }}</h5>
+                        <ul class="list-unstyled">
+                            <li>
+                                <i class="bi bi-link-45deg text-primary"></i>
+                                {{ redirect_uri }}
+                            </li>
+                        </ul>
+
+                        <h5>{{ t('oauth.application_information') }}</h5>
+                        <ul class="list-unstyled mb-0">
+                            {% set owner_link %}
+                            <a href="/user/permalink/{{ app.user_id }}" target="_blank">
+                                <img class="avatar me-1" src="{{ app.user.avatar_url }}"
+                                    alt="{{ t('alt.profile_picture') }}">{#
+                                #}{{ app.user.display_name }}{#
+                            #}</a>
+                            {% endset %}
+                            {{ t('settings.owned_by_user', name=owner_link) | safe }}
+                            ·
+                            {{ t('browse.created_ago_html', time_ago=timeago(app.created_at, html=True)) | safe }}
+                        </ul>
+                    </div>
+                </div>
+
+                <hr class="mb-4">
+
+                <div class="row g-2 mb-2">
+                    <div class="col">
+                        <a href="/" class="btn btn-lg btn-outline-secondary d-block">{{ t('action.cancel') }}</a>
+                    </div>
+                    <div class="col">
+                        <button class="btn btn-lg btn-primary w-100" type="submit">{{ t('action.authorize') }}</button>
+                    </div>
+                </div>
+                <p class="form-text text-end me-1 mb-0">
+                    <i class="bi bi-lightbulb-fill me-2"></i>{{ t('oauth.revoke_access_anytime_in_settings') }}
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

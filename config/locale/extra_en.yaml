@@ -149,7 +149,7 @@ settings:
     create_new_application: Create new application
   my_tokens:
     title: My tokens
-  owned_by: Owned by {{name}}
+  owned_by_user: Owned by {{name}}
   owned_by_you: Owned by you
   requested_permissions: Requested permissions
   name: Name
@@ -196,10 +196,12 @@ permissions:
   manage_notes: Manage notes
   access_the_website: Access the website
 oauth:
+  authorization_request_app: "Authorization request: {{name}}"
   authorize_app_to_access_your_account: "Authorize {{name}} to access your account?"
-  you_are_signed_in_as: "You are signed in as {{name}}"
-  app_is_requesting_permission_to: "{{name}} is requesting permission to:"
+  you_are_currently_signed_in_as: "You are currently signed in as {{name}}"
+  app_is_requesting_permissions_to: "{{name}} is requesting permissions to"
   authorizing_will_redirect_you_to: "Authorizing will redirect you to"
+  application_information: "Application information"
   revoke_access_anytime_in_settings: "You can revoke this access at any time through your account settings."
 fixthemap:
   title: Fix the map

@@ -111,8 +111,8 @@ def stripspecial(value: str) -> str:
 _j2.globals.update(
     t=t,
     nt=nt,
-    timeago=timeago,
     zip=zip,
+    timeago=timeago,
     format_rfc2822_date=format_rfc2822_date,
     format_short_date=format_short_date,
 )

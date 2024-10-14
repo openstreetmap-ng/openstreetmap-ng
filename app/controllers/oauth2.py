@@ -82,5 +82,5 @@ async def authorize(
             form_data.append(('state', state))
         return render_response(
             'oauth2/authorize.jinja2',
-            {'app': auth_result, 'scopes': scopes, 'form_data': form_data},
+            {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri, 'form_data': form_data},
         )

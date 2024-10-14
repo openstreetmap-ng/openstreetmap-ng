@@ -4,6 +4,7 @@ from hashlib import sha256
 
 import cython
 from sqlalchemy import delete, null, select
+from sqlalchemy.orm import joinedload
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -11,9 +12,11 @@ from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.options_context import options_context
 from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token, OAuth2TokenOOB
+from app.models.db.user import User
 from app.models.scope import Scope
 from app.models.types import Uri
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -48,8 +51,16 @@ class OAuth2TokenService:
         if (code_challenge_method is None) != (code_challenge is None):
             raise_for().oauth2_bad_code_challenge_params()
 
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None:
+        with options_context(
+            joinedload(OAuth2Application.user).load_only(
+                User.id,
+                User.display_name,
+                User.avatar_type,
+                User.avatar_id,
+            )
+        ):
+            app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None or app.is_system_app:
             raise_for().oauth_bad_app_token()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()

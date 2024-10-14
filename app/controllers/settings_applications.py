@@ -28,7 +28,7 @@ async def applications_authorizations(
     with options_context(
         joinedload(OAuth2Token.application)  #
         .joinedload(OAuth2Application.user)
-        .load_only(User.display_name),
+        .load_only(User.id, User.display_name, User.avatar_type, User.avatar_id),
     ):
         tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user.id)
     return render_response(
@@ -43,8 +43,7 @@ async def applications_authorizations(
 async def applications_admin(
     user: Annotated[User, web_user()],
 ):
-    with options_context(joinedload(OAuth2Application.user).load_only(User.display_name)):
-        apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
+    apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
     return render_response(
         'settings/applications/admin.jinja2',
         {

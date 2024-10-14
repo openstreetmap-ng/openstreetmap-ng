@@ -164,31 +164,31 @@
             {% if prev_changeset_id %}
             <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
                 «
-                {{ prev_changeset_id }}
-            </a>
+                {{ prev_changeset_id }}{#
+            #}</a>
             ·
             {% endif %}
             <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                {{ changeset.user.display_name }}
-            </a>
+                {{ changeset.user.display_name }}{#
+            #}</a>
             {% if next_changeset_id %}
             ·
             <a href="/changeset/{{ next_changeset_id }}" rel="next">
                 {{ next_changeset_id }}
-                »
-            </a>
+                »{#
+            #}</a>
             {% endif %}
         </div>
         {% endif %}
 
         <small>
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
-                {{ t('browse.changeset.changesetxml') }}
-            </a>
+                {{ t('browse.changeset.changesetxml') }}{#
+            #}</a>
             ·
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
-                {{ t('browse.changeset.osmchangexml') }}
-            </a>
+                {{ t('browse.changeset.osmchangexml') }}{#
+            #}</a>
         </small>
     </div>
 </div>
