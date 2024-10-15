@@ -187,7 +187,7 @@ settings:
     Are you sure you want to delete this application?
     This action cannot be undone.
 permissions:
-  none: None
+  no_permissions: No permissions
   read_user_preferences: Read user preferences
   modify_user_preferences: Modify user preferences
   manage_changesets_and_map_data: Manage changesets and map data

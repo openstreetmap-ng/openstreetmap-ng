@@ -52,10 +52,10 @@
                                 <span class="scope">({{ scope }})</span>
                             </li>
                             {% endfor %}
-                            {% if not app.scopes %}
+                            {% if not scopes %}
                             <li>
                                 <i class="bi bi-dot text-muted"></i>
-                                {{ t('permissions.none') }}
+                                {{ t('permissions.no_permissions') }}
                             </li>
                             {% endif %}
                         </ul>

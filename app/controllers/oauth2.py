@@ -54,7 +54,7 @@ async def authorize(
     _: Annotated[User, web_user()],
     client_id: Annotated[str, Query(min_length=1)],
     redirect_uri: Annotated[str, Query(min_length=1)],
-    scope: Annotated[str, Query(min_length=1)],
+    scope: Annotated[str, Query()] = '',
     code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
     code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,

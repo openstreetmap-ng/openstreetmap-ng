@@ -26,7 +26,7 @@ async def test_authorize_token_oob(client: AsyncClient, transport: ASGITransport
         transport=client._transport,  # noqa: SLF001
         client_id='testapp',
         client_secret='testapp.secret',  # noqa: S106
-        scope='read_prefs',
+        scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
         code_challenge_method='S256',
     )
