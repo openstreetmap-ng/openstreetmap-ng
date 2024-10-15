@@ -78,7 +78,9 @@ async def lifespan(_):
     gc.collect()
     gc.freeze()
 
-    await TestService.on_startup()
+    if TEST_ENV:
+        await TestService.on_startup()
+
     await SystemAppService.on_startup()
 
     async with EmailService.context():
