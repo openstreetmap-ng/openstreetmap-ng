@@ -67,19 +67,29 @@ def unicode_normalize(text: str) -> str:
     return unicodedata.normalize('NFC', text)
 
 
-def extend_query_params(uri: str, params: dict[str, str]) -> str:
+def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = False) -> str:
     """
     Extend the query parameters of a URI.
 
     >>> extend_query_params('http://example.com', {'foo': 'bar'})
     'http://example.com?foo=bar'
+    >>> extend_query_params('http://example.com', {'foo': 'bar'}, fragment=True)
+    'http://example.com#foo=bar'
     """
     if not params:
         return uri
     uri_ = urlsplit(uri)
-    query = parse_qsl(uri_.query, keep_blank_values=True)
+    if fragment:
+        query = parse_qsl(uri_.fragment, keep_blank_values=True)
+    else:
+        query = parse_qsl(uri_.query, keep_blank_values=True)
     query.extend(params.items())
-    return urlunsplit(uri_._replace(query=urlencode(query)))
+    query_str = urlencode(query)
+    if fragment:
+        uri_ = uri_._replace(fragment=query_str)
+    else:
+        uri_ = uri_._replace(query=query_str)
+    return urlunsplit(uri_)
 
 
 def splitlines_trim(s: str) -> list[str]:
