@@ -206,7 +206,7 @@ oauth:
   authorization_code: "Authorization code"
   oob_hint: |-
     To continue, please copy the authorization code and provide it to the application.
-    You can then safely close this window.
+    You can then safely close this page.
 fixthemap:
   title: Fix the map
 alt:

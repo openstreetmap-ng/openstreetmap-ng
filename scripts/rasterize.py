@@ -2,7 +2,6 @@ import os
 from collections.abc import Iterable
 from contextlib import contextmanager
 from functools import partial
-from io import BytesIO
 from multiprocessing.pool import Pool
 from pathlib import Path
 from time import perf_counter
@@ -37,11 +36,20 @@ def get_output_path(input: Path, /) -> Path:
 
 def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
     import cairosvg
-    from PIL import Image
+    import cv2
+    import numpy as np
 
     png_data: bytes = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)  # pyright: ignore[reportAssignmentType]
-    img = Image.open(BytesIO(png_data))
-    img.save(output, format='WEBP', quality=quality, alpha_quality=quality, method=6)
+    img = cv2.imdecode(np.frombuffer(png_data, np.uint8), cv2.IMREAD_UNCHANGED)
+    _, img = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+
+    # use lossless encoding if smaller in size
+    if quality <= 100:
+        _, img_lossless = cv2.imencode(output.suffix, img, (cv2.IMWRITE_WEBP_QUALITY, 101))
+        if img_lossless.size < img.size:
+            img = img_lossless
+
+    img.tofile(output)
 
     # preserve mtime
     mtime = input.stat().st_mtime

@@ -1,14 +1,14 @@
 import logging
 from asyncio import get_running_loop
 from enum import Enum
-from functools import partial
-from io import BytesIO
 from pathlib import Path
 from typing import Literal, overload
 
+import cv2
 import cython
-import PIL.Image
-from PIL import ImageOps
+import numpy as np
+from cv2.typing import MatLike
+from numpy.typing import NDArray
 from sizestr import sizestr
 
 from app.lib.exceptions_context import raise_for
@@ -27,9 +27,7 @@ if cython.compiled:
 else:
     from math import sqrt
 
-# Support up to 256MP images
-# TODO: handle errors
-PIL.Image.MAX_IMAGE_PIXELS = 2 * int(1024 * 1024 * 1024 // 4 // 3)
+# TODO: test 200MP file
 
 
 class AvatarType(str, Enum):
@@ -126,14 +124,11 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img: PIL.Image.Image = PIL.Image.open(BytesIO(data))
-
-    # normalize orientation
-    ImageOps.exif_transpose(img, in_place=True)
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
 
     # normalize shape ratio
-    img_width: cython.int = img.width
-    img_height: cython.int = img.height
+    img_height: cython.int = img.shape[0]
+    img_width: cython.int = img.shape[1]
     ratio: cython.double = img_width / img_height
 
     # image is too wide
@@ -142,8 +137,8 @@ async def _normalize_image(
         new_width: cython.int = int(img_height * max_ratio)
         x1: cython.int = (img_width - new_width) // 2
         x2: cython.int = (img_width + new_width) // 2
-        img = img.crop((x1, 0, x2, img_height))
-        img_width = img.width
+        img = img[:, x1:x2]
+        img_width = x2 - x1
 
     # image is too tall
     elif min_ratio and ratio < min_ratio:
@@ -151,8 +146,8 @@ async def _normalize_image(
         new_height: cython.int = int(img_width / min_ratio)
         y1: cython.int = (img_height - new_height) // 2
         y2: cython.int = (img_height + new_height) // 2
-        img = img.crop((0, y1, img_width, y2))
-        img_height = img.height
+        img = img[y1:y2, :]
+        img_height = y2 - y1
 
     # normalize megapixels
     if max_megapixels:
@@ -162,7 +157,7 @@ async def _normalize_image(
             mp_ratio = sqrt(mp_ratio)
             img_width = int(img_width / mp_ratio)
             img_height = int(img_height / mp_ratio)
-            img.thumbnail((img_width, img_height))
+            img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
 
     # optimize file size
     quality, buffer = await _optimize_quality(img, max_file_size)
@@ -170,90 +165,58 @@ async def _normalize_image(
     return buffer
 
 
-async def _optimize_quality(img: PIL.Image.Image, max_file_size: int | None) -> tuple[int, bytes]:
+async def _optimize_quality(img: MatLike, max_file_size: int | None) -> tuple[int, bytes]:
     """
     Find the best image quality given the maximum file size.
 
     Returns the quality and the image buffer.
     """
-    lossless_effort: int = 80
     loop = get_running_loop()
 
-    with BytesIO() as buffer:
-        await loop.run_in_executor(
-            None,
-            partial(
-                img.save,
-                buffer,
-                format='WEBP',
-                lossless=True,
-                quality=lossless_effort,
-            ),
-        )
-        size = buffer.tell()
-        logging.debug('Optimizing avatar quality (lossless): Q%d -> %s', lossless_effort, sizestr(size))
+    _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, 101))
+    size = img_.size
+    logging.debug('Optimizing avatar quality (lossless): %s', sizestr(size))
 
-        if max_file_size is None or size <= max_file_size:
-            return lossless_effort, buffer.getvalue()
+    if max_file_size is None or size <= max_file_size:
+        return -1, img_.tobytes()
 
-        high: cython.int = 90
-        low: cython.int = 20
-        bs_step: cython.int = 5
-        best_quality: cython.int = -1
-        best_buffer: bytes | None = None
+    high: cython.int = 90
+    low: cython.int = 20
+    bs_step: cython.int = 5
+    best_quality: cython.int = -1
+    best_img: NDArray[np.uint8] | None = None
 
-        # initial quick scan
-        quality: cython.int
-        for quality in range(80, 20 - 1, -20):
-            buffer.seek(0)
-            buffer.truncate()
+    # initial quick scan
+    quality: cython.int
+    for quality in range(80, 20 - 1, -20):
+        _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+        size = img_.size
+        logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size))
 
-            await loop.run_in_executor(
-                None,
-                partial(
-                    img.save,
-                    buffer,
-                    format='WEBP',
-                    quality=quality,
-                ),
-            )
-            size = buffer.tell()
-            logging.debug('Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(size))
-
-            if size > max_file_size:
-                high = quality - bs_step
-            else:
-                low = quality + bs_step
-                best_quality = quality
-                best_buffer = buffer.getvalue()
-                break
+        if size > max_file_size:
+            high = quality - bs_step
         else:
-            raise_for().image_too_big()
+            low = quality + bs_step
+            best_quality = quality
+            best_img = img_
+            break
+    else:
+        raise_for().image_too_big()
 
-        # fine-tune with binary search
-        while low <= high:
-            # round down to the nearest bs_step
-            quality = ((low + high) // 2) // bs_step * bs_step
-            buffer.seek(0)
-            buffer.truncate()
+    # fine-tune with binary search
+    while low <= high:
+        # round down to the nearest bs_step
+        quality = ((low + high) // 2) // bs_step * bs_step
 
-            await loop.run_in_executor(
-                None,
-                partial(
-                    img.save,
-                    buffer,
-                    format='WEBP',
-                    quality=quality,
-                ),
-            )
-            size = buffer.tell()
-            logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size))
+        _, img_ = await loop.run_in_executor(None, cv2.imencode, '.webp', img, (cv2.IMWRITE_WEBP_QUALITY, quality))
+        size = img_.size
+        logging.debug('Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(size))
 
-            if size > max_file_size:
-                high = quality - bs_step
-            else:
-                low = quality + bs_step
-                best_quality = quality
-                best_buffer = buffer.getvalue()
+        if size > max_file_size:
+            high = quality - bs_step
+        else:
+            low = quality + bs_step
+            best_quality = quality
+            best_img = img_
 
-        return best_quality, best_buffer
+    return best_quality, best_img.tobytes()

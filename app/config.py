@@ -103,7 +103,6 @@ dictConfig(
                     'httpcore',
                     'markdown_it',
                     'multipart',
-                    'PIL',
                 )
             },
             **{
