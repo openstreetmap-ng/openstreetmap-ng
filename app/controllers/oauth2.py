@@ -4,9 +4,10 @@ from fastapi import APIRouter, Query, Request
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL
+from app.config import APP_URL, TEST_ENV
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
+from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
@@ -55,7 +56,7 @@ async def authorize(
     redirect_uri: Annotated[str, Query(min_length=1)],
     scope: Annotated[str, Query(min_length=1)],
     code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
-    code_challenge: Annotated[str | None, Query(min_length=1)] = None,
+    code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,
     response_type: Annotated[OAuth2ResponseType, Query()] = OAuth2ResponseType.code,
     response_mode: Annotated[OAuth2ResponseMode, Query()] = OAuth2ResponseMode.query,
@@ -83,10 +84,13 @@ async def authorize(
         authorization_code = auth_result.authorization_code
         if state is not None:
             authorization_code += f'#{state}'
-        return render_response(
+        response = render_response(
             'oauth2/oob.jinja2',
             {'authorization_code': authorization_code},
         )
+        if TEST_ENV:
+            response.headers['Test-OAuth2-Authorization-Code'] = authorization_code
+        return response
     if response_mode in (OAuth2ResponseMode.query, OAuth2ResponseMode.fragment):
         is_fragment = response_mode == OAuth2ResponseMode.fragment
         final_uri = extend_query_params(redirect_uri, auth_result, fragment=is_fragment)

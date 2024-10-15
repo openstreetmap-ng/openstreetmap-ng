@@ -42,9 +42,9 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     user = await UserQuery.find_one_by_display_name(display_name)
 
     if user is None:
-        res = render_response('user/profile/not_found.jinja2', {'name': display_name})
-        res.status_code = status.HTTP_404_NOT_FOUND
-        return res
+        response = render_response('user/profile/not_found.jinja2', {'name': display_name})
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return response
 
     await user.resolve_rich_text()
 
