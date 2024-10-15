@@ -48,7 +48,7 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         )
 
     @override
-    def oauth_bad_app_token(self) -> NoReturn:
+    def oauth_bad_client_secret(self) -> NoReturn:
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid')
 
     @override

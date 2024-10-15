@@ -60,8 +60,21 @@ class AuthService:
             else:
                 scheme = param = ''
 
+            # support access_token in form (https://datatracker.ietf.org/doc/html/rfc6750#section-2.2)
+            if (
+                not scheme
+                and request.method == 'POST'
+                and request.headers.get('Content-Type') == 'application/x-www-form-urlencoded'
+            ):
+                access_token = (await request.form()).get('access_token')
+                if access_token is not None and isinstance(access_token, str):
+                    scheme = 'bearer'
+                    param = access_token
+
+            scheme = scheme.casefold()
+
             # handle basic auth
-            if scheme == 'Basic':
+            if scheme == 'basic':
                 logging.debug('Attempting to authenticate with Basic')
                 username, _, password = b64decode(param).decode().partition(':')
                 if not username or not password:
@@ -75,7 +88,7 @@ class AuthService:
                     user, scopes = basic_user, PUBLIC_SCOPES
 
             # handle oauth2
-            elif scheme == 'Bearer':
+            elif scheme == 'bearer':
                 logging.debug('Attempting to authenticate with OAuth2')
                 oauth_result = await AuthService.authenticate_oauth2(param)
                 if oauth_result is not None:
@@ -95,7 +108,8 @@ class AuthService:
             authorization = request.headers.get('Authorization')
             if authorization is not None:
                 scheme, _, param = authorization.partition(' ')
-                if scheme == 'User':
+                scheme = scheme.casefold()
+                if scheme == 'user':
                     logging.debug('Attempting to authenticate with User')
                     user = await UserQuery.find_one_by_display_name(param)
                     scopes = _session_auth_scopes

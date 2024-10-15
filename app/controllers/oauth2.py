@@ -1,13 +1,15 @@
+from base64 import b64decode
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Form, Header, Query, Request
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL, TEST_ENV
 from app.lib.auth_context import web_user
+from app.lib.exceptions_context import raise_for
 from app.lib.render_response import render_response
-from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH
+from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
@@ -53,13 +55,13 @@ async def authorize(
     request: Request,
     _: Annotated[User, web_user()],
     client_id: Annotated[str, Query(min_length=1)],
-    redirect_uri: Annotated[str, Query(min_length=1)],
+    redirect_uri: Annotated[str, Query(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
+    response_type: Annotated[OAuth2ResponseType, Query()],
+    response_mode: Annotated[OAuth2ResponseMode, Query()] = OAuth2ResponseMode.query,
     scope: Annotated[str, Query()] = '',
     code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
     code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,
-    response_type: Annotated[OAuth2ResponseType, Query()] = OAuth2ResponseType.code,
-    response_mode: Annotated[OAuth2ResponseMode, Query()] = OAuth2ResponseMode.query,
 ):
     if response_type != OAuth2ResponseType.code:
         raise NotImplementedError(f'Unsupported response type {response_type!r}')
@@ -75,6 +77,7 @@ async def authorize(
         code_challenge=code_challenge,
         state=state,
     )
+
     if isinstance(auth_result, OAuth2Application):
         return render_response(
             'oauth2/authorize.jinja2',
@@ -100,5 +103,32 @@ async def authorize(
             'oauth2/response_form_post.jinja2',
             {'redirect_uri': redirect_uri, 'auth_result': auth_result},
         )
-
     raise NotImplementedError(f'Unsupported response mode {response_mode!r}')
+
+
+@router.post('/oauth2/token')
+async def token(
+    grant_type: Annotated[OAuth2GrantType, Form()],
+    redirect_uri: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
+    code: Annotated[str, Form(min_length=1)],
+    code_verifier: Annotated[str | None, Form(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
+    client_id: Annotated[str | None, Form(min_length=1)] = None,
+    client_secret: Annotated[str | None, Form(min_length=1)] = None,
+    authorization: Annotated[str | None, Header(min_length=1)] = None,
+):
+    if grant_type != OAuth2GrantType.authorization_code:
+        raise NotImplementedError(f'Unsupported grant type {grant_type!r}')
+    if client_id is None and client_secret is None and authorization is not None:
+        scheme, _, param = authorization.partition(' ')
+        if scheme.casefold() == 'basic':
+            client_id, _, client_secret = b64decode(param).decode().partition(':')
+    if not client_id:
+        raise_for().oauth_bad_client_id()
+    if not client_secret:
+        raise_for().oauth_bad_client_secret()
+
+    return await OAuth2TokenService.token(
+        authorization_code=code,
+        verifier=code_verifier,
+        redirect_uri=redirect_uri,
+    )

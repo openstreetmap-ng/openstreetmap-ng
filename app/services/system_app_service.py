@@ -70,8 +70,8 @@ class SystemAppService:
             user_id = auth_user(required=True).id
 
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if (app is None) or not app.is_system_app:
-            raise_for().oauth_bad_app_client_id()
+        if app is None or not app.is_system_app:
+            raise_for().oauth_bad_client_id()
 
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)

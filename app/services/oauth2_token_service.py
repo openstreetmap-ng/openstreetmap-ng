@@ -61,7 +61,7 @@ class OAuth2TokenService:
         ):
             app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None or app.is_system_app:
-            raise_for().oauth_bad_app_token()
+            raise_for().oauth_bad_client_id()
         if redirect_uri not in app.redirect_uris:
             raise_for().oauth_bad_redirect_uri()
         redirect_uri = Uri(redirect_uri)  # mark as valid
@@ -114,11 +114,13 @@ class OAuth2TokenService:
             params['state'] = state
         return params
 
-        # TODO: remove
-        # return Uri(extend_query_params(redirect_uri, params))
-
     @staticmethod
-    async def token(authorization_code: str, verifier: str | None) -> dict:
+    async def token(
+        *,
+        authorization_code: str,
+        verifier: str | None,
+        redirect_uri: str,
+    ) -> dict[str, str | int]:
         """
         Exchange an authorization code for an access token.
 
@@ -140,6 +142,11 @@ class OAuth2TokenService:
                 raise_for().oauth_bad_user_token()
 
             try:
+                # verify redirect_uri
+                if token.redirect_uri != redirect_uri:
+                    raise_for().oauth_bad_redirect_uri()
+
+                # verify code_challenge
                 if token.code_challenge_method is None:
                     if verifier is not None:
                         raise_for().oauth2_challenge_method_not_set()
@@ -163,6 +170,7 @@ class OAuth2TokenService:
 
             token.token_hashed = access_token_hashed
             token.authorized_at = utcnow()
+            token.redirect_uri = None
             token.code_challenge_method = None
             token.code_challenge = None
 
