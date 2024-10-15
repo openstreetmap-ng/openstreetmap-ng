@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 
 from app.config import APP_URL
 from app.lib.auth_context import web_user
@@ -44,7 +44,9 @@ async def openid_configuration():
 
 
 @router.get('/oauth2/authorize')
+@router.post('/oauth2/authorize')
 async def authorize(
+    request: Request,
     _: Annotated[User, web_user()],
     client_id: Annotated[str, Query(min_length=1)],
     redirect_uri: Annotated[str, Query(min_length=1)],
@@ -54,8 +56,8 @@ async def authorize(
     state: Annotated[str | None, Query(min_length=1)] = None,
     response_type: Annotated[OAuth2ResponseType, Query()] = OAuth2ResponseType.code,
     response_mode: Annotated[OAuth2ResponseMode, Query()] = OAuth2ResponseMode.query,
-    init: Annotated[bool, Query(include_in_schema=False)] = True,
 ):
+    init = request.method == 'GET'
     scopes = Scope.from_str(scope)
     auth_result = await OAuth2TokenService.authorize(
         init=init,
