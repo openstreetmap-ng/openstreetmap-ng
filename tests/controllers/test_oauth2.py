@@ -1,3 +1,5 @@
+from itertools import product
+
 import pytest
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from httpx import AsyncClient
@@ -5,6 +7,7 @@ from starlette import status
 
 from app.config import APP_URL
 from app.lib.buffered_random import buffered_rand_urlsafe
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2TokenEndpointAuthMethod
 
 
 async def test_openid_configuration(client: AsyncClient):
@@ -30,18 +33,19 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
     authorization_url, _ = auth_client.create_authorization_url('/oauth2/authorize')
 
     r = await client.post(authorization_url)
-    assert r.status_code == status.HTTP_400_BAD_REQUEST
+    assert r.status_code == status.HTTP_401_UNAUTHORIZED
     assert r.json()['detail'] == 'Invalid client ID'
 
 
 @pytest.mark.parametrize(
-    'token_endpoint_auth_method',
-    [
-        'client_secret_post',
-        'client_secret_basic',
-    ],
+    ('code_challenge_method', 'token_endpoint_auth_method'),
+    list(product(OAuth2CodeChallengeMethod, OAuth2TokenEndpointAuthMethod)),
 )
-async def test_authorize_token_oob(client: AsyncClient, token_endpoint_auth_method: str):
+async def test_authorize_token_oob(
+    client: AsyncClient,
+    code_challenge_method: OAuth2CodeChallengeMethod,
+    token_endpoint_auth_method: OAuth2TokenEndpointAuthMethod,
+):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
@@ -50,11 +54,19 @@ async def test_authorize_token_oob(client: AsyncClient, token_endpoint_auth_meth
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
-        code_challenge_method='S256',
-        token_endpoint_auth_method=token_endpoint_auth_method,
+        code_challenge_method=code_challenge_method.value,
+        token_endpoint_auth_method=token_endpoint_auth_method.value,
     )
     code_verifier = buffered_rand_urlsafe(48)
-    authorization_url, state = auth_client.create_authorization_url('/oauth2/authorize', code_verifier=code_verifier)
+
+    if code_challenge_method == OAuth2CodeChallengeMethod.plain:  # authlib doesn't support plain method
+        authorization_url, state = auth_client.create_authorization_url(
+            '/oauth2/authorize', code_challenge=code_verifier, code_challenge_method='plain'
+        )
+    else:
+        authorization_url, state = auth_client.create_authorization_url(
+            '/oauth2/authorize', code_verifier=code_verifier
+        )
 
     r = await client.post(authorization_url)
     assert r.is_success, r.text

@@ -35,6 +35,11 @@ class OAuth2CodeChallengeMethod(str, enum.Enum):
     S256 = 'S256'
 
 
+class OAuth2TokenEndpointAuthMethod(str, enum.Enum):
+    client_secret_post = 'client_secret_post'  # noqa: S105
+    client_secret_basic = 'client_secret_basic'  # noqa: S105
+
+
 class OAuth2TokenOOB:
     __slots__ = ('authorization_code',)
 

@@ -16,6 +16,7 @@ from app.models.db.oauth2_token import (
     OAuth2GrantType,
     OAuth2ResponseMode,
     OAuth2ResponseType,
+    OAuth2TokenEndpointAuthMethod,
     OAuth2TokenOOB,
 )
 from app.models.db.user import User
@@ -41,7 +42,7 @@ async def openid_configuration():
         'response_modes_supported': tuple(OAuth2ResponseMode),
         'grant_types_supported': tuple(OAuth2GrantType),
         'code_challenge_methods_supported': tuple(OAuth2CodeChallengeMethod),
-        'token_endpoint_auth_methods_supported': ('client_secret_basic', 'client_secret_post'),  # TODO:
+        'token_endpoint_auth_methods_supported': tuple(OAuth2TokenEndpointAuthMethod),
         'subject_types_supported': ('public',),
         'id_token_signing_alg_values_supported': ('RS256',),  # TODO:
         'claim_types_supported': ('normal',),

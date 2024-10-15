@@ -37,9 +37,10 @@ class AuthExceptionsMixin:
     def oauth2_bad_code_challenge_params(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid code challenge parameters')
 
-    @abstractmethod
     def oauth2_challenge_method_not_set(self) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST, detail='code_verifier was provided but code_challenge_method is not set'
+        )
 
     @abstractmethod
     def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod') -> NoReturn:
