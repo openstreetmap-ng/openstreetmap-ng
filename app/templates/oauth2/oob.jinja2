@@ -1,0 +1,29 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('oauth.authorization_code') }} | {% endblock %}
+{% block body_class %}oauth-oob-body{% endblock %}
+{% block body %}
+
+<div class="content-header"></div>
+<div class="content-body mt-5">
+    <div class="col-6 offset-3">
+        <div class="card">
+            <div class="card-body p-5">
+
+                <label class="form-label d-block">
+                    {{ t('oauth.authorization_code') }}
+                    <div class="input-group copy-group mt-2">
+                        <input type="text" class="form-control font-monospace bg-body-tertiary"
+                            value="{{ authorization_code }}" readonly>
+                        <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
+                            <i class="bi bi-copy"></i>
+                        </button>
+                    </div>
+                </label>
+                <p class="form-text mb-0">{{ t('oauth.oob_hint') }}</p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

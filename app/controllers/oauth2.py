@@ -11,6 +11,7 @@ from app.models.db.oauth2_token import (
     OAuth2GrantType,
     OAuth2ResponseMode,
     OAuth2ResponseType,
+    OAuth2TokenOOB,
 )
 from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES, Scope
@@ -66,21 +67,12 @@ async def authorize(
         state=state,
     )
     if isinstance(auth_result, OAuth2Application):
-        form_data: list[tuple[str, str]] = [
-            ('client_id', client_id),
-            ('redirect_uri', redirect_uri),
-            ('scope', scope),
-            ('response_type', response_type.value),
-            ('response_mode', response_mode.value),
-            ('init', 'False'),
-        ]
-        if code_challenge_method is not None:
-            form_data.append(('code_challenge_method', code_challenge_method.value))
-        if code_challenge is not None:
-            form_data.append(('code_challenge', code_challenge))
-        if state is not None:
-            form_data.append(('state', state))
         return render_response(
             'oauth2/authorize.jinja2',
-            {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri, 'form_data': form_data},
+            {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
+        )
+    if isinstance(auth_result, OAuth2TokenOOB):
+        return render_response(
+            'oauth2/oob.jinja2',
+            {'authorization_code': auth_result.authorization_code},
         )

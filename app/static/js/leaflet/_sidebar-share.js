@@ -1,5 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
+import { initializeCopyGroups } from "../_copy-group.js"
 import { getLastSelectedExportFormat, setLastSelectedExportFormat } from "../_local-storage"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
@@ -133,43 +134,6 @@ export const getShareSidebarToggleButton = () => {
             }
         }
 
-        // On copy group input focus, select all text
-        const onCopyInputFocus = (e) => {
-            e.target.select()
-        }
-
-        // On copy group button click, copy input and change tooltip text
-        const onCopyButtonClick = async (e) => {
-            const copyButton = e.target.closest("button")
-            const copyIcon = copyButton.querySelector("i")
-            const copyGroup = copyButton.closest(".copy-group")
-            const copyInput = copyGroup.querySelector(".form-control")
-
-            // Visual feedback
-            copyInput.select()
-
-            try {
-                // Write to clipboard
-                const text = copyInput.value
-                await navigator.clipboard.writeText(text)
-                console.debug("Copied to clipboard", text)
-            } catch (error) {
-                console.error("Failed to write to clipboard", error)
-                alert(error.message)
-                return
-            }
-
-            if (copyIcon.timeout) clearTimeout(copyIcon.timeout)
-
-            copyIcon.classList.remove("bi-copy")
-            copyIcon.classList.add("bi-check2")
-
-            copyIcon.timeout = setTimeout(() => {
-                copyIcon.classList.remove("bi-check2")
-                copyIcon.classList.add("bi-copy")
-            }, 1500)
-        }
-
         const onExportFormSubmit = async (e) => {
             e.preventDefault()
 
@@ -276,12 +240,7 @@ export const getShareSidebarToggleButton = () => {
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
         button.addEventListener("click", onSidebarButtonClick)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
-        for (const copyGroup of copyGroups) {
-            const copyInput = copyGroup.querySelector(".form-control")
-            copyInput.addEventListener("focus", onCopyInputFocus)
-            const copyButton = copyGroup.querySelector(".bi-copy").parentElement
-            copyButton.addEventListener("click", onCopyButtonClick)
-        }
+        initializeCopyGroups(copyGroups)
         customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
         // TODO: support svg/pdf fallback
         exportForm.addEventListener("submit", onExportFormSubmit)

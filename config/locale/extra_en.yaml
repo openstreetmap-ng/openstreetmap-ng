@@ -203,6 +203,10 @@ oauth:
   authorizing_will_redirect_you_to: "Authorizing will redirect you to"
   application_information: "Application information"
   revoke_access_anytime_in_settings: "You can revoke this access at any time through your account settings."
+  authorization_code: "Authorization code"
+  oob_hint: |-
+    To continue, please copy the authorization code and provide it to the application.
+    You can then safely close this window.
 fixthemap:
   title: Fix the map
 alt:
