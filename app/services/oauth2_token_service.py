@@ -1,8 +1,10 @@
 from base64 import urlsafe_b64encode
 from collections.abc import Iterable
 from hashlib import sha256
+from hmac import compare_digest
 
 import cython
+from pydantic import SecretStr
 from sqlalchemy import delete, null, select
 from sqlalchemy.orm import joinedload
 
@@ -117,6 +119,8 @@ class OAuth2TokenService:
     @staticmethod
     async def token(
         *,
+        client_id: str,
+        client_secret: SecretStr,
         authorization_code: str,
         verifier: str | None,
         redirect_uri: str,
@@ -126,8 +130,13 @@ class OAuth2TokenService:
 
         The access token can be used to make requests on behalf of the user.
         """
-        authorization_code_hashed = hash_bytes(authorization_code)
+        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
+        if app is None or app.is_system_app:
+            raise_for().oauth_bad_client_id()
+        if not compare_digest(app.client_secret.get_secret_value(), client_secret.get_secret_value()):
+            raise_for().oauth_bad_client_secret()
 
+        authorization_code_hashed = hash_bytes(authorization_code)
         async with db_commit() as session:
             stmt = (
                 select(OAuth2Token)

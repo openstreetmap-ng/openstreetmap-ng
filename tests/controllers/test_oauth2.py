@@ -1,4 +1,5 @@
 from itertools import product
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from authlib.integrations.httpx_client import AsyncOAuth2Client
@@ -7,7 +8,7 @@ from starlette import status
 
 from app.config import APP_URL
 from app.lib.buffered_random import buffered_rand_urlsafe
-from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2TokenEndpointAuthMethod
+from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
 
 
 async def test_openid_configuration(client: AsyncClient):
@@ -92,3 +93,66 @@ async def test_authorize_token_oob(
 
     user = r.json()['user']
     assert user['display_name'] == 'user1'
+
+
+@pytest.mark.parametrize('is_fragment', [False, True])
+async def test_authorize_response_redirect(client: AsyncClient, is_fragment: bool):
+    client.headers['Authorization'] = 'User user1'
+    auth_client = AsyncOAuth2Client(
+        base_url=client.base_url,
+        transport=client._transport,  # noqa: SLF001
+        client_id='testapp',
+        client_secret='testapp.secret',  # noqa: S106
+        scope='',
+        redirect_uri='http://localhost/callback',
+    )
+    authorization_url, state = auth_client.create_authorization_url(
+        '/oauth2/authorize', response_mode=OAuth2ResponseMode.fragment if is_fragment else OAuth2ResponseMode.query
+    )
+
+    r = await client.post(authorization_url)
+    assert r.is_redirect, r.text
+    assert r.has_redirect_location, r.text
+
+    parts = urlsplit(r.headers['Location'])
+    query = parse_qs(parts.fragment if is_fragment else parts.query)
+
+    authorization_code = query['code'][0]
+    state_response = query['state'][0]
+    assert state == state_response
+
+    data: dict = await auth_client.fetch_token(
+        '/oauth2/token',
+        grant_type='authorization_code',
+        auth=('testapp', 'testapp.secret'),
+        code=authorization_code,
+    )
+    assert data['access_token']
+    assert data['token_type'] == 'Bearer'  # noqa: S105
+    assert data['scope'] == ''
+    assert data['created_at']
+
+    r = await auth_client.get('/api/0.6/user/details.json')
+    assert r.is_success, r.text
+
+    user = r.json()['user']
+    assert user['display_name'] == 'user1'
+
+
+async def test_authorize_response_form_post(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    auth_client = AsyncOAuth2Client(
+        base_url=client.base_url,
+        transport=client._transport,  # noqa: SLF001
+        client_id='testapp',
+        client_secret='testapp.secret',  # noqa: S106
+        scope='',
+        redirect_uri='http://localhost/callback',
+    )
+    authorization_url, state = auth_client.create_authorization_url(
+        '/oauth2/authorize', response_mode=OAuth2ResponseMode.form_post
+    )
+
+    r = await client.post(authorization_url)
+    assert r.is_success, r.text
+    assert 'action="http://localhost/callback"' in r.text
