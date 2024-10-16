@@ -4,7 +4,6 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import POSTGRES_URL
-from app.db import db_update_stats
 from app.models.db import *  # noqa: F403
 from app.models.db.base import Base
 
@@ -31,7 +30,7 @@ async def run_async_migrations() -> None:
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()
-    await db_update_stats()
+    # maybe not the best idea: await db_update_stats()
 
 
 def run_migrations_online() -> None:

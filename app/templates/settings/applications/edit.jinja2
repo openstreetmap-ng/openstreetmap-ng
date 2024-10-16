@@ -49,7 +49,8 @@
                 {{ t('settings.client_secret') }}
                 <div class="input-group copy-group mt-2">
                     <input type="text" class="form-control font-monospace bg-body-tertiary"
-                        value="{{ app.client_secret.get_secret_value() | truncate(10, True) }}" readonly>
+                        value="{% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
+                        readonly>
                     <button class="btn btn-light border reset-client-secret" type="button">
                         <i class="bi bi-arrow-clockwise"></i>
                         {{ t('settings.new_client_secret') }}

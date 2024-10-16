@@ -121,13 +121,10 @@ async def token(
     if client_id is None and client_secret is None and authorization is not None:
         scheme, _, param = authorization.partition(' ')
         if scheme.casefold() == 'basic':
-            parts = b64decode(param).decode().partition(':')
-            client_id = parts[0]
-            client_secret = SecretStr(parts[2])
+            client_id, _, client_secret_ = b64decode(param).decode().partition(':')
+            client_secret = SecretStr(client_secret_) if client_secret_ else None
     if client_id is None:
         raise_for().oauth_bad_client_id()
-    if client_secret is None:
-        client_secret = SecretStr('')
 
     return await OAuth2TokenService.token(
         client_id=client_id,

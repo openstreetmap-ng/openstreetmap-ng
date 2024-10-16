@@ -103,7 +103,6 @@ async def _register_app(app: SystemApp) -> None:
                     OAuth2Application.user_id: None,
                     OAuth2Application.name: app.name,
                     OAuth2Application.client_id: app.client_id,
-                    OAuth2Application.client_secret_encrypted: b'',
                     OAuth2Application.scopes: app.scopes,
                     OAuth2Application.is_confidential: True,
                     OAuth2Application.redirect_uris: (),

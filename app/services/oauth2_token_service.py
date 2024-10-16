@@ -120,7 +120,7 @@ class OAuth2TokenService:
     async def token(
         *,
         client_id: str,
-        client_secret: SecretStr,
+        client_secret: SecretStr | None,
         authorization_code: str,
         verifier: str | None,
         redirect_uri: str,
@@ -134,8 +134,9 @@ class OAuth2TokenService:
         if app is None or app.is_system_app:
             raise_for().oauth_bad_client_id()
         if app.is_confidential and (
-            not app.client_secret_encrypted  # before client secret is generated
-            or not compare_digest(app.client_secret.get_secret_value(), client_secret.get_secret_value())
+            client_secret is None
+            or app.client_secret_hashed is None
+            or not compare_digest(app.client_secret_hashed, hash_bytes(client_secret.get_secret_value()))
         ):
             raise_for().oauth_bad_client_secret()
 

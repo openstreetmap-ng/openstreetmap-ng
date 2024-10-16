@@ -10,8 +10,9 @@ from sqlalchemy.orm import load_only
 from app.config import TEST_ENV, TEST_USER_DOMAIN
 from app.db import db_commit
 from app.lib.auth_context import auth_context
-from app.lib.crypto import encrypt
+from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
+from app.limits import OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User, UserRole, UserStatus
 from app.models.scope import PUBLIC_SCOPES, Scope
@@ -137,24 +138,29 @@ class TestService:
             app = (await session.execute(stmt)).scalar_one_or_none()
             if app is None:
                 # create new application
-                session.add(
-                    OAuth2Application(
-                        user_id=1,
-                        name=name,
-                        client_id=client_id,
-                        client_secret_encrypted=encrypt(client_secret),
-                        scopes=scopes,
-                        is_confidential=is_confidential,
-                        redirect_uris=(
-                            Uri('http://localhost/callback'),
-                            Uri('urn:ietf:wg:oauth:2.0:oob'),
-                        ),
-                    )
+                app = OAuth2Application(
+                    user_id=1,
+                    name=name,
+                    client_id=client_id,
+                    scopes=scopes,
+                    is_confidential=is_confidential,
+                    redirect_uris=(
+                        Uri('http://localhost/callback'),
+                        Uri('urn:ietf:wg:oauth:2.0:oob'),
+                    ),
                 )
+                app.client_secret_hashed = hash_bytes(client_secret)
+                app.client_secret_preview = client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH]
+                session.add(app)
             else:
                 # update existing application
                 app.name = name
                 app.scopes = scopes
                 app.is_confidential = is_confidential
+
+                # TODO: remove after migrations reset
+                if app.client_secret_preview is None:
+                    app.client_secret_hashed = hash_bytes(client_secret)
+                    app.client_secret_preview = client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH]
 
         logging.info('Upserted test OAuth2 application %r', name)

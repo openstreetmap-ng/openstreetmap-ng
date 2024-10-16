@@ -8,11 +8,16 @@ from sqlalchemy import delete, func, select, text, update
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
-from app.lib.crypto import encrypt
+from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.lib.message_collector import MessageCollector
 from app.lib.translation import t
-from app.limits import OAUTH_APP_ADMIN_LIMIT, OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH
+from app.limits import (
+    OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH,
+    OAUTH_APP_ADMIN_LIMIT,
+    OAUTH_APP_URI_LIMIT,
+    OAUTH_APP_URI_MAX_LENGTH,
+)
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.scope import Scope
@@ -36,7 +41,6 @@ class OAuth2ApplicationService:
                 user_id=user_id,
                 name=name,
                 client_id=client_id,
-                client_secret_encrypted=b'',
                 scopes=(),
                 is_confidential=False,
                 redirect_uris=(),
@@ -157,7 +161,7 @@ class OAuth2ApplicationService:
         Reset the client secret and return the new one.
         """
         client_secret = buffered_rand_urlsafe(32)
-        client_secret_encrypted = encrypt(client_secret)
+        client_secret_hashed = hash_bytes(client_secret)
         async with db_commit() as session:
             stmt = (
                 update(OAuth2Application)
@@ -167,7 +171,8 @@ class OAuth2ApplicationService:
                 )
                 .values(
                     {
-                        OAuth2Application.client_secret_encrypted: client_secret_encrypted,
+                        OAuth2Application.client_secret_hashed: client_secret_hashed,
+                        OAuth2Application.client_secret_preview: client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH],
                     }
                 )
                 .inline()
