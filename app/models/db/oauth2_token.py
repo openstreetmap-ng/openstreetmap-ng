@@ -21,7 +21,7 @@ class OAuth2ResponseType(str, enum.Enum):
 
 
 class OAuth2ResponseMode(str, enum.Enum):
-    query = 'query'  # TODO:
+    query = 'query'
     fragment = 'fragment'
     form_post = 'form_post'
 
@@ -41,14 +41,15 @@ class OAuth2TokenEndpointAuthMethod(str, enum.Enum):
 
 
 class OAuth2TokenOOB:
-    __slots__ = ('authorization_code',)
+    __slots__ = ('authorization_code', 'state')
 
-    def __init__(self, authorization_code: str) -> None:
+    def __init__(self, authorization_code: str, state: str | None) -> None:
         self.authorization_code = authorization_code
+        self.state = state
 
     @override
     def __str__(self) -> str:
-        return self.authorization_code
+        return self.authorization_code if (self.state is None) else f'{self.authorization_code}#{self.state}'
 
 
 class OAuth2Token(Base.ZID, CreatedAtMixin):

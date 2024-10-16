@@ -107,7 +107,7 @@ class OAuth2TokenService:
             session.add(token)
 
         if token.is_oob:
-            return OAuth2TokenOOB(authorization_code)
+            return OAuth2TokenOOB(authorization_code, state)
 
         params = {'code': authorization_code}
         if state is not None:

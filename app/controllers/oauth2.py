@@ -85,9 +85,7 @@ async def authorize(
             {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
         )
     if isinstance(auth_result, OAuth2TokenOOB):
-        authorization_code = auth_result.authorization_code
-        if state is not None:
-            authorization_code += f'#{state}'
+        authorization_code = str(auth_result)
         response = render_response(
             'oauth2/oob.jinja2',
             {'authorization_code': authorization_code},
