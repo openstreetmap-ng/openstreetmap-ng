@@ -198,11 +198,12 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert r.is_success, r.text
     data = r.json()
     assert data['active'] is True
-    assert data['scope'] == ''
-    assert data['client_id'] == 'testapp-public'
-    assert data['username'] == 'user1'
+    assert data['iss'] == APP_URL
     assert data['iat'] >= int(authorization_date.timestamp())
-    assert data['exp'] is None
+    assert data['client_id'] == 'testapp-public'
+    assert data['scope'] == ''
+    assert data['username'] == 'user1'
+    assert 'exp' not in data
 
     r = await auth_client.get('/oauth2/userinfo')
     assert r.is_success, r.text

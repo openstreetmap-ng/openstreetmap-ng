@@ -158,19 +158,19 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
         raise_for().oauth_bad_user_token()
     return {
         'active': True,
-        'scope': token_.scopes_str,
-        'client_id': token_.application.client_id,
-        'sub': token_.user_id,
-        'username': token_.user.display_name,
+        'iss': APP_URL,
         'iat': int(token_.authorized_at.timestamp()),  # pyright: ignore[reportOptionalMemberAccess]
-        'exp': None,
+        'client_id': token_.application.client_id,
+        'scope': token_.scopes_str,
+        'sub': str(token_.user_id),
+        'username': token_.user.display_name,
     }
 
 
 @router.get('/oauth2/userinfo')
 async def userinfo(user: Annotated[User, api_user()]):
     return {
-        'sub': user.id,
+        'sub': str(user.id),
         'username': user.display_name,
         'picture': user.avatar_url,
         'locale': user.language,
