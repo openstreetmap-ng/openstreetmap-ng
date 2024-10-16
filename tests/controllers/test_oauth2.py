@@ -9,6 +9,7 @@ from starlette import status
 from app.config import APP_URL
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.date_utils import utcnow
+from app.lib.locale import DEFAULT_LOCALE
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
 
 
@@ -159,7 +160,7 @@ async def test_authorize_response_form_post(client: AsyncClient):
     assert 'action="http://localhost/callback"' in r.text
 
 
-async def test_authorize_token_introspect_revoke_public_app(client: AsyncClient):
+async def test_authorize_token_introspect_userinfo_revoke_public_app(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
@@ -202,6 +203,12 @@ async def test_authorize_token_introspect_revoke_public_app(client: AsyncClient)
     assert data['username'] == 'user1'
     assert data['iat'] >= int(authorization_date.timestamp())
     assert data['exp'] is None
+
+    r = await auth_client.get('/oauth2/userinfo')
+    assert r.is_success, r.text
+    data = r.json()
+    assert data['username'] == 'user1'
+    assert data['locale'] == DEFAULT_LOCALE
 
     r = await auth_client.post('/oauth2/revoke', data={'token': access_token})
     assert r.is_success, r.text

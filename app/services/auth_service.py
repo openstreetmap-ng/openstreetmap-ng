@@ -52,8 +52,8 @@ class AuthService:
         scheme: str
         param: str
 
-        # api endpoints support basic auth and oauth
-        if request_path.startswith(('/api/0.6/', '/api/0.7/')):
+        # application endpoints support basic auth and oauth
+        if request_path.startswith(('/api/0.6/', '/api/0.7/', '/oauth2/')):
             authorization = request.headers.get('Authorization')
             if authorization is not None:
                 scheme, _, param = authorization.partition(' ')

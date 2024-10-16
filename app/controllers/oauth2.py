@@ -8,7 +8,7 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL, TEST_ENV
-from app.lib.auth_context import web_user
+from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -41,7 +41,7 @@ async def openid_configuration():
         'revocation_endpoint': f'{APP_URL}/oauth2/revoke',
         'introspection_endpoint': f'{APP_URL}/oauth2/introspect',
         'userinfo_endpoint': f'{APP_URL}/oauth2/userinfo',
-        'jwks_uri': f'{APP_URL}/oauth2/discovery/keys',
+        'jwks_uri': f'{APP_URL}/oauth2/discovery/keys',  # TODO:
         'scopes_supported': PUBLIC_SCOPES,
         'response_types_supported': tuple(OAuth2ResponseType),
         'response_modes_supported': tuple(OAuth2ResponseMode),
@@ -164,4 +164,14 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
         'username': token_.user.display_name,
         'iat': int(token_.authorized_at.timestamp()),  # pyright: ignore[reportOptionalMemberAccess]
         'exp': None,
+    }
+
+
+@router.get('/oauth2/userinfo')
+async def userinfo(user: Annotated[User, api_user()]):
+    return {
+        'sub': user.id,
+        'username': user.display_name,
+        'picture': user.avatar_url,
+        'locale': user.language,
     }
