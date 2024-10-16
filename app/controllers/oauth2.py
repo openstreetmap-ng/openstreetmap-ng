@@ -1,7 +1,7 @@
 from base64 import b64decode
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Header, Query, Request
+from fastapi import APIRouter, Form, Header, Query, Request, Response
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -133,3 +133,9 @@ async def token(
         verifier=code_verifier,
         redirect_uri=redirect_uri,
     )
+
+
+@router.post('/oauth2/revoke')
+async def revoke(token: Annotated[str, Form(min_length=1)]):
+    await OAuth2TokenService.revoke_by_access_token(token)
+    return Response()

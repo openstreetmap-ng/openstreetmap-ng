@@ -214,10 +214,7 @@ class OAuth2TokenService:
         """
         access_token_hashed = hash_bytes(access_token)
         async with db_commit() as session:
-            stmt = delete(OAuth2Token).where(
-                OAuth2Token.user_id == auth_user(required=True).id,
-                OAuth2Token.token_hashed == access_token_hashed,
-            )
+            stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
             await session.execute(stmt)
 
     @staticmethod
