@@ -158,7 +158,7 @@ async def test_authorize_response_form_post(client: AsyncClient):
     assert 'action="http://localhost/callback"' in r.text
 
 
-async def test_authorize_token_revoke_public_app(client: AsyncClient):
+async def test_authorize_token_introspect_revoke_public_app(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
@@ -188,12 +188,22 @@ async def test_authorize_token_revoke_public_app(client: AsyncClient):
 
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.is_success, r.text
+    assert r.json()['user']['display_name'] == 'user1'
 
-    user = r.json()['user']
-    assert user['display_name'] == 'user1'
+    r = await auth_client.post('/oauth2/introspect', data={'token': data['access_token']})
+    assert r.is_success, r.text
+    assert r.json() == {
+        'active': True,
+        'scope': '',
+        'client_id': 'testapp-public',
+        'username': 'user1',
+        'exp': None,
+    }
 
     r = await auth_client.post('/oauth2/revoke', data={'token': data['access_token']})
     assert r.is_success, r.text
 
     r = await auth_client.get('/api/0.6/user/details.json')
+    assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
+    r = await auth_client.post('/oauth2/introspect', data={'token': data['access_token']})
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text

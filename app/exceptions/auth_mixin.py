@@ -52,9 +52,8 @@ class AuthExceptionsMixin:
     def oauth_bad_client_secret(self) -> NoReturn:
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client secret')
 
-    @abstractmethod
     def oauth_bad_user_token(self) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid access token')
 
     def oauth_bad_redirect_uri(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid redirect URI')

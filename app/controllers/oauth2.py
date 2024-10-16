@@ -3,12 +3,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Form, Header, Query, Request, Response
 from pydantic import SecretStr
+from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL, TEST_ENV
 from app.lib.auth_context import web_user
 from app.lib.exceptions_context import raise_for
+from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
@@ -17,11 +19,13 @@ from app.models.db.oauth2_token import (
     OAuth2GrantType,
     OAuth2ResponseMode,
     OAuth2ResponseType,
+    OAuth2Token,
     OAuth2TokenEndpointAuthMethod,
     OAuth2TokenOOB,
 )
 from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES, Scope
+from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.utils import extend_query_params
 
@@ -139,3 +143,23 @@ async def token(
 async def revoke(token: Annotated[str, Form(min_length=1)]):
     await OAuth2TokenService.revoke_by_access_token(token)
     return Response()
+
+
+# generally this endpoint should not be publicly accessible
+# in this case it's fine, since we don't expose any sensitive information
+@router.post('/oauth2/introspect')
+async def introspect(token: Annotated[str, Form(min_length=1)]):
+    with options_context(
+        joinedload(OAuth2Token.user).load_only(User.display_name),
+        joinedload(OAuth2Token.application).load_only(OAuth2Application.client_id),
+    ):
+        token_ = await OAuth2TokenQuery.find_one_authorized_by_token(token)
+    if token_ is None:
+        raise_for().oauth_bad_user_token()
+    return {
+        'active': True,
+        'scope': token_.scopes_str,
+        'client_id': token_.application.client_id,
+        'username': token_.user.display_name,
+        'exp': None,
+    }
