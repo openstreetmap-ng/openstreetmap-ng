@@ -8,6 +8,7 @@ from starlette import status
 
 from app.config import APP_URL
 from app.lib.buffered_random import buffered_rand_urlsafe
+from app.lib.date_utils import utcnow
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
 
 
@@ -176,6 +177,7 @@ async def test_authorize_token_introspect_revoke_public_app(client: AsyncClient)
     authorization_code, _, state_response = authorization_code.partition('#')
     assert state == state_response
 
+    authorization_date = utcnow()
     data: dict = await auth_client.fetch_token(
         '/oauth2/token',
         grant_type='authorization_code',
@@ -185,25 +187,26 @@ async def test_authorize_token_introspect_revoke_public_app(client: AsyncClient)
     assert data['token_type'] == 'Bearer'  # noqa: S105
     assert data['scope'] == ''
     assert data['created_at']
+    access_token = data['access_token']
 
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.is_success, r.text
     assert r.json()['user']['display_name'] == 'user1'
 
-    r = await auth_client.post('/oauth2/introspect', data={'token': data['access_token']})
+    r = await auth_client.post('/oauth2/introspect', data={'token': access_token})
     assert r.is_success, r.text
-    assert r.json() == {
-        'active': True,
-        'scope': '',
-        'client_id': 'testapp-public',
-        'username': 'user1',
-        'exp': None,
-    }
+    data = r.json()
+    assert data['active'] is True
+    assert data['scope'] == ''
+    assert data['client_id'] == 'testapp-public'
+    assert data['username'] == 'user1'
+    assert data['iat'] >= int(authorization_date.timestamp())
+    assert data['exp'] is None
 
-    r = await auth_client.post('/oauth2/revoke', data={'token': data['access_token']})
+    r = await auth_client.post('/oauth2/revoke', data={'token': access_token})
     assert r.is_success, r.text
 
     r = await auth_client.get('/api/0.6/user/details.json')
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
-    r = await auth_client.post('/oauth2/introspect', data={'token': data['access_token']})
+    r = await auth_client.post('/oauth2/introspect', data={'token': access_token})
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text

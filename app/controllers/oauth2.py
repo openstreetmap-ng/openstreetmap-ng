@@ -160,6 +160,8 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
         'active': True,
         'scope': token_.scopes_str,
         'client_id': token_.application.client_id,
+        'sub': token_.user_id,
         'username': token_.user.display_name,
+        'iat': int(token_.authorized_at.timestamp()),  # pyright: ignore[reportOptionalMemberAccess]
         'exp': None,
     }
