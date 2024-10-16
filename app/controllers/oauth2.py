@@ -124,10 +124,10 @@ async def token(
             parts = b64decode(param).decode().partition(':')
             client_id = parts[0]
             client_secret = SecretStr(parts[2])
-    if not client_id:
+    if client_id is None:
         raise_for().oauth_bad_client_id()
-    if not client_secret:
-        raise_for().oauth_bad_client_secret()
+    if client_secret is None:
+        client_secret = SecretStr('')
 
     return await OAuth2TokenService.token(
         client_id=client_id,

@@ -10,6 +10,8 @@ if (body) {
     const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
     const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
     const editForm = body.querySelector("form.edit-form")
+    const clientSecretControl = editForm.querySelector(".client-secret-control")
+    const isConfidentialRadios = editForm.elements.is_confidential
     const revokeAllAuthorizationsCheckbox = editForm.elements.revoke_all_authorizations
     const resetClientSecretButton = body.querySelector("button.reset-client-secret")
     const resetClientSecretForm = body.querySelector("form.reset-client-secret-form")
@@ -34,6 +36,11 @@ if (body) {
     const onAvatarFormSuccess = ({ avatar_url }) => {
         console.debug("onAvatarFormSuccess", avatar_url)
         avatar.src = avatar_url
+    }
+
+    const onIsConfidentialChange = ({ target }) => {
+        console.debug("onIsConfidentialChange", target.value)
+        clientSecretControl.classList.toggle("d-none", target.value === "false")
     }
 
     const onEditFormSuccess = () => {
@@ -73,6 +80,7 @@ if (body) {
     avatarFileInput.addEventListener("change", onAvatarFileChange)
     uploadAvatarButton.addEventListener("click", onUploadAvatarClick)
     removeAvatarButton.addEventListener("click", onRemoveAvatarClick)
+    for (const radio of isConfidentialRadios) radio.addEventListener("change", onIsConfidentialChange)
     configureStandardForm(editForm, onEditFormSuccess, null, { formAppend: true })
     resetClientSecretButton.addEventListener("click", onResetClientSecretClick)
     configureStandardForm(resetClientSecretForm, onResetClientSecretFormSuccess)

@@ -6,7 +6,7 @@
 
             <div class="row align-items-center">
                 <div class="col-auto">
-                    <img class="avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}"
+                    <img class="app-avatar avatar" src="{{ app.avatar_url }}" alt="{{ t('alt.application_image') }}"
                         loading="lazy">
                 </div>
                 <div class="col">
@@ -25,7 +25,7 @@
                         {{ format_rfc2822_date(app.created_at) }}
                         ({{ app.created_at | timeago }})
                         {% endset %}
-                        {{ t('settings.registered_at', date=date) }}
+                        {{ t('settings.created_at', date=date) }}
                         {% endif %}
                         <br>
 

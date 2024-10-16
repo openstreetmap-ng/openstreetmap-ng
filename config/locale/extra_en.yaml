@@ -131,7 +131,7 @@ settings:
   session_id: "Session ID: {{id}}"
   current_session: Current session
   authorized_at: "Authorized at: {{date}}"
-  registered_at: "Registered at: {{date}}"
+  created_at: "Created at: {{date}}"
   authorizations:
     title: Authorizations
     description: |-

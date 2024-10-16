@@ -54,6 +54,16 @@ class TestService:
                         client_id='testapp',
                         client_secret='testapp.secret',  # noqa: S106
                         scopes=PUBLIC_SCOPES,
+                        is_confidential=True,
+                    )
+                )
+                tg.create_task(
+                    TestService.create_oauth2_application(
+                        name='TestApp-Public',
+                        client_id='testapp-public',
+                        client_secret='testapp.secret',  # noqa: S106
+                        scopes=PUBLIC_SCOPES,
+                        is_confidential=False,
                     )
                 )
 
@@ -117,6 +127,7 @@ class TestService:
         client_id: str,
         client_secret: str,
         scopes: tuple[Scope, ...],
+        is_confidential: bool,
     ) -> None:
         """
         Create a test OAuth2 application.
@@ -133,7 +144,7 @@ class TestService:
                         client_id=client_id,
                         client_secret_encrypted=encrypt(client_secret),
                         scopes=scopes,
-                        is_confidential=True,
+                        is_confidential=is_confidential,
                         redirect_uris=(
                             Uri('http://localhost/callback'),
                             Uri('urn:ietf:wg:oauth:2.0:oob'),
@@ -144,5 +155,6 @@ class TestService:
                 # update existing application
                 app.name = name
                 app.scopes = scopes
+                app.is_confidential = is_confidential
 
         logging.info('Upserted test OAuth2 application %r', name)

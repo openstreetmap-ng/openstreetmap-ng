@@ -96,7 +96,7 @@ async def test_authorize_token_oob(
 
 
 @pytest.mark.parametrize('is_fragment', [False, True])
-async def test_authorize_response_redirect(client: AsyncClient, is_fragment: bool):
+async def test_authorize_token_response_redirect(client: AsyncClient, is_fragment: bool):
     client.headers['Authorization'] = 'User user1'
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
@@ -156,3 +156,38 @@ async def test_authorize_response_form_post(client: AsyncClient):
     r = await client.post(authorization_url)
     assert r.is_success, r.text
     assert 'action="http://localhost/callback"' in r.text
+
+
+async def test_authorize_token_public_app(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    auth_client = AsyncOAuth2Client(
+        base_url=client.base_url,
+        transport=client._transport,  # noqa: SLF001
+        client_id='testapp-public',
+        scope='',
+        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+    )
+    authorization_url, state = auth_client.create_authorization_url('/oauth2/authorize')
+
+    r = await client.post(authorization_url)
+    assert r.is_success, r.text
+
+    authorization_code = r.headers['Test-OAuth2-Authorization-Code']
+    authorization_code, _, state_response = authorization_code.partition('#')
+    assert state == state_response
+
+    data: dict = await auth_client.fetch_token(
+        '/oauth2/token',
+        grant_type='authorization_code',
+        code=authorization_code,
+    )
+    assert data['access_token']
+    assert data['token_type'] == 'Bearer'  # noqa: S105
+    assert data['scope'] == ''
+    assert data['created_at']
+
+    r = await auth_client.get('/api/0.6/user/details.json')
+    assert r.is_success, r.text
+
+    user = r.json()['user']
+    assert user['display_name'] == 'user1'

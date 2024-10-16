@@ -44,7 +44,8 @@
                 </div>
             </label>
 
-            <label class="form-label d-block mb-3">
+            <label
+                class="client-secret-control form-label d-block mb-3 {% if not app.is_confidential %}d-none{% endif %}">
                 {{ t('settings.client_secret') }}
                 <div class="input-group copy-group mt-2">
                     <input type="text" class="form-control font-monospace bg-body-tertiary"

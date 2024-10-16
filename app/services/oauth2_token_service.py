@@ -133,7 +133,10 @@ class OAuth2TokenService:
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None or app.is_system_app:
             raise_for().oauth_bad_client_id()
-        if not compare_digest(app.client_secret.get_secret_value(), client_secret.get_secret_value()):
+        if app.is_confidential and (
+            not app.client_secret_encrypted  # before client secret is generated
+            or not compare_digest(app.client_secret.get_secret_value(), client_secret.get_secret_value())
+        ):
             raise_for().oauth_bad_client_secret()
 
         authorization_code_hashed = hash_bytes(authorization_code)
