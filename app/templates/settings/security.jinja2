@@ -64,15 +64,20 @@
         <div class="row align-items-center">
             <div class="col">
                 <h6 class="mb-1">
-                    {% set id %}
-                    <span class="session-id">{{ session.id }}</span>
-                    {% endset %}
-                    {{ t('settings.session_id', id=id) | safe }}
                     {% if session.id == current_session_id %}
-                    <span class="current-session badge text-bg-green ms-1">
-                        {{ t('settings.current_session') }}
+                    <span class="current-session me-1" data-bs-toggle="tooltip"
+                        data-bs-title="{{ t('settings.this_is_your_current_session') }}"
+                        aria-label="{{ t('settings.this_is_your_current_session') }}">
                     </span>
                     {% endif %}
+                    {% set id %}
+                    <span class="session-id">
+                        {{ str(session.id)[:5] }}
+                        <i class="bi bi-three-dots"></i>
+                        {{ str(session.id)[-7:] }}
+                    </span>
+                    {% endset %}
+                    {{ t('settings.session_id', id=id) | safe }}
                 </h6>
                 <p class="form-text mb-0">
                     {% set date %}
@@ -86,7 +91,7 @@
                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
                     <input type="hidden" name="token_id" value="{{ session.id }}">
                     <button class="btn btn-sm btn-light border" type="submit">
-                        {{ t('layouts.logout') }}
+                        {{ t('action.end_session') }}
                     </button>
                 </form>
             </div>

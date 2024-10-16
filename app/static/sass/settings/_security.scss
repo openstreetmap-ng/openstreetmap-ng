@@ -12,9 +12,23 @@
     }
 
     .current-session {
-        font-size: 0.75em;
-        line-height: 1.1em;
         position: relative;
-        top: -2px;
+        top: -1px;
+        display: inline-block;
+        width: 0.625em;
+        height: 0.625em;
+        border-radius: 50%;
+        background: radial-gradient(circle, tint-color($vibrant-green, 35%) 0%, $vibrant-green 70%);
+        animation: pulse-shadow 3s infinite;
+        cursor: help;
+
+        @keyframes pulse-shadow {
+            0% {
+                box-shadow: 0 0 0 0 transparentize($vibrant-green, 0.55);
+            }
+            100% {
+                box-shadow: 0 0 0 0.35em transparentize($vibrant-green, 1);
+            }
+        }
     }
 }

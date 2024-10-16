@@ -129,7 +129,7 @@ settings:
   two_factor_auth: Two-factor authentication
   active_sessions: Active sessions
   session_id: "Session ID: {{id}}"
-  current_session: Current session
+  this_is_your_current_session: This is your current session
   authorized_at: "Authorized at: {{date}}"
   created_at: "Created at: {{date}}"
   authorizations:
@@ -255,6 +255,7 @@ action:
   block_user: Block user
   cancel: Cancel
   copy: Copy
+  end_session: End session
   follow_user: Follow user
   save: Save
   save_as: Save as
