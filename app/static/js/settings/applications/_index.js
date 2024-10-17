@@ -1,4 +1,5 @@
 import { Collapse } from "bootstrap"
+import { qsEncode, qsParse } from "../../_qs.js"
 import { configureStandardForm } from "../../_standard-form.js"
 
 const body = document.querySelector("body.settings-applications-body")
@@ -28,6 +29,7 @@ if (body) {
         configureStandardForm(form, onRevokeApplicationFormSuccess)
     }
 
+    // settings/applications/admin
     const createApplicationButton = body.querySelector(".create-application-btn")
     if (createApplicationButton) {
         const createApplicationForm = body.querySelector(".create-application-form")
@@ -45,5 +47,19 @@ if (body) {
 
         createApplicationButton.addEventListener("click", onCreateNewApplicationClick)
         configureStandardForm(createApplicationForm, onCreateApplicationFormSuccess)
+    }
+
+    // settings/applications/tokens
+    const createForm = body.querySelector("form.create-token-form")
+    if (createForm) {
+        // On success callback, reload the page
+        const onCreateFormSuccess = ({ token_id }) => {
+            console.debug("onCreateFormSuccess", token_id)
+            const searchParams = qsParse(window.location.search.substring(1))
+            searchParams.expand = token_id
+            window.location = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
+        }
+
+        configureStandardForm(createForm, onCreateFormSuccess)
     }
 }

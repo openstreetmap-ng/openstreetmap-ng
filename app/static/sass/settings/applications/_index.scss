@@ -4,6 +4,14 @@
             border-bottom: 1px solid $border-color;
         }
 
+        .token-icon::before {
+            position: relative;
+            top: 1px;
+            font-size: 2em;
+            color: shade-color($primary, 30%);
+            transform: rotate(45deg);
+        }
+
         img.avatar.app-avatar {
             font-size: 3em;
             border: 1px solid $border-color;
@@ -17,8 +25,11 @@
 
 .settings-applications-body,
 .settings-application-edit-body,
-.settings-applications-tokens-body,
 .oauth-authorize-body {
+    .date-emphasis {
+        font-weight: 500;
+    }
+
     .scope {
         font-size: 0.875em;
         font-family: monospace;

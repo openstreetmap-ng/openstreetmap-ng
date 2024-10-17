@@ -196,14 +196,15 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def create_pat(*, name: str, scopes: tuple[Scope, ...]) -> None:
+    async def create_pat(*, name: str, scopes: tuple[Scope, ...]) -> int:
         """
         Create a new Personal Access Token with the given name and scopes.
+
+        Returns the token id.
         """
         app = await OAuth2ApplicationQuery.find_one_by_client_id('SystemApp.pat')
         if app is None:
             raise AssertionError('SystemApp.pat must be initialized')
-
         async with db_commit() as session:
             token = OAuth2Token(
                 user_id=auth_user(required=True).id,
@@ -216,6 +217,7 @@ class OAuth2TokenService:
             )
             token.name = name
             session.add(token)
+        return token.id
 
     @staticmethod
     async def reset_pat_acess_token(pat_id: int) -> SecretStr:

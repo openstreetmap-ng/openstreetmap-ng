@@ -1,6 +1,6 @@
 {% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('settings.my_tokens.title') }} | {% endblock %}
-{% block body_class %}settings-applications-tokens-body{% endblock %}
+{% block body_class %}settings-applications-body{% endblock %}
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
@@ -16,42 +16,17 @@
         </a>
     </li>
     <li class="nav-item">
-        <a href="/settings/applications/pat" class="nav-link active" aria-current="page">
+        <a href="/settings/applications/tokens" class="nav-link active" aria-current="page">
             {{ t('settings.my_tokens.title') }}
         </a>
     </li>
 </ul>
 
 <p class="mx-2">{{ t('settings.my_tokens.description') }}</p>
-<ul class="tokens-list list-unstyled">
+<ul class="applications-list list-unstyled">
     {% for token in tokens %}
-    <li class="list-group-item">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <strong>{{ t('settings.client_id') }}:</strong> {{ token.id }}
-            </div>
-            <div class="client-secret-control">
-                <div class="input-group copy-group">
-                    <input type="text" class="form-control font-monospace bg-body-tertiary"
-                        value="{% if token.token_hashed %}{{ '•' * 32 }}{% endif %}" readonly>
-                    <button class="btn btn-light border reset-client-secret" type="button"
-                        data-token-id="{{ token.id }}">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        {{ t('settings.new_client_secret') }}
-                    </button>
-                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
-                        <i class="bi bi-copy"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="mt-2">
-            <strong>{{ t('settings.requested_permissions') }}:</strong>
-            {% for scope in token.scopes %}
-            <span class="badge bg-primary">{{ scope }}</span>
-            {% endfor %}
-        </div>
-    </li>
+    {% set expanded = token.id == expand_id %}
+    <li>{% include 'settings/applications/_token_entry.jinja2' %}</li>
     {% endfor %}
 </ul>
 {% if not tokens %}
@@ -68,7 +43,7 @@
         </h2>
         <div id="create-accordion" class="accordion-collapse collapse">
             <div class="accordion-body">
-                <form class="create-form" method="POST" action="/api/web/settings/applications/tokens/create">
+                <form class="create-token-form" method="POST" action="/api/web/settings/applications/tokens/create">
 
                     <label class="form-label d-block">
                         <span class="required">{{ t('settings.name') }}</span>

@@ -128,10 +128,11 @@ settings:
   password_has_been_changed: Your password has been changed
   two_factor_auth: Two-factor authentication
   active_sessions: Active sessions
-  session_id: "Session ID: {{id}}"
+  session_colon_id: "Session ID: {{id}}"
   this_is_your_current_session: This is your current session
-  authorized_at: "Authorized at: {{date}}"
-  created_at: "Created at: {{date}}"
+  authorized_at: "Authorized at {{date}}"
+  created_at: "Created at {{date}}"
+  updated_at: "Updated at {{date}}"
   authorizations:
     title: Authorizations
     description: |-
@@ -287,6 +288,7 @@ action:
   reset_filters: Reset filters
   resolved: resolved
   revoke_access: Revoke access
+  revoke_key: Revoke key
   save_changes: Save changes
   submit: Submit
   view_all: View all

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
@@ -75,11 +75,13 @@ async def application_admin(
 @router.get('/settings/applications/tokens')
 async def tokens(
     user: Annotated[User, web_user()],
+    expand: Annotated[int | None, Query(gt=0)] = None,
 ):
     tokens = await OAuth2TokenQuery.find_many_pats_by_user(user_id=user.id, limit=OAUTH_PAT_LIMIT)
     return render_response(
         'settings/applications/tokens.jinja2',
         {
+            'expand_id': expand,
             'tokens': tokens,
             'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
         },

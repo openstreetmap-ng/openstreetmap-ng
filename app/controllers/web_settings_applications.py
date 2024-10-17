@@ -129,8 +129,8 @@ async def settings_application_tokens_create(
         write_gpx=write_gpx,
         write_notes=write_notes,
     )
-    await OAuth2TokenService.create_pat(name=name, scopes=scopes)
-    return Response()
+    token_id = await OAuth2TokenService.create_pat(name=name, scopes=scopes)
+    return {'token_id': str(token_id)}  # as string, avoiding loss of precision
 
 
 @router.post('/settings/applications/tokens/{id:int}/reset-access-token')
@@ -140,3 +140,12 @@ async def settings_application_tokens_reset_access_token(
 ):
     access_token = await OAuth2TokenService.reset_pat_acess_token(id)
     return {'access_token': access_token.get_secret_value()}
+
+
+@router.post('/settings/applications/tokens/{id:int}/revoke')
+async def settings_application_tokens_revoke(
+    _: Annotated[User, web_user()],
+    id: Annotated[int, Path()],
+):
+    await OAuth2TokenService.revoke_by_id(id)
+    return Response()
