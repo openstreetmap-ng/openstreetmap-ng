@@ -10,6 +10,7 @@ from app.config import APP_URL
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.date_utils import utcnow
 from app.lib.locale import DEFAULT_LOCALE
+from app.lib.xmltodict import XMLToDict
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2ResponseMode, OAuth2TokenEndpointAuthMethod
 
 
@@ -221,3 +222,40 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
     r = await auth_client.post('/oauth2/introspect', data={'token': access_token})
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
+
+
+async def test_access_token_in_form(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    auth_client = AsyncOAuth2Client(
+        base_url=client.base_url,
+        transport=client._transport,  # noqa: SLF001
+        client_id='testapp-public',
+        scope='',
+        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+    )
+    authorization_url, state = auth_client.create_authorization_url('/oauth2/authorize')
+
+    r = await client.post(authorization_url)
+    assert r.is_success, r.text
+
+    authorization_code = r.headers['Test-OAuth2-Authorization-Code']
+    authorization_code, _, state_response = authorization_code.partition('#')
+    assert state == state_response
+
+    data: dict = await auth_client.fetch_token(
+        '/oauth2/token',
+        grant_type='authorization_code',
+        code=authorization_code,
+    )
+
+    client.headers.pop('Authorization')
+    # create note
+    r = await client.post(
+        '/api/0.6/notes',
+        params={'lon': 0, 'lat': 0, 'text': test_access_token_in_form.__qualname__},
+        data={'access_token': data['access_token']},
+    )
+    assert r.is_success, r.text
+    props: dict = XMLToDict.parse(r.content)['osm']['note']
+    comments: list[dict] = props['comments']['comment']
+    assert comments[-1]['user'] == 'user1'
