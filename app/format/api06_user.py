@@ -5,6 +5,7 @@ import cython
 import numpy as np
 from shapely import Point, lib
 
+from app.config import APP_URL
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
@@ -126,7 +127,7 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
             xattr('agreed'): True,
             **({xattr('pd'): False} if access_private else {}),
         },
-        'img': {xattr('href'): user.avatar_url},
+        'img': {xattr('href'): f'{APP_URL}{user.avatar_url}'},
         'roles': tuple(role.value for role in user.roles),
         'changesets': {xattr('count'): changesets_num},
         'traces': {xattr('count'): traces_num},
