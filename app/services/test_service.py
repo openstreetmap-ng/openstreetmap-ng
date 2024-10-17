@@ -12,7 +12,7 @@ from app.db import db_commit
 from app.lib.auth_context import auth_context
 from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
-from app.limits import OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH
+from app.limits import OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import User, UserRole, UserStatus
 from app.models.scope import PUBLIC_SCOPES, Scope
@@ -150,7 +150,7 @@ class TestService:
                     ),
                 )
                 app.client_secret_hashed = hash_bytes(client_secret)
-                app.client_secret_preview = client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH]
+                app.client_secret_preview = client_secret[:OAUTH_SECRET_PREVIEW_LENGTH]
                 session.add(app)
             else:
                 # update existing application
@@ -161,6 +161,6 @@ class TestService:
                 # TODO: remove after migrations reset
                 if app.client_secret_preview is None:
                     app.client_secret_hashed = hash_bytes(client_secret)
-                    app.client_secret_preview = client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH]
+                    app.client_secret_preview = client_secret[:OAUTH_SECRET_PREVIEW_LENGTH]
 
         logging.info('Upserted test OAuth2 application %r', name)

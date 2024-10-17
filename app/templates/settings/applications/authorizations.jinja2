@@ -27,7 +27,9 @@
     {% set expanded = false %}
     {% for token in tokens %}
     {% set app = token.application %}
+    {% if app.client_id != 'SystemApp.pat' %}
     <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
+    {% endif %}
     {% endfor %}
 </ul>
 

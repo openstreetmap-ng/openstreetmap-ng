@@ -13,10 +13,10 @@ from app.lib.exceptions_context import raise_for
 from app.lib.message_collector import MessageCollector
 from app.lib.translation import t
 from app.limits import (
-    OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH,
     OAUTH_APP_ADMIN_LIMIT,
     OAUTH_APP_URI_LIMIT,
     OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_SECRET_PREVIEW_LENGTH,
 )
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
@@ -172,7 +172,7 @@ class OAuth2ApplicationService:
                 .values(
                     {
                         OAuth2Application.client_secret_hashed: client_secret_hashed,
-                        OAuth2Application.client_secret_preview: client_secret[:OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH],
+                        OAuth2Application.client_secret_preview: client_secret[:OAUTH_SECRET_PREVIEW_LENGTH],
                     }
                 )
                 .inline()

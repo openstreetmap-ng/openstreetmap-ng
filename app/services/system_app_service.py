@@ -13,7 +13,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
-from app.models.scope import Scope
+from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
 
@@ -35,6 +35,11 @@ class SystemAppService:
                     name=NAME,
                     client_id='SystemApp.web',
                     scopes=(Scope.web_user,),
+                ),
+                SystemApp(
+                    name='Personal Access Token',
+                    client_id='SystemApp.pat',
+                    scopes=PUBLIC_SCOPES,
                 ),
                 SystemApp(
                     name='iD',

@@ -7,7 +7,12 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
-from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH
+from app.limits import (
+    OAUTH2_CODE_CHALLENGE_MAX_LENGTH,
+    OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_PAT_LABEL_MAX_LENGTH,
+    OAUTH_SECRET_PREVIEW_LENGTH,
+)
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
 from app.models.db.oauth2_application import OAuth2Application
@@ -70,6 +75,20 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
     # defaults
     authorized_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(True),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+
+    # PATs
+    label: Mapped[str | None] = mapped_column(
+        Unicode(OAUTH_PAT_LABEL_MAX_LENGTH),
+        init=False,
+        nullable=True,
+        server_default=None,
+    )
+    token_preview: Mapped[str | None] = mapped_column(
+        Unicode(OAUTH_SECRET_PREVIEW_LENGTH),
         init=False,
         nullable=True,
         server_default=None,

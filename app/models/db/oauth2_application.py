@@ -4,9 +4,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.lib.crypto import HASH_SIZE
 from app.lib.image import AvatarType, Image
 from app.limits import (
-    OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH,
     OAUTH_APP_NAME_MAX_LENGTH,
     OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_SECRET_PREVIEW_LENGTH,
     STORAGE_KEY_MAX_LENGTH,
 )
 from app.models.db.base import Base
@@ -52,7 +52,7 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         server_default=None,
     )
     client_secret_preview: Mapped[str | None] = mapped_column(
-        Unicode(OAUTH2_CLIENT_SECRET_PREVIEW_LENGTH),
+        Unicode(OAUTH_SECRET_PREVIEW_LENGTH),
         init=False,
         nullable=True,
         server_default=None,
