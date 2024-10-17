@@ -24,7 +24,7 @@
 
 <p class="mx-2">{{ t('settings.my_applications.description') }}</p>
 <ul class="applications-list list-unstyled">
-    {% set expanded = true %}
+    {% set expanded = false %}
     {% for app in apps %}
     <li>{% include 'settings/applications/_application_entry.jinja2' %}</li>
     {% endfor %}
