@@ -11,6 +11,8 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.limits import (
     OAUTH_APP_NAME_MAX_LENGTH,
+    OAUTH_PAT_LIMIT,
+    OAUTH_PAT_NAME_MAX_LENGTH,
 )
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2Token
@@ -66,5 +68,19 @@ async def application_admin(
         {
             'app': app,
             'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
+        },
+    )
+
+
+@router.get('/settings/applications/tokens')
+async def tokens(
+    user: Annotated[User, web_user()],
+):
+    tokens = await OAuth2TokenQuery.find_many_pats_by_user(user_id=user.id, limit=OAUTH_PAT_LIMIT)
+    return render_response(
+        'settings/applications/tokens.jinja2',
+        {
+            'tokens': tokens,
+            'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
         },
     )

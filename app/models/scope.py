@@ -30,6 +30,14 @@ class Scope(str, Enum):
         write_notes: bool = False,
         **_: bool,
     ) -> tuple['Scope', ...]:
+        """
+        Return the scopes from the given kwargs.
+
+        Unsupported keys are ignored.
+
+        >>> Scope.from_kwargs(read_prefs=True, write_api=True, unknown=True)
+        (Scope.read_prefs, Scope.write_api)
+        """
         result: list[Scope] = []
         if read_prefs:
             result.append(cls.read_prefs)

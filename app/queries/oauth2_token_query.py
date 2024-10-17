@@ -32,7 +32,7 @@ class OAuth2TokenQuery:
         limit: int | None,
     ) -> Sequence[OAuth2Token]:
         """
-        Find all authorized OAuth2 tokens for a user-application pair.
+        Find all authorized OAuth2 tokens for the given user and app id.
         """
         async with db() as session:
             stmt = (
@@ -58,10 +58,42 @@ class OAuth2TokenQuery:
         *,
         limit: int | None,
     ) -> Sequence[OAuth2Token]:
+        """
+        Find all authorized tokens for the given user and client id.
+        """
         app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
         if app is None:
             return ()
         return await OAuth2TokenQuery.find_many_authorized_by_user_app_id(user_id, app.id, limit=limit)
+
+    @staticmethod
+    async def find_many_pats_by_user(
+        user_id: int,
+        *,
+        limit: int | None,
+    ) -> Sequence[OAuth2Token]:
+        """
+        Find all PAT tokens (authorized or not) for the given user.
+        """
+        app = await OAuth2ApplicationQuery.find_one_by_client_id('SystemApp.pat')
+        if app is None:
+            return ()
+
+        async with db() as session:
+            stmt = (
+                select(OAuth2Token)
+                .where(
+                    OAuth2Token.user_id == user_id,
+                    OAuth2Token.application_id == app.id,
+                )
+                .order_by(OAuth2Token.id.desc())
+            )
+            stmt = apply_options_context(stmt)
+
+            if limit is not None:
+                stmt = stmt.limit(limit)
+
+            return (await session.scalars(stmt)).all()
 
     @staticmethod
     async def find_unique_per_app_by_user_id(user_id: int) -> Sequence[OAuth2Token]:

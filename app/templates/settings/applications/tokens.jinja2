@@ -1,0 +1,138 @@
+{% extends 'settings/_base.jinja2' %}
+{% block title_prefix %}{{ t('settings.my_tokens.title') }} | {% endblock %}
+{% block body_class %}settings-applications-tokens-body{% endblock %}
+{% block settings_title %}{{ t('settings.applications') }}{% endblock %}
+{% block settings_body %}
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a href="/settings/applications" class="nav-link">
+            {{ t('settings.authorizations.title') }}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/settings/applications/admin" class="nav-link">
+            {{ t('settings.my_applications.title') }}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="/settings/applications/pat" class="nav-link active" aria-current="page">
+            {{ t('settings.my_tokens.title') }}
+        </a>
+    </li>
+</ul>
+
+<p class="mx-2">{{ t('settings.my_tokens.description') }}</p>
+<ul class="tokens-list list-unstyled">
+    {% for token in tokens %}
+    <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>{{ t('settings.client_id') }}:</strong> {{ token.id }}
+            </div>
+            <div class="client-secret-control">
+                <div class="input-group copy-group">
+                    <input type="text" class="form-control font-monospace bg-body-tertiary"
+                        value="{% if token.token_hashed %}{{ '•' * 32 }}{% endif %}" readonly>
+                    <button class="btn btn-light border reset-client-secret" type="button"
+                        data-token-id="{{ token.id }}">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        {{ t('settings.new_client_secret') }}
+                    </button>
+                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="mt-2">
+            <strong>{{ t('settings.requested_permissions') }}:</strong>
+            {% for scope in token.scopes %}
+            <span class="badge bg-primary">{{ scope }}</span>
+            {% endfor %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% if not tokens %}
+<p class="mx-2">{{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}</p>
+{% endif %}
+
+<div class="accordion">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#create-accordion"
+                aria-expanded="false" aria-controls="create-accordion">
+                {{ t('settings.my_tokens.create_new_token') }}
+            </button>
+        </h2>
+        <div id="create-accordion" class="accordion-collapse collapse">
+            <div class="accordion-body">
+                <form class="create-form" method="POST" action="/api/web/settings/applications/tokens/create">
+
+                    <label class="form-label d-block">
+                        <span class="required">{{ t('settings.name') }}</span>
+                        <input type="text" class="form-control mt-2" name="name"
+                            maxlength="{{ OAUTH_PAT_NAME_MAX_LENGTH }}" required>
+                    </label>
+                    <p class="form-text mb-3">
+                        {{ t('settings.my_tokens.name_hint') }}
+                    </p>
+
+                    <p class="form-label">{{ t('settings.requested_permissions') }}</p>
+                    <ul class="list-unstyled ms-1">
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="read_prefs" value="true">
+                                {{ t('permissions.read_user_preferences') }}
+                                <span class="scope">(read_prefs)</span>
+                            </label>
+                        </li>
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="write_prefs" value="true">
+                                {{ t('permissions.modify_user_preferences') }}
+                                <span class="scope">(write_prefs)</span>
+                            </label>
+                        </li>
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="write_api" value="true">
+                                {{ t('permissions.manage_changesets_and_map_data') }}
+                                <span class="scope">(write_api)</span>
+                            </label>
+                        </li>
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="read_gpx" value="true">
+                                {{ t('permissions.read_all_gps_traces') }}
+                                <span class="scope">(read_gpx)</span>
+                            </label>
+                        </li>
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="write_gpx" value="true">
+                                {{ t('permissions.manage_gps_traces') }}
+                                <span class="scope">(write_gpx)</span>
+                            </label>
+                        </li>
+                        <li class="form-check">
+                            <label class="form-check-label d-block">
+                                <input class="form-check-input" type="checkbox" name="write_notes" value="true">
+                                {{ t('permissions.manage_notes') }}
+                                <span class="scope">(write_notes)</span>
+                            </label>
+                        </li>
+                    </ul>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">{{ t('action.submit') }}</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

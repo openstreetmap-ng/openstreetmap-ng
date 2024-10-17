@@ -69,9 +69,9 @@ if (body) {
         }
     }
 
-    // On success callback, navigate to my traces
+    // On success callback, navigate to my applications
     const onDeleteFormSuccess = ({ redirect_url }) => {
-        console.debug("onFormSuccess", redirect_url)
+        console.debug("onDeleteFormSuccess", redirect_url)
         window.location = redirect_url
     }
 

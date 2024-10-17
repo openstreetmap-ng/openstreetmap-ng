@@ -5,7 +5,7 @@ from hmac import compare_digest
 
 import cython
 from pydantic import SecretStr
-from sqlalchemy import delete, null, select
+from sqlalchemy import delete, func, null, select, update
 from sqlalchemy.orm import joinedload
 
 from app.db import db_commit
@@ -15,7 +15,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
-from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT
+from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT, OAUTH_SECRET_PREVIEW_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token, OAuth2TokenOOB
 from app.models.db.user import User
@@ -196,9 +196,57 @@ class OAuth2TokenService:
         }
 
     @staticmethod
+    async def create_pat(*, name: str, scopes: tuple[Scope, ...]) -> None:
+        """
+        Create a new Personal Access Token with the given name and scopes.
+        """
+        app = await OAuth2ApplicationQuery.find_one_by_client_id('SystemApp.pat')
+        if app is None:
+            raise AssertionError('SystemApp.pat must be initialized')
+
+        async with db_commit() as session:
+            token = OAuth2Token(
+                user_id=auth_user(required=True).id,
+                application_id=app.id,
+                token_hashed=None,
+                scopes=scopes,
+                redirect_uri=None,
+                code_challenge_method=None,
+                code_challenge=None,
+            )
+            token.name = name
+            session.add(token)
+
+    @staticmethod
+    async def reset_pat_acess_token(pat_id: int) -> SecretStr:
+        """
+        Reset the access token and return the new one.
+        """
+        access_token = buffered_rand_urlsafe(32)
+        access_token_hashed = hash_bytes(access_token)
+        async with db_commit() as session:
+            stmt = (
+                update(OAuth2Token)
+                .where(
+                    OAuth2Token.id == pat_id,
+                    OAuth2Token.user_id == auth_user(required=True).id,
+                )
+                .values(
+                    {
+                        OAuth2Token.token_hashed: access_token_hashed,
+                        OAuth2Token.token_preview: access_token[:OAUTH_SECRET_PREVIEW_LENGTH],
+                        OAuth2Token.authorized_at: func.statement_timestamp(),
+                    }
+                )
+                .inline()
+            )
+            await session.execute(stmt)
+        return SecretStr(access_token)
+
+    @staticmethod
     async def revoke_by_id(token_id: int) -> None:
         """
-        Revoke the given token.
+        Revoke the given token by id.
         """
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(

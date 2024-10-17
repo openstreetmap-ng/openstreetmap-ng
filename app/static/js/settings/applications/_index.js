@@ -1,10 +1,10 @@
 import { Collapse } from "bootstrap"
 import { configureStandardForm } from "../../_standard-form.js"
 
-const settingsApplicationsBody = document.querySelector("body.settings-applications-body")
-if (settingsApplicationsBody) {
+const body = document.querySelector("body.settings-applications-body")
+if (body) {
     // Fixup links in buttons
-    const accordionButtons = settingsApplicationsBody.querySelectorAll(".accordion-button")
+    const accordionButtons = body.querySelectorAll(".accordion-button")
     for (const button of accordionButtons) {
         const collapse = document.querySelector(button.dataset.bsTarget)
         const collapseInstance = Collapse.getOrCreateInstance(collapse, { toggle: false })
@@ -19,7 +19,7 @@ if (settingsApplicationsBody) {
         button.addEventListener("click", onAccordionButtonClick)
     }
 
-    const revokeApplicationForms = settingsApplicationsBody.querySelectorAll("form.revoke-application-form")
+    const revokeApplicationForms = body.querySelectorAll("form.revoke-application-form")
     for (const form of revokeApplicationForms) {
         const onRevokeApplicationFormSuccess = () => {
             form.closest("li").remove()
@@ -28,9 +28,9 @@ if (settingsApplicationsBody) {
         configureStandardForm(form, onRevokeApplicationFormSuccess)
     }
 
-    const createApplicationButton = settingsApplicationsBody.querySelector(".create-application-btn")
+    const createApplicationButton = body.querySelector(".create-application-btn")
     if (createApplicationButton) {
-        const createApplicationForm = settingsApplicationsBody.querySelector(".create-application-form")
+        const createApplicationForm = body.querySelector(".create-application-form")
 
         const onCreateNewApplicationClick = () => {
             createApplicationButton.classList.add("d-none")

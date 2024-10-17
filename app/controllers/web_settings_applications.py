@@ -5,7 +5,12 @@ from fastapi import APIRouter, Form, Path, Response, UploadFile
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
 from app.lib.translation import t
-from app.limits import OAUTH_APP_NAME_MAX_LENGTH, OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH
+from app.limits import (
+    OAUTH_APP_NAME_MAX_LENGTH,
+    OAUTH_APP_URI_LIMIT,
+    OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_PAT_NAME_MAX_LENGTH,
+)
 from app.models.db.user import User
 from app.models.scope import Scope
 from app.services.oauth2_application_service import OAuth2ApplicationService
@@ -103,3 +108,35 @@ async def settings_application_delete(
 ):
     await OAuth2ApplicationService.delete(id)
     return {'redirect_url': '/settings/applications/admin'}
+
+
+@router.post('/settings/applications/tokens/create')
+async def settings_application_tokens_create(
+    _: Annotated[User, web_user()],
+    name: Annotated[str, Form(min_length=1, max_length=OAUTH_PAT_NAME_MAX_LENGTH)],
+    read_prefs: Annotated[bool, Form()] = False,
+    write_prefs: Annotated[bool, Form()] = False,
+    write_api: Annotated[bool, Form()] = False,
+    read_gpx: Annotated[bool, Form()] = False,
+    write_gpx: Annotated[bool, Form()] = False,
+    write_notes: Annotated[bool, Form()] = False,
+):
+    scopes = Scope.from_kwargs(
+        read_prefs=read_prefs,
+        write_prefs=write_prefs,
+        write_api=write_api,
+        read_gpx=read_gpx,
+        write_gpx=write_gpx,
+        write_notes=write_notes,
+    )
+    await OAuth2TokenService.create_pat(name=name, scopes=scopes)
+    return Response()
+
+
+@router.post('/settings/applications/tokens/{id:int}/reset-access-token')
+async def settings_application_tokens_reset_access_token(
+    _: Annotated[User, web_user()],
+    id: Annotated[int, Path()],
+):
+    access_token = await OAuth2TokenService.reset_pat_acess_token(id)
+    return {'access_token': access_token.get_secret_value()}
