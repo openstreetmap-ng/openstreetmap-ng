@@ -75,6 +75,12 @@
                             <span class="scope">({{ scope }})</span>
                         </li>
                         {% endfor %}
+                        {% if not token.scopes %}
+                        <li>
+                            <i class="bi bi-dot text-muted"></i>
+                            {{ t('permissions.no_permissions') }}
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div class="col-auto align-self-end">
