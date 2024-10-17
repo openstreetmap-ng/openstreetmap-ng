@@ -209,7 +209,10 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert r.is_success, r.text
     data = r.json()
     assert data['username'] == 'user1'
+    assert data['picture'].startswith(APP_URL)
     assert data['locale'] == DEFAULT_LOCALE
+    r = await auth_client.get(data['picture'])
+    r.raise_for_status()
 
     r = await auth_client.post('/oauth2/revoke', data={'token': access_token})
     assert r.is_success, r.text

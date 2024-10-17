@@ -172,6 +172,6 @@ async def userinfo(user: Annotated[User, api_user()]):
     return {
         'sub': str(user.id),
         'username': user.display_name,
-        'picture': user.avatar_url,
+        'picture': f'{APP_URL}{user.avatar_url}',
         'locale': user.language,
     }
