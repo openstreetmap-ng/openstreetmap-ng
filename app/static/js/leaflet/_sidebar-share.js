@@ -1,6 +1,5 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { initializeCopyGroups } from "../_copy-group.js"
 import { getLastSelectedExportFormat, setLastSelectedExportFormat } from "../_local-storage"
 import { exportMapImage, getOptimalExportParams } from "./_image-export.js"
 import { getLocationFilter } from "./_location-filter.js"
@@ -18,7 +17,6 @@ export const getShareSidebarToggleButton = () => {
         const button = control.button
 
         const markerCheckbox = sidebar.querySelector(".marker-check")
-        const copyGroups = sidebar.querySelectorAll(".copy-group")
         const linkInput = sidebar.querySelector(".link-input")
         const geoUriInput = sidebar.querySelector(".geo-uri-input")
         const embedInput = sidebar.querySelector(".embed-input")
@@ -240,7 +238,6 @@ export const getShareSidebarToggleButton = () => {
         map.addEventListener("zoomend baselayerchange", onMapZoomOrLayerChange)
         button.addEventListener("click", onSidebarButtonClick)
         markerCheckbox.addEventListener("change", onMarkerCheckboxChange)
-        initializeCopyGroups(copyGroups)
         customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
         // TODO: support svg/pdf fallback
         exportForm.addEventListener("submit", onExportFormSubmit)

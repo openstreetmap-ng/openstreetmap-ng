@@ -1,6 +1,7 @@
 import { Collapse } from "bootstrap"
 import { qsEncode, qsParse } from "../../_qs.js"
 import { configureStandardForm } from "../../_standard-form.js"
+import { initializeResetSecretControls } from "./_reset-secret-control.js"
 
 const body = document.querySelector("body.settings-applications-body")
 if (body) {
@@ -20,6 +21,7 @@ if (body) {
         button.addEventListener("click", onAccordionButtonClick)
     }
 
+    // settings/applications + settings/applications/tokens
     const revokeApplicationForms = body.querySelectorAll("form.revoke-application-form")
     for (const form of revokeApplicationForms) {
         const onRevokeApplicationFormSuccess = () => {
@@ -61,5 +63,6 @@ if (body) {
         }
 
         configureStandardForm(createForm, onCreateFormSuccess)
+        initializeResetSecretControls()
     }
 }

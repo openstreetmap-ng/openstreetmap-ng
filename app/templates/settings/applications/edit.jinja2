@@ -45,13 +45,13 @@
             </label>
 
             <label
-                class="client-secret-control form-label d-block mb-3 {% if not app.is_confidential %}d-none{% endif %}">
+                class="reset-secret-control form-label d-block mb-3 {% if not app.is_confidential %}d-none{% endif %}">
                 {{ t('settings.client_secret') }}
                 <div class="input-group copy-group mt-2">
                     <input type="text" class="form-control font-monospace bg-body-tertiary"
                         value="{% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
                         readonly>
-                    <button class="btn btn-light border reset-client-secret" type="button">
+                    <button class="btn btn-light border reset-secret-button" type="button">
                         <i class="bi bi-arrow-clockwise"></i>
                         {{ t('settings.new_client_secret') }}
                     </button>
@@ -202,7 +202,7 @@
         </div>
     </div>
 
-    <form class="reset-client-secret-form" method="POST"
+    <form class="reset-secret-form" method="POST"
         action="/api/web/settings/applications/admin/{{ app.id }}/reset-client-secret">
     </form>
 

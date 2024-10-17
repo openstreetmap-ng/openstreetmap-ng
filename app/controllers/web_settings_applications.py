@@ -52,7 +52,7 @@ async def settings_application_reset_client_secret(
     id: Annotated[int, Path()],
 ):
     client_secret = await OAuth2ApplicationService.reset_client_secret(id)
-    return {'client_secret': client_secret.get_secret_value()}
+    return {'secret': client_secret.get_secret_value()}
 
 
 @router.post('/settings/applications/admin/{id:int}/edit')
@@ -110,7 +110,7 @@ async def settings_application_delete(
     return {'redirect_url': '/settings/applications/admin'}
 
 
-@router.post('/settings/applications/tokens/create')
+@router.post('/settings/applications/token/create')
 async def settings_application_tokens_create(
     _: Annotated[User, web_user()],
     name: Annotated[str, Form(min_length=1, max_length=OAUTH_PAT_NAME_MAX_LENGTH)],
@@ -133,16 +133,16 @@ async def settings_application_tokens_create(
     return {'token_id': str(token_id)}  # as string, avoiding loss of precision
 
 
-@router.post('/settings/applications/tokens/{id:int}/reset-access-token')
+@router.post('/settings/applications/token/{id:int}/reset-access-token')
 async def settings_application_tokens_reset_access_token(
     _: Annotated[User, web_user()],
     id: Annotated[int, Path()],
 ):
     access_token = await OAuth2TokenService.reset_pat_acess_token(id)
-    return {'access_token': access_token.get_secret_value()}
+    return {'secret': access_token.get_secret_value()}
 
 
-@router.post('/settings/applications/tokens/{id:int}/revoke')
+@router.post('/settings/applications/token/{id:int}/revoke')
 async def settings_application_tokens_revoke(
     _: Annotated[User, web_user()],
     id: Annotated[int, Path()],

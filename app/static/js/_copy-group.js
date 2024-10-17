@@ -37,10 +37,10 @@ const onCopyButtonClick = async ({ target }) => {
 
 /**
  * Initialize copy groups
- * @param {NodeListOf<HTMLDivElement>} copyGroups
  * @returns {void}
  */
-export const initializeCopyGroups = (copyGroups) => {
+export const initializeCopyGroups = () => {
+    const copyGroups = document.querySelectorAll(".copy-group")
     console.debug("Initializing", copyGroups.length, "copy groups")
     for (const copyGroup of copyGroups) {
         const copyInput = copyGroup.querySelector(".form-control")

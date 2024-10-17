@@ -167,12 +167,14 @@ settings:
   owned_by_you: Owned by you
   requested_permissions: Requested permissions
   name: Name
+  access_token: Access token
+  new_access_token: New access token
   client_id: Client ID
   client_secret: Client secret
   new_client_secret: New client secret
-  new_client_secret_question: |-
-    Are you sure you want to generate a new client secret?
-    The new client secret will be shown only once.
+  new_secret_question: |-
+    Are you sure you want to generate a new secret?
+    The new secret will be shown only once.
   client_type: Client type
   public_client: Public
   public_client_description: |-

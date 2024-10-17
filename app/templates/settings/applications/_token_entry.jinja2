@@ -31,9 +31,29 @@
     </div>
     <div id="token-entry-{{ token.id }}" class="accordion-collapse collapse {% if expanded %}show{% endif %}">
         <div class="accordion-body">
+            <label class="reset-secret-control w-100 mb-3">
+                <span class="h6">{{ t('settings.access_token') }}</span>
+                <div class="input-group copy-group mt-2">
+                    <input type="text" class="form-control font-monospace bg-body-tertiary"
+                        value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
+                        readonly>
+                    <button class="btn btn-light border reset-secret-button" type="button"
+                        data-token-id="{{ token.id }}">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        {{ t('settings.new_access_token') }}
+                    </button>
+                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+                <form class="reset-secret-form" method="POST"
+                    action="/api/web/settings/applications/token/{{ token.id }}/reset-access-token">
+                </form>
+            </label>
+
             <div class="row">
                 <div class="col">
-                    <h6>{{ t('settings.requested_permissions') }}:</h6>
+                    <h6>{{ t('settings.requested_permissions') }}</h6>
                     <ul class="list-unstyled">
                         {% for scope in token.scopes %}
                         {% set scope = scope.value %}
@@ -59,7 +79,7 @@
                 </div>
                 <div class="col-auto align-self-end">
                     <form class="revoke-application-form" method="POST"
-                        action="/api/web/settings/applications/tokens/{{ token.id }}/revoke">
+                        action="/api/web/settings/applications/token/{{ token.id }}/revoke">
                         <button class="btn btn-light border" type="submit">{{ t('action.revoke_key') }}</button>
                     </form>
                 </div>

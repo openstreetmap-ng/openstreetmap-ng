@@ -1,6 +1,5 @@
 import "./_tracking.js"
 
-import "./_bootstrap.js"
 import "./_i18n.js"
 
 import "./_fixthemap.js"
@@ -8,7 +7,6 @@ import "./_id.js"
 import "./_rapid.js"
 import "./_welcome.js"
 import { configureMainMap } from "./leaflet/_main-map.js"
-import "./oauth2/_oob.js"
 import "./oauth2/_response-form-post.js"
 import "./settings/_email.js"
 import "./settings/_index.js"
@@ -30,3 +28,8 @@ import "./user/_terms.js"
 
 const mapContainer = document.querySelector(".main-map")
 if (mapContainer) configureMainMap(mapContainer)
+
+import "./_bootstrap.js"
+import { initializeCopyGroups } from "./_copy-group.js"
+
+initializeCopyGroups()
