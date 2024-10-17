@@ -136,30 +136,34 @@ settings:
   authorizations:
     title: Authorizations
     description: |-
-      The following applications have permission to act on your behalf
-      and access your OpenStreetMap data based on the permissions you granted.
-      Click an application to see a detailed list of permissions or to revoke its access.
+      The following applications have been granted permission to act on your behalf
+      and access your OpenStreetMap data based on your approved scopes.
+      Click on an application to view its detailed permissions or revoke its access.
   my_applications:
     title: My applications
     title_name: "My application: {{name}}"
     description: |-
-      Here, you can manage all the application you own.
-      These applications can be used to integrate with other services, access specific data, or automate tasks.
+      Here you can manage all your OAuth 2.0 applications.
+      These applications can integrate external services, access specific data, or automate tasks.
       Review the list below to update settings, manage permissions, or delete any application you no longer need.
+    my_tokens_hint: |-
+      Consider using access tokens when working on personal projects.
     you_have_not_created_any_applications_yet: You haven't created any applications yet.
     create_new_application: Create new application
   my_tokens:
     title: My tokens
     description: |-
-      Personal access tokens allow you to make authorized API requests.
-      They're a simpler alternative to OAuth when you're not managing multiple users.
-      Remember, these tokens are for your personal use only and should be kept secret.
+      Personal access tokens provide a simple way to authenticate API requests.
+      They're ideal for personal projects and when you don't need full OAuth authorization flow.
+      Remember, these tokens provide access to your account, so keep them secure and private.
     how_to_use:
-      title: How to use tokens
+      title: Using your tokens
       description: |-
-        After creating a token and generating its secret, use it with the Bearer authentication scheme.
-      example_http_request: |-
-        Example HTTP request
+        Once you've created a token and generated its secret, you can use it to authenticate API requests.
+        Include the token in the Authorization header using the Bearer authentication scheme.
+        Remember to keep your tokens secure. They provide access to your account, so treat them like passwords.
+      example_http_request: Example HTTP request
+      example_curl_command: Example cURL command
     you_have_not_created_any_tokens_yet: You haven't created any tokens yet.
     create_new_token: Create new token
     name_hint: This name will help you identify the token later.

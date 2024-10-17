@@ -1,4 +1,5 @@
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
@@ -6,6 +7,7 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import API_URL
 from app.lib.auth_context import web_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
@@ -83,6 +85,8 @@ async def tokens(
         {
             'expand_id': expand,
             'tokens': tokens,
+            'API_HOST': urlsplit(API_URL).netloc,
+            'API_URL': API_URL,
             'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
         },
     )

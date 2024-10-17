@@ -96,3 +96,8 @@
 .icon.query-features {
     @include legacy-leaflet-icon(-260px, 0);
 }
+
+.yellow-glow {
+    color: $yellow-500;
+    text-shadow: 0 0 0.5em transparentize($yellow-500, 0.5);
+}
