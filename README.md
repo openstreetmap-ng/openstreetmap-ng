@@ -41,46 +41,17 @@ This project is currently funded through community donations. We are not sponsor
 
 More feature details can be found in the project [announcement](https://github.com/Zaczero/openstreetmap-ng/blob/main/ANNOUNCEMENT.md). This information is not strictly up-to-date, but it provides a broader view of the project. More recent updates can be found on my [OpenStreetMap diary](https://www.openstreetmap.org/user/NorthCrab/diary) but they are lesser in quantity.
 
-## 🛣️ The Roadmap
+## 🛣️ TODOs: Public Release
 
-The general roadmap of the project. You can use it to track the big picture progress. I update it from time to time as the development progresses. Not all features and improvements are listed here.
+The following list outlines the key features and components that need to be completed before the first public release of OpenStreetMap-NG. This represents our roadmap to achieving 99% feature parity with the current OpenStreetMap website (Ruby).
 
-- ✅ Architecture design
-- ✅ Migration of the database models
-- ✅ Migration of translations
-- ✅ Migration of various utilities and "lib" folder
-- ✅ Cache for markdown generated content (faster page loading)
-- ✅ Migration of OAuth 1.0 & OAuth 2.0
-- ✅ Authorization
+**Release ETA**: end of 2024
+
 - ⬛ Authorization with third-party providers
-- ✅ Optimistic diff processing
-- ✅ Migration of API 0.6
-- ⬛ Migration of redactions
-- ✅ Migration of rate limiting
-- ✅ Migration of changeset history RSS feed
-- ✅ Improved GPX traces processing
-- [75%] Migration of website API
-- ✅ Migration and refactoring of stylesheets
-- ✅ Migration and refactoring of scripts
-- [75%] Migration of templates
-- ⬛ 🎉 **FEATURE-PARITY POINT** 🎉
-- ✅ Development translation overrides
-- [20%] Anti-vandalism stage 1
-- ✅ Redis in-memory caching
-- [40%] Pagination and limits
-- ✅ User permalinks
-- ✅ Proxy for Amazon requests (better privacy)
-- ✅ Addition of Rapid editor
-- [50%] Ability to rotate OAuth keys
-- ⬛ Scheduled account delete
-- ⬛ Identification of anonymous note users
-- ⬛ Anti-vandalism stage 2
-- [30%] Design finalization of API 0.7
-- [10%] Development of API 0.7
-- [10%] 2FA and U2F support
-- ⬛ Community profiles
-- ⬛ Functional sitemap.xml
-- **And a lot more...** :-)!
+- [20%] Email notifications templates
+- ⬛ User diaries
+- ⬛ Reporting of users
+- [30%] Website responsiveness (mobile)
 
 ---
 
