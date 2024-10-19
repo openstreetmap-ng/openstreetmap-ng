@@ -73,7 +73,7 @@
                         <h5>{{ t('oauth.application_information') }}</h5>
                         <ul class="list-unstyled mb-0">
                             {% set owner_link %}
-                            <a href="/user/permalink/{{ app.user_id }}" target="_blank">
+                            <a href="/user/{{ app.user.display_name }}" target="_blank">
                                 <img class="avatar me-1" src="{{ app.user.avatar_url }}"
                                     alt="{{ t('alt.profile_picture') }}">{#
                                 #}{{ app.user.display_name }}{#

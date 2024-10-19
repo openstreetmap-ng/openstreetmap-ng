@@ -6,7 +6,6 @@ from fastapi import APIRouter, Path, Request, Response, status
 from osm_shortlink import shortlink_decode
 from starlette.responses import RedirectResponse
 
-from app.config import APP_URL
 from app.middlewares.cache_control_middleware import cache_control
 
 router = APIRouter()
@@ -14,7 +13,7 @@ router = APIRouter()
 
 @router.get('/go/{code}')
 @cache_control(max_age=timedelta(days=30), stale=timedelta(days=30))
-async def go(request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]):
+async def shortlink(request: Request, code: Annotated[str, Path(min_length=3, max_length=15)]):
     """
     Redirect to a map from a shortlink code.
     """
@@ -26,5 +25,4 @@ async def go(request: Request, code: Annotated[str, Path(min_length=3, max_lengt
     query = parse_qs(request.url.query, strict_parsing=True)
     query['map'] = [f'{z}/{lat:.5f}/{lon:.5f}']
     fragment = '#' + urlencode(query, doseq=True)
-    redirect_url = APP_URL + fragment
-    return RedirectResponse(redirect_url, status.HTTP_301_MOVED_PERMANENTLY)
+    return RedirectResponse(f'/{fragment}', status.HTTP_301_MOVED_PERMANENTLY)

@@ -4,12 +4,13 @@ from typing import Annotated
 
 import numpy as np
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Request
 from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
+from app.lib.exceptions_context import raise_for
 from app.lib.legal import legal_terms
 from app.lib.render_response import render_response
 from app.limits import (
@@ -34,6 +35,21 @@ from app.queries.user_query import UserQuery
 from app.utils import json_encodes
 
 router = APIRouter()
+
+
+@router.get('/user/permalink/{user_id:int}{path:path}')
+async def permalink(
+    request: Request,
+    user_id: Annotated[int, Path(gt=0)],
+    path: Annotated[str | None, Path()],
+):
+    user = await UserQuery.find_one_by_id(user_id)
+    if user is None:
+        raise_for().user_not_found(user_id)
+    location = f'/user/{user.display_name}{path}'
+    if query := request.url.query:
+        location += f'?{query}'
+    return RedirectResponse(location, status.HTTP_302_FOUND)
 
 
 # TODO: optimize

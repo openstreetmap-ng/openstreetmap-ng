@@ -41,7 +41,7 @@
                         {% endset %}
                         {% else %}
                         {% set name %}
-                        <a href="/user/permalink/{{ app.user_id }}">
+                        <a href="/user/{{ app.user.display_name }}">
                             <img class="avatar me-1" src="{{ app.user.avatar_url }}"
                                 alt="{{ t('alt.profile_picture') }}" loading="lazy">{#
                             #}{{ app.user.display_name }}{#

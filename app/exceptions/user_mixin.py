@@ -1,11 +1,14 @@
 from abc import abstractmethod
 from typing import NoReturn
 
+from starlette import status
+
+from app.exceptions.api_error import APIError
+
 
 class UserExceptionsMixin:
-    @abstractmethod
     def user_not_found(self, name_or_id: str | int) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'User {name_or_id} not found')
 
     @abstractmethod
     def user_not_found_bad_request(self, name_or_id: str | int) -> NoReturn:
