@@ -53,18 +53,27 @@ class TestService:
                     TestService.create_oauth2_application(
                         name='TestApp',
                         client_id='testapp',
-                        client_secret='testapp.secret',  # noqa: S106
+                        client_secret='',
                         scopes=PUBLIC_SCOPES,
-                        is_confidential=True,
+                        is_confidential=False,
                     )
                 )
                 tg.create_task(
                     TestService.create_oauth2_application(
-                        name='TestApp-Public',
-                        client_id='testapp-public',
+                        name='TestApp-Minimal',
+                        client_id='testapp-minimal',
+                        client_secret='',
+                        scopes=(),
+                        is_confidential=False,
+                    )
+                )
+                tg.create_task(
+                    TestService.create_oauth2_application(
+                        name='TestApp-Secret',
+                        client_id='testapp-secret',
                         client_secret='testapp.secret',  # noqa: S106
                         scopes=PUBLIC_SCOPES,
-                        is_confidential=False,
+                        is_confidential=True,
                     )
                 )
 

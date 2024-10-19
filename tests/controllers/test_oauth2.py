@@ -30,7 +30,6 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='SystemApp.web',
-        client_secret='',
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
     )
@@ -39,6 +38,22 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
     r = await client.post(authorization_url)
     assert r.status_code == status.HTTP_401_UNAUTHORIZED
     assert r.json()['detail'] == 'Invalid client ID'
+
+
+async def test_authorize_invalid_extra_scopes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    auth_client = AsyncOAuth2Client(
+        base_url=client.base_url,
+        transport=client._transport,  # noqa: SLF001
+        client_id='testapp-minimal',
+        scope='read_prefs',
+        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+    )
+    authorization_url, _ = auth_client.create_authorization_url('/oauth2/authorize')
+
+    r = await client.post(authorization_url)
+    assert r.status_code == status.HTTP_400_BAD_REQUEST
+    assert r.json()['detail'] == 'Invalid authorization scopes'
 
 
 @pytest.mark.parametrize(
@@ -54,7 +69,7 @@ async def test_authorize_token_oob(
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='testapp',
+        client_id='testapp-secret',
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
@@ -82,7 +97,7 @@ async def test_authorize_token_oob(
     data: dict = await auth_client.fetch_token(
         '/oauth2/token',
         grant_type='authorization_code',
-        auth=('testapp', 'testapp.secret'),
+        auth=('testapp-secret', 'testapp.secret'),
         code=authorization_code,
         code_verifier=code_verifier,
     )
@@ -104,7 +119,7 @@ async def test_authorize_token_response_redirect(client: AsyncClient, is_fragmen
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='testapp',
+        client_id='testapp-secret',
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='http://localhost/callback',
@@ -127,7 +142,7 @@ async def test_authorize_token_response_redirect(client: AsyncClient, is_fragmen
     data: dict = await auth_client.fetch_token(
         '/oauth2/token',
         grant_type='authorization_code',
-        auth=('testapp', 'testapp.secret'),
+        auth=('testapp-secret', 'testapp.secret'),
         code=authorization_code,
     )
     assert data['access_token']
@@ -147,7 +162,7 @@ async def test_authorize_response_form_post(client: AsyncClient):
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='testapp',
+        client_id='testapp-secret',
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='http://localhost/callback',
@@ -166,7 +181,7 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='testapp-public',
+        client_id='testapp',
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
     )
@@ -201,7 +216,7 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert data['active'] is True
     assert data['iss'] == APP_URL
     assert data['iat'] >= int(authorization_date.timestamp())
-    assert data['client_id'] == 'testapp-public'
+    assert data['client_id'] == 'testapp'
     assert data['scope'] == ''
     assert data['username'] == 'user1'
     assert 'exp' not in data
@@ -229,7 +244,7 @@ async def test_access_token_in_form(client: AsyncClient):
     auth_client = AsyncOAuth2Client(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
-        client_id='testapp-public',
+        client_id='testapp',
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
     )

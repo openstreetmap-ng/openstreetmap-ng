@@ -58,6 +58,5 @@ class AuthExceptionsMixin:
     def oauth_bad_redirect_uri(self) -> NoReturn:
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid redirect URI')
 
-    @abstractmethod
     def oauth_bad_scopes(self) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid authorization scopes')
