@@ -137,9 +137,10 @@ async def _get_activity_data(user: User) -> dict:
         tuple(changesets_count_per_day.get(date.replace(tzinfo=UTC), 0) for date in dates_range),
         dtype=np.uint64,
     )
-    max_activity_clip = np.clip(np.percentile(activity, 95), 1, None)
+    activity_positive = activity[activity > 0]
+    max_activity_clip = np.percentile(activity_positive, 95) if activity_positive.size else 1
     activity_level_perc = np.clip(activity / max_activity_clip, 0, 1)
-    activity_levels = np.round(activity_level_perc * 19).astype(np.uint8)
+    activity_levels = np.ceil(activity_level_perc * 19).astype(np.uint8)
 
     weekdays = tuple(
         get_weekday_name(date, short=True)

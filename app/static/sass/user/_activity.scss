@@ -48,6 +48,6 @@
 
 @for $i from 0 through 19 {
     .activity-#{$i} {
-        background: mix(rgb(21, 139, 21), #eee, math.pow(math.div($i, 19), 0.8) * 100%);
+        background: mix(rgb(21, 139, 21), $gray-200, math.pow(math.div($i, 19), 0.7) * 100%);
     }
 }
