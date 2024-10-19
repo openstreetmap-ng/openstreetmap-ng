@@ -12,6 +12,8 @@ const antPathOptions = {
     color: "#F60",
     pulseColor: "#220",
     opacity: 0.8,
+    keyboard: false,
+    interactive: false,
 }
 
 const tracePreviewContainer = document.querySelector(".trace-preview")
