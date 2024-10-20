@@ -108,23 +108,24 @@
 <div class="content-body container-fluid g-5">
     <div class="row g-5">
         <div class="col-5 offset-2">
-            <h3 class="ms-1 mb-3">About me</h3>
-            {# TODO: Showcase title on missing description text #}
-            <div class="mb-4">
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum
-                    mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit.
-                </p>
-                <p>
-                    Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam
-                    tincidunt
-                    congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a
-                    non
-                    tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem.
-                </p>
-            </div>
+            {% if profile.description or is_self %}
+            <h3 class="ms-1 mb-3 d-flex align-items-center">
+                {{ t('user.about_me' )}}
+                {% if is_self %}
+                <button class="btn btn-sm btn-light border ms-3" data-bs-toggle="modal"
+                    data-bs-target="#profileDescriptionModal">
+                    <i class="bi bi-pencil-square me-1"></i>{{ t('user.edit_description') }}
+                </button>
+                {% endif %}
+            </h3>
+            {% if profile.description %}
+            <div class="mb-4 ms-1">{{ profile.description_rich | safe }}</div>
+            {% else %}
+            <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
+            {% endif %}
+            {% endif %}
 
-            <h3 class="ms-1 mb-3">Contributions</h3>
+            <h3 class="ms-1 mb-3">{{ t('user.contributions' )}}</h3>
             <div class="row g-3">
                 <div class="col-6">
                     {% include 'user/profile/_edits.jinja2' %}
@@ -151,6 +152,7 @@
                 <i class="bi bi-bookmark-plus"></i>
             </button>
             <p class="form-text mx-1">
+                {# TODO: localize #}
                 Following a user will allow you to quickly access their profile and see their activity.
                 You can always unfollow any user from your follow list.
             </p>
@@ -175,5 +177,9 @@
         </div>
     </div>
 </div>
+
+{% if is_self %}
+{% include 'user/profile/_description_modal.jinja2' %}
+{% endif %}
 
 {% endblock %}

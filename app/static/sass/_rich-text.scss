@@ -32,3 +32,15 @@
         max-width: 100%;
     }
 }
+
+.rich-text-guide {
+    img.markdown-logo {
+        position: relative;
+        top: -0.075em;
+        height: 0.8em;
+    }
+
+    dd {
+        font-size: 0.875em;
+    }
+}
