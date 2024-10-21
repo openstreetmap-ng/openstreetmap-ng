@@ -1,13 +1,13 @@
 <div class="rich-text-container row">
     <div class="col-8">
         <div class="edit-preview-container">
-            <textarea class="rich-text-source form-control" name="rich_text_source"
-                rows="20">{{ rich_text_source }}</textarea>
-            <div class="rich-text-preview d-none"></div>
+            <textarea class="rich-text-source form-control" name="{{ rich_text_name }}" rows="20"
+                maxlength="{{ rich_text_maxlength }}">{{ rich_text_value }}</textarea>
+            <div class="rich-text d-none"></div>
         </div>
     </div>
     <div class="col-4">
-        <div class="rich-text-guide sticky-top">
+        <div class="rich-text-tips sticky-top">
             <div class="btn-group mb-4" role="group">
                 <button class="edit-btn btn btn-primary" type="button" disabled>
                     {{ t('layouts.edit') }}
@@ -29,6 +29,18 @@
                     </dd>
                 </dl>
                 <dl>
+                    <dt>{{ t('shared.markdown_help.link') }}</dt>
+                    <dd>
+                        [{{ t('shared.markdown_help.text') }}]({{ t('shared.markdown_help.url') }})
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>{{ t('shared.markdown_help.image') }}</dt>
+                    <dd>
+                        ![{{ t('shared.markdown_help.alt') }}]({{ t('shared.markdown_help.url') }})
+                    </dd>
+                </dl>
+                <dl>
                     <dt>{{ t('shared.markdown_help.unordered') }}</dt>
                     <dd>
                         * {{ t('shared.markdown_help.first') }}<br>
@@ -40,18 +52,6 @@
                     <dd>
                         1. {{ t('shared.markdown_help.first') }}<br>
                         2. {{ t('shared.markdown_help.second') }}
-                    </dd>
-                </dl>
-                <dl>
-                    <dt>{{ t('shared.markdown_help.link') }}</dt>
-                    <dd>
-                        [{{ t('shared.markdown_help.text') }}]({{ t('shared.markdown_help.url') }})
-                    </dd>
-                </dl>
-                <dl>
-                    <dt>{{ t('shared.markdown_help.image') }}</dt>
-                    <dd>
-                        ![{{ t('shared.markdown_help.alt') }}]({{ t('shared.markdown_help.url') }})
                     </dd>
                 </dl>
                 <p class="small text-end mb-0">

@@ -17,9 +17,9 @@ allowed_tags = [
   "col",
   "colgroup",
   "data",
+  "dd",
   "del",
   "details",
-  "dd",
   "dfn",
   "div",
   "dl",
@@ -78,15 +78,7 @@ allowed_tags = [
 ]
 
 [allowed_attributes]
-"*" = [
-  "dir",
-  "hidden",
-  "id",
-  "lang",
-  "tabindex",
-  "title",
-  "translate",
-]
+"*" = ["dir", "hidden", "id", "lang", "tabindex", "title", "translate"]
 a = ["href", "hreflang", "referrerpolicy", "type"]
 audio = ["controls", "loop", "muted", "src"]
 blockquote = ["cite"]
@@ -95,7 +87,7 @@ colgroup = ["span"]
 data = ["value"]
 del = ["cite", "datetime"]
 details = ["open"]
-img = ["alt", "src"]
+img = ["alt", "decoding", "fetchpriority", "loading", "src"]
 ins = ["cite", "datetime"]
 li = ["value"]
 ol = ["reversed", "start", "type"]

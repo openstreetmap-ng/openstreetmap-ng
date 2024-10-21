@@ -1,6 +1,7 @@
 import logging
 import tomllib
 from asyncio import TaskGroup
+from collections.abc import Sequence
 from enum import Enum
 from html import escape
 from pathlib import Path
@@ -8,6 +9,9 @@ from pathlib import Path
 import bleach
 import cython
 from markdown_it import MarkdownIt
+from markdown_it.renderer import RendererHTML
+from markdown_it.token import Token
+from markdown_it.utils import EnvType, OptionsDict
 from sqlalchemy import update
 
 from app.db import db_commit
@@ -19,21 +23,6 @@ class TextFormat(str, Enum):
     html = 'html'
     markdown = 'markdown'
     plain = 'plain'
-
-
-@cython.cfunc
-def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    data = tomllib.loads(Path('config/rich_text.toml').read_text())
-    allowed_tags = frozenset(data['allowed_tags'])
-    allowed_attributes = {k: frozenset(v) for k, v in data['allowed_attributes'].items()}
-    return allowed_tags, allowed_attributes
-
-
-_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
-_global_allowed_attributes = _allowed_attributes['*']
-_linkify_skip_tags = ('code', 'kbd', 'pre', 'samp', 'var')
-_md = MarkdownIt(options_update={'typographer': True})
-_md.enable(('replacements', 'smartquotes'))
 
 
 def process_rich_text(text: str, text_format: TextFormat) -> str:
@@ -145,6 +134,14 @@ class RichTextMixin:
 
 
 @cython.cfunc
+def _get_allowed_tags_and_attributes() -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    data = tomllib.loads(Path('config/rich_text.toml').read_text())
+    allowed_tags = frozenset(data['allowed_tags'])
+    allowed_attributes = {k: frozenset(v) for k, v in data['allowed_attributes'].items()}
+    return allowed_tags, allowed_attributes
+
+
+@cython.cfunc
 def _is_allowed_attribute(tag: str, attr: str, value: str) -> cython.char:
     # check global allowed attributes
     if attr in _global_allowed_attributes:
@@ -154,3 +151,19 @@ def _is_allowed_attribute(tag: str, attr: str, value: str) -> cython.char:
     if allowed_attributes is not None:
         return attr in allowed_attributes
     return False
+
+
+def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
+    token = tokens[idx]
+    token.attrs['decoding'] = 'async'
+    token.attrs['fetchpriority'] = 'low'
+    token.attrs['loading'] = 'lazy'
+    return self.image(tokens, idx, options, env)
+
+
+_allowed_tags, _allowed_attributes = _get_allowed_tags_and_attributes()
+_global_allowed_attributes = _allowed_attributes['*']
+_linkify_skip_tags = ('code', 'kbd', 'pre', 'samp', 'var')
+_md = MarkdownIt(options_update={'typographer': True})
+_md.enable(('replacements', 'smartquotes'))
+_md.add_render_rule('image', _render_image)

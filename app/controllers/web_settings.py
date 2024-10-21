@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form, Response, UploadFile
 
 from app.lib.auth_context import web_user
 from app.lib.message_collector import MessageCollector
+from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.db.user import AvatarType, Editor, User
 from app.models.types import (
     LocaleCode,
@@ -88,3 +89,12 @@ async def settings_password(
         current_session = await AuthService.authenticate_oauth2(None)
         await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
     return collector.result
+
+
+@router.post('/settings/description')
+async def settings_description(
+    _: Annotated[User, web_user()],
+    description: Annotated[str, Form(max_length=USER_DESCRIPTION_MAX_LENGTH)],
+):
+    await UserService.update_description(description=description)
+    return Response()

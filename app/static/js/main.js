@@ -30,6 +30,5 @@ const mapContainer = document.querySelector(".main-map")
 if (mapContainer) configureMainMap(mapContainer)
 
 import "./_bootstrap.js"
-import { initializeCopyGroups } from "./_copy-group.js"
-
-initializeCopyGroups()
+import "./_copy-group.js"
+import "./_rich-text.js"

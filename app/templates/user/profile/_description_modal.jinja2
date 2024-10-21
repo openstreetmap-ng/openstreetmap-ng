@@ -1,13 +1,15 @@
 <div class="modal fade" id="profileDescriptionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <form class="description-form modal-content" method="POST" action="/api/web/settings/description">
             <div class="modal-header">
                 <h5 class="modal-title">{{ t('user.edit_description') }}</h5>
                 <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"
                     data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                {% set rich_text_source = profile.description %}
+                {% set rich_text_name = 'description' %}
+                {% set rich_text_value = profile.description %}
+                {% set rich_text_maxlength = USER_DESCRIPTION_MAX_LENGTH %}
                 {% include '_rich_text.jinja2' %}
             </div>
             <div class="modal-footer d-flex justify-content-between">
@@ -20,6 +22,6 @@
                     <button class="btn btn-primary" type="submit">{{ t('action.save_changes') }}</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>

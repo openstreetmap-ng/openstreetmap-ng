@@ -20,6 +20,7 @@ from app.limits import (
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
     USER_ACTIVITY_CHART_WEEKS,
+    USER_DESCRIPTION_MAX_LENGTH,
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
@@ -127,6 +128,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
             'diaries': diaries,
             'groups_count': groups_count,
             'groups': groups,
+            'USER_DESCRIPTION_MAX_LENGTH': USER_DESCRIPTION_MAX_LENGTH,
             'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
             **activity_data,
         },

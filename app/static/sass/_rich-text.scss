@@ -1,5 +1,7 @@
-// Styles for rich text
+// Styles for rich text rendered content
 .rich-text {
+    contain: content;
+
     code {
         background: $gray-400;
         padding: 0.1em 0.2em;
@@ -26,14 +28,16 @@
 
     img {
         padding: 1.5em;
-        background: $off-white;
+        background: tint-color($gray-500, 85%);
         display: block;
         margin: auto;
         max-width: 100%;
     }
 }
 
-.rich-text-guide {
+.rich-text-tips {
+    contain: content;
+
     img.markdown-logo {
         position: relative;
         top: -0.075em;

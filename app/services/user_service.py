@@ -37,17 +37,16 @@ class UserService:
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
     @staticmethod
-    async def update_about_me(
+    async def update_description(
         *,
         description: str,
     ) -> None:
         """
-        Update user's about me.
+        Update user's profile description.
         """
         current_user = auth_user(required=True)
         if current_user.description == description:
             return
-
         async with db_commit() as session:
             stmt = (
                 update(User)

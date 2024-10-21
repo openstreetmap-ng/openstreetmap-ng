@@ -4,21 +4,15 @@ const userProfileBody = document.querySelector("body.user-profile-body")
 if (userProfileBody) {
     const avatarForm = userProfileBody.querySelector("form.avatar-form")
     const avatarDropdown = avatarForm.querySelector(".dropdown")
-    const backgroundForm = userProfileBody.querySelector("form.background-form")
-    const backgroundDropdown = backgroundForm.querySelector(".dropdown")
 
-    if (avatarDropdown && backgroundDropdown) {
+    // if editing features available
+    if (avatarDropdown) {
         const avatars = document.querySelectorAll("img.avatar")
         const avatarTypeInput = avatarForm.elements.avatar_type
         const avatarFileInput = avatarForm.elements.avatar_file
         const uploadAvatarButton = avatarForm.querySelector("button.upload-btn")
         const useGravatarButton = avatarForm.querySelector("button.gravatar-btn")
         const removeAvatarButton = avatarForm.querySelector("button.remove-btn")
-
-        const background = backgroundForm.querySelector("img.background")
-        const backgroundFileInput = backgroundForm.elements.background_file
-        const uploadBackgroundButton = backgroundForm.querySelector("button.upload-btn")
-        const removeBackgroundButton = backgroundForm.querySelector("button.remove-btn")
 
         const onUploadAvatarClick = () => {
             avatarFileInput.click()
@@ -49,6 +43,19 @@ if (userProfileBody) {
             }
         }
 
+        // Listen for events
+        configureStandardForm(avatarForm, onAvatarFormSuccess)
+        avatarFileInput.addEventListener("change", onAvatarFileChange)
+        uploadAvatarButton.addEventListener("click", onUploadAvatarClick)
+        useGravatarButton.addEventListener("click", onUseGravatarClick)
+        removeAvatarButton.addEventListener("click", onRemoveAvatarClick)
+
+        const backgroundForm = userProfileBody.querySelector("form.background-form")
+        const background = backgroundForm.querySelector("img.background")
+        const backgroundFileInput = backgroundForm.elements.background_file
+        const uploadBackgroundButton = backgroundForm.querySelector("button.upload-btn")
+        const removeBackgroundButton = backgroundForm.querySelector("button.remove-btn")
+
         const onUploadBackgroundClick = () => {
             backgroundFileInput.click()
         }
@@ -72,16 +79,20 @@ if (userProfileBody) {
             }
         }
 
-        configureStandardForm(avatarForm, onAvatarFormSuccess)
-        configureStandardForm(backgroundForm, onBackgroundFormSuccess)
-
         // Listen for events
-        avatarFileInput.addEventListener("change", onAvatarFileChange)
-        uploadAvatarButton.addEventListener("click", onUploadAvatarClick)
-        useGravatarButton.addEventListener("click", onUseGravatarClick)
-        removeAvatarButton.addEventListener("click", onRemoveAvatarClick)
+        configureStandardForm(backgroundForm, onBackgroundFormSuccess)
         backgroundFileInput.addEventListener("change", onBackgroundFileChange)
         uploadBackgroundButton.addEventListener("click", onUploadBackgroundClick)
         removeBackgroundButton.addEventListener("click", onRemoveBackgroundClick)
+
+        const descriptionForm = userProfileBody.querySelector("form.description-form")
+
+        // On form success, reload the page
+        const onDescriptionFormSuccess = () => {
+            console.debug("onDescriptionFormSuccess")
+            window.location.reload()
+        }
+
+        configureStandardForm(descriptionForm, onDescriptionFormSuccess)
     }
 }

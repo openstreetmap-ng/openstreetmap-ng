@@ -119,7 +119,7 @@
                 {% endif %}
             </h3>
             {% if profile.description %}
-            <div class="mb-4 ms-1">{{ profile.description_rich | safe }}</div>
+            <div class="mb-4 ms-1 rich-text">{{ profile.description_rich | safe }}</div>
             {% else %}
             <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
             {% endif %}
