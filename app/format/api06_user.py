@@ -101,22 +101,18 @@ async def _encode_user(user: User, *, is_json: cython.char) -> dict:
         block_received_task = tg.create_task(UserBlockQuery.count_received_by_user_id(user.id))
         block_issued_task = tg.create_task(UserBlockQuery.count_given_by_user_id(user.id))
         if access_private:
-            messages_received_task = tg.create_task(MessageQuery.count_received_by_user_id(user.id))
-            messages_sent_task = tg.create_task(MessageQuery.count_sent_by_user_id(user.id))
+            messages_count_task = tg.create_task(MessageQuery.count_by_user_id(user.id))
         else:
-            messages_received_task = None
-            messages_sent_task = None
+            messages_count_task = None
 
     changesets_num = changesets_task.result()
     traces_num = traces_task.result()
     block_received_num, block_received_active_num = block_received_task.result()
     block_issued_num, block_issued_active_num = block_issued_task.result()
-    if messages_received_task is not None and messages_sent_task is not None:
-        messages_received_num, messages_unread_num = messages_received_task.result()
-        messages_sent_num = messages_sent_task.result()
+    if messages_count_task is not None:
+        messages_received_num, messages_unread_num, messages_sent_num = messages_count_task.result()
     else:
-        messages_received_num = messages_unread_num = 0
-        messages_sent_num = 0
+        messages_received_num = messages_unread_num = messages_sent_num = 0
 
     return {
         xattr('id'): user.id,
