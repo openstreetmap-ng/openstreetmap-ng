@@ -39,9 +39,9 @@ if (iframe) {
 
     // Optionally select gpx trace
     if (searchParams.gpx) {
-        result.gpx = searchParams.gpx
+        result.gpx = `${window.location.origin}/api/0.6/gpx/${searchParams.gpx}/data.gpx`
     } else if (hashParams.gpx) {
-        result.gpx = hashParams.gpx
+        result.gpx = `${window.location.origin}/api/0.6/gpx/${hashParams.gpx}/data.gpx`
     }
 
     // Passthrough some hash parameters

@@ -3,6 +3,7 @@ from typing import Annotated
 
 import cython
 from fastapi import APIRouter, Path, Query
+from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -160,3 +161,8 @@ async def legacy_mine_tagged(
 @router.get('/traces/new')
 async def legacy_new():
     return RedirectResponse('/trace/upload', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/trace/{trace_id:int}{path:path}')
+async def legacy_trace_data(trace_id: PositiveInt, path: str):
+    return RedirectResponse(f'/api/0.6/gpx/{trace_id}{path}', status.HTTP_301_MOVED_PERMANENTLY)
