@@ -7,6 +7,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.options_context import apply_options_context
 from app.models.db.oauth2_token import OAuth2Token
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
+from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 
 
 class OAuth2TokenQuery:
@@ -75,16 +76,13 @@ class OAuth2TokenQuery:
         """
         Find all PAT tokens (authorized or not) for the given user.
         """
-        app = await OAuth2ApplicationQuery.find_one_by_client_id('SystemApp.pat')
-        if app is None:
-            return ()
-
+        app_id = SYSTEM_APP_CLIENT_ID_MAP['SystemApp.pat']
         async with db() as session:
             stmt = (
                 select(OAuth2Token)
                 .where(
                     OAuth2Token.user_id == user_id,
-                    OAuth2Token.application_id == app.id,
+                    OAuth2Token.application_id == app_id,
                 )
                 .order_by(OAuth2Token.id.desc())
             )

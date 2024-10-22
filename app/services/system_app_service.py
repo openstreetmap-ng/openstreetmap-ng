@@ -16,6 +16,11 @@ from app.models.db.oauth2_token import OAuth2Token
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 
+SYSTEM_APP_CLIENT_ID_MAP: dict[str, int] = {}
+"""
+Mapping of SystemApp client IDs to database IDs.
+"""
+
 
 class SystemApp(NamedTuple):
     name: str
@@ -69,21 +74,24 @@ class SystemAppService:
     @staticmethod
     async def create_access_token(client_id: str, *, user_id: int | None = None) -> str:
         """
-        Create an OAuth2-based access token for a system app.
+        Create an OAuth2-based access token for the given system app.
         """
         if user_id is None:
             user_id = auth_user(required=True).id
 
-        app = await OAuth2ApplicationQuery.find_one_by_client_id(client_id)
-        if app is None or not app.is_system_app:
+        app_id = SYSTEM_APP_CLIENT_ID_MAP.get(client_id)
+        if app_id is None:
             raise_for().oauth_bad_client_id()
+        app = await OAuth2ApplicationQuery.find_one_by_id(app_id)
+        if app is None:
+            raise AssertionError(f'{client_id} must be initialized')
 
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
         async with db_commit() as session:
             token = OAuth2Token(
                 user_id=user_id,
-                application_id=app.id,
+                application_id=app_id,
                 token_hashed=access_token_hashed,
                 scopes=app.scopes,
                 redirect_uri=None,
@@ -120,6 +128,8 @@ async def _register_app(app: SystemApp) -> None:
                     OAuth2Application.scopes: app.scopes,
                 },
             )
+            .returning(OAuth2Application.id)
             .inline()
         )
-        await session.execute(stmt)
+        app_id = (await session.execute(stmt)).scalar_one()
+    SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
