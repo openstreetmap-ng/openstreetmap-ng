@@ -1,5 +1,5 @@
 {% extends '_base.jinja2' %}
-{% block title %}
+{% block heading %}
 {% if active_tab == 0 %}
 {% if tag is not none %}
 {{ t('traces.index.public_traces') + ' ' + t('traces.index.tagged_with', tags=tag) }}
@@ -20,13 +20,13 @@
 {% endif %}
 {% endif %}
 {% endblock %}
-{% block title_prefix %}{{ self.title() }} | {% endblock %}
+{% block title_prefix %}{{ self.heading() }} | {% endblock %}
 {% block body_class %}traces-index-body{% endblock %}
 {% block body %}
 
 <div class="content-header pb-0">
     <div class="container">
-        <h1>{{ self.title() }}</h1>
+        <h1>{{ self.heading() }}</h1>
         <p>
             {{ t('traces.index.description') }}
             {% if tag %}
