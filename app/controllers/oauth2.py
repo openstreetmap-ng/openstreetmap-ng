@@ -12,7 +12,7 @@ from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import OAUTH2_CODE_CHALLENGE_MAX_LENGTH, OAUTH_APP_URI_MAX_LENGTH
+from app.limits import OAUTH_APP_URI_MAX_LENGTH, OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
@@ -66,7 +66,7 @@ async def authorize(
     response_mode: Annotated[OAuth2ResponseMode, Query()] = OAuth2ResponseMode.query,
     scope: Annotated[str, Query()] = '',
     code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
-    code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
+    code_challenge: Annotated[str | None, Query(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,
 ):
     if response_type != OAuth2ResponseType.code:
@@ -115,7 +115,7 @@ async def token(
     grant_type: Annotated[OAuth2GrantType, Form()],
     redirect_uri: Annotated[str, Form(min_length=1, max_length=OAUTH_APP_URI_MAX_LENGTH)],
     code: Annotated[str, Form(min_length=1)],
-    code_verifier: Annotated[str | None, Form(min_length=1, max_length=OAUTH2_CODE_CHALLENGE_MAX_LENGTH)] = None,
+    code_verifier: Annotated[str | None, Form(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)] = None,
     client_id: Annotated[str | None, Form(min_length=1)] = None,
     client_secret: Annotated[SecretStr | None, Form(min_length=1)] = None,
     authorization: Annotated[str | None, Header(min_length=1)] = None,

@@ -119,7 +119,8 @@
         {% if user is not none %}
         <form class="comment-form mb-2" method="POST" action="/api/web/changeset/{{ changeset.id }}/comment">
             <div class="mb-3">
-                <textarea class="form-control" name="comment" rows="4" required></textarea>
+                <textarea class="form-control" name="comment" rows="4"
+                    maxlength="{{ CHANGESET_COMMENT_BODY_MAX_LENGTH }}" required></textarea>
             </div>
             <div class="text-end">
                 <button class="btn btn-primary" type="submit">

@@ -10,6 +10,7 @@ from app.lib.options_context import options_context
 from app.lib.render_response import render_response
 from app.lib.tags_format import tags_format
 from app.lib.translation import t
+from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
@@ -93,5 +94,6 @@ async def get_changeset(id: PositiveInt):
                     'elements': elements,
                 }
             ),
+            'CHANGESET_COMMENT_BODY_MAX_LENGTH': CHANGESET_COMMENT_BODY_MAX_LENGTH,
         },
     )

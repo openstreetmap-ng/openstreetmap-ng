@@ -8,7 +8,7 @@ from app.format import FormatLeaflet
 from app.lib.auth_context import web_user
 from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
-from app.limits import CHANGESET_QUERY_WEB_LIMIT
+from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH, CHANGESET_QUERY_WEB_LIMIT
 from app.models.db.changeset import Changeset
 from app.models.db.user import User
 from app.queries.changeset_comment_query import ChangesetCommentQuery
@@ -21,7 +21,7 @@ router = APIRouter(prefix='/api/web/changeset')
 @router.post('/{changeset_id:int}/comment')
 async def create_comment(
     changeset_id: PositiveInt,
-    comment: Annotated[str, Form(min_length=1)],
+    comment: Annotated[str, Form(min_length=1, max_length=CHANGESET_COMMENT_BODY_MAX_LENGTH)],
     _: Annotated[User, web_user()],
 ):
     await ChangesetCommentService.comment(changeset_id, comment)

@@ -8,8 +8,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.lib.crypto import HASH_SIZE
 from app.limits import (
-    OAUTH2_CODE_CHALLENGE_MAX_LENGTH,
     OAUTH_APP_URI_MAX_LENGTH,
+    OAUTH_CODE_CHALLENGE_MAX_LENGTH,
     OAUTH_PAT_NAME_MAX_LENGTH,
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
@@ -70,7 +70,7 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
     code_challenge_method: Mapped[OAuth2CodeChallengeMethod | None] = mapped_column(
         Enum(OAuth2CodeChallengeMethod), nullable=True
     )
-    code_challenge: Mapped[str | None] = mapped_column(Unicode(OAUTH2_CODE_CHALLENGE_MAX_LENGTH), nullable=True)
+    code_challenge: Mapped[str | None] = mapped_column(Unicode(OAUTH_CODE_CHALLENGE_MAX_LENGTH), nullable=True)
 
     # defaults
     authorized_at: Mapped[datetime | None] = mapped_column(

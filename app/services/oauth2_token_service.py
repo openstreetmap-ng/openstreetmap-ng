@@ -15,7 +15,11 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
-from app.limits import OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT, OAUTH_SECRET_PREVIEW_LENGTH
+from app.limits import (
+    OAUTH_AUTHORIZATION_CODE_TIMEOUT,
+    OAUTH_SECRET_PREVIEW_LENGTH,
+    OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
+)
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.oauth2_token import OAuth2CodeChallengeMethod, OAuth2Token, OAuth2TokenOOB
 from app.models.db.user import User
@@ -78,7 +82,7 @@ class OAuth2TokenService:
             tokens = await OAuth2TokenQuery.find_many_authorized_by_user_app_id(
                 user_id=user_id,
                 app_id=app.id,
-                limit=OAUTH2_SILENT_AUTH_QUERY_SESSION_LIMIT,
+                limit=OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
             )
             for token in tokens:
                 # ignore different redirect uri
@@ -146,6 +150,7 @@ class OAuth2TokenService:
                 select(OAuth2Token)
                 .where(
                     OAuth2Token.token_hashed == authorization_code_hashed,
+                    OAuth2Token.created_at > utcnow() - OAUTH_AUTHORIZATION_CODE_TIMEOUT,
                     OAuth2Token.authorized_at == null(),
                 )
                 .with_for_update()
