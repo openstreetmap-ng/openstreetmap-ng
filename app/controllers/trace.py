@@ -46,6 +46,6 @@ async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
     return render_response('traces/edit.jinja2', {'trace': trace, 'trace_coords': trace_coords})
 
 
-@router.get('/{trace_id:int}/data')
-async def legacy_data(trace_id: PositiveInt):
-    return RedirectResponse(f'{API_URL}/api/0.6/gpx/{trace_id}/data.gpx', status.HTTP_302_FOUND)
+@router.get('/{trace_id:int}/data{suffix:path}')
+async def legacy_data(trace_id: PositiveInt, suffix: str):
+    return RedirectResponse(f'{API_URL}/api/0.6/gpx/{trace_id}/data{suffix}', status.HTTP_302_FOUND)
