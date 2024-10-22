@@ -26,7 +26,7 @@ router = APIRouter()
 @router.get('/history/feed')
 async def history_feed(
     bbox: Annotated[str | None, Query(min_length=1)] = None,
-    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     geometry = parse_bbox(bbox) if (bbox is not None) else None
     return await _get_feed(geometry=geometry, limit=limit)
@@ -36,7 +36,7 @@ async def history_feed(
 async def user_history_feed(
     display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     bbox: Annotated[str | None, Query(min_length=1)] = None,
-    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     user = await UserQuery.find_one_by_display_name(display_name=display_name)
     if user is None:
@@ -49,7 +49,7 @@ async def user_history_feed(
 async def user_permalink_history_feed(
     user_id: PositiveInt,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
-    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     user = await UserQuery.find_one_by_id(user_id)
     if user is None:

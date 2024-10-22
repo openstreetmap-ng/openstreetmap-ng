@@ -141,7 +141,7 @@ async def query_changesets(
     closed_str: Annotated[str | None, Query(alias='closed')] = None,
     bbox: Annotated[str | None, Query(min_length=1)] = None,
     order: Annotated[Literal['newest', 'oldest'], Query()] = 'newest',
-    limit: Annotated[int, Query(gt=0, le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
+    limit: Annotated[PositiveInt, Query(le=CHANGESET_QUERY_MAX_LIMIT)] = CHANGESET_QUERY_DEFAULT_LIMIT,
 ):
     # treat any non-empty string as True
     open: cython.char = bool(open_str)

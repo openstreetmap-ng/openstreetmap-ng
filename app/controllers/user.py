@@ -5,6 +5,7 @@ from typing import Annotated
 import numpy as np
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Path, Request
+from pydantic import PositiveInt
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -41,7 +42,7 @@ router = APIRouter()
 @router.get('/user/permalink/{user_id:int}{path:path}')
 async def permalink(
     request: Request,
-    user_id: Annotated[int, Path(gt=0)],
+    user_id: Annotated[PositiveInt, Path()],
     path: Annotated[str | None, Path()],
 ):
     user = await UserQuery.find_one_by_id(user_id)

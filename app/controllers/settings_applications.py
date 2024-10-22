@@ -77,7 +77,7 @@ async def application_admin(
 @router.get('/settings/applications/tokens')
 async def tokens(
     user: Annotated[User, web_user()],
-    expand: Annotated[int | None, Query(gt=0)] = None,
+    expand: Annotated[PositiveInt | None, Query()] = None,
 ):
     tokens = await OAuth2TokenQuery.find_many_pats_by_user(user_id=user.id, limit=OAUTH_PAT_LIMIT)
     return render_response(
