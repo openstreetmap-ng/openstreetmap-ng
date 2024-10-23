@@ -172,7 +172,7 @@ export const updateNavbarAndHash = (state, object = null) => {
         }
     }
 
-    history.replaceState(null, "", hash)
+    window.history.replaceState(null, "", hash)
 }
 
 // On window mapState message, update the navbar and hash

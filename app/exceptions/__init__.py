@@ -4,6 +4,7 @@ from app.exceptions.diff_mixin import DiffExceptionsMixin
 from app.exceptions.element_mixin import ElementExceptionsMixin
 from app.exceptions.image_mixin import ImageExceptionsMixin
 from app.exceptions.map_mixin import MapExceptionsMixin
+from app.exceptions.message_mixin import MessageExceptionsMixin
 from app.exceptions.note_mixin import NoteExceptionsMixin
 from app.exceptions.request_mixin import RequestExceptionsMixin
 from app.exceptions.trace_mixin import TraceExceptionsMixin
@@ -17,6 +18,7 @@ class Exceptions(
     ElementExceptionsMixin,
     ImageExceptionsMixin,
     MapExceptionsMixin,
+    MessageExceptionsMixin,
     NoteExceptionsMixin,
     RequestExceptionsMixin,
     TraceExceptionsMixin,

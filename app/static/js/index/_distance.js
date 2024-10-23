@@ -21,7 +21,7 @@ const labelStyle = {
     interactive: false,
 }
 
-const historyReplaceState = throttle((url) => history.replaceState(null, "", url), 250)
+const historyReplaceState = throttle((url) => window.history.replaceState(null, "", url), 250)
 
 /**
  * Create a new distance measuring controller

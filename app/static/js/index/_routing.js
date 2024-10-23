@@ -294,7 +294,7 @@ export const getRoutingController = (map) => {
         const url = new URL(location.href)
         url.searchParams.set("engine", routingEngineName)
         url.searchParams.set("route", routeParam)
-        history.replaceState(null, "", url)
+        window.history.replaceState(null, "", url)
 
         loadingContainer.classList.remove("d-none")
         routingEngine(abortController.signal, fromCoords, toCoords, onRoutingSuccess, onRoutingError)

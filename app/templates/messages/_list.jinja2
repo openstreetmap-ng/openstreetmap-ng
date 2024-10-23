@@ -1,0 +1,30 @@
+{% if messages %}
+<ul class="messages-list list-unstyled">
+    {% for message in messages %}
+    <li class="social-action social-entry {% if not message.is_read %}unread{% endif %}" data-id="{{ message.id }}">
+        <p class="header text-muted d-flex justify-content-between">
+            <span>
+                <a href="/user/{{ message.from_user.display_name }}">
+                    <img class="avatar" src="{{ message.from_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
+                        loading="lazy">{{ message.from_user.display_name }}{#
+                #}</a>
+                {{ t('action.sent') }}
+                {{ timeago(message.created_at, html=True) | safe }}
+            </span>
+            <span>
+                <span class="unread-badge badge text-bg-primary">
+                    <i class="bi bi-bell-fill me-1"></i>{{ t('state.unread') }}
+                </span>
+            </span>
+        </p>
+        <div class="body">
+            <h6 class="title">{{ message.subject }}</h6>
+            <p class="description">{{ message.body | truncate(250) }}</p>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% include 'messages/_list_nav.jinja2' %}
+{% else %}
+<p>{{ t('traces.index.empty_title') }}</p>
+{% endif %}

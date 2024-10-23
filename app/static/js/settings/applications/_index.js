@@ -12,23 +12,20 @@ if (body) {
         const collapseInstance = Collapse.getOrCreateInstance(collapse, { toggle: false })
         collapseInstance._triggerArray.push(button)
 
-        const onAccordionButtonClick = (e) => {
+        button.addEventListener("click", (e) => {
             console.debug("onAccordionButtonClick", e.target.tagName)
             if (e.target.tagName === "A") return
             collapseInstance.toggle()
-        }
-
-        button.addEventListener("click", onAccordionButtonClick)
+        })
     }
 
     // settings/applications + settings/applications/tokens
     const revokeApplicationForms = body.querySelectorAll("form.revoke-application-form")
     for (const form of revokeApplicationForms) {
-        const onRevokeApplicationFormSuccess = () => {
+        configureStandardForm(form, () => {
+            console.debug("onRevokeApplicationFormSuccess")
             form.closest("li").remove()
-        }
-
-        configureStandardForm(form, onRevokeApplicationFormSuccess)
+        })
     }
 
     // settings/applications/admin
@@ -36,33 +33,29 @@ if (body) {
     if (createApplicationButton) {
         const createApplicationForm = body.querySelector(".create-application-form")
 
-        const onCreateNewApplicationClick = () => {
+        createApplicationButton.addEventListener("click", () => {
+            console.debug("onCreateNewApplicationClick")
             createApplicationButton.classList.add("d-none")
             createApplicationForm.classList.remove("d-none")
             createApplicationForm.elements.name.focus()
-        }
+        })
 
-        const onCreateApplicationFormSuccess = ({ redirect_url }) => {
+        configureStandardForm(createApplicationForm, ({ redirect_url }) => {
             console.debug("onCreateApplicationFormSuccess", redirect_url)
             window.location = redirect_url
-        }
-
-        createApplicationButton.addEventListener("click", onCreateNewApplicationClick)
-        configureStandardForm(createApplicationForm, onCreateApplicationFormSuccess)
+        })
     }
 
     // settings/applications/tokens
-    const createForm = body.querySelector("form.create-token-form")
-    if (createForm) {
-        // On success callback, reload the page
-        const onCreateFormSuccess = ({ token_id }) => {
-            console.debug("onCreateFormSuccess", token_id)
+    const createTokenForm = body.querySelector("form.create-token-form")
+    if (createTokenForm) {
+        configureStandardForm(createTokenForm, ({ token_id }) => {
+            // On success callback, reload the page
+            console.debug("onCreateTokenFormSuccess", token_id)
             const searchParams = qsParse(window.location.search.substring(1))
             searchParams.expand = token_id
             window.location = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
-        }
-
-        configureStandardForm(createForm, onCreateFormSuccess)
+        })
         initializeResetSecretControls()
     }
 }

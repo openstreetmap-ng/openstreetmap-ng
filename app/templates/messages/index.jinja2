@@ -1,0 +1,71 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}
+{% if inbox %}{{ t('messages.inbox.title') }}{% else %}{{ t('messages.outbox.title') }}{% endif %} |
+{% endblock %}
+{% block body_class %}messages-index-body{% endblock %}
+{% block body %}
+
+<div class="content-header pb-0">
+    <div class="container">
+        <h1>{{ t('users.show.my messages') }}</h1>
+        <p>{{ t('messages.description') }}</p>
+
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a href="/messages/inbox" {% if inbox %} class="nav-link active" aria-current="page" {% else %}
+                    class="nav-link" {% endif %}>
+                    {{ t('messages.heading.my_inbox') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/messages/outbox" {% if not inbox %} class="nav-link active" aria-current="page" {% else %}
+                    class="nav-link" {% endif %}>
+                    {{ t('messages.heading.my_outbox') }}
+                </a>
+            </li>
+            <li class="nav-item ms-auto">
+                <a class="btn btn-light border" href="/message/new">
+                    <i class="bi bi-envelope-plus me-2"></i>{{ t('action.send_message') }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                {% include 'messages/_list.jinja2' %}
+            </div>
+            <div class="col message-preview border-start d-none">
+                <div class="message-header d-flex justify-content-between align-items-center mb-3">
+                    <div class="btn-group" role="group">
+                        <a class="reply-link btn btn-light border" href="">
+                            <i class="bi bi-reply me-2"></i>{{ t('messages.message_summary.reply_button') }}
+                        </a>
+                        <button class="unread-button btn btn-light border">
+                            <i class="bi bi-envelope me-2"></i>{{ t('messages.message_summary.unread_button') }}
+                        </button>
+                        <button class="delete-button btn btn-light border">
+                            <i class="bi bi-trash me-2"></i>{{ t('messages.message_summary.destroy_button') }}
+                        </button>
+                    </div>
+                    <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"></button>
+                </div>
+                <form class="unread-form" method="POST" action=""></form>
+                <form class="delete-form" method="POST" action=""></form>
+                <div class="mx-1">
+                    <h5 class="message-title"></h5>
+                    <div class="message-body rich-text"></div>
+                </div>
+                <div class="loading text-center mt-4">
+                    <div class="spinner-border text-secondary" role="status">
+                        <span class="visually-hidden">{{ t('browse.start_rjs.loading') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
