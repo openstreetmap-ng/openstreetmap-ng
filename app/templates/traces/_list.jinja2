@@ -65,19 +65,15 @@
 <h3>{{ t('traces.index.empty_title') }}</h3>
 <p>
     {% set upload_link %}
-    <a href="/trace/upload">
-        {{ t('traces.index.upload_new') }}{#
-    #}</a>
+    <a href="/trace/upload">{{ t('traces.index.upload_new') }}</a>
     {% endset %}
     {% set wiki_link %}
-    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2">
-        {{ t('traces.index.wiki_page') }}{#
-    #}</a>{#
+    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">{{ t('traces.index.wiki_page') }}</a>{#
     #}{% endset %}
     {{ t(
-    'traces.index.empty_upload_html',
-    upload_link=upload_link,
-    wiki_link=wiki_link,
-) | safe }}
+        'traces.index.empty_upload_html',
+        upload_link=upload_link,
+        wiki_link=wiki_link,
+    ) | safe }}
 </p>
 {% endif %}
