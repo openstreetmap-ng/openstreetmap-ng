@@ -1,6 +1,7 @@
 # <img src="https://files.monicz.dev/osm/openstreetmap-ng.webp" alt="OpenStreetMap-NG logo" align="left" height="96px"> OpenStreetMap-NG
 
 [![Discord Developers Chat](https://shields.monicz.dev/discord/1246123404613128203?logo=discord&logoColor=FFF&label=Developers&color=5865F2&cacheSeconds=600)](https://discord.gg/GM89hdjSCB)
+[![Matrix Developers Chat](https://shields.monicz.dev/matrix/openstreetmap-ng%3Amatrix.org?logo=matrix&label=Developers&color=111&cacheSeconds=600)](https://matrix.to/#/#openstreetmap-ng:matrix.org)
 [![Liberapay Patrons](https://shields.monicz.dev/liberapay/patrons/Zaczero?logo=liberapay&label=Patrons)](https://liberapay.com/Zaczero/)
 [![GitHub Sponsors](https://shields.monicz.dev/github/sponsors/Zaczero?logo=github&label=Sponsors&color=%23db61a2)](https://github.com/sponsors/Zaczero)
 [![GitHub Stars](https://shields.monicz.dev/github/stars/Zaczero/openstreetmap-ng?style=social)](https://github.com/Zaczero/openstreetmap-ng)
@@ -15,7 +16,7 @@ I actively post weekly/bi-weekly updates on the development of OpenStreetMap-NG 
 
 To get started contributing, see the [Contributing Guide](https://github.com/Zaczero/openstreetmap-ng/wiki/Contributing:-Getting-Started) on the GitHub wiki. This wiki is the primary source of information for contributors. We support Linux, macOS, and Windows (WSL2) operating systems.
 
-You can also join our [Discord server](https://discord.gg/GM89hdjSCB) to receive personalized support and discuss development topics. This is our primary internal communication channel. It's free to join and we're always happy to help you get started!
+You can also join our [Discord server](https://discord.gg/GM89hdjSCB) or [Matrix room](https://matrix.to/#/#openstreetmap-ng:matrix.org) to receive personalized support and discuss development topics — both platforms are bridged, so you'll see the same messages in either one. This is our primary internal communication channel. It's free to join and we're always happy to help you get started!
 
 ## ✨ The Vision
 
