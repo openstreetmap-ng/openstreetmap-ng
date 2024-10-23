@@ -9,7 +9,6 @@ from app.services.system_app_service import SystemAppService
 router = APIRouter(prefix='/api/web/system-app')
 
 
-# TODO: test id, rapid only
 @router.post('/create-access-token')
 async def create_access_token(
     client_id: Annotated[Literal['SystemApp.id', 'SystemApp.rapid'], Form()],
