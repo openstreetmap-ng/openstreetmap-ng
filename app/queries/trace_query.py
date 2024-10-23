@@ -115,12 +115,9 @@ class TraceQuery:
                 where_and.append(Trace.id < before)
 
             stmt = stmt.where(*where_and)
-
-            if (after is None) or (before is not None):
-                stmt = stmt.order_by(Trace.id.desc()).limit(limit)
-            else:
-                stmt = stmt.order_by(Trace.id.asc()).limit(limit)
-                stmt = select(Trace).select_from(stmt.subquery()).order_by(Trace.id.desc())
+            order_desc = (after is None) or (before is not None)
+            stmt = stmt.order_by(Trace.id.desc() if order_desc else Trace.id.asc()).limit(limit)
 
             stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+            rows = (await session.scalars(stmt)).all()
+            return rows if order_desc else rows[::-1]
