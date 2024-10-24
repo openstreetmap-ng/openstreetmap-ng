@@ -14,12 +14,12 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import Editor
 from app.utils import json_encodes
 
+_default_editor = Editor.get_default().value
 _config_dict_base: dict[str, Any] = {
     'apiUrl': API_URL,
     'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
     'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
 }
-
 _config = json_encodes(_config_dict_base)
 
 
@@ -30,7 +30,7 @@ async def render_response(template_name: str, template_data: dict[str, Any] | No
     data = {
         'request': get_request(),
         'i18next_files': map_i18next_files(translation_locales()),
-        'default_editor': Editor.get_default(),
+        'default_editor': _default_editor,
         'config': _config,
     }
 
