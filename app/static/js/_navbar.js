@@ -15,6 +15,8 @@ const dropdownEditButtons = editGroup.querySelectorAll(".dropdown-item.edit-link
 const remoteEditButton = editGroup.querySelector(".dropdown-item.edit-link[data-editor=remote]")
 const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
 const loginLinks = navbar.querySelectorAll("a[href='/login']")
+const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
+const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
 
 // Add active class to current nav-lik
 const navLinks = navbar.querySelectorAll(".nav-link")
@@ -26,6 +28,20 @@ for (const link of navLinks) {
     }
 }
 
+/**
+ * Map of navbar elements to their base href
+ * @type {Map<HTMLElement, string>}
+ */
+const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
+    (map, link) => map.set(link, link.href),
+    new Map(),
+)
+
+/**
+ * On edit button click, check and handle the remember choice checkbox
+ * @param {PointerEvent} event
+ * @returns {void}
+ */
 const onEditButtonClick = (event) => {
     const editButton = event.currentTarget
     const editor = editButton.dataset.editor
@@ -66,21 +82,11 @@ for (const editButton of dropdownEditButtons) {
 }
 
 // On dropdown hidden, uncheck remember choice checkbox
-const onDropdownHidden = () => {
+editGroup.addEventListener("hidden.bs.dropdown", () => {
     if (!rememberChoice.checked) return
     rememberChoice.checked = false
     rememberChoice.dispatchEvent(new Event("change"))
-}
-editGroup.addEventListener("hidden.bs.dropdown", onDropdownHidden)
-
-/**
- * Map of navbar elements to their base href
- * @type {Map<HTMLElement, string>}
- */
-const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
-    (map, link) => map.set(link, link.href),
-    new Map(),
-)
+})
 
 /**
  * Update the login links with the current path and hash
@@ -88,25 +94,9 @@ const mapLinksHrefMap = Array.from(navbar.querySelectorAll(".map-link")).reduce(
  * @returns {void}
  */
 const updateLoginLinks = (hash) => {
-    const loginLinkQuery = qsEncode({ referer: location.pathname })
+    const loginLinkQuery = qsEncode({ referer: window.location.pathname })
     const loginHref = `/login?${loginLinkQuery}${hash}`
     for (const link of loginLinks) link.href = loginHref
-}
-
-/**
- * Handle remote edit path (/edit?editor=remote).
- * Simulate a click on the remote edit button and navigate back to index.
- * @returns {void}
- */
-export const handleEditRemotePath = () => {
-    if (location.pathname !== "/edit") return
-
-    const searchParams = qsParse(location.search.substring(1))
-    if (searchParams.editor !== "remote") return
-
-    console.debug("handleEditRemotePath")
-    routerNavigateStrict("/")
-    remoteEditButton.click()
 }
 
 // TODO: wth object support?
@@ -175,17 +165,43 @@ export const updateNavbarAndHash = (state, object = null) => {
     window.history.replaceState(null, "", hash)
 }
 
-// On window mapState message, update the navbar and hash
-const onMapState = (data) => {
-    const { lon, lat, zoom } = data.state
-    updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
+/**
+ * Handle remote edit path (/edit?editor=remote).
+ * Simulate a click on the remote edit button and navigate back to index.
+ * @returns {void}
+ */
+export const handleEditRemotePath = () => {
+    if (window.location.pathname !== "/edit") return
+
+    const searchParams = qsParse(window.location.search.substring(1))
+    if (searchParams.editor !== "remote") return
+
+    console.debug("handleEditRemotePath")
+    routerNavigateStrict("/")
+    remoteEditButton.click()
+}
+
+/**
+ * Update the unread messages badge in the navbar
+ * @param {number} change Count change
+ * @returns {void}
+ */
+export const changeUnreadMessagesBadge = (change) => {
+    const newCount = Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "") || 0) + change
+    console.debug("changeUnreadMessagesBadge", newCount)
+    newUnreadMessagesBadge.textContent = newCount > 0 ? newCount : ""
+    unreadMessagesBadge.textContent = newCount
 }
 
 // Handle mapState window messages (from iD/Rapid)
 addEventListener("message", (event) => {
     const data = event.data
-    if (data.type === "mapState") onMapState(data)
+    // On window mapState message, update the navbar and hash
+    if (data.type === "mapState") {
+        const { lon, lat, zoom } = data.state
+        updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
+    }
 })
 
 // Initial update to update the login links
-updateLoginLinks(location.hash)
+updateLoginLinks(window.location.hash)

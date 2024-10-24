@@ -1,11 +1,10 @@
 import { t } from "i18next"
+import { changeUnreadMessagesBadge } from "../_navbar.js"
 import { qsEncode, qsParse } from "../_qs.js"
 import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.messages-index-body")
 if (body) {
-    const newUnreadMessagesBadge = body.querySelector(".navbar .new-unread-messages-badge")
-    const unreadMessagesBadge = body.querySelector(".navbar .unread-messages-badge")
     const messages = body.querySelectorAll(".messages-list .social-action")
     const messagePreview = body.querySelector(".message-preview")
     const messageSender = messagePreview.querySelector(".message-sender")
@@ -36,7 +35,7 @@ if (body) {
         console.debug("openMessagePreview", openMessageId)
         if (openTarget.classList.contains("unread")) {
             openTarget.classList.remove("unread")
-            updateUnreadMessagesBadge(-1)
+            changeUnreadMessagesBadge(-1)
         }
         openTarget.classList.add("active")
         senderAvatar.removeAttribute("src")
@@ -115,19 +114,6 @@ if (body) {
         window.history.replaceState(null, "", url)
     }
 
-    /**
-     * Update the unread messages badge in the navbar
-     * @param {number} change Count change
-     * @returns {void}
-     */
-    const updateUnreadMessagesBadge = (change) => {
-        let newCount = Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0
-        newCount += change
-        console.debug("updateUnreadMessagesBadge", newCount)
-        newUnreadMessagesBadge.textContent = newCount > 0 ? newCount : ""
-        unreadMessagesBadge.textContent = newCount
-    }
-
     // Configure message header buttons
     const closePreviewButton = messagePreview.querySelector(".btn-close")
     closePreviewButton.addEventListener("click", closeMessagePreview)
@@ -142,7 +128,7 @@ if (body) {
         configureStandardForm(unreadForm, () => {
             console.debug("onUnreadFormSuccess", openMessageId)
             openTarget.classList.add("unread")
-            updateUnreadMessagesBadge(1)
+            changeUnreadMessagesBadge(1)
             closeMessagePreview()
         })
     }
