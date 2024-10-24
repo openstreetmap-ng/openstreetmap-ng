@@ -111,6 +111,11 @@ async def new_message(
     return await render_response('messages/new.jinja2')
 
 
+@router.get('/message/new/{display_name:str}')
+async def legacy_message_to(display_name: DisplayNameType):
+    return RedirectResponse(f'/message/new?to={display_name}', status.HTTP_302_FOUND)
+
+
 @router.get('/messages/{message_id:int}')
 async def legacy_message(message_id: PositiveInt):
     return RedirectResponse(f'/messages/inbox?show={message_id}', status.HTTP_302_FOUND)

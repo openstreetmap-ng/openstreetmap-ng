@@ -13,8 +13,8 @@ from app.limits import GEO_COORDINATE_PRECISION
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementType
-from app.models.types import OSMChangeAction
 from app.models.validating.element import ElementValidating
+from app.services.optimistic_diff.prepare import OSMChangeAction
 
 
 class Element06Mixin:

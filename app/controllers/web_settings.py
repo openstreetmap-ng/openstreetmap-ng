@@ -10,12 +10,12 @@ from app.models.types import (
     LocaleCode,
     PasswordType,
     ValidatingDisplayNameType,
-    ValidatingEmailType,
     ValidatingPasswordType,
 )
 from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
+from app.validators.email import ValidatingEmailType
 
 router = APIRouter(prefix='/api/web')
 
@@ -69,7 +69,7 @@ async def settings_background(
 async def settings_email(
     _: Annotated[User, web_user()],
     email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form()],
+    password: Annotated[PasswordType, Form(min_length=1)],
 ):
     collector = MessageCollector()
     await UserService.update_email(collector, new_email=email, password=password)
@@ -79,7 +79,7 @@ async def settings_email(
 @router.post('/settings/password')
 async def settings_password(
     _: Annotated[User, web_user()],
-    old_password: Annotated[PasswordType, Form()],
+    old_password: Annotated[PasswordType, Form(min_length=1)],
     new_password: Annotated[ValidatingPasswordType, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ):

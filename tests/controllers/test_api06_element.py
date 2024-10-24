@@ -7,7 +7,7 @@ from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType
-from app.models.types import OSMChangeAction
+from app.services.optimistic_diff.prepare import OSMChangeAction
 
 
 async def test_element_crud(client: AsyncClient):

@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Collection
 from dataclasses import dataclass
 from itertools import chain
-from typing import Final
+from typing import Final, Literal
 
 import cython
 from shapely import Point, box, multipolygons
@@ -18,10 +18,11 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementRef, ElementType, VersionedElementRef
-from app.models.types import OSMChangeAction
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
+
+OSMChangeAction = Literal['create', 'modify', 'delete']
 
 
 class ElementStateEntry:

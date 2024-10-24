@@ -18,7 +18,6 @@ from app.models.types import (
     EmailType,
     PasswordType,
     ValidatingDisplayNameType,
-    ValidatingEmailType,
     ValidatingPasswordType,
 )
 from app.services.oauth2_token_service import OAuth2TokenService
@@ -26,6 +25,7 @@ from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
 from app.services.user_signup_service import UserSignupService
 from app.services.user_token_account_confirm_service import UserTokenAccountConfirmService
+from app.validators.email import ValidatingEmailType
 
 router = APIRouter(prefix='/api/web/user')
 
