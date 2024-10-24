@@ -59,6 +59,7 @@ if (body) {
         fetch(`/api/web/messages/${openMessageId}`, {
             method: "GET",
             mode: "same-origin",
+            cache: "no-store",
             signal: abortController.signal,
             priority: "high",
         })
