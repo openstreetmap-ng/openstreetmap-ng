@@ -1,7 +1,7 @@
 {% if messages %}
 <ul class="messages-list list-unstyled">
     {% for message in messages %}
-    <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if not message.is_read %}unread{% endif %}"
+    <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
         data-id="{{ message.id }}">
         <p class="header text-muted d-flex justify-content-between">
             {% if inbox %}
