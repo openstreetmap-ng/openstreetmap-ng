@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/568bfef547c14ca438c56a0bece08b8bb2b71a9c.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/be79af5ec63facf6c7709094db72b253c34e1ac2.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -63,8 +63,7 @@ let
     ruff
     gcc14
     gettext
-    protobuf_28
-
+    protobuf
     # Frontend:
     bun
     biome
