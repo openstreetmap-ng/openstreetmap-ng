@@ -113,6 +113,7 @@ messages:
   older_messages: Older messages
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
+  action_received: received
 results:
   we_did_not_find_any_results: We did not find any results for your search.
 rich_text:

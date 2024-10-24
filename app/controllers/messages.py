@@ -28,7 +28,7 @@ async def _get_messages_data(
         before = show + 1
 
     with options_context(
-        joinedload(Message.from_user).load_only(
+        joinedload(Message.from_user if inbox else Message.to_user).load_only(
             User.id,
             User.display_name,
             User.avatar_type,

@@ -13,10 +13,6 @@ if (body) {
     const senderLink = messageSender.querySelector("a.sender-link")
     const messageTime = messagePreview.querySelector(".message-time")
     const replyLink = messagePreview.querySelector(".reply-link")
-    const unreadButton = messagePreview.querySelector(".unread-button")
-    const unreadForm = messagePreview.querySelector("form.unread-form")
-    const deleteButton = messagePreview.querySelector(".delete-button")
-    const deleteForm = messagePreview.querySelector("form.delete-form")
     const messageTitle = messagePreview.querySelector(".message-title")
     const messageBody = messagePreview.querySelector(".message-body")
     const loadingSpinner = messagePreview.querySelector(".loading")
@@ -71,10 +67,10 @@ if (body) {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
                 console.debug("Fetched message", openMessageId)
-                const { sender_display_name, sender_avatar_url, time, subject, body_rich } = await resp.json()
-                senderAvatar.src = sender_avatar_url
-                senderLink.href = `/user/${sender_display_name}`
-                senderLink.textContent = sender_display_name
+                const { user_display_name, user_avatar_url, time, subject, body_rich } = await resp.json()
+                senderAvatar.src = user_avatar_url
+                senderLink.href = `/user/${user_display_name}`
+                senderLink.textContent = user_display_name
                 messageTime.textContent = time
                 messageTitle.textContent = subject
                 messageBody.innerHTML = body_rich
@@ -136,17 +132,23 @@ if (body) {
     const closePreviewButton = messagePreview.querySelector(".btn-close")
     closePreviewButton.addEventListener("click", closeMessagePreview)
 
-    unreadButton.addEventListener("click", () => {
-        unreadForm.action = `/api/web/messages/${openMessageId}/unread`
-        unreadForm.requestSubmit()
-    })
-    configureStandardForm(unreadForm, () => {
-        console.debug("onUnreadFormSuccess", openMessageId)
-        openTarget.classList.add("unread")
-        updateUnreadMessagesBadge(1)
-        closeMessagePreview()
-    })
+    const unreadButton = messagePreview.querySelector(".unread-button")
+    const unreadForm = messagePreview.querySelector("form.unread-form")
+    if (unreadButton) {
+        unreadButton.addEventListener("click", () => {
+            unreadForm.action = `/api/web/messages/${openMessageId}/unread`
+            unreadForm.requestSubmit()
+        })
+        configureStandardForm(unreadForm, () => {
+            console.debug("onUnreadFormSuccess", openMessageId)
+            openTarget.classList.add("unread")
+            updateUnreadMessagesBadge(1)
+            closeMessagePreview()
+        })
+    }
 
+    const deleteButton = messagePreview.querySelector(".delete-button")
+    const deleteForm = messagePreview.querySelector("form.delete-form")
     deleteButton.addEventListener("click", () => {
         if (!confirm(t("messages.delete_confirmation"))) return
         deleteForm.action = `/api/web/messages/${openMessageId}/delete`
