@@ -142,39 +142,39 @@ select = [
   "E9",
   "F",     # pyflakes
   "FA",    # flake8-future-annotations
-  "FAST",  # fastapi
-  "FLY",   # flynt
-  "FURB",  # refurb
-  "G",     # flake8-logging-format
-  "I",     # isort
-  "ICN",   # flake8-import-conventions
-  "INT",   # flake8-gettext
-  "ISC",   # flake8-implicit-str-concat
-  "LOG",   # flake8-logging
-  "N",     # pep8-naming
-  "NPY",   # numpy
-  "PERF",  # perflint
-  "PIE",   # flake8-pie
-  "PLC",   # pylint
-  "PLE",   # pylint
-  "PLR",   # pylint
-  "PLW",   # pylint
-  "PT",    # flake8-pytest-style
-  "PTH",   # flake8-use-pathlib
-  "PYI",   # flake8-pyi
-  "Q",     # flake8-quotes
-  "RSE",   # flake8-raise
-  "RUF",   # ruff
-  "S",     # flake8-bandit
-  "SIM",   # flake8-simplify
-  "SLF",   # flake8-self
-  "SLOT",  # flake8-slots
-  "T10",   # flake8-debugger
-  "TID",   # flake8-tidy-imports
-  "TRY",   # tryceratops
-  "UP",    # pyupgrade
+  # "FAST",  # fastapi
+  "FLY",  # flynt
+  "FURB", # refurb
+  "G",    # flake8-logging-format
+  "I",    # isort
+  "ICN",  # flake8-import-conventions
+  "INT",  # flake8-gettext
+  "ISC",  # flake8-implicit-str-concat
+  "LOG",  # flake8-logging
+  "N",    # pep8-naming
+  "NPY",  # numpy
+  "PERF", # perflint
+  "PIE",  # flake8-pie
+  "PLC",  # pylint
+  "PLE",  # pylint
+  "PLR",  # pylint
+  "PLW",  # pylint
+  "PT",   # flake8-pytest-style
+  "PTH",  # flake8-use-pathlib
+  "PYI",  # flake8-pyi
+  "Q",    # flake8-quotes
+  "RSE",  # flake8-raise
+  "RUF",  # ruff
+  "S",    # flake8-bandit
+  "SIM",  # flake8-simplify
+  "SLF",  # flake8-self
+  "SLOT", # flake8-slots
+  "T10",  # flake8-debugger
+  "TID",  # flake8-tidy-imports
+  "TRY",  # tryceratops
+  "UP",   # pyupgrade
   "W6",
-  "YTT",   # flake8-2020
+  "YTT",  # flake8-2020
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
