@@ -12,6 +12,16 @@
         height: 20px;
         filter: grayscale(10%);
     }
+
+    .dropdown-toggle {
+        .badge {
+            position: static;
+        }
+    }
+
+    .ms-1-5 {
+        margin-left: 0.375rem;
+    }
 }
 
 .navbar-brand {

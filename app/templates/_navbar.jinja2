@@ -127,6 +127,9 @@
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
                     {{ user.display_name }}
+                    <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">{#
+                        #}{% if messages_count_unread > 0 %}{{ messages_count_unread }}{% endif %}{#
+                    #}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
                     <li>
@@ -135,11 +138,10 @@
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="/messages/inbox">
+                        <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
                             {{ t('users.show.my messages') }}
-                            <span class="badge text-bg-light-green fw-light">
-                                0
-                                {# TODO #}
+                            <span class="unread-messages-badge badge text-bg-light-green fw-light ms-2">
+                                {{ messages_count_unread }}
                             </span>
                         </a>
                     </li>
