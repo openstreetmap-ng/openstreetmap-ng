@@ -1,5 +1,6 @@
 from typing import Annotated
 
+from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Form, Query, Request, Response
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -10,9 +11,11 @@ from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.limits import COOKIE_AUTH_MAX_AGE
+from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH
 from app.models.db.user import User, UserStatus
 from app.models.types import (
+    DisplayNameType,
+    EmailType,
     PasswordType,
     ValidatingDisplayNameType,
     ValidatingEmailType,
@@ -29,7 +32,9 @@ router = APIRouter(prefix='/api/web/user')
 
 @router.post('/login')
 async def login(
-    display_name_or_email: Annotated[str, Form()],
+    display_name_or_email: Annotated[
+        DisplayNameType | EmailType, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
+    ],
     password: Annotated[PasswordType, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
@@ -115,7 +120,7 @@ async def account_confirm_resend(
 
 @router.post('/reset-password')
 async def reset_password(
-    email: Annotated[ValidatingEmailType, Form()],
+    email: Annotated[EmailType, Form()],
 ):
     await ResetPasswordService.send_reset_link(email)
     collector = MessageCollector()

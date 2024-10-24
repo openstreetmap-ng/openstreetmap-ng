@@ -23,7 +23,7 @@ class UserService:
     @staticmethod
     async def login(
         *,
-        display_name_or_email: str,
+        display_name_or_email: DisplayNameType | EmailType,
         password: PasswordType,
     ) -> str:
         """

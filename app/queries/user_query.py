@@ -11,6 +11,7 @@ from app.limits import NEARBY_USERS_RADIUS_METERS
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
+from app.models.types import DisplayNameType, EmailType
 
 
 class UserQuery:
@@ -25,7 +26,7 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_one_by_display_name(display_name: str) -> User | None:
+    async def find_one_by_display_name(display_name: DisplayNameType) -> User | None:
         """
         Find a user by display name.
         """
@@ -35,7 +36,7 @@ class UserQuery:
             return await session.scalar(stmt)
 
     @staticmethod
-    async def find_one_by_email(email: str) -> User | None:
+    async def find_one_by_email(email: EmailType) -> User | None:
         """
         Find a user by email.
         """
@@ -83,7 +84,7 @@ class UserQuery:
             return (await session.scalars(stmt)).all()
 
     @staticmethod
-    async def check_display_name_available(display_name: str) -> bool:
+    async def check_display_name_available(display_name: DisplayNameType) -> bool:
         """
         Check if a display name is available.
         """
@@ -103,7 +104,7 @@ class UserQuery:
             return other_user is None
 
     @staticmethod
-    async def check_email_available(email: str) -> bool:
+    async def check_email_available(email: EmailType) -> bool:
         """
         Check if an email is available.
         """
@@ -124,7 +125,7 @@ class UserQuery:
 
     @staticmethod
     async def resolve_elements_users(elements: Collection[Element], *, display_name: bool) -> None:
-        """
+        """str
         Resolve the elements users ids.
 
         If display_name is True, the users display name is also resolved.

@@ -10,12 +10,13 @@ from starlette.responses import RedirectResponse
 from app.lib.auth_context import web_user
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import MESSAGES_INBOX_PAGE_SIZE
+from app.limits import DISPLAY_NAME_MAX_LENGTH, MESSAGES_INBOX_PAGE_SIZE
 from app.models.db.message import Message
 from app.models.db.user import User
+from app.models.types import DisplayNameType
 from app.queries.message_query import MessageQuery
 
-router = APIRouter(prefix='/messages')
+router = APIRouter()
 
 
 async def _get_messages_data(
@@ -79,7 +80,7 @@ async def _get_messages_data(
     }
 
 
-@router.get('/inbox')
+@router.get('/messages/inbox')
 async def inbox(
     _: Annotated[User, web_user()],
     show: Annotated[PositiveInt | None, Query()] = None,
@@ -90,7 +91,7 @@ async def inbox(
     return await render_response('messages/index.jinja2', data)
 
 
-@router.get('/outbox')
+@router.get('/messages/outbox')
 async def outbox(
     _: Annotated[User, web_user()],
     show: Annotated[PositiveInt | None, Query()] = None,
@@ -101,11 +102,20 @@ async def outbox(
     return await render_response('messages/index.jinja2', data)
 
 
-@router.get('/{message_id:int}')
+@router.get('/message/new')
+async def new_message(
+    _: Annotated[User, web_user()],
+    to: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    reply: Annotated[PositiveInt | None, Query()] = None,
+):
+    return await render_response('messages/new.jinja2')
+
+
+@router.get('/messages/{message_id:int}')
 async def legacy_message(message_id: PositiveInt):
     return RedirectResponse(f'/messages/inbox?show={message_id}', status.HTTP_302_FOUND)
 
 
-@router.get('/{message_id:int}/reply')
+@router.get('/messages/{message_id:int}/reply')
 async def legacy_message_reply(message_id: PositiveInt):
     return RedirectResponse(f'/message/new?reply={message_id}', status.HTTP_302_FOUND)

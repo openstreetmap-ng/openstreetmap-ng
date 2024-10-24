@@ -1,5 +1,6 @@
 import logging
 from base64 import b64decode
+from typing import cast
 
 from pydantic import SecretStr
 from sqlalchemy import update
@@ -16,7 +17,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import PasswordType
+from app.models.types import DisplayNameType, EmailType, PasswordType
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 from app.services.cache_service import CacheContext, CacheService
@@ -81,7 +82,7 @@ class AuthService:
                     raise_for().bad_basic_auth_format()
 
                 basic_user = await AuthService.authenticate_credentials(
-                    display_name_or_email=username,
+                    display_name_or_email=cast(DisplayNameType | EmailType, username),
                     password=PasswordType(SecretStr(password)),
                 )
                 if basic_user is not None:
@@ -111,7 +112,7 @@ class AuthService:
                 scheme = scheme.casefold()
                 if scheme == 'user':
                     logging.debug('Attempting to authenticate with User')
-                    user = await UserQuery.find_one_by_display_name(param)
+                    user = await UserQuery.find_one_by_display_name(DisplayNameType(param))
                     scopes = _session_auth_scopes
                     if user is None:
                         raise_for().user_not_found(param)
@@ -123,7 +124,9 @@ class AuthService:
         return user, scopes
 
     @staticmethod
-    async def authenticate_credentials(display_name_or_email: str, password: PasswordType) -> User | None:
+    async def authenticate_credentials(
+        display_name_or_email: DisplayNameType | EmailType, password: PasswordType
+    ) -> User | None:
         """
         Authenticate a user with (display name or email) and password.
 
@@ -138,7 +141,7 @@ class AuthService:
             except ValueError:
                 user = None
         else:
-            display_name = display_name_or_email
+            display_name = DisplayNameType(display_name_or_email)
             user = await UserQuery.find_one_by_display_name(display_name)
 
         if user is None:

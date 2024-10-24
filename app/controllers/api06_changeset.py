@@ -13,11 +13,12 @@ from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.options_context import options_context
 from app.lib.xml_body import xml_body
-from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from app.limits import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT, DISPLAY_NAME_MAX_LENGTH
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
 from app.models.scope import Scope
+from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -134,7 +135,7 @@ async def close_changeset(
 @router.get('/changesets.json')
 async def query_changesets(
     changesets_query: Annotated[str | None, Query(alias='changesets', min_length=1)] = None,
-    display_name: Annotated[str | None, Query(min_length=1)] = None,
+    display_name: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     user_id: Annotated[PositiveInt | None, Query(alias='user')] = None,
     time: Annotated[str | None, Query(min_length=1)] = None,
     open_str: Annotated[str | None, Query(alias='open')] = None,

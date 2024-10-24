@@ -45,6 +45,18 @@
         }
     },
     "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.packageIndexDepths": [
+        {
+            "depth": 5,
+            "includeAllSymbols": true,
+            "name": "app"
+        },
+        {
+            "depth": 2,
+            "includeAllSymbols": false,
+            "name": ""
+        }
+    ],
     "python.experiments.enabled": false,
     "python.terminal.activateEnvironment": false,
     "python.testing.pytestEnabled": true,

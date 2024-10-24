@@ -12,6 +12,7 @@ from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
 from app.main import main
+from app.models.types import DisplayNameType
 from app.queries.user_query import UserQuery
 from tests.utils.event_loop_policy import CustomEventLoopPolicy
 from tests.utils.lifespan_manager import LifespanManager
@@ -55,7 +56,7 @@ async def changeset_id(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    user = await UserQuery.find_one_by_display_name('user1')
+    user = await UserQuery.find_one_by_display_name(DisplayNameType('user1'))
     with exceptions_context(Exceptions06()), auth_context(user, ()):
         yield int(r.text)
 

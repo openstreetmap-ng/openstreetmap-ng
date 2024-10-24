@@ -14,6 +14,7 @@ from email_validator import validate_email as validate_email_
 
 from app.config import TEST_ENV
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT
+from app.models.types import EmailType
 from app.services.cache_service import CacheContext, CacheService
 
 _cache_context = CacheContext('EmailValidator')
@@ -24,7 +25,7 @@ _resolver.cache = None  # using valkey cache
 _resolver.retry_servfail = True
 
 
-def validate_email(email: str) -> str:
+def validate_email(email: str) -> EmailType:
     """
     Validate and normalize email address.
 
@@ -34,11 +35,13 @@ def validate_email(email: str) -> str:
     'example@ツ.life'
     """
     try:
-        return validate_email_(
-            email,
-            check_deliverability=False,
-            test_environment=TEST_ENV,
-        ).normalized
+        return EmailType(
+            validate_email_(
+                email,
+                check_deliverability=False,
+                test_environment=TEST_ENV,
+            ).normalized
+        )
     except EmailNotValidError as e:
         raise ValueError(f'Invalid email address {email!r}') from e
 

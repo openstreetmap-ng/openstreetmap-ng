@@ -13,6 +13,7 @@ from app.lib.render_response import render_response
 from app.limits import DISPLAY_NAME_MAX_LENGTH, TRACE_TAG_MAX_LENGTH, TRACES_LIST_PAGE_SIZE
 from app.models.db.trace_ import Trace
 from app.models.db.user import User
+from app.models.types import DisplayNameType
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
@@ -120,7 +121,7 @@ async def tagged(
 
 @router.get('/user/{display_name:str}/traces')
 async def personal(
-    display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
@@ -131,7 +132,7 @@ async def personal(
 
 @router.get('/user/{display_name:str}/traces/tag/{tag:str}')
 async def personal_tagged(
-    display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+    display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
     tag: Annotated[str, Path(min_length=1, max_length=TRACE_TAG_MAX_LENGTH)],
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,

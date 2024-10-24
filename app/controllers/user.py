@@ -27,6 +27,7 @@ from app.limits import (
 )
 from app.models.db.note_comment import NoteEvent
 from app.models.db.user import User, UserStatus
+from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -56,7 +57,9 @@ async def permalink(
 
 # TODO: optimize
 @router.get('/user/{display_name:str}')
-async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)]):
+async def index(
+    display_name: Annotated[DisplayNameType, Path(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)],
+):
     user = await UserQuery.find_one_by_display_name(display_name)
 
     if user is None:
