@@ -10,9 +10,9 @@
         <div class="btn-group dropdown" role="group">
             <div class="btn-group edit-group" data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
                 {% if user is none %}
-                {% set editor = DEFAULT_EDITOR.value %}
+                {% set editor = default_editor.value %}
                 {% else %}
-                {% set editor = user.editor.value or DEFAULT_EDITOR.value %}
+                {% set editor = user.editor.value or default_editor.value %}
                 {% endif %}
                 <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ editor }}">
                     {{ t('layouts.edit') }}

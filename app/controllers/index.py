@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import FileResponse, RedirectResponse, Response
 
@@ -44,12 +44,12 @@ async def robots():
 @router.get('/relation/{_:int}/history/{__:int}')
 @router.get('/distance')
 async def index():
-    return render_response('index.jinja2')
+    return await render_response('index.jinja2')
 
 
 @router.get('/communities')
 async def communities():
-    return render_response('communities.jinja2', {'local_chapters': LOCAL_CHAPTERS})
+    return await render_response('communities.jinja2', {'local_chapters': LOCAL_CHAPTERS})
 
 
 @router.get('/copyright/{locale:str}')
@@ -62,7 +62,7 @@ async def copyright_i18n(locale: LocaleCode):
         copyright_content = render('copyright_content.jinja2')
     primary_locale = primary_translation_locale()
     show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
-    return render_response(
+    return await render_response(
         'copyright.jinja2',
         {
             'title': title,
@@ -85,7 +85,7 @@ async def about_i18n(locale: LocaleCode):
     with translation_context(locale):
         title = t('layouts.about')
         about_content = render('about_content.jinja2')
-    return render_response(
+    return await render_response(
         'about.jinja2',
         {
             'title': title,
@@ -101,21 +101,23 @@ async def about():
 
 @router.get('/help')
 async def help_():
-    return render_response('help.jinja2')
+    return await render_response('help.jinja2')
 
 
 @router.get('/fixthemap')
 async def fixthemap():
-    return render_response('fixthemap.jinja2')
+    return await render_response('fixthemap.jinja2')
 
 
 @router.get('/login')
-async def login():
+async def login(referer: Annotated[str | None, Query()] = None):
     if auth_user() is not None:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response('user/login.jinja2')
+        if not referer or not referer.startswith('/'):
+            referer = '/'
+        return RedirectResponse(referer, status.HTTP_303_SEE_OTHER)
+    return await render_response('user/login.jinja2')
 
 
 @router.get('/welcome')
 async def welcome(_: Annotated[User, web_user()]):
-    return render_response('welcome.jinja2')
+    return await render_response('welcome.jinja2')

@@ -23,20 +23,20 @@ async def edit(
             editor = Editor.get_default()
 
     if editor == Editor.id:
-        return render_response('edit/id.jinja2', {'ID_URL': ID_URL})
+        return await render_response('edit/id.jinja2', {'ID_URL': ID_URL})
     elif editor == Editor.rapid:
-        return render_response('edit/rapid.jinja2', {'RAPID_URL': RAPID_URL})
+        return await render_response('edit/rapid.jinja2', {'RAPID_URL': RAPID_URL})
     elif editor == Editor.remote:
-        return render_response('index.jinja2')
+        return await render_response('index.jinja2')
     else:
         raise NotImplementedError(f'Unsupported editor {editor!r}')
 
 
 @router.get('/id')
 async def id(_: Annotated[User, web_user()]):
-    return render_response('edit/id_iframe.jinja2', {'ID_VERSION': ID_VERSION})
+    return await render_response('edit/id_iframe.jinja2', {'ID_VERSION': ID_VERSION})
 
 
 @router.get('/rapid')
 async def rapid(_: Annotated[User, web_user()]):
-    return render_response('edit/rapid_iframe.jinja2', {'RAPID_VERSION': RAPID_VERSION})
+    return await render_response('edit/rapid_iframe.jinja2', {'RAPID_VERSION': RAPID_VERSION})

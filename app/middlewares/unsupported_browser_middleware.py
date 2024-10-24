@@ -49,7 +49,7 @@ class UnsupportedBrowserMiddleware:
                 return
 
             logging.debug('Client browser is not supported')
-            response = render_response('unsupported_browser.jinja2')
+            response = await render_response('unsupported_browser.jinja2')
             response.status_code = status.HTTP_501_NOT_IMPLEMENTED
             await response(scope, receive, send)
 

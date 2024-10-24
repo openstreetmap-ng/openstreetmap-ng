@@ -28,10 +28,7 @@ async def get_note(id: PositiveInt):
     notes = await NoteQuery.find_many_by_query(note_ids=(id,), limit=1)
     note = notes[0] if notes else None
     if note is None:
-        return render_response(
-            'partial/not_found.jinja2',
-            {'type': 'note', 'id': id},
-        )
+        return await render_response('partial/not_found.jinja2', {'type': 'note', 'id': id})
 
     async with TaskGroup() as tg:
         tg.create_task(_resolve_comments_task(notes))
@@ -50,7 +47,7 @@ async def get_note(id: PositiveInt):
     if note_comments is None:
         raise AssertionError('Note comments must be set')
     x, y = get_coordinates(note.point)[0].tolist()
-    return render_response(
+    return await render_response(
         'partial/note.jinja2',
         {
             'note': note,

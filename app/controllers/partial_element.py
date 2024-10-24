@@ -43,10 +43,7 @@ async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     element = elements[0] if elements else None
 
     if element is None:
-        return render_response(
-            'partial/not_found.jinja2',
-            {'type': type, 'id': id},
-        )
+        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id})
 
     # if the element was superseded (very small chance), get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
@@ -55,7 +52,7 @@ async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
 
     await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=True)
-    return render_response('partial/element.jinja2', data)
+    return await render_response('partial/element.jinja2', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history/{version:int}')
@@ -77,10 +74,7 @@ async def get_version(
 
     if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
-        return render_response(
-            'partial/not_found.jinja2',
-            {'type': type, 'id': id_text},
-        )
+        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id_text})
 
     # if the element was superseded, get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
@@ -90,7 +84,7 @@ async def get_version(
 
     await ElementMemberQuery.resolve_members((element,))
     data = await _get_element_data(element, at_sequence_id, include_parents=include_parents)
-    return render_response('partial/element.jinja2', data)
+    return await render_response('partial/element.jinja2', data)
 
 
 @router.get('/{type:element_type}/{id:int}/history')
@@ -105,10 +99,7 @@ async def get_history(
     current_version = await ElementQuery.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
     if current_version == 0:
-        return render_response(
-            'partial/not_found.jinja2',
-            {'type': type, 'id': id},
-        )
+        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id})
 
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size
@@ -158,7 +149,7 @@ async def get_history(
         previous_element = previous_element_[0] if previous_element_ else None
         tags_diff_mode(previous_element, elements_data)
 
-    return render_response(
+    return await render_response(
         'partial/element_history.jinja2',
         {
             'type': type,

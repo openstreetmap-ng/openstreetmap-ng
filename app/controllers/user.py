@@ -60,7 +60,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
     user = await UserQuery.find_one_by_display_name(display_name)
 
     if user is None:
-        response = render_response('user/profile/not_found.jinja2', {'name': display_name})
+        response = await render_response('user/profile/not_found.jinja2', {'name': display_name})
         response.status_code = status.HTTP_404_NOT_FOUND
         return response
 
@@ -110,7 +110,7 @@ async def index(display_name: Annotated[str, Path(min_length=1, max_length=DISPL
 
     activity_data = await _get_activity_data(user)
 
-    return render_response(
+    return await render_response(
         'user/profile/index.jinja2',
         {
             'profile': user,
@@ -195,7 +195,7 @@ async def legacy_signup():
 async def signup():
     if auth_user() is not None:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response(
+    return await render_response(
         'user/signup.jinja2',
         {
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
@@ -211,14 +211,14 @@ async def signup():
 async def account_confirm_pending(user: Annotated[User, web_user()]):
     if user.status != UserStatus.pending_activation:
         return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
-    return render_response('user/account_confirm_pending.jinja2')
+    return await render_response('user/account_confirm_pending.jinja2')
 
 
 @router.get('/user/terms')
 async def terms(user: Annotated[User, web_user()]):
     if user.status != UserStatus.pending_terms:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return render_response(
+    return await render_response(
         'user/terms.jinja2',
         {
             'legal_terms_GB': legal_terms('GB'),
@@ -235,4 +235,4 @@ async def legacy_reset_password():
 
 @router.get('/reset-password')
 async def reset_password():
-    return render_response('user/reset_password.jinja2')
+    return await render_response('user/reset_password.jinja2')

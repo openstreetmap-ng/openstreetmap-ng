@@ -129,7 +129,7 @@ async def _get_response(
 
         leaflet[i] = leaflet_elements
 
-    return render_response(
+    return await render_response(
         'partial/search.jinja2',
         {
             'bounds': bounds,

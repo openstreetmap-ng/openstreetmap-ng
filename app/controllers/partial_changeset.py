@@ -36,7 +36,7 @@ async def get_changeset(id: PositiveInt):
         changeset = await ChangesetQuery.find_by_id(id)
 
     if changeset is None:
-        return render_response(
+        return await render_response(
             'partial/not_found.jinja2',
             {'type': 'changeset', 'id': id},
         )
@@ -78,7 +78,7 @@ async def get_changeset(id: PositiveInt):
     if comment_tag is None:
         comment_tag = TagFormat('comment', t('browse.no_comment'))
 
-    return render_response(
+    return await render_response(
         'partial/changeset.jinja2',
         {
             'changeset': changeset,

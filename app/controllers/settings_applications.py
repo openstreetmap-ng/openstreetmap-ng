@@ -35,7 +35,7 @@ async def applications_authorizations(
         .load_only(User.id, User.display_name, User.avatar_type, User.avatar_id),
     ):
         tokens = await OAuth2TokenQuery.find_unique_per_app_by_user_id(user.id)
-    return render_response(
+    return await render_response(
         'settings/applications/authorizations.jinja2',
         {
             'tokens': tokens,
@@ -48,7 +48,7 @@ async def applications_admin(
     user: Annotated[User, web_user()],
 ):
     apps = await OAuth2ApplicationQuery.get_many_by_user_id(user.id)
-    return render_response(
+    return await render_response(
         'settings/applications/admin.jinja2',
         {
             'apps': apps,
@@ -65,7 +65,7 @@ async def application_admin(
     app = await OAuth2ApplicationQuery.find_one_by_id(id, user_id=user.id)
     if app is None:
         return RedirectResponse('/settings/applications/admin', status.HTTP_303_SEE_OTHER)
-    return render_response(
+    return await render_response(
         'settings/applications/edit.jinja2',
         {
             'app': app,
@@ -80,7 +80,7 @@ async def tokens(
     expand: Annotated[PositiveInt | None, Query()] = None,
 ):
     tokens = await OAuth2TokenQuery.find_many_pats_by_user(user_id=user.id, limit=OAUTH_PAT_LIMIT)
-    return render_response(
+    return await render_response(
         'settings/applications/tokens.jinja2',
         {
             'expand_id': expand,

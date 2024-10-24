@@ -22,7 +22,7 @@ router = APIRouter()
 
 @router.get('/settings')
 async def settings(_: Annotated[User, web_user()]):
-    return render_response(
+    return await render_response(
         'settings/index.jinja2',
         {
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
@@ -33,7 +33,7 @@ async def settings(_: Annotated[User, web_user()]):
 
 @router.get('/settings/email')
 async def settings_email(_: Annotated[User, web_user()]):
-    return render_response(
+    return await render_response(
         'settings/email.jinja2',
         {
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
@@ -50,7 +50,7 @@ async def settings_security(user: Annotated[User, web_user()]):
         client_id='SystemApp.web',
         limit=ACTIVE_SESSIONS_DISPLAY_LIMIT,
     )
-    return render_response(
+    return await render_response(
         'settings/security.jinja2',
         {
             'current_session_id': current_session.id,  # pyright: ignore[reportOptionalMemberAccess]

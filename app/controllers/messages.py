@@ -87,7 +87,7 @@ async def inbox(
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
     data = await _get_messages_data(inbox=True, show=show, after=after, before=before)
-    return render_response('messages/index.jinja2', data)
+    return await render_response('messages/index.jinja2', data)
 
 
 @router.get('/outbox')
@@ -98,7 +98,7 @@ async def outbox(
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
     data = await _get_messages_data(inbox=False, show=show, after=after, before=before)
-    return render_response('messages/index.jinja2', data)
+    return await render_response('messages/index.jinja2', data)
 
 
 @router.get('/{message_id:int}')

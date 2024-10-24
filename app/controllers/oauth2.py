@@ -85,13 +85,13 @@ async def authorize(
     )
 
     if isinstance(auth_result, OAuth2Application):
-        return render_response(
+        return await render_response(
             'oauth2/authorize.jinja2',
             {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
         )
     if isinstance(auth_result, OAuth2TokenOOB):
         authorization_code = str(auth_result)
-        response = render_response(
+        response = await render_response(
             'oauth2/oob.jinja2',
             {'authorization_code': authorization_code},
         )
@@ -103,7 +103,7 @@ async def authorize(
         final_uri = extend_query_params(redirect_uri, auth_result, fragment=is_fragment)
         return RedirectResponse(final_uri, status.HTTP_303_SEE_OTHER)
     if response_mode == OAuth2ResponseMode.form_post:
-        return render_response(
+        return await render_response(
             'oauth2/response_form_post.jinja2',
             {'redirect_uri': redirect_uri, 'auth_result': auth_result},
         )

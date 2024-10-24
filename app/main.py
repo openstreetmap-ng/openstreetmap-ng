@@ -34,6 +34,7 @@ from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
+from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.rate_limit_middleware import RateLimitMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
@@ -91,6 +92,7 @@ register_url_convertor('element_type', ElementTypeConvertor())
 
 main = FastAPI(title=NAME, lifespan=lifespan)
 
+main.add_middleware(ParallelTasksMiddleware)
 main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
 main.add_middleware(
     CompressMiddleware,
