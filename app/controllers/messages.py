@@ -104,3 +104,8 @@ async def outbox(
 @router.get('/{message_id:int}')
 async def legacy_message(message_id: PositiveInt):
     return RedirectResponse(f'/messages/inbox?show={message_id}', status.HTTP_302_FOUND)
+
+
+@router.get('/{message_id:int}/reply')
+async def legacy_message_reply(message_id: PositiveInt):
+    return RedirectResponse(f'/message/new?reply={message_id}', status.HTTP_302_FOUND)

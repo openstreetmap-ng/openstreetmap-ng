@@ -6,6 +6,10 @@ const body = document.querySelector("body.messages-index-body")
 if (body) {
     const messages = body.querySelectorAll(".messages-list .social-action")
     const messagePreview = body.querySelector(".message-preview")
+    const messageSender = messagePreview.querySelector(".message-sender")
+    const senderAvatar = messageSender.querySelector("img.avatar")
+    const senderLink = messageSender.querySelector("a.sender-link")
+    const messageTime = messagePreview.querySelector(".message-time")
     const replyLink = messagePreview.querySelector(".reply-link")
     const unreadButton = messagePreview.querySelector(".unread-button")
     const unreadForm = messagePreview.querySelector("form.unread-form")
@@ -34,6 +38,9 @@ if (body) {
         console.debug("openMessagePreview", openMessageId)
         openTarget.classList.add("active")
         openTarget.classList.remove("unread")
+        senderAvatar.removeAttribute("src")
+        senderLink.innerHTML = ""
+        messageTime.innerHTML = ""
         messageTitle.innerHTML = ""
         messageBody.innerHTML = ""
         messagePreview.classList.remove("d-none")
@@ -58,9 +65,13 @@ if (body) {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
                 console.debug("Fetched message", openMessageId)
-                const data = await resp.json()
-                messageTitle.textContent = data.subject
-                messageBody.innerHTML = data.body_rich
+                const { sender_display_name, sender_avatar_url, time, subject, body_rich } = await resp.json()
+                senderAvatar.src = sender_avatar_url
+                senderLink.href = `/user/${sender_display_name}`
+                senderLink.textContent = sender_display_name
+                messageTime.textContent = time
+                messageTitle.textContent = subject
+                messageBody.innerHTML = body_rich
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
@@ -80,8 +91,6 @@ if (body) {
     const closeMessagePreview = () => {
         console.debug("closeMessagePreview", openMessageId)
         messagePreview.classList.add("d-none")
-        messageTitle.innerHTML = ""
-        messageBody.innerHTML = ""
         if (abortController) abortController.abort()
         abortController = null
         openTarget.classList.remove("active")

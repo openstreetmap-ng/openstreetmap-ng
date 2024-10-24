@@ -1,2 +1,21 @@
 .messages-index-body {
+    .message-preview {
+        border-radius: unset;
+        border-top: unset;
+        border-right: unset;
+        border-bottom: unset;
+
+        .card-body {
+            padding-bottom: unset;
+        }
+
+        .message-sender {
+            margin-bottom: 0.75rem;
+
+            .avatar {
+                font-size: 2em;
+                margin-right: 0.5rem;
+            }
+        }
+    }
 }
