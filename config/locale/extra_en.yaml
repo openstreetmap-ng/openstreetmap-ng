@@ -114,6 +114,13 @@ messages:
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
   action_received: received
+  compose:
+    description: Send a new private message to another map user.
+    recipient: Recipient
+    recipient_placeholder: Enter username
+    subject: Subject
+    subject_placeholder: Enter message subject
+    body: Body
 results:
   we_did_not_find_any_results: We did not find any results for your search.
 rich_text:
@@ -312,7 +319,8 @@ action:
   revoke_access: Revoke access
   revoke_key: Revoke key
   save_changes: Save changes
-  send_message: Send a message
+  send: Send
+  send_a_message: Send a message
   submit: Submit
   view_all: View all
   view_more: View more

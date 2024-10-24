@@ -11,7 +11,7 @@ if (body) {
     const senderAvatar = messageSender.querySelector("img.avatar")
     const senderLink = messageSender.querySelector("a.sender-link")
     const messageTime = messagePreview.querySelector(".message-time")
-    const replyLink = messagePreview.querySelector(".reply-link")
+    const replyLink = messagePreview.querySelector("a.reply-link")
     const messageTitle = messagePreview.querySelector(".message-title")
     const messageBody = messagePreview.querySelector(".message-body")
     const loadingSpinner = messagePreview.querySelector(".loading")

@@ -35,6 +35,12 @@
     }
 }
 
+// Seamless preview experience: copy padding and border size from textarea
+.rich-text-preview {
+    padding: 0.375rem 0.75rem;
+    border: 1px solid transparent;
+}
+
 .rich-text-tips {
     contain: content;
 

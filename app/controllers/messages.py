@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from itertools import chain
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -7,14 +8,23 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.config import APP_URL
 from app.lib.auth_context import web_user
+from app.lib.date_utils import format_sql_date
+from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
-from app.limits import DISPLAY_NAME_MAX_LENGTH, MESSAGES_INBOX_PAGE_SIZE
+from app.limits import (
+    DISPLAY_NAME_MAX_LENGTH,
+    MESSAGE_BODY_MAX_LENGTH,
+    MESSAGE_SUBJECT_MAX_LENGTH,
+    MESSAGES_INBOX_PAGE_SIZE,
+)
 from app.models.db.message import Message
 from app.models.db.user import User
 from app.models.types import DisplayNameType
 from app.queries.message_query import MessageQuery
+from app.queries.user_query import UserQuery
 
 router = APIRouter()
 
@@ -26,6 +36,7 @@ async def _get_messages_data(
     before: int | None,
 ) -> dict:
     if show is not None and before is None:
+        after = None
         before = show + 1
 
     with options_context(
@@ -104,11 +115,56 @@ async def outbox(
 
 @router.get('/message/new')
 async def new_message(
-    _: Annotated[User, web_user()],
-    to: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    user: Annotated[User, web_user()],
+    to: Annotated[str | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
 ):
-    return await render_response('messages/new.jinja2')
+    recipient: str | None = None
+    recipient_id: int | None = None
+    subject: str = ''
+    body: str = ''
+    if reply is not None:
+        with options_context(
+            joinedload(Message.from_user).load_only(User.id, User.display_name),
+            joinedload(Message.to_user).load_only(User.id, User.display_name),
+        ):
+            reply_message = await MessageQuery.get_message_by_id(reply)
+        other_user = reply_message.from_user if reply_message.to_user_id == user.id else reply_message.to_user
+        recipient = other_user.display_name
+        recipient_id = other_user.id
+        subject = f'Re: {reply_message.subject}'
+        body = '\n'.join(
+            chain(
+                (
+                    f'On {format_sql_date(reply_message.created_at)} [{reply_message.from_user.display_name}]({APP_URL}/user/permalink/{reply_message.from_user_id}) wrote:\n',
+                ),
+                (f'> {line}' for line in reply_message.body.splitlines()),
+            )
+        )
+    elif to is not None:
+        recipient_user = await UserQuery.find_one_by_display_name(DisplayNameType(to))
+        if recipient_user is None:
+            try:
+                recipient_user_id = int(to)
+                recipient_user = await UserQuery.find_one_by_id(recipient_user_id)
+            except ValueError:
+                pass
+        if recipient_user is None:
+            raise_for().user_not_found(to)
+        recipient = recipient_user.display_name
+        recipient_id = recipient_user.id
+    return await render_response(
+        'messages/new.jinja2',
+        {
+            'recipient': recipient,
+            'recipient_id': recipient_id,
+            'subject': subject,
+            'body': body,
+            'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
+            'MESSAGE_SUBJECT_MAX_LENGTH': MESSAGE_SUBJECT_MAX_LENGTH,
+            'MESSAGE_BODY_MAX_LENGTH': MESSAGE_BODY_MAX_LENGTH,
+        },
+    )
 
 
 @router.get('/message/new/{display_name:str}')

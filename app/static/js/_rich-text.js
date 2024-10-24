@@ -31,7 +31,7 @@ for (const container of richTextContainers) {
     const editButton = container.querySelector(".edit-btn")
     const previewButton = container.querySelector(".preview-btn")
     const sourceTextArea = container.querySelector(".rich-text-source")
-    const previewDiv = container.querySelector(".rich-text")
+    const previewDiv = container.querySelector(".rich-text-preview")
 
     // On edit button click, abort any requests and show the source textarea
     const onEditButtonClick = () => {

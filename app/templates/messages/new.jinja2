@@ -1,0 +1,56 @@
+{% extends '_base.jinja2' %}
+{% block title_prefix %}{{ t('action.send_a_message') }} | {% endblock %}
+{% block body_class %}messages-new-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <div class="col-6 offset-3">
+        <h1>{{ t('action.send_a_message') }}</h1>
+        <p class="mb-2">{{ t('messages.compose.description') }}</p>
+    </div>
+</div>
+<div class="content-body">
+    <div class="col-6 offset-3">
+        <form class="message-form" method="POST" action="/api/web/messages">
+            <label class="form-label d-block mb-3">
+                {% if recipient is not none %}
+                {{ t('messages.compose.recipient') }}
+                <input type="text" name="recipient" class="form-control bg-body-tertiary mt-2" value="{{ recipient }}"
+                    readonly>
+                {% else %}
+                <span class="required">{{ t('messages.compose.recipient') }}</span>
+                <input type="text" name="recipient" class="form-control mt-2"
+                    placeholder="{{ t('messages.compose.recipient_placeholder') }}"
+                    maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}" required>
+                {% endif %}
+                {% if recipient_id is not none %}
+                <input type="hidden" name="recipient_id" value="{{ recipient_id }}">
+                {% endif %}
+            </label>
+
+            <label class="form-label d-block mb-3">
+                <span class="required">{{ t('messages.compose.subject') }}</span>
+                <input type="text" name="subject" class="form-control mt-2" value="{{ subject }}"
+                    placeholder="{{ t('messages.compose.subject_placeholder') }}"
+                    maxlength="{{ MESSAGE_SUBJECT_MAX_LENGTH }}" required>
+            </label>
+
+            <label class="form-label d-block">
+                <span class="required">{{ t('messages.compose.body') }}</span>
+            </label>
+            {% set rich_text_name = 'body' %}
+            {% set rich_text_value = body %}
+            {% set rich_text_maxlength = MESSAGE_BODY_MAX_LENGTH %}
+            {% set rich_text_required = True %}
+            {% include '_rich_text.jinja2' %}
+
+            <div class="mt-3">
+                <button class="btn btn-primary px-3" type="submit">
+                    <i class="bi bi-send-fill me-2"></i>{{ t('action.send') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
