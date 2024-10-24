@@ -488,6 +488,7 @@ let
     uv sync --frozen
 
     echo "Installing Bun dependencies"
+    export DO_NOT_TRACK=1
     bun install --frozen-lockfile
 
     echo "Activating Python virtual environment"

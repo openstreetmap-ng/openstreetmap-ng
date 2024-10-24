@@ -46,7 +46,6 @@ dependencies = [
   "tqdm",
   "uvicorn[standard]",
   "uvloop",
-  "yarnlock",
   "zid",
   "zstandard",
 ]
