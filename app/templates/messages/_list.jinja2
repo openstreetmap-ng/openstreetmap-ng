@@ -1,7 +1,8 @@
 {% if messages %}
 <ul class="messages-list list-unstyled">
     {% for message in messages %}
-    <li class="social-action social-entry {% if not message.is_read %}unread{% endif %}" data-id="{{ message.id }}">
+    <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if not message.is_read %}unread{% endif %}"
+        data-id="{{ message.id }}">
         <p class="header text-muted d-flex justify-content-between">
             <span>
                 <a href="/user/{{ message.from_user.display_name }}">

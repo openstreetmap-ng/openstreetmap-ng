@@ -4,6 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
+from starlette import status
+from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.options_context import options_context
@@ -16,14 +18,15 @@ from app.queries.message_query import MessageQuery
 router = APIRouter(prefix='/messages')
 
 
-# TODO: show argument
-
-
 async def _get_messages_data(
     inbox: bool,
+    show: int | None,
     after: int | None,
     before: int | None,
 ) -> dict:
+    if show is not None and before is None:
+        before = show + 1
+
     with options_context(
         joinedload(Message.from_user).load_only(
             User.id,
@@ -72,24 +75,32 @@ async def _get_messages_data(
         'new_after': new_after,
         'new_before': new_before,
         'messages': messages,
+        'active_message_id': show,
     }
 
 
 @router.get('/inbox')
 async def inbox(
     _: Annotated[User, web_user()],
+    show: Annotated[PositiveInt | None, Query()] = None,
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
-    data = await _get_messages_data(inbox=True, after=after, before=before)
+    data = await _get_messages_data(inbox=True, show=show, after=after, before=before)
     return render_response('messages/index.jinja2', data)
 
 
 @router.get('/outbox')
 async def outbox(
     _: Annotated[User, web_user()],
+    show: Annotated[PositiveInt | None, Query()] = None,
     after: Annotated[PositiveInt | None, Query()] = None,
     before: Annotated[PositiveInt | None, Query()] = None,
 ):
-    data = await _get_messages_data(inbox=False, after=after, before=before)
+    data = await _get_messages_data(inbox=False, show=show, after=after, before=before)
     return render_response('messages/index.jinja2', data)
+
+
+@router.get('/{message_id:int}')
+async def legacy_message(message_id: PositiveInt):
+    return RedirectResponse(f'/messages/inbox?show={message_id}', status.HTTP_302_FOUND)

@@ -135,5 +135,8 @@ if (body) {
             if (target.tagName === "A") return
             openMessagePreview(message)
         })
+        if (message.classList.contains("active")) {
+            openMessagePreview(message)
+        }
     }
 }
