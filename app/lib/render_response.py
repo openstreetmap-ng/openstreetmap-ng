@@ -46,7 +46,10 @@ async def render_response(template_name: str, template_data: dict[str, Any] | No
             config_dict['homePoint'] = get_coordinates(user_home_point)[0].tolist()
 
         data['config'] = json_encodes(config_dict)
-        data['messages_count_unread'] = await ParallelTasksMiddleware.messages_count_unread()
+
+        messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
+        if messages_count_unread is not None:
+            data['messages_count_unread'] = messages_count_unread
 
     if template_data is not None:
         data.update(template_data)

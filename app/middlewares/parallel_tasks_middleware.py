@@ -2,10 +2,12 @@ from asyncio import Task, TaskGroup
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from starlette.types import ASGIApp, Receive, Scope, Send
+from starlette.types import ASGIApp, Receive, Send
+from starlette.types import Scope as StarletteScope
 
-from app.lib.auth_context import auth_user
+from app.lib.auth_context import auth_scopes
 from app.middlewares.request_context_middleware import get_request
+from app.models.scope import Scope
 from app.queries.message_query import MessageQuery
 
 _messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_count_unread_context')
@@ -13,7 +15,10 @@ _messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_co
 
 @contextmanager
 def _messages_count_unread(tg: TaskGroup):
-    if auth_user() is None or get_request().url.path.startswith(('/api/', '/oauth2/', '/static')):
+    if (
+        Scope.web_user not in auth_scopes()  #
+        or get_request().url.path.startswith(('/api/', '/static'))
+    ):
         yield
         return
 
@@ -34,7 +39,7 @@ class ParallelTasksMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: StarletteScope, receive: Receive, send: Send) -> None:
         if scope['type'] != 'http':
             await self.app(scope, receive, send)
             return
@@ -44,8 +49,9 @@ class ParallelTasksMiddleware:
                 await self.app(scope, receive, send)
 
     @staticmethod
-    async def messages_count_unread() -> int:
+    async def messages_count_unread() -> int | None:
         """
         Get the number of unread messages.
         """
-        return await _messages_count_unread_context.get()
+        task = _messages_count_unread_context.get(None)
+        return (await task) if (task is not None) else None
