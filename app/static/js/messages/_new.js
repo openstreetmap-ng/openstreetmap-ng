@@ -7,4 +7,11 @@ if (body) {
         console.debug("onMessageFormSuccess", redirect_url)
         window.location = redirect_url
     })
+
+    const messageBody = messageForm.elements.body
+    if (messageBody.value) {
+        // When body is present, autofocus at the beginning
+        messageBody.focus()
+        messageBody.setSelectionRange(0, 0)
+    }
 }

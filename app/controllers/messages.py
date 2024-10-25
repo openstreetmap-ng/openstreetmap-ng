@@ -141,7 +141,7 @@ async def new_message(
         reply_header = t('messages.compose.reply.header', date=reply_header_date, user=reply_header_user)
         body = '\n'.join(
             chain(
-                (f'{reply_header}:\n',),
+                (f'\n\n\n{reply_header}:\n',),
                 (f'> {line}' for line in reply_message.body.splitlines()),
             )
         )
