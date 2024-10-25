@@ -4,30 +4,45 @@ from sqlalchemy import and_, false, or_, select, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
+from app.lib.message_collector import MessageCollector
+from app.lib.translation import t
 from app.models.db.message import Message
+from app.models.types import DisplayNameType
+from app.queries.user_query import UserQuery
 
 
 class MessageService:
     @staticmethod
-    async def send(to_user_id: int, subject: str, body: str) -> None:
+    async def send(recipient: DisplayNameType | int, subject: str, body: str) -> int:
         """
         Send a message to a user.
         """
+        if isinstance(recipient, str):
+            recipient_user = await UserQuery.find_one_by_display_name(recipient)
+            if recipient_user is None:
+                MessageCollector.raise_error('recipient', t('validation.user_not_found'))
+            recipient = recipient_user.id
+
+        from_user_id = auth_user(required=True).id
+        if recipient == from_user_id:
+            MessageCollector.raise_error('recipient', t('validation.cant_send_message_to_self'))
+
         async with db_commit() as session:
             message = Message(
-                from_user_id=auth_user(required=True).id,
-                to_user_id=to_user_id,
+                from_user_id=from_user_id,
+                to_user_id=recipient,
                 subject=subject,
                 body=body,
             )
             session.add(message)
         logging.info(
-            'Sent message %d from user %d to user %d with subject %r',
+            'Sent message %d from user %d to recipient %r with subject %r',
             message.id,
             message.from_user_id,
-            to_user_id,
+            recipient,
             subject,
         )
+        return message.id
 
     @staticmethod
     async def set_state(message_id: int, *, is_read: bool) -> None:

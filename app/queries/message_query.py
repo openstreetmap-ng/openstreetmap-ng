@@ -64,15 +64,12 @@ class MessageQuery:
                 where_and.append(Message.id < before)
 
             stmt = stmt.where(*where_and)
-
-            if (after is None) or (before is not None):
-                stmt = stmt.order_by(Message.id.desc()).limit(limit)
-            else:
-                stmt = stmt.order_by(Message.id.asc()).limit(limit)
-                stmt = select(Message).select_from(stmt.subquery()).order_by(Message.id.desc())
+            order_desc = (after is None) or (before is not None)
+            stmt = stmt.order_by(Message.id.desc() if order_desc else Message.id.asc()).limit(limit)
 
             stmt = apply_options_context(stmt)
-            return (await session.scalars(stmt)).all()
+            messages = (await session.scalars(stmt)).all()
+            return messages if order_desc else messages[::-1]
 
     @staticmethod
     async def count_unread_received_messages() -> int:

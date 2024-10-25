@@ -113,7 +113,7 @@ messages:
   older_messages: Older messages
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
-  action_received: received
+  action_delivered: delivered
   compose:
     description: Send a new private message to another map user.
     recipient: Recipient
@@ -293,6 +293,8 @@ validation:
   redirect_uri_too_long: Redirect URI is too long
   invalid_redirect_uri: Invalid redirect URI
   insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
+  cant_send_message_to_self: You can't send a message to yourself
+  user_not_found: User not found
 action:
   authorize: Authorize
   block_user: Block user

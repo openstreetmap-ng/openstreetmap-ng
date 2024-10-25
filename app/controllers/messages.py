@@ -35,8 +35,7 @@ async def _get_messages_data(
     after: int | None,
     before: int | None,
 ) -> dict:
-    if show is not None and before is None:
-        after = None
+    if (show is not None) and (after is None) and (before is None):
         before = show + 1
 
     with options_context(

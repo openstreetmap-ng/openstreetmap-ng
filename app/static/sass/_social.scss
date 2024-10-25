@@ -193,8 +193,8 @@
         }
 
         &.active {
-            border-left: 0.375rem solid $primary;
-            padding-left: 0.125rem;
+            box-shadow: 0 0 0 0.125rem $primary;
+            border-left: 0.25rem solid $primary;
         }
 
         &.unread {

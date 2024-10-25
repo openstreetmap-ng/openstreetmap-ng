@@ -152,6 +152,10 @@ if (body) {
             if (target.tagName === "A") return
             openMessagePreview(message)
         })
+        message.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return
+            openMessagePreview(message)
+        })
         if (message.classList.contains("active")) {
             openMessagePreview(message)
         }

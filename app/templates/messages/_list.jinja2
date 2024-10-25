@@ -2,7 +2,7 @@
 <ul class="messages-list list-unstyled">
     {% for message in messages %}
     <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
-        data-id="{{ message.id }}">
+        data-id="{{ message.id }}" tabindex="0">
         <p class="header text-muted d-flex justify-content-between">
             {% if inbox %}
             <span>
@@ -19,7 +19,7 @@
                     <img class="avatar" src="{{ message.to_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
                         loading="lazy">{{ message.to_user.display_name }}{#
                 #}</a>
-                {{ t('messages.action_received') }}
+                {{ t('messages.action_delivered') }}
                 {{ timeago(message.created_at, html=True) | safe }}
             </span>
             {% endif %}
