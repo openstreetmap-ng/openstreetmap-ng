@@ -527,8 +527,6 @@ let
     echo "Running [static-img-pipeline]"
     static-img-pipeline &
     wait
-
-    cat yarn.lock
   '' + lib.optionalString (!isDevelopment) ''
     make-version
   '';

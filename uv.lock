@@ -345,14 +345,14 @@ wheels = [
 
 [[package]]
 name = "botocore-stubs"
-version = "1.35.47"
+version = "1.35.48"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "types-awscrt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e8/c1/68c1bf263480f9a625d9aba173c9e5aa8b5135993f9f7a0c6bb974df72cf/botocore_stubs-1.35.47.tar.gz", hash = "sha256:397f78e5c9ed951fbb576cc0c544e29b626bd7a3742d463c015c0cc71e1d292c", size = 40559 }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/2b/52b2d1c777236dee0b49f4630262ffb6d4ff0ad3219c5898472f621d631c/botocore_stubs-1.35.48.tar.gz", hash = "sha256:fdb7557fb13a584c5d15263692ed89de8d6bec802c7feb0cd211224384f709e7", size = 40558 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/64/651cf1b7866abd1d5120e7de17ffea1269adba35c582b8dc7e0389927ef1/botocore_stubs-1.35.47-py3-none-any.whl", hash = "sha256:f1ef0cd7c263f02f5ad3583f3ab99106e519b0d04d94f84c64c6afe146f83dff", size = 60136 },
+    { url = "https://files.pythonhosted.org/packages/c6/c7/24caccb5af43ab6fe9934351f39a6c9605c98d4631db5876830a688b08b7/botocore_stubs-1.35.48-py3-none-any.whl", hash = "sha256:af110f0003e867c1febadd6cab49f64e0a25580155b3326e977ebd3e07590096", size = 60135 },
 ]
 
 [[package]]
@@ -2333,17 +2333,17 @@ wheels = [
 
 [[package]]
 name = "yarnlock"
-version = "1.0.0"
+version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/73/63/df221e3d595bfcc0551aa1be4f6ef8c595ef150260da7d000b24e5e2c5bf/yarnlock-1.0.0.tar.gz", hash = "sha256:a8148b4939e216f403073110249a62af6aa242b722d55b0e639f317f8e97828d", size = 134040 }
+sdist = { url = "https://files.pythonhosted.org/packages/02/04/527bb0ec5620d6df12ce925625727cd87ba98eecb46a3bd944c2bc5644e2/yarnlock-1.0.1.tar.gz", hash = "sha256:12ec1e7747d93b0bfb9ef05b51e2d43f1fd218a32ed979ee489c310492eb4711", size = 134036 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/53/797e393e0bf7beca2969fe5827695591e86fd3bbf2ea4c21e57518d043b3/yarnlock-1.0.0-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:0de4819b0479cff02c75b055f59440f2f3a445b7bf1daf7a0fc595beb48e5e7c", size = 204761 },
-    { url = "https://files.pythonhosted.org/packages/c7/7d/3a9aaaa97a02db85a000a065ca2d7230d1957f170eedadb2a9557d7275aa/yarnlock-1.0.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:7bc179027c30969d35acd85d025d9878c953abd867866c811c921475821e99ba", size = 196908 },
-    { url = "https://files.pythonhosted.org/packages/ac/1e/ba5e4ef445e797a0b09e6df24edde3ac77b374efb991eb8bd486c86db481/yarnlock-1.0.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0856b87be037626e41b4f692887a72e7e7bc6954b0a3ae3a707030cc203f08fc", size = 208312 },
-    { url = "https://files.pythonhosted.org/packages/51/bf/dde7911176b7cfbf08e50cd0f709ec9ae8456d4600749eef88e1b8fd52e2/yarnlock-1.0.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c6767ef416755cb77a16b8295b3c01fd94751fce332b41513381440caf979cbe", size = 217155 },
-    { url = "https://files.pythonhosted.org/packages/6e/82/46a671d0105be4204be5f01dfc1a6b0e93b150970d54e33b82303dc1c8d5/yarnlock-1.0.0-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:f976e77c677ad58b042c806335421c23ec6b7cfebaa591467dfe5da85951e01a", size = 414007 },
-    { url = "https://files.pythonhosted.org/packages/80/70/c25e33d63ce7d0dab078c6a5694801d45bfaffa5feda082fac51a6dd75eb/yarnlock-1.0.0-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:94ed3b025fe200139890a5e63a5f981607a63fafbc5b8490d28e9d7135c52e13", size = 398403 },
-    { url = "https://files.pythonhosted.org/packages/4f/90/98dcd37bf5b67255c6a432f24b8abe3edf2aa179afc7e4b027396be988bb/yarnlock-1.0.0-cp38-abi3-win_amd64.whl", hash = "sha256:01fe6905f37511d701aec438c90cfae55287d5921e2f1a27355f5a1cfbddf2d0", size = 104886 },
+    { url = "https://files.pythonhosted.org/packages/31/9b/08a7e4040ca62a04c454919ae3918a86efe71fc7a296a08f4d76d91a95c7/yarnlock-1.0.1-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:a558fdaf6352e38b7dd1299112bdf81e769a6c837d518413bdab3b1b88318642", size = 205192 },
+    { url = "https://files.pythonhosted.org/packages/f9/20/b6bef585484946a095eaf0618d13d9b105cbab6fae48dbd9ed38aba18449/yarnlock-1.0.1-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:f7ba32911f0dd5d198c55eaf3e275c3599801bb7d97a5f80f2e9f38a07113850", size = 200072 },
+    { url = "https://files.pythonhosted.org/packages/48/d6/da0a5c458697cef2dd4ca27385c8208f1ee0fffc1a78269cc5557d17df13/yarnlock-1.0.1-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2d3e926addcfe0ccc490e4fb9c549a7c3f9d8d27005f66d1e8fc81a7dbfc76f6", size = 208547 },
+    { url = "https://files.pythonhosted.org/packages/3c/6f/0b9bf6deaec5d4c9154a525c2fa7914d95d0cd2bbf55f216fcadf3bb9766/yarnlock-1.0.1-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e4b93e435822b0c1d88570308969efe145c9d8726ce741d91a1394514e9d106f", size = 217847 },
+    { url = "https://files.pythonhosted.org/packages/e1/d2/9dc96e3e915cf2088d8a096c24054a5f5288627b29b0f2fddbcb1269aebf/yarnlock-1.0.1-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:3cd3b8891d4c4e5aa4270d0dc7a7efdebc02c603fcf566d6835ad2653e3e7a54", size = 414299 },
+    { url = "https://files.pythonhosted.org/packages/1e/c7/ab708a5c043e27a498e1ec78d4424c68ec0aec663ae6639e0a7f94b75d25/yarnlock-1.0.1-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:91206cb11e182fff419e0cf880ae30cf023a097dfc3e4c56e517d741580b12e4", size = 398673 },
+    { url = "https://files.pythonhosted.org/packages/01/b7/b9c0573eeec0fd06ed2f81b7acf696457fefb685015608e68272abb4b5ae/yarnlock-1.0.1-cp38-abi3-win_amd64.whl", hash = "sha256:b91f480dc912d5b12d569347439e059ff858f4c20568b2e90ae17ee8882c28bf", size = 105518 },
 ]
 
 [[package]]
