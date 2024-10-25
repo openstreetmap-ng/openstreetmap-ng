@@ -125,7 +125,7 @@ SECRET_32b = sha256(SECRET.encode()).digest()
 SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
 
-_bun_packages = bun_packages()
+_bun_packages = bun_packages(FILE_CACHE_DIR)
 ID_VERSION = _bun_packages['iD'].rpartition('#')[2]
 RAPID_VERSION = _bun_packages['@rapideditor/rapid']
 logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
