@@ -95,12 +95,19 @@
                     </span>
                     {% endif %}
                 </h1>
-                <p class="mapper-since mb-0">
+                <p class="mapper-since mb-2">
                     {{ t('users.show.mapper since') | title }}
                     <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
                     {{ format_short_date(profile.created_at) }}
                     </time>
                 </p>
+                <div class="user-actions mb-2">
+                    {% if not is_self %}
+                    <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
+                        <i class="bi bi-envelope-plus me-2"></i>{{ t('action.send_a_message') }}
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

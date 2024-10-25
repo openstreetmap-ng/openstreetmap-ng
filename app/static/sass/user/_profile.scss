@@ -7,29 +7,9 @@
         background: unset;
 
         > .container-fluid {
-            padding-bottom: 1.5rem;
             background: transparentize($body-bg, 0.8);
-            box-shadow: inset 0 calc(-5em * 2.5) 5em -5em $body-bg;
+            box-shadow: inset 0 -13.5rem 5rem -5rem $body-bg;
             backdrop-filter: blur(2px);
-        }
-
-        .info {
-            align-content: end;
-            min-height: calc(8em * 1.5 - 0.5em);
-            margin-left: calc(8em * 1.5 + 1.5em);
-            transition: min-height 0.3s;
-
-            .badge {
-                margin-left: 0.55em;
-                position: relative;
-                font-size: 0.5em;
-                top: 0.1em;
-                cursor: help;
-            }
-        }
-
-        .mapper-since {
-            color: $text-muted;
         }
 
         // Older clients don't support :has() - ensure styling looks "OK" without it
@@ -42,10 +22,38 @@
             }
         }
 
+        .info {
+            margin-top: 6.5rem;
+            margin-left: calc(8em * 1.5 + 1.5em);
+            transition: margin-top 0.3s;
+
+            .badge {
+                margin-left: 0.55em;
+                position: relative;
+                font-size: 0.5em;
+                top: 0.1em;
+                cursor: help;
+            }
+        }
+
         &:has(img.background[src]) {
             .info {
-                min-height: calc(5.5em * 1.5 - 0.5em);
+                top: -2rem;
+                margin-top: 2.75rem;
             }
+
+            .avatar-form {
+                top: -2rem;
+                bottom: unset;
+            }
+        }
+
+        .mapper-since {
+            color: $text-muted;
+        }
+
+        .user-actions {
+            min-height: 2em;
         }
     }
 
@@ -82,6 +90,7 @@
 
     .avatar-form {
         position: absolute;
+        top: unset;
         bottom: -0.75rem;
 
         img.avatar {
@@ -91,14 +100,14 @@
             transition: opacity 0.3s;
         }
 
+        &.pending img.avatar {
+            opacity: 0.5;
+        }
+
         .dropdown {
             position: absolute;
             bottom: 1.125rem;
             left: -0.75rem;
-        }
-
-        &.pending img.avatar {
-            opacity: 0.5;
         }
     }
 
