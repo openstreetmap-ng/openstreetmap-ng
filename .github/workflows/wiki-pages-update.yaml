@@ -63,7 +63,7 @@ jobs:
 
       - name: Run update script
         run: |
-          nix-shell --pure --run "wiki-pages-update"
+          nix-shell --run "wiki-pages-update"
 
       - name: Commit changes
         run: |
