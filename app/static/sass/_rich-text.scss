@@ -3,15 +3,13 @@
     contain: content;
 
     code {
-        background: $gray-400;
-        padding: 0.1em 0.2em;
+        background: tint-color($gray-500, 85%);
+        padding: 0.15em 0.2em 0;
     }
 
     pre {
-        background: $gray-400;
-        padding: 0.1em 0.2em;
-
-        // Allow line wrapping
+        background: tint-color($gray-500, 85%);
+        padding: 0 0.2em;
         white-space: pre-wrap;
 
         // Remove padding from nested code blocks
@@ -21,7 +19,7 @@
     }
 
     blockquote {
-        border-left: 1.5em solid $off-white;
+        border-left: 1.5em solid tint-color($gray-500, 85%);
         padding-left: 1.5em;
         color: $gray-700;
     }

@@ -121,6 +121,9 @@ messages:
     subject: Subject
     subject_placeholder: Enter message subject
     body: Body
+    reply:
+      prefix: "Re"
+      header: "On {date} {user} wrote"
 results:
   we_did_not_find_any_results: We did not find any results for your search.
 rich_text:

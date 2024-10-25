@@ -14,6 +14,7 @@ from app.lib.date_utils import format_sql_date
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
 from app.lib.render_response import render_response
+from app.lib.translation import t
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     MESSAGE_BODY_MAX_LENGTH,
@@ -131,12 +132,15 @@ async def new_message(
         other_user = reply_message.from_user if reply_message.to_user_id == user.id else reply_message.to_user
         recipient = other_user.display_name
         recipient_id = other_user.id
-        subject = f'Re: {reply_message.subject}'
+        subject = f'{t("messages.compose.reply.prefix")}: {reply_message.subject}'
+        reply_header_date = format_sql_date(reply_message.created_at)
+        reply_header_user = (
+            f'[{reply_message.from_user.display_name}]({APP_URL}/user/permalink/{reply_message.from_user_id})'
+        )
+        reply_header = t('messages.compose.reply.header', date=reply_header_date, user=reply_header_user)
         body = '\n'.join(
             chain(
-                (
-                    f'On {format_sql_date(reply_message.created_at)} [{reply_message.from_user.display_name}]({APP_URL}/user/permalink/{reply_message.from_user_id}) wrote:\n',
-                ),
+                (f'{reply_header}:\n',),
                 (f'> {line}' for line in reply_message.body.splitlines()),
             )
         )
