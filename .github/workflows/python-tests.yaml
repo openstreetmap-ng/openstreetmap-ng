@@ -69,13 +69,13 @@ jobs:
 
       - name: Start services
         run: |
-          nix-shell --run "dev-start"
+          nix-shell --pure --run "dev-start"
 
       - name: Run tests
         env:
           POSTGRES_LOG: 1
         run: |
-          nix-shell --run "run-tests term"
+          nix-shell --pure --run "run-tests term"
 
       - name: Export Nix store cache
         if: steps.nix-cache.outputs.cache-hit != 'true'

@@ -63,7 +63,7 @@ jobs:
 
       - name: Run update script
         run: |
-          nix-shell --run "feature-icons-popular-update"
+          nix-shell --pure --run "feature-icons-popular-update"
 
       - name: Commit changes
         run: |

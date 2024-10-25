@@ -63,7 +63,7 @@ jobs:
 
       - name: Run update script
         run: |
-          nix-shell --run "timezone-bbox-update"
+          nix-shell --pure --run "timezone-bbox-update"
 
       - name: Commit changes
         run: |
