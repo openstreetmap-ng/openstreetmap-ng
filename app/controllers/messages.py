@@ -116,10 +116,11 @@ async def outbox(
 @router.get('/message/new')
 async def new_message(
     user: Annotated[User, web_user()],
-    to: Annotated[str | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    to: Annotated[DisplayNameType | None, Query(min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH)] = None,
+    to_id: Annotated[PositiveInt | None, Query()] = None,
     reply: Annotated[PositiveInt | None, Query()] = None,
 ):
-    recipient: str | None = None
+    recipient: DisplayNameType | None = None
     recipient_id: int | None = None
     subject: str = ''
     body: str = ''
@@ -144,17 +145,17 @@ async def new_message(
                 (f'> {line}' for line in reply_message.body.splitlines()),
             )
         )
-    elif to is not None:
-        recipient_user = await UserQuery.find_one_by_display_name(DisplayNameType(to))
+    elif to_id is not None:
+        recipient_user = await UserQuery.find_one_by_id(to_id)
         if recipient_user is None:
-            try:
-                recipient_user_id = int(to)
-                recipient_user = await UserQuery.find_one_by_id(recipient_user_id)
-            except ValueError:
-                pass
+            raise_for().user_not_found(to_id)
+        recipient = recipient_user.display_name
+        recipient_id = to_id
+    elif to is not None:
+        recipient_user = await UserQuery.find_one_by_display_name(to)
         if recipient_user is None:
             raise_for().user_not_found(to)
-        recipient = recipient_user.display_name
+        recipient = to
         recipient_id = recipient_user.id
     return await render_response(
         'messages/new.jinja2',
