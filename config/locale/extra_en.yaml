@@ -129,6 +129,7 @@ results:
 rich_text:
   formatting_tips: Formatting tips
   detailed_formatting_guide: Detailed formatting guide
+  nothing_to_preview: Nothing to preview
 search:
   search_this_area: Search this area
 settings:

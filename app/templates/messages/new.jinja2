@@ -42,7 +42,7 @@
             {% set rich_text_value = body %}
             {% set rich_text_maxlength = MESSAGE_BODY_MAX_LENGTH %}
             {% set rich_text_required = True %}
-            {% include '_rich_text.jinja2' %}
+            {% include 'rich_text/_control.jinja2' %}
 
             <div class="mt-3">
                 <button class="btn btn-primary px-3" type="submit">

@@ -57,7 +57,7 @@ for (const container of richTextContainers) {
         const formData = new FormData()
         formData.append("text", sourceTextArea.value)
 
-        fetch("/api/web/rich-text/preview", {
+        fetch("/api/web/rich-text", {
             method: "POST",
             body: formData,
             mode: "same-origin",
