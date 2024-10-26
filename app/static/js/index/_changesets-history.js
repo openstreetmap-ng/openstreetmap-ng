@@ -187,7 +187,7 @@ export const getChangesetsHistoryController = (map) => {
      * @returns {void}
      */
     const onSidebarScroll = () => {
-        if (sidebar.offsetHeight + sidebar.scrollTop < sidebar.scrollHeight) return
+        if (parentSidebar.offsetHeight + parentSidebar.scrollTop < parentSidebar.scrollHeight) return
         console.debug("Sidebar scrolled to the bottom")
         onMapZoomOrMoveEnd()
     }
@@ -222,7 +222,7 @@ export const getChangesetsHistoryController = (map) => {
 
         if (changesetsFinished) return
         loadingContainer.classList.remove("d-none")
-        sidebar.removeEventListener("scroll", onSidebarScroll)
+        parentSidebar.removeEventListener("scroll", onSidebarScroll)
 
         fetch(`/api/web/changeset/map?${qsEncode(params)}`, {
             method: "GET",
@@ -255,7 +255,7 @@ export const getChangesetsHistoryController = (map) => {
             .finally(() => {
                 if (signal.aborted) return
                 loadingContainer.classList.add("d-none")
-                sidebar.addEventListener("scroll", onSidebarScroll)
+                parentSidebar.addEventListener("scroll", onSidebarScroll)
             })
     }
 
@@ -277,6 +277,7 @@ export const getChangesetsHistoryController = (map) => {
         },
         unload: () => {
             map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
+            parentSidebar.removeEventListener("scroll", onSidebarScroll)
 
             // Remove the changeset layer
             if (map.hasLayer(changesetLayer)) {
