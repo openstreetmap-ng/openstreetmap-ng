@@ -16,7 +16,7 @@ from app.lib.rich_text import TextFormat, process_rich_text
         ('&copy; 2024', '<p>&amp;copy; 2024</p>'),
         (
             'safe https://osm.org',
-            '<p>safe <a href="https://osm.org">https://osm.org</a></p>',
+            '<p>safe <a href="https://osm.org" rel="noopener">https://osm.org</a></p>',
         ),
         (
             'unsafe https://example.com',
@@ -24,7 +24,7 @@ from app.lib.rich_text import TextFormat, process_rich_text
         ),
         (
             'upgrade safe http://example.osm.org',
-            '<p>upgrade safe <a href="https://example.osm.org">http://example.osm.org</a></p>',
+            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">http://example.osm.org</a></p>',
         ),
         (
             '<a href="https://example.com">visit</a>',
@@ -40,7 +40,7 @@ from app.lib.rich_text import TextFormat, process_rich_text
         ),
         (
             'mailto:testing@example.test',
-            '<p><a href="mailto:testing@example.test">mailto:testing@example.test</a></p>',
+            '<p><a href="mailto:testing@example.test" rel="noopener">mailto:testing@example.test</a></p>',
         ),
         ('tel:+1234567890', '<p>tel:+1234567890</p>'),
         ('ftp://example.com', '<p>ftp://example.com</p>'),
@@ -56,14 +56,14 @@ def test_plain_formatting(input: str, output: str):
     [
         (
             '[link text](.) **bold text**',
-            '<p><a href=".">link text</a> <strong>bold text</strong></p>',
+            '<p><a href="." rel="noopener">link text</a> <strong>bold text</strong></p>',
         ),
         ('<script>alert(1)</script>', ''),
         ('&copy; 2024', '<p>© 2024</p>'),
         ('(c) 2024', '<p>© 2024</p>'),
         (
             'safe https://osm.org',
-            '<p>safe <a href="https://osm.org">https://osm.org</a></p>',
+            '<p>safe <a href="https://osm.org" rel="noopener">https://osm.org</a></p>',
         ),
         (
             'unsafe http://example.com',
@@ -71,7 +71,7 @@ def test_plain_formatting(input: str, output: str):
         ),
         (
             'upgrade safe http://example.osm.org',
-            '<p>upgrade safe <a href="https://example.osm.org">http://example.osm.org</a></p>',
+            '<p>upgrade safe <a href="https://example.osm.org" rel="noopener">http://example.osm.org</a></p>',
         ),
     ],
 )

@@ -2,10 +2,13 @@ import contextlib
 import logging
 import os
 from hashlib import sha256
+from itertools import chain
 from logging.config import dictConfig
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from app.lib.bun_packages import bun_packages
+from app.lib.local_chapters import LOCAL_CHAPTERS
 
 VERSION = 'dev'
 
@@ -70,18 +73,18 @@ RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
-LINK_TRUSTED_HOSTS = frozenset(
-    os.getenv(
-        'LINK_TRUSTED_HOSTS',
+TRUSTED_HOSTS: frozenset[str] = frozenset(
+    host.casefold()
+    for host in chain(
         (
-            ' openstreetmap.org'  #
-            ' osm.org'
-            ' osmfoundation.org'
-            ' wikidata.org'
-            ' wikimedia.org'
-            ' wikipedia.org'
+            line
+            for line in (line.strip() for line in Path('config/trusted_hosts.txt').read_text().splitlines())
+            if line and not line.startswith('#')
         ),
-    ).split()
+        (urlsplit(url).hostname for _, url in LOCAL_CHAPTERS),
+        os.getenv('TRUSTED_HOSTS_EXTRA', '').split(),
+    )
+    if host
 )
 
 TEST_USER_DOMAIN = 'test.test'

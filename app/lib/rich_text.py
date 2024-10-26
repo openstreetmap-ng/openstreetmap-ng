@@ -16,7 +16,7 @@ from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
 from sqlalchemy import update
 
-from app.config import LINK_TRUSTED_HOSTS
+from app.config import TRUSTED_HOSTS
 from app.db import db_commit
 from app.limits import RICH_TEXT_CACHE_EXPIRE
 from app.services.cache_service import CacheContext, CacheEntry, CacheService
@@ -148,7 +148,6 @@ def _get_allowed_tags_and_attributes() -> tuple[set[str], dict[str, set[str]]]:
 def _render_image(self: RendererHTML, tokens: Sequence[Token], idx: int, options: OptionsDict, env: EnvType) -> str:
     token = tokens[idx]
     token.attrs['decoding'] = 'async'
-    token.attrs['fetchpriority'] = 'low'
     token.attrs['loading'] = 'lazy'
     return self.image(tokens, idx, options, env)
 
@@ -158,9 +157,9 @@ def _render_link(self: RendererHTML, tokens: Sequence[Token], idx: int, options:
     trusted_href = _process_trusted_link(token.attrs.get('href'))
     if trusted_href is not None:
         token.attrs['href'] = trusted_href
-        token.attrs.pop('rel', None)
+        token.attrs['rel'] = _trusted_link_rel
     else:
-        token.attrs['rel'] = _unsafe_link_rel
+        token.attrs['rel'] = _untrusted_link_rel
     return self.renderToken(tokens, idx, options, env)
 
 
@@ -202,9 +201,9 @@ def _process_plain(text: str) -> str:
         href = match.url
         trusted_href = _process_trusted_link(href)
         if trusted_href is not None:
-            result.append(f'{prefix}<a href="{trusted_href}">{match.text}</a>')
+            result.append(f'{prefix}<a href="{trusted_href}" rel="{_trusted_link_rel}">{match.text}</a>')
         else:
-            result.append(f'{prefix}<a href="{href}" rel="{_unsafe_link_rel}">{match.text}</a>')
+            result.append(f'{prefix}<a href="{href}" rel="{_untrusted_link_rel}">{match.text}</a>')
         last_pos = match.last_index
 
     # add remaining text after last link
@@ -227,6 +226,7 @@ _linkify: linkify_it.LinkifyIt = _md.linkify  # pyright: ignore[reportAssignment
 _linkify.tlds('onion', keep_old=True)  # support onion links
 _linkify.add('ftp:', None)  # disable ftp links
 _linkify.add('//', None)  # disable double-slash links
-_unsafe_link_rel = 'noopener nofollow'
-_trusted_hosts = LINK_TRUSTED_HOSTS
-_trusted_hosts_dot = tuple(f'.{host}' for host in LINK_TRUSTED_HOSTS)
+_trusted_hosts = TRUSTED_HOSTS
+_trusted_hosts_dot = tuple(f'.{host}' for host in TRUSTED_HOSTS)
+_trusted_link_rel = 'noopener'
+_untrusted_link_rel = 'noopener nofollow'

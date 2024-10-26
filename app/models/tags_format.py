@@ -8,8 +8,8 @@ class ValueFormat:
     format: Literal['html', 'url', 'url-safe', 'email', 'phone', 'color'] | None = None
     """
     html: HTML code
-    url: Unendorsed URL address
-    url-safe: Endorsed URL address
+    url: Untrusted URL address
+    url-safe: Trusted URL address
     email: Email address
     phone: Phone number
     color: Color code

@@ -4,7 +4,7 @@
 {% elif format == 'html' %}
 <span class="tag-value">{{ value.data | safe }}</span>
 {% elif format == 'url-safe' %}
-<a class="tag-value" href="{{ value.data }}">{{ value.text }}</a>
+<a class="tag-value" href="{{ value.data }}" rel="noopener">{{ value.text }}</a>
 {% elif format == 'url' or format == 'email' or format == 'phone' %}
 <a class="tag-value" href="{{ value.data }}" rel="noopener nofollow">{{ value.text }}</a>
 {% elif format == 'color' %}
