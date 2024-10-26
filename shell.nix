@@ -135,9 +135,9 @@ let
         -name "*.js" \
         -not -name "_*" \
         -not -name "bundle-*")
-      # TODO: --sourcemap=inline when https://github.com/oven-sh/bun/issues/7427
       # shellcheck disable=SC2086
       bun build \
+        --sourcemap=inline \
         --entry-naming "[dir]/bundle-[name].[ext]" \
         --outdir app/static/js \
         $files
@@ -451,11 +451,11 @@ let
         file_name="''${file##*/}"
         file_stem="''${file_name%.js}"
 
-        # TODO: --sourcemap=external when https://github.com/oven-sh/bun/issues/7427
         output=$(
           bun build --minify \
-          --outdir "$dir" \
+          --sourcemap=external \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --outdir "$dir" \
           "$file" | tee /dev/stdout)
 
         bundle_name=$(
