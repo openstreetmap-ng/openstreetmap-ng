@@ -46,8 +46,12 @@
     border-radius: 25%;
 }
 
-@for $i from 0 through 19 {
+.activity-0 {
+    background: $gray-200;
+}
+
+@for $i from 1 through 19 {
     .activity-#{$i} {
-        background: mix(rgb(21, 139, 21), $gray-200, math.pow(math.div($i, 19), 0.7) * 100%);
+        background: mix(rgb(21, 139, 21), $gray-200, math.pow(($i / 19) * 0.9 + 0.1, 0.7) * 100%);
     }
 }
