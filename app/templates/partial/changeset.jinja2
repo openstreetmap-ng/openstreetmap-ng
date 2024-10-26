@@ -40,11 +40,11 @@
                 </span>
                 {% endif %}
             </p>
-            <p class="body fst-italic">
+            <div class="body fst-italic">
                 {% for value in comment_tag.values %}
                 {% include 'partial/_tag_value.jinja2' %}
                 {% endfor %}
-            </p>
+            </div>
         </div>
 
         {% if tags %}

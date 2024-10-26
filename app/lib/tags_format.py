@@ -83,7 +83,7 @@ def _format_color(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
 def _format_comment(_: list[str], values: list[ValueFormat]) -> list[ValueFormat]:
     merged = ';'.join(value.text for value in values)
     rich_text = process_rich_text(merged, TextFormat.plain)
-    return [ValueFormat(merged, 'html', rich_text)] if merged != rich_text else values
+    return [ValueFormat(merged, 'html', rich_text)]
 
 
 @cython.cfunc

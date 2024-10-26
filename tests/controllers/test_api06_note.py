@@ -86,4 +86,4 @@ async def test_note_xml(client: AsyncClient):
     assert comments[-1]['user_url'] == f'{APP_URL}/user/permalink/{comments[-1]['uid']}'
     assert comments[-1]['action'] == 'opened'
     assert comments[-1]['text'] == test_note_xml.__qualname__
-    assert comments[-1]['html'] == test_note_xml.__qualname__
+    assert comments[-1]['html'] == f'<p>{test_note_xml.__qualname__}</p>'

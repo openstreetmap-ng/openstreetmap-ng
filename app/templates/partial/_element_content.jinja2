@@ -32,11 +32,11 @@
                 #}{{ element.changeset_id }}
             </a>
         </p>
-        <p class="fst-italic">
+        <div class="fst-italic">
             {% for value in comment_tag.values %}
             {% include 'partial/_tag_value.jinja2' %}
             {% endfor %}
-        </p>
+        </div>
     </div>
 </div>
 

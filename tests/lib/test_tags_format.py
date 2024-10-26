@@ -17,7 +17,7 @@ from app.models.types import LocaleCode
                 ValueFormat(
                     'https://example.com <script>',
                     'html',
-                    '<a href="https://example.com" rel="nofollow">https://example.com</a> &lt;script&gt;',
+                    '<p><a href="https://example.com" rel="noopener nofollow">https://example.com</a> &lt;script&gt;</p>',
                 )
             ],
         ),

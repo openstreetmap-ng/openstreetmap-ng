@@ -79,7 +79,7 @@ allowed_tags = [
 
 [allowed_attributes]
 "*" = ["dir", "hidden", "id", "lang", "tabindex", "title", "translate"]
-a = ["href", "hreflang", "referrerpolicy", "type"]
+a = ["href", "hreflang", "referrerpolicy", "rel", "type"]
 audio = ["controls", "loop", "muted", "src"]
 blockquote = ["cite"]
 col = ["span"]

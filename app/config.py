@@ -70,6 +70,19 @@ RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
+LINK_TRUSTED_HOSTS = frozenset(
+    os.getenv(
+        'LINK_TRUSTED_HOSTS',
+        (
+            ' openstreetmap.org'  #
+            ' osm.org'
+            ' osmfoundation.org'
+            ' wikidata.org'
+            ' wikimedia.org'
+            ' wikipedia.org'
+        ),
+    ).split()
+)
 
 TEST_USER_DOMAIN = 'test.test'
 
