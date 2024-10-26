@@ -25,7 +25,7 @@ export const shortLinkEncode = (lon, lat, zoom) => {
     const d = Math.ceil((zoom + 8) / 3)
     const r = (zoom + 8) % 3
 
-    const strList = Array(d + r)
+    const strList = new Array(d + r)
     if (r) strList.fill("-", d)
 
     for (let i = 0n; i < d; i++) {

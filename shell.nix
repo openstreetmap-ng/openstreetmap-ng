@@ -453,7 +453,7 @@ let
 
         output=$(
           bun build --minify \
-          --sourcemap=external \
+          --sourcemap=linked \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
           --outdir "$dir" \
           "$file" | tee /dev/stdout)

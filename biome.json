@@ -1,35 +1,42 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.7.0/schema.json",
-  "organizeImports": {
-    "enabled": true
-  },
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "formatter": {
     "enabled": true,
-    "indentWidth": 4,
-    "indentStyle": "space",
-    "lineEnding": "lf",
-    "lineWidth": 120,
     "ignore": [
       "app/static/js/bundle-*.js"
-    ]
+    ],
+    "indentStyle": "space",
+    "indentWidth": 4,
+    "lineEnding": "lf",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded"
+    }
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
       "complexity": {
+        "noUselessStringConcat": "info",
         "noVoid": "error",
         "useSimplifiedLogicExpression": "warn"
       },
       "correctness": {
-        "noUndeclaredVariables": "warn"
+        "noConstantMathMinMaxClamp": "warn",
+        "noNodejsModules": "error",
+        "noUndeclaredVariables": "warn",
+        "useArrayLiterals": "info"
       },
+      "recommended": true,
       "style": {
         "noDefaultExport": "warn",
         "noNamespace": "error",
         "noParameterAssign": "off",
         "noParameterProperties": "error",
         "useCollapsedElseIf": "warn",
+        "useConsistentBuiltinInstantiation": "warn",
         "useForOf": "warn",
         "useNamingConvention": {
           "level": "warn",
@@ -37,16 +44,16 @@
             "strictCase": false
           }
         },
-        "useShorthandAssign": "warn"
+        "useShorthandAssign": "warn",
+        "useThrowNewError": "warn",
+        "useThrowOnlyError": "warn"
       },
       "suspicious": {
         "useAwait": "warn"
       }
     }
   },
-  "javascript": {
-    "formatter": {
-      "semicolons": "asNeeded"
-    }
+  "organizeImports": {
+    "enabled": true
   }
 }
