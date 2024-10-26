@@ -109,6 +109,7 @@ if (body) {
      */
     const updatePageUrl = (messageId) => {
         const searchParams = qsParse(window.location.search.substring(1))
+        searchParams.before = maxMessageId + 1n
         searchParams.show = messageId
         const url = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
         window.history.replaceState(null, "", url)
@@ -147,7 +148,10 @@ if (body) {
     })
 
     // Configure message selection
+    let maxMessageId = 0n
     for (const message of messages) {
+        const messageId = BigInt(message.dataset.id)
+        maxMessageId = messageId > maxMessageId ? messageId : maxMessageId
         message.addEventListener("click", ({ target }) => {
             if (target.tagName === "A") return
             openMessagePreview(message)
@@ -160,4 +164,5 @@ if (body) {
             openMessagePreview(message)
         }
     }
+    console.debug("Highest message id is", maxMessageId)
 }
