@@ -43,7 +43,7 @@ export const mod = (n: number, m: number): number => ((n % m) + m) % m
  * @example
  * throttle(() => console.log("Hello"), 1000)
  */
-export const throttle = <T>(func: (...args: T[]) => void, delay: number): ((...args: T[]) => void) => {
+export const throttle = <T extends any[]>(func: (...args: T) => void, delay: number): ((...args: T) => void) => {
     let lastCalled = 0
     let timeoutId: NodeJS.Timeout | null = null
 
