@@ -51,6 +51,7 @@ let
 
   packages' = with pkgs; [
     coreutils
+    findutils
     curl
     watchexec
     brotli
