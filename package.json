@@ -22,8 +22,7 @@
     "bun-types": "^1.1.33",
     "i18next-conv": "^15.0.0",
     "postcss-cli": "^11.0.0",
-    "prettier": "^3.3.3",
-    "pyright": "^1.1.386"
+    "prettier": "^3.3.3"
   },
   "name": "openstreetmap-ng",
   "prettier": {
