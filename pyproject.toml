@@ -211,7 +211,6 @@ disableBytesTypePromotions = true
 exclude = [
   "**/.*",
   "**/__pycache__",
-  "/nix/store/**",
   "app/alembic/versions",
   "app/models/*_pb2.py",
   "node_modules",

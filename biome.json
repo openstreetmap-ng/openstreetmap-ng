@@ -36,6 +36,7 @@
         "noParameterAssign": "off",
         "noParameterProperties": "error",
         "useCollapsedElseIf": "warn",
+        "useConsistentArrayType": "warn",
         "useConsistentBuiltinInstantiation": "warn",
         "useForOf": "warn",
         "useNamingConvention": {
@@ -49,6 +50,8 @@
         "useThrowOnlyError": "warn"
       },
       "suspicious": {
+        "noEvolvingTypes": "info",
+        "noExplicitAny": "off",
         "useAwait": "warn"
       }
     }

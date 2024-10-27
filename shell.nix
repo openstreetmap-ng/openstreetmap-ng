@@ -132,11 +132,11 @@ let
       files=$(find app/static/js \
         -maxdepth 1 \
         -type f \
-        -name "*.js" \
-        -not -name "_*" \
-        -not -name "bundle-*")
+        -name "*.ts" \
+        -not -name "_*")
       # shellcheck disable=SC2086
       bun build \
+        --minify \
         --sourcemap=inline \
         --entry-naming "[dir]/bundle-[name].[ext]" \
         --outdir app/static/js \
@@ -436,23 +436,19 @@ let
         -name "bundle-*" \
         -delete
 
-      bunx babel \
-        --verbose \
-        --keep-file-extension \
-        --out-dir "$dir" \
-        "$dir"
-
       files=$(find "$dir" \
         -maxdepth 1 \
         -type f \
-        -name "*.js" \
+        -name "*.ts" \
         -not -name "_*")
+
       for file in $files; do
         file_name="''${file##*/}"
-        file_stem="''${file_name%.js}"
+        file_stem="''${file_name%.ts}"
 
         output=$(
-          bun build --minify \
+          bun build \
+          --minify \
           --sourcemap=linked \
           --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
           --outdir "$dir" \
