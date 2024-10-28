@@ -50,13 +50,16 @@ const getBoundsFromCoords = (lon: number, lat: number, zoom: number, paddingRati
  */
 export const remoteEdit = (button: HTMLButtonElement): void => {
     console.debug("remoteEdit", button)
-    const data = button.dataset.remoteEdit
-    if (!data) {
+    const remoteEditJson = button.dataset.remoteEdit
+    if (!remoteEditJson) {
         console.error("Remote edit button is missing data-remote-edit")
         return
     }
 
-    const { state, object }: { state: LonLatZoom; object?: OSMObject } = JSON.parse(data)
+    const remoteEditData = JSON.parse(remoteEditJson)
+    const state: LonLatZoom = remoteEditData.state
+    const object: OSMObject | undefined = remoteEditData.object
+
     const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
     const loadQuery: { [key: string]: string } = {
         left: minLon.toString(),

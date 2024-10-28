@@ -5,62 +5,65 @@ import { qsParse } from "../_qs"
 import { range, throttle } from "../_utils"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 
 const mapThrottleDelay = 16 // 60 FPS
 
-const lineStyle = {
+const lineStyle: L.PolylineOptions = {
     color: "#6ea8fe",
     weight: 5,
     noClip: true,
 }
 
-const labelStyle = {
+const labelStyle: L.MarkerOptions = {
     keyboard: false,
     alt: "",
     zIndexOffset: -10,
     interactive: false,
 }
 
-const historyReplaceState = throttle((url) => window.history.replaceState(null, "", url), 250)
+/** Like window.history.replaceState, but throttled */
+const throttledHistoryReplaceState = throttle(
+    (url: string | URL | null): void => window.history.replaceState(null, "", url),
+    250,
+)
 
-/**
- * Create a new distance measuring controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getDistanceController = (map) => {
+/** Create a new distance measuring controller */
+export const getDistanceController = (map: L.Map): FetchController => {
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
 
-    const positionsUrl = []
-    const lines = []
-    const labels = []
-    const markers = []
-    let dirtyMarkerIndices = []
-    let ghostMarker = null
-    let ghostMarkerIndex = null
+    const positionsUrl: L.LatLng[] = []
+    const lines: L.Polyline[] = []
+    const labels: L.Marker[] = []
+    const markers: L.Marker[] = []
+    let dirtyMarkerIndices: number[] = []
+    let ghostMarker: L.Marker | null = null
+    let ghostMarkerIndex = -1
 
-    const markerFactory = (index, color) => {
-        const onMarkerClick = () => {
-            removeMarker(index)
-        }
-        const onMarkerDrag = throttle(() => update([index]), mapThrottleDelay)
+    const markerFactory = (index: number, color: string): L.Marker => {
         const marker = L.marker(L.latLng(0, 0), {
             icon: getMarkerIcon(color, true),
             draggable: true,
             autoPan: true,
         })
+        // Listen for events on real markers
         if (index >= 0) {
-            // Listen for events on real markers
-            marker.addEventListener("click", onMarkerClick)
-            marker.addEventListener("drag", onMarkerDrag)
+            marker.addEventListener("click", () => {
+                // On marker click, remove that marker
+                removeMarker(index)
+            })
+            marker.addEventListener("drag", () => {
+                // On marker drag, update the state
+                throttle(() => update([index]), mapThrottleDelay)
+            })
         }
         map.addLayer(marker)
         return marker
     }
 
-    const ghostMarkerFactory = () => {
+    const ghostMarkerFactory = (): L.Marker => {
         const marker = markerFactory(-1, "blue")
         marker.setZIndexOffset(-10)
         marker.addEventListener("mousemove", onGhostMarkerMousemove)
@@ -70,12 +73,14 @@ export const getDistanceController = (map) => {
         marker.addOneTimeEventListener("dragend", onGhostMarkerDragEnd)
         marker.addOneTimeEventListener("click", onGhostMarkerClick)
 
-        const icon = marker._icon
+        // @ts-ignore
+        const icon: Element = marker._icon
         icon.classList.add("ghost-marker")
         return marker
     }
 
-    const updateUrl = () => {
+    /** Update the URL with the current line data */
+    const updateUrl = (): void => {
         const newLength = markers.length
         if (newLength < positionsUrl.length) {
             // Truncate positions
@@ -86,10 +91,10 @@ export const getDistanceController = (map) => {
         }
         const url = new URL(location.href)
         url.searchParams.set("line", encode(positionsUrl, 5))
-        historyReplaceState(url)
+        throttledHistoryReplaceState(url)
     }
 
-    const updateLines = () => {
+    const updateLines = (): void => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < lines.length) {
             // Truncate lines
@@ -119,7 +124,7 @@ export const getDistanceController = (map) => {
         }
     }
 
-    const updateLabels = () => {
+    const updateLabels = (): void => {
         const newLength = Math.max(markers.length - 1, 0)
         if (newLength < labels.length) {
             // Truncate labels
@@ -155,24 +160,23 @@ export const getDistanceController = (map) => {
                 if (angle > Math.PI / 2) angle -= Math.PI
                 if (angle < -Math.PI / 2) angle += Math.PI
 
-                const distance = startPoint.distanceTo(endPoint)
-                const distanceText = formatDistance(distance)
-
                 const label = labels[labelIndexOffset]
                 label.setLatLng(middlePoint)
-                label.distance = distance
-                const container = label._icon.firstChild
+                const distance = startPoint.distanceTo(endPoint)
+                ;(label as any).distance = distance
+                // @ts-ignore
+                const container: HTMLElement = label._icon.firstChild
                 container.style.transform = `rotate(${angle}rad)`
-                container.textContent = distanceText
+                container.textContent = formatDistance(distance)
             }
         }
         let totalDistance = 0
-        for (const label of labels) totalDistance += label.distance
+        for (const label of labels) totalDistance += (label as any).distance
         totalDistanceLabel.textContent = formatDistance(totalDistance)
     }
 
-    const update = (dirtyIndices) => {
-        // dirtyIndices must be sorted
+    /** Quickly update the modified state, dirtyIndices must be sorted */
+    const update = (dirtyIndices: number[]): void => {
         dirtyMarkerIndices = dirtyIndices
         updateUrl()
         updateLines()
@@ -181,7 +185,8 @@ export const getDistanceController = (map) => {
         map.fire("viewreset") // fix z-index
     }
 
-    const removeMarker = (index) => {
+    /** Remove a marker from the map */
+    const removeMarker = (index: number): void => {
         console.debug("removeMarker", index)
         // Pop tailing markers
         const tail = markers.splice(index + 1)
@@ -207,7 +212,7 @@ export const getDistanceController = (map) => {
         }
     }
 
-    const insertMarker = (index, latLng) => {
+    const insertMarker = (index: number, latLng: any) => {
         console.debug("insertMarker", index, latLng)
         // Pop tailing markers
         const tail = markers.splice(index)
@@ -225,9 +230,9 @@ export const getDistanceController = (map) => {
         update(range(index, markers.length))
     }
 
-    const onMapClick = (options) => {
+    /** On map click, create a new marker */
+    const onMapClick = (options: { latlng: L.LatLngExpression; skipUpdates?: boolean }): void => {
         console.debug("onMapClick", options)
-        const { latlng, skipUpdates } = options
         const markerIndex = markers.length
         // Turn previous marker into blue
         if (markerIndex >= 2) {
@@ -235,16 +240,17 @@ export const getDistanceController = (map) => {
         }
         // Create new marker
         const marker = markerFactory(markerIndex, markerIndex === 0 ? "green" : "red")
-        marker.setLatLng(latlng)
+        marker.setLatLng(options.latlng)
         markers.push(marker)
-        if (!skipUpdates) update([markerIndex])
+        if (!options.skipUpdates) update([markerIndex])
     }
 
-    const onLineMouseover = ({ latlng }) => {
-        // find closest point on line
+    /** On lise mouseover, show the ghost marker */
+    const onLineMouseover = ({ latlng }: { latlng: L.LatLngExpression }): void => {
+        // Find closest point on line
         const point = map.latLngToLayerPoint(latlng)
         let minDistance = Number.POSITIVE_INFINITY
-        let minLatLng = null
+        let minLatLng: L.LatLng | null = null
         ghostMarkerIndex = -1
         for (let i = 1; i < markers.length; i++) {
             const closestLatLng = map.layerPointToLatLng(
@@ -265,7 +271,8 @@ export const getDistanceController = (map) => {
         ghostMarker.setLatLng(minLatLng)
     }
 
-    const onGhostMarkerMousemove = ({ originalEvent }) => {
+    /** On ghost marker mousemove, update the ghost marker position */
+    const onGhostMarkerMousemove = ({ originalEvent }: L.LeafletMouseEvent) => {
         // Convert browser event to map event
         const rect = mapContainer.getBoundingClientRect()
         const x = originalEvent.clientX - rect.left
@@ -273,6 +280,7 @@ export const getDistanceController = (map) => {
         onLineMouseover({ latlng: map.containerPointToLatLng([x, y]) })
     }
 
+    /** On ghost marker drag start, replace it with a real marker */
     const onGhostMarkerDragStart = () => {
         console.debug("onGhostMarkerDragStart")
         ghostMarker.removeEventListener("mousemove", onGhostMarkerMousemove)
@@ -285,12 +293,14 @@ export const getDistanceController = (map) => {
         insertMarker(ghostMarkerIndex, ghostMarker.getLatLng())
     }
 
-    const onGhostMarkerDrag = (e) => {
+    /** On ghost marker drag, update the real marker position */
+    const onGhostMarkerDrag = (e: L.LeafletEvent) => {
         const marker = markers[ghostMarkerIndex]
         marker.setLatLng(ghostMarker.getLatLng())
         marker.fire(e.type, e)
     }
 
+    /** On ghost marker drag end, remove the ghost marker, leaving the real marker in its place */
     const onGhostMarkerDragEnd = () => {
         console.debug("onGhostMarkerDragEnd", ghostMarker !== null)
         // Remove ghost marker
@@ -298,6 +308,7 @@ export const getDistanceController = (map) => {
         ghostMarker = null
     }
 
+    /** On ghost marker click, convert it into a real marker */
     const onGhostMarkerClick = () => {
         console.debug("onGhostMarkerClick")
         onGhostMarkerDragStart()
@@ -306,14 +317,13 @@ export const getDistanceController = (map) => {
 
     return {
         load: () => {
-            // Listen for events
-            map.addEventListener("click", onMapClick)
-
             switchActionSidebar(map, "distance")
+
+            map.addEventListener("click", onMapClick)
 
             // Load markers from URL
             const searchParams = qsParse(location.search.substring(1))
-            let positions = []
+            let positions: [number, number][] = []
             if (searchParams.line) {
                 try {
                     positions = decode(searchParams.line, 5)
@@ -337,11 +347,11 @@ export const getDistanceController = (map) => {
             }
         },
         unload: () => {
+            map.removeEventListener("click", onMapClick)
             onGhostMarkerDragEnd()
             for (const marker of markers) marker.remove()
             markers.length = 0
             update([])
-            map.removeEventListener("click", onMapClick)
         },
     }
 }

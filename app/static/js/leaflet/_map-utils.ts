@@ -11,8 +11,8 @@ import {
     type LayerCode,
     type LayerId,
     getBaseLayerById,
+    getLayerData,
     getLayerIdByCode,
-    getLayerInstanceData,
     getOverlayLayerById,
 } from "./_layers"
 
@@ -35,7 +35,7 @@ export interface MapState extends LonLatZoom {
 export const getMapLayersCode = (map: L.Map): string => {
     const layerCodes: LayerCode[] = []
     map.eachLayer((layer) => {
-        const data = getLayerInstanceData(layer)
+        const data = getLayerData(layer)
         if (data?.layerCode) layerCodes.push(data.layerCode)
     })
     return layerCodes.join("")
@@ -50,7 +50,7 @@ export const getMapLayersCode = (map: L.Map): string => {
 export const getMapBaseLayerId = (map: L.Map): LayerId => {
     let baseLayerId: LayerId | null = null
     map.eachLayer((layer) => {
-        const data = getLayerInstanceData(layer)
+        const data = getLayerData(layer)
         if (data && getBaseLayerById(data.layerId)) baseLayerId = data.layerId
     })
     if (!baseLayerId) throw new Error("No base layer found")
@@ -63,7 +63,7 @@ export const getMapBaseLayerId = (map: L.Map): LayerId => {
 export const getMapBaseLayer = (map: L.Map): L.TileLayer => {
     let baseLayer: L.TileLayer | null = null
     map.eachLayer((layer) => {
-        const data = getLayerInstanceData(layer)
+        const data = getLayerData(layer)
         if (data && getBaseLayerById(data.layerId)) baseLayer = layer as L.TileLayer
     })
     if (!baseLayer) throw new Error("No base layer found")
@@ -105,7 +105,7 @@ const setMapLayersCode = (map: L.Map, layersCode?: string): void => {
 
     // Remove layers not found in the code
     map.eachLayer((layer) => {
-        const data = getLayerInstanceData(layer)
+        const data = getLayerData(layer)
         if (!data) return
         const layerId = data.layerId
         if (layerId === "focus") return
@@ -393,7 +393,7 @@ export const getMapShortlink = (map: L.Map, showMarker = false): string => {
  * getMapEmbedHtml(map, L.latLng(51.505, -0.09))
  */
 export const getMapEmbedHtml = (map: L.Map, markerLatLng?: L.LatLng): string => {
-    const layerData = getLayerInstanceData(getMapBaseLayer(map))
+    const layerData = getLayerData(getMapBaseLayer(map))
     const params: { [key: string]: string } = {
         bbox: map.getBounds().toBBoxString(),
         layer: layerData.layerId,

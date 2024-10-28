@@ -1,22 +1,18 @@
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { getBaseFetchController } from "./_base-fetch"
+import { type FetchController, getBaseFetchController } from "./_base-fetch"
 import { initializeElementContent } from "./_element"
 
 const paginationDistance = 2
 
-/**
- * Create a new element history controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getElementHistoryController = (map) => {
-    const onLoaded = (sidebarContent) => {
+/** Create a new element history controller */
+export const getElementHistoryController = (map: L.Map): FetchController => {
+    const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
 
         // Set page title
@@ -27,25 +23,25 @@ export const getElementHistoryController = (map) => {
 
         // Get params
         const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsType = params.type
-        const paramsId = params.id
+        const paramsType: string = params.type
+        const paramsId: number = params.id
 
-        const tagsDiffCheckbox = sidebarContent.querySelector(".tags-diff-mode")
+        const tagsDiffCheckbox: HTMLInputElement = sidebarContent.querySelector("input.tags-diff-mode")
         tagsDiffCheckbox.checked = getTagsDiffMode()
         tagsDiffCheckbox.addEventListener("change", () => {
             setTagsDiffMode(tagsDiffCheckbox.checked)
-            base.unload()
-            base.load({ type: paramsType, id: paramsId })
+            controller.unload()
+            controller.load({ type: paramsType, id: paramsId.toString() })
         })
 
-        const versionSections = sidebarContent.querySelectorAll(".version-section")
+        const versionSections: NodeListOf<HTMLElement> = sidebarContent.querySelectorAll(".version-section")
         for (const versionSection of versionSections) {
             const elements = initializeElementContent(map, versionSection)
             versionSection.addEventListener("mouseenter", () => focusManyMapObjects(map, elements)) // focus elements
             versionSection.addEventListener("mouseleave", () => focusMapObject(map, null)) // remove focus
         }
 
-        const paginationContainer = sidebarContent.querySelector(".history-pagination")
+        const paginationContainer: HTMLElement = sidebarContent.querySelector(".history-pagination")
         if (paginationContainer) {
             const dataset = paginationContainer.dataset
             const currentPage = Number.parseInt(dataset.page, 10)
@@ -70,9 +66,9 @@ export const getElementHistoryController = (map) => {
                 const li = document.createElement("li")
                 li.classList.add("page-item")
 
-                const anchor = document.createElement("a")
+                const anchor: HTMLAnchorElement = document.createElement("a")
                 anchor.classList.add("page-link")
-                anchor.textContent = i
+                anchor.textContent = i.toString()
                 anchor.href = `?page=${i}`
                 if (distance === 1) anchor.rel = i < currentPage ? "prev" : "next"
 
@@ -88,23 +84,19 @@ export const getElementHistoryController = (map) => {
 
             paginationContainer.appendChild(paginationFragment)
         }
+    })
+
+    const controller: FetchController = {
+        load: ({ type, id }) => {
+            const params = qsParse(location.search.substring(1))
+            params.tags_diff_mode = getTagsDiffMode().toString()
+            const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
+            base.load({ url })
+        },
+        unload: () => {
+            focusMapObject(map, null)
+            base.unload()
+        },
     }
-
-    const base = getBaseFetchController(map, "element-history", onLoaded)
-    const baseLoad = base.load
-    const baseUnload = base.unload
-
-    base.load = ({ type, id }) => {
-        const params = qsParse(location.search.substring(1))
-        params.tags_diff_mode = getTagsDiffMode()
-        const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
-        baseLoad({ url })
-    }
-
-    base.unload = () => {
-        focusMapObject(map, null)
-        baseUnload()
-    }
-
-    return base
+    return controller
 }

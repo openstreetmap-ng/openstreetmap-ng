@@ -1,30 +1,28 @@
-import { Route } from "./_route"
+import type { FetchController } from "./_base-fetch"
+import { type Route, makeRoute } from "./_route"
 
-let routes
-let currentPath
-let currentRoute
+let routes: Route[] | null = null
+let currentPath: string | null = null
+let currentRoute: Route | null = null
 
-// Find the first route that matches a path
-const findRoute = (path) => routes.find((route) => route.match(path))
+/** Find the first route that matches a path */
+const findRoute = (path: string): Route | undefined => routes.find((route) => route.match(path))
 
 /**
  * Remove trailing slash from a string
- * @param {string} str Input string
- * @returns {string} String without trailing slash
  * @example
  * removeTrailingSlash("/way/1234/")
  * // => "/way/1234"
  */
-const removeTrailingSlash = (str) => (str.endsWith("/") && str.length > 1 ? removeTrailingSlash(str.slice(0, -1)) : str)
+const removeTrailingSlash = (str: string): string =>
+    str.endsWith("/") && str.length > 1 ? removeTrailingSlash(str.slice(0, -1)) : str
 
 /**
  * Navigate to a path, throwing an error if no route is found
- * @param {string} newPath Path to navigate to, including search
- * @returns {void}
  * @example
  * routerNavigateStrict("/way/1234")
  */
-export const routerNavigateStrict = (newPath) => {
+export const routerNavigateStrict = (newPath: string): void => {
     console.debug("routerNavigateStrict", newPath)
 
     if (!routerNavigate(newPath)) {
@@ -34,20 +32,18 @@ export const routerNavigateStrict = (newPath) => {
 
 /**
  * Navigate to a path and return true if successful
- * @param {string} newPath Path to navigate to, including search
- * @returns {boolean}
  * @example
  * routerNavigate("/way/1234")
  * // => true
  */
-export const routerNavigate = (newPath) => {
+export const routerNavigate = (newPath: string): boolean => {
     console.debug("routerNavigate", newPath)
 
     const newRoute = findRoute(newPath)
     if (!newRoute) return false
 
     // Unload the current route
-    if (currentRoute) currentRoute.unload({ sameRoute: newRoute === currentRoute })
+    if (currentRoute) currentRoute.unload()
 
     // Push the new history state
     history.pushState(null, "", newPath + location.hash)
@@ -55,26 +51,19 @@ export const routerNavigate = (newPath) => {
     // Load the new route
     currentPath = newPath
     currentRoute = newRoute
-    currentRoute.load(currentPath, { source: "script" })
+    currentRoute.load(currentPath)
     return true
 }
 
-/**
- * Configure the router
- * @param {Map<string, object>} pathControllerMap Mapping of path regex patterns to controller objects
- */
-export const configureRouter = (pathControllerMap) => {
-    routes = Array.from(pathControllerMap).map(([path, controller]) => Route(path, controller))
+/** Configure the router */
+export const configureRouter = (pathControllerMap: Map<string, FetchController>) => {
+    routes = Array.from(pathControllerMap).map(([path, controller]) => makeRoute(path, controller))
     console.debug("Loaded", routes.length, "routes")
 
     currentPath = removeTrailingSlash(location.pathname) + location.search
     currentRoute = findRoute(currentPath)
 
-    /**
-     * Handle browser navigation events
-     * @returns {void}
-     */
-    const onBrowserNavigation = () => {
+    window.addEventListener("popstate", (): void => {
         console.debug("onBrowserNavigation", location)
         const newPath = removeTrailingSlash(location.pathname) + location.search
 
@@ -84,20 +73,16 @@ export const configureRouter = (pathControllerMap) => {
         const newRoute = findRoute(newPath)
 
         // Unload the current route
-        if (currentRoute) currentRoute.unload({ sameRoute: newRoute === currentRoute })
+        if (currentRoute) currentRoute.unload()
 
         // Load the new route
         currentPath = newPath
         currentRoute = newRoute
-        if (currentRoute) currentRoute.load(currentPath, { source: "event" })
-    }
+        if (currentRoute) currentRoute.load(currentPath)
+    })
 
-    /**
-     * Attempt to navigate to the href of an anchor element
-     * @param {MouseEvent} event Click event
-     * @returns {void}
-     */
-    const onWindowClick = (event) => {
+    window.addEventListener("click", (event: MouseEvent): void => {
+        // On window click, attempt to navigate to the href of an anchor element
         // Skip if default prevented
         if (event.defaultPrevented) return
 
@@ -105,7 +90,7 @@ export const configureRouter = (pathControllerMap) => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
         // Skip if target is not an anchor
-        const target = event.target.closest("a")
+        const target = (event.target as Element).closest("a")
         if (!target) return
 
         // Skip if the anchor is not a link
@@ -121,12 +106,8 @@ export const configureRouter = (pathControllerMap) => {
         if (routerNavigate(newPath)) {
             event.preventDefault()
         }
-    }
-
-    // Listen for events
-    window.addEventListener("popstate", onBrowserNavigation)
-    window.addEventListener("click", onWindowClick)
+    })
 
     // Initial load
-    if (currentRoute) currentRoute.load(currentPath, { source: "init" })
+    if (currentRoute) currentRoute.load(currentPath)
 }

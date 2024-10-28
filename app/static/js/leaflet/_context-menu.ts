@@ -108,7 +108,7 @@ export const configureContextMenu = (map: L.Map): void => {
             await navigator.clipboard.writeText(value)
             console.debug("Copied geolocation to clipboard", value)
         } catch (err) {
-            console.error("Failed to copy geolocation", err)
+            console.warn("Failed to copy geolocation", err)
         }
     }
     geolocationField.addEventListener("click", onGeolocationFieldClick)

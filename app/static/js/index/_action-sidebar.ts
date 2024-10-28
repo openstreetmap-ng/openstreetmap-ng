@@ -1,27 +1,18 @@
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { routerNavigateStrict } from "./_router"
 
-const actionSidebars = document.querySelectorAll(".action-sidebar")
+const actionSidebars: NodeListOf<HTMLElement> = document.querySelectorAll(".action-sidebar")
 const sidebarContainer = actionSidebars.length ? actionSidebars[0].parentElement : null
 
-/**
- * Get the action sidebar with the given class name
- * @param {string} className Class name of the sidebar
- * @returns {HTMLDivElement} Action sidebar
- */
-export const getActionSidebar = (className) => {
-    const sidebar = document.querySelector(`.action-sidebar.${className}`)
+/** Get the action sidebar with the given class name */
+export const getActionSidebar = (className: string): HTMLElement => {
+    const sidebar: HTMLElement = document.querySelector(`.action-sidebar.${className}`)
     configureActionSidebar(sidebar)
     return sidebar
 }
 
-/**
- * Switch the action sidebar with the given class name
- * @param {L.Map} map Leaflet map
- * @param {string} className Class name of the sidebar
- * @returns {void}
- */
-export const switchActionSidebar = (map, className) => {
+/** Switch the action sidebar with the given class name */
+export const switchActionSidebar = (map: L.Map, className: string): void => {
     console.debug("switchActionSidebar", className)
 
     // Toggle all action sidebars
@@ -35,18 +26,14 @@ export const switchActionSidebar = (map, className) => {
     map.invalidateSize(false)
 }
 
-// On sidebar close button click, navigate to index
+/** On sidebar close button click, navigate to index */
 const onCloseButtonClick = () => {
-    console.debug("configureActionSidebars", "onCloseButtonClick")
+    console.debug("configureActionSidebar", "onCloseButtonClick")
     routerNavigateStrict("/")
 }
 
-/**
- * Configure action sidebars
- * @returns {void}
- */
-export const configureActionSidebar = (sidebar) => {
-    // Listen for events
+/** Configure action sidebar events */
+export const configureActionSidebar = (sidebar: Element): void => {
     const closeButton = sidebar.querySelector(".sidebar-close-btn")
     if (closeButton) closeButton.addEventListener("click", onCloseButtonClick)
 }

@@ -14,7 +14,7 @@ export interface APIDetail {
 export const configureStandardForm = (
     form: HTMLFormElement,
     successCallback?: (data: any) => void,
-    clientValidationCallback?: (form: HTMLFormElement) => string | APIDetail[],
+    clientValidationCallback?: (form: HTMLFormElement) => string | APIDetail[] | null,
     options?: { formAppend: boolean },
 ): void => {
     console.debug("Initializing standard form", form)
@@ -173,7 +173,7 @@ export const configureStandardForm = (
 
         // Prevent double submission
         if (form.classList.contains("pending")) {
-            console.warn("Form already pending", form)
+            console.info("Form already pending", form)
             return
         }
 

@@ -2,21 +2,17 @@ import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { focusMapObject } from "../leaflet/_focus-layer"
-import { getBaseFetchController } from "./_base-fetch"
+import { type FetchController, getBaseFetchController } from "./_base-fetch"
 
-/**
- * Create a new note controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getNoteController = (map) => {
-    const onLoaded = (sidebarContent) => {
+/** Create a new note controller */
+export const getNoteController = (map: L.Map): FetchController => {
+    const base = getBaseFetchController(map, "note", (sidebarContent) => {
         // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const locationButton = sidebarContent.querySelector(".location-btn")
-        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
-        const commentForm = sidebarContent.querySelector("form.comment-form")
+        const locationButton = sidebarContent.querySelector("button.location-btn")
+        const subscriptionForm: HTMLFormElement = sidebarContent.querySelector("form.subscription-form")
+        const commentForm: HTMLFormElement = sidebarContent.querySelector("form.comment-form")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -26,10 +22,10 @@ export const getNoteController = (map) => {
 
         // Get params
         const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsId = params.id
-        const lon = params.lon
-        const lat = params.lat
-        const open = params.open
+        const paramsId: number = params.id
+        const lon: number = params.lon
+        const lat: number = params.lat
+        const open: boolean = params.open
 
         focusMapObject(map, {
             type: "note",
@@ -39,8 +35,8 @@ export const getNoteController = (map) => {
             icon: open ? "open" : "closed",
         })
 
-        // On location click, pan the map
-        const onLocationClick = () => {
+        locationButton.addEventListener("click", () => {
+            // On location click, pan the map
             const latLng = L.latLng(lat, lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
@@ -48,69 +44,63 @@ export const getNoteController = (map) => {
             } else {
                 map.panTo(latLng)
             }
-        }
-
-        // Listen for events
-        locationButton.addEventListener("click", onLocationClick)
+        })
 
         if (commentForm) {
-            const commentInput = commentForm.elements.text
-            const eventInput = commentForm.elements.event
-            const closeButton = commentForm.querySelector(".close-btn")
-            const commentCloseButton = commentForm.querySelector(".comment-close-btn")
-            const commentButton = commentForm.querySelector(".comment-btn")
-            const submitButtons = commentForm.querySelectorAll("[type=submit]")
+            const commentInput = commentForm.elements.namedItem("text") as HTMLInputElement
+            const eventInput = commentForm.elements.namedItem("event") as HTMLInputElement
+            const closeButton: HTMLButtonElement = commentForm.querySelector("button.close-btn")
+            const commentCloseButton: HTMLButtonElement = commentForm.querySelector("button.comment-close-btn")
+            const commentButton: HTMLButtonElement = commentForm.querySelector("button.comment-btn")
+            const submitButtons: NodeListOf<HTMLButtonElement> = commentForm.querySelectorAll("button[type=submit]")
 
             // On success callback, reload the note and simulate map move (reload notes layer)
             const onFormSuccess = () => {
                 map.panTo(map.getCenter(), { animate: false })
-                base.unload()
-                base.load({ id: paramsId })
+                controller.unload()
+                controller.load({ id: paramsId.toString() })
             }
-
-            // On comment input, update the button state
-            const onCommentInput = () => {
-                const hasValue = commentInput.value.trim().length > 0
-                if (hasValue) {
-                    closeButton.classList.add("d-none")
-                    commentCloseButton.classList.remove("d-none")
-                    commentButton.disabled = false
-                } else {
-                    closeButton.classList.remove("d-none")
-                    commentCloseButton.classList.add("d-none")
-                    commentButton.disabled = true
-                }
-            }
-
-            // On submit click, set action input
-            const onSubmitClick = (event) => {
-                eventInput.value = event.target.dataset.event
-            }
-
-            // Listen for events
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)
-            if (commentInput) commentInput.addEventListener("input", onCommentInput)
+
+            // On submit click, set event type
+            const onSubmitClick = ({ target }: MouseEvent) => {
+                eventInput.value = (target as HTMLButtonElement).dataset.event
+            }
             for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
 
-            // Initial update
-            if (commentInput) onCommentInput()
+            if (commentInput) {
+                // On comment input, update the button state
+                const onCommentInput = () => {
+                    const hasValue = commentInput.value.trim().length > 0
+                    if (hasValue) {
+                        closeButton.classList.add("d-none")
+                        commentCloseButton.classList.remove("d-none")
+                        commentButton.disabled = false
+                    } else {
+                        closeButton.classList.remove("d-none")
+                        commentCloseButton.classList.add("d-none")
+                        commentButton.disabled = true
+                    }
+                }
+
+                commentInput.addEventListener("input", onCommentInput)
+
+                // Initial update
+                onCommentInput()
+            }
         }
+    })
+
+    const controller: FetchController = {
+        load: ({ id }) => {
+            const url = `/api/partial/note/${id}`
+            base.load({ url })
+        },
+        unload: () => {
+            focusMapObject(map, null)
+            base.unload()
+        },
     }
-
-    const base = getBaseFetchController(map, "note", onLoaded)
-    const baseLoad = base.load
-    const baseUnload = base.unload
-
-    base.load = ({ id }) => {
-        const url = `/api/partial/note/${id}`
-        baseLoad({ url })
-    }
-
-    base.unload = () => {
-        focusMapObject(map, null)
-        baseUnload()
-    }
-
-    return base
+    return controller
 }

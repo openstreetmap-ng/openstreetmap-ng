@@ -4,44 +4,41 @@ import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import { isLatitude, isLongitude } from "../_utils"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer"
+import type { LonLatZoom } from "../leaflet/_map-utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 
-/**
- * Create a new query features controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getQueryFeaturesController = (map) => {
+// TODO: finish this controller
+
+/** Create a new query features controller */
+export const getQueryFeaturesController = (map: L.Map): FetchController => {
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const nearbyContainer = sidebar.querySelector(".nearby-container")
+    const nearbyContainer: HTMLElement = sidebar.querySelector(".nearby-container")
     const nearbyLoadingHtml = nearbyContainer.innerHTML
     const enclosingContainer = sidebar.querySelector(".enclosing-container")
     const enclosingLoadingHtml = enclosingContainer.innerHTML
     const emptyText = i18next.t("javascripts.query.nothing_found")
 
-    let abortController = null
+    let abortController: AbortController | null = null
 
-    // Get query position from URL
-    const getQueryPosition = () => {
+    /** Get query position from URL */
+    const getURLQueryPosition = (): LonLatZoom | null => {
         const searchParams = qsParse(location.search.substring(1))
         if (searchParams.lon && searchParams.lat) {
             const lon = Number.parseFloat(searchParams.lon)
             const lat = Number.parseFloat(searchParams.lat)
-
             if (isLongitude(lon) && isLatitude(lat)) {
                 const zoom = map.getZoom()
                 return { lon, lat, zoom }
             }
         }
-
         return null
     }
 
-    // Configure result actions to handle focus and clicks
-    const configureResultActions = (container) => {
-        const resultActions = container.querySelectorAll(".social-action")
-
+    /** Configure result actions to handle focus and clicks */
+    const configureResultActions = (container: HTMLElement): void => {
+        const resultActions: NodeListOf<HTMLElement> = container.querySelectorAll(".social-action")
         for (const resultAction of resultActions) {
             // Get params
             const params = JSON.parse(resultAction.dataset.params)
@@ -54,24 +51,19 @@ export const getQueryFeaturesController = (map) => {
             const mainElement = elementMap[mainElementType].get(mainElementId)
 
             // TODO: check event order on high activity
-            // On hover, focus on the element
-            const onResultActionMouseEnter = () => {
+            resultAction.addEventListener("mouseenter", () => {
+                // On hover, focus on the element
                 focusMapObject(map, mainElement)
-            }
-
-            // On hover end, unfocus the element
-            const onResultActionMouseLeave = () => {
+            })
+            resultAction.addEventListener("mouseleave", () => {
+                // On hover end, unfocus the element
                 focusMapObject(map, null)
-            }
-
-            // Listen for events
-            resultAction.addEventListener("mouseenter", onResultActionMouseEnter)
-            resultAction.addEventListener("mouseleave", onResultActionMouseLeave)
+            })
         }
     }
 
-    // On sidebar loading, display loading content and show map animation
-    const onSidebarLoading = (latLng, zoom, abortSignal) => {
+    /** On sidebar loading, display loading content and show map animation */
+    const onSidebarLoading = (latLng: L.LatLng, zoom: number, abortSignal: AbortSignal): void => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
         enclosingContainer.innerHTML = enclosingLoadingHtml
 
@@ -97,29 +89,29 @@ export const getQueryFeaturesController = (map) => {
         setTimeout(fadeOut, stepDuration)
     }
 
-    // On sidebar loaded, display content
-    const onSidebarNearbyLoaded = (html) => {
+    /** On sidebar loaded, display content */
+    const onSidebarNearbyLoaded = (html: string): void => {
         nearbyContainer.innerHTML = html
         configureResultActions(nearbyContainer)
     }
-    const onSidebarEnclosingLoaded = (html) => {
+
+    /** On sidebar loaded, display content */
+    const onSidebarEnclosingLoaded = (html: string): void => {
         enclosingContainer.innerHTML = html
     }
 
     // TODO: on tab close, disable query mode
-
     return {
         load: () => {
             switchActionSidebar(map, "query-features")
             document.title = getPageTitle(sidebarTitle)
 
-            const position = getQueryPosition()
+            const position = getURLQueryPosition()
             if (!position) {
                 nearbyContainer.textContent = emptyText
                 enclosingContainer.textContent = emptyText
                 return
             }
-
             const { lon, lat, zoom } = position
 
             // Focus on the query area if it's offscreen
@@ -135,7 +127,7 @@ export const getQueryFeaturesController = (map) => {
             onSidebarLoading(latLng, zoom, abortSignal)
 
             // Fetch nearby features
-            const queryString = qsEncode({ lon, lat, zoom })
+            const queryString = qsEncode({ lon: lon.toString(), lat: lat.toString(), zoom: zoom.toString() })
 
             fetch(`/api/partial/query/nearby?${queryString}`, {
                 method: "GET",

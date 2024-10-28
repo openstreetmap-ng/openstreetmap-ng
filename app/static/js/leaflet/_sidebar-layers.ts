@@ -1,7 +1,7 @@
 import { Tooltip } from "bootstrap"
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize, noteQueryAreaMaxSize } from "../_config"
-import { type LayerId, getBaseLayerById, getLayerInstanceData, getOverlayLayerById } from "./_layers"
+import { type LayerId, getBaseLayerById, getLayerData, getOverlayLayerById } from "./_layers"
 import { cloneTileLayer, getMapBaseLayerId } from "./_map-utils"
 import { type SidebarToggleControl, getSidebarToggleButton } from "./_sidebar-toggle-button"
 import { getLatLngBoundsSize } from "./_utils"
@@ -194,7 +194,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
 
             // Remove all base layers
             map.eachLayer((layer) => {
-                const data = getLayerInstanceData(layer)
+                const data = getLayerData(layer)
                 if (data && getBaseLayerById(data.layerId)) {
                     console.debug("Removing base layer", data.layerId)
                     map.removeLayer(layer)

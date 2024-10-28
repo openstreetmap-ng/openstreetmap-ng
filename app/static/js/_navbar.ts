@@ -102,7 +102,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
                 // Remote edit button stores information in dataset
                 link.dataset.remoteEdit = JSON.stringify({ state, object })
             } else if (!(link instanceof HTMLAnchorElement)) {
-                console.warn("Expected .map-link that is .edit-link to be <a> (excluding data-editor=remote)")
+                console.error("Expected .map-link that is .edit-link to be <a> (excluding data-editor=remote)")
                 continue
             } else if (object) {
                 link.href = `${baseHref}?${object.type}=${object.id}${hash}`
@@ -125,7 +125,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void =
             }
         } else {
             if (!(link instanceof HTMLAnchorElement)) {
-                console.warn("Expected .map-link that is not .edit-link to be <a>")
+                console.error("Expected .map-link that is not .edit-link to be <a>")
                 continue
             }
             link.href = baseHref + hash

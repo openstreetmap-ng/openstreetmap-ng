@@ -14,7 +14,7 @@ import { GraphHopperEngines } from "./routing-engines/_graphhopper"
 import { OSRMEngines } from "./routing-engines/_osrm"
 import { ValhallaEngines } from "./routing-engines/_valhalla"
 
-export const styles = {
+const styles: { [key: string]: L.PolylineOptions } = {
     default: {
         pane: "routing",
         color: "#0033ff",

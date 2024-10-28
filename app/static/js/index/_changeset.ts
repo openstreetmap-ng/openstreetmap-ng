@@ -1,49 +1,52 @@
 import i18next from "i18next"
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { renderColorPreviews } from "../_color-preview"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
+import type { Bounds, OSMChangeset } from "../_types"
 import { focusMapObject } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
-import { getBaseFetchController } from "./_base-fetch"
+import { type FetchController, getBaseFetchController } from "./_base-fetch"
+
+// app/format/element_list.py
+interface ChangesetListEntry {
+    type: string
+    id: number
+    name?: string
+    icon?: string
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    icon_title?: string
+    version: number
+    visible: boolean
+}
 
 const elementsPerPage = 20
 const paginationDistance = 2
 
-/**
- * Create a new changeset controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getChangesetController = (map) => {
-    let paramsId = null
-    let paramsBounds = null
+/** Create a new changeset controller */
+export const getChangesetController = (map: L.Map): FetchController => {
+    let paramsId: number | null = null
+    let paramsBounds: Bounds[] | null = null
 
-    // On map update, refocus the changeset
-    const onMapZoomEnd = (e) => {
-        focusMapObject(
-            map,
-            {
-                type: "changeset",
-                id: paramsId,
-                bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
-            },
-            {
-                // Fit the bounds only on the initial update
-                fitBounds: !e,
-            },
-        )
+    /** On map zoom change, refocus the changeset (due to size change) */
+    const onMapZoomEnd = (e?: L.LeafletEvent): void => {
+        const object: OSMChangeset = {
+            type: "changeset",
+            id: paramsId,
+            bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
+        }
+        focusMapObject(map, object, {
+            // Fit the bounds only on the initial update
+            fitBounds: !e,
+        })
     }
 
-    const onLoaded = (sidebarContent) => {
+    const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
         renderColorPreviews()
 
-        // Get elements
-        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
-        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
-        const commentForm = sidebarContent.querySelector("form.comment-form")
-        const elementsSection = sidebarContent.querySelector(".elements")
+        const elementsSection: HTMLElement = sidebarContent.querySelector(".elements")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -55,8 +58,9 @@ export const getChangesetController = (map) => {
         const params = JSON.parse(sidebarTitleElement.dataset.params)
         paramsId = params.id
         paramsBounds = params.bounds
-        const elements = params.elements
+        const elements: { [key: string]: ChangesetListEntry[] } = params.elements
 
+        // Optionally update on map zoom (not all changesets have bounds)
         if (paramsBounds) {
             // Listen for events and run initial update
             map.addEventListener("zoomend", onMapZoomEnd)
@@ -65,46 +69,37 @@ export const getChangesetController = (map) => {
 
         renderElements(elementsSection, elements)
 
-        // On success callback, reload the changeset
+        /** On success callback, reload the changeset */
         const onFormSuccess = () => {
-            base.unload()
-            base.load({ id: paramsId })
+            controller.unload()
+            controller.load({ id: paramsId.toString() })
         }
-
-        // Listen for events
+        const subscriptionForm: HTMLFormElement | null = sidebarContent.querySelector("form.subscription-form")
         if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
+        const commentForm: HTMLFormElement | null = sidebarContent.querySelector("form.comment-form")
         if (commentForm) configureStandardForm(commentForm, onFormSuccess)
+    })
+
+    const controller: FetchController = {
+        load: ({ id }) => {
+            const url = `/api/partial/changeset/${id}`
+            base.load({ url })
+        },
+        unload: () => {
+            map.removeEventListener("zoomend", onMapZoomEnd)
+            focusMapObject(map, null)
+            base.unload()
+        },
     }
-
-    const base = getBaseFetchController(map, "changeset", onLoaded)
-    const baseLoad = base.load
-    const baseUnload = base.unload
-
-    base.load = ({ id }) => {
-        const url = `/api/partial/changeset/${id}`
-        baseLoad({ url })
-    }
-
-    base.unload = () => {
-        map.removeEventListener("zoomend", onMapZoomEnd)
-        focusMapObject(map, null)
-        baseUnload()
-    }
-
-    return base
+    return controller
 }
 
-/**
- * Render elements component
- * @param {HTMLElement} elementsSection Elements section
- * @param {object} elements Elements data
- * @returns {void}
- */
-const renderElements = (elementsSection, elements) => {
+/** Render elements component */
+const renderElements = (elementsSection: HTMLElement, elements: { [key: string]: ChangesetListEntry[] }): void => {
     console.debug("renderElements")
 
-    const groupTemplate = elementsSection.querySelector("template.group")
-    const entryTemplate = elementsSection.querySelector("template.entry")
+    const groupTemplate: HTMLTemplateElement = elementsSection.querySelector("template.group")
+    const entryTemplate: HTMLTemplateElement = elementsSection.querySelector("template.entry")
     const fragment = document.createDocumentFragment()
 
     for (const type of ["way", "relation", "node"]) {
@@ -122,48 +117,50 @@ const renderElements = (elementsSection, elements) => {
     }
 }
 
-/**
- * Render elements of a specific type
- * @param {HTMLTemplateElement} groupTemplate Group template
- * @param {HTMLTemplateElement} entryTemplate Entry template
- * @param {string} type Element type
- * @param {object[]} elements Elements data
- * @returns {DocumentFragment} Fragment
- */
-const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
+/** Render elements of a specific type */
+const renderElementType = (
+    groupTemplate: HTMLTemplateElement,
+    entryTemplate: HTMLTemplateElement,
+    type: string,
+    elements: ChangesetListEntry[],
+): DocumentFragment => {
     console.debug("renderElementType", type, elements)
 
-    const groupFragment = groupTemplate.content.cloneNode(true)
+    const groupFragment = groupTemplate.content.cloneNode(true) as DocumentFragment
     const titleElement = groupFragment.querySelector(".title")
     const tbody = groupFragment.querySelector("tbody")
 
+    // Calculate pagination
     const elementsLength = elements.length
     const totalPages = Math.ceil(elementsLength / elementsPerPage)
     let currentPage = 1
 
-    const updateTitle = () => {
-        let count
+    const updateTitle = (): void => {
+        let count: string
         if (totalPages > 1) {
             const from = (currentPage - 1) * elementsPerPage + 1
             const to = Math.min(currentPage * elementsPerPage, elementsLength)
             count = i18next.t("pagination.range", { x: `${from}-${to}`, y: elementsLength })
         } else {
-            count = elementsLength
+            count = elementsLength.toString()
         }
 
-        // prefer static translation strings to ease automation
-        let newTitle
+        // Prefer static translation strings to ease automation
+        let newTitle: string
         if (type === "node") {
+            // @ts-ignore
             newTitle = i18next.t("browse.changeset.node", { count })
         } else if (type === "way") {
+            // @ts-ignore
             newTitle = i18next.t("browse.changeset.way", { count })
         } else if (type === "relation") {
+            // @ts-ignore
             newTitle = i18next.t("browse.changeset.relation", { count })
         }
         titleElement.textContent = newTitle
     }
 
-    const updateTable = () => {
+    const updateTable = (): void => {
         const tbodyFragment = document.createDocumentFragment()
 
         const iStart = (currentPage - 1) * elementsPerPage
@@ -171,10 +168,10 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
         for (let i = iStart; i < iEnd; i++) {
             const element = elements[i]
 
-            const entryFragment = entryTemplate.content.cloneNode(true)
+            const entryFragment = entryTemplate.content.cloneNode(true) as DocumentFragment
             const iconImg = entryFragment.querySelector("img")
-            const linkLatest = entryFragment.querySelector("a.link-latest")
-            const linkVersion = entryFragment.querySelector("a.link-version")
+            const linkLatest: HTMLAnchorElement = entryFragment.querySelector("a.link-latest")
+            const linkVersion: HTMLAnchorElement = entryFragment.querySelector("a.link-version")
 
             if (element.icon) {
                 iconImg.src = `/static/img/element/${element.icon}`
@@ -195,13 +192,11 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
                 span.textContent = ` (${element.id})`
                 linkLatest.appendChild(span)
             } else {
-                linkLatest.textContent = element.id
+                linkLatest.textContent = element.id.toString()
             }
             linkLatest.href = `/${type}/${element.id}`
-
             linkVersion.textContent = `v${element.version}`
             linkVersion.href = `/${type}/${element.id}/history/${element.version}`
-
             tbodyFragment.appendChild(entryFragment)
         }
 
@@ -209,10 +204,11 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
         tbody.appendChild(tbodyFragment)
     }
 
+    // Optionally configure pagination controls
     if (totalPages > 1) {
         const paginationContainer = groupFragment.querySelector(".pagination")
 
-        const updatePagination = () => {
+        const updatePagination = (): void => {
             console.debug("updatePagination", currentPage)
 
             const paginationFragment = document.createDocumentFragment()
@@ -235,7 +231,7 @@ const renderElementType = (groupTemplate, entryTemplate, type, elements) => {
 
                 const button = document.createElement("button")
                 button.classList.add("page-link")
-                button.textContent = i
+                button.textContent = i.toString()
                 li.appendChild(button)
 
                 if (i === currentPage) {

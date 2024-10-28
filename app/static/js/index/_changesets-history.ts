@@ -2,12 +2,31 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode } from "../_qs"
 import { getPageTitle } from "../_title"
-import { getOverlayLayerById } from "../leaflet/_layers"
+import type { Bounds } from "../_types"
+import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 import { routerNavigateStrict } from "./_router"
 
-export const styles = {
+// app/models/leaflet.py
+interface ChangesetLeaflet {
+    id: number
+    geom: Bounds[]
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    user_name?: string
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    user_avatar?: string
+    closed: boolean
+    timeago: string
+    comment?: string
+    // biome-ignore lint/style/useNamingConvention: <explanation>
+    num_comments: number
+}
+
+const changesetsLayerId = "changesets" as LayerId
+
+const styles: { [key: string]: L.PolylineOptions } = {
     default: {
         color: "#F90",
         weight: 2,
@@ -22,41 +41,37 @@ export const styles = {
     },
 }
 
-/**
- * Create a new changesets history controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getChangesetsHistoryController = (map) => {
-    const changesetLayer = getOverlayLayerById("changesets")
+/** Create a new changesets history controller */
+export const getChangesetsHistoryController = (map: L.Map): FetchController => {
+    const changesetLayer = getOverlayLayerById(changesetsLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("changesets-history")
-    const parentSidebar = sidebar.closest(".sidebar")
+    const parentSidebar: HTMLElement = sidebar.closest(".sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const entryTemplate = sidebar.querySelector("template.entry")
-    const entryContainer = entryTemplate.parentNode
+    const entryTemplate: HTMLTemplateElement = sidebar.querySelector("template.entry")
+    const entryContainer = entryTemplate.parentElement
     const loadingContainer = sidebar.querySelector(".loading")
 
-    let abortController = null
+    let abortController: AbortController | null = null
 
     // Store changesets to allow loading more
-    const changesets = []
+    const changesets: ChangesetLeaflet[] = []
     let changesetsBBox = ""
-    let changesetsFinished = false
-    const idSidebarMap = new Map()
-    const idLayersMap = new Map()
+    let noMoreChangesets = false
+    const idSidebarMap: Map<number, HTMLElement> = new Map()
+    const idLayersMap: Map<number, L.Path[]> = new Map()
 
-    const updateSidebar = () => {
+    const updateSidebar = (): void => {
         idSidebarMap.clear()
 
         const fragment = document.createDocumentFragment()
         for (const changeset of changesets) {
-            const div = entryTemplate.content.cloneNode(true).children[0]
+            const div = (entryTemplate.content.cloneNode(true) as DocumentFragment).children[0] as HTMLElement
 
             // Find elements to populate
             const userContainer = div.querySelector(".user")
             const dateContainer = div.querySelector(".date")
             const commentValue = div.querySelector(".comment")
-            const changesetAnchor = div.querySelector("a.stretched-link")
+            const changesetLink: HTMLAnchorElement = div.querySelector("a.stretched-link")
             const numCommentsValue = div.querySelector(".num-comments")
 
             // Populate elements
@@ -84,14 +99,14 @@ export const getChangesetsHistoryController = (map) => {
             const icon = document.createElement("i")
             icon.classList.add("bi", changeset.num_comments ? "bi-chat-left-text" : "bi-chat-left")
             numCommentsValue.classList.toggle("no-comments", !changeset.num_comments)
-            numCommentsValue.appendChild(document.createTextNode(changeset.num_comments))
+            numCommentsValue.appendChild(document.createTextNode(changeset.num_comments.toString()))
             numCommentsValue.appendChild(icon)
 
-            changesetAnchor.href = `/changeset/${changeset.id}`
-            changesetAnchor.textContent = changeset.id
-            changesetAnchor.changesetId = changeset.id
-            changesetAnchor.addEventListener("mouseover", onMouseover)
-            changesetAnchor.addEventListener("mouseout", onMouseout)
+            changesetLink.href = `/changeset/${changeset.id}`
+            changesetLink.textContent = changeset.id.toString()
+            ;(changesetLink as any).changesetId = changeset.id
+            changesetLink.addEventListener("mouseover", onMouseover)
+            changesetLink.addEventListener("mouseout", onMouseout)
             fragment.appendChild(div)
 
             idSidebarMap.set(changeset.id, div)
@@ -104,9 +119,9 @@ export const getChangesetsHistoryController = (map) => {
         idLayersMap.clear()
 
         // Sort by bounds area (descending)
-        const changesetsSorted = []
+        const changesetsSorted: [ChangesetLeaflet, L.Path[], Bounds, number][] = []
         for (const changeset of changesets) {
-            const changesetLayers = []
+            const changesetLayers: L.Path[] = []
             idLayersMap.set(changeset.id, changesetLayers)
             for (const bounds of changeset.geom) {
                 const minimumBounds = makeBoundsMinimumSize(map, bounds)
@@ -117,7 +132,7 @@ export const getChangesetsHistoryController = (map) => {
         changesetsSorted.sort((a, b) => b[3] - a[3])
 
         // Create layers
-        const layers = []
+        const layers: L.Path[] = []
         for (const [changeset, changesetLayers, bounds] of changesetsSorted) {
             const layer = L.rectangle(
                 [
@@ -126,7 +141,7 @@ export const getChangesetsHistoryController = (map) => {
                 ],
                 styles.default,
             )
-            layer.changesetId = changeset.id
+            ;(layer as any).changesetId = changeset.id
             layer.addEventListener("mouseover", onMouseover)
             layer.addEventListener("mouseout", onMouseout)
             layer.addEventListener("click", onLayerClick)
@@ -139,24 +154,15 @@ export const getChangesetsHistoryController = (map) => {
         console.debug("Changesets layer showing", layers.length, "changesets")
     }
 
-    /**
-     * On layer click, navigate to the changeset
-     * @param {L.LeafletMouseEvent} event
-     * @returns {void}
-     */
-    const onLayerClick = (event) => {
-        const layer = event.target
-        const changesetId = layer.changesetId
+    /** On layer click, navigate to the changeset */
+    const onLayerClick = ({ target }: L.LeafletMouseEvent): void => {
+        const changesetId: number = target.changesetId
         routerNavigateStrict(`/changeset/${changesetId}`)
     }
 
-    /**
-     * On mouseover, scroll result into view and focus the changeset
-     * @param {MouseEvent} event
-     * @returns {void}
-     */
-    const onMouseover = (event) => {
-        const changesetId = event.target.changesetId
+    /** On mouseover, scroll result into view and focus the changeset */
+    const onMouseover = ({ target }: Event | L.LeafletEvent): void => {
+        const changesetId: number = target.changesetId
         const result = idSidebarMap.get(changesetId)
 
         const sidebarRect = parentSidebar.getBoundingClientRect()
@@ -169,34 +175,24 @@ export const getChangesetsHistoryController = (map) => {
         for (const layer of layers) layer.setStyle(styles.hover)
     }
 
-    /**
-     * On mouseout, unfocus the changeset
-     * @param {MouseEvent} event
-     * @returns {void}
-     */
-    const onMouseout = (event) => {
-        const changesetId = event.target.changesetId
+    /** On mouseout, unfocus the changeset */
+    const onMouseout = ({ target }: Event | L.LeafletEvent): void => {
+        const changesetId: number = target.changesetId
         const result = idSidebarMap.get(changesetId)
         result.classList.remove("hover")
         const layers = idLayersMap.get(changesetId)
         for (const layer of layers) layer.setStyle(styles.default)
     }
 
-    /**
-     * On sidebar scroll, load more changesets
-     * @returns {void}
-     */
-    const onSidebarScroll = () => {
+    /** On sidebar scroll bottom, load more changesets */
+    const onSidebarScroll = (): void => {
         if (parentSidebar.offsetHeight + parentSidebar.scrollTop < parentSidebar.scrollHeight) return
         console.debug("Sidebar scrolled to the bottom")
         onMapZoomOrMoveEnd()
     }
 
-    /**
-     * On map update, fetch the changesets in view and update the changesets layer
-     * @returns {void}
-     */
-    const onMapZoomOrMoveEnd = () => {
+    /** On map update, fetch the changesets in view and update the changesets layer */
+    const onMapZoomOrMoveEnd = (): void => {
         // Abort any pending request
         if (abortController) abortController.abort()
         abortController = new AbortController()
@@ -208,19 +204,19 @@ export const getChangesetsHistoryController = (map) => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
         const bbox = `${minLon},${minLat},${maxLon},${maxLat}`
-        const params = { bbox }
+        const params: { [key: string]: string } = { bbox }
 
         if (changesetsBBox === bbox && changesets.length) {
-            params.before = changesets[changesets.length - 1].id
+            params.before = changesets[changesets.length - 1].id.toString()
         } else {
             // Clear the changesets if the bbox changed
             changesetsBBox = bbox
-            changesetsFinished = false
+            noMoreChangesets = false
             changesets.length = 0
             entryContainer.innerHTML = ""
         }
 
-        if (changesetsFinished) return
+        if (noMoreChangesets) return
         loadingContainer.classList.remove("d-none")
         parentSidebar.removeEventListener("scroll", onSidebarScroll)
 
@@ -239,7 +235,7 @@ export const getChangesetsHistoryController = (map) => {
 
                 if (!newChangesets.length) {
                     console.debug("No more changesets")
-                    changesetsFinished = true
+                    noMoreChangesets = true
                 }
 
                 updateSidebar()
@@ -249,7 +245,7 @@ export const getChangesetsHistoryController = (map) => {
                 if (error.name === "AbortError") return
                 console.error("Failed to fetch map data", error)
                 changesetLayer.clearLayers()
-                changesetsFinished = false
+                noMoreChangesets = false
                 changesets.length = 0
             })
             .finally(() => {
@@ -266,9 +262,9 @@ export const getChangesetsHistoryController = (map) => {
 
             // Create the changeset layer if it doesn't exist
             if (!map.hasLayer(changesetLayer)) {
-                console.debug("Adding overlay layer", changesetLayer.options.layerId)
+                console.debug("Adding overlay layer", changesetsLayerId)
                 map.addLayer(changesetLayer)
-                map.fire("overlayadd", { layer: changesetLayer, name: changesetLayer.options.layerId })
+                map.fire("overlayadd", { layer: changesetLayer, name: changesetsLayerId })
             }
 
             // Listen for events and run initial update
@@ -281,9 +277,9 @@ export const getChangesetsHistoryController = (map) => {
 
             // Remove the changeset layer
             if (map.hasLayer(changesetLayer)) {
-                console.debug("Removing overlay layer", changesetLayer.options.layerId)
+                console.debug("Removing overlay layer", changesetsLayerId)
                 map.removeLayer(changesetLayer)
-                map.fire("overlayremove", { layer: changesetLayer, name: changesetLayer.options.layerId })
+                map.fire("overlayremove", { layer: changesetLayer, name: changesetsLayerId })
             }
 
             // Clear the changeset layer

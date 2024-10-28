@@ -29,7 +29,7 @@ export const initializeResetSecretControls = () => {
     for (const control of resetSecretControls) {
         const button = control.querySelector("button.reset-secret-button")
         if (!button) {
-            console.warn("Reset control button not found", control)
+            console.error("Reset control button is not available", control)
             continue
         }
         button.addEventListener("click", onResetSecretButtonClick)

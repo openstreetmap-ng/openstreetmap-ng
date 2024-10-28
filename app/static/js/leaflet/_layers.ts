@@ -13,9 +13,9 @@ interface LayerInstanceData {
     legacyLayerIds: LayerId[]
 }
 
-const layerInstanceData: Map<L.Layer, LayerInstanceData> = new Map()
+const layerData: Map<L.Layer, LayerInstanceData> = new Map()
 
-export const getLayerInstanceData = (layer: L.Layer): LayerInstanceData | undefined => layerInstanceData.get(layer)
+export const getLayerData = (layer: L.Layer): LayerInstanceData | undefined => layerData.get(layer)
 
 const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
 const copyright = `© <a href="/copyright" rel="license" target="_blank">${copyrightText}</a>`
@@ -63,7 +63,7 @@ const standardLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.pn
     maxZoom: 19,
     attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
 })
-layerInstanceData.set(standardLayer, {
+layerData.set(standardLayer, {
     layerId: "standard" as LayerId,
     layerCode: "" as LayerCode, // Standard has no layer code - it's the default layer
     legacyLayerIds: ["mapnik"] as LayerId[],
@@ -74,7 +74,7 @@ const cyclosm = L.tileLayer("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{
     subdomains: "abc",
     attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
 })
-layerInstanceData.set(cyclosm, {
+layerData.set(cyclosm, {
     layerId: "cyclosm" as LayerId,
     layerCode: "Y" as LayerCode,
     legacyLayerIds: [],
@@ -84,7 +84,7 @@ const cycleMap = L.tileLayer(`https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r
     maxZoom: 21, // supports up to 22
     attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
 })
-layerInstanceData.set(cycleMap, {
+layerData.set(cycleMap, {
     layerId: "cyclemap" as LayerId,
     layerCode: "C" as LayerCode,
     legacyLayerIds: ["cycle map"] as LayerId[],
@@ -97,7 +97,7 @@ const transportMap = L.tileLayer(
         attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
     },
 )
-layerInstanceData.set(transportMap, {
+layerData.set(transportMap, {
     layerId: "transportmap" as LayerId,
     layerCode: "T" as LayerCode,
     legacyLayerIds: [],
@@ -107,7 +107,7 @@ const tracestrackTopo = L.tileLayer(`https://tile.tracestrack.com/topo__/{z}/{x}
     maxZoom: 19,
     attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
 })
-layerInstanceData.set(tracestrackTopo, {
+layerData.set(tracestrackTopo, {
     layerId: "tracestracktopo" as LayerId,
     layerCode: "P" as LayerCode,
     legacyLayerIds: [],
@@ -117,7 +117,7 @@ const hotosm = L.tileLayer("https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", 
     maxZoom: 20,
     attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
 })
-layerInstanceData.set(hotosm, {
+layerData.set(hotosm, {
     layerId: "hot" as LayerId,
     layerCode: "H" as LayerCode,
     legacyLayerIds: [],
@@ -129,49 +129,49 @@ const gps = L.tileLayer("https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.pn
     maxNativeZoom: 20,
     pane: "overlayPane",
 })
-layerInstanceData.set(gps, {
+layerData.set(gps, {
     layerId: "gps" as LayerId,
     layerCode: "G" as LayerCode,
     legacyLayerIds: [],
 })
 
 const dataLayer = L.featureGroup()
-layerInstanceData.set(dataLayer, {
+layerData.set(dataLayer, {
     layerId: "data" as LayerId,
     layerCode: "D" as LayerCode,
     legacyLayerIds: [],
 })
 
 const changesetLayer = L.featureGroup()
-layerInstanceData.set(changesetLayer, {
+layerData.set(changesetLayer, {
     layerId: "changesets" as LayerId,
     layerCode: "" as LayerCode, // This layer is not possible to toggle manually
     legacyLayerIds: [],
 })
 
 const routingLayer = L.featureGroup()
-layerInstanceData.set(routingLayer, {
+layerData.set(routingLayer, {
     layerId: "routing" as LayerId,
     layerCode: "" as LayerCode, // This layer is not possible to toggle manually
     legacyLayerIds: [],
 })
 
 const searchLayer = L.featureGroup()
-layerInstanceData.set(searchLayer, {
+layerData.set(searchLayer, {
     layerId: "search" as LayerId,
     layerCode: "" as LayerCode, // This layer is not possible to toggle manually
     legacyLayerIds: [],
 })
 
 const noteLayer = L.featureGroup()
-layerInstanceData.set(noteLayer, {
+layerData.set(noteLayer, {
     layerId: "notes" as LayerId,
     layerCode: "N" as LayerCode,
     legacyLayerIds: [],
 })
 
 const focusLayer = L.featureGroup()
-layerInstanceData.set(focusLayer, {
+layerData.set(focusLayer, {
     layerId: "focus" as LayerId,
     layerCode: "" as LayerCode, // This layer is not possible to toggle manually
     legacyLayerIds: [],
@@ -179,13 +179,13 @@ layerInstanceData.set(focusLayer, {
 
 const baseLayerIdMap: Map<LayerId, L.TileLayer> = new Map()
 for (const layer of [standardLayer, cyclosm, cycleMap, transportMap, tracestrackTopo, hotosm]) {
-    const data = getLayerInstanceData(layer)
+    const data = getLayerData(layer)
     baseLayerIdMap.set(data.layerId, layer)
 }
 
 const overlayLayerIdMap: Map<LayerId, L.Layer> = new Map()
 for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, noteLayer, focusLayer]) {
-    const data = getLayerInstanceData(layer)
+    const data = getLayerData(layer)
     overlayLayerIdMap.set(data.layerId, layer)
     for (const legacyLayerId of data.legacyLayerIds) {
         overlayLayerIdMap.set(legacyLayerId, layer)
@@ -194,7 +194,7 @@ for (const layer of [gps, dataLayer, changesetLayer, routingLayer, searchLayer, 
 
 const layerCodeIdMap: Map<LayerCode, LayerId> = new Map()
 for (const layer of [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()]) {
-    const data = getLayerInstanceData(layer)
+    const data = getLayerData(layer)
     if (data.layerCode || data.layerId === "standard") layerCodeIdMap.set(data.layerCode, data.layerId)
 }
 

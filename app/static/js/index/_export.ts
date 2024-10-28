@@ -1,34 +1,31 @@
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config"
 import { getPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
 import { getLocationFilter } from "../leaflet/_location-filter"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 
-/**
- * Create a new export controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getExportController = (map) => {
+/** Create a new export controller */
+export const getExportController = (map: L.Map): FetchController => {
     const sidebar = getActionSidebar("export")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const minLonInput = sidebar.querySelector("input[name=min_lon]")
-    const minLatInput = sidebar.querySelector("input[name=min_lat]")
-    const maxLonInput = sidebar.querySelector("input[name=max_lon]")
-    const maxLatInput = sidebar.querySelector("input[name=max_lat]")
-    const customRegionCheckbox = sidebar.querySelector(".custom-region-check")
+    const minLonInput: HTMLInputElement = sidebar.querySelector("input[name=min_lon]")
+    const minLatInput: HTMLInputElement = sidebar.querySelector("input[name=min_lat]")
+    const maxLonInput: HTMLInputElement = sidebar.querySelector("input[name=max_lon]")
+    const maxLatInput: HTMLInputElement = sidebar.querySelector("input[name=max_lat]")
+    const customRegionCheckbox: HTMLInputElement = sidebar.querySelector("input.custom-region-check")
     const exportAvailableContainer = sidebar.querySelector(".export-available-container")
-    const exportLink = exportAvailableContainer.querySelector(".export-link")
+    const exportLink: HTMLAnchorElement = exportAvailableContainer.querySelector("a.export-link")
     const exportBaseHref = exportLink.href
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
-    const exportOverpassLink = sidebar.querySelector(".export-overpass-link")
+    const exportOverpassLink: HTMLAnchorElement = sidebar.querySelector("a.export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.href
 
     // Null values until initialized
-    let locationFilter = null
+    let locationFilter: any | null = null
 
-    const updateForm = (minLon, minLat, maxLon, maxLat) => {
+    const updateElements = (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
         // Update the from availability
         const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
         const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
@@ -41,7 +38,7 @@ export const getExportController = (map) => {
         exportOverpassLink.href = exportOverpassBaseHref + bboxQueryString
     }
 
-    // On map move end, update the inputs
+    /** On map move end, update the inputs */
     const onMapMoveEnd = () => {
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
@@ -56,10 +53,10 @@ export const getExportController = (map) => {
         maxLonInput.value = maxLon
         maxLatInput.value = maxLat
 
-        updateForm(minLon, minLat, maxLon, maxLat)
+        updateElements(minLon, minLat, maxLon, maxLat)
     }
 
-    // On custom region checkbox change, enable/disable the location filter
+    /** On custom region checkbox change, enable/disable the location filter */
     const onCustomRegionCheckboxChange = () => {
         if (customRegionCheckbox.checked) {
             if (!locationFilter) {

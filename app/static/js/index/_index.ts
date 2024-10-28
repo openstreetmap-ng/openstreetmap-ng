@@ -1,17 +1,14 @@
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { isBannerHidden, markBannerHidden } from "../_local-storage"
 import { getPageTitle } from "../_title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 import { setSearchFormQuery } from "./_search-form"
 
-/**
- * Create a new index controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getIndexController = (map) => {
+/** Create a new index controller */
+export const getIndexController = (map: L.Map): FetchController => {
     const sidebar = getActionSidebar("index")
-    const banners = sidebar.querySelectorAll(".sidebar-banner")
+    const banners: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".sidebar-banner")
 
     for (const banner of banners) {
         const bannerName = banner.dataset.name
@@ -23,16 +20,14 @@ export const getIndexController = (map) => {
         }
 
         console.debug("Showing banner", bannerName)
-        const closeButton = banner.querySelector(".btn-close")
+        banner.classList.remove("d-none")
 
-        // On close button click, hide the banner
-        const onClose = () => {
+        const closeButton = banner.querySelector(".btn-close")
+        closeButton.addEventListener("click", () => {
+            // On close button click, hide the banner
             markBannerHidden(bannerName)
             banner.remove()
-        }
-
-        closeButton.addEventListener("click", onClose)
-        banner.classList.remove("d-none")
+        })
     }
 
     return {
@@ -41,8 +36,6 @@ export const getIndexController = (map) => {
             document.title = getPageTitle()
             setSearchFormQuery("")
         },
-        unload: () => {
-            // do nothing
-        },
+        unload: () => {}, // do nothing
     }
 }

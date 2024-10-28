@@ -25,7 +25,7 @@ const onCopyButtonClick = async ({ target }: Event) => {
         await navigator.clipboard.writeText(text)
         console.debug("Copied to clipboard")
     } catch (error) {
-        console.error("Failed to write to clipboard", error)
+        console.warn("Failed to write to clipboard", error)
         if (error instanceof Error) alert(error.message)
         return
     }

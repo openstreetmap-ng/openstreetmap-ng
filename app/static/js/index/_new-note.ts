@@ -4,67 +4,48 @@ import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { isLatitude, isLongitude } from "../_utils"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer"
-import { getOverlayLayerById } from "../leaflet/_layers"
+import { type LayerId, getLayerData, getOverlayLayerById } from "../leaflet/_layers"
 import { getMapState, setMapState } from "../leaflet/_map-utils"
 import { setNewNoteButtonState } from "../leaflet/_new-note-control"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
+import type { FetchController } from "./_base-fetch"
 import { routerNavigateStrict } from "./_router"
 
-/**
- * Create a new new note controller
- * @param {L.Map} map Leaflet map
- * @returns {object} Controller
- */
-export const getNewNoteController = (map) => {
+/** Create a new new note controller */
+export const getNewNoteController = (map: L.Map): FetchController => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")
-    const lonInput = form.elements.lon
-    const latInput = form.elements.lat
-    const commentInput = form.elements.text
-    const submitButton = form.querySelector("[type=submit]")
+    const lonInput = form.elements.namedItem("lon") as HTMLInputElement
+    const latInput = form.elements.namedItem("lat") as HTMLInputElement
+    const commentInput = form.elements.namedItem("text") as HTMLInputElement
+    const submitButton: HTMLButtonElement = form.querySelector("button[type=submit]")
 
-    let halo = null
-    let marker = null
+    let halo: L.CircleMarker | null = null
+    let marker: L.Marker | null = null
 
-    // On marker drag start, remove the halo
-    const onMarkerDragStart = () => {
-        halo.setStyle({
-            opacity: 0,
-            fillOpacity: 0,
-        })
-    }
-
-    // On marker drag end, update the form's coordinates and add the halo
-    const onMarkerDragEnd = () => {
-        const latLng = marker.getLatLng()
-        halo.setLatLng(latLng)
-        halo.setStyle({
-            opacity: focusStyles.noteHalo.opacity,
-            fillOpacity: focusStyles.noteHalo.fillOpacity,
-        })
-    }
-
-    // On success callback, navigate to the new note and simulate map move (reload notes layer)
-    const onFormSuccess = ({ note_id }) => {
-        map.panTo(map.getCenter(), { animate: false })
-        routerNavigateStrict(`/note/${note_id}`)
-    }
-
-    // On client validation, update the form's coordinates
-    const onClientValidation = () => {
-        const latLng = marker.getLatLng()
-        lonInput.value = latLng.lng
-        latInput.value = latLng.lat
-    }
-
-    // On comment input, update the button state
+    /** On comment input, update the button state */
     const onCommentInput = () => {
         const hasValue = commentInput.value.trim().length > 0
         submitButton.disabled = !hasValue
     }
+    commentInput.addEventListener("input", onCommentInput)
 
-    configureStandardForm(form, onFormSuccess, onClientValidation)
+    configureStandardForm(
+        form,
+        ({ note_id }) => {
+            // On success callback, navigate to the new note and simulate map move (reload notes layer)
+            map.panTo(map.getCenter(), { animate: false })
+            routerNavigateStrict(`/note/${note_id}`)
+        },
+        () => {
+            // On client validation, update the form's coordinates
+            const latLng = marker.getLatLng()
+            lonInput.value = latLng.lng.toString()
+            latInput.value = latLng.lat.toString()
+            return null
+        },
+    )
 
     return {
         load: () => {
@@ -84,7 +65,7 @@ export const getNewNoteController = (map) => {
                 }
             }
 
-            if (halo) console.warn("Halo already exists")
+            if (halo) console.error("Halo already exists")
 
             halo = focusMapObject(map, {
                 type: "note",
@@ -93,23 +74,33 @@ export const getNewNoteController = (map) => {
                 lat: center.lat,
                 icon: "new",
                 draggable: true,
-            })[0]
+            })[0] as L.CircleMarker
 
-            // Listen for events
-            marker = halo.marker
-            marker.addEventListener("dragstart", onMarkerDragStart)
-            marker.addEventListener("dragend", onMarkerDragEnd)
+            marker = (halo as any).marker
+            marker.addEventListener("dragstart", () => {
+                // On marker drag start, hide the halo
+                halo.setStyle({
+                    opacity: 0,
+                    fillOpacity: 0,
+                })
+            })
+            marker.addEventListener("dragend", () => {
+                // On marker drag end, update the form's coordinates and show the halo
+                const latLng = marker.getLatLng()
+                halo.setLatLng(latLng)
+                halo.setStyle({
+                    opacity: focusStyles.noteHalo.opacity,
+                    fillOpacity: focusStyles.noteHalo.fillOpacity,
+                })
+            })
 
             // Enable notes layer to prevent duplicates
             const state = getMapState(map)
-            const notesLayerCode = getOverlayLayerById("notes").options.layerCode
+            const notesLayerCode = getLayerData(getOverlayLayerById("notes" as LayerId)).layerCode
             if (!state.layersCode.includes(notesLayerCode)) {
                 state.layersCode += notesLayerCode
                 setMapState(map, state)
             }
-
-            // Listen for events
-            commentInput.addEventListener("input", onCommentInput)
 
             // Initial update
             onCommentInput()
@@ -117,7 +108,6 @@ export const getNewNoteController = (map) => {
         },
         unload: () => {
             setNewNoteButtonState(false)
-            commentInput.removeEventListener("input", onCommentInput)
             focusMapObject(map, null)
             halo = null
             marker = null

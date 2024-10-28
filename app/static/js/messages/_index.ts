@@ -1,6 +1,5 @@
 import { t } from "i18next"
 import { changeUnreadMessagesBadge } from "../_navbar"
-import { qsEncode, qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.messages-index-body")
@@ -97,10 +96,9 @@ if (body) {
 
     // Update the URL with the given message id, without reloading the page
     const updatePageUrl = (messageId: string | undefined) => {
-        const searchParams = qsParse(window.location.search.substring(1))
-        searchParams.before = (messageIdMax + 1n).toString()
-        searchParams.show = messageId
-        const url = `${window.location.pathname}?${qsEncode(searchParams)}${window.location.hash}`
+        const url = new URL(location.href)
+        url.searchParams.set("before", (messageIdMax + 1n).toString())
+        url.searchParams.set("show", messageId)
         window.history.replaceState(null, "", url)
     }
 

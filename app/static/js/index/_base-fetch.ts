@@ -1,29 +1,37 @@
-import * as L from "leaflet"
+import type * as L from "leaflet"
 import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 
-/**
- * Create a base fetch controller
- * @param {L.Map} map Leaflet map
- * @param {string} className Class name of the sidebar
- * @param {function} successCallback Successful load callback
- * @returns {object} Controller
- */
-export const getBaseFetchController = (map, className, successCallback) => {
+export interface FetchController {
+    load: (matchGroups: { [key: string]: string }) => void
+    unload: () => void
+}
+
+export interface BaseFetchController {
+    load: ({ url }: { url: string }) => void
+    unload: () => void
+}
+
+/** Create a base fetch controller */
+export const getBaseFetchController = (
+    map: L.Map,
+    className: string,
+    successCallback?: (dynamicContent: HTMLElement) => void,
+): BaseFetchController => {
     const sidebar = getActionSidebar(className)
-    const dynamicContent = sidebar.classList.contains("dynamic-content")
+    const dynamicContent: HTMLElement = sidebar.classList.contains("dynamic-content")
         ? sidebar
         : sidebar.querySelector(".dynamic-content")
     const loadingHtml = dynamicContent.innerHTML
 
-    let abortController = null
+    let abortController: AbortController | null = null
 
-    // On sidebar loading, display loading content
+    /** On sidebar loading, display loading content */
     const onSidebarLoading = () => {
         dynamicContent.innerHTML = loadingHtml
     }
 
-    // On sidebar loaded, display content and call callback
-    const onSidebarLoaded = (html) => {
+    /** On sidebar loaded, display content and call callback */
+    const onSidebarLoaded = (html: string): void => {
         dynamicContent.innerHTML = html
         configureActionSidebar(sidebar)
     }
@@ -59,6 +67,6 @@ export const getBaseFetchController = (map, className, successCallback) => {
                     alert(error.message)
                 })
         },
-        unload: () => {}, // do nothing
+        unload: (): void => {}, // do nothing
     }
 }
