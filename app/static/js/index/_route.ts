@@ -1,4 +1,4 @@
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 export interface Route {
     match: (path: string) => boolean
@@ -7,7 +7,7 @@ export interface Route {
 }
 
 /** Create a route object */
-export const makeRoute = (pattern: string, controller: FetchController): Route => {
+export const makeRoute = (pattern: string, controller: IndexController): Route => {
     // Ignore query string and require exact match
     const re = new RegExp(`^${pattern}($|\\?)`)
 

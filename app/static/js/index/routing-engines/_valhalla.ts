@@ -1,23 +1,20 @@
 import { decode } from "@googlemaps/polyline-codec"
 import { primaryLanguage } from "../../_config"
 import "../../_types"
+import type { RoutingEngine, RoutingRoute, RoutingStep } from "../_routing"
 
 // Valhalla API Documentation
 // https://valhalla.github.io/valhalla/api/turn-by-turn/api-reference/
 
-/**
- * Create a new Valhalla engine
- * @param {"auto"|"bicycle"|"pedestrian"} costing Routing profile
- */
-const makeEngine = (costing) => {
-    /**
-     * @param {AbortSignal} abortSignal Abort signal
-     * @param {object} from From coordinates
-     * @param {object} to To coordinates
-     * @param {function} successCallback Success callback
-     * @param {function} errorCallback Error callback
-     */
-    return (abortSignal, from, to, successCallback, errorCallback) => {
+/** Create a new Valhalla engine */
+const makeEngine = (costing: "auto" | "bicycle" | "pedestrian"): RoutingEngine => {
+    return (
+        abortSignal: AbortSignal,
+        from: { lon: number; lat: number },
+        to: { lon: number; lat: number },
+        successCallback: (route: RoutingRoute) => void,
+        errorCallback: (error: Error) => void,
+    ): void => {
         fetch("https://valhalla1.openstreetmap.de/route", {
             method: "POST",
             headers: {
@@ -56,7 +53,7 @@ const makeEngine = (costing) => {
 
                 const leg = data.trip.legs[0]
                 const points = decode(leg.shape, 6)
-                const steps = []
+                const steps: RoutingStep[] = []
 
                 for (const man of leg.maneuvers) {
                     const manPoints = points.slice(man.begin_shape_index, man.end_shape_index + 1)
@@ -69,14 +66,13 @@ const makeEngine = (costing) => {
                     })
                 }
 
-                const route = {
+                const route: RoutingRoute = {
                     steps: steps,
                     attribution:
                         '<a href="https://gis-ops.com/global-open-valhalla-server-online/" target="_blank">Valhalla (FOSSGIS)</a>',
                     ascend: null,
                     descend: null,
                 }
-
                 successCallback(route)
             })
             .catch((error) => {
@@ -87,7 +83,7 @@ const makeEngine = (costing) => {
     }
 }
 
-const maneuverTypeToCodeMap = new Map([
+const maneuverTypeToCodeMap: Map<number, number> = new Map([
     [0, 0], // straight
     [1, 8], // start
     [2, 8], // start right
@@ -122,7 +118,7 @@ const maneuverTypeToCodeMap = new Map([
     [38, 20], // merge left
 ])
 
-export const ValhallaEngines = new Map([
+export const ValhallaEngines: Map<string, RoutingEngine> = new Map([
     ["fossgis_valhalla_car", makeEngine("auto")],
     ["fossgis_valhalla_bicycle", makeEngine("bicycle")],
     ["fossgis_valhalla_foot", makeEngine("pedestrian")],

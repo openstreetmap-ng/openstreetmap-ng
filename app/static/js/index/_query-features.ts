@@ -6,12 +6,12 @@ import { isLatitude, isLongitude } from "../_utils"
 import { focusMapObject, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 // TODO: finish this controller
 
 /** Create a new query features controller */
-export const getQueryFeaturesController = (map: L.Map): FetchController => {
+export const getQueryFeaturesController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer: HTMLElement = sidebar.querySelector(".nearby-container")

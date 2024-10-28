@@ -2,10 +2,11 @@ import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { focusMapObject } from "../leaflet/_focus-layer"
-import { type FetchController, getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 /** Create a new note controller */
-export const getNoteController = (map: L.Map): FetchController => {
+export const getNoteController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         // Get elements
         const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
@@ -92,7 +93,7 @@ export const getNoteController = (map: L.Map): FetchController => {
         }
     })
 
-    const controller: FetchController = {
+    const controller: IndexController = {
         load: ({ id }) => {
             const url = `/api/partial/note/${id}`
             base.load({ url })

@@ -5,17 +5,17 @@ import { type LayerId, getOverlayLayerById } from "./_layers"
 import { type RenderStyles, renderObjects } from "./_object-render"
 import { getLatLngBoundsSize } from "./_utils"
 
-interface FocusOptions {
+export interface FocusOptions {
     /** Fit the map to the focused objects */
-    fitBounds: boolean
+    fitBounds?: boolean
     /** Amount of padding to add to the bounds */
-    padBounds: number
+    padBounds?: number
     /** Maximum zoom level to focus on */
-    maxZoom: number
+    maxZoom?: number
     /** Whether to perform intersection check instead of containment */
-    intersects: boolean
+    intersects?: boolean
     /** Perform a proportion check when fitting the map */
-    proportionCheck: boolean
+    proportionCheck?: boolean
 }
 
 const focusLayerId = "focus" as LayerId
@@ -57,7 +57,7 @@ let paneCreated = false
  * Focus an object on the map and return its layer.
  * To unfocus, pass null as the object.
  */
-export const focusMapObject = (map: L.Map, object: OSMObject | null, options?: Partial<FocusOptions>): L.Layer[] => {
+export const focusMapObject = (map: L.Map, object: OSMObject | null, options?: FocusOptions): L.Layer[] => {
     if (object) {
         return focusManyMapObjects(map, [object], options)
     }
@@ -69,7 +69,7 @@ export const focusMapObject = (map: L.Map, object: OSMObject | null, options?: P
  * Focus many objects on the map and return their layers.
  * To unfocus, pass an empty array as the objects.
  */
-export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: Partial<FocusOptions>): L.Layer[] => {
+export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: FocusOptions): L.Layer[] => {
     const focusLayer = getOverlayLayerById(focusLayerId) as L.FeatureGroup
 
     // Always clear the focus layer

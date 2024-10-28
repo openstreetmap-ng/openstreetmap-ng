@@ -5,7 +5,7 @@ import { qsParse } from "../_qs"
 import { range, throttle } from "../_utils"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 const mapThrottleDelay = 16 // 60 FPS
 
@@ -29,7 +29,7 @@ const throttledHistoryReplaceState = throttle(
 )
 
 /** Create a new distance measuring controller */
-export const getDistanceController = (map: L.Map): FetchController => {
+export const getDistanceController = (map: L.Map): IndexController => {
     const mapContainer = map.getContainer()
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")

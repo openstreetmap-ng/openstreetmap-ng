@@ -4,10 +4,10 @@ import { getPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
 import { getLocationFilter } from "../leaflet/_location-filter"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 /** Create a new export controller */
-export const getExportController = (map: L.Map): FetchController => {
+export const getExportController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("export")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const minLonInput: HTMLInputElement = sidebar.querySelector("input[name=min_lon]")

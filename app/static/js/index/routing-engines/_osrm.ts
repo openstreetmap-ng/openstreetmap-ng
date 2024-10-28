@@ -2,27 +2,24 @@ import { decode } from "@googlemaps/polyline-codec"
 import i18next from "i18next"
 import { qsEncode } from "../../_qs"
 import "../../_types"
+import type { RoutingEngine, RoutingRoute, RoutingStep } from "../_routing"
 
 // OSRM API Documentation
 // https://project-osrm.org/docs/v5.24.0/api/#route-service
 
-/**
- * Create a new OSRM engine
- * @param {"car"|"bike"|"foot"} profile Routing profile
- */
-const makeEngine = (profile) => {
-    /**
-     * @param {AbortSignal} abortSignal Abort signal
-     * @param {object} from From coordinates
-     * @param {object} to To coordinates
-     * @param {function} successCallback Success callback
-     * @param {function} errorCallback Error callback
-     */
-    return (abortSignal, from, to, successCallback, errorCallback) => {
+/** Create a new OSRM engine */
+const makeEngine = (profile: "car" | "bike" | "foot"): RoutingEngine => {
+    return (
+        abortSignal: AbortSignal,
+        from: { lon: number; lat: number },
+        to: { lon: number; lat: number },
+        successCallback: (route: RoutingRoute) => void,
+        errorCallback: (error: Error) => void,
+    ): void => {
         const queryString = qsEncode({
-            steps: true, // returned route steps for each route leg
+            steps: "true", // returned route steps for each route leg
             geometries: "polyline6", // polyline encoding with 6 digits precision
-            overview: false, // no overview (simplified according to highest zoom level)
+            overview: "false", // no overview (simplified according to highest zoom level)
         })
 
         fetch(
@@ -47,7 +44,7 @@ const makeEngine = (profile) => {
                 }
 
                 const leg = data.routes[0].legs[0]
-                const steps = []
+                const steps: RoutingStep[] = []
 
                 for (const step of leg.steps) {
                     const stepPoints = decode(step.geometry, 6)
@@ -61,14 +58,13 @@ const makeEngine = (profile) => {
                     })
                 }
 
-                const route = {
+                const route: RoutingRoute = {
                     steps: steps,
                     attribution:
                         '<a href="https://routing.openstreetmap.de/about.html" target="_blank">OSRM (FOSSGIS)</a>',
                     ascend: null,
                     descend: null,
                 }
-
                 successCallback(route)
             })
             .catch((error) => {
@@ -79,7 +75,7 @@ const makeEngine = (profile) => {
     }
 }
 
-const getManeuverId = ({ type, modifier }) => {
+const getManeuverId = ({ type, modifier }: { type: string; modifier: string }): string => {
     switch (type) {
         case "on ramp":
         case "off ramp":
@@ -101,13 +97,13 @@ const getManeuverId = ({ type, modifier }) => {
     }
 }
 
-const getStepText = (step, maneuverId) => {
+const getStepText = (step: any, maneuverId: string): string => {
     const stepName = step.name
     const stepRef = step.ref
     const translation = maneuverIdToTranslation.get(maneuverId)
-    let name
-    let isOwnName
 
+    let name: string
+    let isOwnName: boolean
     if (stepName && stepRef) {
         name = `${stepName} (${stepRef})`
         isOwnName = true
@@ -148,7 +144,7 @@ const getStepText = (step, maneuverId) => {
         maneuverId === "off ramp right"
     ) {
         let withStr = "_with"
-        const params = {}
+        const params: { [key: string]: string } = {}
 
         if (step.exits && (maneuverId === "off ramp left" || maneuverId === "off ramp right")) {
             withStr += "_exit"
@@ -165,7 +161,7 @@ const getStepText = (step, maneuverId) => {
             params.directions = step.destinations
         }
 
-        // perform basic translation if no parameters
+        // Perform simple translation if no parameters
         if (!Object.keys(params).length) {
             return i18next.t(translation)
         }
@@ -176,7 +172,7 @@ const getStepText = (step, maneuverId) => {
     return i18next.t(`${translation}_without_exit`, { name })
 }
 
-const maneuverIdToCodeMap = new Map([
+const maneuverIdToCodeMap: Map<string, number> = new Map([
     ["continue", 0],
     ["merge right", 21],
     ["merge left", 20],
@@ -204,7 +200,7 @@ const maneuverIdToCodeMap = new Map([
     ["arrive", 14],
 ])
 
-const maneuverIdToTranslation = new Map([
+const maneuverIdToTranslation: Map<string, string> = new Map([
     ["continue", "javascripts.directions.instructions.continue"],
     ["merge right", "javascripts.directions.instructions.merge_right"],
     ["merge left", "javascripts.directions.instructions.merge_left"],
@@ -232,7 +228,7 @@ const maneuverIdToTranslation = new Map([
     ["arrive", "javascripts.directions.instructions.destination"],
 ])
 
-const maneuverExitToTranslation = new Map([
+const maneuverExitToTranslation: Map<number, string> = new Map([
     [1, "javascripts.directions.instructions.exit_counts.first"],
     [2, "javascripts.directions.instructions.exit_counts.second"],
     [3, "javascripts.directions.instructions.exit_counts.third"],
@@ -245,7 +241,7 @@ const maneuverExitToTranslation = new Map([
     [10, "javascripts.directions.instructions.exit_counts.tenth"],
 ])
 
-export const OSRMEngines = new Map([
+export const OSRMEngines: Map<string, RoutingEngine> = new Map([
     ["fossgis_osrm_car", makeEngine("car")],
     ["fossgis_osrm_bike", makeEngine("bike")],
     ["fossgis_osrm_foot", makeEngine("foot")],

@@ -2,23 +2,20 @@ import { decode } from "@googlemaps/polyline-codec"
 import { graphhopperApiKey } from "../../_api-keys"
 import { primaryLanguage } from "../../_config"
 import "../../_types"
+import type { RoutingEngine, RoutingRoute, RoutingStep } from "../_routing"
 
 // GraphHopper API Documentation
 // https://docs.graphhopper.com/#tag/Routing-API
 
-/**
- * Create a new GraphHopper engine
- * @param {"car"|"bike"|"foot"} profile Routing profile
- */
-const makeEngine = (profile) => {
-    /**
-     * @param {AbortSignal} abortSignal Abort signal
-     * @param {object} from From coordinates
-     * @param {object} to To coordinates
-     * @param {function} successCallback Success callback
-     * @param {function} errorCallback Error callback
-     */
-    return (abortSignal, from, to, successCallback, errorCallback) => {
+/** Create a new GraphHopper engine */
+const makeEngine = (profile: "car" | "bike" | "foot"): RoutingEngine => {
+    return (
+        abortSignal: AbortSignal,
+        from: { lon: number; lat: number },
+        to: { lon: number; lat: number },
+        successCallback: (route: RoutingRoute) => void,
+        errorCallback: (error: Error) => void,
+    ): void => {
         fetch(`https://graphhopper.com/api/1/route?key=${graphhopperApiKey}`, {
             method: "POST",
             headers: {
@@ -50,7 +47,7 @@ const makeEngine = (profile) => {
 
                 const path = data.paths[0]
                 const points = decode(path.points, 5)
-                const steps = []
+                const steps: RoutingStep[] = []
 
                 for (const instr of path.instructions) {
                     const instrPoints = points.slice(instr.interval[0], instr.interval[1] + 1)
@@ -63,13 +60,12 @@ const makeEngine = (profile) => {
                     })
                 }
 
-                const route = {
+                const route: RoutingRoute = {
                     steps: steps,
                     attribution: '<a href="https://www.graphhopper.com" target="_blank">GraphHopper</a>',
                     ascend: path.ascend,
                     descend: path.descend,
                 }
-
                 successCallback(route)
             })
             .catch((error) => {
@@ -80,7 +76,7 @@ const makeEngine = (profile) => {
     }
 }
 
-const signToCodeMap = new Map([
+const signToCodeMap: Map<number, number> = new Map([
     [-98, 4], // u-turn
     [-8, 4], // left u-turn
     [-7, 19], // keep left
@@ -98,7 +94,7 @@ const signToCodeMap = new Map([
     [8, 4], // right u-turn
 ])
 
-export const GraphHopperEngines = new Map([
+export const GraphHopperEngines: Map<string, RoutingEngine> = new Map([
     ["graphhopper_car", makeEngine("car")],
     ["graphhopper_bicycle", makeEngine("bike")],
     ["graphhopper_foot", makeEngine("foot")],

@@ -18,7 +18,7 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
-from app.models.leaflet import ElementLeaflet, ElementLeafletNode
+from app.models.leaflet import ElementLeafletNode, ElementLeafletWay
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -103,7 +103,7 @@ async def _get_response(
     Search.remove_overlapping_points(results)
 
     # prepare data for leaflet rendering
-    leaflet: list[list[ElementLeaflet]] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
+    leaflet: list[list[ElementLeafletNode | ElementLeafletWay]] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
 
     i: cython.int
     for i, result in enumerate(results):

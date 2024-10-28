@@ -3,13 +3,14 @@ import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { type FetchController, getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch"
 import { initializeElementContent } from "./_element"
+import type { IndexController } from "./_router"
 
 const paginationDistance = 2
 
 /** Create a new element history controller */
-export const getElementHistoryController = (map: L.Map): FetchController => {
+export const getElementHistoryController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         // Get elements
         const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
@@ -86,7 +87,7 @@ export const getElementHistoryController = (map: L.Map): FetchController => {
         }
     })
 
-    const controller: FetchController = {
+    const controller: IndexController = {
         load: ({ type, id }) => {
             const params = qsParse(location.search.substring(1))
             params.tags_diff_mode = getTagsDiffMode().toString()

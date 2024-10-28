@@ -6,7 +6,8 @@ import { getPageTitle } from "../_title"
 import type { Bounds, OSMChangeset } from "../_types"
 import { focusMapObject } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
-import { type FetchController, getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 // app/format/element_list.py
 interface ChangesetListEntry {
@@ -24,7 +25,7 @@ const elementsPerPage = 20
 const paginationDistance = 2
 
 /** Create a new changeset controller */
-export const getChangesetController = (map: L.Map): FetchController => {
+export const getChangesetController = (map: L.Map): IndexController => {
     let paramsId: number | null = null
     let paramsBounds: Bounds[] | null = null
 
@@ -80,7 +81,7 @@ export const getChangesetController = (map: L.Map): FetchController => {
         if (commentForm) configureStandardForm(commentForm, onFormSuccess)
     })
 
-    const controller: FetchController = {
+    const controller: IndexController = {
         load: ({ id }) => {
             const url = `/api/partial/changeset/${id}`
             base.load({ url })

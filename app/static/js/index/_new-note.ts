@@ -8,11 +8,11 @@ import { type LayerId, getLayerData, getOverlayLayerById } from "../leaflet/_lay
 import { getMapState, setMapState } from "../leaflet/_map-utils"
 import { setNewNoteButtonState } from "../leaflet/_new-note-control"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 /** Create a new new note controller */
-export const getNewNoteController = (map: L.Map): FetchController => {
+export const getNewNoteController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("new-note")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const form = sidebar.querySelector("form")

@@ -6,7 +6,7 @@ import type { Bounds } from "../_types"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
 
 // app/models/leaflet.py
@@ -42,7 +42,7 @@ const styles: { [key: string]: L.PolylineOptions } = {
 }
 
 /** Create a new changesets history controller */
-export const getChangesetsHistoryController = (map: L.Map): FetchController => {
+export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     const changesetLayer = getOverlayLayerById(changesetsLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("changesets-history")
     const parentSidebar: HTMLElement = sidebar.closest(".sidebar")

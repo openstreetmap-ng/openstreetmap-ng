@@ -2,11 +2,11 @@ import type * as L from "leaflet"
 import { isBannerHidden, markBannerHidden } from "../_local-storage"
 import { getPageTitle } from "../_title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
-import type { FetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 import { setSearchFormQuery } from "./_search-form"
 
 /** Create a new index controller */
-export const getIndexController = (map: L.Map): FetchController => {
+export const getIndexController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("index")
     const banners: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".sidebar-banner")
 

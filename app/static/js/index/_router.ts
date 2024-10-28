@@ -1,5 +1,9 @@
-import type { FetchController } from "./_base-fetch"
 import { type Route, makeRoute } from "./_route"
+
+export interface IndexController {
+    load: (matchGroups: { [key: string]: string }) => void
+    unload: () => void
+}
 
 let routes: Route[] | null = null
 let currentPath: string | null = null
@@ -56,7 +60,7 @@ export const routerNavigate = (newPath: string): boolean => {
 }
 
 /** Configure the router */
-export const configureRouter = (pathControllerMap: Map<string, FetchController>) => {
+export const configureRouter = (pathControllerMap: Map<string, IndexController>) => {
     routes = Array.from(pathControllerMap).map(([path, controller]) => makeRoute(path, controller))
     console.debug("Loaded", routes.length, "routes")
 

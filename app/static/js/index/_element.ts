@@ -3,7 +3,8 @@ import * as L from "leaflet"
 import { getPageTitle } from "../_title"
 import type { OSMNode, OSMWay } from "../_types"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { type FetchController, getBaseFetchController } from "./_base-fetch"
+import { getBaseFetchController } from "./_base-fetch"
+import type { IndexController } from "./_router"
 
 // app/format/element_list.py
 interface MemberListEntry {
@@ -20,7 +21,7 @@ const elementsPerPage = 20
 const paginationDistance = 2
 
 /** Create a new element controller */
-export const getElementController = (map: L.Map): FetchController => {
+export const getElementController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "element", (sidebarSection) => {
         // Get elements
         const sidebarContent: HTMLElement = sidebarSection.querySelector(".sidebar-content")

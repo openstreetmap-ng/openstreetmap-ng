@@ -1,13 +1,8 @@
 import type * as L from "leaflet"
 import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 
-export interface FetchController {
-    load: (matchGroups: { [key: string]: string }) => void
-    unload: () => void
-}
-
 export interface BaseFetchController {
-    load: ({ url }: { url: string }) => void
+    load: ({ url }: { url: string | null }) => void
     unload: () => void
 }
 
