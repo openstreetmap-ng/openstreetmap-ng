@@ -53,7 +53,7 @@ const makeEngine = (profile: "car" | "bike" | "foot"): RoutingEngine => {
                 for (const instr of path.instructions) {
                     const instrPoints = points.slice(instr.interval[0], instr.interval[1] + 1)
                     steps.push({
-                        geom: instrPoints.map(([lon, lat]) => [lat, lon]),
+                        geom: instrPoints,
                         distance: instr.distance,
                         time: instr.time / 1000,
                         code: signToCodeMap.get(instr.sign) ?? 0,

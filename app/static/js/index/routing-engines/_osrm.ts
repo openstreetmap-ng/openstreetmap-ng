@@ -51,7 +51,7 @@ const makeEngine = (profile: "car" | "bike" | "foot"): RoutingEngine => {
                     const stepPoints = decode(step.geometry, 6)
                     const maneuverId = getManeuverId(step.maneuver)
                     steps.push({
-                        geom: stepPoints.map(([lon, lat]) => [lat, lon]),
+                        geom: stepPoints,
                         distance: step.distance,
                         time: step.duration,
                         code: maneuverIdToCodeMap.get(maneuverId) ?? 0,

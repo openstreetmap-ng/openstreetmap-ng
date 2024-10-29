@@ -59,7 +59,7 @@ const makeEngine = (costing: "auto" | "bicycle" | "pedestrian"): RoutingEngine =
                 for (const man of leg.maneuvers) {
                     const manPoints = points.slice(man.begin_shape_index, man.end_shape_index + 1)
                     steps.push({
-                        geom: manPoints.map(([lon, lat]) => [lat, lon]),
+                        geom: manPoints,
                         distance: man.length * 1000,
                         time: man.time,
                         code: maneuverTypeToCodeMap.get(man.type) ?? 0,
