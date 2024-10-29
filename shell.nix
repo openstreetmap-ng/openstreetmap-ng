@@ -120,7 +120,7 @@ let
         --load-path node_modules \
         --no-source-map \
         app/static/sass:app/static/css
-      bunx postcss \
+      bun run postcss \
         app/static/css/**/*.css \
         --use autoprefixer \
         --replace \
@@ -130,28 +130,11 @@ let
 
     # -- JavaScript
     (makeScript "js-pipeline" ''
-      dir=app/static/js
-      generated="$dir/_generated"
-      bunx babel \
-        --extensions ".ts" \
-        --delete-dir-on-start \
-        --out-dir "$generated" \
-        "$dir"
-      files=$(find "$generated" \
-        -maxdepth 1 \
-        -type f \
-        -name "*.js" \
-        -not -name "_*")
-      # shellcheck disable=SC2086
-      bun build \
-        --minify \
-        --sourcemap=inline \
-        --entry-naming "[dir]/bundle-[name].[ext]" \
-        --outdir "$dir" \
-        $files
-    '')
-    (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
-    (makeScript "make-bundle" ''
+      if [ "$1" = "hash" ]; then
+        echo "[js-pipeline] Working in hash mode"
+        mode_hash=1
+      fi
+
       dir=app/static/js
       generated="$dir/_generated"
       find "$dir" \
@@ -159,7 +142,7 @@ let
         -type f \
         -name "bundle-*" \
         -delete
-      bunx babel \
+      bun run babel \
         --extensions ".ts" \
         --delete-dir-on-start \
         --out-dir "$generated" \
@@ -170,32 +153,36 @@ let
         -name "*.js" \
         -not -name "_*")
 
+      sourcemap="''${mode_hash:+linked}''${mode_hash:-inline}"
       exec 5>&1
       # shellcheck disable=SC2086
       output=$(
-          bun build \
+        bun build \
           --minify \
-          --sourcemap=linked \
-          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --sourcemap="$sourcemap" \
+          --entry-naming "[dir]/bundle-[name].[ext]" \
           --outdir "$dir" \
           $files | tee >(cat - >&5))
 
-      for file in $files; do
-        file_name="''${file##*/}"
-        file_stem="''${file_name%.js}"
-        bundle_name=$(
-          grep --only-matching --extended-regexp --max-count 1 \
-          "bundle-$file_stem-\w{8}\.js" <<< "$output") || true
+      if [ -n "$mode_hash" ]; then
+        for file in $files; do
+          file_name="''${file##*/}"
+          file_stem="''${file_name%.js}"
+          bundle_name=$(
+            grep --only-matching --extended-regexp --max-count 1 \
+            "bundle-$file_stem-\w{8}\.js" <<< "$output") || true
 
-        if [ -z "$bundle_name" ]; then
-          echo "ERROR: Failed to match bundle name for $file"
-          exit 1
-        fi
+          if [ -z "$bundle_name" ]; then
+            echo "ERROR: Failed to match bundle name for $file"
+            exit 1
+          fi
 
-        # TODO: sed replace
-        # echo "Replacing $file_name with $bundle_name"
-      done
+          # TODO: sed replace
+          # echo "Replacing $file_name with $bundle_name"
+        done
+      fi
     '')
+    (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
