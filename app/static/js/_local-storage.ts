@@ -44,9 +44,7 @@ export const setLastMapState = (state: MapState): void => {
  */
 export const isBannerHidden = (name: string): boolean => localStorage.getItem(`bannerHidden-${name}`) !== null
 
-/**
- * Mark a banner as hidden in local storage
- */
+/** Mark a banner as hidden in local storage */
 export const markBannerHidden = (name: string): void => {
     console.debug("markBannerHidden", name)
     localStorage.setItem(`bannerHidden-${name}`, getUnixTimestamp().toString())
@@ -70,39 +68,27 @@ export const setLastRoutingEngine = (engine: string): void => {
     localStorage.setItem("lastRoutingEngine", engine)
 }
 
-/**
- * Get access token for system app from local storage
- */
+/** Get access token for system app from local storage */
 export const getSystemAppAccessToken = (clientId: string): string | null =>
     localStorage.getItem(`systemAppAccessToken-${clientId}`)
 
-/**
- * Set access token for system app to local storage
- */
+/** Set access token for system app to local storage */
 export const setSystemAppAccessToken = (clientId: string, accessToken: string): void =>
     localStorage.setItem(`systemAppAccessToken-${clientId}`, accessToken)
 
-/**
- * Get last selected export format from local storage
- */
+/** Get last selected export format from local storage */
 export const getLastSelectedExportFormat = (): string | null => localStorage.getItem("lastSelectedExportFormat")
 
-/**
- * Set last selected export format to local storage
- */
+/** Set last selected export format to local storage */
 export const setLastSelectedExportFormat = (lastSelectedExportFormat: string): void => {
     console.debug("setLastSelectedExportFormat", lastSelectedExportFormat)
     localStorage.setItem("lastSelectedExportFormat", lastSelectedExportFormat)
 }
 
-/**
- * Get tags diff mode from local storage
- */
+/** Get tags diff mode state from local storage */
 export const getTagsDiffMode = (): boolean => (localStorage.getItem("tagsDiffMode") ?? "true") === "true"
 
-/**
- * Set tags diff mode to local storage
- */
+/** Set tags diff mode to local storage */
 export const setTagsDiffMode = (state: boolean): void => {
     console.debug("setTagsDiffMode", state)
     localStorage.setItem("tagsDiffMode", state.toString())

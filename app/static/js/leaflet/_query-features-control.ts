@@ -7,8 +7,8 @@ export const getQueryFeaturesControl = () => {
     const control = new L.Control()
     let controlMap: L.Map | null = null
 
+    /** On zoomend, disable/enable button */
     const onZoomEnd = () => {
-        // On zoomend, disable/enable button
         const container = control.getContainer()
         const button = container.querySelector("button")
 

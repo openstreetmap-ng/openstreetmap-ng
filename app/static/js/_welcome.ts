@@ -13,9 +13,7 @@ if (body) {
     if (params.lon && params.lat) {
         const lon = Number.parseFloat(params.lon)
         const lat = Number.parseFloat(params.lat)
-        // Zoom is optional, defaults to 17
         const zoom = params.zoom ? Number.parseInt(params.zoom, 10) : 17
-
         if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
             providedState = { lon, lat, zoom, layersCode: params.layers }
         }
@@ -38,7 +36,7 @@ if (body) {
         startButton.href = startHref
     } else {
         // If location was not provided, request navigator.geolocation
-        // On geolocation success, redirect to /edit with the returned coordinates
+        /** On geolocation success, redirect to /edit with the returned coordinates */
         const onGeolocationSuccess = (position: GeolocationPosition) => {
             console.debug("onGeolocationSuccess", position)
             const lon = position.coords.longitude
@@ -53,6 +51,7 @@ if (body) {
             startButton.removeEventListener("click", onStartButtonClick)
         }
 
+        /** On geolocation failure, remove event listener */
         const onGeolocationFailure = () => {
             console.debug("onGeolocationFailure")
             startButton.removeEventListener("click", onStartButtonClick)

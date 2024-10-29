@@ -29,7 +29,7 @@ parentLoadSystemApp((accessToken) => {
     map.on(
         "move.embed",
         throttle(() => {
-            // Skip if in intro
+            // Skip during introduction
             if (id.inIntro()) return
 
             const [lon, lat] = map.center()

@@ -19,7 +19,7 @@ if (body) {
     let openTarget: Element = null
     let openMessageId: string | null = null
 
-    // Open a message in the sidebar preview panel
+    /** Open a message in the sidebar preview panel */
     const openMessagePreview = (target: HTMLElement) => {
         const newMessageId = target.dataset.id
         if (openMessageId === newMessageId) return
@@ -80,7 +80,7 @@ if (body) {
             })
     }
 
-    // Close the message sidebar preview panel
+    /** Close the message sidebar preview panel */
     const closeMessagePreview = () => {
         console.debug("closeMessagePreview", openMessageId)
         messagePreview.classList.add("d-none")
@@ -94,7 +94,7 @@ if (body) {
         updatePageUrl(undefined)
     }
 
-    // Update the URL with the given message id, without reloading the page
+    /** Update the URL with the given message id, without reloading the page */
     const updatePageUrl = (messageId: string | undefined) => {
         const url = new URL(location.href)
         url.searchParams.set("before", (messageIdMax + 1n).toString())
@@ -117,8 +117,8 @@ if (body) {
             closeMessagePreview()
         })
 
+        // On unread button click, submit the form
         unreadButton.addEventListener("click", () => {
-            // On unread button click, submit the form
             console.debug("onUnreadButtonClick", openMessageId)
             unreadForm.action = `/api/web/messages/${openMessageId}/unread`
             unreadForm.requestSubmit()
@@ -145,14 +145,13 @@ if (body) {
         const messageId = BigInt(message.dataset.id)
         messageIdMax = messageId > messageIdMax ? messageId : messageIdMax
 
+        // On message click, open preview if target is not a link
         message.addEventListener("click", ({ target }) => {
-            // On message click, open preview if target is not a link
             const tagName = (target as HTMLElement).tagName
             console.debug("onMessageClick", tagName)
             if (tagName === "A") return
             openMessagePreview(message)
         })
-
         message.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key !== "Enter") return
             openMessagePreview(message)

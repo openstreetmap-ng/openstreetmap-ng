@@ -60,9 +60,9 @@ if (body) {
         window.location.href = redirect_url
     })
 
+    // On delete button click, request confirmation
     const deleteButton = deleteForm.querySelector("button[type=submit]")
     deleteButton.addEventListener("click", (event: Event) => {
-        // On button click, request confirmation
         if (!confirm(t("settings.delete_this_application_question"))) {
             event.preventDefault()
         }

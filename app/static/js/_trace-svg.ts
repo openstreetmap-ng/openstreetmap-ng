@@ -1,6 +1,4 @@
-/**
- * Render a static trace to the given SVG element.
- */
+/** Render a static trace to the given SVG element */
 export const renderTrace = (svg: SVGElement, coords: [number, number][]): void => {
     const ds: string[] = []
     for (let j = 0; j < coords.length; j += 2) {
@@ -19,9 +17,7 @@ export const renderTrace = (svg: SVGElement, coords: [number, number][]): void =
     svg.appendChild(path)
 }
 
-/**
- * Render an animated trace to the given SVG element.
- */
+/** Render an animated trace to the given SVG element */
 export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][]) => {
     console.debug("Rendering animated trace SVG")
     const ds: string[] = []

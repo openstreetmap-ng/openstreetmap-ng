@@ -20,13 +20,13 @@ export const configureStandardForm = (
     console.debug("Initializing standard form", form)
     const submitElements: NodeListOf<HTMLInputElement | HTMLButtonElement> = form.querySelectorAll("[type=submit]")
 
-    // Set availability of submit elements
+    /** Set availability of submit elements */
     const toggleSubmit = (enabled: boolean): void => {
         console.debug("configureStandardForm", "toggleSubmit", enabled)
         for (const submit of submitElements) submit.disabled = !enabled
     }
 
-    // Handle feedback for a specific element
+    /** Handle feedback for a specific element */
     const handleElementFeedback = (element: Element, type: "success" | "info" | "error", message: string): void => {
         element.parentElement.classList.add("position-relative")
 
@@ -72,7 +72,7 @@ export const configureStandardForm = (
         form.addEventListener("submit", onInvalidated, { once: true })
     }
 
-    // Handle feedback for the entire form
+    /** Handle feedback for the entire form */
     const handleFormFeedback = (type: "success" | "info" | "error", message: string): void => {
         let feedback = form.querySelector(".form-feedback")
         let feedbackAlert: Alert | null = null

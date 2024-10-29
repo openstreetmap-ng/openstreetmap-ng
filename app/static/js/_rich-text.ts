@@ -1,7 +1,8 @@
 import i18next from "i18next"
 
 const abortControllers: Map<Element, AbortController> = new Map()
-// Abort any pending request for the given source element, optionally returning a new AbortController
+
+/** Abort any pending request for the given source element, optionally returning a new AbortController */
 const abortRequest = (source: Element, newController: boolean): AbortController | null => {
     const controller = abortControllers.get(source)
     if (controller) controller.abort()
@@ -21,7 +22,6 @@ const abortRequest = (source: Element, newController: boolean): AbortController 
 const richTextContainers = document.querySelectorAll(".rich-text-container")
 console.debug("Initializing", richTextContainers.length, "rich text containers")
 for (const container of richTextContainers) {
-    // Discover all required elements
     const sourceTextArea: HTMLTextAreaElement = container.querySelector("textarea.rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
 

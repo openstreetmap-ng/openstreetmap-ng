@@ -21,9 +21,7 @@ export const dataStyles: RenderStyles = {
     },
 }
 
-/**
- * Configure the data layer for the given map
- */
+/** Configure the data layer for the given map */
 export const configureDataLayer = (map: L.Map): void => {
     const dataLayer = getOverlayLayerById(dataLayerId) as L.FeatureGroup
     const errorDataAlert = getMapAlert("data-layer-error-alert")
@@ -45,13 +43,13 @@ export const configureDataLayer = (map: L.Map): void => {
         dataLayer.clearLayers()
     }
 
-    // On layer click, navigate to the object page
+    /** On layer click, navigate to the object page */
     const onLayerClick = (event: L.LeafletMouseEvent): void => {
         const object = event.target.object
         routerNavigateStrict(`/${object.type}/${object.id}`)
     }
 
-    // Load map data into the data layer
+    /** Load map data into the data layer */
     const loadData = (): void => {
         console.debug("Loading", fetchedElements.length, "elements")
         const layerGroup = L.layerGroup()
@@ -62,7 +60,7 @@ export const configureDataLayer = (map: L.Map): void => {
         for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
     }
 
-    // Attempt to load map data, show alert if too much data
+    /** Attempt to load map data, show alert if too much data */
     const tryLoadData = (): void => {
         if (fetchedElements.length < loadDataAlertThreshold || loadDataOverride) {
             loadDataAlert.classList.add("d-none")
@@ -76,7 +74,7 @@ export const configureDataLayer = (map: L.Map): void => {
         loadDataAlert.classList.remove("d-none")
     }
 
-    // On show data click, mark override and load data
+    /** On show data click, mark override and load data */
     const onShowDataButtonClick = () => {
         if (loadDataOverride) return
         console.debug("onShowDataButtonClick")
@@ -85,7 +83,7 @@ export const configureDataLayer = (map: L.Map): void => {
         loadData()
     }
 
-    // On hide data click, uncheck the data layer checkbox
+    /** On hide data click, uncheck the data layer checkbox */
     const onHideDataButtonClick = () => {
         if (dataOverlayCheckbox.checked === false) return
         console.debug("onHideDataButtonClick")
@@ -94,7 +92,7 @@ export const configureDataLayer = (map: L.Map): void => {
         loadDataAlert.classList.add("d-none")
     }
 
-    // On map update, fetch the elements in view and update the data layer
+    /** On map update, fetch the elements in view and update the data layer */
     const onMapZoomOrMoveEnd = (): void => {
         // Skip if the notes layer is not visible
         if (!map.hasLayer(dataLayer)) return
@@ -154,21 +152,19 @@ export const configureDataLayer = (map: L.Map): void => {
             })
     }
 
+    // On overlay add, configure the data layer
     map.addEventListener("overlayadd", ({ name }: L.LayersControlEvent): void => {
         if (name !== dataLayerId) return
-        // On overlay add, configure the data layer
         // Listen for events and run initial update
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         onMapZoomOrMoveEnd()
     })
 
+    // On overlay remove, abort any pending request and clear the data layer
     map.addEventListener("overlayremove", ({ name }: L.LayersControlEvent): void => {
         if (name !== dataLayerId) return
-        // On overlay remove, abort any pending request and clear the data layer
         errorDataAlert.classList.add("d-none")
         loadDataAlert.classList.add("d-none")
-        showDataButton.removeEventListener("click", onShowDataButtonClick)
-        hideDataButton.removeEventListener("click", onHideDataButtonClick)
         map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         if (abortController) abortController.abort()
         abortController = null

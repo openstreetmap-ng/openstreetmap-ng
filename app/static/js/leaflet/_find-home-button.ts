@@ -1,15 +1,13 @@
 import * as L from "leaflet"
 import { getMarkerIcon } from "./_utils"
 
-/**
- * Configure the find home button
- */
+/** Configure the find home button */
 export const configureFindHomeButton = (map: L.Map, button: HTMLButtonElement, homePoint: [number, number]): void => {
     const latLng = L.latLng(homePoint)
     let marker: L.Marker | null = null
 
+    // On click, create a marker and zoom to it
     button.addEventListener("click", () => {
-        // On click, create a marker and zoom to it
         console.debug("onFindHomeButtonClick")
 
         if (!marker) {

@@ -22,9 +22,9 @@ export const getIndexController = (map: L.Map): IndexController => {
         console.debug("Showing banner", bannerName)
         banner.classList.remove("d-none")
 
+        // On close button click, hide the banner
         const closeButton = banner.querySelector(".btn-close")
         closeButton.addEventListener("click", () => {
-            // On close button click, hide the banner
             markBannerHidden(bannerName)
             banner.remove()
         })
@@ -36,6 +36,6 @@ export const getIndexController = (map: L.Map): IndexController => {
             document.title = getPageTitle()
             setSearchFormQuery("")
         },
-        unload: () => {}, // do nothing
+        unload: () => {},
     }
 }

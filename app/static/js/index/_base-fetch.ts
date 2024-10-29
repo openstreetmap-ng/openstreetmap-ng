@@ -62,6 +62,6 @@ export const getBaseFetchController = (
                     alert(error.message)
                 })
         },
-        unload: (): void => {}, // do nothing
+        unload: () => {},
     }
 }

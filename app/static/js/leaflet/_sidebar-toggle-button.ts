@@ -8,9 +8,7 @@ export interface SidebarToggleControl extends L.Control {
 
 const sidebarToggleContainers: HTMLElement[] = []
 
-/**
- * Create a sidebar toggle button
- */
+/** Create a sidebar toggle button */
 export const getSidebarToggleButton = (className: string, tooltipTitle: string): SidebarToggleControl => {
     const control = new L.Control() as SidebarToggleControl
 
@@ -37,8 +35,8 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
             placement: "left",
         })
 
+        // On click, toggle sidebar visibility and invalidate map size
         button.addEventListener("click", () => {
-            // On click, toggle sidebar visibility and invalidate map size
             console.debug("onSidebarToggleButtonClick", className)
 
             // Unselect other buttons
@@ -59,9 +57,9 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
             map.invalidateSize(false)
         })
 
+        // On sidebar close button, trigger the sidebar toggle button
         const sidebarCloseButton = sidebar.querySelector(".sidebar-close-btn")
         sidebarCloseButton.addEventListener("click", () => {
-            // On sidebar close button, trigger the sidebar toggle button
             if (button.classList.contains("active")) {
                 button.dispatchEvent(new Event("click"))
             }

@@ -15,9 +15,7 @@ interface RenderOptions {
     renderAreas: boolean
 }
 
-/**
- * Add objects to the feature group layer
- */
+/** Add objects to the feature group layer */
 export const renderObjects = (
     layerGroup: L.LayerGroup,
     objects: OSMObject[],

@@ -7,20 +7,18 @@ import { getLatLngBoundsSize, getMarkerIcon } from "./_utils"
 
 const notesLayerId = "notes" as LayerId
 
-/**
- * Configure the notes layer for the given map
- */
+/** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: L.Map): void => {
     const notesLayer = getOverlayLayerById(notesLayerId) as L.FeatureGroup
     let abortController: AbortController | null = null
 
-    // On marker click, navigate to the note
+    /** On marker click, navigate to the note */
     const onMarkerClick = (event: L.LeafletMouseEvent): void => {
         const noteId = event.target.noteId
         routerNavigateStrict(`/note/${noteId}`)
     }
 
-    // On map update, fetch the notes and update the notes layer
+    /** On map update, fetch the notes and update the notes layer */
     const onMapZoomOrMoveEnd = (): void => {
         // Skip if the notes layer is not visible
         if (!map.hasLayer(notesLayer)) return
@@ -74,17 +72,17 @@ export const configureNotesLayer = (map: L.Map): void => {
             })
     }
 
+    // On overlay add, update the notes layer
     map.addEventListener("overlayadd", ({ name }: L.LayersControlEvent): void => {
         if (name !== notesLayerId) return
-        // On overlay add, update the notes layer
         // Listen for events and run initial update
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         onMapZoomOrMoveEnd()
     })
 
+    // On overlay remove, abort any pending request and clear the notes layer
     map.addEventListener("overlayremove", ({ name }: L.LayersControlEvent): void => {
         if (name !== notesLayerId) return
-        // On overlay remove, abort any pending request and clear the notes layer
         map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         if (abortController) abortController.abort()
         abortController = null

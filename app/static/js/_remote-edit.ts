@@ -26,9 +26,7 @@ const getObjectRequestUrl = (object: OSMObject): string => {
     return version ? `${apiUrl}/api/0.6/${type}/${object.id}/${version}` : `${apiUrl}/api/0.6/${type}/${object.id}`
 }
 
-/**
- * Get bounds from coordinates and zoom level
- */
+/** Get bounds from coordinates and zoom level */
 const getBoundsFromCoords = (lon: number, lat: number, zoom: number, paddingRatio = 0): Bounds => {
     // Assume the map takes up the entire screen
     const mapHeight = window.innerHeight
@@ -45,9 +43,7 @@ const getBoundsFromCoords = (lon: number, lat: number, zoom: number, paddingRati
     return [lon - deltaLon, lat - deltaLat, lon + deltaLon, lat + deltaLat]
 }
 
-/**
- * Start remote edit in JOSM
- */
+/** Start remote edit in JOSM */
 export const remoteEdit = (button: HTMLButtonElement): void => {
     console.debug("remoteEdit", button)
     const remoteEditJson = button.dataset.remoteEdit

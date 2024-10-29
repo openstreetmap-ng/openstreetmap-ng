@@ -57,9 +57,7 @@ export const getMapBaseLayerId = (map: L.Map): LayerId => {
     return baseLayerId
 }
 
-/**
- * Get the base layer instance of the map
- */
+/** Get the base layer instance of the map */
 export const getMapBaseLayer = (map: L.Map): L.TileLayer => {
     let baseLayer: L.TileLayer | null = null
     map.eachLayer((layer) => {
@@ -145,9 +143,7 @@ const setMapLayersCode = (map: L.Map, layersCode?: string): void => {
     }
 }
 
-/**
- * Get the current map state object
- */
+/** Get the current map state object */
 export const getMapState = (map: L.Map): MapState => {
     const center = map.getCenter()
     const lon = mod(center.lng + 180, 360) - 180
@@ -157,9 +153,7 @@ export const getMapState = (map: L.Map): MapState => {
     return { lon, lat, zoom, layersCode }
 }
 
-/**
- * Set the map state from a state object
- */
+/** Set the map state from a state object */
 export const setMapState = (map: L.Map, state: MapState, options?: L.ZoomPanOptions): void => {
     console.debug("setMapState", state)
     const { lon, lat, zoom, layersCode } = state
@@ -221,9 +215,7 @@ export const parseMapState = (hash: string): MapState | null => {
     }
 }
 
-/**
- * Convert bounds to a lon, lat, zoom object
- */
+/** Convert bounds to a lon, lat, zoom object */
 const convertBoundsToLonLatZoom = (map: L.Map | null, bounds: Bounds): LonLatZoom => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const lon = (minLon + maxLon) / 2
@@ -452,17 +444,13 @@ export const getMapGeoUri = (map: L.Map): string => {
     return `geo:${latFixed},${lonFixed}?z=${zoom}`
 }
 
-/**
- * Clone a tile layer
- */
+/** Clone a tile layer */
 export const cloneTileLayer = (layer: L.TileLayer): L.TileLayer => {
     // @ts-ignore
     return new L.TileLayer(layer._url, layer.options)
 }
 
-/**
- * Add a control group to the map
- */
+/** Add a control group to the map */
 export const addControlGroup = (map: L.Map, controls: L.Control[]): void => {
     for (const control of controls) {
         map.addControl(control)
@@ -476,9 +464,7 @@ export const addControlGroup = (map: L.Map, controls: L.Control[]): void => {
     }
 }
 
-/**
- * Disable click propagation for map controls, to avoid map events being triggered by the controls
- */
+/** Disable click propagation for map controls, to avoid map events being triggered by the controls */
 export const disableControlsClickPropagation = (map: L.Map): void => {
     const mapContainer = map.getContainer()
     const controlContainer: HTMLElement = mapContainer.querySelector(".leaflet-control-container")
@@ -496,9 +482,7 @@ export const disableControlsClickPropagation = (map: L.Map): void => {
     console.debug("Disabled click propagation for", mapAlertsContainer.length, "map alerts")
 }
 
-/**
- * Get the map alert element
- */
+/** Get the map alert element */
 export const getMapAlert = (name: string): HTMLElement => {
     const alert: HTMLElement | null = document.querySelector(`.map-alert.${name}`)
     if (!alert) console.error("Map alert", name, "not found")

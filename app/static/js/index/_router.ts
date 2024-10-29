@@ -85,8 +85,8 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         if (currentRoute) currentRoute.load(currentPath)
     })
 
+    // On window click, attempt to navigate to the href of an anchor element
     window.addEventListener("click", (event: MouseEvent): void => {
-        // On window click, attempt to navigate to the href of an anchor element
         // Skip if default prevented
         if (event.defaultPrevented) return
 

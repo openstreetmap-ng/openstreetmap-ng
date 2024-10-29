@@ -77,7 +77,7 @@ def generate_typescript_file(data: dict[str, tuple[float, float, float, float]])
     )
 
 
-async def main():
+async def main() -> None:
     country_bbox = await get_country_bbox_dict()
     timezone_country = get_timezone_country_dict()
     result = {}

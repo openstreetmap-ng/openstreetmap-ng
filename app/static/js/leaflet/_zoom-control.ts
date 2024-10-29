@@ -8,8 +8,8 @@ export const getZoomControl = () => {
     const control = new L.Control()
     let controlMap: L.Map | null = null
 
+    /** On zoom change, disable/enable specific buttons */
     const onMapZoomChange = (): void => {
-        // On zoom change, disable/enable specific buttons
         const container = control.getContainer()
         const zoomInButton: HTMLButtonElement = container.querySelector("button.zoom-in-btn")
         const zoomOutButton: HTMLButtonElement = container.querySelector("button.zoom-out-btn")

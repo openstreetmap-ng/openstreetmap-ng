@@ -50,12 +50,12 @@ export const getDistanceController = (map: L.Map): IndexController => {
         })
         // Listen for events on real markers
         if (index >= 0) {
+            // On marker click, remove that marker
             marker.addEventListener("click", () => {
-                // On marker click, remove that marker
                 removeMarker(index)
             })
+            // On marker drag, update the state
             marker.addEventListener("drag", () => {
-                // On marker drag, update the state
                 throttle(() => update([index]), mapThrottleDelay)
             })
         }

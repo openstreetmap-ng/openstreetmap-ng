@@ -10,8 +10,8 @@ export const getNewNoteControl = () => {
     const control = new L.Control()
     let controlMap: L.Map | null = null
 
+    /** On zoomend, disable/enable button */
     const onZoomEnd = (): void => {
-        // On zoomend, disable/enable button
         const container = control.getContainer()
         const button = container.querySelector("button")
 
@@ -61,8 +61,8 @@ export const getNewNoteControl = () => {
             // TODO: check RTL support, also with leaflet options
         })
 
+        // On button click, navigate to the new note page
         button.addEventListener("click", () => {
-            // On button click, navigate to the new note page
             const isActive = button.classList.contains("active")
             if (!isActive) {
                 routerNavigateStrict("/note/new")
@@ -84,9 +84,7 @@ export const getNewNoteControl = () => {
     return control
 }
 
-/**
- * Set availability of the new note button
- */
+/** Set availability of the new note button */
 export const setNewNoteButtonState = (active: boolean): void => {
     console.debug("setNewNoteButtonState", active, "on", newNoteContainers.length, "containers")
     for (const container of newNoteContainers) {

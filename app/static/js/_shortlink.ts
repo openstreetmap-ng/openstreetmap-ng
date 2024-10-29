@@ -1,6 +1,6 @@
 import { mod } from "./_utils"
 
-// 64 chars to encode 6 bits
+/** 64 chars to encode 6 bits */
 const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
 
 /**

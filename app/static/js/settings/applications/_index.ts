@@ -13,8 +13,8 @@ if (body) {
         // @ts-ignore
         collapseInstance._triggerArray.push(button)
 
+        // On accordion button click, toggle the collapse if target is not a link
         button.addEventListener("click", ({ target }: Event) => {
-            // On accordion button click, toggle the collapse if target is not a link
             const tagName = (target as HTMLElement).tagName
             console.debug("onAccordionButtonClick", tagName)
             if (tagName === "A") return
@@ -36,8 +36,8 @@ if (body) {
     if (createApplicationButton) {
         const createApplicationForm: HTMLFormElement = body.querySelector(".create-application-form")
 
+        // On create new application button click, show the form and focus the name input
         createApplicationButton.addEventListener("click", () => {
-            // On create new application button click, show the form and focus the name input
             console.debug("onCreateNewApplicationClick")
             createApplicationButton.classList.add("d-none")
             createApplicationForm.classList.remove("d-none")

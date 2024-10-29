@@ -40,9 +40,7 @@ import { getZoomControl } from "./_zoom-control"
 
 // TODO: map.invalidateSize(false) on sidebar-content
 
-/**
- * Get the main map instance
- */
+/** Get the main map instance */
 const getMainMap = (container: HTMLElement): L.Map => {
     console.debug("Initializing main map")
     const map = L.map(container, {
@@ -91,8 +89,8 @@ const getMainMap = (container: HTMLElement): L.Map => {
         }
     }
 
+    // On hash change, update the map view
     window.addEventListener("hashchange", () => {
-        // On hash change, update the map view
         // TODO: check if no double setMapState triggered
         console.debug("onHashChange", location.hash)
         let newState = parseMapState(location.hash)
@@ -126,9 +124,7 @@ const getMainMap = (container: HTMLElement): L.Map => {
     return map
 }
 
-/**
- * Configure the main map and all its components
- */
+/** Configure the main map and all its components */
 export const configureMainMap = (container: HTMLElement): void => {
     const map = getMainMap(container)
 

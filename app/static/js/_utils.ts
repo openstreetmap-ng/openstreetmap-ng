@@ -73,9 +73,7 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
 // export const isMetricUnit = !(navigator.language.startsWith("en-US") || navigator.language.startsWith("my"))
 export const isMetricUnit = true
 
-/**
- * Check if the given href is the current page
- */
+/** Check if the given href is the current page */
 export const isHrefCurrentPage = (href: string): boolean => {
     const hrefPathname = new URL(href).pathname
     const locationPathname = location.pathname
@@ -91,7 +89,7 @@ export const isHrefCurrentPage = (href: string): boolean => {
 export const getUnixTimestamp = (): number => Math.floor(Date.now() / 1000)
 
 /**
- * Create a range of numbers
+ * Create a Python-like range of numbers
  * @example
  * range(1, 5)
  * // => [1, 2, 3, 4]

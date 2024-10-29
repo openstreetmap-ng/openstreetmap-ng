@@ -1,8 +1,6 @@
 import { getSystemAppAccessToken, setSystemAppAccessToken } from "./_local-storage"
 
-/**
- * Load system app access token and call successCallback with it
- */
+/** Load system app access token and call successCallback with it */
 const loadSystemApp = (clientId: string, successCallback: (token: string) => void): void => {
     console.debug("loadSystemApp", clientId)
 
@@ -58,13 +56,11 @@ const createAccessToken = (clientId: string, successCallback: (token: string) =>
         })
 }
 
-/**
- * Configure iframe to load system app
- */
+/** Configure iframe to load system app */
 export const configureIFrameSystemApp = (clientId: string, iframe: HTMLIFrameElement, iframeOrigin: string): void => {
     console.debug("configureIFrameSystemApp", clientId, iframeOrigin)
 
-    // Handle load system app requests, obtain token and respond back
+    /** Handle load system app requests, obtain token and respond back */
     const onWindowMessage = (event: MessageEvent): void => {
         const data = event.data
         if (data.type === "loadSystemApp") {
@@ -79,17 +75,14 @@ export const configureIFrameSystemApp = (clientId: string, iframe: HTMLIFrameEle
         }
     }
 
-    // Listen for events
     window.addEventListener("message", onWindowMessage)
 }
 
-/**
- * Communicate with parent window to load system app
- */
+/** Communicate with parent window to load system app */
 export const parentLoadSystemApp = (successCallback: (token: string) => void): void => {
     console.debug("parentLoadSystemApp")
 
-    // Handle load system app response, call successCallback with access token
+    /** Handle load system app response, call successCallback with access token */
     const onWindowMessage = (event: MessageEvent): void => {
         const data = event.data
         if (data.type === "loadedSystemApp") {
@@ -105,5 +98,5 @@ export const parentLoadSystemApp = (successCallback: (token: string) => void): v
     window.addEventListener("message", onWindowMessage)
 
     // Request system app load
-    parent.postMessage({ type: "loadSystemApp" }, "*")
+    window.parent.postMessage({ type: "loadSystemApp" }, "*")
 }

@@ -49,7 +49,7 @@ if (userSettingsForm) {
         marker = markerFactory(latLng)
     }
 
-    // On map click, update the coordinates and move the marker
+    /** On map click, update the coordinates and move the marker */
     const onMapClick = ({ latlng }: { latlng: L.LatLng }) => {
         const precision = zoomPrecision(map.getZoom())
         const lon = latlng.lng.toFixed(precision)
@@ -65,8 +65,8 @@ if (userSettingsForm) {
     }
 
     // TODO: make those leaflet buttons
-    const deleteButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-delete-btn")
     // On delete click, remember restore point, remove coordinates and toggle buttons visibility
+    const deleteButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-delete-btn")
     deleteButton.addEventListener("click", () => {
         map.removeLayer(marker)
         marker = null
@@ -80,8 +80,8 @@ if (userSettingsForm) {
         restoreButton.classList.remove("d-none")
     })
 
-    const restoreButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-restore-btn")
     // On restore click, restore coordinates and toggle buttons visibility
+    const restoreButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-restore-btn")
     restoreButton.addEventListener("click", () => {
         onMapClick({ latlng: L.latLng(Number.parseFloat(restorePoint.lat), Number.parseFloat(restorePoint.lon)) })
         restorePoint = null

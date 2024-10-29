@@ -38,22 +38,3 @@ export interface OSMChangeset {
 }
 
 export type OSMObject = OSMNode | OSMWay | OSMRelation | OSMNote | OSMChangeset
-
-// /**
-//  * @typedef {object} RoutingStep
-//  * @property {number} lon Begin longitude
-//  * @property {number} lat Begin latitude
-//  * @property {L.Polyline} line Line segment
-//  * @property {number} distance Distance in meters
-//  * @property {number} time Time in seconds
-//  * @property {number} code Instruction code
-//  * @property {string} text Instruction text
-//  */
-
-// /**
-//  * @typedef {object} RoutingRoute
-//  * @property {RoutingStep[]} steps Routing steps
-//  * @property {text} attribution Routing engine attribution (HTML)
-//  * @property {number|null} ascend Optional ascend in meters
-//  * @property {number|null} descend Optional descend in meters
-//  */

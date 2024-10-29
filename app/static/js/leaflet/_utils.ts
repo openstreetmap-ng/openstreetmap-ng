@@ -3,9 +3,7 @@ import type { Bounds } from "../_types"
 
 const minBoundsSizePx = 20
 
-/**
- * Get a marker icon
- */
+/** Get a marker icon */
 export const getMarkerIcon = (color: string, showShadow: boolean): L.Icon => {
     let shadowUrl: string | null = null
     let shadowSize: [number, number] | null = null
@@ -23,18 +21,14 @@ export const getMarkerIcon = (color: string, showShadow: boolean): L.Icon => {
     })
 }
 
-/**
- * Get the bounds area in square degrees
- */
+/** Get the bounds area in square degrees */
 export const getLatLngBoundsSize = (bounds: L.LatLngBounds): number => {
     const sw = bounds.getSouthWest()
     const ne = bounds.getNorthEast()
     return (ne.lng - sw.lng) * (ne.lat - sw.lat)
 }
 
-/**
- * Get the intersection of two bounds
- */
+/** Get the intersection of two bounds */
 export const getLatLngBoundsIntersection = (bounds1: L.LatLngBounds, bounds2: L.LatLngBounds): L.LatLngBounds => {
     const minLat1 = bounds1.getSouth()
     const maxLat1 = bounds1.getNorth()
@@ -59,9 +53,7 @@ export const getLatLngBoundsIntersection = (bounds1: L.LatLngBounds, bounds2: L.
     return L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
 }
 
-/**
- * Make bounds minimum size to make them easier to click
- */
+/** Make bounds minimum size to make them easier to click */
 export const makeBoundsMinimumSize = (map: L.Map, bounds: Bounds): Bounds => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const mapBottomLeft = map.project(L.latLng(minLat, minLon))

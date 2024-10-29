@@ -62,8 +62,8 @@ export const initializeElementContent = (map: L.Map, container: HTMLElement): (O
 
     const locationButton: HTMLButtonElement = container.querySelector("button.location-btn")
     if (locationButton) {
+        // On location click, pan the map
         locationButton.addEventListener("click", () => {
-            // On location click, pan the map
             const dataset = locationButton.dataset
             console.debug("onLocationButtonClick", dataset)
             const lon = Number.parseFloat(dataset.lon)

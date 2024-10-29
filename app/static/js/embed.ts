@@ -64,7 +64,7 @@ const getFixTheMapLink = (lon: number, lat: number, zoom: number): string => {
 
 const reportProblemText = i18next.t("javascripts.embed.report_problem")
 
-// On move end, update the link
+/** On move end, update the link with the current coordinates */
 const onMoveEnd = () => {
     const center = map.getCenter()
     const zoom = map.getZoom()

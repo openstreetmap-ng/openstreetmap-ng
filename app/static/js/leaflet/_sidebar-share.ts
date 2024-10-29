@@ -40,12 +40,11 @@ export const getShareSidebarToggleButton = () => {
         const geoUriInput: HTMLInputElement = sidebar.querySelector("input.geo-uri-input")
         const embedInput: HTMLInputElement = sidebar.querySelector("input.embed-input")
 
-        // Null values until initialized
         let marker: L.Marker | null = null
         let locationFilter: any | null = null
         let optimalExportParams: { zoom: number; xResolution: number; yResolution: number } | null = null
 
-        // On marker drag end, center map on marker
+        /** On marker drag end, center map on marker */
         const onMarkerDragEnd = () => {
             map.removeEventListener("move", onMapMove)
             map.panTo(marker.getLatLng())
@@ -132,9 +131,9 @@ export const getShareSidebarToggleButton = () => {
             }
         })
 
+        // On custom region checkbox change, enable/disable the location filter
         const customRegionCheckbox: HTMLInputElement = exportForm.querySelector("input.custom-region-check")
         customRegionCheckbox.addEventListener("change", () => {
-            // On custom region checkbox change, enable/disable the location filter
             if (customRegionCheckbox.checked) {
                 if (!locationFilter) {
                     locationFilter = getLocationFilter()
@@ -161,7 +160,7 @@ export const getShareSidebarToggleButton = () => {
             setLastSelectedExportFormat(format)
         })
 
-        // On map move, update marker position if marker is enabled
+        /** On map move, update marker position if marker is enabled */
         const onMapMove = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
@@ -169,7 +168,7 @@ export const getShareSidebarToggleButton = () => {
         }
         map.addEventListener("move", onMapMove)
 
-        // On map zoomend or moveend, update sidebar data
+        /** On map zoomend or moveend, update sidebar data */
         const onMapZoomOrMoveEnd = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
@@ -181,7 +180,7 @@ export const getShareSidebarToggleButton = () => {
         }
         map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
 
-        // On map zoomend or baselayerchange, update the optimal export params
+        /** On map zoomend or baselayerchange, update the optimal export params */
         const onMapZoomOrLayerChange = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return

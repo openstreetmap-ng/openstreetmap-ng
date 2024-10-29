@@ -3,7 +3,7 @@ if (body) {
     const residenceInputs: NodeListOf<HTMLInputElement> = body.querySelectorAll("input[name=residence]")
     const legalDocuments: NodeListOf<HTMLElement> = body.querySelectorAll(".legal-document[data-residence]")
 
-    // On residence change, show appropriate legal documents
+    /** On residence change, show appropriate legal documents */
     const onResidenceChange = ({ target }: Event) => {
         const newResidence = (target as HTMLInputElement).value
         console.debug("onResidenceChange", newResidence)
@@ -16,7 +16,7 @@ if (body) {
         input.addEventListener("change", onResidenceChange)
     }
 
-    // Auto-detect residence from browser timezone
+    /** Auto-detect residence from browser timezone */
     const autoDetectResidence = () => {
         const timezoneInputMap = new Map([...residenceInputs].map((input) => [input.dataset.timezone, input]))
         const timezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone

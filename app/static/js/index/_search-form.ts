@@ -10,8 +10,8 @@ const searchQueryInput: HTMLInputElement | null = searchForm
 
 /** Configure the search form */
 export const configureSearchForm = (map: L.Map): void => {
+    // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
-        // On search form submit, capture and perform router navigation
         e.preventDefault()
         const query = searchQueryInput.value
         if (query) routerNavigateStrict(`/search?${qsEncode({ q: query })}`)

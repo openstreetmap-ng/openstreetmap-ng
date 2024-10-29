@@ -33,7 +33,7 @@ const mapLinksHrefMap: Map<HTMLAnchorElement | HTMLButtonElement, string> = Arra
     new Map(),
 )
 
-// On edit link click, check and handle the remember choice checkbox
+/** On edit link click, check and handle the remember choice checkbox */
 const onEditLinkClick = (event: Event): void => {
     const editLink = event.currentTarget as HTMLAnchorElement | HTMLButtonElement
     const editor = editLink.dataset.editor
@@ -81,7 +81,7 @@ editGroup.addEventListener("hidden.bs.dropdown", () => {
 })
 
 const loginLinks: NodeListOf<HTMLAnchorElement> = navbar.querySelectorAll("a[href='/login']")
-// Update the login links with the current path and hash
+/** Update the login links with the current path and hash */
 const updateLoginLinks = (hash: string): void => {
     const loginLinkQuery = qsEncode({ referer: window.location.pathname })
     const loginHref = `/login?${loginLinkQuery}${hash}`
@@ -89,7 +89,7 @@ const updateLoginLinks = (hash: string): void => {
 }
 
 // TODO: wth object support?
-// Update the navbar links and current URL hash
+/** Update the navbar links and current URL hash */
 export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void => {
     const isEditDisabled = state.zoom < minEditZoom
     const hash = encodeMapState(state)
@@ -173,7 +173,7 @@ export const handleEditRemotePath = (): void => {
 
 const newUnreadMessagesBadge: HTMLElement = navbar.querySelector(".new-unread-messages-badge")
 const unreadMessagesBadge: HTMLElement = navbar.querySelector(".unread-messages-badge")
-// Update the unread messages badge in the navbar
+/** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number): void => {
     const newCount = (Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0) + change
     console.debug("changeUnreadMessagesBadge", newCount)
@@ -184,7 +184,6 @@ export const changeUnreadMessagesBadge = (change: number): void => {
 // Handle mapState window messages (from iD/Rapid)
 window.addEventListener("message", (event: MessageEvent): void => {
     const data = event.data
-    // On window mapState message, update the navbar and hash
     if (data.type === "mapState") {
         const { lon, lat, zoom } = data.state as LonLatZoom
         updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })

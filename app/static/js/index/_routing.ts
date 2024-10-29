@@ -1,6 +1,6 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { formatDistance, formatHeight, formatSimpleDistance, formatTime } from "../_format-utils"
+import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
 import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
@@ -93,7 +93,6 @@ export const getRoutingController = (map: L.Map): IndexController => {
     const popupTemplate: HTMLTemplateElement = routeContainer.querySelector("template.popup")
     const stepTemplate: HTMLTemplateElement = routeContainer.querySelector("template.step")
 
-    // Null values until initialized
     let abortController: AbortController | null = null
     let fromBounds: L.LatLngBounds | null = null
     let fromMarker: L.Marker | null = null
@@ -198,15 +197,15 @@ export const getRoutingController = (map: L.Map): IndexController => {
         bboxInput.value = map.getBounds().toBBoxString()
     }
 
+    // On engine input change, remember the last routing engine
     engineInput.addEventListener("input", () => {
-        // On engine input change, remember the last routing engine
         console.debug("onEngineInputChange")
         setLastRoutingEngine(engineInput.value)
         submitFormIfFilled()
     })
 
+    // On reverse button click, swap the from and to inputs
     reverseButton.addEventListener("click", () => {
-        // On reverse button click, swap the from and to inputs
         console.debug("onReverseButtonClick")
         const newFromValue = toInput.value
         const newToValue = fromInput.value
@@ -359,7 +358,7 @@ export const getRoutingController = (map: L.Map): IndexController => {
             div.querySelector(".icon div").classList.add(`icon-${step.code}`)
             div.querySelector(".number").textContent = `${stepNumber}.`
             div.querySelector(".instruction").textContent = step.text
-            div.querySelector(".distance").textContent = formatSimpleDistance(step.distance)
+            div.querySelector(".distance").textContent = formatDistanceRounded(step.distance)
             fragment.appendChild(div)
 
             const layer = L.polyline(step.geom, styles.hover)

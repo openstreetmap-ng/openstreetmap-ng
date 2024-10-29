@@ -19,14 +19,12 @@ export const formatDistance = (meters: number): string => {
 }
 
 /**
- * Format distance in meters, that is easier to read but less precise
- * @param {number} meters Distance in meters
- * @returns {string} Formatted distance
+ * Format distance in meters, rounded to the two significant digits
  * @example
- * formatSimpleDistance(1100)
- * // => "1.1km"
+ * formatDistanceRounded(232)
+ * // => "230m"
  */
-export const formatSimpleDistance = (meters: number): string => {
+export const formatDistanceRounded = (meters: number): string => {
     // < 5 m
     if (meters < 5) {
         return ""
@@ -48,8 +46,6 @@ export const formatSimpleDistance = (meters: number): string => {
 
 /**
  * Format height in meters
- * @param {number} meters Height in meters
- * @returns {string} Formatted height
  * @example
  * formatHeight(200)
  * // => "200m"
@@ -60,8 +56,6 @@ export const formatHeight = (meters: number): string => {
 
 /**
  * Format time in seconds
- * @param {number} seconds Time in seconds
- * @returns {string} Formatted time
  * @example
  * formatTime(3600)
  * // => "1:00"
@@ -93,7 +87,7 @@ export const formatDegrees = (decimalDegree: number): string => {
 
 /**
  * Format [lat, lon] in the geographic coordinate system.
- * See https://en.wikipedia.org/wiki/Geographic_coordinate_system.
+ * @see https://en.wikipedia.org/wiki/Geographic_coordinate_system
  * @example formatCoordinate(21.32123, 35.2134)
  * // => "21°19′16″N, 35°12′48″E"
  */

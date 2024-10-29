@@ -5,6 +5,7 @@ import { getDefaultBaseLayer } from "./leaflet/_layers"
 import { getMarkerIcon } from "./leaflet/_utils"
 import { getZoomControl } from "./leaflet/_zoom-control"
 
+// TODO: diary entry new body
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
     const lonInput: HTMLInputElement = useMapContainer.querySelector("input[name=longitude]")
@@ -19,7 +20,7 @@ if (useMapContainer) {
             .bindPopup(i18next.t("diary_entries.edit.marker_text"))
             .addTo(map)
 
-    // On map click, update the coordinates and move the marker
+    /** On map click, update the coordinates and move the marker */
     const onMapClick = (e: L.LeafletMouseEvent) => {
         const precision = zoomPrecision(map.getZoom())
         const lon = e.latlng.lng.toFixed(precision)

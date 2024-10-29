@@ -9,9 +9,7 @@ import { routerNavigateStrict } from "../index/_router"
 export const newNoteMinZoom = 12
 export const queryFeaturesMinZoom = 14
 
-/**
- * Configure the map context menu
- */
+/** Configure the map context menu */
 export const configureContextMenu = (map: L.Map): void => {
     const mapContainer = map.getContainer()
 
@@ -57,16 +55,15 @@ export const configureContextMenu = (map: L.Map): void => {
         }
     }
 
+    /** On map interactions, close the popup */
     const closePopup = () => {
         dropdown.hide()
         map.closePopup(popup)
     }
-
-    // On map interactions, close the popup
     map.addEventListener("zoomstart movestart mouseout", closePopup)
 
+    // On map contextmenu, open the popup
     map.addEventListener("contextmenu", ({ latlng, containerPoint }: L.LeafletMouseEvent) => {
-        // On map contextmenu, open the popup
         console.debug("onMapContextMenu", latlng)
 
         // Update the geolocation fields
@@ -100,8 +97,8 @@ export const configureContextMenu = (map: L.Map): void => {
         queryFeaturesButton.disabled = zoom < queryFeaturesMinZoom
     })
 
+    /** On geolocation field click, copy the text content */
     const onGeolocationFieldClick = async ({ target }: Event) => {
-        // On geolocation field click, copy the text content
         closePopup()
         try {
             const value = (target as Element).textContent
@@ -115,8 +112,8 @@ export const configureContextMenu = (map: L.Map): void => {
     geolocationGeoField.addEventListener("click", onGeolocationFieldClick)
     geolocationUriField.addEventListener("click", onGeolocationFieldClick)
 
+    // On routing from button click, navigate to routing page
     routingFromButton.addEventListener("click", () => {
-        // On routing from button click, navigate to routing page
         console.debug("onRoutingFromButtonClick")
         closePopup()
         const { lon, lat } = getPopupPosition()
@@ -124,8 +121,8 @@ export const configureContextMenu = (map: L.Map): void => {
         routerNavigateStrict(`/directions?${qsEncode({ from })}`)
     })
 
+    // On routing to button click, navigate to routing page
     routingToButton.addEventListener("click", () => {
-        // On routing to button click, navigate to routing page
         console.debug("onRoutingToButtonClick")
         closePopup()
         const { lon, lat } = getPopupPosition()
@@ -133,16 +130,16 @@ export const configureContextMenu = (map: L.Map): void => {
         routerNavigateStrict(`/directions?${qsEncode({ to })}`)
     })
 
+    // On new note button click, navigate to new-note page
     newNoteButton.addEventListener("click", () => {
-        // On new note button click, navigate to new-note page
         console.debug("onNewNoteButtonClick")
         closePopup()
         const { lon, lat, zoom } = getPopupPosition()
         routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     })
 
+    // On show address button click, navigate to search page
     showAddressButton.addEventListener("click", () => {
-        // On show address button click, navigate to search page
         console.debug("onShowAddressButtonClick")
         closePopup()
         const { lon, lat } = getPopupPosition()
@@ -154,23 +151,23 @@ export const configureContextMenu = (map: L.Map): void => {
         )
     })
 
+    // On query features button click, navigate to query-features page
     queryFeaturesButton.addEventListener("click", () => {
-        // On query features button click, navigate to query-features page
         console.debug("onQueryFeaturesButtonClick")
         closePopup()
         const { lon, lat, zoom } = getPopupPosition()
         routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoom}`)
     })
 
+    // On center here button click, center the map
     centerHereButton.addEventListener("click", () => {
-        // On center here button click, center the map
         console.debug("onCenterHereButtonClick")
         closePopup()
         map.panTo(popup.getLatLng())
     })
 
+    // On measure distance button click, open the distance tool
     measureDistanceButton.addEventListener("click", () => {
-        // On measure distance button click, open the distance tool
         console.debug("onMeasureDistanceButtonClick")
         closePopup()
         const { lon, lat } = getPopupPosition()

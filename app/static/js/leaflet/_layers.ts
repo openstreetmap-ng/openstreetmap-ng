@@ -81,7 +81,7 @@ layerData.set(cyclosm, {
 })
 
 const cycleMap = L.tileLayer(`https://tile.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey=${thunderforestApiKey}`, {
-    maxZoom: 21, // supports up to 22
+    maxZoom: 21, // This layer supports up to 22
     attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
 })
 layerData.set(cycleMap, {
@@ -198,19 +198,13 @@ for (const layer of [...baseLayerIdMap.values(), ...overlayLayerIdMap.values()])
     if (data.layerCode || data.layerId === "standard") layerCodeIdMap.set(data.layerCode, data.layerId)
 }
 
-/**
- * Get base layer instance by id
- */
+/** Get base layer instance by id */
 export const getBaseLayerById = (layerId: LayerId): L.TileLayer | undefined => baseLayerIdMap.get(layerId)
 
-/**
- * Get the default base layer instance
- */
+/** Get the default base layer instance */
 export const getDefaultBaseLayer = (): L.TileLayer => getBaseLayerById(getLayerIdByCode("" as LayerCode))
 
-/**
- * Get overlay layer instance by id
- */
+/** Get overlay layer instance by id */
 export const getOverlayLayerById = (layerId: LayerId): L.Layer | L.FeatureGroup | undefined =>
     overlayLayerIdMap.get(layerId)
 

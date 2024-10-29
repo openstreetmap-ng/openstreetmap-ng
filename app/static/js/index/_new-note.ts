@@ -77,15 +77,17 @@ export const getNewNoteController = (map: L.Map): IndexController => {
             })[0] as L.CircleMarker
 
             marker = (halo as any).marker
+
+            // On marker drag start, hide the halo
             marker.addEventListener("dragstart", () => {
-                // On marker drag start, hide the halo
                 halo.setStyle({
                     opacity: 0,
                     fillOpacity: 0,
                 })
             })
+
+            // On marker drag end, update the form's coordinates and show the halo
             marker.addEventListener("dragend", () => {
-                // On marker drag end, update the form's coordinates and show the halo
                 const latLng = marker.getLatLng()
                 halo.setLatLng(latLng)
                 halo.setStyle({

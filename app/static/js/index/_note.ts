@@ -36,8 +36,8 @@ export const getNoteController = (map: L.Map): IndexController => {
             icon: open ? "open" : "closed",
         })
 
+        // On location click, pan the map
         locationButton.addEventListener("click", () => {
-            // On location click, pan the map
             const latLng = L.latLng(lat, lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
@@ -55,7 +55,7 @@ export const getNoteController = (map: L.Map): IndexController => {
             const commentButton: HTMLButtonElement = commentForm.querySelector("button.comment-btn")
             const submitButtons: NodeListOf<HTMLButtonElement> = commentForm.querySelectorAll("button[type=submit]")
 
-            // On success callback, reload the note and simulate map move (reload notes layer)
+            /** On success callback, reload the note and simulate map move (reload notes layer) */
             const onFormSuccess = () => {
                 map.panTo(map.getCenter(), { animate: false })
                 controller.unload()
@@ -64,14 +64,14 @@ export const getNoteController = (map: L.Map): IndexController => {
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)
 
-            // On submit click, set event type
+            /** On submit click, set event type */
             const onSubmitClick = ({ target }: MouseEvent) => {
                 eventInput.value = (target as HTMLButtonElement).dataset.event
             }
             for (const button of submitButtons) button.addEventListener("click", onSubmitClick)
 
             if (commentInput) {
-                // On comment input, update the button state
+                /** On comment input, update the button state */
                 const onCommentInput = () => {
                     const hasValue = commentInput.value.trim().length > 0
                     if (hasValue) {

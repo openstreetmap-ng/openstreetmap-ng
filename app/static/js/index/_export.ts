@@ -25,18 +25,25 @@ export const getExportController = (map: L.Map): IndexController => {
     // Null values until initialized
     let locationFilter: any | null = null
 
-    const updateElements = (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
-        // Update the from availability
-        const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
-        const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
-        exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)
-        exportUnavailableContainer.classList.toggle("d-none", isFormAvailable)
+    // On custom region checkbox change, enable/disable the location filter
+    customRegionCheckbox.addEventListener("change", () => {
+        console.debug("onCustomRegionCheckboxChange", customRegionCheckbox.checked)
+        if (customRegionCheckbox.checked) {
+            if (!locationFilter) {
+                locationFilter = getLocationFilter()
+                locationFilter.addEventListener("change", onMapMoveEnd)
+            }
 
-        // Update the export links
-        const bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
-        exportLink.href = exportBaseHref + bboxQueryString
-        exportOverpassLink.href = exportOverpassBaseHref + bboxQueryString
-    }
+            map.addLayer(locationFilter)
+
+            // By default, location filter is slightly smaller than the current view
+            locationFilter.setBounds(map.getBounds().pad(-0.2))
+            locationFilter.enable()
+        } else {
+            map.removeLayer(locationFilter)
+        }
+        onMapMoveEnd()
+    })
 
     /** On map move end, update the inputs */
     const onMapMoveEnd = () => {
@@ -56,24 +63,17 @@ export const getExportController = (map: L.Map): IndexController => {
         updateElements(minLon, minLat, maxLon, maxLat)
     }
 
-    /** On custom region checkbox change, enable/disable the location filter */
-    const onCustomRegionCheckboxChange = () => {
-        if (customRegionCheckbox.checked) {
-            if (!locationFilter) {
-                locationFilter = getLocationFilter()
-                locationFilter.addEventListener("change", onMapMoveEnd)
-            }
+    const updateElements = (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
+        // Update the from availability
+        const currentViewAreaSize = (maxLon - minLon) * (maxLat - minLat)
+        const isFormAvailable = currentViewAreaSize <= mapQueryAreaMaxSize
+        exportAvailableContainer.classList.toggle("d-none", !isFormAvailable)
+        exportUnavailableContainer.classList.toggle("d-none", isFormAvailable)
 
-            map.addLayer(locationFilter)
-
-            // By default, location filter is slightly smaller than the current view
-            locationFilter.setBounds(map.getBounds().pad(-0.2))
-            locationFilter.enable()
-        } else {
-            map.removeLayer(locationFilter)
-        }
-
-        onMapMoveEnd()
+        // Update the export links
+        const bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
+        exportLink.href = exportBaseHref + bboxQueryString
+        exportOverpassLink.href = exportOverpassBaseHref + bboxQueryString
     }
 
     return {
@@ -83,20 +83,18 @@ export const getExportController = (map: L.Map): IndexController => {
 
             // Listen for events
             map.addEventListener("moveend", onMapMoveEnd)
-            customRegionCheckbox.addEventListener("change", onCustomRegionCheckboxChange)
 
             // Initial update to set the inputs
             onMapMoveEnd()
         },
         unload: () => {
+            map.removeEventListener("moveend", onMapMoveEnd)
+
             // On sidebar hidden, deselect the custom region checkbox
             if (customRegionCheckbox.checked) {
                 customRegionCheckbox.checked = false
                 customRegionCheckbox.dispatchEvent(new Event("change"))
             }
-
-            map.removeEventListener("moveend", onMapMoveEnd)
-            customRegionCheckbox.removeEventListener("change", onCustomRegionCheckboxChange)
         },
     }
 }

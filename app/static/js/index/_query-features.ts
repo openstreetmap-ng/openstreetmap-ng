@@ -51,12 +51,12 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
             const mainElement = elementMap[mainElementType].get(mainElementId)
 
             // TODO: check event order on high activity
+            // On hover, focus on the element
             resultAction.addEventListener("mouseenter", () => {
-                // On hover, focus on the element
                 focusMapObject(map, mainElement)
             })
+            // On hover end, unfocus the element
             resultAction.addEventListener("mouseleave", () => {
-                // On hover end, unfocus the element
                 focusMapObject(map, null)
             })
         }

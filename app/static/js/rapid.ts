@@ -24,7 +24,7 @@ parentLoadSystemApp((accessToken) => {
 
         // Map emits 'draw' on full redraws, it's already throttled
         map.on("draw", () => {
-            // Skip if in intro
+            // Skip during introduction
             if (ctx.inIntro) return
 
             const [lon, lat] = map.center()

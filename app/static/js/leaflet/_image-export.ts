@@ -3,16 +3,14 @@ import type { Bounds } from "../_types"
 
 const maxZoom = 25
 const tileSize = 256
-const optimalExportResolution = Math.max(1024, innerHeight)
+const optimalExportResolution = Math.max(1024, window.innerHeight)
 const earthRadius = 6371000
 const earthCircumference = 40030173 // 2 * Math.PI * EARTH_RADIUS
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const imageQuality = 0.98
 
-/**
- * Returns the optimal zoom level and resolution for exporting the map image
- */
+/** Find the optimal zoom level and resolution for exporting the map image */
 export const getOptimalExportParams = (bounds: Bounds): { zoom: number; xResolution: number; yResolution: number } => {
     let [minLon, minLat, maxLon, maxLat] = bounds
     // The bounds cross the antimeridian
@@ -169,9 +167,7 @@ export const exportMapImage = async (
     })
 }
 
-/**
- * Calculate the offsets for trimming the exported image
- */
+/** Calculate the offsets for trimming the exported image */
 const calculateTrimOffsets = (
     minLon: number,
     minLat: number,

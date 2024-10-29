@@ -36,13 +36,13 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
             layerElementsMap.set(layerId, elements)
         }
 
+        // On sidebar shown, update the legend (simulate zoomend)
         button.addEventListener("click", () => {
-            // On sidebar shown, update the legend (simulate zoomend)
             if (button.classList.contains("active")) onZoomEnd()
         })
 
+        // On base layer change, update availability of the button and its tooltip
         map.addEventListener("baselayerchange", () => {
-            // On base layer change, update availability of the button and its tooltip
             const activeLayerId = getMapBaseLayerId(map)
             const isLegendAvailable = layerElementsMap.has(activeLayerId)
 
@@ -69,8 +69,8 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
+        /** On zoomend, display only related elements */
         const onZoomEnd = (): void => {
-            // On zoom end, display only related elements
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 

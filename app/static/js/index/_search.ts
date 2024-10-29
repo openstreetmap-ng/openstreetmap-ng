@@ -130,8 +130,9 @@ export const getSearchController = (map: L.Map): IndexController => {
             if (marker) {
                 marker.addEventListener("mouseover", onMouseover)
                 marker.addEventListener("mouseout", onMouseout)
+
+                // On marker click, navigate to the element
                 marker.addEventListener("click", (e) => {
-                    // On marker click, navigate to the element
                     const type = dataset.type
                     const id = dataset.id
                     const url = `/${type}/${id}`
@@ -228,7 +229,6 @@ export const getSearchController = (map: L.Map): IndexController => {
             // Unstick the search form and reset search alert
             searchForm.classList.remove("sticky-top")
             searchAlert.classList.add("d-none")
-            searchAlert.removeEventListener("click", onSearchAlertClick)
             map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
         },
     }

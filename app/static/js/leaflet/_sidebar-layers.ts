@@ -20,8 +20,12 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         const sidebar = control.sidebar
         const layerContainers: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".layer")
         const overlayCheckboxes: NodeListOf<HTMLInputElement> = sidebar.querySelectorAll("input.overlay")
+        const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
+        for (const overlayCheckbox of overlayCheckboxes) {
+            layerIdOverlayCheckboxMap.set(overlayCheckbox.value as LayerId, overlayCheckbox)
+        }
 
-        // Ensure minimaps have been initialized
+        /** Ensure minimaps have been initialized */
         const ensureMinimapsInitialized = (): void => {
             if (minimaps.length) return
 
@@ -51,8 +55,8 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         }
 
+        // On sidebar shown, update the sidebar state
         button.addEventListener("click", () => {
-            // On sidebar shown, update the sidebar state
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
@@ -67,8 +71,8 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             onMapZoomEnd()
         })
 
+        // On base layer change, update the active container
         map.addEventListener("baselayerchange", () => {
-            // On base layer change, update the active container
             const activeLayerId = getMapBaseLayerId(map)
             for (const container of layerContainers) {
                 const layerId = container.dataset.layerId
@@ -76,32 +80,26 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
+        // On overlay layer add, check the corresponding checkbox
         map.addEventListener("overlayadd", ({ name }) => {
-            // On overlay layer add, check the corresponding checkbox
-            for (const overlayCheckbox of overlayCheckboxes) {
-                if (overlayCheckbox.value !== name) continue
-                if (overlayCheckbox.checked !== true) {
-                    overlayCheckbox.checked = true
-                    overlayCheckbox.dispatchEvent(new Event("change"))
-                }
-                break
+            const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
+            if (overlayCheckbox && overlayCheckbox.checked !== true) {
+                overlayCheckbox.checked = true
+                overlayCheckbox.dispatchEvent(new Event("change"))
             }
         })
 
+        // On overlay layer remove, uncheck the corresponding checkbox
         map.addEventListener("overlayremove", ({ name }) => {
-            // On overlay layer remove, uncheck the corresponding checkbox
-            for (const overlayCheckbox of overlayCheckboxes) {
-                if (overlayCheckbox.value !== name) continue
-                if (overlayCheckbox.checked !== false) {
-                    overlayCheckbox.checked = false
-                    overlayCheckbox.dispatchEvent(new Event("change"))
-                }
-                break
+            const overlayCheckbox = layerIdOverlayCheckboxMap.get(name as LayerId)
+            if (overlayCheckbox && overlayCheckbox.checked !== false) {
+                overlayCheckbox.checked = false
+                overlayCheckbox.dispatchEvent(new Event("change"))
             }
         })
 
+        // On map zoomend or moveend, update the minimaps view
         map.addEventListener("zoomend moveend", () => {
-            // On map zoomend or moveend, update the minimaps view
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
@@ -112,28 +110,18 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             }
         })
 
-        // On map zoomend, update the available overlays
+        /** On map zoomend, update the available overlays */
         const onMapZoomEnd = () => {
             // Skip updates if the sidebar is hidden
             if (!button.classList.contains("active")) return
 
             const currentViewAreaSize = getLatLngBoundsSize(map.getBounds())
 
-            for (const overlayCheckbox of overlayCheckboxes) {
-                let areaMaxSize: number
-                const layerId = overlayCheckbox.value
-                switch (layerId) {
-                    case "notes":
-                        areaMaxSize = noteQueryAreaMaxSize
-                        break
-                    case "data":
-                        areaMaxSize = mapQueryAreaMaxSize
-                        break
-                    default:
-                        // Some overlays are always available
-                        continue
-                }
-
+            for (const [layerId, areaMaxSize] of [
+                ["notes", noteQueryAreaMaxSize],
+                ["data", mapQueryAreaMaxSize],
+            ] as [LayerId, number][]) {
+                const overlayCheckbox = layerIdOverlayCheckboxMap.get(layerId)
                 const isAvailable = currentViewAreaSize <= areaMaxSize
                 if (isAvailable) {
                     if (overlayCheckbox.disabled) {
@@ -178,7 +166,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
         }
         map.addEventListener("zoomend", onMapZoomEnd)
 
-        // On layer click, update the active (base) layer
+        /** On layer click, update the active (base) layer */
         const onBaseLayerClick = (e: Event) => {
             const layerContainer = e.currentTarget as HTMLElement
             const layerId = layerContainer.dataset.layerId as LayerId
@@ -214,7 +202,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
             layerContainer.addEventListener("click", onBaseLayerClick)
         }
 
-        // On overlay checkbox change, add or remove the overlay layer
+        /** On overlay checkbox change, add or remove the overlay layer */
         const onOverlayCheckboxChange = (e: Event) => {
             const overlayCheckbox = e.currentTarget as HTMLInputElement
             const layerId = overlayCheckbox.value as LayerId
