@@ -81,8 +81,8 @@ export const configureContextMenu = (map: L.Map): void => {
 
         // Ensure the popup is visible
         const element = popup.getElement()
-        const popupSize = [element.clientWidth, element.clientHeight]
-        const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight]
+        const popupSize = [element.clientWidth, element.clientHeight] as const
+        const containerSize = [mapContainer.clientWidth, mapContainer.clientHeight] as const
         const isOverflowX = containerPoint.x + popupSize[0] + 30 >= containerSize[0]
         const isOverflowY = containerPoint.y + popupSize[1] + 30 >= containerSize[1]
         const translateX = isOverflowX ? "-100%" : "0%"

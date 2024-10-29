@@ -106,7 +106,7 @@ export const getShareSidebarToggleButton = () => {
                 const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
                 const sw = leafletBounds.getSouthWest()
                 const ne = leafletBounds.getNorthEast()
-                const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
+                const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat] as const
                 const selectedDetailInput = exportForm.querySelector("input[name=detail]:checked")
                 const zoomOffset = Number.parseInt(selectedDetailInput.value, 10)
                 const zoom = optimalExportParams.zoom + zoomOffset
@@ -194,7 +194,7 @@ export const getShareSidebarToggleButton = () => {
             const leafletBounds = customRegionCheckbox.checked ? locationFilter.getBounds() : map.getBounds()
             const sw = leafletBounds.getSouthWest()
             const ne = leafletBounds.getNorthEast()
-            const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
+            const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat] as const
             optimalExportParams = getOptimalExportParams(bounds)
 
             // Update the radio inputs availability

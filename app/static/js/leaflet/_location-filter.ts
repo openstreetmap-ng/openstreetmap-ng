@@ -140,7 +140,7 @@ const LocationFilter = L.Layer.extend({
                 this._neMarker.getLatLng(),
                 this._swMarker.getLatLng(),
                 this._seMarker.getLatLng(),
-            ]
+            ] as const
             corners.sort((a, b) => {
                 if (a.lat !== b.lat) return b.lat - a.lat
                 return a.lng - b.lng
