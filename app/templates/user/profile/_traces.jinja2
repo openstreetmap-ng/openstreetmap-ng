@@ -8,7 +8,7 @@
         </h5>
 
         <ul class="content-list content-list-sm traces-list traces-list-sm list-unstyled"
-            data-coords="{{ traces_coords | safe }}">
+            data-lines-lens="{{ traces_lines_lens | safe}}" data-line="{{ traces_line | safe }}">
             {% for trace in traces %}
             <li class="row g-2">
                 <div class="col-auto">

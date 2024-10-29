@@ -1,3 +1,4 @@
+import { decode } from "@mapbox/polyline"
 import * as L from "leaflet"
 // @ts-ignore
 import { antPath } from "leaflet-ant-path"
@@ -21,11 +22,6 @@ const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {
     console.debug("Initializing trace preview map")
     const isSmall = tracePreviewContainer.classList.contains("trace-preview-sm")
-    const coordsFlat: number[] = JSON.parse(tracePreviewContainer.dataset.coords)
-    const coords2D: [number, number][] = []
-    for (let i = 0; i < coordsFlat.length; i += 2) {
-        coords2D.push([coordsFlat[i + 1], coordsFlat[i]])
-    }
 
     const map = L.map(tracePreviewContainer, {
         attributionControl: !isSmall,
@@ -53,7 +49,8 @@ if (tracePreviewContainer) {
     map.addLayer(getDefaultBaseLayer())
 
     // Add trace path
-    const path = antPath(coords2D, antPathOptions)
+    const coords = decode(tracePreviewContainer.dataset.line, 6)
+    const path = antPath(coords, antPathOptions)
     map.addLayer(path)
     map.fitBounds(path.getBounds(), { animate: false })
 }

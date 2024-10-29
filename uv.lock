@@ -1263,6 +1263,7 @@ dependencies = [
     { name = "opencv-python-headless" },
     { name = "osm-shortlink" },
     { name = "phonenumbers" },
+    { name = "polyline-rs" },
     { name = "protobuf" },
     { name = "pycryptodomex" },
     { name = "pydantic" },
@@ -1317,19 +1318,20 @@ requires-dist = [
     { name = "cython" },
     { name = "dnspython" },
     { name = "email-validator" },
-    { name = "fastapi" },
+    { name = "fastapi", specifier = ">0" },
     { name = "feedgen" },
     { name = "httpx" },
     { name = "jinja2" },
-    { name = "lrucache-rs" },
+    { name = "lrucache-rs", specifier = ">=1.0.0" },
     { name = "lxml" },
     { name = "markdown-it-py", extras = ["linkify", "plugins"] },
     { name = "msgspec" },
     { name = "nh3" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
-    { name = "osm-shortlink" },
+    { name = "osm-shortlink", specifier = ">=1.0.0" },
     { name = "phonenumbers" },
+    { name = "polyline-rs", specifier = ">=1.0.0" },
     { name = "protobuf", specifier = "==5.28.2" },
     { name = "pycryptodomex" },
     { name = "pydantic" },
@@ -1345,14 +1347,14 @@ requires-dist = [
     { name = "scikit-learn" },
     { name = "setuptools" },
     { name = "shapely" },
-    { name = "sizestr" },
+    { name = "sizestr", specifier = ">=1.0.0" },
     { name = "sqlalchemy", extras = ["postgresql-asyncpg"] },
     { name = "starlette-compress" },
     { name = "supervisor" },
     { name = "tqdm" },
     { name = "uvicorn", extras = ["standard"] },
     { name = "uvloop" },
-    { name = "zid" },
+    { name = "zid", specifier = ">=1.0.0" },
     { name = "zstandard" },
 ]
 
@@ -1476,6 +1478,21 @@ wheels = [
 [package.optional-dependencies]
 numpy = [
     { name = "numpy" },
+]
+
+[[package]]
+name = "polyline-rs"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/d5/be32017f87bd834727c2bc4350abc91b13eaf38c85edbacec0af016d5bee/polyline_rs-1.0.0.tar.gz", hash = "sha256:926d322a7ce6c2a89ceb724070f2a91c442ebf011bc8fee4d4f8b9949db12c39", size = 12991 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/89/91f9a118a91630ef570f49e2657b1095591c943667753ec29ef85e9f6d16/polyline_rs-1.0.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:859a62050019f1d16cb7570d4ffd6d2cc2a12ec3233a03079f1ef5cbf3232c1a", size = 220534 },
+    { url = "https://files.pythonhosted.org/packages/64/67/e72d2f8b2eb6b2c95f8e128e5e444c3c25769e521f3a2700916d0d3449c0/polyline_rs-1.0.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:9309bdc197c46305820acb92c6a01b3f200f0e730c10e8974cecd439fe2dddcd", size = 217244 },
+    { url = "https://files.pythonhosted.org/packages/34/d4/21c84ac2a0803f1478a975f2d2e9e3323813088f267664981fcf1fd2d761/polyline_rs-1.0.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:358ce9948ca47caaa1e4ff0bec602beda2606244eae937480e83ef85be8a1d70", size = 222861 },
+    { url = "https://files.pythonhosted.org/packages/c3/f9/e3d09cbfc336d5e25711b70032e394b17130cf5d628fa125629ecd2e7228/polyline_rs-1.0.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2f3f2ef8dd8745904d7979abcfcbb6aff79fb6ecf0f6cd234f5780344187885a", size = 233095 },
+    { url = "https://files.pythonhosted.org/packages/18/f3/9ac335b3675685436e96bed5c21c3eb744b5fd324dab9ee5bdd4b2e9d98c/polyline_rs-1.0.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:fe9ed44069332b69f25ad4d51b1afb0114f2ae43cef10fcebaa74c6335f277dd", size = 433959 },
+    { url = "https://files.pythonhosted.org/packages/b9/84/b410a83902869fd7366abfcae790d7ff7d8dc6ec8bb9b248445c94558133/polyline_rs-1.0.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:14631ff095a8ceef063260dabebd23e568a4c6f29a813e1255daed784270b000", size = 417174 },
+    { url = "https://files.pythonhosted.org/packages/59/1a/942a89d288ddedfbbb0f9c6c510ca2eee85ac7ae3f698a377b67e9e0bb93/polyline_rs-1.0.0-cp39-abi3-win_amd64.whl", hash = "sha256:325f664e3efb8e06008993c122b37fa25087d598754774d5d25af4c3ba517a8f", size = 121347 },
 ]
 
 [[package]]
