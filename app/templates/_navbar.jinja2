@@ -10,9 +10,9 @@
         <div class="btn-group dropdown" role="group">
             <div class="btn-group edit-group" data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
                 {% if user is none %}
-                {% set editor = default_editor %}
+                {% set editor = DEFAULT_EDITOR %}
                 {% else %}
-                {% set editor = user.editor.value or default_editor %}
+                {% set editor = user.editor.value or DEFAULT_EDITOR %}
                 {% endif %}
                 <a class="btn btn-outline-green map-link edit-link default" href="/edit?editor={{ editor }}">
                     {{ t('layouts.edit') }}
@@ -128,7 +128,7 @@
                     <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
                     {{ user.display_name }}
                     <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">{#
-                        #}{% if messages_count_unread > 0 %}{{ messages_count_unread }}{% endif %}{#
+                        #}{% if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif %}{#
                     #}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
@@ -141,7 +141,7 @@
                         <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
                             {{ t('users.show.my messages') }}
                             <span class="unread-messages-badge badge text-bg-light-green fw-light ms-2">
-                                {{ messages_count_unread }}
+                                {{ MESSAGES_COUNT_UNREAD }}
                             </span>
                         </a>
                     </li>

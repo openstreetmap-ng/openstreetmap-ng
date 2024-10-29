@@ -23,7 +23,8 @@
     },
     "exclude": [
         "app/static/js/_generated/**/*",
-        "app/static/js/bundle-*"
+        "app/static/js/bundle-*",
+        "app/static/js/proto"
     ],
     "include": [
         "app/static/js/**/*"

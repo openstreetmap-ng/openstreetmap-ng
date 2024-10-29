@@ -154,13 +154,22 @@ let
         -name "*.js" \
         -not -name "_*")
 
-      sourcemap="''${mode_hash:+linked}''${mode_hash:-inline}"
+      if [ -n "$mode_hash" ]; then
+        bun_args=(
+          --minify
+          --sourcemap=linked
+        )
+      else
+        bun_args=(
+          --minify-syntax --minify-whitespace
+          --sourcemap=inline
+        )
+      fi
       exec 5>&1
       # shellcheck disable=SC2086
       output=$(
         bun build \
-          --minify \
-          --sourcemap="$sourcemap" \
+          "''${bun_args[@]}" \
           --entry-naming "[dir]/bundle-[name].[ext]" \
           --outdir "$dir" \
           $files | tee >(cat - >&5))
@@ -250,17 +259,18 @@ let
     (makeScript "watch-locale" "watchexec --watch config/locale/extra_en.yaml locale-pipeline")
 
     # -- Protobuf
-    (makeScript "proto-generate" ''
-      mkdir -p app/static/js/models
+    (makeScript "proto-pipeline" ''
+      mkdir -p app/static/js/proto typings/app/models/proto
       protoc \
-        -I app/models \
+        -I app/models/proto \
         --plugin=node_modules/.bin/protoc-gen-es \
-        --es_out app/static/js/models \
+        --es_out app/static/js/proto \
         --es_opt target=ts \
-        --python_out app/models \
-        --pyi_out typings/app/models \
-        app/models/*.proto
+        --python_out app/models/proto \
+        --pyi_out typings/app/models/proto \
+        app/models/proto/*.proto
     '')
+    (makeScript "watch-proto" "watchexec --watch app/models/proto --exts proto proto-pipeline")
 
     # -- Supervisor
     (makeScript "dev-start" ''
@@ -523,8 +533,8 @@ let
       echo "Skipped loading .env file (not found)"
     fi
 
-    echo "Running [proto-generate]"
-    proto-generate &
+    echo "Running [proto-pipeline]"
+    proto-pipeline &
     echo "Running [locale-pipeline]"
     locale-pipeline &
     echo "Running [static-img-pipeline]"

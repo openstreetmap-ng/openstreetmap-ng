@@ -1,3 +1,4 @@
+from base64 import urlsafe_b64encode
 from typing import Any
 
 from shapely import get_coordinates
@@ -12,15 +13,15 @@ from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import Editor
-from app.utils import json_encodes
+from app.models.proto.shared_pb2 import LonLat, WebConfig, WebUserConfig
 
 _default_editor = Editor.get_default().value
-_config_dict_base: dict[str, Any] = {
-    'apiUrl': API_URL,
-    'mapQueryAreaMaxSize': MAP_QUERY_AREA_MAX_SIZE,
-    'noteQueryAreaMaxSize': NOTE_QUERY_AREA_MAX_SIZE,
-}
-_config = json_encodes(_config_dict_base)
+_config_base = WebConfig(
+    api_url=API_URL,
+    map_query_area_max_size=MAP_QUERY_AREA_MAX_SIZE,
+    note_query_area_max_size=NOTE_QUERY_AREA_MAX_SIZE,
+)
+_config = urlsafe_b64encode(_config_base.SerializeToString()).decode()
 
 
 async def render_response(template_name: str, template_data: dict[str, Any] | None = None) -> HTMLResponse:
@@ -29,27 +30,29 @@ async def render_response(template_name: str, template_data: dict[str, Any] | No
     """
     data = {
         'request': get_request(),
-        'i18next_files': map_i18next_files(translation_locales()),
-        'default_editor': _default_editor,
-        'config': _config,
+        'I18NEXT_FILES': map_i18next_files(translation_locales()),
+        'DEFAULT_EDITOR': _default_editor,
+        'WEB_CONFIG': _config,
     }
 
     user = auth_user()
     if user is not None:
-        # don't include sensitive data, it's exposed to JavaScript
-        config_dict = _config_dict_base.copy()
-        config_dict['activityTracking'] = user.activity_tracking
-        config_dict['crashReporting'] = user.crash_reporting
-
+        user_config = WebUserConfig(
+            activity_tracking=user.activity_tracking,
+            crash_reporting=user.crash_reporting,
+        )
         user_home_point = user.home_point
         if user_home_point is not None:
-            config_dict['homePoint'] = get_coordinates(user_home_point)[0].tolist()
+            x, y = get_coordinates(user_home_point)[0].tolist()
+            user_config.home_point = LonLat(lon=x, lat=y)
 
-        data['config'] = json_encodes(config_dict)
+        web_config = WebConfig(user_config=user_config)
+        web_config.MergeFrom(_config_base)
+        data['WEB_CONFIG'] = urlsafe_b64encode(web_config.SerializeToString()).decode()
 
         messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
         if messages_count_unread is not None:
-            data['messages_count_unread'] = messages_count_unread
+            data['MESSAGES_COUNT_UNREAD'] = messages_count_unread
 
     if template_data is not None:
         data.update(template_data)

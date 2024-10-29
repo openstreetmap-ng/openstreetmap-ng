@@ -5,14 +5,13 @@ import * as L from "leaflet"
 const zoomAcceleration = 3
 
 export const getZoomControl = () => {
-    const control = new L.Control()
     let controlMap: L.Map | null = null
+    let controlContainer: HTMLDivElement | null = null
 
     /** On zoom change, disable/enable specific buttons */
     const onMapZoomChange = (): void => {
-        const container = control.getContainer()
-        const zoomInButton = container.querySelector("button.zoom-in-btn")
-        const zoomOutButton = container.querySelector("button.zoom-out-btn")
+        const zoomInButton = controlContainer.querySelector("button.zoom-in-btn")
+        const zoomOutButton = controlContainer.querySelector("button.zoom-out-btn")
 
         const currentZoom = controlMap.getZoom()
         const minZoom = controlMap.getMinZoom()
@@ -34,6 +33,7 @@ export const getZoomControl = () => {
         }
     }
 
+    const control = new L.Control()
     control.onAdd = (map: L.Map): HTMLElement => {
         if (controlMap) {
             console.error("ZoomControl has already been added to the map")
@@ -42,8 +42,8 @@ export const getZoomControl = () => {
         controlMap = map
 
         // Create container
-        const container = document.createElement("div")
-        container.className = "leaflet-control zoom"
+        controlContainer = document.createElement("div")
+        controlContainer.className = "leaflet-control zoom"
 
         // Create buttons and tooltips
         const zoomInText = i18next.t("javascripts.map.zoom.in")
@@ -51,7 +51,7 @@ export const getZoomControl = () => {
         zoomInButton.className = "zoom-in-btn control-button"
         zoomInButton.ariaLabel = zoomInText
         zoomInButton.innerHTML = "<span class='icon zoom-in'></span>"
-        container.appendChild(zoomInButton)
+        controlContainer.appendChild(zoomInButton)
 
         new Tooltip(zoomInButton, {
             title: zoomInText,
@@ -63,7 +63,7 @@ export const getZoomControl = () => {
         zoomOutButton.className = "zoom-out-btn control-button"
         zoomOutButton.ariaLabel = zoomOutText
         zoomOutButton.innerHTML = "<span class='icon zoom-out'></span>"
-        container.appendChild(zoomOutButton)
+        controlContainer.appendChild(zoomOutButton)
 
         new Tooltip(zoomOutButton, {
             title: zoomOutText,
@@ -79,7 +79,7 @@ export const getZoomControl = () => {
         // Initial update to set button states
         onMapZoomChange()
 
-        return container
+        return controlContainer
     }
 
     return control

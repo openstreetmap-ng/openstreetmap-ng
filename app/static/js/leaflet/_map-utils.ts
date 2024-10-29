@@ -313,7 +313,7 @@ export const getInitialMapState = (map?: L.Map): MapState => {
 
     // 7. Use the user home location
     if (homePoint) {
-        const [lon, lat] = homePoint
+        const { lon, lat } = homePoint
         const zoom = 15 // Home zoom defaults to 15
         return { lon, lat, zoom, layersCode: "" }
     }
@@ -487,7 +487,7 @@ export const disableControlsClickPropagation = (map: L.Map): void => {
 
 /** Get the map alert element */
 export const getMapAlert = (name: string): HTMLElement => {
-    const alert = document.querySelector(`div.map-alert.${name}`)
+    const alert = document.querySelector(`.map-alert.${name}`) as HTMLElement
     if (!alert) console.error("Map alert", name, "not found")
     return alert
 }

@@ -1,5 +1,10 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
+import type { LonLat } from "./leaflet/_map-utils"
+import { WebConfigSchema } from "./proto/shared_pb"
+
 /** Global dataset options that are defined on <html> tag */
-const config = JSON.parse(document.documentElement.dataset.config)
+const config = fromBinary(WebConfigSchema, base64Decode(document.documentElement.dataset.config))
 
 /** Determine default tracking based on user browser settings */
 const defaultTracking = navigator.doNotTrack !== "1" && !(navigator as any).globalPrivacyControl
@@ -32,10 +37,10 @@ export const noteQueryAreaMaxSize: number = config.noteQueryAreaMaxSize
  * Optional user home location point
  * @example [0, 30]
  */
-export const homePoint: [number, number] | undefined = config.homePoint
+export const homePoint: LonLat | undefined = config.userConfig?.homePoint
 
 /** Whether to enable activity tracking */
-export const activityTracking: boolean = config.activityTracking ?? defaultTracking
+export const activityTracking: boolean = config.userConfig?.activityTracking ?? defaultTracking
 
 /** Whether to enable crash reporting */
-export const crashReporting: boolean = config.crashReporting ?? defaultTracking
+export const crashReporting: boolean = config.userConfig?.crashReporting ?? defaultTracking

@@ -39,6 +39,12 @@ pkgs.writeText "supervisord.conf" ''
   stdout_logfile=data/supervisor/watch-locale.log
   stderr_logfile=data/supervisor/watch-locale.log
 
+  [program:watch-proto]
+  command=watch-proto
+  stopsignal=TERM
+  stdout_logfile=data/supervisor/watch-proto.log
+  stderr_logfile=data/supervisor/watch-proto.log
+
   [program:watch-sass]
   command=watch-sass
   stopsignal=TERM

@@ -4,13 +4,12 @@ import * as L from "leaflet"
 import { queryFeaturesMinZoom } from "./_context-menu"
 
 export const getQueryFeaturesControl = () => {
-    const control = new L.Control()
     let controlMap: L.Map | null = null
+    let controlContainer: HTMLDivElement | null = null
 
     /** On zoomend, disable/enable button */
     const onZoomEnd = () => {
-        const container = control.getContainer()
-        const button = container.querySelector("button")
+        const button = controlContainer.querySelector("button")
 
         // Enable/disable buttons based on current zoom level
         const currentZoom = controlMap.getZoom()
@@ -33,6 +32,7 @@ export const getQueryFeaturesControl = () => {
         }
     }
 
+    const control = new L.Control()
     control.onAdd = (map: L.Map): HTMLElement => {
         if (controlMap) {
             console.error("QueryFeaturesControl has already been added to the map")
@@ -41,8 +41,8 @@ export const getQueryFeaturesControl = () => {
         controlMap = map
 
         // Create container
-        const container = document.createElement("div")
-        container.className = "leaflet-control query-features"
+        controlContainer = document.createElement("div")
+        controlContainer.className = "leaflet-control query-features"
 
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
@@ -50,7 +50,7 @@ export const getQueryFeaturesControl = () => {
         button.className = "control-button"
         button.ariaLabel = buttonText
         button.innerHTML = "<span class='icon query-features'></span>"
-        container.appendChild(button)
+        controlContainer.appendChild(button)
 
         new Tooltip(button, {
             title: buttonText,
@@ -65,7 +65,7 @@ export const getQueryFeaturesControl = () => {
         // Initial update to set button states
         onZoomEnd()
 
-        return container
+        return controlContainer
     }
 
     return control

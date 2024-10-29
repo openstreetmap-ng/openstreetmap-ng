@@ -4,16 +4,15 @@ import * as L from "leaflet"
 import { routerNavigateStrict } from "../index/_router"
 import { newNoteMinZoom } from "./_context-menu"
 
-const newNoteContainers: HTMLElement[] = []
+const newNoteContainers: HTMLDivElement[] = []
 
 export const getNewNoteControl = () => {
-    const control = new L.Control()
     let controlMap: L.Map | null = null
+    let controlContainer: HTMLDivElement | null = null
 
     /** On zoomend, disable/enable button */
     const onZoomEnd = (): void => {
-        const container = control.getContainer()
-        const button = container.querySelector("button")
+        const button = controlContainer.querySelector("button")
 
         // Enable/disable buttons based on current zoom level
         const currentZoom = controlMap.getZoom()
@@ -36,6 +35,7 @@ export const getNewNoteControl = () => {
         }
     }
 
+    const control = new L.Control()
     control.onAdd = (map: L.Map): HTMLElement => {
         if (controlMap) {
             console.error("NewNoteControl has already been added to the map")
@@ -44,8 +44,8 @@ export const getNewNoteControl = () => {
         controlMap = map
 
         // Create container
-        const container = document.createElement("div")
-        container.className = "leaflet-control new-note"
+        controlContainer = document.createElement("div")
+        controlContainer.className = "leaflet-control new-note"
 
         // Create a button and a tooltip
         const buttonText = i18next.t("javascripts.site.createnote_tooltip")
@@ -53,7 +53,7 @@ export const getNewNoteControl = () => {
         button.className = "control-button"
         button.ariaLabel = buttonText
         button.innerHTML = "<span class='icon new-note'></span>"
-        container.appendChild(button)
+        controlContainer.appendChild(button)
 
         new Tooltip(button, {
             title: buttonText,
@@ -77,8 +77,8 @@ export const getNewNoteControl = () => {
         // Initial update to set button states
         onZoomEnd()
 
-        newNoteContainers.push(container)
-        return container
+        newNoteContainers.push(controlContainer)
+        return controlContainer
     }
 
     return control
