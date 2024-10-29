@@ -10,16 +10,16 @@ import type { IndexController } from "./_router"
 export const getExportController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("export")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const minLonInput: HTMLInputElement = sidebar.querySelector("input[name=min_lon]")
-    const minLatInput: HTMLInputElement = sidebar.querySelector("input[name=min_lat]")
-    const maxLonInput: HTMLInputElement = sidebar.querySelector("input[name=max_lon]")
-    const maxLatInput: HTMLInputElement = sidebar.querySelector("input[name=max_lat]")
-    const customRegionCheckbox: HTMLInputElement = sidebar.querySelector("input.custom-region-check")
+    const minLonInput = sidebar.querySelector("input[name=min_lon]")
+    const minLatInput = sidebar.querySelector("input[name=min_lat]")
+    const maxLonInput = sidebar.querySelector("input[name=max_lon]")
+    const maxLatInput = sidebar.querySelector("input[name=max_lat]")
+    const customRegionCheckbox = sidebar.querySelector("input.custom-region-check")
     const exportAvailableContainer = sidebar.querySelector(".export-available-container")
-    const exportLink: HTMLAnchorElement = exportAvailableContainer.querySelector("a.export-link")
+    const exportLink = exportAvailableContainer.querySelector("a.export-link")
     const exportBaseHref = exportLink.href
     const exportUnavailableContainer = sidebar.querySelector(".export-unavailable-container")
-    const exportOverpassLink: HTMLAnchorElement = sidebar.querySelector("a.export-overpass-link")
+    const exportOverpassLink = sidebar.querySelector("a.export-overpass-link")
     const exportOverpassBaseHref = exportOverpassLink.href
 
     // Null values until initialized

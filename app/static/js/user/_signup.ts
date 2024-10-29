@@ -4,7 +4,7 @@ import { type APIDetail, configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.signup-body")
 if (body) {
-    const signupForm: HTMLFormElement = body.querySelector("form.signup-form")
+    const signupForm = body.querySelector("form.signup-form")
     const displayNameInput = signupForm.elements.namedItem("display_name") as HTMLInputElement
     const displayNameBlacklist = displayNameInput.dataset.blacklist
     const passwordInput = signupForm.elements.namedItem("password") as HTMLInputElement

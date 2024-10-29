@@ -5,8 +5,7 @@ const onResetSecretButtonClick = (event: Event) => {
     const target = event.target as HTMLButtonElement
     console.debug("onResetSecretButtonClick")
     const control = target.closest(".reset-secret-control")
-    const form: HTMLFormElement =
-        control.querySelector("form.reset-secret-form") ?? document.querySelector("form.reset-secret-form")
+    const form = control.querySelector("form.reset-secret-form") ?? document.querySelector("form.reset-secret-form")
 
     if (confirm(t("settings.new_secret_question"))) {
         // Configure standard form if not already configured

@@ -13,9 +13,9 @@ export const getBaseFetchController = (
     successCallback?: (dynamicContent: HTMLElement) => void,
 ): BaseFetchController => {
     const sidebar = getActionSidebar(className)
-    const dynamicContent: HTMLElement = sidebar.classList.contains("dynamic-content")
+    const dynamicContent = sidebar.classList.contains("dynamic-content")
         ? sidebar
-        : sidebar.querySelector(".dynamic-content")
+        : sidebar.querySelector("div.dynamic-content")
     const loadingHtml = dynamicContent.innerHTML
 
     let abortController: AbortController | null = null

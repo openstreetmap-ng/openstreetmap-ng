@@ -1,9 +1,9 @@
 const copyGroups = document.querySelectorAll(".copy-group")
 console.debug("Initializing", copyGroups.length, "copy groups")
 for (const copyGroup of copyGroups) {
-    const copyInput: HTMLInputElement = copyGroup.querySelector("input.form-control")
-    const copyButton = copyGroup.querySelector("i.bi-copy").parentElement as HTMLButtonElement
-    let timeout: NodeJS.Timeout | null = null
+    const copyInput = copyGroup.querySelector("input.form-control")
+    const copyButton = copyGroup.querySelector("i.bi-copy").parentElement
+    let timeout: ReturnType<typeof setTimeout> | null = null
 
     // On copy group input focus, select all text
     copyInput.addEventListener("focus", () => copyInput.select())

@@ -8,9 +8,9 @@ import { getZoomControl } from "./leaflet/_zoom-control"
 // TODO: diary entry new body
 const useMapContainer = document.querySelector(".diary-entry-use-map-container")
 if (useMapContainer) {
-    const lonInput: HTMLInputElement = useMapContainer.querySelector("input[name=longitude]")
-    const latInput: HTMLInputElement = useMapContainer.querySelector("input[name=latitude]")
-    const mapDiv: HTMLElement = useMapContainer.querySelector(".leaflet-container")
+    const lonInput = useMapContainer.querySelector("input[name=longitude]")
+    const latInput = useMapContainer.querySelector("input[name=latitude]")
+    const mapDiv = useMapContainer.querySelector("div.leaflet-container")
 
     let map: L.Map | null = null
     let marker: L.Marker | null = null
@@ -35,7 +35,7 @@ if (useMapContainer) {
         else marker = markerFactory(latLng)
     }
 
-    const useMapButton: HTMLButtonElement = useMapContainer.querySelector("button.use-map-btn")
+    const useMapButton = useMapContainer.querySelector("button.use-map-btn")
     useMapButton.addEventListener("click", () => {
         // On "Use Map" button click, show the map and hide the button
         useMapButton.classList.add("d-none")

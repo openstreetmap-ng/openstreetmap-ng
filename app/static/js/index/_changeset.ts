@@ -45,9 +45,9 @@ export const getChangesetController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
         renderColorPreviews()
 
-        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
         const sidebarTitle = sidebarTitleElement.textContent
-        const elementsSection: HTMLElement = sidebarContent.querySelector(".elements")
+        const elementsSection = sidebarContent.querySelector("div.elements")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -75,9 +75,9 @@ export const getChangesetController = (map: L.Map): IndexController => {
             controller.unload()
             controller.load({ id: paramsId.toString() })
         }
-        const subscriptionForm: HTMLFormElement | null = sidebarContent.querySelector("form.subscription-form")
+        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
         if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
-        const commentForm: HTMLFormElement | null = sidebarContent.querySelector("form.comment-form")
+        const commentForm = sidebarContent.querySelector("form.comment-form")
         if (commentForm) configureStandardForm(commentForm, onFormSuccess)
     })
 
@@ -99,8 +99,8 @@ export const getChangesetController = (map: L.Map): IndexController => {
 const renderElements = (elementsSection: HTMLElement, elements: { [key: string]: ChangesetListEntry[] }): void => {
     console.debug("renderElements")
 
-    const groupTemplate: HTMLTemplateElement = elementsSection.querySelector("template.group")
-    const entryTemplate: HTMLTemplateElement = elementsSection.querySelector("template.entry")
+    const groupTemplate = elementsSection.querySelector("template.group")
+    const entryTemplate = elementsSection.querySelector("template.entry")
     const fragment = document.createDocumentFragment()
 
     for (const type of ["way", "relation", "node"]) {
@@ -171,8 +171,8 @@ const renderElementType = (
 
             const entryFragment = entryTemplate.content.cloneNode(true) as DocumentFragment
             const iconImg = entryFragment.querySelector("img")
-            const linkLatest: HTMLAnchorElement = entryFragment.querySelector("a.link-latest")
-            const linkVersion: HTMLAnchorElement = entryFragment.querySelector("a.link-version")
+            const linkLatest = entryFragment.querySelector("a.link-latest")
+            const linkVersion = entryFragment.querySelector("a.link-version")
 
             if (element.icon) {
                 iconImg.src = `/static/img/element/${element.icon}`

@@ -73,11 +73,11 @@ export const getRoutingController = (map: L.Map): IndexController => {
     const form = sidebar.querySelector("form")
     const fromInput = form.elements.namedItem("from") as HTMLInputElement
     const fromLoadedInput = form.elements.namedItem("from_loaded") as HTMLInputElement
-    const fromDraggableMarker: HTMLImageElement = form.querySelector("img.draggable-marker[data-direction=from]")
+    const fromDraggableMarker = form.querySelector("img.draggable-marker[data-direction=from]")
     const toInput = form.elements.namedItem("to") as HTMLInputElement
     const toLoadedInput = form.elements.namedItem("to_loaded") as HTMLInputElement
-    const toDraggableMarker: HTMLImageElement = form.querySelector("img.draggable-marker[data-direction=to]")
-    const reverseButton: HTMLButtonElement = form.querySelector("button.reverse-btn")
+    const toDraggableMarker = form.querySelector("img.draggable-marker[data-direction=to]")
+    const reverseButton = form.querySelector("button.reverse-btn")
     const engineInput = form.elements.namedItem("engine") as HTMLInputElement
     const bboxInput = form.elements.namedItem("bbox") as HTMLInputElement
     const loadingContainer = sidebar.querySelector(".loading")
@@ -90,8 +90,8 @@ export const getRoutingController = (map: L.Map): IndexController => {
     const routeDescend = routeElevationContainer.querySelector(".descend")
     const stepsTableBody = routeContainer.querySelector(".route-steps tbody")
     const attribution = routeContainer.querySelector(".attribution")
-    const popupTemplate: HTMLTemplateElement = routeContainer.querySelector("template.popup")
-    const stepTemplate: HTMLTemplateElement = routeContainer.querySelector("template.step")
+    const popupTemplate = routeContainer.querySelector("template.popup")
+    const stepTemplate = routeContainer.querySelector("template.step")
 
     let abortController: AbortController | null = null
     let fromBounds: L.LatLngBounds | null = null

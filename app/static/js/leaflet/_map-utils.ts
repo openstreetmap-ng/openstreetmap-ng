@@ -467,7 +467,7 @@ export const addControlGroup = (map: L.Map, controls: L.Control[]): void => {
 /** Disable click propagation for map controls, to avoid map events being triggered by the controls */
 export const disableControlsClickPropagation = (map: L.Map): void => {
     const mapContainer = map.getContainer()
-    const controlContainer: HTMLElement = mapContainer.querySelector(".leaflet-control-container")
+    const controlContainer = mapContainer.querySelector(".leaflet-control-container") as HTMLElement
     if (controlContainer) {
         console.debug("Disabled click propagation for map controls")
         L.DomEvent.disableClickPropagation(controlContainer)
@@ -475,7 +475,7 @@ export const disableControlsClickPropagation = (map: L.Map): void => {
         console.warn("Leaflet control container not found")
     }
 
-    const mapAlertsContainer: NodeListOf<HTMLElement> = mapContainer.querySelectorAll(".map-alert")
+    const mapAlertsContainer = mapContainer.querySelectorAll("div.map-alert")
     for (const mapAlert of mapAlertsContainer) {
         L.DomEvent.disableClickPropagation(mapAlert)
     }
@@ -484,7 +484,7 @@ export const disableControlsClickPropagation = (map: L.Map): void => {
 
 /** Get the map alert element */
 export const getMapAlert = (name: string): HTMLElement => {
-    const alert: HTMLElement | null = document.querySelector(`.map-alert.${name}`)
+    const alert = document.querySelector(`div.map-alert.${name}`)
     if (!alert) console.error("Map alert", name, "not found")
     return alert
 }

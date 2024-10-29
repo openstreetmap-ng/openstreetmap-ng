@@ -4,7 +4,7 @@ import { type APIDetail, configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.settings-security-body")
 if (body) {
-    const passwordForm: HTMLFormElement = body.querySelector("form.password-form")
+    const passwordForm = body.querySelector("form.password-form")
     const newPasswordInput = passwordForm.elements.namedItem("new_password") as HTMLInputElement
     const newPasswordConfirmInput = passwordForm.elements.namedItem("new_password_confirm") as HTMLInputElement
 
@@ -26,7 +26,7 @@ if (body) {
         },
     )
 
-    const revokeTokenForms: NodeListOf<HTMLFormElement> = body.querySelectorAll("form.revoke-token-form")
+    const revokeTokenForms = body.querySelectorAll("form.revoke-token-form")
     for (const form of revokeTokenForms) {
         configureStandardForm(form, () => {
             // On success callback, remove the HTML element or redirect to login page

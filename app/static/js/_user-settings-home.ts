@@ -8,11 +8,11 @@ import { getZoomControl } from "./leaflet/_zoom-control"
 
 const defaultHomeZoom = 12
 
-const userSettingsForm: HTMLFormElement = document.querySelector("form.user-settings-form")
+const userSettingsForm = document.querySelector("form.user-settings-form")
 if (userSettingsForm) {
     const lonInput = userSettingsForm.elements.namedItem("home_longitude") as HTMLInputElement
     const latInput = userSettingsForm.elements.namedItem("home_latitude") as HTMLInputElement
-    const mapDiv: HTMLElement = userSettingsForm.querySelector(".leaflet-container")
+    const mapDiv = userSettingsForm.querySelector("div.leaflet-container")
     const map = L.map(mapDiv, {
         attributionControl: false,
         zoomControl: false,
@@ -66,7 +66,7 @@ if (userSettingsForm) {
 
     // TODO: make those leaflet buttons
     // On delete click, remember restore point, remove coordinates and toggle buttons visibility
-    const deleteButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-delete-btn")
+    const deleteButton = userSettingsForm.querySelector("button.home-delete-btn")
     deleteButton.addEventListener("click", () => {
         map.removeLayer(marker)
         marker = null
@@ -81,7 +81,7 @@ if (userSettingsForm) {
     })
 
     // On restore click, restore coordinates and toggle buttons visibility
-    const restoreButton: HTMLButtonElement = userSettingsForm.querySelector("button.home-restore-btn")
+    const restoreButton = userSettingsForm.querySelector("button.home-restore-btn")
     restoreButton.addEventListener("click", () => {
         onMapClick({ latlng: L.latLng(Number.parseFloat(restorePoint.lat), Number.parseFloat(restorePoint.lon)) })
         restorePoint = null

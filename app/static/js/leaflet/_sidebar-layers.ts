@@ -18,8 +18,8 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
 
         const minimaps: L.Map[] = []
         const sidebar = control.sidebar
-        const layerContainers: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".layer")
-        const overlayCheckboxes: NodeListOf<HTMLInputElement> = sidebar.querySelectorAll("input.overlay")
+        const layerContainers = sidebar.querySelectorAll("div.layer")
+        const overlayCheckboxes = sidebar.querySelectorAll("input.overlay")
         const layerIdOverlayCheckboxMap: Map<LayerId, HTMLInputElement> = new Map()
         for (const overlayCheckbox of overlayCheckboxes) {
             layerIdOverlayCheckboxMap.set(overlayCheckbox.value as LayerId, overlayCheckbox)
@@ -38,7 +38,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                 }
 
                 console.debug("Initializing minimap for layer", layerId)
-                const minimapContainer: HTMLElement = container.querySelector(".leaflet-container")
+                const minimapContainer = container.querySelector("div.leaflet-container")
                 const minimap = L.map(minimapContainer, {
                     attributionControl: false,
                     zoomControl: false,
@@ -127,7 +127,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                     if (overlayCheckbox.disabled) {
                         overlayCheckbox.disabled = false
 
-                        const parent: HTMLElement = overlayCheckbox.closest(".form-check")
+                        const parent = overlayCheckbox.closest(".form-check") as HTMLElement
                         parent.classList.remove("disabled")
                         parent.ariaDisabled = "false"
                         const tooltip = Tooltip.getInstance(parent)
@@ -146,7 +146,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                     overlayCheckbox.blur()
                     overlayCheckbox.disabled = true
 
-                    const parent: HTMLElement = overlayCheckbox.closest(".form-check")
+                    const parent = overlayCheckbox.closest(".form-check") as HTMLElement
                     parent.classList.add("disabled")
                     parent.ariaDisabled = "true"
                     Tooltip.getOrCreateInstance(parent, {

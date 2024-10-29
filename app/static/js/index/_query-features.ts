@@ -14,7 +14,7 @@ import type { IndexController } from "./_router"
 export const getQueryFeaturesController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("query-features")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const nearbyContainer: HTMLElement = sidebar.querySelector(".nearby-container")
+    const nearbyContainer = sidebar.querySelector("div.nearby-container")
     const nearbyLoadingHtml = nearbyContainer.innerHTML
     const enclosingContainer = sidebar.querySelector(".enclosing-container")
     const enclosingLoadingHtml = enclosingContainer.innerHTML
@@ -38,7 +38,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
 
     /** Configure result actions to handle focus and clicks */
     const configureResultActions = (container: HTMLElement): void => {
-        const resultActions: NodeListOf<HTMLElement> = container.querySelectorAll(".social-action")
+        const resultActions = container.querySelectorAll("li.social-action")
         for (const resultAction of resultActions) {
             // Get params
             const params = JSON.parse(resultAction.dataset.params)

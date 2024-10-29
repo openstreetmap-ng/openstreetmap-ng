@@ -45,9 +45,9 @@ const styles: { [key: string]: L.PolylineOptions } = {
 export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     const changesetLayer = getOverlayLayerById(changesetsLayerId) as L.FeatureGroup
     const sidebar = getActionSidebar("changesets-history")
-    const parentSidebar: HTMLElement = sidebar.closest(".sidebar")
+    const parentSidebar = sidebar.closest("div.sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const entryTemplate: HTMLTemplateElement = sidebar.querySelector("template.entry")
+    const entryTemplate = sidebar.querySelector("template.entry")
     const entryContainer = entryTemplate.parentElement
     const loadingContainer = sidebar.querySelector(".loading")
 
@@ -71,7 +71,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             const userContainer = div.querySelector(".user")
             const dateContainer = div.querySelector(".date")
             const commentValue = div.querySelector(".comment")
-            const changesetLink: HTMLAnchorElement = div.querySelector("a.stretched-link")
+            const changesetLink = div.querySelector("a.stretched-link")
             const numCommentsValue = div.querySelector(".num-comments")
 
             // Populate elements

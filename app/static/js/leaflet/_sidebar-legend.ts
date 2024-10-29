@@ -18,7 +18,7 @@ export const getLegendSidebarToggleButton = (): SidebarToggleControl => {
         // Discover the legend items and precompute their visibility
         const sidebar = control.sidebar
         const layerElementsMap: Map<LayerId, { element: HTMLTableRowElement; visibility: boolean[] }[]> = new Map()
-        const layerContainers: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".layer-container")
+        const layerContainers = sidebar.querySelectorAll("table.layer-container")
         for (const layerContainer of layerContainers) {
             const layerId = layerContainer.dataset.layerId as LayerId
             const elements = Array.from(layerContainer.querySelectorAll("tr")).map((element) => {

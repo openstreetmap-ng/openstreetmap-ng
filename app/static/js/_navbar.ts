@@ -10,7 +10,7 @@ const minEditZoom = 13
 const navbar = document.querySelector(".navbar")
 
 // Add active class to current nav-lik
-const navLinks: NodeListOf<HTMLAnchorElement> = navbar.querySelectorAll("a.nav-link")
+const navLinks = navbar.querySelectorAll("a.nav-link")
 for (const link of navLinks) {
     if (isHrefCurrentPage(link.href)) {
         link.classList.add("active")
@@ -19,19 +19,20 @@ for (const link of navLinks) {
     }
 }
 
-const editGroup: HTMLElement = navbar.querySelector(".edit-group")
+const editGroup = navbar.querySelector("div.edit-group")
 const dropdown = Dropdown.getOrCreateInstance(editGroup.querySelector(".dropdown-toggle"))
-const editLinks: NodeListOf<HTMLAnchorElement | HTMLButtonElement> =
-    editGroup.querySelectorAll(".dropdown-item.edit-link")
-const remoteEditButton: HTMLButtonElement = editGroup.querySelector(".dropdown-item.edit-link[data-editor=remote]")
-const rememberChoice: HTMLInputElement = editGroup.querySelector("input[name=remember-choice]")
+const editLinks = editGroup.querySelectorAll(".dropdown-item.edit-link") as NodeListOf<
+    HTMLAnchorElement | HTMLButtonElement
+>
+const remoteEditButton = editGroup.querySelector("button.dropdown-item.edit-link[data-editor=remote]")
+const rememberChoice = editGroup.querySelector("input[name=remember-choice]")
 
-const mapLinks: NodeListOf<HTMLAnchorElement | HTMLButtonElement> = navbar.querySelectorAll(".map-link")
+const mapLinks = navbar.querySelectorAll(".map-link") as NodeListOf<HTMLAnchorElement | HTMLButtonElement>
 // Map of navbar elements to their base href
-const mapLinksHrefMap: Map<HTMLAnchorElement | HTMLButtonElement, string> = Array.from(mapLinks).reduce(
-    (map, link) => map.set(link, link instanceof HTMLAnchorElement ? link.href : ""),
-    new Map(),
-)
+const mapLinksHrefMap: Map<HTMLAnchorElement | HTMLButtonElement, string> = new Map()
+for (const link of mapLinks) {
+    mapLinksHrefMap.set(link, link instanceof HTMLAnchorElement ? link.href : "")
+}
 
 /** On edit link click, check and handle the remember choice checkbox */
 const onEditLinkClick = (event: Event): void => {
@@ -171,8 +172,8 @@ export const handleEditRemotePath = (): void => {
     remoteEditButton.click()
 }
 
-const newUnreadMessagesBadge: HTMLElement = navbar.querySelector(".new-unread-messages-badge")
-const unreadMessagesBadge: HTMLElement = navbar.querySelector(".unread-messages-badge")
+const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")
+const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")
 /** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number): void => {
     const newCount = (Number.parseInt(newUnreadMessagesBadge.textContent.replace(/\D/g, "")) || 0) + change

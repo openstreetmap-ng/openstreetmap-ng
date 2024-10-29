@@ -45,10 +45,10 @@ export const mod = (n: number, m: number): number => ((n % m) + m) % m
  */
 export const throttle = <T extends any[]>(func: (...args: T) => void, delay: number): ((...args: T) => void) => {
     let lastCalled = 0
-    let timeoutId: NodeJS.Timeout | null = null
+    let timeout: ReturnType<typeof setTimeout> | null = null
 
     return (...args) => {
-        if (timeoutId) clearTimeout(timeoutId)
+        if (timeout) clearTimeout(timeout)
         const now = performance.now()
         const timeElapsed = now - lastCalled
         const timeLeft = delay - timeElapsed
@@ -57,7 +57,7 @@ export const throttle = <T extends any[]>(func: (...args: T) => void, delay: num
             lastCalled = now
             func(...args)
         } else {
-            timeoutId = setTimeout(() => {
+            timeout = setTimeout(() => {
                 lastCalled = performance.now()
                 func(...args)
             }, timeLeft)

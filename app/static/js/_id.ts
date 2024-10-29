@@ -2,7 +2,7 @@ import { qsEncode, qsParse } from "./_qs"
 import { configureIFrameSystemApp } from "./_system-app"
 import { getInitialMapState, parseMapState } from "./leaflet/_map-utils"
 
-const iframe: HTMLIFrameElement = document.querySelector("iframe.id-iframe")
+const iframe = document.querySelector("iframe.id-iframe")
 if (iframe) {
     const hashParams = qsParse(location.hash.substring(1))
     const searchParams = qsParse(location.search.substring(1))

@@ -24,7 +24,7 @@ const paginationDistance = 2
 export const getElementController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "element", (sidebarSection) => {
         // Get elements
-        const sidebarContent: HTMLElement = sidebarSection.querySelector(".sidebar-content")
+        const sidebarContent = sidebarSection.querySelector("div.sidebar-content")
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")
         const sidebarTitle = sidebarTitleElement.textContent
 
@@ -53,14 +53,14 @@ export const getElementController = (map: L.Map): IndexController => {
 /** Initialize element content */
 export const initializeElementContent = (map: L.Map, container: HTMLElement): (OSMNode | OSMWay)[] => {
     console.debug("initializeElementContent")
-    const partOfContainer: HTMLElement = container.querySelector(".part-of")
-    const elementsContainer: HTMLElement = container.querySelector(".elements")
+    const partOfContainer = container.querySelector("div.part-of")
+    const elementsContainer = container.querySelector("div.elements")
 
     // Get params
     const params = JSON.parse(container.dataset.params)
     const paramsType: string = params.type
 
-    const locationButton: HTMLButtonElement = container.querySelector("button.location-btn")
+    const locationButton = container.querySelector("button.location-btn")
     if (locationButton) {
         // On location click, pan the map
         locationButton.addEventListener("click", () => {
@@ -96,7 +96,7 @@ export const initializeElementContent = (map: L.Map, container: HTMLElement): (O
 const renderElements = (elementsSection: HTMLElement, elements: MemberListEntry[], isWay: boolean): void => {
     console.debug("renderElements", elements.length)
 
-    const entryTemplate: HTMLTemplateElement = elementsSection.querySelector("template.entry")
+    const entryTemplate = elementsSection.querySelector("template.entry")
     const titleElement = elementsSection.querySelector(".title")
     const tbody = elementsSection.querySelector("tbody")
 

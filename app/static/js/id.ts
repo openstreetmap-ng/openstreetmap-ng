@@ -2,7 +2,7 @@ import { apiUrl, primaryLanguage } from "./_config"
 import { parentLoadSystemApp } from "./_system-app"
 import { throttle } from "./_utils"
 
-const container: HTMLElement = document.querySelector(".id-container")
+const container = document.querySelector("div.id-container")
 if (!container) throw new Error("iD container not found")
 
 parentLoadSystemApp((accessToken) => {

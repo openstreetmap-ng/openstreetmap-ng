@@ -9,11 +9,11 @@ import type { IndexController } from "./_router"
 export const getNoteController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "note", (sidebarContent) => {
         // Get elements
-        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
         const sidebarTitle = sidebarTitleElement.textContent
         const locationButton = sidebarContent.querySelector("button.location-btn")
-        const subscriptionForm: HTMLFormElement = sidebarContent.querySelector("form.subscription-form")
-        const commentForm: HTMLFormElement = sidebarContent.querySelector("form.comment-form")
+        const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
+        const commentForm = sidebarContent.querySelector("form.comment-form")
 
         // Set page title
         document.title = getPageTitle(sidebarTitle)
@@ -50,10 +50,10 @@ export const getNoteController = (map: L.Map): IndexController => {
         if (commentForm) {
             const commentInput = commentForm.elements.namedItem("text") as HTMLInputElement
             const eventInput = commentForm.elements.namedItem("event") as HTMLInputElement
-            const closeButton: HTMLButtonElement = commentForm.querySelector("button.close-btn")
-            const commentCloseButton: HTMLButtonElement = commentForm.querySelector("button.comment-close-btn")
-            const commentButton: HTMLButtonElement = commentForm.querySelector("button.comment-btn")
-            const submitButtons: NodeListOf<HTMLButtonElement> = commentForm.querySelectorAll("button[type=submit]")
+            const closeButton = commentForm.querySelector("button.close-btn")
+            const commentCloseButton = commentForm.querySelector("button.comment-close-btn")
+            const commentButton = commentForm.querySelector("button.comment-btn")
+            const submitButtons = commentForm.querySelectorAll("button[type=submit]")
 
             /** On success callback, reload the note and simulate map move (reload notes layer) */
             const onFormSuccess = () => {

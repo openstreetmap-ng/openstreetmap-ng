@@ -19,7 +19,7 @@ export const getNewNoteController = (map: L.Map): IndexController => {
     const lonInput = form.elements.namedItem("lon") as HTMLInputElement
     const latInput = form.elements.namedItem("lat") as HTMLInputElement
     const commentInput = form.elements.namedItem("text") as HTMLInputElement
-    const submitButton: HTMLButtonElement = form.querySelector("button[type=submit]")
+    const submitButton = form.querySelector("button[type=submit]")
 
     let halo: L.CircleMarker | null = null
     let marker: L.Marker | null = null

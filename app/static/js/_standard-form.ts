@@ -18,7 +18,7 @@ export const configureStandardForm = (
     options?: { formAppend: boolean },
 ): void => {
     console.debug("Initializing standard form", form)
-    const submitElements: NodeListOf<HTMLInputElement | HTMLButtonElement> = form.querySelectorAll("[type=submit]")
+    const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<HTMLInputElement | HTMLButtonElement>
 
     /** Set availability of submit elements */
     const toggleSubmit = (enabled: boolean): void => {

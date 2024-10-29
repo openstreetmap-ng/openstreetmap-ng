@@ -8,7 +8,7 @@ import { setSearchFormQuery } from "./_search-form"
 /** Create a new index controller */
 export const getIndexController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("index")
-    const banners: NodeListOf<HTMLElement> = sidebar.querySelectorAll(".sidebar-banner")
+    const banners = sidebar.querySelectorAll("div.sidebar-banner")
 
     for (const banner of banners) {
         const bannerName = banner.dataset.name

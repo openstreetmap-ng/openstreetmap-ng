@@ -2,7 +2,7 @@ import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.messages-new-body")
 if (body) {
-    const messageForm: HTMLFormElement = body.querySelector("form.message-form")
+    const messageForm = body.querySelector("form.message-form")
     configureStandardForm(messageForm, ({ redirect_url }) => {
         console.debug("onMessageFormSuccess", redirect_url)
         window.location.href = redirect_url

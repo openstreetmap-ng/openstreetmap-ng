@@ -11,8 +11,8 @@ export const getZoomControl = () => {
     /** On zoom change, disable/enable specific buttons */
     const onMapZoomChange = (): void => {
         const container = control.getContainer()
-        const zoomInButton: HTMLButtonElement = container.querySelector("button.zoom-in-btn")
-        const zoomOutButton: HTMLButtonElement = container.querySelector("button.zoom-out-btn")
+        const zoomInButton = container.querySelector("button.zoom-in-btn")
+        const zoomOutButton = container.querySelector("button.zoom-out-btn")
 
         const currentZoom = controlMap.getZoom()
         const minZoom = controlMap.getMinZoom()

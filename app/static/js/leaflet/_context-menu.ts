@@ -13,7 +13,7 @@ export const queryFeaturesMinZoom = 14
 export const configureContextMenu = (map: L.Map): void => {
     const mapContainer = map.getContainer()
 
-    const containerTemplate = document.querySelector("template.context-menu-template") as HTMLTemplateElement
+    const containerTemplate = document.querySelector("template.context-menu-template")
     const container = containerTemplate.content.firstElementChild as HTMLElement
     const dropdownButton = container.querySelector(".dropdown-toggle")
     const dropdown = Dropdown.getOrCreateInstance(dropdownButton)
@@ -21,13 +21,13 @@ export const configureContextMenu = (map: L.Map): void => {
     const geolocationGeoField = container.querySelector(".geolocation-geo")
     const geolocationUriField = container.querySelector(".geolocation-uri")
 
-    const routingFromButton: HTMLButtonElement = container.querySelector("button.routing-from")
-    const routingToButton: HTMLButtonElement = container.querySelector("button.routing-to")
-    const newNoteButton: HTMLButtonElement = container.querySelector("button.new-note")
-    const showAddressButton: HTMLButtonElement = container.querySelector("button.show-address")
-    const queryFeaturesButton: HTMLButtonElement = container.querySelector("button.query-features")
-    const centerHereButton: HTMLButtonElement = container.querySelector("button.center-here")
-    const measureDistanceButton: HTMLButtonElement = container.querySelector("button.measure-distance")
+    const routingFromButton = container.querySelector("button.routing-from")
+    const routingToButton = container.querySelector("button.routing-to")
+    const newNoteButton = container.querySelector("button.new-note")
+    const showAddressButton = container.querySelector("button.show-address")
+    const queryFeaturesButton = container.querySelector("button.query-features")
+    const centerHereButton = container.querySelector("button.center-here")
+    const measureDistanceButton = container.querySelector("button.measure-distance")
 
     const popup = L.popup({
         content: container,

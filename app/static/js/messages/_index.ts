@@ -4,13 +4,13 @@ import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.messages-index-body")
 if (body) {
-    const messages: NodeListOf<HTMLElement> = body.querySelectorAll(".messages-list .social-action")
+    const messages = body.querySelectorAll(".messages-list li.social-action")
     const messagePreview = body.querySelector(".message-preview")
     const messageSender = messagePreview.querySelector(".message-sender")
-    const senderAvatar: HTMLImageElement = messageSender.querySelector("img.avatar")
-    const senderLink: HTMLAnchorElement = messageSender.querySelector("a.sender-link")
+    const senderAvatar = messageSender.querySelector("img.avatar")
+    const senderLink = messageSender.querySelector("a.sender-link")
     const messageTime = messagePreview.querySelector(".message-time")
-    const replyLink: HTMLAnchorElement = messagePreview.querySelector("a.reply-link")
+    const replyLink = messagePreview.querySelector("a.reply-link")
     const messageTitle = messagePreview.querySelector(".message-title")
     const messageBody = messagePreview.querySelector(".message-body")
     const loadingSpinner = messagePreview.querySelector(".loading")
@@ -108,7 +108,7 @@ if (body) {
 
     const unreadButton = messagePreview.querySelector("button.unread-btn")
     if (unreadButton) {
-        const unreadForm: HTMLFormElement = messagePreview.querySelector("form.unread-form")
+        const unreadForm = messagePreview.querySelector("form.unread-form")
         configureStandardForm(unreadForm, () => {
             // On success callback, mark the message as unread and update the badge
             console.debug("onUnreadFormSuccess", openMessageId)
@@ -125,7 +125,7 @@ if (body) {
         })
     }
 
-    const deleteForm: HTMLFormElement = messagePreview.querySelector("form.delete-form")
+    const deleteForm = messagePreview.querySelector("form.delete-form")
     configureStandardForm(deleteForm, () => {
         console.debug("onDeleteFormSuccess", openMessageId)
         openTarget.remove()

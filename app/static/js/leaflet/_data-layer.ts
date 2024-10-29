@@ -28,9 +28,7 @@ export const configureDataLayer = (map: L.Map): void => {
     const loadDataAlert = getMapAlert("data-layer-load-alert")
     const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")
     const showDataButton = loadDataAlert.querySelector("button.show-data-btn")
-    const dataOverlayCheckbox: HTMLInputElement = document.querySelector(
-        ".leaflet-sidebar.layers input.overlay[value=data]",
-    )
+    const dataOverlayCheckbox = document.querySelector(".leaflet-sidebar.layers input.overlay[value=data]")
 
     let abortController: AbortController | null = null
     let fetchedBounds: L.LatLngBounds | null = null

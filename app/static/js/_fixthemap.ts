@@ -17,6 +17,6 @@ if (body) {
         }
     }
 
-    const noteLink: HTMLAnchorElement = body.querySelector("a.note-link")
+    const noteLink = body.querySelector("a.note-link")
     noteLink.href = noteHref
 }

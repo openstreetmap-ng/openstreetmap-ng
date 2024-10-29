@@ -3,7 +3,7 @@ import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.login-body")
 if (body) {
-    const loginForm: HTMLFormElement = body.querySelector("form.login-form")
+    const loginForm = body.querySelector("form.login-form")
     configureStandardForm(loginForm, () => {
         // Redirect to refer from query string and hash
         // Referrer must start with '/' to avoid open redirect
@@ -24,7 +24,7 @@ if (body) {
         loginForm.requestSubmit()
     }
 
-    const autofillButtons: NodeListOf<HTMLButtonElement> = body.querySelectorAll("button[data-login][data-password]")
+    const autofillButtons = body.querySelectorAll("button[data-login][data-password]")
     for (const loginButton of autofillButtons) {
         loginButton.addEventListener("click", onAutofillButtonClick)
     }

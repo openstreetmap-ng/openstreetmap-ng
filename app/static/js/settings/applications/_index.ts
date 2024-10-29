@@ -6,7 +6,7 @@ import { initializeResetSecretControls } from "./_reset-secret-control"
 const body = document.querySelector("body.settings-applications-body")
 if (body) {
     // Fixup links in buttons
-    const accordionButtons: NodeListOf<HTMLButtonElement> = body.querySelectorAll("button.accordion-button")
+    const accordionButtons = body.querySelectorAll("button.accordion-button")
     for (const button of accordionButtons) {
         const collapse = document.querySelector(button.dataset.bsTarget)
         const collapseInstance = Collapse.getOrCreateInstance(collapse, { toggle: false })
@@ -23,7 +23,7 @@ if (body) {
     }
 
     // settings/applications + settings/applications/tokens
-    const revokeApplicationForms: NodeListOf<HTMLFormElement> = body.querySelectorAll("form.revoke-application-form")
+    const revokeApplicationForms = body.querySelectorAll("form.revoke-application-form")
     for (const form of revokeApplicationForms) {
         configureStandardForm(form, () => {
             console.debug("onRevokeApplicationFormSuccess")
@@ -34,7 +34,7 @@ if (body) {
     // settings/applications/admin
     const createApplicationButton = body.querySelector("button.create-application-btn")
     if (createApplicationButton) {
-        const createApplicationForm: HTMLFormElement = body.querySelector(".create-application-form")
+        const createApplicationForm = body.querySelector("form.create-application-form")
 
         // On create new application button click, show the form and focus the name input
         createApplicationButton.addEventListener("click", () => {
@@ -52,7 +52,7 @@ if (body) {
     }
 
     // settings/applications/tokens
-    const createTokenForm: HTMLFormElement = body.querySelector("form.create-token-form")
+    const createTokenForm = body.querySelector("form.create-token-form")
     if (createTokenForm) {
         configureStandardForm(createTokenForm, ({ token_id }) => {
             // On success callback, reload the page

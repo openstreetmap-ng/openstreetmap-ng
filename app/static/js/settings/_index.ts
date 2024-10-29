@@ -3,7 +3,7 @@ import { type APIDetail, configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.settings-body")
 if (body) {
-    const settingsForm: HTMLFormElement = body.querySelector("form.settings-form")
+    const settingsForm = body.querySelector("form.settings-form")
     const displayNameInput = settingsForm.elements.namedItem("display_name") as HTMLInputElement
     const displayNameBlacklist = displayNameInput.dataset.blacklist
 

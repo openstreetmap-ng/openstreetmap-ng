@@ -14,7 +14,7 @@ export const getSidebarToggleButton = (className: string, tooltipTitle: string):
 
     control.onAdd = (map: L.Map): HTMLElement => {
         // Find corresponding sidebar
-        const sidebar: HTMLElement | null = document.querySelector(`.leaflet-sidebar.${className}`)
+        const sidebar = document.querySelector(`div.leaflet-sidebar.${className}`)
         if (!sidebar) console.error("Sidebar", className, "not found")
         control.sidebar = sidebar
 

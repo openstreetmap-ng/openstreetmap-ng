@@ -2,12 +2,12 @@ import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.user-profile-body")
 if (body) {
-    const avatarForm: HTMLFormElement = body.querySelector("form.avatar-form")
+    const avatarForm = body.querySelector("form.avatar-form")
     const avatarDropdown = avatarForm.querySelector(".dropdown")
 
     // Check if editing features available
     if (avatarDropdown) {
-        const avatars: NodeListOf<HTMLImageElement> = document.querySelectorAll("img.avatar")
+        const avatars = document.querySelectorAll("img.avatar")
         const avatarTypeInput = avatarForm.elements.namedItem("avatar_type") as HTMLInputElement
         const avatarFileInput = avatarForm.elements.namedItem("avatar_file") as HTMLInputElement
 
@@ -43,8 +43,8 @@ if (body) {
             }
         })
 
-        const backgroundForm: HTMLFormElement = body.querySelector("form.background-form")
-        const background: HTMLImageElement = backgroundForm.querySelector("img.background")
+        const backgroundForm = body.querySelector("form.background-form")
+        const background = backgroundForm.querySelector("img.background")
         const backgroundFileInput = backgroundForm.elements.namedItem("background_file") as HTMLInputElement
 
         backgroundFileInput.addEventListener("change", () => {
@@ -72,7 +72,7 @@ if (body) {
             }
         })
 
-        const descriptionForm: HTMLFormElement = body.querySelector("form.description-form")
+        const descriptionForm = body.querySelector("form.description-form")
         configureStandardForm(descriptionForm, () => {
             // On description update, reload the page
             console.debug("onDescriptionFormSuccess")

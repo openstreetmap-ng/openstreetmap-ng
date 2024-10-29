@@ -4,8 +4,8 @@ import { initializeResetSecretControls } from "./_reset-secret-control"
 
 const body = document.querySelector("body.settings-application-edit-body")
 if (body) {
-    const avatarForm: HTMLFormElement = body.querySelector("form.avatar-form")
-    const avatar: HTMLImageElement = avatarForm.querySelector("img.avatar")
+    const avatarForm = body.querySelector("form.avatar-form")
+    const avatar = avatarForm.querySelector("img.avatar")
     const avatarFileInput = avatarForm.elements.namedItem("avatar_file") as HTMLInputElement
 
     avatarFileInput.addEventListener("change", () => {
@@ -29,7 +29,7 @@ if (body) {
         avatar.src = avatar_url
     })
 
-    const editForm: HTMLFormElement = body.querySelector("form.edit-form")
+    const editForm = body.querySelector("form.edit-form")
     const clientSecretControl = editForm.querySelector(".client-secret-control")
     const isConfidentialRadios = editForm.elements.namedItem("is_confidential") as RadioNodeList
     const revokeAllAuthorizationsCheckbox = editForm.elements.namedItem("revoke_all_authorizations") as HTMLInputElement
@@ -53,7 +53,7 @@ if (body) {
         { formAppend: true },
     )
 
-    const deleteForm: HTMLFormElement = body.querySelector("form.delete-form")
+    const deleteForm = body.querySelector("form.delete-form")
     configureStandardForm(deleteForm, ({ redirect_url }) => {
         // On success callback, navigate to my applications
         console.debug("onDeleteFormSuccess", redirect_url)

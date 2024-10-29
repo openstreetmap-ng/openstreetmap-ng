@@ -1,7 +1,7 @@
 const body = document.querySelector("body.user-terms-body")
 if (body) {
-    const residenceInputs: NodeListOf<HTMLInputElement> = body.querySelectorAll("input[name=residence]")
-    const legalDocuments: NodeListOf<HTMLElement> = body.querySelectorAll(".legal-document[data-residence]")
+    const residenceInputs = body.querySelectorAll("input[name=residence]")
+    const legalDocuments = body.querySelectorAll("div.legal-document[data-residence]")
 
     /** On residence change, show appropriate legal documents */
     const onResidenceChange = ({ target }: Event) => {
@@ -33,7 +33,7 @@ if (body) {
     // Bind abort signup button to the form
     const abortSignupButton = body.querySelector("button.abort-signup-btn")
     abortSignupButton.addEventListener("click", () => {
-        const abortSignupForm: HTMLFormElement = body.querySelector("form.abort-signup-form")
+        const abortSignupForm = body.querySelector("form.abort-signup-form")
         abortSignupForm.requestSubmit()
     })
 }

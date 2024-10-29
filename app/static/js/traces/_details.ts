@@ -3,7 +3,7 @@ import { configureStandardForm } from "../_standard-form"
 
 const body = document.querySelector("body.traces-details-body")
 if (body) {
-    const deleteForm: HTMLFormElement = body.querySelector("form.delete-form")
+    const deleteForm = body.querySelector("form.delete-form")
     if (deleteForm) {
         configureStandardForm(deleteForm, ({ redirect_url }) => {
             // On success callback, navigate to my traces

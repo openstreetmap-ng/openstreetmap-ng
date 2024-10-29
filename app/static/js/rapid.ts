@@ -1,7 +1,7 @@
 import { apiUrl, primaryLanguage } from "./_config"
 import { parentLoadSystemApp } from "./_system-app"
 
-const container: HTMLElement = document.querySelector(".rapid-container")
+const container = document.querySelector("div.rapid-container")
 if (!container) throw new Error("Rapid container not found")
 
 parentLoadSystemApp((accessToken) => {

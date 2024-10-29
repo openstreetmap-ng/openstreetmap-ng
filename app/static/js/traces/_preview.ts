@@ -17,7 +17,7 @@ const antPathOptions = {
     interactive: false,
 }
 
-const tracePreviewContainer: HTMLElement = document.querySelector(".trace-preview")
+const tracePreviewContainer = document.querySelector("div.trace-preview")
 if (tracePreviewContainer) {
     console.debug("Initializing trace preview map")
     const isSmall = tracePreviewContainer.classList.contains("trace-preview-sm")

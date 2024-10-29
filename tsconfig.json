@@ -13,6 +13,13 @@
         "strict": true,
         "strictNullChecks": false,
         "target": "ES2023",
+        "types": [
+            "@types/bootstrap",
+            "@types/leaflet",
+            "@types/leaflet.locatecontrol",
+            "bun-types",
+            "typed-query-selector"
+        ],
         "verbatimModuleSyntax": true
     }
 }

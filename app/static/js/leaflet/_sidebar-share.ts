@@ -36,9 +36,9 @@ export const getShareSidebarToggleButton = () => {
         })
 
         const sidebar = control.sidebar
-        const linkInput: HTMLInputElement = sidebar.querySelector("input.link-input")
-        const geoUriInput: HTMLInputElement = sidebar.querySelector("input.geo-uri-input")
-        const embedInput: HTMLInputElement = sidebar.querySelector("input.embed-input")
+        const linkInput = sidebar.querySelector("input.link-input")
+        const geoUriInput = sidebar.querySelector("input.geo-uri-input")
+        const embedInput = sidebar.querySelector("input.embed-input")
 
         let marker: L.Marker | null = null
         let locationFilter: any | null = null
@@ -53,7 +53,7 @@ export const getShareSidebarToggleButton = () => {
             })
         }
 
-        const markerCheckbox: HTMLInputElement = sidebar.querySelector("input.marker-check")
+        const markerCheckbox = sidebar.querySelector("input.marker-check")
         markerCheckbox.addEventListener("change", () => {
             // On marker checkbox change, display/hide the marker
             if (markerCheckbox.checked) {
@@ -78,15 +78,15 @@ export const getShareSidebarToggleButton = () => {
             }
         })
 
-        const exportForm: HTMLFormElement = sidebar.querySelector("form.export-form")
-        const exportSubmitButton: HTMLButtonElement = exportForm.querySelector("button[type=submit]")
+        const exportForm = sidebar.querySelector("form.export-form")
+        const exportSubmitButton = exportForm.querySelector("button[type=submit]")
 
         // TODO: disable unavailable zoom levels (on zoomend)
-        const detailOffsetsWithElements: [number, [HTMLInputElement, HTMLElement]][] = []
-        const detailInputs: NodeListOf<HTMLInputElement> = exportForm.querySelectorAll("[name=detail]")
+        const detailOffsetsWithElements: [number, [HTMLInputElement, HTMLSpanElement]][] = []
+        const detailInputs = exportForm.querySelectorAll("input[name=detail]")
         for (const input of detailInputs) {
             const zoomOffset = Number.parseInt(input.value, 10)
-            const resolutionSpan: HTMLElement = input.closest("label").querySelector(".resolution")
+            const resolutionSpan = input.closest("label").querySelector("span.resolution")
             detailOffsetsWithElements.push([zoomOffset, [input, resolutionSpan]])
         }
 
@@ -107,7 +107,7 @@ export const getShareSidebarToggleButton = () => {
                 const sw = leafletBounds.getSouthWest()
                 const ne = leafletBounds.getNorthEast()
                 const bounds: Bounds = [sw.lng, sw.lat, ne.lng, ne.lat]
-                const selectedDetailInput: HTMLInputElement = exportForm.querySelector("input[name=detail]:checked")
+                const selectedDetailInput = exportForm.querySelector("input[name=detail]:checked")
                 const zoomOffset = Number.parseInt(selectedDetailInput.value, 10)
                 const zoom = optimalExportParams.zoom + zoomOffset
                 const baseLayer = getMapBaseLayer(map)
@@ -132,7 +132,7 @@ export const getShareSidebarToggleButton = () => {
         })
 
         // On custom region checkbox change, enable/disable the location filter
-        const customRegionCheckbox: HTMLInputElement = exportForm.querySelector("input.custom-region-check")
+        const customRegionCheckbox = exportForm.querySelector("input.custom-region-check")
         customRegionCheckbox.addEventListener("change", () => {
             if (customRegionCheckbox.checked) {
                 if (!locationFilter) {
@@ -153,7 +153,7 @@ export const getShareSidebarToggleButton = () => {
         })
 
         // TODO: support svg/pdf fallback
-        const formatSelect: HTMLSelectElement = exportForm.querySelector("select.format-select")
+        const formatSelect = exportForm.querySelector("select.format-select")
         formatSelect.addEventListener("change", () => {
             const format = formatSelect.value
             console.debug("onFormatSelectChange", format)

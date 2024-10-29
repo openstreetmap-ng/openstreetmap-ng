@@ -28,7 +28,7 @@ import "./user/_reset-password"
 import "./user/_signup"
 import "./user/_terms"
 
-const mapContainer: HTMLElement = document.querySelector(".main-map")
+const mapContainer = document.querySelector("div.main-map")
 if (mapContainer) configureMainMap(mapContainer)
 
 import "./_bootstrap"

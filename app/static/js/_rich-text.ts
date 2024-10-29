@@ -22,10 +22,10 @@ const abortRequest = (source: Element, newController: boolean): AbortController 
 const richTextContainers = document.querySelectorAll(".rich-text-container")
 console.debug("Initializing", richTextContainers.length, "rich text containers")
 for (const container of richTextContainers) {
-    const sourceTextArea: HTMLTextAreaElement = container.querySelector("textarea.rich-text-source")
+    const sourceTextArea = container.querySelector("textarea.rich-text-source")
     const previewDiv = container.querySelector(".rich-text-preview")
 
-    const editButton: HTMLButtonElement = container.querySelector("button.edit-btn")
+    const editButton = container.querySelector("button.edit-btn")
     // On edit button click, abort any requests and show the source textarea
     editButton.addEventListener("click", () => {
         abortRequest(sourceTextArea, false)
@@ -37,7 +37,7 @@ for (const container of richTextContainers) {
         previewDiv.innerHTML = ""
     })
 
-    const previewButton: HTMLButtonElement = container.querySelector("button.preview-btn")
+    const previewButton = container.querySelector("button.preview-btn")
     // On preview button click, abort any requests and fetch the preview
     previewButton.addEventListener("click", () => {
         const abortController = abortRequest(sourceTextArea, true)

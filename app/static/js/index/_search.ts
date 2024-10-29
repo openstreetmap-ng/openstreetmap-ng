@@ -26,7 +26,7 @@ const focusOptions: FocusOptions = {
 /** Create a new search controller */
 export const getSearchController = (map: L.Map): IndexController => {
     const searchLayer = getOverlayLayerById(searchLayerId) as L.FeatureGroup
-    const searchForm: HTMLFormElement = document.querySelector("form.search-form")
+    const searchForm = document.querySelector("form.search-form")
     const searchAlert = getMapAlert("search-alert")
     const searchTitle = i18next.t("site.search.search")
     const whereIsThisTitle = i18next.t("site.search.where_am_i")
@@ -77,11 +77,11 @@ export const getSearchController = (map: L.Map): IndexController => {
 
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
-        const searchList: HTMLElement = sidebarContent.querySelector(".search-list")
+        const searchList = sidebarContent.querySelector("ul.search-list")
         const dataset = searchList.dataset
         const boundsStr = dataset.bounds
         const groupedElements: (OSMNode | OSMWay)[][] = JSON.parse(dataset.leaflet)
-        const results: NodeListOf<HTMLElement> = searchList.querySelectorAll(".social-action")
+        const results = searchList.querySelectorAll("li.social-action")
         const layers: L.Layer[] = []
 
         const globalMode = !boundsStr

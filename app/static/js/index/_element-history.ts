@@ -13,7 +13,7 @@ const paginationDistance = 2
 export const getElementHistoryController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         // Get elements
-        const sidebarTitleElement: HTMLElement = sidebarContent.querySelector(".sidebar-title")
+        const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
         const sidebarTitle = sidebarTitleElement.textContent
 
         // Set page title
@@ -27,7 +27,7 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
         const paramsType: string = params.type
         const paramsId: number = params.id
 
-        const tagsDiffCheckbox: HTMLInputElement = sidebarContent.querySelector("input.tags-diff-mode")
+        const tagsDiffCheckbox = sidebarContent.querySelector("input.tags-diff-mode")
         tagsDiffCheckbox.checked = getTagsDiffMode()
         tagsDiffCheckbox.addEventListener("change", () => {
             setTagsDiffMode(tagsDiffCheckbox.checked)
@@ -35,14 +35,14 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
             controller.load({ type: paramsType, id: paramsId.toString() })
         })
 
-        const versionSections: NodeListOf<HTMLElement> = sidebarContent.querySelectorAll(".version-section")
+        const versionSections = sidebarContent.querySelectorAll("div.version-section")
         for (const versionSection of versionSections) {
             const elements = initializeElementContent(map, versionSection)
             versionSection.addEventListener("mouseenter", () => focusManyMapObjects(map, elements)) // focus elements
             versionSection.addEventListener("mouseleave", () => focusMapObject(map, null)) // remove focus
         }
 
-        const paginationContainer: HTMLElement = sidebarContent.querySelector(".history-pagination")
+        const paginationContainer = sidebarContent.querySelector("ul.history-pagination")
         if (paginationContainer) {
             const dataset = paginationContainer.dataset
             const currentPage = Number.parseInt(dataset.page, 10)
@@ -67,7 +67,7 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
                 const li = document.createElement("li")
                 li.classList.add("page-item")
 
-                const anchor: HTMLAnchorElement = document.createElement("a")
+                const anchor = document.createElement("a")
                 anchor.classList.add("page-link")
                 anchor.textContent = i.toString()
                 anchor.href = `?page=${i}`

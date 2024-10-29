@@ -1,12 +1,12 @@
 import type * as L from "leaflet"
 import { routerNavigateStrict } from "./_router"
 
-const actionSidebars: NodeListOf<HTMLElement> = document.querySelectorAll(".action-sidebar")
+const actionSidebars = document.querySelectorAll("div.action-sidebar")
 const sidebarContainer = actionSidebars.length ? actionSidebars[0].parentElement : null
 
 /** Get the action sidebar with the given class name */
 export const getActionSidebar = (className: string): HTMLElement => {
-    const sidebar: HTMLElement = document.querySelector(`.action-sidebar.${className}`)
+    const sidebar = document.querySelector(`div.action-sidebar.${className}`)
     configureActionSidebar(sidebar)
     return sidebar
 }
