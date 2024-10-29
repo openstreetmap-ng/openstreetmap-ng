@@ -1,4 +1,4 @@
-import { decode } from "@googlemaps/polyline-codec"
+import { decode } from "@mapbox/polyline"
 import i18next from "i18next"
 import { qsEncode } from "../../_qs"
 import "../../_types"

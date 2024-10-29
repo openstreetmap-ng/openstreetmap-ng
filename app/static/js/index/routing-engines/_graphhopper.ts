@@ -1,4 +1,4 @@
-import { decode } from "@googlemaps/polyline-codec"
+import { decode } from "@mapbox/polyline"
 import { graphhopperApiKey } from "../../_api-keys"
 import { primaryLanguage } from "../../_config"
 import "../../_types"

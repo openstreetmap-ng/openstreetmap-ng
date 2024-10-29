@@ -1,4 +1,4 @@
-import { encode } from "@googlemaps/polyline-codec"
+import { encode } from "@mapbox/polyline"
 import { Dropdown } from "bootstrap"
 import * as L from "leaflet"
 import { formatCoordinate } from "../_format-utils"

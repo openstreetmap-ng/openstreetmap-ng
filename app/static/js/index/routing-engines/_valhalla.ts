@@ -1,4 +1,4 @@
-import { decode } from "@googlemaps/polyline-codec"
+import { decode } from "@mapbox/polyline"
 import { primaryLanguage } from "../../_config"
 import "../../_types"
 import type { LonLat } from "../../leaflet/_map-utils"

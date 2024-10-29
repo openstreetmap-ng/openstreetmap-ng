@@ -1,4 +1,4 @@
-import { decode, encode } from "@googlemaps/polyline-codec"
+import { decode, encode } from "@mapbox/polyline"
 import * as L from "leaflet"
 import { formatDistance } from "../_format-utils"
 import { qsParse } from "../_qs"
@@ -34,7 +34,7 @@ export const getDistanceController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("distance")
     const totalDistanceLabel = sidebar.querySelector(".total-distance")
 
-    const positionsUrl: L.LatLng[] = []
+    const positionsUrl: [number, number][] = []
     const lines: L.Polyline[] = []
     const labels: L.Marker[] = []
     const markers: L.Marker[] = []
@@ -87,7 +87,8 @@ export const getDistanceController = (map: L.Map): IndexController => {
             positionsUrl.length = newLength
         }
         for (const markerIndex of dirtyMarkerIndices) {
-            positionsUrl[markerIndex] = markers[markerIndex].getLatLng()
+            const latlng = markers[markerIndex].getLatLng()
+            positionsUrl[markerIndex] = [latlng.lat, latlng.lng]
         }
         const url = new URL(location.href)
         url.searchParams.set("line", encode(positionsUrl, 5))
