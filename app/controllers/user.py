@@ -101,7 +101,7 @@ async def index(
         sort='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
-    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
+    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=120)
     traces_lines_lens = tuple(len(trace.coords) for trace in traces)
     traces_line_arr = np.concatenate(tuple(trace.coords for trace in traces), axis=0, dtype=np.byte)
     traces_line_arr[:, 1] -= 60
