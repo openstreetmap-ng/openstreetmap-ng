@@ -211,7 +211,7 @@ exclude = [
   "**/.*",
   "**/__pycache__",
   "app/alembic/versions",
-  "app/models/*_pb2.py",
+  "app/models/**/*_pb2.py",
   "node_modules",
 ]
 include = ["app", "scripts", "tests"]

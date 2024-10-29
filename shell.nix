@@ -129,6 +129,7 @@ let
     (makeScript "watch-sass" "watchexec --watch app/static/sass sass-pipeline")
 
     # -- JavaScript
+    (makeScript "node" "exec bun \"$@\"")
     (makeScript "js-pipeline" ''
       if [ "$1" = "hash" ]; then
         echo "[js-pipeline] Working in hash mode"
@@ -250,9 +251,14 @@ let
 
     # -- Protobuf
     (makeScript "proto-generate" ''
+      mkdir -p app/static/js/models
       protoc \
-        --python_out=. \
-        --pyi_out=typings \
+        -I app/models \
+        --plugin=node_modules/.bin/protoc-gen-es \
+        --es_out app/static/js/models \
+        --es_opt target=ts \
+        --python_out app/models \
+        --pyi_out typings/app/models \
         app/models/*.proto
     '')
 

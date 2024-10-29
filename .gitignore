@@ -442,8 +442,9 @@ app/**/*.html
 !app/static/**/*.html
 app/static/css
 app/static/js/bundle-*
-app/models/*_pb2.py
-typings/app/models/*_pb2.pyi
+app/static/js/**/*_pb.ts
+app/models/**/*_pb2.py
+typings/app/models/**/*_pb2.pyi
 
 _generated
 temp

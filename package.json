@@ -21,6 +21,7 @@
     "@babel/cli": "^7.25.9",
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
+    "@bufbuild/protobuf": "^2.2.1",
     "@googlemaps/polyline-codec": "^1.0.28",
     "@rapideditor/rapid": "^2.4.2",
     "bootstrap": "^5.3.3",
@@ -34,6 +35,7 @@
     "osm-community-index": "^5.8.1"
   },
   "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^2.2.1",
     "@types/bootstrap": "^5.2.10",
     "@types/leaflet": "^1.9.14",
     "@types/leaflet.locatecontrol": "^0.74.6",
