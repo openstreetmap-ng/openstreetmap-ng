@@ -3,7 +3,8 @@
   "formatter": {
     "enabled": true,
     "ignore": [
-      "app/static/js/bundle-*.js"
+      "app/static/js/_generated/**/*",
+      "app/static/js/bundle-*"
     ],
     "indentStyle": "space",
     "indentWidth": 4,

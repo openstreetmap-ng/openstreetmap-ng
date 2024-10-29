@@ -5,7 +5,7 @@ from typing import Any
 from urllib.parse import urlencode
 
 import numpy as np
-from aiohttp import ClientTimeout
+from httpx import Timeout
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
@@ -22,10 +22,10 @@ from app.models.db.element import Element
 from app.models.element import ElementRef
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import JSON_DECODE, http_get
+from app.utils import HTTP, JSON_DECODE
 
-_http_short_timeout = ClientTimeout(total=NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
-_http_long_timeout = ClientTimeout(total=NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
+_HTTP_SHORT_TIMEOUT = Timeout(NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
+_HTTP_LONG_TIMEOUT = Timeout(NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
 
 _cache_context = CacheContext('Nominatim')
 
@@ -49,8 +49,9 @@ class NominatimQuery:
 
         async def factory() -> bytes:
             logging.debug('Nominatim reverse cache miss for path %r', path)
-            async with http_get(NOMINATIM_URL + path, timeout=_http_short_timeout, raise_for_status=True) as r:
-                return await r.read()
+            r = await HTTP.get(NOMINATIM_URL + path, timeout=_HTTP_SHORT_TIMEOUT)
+            r.raise_for_status()
+            return r.content
 
         cache = await CacheService.get(
             path,
@@ -122,8 +123,9 @@ async def _search(
 
     async def factory() -> bytes:
         logging.debug('Nominatim search cache miss for path %r', path)
-        async with http_get(NOMINATIM_URL + path, timeout=_http_long_timeout, raise_for_status=True) as r:
-            return await r.read()
+        r = await HTTP.get(NOMINATIM_URL + path, timeout=_HTTP_LONG_TIMEOUT)
+        r.raise_for_status()
+        return r.content
 
     # cache only stable queries
     if bounds is None:

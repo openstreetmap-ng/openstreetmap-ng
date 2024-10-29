@@ -8,12 +8,12 @@ dependencies = [
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
   "brotli",
-  "certifi",
   "cython",
   "dnspython",
   "email-validator",
   "fastapi",
   "feedgen",
+  "httpx",
   "jinja2",
   "lrucache-rs",
   "lxml",
@@ -59,7 +59,6 @@ dev-dependencies = [
   "cairosvg",
   "click",
   "coverage",
-  "httpx",
   "lxml-stubs",
   "polars[numpy]",
   "pre-commit",
@@ -68,7 +67,7 @@ dev-dependencies = [
   "types-aioboto3[s3]",
   "types-protobuf",
 ]
-package = false
+package = true
 python-downloads = "never"
 python-preference = "only-system"
 

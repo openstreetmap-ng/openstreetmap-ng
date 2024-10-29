@@ -23,7 +23,7 @@
     },
     "exclude": [
         "app/static/js/_generated/**/*",
-        "app/static/js/bundle-*.js"
+        "app/static/js/bundle-*"
     ],
     "include": [
         "app/static/js/**/*"

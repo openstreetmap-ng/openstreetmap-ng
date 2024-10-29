@@ -11,7 +11,7 @@ from urllib.parse import unquote_plus
 import uvloop
 
 from app.lib.retry import retry
-from app.utils import http_get
+from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
@@ -24,10 +24,9 @@ class WikiPageInfo(NamedTuple):
 
 
 async def discover_sitemap_urls() -> tuple[str, ...]:
-    async with http_get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml', raise_for_status=True) as r:
-        text = await r.text()
-
-    matches = re.finditer(r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', text)
+    r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
+    r.raise_for_status()
+    matches = re.finditer(r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz', r.text)
     result = tuple(match[0] for match in matches)
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
@@ -35,10 +34,11 @@ async def discover_sitemap_urls() -> tuple[str, ...]:
 
 @retry(timedelta(minutes=1))
 async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
-    async with _download_limiter, http_get(url, raise_for_status=True) as r:
-        content = await r.read()
+    async with _download_limiter:
+        r = await HTTP.get(url)
+        r.raise_for_status()
 
-    text = gzip.decompress(content).decode()
+    text = gzip.decompress(r.content).decode()
     result: list[WikiPageInfo] = []
 
     for match in re.finditer(r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>', text):
