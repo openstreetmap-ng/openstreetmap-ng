@@ -1,5 +1,6 @@
 import * as L from "leaflet"
 import type { Bounds } from "../_types"
+import type { LonLat, LonLatZoom } from "./_map-utils"
 
 const maxZoom = 25
 const tileSize = 256
@@ -45,7 +46,7 @@ export const getOptimalExportParams = (bounds: Bounds): { zoom: number; xResolut
  * getTileCoords(16.3725, 48.208889, 12)
  * // => { x: 2234, y: 1420 }
  */
-const getTileCoords = (lon: number, lat: number, zoom: number): { x: number; y: number } => {
+const getTileCoords = ({ lon, lat, zoom }: LonLatZoom): { x: number; y: number } => {
     const n = 2 ** zoom
     const x = Math.floor(((lon + 180) / 360) * n)
     const y = Math.floor(
@@ -60,11 +61,11 @@ const getTileCoords = (lon: number, lat: number, zoom: number): { x: number; y: 
  * getLatLonFromTileCoords(2234, 1420, 12)
  * // => { lon: 16.3725, lat: 48.208889 }
  */
-const getLatLonFromTileCoords = (x: number, y: number, zoom: number): { lon: number; lat: number } => {
+const getLatLonFromTileCoords = (x: number, y: number, zoom: number): LonLat => {
     const n = 2 ** zoom
     const lon = (x / n) * 360 - 180
     const lat = (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / n))) * 180) / Math.PI
-    return { lat, lon }
+    return { lon, lat }
 }
 
 /**
@@ -100,8 +101,8 @@ export const exportMapImage = async (
     minLat = Math.max(minLat, -85)
     maxLat = Math.min(maxLat, 85)
 
-    const minTileCoords = getTileCoords(minLon, maxLat, zoom)
-    const maxTileCoords = getTileCoords(maxLon, minLat, zoom)
+    const minTileCoords = getTileCoords({ lon: minLon, lat: maxLat, zoom })
+    const maxTileCoords = getTileCoords({ lon: maxLon, lat: minLat, zoom })
 
     const { topOffset, leftOffset, bottomOffset, rightOffset } = calculateTrimOffsets(
         minLon,

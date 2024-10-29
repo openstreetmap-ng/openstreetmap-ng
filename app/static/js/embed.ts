@@ -5,6 +5,7 @@ import * as L from "leaflet"
 import { qsParse } from "./_qs"
 import { isLatitude, isLongitude, zoomPrecision } from "./_utils"
 import { type LayerId, getBaseLayerById, getDefaultBaseLayer } from "./leaflet/_layers"
+import type { LonLatZoom } from "./leaflet/_map-utils"
 import { getMarkerIcon } from "./leaflet/_utils"
 
 const mapContainer = document.getElementById("map")
@@ -54,7 +55,7 @@ map.addLayer(layer)
  * getFixTheMapLink(5.123456, 6.123456, 17)
  * // => "https://www.openstreetmap.org/fixthemap?lat=6.123456&lon=5.123456&zoom=17"
  */
-const getFixTheMapLink = (lon: number, lat: number, zoom: number): string => {
+const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom): string => {
     const precision = zoomPrecision(zoom)
     const lonFixed = lon.toFixed(precision)
     const latFixed = lat.toFixed(precision)
@@ -68,7 +69,7 @@ const reportProblemText = i18next.t("javascripts.embed.report_problem")
 const onMoveEnd = () => {
     const center = map.getCenter()
     const zoom = map.getZoom()
-    const link = getFixTheMapLink(center.lng, center.lat, zoom)
+    const link = getFixTheMapLink({ lon: center.lng, lat: center.lat, zoom })
     map.attributionControl.setPrefix(`<a href="${link}" target="_blank">${reportProblemText}/a>`)
 }
 

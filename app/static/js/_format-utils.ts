@@ -1,4 +1,5 @@
 import i18next from "i18next"
+import type { LonLat } from "./leaflet/_map-utils"
 
 /**
  * Format distance in meters
@@ -92,7 +93,7 @@ export const formatDegrees = (decimalDegree: number): string => {
  * // => "21°19′16″N, 35°12′48″E"
  */
 
-export const formatCoordinate = (lat: number, lon: number): string => {
+export const formatCoordinate = ({ lon, lat }: LonLat): string => {
     const latDegrees = formatDegrees(lat)
     const lonDegrees = formatDegrees(lon)
     const latDir = lat === 0 ? "" : lat > 0 ? "N" : "S"

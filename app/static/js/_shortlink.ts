@@ -1,4 +1,5 @@
 import { mod } from "./_utils"
+import type { LonLatZoom } from "./leaflet/_map-utils"
 
 /** 64 chars to encode 6 bits */
 const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~"
@@ -9,7 +10,7 @@ const _ARRAY = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_~
  * shortLinkEncode(5.123, 10.456, 17)
  * // => "wF7ZdNbjU-"
  */
-export const shortLinkEncode = (lon: number, lat: number, zoom: number): string => {
+export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom): string => {
     const x = BigInt(Math.floor(mod(lon + 180, 360) * 11930464.711111112)) // (2 ** 32) / 360
     const y = BigInt(Math.floor((lat + 90) * 23860929.422222223)) // (2 ** 32) / 180
     let c = 0n

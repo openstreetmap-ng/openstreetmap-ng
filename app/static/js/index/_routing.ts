@@ -8,6 +8,7 @@ import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
 import { zoomPrecision } from "../_utils"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
+import type { LonLat } from "../leaflet/_map-utils"
 import { getMarkerIcon } from "../leaflet/_utils"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -32,8 +33,8 @@ export interface RoutingRoute {
 
 export type RoutingEngine = (
     abortSignal: AbortSignal,
-    from: { lon: number; lat: number },
-    to: { lon: number; lat: number },
+    from: LonLat,
+    to: LonLat,
     successCallback: (route: RoutingRoute) => void,
     errorCallback: (error: Error) => void,
 ) => void
@@ -295,9 +296,9 @@ export const getRoutingController = (map: L.Map): IndexController => {
         const routingEngineName = engineInput.value
         const routingEngine = routingEngines.get(routingEngineName)
         const fromLatLng = fromMarker.getLatLng()
-        const fromCoords = { lon: fromLatLng.lng, lat: fromLatLng.lat }
+        const fromCoords: LonLat = { lon: fromLatLng.lng, lat: fromLatLng.lat }
         const toLatLng = toMarker.getLatLng()
-        const toCoords = { lon: toLatLng.lng, lat: toLatLng.lat }
+        const toCoords: LonLat = { lon: toLatLng.lng, lat: toLatLng.lat }
 
         // Remember routing configuration in URL search params
         const precision = zoomPrecision(19)

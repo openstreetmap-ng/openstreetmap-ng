@@ -2,7 +2,7 @@ import * as L from "leaflet"
 import { zoomPrecision } from "./_utils"
 import { getGeolocateControl } from "./leaflet/_geolocate-control"
 import { getDefaultBaseLayer } from "./leaflet/_layers"
-import { addControlGroup } from "./leaflet/_map-utils"
+import { type LonLat, addControlGroup } from "./leaflet/_map-utils"
 import { getMarkerIcon } from "./leaflet/_utils"
 import { getZoomControl } from "./leaflet/_zoom-control"
 
@@ -31,7 +31,7 @@ if (userSettingsForm) {
 
     // Null value until the marker is initialized
     let marker: L.Marker | null = null
-    let restorePoint: { lon: string; lat: string } | null = null
+    let restorePoint: LonLat | null = null
 
     const markerFactory = (latLng: L.LatLngExpression): L.Marker =>
         L.marker(latLng, {
@@ -71,8 +71,8 @@ if (userSettingsForm) {
         map.removeLayer(marker)
         marker = null
         restorePoint = {
-            lon: lonInput.value,
-            lat: latInput.value,
+            lon: Number.parseFloat(lonInput.value),
+            lat: Number.parseFloat(latInput.value),
         }
         lonInput.value = ""
         latInput.value = ""
@@ -83,7 +83,7 @@ if (userSettingsForm) {
     // On restore click, restore coordinates and toggle buttons visibility
     const restoreButton = userSettingsForm.querySelector("button.home-restore-btn")
     restoreButton.addEventListener("click", () => {
-        onMapClick({ latlng: L.latLng(Number.parseFloat(restorePoint.lat), Number.parseFloat(restorePoint.lon)) })
+        onMapClick({ latlng: L.latLng(restorePoint.lat, restorePoint.lon) })
         restorePoint = null
         deleteButton.classList.remove("d-none")
         restoreButton.classList.add("d-none")

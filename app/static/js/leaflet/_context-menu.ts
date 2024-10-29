@@ -72,7 +72,7 @@ export const configureContextMenu = (map: L.Map): void => {
         const lon = latlng.lng.toFixed(precision)
         const lat = latlng.lat.toFixed(precision)
         geolocationField.textContent = `${lat}, ${lon}`
-        geolocationGeoField.textContent = formatCoordinate(latlng.lat, latlng.lng)
+        geolocationGeoField.textContent = formatCoordinate({ lon: latlng.lng, lat: latlng.lat })
         geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom}`
 
         // Open the context menu

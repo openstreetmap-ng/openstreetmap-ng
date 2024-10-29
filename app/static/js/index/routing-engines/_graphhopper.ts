@@ -2,6 +2,7 @@ import { decode } from "@googlemaps/polyline-codec"
 import { graphhopperApiKey } from "../../_api-keys"
 import { primaryLanguage } from "../../_config"
 import "../../_types"
+import type { LonLat } from "../../leaflet/_map-utils"
 import type { RoutingEngine, RoutingRoute, RoutingStep } from "../_routing"
 
 // GraphHopper API Documentation
@@ -11,8 +12,8 @@ import type { RoutingEngine, RoutingRoute, RoutingStep } from "../_routing"
 const makeEngine = (profile: "car" | "bike" | "foot"): RoutingEngine => {
     return (
         abortSignal: AbortSignal,
-        from: { lon: number; lat: number },
-        to: { lon: number; lat: number },
+        from: LonLat,
+        to: LonLat,
         successCallback: (route: RoutingRoute) => void,
         errorCallback: (error: Error) => void,
     ): void => {

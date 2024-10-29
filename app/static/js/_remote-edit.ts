@@ -27,7 +27,7 @@ const getObjectRequestUrl = (object: OSMObject): string => {
 }
 
 /** Get bounds from coordinates and zoom level */
-const getBoundsFromCoords = (lon: number, lat: number, zoom: number, paddingRatio = 0): Bounds => {
+const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0): Bounds => {
     // Assume the map takes up the entire screen
     const mapHeight = window.innerHeight
     const mapWidth = window.innerWidth
@@ -56,7 +56,7 @@ export const remoteEdit = (button: HTMLButtonElement): void => {
     const state: LonLatZoom = remoteEditData.state
     const object: OSMObject | undefined = remoteEditData.object
 
-    const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state.lon, state.lat, state.zoom, 0.05)
+    const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state, 0.05)
     const loadQuery: { [key: string]: string } = {
         left: minLon.toString(),
         bottom: minLat.toString(),

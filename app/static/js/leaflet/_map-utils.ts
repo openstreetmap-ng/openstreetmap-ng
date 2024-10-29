@@ -16,9 +16,12 @@ import {
     getOverlayLayerById,
 } from "./_layers"
 
-export interface LonLatZoom {
+export interface LonLat {
     lon: number
     lat: number
+}
+
+export interface LonLatZoom extends LonLat {
     zoom: number
 }
 
@@ -358,11 +361,11 @@ export const getMapUrl = (map: L.Map, showMarker = false): string => {
  * // => "https://osm.org/go/wF7ZdNbjU-"
  */
 export const getMapShortlink = (map: L.Map, showMarker = false): string => {
-    const { lon, lat, zoom, layersCode } = getMapState(map)
-    const code = shortLinkEncode(lon, lat, zoom)
+    const state = getMapState(map)
+    const code = shortLinkEncode(state)
     const params: { [key: string]: string } = {}
 
-    if (layersCode) params.layers = layersCode
+    if (state.layersCode) params.layers = state.layersCode
     if (showMarker) params.m = ""
 
     let protocol = location.protocol
