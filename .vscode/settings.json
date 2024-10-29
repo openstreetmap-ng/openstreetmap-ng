@@ -17,6 +17,7 @@
     },
     "files.exclude": {
         "**/__pycache__/": true,
+        "**/_generated/": true,
         "*.c": true,
         "*.html": true,
         "*.so": true,

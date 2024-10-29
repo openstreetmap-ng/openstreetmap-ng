@@ -2,7 +2,6 @@
     "compilerOptions": {
         "allowImportingTsExtensions": true,
         "allowJs": true,
-        //"module": "ES2015",
         "moduleDetection": "force",
         "moduleResolution": "bundler",
         "noEmit": true,
@@ -21,5 +20,12 @@
             "typed-query-selector"
         ],
         "verbatimModuleSyntax": true
-    }
+    },
+    "exclude": [
+        "app/static/js/_generated/**/*",
+        "app/static/js/bundle-*.js"
+    ],
+    "include": [
+        "app/static/js/**/*"
+    ]
 }

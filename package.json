@@ -1,12 +1,31 @@
 {
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "corejs": {
+            "version": "3.38.1"
+          },
+          "modules": false,
+          "useBuiltIns": "usage"
+        }
+      ],
+      "@babel/preset-typescript"
+    ]
+  },
   "browserslist": [
-    "partially supports bigint and partially supports es6-module and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and not dead"
+    "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
   ],
   "dependencies": {
+    "@babel/cli": "^7.25.9",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
     "@googlemaps/polyline-codec": "^1.0.28",
     "@rapideditor/rapid": "^2.4.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "core-js": "3.38.1",
     "i18next": "^23.16.4",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "leaflet": "^1.9.4",

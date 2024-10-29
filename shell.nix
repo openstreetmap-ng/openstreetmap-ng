@@ -130,20 +130,72 @@ let
 
     # -- JavaScript
     (makeScript "js-pipeline" ''
-      files=$(find app/static/js \
+      dir=app/static/js
+      generated="$dir/_generated"
+      bunx babel \
+        --extensions ".ts" \
+        --delete-dir-on-start \
+        --out-dir "$generated" \
+        "$dir"
+      files=$(find "$generated" \
         -maxdepth 1 \
         -type f \
-        -name "*.ts" \
+        -name "*.js" \
         -not -name "_*")
       # shellcheck disable=SC2086
       bun build \
         --minify \
         --sourcemap=inline \
         --entry-naming "[dir]/bundle-[name].[ext]" \
-        --outdir app/static/js \
+        --outdir "$dir" \
         $files
     '')
     (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
+    (makeScript "make-bundle" ''
+      dir=app/static/js
+      generated="$dir/_generated"
+      find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "bundle-*" \
+        -delete
+      bunx babel \
+        --extensions ".ts" \
+        --delete-dir-on-start \
+        --out-dir "$generated" \
+        "$dir"
+      files=$(find "$generated" \
+        -maxdepth 1 \
+        -type f \
+        -name "*.js" \
+        -not -name "_*")
+
+      exec 5>&1
+      # shellcheck disable=SC2086
+      output=$(
+          bun build \
+          --minify \
+          --sourcemap=linked \
+          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
+          --outdir "$dir" \
+          $files | tee >(cat - >&5))
+
+      for file in $files; do
+        file_name="''${file##*/}"
+        file_stem="''${file_name%.js}"
+        bundle_name=$(
+          grep --only-matching --extended-regexp --max-count 1 \
+          "bundle-$file_stem-\w{8}\.js" <<< "$output") || true
+
+        if [ -z "$bundle_name" ]; then
+          echo "ERROR: Failed to match bundle name for $file"
+          exit 1
+        fi
+
+        # TODO: sed replace
+        # echo "Replacing $file_name with $bundle_name"
+      done
+    '')
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
@@ -427,46 +479,6 @@ let
       version=$(date --iso-8601=seconds)
       echo "Setting application version to $version"
       sed -i -E "s|VERSION = '.*?'|VERSION = '$version'|" app/config.py
-    '')
-    (makeScript "make-bundle" ''
-      dir=app/static/js
-
-      find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "bundle-*" \
-        -delete
-
-      files=$(find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "*.ts" \
-        -not -name "_*")
-
-      for file in $files; do
-        file_name="''${file##*/}"
-        file_stem="''${file_name%.ts}"
-
-        output=$(
-          bun build \
-          --minify \
-          --sourcemap=linked \
-          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
-          --outdir "$dir" \
-          "$file" | tee /dev/stdout)
-
-        bundle_name=$(
-          grep --only-matching --extended-regexp --max-count 1 \
-          "bundle-$file_stem-[0-9a-f]{16}\.js" <<< "$output")
-
-        if [ -z "$bundle_name" ]; then
-          echo "ERROR: Failed to match bundle name for $file"
-          exit 1
-        fi
-
-        # TODO: sed replace
-        # echo "Replacing $file_name with $bundle_name"
-      done
     '')
   ];
 
