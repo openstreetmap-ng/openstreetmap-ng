@@ -5,7 +5,7 @@ from app.lib.crypto import hash_bytes
 from app.lib.date_utils import utcnow
 from app.limits import USER_TOKEN_EMAIL_CHANGE_EXPIRE
 from app.models.db.user_token_email_change import UserTokenEmailChange
-from app.models.messages_pb2 import UserTokenStruct
+from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import EmailType
 
 

@@ -9,7 +9,6 @@ from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId
 from app.models.leaflet import (
-    ElementLeaflet,
     ElementLeafletNode,
     ElementLeafletWay,
 )
@@ -22,14 +21,14 @@ class LeafletElementMixin:
         *,
         detailed: cython.char,
         areas: cython.char = True,
-    ) -> list[ElementLeaflet]:
+    ) -> list[ElementLeafletNode | ElementLeafletWay]:
         """
         Format elements into a minimal structure, suitable for Leaflet rendering.
         """
         node_id_map: dict[ElementId, Element] = {}
         way_id_map: dict[ElementId, Element] = {}
         way_nodes_ids: set[ElementId] = set()
-        result: list[ElementLeaflet] = []
+        result: list[ElementLeafletNode | ElementLeafletWay] = []
 
         for element in elements:
             if element.type == 'node':

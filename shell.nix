@@ -51,6 +51,7 @@ let
 
   packages' = with pkgs; [
     coreutils
+    findutils
     curl
     watchexec
     brotli
@@ -119,7 +120,7 @@ let
         --load-path node_modules \
         --no-source-map \
         app/static/sass:app/static/css
-      bunx postcss \
+      bun run postcss \
         app/static/css/**/*.css \
         --use autoprefixer \
         --replace \
@@ -128,19 +129,68 @@ let
     (makeScript "watch-sass" "watchexec --watch app/static/sass sass-pipeline")
 
     # -- JavaScript
+    (makeScript "node" "exec bun \"$@\"")
     (makeScript "js-pipeline" ''
-      files=$(find app/static/js \
+      if [ "$1" = "hash" ]; then
+        echo "[js-pipeline] Working in hash mode"
+        mode_hash=1
+      fi
+
+      dir=app/static/js
+      generated="$dir/_generated"
+      find "$dir" \
+        -maxdepth 1 \
+        -type f \
+        -name "bundle-*" \
+        -delete
+      bun run babel \
+        --extensions ".ts" \
+        --delete-dir-on-start \
+        --out-dir "$generated" \
+        "$dir"
+      files=$(find "$generated" \
         -maxdepth 1 \
         -type f \
         -name "*.js" \
-        -not -name "_*" \
-        -not -name "bundle-*")
+        -not -name "_*")
+
+      if [ -n "$mode_hash" ]; then
+        bun_args=(
+          --minify
+          --sourcemap=linked
+        )
+      else
+        bun_args=(
+          --minify-syntax --minify-whitespace
+          --sourcemap=inline
+        )
+      fi
+      exec 5>&1
       # shellcheck disable=SC2086
-      bun build \
-        --sourcemap=inline \
-        --entry-naming "[dir]/bundle-[name].[ext]" \
-        --outdir app/static/js \
-        $files
+      output=$(
+        bun build \
+          "''${bun_args[@]}" \
+          --entry-naming "[dir]/bundle-[name].[ext]" \
+          --outdir "$dir" \
+          $files | tee >(cat - >&5))
+
+      if [ -n "$mode_hash" ]; then
+        for file in $files; do
+          file_name="''${file##*/}"
+          file_stem="''${file_name%.js}"
+          bundle_name=$(
+            grep --only-matching --extended-regexp --max-count 1 \
+            "bundle-$file_stem-\w{8}\.js" <<< "$output") || true
+
+          if [ -z "$bundle_name" ]; then
+            echo "ERROR: Failed to match bundle name for $file"
+            exit 1
+          fi
+
+          # TODO: sed replace
+          # echo "Replacing $file_name with $bundle_name"
+        done
+      fi
     '')
     (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
 
@@ -209,12 +259,18 @@ let
     (makeScript "watch-locale" "watchexec --watch config/locale/extra_en.yaml locale-pipeline")
 
     # -- Protobuf
-    (makeScript "proto-generate" ''
+    (makeScript "proto-pipeline" ''
+      mkdir -p app/static/js/proto typings/app/models/proto
       protoc \
-        --python_out=. \
-        --pyi_out=typings \
-        app/models/*.proto
+        -I app/models/proto \
+        --plugin=node_modules/.bin/protoc-gen-es \
+        --es_out app/static/js/proto \
+        --es_opt target=ts \
+        --python_out app/models/proto \
+        --pyi_out typings/app/models/proto \
+        app/models/proto/*.proto
     '')
+    (makeScript "watch-proto" "watchexec --watch app/models/proto --exts proto proto-pipeline")
 
     # -- Supervisor
     (makeScript "dev-start" ''
@@ -402,7 +458,7 @@ let
       ruff check . --fix
       python -m pre_commit run -c ${preCommitConf} --all-files
     '')
-    (makeScript "pyright" "bun run pyright")
+    (makeScript "pyright" "bunx pyright")
     (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
     (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
     (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
@@ -426,50 +482,6 @@ let
       version=$(date --iso-8601=seconds)
       echo "Setting application version to $version"
       sed -i -E "s|VERSION = '.*?'|VERSION = '$version'|" app/config.py
-    '')
-    (makeScript "make-bundle" ''
-      dir=app/static/js
-
-      find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "bundle-*" \
-        -delete
-
-      bunx babel \
-        --verbose \
-        --keep-file-extension \
-        --out-dir "$dir" \
-        "$dir"
-
-      files=$(find "$dir" \
-        -maxdepth 1 \
-        -type f \
-        -name "*.js" \
-        -not -name "_*")
-      for file in $files; do
-        file_name="''${file##*/}"
-        file_stem="''${file_name%.js}"
-
-        output=$(
-          bun build --minify \
-          --sourcemap=linked \
-          --entry-naming "[dir]/bundle-[name]-[hash].[ext]" \
-          --outdir "$dir" \
-          "$file" | tee /dev/stdout)
-
-        bundle_name=$(
-          grep --only-matching --extended-regexp --max-count 1 \
-          "bundle-$file_stem-[0-9a-f]{16}\.js" <<< "$output")
-
-        if [ -z "$bundle_name" ]; then
-          echo "ERROR: Failed to match bundle name for $file"
-          exit 1
-        fi
-
-        # TODO: sed replace
-        # echo "Replacing $file_name with $bundle_name"
-      done
     '')
   ];
 
@@ -521,8 +533,8 @@ let
       echo "Skipped loading .env file (not found)"
     fi
 
-    echo "Running [proto-generate]"
-    proto-generate &
+    echo "Running [proto-pipeline]"
+    proto-pipeline &
     echo "Running [locale-pipeline]"
     locale-pipeline &
     echo "Running [static-img-pipeline]"

@@ -47,17 +47,15 @@ def _encode_gpx_file(trace: Trace) -> dict:
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}
     """
-    trace_coords = trace.coords
-    if trace_coords is None:
-        raise AssertionError('Trace coords must be set')
+    x, y = trace.coords[0].tolist()
     return {
         '@id': trace.id,
         '@uid': trace.user_id,
         '@user': trace.user.display_name,
         '@timestamp': trace.created_at,
         '@name': trace.name,
-        '@lon': trace_coords[0],
-        '@lat': trace_coords[1],
+        '@lon': x,
+        '@lat': y,
         '@visibility': trace.visibility,
         '@pending': False,
         'description': trace.description,

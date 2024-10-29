@@ -1,5 +1,4 @@
 import contextlib
-import logging
 import os
 from hashlib import sha256
 from itertools import chain
@@ -7,7 +6,6 @@ from logging.config import dictConfig
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from app.lib.bun_packages import bun_packages
 from app.lib.local_chapters import LOCAL_CHAPTERS
 
 VERSION = 'dev'
@@ -140,9 +138,3 @@ SECRET_32b = sha256(SECRET.encode()).digest()
 
 SMTP_NOREPLY_FROM_HOST = SMTP_NOREPLY_FROM.rpartition('@')[2] if SMTP_NOREPLY_FROM else None
 SMTP_MESSAGES_FROM_HOST = SMTP_MESSAGES_FROM.rpartition('@')[2] if SMTP_MESSAGES_FROM else None
-
-_bun_packages = bun_packages(FILE_CACHE_DIR)
-ID_VERSION = _bun_packages['iD'].rpartition('#')[2]
-RAPID_VERSION = _bun_packages['@rapideditor/rapid']
-logging.info('Packages versions: iD=%s, Rapid=%s', ID_VERSION, RAPID_VERSION)
-del _bun_packages

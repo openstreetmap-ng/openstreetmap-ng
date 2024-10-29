@@ -8,22 +8,23 @@ dependencies = [
   "arrow",
   "beautifulsoup4[charset-normalizer,lxml]",
   "brotli",
-  "certifi",
   "cython",
   "dnspython",
   "email-validator",
-  "fastapi",
+  "fastapi>=0",
   "feedgen",
+  "httpx",
   "jinja2",
-  "lrucache-rs",
+  "lrucache-rs>=1.0.0",
   "lxml",
   "markdown-it-py[linkify,plugins]",
   "msgspec",
   "nh3",
   "numpy",
   "opencv-python-headless",
-  "osm-shortlink",
+  "osm-shortlink>=1.0.0",
   "phonenumbers",
+  "polyline-rs>=1.0.0",
   "protobuf==5.28.2",
   "pycryptodomex",
   "pydantic",
@@ -39,14 +40,14 @@ dependencies = [
   "scikit-learn",
   "setuptools",
   "shapely",
-  "sizestr",
+  "sizestr>=1.0.0",
   "sqlalchemy[postgresql-asyncpg]",
   "starlette-compress",
   "supervisor",
   "tqdm",
   "uvicorn[standard]",
   "uvloop",
-  "zid",
+  "zid>=1.0.0",
   "zstandard",
 ]
 name = "openstreetmap-ng"
@@ -59,7 +60,6 @@ dev-dependencies = [
   "cairosvg",
   "click",
   "coverage",
-  "httpx",
   "lxml-stubs",
   "polars[numpy]",
   "pre-commit",
@@ -68,7 +68,7 @@ dev-dependencies = [
   "types-aioboto3[s3]",
   "types-protobuf",
 ]
-package = false
+package = true
 python-downloads = "never"
 python-preference = "only-system"
 
@@ -87,7 +87,7 @@ exclude = [
   ".venv",
   ".vscode",
   "app/alembic/versions",
-  "app/models/*_pb2.py",
+  "app/models/proto",
   "build",
   "dist",
   "node_modules",
@@ -211,9 +211,8 @@ disableBytesTypePromotions = true
 exclude = [
   "**/.*",
   "**/__pycache__",
-  "/nix/store/**",
   "app/alembic/versions",
-  "app/models/*_pb2.py",
+  "app/models/proto/**/*_pb2.py",
   "node_modules",
 ]
 include = ["app", "scripts", "tests"]

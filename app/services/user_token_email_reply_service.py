@@ -10,7 +10,7 @@ from app.limits import USER_TOKEN_EMAIL_REPLY_EXPIRE
 from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token_email_reply import UserTokenEmailReply
-from app.models.messages_pb2 import UserTokenStruct
+from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import EmailType
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService

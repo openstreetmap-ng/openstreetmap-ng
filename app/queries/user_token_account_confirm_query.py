@@ -7,7 +7,7 @@ from app.db import db
 from app.lib.crypto import hash_bytes
 from app.lib.options_context import apply_options_context
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
-from app.models.messages_pb2 import UserTokenStruct
+from app.models.proto.server_pb2 import UserTokenStruct
 
 
 class UserTokenAccountConfirmQuery:

@@ -1,12 +1,12 @@
 {
-    "[javascript]": {
-        "editor.defaultFormatter": "biomejs.biome"
-    },
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "[scss]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
     },
     "coverage-gutters.ignoredPathGlobs": "**/{node_modules,venv,.venv,vendor,data}/**",
     "editor.rulers": [
@@ -17,6 +17,7 @@
     },
     "files.exclude": {
         "**/__pycache__/": true,
+        "**/_generated/": true,
         "*.c": true,
         "*.html": true,
         "*.so": true,
@@ -47,9 +48,14 @@
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.packageIndexDepths": [
         {
-            "depth": 5,
+            "depth": 8,
             "includeAllSymbols": true,
             "name": "app"
+        },
+        {
+            "depth": 8,
+            "includeAllSymbols": true,
+            "name": "typings"
         },
         {
             "depth": 2,
@@ -60,5 +66,7 @@
     "python.experiments.enabled": false,
     "python.terminal.activateEnvironment": false,
     "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false
+    "python.testing.unittestEnabled": false,
+    "typescript.disableAutomaticTypeAcquisition": true,
+    "typescript.surveys.enabled": false
 }

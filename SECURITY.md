@@ -3,7 +3,7 @@
 ## Supported Versions
 
 This project follows a rolling release model.
-We only address security issues affecting the latest git commit of the [main branch](https://github.com/Zaczero/openstreetmap-ng/tree/main).
+We only address security issues affecting the latest git commit of the [main branch](https://github.com/openstreetmap-ng/openstreetmap-ng/tree/main).
 
 ## Reporting a Vulnerability
 
@@ -16,5 +16,5 @@ Your disclosure helps protect the OpenStreetMap community. Thank you!
 
 To report a vulnerability, you can either use GitHub's builtin private vulnerability reporting feature or contact the maintainers directly.
 
-- [Private vulnerability reporting](https://github.com/Zaczero/openstreetmap-ng/security/advisories)
+- [Private vulnerability reporting](https://github.com/openstreetmap-ng/openstreetmap-ng/security/advisories)
 - Kamil Monicz (Zaczero) — [Contact maintainer](https://monicz.dev/#get-in-touch)

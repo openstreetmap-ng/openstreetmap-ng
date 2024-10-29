@@ -1,7 +1,9 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
+import numpy as np
 from fastapi import APIRouter, Path, Query
+from polyline_rs import encode_lonlat
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
@@ -62,7 +64,7 @@ async def _get_traces_data(
 
     if traces:
         async with TaskGroup() as tg:
-            tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100))
+            tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=120))
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
         new_after = new_after_t.result()
@@ -76,7 +78,10 @@ async def _get_traces_data(
     if tag is not None:
         base_url += f'/tag/{tag}'
 
-    traces_coords = json_encodes(tuple(trace.coords for trace in traces))
+    traces_lines_lens = tuple(len(trace.coords) for trace in traces)
+    traces_line_arr = np.concatenate(tuple(trace.coords for trace in traces), axis=0, dtype=np.byte)
+    traces_line_arr[:, 1] -= 60
+    traces_line = encode_lonlat(traces_line_arr.tolist(), 0)
 
     if user is None:
         active_tab = 0  # viewing public traces
@@ -96,7 +101,8 @@ async def _get_traces_data(
         'new_after': new_after,
         'new_before': new_before,
         'traces': traces,
-        'traces_coords': traces_coords,
+        'traces_lines_lens': json_encodes(traces_lines_lens),
+        'traces_line': traces_line,
     }
 
 

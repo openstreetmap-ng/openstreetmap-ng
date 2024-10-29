@@ -209,7 +209,7 @@ class TraceSegmentQuery:
             coords = lib.get_coordinates(np.asarray(geom, dtype=object), False, False)
             if resolution is not None:
                 if len(coords) < 2:
-                    trace.coords = []
+                    trace.coords = np.empty((0,), dtype=np.uint)
                     continue
-                coords = mercator(coords, resolution, resolution).astype(int)
-            trace.coords = coords.flatten().tolist()
+                coords = mercator(coords, resolution, resolution).astype(np.uint)
+            trace.coords = coords

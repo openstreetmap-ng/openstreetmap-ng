@@ -3,7 +3,7 @@ from base64 import urlsafe_b64decode, urlsafe_b64encode
 from google.protobuf.message import DecodeError
 
 from app.lib.exceptions_context import raise_for
-from app.models.messages_pb2 import UserTokenStruct
+from app.models.proto.server_pb2 import UserTokenStruct
 
 
 class UserTokenStructUtils:

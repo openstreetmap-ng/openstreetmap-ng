@@ -5,6 +5,7 @@ from typing import Annotated
 import numpy as np
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Path, Request
+from polyline_rs import encode_lonlat
 from pydantic import PositiveInt
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -100,8 +101,11 @@ async def index(
         sort='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
-    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=100)
-    traces_coords = json_encodes(tuple(trace.coords for trace in traces))
+    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=120)
+    traces_lines_lens = tuple(len(trace.coords) for trace in traces)
+    traces_line_arr = np.concatenate(tuple(trace.coords for trace in traces), axis=0, dtype=np.byte)
+    traces_line_arr[:, 1] -= 60
+    traces_line = encode_lonlat(traces_line_arr.tolist(), 0)
 
     # TODO: diaries
     diaries_count = 0
@@ -127,7 +131,8 @@ async def index(
             'notes': notes,
             'traces_count': traces_count,
             'traces': traces,
-            'traces_coords': traces_coords,
+            'traces_lines_lens': json_encodes(traces_lines_lens),
+            'traces_line': traces_line,
             'diaries_count': diaries_count,
             'diaries': diaries,
             'groups_count': groups_count,

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// Generic coordinate structure
+message LonLat {
+    float lon = 1;
+    float lat = 2;
+}
+
+// Shared user configuration
+message WebUserConfig {
+    bool activity_tracking = 1;
+    bool crash_reporting = 2;
+    optional LonLat home_point = 3;
+}
+
+// Shared website configuration
+message WebConfig {
+    string api_url = 1;
+    float map_query_area_max_size = 2;
+    float note_query_area_max_size = 3;
+    optional WebUserConfig user_config = 4;
+}

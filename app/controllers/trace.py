@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Response
+from polyline_rs import encode_lonlat
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 from starlette import status
@@ -14,7 +15,6 @@ from app.models.db.trace_ import Trace
 from app.models.db.user import User
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
-from app.utils import json_encodes
 
 # TODO: legacy traces url: user profiles
 router = APIRouter(prefix='/trace')
@@ -30,8 +30,8 @@ async def details(trace_id: PositiveInt):
     with options_context(joinedload(Trace.user)):
         trace = await TraceQuery.get_one_by_id(trace_id)
     await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
-    trace_coords = json_encodes(trace.coords)
-    return await render_response('traces/details.jinja2', {'trace': trace, 'trace_coords': trace_coords})
+    trace_line = encode_lonlat(trace.coords.tolist(), 6)
+    return await render_response('traces/details.jinja2', {'trace': trace, 'trace_line': trace_line})
 
 
 @router.get('/{trace_id:int}/edit')
@@ -42,8 +42,8 @@ async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)
     await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
-    trace_coords = json_encodes(trace.coords)
-    return await render_response('traces/edit.jinja2', {'trace': trace, 'trace_coords': trace_coords})
+    trace_line = encode_lonlat(trace.coords.tolist(), 6)
+    return await render_response('traces/edit.jinja2', {'trace': trace, 'trace_line': trace_line})
 
 
 @router.get('/{trace_id:int}/data{suffix:path}')

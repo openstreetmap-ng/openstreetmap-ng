@@ -12,7 +12,7 @@ from sizestr import sizestr
 from app.config import FILE_CACHE_DIR, FILE_CACHE_SIZE_GB
 from app.lib.buffered_random import buffered_randbytes
 from app.lib.crypto import hash_hex
-from app.models.messages_pb2 import FileCacheMeta
+from app.models.proto.server_pb2 import FileCacheMeta
 
 
 class _CleanupInfo(NamedTuple):

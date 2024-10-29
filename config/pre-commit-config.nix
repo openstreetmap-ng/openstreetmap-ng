@@ -22,7 +22,7 @@ pkgs.writeText "pre-commit-config.yaml" ''
           name: biome
           entry: ${pkgs.biome}/bin/biome format --write --files-ignore-unknown=true --no-errors-on-unmatched
           language: system
-          types_or: [javascript]
+          types_or: [ts, javascript]
           require_serial: true
 
         - id: nixpkgs-fmt

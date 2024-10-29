@@ -441,12 +441,12 @@ app/**/*.c
 app/**/*.html
 !app/static/**/*.html
 app/static/css
-app/static/img/element/_generated
 app/static/js/bundle-*
-app/models/*_pb2.py
-typings/app/models/*_pb2.pyi
+app/static/js/proto/**/*_pb.ts
+app/models/proto/**/*_pb2.py
+typings/app/models/proto/**/*_pb2.pyi
 
-# Temporary directories
+_generated
 temp
 tmp
 

@@ -17,11 +17,10 @@ from starlette_compress import CompressMiddleware
 import app.lib.cython_detect  # DO NOT REMOVE  # noqa: F401
 from app.config import (
     GC_LOG,
-    ID_VERSION,
     NAME,
-    RAPID_VERSION,
     TEST_ENV,
 )
+from app.lib.bun_packages import ID_VERSION, RAPID_VERSION
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.limits import (
     COMPRESS_HTTP_BROTLI_QUALITY,

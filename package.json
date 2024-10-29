@@ -1,16 +1,33 @@
 {
-  "name": "openstreetmap-ng",
-  "private": true,
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "corejs": {
+            "version": "3.38.1"
+          },
+          "modules": false,
+          "useBuiltIns": "usage"
+        }
+      ],
+      "@babel/preset-typescript"
+    ]
+  },
+  "browserslist": [
+    "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
+  ],
   "dependencies": {
     "@babel/cli": "^7.25.9",
-    "@babel/core": "^7.25.9",
-    "@babel/preset-env": "^7.25.9",
-    "@googlemaps/polyline-codec": "^1.0.28",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@bufbuild/protobuf": "^2.2.1",
+    "@mapbox/polyline": "^1.2.1",
     "@rapideditor/rapid": "^2.4.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "core-js": "3.38.1",
-    "i18next": "^23.16.3",
+    "i18next": "^23.16.4",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "leaflet": "^1.9.4",
     "leaflet-ant-path": "^1.3.0",
@@ -18,36 +35,24 @@
     "osm-community-index": "^5.8.1"
   },
   "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^2.2.1",
     "@types/bootstrap": "^5.2.10",
     "@types/leaflet": "^1.9.14",
+    "@types/leaflet.locatecontrol": "^0.74.6",
+    "@types/mapbox__polyline": "^1.0.5",
     "autoprefixer": "^10.4.20",
     "bun-types": "^1.1.33",
     "i18next-conv": "^15.0.0",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.3.3",
-    "pyright": "^1.1.386"
+    "typed-query-selector": "^2.12.0"
   },
-  "trustedDependencies": [],
-  "babel": {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "modules": false,
-          "useBuiltIns": "usage",
-          "corejs": {
-            "version": "3.38.1"
-          }
-        }
-      ]
-    ]
-  },
-  "browserslist": [
-    "partially supports bigint and partially supports es6-module and partially supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
-  ],
+  "name": "openstreetmap-ng",
   "prettier": {
     "printWidth": 120,
     "semi": false,
     "tabWidth": 4
-  }
+  },
+  "private": true,
+  "trustedDependencies": []
 }

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+// Cursor for tracking the fetch progress from the API
+message Cursor {
+    int64 id = 1;
+    optional int64 timestamp = 2;
+}
+
+// Binary data wrapped in extra metadata for file caching
+message FileCacheMeta {
+    bytes data = 1;
+    optional int64 expires_at = 2;
+}
+
+// Struct extending the token with a unique id for efficient lookup
+message UserTokenStruct {
+    int64 id = 1;
+    bytes token = 2;
+}

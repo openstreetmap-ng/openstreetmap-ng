@@ -2,14 +2,14 @@ import logging
 from typing import Any
 
 import cython
-from aiohttp import ClientTimeout
+from httpx import Timeout
 from shapely import Point, get_coordinates
 
 from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.db.element import Element
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import JSON_DECODE, http_post
+from app.utils import HTTP, JSON_DECODE
 
 _cache_context = CacheContext('Overpass')
 
@@ -37,13 +37,13 @@ class OverpassQuery:
 
         async def factory() -> bytes:
             logging.debug('Querying Overpass for enclosing elements at %r', point)
-            async with http_post(
+            r = await HTTP.post(
                 OVERPASS_INTERPRETER_URL,
                 data={'data': query},
-                timeout=ClientTimeout(total=timeout * 2),
-                raise_for_status=True,
-            ) as r:
-                return await r.read()
+                timeout=Timeout(timeout * 2),
+            )
+            r.raise_for_status()
+            return r.content
 
         cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
         elements: list[dict[str, Any]] = JSON_DECODE(cache.value)['elements']  # pyright: ignore[reportInvalidTypeForm]

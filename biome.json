@@ -3,7 +3,9 @@
   "formatter": {
     "enabled": true,
     "ignore": [
-      "app/static/js/bundle-*.js"
+      "app/static/js/_generated/**/*",
+      "app/static/js/bundle-*",
+      "app/static/js/proto"
     ],
     "indentStyle": "space",
     "indentWidth": 4,
@@ -36,6 +38,7 @@
         "noParameterAssign": "off",
         "noParameterProperties": "error",
         "useCollapsedElseIf": "warn",
+        "useConsistentArrayType": "warn",
         "useConsistentBuiltinInstantiation": "warn",
         "useForOf": "warn",
         "useNamingConvention": {
@@ -49,6 +52,8 @@
         "useThrowOnlyError": "warn"
       },
       "suspicious": {
+        "noEvolvingTypes": "info",
+        "noExplicitAny": "off",
         "useAwait": "warn"
       }
     }

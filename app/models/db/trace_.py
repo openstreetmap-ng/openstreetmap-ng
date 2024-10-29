@@ -1,6 +1,8 @@
 from collections.abc import Collection, Container
 from typing import Literal, get_args
 
+import numpy as np
+from numpy.typing import NDArray
 from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode, true
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -39,7 +41,7 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # runtime
-    coords: list[int | float] | None = None
+    coords: NDArray[np.number] = None  # pyright: ignore[reportAssignmentType]
 
     @validates('tags')
     def validate_tags(self, _: str, value: Collection[str]):

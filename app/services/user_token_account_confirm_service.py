@@ -9,7 +9,7 @@ from app.lib.exceptions_context import raise_for
 from app.limits import USER_TOKEN_ACCOUNT_CONFIRM_EXPIRE
 from app.models.db.user import User, UserStatus
 from app.models.db.user_token_account_confirm import UserTokenAccountConfirm
-from app.models.messages_pb2 import UserTokenStruct
+from app.models.proto.server_pb2 import UserTokenStruct
 from app.queries.user_token_account_confirm_query import UserTokenAccountConfirmQuery
 
 
