@@ -14,6 +14,26 @@ message SharedBounds {
     float max_lat = 4;
 }
 
+// Node rendering structure
+message RenderNode {
+    uint64 id = 1;
+    SharedLonLat point = 2;
+}
+
+// Way rendering structure
+message RenderWay {
+    uint64 id = 1;
+    string line = 2;
+    bool area = 3;
+}
+
+// Object rendering structure
+message RenderObjectsData {
+    repeated RenderNode nodes = 1;
+    repeated RenderWay ways = 2;
+}
+
+
 // Shared user configuration
 message WebUserConfig {
     bool activity_tracking = 1;
@@ -77,21 +97,9 @@ message PartialNoteParams {
     bool open = 3;
 }
 
-// Node rendering structure
-message RenderNode {
-    uint64 id = 1;
-    SharedLonLat point = 2;
-}
-
-// Way rendering structure
-message RenderWay {
-    uint64 id = 1;
-    string line = 2;
-    bool area = 3;
-}
-
-// Object rendering structure
-message RenderObjectsData {
-    repeated RenderNode nodes = 1;
-    repeated RenderWay ways = 2;
+// Partial search response params
+message PartialSearchParams {
+    optional string bounds_str = 1;
+    repeated RenderObjectsData renders = 2;
+    bool where_is_this = 3;
 }

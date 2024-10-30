@@ -1,13 +1,17 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
-import type { Bounds, OSMNode, OSMWay } from "../_types"
+import type { Bounds } from "../_types"
 import { isLongitude, zoomPrecision } from "../_utils"
 import { type FocusOptions, focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { getMapAlert } from "../leaflet/_map-utils"
+import { convertRenderObjectsData } from "../leaflet/_render-objects"
 import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils"
+import { PartialSearchParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
@@ -78,22 +82,23 @@ export const getSearchController = (map: L.Map): IndexController => {
     const base = getBaseFetchController(map, "search", (sidebarContent) => {
         const sidebar = sidebarContent.closest(".sidebar")
         const searchList = sidebarContent.querySelector("ul.search-list")
-        const dataset = searchList.dataset
-        const boundsStr = dataset.bounds
-        const groupedElements: (OSMNode | OSMWay)[][] = JSON.parse(dataset.leaflet)
         const results = searchList.querySelectorAll("li.social-action")
-        const layers: L.Layer[] = []
 
-        const globalMode = !boundsStr
-        whereIsThisMode = dataset.whereIsThis === "True"
+        const params = fromBinary(PartialSearchParamsSchema, base64Decode(searchList.dataset.params))
+        const globalMode = !params.boundsStr
+        whereIsThisMode = params.whereIsThis
 
+        const layers: L.Marker[] = []
         for (let i = 0; i < results.length; i++) {
-            const elements = groupedElements[i]
+            const elements = convertRenderObjectsData(params.renders[i])
             const div = results[i]
-            const dataset = div.dataset
 
+            const dataset = div.dataset
+            const type = dataset.type
+            const id = dataset.id
             const lon = Number.parseFloat(dataset.lon)
             const lat = Number.parseFloat(dataset.lat)
+
             const marker = isLongitude(lon)
                 ? L.marker(L.latLng(lat, lon), {
                       icon: getMarkerIcon("red", true),
@@ -133,8 +138,6 @@ export const getSearchController = (map: L.Map): IndexController => {
 
                 // On marker click, navigate to the element
                 marker.addEventListener("click", (e) => {
-                    const type = dataset.type
-                    const id = dataset.id
                     const url = `/${type}/${id}`
                     if (e.originalEvent.ctrlKey) {
                         window.open(url, "_blank")
@@ -153,7 +156,8 @@ export const getSearchController = (map: L.Map): IndexController => {
         if (globalMode) {
             // global mode
             if (results.length) {
-                focusManyMapObjects(map, groupedElements[0], focusOptions)
+                const elements = convertRenderObjectsData(params.renders[0])
+                focusManyMapObjects(map, elements, focusOptions)
                 focusMapObject(map, null)
             }
             initialBounds = map.getBounds()
@@ -163,9 +167,9 @@ export const getSearchController = (map: L.Map): IndexController => {
             initialBounds = null // will be set after flyToBounds animation
             map.addEventListener("zoomend moveend", onMapZoomOrMoveEnd)
 
-            const bounds = boundsStr.split(",").map(Number.parseFloat) as Bounds
+            console.debug("Search focusing on", params.boundsStr)
+            const bounds = params.boundsStr.split(",").map(Number.parseFloat) as Bounds
             map.flyToBounds(L.latLngBounds(L.latLng(bounds[1], bounds[0]), L.latLng(bounds[3], bounds[2])))
-            console.debug("Search focusing on", boundsStr)
         }
     })
 
@@ -184,11 +188,12 @@ export const getSearchController = (map: L.Map): IndexController => {
                 map.fire("overlayadd", { layer: searchLayer, name: searchLayerId })
             }
 
-            const searchParams = qsParse(location.search.substring(1))
+            const searchParams = qsParse(window.location.search.substring(1))
             const query = searchParams.q || searchParams.query || ""
             const lon = options?.lon ?? searchParams.lon
             const lat = options?.lat ?? searchParams.lat
 
+            console.log(query, lon, lat, options, searchParams)
             if (!query && lon && lat) {
                 document.title = getPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)

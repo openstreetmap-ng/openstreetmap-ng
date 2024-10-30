@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from base64 import urlsafe_b64encode
 from collections.abc import Collection
 from itertools import chain
 from typing import Annotated
@@ -18,10 +19,10 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
+from app.models.proto.shared_pb2 import PartialSearchParams, RenderNode, RenderObjectsData, SharedLonLat
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
-from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial')
 
@@ -70,7 +71,7 @@ async def get_where_is_this(
     results = (result,) if (result is not None) else ()
     return await _get_response(
         at_sequence_id=None,
-        bounds='',
+        bounds=None,
         results=results,
         where_is_this=True,
     )
@@ -79,7 +80,7 @@ async def get_where_is_this(
 async def _get_response(
     *,
     at_sequence_id: int | None,
-    bounds: str,
+    bounds: str | None,
     results: Collection[SearchResult],
     where_is_this: bool,
 ):
@@ -101,9 +102,8 @@ async def _get_response(
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
-    # prepare data for leaflet rendering
-    leaflet: list[list[ElementLeafletNode | ElementLeafletWay]] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
-
+    # prepare data for rendering
+    renders: list[RenderObjectsData] = [None] * len(results)  # pyright: ignore[reportAssignmentType]
     i: cython.int
     for i, result in enumerate(results):
         element = result.element
@@ -119,21 +119,24 @@ async def _get_response(
             ),
         )
 
-        leaflet_elements = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
+        render = FormatLeaflet.encode_elements(full_data, detailed=False, areas=False)
 
         # ensure there is always a node, it's nice visually
-        if not any(leaflet_element.type == 'node' for leaflet_element in leaflet_elements):
+        if not render.nodes:
             x, y = lib.get_coordinates(np.asarray(result.point, dtype=object), False, False)[0].tolist()
-            leaflet_elements.append(ElementLeafletNode('node', 0, [y, x]))
+            render.nodes.append(RenderNode(id=0, point=SharedLonLat(lon=x, lat=y)))
 
-        leaflet[i] = leaflet_elements
+        renders[i] = render
 
+    params = PartialSearchParams(
+        bounds_str=bounds,
+        renders=renders,
+        where_is_this=where_is_this,
+    )
     return await render_response(
         'partial/search.jinja2',
         {
-            'bounds': bounds,
             'results': results,
-            'leaflet': json_encodes(leaflet),
-            'where_is_this': where_is_this,
+            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
         },
     )

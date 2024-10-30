@@ -35,7 +35,7 @@ class Search:
         *,
         local_only: bool = False,
         local_max_iterations: int | None = None,
-    ) -> list[tuple[str, Polygon | MultiPolygon | None]]:
+    ) -> list[tuple[str | None, Polygon | MultiPolygon | None]]:
         """
         Get search bounds from a bbox string.
 
@@ -78,7 +78,7 @@ class Search:
 
         if not local_only:
             # append global search bounds
-            result.append(('', None))
+            result.append((None, None))
         return result
 
     @staticmethod

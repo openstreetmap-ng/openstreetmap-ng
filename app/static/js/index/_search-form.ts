@@ -10,14 +10,15 @@ const searchQueryInput = searchForm ? (searchForm.elements.namedItem("q") as HTM
 export const configureSearchForm = (map: L.Map): void => {
     // On search form submit, capture and perform router navigation
     searchForm.addEventListener("submit", (e) => {
+        console.debug("onSearchFormSubmit")
         e.preventDefault()
         const query = searchQueryInput.value
         if (query) routerNavigateStrict(`/search?${qsEncode({ q: query })}`)
     })
 
     const whereIsThisButton = searchForm.querySelector("button.where-is-this")
-    whereIsThisButton.addEventListener("click", (e) => {
-        e.preventDefault()
+    whereIsThisButton.addEventListener("click", () => {
+        console.debug("onWhereIsThisButtonClick")
         const zoom = map.getZoom()
         const precision = zoomPrecision(zoom)
         const latLng = map.getCenter()
