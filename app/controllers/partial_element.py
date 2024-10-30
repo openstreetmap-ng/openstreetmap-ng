@@ -25,7 +25,6 @@ from app.models.proto.shared_pb2 import PartialElementParams
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
-from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial')
 
@@ -224,12 +223,13 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     icon = features_icons((element,))[0]
     name = features_names((element,))[0]
     tags_map = tags_format(element.tags)
-    leaflet = FormatLeaflet.encode_elements(full_data, detailed=False)
+    render_data = FormatLeaflet.encode_elements(full_data, detailed=False)
 
     param = PartialElementParams(
         type=element.type,
         members=element_members,
         parents=element_parents,
+        render=render_data,
     )
     return {
         'element': element,
@@ -243,5 +243,4 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'show_elements': bool(element_members),
         'show_parents': bool(element_parents),
         'params': urlsafe_b64encode(param.SerializeToString()).decode(),
-        'leaflet': json_encodes(leaflet),
     }

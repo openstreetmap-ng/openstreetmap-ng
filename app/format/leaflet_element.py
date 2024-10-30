@@ -3,15 +3,13 @@ from collections.abc import Iterable, Sequence
 
 import cython
 import numpy as np
+from polyline_rs import encode_lonlat
 from shapely import Point, lib
 
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId
-from app.models.leaflet import (
-    ElementLeafletNode,
-    ElementLeafletWay,
-)
+from app.models.proto.shared_pb2 import RenderNode, RenderObjectsData, RenderWay, SharedLonLat
 
 
 class LeafletElementMixin:
@@ -21,14 +19,13 @@ class LeafletElementMixin:
         *,
         detailed: cython.char,
         areas: cython.char = True,
-    ) -> list[ElementLeafletNode | ElementLeafletWay]:
+    ) -> RenderObjectsData:
         """
         Format elements into a minimal structure, suitable for Leaflet rendering.
         """
         node_id_map: dict[ElementId, Element] = {}
         way_id_map: dict[ElementId, Element] = {}
         way_nodes_ids: set[ElementId] = set()
-        result: list[ElementLeafletNode | ElementLeafletWay] = []
 
         for element in elements:
             if element.type == 'node':
@@ -36,6 +33,7 @@ class LeafletElementMixin:
             elif element.type == 'way':
                 way_id_map[element.id] = element
 
+        render_ways: list[RenderWay] = []
         for way_id, way in way_id_map.items():
             way_members = way.members
             if way_members is None:
@@ -71,18 +69,26 @@ class LeafletElementMixin:
             for segment in segments:
                 if not segment:
                     continue
-                geom = np.fliplr(lib.get_coordinates(np.asarray(segment, dtype=object), False, False)).tolist()
-                result.append(ElementLeafletWay('way', way_id, geom, is_area))
+                geom = lib.get_coordinates(np.asarray(segment, dtype=object), False, False).tolist()
+                line = encode_lonlat(geom, 6)
+                render_ways.append(RenderWay(id=way_id, line=line, area=is_area))
 
         encode_nodes = tuple(
             node
             for node in node_id_map.values()
-            if _is_node_interesting(node, way_nodes_ids, detailed=detailed) and node.point is not None
+            if _is_node_interesting(node, way_nodes_ids, detailed=detailed)  #
+            and node.point is not None
         )
         encode_points = tuple(node.point for node in encode_nodes)
-        geoms = np.fliplr(lib.get_coordinates(np.asarray(encode_points, dtype=object), False, False)).tolist()
-        result.extend(ElementLeafletNode('node', node.id, geom) for node, geom in zip(encode_nodes, geoms, strict=True))
-        return result
+        geoms = lib.get_coordinates(np.asarray(encode_points, dtype=object), False, False).tolist()
+        render_nodes = tuple(
+            RenderNode(id=node.id, point=SharedLonLat(lon=geom[0], lat=geom[1]))
+            for node, geom in zip(encode_nodes, geoms, strict=True)
+        )
+        return RenderObjectsData(
+            nodes=render_nodes,
+            ways=render_ways,
+        )
 
 
 @cython.cfunc

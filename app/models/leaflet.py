@@ -2,22 +2,6 @@ from collections.abc import Collection
 
 import msgspec
 
-from app.models.element import ElementType
-
-
-class ElementLeaflet(msgspec.Struct):
-    type: ElementType
-    id: int
-
-
-class ElementLeafletNode(ElementLeaflet):
-    geom: Collection[float]  # [lat, lon]
-
-
-class ElementLeafletWay(ElementLeaflet):
-    geom: Collection[Collection[float]]  # [[lat, lon], ...]
-    area: bool
-
 
 class ChangesetLeaflet(msgspec.Struct):
     id: int

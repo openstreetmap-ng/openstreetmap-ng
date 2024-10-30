@@ -1,6 +1,6 @@
 export interface OSMNode {
     type: "node"
-    id: number
+    id: bigint
     /** [lat, lon] */
     geom: [number, number]
     version?: number
@@ -8,7 +8,7 @@ export interface OSMNode {
 
 export interface OSMWay {
     type: "way"
-    id: number
+    id: bigint
     /** [[lat, lon], ...] */
     geom: [number, number][]
     version?: number
@@ -17,7 +17,7 @@ export interface OSMWay {
 
 export interface OSMRelation {
     type: "relation"
-    id: number
+    id: bigint
     version?: number
 }
 

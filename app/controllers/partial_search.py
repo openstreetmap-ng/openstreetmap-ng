@@ -18,7 +18,6 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
-from app.models.leaflet import ElementLeafletNode, ElementLeafletWay
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery

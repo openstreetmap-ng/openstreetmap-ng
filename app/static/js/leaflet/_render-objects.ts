@@ -1,6 +1,8 @@
 import * as L from "leaflet"
 
+import { decode } from "@mapbox/polyline"
 import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "../_types"
+import type { RenderObjectsData } from "../proto/shared_pb"
 import { getMarkerIcon } from "./_utils"
 
 export interface RenderStyles {
@@ -102,4 +104,24 @@ export const renderObjects = (
     }
 
     return layers
+}
+
+/** Convert render data to OSMObjects */
+export const convertRenderObjectsData = (render: RenderObjectsData): (OSMNode | OSMWay)[] => {
+    const result: (OSMNode | OSMWay)[] = []
+    for (const way of render.ways) {
+        result.push({
+            type: "way",
+            id: way.id,
+            geom: decode(way.line, 6),
+        })
+    }
+    for (const node of render.nodes) {
+        result.push({
+            type: "node",
+            id: node.id,
+            geom: [node.point.lat, node.point.lon],
+        })
+    }
+    return result
 }

@@ -3,9 +3,9 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { getPageTitle } from "../_title"
-import type { OSMNode, OSMWay } from "../_types"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { type ElementMemberListEntry, PartialElementParamsSchema } from "../proto/shared_pb"
+import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { type ElementMemberListEntry, type PartialElementParams, PartialElementParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
@@ -26,7 +26,8 @@ export const getElementController = (map: L.Map): IndexController => {
         // Handle not found
         if (!sidebarContent.dataset.params) return
 
-        const elements = initializeElementContent(map, sidebarContent)
+        const params = initializeElementContent(map, sidebarContent)
+        const elements = convertRenderObjectsData(params.render)
         focusManyMapObjects(map, elements)
     })
 
@@ -43,7 +44,7 @@ export const getElementController = (map: L.Map): IndexController => {
 }
 
 /** Initialize element content */
-export const initializeElementContent = (map: L.Map, container: HTMLElement): (OSMNode | OSMWay)[] => {
+export const initializeElementContent = (map: L.Map, container: HTMLElement): PartialElementParams => {
     console.debug("initializeElementContent")
     const parentsContainer = container.querySelector("div.parents")
     const membersContainer = container.querySelector("div.elements")
@@ -69,19 +70,23 @@ export const initializeElementContent = (map: L.Map, container: HTMLElement): (O
     }
 
     if (parentsContainer) {
-        renderElements(parentsContainer, params.parents, false)
+        renderElementsComponent(parentsContainer, params.parents, false)
     }
 
     if (membersContainer) {
         const isWay = params.type === "way"
-        renderElements(membersContainer, params.members, isWay)
+        renderElementsComponent(membersContainer, params.members, isWay)
     }
 
-    return JSON.parse(container.dataset.leaflet)
+    return params
 }
 
 /** Render elements component */
-const renderElements = (elementsSection: HTMLElement, elements: ElementMemberListEntry[], isWay: boolean): void => {
+const renderElementsComponent = (
+    elementsSection: HTMLElement,
+    elements: ElementMemberListEntry[],
+    isWay: boolean,
+): void => {
     console.debug("renderElements", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")

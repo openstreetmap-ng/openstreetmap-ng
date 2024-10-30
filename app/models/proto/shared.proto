@@ -67,6 +67,7 @@ message PartialElementParams {
     string type = 1;
     repeated ElementMemberListEntry members = 2;
     repeated ElementMemberListEntry parents = 3;
+    RenderObjectsData render = 4;
 }
 
 // Partial note response params
@@ -74,4 +75,23 @@ message PartialNoteParams {
     uint64 id = 1;
     SharedLonLat point = 2;
     bool open = 3;
+}
+
+// Node rendering structure
+message RenderNode {
+    uint64 id = 1;
+    SharedLonLat point = 2;
+}
+
+// Way rendering structure
+message RenderWay {
+    uint64 id = 1;
+    string line = 2;
+    bool area = 3;
+}
+
+// Object rendering structure
+message RenderObjectsData {
+    repeated RenderNode nodes = 1;
+    repeated RenderWay ways = 2;
 }
