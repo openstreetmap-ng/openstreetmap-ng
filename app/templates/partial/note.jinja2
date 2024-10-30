@@ -102,7 +102,7 @@
                     {{ timeago(comment.created_at, html=True) | safe }}
                 </p>
                 {% if comment.body_rich %}
-                <p class="body pre">{{ comment.body_rich | safe }}</p>
+                <div class="body pre">{{ comment.body_rich | safe }}</div>
                 {% else %}
                 <div class="mb-2"></div>
                 {% endif %}

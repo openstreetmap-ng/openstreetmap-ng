@@ -108,9 +108,7 @@
                     {{ t('action.commented') }}
                     {{ timeago(comment.created_at, html=True) | safe }}
                 </p>
-                <p class="body">
-                    {{ comment.body_rich | safe }}
-                </p>
+                <div class="body">{{ comment.body_rich | safe }}</div>
             </li>
             {% endfor %}
         </ul>
