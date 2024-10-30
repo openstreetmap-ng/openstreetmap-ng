@@ -52,10 +52,7 @@ export const remoteEdit = (button: HTMLButtonElement): void => {
         return
     }
 
-    const remoteEditData = JSON.parse(remoteEditJson)
-    const state: LonLatZoom = remoteEditData.state
-    const object: OSMObject | undefined = remoteEditData.object
-
+    const { state, object }: { state: LonLatZoom; object?: OSMObject } = JSON.parse(remoteEditJson)
     const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state, 0.05)
     const loadQuery: { [key: string]: string } = {
         left: minLon.toString(),

@@ -1,21 +1,13 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { getPageTitle } from "../_title"
 import type { OSMNode, OSMWay } from "../_types"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
+import { type ElementMemberListEntry, PartialElementParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
-
-// app/format/element_list.py
-interface MemberListEntry {
-    type: string
-    id: number
-    name?: string
-    icon?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
-    icon_title?: string
-    role?: string
-}
 
 const elementsPerPage = 20
 const paginationDistance = 2
@@ -53,12 +45,10 @@ export const getElementController = (map: L.Map): IndexController => {
 /** Initialize element content */
 export const initializeElementContent = (map: L.Map, container: HTMLElement): (OSMNode | OSMWay)[] => {
     console.debug("initializeElementContent")
-    const partOfContainer = container.querySelector("div.part-of")
-    const elementsContainer = container.querySelector("div.elements")
+    const parentsContainer = container.querySelector("div.parents")
+    const membersContainer = container.querySelector("div.elements")
 
-    // Get params
-    const params = JSON.parse(container.dataset.params)
-    const paramsType: string = params.type
+    const params = fromBinary(PartialElementParamsSchema, base64Decode(container.dataset.params))
 
     const locationButton = container.querySelector("button.location-btn")
     if (locationButton) {
@@ -78,22 +68,20 @@ export const initializeElementContent = (map: L.Map, container: HTMLElement): (O
         })
     }
 
-    if (partOfContainer) {
-        const listPartOf: MemberListEntry[] = params.lists.part_of
-        renderElements(partOfContainer, listPartOf, false)
+    if (parentsContainer) {
+        renderElements(parentsContainer, params.parents, false)
     }
 
-    if (elementsContainer) {
-        const listElements: MemberListEntry[] = params.lists.elements
-        const isWay = paramsType === "way"
-        renderElements(elementsContainer, listElements, isWay)
+    if (membersContainer) {
+        const isWay = params.type === "way"
+        renderElements(membersContainer, params.members, isWay)
     }
 
     return JSON.parse(container.dataset.leaflet)
 }
 
 /** Render elements component */
-const renderElements = (elementsSection: HTMLElement, elements: MemberListEntry[], isWay: boolean): void => {
+const renderElements = (elementsSection: HTMLElement, elements: ElementMemberListEntry[], isWay: boolean): void => {
     console.debug("renderElements", elements.length)
 
     const entryTemplate = elementsSection.querySelector("template.entry")
@@ -120,7 +108,7 @@ const renderElements = (elementsSection: HTMLElement, elements: MemberListEntry[
         if (isWay) {
             // @ts-ignore
             newTitle = i18next.t("browse.changeset.node", { count })
-        } else if (elementsSection.classList.contains("part-of")) {
+        } else if (elementsSection.classList.contains("parents")) {
             newTitle = `${i18next.t("browse.part_of")} (${count})`
         } else {
             newTitle = `${i18next.t("browse.relation.members")} (${count})`
@@ -142,8 +130,8 @@ const renderElements = (elementsSection: HTMLElement, elements: MemberListEntry[
             const content = entryFragment.querySelector("td:last-child")
 
             if (element.icon) {
-                iconImg.src = `/static/img/element/${element.icon}`
-                iconImg.title = element.icon_title
+                iconImg.src = `/static/img/element/${element.icon.icon}`
+                iconImg.title = element.icon.title
             } else {
                 iconImg.remove()
             }

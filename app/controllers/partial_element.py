@@ -1,5 +1,5 @@
 from asyncio import TaskGroup
-from collections.abc import Collection, Iterable
+from base64 import urlsafe_b64encode
 from itertools import chain
 from typing import Annotated
 
@@ -8,7 +8,7 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.format import FormatLeaflet
-from app.format.element_list import FormatElementList, MemberListEntry
+from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.options_context import options_context
@@ -21,6 +21,7 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.proto.shared_pb2 import PartialElementParams
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
@@ -166,10 +167,6 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     if members is None:
         raise AssertionError('Element members must be set')
 
-    full_data: Iterable[Element] = ()
-    list_elements: Collection[MemberListEntry] = ()
-    list_parents: Collection[MemberListEntry] = ()
-
     async def changeset_task():
         with options_context(
             joinedload(Changeset.user).load_only(
@@ -185,7 +182,6 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             return changeset
 
     async def data_task():
-        nonlocal full_data, list_elements
         members_refs = {ElementRef(member.type, member.id) for member in members}
         members_elements = await ElementQuery.get_by_refs(
             members_refs,
@@ -195,10 +191,10 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         )
         await ElementMemberQuery.resolve_members(members_elements)
         full_data = chain((element,), members_elements)
-        list_elements = FormatElementList.element_members(members, members_elements)
+        element_members = FormatElementList.element_members(members, members_elements)
+        return full_data, element_members
 
     async def parents_task():
-        nonlocal list_parents
         ref = ElementRef(element.type, element.id)
         parents = await ElementQuery.get_parents_by_refs(
             (ref,),
@@ -206,16 +202,20 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
             limit=None,
         )
         await ElementMemberQuery.resolve_members(parents)
-        list_parents = FormatElementList.element_parents(ref, parents)
+        return FormatElementList.element_parents(ref, parents)
 
     async with TaskGroup() as tg:
         changeset_t = tg.create_task(changeset_task())
+        data_t = parents_t = None
         if element.visible:
-            tg.create_task(data_task())
+            data_t = tg.create_task(data_task())
             if include_parents:
-                tg.create_task(parents_task())
+                parents_t = tg.create_task(parents_task())
 
     changeset = changeset_t.result()
+    full_data, element_members = data_t.result() if (data_t is not None) else ((), ())
+    element_parents = parents_t.result() if (parents_t is not None) else ()
+
     comment_str = changeset.tags.get('comment') or t('browse.no_comment')
     comment_tag = tags_format({'comment': comment_str})['comment']
 
@@ -226,6 +226,11 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     tags_map = tags_format(element.tags)
     leaflet = FormatLeaflet.encode_elements(full_data, detailed=False)
 
+    param = PartialElementParams(
+        type=element.type,
+        members=element_members,
+        parents=element_parents,
+    )
     return {
         'element': element,
         'changeset': changeset,
@@ -235,16 +240,8 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
         'name': name,
         'tags_map': tags_map,
         'comment_tag': comment_tag,
-        'show_elements': bool(list_elements),
-        'show_part_of': bool(list_parents),
-        'params': json_encodes(
-            {
-                'type': element.type,
-                'lists': {
-                    'elements': list_elements,
-                    'part_of': list_parents,
-                },
-            }
-        ),
+        'show_elements': bool(element_members),
+        'show_parents': bool(element_parents),
+        'params': urlsafe_b64encode(param.SerializeToString()).decode(),
         'leaflet': json_encodes(leaflet),
     }

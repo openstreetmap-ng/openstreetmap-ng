@@ -46,7 +46,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # runtime
-    comments: list['NoteComment'] | Any = None  # pyright: ignore[reportAssignmentType]
+    comments: list['NoteComment'] | Any = None
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]

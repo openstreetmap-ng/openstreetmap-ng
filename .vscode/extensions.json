@@ -1,10 +1,11 @@
 {
     "recommendations": [
-        "ryanluker.vscode-coverage-gutters",
         "biomejs.biome",
-        "ms-python.python",
         "charliermarsh.ruff",
-        "jnoortheen.nix-ide",
         "esbenp.prettier-vscode",
+        "jnoortheen.nix-ide",
+        "ms-python.python",
+        "ryanluker.vscode-coverage-gutters",
+        "zxh404.vscode-proto3"
     ]
 }

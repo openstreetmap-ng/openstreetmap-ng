@@ -53,6 +53,22 @@ message PartialChangesetParams {
     repeated ChangesetElement relations = 5;
 }
 
+// Element member list entry
+message ElementMemberListEntry {
+    string type = 1;
+    uint64 id = 2;
+    optional string role = 3;
+    optional string name = 4;
+    optional ElementIcon icon = 5;
+}
+
+// Partial element response params
+message PartialElementParams {
+    string type = 1;
+    repeated ElementMemberListEntry members = 2;
+    repeated ElementMemberListEntry parents = 3;
+}
+
 // Partial note response params
 message PartialNoteParams {
     uint64 id = 1;
