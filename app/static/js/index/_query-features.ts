@@ -67,26 +67,26 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         nearbyContainer.innerHTML = nearbyLoadingHtml
         enclosingContainer.innerHTML = enclosingLoadingHtml
 
-        // Fade out circle in steps
+        // Fade out circle smoothly
         const radius = 10 * 1.5 ** (19 - zoom)
-        const circle = L.circle(latLng, { ...focusStyles.element, radius })
-        const steps = 25
-        const stepDuration = 30
-        const opacityStep = 1 / steps
-        // total: 750ms
+        const circle = L.circle(latLng, { ...focusStyles.element, pane: "overlayPane", radius })
+        const animationDuration = 750
         // TODO: reduced motion
 
-        let opacity = focusStyles.element.opacity
+        // NOTE: remove polyfill when requestAnimationFrame
+        const requestAnimationFrame_ = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 30))
 
-        const fadeOut = () => {
-            opacity = Math.max(0, opacity - opacityStep)
-            circle.setStyle({ opacity })
-            if (opacity > 0.01 && !abortSignal.aborted) setTimeout(fadeOut, stepDuration)
+        const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
+            const elapsedTime = (timestamp ?? performance.now()) - animationStart
+            const opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
+            circle.setStyle({ opacity, fillOpacity: opacity })
+            if (opacity > 0 && !abortSignal.aborted) requestAnimationFrame_(fadeOut)
             else map.removeLayer(circle)
         }
 
         map.addLayer(circle)
-        setTimeout(fadeOut, stepDuration)
+        const animationStart = performance.now()
+        requestAnimationFrame_(fadeOut)
     }
 
     /** On sidebar loaded, display content */
