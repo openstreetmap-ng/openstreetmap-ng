@@ -70,8 +70,7 @@ export const getNewNoteController = (map: L.Map): IndexController => {
             halo = focusMapObject(map, {
                 type: "note",
                 id: null,
-                lon: center.lng,
-                lat: center.lat,
+                geom: [center.lat, center.lng],
                 icon: "new",
                 draggable: true,
             })[0] as L.CircleMarker
