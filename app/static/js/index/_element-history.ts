@@ -11,6 +11,8 @@ const paginationDistance = 2
 
 /** Create a new element history controller */
 export const getElementHistoryController = (map: L.Map): IndexController => {
+    let loadMatchGroups: { [key: string]: string } | null = null
+
     const base = getBaseFetchController(map, "element-history", (sidebarContent) => {
         // Get elements
         const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title") as HTMLElement
@@ -20,19 +22,14 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
         document.title = getPageTitle(sidebarTitle)
 
         // Handle not found
-        if (!sidebarTitleElement.dataset.params) return
-
-        // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsType: string = params.type
-        const paramsId: number = params.id
-
         const tagsDiffCheckbox = sidebarContent.querySelector("input.tags-diff-mode")
+        if (!tagsDiffCheckbox) return
+
         tagsDiffCheckbox.checked = getTagsDiffMode()
         tagsDiffCheckbox.addEventListener("change", () => {
             setTagsDiffMode(tagsDiffCheckbox.checked)
             controller.unload()
-            controller.load({ type: paramsType, id: paramsId.toString() })
+            controller.load(loadMatchGroups)
         })
 
         const versionSections = sidebarContent.querySelectorAll("div.version-section")
@@ -88,10 +85,12 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
     })
 
     const controller: IndexController = {
-        load: ({ type, id }) => {
+        load: (matchGroups) => {
+            const { type, id } = matchGroups
             const params = qsParse(location.search.substring(1))
             params.tags_diff_mode = getTagsDiffMode().toString()
             const url = `/api/partial/${type}/${id}/history?${qsEncode(params)}`
+            loadMatchGroups = matchGroups
             base.load({ url })
         },
         unload: () => {

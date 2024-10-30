@@ -157,7 +157,6 @@ async def get_history(
             'num_pages': num_pages,
             'elements_data': elements_data,
             'tags_diff_mode': tags_diff_mode_flag,
-            'params': json_encodes({'type': type, 'id': id}),
         },
     )
 
