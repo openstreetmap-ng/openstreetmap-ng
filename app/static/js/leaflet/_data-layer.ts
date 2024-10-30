@@ -5,7 +5,7 @@ import type { OSMObject } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { type LayerId, getOverlayLayerById } from "./_layers"
 import { getMapAlert } from "./_map-utils"
-import { type RenderStyles, renderObjects } from "./_object-render"
+import { type RenderStyles, renderObjects } from "./_render-objects"
 import { getLatLngBoundsSize } from "./_utils"
 
 const loadDataAlertThreshold = 8000

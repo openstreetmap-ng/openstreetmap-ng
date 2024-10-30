@@ -2,7 +2,7 @@ import * as L from "leaflet"
 
 import type { OSMObject } from "../_types"
 import { type LayerId, getOverlayLayerById } from "./_layers"
-import { type RenderStyles, renderObjects } from "./_object-render"
+import { type RenderStyles, renderObjects } from "./_render-objects"
 import { getLatLngBoundsSize } from "./_utils"
 
 export interface FocusOptions {
