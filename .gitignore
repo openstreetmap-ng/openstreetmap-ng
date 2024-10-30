@@ -444,6 +444,7 @@ app/static/css
 app/static/js/bundle-*
 app/static/js/proto/**/*_pb.ts
 app/models/proto/**/*_pb2.py*
+typings/app
 
 _generated
 temp

@@ -488,13 +488,15 @@ let
   shell' = with pkgs; ''
     export PYTHONNOUSERSITE=1
     export TZ=UTC
+    # Automatically remove old files
+    rm -f .python-version
+    rm -r typings/app
 
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}
     [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
     echo "Installing Python dependencies"
-    rm -f .python-version
     export UV_COMPILE_BYTECODE=1
     export UV_PYTHON="${python'}/bin/python"
     uv sync --frozen
