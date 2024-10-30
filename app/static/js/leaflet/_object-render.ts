@@ -38,7 +38,7 @@ export const renderObjects = (
     const processNote = (note: OSMNote): void => {
         const interactive = note.interactive !== undefined ? Boolean(note.interactive) : true
         const draggable = note.draggable !== undefined ? Boolean(note.draggable) : false
-        const latLng = L.latLng(note.lat, note.lon)
+        const latLng = L.latLng(note.geom)
         const layer = L.circleMarker(latLng, styles.noteHalo as L.CircleMarkerOptions)
         const marker = L.marker(latLng, {
             ...styles.note,

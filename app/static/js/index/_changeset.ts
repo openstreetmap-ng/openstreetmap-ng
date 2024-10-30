@@ -1,3 +1,5 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import type * as L from "leaflet"
 import { renderColorPreviews } from "../_color-preview"
@@ -6,35 +8,24 @@ import { getPageTitle } from "../_title"
 import type { Bounds, OSMChangeset } from "../_types"
 import { focusMapObject } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
+import { type ChangesetElement, type PartialChangesetParams, PartialChangesetParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
-
-// app/format/element_list.py
-interface ChangesetListEntry {
-    type: string
-    id: number
-    name?: string
-    icon?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
-    icon_title?: string
-    version: number
-    visible: boolean
-}
 
 const elementsPerPage = 20
 const paginationDistance = 2
 
 /** Create a new changeset controller */
 export const getChangesetController = (map: L.Map): IndexController => {
-    let paramsId: number | null = null
-    let paramsBounds: Bounds[] | null = null
+    let params: PartialChangesetParams | null = null
+    let paramsBoundsNormalized: Bounds[] | null = null
 
     /** On map zoom change, refocus the changeset (due to size change) */
     const onMapZoomEnd = (e?: L.LeafletEvent): void => {
         const object: OSMChangeset = {
             type: "changeset",
-            id: paramsId,
-            bounds: paramsBounds.map((b) => makeBoundsMinimumSize(map, b)),
+            id: params.id,
+            bounds: paramsBoundsNormalized.map((b) => makeBoundsMinimumSize(map, b)),
         }
         focusMapObject(map, object, {
             // Fit the bounds only on the initial update
@@ -56,24 +47,30 @@ export const getChangesetController = (map: L.Map): IndexController => {
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
-        paramsId = params.id
-        paramsBounds = params.bounds
-        const elements: { [key: string]: ChangesetListEntry[] } = params.elements
+        params = fromBinary(PartialChangesetParamsSchema, base64Decode(sidebarTitleElement.dataset.params))
 
         // Optionally update on map zoom (not all changesets have bounds)
-        if (paramsBounds) {
+        if (params.bounds.length) {
+            paramsBoundsNormalized = []
+            for (const bounds of params.bounds) {
+                const { minLon, minLat, maxLon, maxLat } = bounds
+                paramsBoundsNormalized.push([minLon, minLat, maxLon, maxLat])
+            }
             // Listen for events and run initial update
             map.addEventListener("zoomend", onMapZoomEnd)
             onMapZoomEnd()
         }
 
-        renderElements(elementsSection, elements)
+        renderElements(elementsSection, {
+            node: params.nodes,
+            way: params.ways,
+            relation: params.relations,
+        })
 
         /** On success callback, reload the changeset */
         const onFormSuccess = () => {
             controller.unload()
-            controller.load({ id: paramsId.toString() })
+            controller.load({ id: params.id.toString() })
         }
         const subscriptionForm = sidebarContent.querySelector("form.subscription-form")
         if (subscriptionForm) configureStandardForm(subscriptionForm, onFormSuccess)
@@ -96,18 +93,16 @@ export const getChangesetController = (map: L.Map): IndexController => {
 }
 
 /** Render elements component */
-const renderElements = (elementsSection: HTMLElement, elements: { [key: string]: ChangesetListEntry[] }): void => {
+const renderElements = (elementsSection: HTMLElement, elements: { [key: string]: ChangesetElement[] }): void => {
     console.debug("renderElements")
 
     const groupTemplate = elementsSection.querySelector("template.group")
     const entryTemplate = elementsSection.querySelector("template.entry")
     const fragment = document.createDocumentFragment()
 
-    for (const type of ["way", "relation", "node"]) {
-        const elementsType = elements[type]
-        if (elementsType.length) {
-            fragment.appendChild(renderElementType(groupTemplate, entryTemplate, type, elementsType))
-        }
+    for (const [type, elementsType] of Object.entries(elements)) {
+        if (!elementsType.length) continue
+        fragment.appendChild(renderElementType(groupTemplate, entryTemplate, type, elementsType))
     }
 
     if (fragment.children.length) {
@@ -123,7 +118,7 @@ const renderElementType = (
     groupTemplate: HTMLTemplateElement,
     entryTemplate: HTMLTemplateElement,
     type: string,
-    elements: ChangesetListEntry[],
+    elements: ChangesetElement[],
 ): DocumentFragment => {
     console.debug("renderElementType", type, elements)
 
@@ -175,8 +170,8 @@ const renderElementType = (
             const linkVersion = entryFragment.querySelector("a.link-version")
 
             if (element.icon) {
-                iconImg.src = `/static/img/element/${element.icon}`
-                iconImg.title = element.icon_title
+                iconImg.src = `/static/img/element/${element.icon.icon}`
+                iconImg.title = element.icon.title
             } else {
                 iconImg.remove()
             }

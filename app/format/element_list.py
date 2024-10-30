@@ -8,6 +8,7 @@ from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
+from app.models.proto.shared_pb2 import ChangesetElement, ElementIcon
 from app.queries.element_query import ElementQuery
 
 
@@ -21,19 +22,13 @@ class _Base:
 
 
 @dataclass(frozen=True, slots=True)
-class ChangesetListEntry(_Base):
-    version: int
-    visible: bool
-
-
-@dataclass(frozen=True, slots=True)
 class MemberListEntry(_Base):
     role: str | None
 
 
 class FormatElementList:
     @staticmethod
-    async def changeset_elements(elements: Collection[Element]) -> dict[ElementType, list[ChangesetListEntry]]:
+    async def changeset_elements(elements: Collection[Element]) -> dict[ElementType, list[ChangesetElement]]:
         """
         Format elements for displaying on the website (icons, strikethrough, sort).
 
@@ -62,7 +57,7 @@ class FormatElementList:
 
         names = features_names(tagged_elements)
         icons = features_icons(tagged_elements)
-        result: dict[ElementType, list[ChangesetListEntry]] = {'node': [], 'way': [], 'relation': []}
+        result: dict[ElementType, list[ChangesetElement]] = {'node': [], 'way': [], 'relation': []}
         for element, name, icon in zip(elements, names, icons, strict=True):
             result[element.type].append(_encode_element(element, name, icon))
         for v in result.values():
@@ -101,21 +96,21 @@ def _encode_element(
     feature_icon: FeatureIcon | None,
 ):
     if feature_icon is not None:
-        icon = feature_icon.filename
-        icon_title = feature_icon.title
+        icon = ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
     else:
         icon = None
-        icon_title = None
-
-    return ChangesetListEntry(
-        type=element.type,
+    return ChangesetElement(
         id=element.id,
-        name=name,
         version=element.version,
         visible=element.visible,
+        name=name,
         icon=icon,
-        icon_title=icon_title,
     )
+
+
+@cython.cfunc
+def _sort_key(element: ChangesetElement) -> tuple:
+    return (not element.visible, element.id, element.version)
 
 
 @cython.cfunc
@@ -188,8 +183,3 @@ def _encode_member(
         icon_title=icon_title,
         role=member.role,
     )
-
-
-@cython.cfunc
-def _sort_key(element: ChangesetListEntry) -> tuple:
-    return (not element.visible, element.id, element.version)

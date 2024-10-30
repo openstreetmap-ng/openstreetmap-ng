@@ -4,7 +4,7 @@ import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { focusMapObject } from "../leaflet/_focus-layer"
-import { PartialNoteSchema } from "../proto/shared_pb"
+import { PartialNoteParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
@@ -25,14 +25,13 @@ export const getNoteController = (map: L.Map): IndexController => {
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
-        const params = fromBinary(PartialNoteSchema, base64Decode(sidebarTitleElement.dataset.params))
+        const params = fromBinary(PartialNoteParamsSchema, base64Decode(sidebarTitleElement.dataset.params))
 
         focusMapObject(map, {
             type: "note",
             id: params.id,
-            lon: params.point.lon,
-            lat: params.point.lat,
-            icon: params.isOpen ? "open" : "closed",
+            geom: [params.point.lat, params.point.lon],
+            icon: params.open ? "open" : "closed",
         })
 
         // On location click, pan the map

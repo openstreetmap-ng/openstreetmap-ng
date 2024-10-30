@@ -22,8 +22,7 @@ export interface OSMRelation {
 export interface OSMNote {
     type: "note"
     id?: bigint
-    lon: number
-    lat: number
+    geom: [number, number] // lat, lon
     icon: string
     draggable?: boolean
     interactive?: boolean
@@ -33,7 +32,7 @@ export type Bounds = [number, number, number, number]
 
 export interface OSMChangeset {
     type: "changeset"
-    id: number
+    id: bigint
     bounds: Bounds[] // [[minLon, minLat, maxLon, maxLat], ...]
 }
 

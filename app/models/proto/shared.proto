@@ -1,16 +1,24 @@
 syntax = "proto3";
 
 // Generic coordinate structure
-message LonLat {
+message SharedLonLat {
     float lon = 1;
     float lat = 2;
+}
+
+// Generic bounding box structure
+message SharedBounds {
+    float min_lon = 1;
+    float min_lat = 2;
+    float max_lon = 3;
+    float max_lat = 4;
 }
 
 // Shared user configuration
 message WebUserConfig {
     bool activity_tracking = 1;
     bool crash_reporting = 2;
-    optional LonLat home_point = 3;
+    optional SharedLonLat home_point = 3;
 }
 
 // Shared website configuration
@@ -21,9 +29,33 @@ message WebConfig {
     optional WebUserConfig user_config = 4;
 }
 
-// Partial note response params
-message PartialNote {
+// Generic icon structure
+message ElementIcon {
+    string icon = 1;
+    string title = 2;
+}
+
+// Changeset elements list entry
+message ChangesetElement {
     uint64 id = 1;
-    LonLat point = 2;
-    bool is_open = 3;
+    uint64 version = 2;
+    bool visible = 3;
+    optional string name = 4;
+    optional ElementIcon icon = 5;
+}
+
+// Partial changeset response params
+message PartialChangesetParams {
+    uint64 id = 1;
+    repeated SharedBounds bounds = 2;
+    repeated ChangesetElement nodes = 3;
+    repeated ChangesetElement ways = 4;
+    repeated ChangesetElement relations = 5;
+}
+
+// Partial note response params
+message PartialNoteParams {
+    uint64 id = 1;
+    SharedLonLat point = 2;
+    bool open = 3;
 }

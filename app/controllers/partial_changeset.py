@@ -1,5 +1,7 @@
 from asyncio import TaskGroup
+from base64 import urlsafe_b64encode
 
+import cython
 from fastapi import APIRouter
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
@@ -14,10 +16,10 @@ from app.limits import CHANGESET_COMMENT_BODY_MAX_LENGTH
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 from app.models.db.user import User
+from app.models.proto.shared_pb2 import PartialChangesetParams, SharedBounds
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial/changeset')
 
@@ -78,6 +80,23 @@ async def get_changeset(id: PositiveInt):
     tags = tags_format(changeset.tags)
     comment_tag = tags.pop('comment')
 
+    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # pyright: ignore[reportAssignmentType]
+    i: cython.int
+    for i, cb in enumerate(changeset.bounds):
+        bounds = cb.bounds.bounds
+        params_bounds[i] = SharedBounds(
+            min_lon=bounds[0],
+            min_lat=bounds[1],
+            max_lon=bounds[2],
+            max_lat=bounds[3],
+        )
+    params = PartialChangesetParams(
+        id=id,
+        bounds=params_bounds,
+        nodes=elements['node'],
+        ways=elements['way'],
+        relations=elements['relation'],
+    )
     return await render_response(
         'partial/changeset.jinja2',
         {
@@ -87,13 +106,7 @@ async def get_changeset(id: PositiveInt):
             'is_subscribed': is_subscribed,
             'tags': tags.values(),
             'comment_tag': comment_tag,
-            'params': json_encodes(
-                {
-                    'id': id,
-                    'bounds': tuple(cb.bounds.bounds for cb in changeset.bounds),
-                    'elements': elements,
-                }
-            ),
+            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
             'CHANGESET_COMMENT_BODY_MAX_LENGTH': CHANGESET_COMMENT_BODY_MAX_LENGTH,
         },
     )
