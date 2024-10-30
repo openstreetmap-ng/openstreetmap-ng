@@ -218,12 +218,8 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
                 tg.create_task(parents_task())
 
     changeset = changeset_t.result()
-    comment_str = changeset.tags.get('comment')
-    comment_tag = (
-        tags_format({'comment': comment_str})['comment']
-        if (comment_str is not None)
-        else TagFormat('comment', t('browse.no_comment'))
-    )
+    comment_str = changeset.tags.get('comment') or t('browse.no_comment')
+    comment_tag = tags_format({'comment': comment_str})['comment']
 
     prev_version = element.version - 1 if element.version > 1 else None
     next_version = element.version + 1 if (element.next_sequence_id is not None) else None

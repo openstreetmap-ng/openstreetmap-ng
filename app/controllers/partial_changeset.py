@@ -73,10 +73,11 @@ async def get_changeset(id: PositiveInt):
     elements = elements_t.result()
     is_subscribed = is_subscribed_task.result() if (is_subscribed_task is not None) else False
 
+    changeset_tags = changeset.tags
+    if not changeset_tags.get('comment'):
+        changeset_tags['comment'] = t('browse.no_comment')
     tags = tags_format(changeset.tags)
-    comment_tag = tags.pop('comment', None)
-    if comment_tag is None:
-        comment_tag = TagFormat('comment', t('browse.no_comment'))
+    comment_tag = tags.pop('comment')
 
     return await render_response(
         'partial/changeset.jinja2',
