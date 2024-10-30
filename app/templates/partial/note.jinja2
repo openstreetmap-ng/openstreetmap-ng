@@ -43,12 +43,18 @@
                 {% if header.body_rich %}
                 <p class="pre mb-2">{{ header.body_rich | safe }}</p>
                 {% endif %}
-                <p class="position-relative">
+                <p class="location-btn-container mb-2">
+                    {{ t('diary_entries.form.location') }}:
+                    <button class="location-btn btn btn-link stretched-link">
+                        {{ note.point.y }}, {{ note.point.x }}
+                    </button>
+                </p>
+                {# <p class="position-relative">
                     {{ t('diary_entries.form.location') }}:
                     <button class="location-btn btn btn-link p-0 stretched-link">
                         {{ note.point.y }}, {{ note.point.x }}
                     </button>
-                </p>
+                </p> #}
             </div>
             {% if header.user_id is none %}
             <div class="alert alert-warning" role="alert">

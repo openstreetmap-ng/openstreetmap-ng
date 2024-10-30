@@ -21,25 +21,6 @@
         }
     }
 
-    .location-btn-container {
-        background: $gray-100;
-        border: 1px solid transparent;
-        border-radius: $border-radius;
-        padding: 0.15rem 0.55rem;
-        display: flex;
-        align-items: center;
-        position: relative;
-
-        &:hover {
-            border-color: $border-color;
-        }
-
-        .location-btn {
-            padding: unset;
-            margin-left: 0.2em;
-        }
-    }
-
     .part-of,
     .elements {
         td {
