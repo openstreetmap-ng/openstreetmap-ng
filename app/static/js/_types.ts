@@ -21,7 +21,7 @@ export interface OSMRelation {
 
 export interface OSMNote {
     type: "note"
-    id: number
+    id?: bigint
     lon: number
     lat: number
     icon: string

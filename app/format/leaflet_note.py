@@ -19,12 +19,9 @@ class LeafletNoteMixin:
 
 @cython.cfunc
 def _encode_note(note: Note):
-    note_comments = note.comments
-    if note_comments is None:
-        raise AssertionError('Note comments must be set')
     return NoteLeaflet(
         id=note.id,
         geom=lib.get_coordinates(np.asarray(note.point, dtype=object), False, False)[0][::-1].tolist(),
-        text=note_comments[0].body[:100],
+        text=note.comments[0].body[:100],
         open=note.closed_at is None,
     )

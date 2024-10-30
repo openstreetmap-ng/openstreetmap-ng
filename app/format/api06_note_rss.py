@@ -41,16 +41,13 @@ class NoteRSS06Mixin:
 
 
 async def _encode_note(fe: FeedEntry, note: Note) -> None:
-    note_comments = note.comments
-    if note_comments is None:
-        raise AssertionError('Note comments must be set')
     api_permalink = f'{API_URL}/api/0.6/notes/{note.id}'
     web_permalink = f'{APP_URL}/note/{note.id}'
 
     fe.guid(api_permalink, permalink=True)
     fe.link(href=web_permalink)
     fe.content(
-        render('api06/note_feed_comments.jinja2', {'comments': note_comments}),
+        render('api06/note_feed_comments.jinja2', {'comments': note.comments}),
         type='CDATA',
     )
     fe.published(note.created_at)
@@ -59,7 +56,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     x, y = get_coordinates(note.point)[0].tolist()
     fe.geo.point(f'{y} {x}')  # pyright: ignore[reportAttributeAccessIssue]
 
-    user = note_comments[0].user
+    user = note.comments[0].user
     if user is not None:
         user_permalink = f'{APP_URL}/user/permalink/{user.id}'
         fe.author(name=user.display_name, uri=user_permalink)
@@ -74,10 +71,10 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
     except (TimeoutError, HTTPException):
         pass
 
-    if len(note_comments) == 1:
+    if len(note.comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
     else:
-        for comment in reversed(note_comments):
+        for comment in reversed(note.comments):
             if comment.event == NoteEvent.hidden:
                 continue  # skip hide events
             if comment.event == NoteEvent.closed:

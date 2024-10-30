@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from base64 import urlsafe_b64encode
 from collections.abc import Collection
 from math import ceil
 
@@ -15,9 +16,9 @@ from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
+from app.models.proto.shared_pb2 import LonLat, PartialNote
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
-from app.utils import json_encodes
 
 router = APIRouter(prefix='/api/partial/note')
 
@@ -43,27 +44,18 @@ async def get_note(id: PositiveInt):
     else:
         disappear_days = None
 
-    note_comments = note.comments
-    if note_comments is None:
-        raise AssertionError('Note comments must be set')
     x, y = get_coordinates(note.point)[0].tolist()
+    params = PartialNote(id=id, point=LonLat(lon=x, lat=y), is_open=note.closed_at is None)
     return await render_response(
         'partial/note.jinja2',
         {
             'note': note,
-            'header': note_comments[0],
-            'comments': note_comments[1:],
+            'header': note.comments[0],
+            'comments': note.comments[1:],
             'status': note.status.value,
             'is_subscribed': is_subscribed,
             'disappear_days': disappear_days,
-            'params': json_encodes(
-                {
-                    'id': id,
-                    'lon': x,
-                    'lat': y,
-                    'open': note.closed_at is None,
-                }
-            ),
+            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
         },
     )
 

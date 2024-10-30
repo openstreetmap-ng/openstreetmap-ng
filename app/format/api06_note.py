@@ -78,9 +78,6 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
     >>> _encode_note(Note(...))
     {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}
     """
-    note_comments = note.comments
-    if note_comments is None:
-        raise AssertionError('Note comments must be set')
     created_at = legacy_date(note.created_at)
     closed_at = legacy_date(note.closed_at)
     if is_json:
@@ -106,7 +103,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
                 'date_created': format_sql_date(created_at),
                 **({'closed_at': format_sql_date(closed_at)} if (closed_at is not None) else {}),
                 'status': note.status.value,
-                'comments': tuple(_encode_note_comment(comment) for comment in note_comments),
+                'comments': tuple(_encode_note_comment(comment) for comment in note.comments),
             },
         }
     elif is_gpx:
@@ -115,7 +112,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'time': created_at,
             'name': f'Note: {note.id}',
             'link': {'href': f'{APP_URL}/note/{note.id}'},
-            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', {'comments': note_comments})),
+            'desc': ET.CDATA(render('api06/note_feed_comments.jinja2', {'comments': note.comments})),
             'extensions': {
                 'id': note.id,
                 'url': f'{API_URL}/api/0.6/notes/{note.id}.gpx',
@@ -152,7 +149,7 @@ def _encode_note(note: Note, *, is_json: cython.char, is_gpx: cython.char) -> di
             'date_created': format_sql_date(created_at),
             **({'date_closed': format_sql_date(closed_at)} if (closed_at is not None) else {}),
             'status': note.status.value,
-            'comments': {'comment': tuple(_encode_note_comment(comment) for comment in note_comments)},
+            'comments': {'comment': tuple(_encode_note_comment(comment) for comment in note.comments)},
         }
 
 

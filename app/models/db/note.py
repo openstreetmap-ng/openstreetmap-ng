@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shapely import Point
 from sqlalchemy import ColumnElement, null, true
@@ -46,7 +46,7 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
     )
 
     # runtime
-    comments: list['NoteComment'] | None = None
+    comments: list['NoteComment'] | Any = None  # pyright: ignore[reportAssignmentType]
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]

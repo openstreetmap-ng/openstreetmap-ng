@@ -1,7 +1,10 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import * as L from "leaflet"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { focusMapObject } from "../leaflet/_focus-layer"
+import { PartialNoteSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
@@ -22,23 +25,19 @@ export const getNoteController = (map: L.Map): IndexController => {
         if (!sidebarTitleElement.dataset.params) return
 
         // Get params
-        const params = JSON.parse(sidebarTitleElement.dataset.params)
-        const paramsId: number = params.id
-        const lon: number = params.lon
-        const lat: number = params.lat
-        const open: boolean = params.open
+        const params = fromBinary(PartialNoteSchema, base64Decode(sidebarTitleElement.dataset.params))
 
         focusMapObject(map, {
             type: "note",
-            id: paramsId,
-            lon: lon,
-            lat: lat,
-            icon: open ? "open" : "closed",
+            id: params.id,
+            lon: params.point.lon,
+            lat: params.point.lat,
+            icon: params.isOpen ? "open" : "closed",
         })
 
         // On location click, pan the map
         locationButton.addEventListener("click", () => {
-            const latLng = L.latLng(lat, lon)
+            const latLng = L.latLng(params.point.lat, params.point.lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
                 map.setView(latLng, 18)
@@ -59,7 +58,7 @@ export const getNoteController = (map: L.Map): IndexController => {
             const onFormSuccess = () => {
                 map.panTo(map.getCenter(), { animate: false })
                 controller.unload()
-                controller.load({ id: paramsId.toString() })
+                controller.load({ id: params.id.toString() })
             }
             configureStandardForm(subscriptionForm, onFormSuccess)
             configureStandardForm(commentForm, onFormSuccess)

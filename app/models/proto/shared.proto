@@ -20,3 +20,10 @@ message WebConfig {
     float note_query_area_max_size = 3;
     optional WebUserConfig user_config = 4;
 }
+
+// Partial note response params
+message PartialNote {
+    uint64 id = 1;
+    LonLat point = 2;
+    bool is_open = 3;
+}
