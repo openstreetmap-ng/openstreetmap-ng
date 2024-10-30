@@ -332,14 +332,14 @@ wheels = [
 
 [[package]]
 name = "botocore-stubs"
-version = "1.35.50"
+version = "1.35.51"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "types-awscrt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/54/31/d6cbe94d05a1a41ac3fa0b0980f31b2129879112c89edb9c25fb45569ca7/botocore_stubs-1.35.50.tar.gz", hash = "sha256:9d8e0224a9e920615d58a57356345d81dba2b315dcbd311dbb536dd11616c7dd", size = 40581 }
+sdist = { url = "https://files.pythonhosted.org/packages/be/bd/316102f8070fc0f6d14f32eb673168fea8f6081549e3901d95ee4bca5522/botocore_stubs-1.35.51.tar.gz", hash = "sha256:6cde969dede1a6c58fb7023f1071708cf963884435892b1699e5668486bb4b00", size = 40554 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/13/83c378848c8a6abbb5c407250f24d42148d26a7c5761692d75d011682b43/botocore_stubs-1.35.50-py3-none-any.whl", hash = "sha256:2733ed5a0391c1dbef3e22f3d3bf4ad2f2500b1456d5b01815b455a8389346bd", size = 60136 },
+    { url = "https://files.pythonhosted.org/packages/06/02/71359eb28eaf57d30b0a719405078625634e630a5734c2e22599b4753b16/botocore_stubs-1.35.51-py3-none-any.whl", hash = "sha256:08fe20889a7dfd9c503fb594a717a2cb7045a7fa3fa97b06cb52593f223fcb18", size = 60136 },
 ]
 
 [[package]]
@@ -1318,7 +1318,7 @@ requires-dist = [
     { name = "cython" },
     { name = "dnspython" },
     { name = "email-validator" },
-    { name = "fastapi", specifier = ">0" },
+    { name = "fastapi", specifier = ">=0" },
     { name = "feedgen" },
     { name = "httpx" },
     { name = "jinja2" },
@@ -1482,17 +1482,17 @@ numpy = [
 
 [[package]]
 name = "polyline-rs"
-version = "1.0.0"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/27/d5/be32017f87bd834727c2bc4350abc91b13eaf38c85edbacec0af016d5bee/polyline_rs-1.0.0.tar.gz", hash = "sha256:926d322a7ce6c2a89ceb724070f2a91c442ebf011bc8fee4d4f8b9949db12c39", size = 12991 }
+sdist = { url = "https://files.pythonhosted.org/packages/df/07/3e102293e8c9e06a557307ff9bb444803313f6d483b09346435de842d25f/polyline_rs-1.1.0.tar.gz", hash = "sha256:227a3eef0beadd015eba6694ce5635034f3e5661de4a9751ef0496d33380175f", size = 13032 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/89/91f9a118a91630ef570f49e2657b1095591c943667753ec29ef85e9f6d16/polyline_rs-1.0.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:859a62050019f1d16cb7570d4ffd6d2cc2a12ec3233a03079f1ef5cbf3232c1a", size = 220534 },
-    { url = "https://files.pythonhosted.org/packages/64/67/e72d2f8b2eb6b2c95f8e128e5e444c3c25769e521f3a2700916d0d3449c0/polyline_rs-1.0.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:9309bdc197c46305820acb92c6a01b3f200f0e730c10e8974cecd439fe2dddcd", size = 217244 },
-    { url = "https://files.pythonhosted.org/packages/34/d4/21c84ac2a0803f1478a975f2d2e9e3323813088f267664981fcf1fd2d761/polyline_rs-1.0.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:358ce9948ca47caaa1e4ff0bec602beda2606244eae937480e83ef85be8a1d70", size = 222861 },
-    { url = "https://files.pythonhosted.org/packages/c3/f9/e3d09cbfc336d5e25711b70032e394b17130cf5d628fa125629ecd2e7228/polyline_rs-1.0.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2f3f2ef8dd8745904d7979abcfcbb6aff79fb6ecf0f6cd234f5780344187885a", size = 233095 },
-    { url = "https://files.pythonhosted.org/packages/18/f3/9ac335b3675685436e96bed5c21c3eb744b5fd324dab9ee5bdd4b2e9d98c/polyline_rs-1.0.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:fe9ed44069332b69f25ad4d51b1afb0114f2ae43cef10fcebaa74c6335f277dd", size = 433959 },
-    { url = "https://files.pythonhosted.org/packages/b9/84/b410a83902869fd7366abfcae790d7ff7d8dc6ec8bb9b248445c94558133/polyline_rs-1.0.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:14631ff095a8ceef063260dabebd23e568a4c6f29a813e1255daed784270b000", size = 417174 },
-    { url = "https://files.pythonhosted.org/packages/59/1a/942a89d288ddedfbbb0f9c6c510ca2eee85ac7ae3f698a377b67e9e0bb93/polyline_rs-1.0.0-cp39-abi3-win_amd64.whl", hash = "sha256:325f664e3efb8e06008993c122b37fa25087d598754774d5d25af4c3ba517a8f", size = 121347 },
+    { url = "https://files.pythonhosted.org/packages/69/3c/9a9407c42cafb73d0da3a62f64a4750897962de2cfc63e5de1e65204e643/polyline_rs-1.1.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:f60a2fe486b763e46261f2e60c203128eb3e0871b884db07c6e203e2e9b3fbd7", size = 205690 },
+    { url = "https://files.pythonhosted.org/packages/a2/b3/eee4e620cbfa52c5e7d7f16ac19b956b46fc6bd8987a757807370806cb05/polyline_rs-1.1.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:d1861d913ee0f5b534051a964ce208e1be1e94156db2bfe6c7b3dd1ffd084245", size = 201561 },
+    { url = "https://files.pythonhosted.org/packages/cc/16/82a6a323f860f568b4d1efc89b6a58de9d21ece2b0a46e3ae40a66857235/polyline_rs-1.1.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8fe51996f2a4d4fbc075c65f016123800ea2196a5a65672fcf4ef2eba2c211ef", size = 208557 },
+    { url = "https://files.pythonhosted.org/packages/83/35/582318a6eb3146f0eadfce10606d9f854b2604c3444e3043a9034c4f5195/polyline_rs-1.1.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:807fd48d25defafd9ccb5440e89ced227a064304f07ff122fcaff3eca7e5ee31", size = 217662 },
+    { url = "https://files.pythonhosted.org/packages/a3/c8/5ccd787f91d55c773f566f9eb98b52c0d4fbf8ba0da5f46d5e8a2852682f/polyline_rs-1.1.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:16a3b2b58a5ba636b820fca69e9e2a4436070c2ded2c64c9d4d9591e4529e0b8", size = 415904 },
+    { url = "https://files.pythonhosted.org/packages/7b/97/ff5ad209b1e89d3d0a62ef52e3e426c0f3820f30c842d4afc318af5ca6ac/polyline_rs-1.1.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:896464f9e08122e0dd95ce7c3b2623abaf0f187e0508c34fbb417f8ea857261d", size = 399817 },
+    { url = "https://files.pythonhosted.org/packages/4d/55/6f2374091748deec79363cb997c4146db6931666e114f575c64bb5ad5424/polyline_rs-1.1.0-cp39-abi3-win_amd64.whl", hash = "sha256:3cb5b4863bcbab9d24477dad64db9f4648be1904ac95558a0c0095463ab100d0", size = 105387 },
 ]
 
 [[package]]
