@@ -260,14 +260,14 @@ let
 
     # -- Protobuf
     (makeScript "proto-pipeline" ''
-      mkdir -p app/static/js/proto typings/app/models/proto
+      mkdir -p app/static/js/proto
       protoc \
         -I app/models/proto \
         --plugin=node_modules/.bin/protoc-gen-es \
         --es_out app/static/js/proto \
         --es_opt target=ts \
         --python_out app/models/proto \
-        --pyi_out typings/app/models/proto \
+        --pyi_out app/models/proto \
         app/models/proto/*.proto
     '')
     (makeScript "watch-proto" "watchexec --watch app/models/proto --exts proto proto-pipeline")

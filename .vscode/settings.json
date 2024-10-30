@@ -48,16 +48,6 @@
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.packageIndexDepths": [
         {
-            "depth": 8,
-            "includeAllSymbols": true,
-            "name": "app"
-        },
-        {
-            "depth": 8,
-            "includeAllSymbols": true,
-            "name": "typings"
-        },
-        {
             "depth": 2,
             "includeAllSymbols": false,
             "name": ""
