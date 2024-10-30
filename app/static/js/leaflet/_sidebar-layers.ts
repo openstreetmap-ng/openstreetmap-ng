@@ -151,7 +151,7 @@ export const getLayersSidebarToggleButton = (): SidebarToggleControl => {
                     parent.ariaDisabled = "true"
                     Tooltip.getOrCreateInstance(parent, {
                         title: parent.dataset.bsTitle,
-                        placement: "top",
+                        placement: "left",
                     }).enable()
 
                     // Force uncheck the overlay when it becomes unavailable
