@@ -21,7 +21,6 @@ from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
-from app.models.tags_format import TagFormat
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
