@@ -111,7 +111,7 @@ let
       )
       find "''${dirs[@]}" -type f \( -name '*.c' -o -name '*.html' -o -name '*.so' \) -delete
     '')
-    (makeScript "watch-cython" "watchexec --watch app --exts py cython-build")
+    (makeScript "watch-cython" "exec watchexec --watch app --exts py cython-build")
 
     # -- SASS
     (makeScript "sass-pipeline" ''
@@ -126,7 +126,7 @@ let
         --replace \
         --no-map
     '')
-    (makeScript "watch-sass" "watchexec --watch app/static/sass sass-pipeline")
+    (makeScript "watch-sass" "exec watchexec --watch app/static/sass sass-pipeline")
 
     # -- JavaScript
     (makeScript "node" "exec bun \"$@\"")
@@ -192,7 +192,7 @@ let
         done
       fi
     '')
-    (makeScript "watch-js" "watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
+    (makeScript "watch-js" "exec watchexec --watch app/static/js --ignore 'bundle-*' js-pipeline")
 
     # -- Static
     (makeScript "static-img-clean" "rm -rf app/static/img/element/_generated")
@@ -256,7 +256,7 @@ let
       locale-download
       locale-pipeline
     '')
-    (makeScript "watch-locale" "watchexec --watch config/locale/extra_en.yaml locale-pipeline")
+    (makeScript "watch-locale" "exec watchexec --watch config/locale/extra_en.yaml locale-pipeline")
 
     # -- Protobuf
     (makeScript "proto-pipeline" ''
@@ -270,7 +270,7 @@ let
         --pyi_out app/models/proto \
         app/models/proto/*.proto
     '')
-    (makeScript "watch-proto" "watchexec --watch app/models/proto --exts proto proto-pipeline")
+    (makeScript "watch-proto" "exec watchexec --watch app/models/proto --exts proto proto-pipeline")
 
     # -- Supervisor
     (makeScript "dev-start" ''
@@ -442,7 +442,7 @@ let
       python -m coverage erase
       exit $result
     '')
-    (makeScript "watch-tests" "watchexec --watch app --watch tests --exts py run-tests")
+    (makeScript "watch-tests" "exec watchexec --watch app --watch tests --exts py run-tests")
 
     # -- Misc
     (makeScript "run" ''

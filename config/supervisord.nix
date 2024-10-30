@@ -29,25 +29,21 @@ pkgs.writeText "supervisord.conf" ''
 
   [program:watch-js]
   command=watch-js
-  stopsignal=TERM
   stdout_logfile=data/supervisor/watch-js.log
   stderr_logfile=data/supervisor/watch-js.log
 
   [program:watch-locale]
   command=watch-locale
-  stopsignal=TERM
   stdout_logfile=data/supervisor/watch-locale.log
   stderr_logfile=data/supervisor/watch-locale.log
 
   [program:watch-proto]
   command=watch-proto
-  stopsignal=TERM
   stdout_logfile=data/supervisor/watch-proto.log
   stderr_logfile=data/supervisor/watch-proto.log
 
   [program:watch-sass]
   command=watch-sass
-  stopsignal=TERM
   stdout_logfile=data/supervisor/watch-sass.log
   stderr_logfile=data/supervisor/watch-sass.log
 ''
