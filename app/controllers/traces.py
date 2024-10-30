@@ -1,7 +1,6 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-import numpy as np
 from fastapi import APIRouter, Path, Query
 from polyline_rs import encode_lonlat
 from pydantic import PositiveInt
@@ -19,7 +18,6 @@ from app.models.types import DisplayNameType
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
-from app.utils import json_encodes
 
 router = APIRouter()
 
@@ -64,12 +62,14 @@ async def _get_traces_data(
 
     if traces:
         async with TaskGroup() as tg:
-            tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=120))
+            tg.create_task(TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=90))
             new_after_t = tg.create_task(new_after_task())
             new_before_t = tg.create_task(new_before_task())
+        traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
         new_after = new_after_t.result()
         new_before = new_before_t.result()
     else:
+        traces_lines = ''
         new_after = None
         new_before = None
 
@@ -77,11 +77,6 @@ async def _get_traces_data(
     base_url_notag = base_url
     if tag is not None:
         base_url += f'/tag/{tag}'
-
-    traces_lines_lens = tuple(len(trace.coords) for trace in traces)
-    traces_line_arr = np.concatenate(tuple(trace.coords for trace in traces), axis=0, dtype=np.byte)
-    traces_line_arr[:, 1] -= 60
-    traces_line = encode_lonlat(traces_line_arr.tolist(), 0)
 
     if user is None:
         active_tab = 0  # viewing public traces
@@ -101,8 +96,7 @@ async def _get_traces_data(
         'new_after': new_after,
         'new_before': new_before,
         'traces': traces,
-        'traces_lines_lens': json_encodes(traces_lines_lens),
-        'traces_line': traces_line,
+        'traces_lines': traces_lines,
     }
 
 

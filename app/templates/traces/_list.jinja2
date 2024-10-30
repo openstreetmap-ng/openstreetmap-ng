@@ -1,11 +1,10 @@
 {% if traces %}
 {% include 'traces/_list_nav.jinja2' %}
-<ul class="traces-list list-unstyled" data-lines-lens="{{ traces_lines_lens | safe}}"
-    data-line="{{ traces_line | safe }}">
+<ul class="traces-list list-unstyled" data-lines="{{ traces_lines | safe }}">
     {% for trace in traces %}
     <li class="row g-2">
         <div class="col-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" width="122" height="122" viewBox="-1 -1 122 122"></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
         </div>
         <div class="col">
             <div class="social-action social-entry">

@@ -10,7 +10,7 @@ export const renderTrace = (svg: SVGElement, coords: [number, number][]): void =
     path.setAttribute("d", ds.join(" "))
     path.setAttribute("fill", "none")
     path.setAttribute("stroke", "black")
-    path.setAttribute("stroke-width", "2.4")
+    path.setAttribute("stroke-width", "1.8")
     path.setAttribute("stroke-linecap", "round")
     svg.appendChild(path)
 }
@@ -27,7 +27,7 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
     path.setAttribute("d", ds.join(" "))
     path.setAttribute("fill", "none")
     path.setAttribute("stroke", "#aaa")
-    path.setAttribute("stroke-width", "0.6")
+    path.setAttribute("stroke-width", "0.45")
     path.setAttribute("stroke-linecap", "round")
 
     svg.appendChild(path)

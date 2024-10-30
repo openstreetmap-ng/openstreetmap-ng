@@ -36,7 +36,6 @@ from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
-from app.utils import json_encodes
 
 router = APIRouter()
 
@@ -101,11 +100,8 @@ async def index(
         sort='desc',
         limit=USER_RECENT_ACTIVITY_ENTRIES,
     )
-    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=120)
-    traces_lines_lens = tuple(len(trace.coords) for trace in traces)
-    traces_line_arr = np.concatenate(tuple(trace.coords for trace in traces), axis=0, dtype=np.byte)
-    traces_line_arr[:, 1] -= 60
-    traces_line = encode_lonlat(traces_line_arr.tolist(), 0)
+    await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=90)
+    traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
 
     # TODO: diaries
     diaries_count = 0
@@ -131,8 +127,7 @@ async def index(
             'notes': notes,
             'traces_count': traces_count,
             'traces': traces,
-            'traces_lines_lens': json_encodes(traces_lines_lens),
-            'traces_line': traces_line,
+            'traces_lines': traces_lines,
             'diaries_count': diaries_count,
             'diaries': diaries,
             'groups_count': groups_count,
