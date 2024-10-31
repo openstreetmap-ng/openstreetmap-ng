@@ -119,6 +119,7 @@ ignore = [
   "PLW0603", # global-statement
   "PLW2901", # redefined-loop-name
   "PT011",   # pytest-raises-too-broad
+  "PYI025",  # unaliased-collections-abc-set-import
   "Q000",    # bad-quotes-inline-string
   "Q001",    # bad-quotes-multiline-string
   "Q002",    # bad-quotes-docstring
