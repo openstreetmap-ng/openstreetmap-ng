@@ -125,7 +125,7 @@ export const focusManyMapObjects = (map: L.Map, objects: OSMObject[], options?: 
         if (options?.intersects ? !mapBounds.intersects(latLngBounds) : !mapBounds.contains(latLngBounds)) {
             console.debug("Fitting map to", layers.length, "focus layers with zoom", fitMaxZoom, "(offscreen)")
             map.fitBounds(latLngBoundsPadded, { maxZoom: fitMaxZoom, animate: false })
-        } else if (options?.proportionCheck ?? true) {
+        } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
             const latLngSize = getLatLngBoundsSize(latLngBounds)
             const mapBoundsSize = getLatLngBoundsSize(mapBounds)
             const proportion = latLngSize / mapBoundsSize
