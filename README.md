@@ -50,7 +50,6 @@ The following list outlines the key features and components that need to be comp
 
 - ⬛ Authorization with third-party providers
 - [20%] Email notifications templates
-- ⬛ Messages
 - ⬛ Reporting of users
 - ⬛ User diaries
 - [30%] Website responsiveness (mobile)
