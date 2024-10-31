@@ -1,11 +1,13 @@
 import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config"
 
-import type { OSMObject } from "../_types"
+import { fromBinary } from "@bufbuild/protobuf"
+import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
+import { RenderObjectsDataSchema } from "../proto/shared_pb"
 import { type LayerId, getOverlayLayerById } from "./_layers"
 import { getMapAlert } from "./_map-utils"
-import { type RenderStyles, renderObjects } from "./_render-objects"
+import { type RenderStyles, convertRenderObjectsData, renderObjects } from "./_render-objects"
 import { getLatLngBoundsSize } from "./_utils"
 
 const loadDataAlertThreshold = 8000
@@ -32,7 +34,7 @@ export const configureDataLayer = (map: L.Map): void => {
 
     let abortController: AbortController | null = null
     let fetchedBounds: L.LatLngBounds | null = null
-    let fetchedElements: OSMObject[] | null = null
+    let fetchedElements: (OSMNode | OSMWay)[] | null = null
     let loadDataOverride = false
 
     const clearData = (): void => {
@@ -139,7 +141,9 @@ export const configureDataLayer = (map: L.Map): void => {
                     }
                     throw new Error(`${resp.status} ${resp.statusText}`)
                 }
-                fetchedElements = await resp.json()
+                const buffer = await resp.arrayBuffer()
+                const render = fromBinary(RenderObjectsDataSchema, new Uint8Array(buffer))
+                fetchedElements = convertRenderObjectsData(render)
                 fetchedBounds = bounds
                 tryLoadData()
             })

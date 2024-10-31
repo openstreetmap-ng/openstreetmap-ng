@@ -9,6 +9,7 @@ from httpx import Timeout
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
+from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
@@ -167,9 +168,10 @@ async def _get_result(
     ref_element_map: dict[ElementRef, Element] = {ElementRef(e.type, e.id): e for e in elements}
     elements = tuple(ref_element_map.get(ref) for ref in refs)  # not all elements may be found in the database
 
+    icons = features_icons(elements)
     prefixes = features_prefixes(elements)
     result: list[SearchResult] = []
-    for entry, element, prefix in zip(entries, elements, prefixes, strict=True):
+    for entry, element, icon, prefix in zip(entries, elements, icons, prefixes, strict=True):
         # skip non-existing elements
         if element is None or not element.visible:
             continue
@@ -192,6 +194,7 @@ async def _get_result(
                 element=element,
                 rank=entry['place_rank'],
                 importance=entry['importance'],
+                icon=icon,
                 prefix=prefix,
                 display_name=entry['display_name'],
                 point=point,

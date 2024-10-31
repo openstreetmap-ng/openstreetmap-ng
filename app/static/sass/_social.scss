@@ -277,6 +277,15 @@
 
 // Search results
 .search-list {
+    img.icon {
+        position: relative;
+        top: -0.1em;
+        width: 1em;
+        height: 1em;
+        object-fit: contain;
+        margin-right: 1px;
+    }
+
     li:not(:last-child) {
         margin-bottom: 0.875rem;
     }

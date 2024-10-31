@@ -6,6 +6,7 @@ import cython
 import numpy as np
 from shapely import MultiPolygon, Point, Polygon, STRtree
 
+from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.limits import SEARCH_LOCAL_AREA_LIMIT, SEARCH_LOCAL_MAX_ITERATIONS, SEARCH_LOCAL_RATIO
 from app.models.db.element import Element
@@ -22,6 +23,7 @@ class SearchResult:
     element: Element
     rank: int  # for determining global vs local relevance
     importance: float  # for sorting results
+    icon: FeatureIcon | None
     prefix: str
     display_name: str
     point: Point

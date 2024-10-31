@@ -1,7 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from collections import defaultdict
-from collections.abc import Collection, Iterable, Sequence
+from collections.abc import Awaitable, Collection, Iterable, Sequence
 from itertools import chain
 from typing import Literal
 
@@ -559,6 +559,7 @@ class ElementQuery:
         include_relations: bool = True,
         nodes_limit: int | None,
         legacy_nodes_limit: bool = False,
+        resolve_all_members: bool = False,
     ) -> list[Element]:
         """
         Find elements within the given geometry.
@@ -607,21 +608,27 @@ class ElementQuery:
         nodes_refs = tuple(ElementRef('node', node.id) for node in nodes)
         result_sequences: list[Iterable[Element]] = [nodes]
 
-        async def fetch_parents(element_refs: Collection[ElementRef], parent_type: ElementType) -> Sequence[Element]:
-            parents = await ElementQuery.get_parents_by_refs(
-                element_refs,
-                at_sequence_id=at_sequence_id,
-                parent_type=parent_type,
-                limit=None,
-            )
-            result_sequences.append(parents)
-            return parents
-
         async with TaskGroup() as tg:
+
+            async def fetch_parents(
+                element_refs: Collection[ElementRef],
+                parent_type: ElementType,
+            ) -> tuple[Sequence[Element], Awaitable[None] | None]:
+                parents = await ElementQuery.get_parents_by_refs(
+                    element_refs,
+                    at_sequence_id=at_sequence_id,
+                    parent_type=parent_type,
+                    limit=None,
+                )
+                result_sequences.append(parents)
+                if resolve_all_members:
+                    return parents, tg.create_task(ElementMemberQuery.resolve_members(parents))
+                else:
+                    return parents, None
 
             async def way_task() -> None:
                 # fetch parent ways
-                ways = await fetch_parents(nodes_refs, 'way')
+                ways, resolve_t = await fetch_parents(nodes_refs, 'way')
 
                 # fetch ways' parent relations
                 if include_relations:
@@ -630,7 +637,9 @@ class ElementQuery:
 
                 # fetch ways' nodes
                 if not partial_ways:
-                    await ElementMemberQuery.resolve_members(ways)
+                    if resolve_t is None:
+                        resolve_t = ElementMemberQuery.resolve_members(ways)
+                    await resolve_t
                     members_refs = {ElementRef('node', node.id) for way in ways for node in way.members}  # pyright: ignore[reportOptionalIterable]
                     members_refs.difference_update(nodes_refs)
                     ways_nodes = await ElementQuery.get_by_refs(

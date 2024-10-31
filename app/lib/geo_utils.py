@@ -12,8 +12,8 @@ else:
 
 
 @cython.cfunc
-def radians(x: cython.double) -> cython.double:
-    return x * 0.017453292519943295  # pi / 180
+def radians(degrees: cython.double) -> cython.double:
+    return degrees * 0.017453292519943295  # pi / 180
 
 
 def meters_to_radians(meters: float) -> float:
@@ -21,7 +21,7 @@ def meters_to_radians(meters: float) -> float:
     Convert a distance in meters to radians.
 
     >>> meters_to_radians(1000)
-    0.008993216059693147
+    0.000156...
     """
     return meters / 6371000  # R
 
@@ -30,10 +30,30 @@ def radians_to_meters(radians: float) -> float:
     """
     Convert a distance in radians to meters.
 
-    >>> radians_to_meters(0.008993216059693147)
+    >>> radians_to_meters(0.000156...)
     1000.0
     """
     return radians * 6371000  # R
+
+
+def meters_to_degrees(meters: float) -> float:
+    """
+    Convert a distance in meters to degrees.
+
+    >>> meters_to_degrees(1000)
+    0.00899...
+    """
+    return meters / (6371000 / 57.29577951308232)  # R / (180 / pi)
+
+
+def degrees_to_meters(degrees: float) -> float:
+    """
+    Convert a distance in degrees to meters.
+
+    >>> degrees_to_meters(0.00899...)
+    1000.0
+    """
+    return degrees * (6371000 / 57.29577951308232)  # R / (180 / pi)
 
 
 def haversine_distance(p1: Point, p2: Point) -> float:

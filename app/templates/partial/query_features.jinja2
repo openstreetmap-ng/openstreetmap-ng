@@ -1,25 +1,23 @@
 <ul class="search-list list-unstyled mb-0" data-params="{{ params }}">
-    {% for result in results %}
-    {% set element = result.element %}
-    {% set icon = result.icon %}
-    {% set point = result.point %}
-    <li class="social-action social-entry" {% if point is not none %} data-lon="{{ point.x }}" data-lat="{{ point.y }}"
-        {% endif %}>
+    {% for element, icon, name, prefix in results %}
+    <li class="social-action social-entry">
         <p class="header text-muted d-flex justify-content-between">
             <span>
                 {% if icon is not none %}
                 <img class="icon" src="/static/img/element/{{ icon.filename }}" title="{{ icon.title }}">
                 {% endif %}
-                {{ result.prefix }}
+                {{ prefix }}
             </span>
             <a class="stretched-link" href="/{{ element.type }}/{{ element.id }}">
                 {{ element.type }}/{{ element.id }}
             </a>
         </p>
-        <p class="body">{{ result.display_name }}</p>
+        {% if name %}
+        <p class="body">{{ name }}</p>
+        {% endif %}
     </li>
     {% endfor %}
 </ul>
-{% if not results %}
-<p>{{ t('results.we_did_not_find_any_results') }}</p>
+{% if not has_results %}
+<p>{{ t('javascripts.query.nothing_found') }}</p>
 {% endif %}

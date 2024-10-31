@@ -97,6 +97,11 @@ message PartialNoteParams {
     bool open = 3;
 }
 
+// Partial query features response params
+message PartialQueryFeaturesParams {
+    repeated RenderObjectsData renders = 1;
+}
+
 // Partial search response params
 message PartialSearchParams {
     optional string bounds_str = 1;

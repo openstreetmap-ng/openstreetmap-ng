@@ -14,7 +14,6 @@ import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from 
 import { PartialSearchParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
-import { routerNavigateStrict } from "./_router"
 import { setSearchFormQuery } from "./_search-form"
 
 const markerOpacity = 0.8
@@ -94,8 +93,6 @@ export const getSearchController = (map: L.Map): IndexController => {
             const div = results[i]
 
             const dataset = div.dataset
-            const type = dataset.type
-            const id = dataset.id
             const lon = Number.parseFloat(dataset.lon)
             const lat = Number.parseFloat(dataset.lat)
 
@@ -138,12 +135,8 @@ export const getSearchController = (map: L.Map): IndexController => {
 
                 // On marker click, navigate to the element
                 marker.addEventListener("click", (e) => {
-                    const url = `/${type}/${id}`
-                    if (e.originalEvent.ctrlKey) {
-                        window.open(url, "_blank")
-                    } else {
-                        routerNavigateStrict(url)
-                    }
+                    const target = div.querySelector("a.stretched-link")
+                    target.dispatchEvent(new MouseEvent("click", e.originalEvent))
                 })
                 layers.push(marker)
             }

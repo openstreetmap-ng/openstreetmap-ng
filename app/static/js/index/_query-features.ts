@@ -1,10 +1,15 @@
+import { fromBinary } from "@bufbuild/protobuf"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import { isLatitude, isLongitude } from "../_utils"
-import { focusMapObject, focusStyles } from "../leaflet/_focus-layer"
+import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
+import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
+import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { PartialQueryFeaturesParamsSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
@@ -29,7 +34,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
             const lon = Number.parseFloat(searchParams.lon)
             const lat = Number.parseFloat(searchParams.lat)
             if (isLongitude(lon) && isLatitude(lat)) {
-                const zoom = map.getZoom()
+                const zoom = Math.max(map.getZoom(), queryFeaturesMinZoom)
                 return { lon, lat, zoom }
             }
         }
@@ -38,22 +43,18 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
 
     /** Configure result actions to handle focus and clicks */
     const configureResultActions = (container: HTMLElement): void => {
-        const resultActions = container.querySelectorAll("li.social-action")
-        for (const resultAction of resultActions) {
-            // Get params
-            const params = JSON.parse(resultAction.dataset.params)
-            const mainElementType = params.type
-            const mainElementId = params.id
-            const elements = params.elements
-
-            // TODO: leaflet elements
-            const elementMap = parseElements(elements)
-            const mainElement = elementMap[mainElementType].get(mainElementId)
+        const queryList = container.querySelector("ul.search-list")
+        const resultActions = queryList.querySelectorAll("li.social-action")
+        const params = fromBinary(PartialQueryFeaturesParamsSchema, base64Decode(queryList.dataset.params))
+        for (let i = 0; i < resultActions.length; i++) {
+            const resultAction = resultActions[i]
+            const render = params.renders[i]
+            const elements = convertRenderObjectsData(render)
 
             // TODO: check event order on high activity
             // On hover, focus on the element
             resultAction.addEventListener("mouseenter", () => {
-                focusMapObject(map, mainElement)
+                focusManyMapObjects(map, elements)
             })
             // On hover end, unfocus the element
             resultAction.addEventListener("mouseleave", () => {

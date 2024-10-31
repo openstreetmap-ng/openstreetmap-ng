@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.format import FormatLeaflet
 from app.lib.exceptions_context import raise_for
@@ -27,4 +27,7 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
     await ElementMemberQuery.resolve_members(elements)
-    return FormatLeaflet.encode_elements(elements, detailed=True, areas=False)
+    return Response(
+        FormatLeaflet.encode_elements(elements, detailed=True, areas=False).SerializeToString(),
+        media_type='application/x-protobuf',
+    )
