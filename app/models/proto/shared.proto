@@ -33,7 +33,6 @@ message RenderObjectsData {
     repeated RenderWay ways = 2;
 }
 
-
 // Shared user configuration
 message WebUserConfig {
     bool activity_tracking = 1;
