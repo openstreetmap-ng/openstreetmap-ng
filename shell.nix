@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/cabaf14d3e69c9921d7acedf5d7d60bb2b90be02.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/2d2a9ddbe3f2c00747398f3dc9b05f7f2ebb0f53.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -70,7 +70,7 @@ let
     biome
     dart-sass
     # Services:
-    (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
+    (postgresql_17_jit.withPackages (ps: [ ps.postgis ]))
     valkey
     mailpit
 
@@ -489,8 +489,7 @@ let
     export PYTHONNOUSERSITE=1
     export TZ=UTC
     # Automatically remove old files
-    rm -f .python-version
-    rm -r typings/app
+    rm -rfv .python-version typings/app
 
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}

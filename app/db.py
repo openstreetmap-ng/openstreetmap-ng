@@ -9,9 +9,6 @@ from app.utils import JSON_DECODE, json_encodes
 
 _db_engine = create_async_engine(
     POSTGRES_URL,
-    # asyncpg enum doesn't play nicely with JIT
-    # https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#disabling-the-postgresql-jit-to-improve-enum-datatype-handling
-    connect_args={'server_settings': {'jit': 'off'}},
     json_deserializer=JSON_DECODE,
     json_serializer=json_encodes,
     query_cache_size=1024,

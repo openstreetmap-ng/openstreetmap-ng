@@ -167,9 +167,4 @@ class TestService:
                 app.scopes = scopes
                 app.is_confidential = is_confidential
 
-                # TODO: remove after migrations reset
-                if app.client_secret_preview is None:
-                    app.client_secret_hashed = hash_bytes(client_secret)
-                    app.client_secret_preview = client_secret[:OAUTH_SECRET_PREVIEW_LENGTH]
-
         logging.info('Upserted test OAuth2 application %r', name)
