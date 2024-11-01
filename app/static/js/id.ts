@@ -12,7 +12,6 @@ parentLoadSystemApp((accessToken) => {
     ctx.preauth({
         url: parent.location.origin,
         apiUrl: apiUrl,
-        // biome-ignore lint/style/useNamingConvention:
         access_token: accessToken,
     })
 

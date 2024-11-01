@@ -41,12 +41,6 @@
         "useConsistentArrayType": "warn",
         "useConsistentBuiltinInstantiation": "warn",
         "useForOf": "warn",
-        "useNamingConvention": {
-          "level": "warn",
-          "options": {
-            "strictCase": false
-          }
-        },
         "useShorthandAssign": "warn",
         "useThrowNewError": "warn",
         "useThrowOnlyError": "warn"

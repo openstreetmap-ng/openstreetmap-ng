@@ -205,7 +205,6 @@ export const getSearchController = (map: L.Map): IndexController => {
                 const url = `/api/partial/search?${qsEncode({
                     q: query,
                     bbox,
-                    // biome-ignore lint/style/useNamingConvention:
                     local_only: Boolean(options?.localOnly).toString(),
                 })}`
                 base.load({ url })

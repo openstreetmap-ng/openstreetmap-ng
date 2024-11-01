@@ -13,14 +13,11 @@ import { routerNavigateStrict } from "./_router"
 interface ChangesetLeaflet {
     id: number
     geom: Bounds[]
-    // biome-ignore lint/style/useNamingConvention: <explanation>
     user_name?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
     user_avatar?: string
     closed: boolean
     timeago: string
     comment?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
     num_comments: number
 }
 
