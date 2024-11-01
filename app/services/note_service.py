@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from shapely import Point, lib
-from sqlalchemy import delete, exists, func, join, null, select
+from sqlalchemy import delete, exists, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.db import db_commit
