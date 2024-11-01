@@ -33,6 +33,19 @@ message RenderElementsData {
     repeated RenderWay ways = 2;
 }
 
+// Note rendering structure
+message RenderNote {
+    uint64 id = 1;
+    SharedLonLat point = 2;
+    string text = 3;
+    bool open = 4;
+}
+
+// Notes rendering structure
+message RenderNotesData {
+    repeated RenderNote notes = 1;
+}
+
 // Shared user configuration
 message WebUserConfig {
     bool activity_tracking = 1;

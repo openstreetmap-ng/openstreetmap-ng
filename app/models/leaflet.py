@@ -12,10 +12,3 @@ class ChangesetLeaflet(msgspec.Struct):
     timeago: str
     comment: str | None
     num_comments: int
-
-
-class NoteLeaflet(msgspec.Struct):
-    id: int
-    geom: Collection[float]  # [lat, lon]
-    text: str
-    open: bool
