@@ -100,13 +100,17 @@ class OAuth2Token(Base.ZID, CreatedAtMixin):
             token_hashed,
             postgresql_where=token_hashed != null(),
         ),
-        Index('oauth2_token_user_app_idx', user_id, application_id),
         Index(
             'oauth2_token_authorized_user_app_idx',
             user_id,
             application_id,
-            'id',
             postgresql_where=authorized_at != null(),
+        ),
+        Index(
+            'oauth2_token_unauthorized_user_app_idx',
+            user_id,
+            application_id,
+            postgresql_where=authorized_at == null(),
         ),
     )
 

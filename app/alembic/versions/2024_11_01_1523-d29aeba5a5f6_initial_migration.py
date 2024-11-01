@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 85a9352bcf4d
+Revision ID: d29aeba5a5f6
 Revises:
-Create Date: 2024-10-31 17:40:52.576183+00:00
+Create Date: 2024-11-01 15:23:15.992631+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '85a9352bcf4d'
+revision: str = 'd29aeba5a5f6'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -60,6 +60,11 @@ def upgrade() -> None:
     sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('note_closed_at_idx', 'note', ['closed_at'], unique=False)
+    op.create_index('note_created_at_idx', 'note', ['created_at'], unique=False)
+    op.create_index('note_hidden_at_idx', 'note', ['hidden_at'], unique=False)
+    op.create_index('note_point_idx', 'note', ['point'], unique=False, postgresql_using='gist')
+    op.create_index('note_updated_at_idx', 'note', ['updated_at'], unique=False)
     op.create_table('user',
     sa.Column('email', sa.Unicode(length=254), nullable=False),
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
@@ -184,6 +189,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('note_comment_body_idx', 'note_comment', ['body_tsvector'], unique=False, postgresql_using='gin')
+    op.create_index('note_comment_event_user_idx', 'note_comment', ['event', 'user_id'], unique=False)
     op.create_table('note_subscription',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('note_id', sa.BigInteger(), nullable=False),
@@ -208,6 +215,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index('oauth2_application_client_id_idx', 'oauth2_application', ['client_id'], unique=True)
+    op.create_index('oauth2_application_user_idx', 'oauth2_application', ['user_id'], unique=False)
     op.create_table('trace',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('name', sa.Unicode(length=255), nullable=False),
@@ -298,7 +306,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('changeset_bounds_bounds_idx', 'changeset_bounds', ['bounds'], unique=False, postgresql_using='gist')
+    op.create_index('changeset_bounds_bounds_idx', 'changeset_bounds', ['bounds'], unique=False, postgresql_include=('changeset_id',), postgresql_using='gist')
     op.create_index('changeset_bounds_id_idx', 'changeset_bounds', ['changeset_id'], unique=False)
     op.create_table('changeset_comment',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
@@ -383,9 +391,9 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('oauth2_token_authorized_user_app_idx', 'oauth2_token', ['user_id', 'application_id', 'id'], unique=False, postgresql_where=sa.text('authorized_at IS NOT NULL'))
+    op.create_index('oauth2_token_authorized_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False, postgresql_where=sa.text('authorized_at IS NOT NULL'))
     op.create_index('oauth2_token_hashed_idx', 'oauth2_token', ['token_hashed'], unique=False, postgresql_where=sa.text('token_hashed IS NOT NULL'))
-    op.create_index('oauth2_token_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False)
+    op.create_index('oauth2_token_unauthorized_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False, postgresql_where=sa.text('authorized_at IS NULL'))
     op.create_table('report',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('issue_id', sa.BigInteger(), nullable=False),
@@ -417,7 +425,7 @@ def downgrade() -> None:
     op.drop_index('trace_segment_points_idx', table_name='trace_segment', postgresql_using='gist')
     op.drop_table('trace_segment')
     op.drop_table('report')
-    op.drop_index('oauth2_token_user_app_idx', table_name='oauth2_token')
+    op.drop_index('oauth2_token_unauthorized_user_app_idx', table_name='oauth2_token', postgresql_where=sa.text('authorized_at IS NULL'))
     op.drop_index('oauth2_token_hashed_idx', table_name='oauth2_token', postgresql_where=sa.text('token_hashed IS NOT NULL'))
     op.drop_index('oauth2_token_authorized_user_app_idx', table_name='oauth2_token', postgresql_where=sa.text('authorized_at IS NOT NULL'))
     op.drop_table('oauth2_token')
@@ -433,7 +441,7 @@ def downgrade() -> None:
     op.drop_index('changeset_comment_idx', table_name='changeset_comment')
     op.drop_table('changeset_comment')
     op.drop_index('changeset_bounds_id_idx', table_name='changeset_bounds')
-    op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_using='gist')
+    op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_include=('changeset_id',), postgresql_using='gist')
     op.drop_table('changeset_bounds')
     op.drop_table('user_token_reset_password')
     op.drop_table('user_token_email_reply')
@@ -442,9 +450,12 @@ def downgrade() -> None:
     op.drop_table('user_pref')
     op.drop_table('user_block')
     op.drop_table('trace')
+    op.drop_index('oauth2_application_user_idx', table_name='oauth2_application')
     op.drop_index('oauth2_application_client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('note_subscription')
+    op.drop_index('note_comment_event_user_idx', table_name='note_comment')
+    op.drop_index('note_comment_body_idx', table_name='note_comment', postgresql_using='gin')
     op.drop_table('note_comment')
     op.drop_table('message')
     op.drop_index('mail_processing_at_idx', table_name='mail')
@@ -463,6 +474,11 @@ def downgrade() -> None:
     op.drop_index('user_email_idx', table_name='user')
     op.drop_index('user_display_name_idx', table_name='user')
     op.drop_table('user')
+    op.drop_index('note_updated_at_idx', table_name='note')
+    op.drop_index('note_point_idx', table_name='note', postgresql_using='gist')
+    op.drop_index('note_hidden_at_idx', table_name='note')
+    op.drop_index('note_created_at_idx', table_name='note')
+    op.drop_index('note_closed_at_idx', table_name='note')
     op.drop_table('note')
     op.drop_index('element_member_idx', table_name='element_member')
     op.drop_table('element_member')

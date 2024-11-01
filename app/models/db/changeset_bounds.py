@@ -15,5 +15,5 @@ class ChangesetBounds(Base.ZID):
 
     __table_args__ = (
         Index('changeset_bounds_id_idx', changeset_id),
-        Index('changeset_bounds_bounds_idx', bounds, postgresql_using='gist'),
+        Index('changeset_bounds_bounds_idx', bounds, postgresql_include=('changeset_id',), postgresql_using='gist'),
     )

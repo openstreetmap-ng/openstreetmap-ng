@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from shapely import Point
-from sqlalchemy import ColumnElement, null, true
+from sqlalchemy import ColumnElement, Index, null, true
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_method
 from sqlalchemy.orm import Mapped, mapped_column
@@ -47,6 +47,15 @@ class Note(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     # runtime
     comments: list['NoteComment'] | Any = None
+
+    __table_args__ = (
+        Index('note_point_idx', point, postgresql_using='gist'),
+        Index('note_created_at_idx', 'created_at'),
+        Index('note_updated_at_idx', 'updated_at'),
+        Index('note_closed_at_idx', closed_at),
+        # TODO: delete forever hidden notes
+        Index('note_hidden_at_idx', hidden_at),
+    )
 
     @hybrid_method
     def visible_to(self, user: User | None) -> bool:  # pyright: ignore[reportRedeclaration]

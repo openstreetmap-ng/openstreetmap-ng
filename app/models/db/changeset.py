@@ -62,6 +62,7 @@ class Changeset(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
         Index('changeset_created_at_idx', 'created_at'),
         Index('changeset_closed_at_idx', closed_at, postgresql_where=closed_at != null()),
         Index('changeset_open_idx', 'updated_at', postgresql_where=closed_at == null()),
+        # TODO: optimize out empty changesets
         Index('changeset_empty_idx', closed_at, postgresql_where=and_(closed_at != null(), size == 0)),
         Index(
             'changeset_union_bounds_idx',

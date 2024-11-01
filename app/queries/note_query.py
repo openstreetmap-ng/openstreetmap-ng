@@ -54,6 +54,7 @@ class NoteQuery:
             if phrase is not None:
                 cte_where_and.append(func.to_tsvector(NoteComment.body).bool_op('@@')(func.phraseto_tsquery(phrase)))
             if user_id is not None:
+                cte_where_and.append(NoteComment.event.in_(tuple(NoteEvent)))
                 cte_where_and.append(NoteComment.user_id == user_id)
             if event is not None:
                 cte_where_and.append(NoteComment.event == event)

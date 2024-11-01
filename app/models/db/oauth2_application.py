@@ -58,7 +58,10 @@ class OAuth2Application(Base.ZID, CreatedAtMixin, UpdatedAtMixin):
         server_default=None,
     )
 
-    __table_args__ = (Index('oauth2_application_client_id_idx', 'client_id', unique=True),)
+    __table_args__ = (
+        Index('oauth2_application_client_id_idx', client_id, unique=True),
+        Index('oauth2_application_user_idx', user_id),
+    )
 
     @property
     def avatar_url(self) -> str:
