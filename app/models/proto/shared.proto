@@ -33,6 +33,23 @@ message RenderElementsData {
     repeated RenderWay ways = 2;
 }
 
+// Changeset rendering structure
+message RenderChangesetData {
+    uint64 id = 1;
+    repeated SharedBounds bounds = 2;
+    optional string user_name = 3;
+    optional string user_avatar = 4;
+    bool closed = 5;
+    string timeago = 6;
+    optional string comment = 7;
+    uint64 num_comments = 8;
+}
+
+// Changesets rendering structure
+message RenderChangesetsData {
+    repeated RenderChangesetData changesets = 1;
+}
+
 // Note rendering structure
 message RenderNote {
     uint64 id = 1;

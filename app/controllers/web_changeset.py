@@ -67,4 +67,7 @@ async def get_map(
             limit=CHANGESET_QUERY_WEB_LIMIT,
         )
     await ChangesetCommentQuery.resolve_num_comments(changesets)
-    return FormatLeaflet.encode_changesets(changesets)
+    return Response(
+        FormatLeaflet.encode_changesets(changesets).SerializeToString(),
+        media_type='application/x-protobuf',
+    )
