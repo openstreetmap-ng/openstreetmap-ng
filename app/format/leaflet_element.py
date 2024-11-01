@@ -11,7 +11,7 @@ from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId
-from app.models.proto.shared_pb2 import RenderNode, RenderObjectsData, RenderWay, SharedLonLat
+from app.models.proto.shared_pb2 import RenderElementsData, RenderNode, RenderWay, SharedLonLat
 
 
 class LeafletElementMixin:
@@ -21,7 +21,7 @@ class LeafletElementMixin:
         *,
         detailed: cython.char,
         areas: cython.char = True,
-    ) -> RenderObjectsData:
+    ) -> RenderElementsData:
         """
         Format elements into a minimal structure, suitable for map rendering.
         """
@@ -84,27 +84,27 @@ class LeafletElementMixin:
             RenderNode(id=node.id, point=SharedLonLat(lon=geom[0], lat=geom[1]))
             for node, geom in zip(encode_nodes, geoms, strict=True)
         )
-        return RenderObjectsData(
+        return RenderElementsData(
             nodes=render_nodes,
             ways=render_ways,
         )
 
     @staticmethod
-    def encode_query_features(results: Iterable[QueryFeatureResult]) -> list[RenderObjectsData]:
+    def encode_query_features(results: Iterable[QueryFeatureResult]) -> list[RenderElementsData]:
         """
         Format query features results into a minimal structure, suitable for map rendering.
         """
-        encoded: list[RenderObjectsData] = []
+        encoded: list[RenderElementsData] = []
         for result in results:
             element = result.element
             element_type = element.type
             if element_type == 'node':
                 point = result.geoms[0][0]
                 render_node = RenderNode(id=element.id, point=SharedLonLat(lon=point[0], lat=point[1]))
-                encoded.append(RenderObjectsData(nodes=(render_node,)))
+                encoded.append(RenderElementsData(nodes=(render_node,)))
             elif element_type == 'way':
                 render_way = RenderWay(id=element.id, line=encode_lonlat(result.geoms[0], 6))
-                encoded.append(RenderObjectsData(ways=(render_way,)))
+                encoded.append(RenderElementsData(ways=(render_way,)))
             elif element_type == 'relation':
                 nodes: list[RenderNode] = []
                 ways: list[RenderWay] = []
@@ -114,7 +114,7 @@ class LeafletElementMixin:
                         nodes.append(RenderNode(id=element.id, point=SharedLonLat(lon=point[0], lat=point[1])))
                     else:
                         ways.append(RenderWay(id=element.id, line=encode_lonlat(geom, 6)))
-                encoded.append(RenderObjectsData(nodes=tuple(nodes), ways=tuple(ways)))
+                encoded.append(RenderElementsData(nodes=tuple(nodes), ways=tuple(ways)))
             else:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
         return encoded

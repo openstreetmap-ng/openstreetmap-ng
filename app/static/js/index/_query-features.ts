@@ -8,7 +8,7 @@ import { isLatitude, isLongitude } from "../_utils"
 import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
 import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
-import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { PartialQueryFeaturesParamsSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -49,7 +49,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]
             const render = params.renders[i]
-            const elements = convertRenderObjectsData(render)
+            const elements = convertRenderElementsData(render)
 
             // TODO: check event order on high activity
             // On hover, focus on the element

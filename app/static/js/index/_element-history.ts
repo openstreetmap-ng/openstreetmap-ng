@@ -3,7 +3,7 @@ import { getTagsDiffMode, setTagsDiffMode } from "../_local-storage"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { getBaseFetchController } from "./_base-fetch"
 import { initializeElementContent } from "./_element"
 import type { IndexController } from "./_router"
@@ -36,7 +36,7 @@ export const getElementHistoryController = (map: L.Map): IndexController => {
         const versionSections = sidebarContent.querySelectorAll("div.version-section")
         for (const versionSection of versionSections) {
             const params = initializeElementContent(map, versionSection)
-            const elements = convertRenderObjectsData(params.render)
+            const elements = convertRenderElementsData(params.render)
             versionSection.addEventListener("mouseenter", () => focusManyMapObjects(map, elements)) // focus elements
             versionSection.addEventListener("mouseleave", () => focusMapObject(map, null)) // remove focus
         }
