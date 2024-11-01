@@ -383,10 +383,11 @@ let
 
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.sha256"
-      remote_checsums=$(curl --silent --location "$remote_check_url")
+      remote_checksums=$(curl --silent --location "$remote_check_url")
+      names=$(grep --only-matching --perl-regexp '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
-      for name in "user" "changeset" "element" "element_member"; do
+      for name in $names; do
         remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
         local_file="data/preload/$dataset/$name.csv.zst"
         local_check_file="data/preload/$dataset/$name.csv.zst.sha256"
@@ -397,7 +398,7 @@ let
         fi
 
         # compare with remote checksum
-        remote_checksum=$(grep "$local_file" <<< "$remote_checsums" | cut -d' ' -f1)
+        remote_checksum=$(grep "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
         local_checksum=$(cat "$local_check_file" 2> /dev/null || echo "x")
         if [ "$remote_checksum" = "$local_checksum" ]; then
           echo "File $local_file is up to date"
