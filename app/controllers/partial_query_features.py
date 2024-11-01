@@ -33,3 +33,22 @@ async def query_nearby_features(
             'params': urlsafe_b64encode(params.SerializeToString()).decode(),
         },
     )
+
+
+@router.get('/enclosing')
+async def query_enclosing_features(
+    lon: Annotated[Longitude, Query()],
+    lat: Annotated[Latitude, Query()],
+):
+    overpass_elements = await OverpassQuery.enclosing_elements(Point(lon, lat))
+    results = QueryFeatures.wrap_overpass_elements(overpass_elements)
+    renders = FormatLeaflet.encode_query_features(results)
+
+    params = PartialQueryFeaturesParams(renders=renders)
+    return await render_response(
+        'partial/query_features.jinja2',
+        {
+            'results': results,
+            'params': urlsafe_b64encode(params.SerializeToString()).decode(),
+        },
+    )

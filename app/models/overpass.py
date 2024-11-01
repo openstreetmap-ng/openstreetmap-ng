@@ -51,7 +51,6 @@ class OverpassWayMember(_OverpassElementMember):
 
 class OverpassRelationMember(_OverpassElementMember):
     type: Literal['relation']
-    # NOTE: this is not complete
 
 
 class OverpassRelation(_OverpassElement):
