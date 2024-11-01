@@ -10,7 +10,7 @@ from app.lib.feature_prefix import features_prefixes
 from app.limits import QUERY_FEATURES_RESULTS_LIMIT
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
-from app.queries.overpass_query import (
+from app.models.overpass import (
     OverpassElement,
     OverpassNode,
     OverpassNodeMember,

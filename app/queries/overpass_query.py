@@ -1,5 +1,4 @@
 import logging
-from typing import Literal, NotRequired, TypedDict
 
 import cython
 from httpx import Timeout
@@ -7,7 +6,7 @@ from shapely import Point, get_coordinates
 
 from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
-from app.models.element import ElementId
+from app.models.overpass import OverpassElement
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP, JSON_DECODE
 
@@ -16,7 +15,7 @@ _cache_context = CacheContext('Overpass')
 
 class OverpassQuery:
     @staticmethod
-    async def nearby_elements(point: Point, radius_meters: float) -> list['OverpassElement']:
+    async def nearby_elements(point: Point, radius_meters: float) -> list[OverpassElement]:
         """
         Query Overpass for elements nearby a point.
 
@@ -92,64 +91,3 @@ def _sort_by_bounds(element: 'OverpassElement'):
     maxlat: cython.double = bounds['maxlat']
     size = (maxlon - minlon) * (maxlat - minlat)
     return (1, size)
-
-
-class _OverpassPoint(TypedDict):
-    lat: float
-    lon: float
-
-
-class _OverpassBounds(TypedDict):
-    minlat: float
-    minlon: float
-    maxlat: float
-    maxlon: float
-
-
-class _OverpassElement(TypedDict):
-    id: ElementId
-    tags: NotRequired[dict[str, str]]
-
-
-class OverpassNode(_OverpassElement):
-    type: Literal[Literal['node']]
-    lat: float
-    lon: float
-
-
-class OverpassWay(_OverpassElement):
-    type: Literal[Literal['way']]
-    nodes: list[ElementId]
-    bounds: _OverpassBounds
-    geometry: list[_OverpassPoint]
-
-
-class _OverpassElementMember(TypedDict):
-    ref: ElementId
-    role: str
-
-
-class OverpassNodeMember(_OverpassElementMember):
-    type: Literal['node']
-    lat: float
-    lon: float
-
-
-class OverpassWayMember(_OverpassElementMember):
-    type: Literal['way']
-    geometry: list[_OverpassPoint]
-
-
-class OverpassRelationMember(_OverpassElementMember):
-    type: Literal['relation']
-    # NOTE: this is not complete
-
-
-class OverpassRelation(_OverpassElement):
-    type: Literal[Literal['relation']]
-    bounds: _OverpassBounds
-    members: list['OverpassElementMember']
-
-
-OverpassElement = OverpassNode | OverpassWay | OverpassRelation
-OverpassElementMember = OverpassNodeMember | OverpassWayMember | OverpassRelationMember

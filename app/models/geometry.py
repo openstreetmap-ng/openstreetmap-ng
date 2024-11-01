@@ -21,6 +21,16 @@ Latitude = Annotated[float, Interval(ge=-90, le=90)]
 Zoom = Annotated[int, Interval(ge=0, le=25)]
 # TODO: test if type matches after validation
 
+__all__ = (
+    'Geometry',
+    'PointGeometry',
+    'PolygonGeometry',
+    'MultiPolygonGeometry',
+    'Longitude',
+    'Latitude',
+    'Zoom',
+)
+
 
 class _GeometryType(UserDefinedType, ABC):
     geometry_type: str
