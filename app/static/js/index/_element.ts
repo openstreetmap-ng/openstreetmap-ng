@@ -4,7 +4,7 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { getPageTitle } from "../_title"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
-import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { type ElementMemberListEntry, type PartialElementParams, PartialElementParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
@@ -27,7 +27,7 @@ export const getElementController = (map: L.Map): IndexController => {
         if (!sidebarContent.dataset.params) return
 
         const params = initializeElementContent(map, sidebarContent)
-        const elements = convertRenderObjectsData(params.render)
+        const elements = convertRenderElementsData(params.render)
         focusManyMapObjects(map, elements)
     })
 

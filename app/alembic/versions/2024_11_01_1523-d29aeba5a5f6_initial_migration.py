@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 194c0c86a069
+Revision ID: d29aeba5a5f6
 Revises:
-Create Date: 2024-07-31 10:59:47.215883+00:00
+Create Date: 2024-11-01 15:23:15.992631+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = '194c0c86a069'
+revision: str = 'd29aeba5a5f6'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -60,6 +60,11 @@ def upgrade() -> None:
     sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('note_closed_at_idx', 'note', ['closed_at'], unique=False)
+    op.create_index('note_created_at_idx', 'note', ['created_at'], unique=False)
+    op.create_index('note_hidden_at_idx', 'note', ['hidden_at'], unique=False)
+    op.create_index('note_point_idx', 'note', ['point'], unique=False, postgresql_using='gist')
+    op.create_index('note_updated_at_idx', 'note', ['updated_at'], unique=False)
     op.create_table('user',
     sa.Column('email', sa.Unicode(length=254), nullable=False),
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
@@ -79,6 +84,7 @@ def upgrade() -> None:
     sa.Column('editor', sa.Enum('id', 'rapid', 'remote', name='editor'), nullable=True),
     sa.Column('avatar_type', sa.Enum('default', 'gravatar', 'custom', name='avatartype'), server_default='default', nullable=False),
     sa.Column('avatar_id', sa.Unicode(length=64), nullable=True),
+    sa.Column('background_id', sa.Unicode(length=64), nullable=True),
     sa.Column('home_point', app.models.geometry.PointType(), nullable=True),
     sa.Column('id', sa.BigInteger(), sa.Identity(always=False, minvalue=1), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
@@ -183,6 +189,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index('note_comment_body_idx', 'note_comment', ['body_tsvector'], unique=False, postgresql_using='gin')
+    op.create_index('note_comment_event_user_idx', 'note_comment', ['event', 'user_id'], unique=False)
     op.create_table('note_subscription',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('note_id', sa.BigInteger(), nullable=False),
@@ -194,11 +202,12 @@ def upgrade() -> None:
     sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('name', sa.Unicode(length=50), nullable=False),
     sa.Column('client_id', sa.Unicode(length=50), nullable=False),
-    sa.Column('client_secret_encrypted', sa.LargeBinary(), nullable=False),
-    sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_diary', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
+    sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
     sa.Column('is_confidential', sa.Boolean(), nullable=False),
-    sa.Column('redirect_uris', sa.ARRAY(sa.Unicode(length=1000), dimensions=1), nullable=False),
+    sa.Column('redirect_uris', sa.ARRAY(sa.Unicode(length=1000), as_tuple=True, dimensions=1), nullable=False),
     sa.Column('avatar_id', sa.Unicode(length=64), nullable=True),
+    sa.Column('client_secret_hashed', sa.LargeBinary(length=32), nullable=True),
+    sa.Column('client_secret_preview', sa.Unicode(length=7), nullable=True),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
@@ -206,6 +215,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index('oauth2_application_client_id_idx', 'oauth2_application', ['client_id'], unique=True)
+    op.create_index('oauth2_application_user_idx', 'oauth2_application', ['user_id'], unique=False)
     op.create_table('trace',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('name', sa.Unicode(length=255), nullable=False),
@@ -296,7 +306,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['changeset_id'], ['changeset.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('changeset_bounds_bounds_idx', 'changeset_bounds', ['bounds'], unique=False, postgresql_using='gist')
+    op.create_index('changeset_bounds_bounds_idx', 'changeset_bounds', ['bounds'], unique=False, postgresql_include=('changeset_id',), postgresql_using='gist')
     op.create_index('changeset_bounds_id_idx', 'changeset_bounds', ['changeset_id'], unique=False)
     op.create_table('changeset_comment',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
@@ -367,20 +377,23 @@ def upgrade() -> None:
     op.create_table('oauth2_token',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('application_id', sa.BigInteger(), nullable=False),
-    sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=False),
-    sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_diary', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
+    sa.Column('token_hashed', sa.LargeBinary(length=32), nullable=True),
+    sa.Column('scopes', sa.ARRAY(sa.Enum('read_prefs', 'write_prefs', 'write_api', 'read_gpx', 'write_gpx', 'write_notes', 'read_email', 'skip_authorization', 'web_user', 'role_moderator', 'role_administrator', name='scope'), as_tuple=True, dimensions=1), nullable=False),
     sa.Column('redirect_uri', sa.Unicode(length=1000), nullable=True),
     sa.Column('code_challenge_method', sa.Enum('plain', 'S256', name='oauth2codechallengemethod'), nullable=True),
     sa.Column('code_challenge', sa.Unicode(length=255), nullable=True),
     sa.Column('authorized_at', postgresql.TIMESTAMP(timezone=True), nullable=True),
+    sa.Column('name', sa.Unicode(length=50), nullable=True),
+    sa.Column('token_preview', sa.Unicode(length=7), nullable=True),
     sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
     sa.ForeignKeyConstraint(['application_id'], ['oauth2_application.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index('oauth2_token_hashed_idx', 'oauth2_token', ['token_hashed'], unique=False)
-    op.create_index('oauth2_token_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False)
+    op.create_index('oauth2_token_authorized_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False, postgresql_where=sa.text('authorized_at IS NOT NULL'))
+    op.create_index('oauth2_token_hashed_idx', 'oauth2_token', ['token_hashed'], unique=False, postgresql_where=sa.text('token_hashed IS NOT NULL'))
+    op.create_index('oauth2_token_unauthorized_user_app_idx', 'oauth2_token', ['user_id', 'application_id'], unique=False, postgresql_where=sa.text('authorized_at IS NULL'))
     op.create_table('report',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('issue_id', sa.BigInteger(), nullable=False),
@@ -399,7 +412,7 @@ def upgrade() -> None:
     sa.Column('segment_num', sa.SmallInteger(), nullable=False),
     sa.Column('points', app.models.geometry.MultiPointType(), nullable=False),
     sa.Column('capture_times', sa.ARRAY(postgresql.TIMESTAMP(timezone=True), dimensions=1), nullable=True),
-    sa.Column('elevations', sa.ARRAY(sa.REAL()), nullable=True),
+    sa.Column('elevations', sa.ARRAY(sa.REAL(), dimensions=1), nullable=True),
     sa.ForeignKeyConstraint(['trace_id'], ['trace.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('trace_id', 'track_num', 'segment_num')
     )
@@ -412,8 +425,9 @@ def downgrade() -> None:
     op.drop_index('trace_segment_points_idx', table_name='trace_segment', postgresql_using='gist')
     op.drop_table('trace_segment')
     op.drop_table('report')
-    op.drop_index('oauth2_token_user_app_idx', table_name='oauth2_token')
-    op.drop_index('oauth2_token_hashed_idx', table_name='oauth2_token')
+    op.drop_index('oauth2_token_unauthorized_user_app_idx', table_name='oauth2_token', postgresql_where=sa.text('authorized_at IS NULL'))
+    op.drop_index('oauth2_token_hashed_idx', table_name='oauth2_token', postgresql_where=sa.text('token_hashed IS NOT NULL'))
+    op.drop_index('oauth2_token_authorized_user_app_idx', table_name='oauth2_token', postgresql_where=sa.text('authorized_at IS NOT NULL'))
     op.drop_table('oauth2_token')
     op.drop_table('issue_comment')
     op.drop_index('element_version_idx', table_name='element')
@@ -427,7 +441,7 @@ def downgrade() -> None:
     op.drop_index('changeset_comment_idx', table_name='changeset_comment')
     op.drop_table('changeset_comment')
     op.drop_index('changeset_bounds_id_idx', table_name='changeset_bounds')
-    op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_using='gist')
+    op.drop_index('changeset_bounds_bounds_idx', table_name='changeset_bounds', postgresql_include=('changeset_id',), postgresql_using='gist')
     op.drop_table('changeset_bounds')
     op.drop_table('user_token_reset_password')
     op.drop_table('user_token_email_reply')
@@ -436,9 +450,12 @@ def downgrade() -> None:
     op.drop_table('user_pref')
     op.drop_table('user_block')
     op.drop_table('trace')
+    op.drop_index('oauth2_application_user_idx', table_name='oauth2_application')
     op.drop_index('oauth2_application_client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('note_subscription')
+    op.drop_index('note_comment_event_user_idx', table_name='note_comment')
+    op.drop_index('note_comment_body_idx', table_name='note_comment', postgresql_using='gin')
     op.drop_table('note_comment')
     op.drop_table('message')
     op.drop_index('mail_processing_at_idx', table_name='mail')
@@ -457,6 +474,11 @@ def downgrade() -> None:
     op.drop_index('user_email_idx', table_name='user')
     op.drop_index('user_display_name_idx', table_name='user')
     op.drop_table('user')
+    op.drop_index('note_updated_at_idx', table_name='note')
+    op.drop_index('note_point_idx', table_name='note', postgresql_using='gist')
+    op.drop_index('note_hidden_at_idx', table_name='note')
+    op.drop_index('note_created_at_idx', table_name='note')
+    op.drop_index('note_closed_at_idx', table_name='note')
     op.drop_table('note')
     op.drop_index('element_member_idx', table_name='element_member')
     op.drop_table('element_member')

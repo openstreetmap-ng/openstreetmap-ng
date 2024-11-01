@@ -1,7 +1,9 @@
 import * as L from "leaflet"
 import { noteQueryAreaMaxSize } from "../_config"
 
+import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "../index/_router"
+import { RenderNotesDataSchema } from "../proto/shared_pb"
 import { type LayerId, getOverlayLayerById } from "./_layers"
 import { getLatLngBoundsSize, getMarkerIcon } from "./_utils"
 
@@ -47,10 +49,11 @@ export const configureNotesLayer = (map: L.Map): void => {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const notes = await resp.json()
+                const buffer = await resp.arrayBuffer()
+                const notes = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer)).notes
                 const markers: L.Marker[] = []
                 for (const note of notes) {
-                    const marker = L.marker(note.geom, {
+                    const marker = L.marker(L.latLng(note.point.lat, note.point.lon), {
                         icon: getMarkerIcon(note.open ? "open" : "closed", false),
                         title: note.text,
                         opacity: 0.8,

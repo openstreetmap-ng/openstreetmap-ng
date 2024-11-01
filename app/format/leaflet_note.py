@@ -5,23 +5,24 @@ import numpy as np
 from shapely import lib
 
 from app.models.db.note import Note
-from app.models.leaflet import NoteLeaflet
+from app.models.proto.shared_pb2 import RenderNote, RenderNotesData, SharedLonLat
 
 
 class LeafletNoteMixin:
     @staticmethod
-    def encode_notes(notes: Iterable[Note]) -> tuple[NoteLeaflet, ...]:
+    def encode_notes(notes: Iterable[Note]) -> RenderNotesData:
         """
-        Format notes into a minimal structure, suitable for Leaflet rendering.
+        Format notes into a minimal structure, suitable for map rendering.
         """
-        return tuple(_encode_note(note) for note in notes)
+        return RenderNotesData(notes=tuple(_encode_note(note) for note in notes))
 
 
 @cython.cfunc
 def _encode_note(note: Note):
-    return NoteLeaflet(
+    x, y = lib.get_coordinates(np.asarray(note.point, dtype=object), False, False)[0].tolist()
+    return RenderNote(
         id=note.id,
-        geom=lib.get_coordinates(np.asarray(note.point, dtype=object), False, False)[0][::-1].tolist(),
+        point=SharedLonLat(lon=x, lat=y),
         text=note.comments[0].body[:100],
         open=note.closed_at is None,
     )

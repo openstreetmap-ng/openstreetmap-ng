@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/cabaf14d3e69c9921d7acedf5d7d60bb2b90be02.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/2d2a9ddbe3f2c00747398f3dc9b05f7f2ebb0f53.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -70,7 +70,7 @@ let
     biome
     dart-sass
     # Services:
-    (postgresql_16_jit.withPackages (ps: [ ps.postgis ]))
+    (postgresql_17_jit.withPackages (ps: [ ps.postgis ]))
     valkey
     mailpit
 
@@ -356,7 +356,7 @@ let
         exit 1
       fi
       mkdir -p "data/preload/$dataset"
-      cp --archive --link data/preload/*.csv.zst "data/preload/$dataset/"
+      cp --archive --link --force data/preload/*.csv.zst "data/preload/$dataset/"
       echo "Computing checksums.sha256 file"
       sha256sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.sha256"
       rsync \
@@ -383,10 +383,11 @@ let
 
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.sha256"
-      remote_checsums=$(curl --silent --location "$remote_check_url")
+      remote_checksums=$(curl --silent --location "$remote_check_url")
+      names=$(grep --only-matching --perl-regexp '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
-      for name in "user" "changeset" "element" "element_member"; do
+      for name in $names; do
         remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
         local_file="data/preload/$dataset/$name.csv.zst"
         local_check_file="data/preload/$dataset/$name.csv.zst.sha256"
@@ -397,7 +398,7 @@ let
         fi
 
         # compare with remote checksum
-        remote_checksum=$(grep "$local_file" <<< "$remote_checsums" | cut -d' ' -f1)
+        remote_checksum=$(grep "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
         local_checksum=$(cat "$local_check_file" 2> /dev/null || echo "x")
         if [ "$remote_checksum" = "$local_checksum" ]; then
           echo "File $local_file is up to date"
@@ -489,8 +490,7 @@ let
     export PYTHONNOUSERSITE=1
     export TZ=UTC
     # Automatically remove old files
-    rm -f .python-version
-    rm -r typings/app
+    rm -rfv .python-version typings/app
 
     current_python=$(readlink -e .venv/bin/python || echo "")
     current_python=''${current_python%/bin/*}

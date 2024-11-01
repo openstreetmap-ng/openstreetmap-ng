@@ -15,6 +15,8 @@ from app.models.db import *  # noqa: F403
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
+from app.models.db.note import Note
+from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
 from app.services.migration_service import MigrationService
 
@@ -52,7 +54,7 @@ def get_csv_header(path: Path) -> str:
 
 
 async def load_tables() -> None:
-    tables: tuple[type[DeclarativeBase], ...] = (User, Changeset, Element, ElementMember)
+    tables: tuple[type[DeclarativeBase], ...] = (User, Changeset, Element, ElementMember, Note, NoteComment)
     index_sqls: dict[quoted_name, str] = {}
 
     async with db_commit() as session:

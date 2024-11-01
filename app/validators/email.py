@@ -127,3 +127,5 @@ async def _check_domain_deliverability(domain: str) -> bool:
 
 EmailValidator = Predicate(validate_email)  # pyright: ignore[reportArgumentType]
 ValidatingEmailType = Annotated[EmailType, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
+
+__all__ = ('ValidatingEmailType',)

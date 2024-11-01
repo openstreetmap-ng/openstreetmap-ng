@@ -4,6 +4,8 @@ from typing import Literal, NamedTuple, NewType, Self, override
 ElementId = NewType('ElementId', int)
 ElementType = Literal['node', 'way', 'relation']
 
+__all__ = ('ElementId', 'ElementType')
+
 
 @lru_cache(maxsize=512)
 def element_type(s: str) -> ElementType:

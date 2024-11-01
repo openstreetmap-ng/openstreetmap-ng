@@ -28,32 +28,26 @@ const osmFranceLink = `<a href="https://www.openstreetmap.fr" target="_blank">${
 const cyclosmText = i18next.t("javascripts.map.cyclosm_name")
 const cyclosmLink = `<a href="https://www.cyclosm.org" target="_blank">${cyclosmText}</a>`
 const cyclosmCredit = i18next.t("javascripts.map.cyclosm_credit", {
-    // biome-ignore lint/style/useNamingConvention:
     cyclosm_link: cyclosmLink,
-    // biome-ignore lint/style/useNamingConvention:
     osm_france_link: osmFranceLink,
     interpolation: { escapeValue: false },
 })
 const thunderforestText = i18next.t("javascripts.map.andy_allan")
 const thunderforestLink = `<a href="https://www.thunderforest.com" target="_blank">${thunderforestText}</a>`
 const thunderforestCredit = i18next.t("javascripts.map.thunderforest_credit", {
-    // biome-ignore lint/style/useNamingConvention:
     thunderforest_link: thunderforestLink,
     interpolation: { escapeValue: false },
 })
 const tracestrackText = i18next.t("javascripts.map.tracestrack")
 const tracestrackLink = `<a href="https://www.tracestrack.com" target="_blank">${tracestrackText}</a>`
 const tracestrackCredit = i18next.t("javascripts.map.tracestrack_credit", {
-    // biome-ignore lint/style/useNamingConvention:
     tracestrack_link: tracestrackLink,
     interpolation: { escapeValue: false },
 })
 const hotosmText = i18next.t("javascripts.map.hotosm_name")
 const hotosmLink = `<a href="https://www.hotosm.org" target="_blank">${hotosmText}</a>`
 const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
-    // biome-ignore lint/style/useNamingConvention:
     hotosm_link: hotosmLink,
-    // biome-ignore lint/style/useNamingConvention:
     osm_france_link: osmFranceLink,
     interpolation: { escapeValue: false },
 })

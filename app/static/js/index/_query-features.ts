@@ -8,7 +8,7 @@ import { isLatitude, isLongitude } from "../_utils"
 import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
 import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
-import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { PartialQueryFeaturesParamsSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -21,7 +21,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
     const nearbyContainer = sidebar.querySelector("div.nearby-container")
     const nearbyLoadingHtml = nearbyContainer.innerHTML
-    const enclosingContainer = sidebar.querySelector(".enclosing-container")
+    const enclosingContainer = sidebar.querySelector("div.enclosing-container")
     const enclosingLoadingHtml = enclosingContainer.innerHTML
     const emptyText = i18next.t("javascripts.query.nothing_found")
 
@@ -49,7 +49,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         for (let i = 0; i < resultActions.length; i++) {
             const resultAction = resultActions[i]
             const render = params.renders[i]
-            const elements = convertRenderObjectsData(render)
+            const elements = convertRenderElementsData(render)
 
             // TODO: check event order on high activity
             // On hover, focus on the element
@@ -75,19 +75,20 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         // TODO: reduced motion
 
         // NOTE: remove polyfill when requestAnimationFrame
-        const requestAnimationFrame_ = window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 30))
+        const requestAnimationFramePolyfill =
+            window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 30))
 
         const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
             const elapsedTime = (timestamp ?? performance.now()) - animationStart
             const opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
             circle.setStyle({ opacity, fillOpacity: opacity })
-            if (opacity > 0 && !abortSignal.aborted) requestAnimationFrame_(fadeOut)
+            if (opacity > 0 && !abortSignal.aborted) requestAnimationFramePolyfill(fadeOut)
             else map.removeLayer(circle)
         }
 
         map.addLayer(circle)
         const animationStart = performance.now()
-        requestAnimationFrame_(fadeOut)
+        requestAnimationFramePolyfill(fadeOut)
     }
 
     /** On sidebar loaded, display content */
@@ -99,6 +100,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
     /** On sidebar loaded, display content */
     const onSidebarEnclosingLoaded = (html: string): void => {
         enclosingContainer.innerHTML = html
+        configureResultActions(enclosingContainer)
     }
 
     // TODO: on tab close, disable query mode
@@ -128,15 +130,20 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
             onSidebarLoading(latLng, zoom, abortSignal)
 
             // Fetch nearby features
-            const queryString = qsEncode({ lon: lon.toString(), lat: lat.toString(), zoom: zoom.toString() })
-
-            fetch(`/api/partial/query/nearby?${queryString}`, {
-                method: "GET",
-                mode: "same-origin",
-                cache: "no-store", // request params are too volatile to cache
-                signal: abortSignal,
-                priority: "high",
-            })
+            fetch(
+                `/api/partial/query/nearby?${qsEncode({
+                    lon: lon.toString(),
+                    lat: lat.toString(),
+                    zoom: zoom.toString(),
+                })}`,
+                {
+                    method: "GET",
+                    mode: "same-origin",
+                    cache: "no-store", // request params are too volatile to cache
+                    signal: abortSignal,
+                    priority: "high",
+                },
+            )
                 .then(async (resp) => {
                     onSidebarNearbyLoaded(await resp.text())
                 })
@@ -153,13 +160,19 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
                 })
 
             // Fetch enclosing features
-            fetch(`/api/partial/query/enclosing?${queryString}`, {
-                method: "GET",
-                mode: "same-origin",
-                cache: "no-store", // request params are too volatile to cache
-                signal: abortSignal,
-                priority: "high",
-            })
+            fetch(
+                `/api/partial/query/enclosing?${qsEncode({
+                    lon: lon.toString(),
+                    lat: lat.toString(),
+                })}`,
+                {
+                    method: "GET",
+                    mode: "same-origin",
+                    cache: "no-store", // request params are too volatile to cache
+                    signal: abortSignal,
+                    priority: "high",
+                },
+            )
                 .then(async (resp) => {
                     onSidebarEnclosingLoaded(await resp.text())
                 })

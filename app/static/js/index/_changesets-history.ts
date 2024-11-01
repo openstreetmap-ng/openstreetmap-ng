@@ -1,3 +1,4 @@
+import { fromBinary } from "@bufbuild/protobuf"
 import i18next from "i18next"
 import * as L from "leaflet"
 import { qsEncode } from "../_qs"
@@ -5,24 +6,10 @@ import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
+import { type RenderChangesetData, RenderChangesetsDataSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
-
-// app/models/leaflet.py
-interface ChangesetLeaflet {
-    id: number
-    geom: Bounds[]
-    // biome-ignore lint/style/useNamingConvention: <explanation>
-    user_name?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
-    user_avatar?: string
-    closed: boolean
-    timeago: string
-    comment?: string
-    // biome-ignore lint/style/useNamingConvention: <explanation>
-    num_comments: number
-}
 
 const changesetsLayerId = "changesets" as LayerId
 
@@ -54,11 +41,11 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     let abortController: AbortController | null = null
 
     // Store changesets to allow loading more
-    const changesets: ChangesetLeaflet[] = []
+    const changesets: RenderChangesetData[] = []
     let changesetsBBox = ""
     let noMoreChangesets = false
-    const idSidebarMap: Map<number, HTMLElement> = new Map()
-    const idLayersMap: Map<number, L.Path[]> = new Map()
+    const idSidebarMap: Map<bigint, HTMLElement> = new Map()
+    const idLayersMap: Map<bigint, L.Path[]> = new Map()
 
     const updateSidebar = (): void => {
         idSidebarMap.clear()
@@ -75,16 +62,16 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             const numCommentsValue = div.querySelector(".num-comments")
 
             // Populate elements
-            if (changeset.user_name) {
+            if (changeset.userName) {
                 const anchor = document.createElement("a")
-                anchor.href = `/user/${changeset.user_name}`
+                anchor.href = `/user/${changeset.userName}`
                 const img = document.createElement("img")
                 img.classList.add("avatar")
-                img.src = changeset.user_avatar
+                img.src = changeset.userAvatar
                 img.alt = i18next.t("alt.profile_picture")
                 img.loading = "lazy"
                 anchor.appendChild(img)
-                anchor.appendChild(document.createTextNode(changeset.user_name))
+                anchor.appendChild(document.createTextNode(changeset.userName))
                 userContainer.appendChild(anchor)
             } else {
                 userContainer.textContent = i18next.t("browse.anonymous")
@@ -97,9 +84,9 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             commentValue.textContent = changeset.comment || i18next.t("browse.no_comment")
 
             const icon = document.createElement("i")
-            icon.classList.add("bi", changeset.num_comments ? "bi-chat-left-text" : "bi-chat-left")
-            numCommentsValue.classList.toggle("no-comments", !changeset.num_comments)
-            numCommentsValue.appendChild(document.createTextNode(changeset.num_comments.toString()))
+            icon.classList.add("bi", changeset.numComments ? "bi-chat-left-text" : "bi-chat-left")
+            numCommentsValue.classList.toggle("no-comments", !changeset.numComments)
+            numCommentsValue.appendChild(document.createTextNode(changeset.numComments.toString()))
             numCommentsValue.appendChild(icon)
 
             changesetLink.href = `/changeset/${changeset.id}`
@@ -119,12 +106,13 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
         idLayersMap.clear()
 
         // Sort by bounds area (descending)
-        const changesetsSorted: [ChangesetLeaflet, L.Path[], Bounds, number][] = []
+        const changesetsSorted: [RenderChangesetData, L.Path[], Bounds, number][] = []
         for (const changeset of changesets) {
             const changesetLayers: L.Path[] = []
             idLayersMap.set(changeset.id, changesetLayers)
-            for (const bounds of changeset.geom) {
-                const minimumBounds = makeBoundsMinimumSize(map, bounds)
+            for (const bounds of changeset.bounds) {
+                const { minLon, minLat, maxLon, maxLat } = bounds
+                const minimumBounds = makeBoundsMinimumSize(map, [minLon, minLat, maxLon, maxLat])
                 const boundsArea = (minimumBounds[2] - minimumBounds[0]) * (minimumBounds[3] - minimumBounds[1])
                 changesetsSorted.push([changeset, changesetLayers, minimumBounds, boundsArea])
             }
@@ -156,13 +144,13 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
 
     /** On layer click, navigate to the changeset */
     const onLayerClick = ({ target }: L.LeafletMouseEvent): void => {
-        const changesetId: number = target.changesetId
+        const changesetId: bigint = target.changesetId
         routerNavigateStrict(`/changeset/${changesetId}`)
     }
 
     /** On mouseover, scroll result into view and focus the changeset */
     const onMouseover = ({ target }: Event | L.LeafletEvent): void => {
-        const changesetId: number = target.changesetId
+        const changesetId: bigint = target.changesetId
         const result = idSidebarMap.get(changesetId)
 
         const sidebarRect = parentSidebar.getBoundingClientRect()
@@ -177,7 +165,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
 
     /** On mouseout, unfocus the changeset */
     const onMouseout = ({ target }: Event | L.LeafletEvent): void => {
-        const changesetId: number = target.changesetId
+        const changesetId: bigint = target.changesetId
         const result = idSidebarMap.get(changesetId)
         result.classList.remove("hover")
         const layers = idLayersMap.get(changesetId)
@@ -230,7 +218,8 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             .then(async (resp) => {
                 if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
-                const newChangesets = await resp.json()
+                const buffer = await resp.arrayBuffer()
+                const newChangesets = fromBinary(RenderChangesetsDataSchema, new Uint8Array(buffer)).changesets
                 changesets.push(...newChangesets)
 
                 if (!newChangesets.length) {

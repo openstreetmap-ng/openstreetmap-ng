@@ -27,10 +27,40 @@ message RenderWay {
     bool area = 3;
 }
 
-// Object rendering structure
-message RenderObjectsData {
+// Elements rendering structure
+message RenderElementsData {
     repeated RenderNode nodes = 1;
     repeated RenderWay ways = 2;
+}
+
+// Changeset rendering structure
+message RenderChangesetData {
+    uint64 id = 1;
+    repeated SharedBounds bounds = 2;
+    optional string user_name = 3;
+    optional string user_avatar = 4;
+    bool closed = 5;
+    string timeago = 6;
+    optional string comment = 7;
+    uint64 num_comments = 8;
+}
+
+// Changesets rendering structure
+message RenderChangesetsData {
+    repeated RenderChangesetData changesets = 1;
+}
+
+// Note rendering structure
+message RenderNote {
+    uint64 id = 1;
+    SharedLonLat point = 2;
+    string text = 3;
+    bool open = 4;
+}
+
+// Notes rendering structure
+message RenderNotesData {
+    repeated RenderNote notes = 1;
 }
 
 // Shared user configuration
@@ -86,7 +116,7 @@ message PartialElementParams {
     string type = 1;
     repeated ElementMemberListEntry members = 2;
     repeated ElementMemberListEntry parents = 3;
-    RenderObjectsData render = 4;
+    RenderElementsData render = 4;
 }
 
 // Partial note response params
@@ -98,12 +128,12 @@ message PartialNoteParams {
 
 // Partial query features response params
 message PartialQueryFeaturesParams {
-    repeated RenderObjectsData renders = 1;
+    repeated RenderElementsData renders = 1;
 }
 
 // Partial search response params
 message PartialSearchParams {
     optional string bounds_str = 1;
-    repeated RenderObjectsData renders = 2;
+    repeated RenderElementsData renders = 2;
     bool where_is_this = 3;
 }

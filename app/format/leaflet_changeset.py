@@ -4,16 +4,16 @@ import cython
 
 from app.lib.jinja_env import timeago
 from app.models.db.changeset import Changeset
-from app.models.leaflet import ChangesetLeaflet
+from app.models.proto.shared_pb2 import RenderChangesetData, RenderChangesetsData, SharedBounds
 
 
 class LeafletChangesetMixin:
     @staticmethod
-    def encode_changesets(changesets: Iterable[Changeset]) -> tuple[ChangesetLeaflet, ...]:
+    def encode_changesets(changesets: Iterable[Changeset]) -> RenderChangesetsData:
         """
-        Format changesets into a minimal structure, suitable for Leaflet rendering.
+        Format changesets into a minimal structure, suitable for map rendering.
         """
-        return tuple(_encode_changeset(changeset) for changeset in changesets)
+        return RenderChangesetsData(changesets=tuple(_encode_changeset(changeset) for changeset in changesets))
 
 
 @cython.cfunc
@@ -30,9 +30,19 @@ def _encode_changeset(changeset: Changeset):
     else:
         user_name = None
         user_avatar = None
-    return ChangesetLeaflet(
+    params_bounds: list[SharedBounds] = [None] * len(changeset.bounds)  # pyright: ignore[reportAssignmentType]
+    i: cython.int
+    for i, cb in enumerate(changeset.bounds):
+        bounds = cb.bounds.bounds
+        params_bounds[i] = SharedBounds(
+            min_lon=bounds[0],
+            min_lat=bounds[1],
+            max_lon=bounds[2],
+            max_lat=bounds[3],
+        )
+    return RenderChangesetData(
         id=changeset.id,
-        geom=tuple(cb.bounds.bounds for cb in changeset.bounds),
+        bounds=params_bounds,
         user_name=user_name,
         user_avatar=user_avatar,
         closed=changeset.closed_at is not None,

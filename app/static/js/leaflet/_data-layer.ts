@@ -4,10 +4,10 @@ import { mapQueryAreaMaxSize } from "../_config"
 import { fromBinary } from "@bufbuild/protobuf"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
-import { RenderObjectsDataSchema } from "../proto/shared_pb"
+import { RenderElementsDataSchema } from "../proto/shared_pb"
 import { type LayerId, getOverlayLayerById } from "./_layers"
 import { getMapAlert } from "./_map-utils"
-import { type RenderStyles, convertRenderObjectsData, renderObjects } from "./_render-objects"
+import { type RenderStyles, convertRenderElementsData, renderObjects } from "./_render-objects"
 import { getLatLngBoundsSize } from "./_utils"
 
 const loadDataAlertThreshold = 8000
@@ -142,8 +142,8 @@ export const configureDataLayer = (map: L.Map): void => {
                     throw new Error(`${resp.status} ${resp.statusText}`)
                 }
                 const buffer = await resp.arrayBuffer()
-                const render = fromBinary(RenderObjectsDataSchema, new Uint8Array(buffer))
-                fetchedElements = convertRenderObjectsData(render)
+                const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
+                fetchedElements = convertRenderElementsData(render)
                 fetchedBounds = bounds
                 tryLoadData()
             })

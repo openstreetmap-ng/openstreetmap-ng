@@ -9,7 +9,7 @@ import { isLongitude, zoomPrecision } from "../_utils"
 import { type FocusOptions, focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { getMapAlert } from "../leaflet/_map-utils"
-import { convertRenderObjectsData } from "../leaflet/_render-objects"
+import { convertRenderElementsData } from "../leaflet/_render-objects"
 import { getLatLngBoundsIntersection, getLatLngBoundsSize, getMarkerIcon } from "../leaflet/_utils"
 import { PartialSearchParamsSchema } from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
@@ -89,7 +89,7 @@ export const getSearchController = (map: L.Map): IndexController => {
 
         const layers: L.Marker[] = []
         for (let i = 0; i < results.length; i++) {
-            const elements = convertRenderObjectsData(params.renders[i])
+            const elements = convertRenderElementsData(params.renders[i])
             const div = results[i]
 
             const dataset = div.dataset
@@ -149,7 +149,7 @@ export const getSearchController = (map: L.Map): IndexController => {
         if (globalMode) {
             // global mode
             if (results.length) {
-                const elements = convertRenderObjectsData(params.renders[0])
+                const elements = convertRenderElementsData(params.renders[0])
                 focusManyMapObjects(map, elements, focusOptions)
                 focusMapObject(map, null)
             }
@@ -205,7 +205,6 @@ export const getSearchController = (map: L.Map): IndexController => {
                 const url = `/api/partial/search?${qsEncode({
                     q: query,
                     bbox,
-                    // biome-ignore lint/style/useNamingConvention:
                     local_only: Boolean(options?.localOnly).toString(),
                 })}`
                 base.load({ url })

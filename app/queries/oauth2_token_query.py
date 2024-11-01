@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import func, null, select
+from sqlalchemy import func, null, or_, select
 
 from app.db import db
 from app.lib.crypto import hash_bytes
@@ -83,6 +83,10 @@ class OAuth2TokenQuery:
                 .where(
                     OAuth2Token.user_id == user_id,
                     OAuth2Token.application_id == app_id,
+                    or_(
+                        OAuth2Token.authorized_at != null(),
+                        OAuth2Token.authorized_at == null(),
+                    ),
                 )
                 .order_by(OAuth2Token.id.desc())
             )
