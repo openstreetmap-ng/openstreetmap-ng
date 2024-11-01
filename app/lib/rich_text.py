@@ -110,7 +110,7 @@ class RichTextMixin:
         if getattr(self, rich_field_name) is not None:
             return
 
-        text = getattr(self, field_name)
+        text: str = getattr(self, field_name)
         text_rich_hash: bytes | None = getattr(self, rich_hash_field_name)
         cache_entry = await rich_text(text, text_rich_hash, text_format)
         cache_entry_id: bytes = cache_entry.id

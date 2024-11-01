@@ -51,8 +51,9 @@ class NoteComment(Base.Sequential, CreatedAtMixin, RichTextMixin):
     legacy_note: Note | None = None
 
     __table_args__ = (
-        Index('note_comment_body_idx', body_tsvector, postgresql_using='gin'),
+        Index('note_comment_note_created_idx', note_id, 'created_at'),
         Index('note_comment_event_user_idx', event, user_id),
+        Index('note_comment_body_idx', body_tsvector, postgresql_using='gin'),
     )
 
     @validates('body')

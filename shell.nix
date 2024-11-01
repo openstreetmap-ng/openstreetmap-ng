@@ -356,7 +356,7 @@ let
         exit 1
       fi
       mkdir -p "data/preload/$dataset"
-      cp --archive --link data/preload/*.csv.zst "data/preload/$dataset/"
+      cp --archive --link --force data/preload/*.csv.zst "data/preload/$dataset/"
       echo "Computing checksums.sha256 file"
       sha256sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.sha256"
       rsync \
