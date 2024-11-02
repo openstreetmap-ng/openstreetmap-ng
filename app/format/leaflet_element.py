@@ -119,60 +119,6 @@ class LeafletElementMixin:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')
         return encoded
 
-    # @staticmethod
-    # def group_related_elements(elements: Iterable[Element]) -> list[Sequence[Element]]:
-    #     """
-    #     Group elements that are related to each other.
-
-    #     The primary element is the first element in the group.
-
-    #     The same element can be present in multiple groups.
-    #     """
-    #     type_ids_map: dict[tuple[ElementType, ElementId], Element] = {}
-    #     parents: list[Element] = []
-    #     nodes: list[Element] = []
-    #     member_nodes_ids: set[ElementId] = set()
-    #     for element in elements:
-    #         type_ids_map[(element.type, element.id)] = element
-    #         if element.type == 'node':
-    #             nodes.append(element)
-    #         else:
-    #             parents.append(element)
-
-    #     groups: list[Sequence[Element]] = []
-    #     for parent in parents:
-    #         if not _check_tags_interesting(parent.tags):
-    #             continue
-
-    #         parent_members = parent.members
-    #         if parent_members is None:
-    #             raise AssertionError(f'Parent {parent.type}/{parent.id} members must be set')
-
-    #         group: list[Element] = [parent]
-    #         groups.append(group)
-    #         iterate_members = [parent_members]
-    #         while iterate_members:
-    #             for member in iterate_members.pop():
-    #                 member_type = member.type
-    #                 member_id = member.id
-    #                 member = type_ids_map.get((member_type, member_id))
-    #                 if member is None:
-    #                     continue
-    #                 group.append(member)
-    #                 if member_type == 'node':
-    #                     member_nodes_ids.add(member_id)
-    #                 else:
-    #                     member_members = member.members
-    #                     if member_members is not None:
-    #                         iterate_members.append(member_members)
-
-    #     groups.extend(
-    #         (node,)
-    #         for node in nodes  #
-    #         if _check_node_interesting(node, member_nodes_ids, detailed=True)
-    #     )
-    #     return groups
-
 
 @cython.cfunc
 def _check_way_area(tags: dict[str, str], members: Sequence[ElementMember]) -> cython.char:

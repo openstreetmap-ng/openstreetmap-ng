@@ -223,7 +223,7 @@ async def _get_element_data(element: Element, at_sequence_id: int, *, include_pa
     icon = features_icons((element,))[0]
     name = features_names((element,))[0]
     tags_map = tags_format(element.tags)
-    render_data = FormatLeaflet.encode_elements(full_data, detailed=False)
+    render_data = FormatLeaflet.encode_elements(full_data, detailed=True)
 
     param = PartialElementParams(
         type=element.type,
