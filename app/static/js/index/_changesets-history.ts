@@ -6,7 +6,7 @@ import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
-import { type RenderChangesetData, RenderChangesetsDataSchema } from "../proto/shared_pb"
+import { RenderChangesetsDataSchema, type RenderChangesetsData_Changeset } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 import { routerNavigateStrict } from "./_router"
@@ -41,7 +41,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     let abortController: AbortController | null = null
 
     // Store changesets to allow loading more
-    const changesets: RenderChangesetData[] = []
+    const changesets: RenderChangesetsData_Changeset[] = []
     let changesetsBBox = ""
     let noMoreChangesets = false
     const idSidebarMap: Map<bigint, HTMLElement> = new Map()
@@ -62,16 +62,16 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
             const numCommentsValue = div.querySelector(".num-comments")
 
             // Populate elements
-            if (changeset.userName) {
+            if (changeset.user) {
                 const anchor = document.createElement("a")
-                anchor.href = `/user/${changeset.userName}`
+                anchor.href = `/user/${changeset.user.name}`
                 const img = document.createElement("img")
                 img.classList.add("avatar")
-                img.src = changeset.userAvatar
+                img.src = changeset.user.avatarUrl
                 img.alt = i18next.t("alt.profile_picture")
                 img.loading = "lazy"
                 anchor.appendChild(img)
-                anchor.appendChild(document.createTextNode(changeset.userName))
+                anchor.appendChild(document.createTextNode(changeset.user.name))
                 userContainer.appendChild(anchor)
             } else {
                 userContainer.textContent = i18next.t("browse.anonymous")
@@ -106,7 +106,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
         idLayersMap.clear()
 
         // Sort by bounds area (descending)
-        const changesetsSorted: [RenderChangesetData, L.Path[], Bounds, number][] = []
+        const changesetsSorted: [RenderChangesetsData_Changeset, L.Path[], Bounds, number][] = []
         for (const changeset of changesets) {
             const changesetLayers: L.Path[] = []
             idLayersMap.set(changeset.id, changesetLayers)

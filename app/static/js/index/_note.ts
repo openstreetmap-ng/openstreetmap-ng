@@ -30,13 +30,13 @@ export const getNoteController = (map: L.Map): IndexController => {
         focusMapObject(map, {
             type: "note",
             id: params.id,
-            geom: [params.point.lat, params.point.lon],
+            geom: [params.lat, params.lon],
             icon: params.open ? "open" : "closed",
         })
 
         // On location click, pan the map
         locationButton.addEventListener("click", () => {
-            const latLng = L.latLng(params.point.lat, params.point.lon)
+            const latLng = L.latLng(params.lat, params.lon)
             const currentZoom = map.getZoom()
             if (currentZoom < 16) {
                 map.setView(latLng, 18)

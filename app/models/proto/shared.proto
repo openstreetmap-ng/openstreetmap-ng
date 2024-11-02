@@ -1,11 +1,5 @@
 syntax = "proto3";
 
-// Generic coordinate structure
-message SharedLonLat {
-    float lon = 1;
-    float lat = 2;
-}
-
 // Generic bounding box structure
 message SharedBounds {
     float min_lon = 1;
@@ -14,68 +8,68 @@ message SharedBounds {
     float max_lat = 4;
 }
 
-// Node rendering structure
-message RenderNode {
-    uint64 id = 1;
-    SharedLonLat point = 2;
-}
-
-// Way rendering structure
-message RenderWay {
-    uint64 id = 1;
-    string line = 2;
-    bool area = 3;
-}
-
 // Elements rendering structure
 message RenderElementsData {
-    repeated RenderNode nodes = 1;
-    repeated RenderWay ways = 2;
-}
-
-// Changeset rendering structure
-message RenderChangesetData {
-    uint64 id = 1;
-    repeated SharedBounds bounds = 2;
-    optional string user_name = 3;
-    optional string user_avatar = 4;
-    bool closed = 5;
-    string timeago = 6;
-    optional string comment = 7;
-    uint64 num_comments = 8;
+    message Node {
+        uint64 id = 1;
+        float lon = 2;
+        float lat = 3;
+    }
+    message Way {
+        uint64 id = 1;
+        string line = 2;
+        bool area = 3;
+    }
+    repeated Node nodes = 1;
+    repeated Way ways = 2;
+    optional bool too_much_data = 3;
 }
 
 // Changesets rendering structure
 message RenderChangesetsData {
-    repeated RenderChangesetData changesets = 1;
-}
-
-// Note rendering structure
-message RenderNote {
-    uint64 id = 1;
-    SharedLonLat point = 2;
-    string text = 3;
-    bool open = 4;
+    message Changeset {
+        message User {
+            string name = 1;
+            string avatar_url = 2;
+        }
+        uint64 id = 1;
+        optional User user = 2;
+        repeated SharedBounds bounds = 3;
+        bool closed = 4;
+        string timeago = 5;
+        optional string comment = 6;
+        uint64 num_comments = 7;
+    }
+    repeated Changeset changesets = 1;
 }
 
 // Notes rendering structure
 message RenderNotesData {
-    repeated RenderNote notes = 1;
-}
-
-// Shared user configuration
-message WebUserConfig {
-    bool activity_tracking = 1;
-    bool crash_reporting = 2;
-    optional SharedLonLat home_point = 3;
+    message Note {
+        uint64 id = 1;
+        float lon = 2;
+        float lat = 3;
+        string text = 4;
+        bool open = 5;
+    }
+    repeated Note notes = 1;
 }
 
 // Shared website configuration
 message WebConfig {
+    message UserConfig {
+        message HomePoint {
+            float lon = 1;
+            float lat = 2;
+        }
+        bool activity_tracking = 1;
+        bool crash_reporting = 2;
+        optional HomePoint home_point = 3;
+    }
     string api_url = 1;
     float map_query_area_max_size = 2;
     float note_query_area_max_size = 3;
-    optional WebUserConfig user_config = 4;
+    optional UserConfig user_config = 4;
 }
 
 // Generic icon structure
@@ -84,46 +78,43 @@ message ElementIcon {
     string title = 2;
 }
 
-// Changeset elements list entry
-message ChangesetElement {
-    uint64 id = 1;
-    uint64 version = 2;
-    bool visible = 3;
-    optional string name = 4;
-    optional ElementIcon icon = 5;
-}
-
 // Partial changeset response params
 message PartialChangesetParams {
+    message Element {
+        uint64 id = 1;
+        uint64 version = 2;
+        bool visible = 3;
+        optional string name = 4;
+        optional ElementIcon icon = 5;
+    }
     uint64 id = 1;
     repeated SharedBounds bounds = 2;
-    repeated ChangesetElement nodes = 3;
-    repeated ChangesetElement ways = 4;
-    repeated ChangesetElement relations = 5;
-}
-
-// Element member list entry
-message ElementMemberListEntry {
-    string type = 1;
-    uint64 id = 2;
-    optional string role = 3;
-    optional string name = 4;
-    optional ElementIcon icon = 5;
+    repeated Element nodes = 3;
+    repeated Element ways = 4;
+    repeated Element relations = 5;
 }
 
 // Partial element response params
 message PartialElementParams {
+    message Entry {
+        string type = 1;
+        uint64 id = 2;
+        optional string role = 3;
+        optional string name = 4;
+        optional ElementIcon icon = 5;
+    }
     string type = 1;
-    repeated ElementMemberListEntry members = 2;
-    repeated ElementMemberListEntry parents = 3;
+    repeated Entry members = 2;
+    repeated Entry parents = 3;
     RenderElementsData render = 4;
 }
 
 // Partial note response params
 message PartialNoteParams {
     uint64 id = 1;
-    SharedLonLat point = 2;
-    bool open = 3;
+    float lon = 2;
+    float lat = 3;
+    bool open = 4;
 }
 
 // Partial query features response params

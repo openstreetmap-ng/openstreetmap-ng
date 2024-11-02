@@ -13,7 +13,7 @@ from app.limits import MAP_QUERY_AREA_MAX_SIZE, NOTE_QUERY_AREA_MAX_SIZE
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import Editor
-from app.models.proto.shared_pb2 import SharedLonLat, WebConfig, WebUserConfig
+from app.models.proto.shared_pb2 import WebConfig
 
 _default_editor = Editor.get_default().value
 _config_base = WebConfig(
@@ -37,14 +37,14 @@ async def render_response(template_name: str, template_data: dict[str, Any] | No
 
     user = auth_user()
     if user is not None:
-        user_config = WebUserConfig(
+        user_config = WebConfig.UserConfig(
             activity_tracking=user.activity_tracking,
             crash_reporting=user.crash_reporting,
         )
         user_home_point = user.home_point
         if user_home_point is not None:
             x, y = get_coordinates(user_home_point)[0].tolist()
-            user_config.home_point = SharedLonLat(lon=x, lat=y)
+            user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
 
         web_config = WebConfig(user_config=user_config)
         web_config.MergeFrom(_config_base)

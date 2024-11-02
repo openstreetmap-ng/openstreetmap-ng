@@ -53,7 +53,7 @@ export const configureNotesLayer = (map: L.Map): void => {
                 const notes = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer)).notes
                 const markers: L.Marker[] = []
                 for (const note of notes) {
-                    const marker = L.marker(L.latLng(note.point.lat, note.point.lon), {
+                    const marker = L.marker([note.lat, note.lon], {
                         icon: getMarkerIcon(note.open ? "open" : "closed", false),
                         title: note.text,
                         opacity: 0.8,

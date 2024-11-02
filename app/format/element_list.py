@@ -7,17 +7,17 @@ from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId, ElementRef, ElementType, VersionedElementRef
-from app.models.proto.shared_pb2 import ChangesetElement, ElementIcon, ElementMemberListEntry
+from app.models.proto.shared_pb2 import ElementIcon, PartialChangesetParams, PartialElementParams
 from app.queries.element_query import ElementQuery
 
 
 class FormatElementList:
     @staticmethod
-    async def changeset_elements(elements: Collection[Element]) -> dict[ElementType, list[ChangesetElement]]:
+    async def changeset_elements(
+        elements: Collection[Element],
+    ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
         """
         Format elements for displaying on the website (icons, strikethrough, sort).
-
-        Returns a mapping of element types to sequences of ElementStyle.
         """
         # element.version > 1 is mostly redundant
         # but ensures backward-compatible compliance for PositiveInt
@@ -42,7 +42,7 @@ class FormatElementList:
 
         names = features_names(tagged_elements)
         icons = features_icons(tagged_elements)
-        result: dict[ElementType, list[ChangesetElement]] = {'node': [], 'way': [], 'relation': []}
+        result: dict[ElementType, list[PartialChangesetParams.Element]] = {'node': [], 'way': [], 'relation': []}
         for element, name, icon in zip(elements, names, icons, strict=True):
             result[element.type].append(_encode_element(element, name, icon))
         for v in result.values():
@@ -50,7 +50,7 @@ class FormatElementList:
         return result
 
     @staticmethod
-    def element_parents(ref: ElementRef, parents: Collection[Element]) -> tuple[ElementMemberListEntry, ...]:
+    def element_parents(ref: ElementRef, parents: Collection[Element]) -> tuple[PartialElementParams.Entry, ...]:
         names = features_names(parents)
         icons = features_icons(parents)
         return tuple(
@@ -62,7 +62,7 @@ class FormatElementList:
     def element_members(
         members: Iterable[ElementMember],
         members_elements: Collection[Element],
-    ) -> tuple[ElementMemberListEntry, ...]:
+    ) -> tuple[PartialElementParams.Entry, ...]:
         names = features_names(members_elements)
         icons = features_icons(members_elements)
         type_id_map: dict[tuple[ElementType, ElementId], tuple[str | None, FeatureIcon | None]]
@@ -84,7 +84,7 @@ def _encode_element(
         icon = ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
     else:
         icon = None
-    return ChangesetElement(
+    return PartialChangesetParams.Element(
         id=element.id,
         version=element.version,
         visible=element.visible,
@@ -94,7 +94,7 @@ def _encode_element(
 
 
 @cython.cfunc
-def _sort_key(element: ChangesetElement) -> tuple:
+def _sort_key(element: PartialChangesetParams.Element) -> tuple:
     return (not element.visible, element.id, element.version)
 
 
@@ -129,7 +129,7 @@ def _encode_parent(
     else:
         role = None
 
-    return ElementMemberListEntry(
+    return PartialElementParams.Entry(
         type=element_type,
         id=element_id,
         role=role,
@@ -155,7 +155,7 @@ def _encode_member(
     else:
         icon = None
 
-    return ElementMemberListEntry(
+    return PartialElementParams.Entry(
         type=member_type,
         id=member_id,
         role=member.role,

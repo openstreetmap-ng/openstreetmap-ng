@@ -16,7 +16,7 @@ from app.limits import NOTE_FRESHLY_CLOSED_TIMEOUT
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.models.db.user import User
-from app.models.proto.shared_pb2 import PartialNoteParams, SharedLonLat
+from app.models.proto.shared_pb2 import PartialNoteParams
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 
@@ -45,7 +45,7 @@ async def get_note(id: PositiveInt):
         disappear_days = None
 
     x, y = get_coordinates(note.point)[0].tolist()
-    params = PartialNoteParams(id=id, point=SharedLonLat(lon=x, lat=y), open=note.closed_at is None)
+    params = PartialNoteParams(id=id, lon=x, lat=y, open=note.closed_at is None)
     return await render_response(
         'partial/note.jinja2',
         {

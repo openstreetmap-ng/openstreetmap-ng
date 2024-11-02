@@ -5,7 +5,11 @@ import * as L from "leaflet"
 import { getPageTitle } from "../_title"
 import { focusManyMapObjects, focusMapObject } from "../leaflet/_focus-layer"
 import { convertRenderElementsData } from "../leaflet/_render-objects"
-import { type ElementMemberListEntry, type PartialElementParams, PartialElementParamsSchema } from "../proto/shared_pb"
+import {
+    type PartialElementParams,
+    PartialElementParamsSchema,
+    type PartialElementParams_Entry,
+} from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
@@ -84,7 +88,7 @@ export const initializeElementContent = (map: L.Map, container: HTMLElement): Pa
 /** Render elements component */
 const renderElementsComponent = (
     elementsSection: HTMLElement,
-    elements: ElementMemberListEntry[],
+    elements: PartialElementParams_Entry[],
     isWay: boolean,
 ): void => {
     console.debug("renderElements", elements.length)

@@ -19,7 +19,7 @@ from app.limits import (
 from app.models.db.element import Element
 from app.models.element import ElementId, ElementRef, ElementType
 from app.models.geometry import Latitude, Longitude, Zoom
-from app.models.proto.shared_pb2 import PartialSearchParams, RenderElementsData, RenderNode, SharedLonLat
+from app.models.proto.shared_pb2 import PartialSearchParams, RenderElementsData
 from app.queries.element_member_query import ElementMemberQuery
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -124,7 +124,7 @@ async def _get_response(
         # ensure there is always a node, it's nice visually
         if not render.nodes:
             x, y = lib.get_coordinates(np.asarray(result.point, dtype=object), False, False)[0].tolist()
-            render.nodes.append(RenderNode(id=0, point=SharedLonLat(lon=x, lat=y)))
+            render.nodes.append(RenderElementsData.Node(id=0, lon=x, lat=y))
 
         renders[i] = render
 

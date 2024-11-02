@@ -11,7 +11,7 @@ from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.db.element_member import ElementMember
 from app.models.element import ElementId
-from app.models.proto.shared_pb2 import RenderElementsData, RenderNode, RenderWay, SharedLonLat
+from app.models.proto.shared_pb2 import RenderElementsData
 
 
 class LeafletElementMixin:
@@ -34,7 +34,7 @@ class LeafletElementMixin:
             elif element.type == 'way':
                 ways.append(element)
 
-        render_ways: list[RenderWay] = []
+        render_ways: list[RenderElementsData.Way] = []
         for way in ways:
             way_members = way.members
             if way_members is None:
@@ -73,7 +73,7 @@ class LeafletElementMixin:
                     continue
                 geom = lib.get_coordinates(np.asarray(segment, dtype=object), False, False).tolist()
                 line = encode_lonlat(geom, 6)
-                render_ways.append(RenderWay(id=way_id, line=line, area=is_area))
+                render_ways.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
 
         encode_nodes = ElementsFilter.filter_nodes_interesting(
             node_id_map.values(), member_nodes_ids, detailed=detailed
@@ -81,7 +81,7 @@ class LeafletElementMixin:
         encode_points = tuple(node.point for node in encode_nodes)
         geoms = lib.get_coordinates(np.asarray(encode_points, dtype=object), False, False).tolist()
         render_nodes = tuple(
-            RenderNode(id=node.id, point=SharedLonLat(lon=geom[0], lat=geom[1]))
+            RenderElementsData.Node(id=node.id, lon=geom[0], lat=geom[1])
             for node, geom in zip(encode_nodes, geoms, strict=True)
         )
         return RenderElementsData(
@@ -100,20 +100,20 @@ class LeafletElementMixin:
             element_type = element.type
             if element_type == 'node':
                 point = result.geoms[0][0]
-                render_node = RenderNode(id=element.id, point=SharedLonLat(lon=point[0], lat=point[1]))
+                render_node = RenderElementsData.Node(id=element.id, lon=point[0], lat=point[1])
                 encoded.append(RenderElementsData(nodes=(render_node,)))
             elif element_type == 'way':
-                render_way = RenderWay(id=element.id, line=encode_lonlat(result.geoms[0], 6))
+                render_way = RenderElementsData.Way(id=element.id, line=encode_lonlat(result.geoms[0], 6))
                 encoded.append(RenderElementsData(ways=(render_way,)))
             elif element_type == 'relation':
-                nodes: list[RenderNode] = []
-                ways: list[RenderWay] = []
+                nodes: list[RenderElementsData.Node] = []
+                ways: list[RenderElementsData.Way] = []
                 for geom in result.geoms:
                     if len(geom) == 1:
                         point = geom[0]
-                        nodes.append(RenderNode(id=element.id, point=SharedLonLat(lon=point[0], lat=point[1])))
+                        nodes.append(RenderElementsData.Node(id=element.id, lon=point[0], lat=point[1]))
                     else:
-                        ways.append(RenderWay(id=element.id, line=encode_lonlat(geom, 6)))
+                        ways.append(RenderElementsData.Way(id=element.id, line=encode_lonlat(geom, 6)))
                 encoded.append(RenderElementsData(nodes=tuple(nodes), ways=tuple(ways)))
             else:
                 raise NotImplementedError(f'Unsupported element type {element_type!r}')

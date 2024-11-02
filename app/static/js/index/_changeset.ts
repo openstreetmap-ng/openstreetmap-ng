@@ -8,7 +8,11 @@ import { getPageTitle } from "../_title"
 import type { Bounds, OSMChangeset } from "../_types"
 import { focusMapObject } from "../leaflet/_focus-layer"
 import { makeBoundsMinimumSize } from "../leaflet/_utils"
-import { type ChangesetElement, type PartialChangesetParams, PartialChangesetParamsSchema } from "../proto/shared_pb"
+import {
+    type PartialChangesetParams,
+    PartialChangesetParamsSchema,
+    type PartialChangesetParams_Element,
+} from "../proto/shared_pb"
 import { getBaseFetchController } from "./_base-fetch"
 import type { IndexController } from "./_router"
 
@@ -93,7 +97,10 @@ export const getChangesetController = (map: L.Map): IndexController => {
 }
 
 /** Render elements component */
-const renderElements = (elementsSection: HTMLElement, elements: { [key: string]: ChangesetElement[] }): void => {
+const renderElements = (
+    elementsSection: HTMLElement,
+    elements: { [key: string]: PartialChangesetParams_Element[] },
+): void => {
     console.debug("renderElements")
 
     const groupTemplate = elementsSection.querySelector("template.group")
@@ -118,7 +125,7 @@ const renderElementType = (
     groupTemplate: HTMLTemplateElement,
     entryTemplate: HTMLTemplateElement,
     type: string,
-    elements: ChangesetElement[],
+    elements: PartialChangesetParams_Element[],
 ): DocumentFragment => {
     console.debug("renderElementType", type, elements)
 

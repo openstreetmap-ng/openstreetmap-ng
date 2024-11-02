@@ -120,7 +120,7 @@ export const convertRenderElementsData = (render: RenderElementsData): (OSMNode 
         result.push({
             type: "node",
             id: node.id,
-            geom: [node.point.lat, node.point.lon],
+            geom: [node.lat, node.lon],
         })
     }
     return result

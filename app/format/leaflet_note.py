@@ -5,7 +5,7 @@ import numpy as np
 from shapely import lib
 
 from app.models.db.note import Note
-from app.models.proto.shared_pb2 import RenderNote, RenderNotesData, SharedLonLat
+from app.models.proto.shared_pb2 import RenderNotesData
 
 
 class LeafletNoteMixin:
@@ -20,9 +20,10 @@ class LeafletNoteMixin:
 @cython.cfunc
 def _encode_note(note: Note):
     x, y = lib.get_coordinates(np.asarray(note.point, dtype=object), False, False)[0].tolist()
-    return RenderNote(
+    return RenderNotesData.Note(
         id=note.id,
-        point=SharedLonLat(lon=x, lat=y),
+        lon=x,
+        lat=y,
         text=note.comments[0].body[:100],
         open=note.closed_at is None,
     )

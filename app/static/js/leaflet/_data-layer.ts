@@ -2,6 +2,7 @@ import * as L from "leaflet"
 import { mapQueryAreaMaxSize } from "../_config"
 
 import { fromBinary } from "@bufbuild/protobuf"
+import { qsEncode } from "../_qs"
 import type { OSMNode, OSMWay } from "../_types"
 import { routerNavigateStrict } from "../index/_router"
 import { RenderElementsDataSchema } from "../proto/shared_pb"
@@ -60,15 +61,10 @@ export const configureDataLayer = (map: L.Map): void => {
         for (const layer of renderLayers) layer.addEventListener("click", onLayerClick)
     }
 
-    /** Attempt to load map data, show alert if too much data */
-    const tryLoadData = (): void => {
-        if (fetchedElements.length < loadDataAlertThreshold || loadDataOverride) {
-            loadDataAlert.classList.add("d-none")
-            loadData()
-            return
-        }
+    /** Display data alert if not already shown */
+    const showDataAlert = (): void => {
         if (!loadDataAlert.classList.contains("d-none")) return
-        console.debug("Fetched", fetchedElements.length, "elements, deciding whether to show data")
+        console.debug("Requested too much data")
         showDataButton.addEventListener("click", onShowDataButtonClick, { once: true })
         hideDataButton.addEventListener("click", onHideDataButtonClick, { once: true })
         loadDataAlert.classList.remove("d-none")
@@ -80,7 +76,9 @@ export const configureDataLayer = (map: L.Map): void => {
         console.debug("onShowDataButtonClick")
         loadDataOverride = true
         loadDataAlert.classList.add("d-none")
-        loadData()
+        fetchedElements = []
+        fetchedBounds = null
+        onMapZoomOrMoveEnd()
     }
 
     /** On hide data click, uncheck the data layer checkbox */
@@ -124,13 +122,19 @@ export const configureDataLayer = (map: L.Map): void => {
         const maxLon = bounds.getEast()
         const maxLat = bounds.getNorth()
 
-        fetch(`/api/web/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`, {
-            method: "GET",
-            mode: "same-origin",
-            cache: "no-store", // request params are too volatile to cache
-            signal: abortController.signal,
-            priority: "high",
-        })
+        fetch(
+            `/api/web/map?${qsEncode({
+                bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
+                limit: loadDataOverride ? "" : loadDataAlertThreshold.toString(),
+            })}`,
+            {
+                method: "GET",
+                mode: "same-origin",
+                cache: "no-store", // request params are too volatile to cache
+                signal: abortController.signal,
+                priority: "high",
+            },
+        )
             .then(async (resp) => {
                 if (!resp.ok) {
                     if (resp.status === 400) {
@@ -145,7 +149,11 @@ export const configureDataLayer = (map: L.Map): void => {
                 const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
                 fetchedElements = convertRenderElementsData(render)
                 fetchedBounds = bounds
-                tryLoadData()
+                if (render.tooMuchData) {
+                    showDataAlert()
+                } else {
+                    loadData()
+                }
             })
             .catch((error) => {
                 if (error.name === "AbortError") return
