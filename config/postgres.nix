@@ -19,8 +19,10 @@ pkgs.writeText "postgres.conf" (''
   maintenance_work_mem = 1GB
   vacuum_buffer_usage_limit = 256MB
 
-  # increase parallelism
-  max_parallel_workers_per_gather = 4
+  # disable parallel gather:
+  # introduces noticeable overhead and is never useful
+  # we only perform relatively small queries and rely heavily on indexes
+  max_parallel_workers_per_gather = 0
 
   # allow maintenance to use all workers
   max_parallel_maintenance_workers = 8
