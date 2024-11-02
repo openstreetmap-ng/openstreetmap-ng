@@ -12,10 +12,11 @@ const mapStateVersion = 1
 export const getLastMapState = (): MapState | null => {
     const lastMapState = localStorage.getItem("lastMapState")
     if (!lastMapState) return null
-
     const { version, lon, lat, zoom, layersCode } = JSON.parse(lastMapState)
-    const isStateValid = version === mapStateVersion && isLongitude(lon) && isLatitude(lat) && isZoom(zoom)
-    return isStateValid ? { lon, lat, zoom, layersCode } : null
+    if (version === mapStateVersion && isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
+        return { lon, lat, zoom, layersCode }
+    }
+    return null
 }
 
 /**

@@ -22,7 +22,7 @@ const getObjectRequestUrl = (object: OSMObject): string => {
     }
 
     // @ts-ignore
-    const version: number | null = object.version
+    const version = object.version
     return version ? `${apiUrl}/api/0.6/${type}/${object.id}/${version}` : `${apiUrl}/api/0.6/${type}/${object.id}`
 }
 

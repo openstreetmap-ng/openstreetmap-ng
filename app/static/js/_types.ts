@@ -3,7 +3,7 @@ export interface OSMNode {
     id: bigint
     /** [lat, lon] */
     geom: [number, number]
-    version?: number
+    version?: bigint
 }
 
 export interface OSMWay {
@@ -11,14 +11,14 @@ export interface OSMWay {
     id: bigint
     /** [[lat, lon], ...] */
     geom: [number, number][]
-    version?: number
+    version?: bigint
     area?: boolean
 }
 
 export interface OSMRelation {
     type: "relation"
     id: bigint
-    version?: number
+    version?: bigint
 }
 
 export interface OSMNote {
