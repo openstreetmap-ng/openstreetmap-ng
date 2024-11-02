@@ -53,6 +53,7 @@ export const configureDataLayer = (map: L.Map): void => {
     /** Load map data into the data layer */
     const loadData = (): void => {
         console.debug("Loading", fetchedElements.length, "elements")
+        loadDataAlert.classList.add("d-none")
         const layerGroup = L.layerGroup()
         const renderLayers = renderObjects(layerGroup, fetchedElements, dataStyles, { renderAreas: false })
 
@@ -63,8 +64,8 @@ export const configureDataLayer = (map: L.Map): void => {
 
     /** Display data alert if not already shown */
     const showDataAlert = (): void => {
+        console.debug("Requested too much data, showing alert")
         if (!loadDataAlert.classList.contains("d-none")) return
-        console.debug("Requested too much data")
         showDataButton.addEventListener("click", onShowDataButtonClick, { once: true })
         hideDataButton.addEventListener("click", onHideDataButtonClick, { once: true })
         loadDataAlert.classList.remove("d-none")
