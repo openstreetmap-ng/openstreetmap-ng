@@ -17,3 +17,23 @@ message UserTokenStruct {
     int64 id = 1;
     bytes token = 2;
 }
+
+// Versioned user password structure
+message UserPassword {
+    message Legacy {
+        // Server-sided argon2/md5/pbkdf2
+        string digest = 1;
+        optional string extra = 2;
+    }
+    message V1 {
+        // Client-sided pbkdf2 + Server-sided argon2
+        // pbkdf2: SHA-512, N iterations -- see https://en.wikipedia.org/wiki/PBKDF2
+        // argon2: RFC_9106_LOW_MEMORY
+        bytes hash = 1;
+        bytes salt = 2;
+    }
+    oneof schema {
+        Legacy legacy = 1;
+        V1 v1 = 2;
+    }
+}

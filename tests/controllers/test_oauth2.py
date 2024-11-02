@@ -102,7 +102,7 @@ async def test_authorize_token_oob(
         code_verifier=code_verifier,
     )
     assert data['access_token']
-    assert data['token_type'] == 'Bearer'  # noqa: S105
+    assert data['token_type'] == 'Bearer'
     assert data['scope'] == ''
     assert data['created_at']
 
@@ -146,7 +146,7 @@ async def test_authorize_token_response_redirect(client: AsyncClient, is_fragmen
         code=authorization_code,
     )
     assert data['access_token']
-    assert data['token_type'] == 'Bearer'  # noqa: S105
+    assert data['token_type'] == 'Bearer'
     assert data['scope'] == ''
     assert data['created_at']
 
@@ -201,7 +201,7 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
         code=authorization_code,
     )
     assert data['access_token']
-    assert data['token_type'] == 'Bearer'  # noqa: S105
+    assert data['token_type'] == 'Bearer'
     assert data['scope'] == ''
     assert data['created_at']
     access_token = data['access_token']

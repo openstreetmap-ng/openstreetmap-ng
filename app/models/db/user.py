@@ -79,7 +79,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
 
     email: Mapped[EmailType] = mapped_column(Unicode(EMAIL_MAX_LENGTH), nullable=False)
     display_name: Mapped[DisplayNameType] = mapped_column(Unicode(DISPLAY_NAME_MAX_LENGTH), nullable=False)
-    password_hashed: Mapped[str] = mapped_column(Unicode(255), nullable=False)
+    password_pb: Mapped[bytes] = mapped_column(LargeBinary(255), nullable=False)
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
@@ -243,5 +243,4 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     async def home_distance_to(self, point: Point | None) -> float | None:
         if point is None or self.home_point is None:
             return None
-
         return haversine_distance(self.home_point, point)
