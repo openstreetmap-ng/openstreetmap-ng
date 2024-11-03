@@ -6,7 +6,7 @@ from app.config import APP_URL
 from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
 from app.lib.message_collector import MessageCollector
-from app.lib.password_hash import PasswordHash
+from app.lib.password_hash import PasswordHash, PasswordSchema
 from app.lib.translation import primary_translation_locale, t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request_ip
@@ -26,6 +26,7 @@ class UserSignupService:
         *,
         display_name: DisplayNameType,
         email: EmailType,
+        password_schema: PasswordSchema | str,
         password: PasswordType,
         tracking: bool,
     ) -> str:
@@ -42,21 +43,21 @@ class UserSignupService:
         if not await validate_email_deliverability(email):
             MessageCollector.raise_error('email', t('validation.invalid_email_address'))
 
-        password_hashed = PasswordHash.hash(password)
-        created_ip = get_request_ip()
-        language = primary_translation_locale()
+        password_pb = PasswordHash.hash(password_schema, password)
+        if password_pb is None:
+            raise AssertionError(f'Password schema {password_schema} cannot be used during registration')
 
         # TODO: purge stale pending terms accounts
         async with db_commit() as session:
             user = User(
                 email=email,
                 display_name=display_name,
-                password_hashed=password_hashed,
-                created_ip=created_ip,
+                password_pb=password_pb,
+                created_ip=get_request_ip(),
                 status=UserStatus.pending_terms,
                 auth_provider=None,  # TODO: support
                 auth_uid=None,
-                language=language,
+                language=primary_translation_locale(),
                 activity_tracking=tracking,
                 crash_reporting=tracking,
             )

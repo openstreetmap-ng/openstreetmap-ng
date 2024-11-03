@@ -29,10 +29,10 @@ _hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
 class PasswordHash:
     @staticmethod
     def verify(
+        *,
         password_pb: bytes,
         password_schema: PasswordSchema | str,
         password: PasswordType,
-        *,
         is_test_user: bool,
     ) -> VerifyResult:
         """
@@ -51,8 +51,8 @@ class PasswordHash:
             password_bytes = b64decode(password.get_secret_value(), validate=True)
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
-            password_pb_hash = b64encode(password_pb_.v1.hash).decode()
-            password_pb_salt = b64encode(password_pb_.v1.salt).decode()
+            password_pb_hash = b64encode(password_pb_.v1.hash).strip(b'=').decode()
+            password_pb_salt = b64encode(password_pb_.v1.salt).strip(b'=').decode()
             password_pb_digest = f'$argon2id$v=19$m=65536,t=3,p=4${password_pb_salt}${password_pb_hash}'
             try:
                 _hasher.verify(password_pb_digest, password_bytes)
@@ -98,22 +98,23 @@ class PasswordHash:
         raise NotImplementedError(f'Unsupported password_pb schema: {password_pb_schema!r}')
 
     @staticmethod
-    def hash(password_schema: PasswordSchema, password: PasswordType) -> bytes | None:
+    def hash(password_schema: PasswordSchema | str, password: PasswordType) -> bytes | None:
         """
         Hash a password using latest recommended algorithm.
 
         Returns None if the given password schema cannot be used.
         """
-        if password_schema != 'v1':
-            logging.info('Password schema %r cannot be used for new hashing', password_schema)
-            return None
-        password_bytes = b64decode(password.get_secret_value(), validate=True)
-        if len(password_bytes) != 64:
-            raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
-        hash_string = _hasher.hash(password_bytes)
-        prefix, salt, hash = hash_string.rsplit('$', maxsplit=2)
-        hash = b64decode(hash, validate=True)
-        salt = b64decode(salt, validate=True)
-        if prefix != '$argon2id$v=19$m=65536,t=3,p=4' or len(hash) != 32 or len(salt) != 32:
-            raise AssertionError(f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}')
-        return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
+        if password_schema == 'v1':
+            password_bytes = b64decode(password.get_secret_value())
+            if len(password_bytes) != 64:
+                raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
+            hash_string = _hasher.hash(password_bytes)
+            prefix, salt, hash = hash_string.rsplit('$', maxsplit=2)
+            hash = b64decode(hash + '==')
+            salt = b64decode(salt + '==')
+            if prefix != '$argon2id$v=19$m=65536,t=3,p=4' or len(hash) != 32 or len(salt) != 16:
+                raise AssertionError(f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}')
+            return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
+
+        logging.info('Password schema %r cannot be used for new hashing', password_schema)
+        return None

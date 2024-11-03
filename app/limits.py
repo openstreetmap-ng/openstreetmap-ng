@@ -3,8 +3,6 @@ from datetime import timedelta
 _kb = 1024
 _mb = 1024 * _kb
 
-AUTH_CREDENTIALS_CACHE_EXPIRE = timedelta(hours=8)
-
 AVATAR_MAX_RATIO = 2
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
 AVATAR_MAX_FILE_SIZE = 80 * _kb  # 80 KB

@@ -99,7 +99,7 @@ class TestService:
                 user = User(
                     email=email,
                     display_name=name,
-                    password_hashed='',
+                    password_pb=b'',
                     created_ip=IPv4Address('127.0.0.1'),
                     status=status,
                     auth_provider=None,
@@ -117,7 +117,7 @@ class TestService:
                 stmt = select(User).options(load_only(User.id)).where(User.display_name == name).with_for_update()
                 user = (await session.execute(stmt)).scalar_one()
                 user.email = email
-                user.password_hashed = ''
+                user.password_pb = b''
                 user.status = status
                 user.language = language
                 if created_at is not None:
