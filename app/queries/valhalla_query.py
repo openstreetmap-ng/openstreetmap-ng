@@ -7,7 +7,7 @@ from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
 from app.lib.translation import primary_translation_locale
-from app.models.proto.shared_pb2 import RoutingRoute
+from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
 from app.utils import HTTP
 
@@ -19,7 +19,7 @@ __all__ = ('ValhallaProfiles',)
 
 class ValhallaQuery:
     @staticmethod
-    async def route(start: Point, end: Point, *, profile: ValhallaProfile) -> RoutingRoute:
+    async def route(start: Point, end: Point, *, profile: ValhallaProfile) -> RoutingResult:
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(
@@ -46,12 +46,12 @@ class ValhallaQuery:
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
         points = decode_latlon(leg['shape'], 6)
-        routing_steps: list[RoutingRoute.Step] = [None] * len(leg['maneuvers'])  # pyright: ignore[reportAssignmentType]
+        routing_steps: list[RoutingResult.Step] = [None] * len(leg['maneuvers'])  # pyright: ignore[reportAssignmentType]
 
         i: cython.int
         for i, maneuver in enumerate(leg['maneuvers']):
             maneuver_points = points[maneuver['begin_shape_index'] : maneuver['end_shape_index'] + 1]
-            routing_steps[i] = RoutingRoute.Step(
+            routing_steps[i] = RoutingResult.Step(
                 line=encode_latlon(maneuver_points, 6),
                 distance=maneuver['length'] * 1000,
                 time=maneuver['time'],
@@ -62,10 +62,10 @@ class ValhallaQuery:
         elevations = np.diff(np.asarray(leg['elevation'], dtype=np.float32), 1)
         ascend = elevations[elevations > 0].sum()
         descend = -elevations[elevations < 0].sum()
-        return RoutingRoute(
+        return RoutingResult(
             attribution='<a href="https://gis-ops.com/global-open-valhalla-server-online/" target="_blank">Valhalla (FOSSGIS)</a>',
             steps=routing_steps,
-            elevation=RoutingRoute.Elevation(
+            elevation=RoutingResult.Elevation(
                 ascend=ascend,
                 descend=descend,
             ),

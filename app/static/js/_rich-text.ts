@@ -5,7 +5,7 @@ const abortControllers: Map<Element, AbortController> = new Map()
 /** Abort any pending request for the given source element, optionally returning a new AbortController */
 const abortRequest = (source: Element, newController: boolean): AbortController | null => {
     const controller = abortControllers.get(source)
-    if (controller) controller.abort()
+    controller?.abort()
 
     // When a new controller is requested, replace the old one and return it
     if (newController) {

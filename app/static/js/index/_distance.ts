@@ -90,7 +90,7 @@ export const getDistanceController = (map: L.Map): IndexController => {
             const latlng = markers[markerIndex].getLatLng()
             positionsUrl[markerIndex] = [latlng.lat, latlng.lng]
         }
-        const url = new URL(location.href)
+        const url = new URL(window.location.href)
         url.searchParams.set("line", encode(positionsUrl, 5))
         throttledHistoryReplaceState(url)
     }

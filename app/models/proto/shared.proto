@@ -78,8 +78,14 @@ message RenderNotesData {
     repeated Note notes = 1;
 }
 
-// Map routing route result
-message RoutingRoute {
+// Map routing result
+message RoutingResult {
+    message Endpoint {
+        string name = 1;
+        SharedBounds bounds = 2;
+        float lon = 3;
+        float lat = 4;
+    }
     message Step {
         string line = 1;
         float distance = 2;  // in meters
@@ -91,21 +97,11 @@ message RoutingRoute {
         float ascend = 1;  // in meters
         float descend = 2;  // in meters
     }
-    string attribution = 1;
-    repeated Step steps = 2;
-    optional Elevation elevation = 3;
-}
-
-// Map routing resolve names result
-message RoutingResolveNames {
-    message Entry {
-        string name = 1;
-        SharedBounds bounds = 2;
-        float lon = 3;
-        float lat = 4;
-    }
-    optional Entry start = 1;
-    optional Entry end = 2;
+    optional Endpoint start = 1;
+    optional Endpoint end = 2;
+    string attribution = 3;
+    repeated Step steps = 4;
+    optional Elevation elevation = 5;
 }
 
 // Generic icon structure

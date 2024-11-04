@@ -182,7 +182,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
     /** On map update, fetch the changesets in view and update the changesets layer */
     const onMapZoomOrMoveEnd = (): void => {
         // Abort any pending request
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = new AbortController()
         const signal = abortController.signal
 

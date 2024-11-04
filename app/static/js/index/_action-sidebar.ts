@@ -35,5 +35,5 @@ const onCloseButtonClick = () => {
 /** Configure action sidebar events */
 export const configureActionSidebar = (sidebar: Element): void => {
     const closeButton = sidebar.querySelector(".sidebar-close-btn")
-    if (closeButton) closeButton.addEventListener("click", onCloseButtonClick)
+    closeButton?.addEventListener("click", onCloseButtonClick)
 }

@@ -4,13 +4,13 @@ import i18next from "i18next"
 import * as L from "leaflet"
 import { formatDistance, formatDistanceRounded, formatHeight, formatTime } from "../_format-utils"
 import { getLastRoutingEngine, setLastRoutingEngine } from "../_local-storage"
-import { qsEncode, qsParse } from "../_qs"
+import { qsParse } from "../_qs"
 import { configureStandardForm } from "../_standard-form"
 import { getPageTitle } from "../_title"
 import { zoomPrecision } from "../_utils"
 import { type LayerId, getOverlayLayerById } from "../leaflet/_layers"
 import { getMarkerIcon } from "../leaflet/_utils"
-import { RoutingResolveNamesSchema, type RoutingRoute, RoutingRouteSchema } from "../proto/shared_pb"
+import { type RoutingResult, RoutingResultSchema } from "../proto/shared_pb"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
 
@@ -45,18 +45,21 @@ export const getRoutingController = (map: L.Map): IndexController => {
     const sidebar = getActionSidebar("routing")
     const parentSidebar = sidebar.closest(".sidebar")
     const sidebarTitle = sidebar.querySelector(".sidebar-title").textContent
-    const form = sidebar.querySelector("form.resolve-names-form")
+    const form = sidebar.querySelector("form.routing-form")
     const startInput = form.elements.namedItem("start") as HTMLInputElement
     const startLoadedInput = form.elements.namedItem("start_loaded") as HTMLInputElement
+    const startLoadedLonInput = form.elements.namedItem("start_loaded_lon") as HTMLInputElement
+    const startLoadedLatInput = form.elements.namedItem("start_loaded_lat") as HTMLInputElement
     const startDraggableMarker = form.querySelector("img.draggable-marker[data-direction=start]")
     const endInput = form.elements.namedItem("end") as HTMLInputElement
     const endLoadedInput = form.elements.namedItem("end_loaded") as HTMLInputElement
+    const endLoadedLonInput = form.elements.namedItem("end_loaded_lon") as HTMLInputElement
+    const endLoadedLatInput = form.elements.namedItem("end_loaded_lat") as HTMLInputElement
     const endDraggableMarker = form.querySelector("img.draggable-marker[data-direction=end]")
     const reverseButton = form.querySelector("button.reverse-btn")
     const engineInput = form.elements.namedItem("engine") as HTMLInputElement
     const bboxInput = form.elements.namedItem("bbox") as HTMLInputElement
     const loadingContainer = sidebar.querySelector(".loading")
-    const routingErrorAlert = sidebar.querySelector(".routing-error-alert")
     const routeContainer = sidebar.querySelector(".route")
     const routeDistance = routeContainer.querySelector(".route-info .distance")
     const routeTime = routeContainer.querySelector(".route-info .time")
@@ -68,7 +71,6 @@ export const getRoutingController = (map: L.Map): IndexController => {
     const popupTemplate = routeContainer.querySelector("template.popup")
     const stepTemplate = routeContainer.querySelector("template.step")
 
-    let abortController: AbortController | null = null
     let startBounds: L.LatLngBounds | null = null
     let startMarker: L.Marker | null = null
     let endBounds: L.LatLngBounds | null = null
@@ -213,61 +215,75 @@ export const getRoutingController = (map: L.Map): IndexController => {
     configureStandardForm(
         form,
         ({ protobuf }: { protobuf: Uint8Array }) => {
+            // Return early if unloaded
+            if (loadingContainer.classList.contains("d-none")) return
+            loadingContainer.classList.add("d-none")
+
             // On success callback, call routing engine, display results, and update search params
-            const data = fromBinary(RoutingResolveNamesSchema, protobuf)
-            console.debug("onResolveNamesFormSuccess", data)
+            const data = fromBinary(RoutingResultSchema, protobuf)
+            console.debug("onRoutingFormSuccess", data)
 
-            if (data.start) {
-                const entry = data.start
-                const { minLon, minLat, maxLon, maxLat } = entry.bounds
-                startBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-                startInput.value = entry.name
-                startInput.dispatchEvent(new Event("input"))
-                if (!startMarker) {
-                    startMarker = markerFactory("green")
-                    startMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                    map.addLayer(startMarker)
-                }
-                startMarker.setLatLng([entry.lat, entry.lon])
-                startLoadedInput.value = entry.name
-            }
-
-            if (data.end) {
-                const entry = data.end
-                const { minLon, minLat, maxLon, maxLat } = entry.bounds
-                endBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
-                endInput.value = entry.name
-                endInput.dispatchEvent(new Event("input"))
-                if (!endMarker) {
-                    endMarker = markerFactory("red")
-                    endMarker.addEventListener("dragend", onMapMarkerDragEnd)
-                    map.addLayer(endMarker)
-                }
-                endMarker.setLatLng([entry.lat, entry.lon])
-                endLoadedInput.value = entry.name
-            }
-
-            // Focus on the makers if they're offscreen
-            const markerBounds = startBounds.extend(endBounds)
-            if (!map.getBounds().contains(markerBounds)) {
-                map.fitBounds(markerBounds)
-            }
-
-            callRoutingEngine()
+            updateEndpoints(data)
+            updateUrl()
+            updateRoute(data)
         },
         () => {
             // On client validation, hide previous route data
-            routingErrorAlert.classList.add("d-none")
+            loadingContainer.classList.remove("d-none")
             routeContainer.classList.add("d-none")
             return null
         },
+        () => {
+            // Return early if unloaded
+            if (loadingContainer.classList.contains("d-none")) return
+            loadingContainer.classList.add("d-none")
+        },
+        { abortSignal: true },
     )
 
-    const callRoutingEngine = () => {
-        // Abort any pending request
-        if (abortController) abortController.abort()
-        abortController = new AbortController()
+    const updateEndpoints = (data: RoutingResult): void => {
+        if (data.start) {
+            const entry = data.start
+            const { minLon, minLat, maxLon, maxLat } = entry.bounds
+            startBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+            startInput.value = entry.name
+            startInput.dispatchEvent(new Event("input"))
+            if (!startMarker) {
+                startMarker = markerFactory("green")
+                startMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(startMarker)
+            }
+            startMarker.setLatLng([entry.lat, entry.lon])
+            startLoadedInput.value = entry.name
+            startLoadedLonInput.value = entry.lon.toFixed(7)
+            startLoadedLatInput.value = entry.lat.toFixed(7)
+        }
 
+        if (data.end) {
+            const entry = data.end
+            const { minLon, minLat, maxLon, maxLat } = entry.bounds
+            endBounds = L.latLngBounds(L.latLng(minLat, minLon), L.latLng(maxLat, maxLon))
+            endInput.value = entry.name
+            endInput.dispatchEvent(new Event("input"))
+            if (!endMarker) {
+                endMarker = markerFactory("red")
+                endMarker.addEventListener("dragend", onMapMarkerDragEnd)
+                map.addLayer(endMarker)
+            }
+            endMarker.setLatLng([entry.lat, entry.lon])
+            endLoadedInput.value = entry.name
+            endLoadedLonInput.value = entry.lon.toFixed(7)
+            endLoadedLatInput.value = entry.lat.toFixed(7)
+        }
+
+        // Focus on the makers if they're offscreen
+        const markerBounds = startBounds.extend(endBounds)
+        if (!map.getBounds().contains(markerBounds)) {
+            map.fitBounds(markerBounds)
+        }
+    }
+
+    const updateUrl = (): void => {
         const routingEngineName = engineInput.value
 
         const precision = zoomPrecision(19)
@@ -283,49 +299,13 @@ export const getRoutingController = (map: L.Map): IndexController => {
         const routeParam = `${startRouteParam};${endRouteParam}`
 
         // Remember routing configuration in URL search params
-        const url = new URL(location.href)
+        const url = new URL(window.location.href)
         url.searchParams.set("engine", routingEngineName)
         url.searchParams.set("route", routeParam)
         window.history.replaceState(null, "", url)
-
-        loadingContainer.classList.remove("d-none")
-
-        fetch(
-            `/api/web/routing/route?${qsEncode({
-                engine: routingEngineName,
-                start_lon: startLon,
-                start_lat: startLat,
-                end_lon: endLon,
-                end_lat: endLat,
-            })}`,
-            {
-                method: "GET",
-                mode: "same-origin",
-                cache: "no-store",
-                signal: abortController.signal,
-                priority: "high",
-            },
-        )
-            .then(async (resp) => {
-                if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
-                const buffer = await resp.arrayBuffer()
-                const route = fromBinary(RoutingRouteSchema, new Uint8Array(buffer))
-                onRoutingRouteSuccess(route)
-            })
-            .catch((error) => {
-                if (error.name === "AbortError") return
-                console.error("Failed to fetch routing route", error)
-                onRoutingRouteError(error)
-            })
-            .finally(() => {
-                loadingContainer.classList.add("d-none")
-            })
     }
 
-    /** On routing success, render the route */
-    const onRoutingRouteSuccess = (route: RoutingRoute): void => {
-        console.debug("onRoutingRouteSuccess", route)
-
+    const updateRoute = (route: RoutingResult): void => {
         // Display general route information
         let totalDistance = 0
         let totalTime = 0
@@ -421,12 +401,6 @@ export const getRoutingController = (map: L.Map): IndexController => {
         console.debug("Route showing", route.steps.length, "steps")
     }
 
-    /** On routing error, display an error message */
-    const onRoutingRouteError = (error: Error): void => {
-        routingErrorAlert.querySelector("p").textContent = error.message
-        routingErrorAlert.classList.remove("d-none")
-    }
-
     return {
         load: () => {
             // Listen for events
@@ -497,7 +471,6 @@ export const getRoutingController = (map: L.Map): IndexController => {
             mapContainer.removeEventListener("drop", onMapDrop)
 
             loadingContainer.classList.add("d-none")
-            routingErrorAlert.classList.add("d-none")
             routeContainer.classList.add("d-none")
 
             if (startMarker) {

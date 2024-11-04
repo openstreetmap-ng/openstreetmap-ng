@@ -26,7 +26,7 @@ export const configureNotesLayer = (map: L.Map): void => {
         if (!map.hasLayer(notesLayer)) return
 
         // Abort any pending request
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = new AbortController()
 
         // Skip updates if the area is too big
@@ -87,7 +87,7 @@ export const configureNotesLayer = (map: L.Map): void => {
     map.addEventListener("overlayremove", ({ name }: L.LayersControlEvent): void => {
         if (name !== notesLayerId) return
         map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = null
         notesLayer.clearLayers()
     })

@@ -123,7 +123,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
                 map.panTo(latLng, { animate: false })
             }
 
-            if (abortController) abortController.abort()
+            abortController?.abort()
             abortController = new AbortController()
             const abortSignal = abortController.signal
 
@@ -188,7 +188,7 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
                 })
         },
         unload: () => {
-            if (abortController) abortController.abort()
+            abortController?.abort()
             abortController = null
             focusMapObject(map, null)
         },

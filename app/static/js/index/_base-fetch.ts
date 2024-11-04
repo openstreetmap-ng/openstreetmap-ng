@@ -37,7 +37,7 @@ export const getBaseFetchController = (
             if (!url) return
 
             // Abort any pending request
-            if (abortController) abortController.abort()
+            abortController?.abort()
             abortController = new AbortController()
 
             onSidebarLoading()
@@ -53,7 +53,7 @@ export const getBaseFetchController = (
                     if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
 
                     onSidebarLoaded(await resp.text())
-                    if (successCallback) successCallback(dynamicContent)
+                    successCallback?.(dynamicContent)
                 })
                 .catch((error) => {
                     if (error.name === "AbortError") return

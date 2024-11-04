@@ -1,7 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Form, Response
 from shapely import Point, get_coordinates
 from starlette import status
 
@@ -10,7 +10,7 @@ from app.lib.search import Search
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.geometry import Latitude, Longitude
-from app.models.proto.shared_pb2 import RoutingResolveNames, SharedBounds
+from app.models.proto.shared_pb2 import RoutingResult, SharedBounds
 from app.queries.element_query import ElementQuery
 from app.queries.graphhopper_query import GraphHopperProfiles, GraphHopperQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -20,40 +20,48 @@ from app.queries.valhalla_query import ValhallaProfiles, ValhallaQuery
 router = APIRouter(prefix='/api/web/routing')
 
 
-@router.get('/route')
+@router.post('')
 async def route(
-    engine: Annotated[str, Query(min_length=1)],
-    start_lon: Longitude,
-    start_lat: Latitude,
-    end_lon: Longitude,
-    end_lat: Latitude,
+    bbox: Annotated[str, Form(min_length=1)],
+    start: Annotated[str, Form(min_length=1)],
+    start_loaded: Annotated[str, Form()],
+    start_loaded_lon: Annotated[Longitude, Form()],
+    start_loaded_lat: Annotated[Latitude, Form()],
+    end: Annotated[str, Form(min_length=1)],
+    end_loaded: Annotated[str, Form()],
+    end_loaded_lon: Annotated[Longitude, Form()],
+    end_loaded_lat: Annotated[Latitude, Form()],
+    engine: Annotated[str, Form(min_length=1)],
 ):
+    start_endpoint, end_endpoint = await _resolve_names(bbox, start, start_loaded, end, end_loaded)
+    if start_endpoint is not None:
+        start_loaded_lon = start_endpoint.lon
+        start_loaded_lat = start_endpoint.lat
+    if end_endpoint is not None:
+        end_loaded_lon = end_endpoint.lon
+        end_loaded_lat = end_endpoint.lat
+    start_point = Point(start_loaded_lon, start_loaded_lat)
+    end_point = Point(end_loaded_lon, end_loaded_lat)
+
     engine, _, profile = engine.partition('_')
-    start = Point(start_lon, start_lat)
-    end = Point(end_lon, end_lat)
-    result: bytes | None = None
     if engine == 'graphhopper' and profile in GraphHopperProfiles:
-        result = (await GraphHopperQuery.route(start, end, profile=profile)).SerializeToString()
+        result = await GraphHopperQuery.route(start_point, end_point, profile=profile)
     elif engine == 'osrm' and profile in OSRMProfiles:
-        result = (await OSRMQuery.route(start, end, profile=profile)).SerializeToString()
+        result = await OSRMQuery.route(start_point, end_point, profile=profile)
     elif engine == 'valhalla' and profile in ValhallaProfiles:
-        result = (await ValhallaQuery.route(start, end, profile=profile)).SerializeToString()
-
-    if result is None:
+        result = await ValhallaQuery.route(start_point, end_point, profile=profile)
+    else:
         return Response(f'Unsupported engine profile: {engine}_{profile}', status.HTTP_400_BAD_REQUEST)
-    return Response(result, media_type='application/x-protobuf')
+
+    if start_endpoint is not None:
+        result.MergeFrom(RoutingResult(start=start_endpoint))
+    if end_endpoint is not None:
+        result.MergeFrom(RoutingResult(end=end_endpoint))
+    return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
-@router.get('/resolve-names')
-async def resolve_names(
-    start: Annotated[str, Query(min_length=1)],
-    end: Annotated[str, Query(min_length=1)],
-    bbox: Annotated[str, Query(min_length=1)],
-    start_loaded: Annotated[str, Query()] = '',
-    end_loaded: Annotated[str, Query()] = '',
-):
+async def _resolve_names(bbox: str, start: str, start_loaded: str, end: str, end_loaded: str):
     at_sequence_id = await ElementQuery.get_current_sequence_id()
-
     async with TaskGroup() as tg:
         from_task = (
             tg.create_task(_resolve_name('start', start, bbox, at_sequence_id))
@@ -65,21 +73,17 @@ async def resolve_names(
             if (end != end_loaded)  #
             else None
         )
-
     resolve_from = from_task.result() if (from_task is not None) else None
     resolve_to = to_task.result() if (to_task is not None) else None
-    return Response(
-        RoutingResolveNames(start=resolve_from, end=resolve_to).SerializeToString(),
-        media_type='application/x-protobuf',
-    )
+    return resolve_from, resolve_to
 
 
-async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) -> RoutingResolveNames.Entry:
+async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) -> RoutingResult.Endpoint:
     # try to parse as literal point
     point = try_parse_point(query)
     if point is not None:
         x, y = get_coordinates(point)[0].tolist()
-        return RoutingResolveNames.Entry(
+        return RoutingResult.Endpoint(
             name=query,
             bounds=SharedBounds(min_lon=x, min_lat=y, max_lon=x, max_lat=y),
             lon=x,
@@ -111,7 +115,7 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) 
     result = results[0]
     bounds = result.bounds.bounds
     x, y = get_coordinates(result.point)[0].tolist()
-    return RoutingResolveNames.Entry(
+    return RoutingResult.Endpoint(
         name=result.display_name,
         bounds=SharedBounds(
             min_lon=bounds[0],

@@ -47,7 +47,7 @@ export const routerNavigate = (newPath: string): boolean => {
     if (!newRoute) return false
 
     // Unload the current route
-    if (currentRoute) currentRoute.unload()
+    currentRoute?.unload()
 
     // Push the new history state
     history.pushState(null, "", newPath + location.hash)
@@ -77,12 +77,12 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         const newRoute = findRoute(newPath)
 
         // Unload the current route
-        if (currentRoute) currentRoute.unload()
+        currentRoute?.unload()
 
         // Load the new route
         currentPath = newPath
         currentRoute = newRoute
-        if (currentRoute) currentRoute.load(currentPath)
+        currentRoute?.load(currentPath)
     })
 
     // On window click, attempt to navigate to the href of an anchor element
@@ -113,5 +113,5 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
     })
 
     // Initial load
-    if (currentRoute) currentRoute.load(currentPath)
+    currentRoute?.load(currentPath)
 }

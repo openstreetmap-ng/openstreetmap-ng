@@ -22,12 +22,14 @@ export const configureStandardForm = (
     clientValidationCallback?: (
         form: HTMLFormElement,
     ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
-    options?: { formAppend: boolean },
+    errorCallback?: (error: Error) => void,
+    options?: { formAppend?: boolean; abortSignal?: boolean },
 ): void => {
     console.debug("Initializing standard form", form.action)
     const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<HTMLInputElement | HTMLButtonElement>
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
+    let abortController: AbortController | null = null
 
     const setPendingState = (state: boolean): void => {
         const currentState = form.classList.contains("pending")
@@ -209,8 +211,11 @@ export const configureStandardForm = (
 
         form.classList.remove("was-validated")
 
-        // Prevent double submission
-        if (form.classList.contains("pending")) {
+        // Depending on configuration, abort pending requests or prevent double submission
+        if (options?.abortSignal) {
+            abortController?.abort()
+            abortController = new AbortController()
+        } else if (form.classList.contains("pending")) {
             console.info("Form already pending", form.action)
             return
         }
@@ -256,6 +261,7 @@ export const configureStandardForm = (
             body,
             mode: "same-origin",
             cache: "no-store",
+            signal: abortController?.signal,
             priority: "high",
         })
             .then(async (resp) => {
@@ -279,11 +285,16 @@ export const configureStandardForm = (
                 if (detail) processFormFeedback(detail)
 
                 // If the request was successful, call the callback
-                if (resp.ok && successCallback) successCallback(data)
+                if (resp.ok) {
+                    successCallback?.(data)
+                } else {
+                    errorCallback?.(new Error(detail ?? ""))
+                }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 console.error("Failed to submit standard form", error)
                 handleFormFeedback("error", error.message)
+                errorCallback?.(error)
             })
             .finally(() => {
                 setPendingState(false)

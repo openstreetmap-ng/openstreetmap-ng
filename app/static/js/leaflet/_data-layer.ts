@@ -97,7 +97,7 @@ export const configureDataLayer = (map: L.Map): void => {
         if (!map.hasLayer(dataLayer)) return
 
         // Abort any pending request
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = new AbortController()
 
         const viewBounds = map.getBounds()
@@ -177,7 +177,7 @@ export const configureDataLayer = (map: L.Map): void => {
         errorDataAlert.classList.add("d-none")
         loadDataAlert.classList.add("d-none")
         map.removeEventListener("zoomend moveend", onMapZoomOrMoveEnd)
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = null
         clearData()
     })

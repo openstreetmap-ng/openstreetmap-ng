@@ -48,7 +48,7 @@ if (body) {
         replyLink.href = `/message/new?reply=${openMessageId}`
 
         // Abort any pending request
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = new AbortController()
 
         fetch(`/api/web/messages/${openMessageId}`, {
@@ -84,7 +84,7 @@ if (body) {
     const closeMessagePreview = () => {
         console.debug("closeMessagePreview", openMessageId)
         messagePreview.classList.add("d-none")
-        if (abortController) abortController.abort()
+        abortController?.abort()
         abortController = null
         openTarget.classList.remove("active")
         openTarget = null
@@ -96,7 +96,7 @@ if (body) {
 
     /** Update the URL with the given message id, without reloading the page */
     const updatePageUrl = (messageId: string | undefined) => {
-        const url = new URL(location.href)
+        const url = new URL(window.location.href)
         url.searchParams.set("before", (messageIdMax + 1n).toString())
         url.searchParams.set("show", messageId)
         window.history.replaceState(null, "", url)
