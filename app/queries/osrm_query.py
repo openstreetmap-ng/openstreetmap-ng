@@ -6,6 +6,7 @@ import cython
 from fastapi import HTTPException
 from shapely import Point, get_coordinates
 
+from app.config import OSRM_URL
 from app.lib.translation import t
 from app.models.osrm import OSRMResponse, OSRMStep
 from app.models.proto.shared_pb2 import RoutingResult
@@ -23,7 +24,7 @@ class OSRMQuery:
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.get(
-            f'https://router.project-osrm.org/route/v1/{profile}/{start_x},{start_y};{end_x},{end_y}',
+            f'{OSRM_URL}/route/v1/{profile}/{start_x},{start_y};{end_x},{end_y}',
             params={
                 'steps': 'true',
                 'geometries': 'polyline6',

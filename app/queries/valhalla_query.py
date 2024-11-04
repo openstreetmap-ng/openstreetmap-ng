@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
+from app.config import VALHALLA_URL
 from app.lib.translation import primary_translation_locale
 from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
@@ -23,7 +24,7 @@ class ValhallaQuery:
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(
-            'https://valhalla1.openstreetmap.de/route',
+            f'{VALHALLA_URL}/route',
             json={
                 'locations': [
                     {'lon': start_x, 'lat': start_y},

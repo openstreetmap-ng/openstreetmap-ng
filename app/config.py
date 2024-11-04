@@ -70,8 +70,12 @@ API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
 RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
+GRAPHHOPPER_URL = os.getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
+OSRM_URL = os.getenv('OSRM_URL', 'https://router.project-osrm.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
+VALHALLA_URL = os.getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')
+
 TRUSTED_HOSTS: frozenset[str] = frozenset(
     host.casefold()
     for host in chain(
