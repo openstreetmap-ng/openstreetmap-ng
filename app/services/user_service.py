@@ -33,13 +33,13 @@ class UserService:
         Returns a new user session token.
         """
         # TODO: normalize unicode & strip
-        # dot in string indicates email, display name can't have a dot
-        if '.' in display_name_or_email:
+        if '.' in display_name_or_email:  # (dot) indicates email format, display_name blacklists it
             try:
                 email = validate_email(display_name_or_email)
-                user = await UserQuery.find_one_by_email(email)
             except ValueError:
                 user = None
+            else:
+                user = await UserQuery.find_one_by_email(email)
         else:
             display_name = DisplayNameType(display_name_or_email)
             user = await UserQuery.find_one_by_display_name(display_name)
@@ -54,11 +54,11 @@ class UserService:
             password=password,
             is_test_user=user.is_test_user,
         )
-
         if not verification.success:
             logging.debug('Password mismatch for user %d', user.id)
             StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
-
+        if verification.schema_needed is not None:
+            StandardFeedback.raise_error('password_schema', verification.schema_needed)
         if verification.rehash_needed:
             new_password_pb = PasswordHash.hash(password_schema, password)
             if new_password_pb is not None:
@@ -213,13 +213,16 @@ class UserService:
         if user.email == new_email:
             StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
 
-        if not PasswordHash.verify(
+        verification = PasswordHash.verify(
             password_pb=user.password_pb,
             password_schema=password_schema,
             password=password,
             is_test_user=user.is_test_user,
-        ).success:
+        )
+        if not verification.success:
             StandardFeedback.raise_error('password', t('validation.password_is_incorrect'))
+        if verification.schema_needed is not None:
+            StandardFeedback.raise_error('password_schema', verification.schema_needed)
         if not await UserQuery.check_email_available(new_email):
             StandardFeedback.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(new_email):
@@ -241,13 +244,16 @@ class UserService:
         Update user password.
         """
         user = auth_user(required=True)
-        if not PasswordHash.verify(
+        verification = PasswordHash.verify(
             password_pb=user.password_pb,
             password_schema=password_schema,
             password=old_password,
             is_test_user=user.is_test_user,
-        ).success:
+        )
+        if not verification.success:
             StandardFeedback.raise_error('old_password', t('validation.password_is_incorrect'))
+        if verification.schema_needed is not None:
+            StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
         new_password_pb = PasswordHash.hash(password_schema, new_password)
         if new_password_pb is None:
