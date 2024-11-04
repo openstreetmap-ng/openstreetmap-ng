@@ -23,6 +23,7 @@
     "@babel/preset-env": "^7.26.0",
     "@bufbuild/protobuf": "^2.2.1",
     "@mapbox/polyline": "^1.2.1",
+    "@noble/hashes": "^1.5.0",
     "@rapideditor/rapid": "^2.4.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",

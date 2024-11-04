@@ -6,9 +6,9 @@ from fastapi import HTTPException, status
 MessageSeverity = Literal['success', 'info', 'error']
 
 
-class MessageCollector:
+class StandardFeedback:
     """
-    Message collector returns messages in OpenAPI-compatible format.
+    Standard feedback returns messages in OpenAPI-compatible format.
 
     This format is often used by StandardForm to parse and display form feedback.
     """

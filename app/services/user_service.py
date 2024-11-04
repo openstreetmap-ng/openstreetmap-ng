@@ -1,13 +1,14 @@
 import logging
 
 from fastapi import UploadFile
+from pydantic import SecretStr
 from sqlalchemy import delete, func, or_, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.locale import is_installed_locale
-from app.lib.message_collector import MessageCollector
 from app.lib.password_hash import PasswordHash, PasswordSchema
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
 from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatus
@@ -25,7 +26,7 @@ class UserService:
         display_name_or_email: DisplayNameType | EmailType,
         password_schema: PasswordSchema | str,
         password: PasswordType,
-    ) -> str:
+    ) -> SecretStr:
         """
         Attempt to login as a user.
 
@@ -45,7 +46,7 @@ class UserService:
 
         if user is None:
             logging.debug('User not found %r', display_name_or_email)
-            MessageCollector.raise_error(None, t('users.auth_failure.invalid_credentials'))
+            StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
 
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
@@ -56,7 +57,7 @@ class UserService:
 
         if not verification.success:
             logging.debug('Password mismatch for user %d', user.id)
-            MessageCollector.raise_error(None, t('users.auth_failure.invalid_credentials'))
+            StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
 
         if verification.rehash_needed:
             new_password_pb = PasswordHash.hash(password_schema, password)
@@ -155,9 +156,9 @@ class UserService:
         Update user settings.
         """
         if not await UserQuery.check_display_name_available(display_name):
-            MessageCollector.raise_error('display_name', t('validation.display_name_is_taken'))
+            StandardFeedback.raise_error('display_name', t('validation.display_name_is_taken'))
         if not is_installed_locale(language):
-            MessageCollector.raise_error('language', t('validation.invalid_value'))
+            StandardFeedback.raise_error('language', t('validation.invalid_value'))
 
         async with db_commit() as session:
             stmt = (
@@ -197,7 +198,7 @@ class UserService:
 
     @staticmethod
     async def update_email(
-        collector: MessageCollector,
+        feedback: StandardFeedback,
         *,
         new_email: EmailType,
         password_schema: PasswordSchema | str,
@@ -210,7 +211,7 @@ class UserService:
         """
         user = auth_user(required=True)
         if user.email == new_email:
-            MessageCollector.raise_error('email', t('validation.new_email_is_current'))
+            StandardFeedback.raise_error('email', t('validation.new_email_is_current'))
 
         if not PasswordHash.verify(
             password_pb=user.password_pb,
@@ -218,19 +219,19 @@ class UserService:
             password=password,
             is_test_user=user.is_test_user,
         ).success:
-            MessageCollector.raise_error('password', t('validation.password_is_incorrect'))
+            StandardFeedback.raise_error('password', t('validation.password_is_incorrect'))
         if not await UserQuery.check_email_available(new_email):
-            MessageCollector.raise_error('email', t('validation.email_address_is_taken'))
+            StandardFeedback.raise_error('email', t('validation.email_address_is_taken'))
         if not await validate_email_deliverability(new_email):
-            MessageCollector.raise_error('email', t('validation.invalid_email_address'))
+            StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
         # await EmailChangeService.send_confirm_email(new_email)
         # TODO: send to old email too
-        collector.info(None, t('settings.email_change_confirmation_sent'))
+        feedback.info(None, t('settings.email_change_confirmation_sent'))
 
     @staticmethod
     async def update_password(
-        collector: MessageCollector,
+        feedback: StandardFeedback,
         *,
         password_schema: PasswordSchema | str,
         old_password: PasswordType,
@@ -246,7 +247,7 @@ class UserService:
             password=old_password,
             is_test_user=user.is_test_user,
         ).success:
-            MessageCollector.raise_error('old_password', t('validation.password_is_incorrect'))
+            StandardFeedback.raise_error('old_password', t('validation.password_is_incorrect'))
 
         new_password_pb = PasswordHash.hash(password_schema, new_password)
         if new_password_pb is None:
@@ -266,7 +267,7 @@ class UserService:
             )
             await session.execute(stmt)
 
-        collector.success(None, t('settings.password_has_been_changed'))
+        feedback.success(None, t('settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', user.id)
 
     @staticmethod

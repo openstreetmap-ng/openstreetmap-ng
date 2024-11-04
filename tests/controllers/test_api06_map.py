@@ -85,8 +85,8 @@ async def test_map_read(client: AsyncClient):
 
     data = XMLToDict.parse(r.content)['osm']
 
-    # completely empty map will be parsed as dict
-    if isinstance(data, Sequence):
+    # empty map will be parsed as dict
+    if isinstance(data, Sequence):  # pyright: ignore[reportUnnecessaryIsInstance]
         nodes = (value for key, value in data if key == 'node')
         with pytest.raises(StopIteration):
             node = next(node for node in nodes if node['@id'] == node_id)

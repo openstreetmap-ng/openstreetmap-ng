@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: d29aeba5a5f6
+Revision ID: e23e90cd09f0
 Revises:
-Create Date: 2024-11-01 15:23:15.992631+00:00
+Create Date: 2024-11-03 21:41:31.655298+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'd29aeba5a5f6'
+revision: str = 'e23e90cd09f0'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -68,7 +68,7 @@ def upgrade() -> None:
     op.create_table('user',
     sa.Column('email', sa.Unicode(length=254), nullable=False),
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
-    sa.Column('password_hashed', sa.Unicode(length=255), nullable=False),
+    sa.Column('password_pb', sa.LargeBinary(length=255), nullable=False),
     sa.Column('created_ip', postgresql.INET(), nullable=False),
     sa.Column('status', sa.Enum('pending_terms', 'pending_activation', 'active', name='userstatus'), nullable=False),
     sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
@@ -191,6 +191,7 @@ def upgrade() -> None:
     )
     op.create_index('note_comment_body_idx', 'note_comment', ['body_tsvector'], unique=False, postgresql_using='gin')
     op.create_index('note_comment_event_user_idx', 'note_comment', ['event', 'user_id'], unique=False)
+    op.create_index('note_comment_note_created_idx', 'note_comment', ['note_id', 'created_at'], unique=False)
     op.create_table('note_subscription',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('note_id', sa.BigInteger(), nullable=False),
@@ -454,6 +455,7 @@ def downgrade() -> None:
     op.drop_index('oauth2_application_client_id_idx', table_name='oauth2_application')
     op.drop_table('oauth2_application')
     op.drop_table('note_subscription')
+    op.drop_index('note_comment_note_created_idx', table_name='note_comment')
     op.drop_index('note_comment_event_user_idx', table_name='note_comment')
     op.drop_index('note_comment_body_idx', table_name='note_comment', postgresql_using='gin')
     op.drop_table('note_comment')

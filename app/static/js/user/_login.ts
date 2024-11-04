@@ -19,7 +19,7 @@ if (body) {
         const dataset = (target as HTMLButtonElement).dataset
         console.debug("onAutofillButtonClick", dataset)
         ;(loginInputs.namedItem("display_name_or_email") as HTMLInputElement).value = dataset.login
-        ;(loginInputs.namedItem("password") as HTMLInputElement).value = dataset.password
+        loginForm.querySelector("input[type=password][data-name=password]").value = dataset.password
         ;(loginInputs.namedItem("remember") as HTMLInputElement).checked = true
         loginForm.requestSubmit()
     }

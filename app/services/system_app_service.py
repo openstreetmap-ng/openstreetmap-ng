@@ -2,6 +2,7 @@ import logging
 from asyncio import TaskGroup
 from typing import NamedTuple
 
+from pydantic import SecretStr
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 
@@ -72,7 +73,7 @@ class SystemAppService:
                 tg.create_task(_register_app(app))
 
     @staticmethod
-    async def create_access_token(client_id: str, *, user_id: int | None = None) -> str:
+    async def create_access_token(client_id: str, *, user_id: int | None = None) -> SecretStr:
         """
         Create an OAuth2-based access token for the given system app.
         """
@@ -88,6 +89,7 @@ class SystemAppService:
 
         access_token = buffered_rand_urlsafe(32)
         access_token_hashed = hash_bytes(access_token)
+        access_token = SecretStr(access_token)
         async with db_commit() as session:
             token = OAuth2Token(
                 user_id=user_id,

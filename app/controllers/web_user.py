@@ -7,19 +7,13 @@ from starlette.responses import RedirectResponse
 
 from app.config import TEST_ENV
 from app.lib.auth_context import web_user
-from app.lib.message_collector import MessageCollector
 from app.lib.redirect_referrer import redirect_referrer
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH
 from app.models.db.user import User, UserStatus
-from app.models.types import (
-    DisplayNameType,
-    EmailType,
-    PasswordType,
-    ValidatingDisplayNameType,
-    ValidatingPasswordType,
-)
+from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
@@ -35,16 +29,25 @@ async def login(
     display_name_or_email: Annotated[
         DisplayNameType | EmailType, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
     ],
+    password_schema: Annotated[str, Form()],
     password: Annotated[PasswordType, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
+        password_schema=password_schema,
         password=password,
     )
     max_age = COOKIE_AUTH_MAX_AGE if remember else None
     response = Response()
-    response.set_cookie('auth', access_token, max_age, secure=not TEST_ENV, httponly=True, samesite='lax')
+    response.set_cookie(
+        key='auth',
+        value=access_token.get_secret_value(),
+        max_age=max_age,
+        secure=not TEST_ENV,
+        httponly=True,
+        samesite='lax',
+    )
     return response
 
 
@@ -64,17 +67,26 @@ async def logout(
 async def signup(
     display_name: Annotated[ValidatingDisplayNameType, Form()],
     email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[ValidatingPasswordType, Form()],
+    password_schema: Annotated[str, Form()],
+    password: Annotated[PasswordType, Form()],
     tracking: Annotated[bool, Form()] = False,
 ):
     access_token = await UserSignupService.signup(
         display_name=display_name,
         email=email,
+        password_schema=password_schema,
         password=password,
         tracking=tracking,
     )
     response = Response()
-    response.set_cookie('auth', access_token, None, secure=not TEST_ENV, httponly=True, samesite='lax')
+    response.set_cookie(
+        key='auth',
+        value=access_token.get_secret_value(),
+        max_age=None,
+        secure=not TEST_ENV,
+        httponly=True,
+        samesite='lax',
+    )
     return response
 
 
@@ -113,9 +125,9 @@ async def account_confirm_resend(
     if user.status != UserStatus.pending_activation:
         return {'is_active': True}
     await UserSignupService.send_confirm_email()
-    collector = MessageCollector()
-    collector.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
-    return collector.result
+    feedback = StandardFeedback()
+    feedback.success(None, t('confirmations.resend_success_flash.confirmation_sent', email=user.email))
+    return feedback.result
 
 
 @router.post('/reset-password')
@@ -123,6 +135,6 @@ async def reset_password(
     email: Annotated[EmailType, Form()],
 ):
     await ResetPasswordService.send_reset_link(email)
-    collector = MessageCollector()
-    collector.success(None, t('settings.password_reset_link_sent'))
-    return collector.result
+    feedback = StandardFeedback()
+    feedback.success(None, t('settings.password_reset_link_sent'))
+    return feedback.result

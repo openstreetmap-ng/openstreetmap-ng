@@ -4,9 +4,8 @@ from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
 from typing import Literal, NamedTuple
 
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError
-from argon2.profiles import RFC_9106_LOW_MEMORY
 
 from app.config import TEST_ENV
 from app.models.proto.server_pb2 import UserPassword
@@ -23,7 +22,14 @@ class VerifyResult(NamedTuple):
     schema_needed: PasswordSchema | None = None
 
 
-_hasher = PasswordHasher.from_parameters(RFC_9106_LOW_MEMORY)
+_hasher_v1 = PasswordHasher(
+    time_cost=3,
+    memory_cost=8192,  # 8 MB
+    parallelism=4,
+    hash_len=32,
+    salt_len=16,
+    type=Type.ID,
+)
 
 
 class PasswordHash:
@@ -41,6 +47,9 @@ class PasswordHash:
         # test user accepts any password in test environment
         if is_test_user:
             return VerifyResult(success=TEST_ENV, rehash_needed=False)
+        # preload users contain no password
+        if not password_pb:
+            return VerifyResult(False, rehash_needed=False)
 
         password_pb_ = UserPassword.FromString(password_pb)
         password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
@@ -53,9 +62,9 @@ class PasswordHash:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
             password_pb_hash = b64encode(password_pb_.v1.hash).strip(b'=').decode()
             password_pb_salt = b64encode(password_pb_.v1.salt).strip(b'=').decode()
-            password_pb_digest = f'$argon2id$v=19$m=65536,t=3,p=4${password_pb_salt}${password_pb_hash}'
+            password_pb_digest = f'$argon2id$v=19$m=8192,t=3,p=4${password_pb_salt}${password_pb_hash}'
             try:
-                _hasher.verify(password_pb_digest, password_bytes)
+                _hasher_v1.verify(password_pb_digest, password_bytes)
                 return VerifyResult(True, rehash_needed=False)
             except VerifyMismatchError:
                 return VerifyResult(False, rehash_needed=False)
@@ -67,7 +76,7 @@ class PasswordHash:
             # argon2
             if digest.startswith('$argon2'):
                 try:
-                    _hasher.verify(digest, password.get_secret_value())
+                    _hasher_v1.verify(digest, password.get_secret_value())
                     return VerifyResult(True, rehash_needed=True)
                 except VerifyMismatchError:
                     return VerifyResult(False, rehash_needed=True)
@@ -108,11 +117,11 @@ class PasswordHash:
             password_bytes = b64decode(password.get_secret_value())
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
-            hash_string = _hasher.hash(password_bytes)
+            hash_string = _hasher_v1.hash(password_bytes)
             prefix, salt, hash = hash_string.rsplit('$', maxsplit=2)
             hash = b64decode(hash + '==')
             salt = b64decode(salt + '==')
-            if prefix != '$argon2id$v=19$m=65536,t=3,p=4' or len(hash) != 32 or len(salt) != 16:
+            if prefix != '$argon2id$v=19$m=8192,t=3,p=4' or len(hash) != 32 or len(salt) != 16:
                 raise AssertionError(f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}')
             return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
 
