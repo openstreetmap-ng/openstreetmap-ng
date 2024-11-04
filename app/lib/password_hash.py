@@ -1,4 +1,3 @@
-import logging
 from base64 import b64decode, b64encode
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
@@ -9,6 +8,7 @@ from argon2.exceptions import VerifyMismatchError
 
 from app.config import TEST_ENV
 from app.models.proto.server_pb2 import UserPassword
+from app.models.proto.shared_pb2 import TransmitUserPassword
 from app.models.types import PasswordType
 
 PasswordSchema = Literal['legacy', 'v1']
@@ -37,7 +37,6 @@ class PasswordHash:
     def verify(
         *,
         password_pb: bytes,
-        password_schema: PasswordSchema | str,
         password: PasswordType,
         is_test_user: bool,
     ) -> VerifyResult:
@@ -51,13 +50,14 @@ class PasswordHash:
         if not password_pb:
             return VerifyResult(False, rehash_needed=False)
 
+        transmit_password = TransmitUserPassword.FromString(b64decode(password.get_secret_value()))
         password_pb_ = UserPassword.FromString(password_pb)
         password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
-        if password_pb_schema != password_schema:
-            return VerifyResult(False, rehash_needed=False, schema_needed=password_pb_schema)
 
         if password_pb_schema == 'v1':
-            password_bytes = b64decode(password.get_secret_value(), validate=True)
+            password_bytes = transmit_password.v1
+            if not password_bytes:
+                return VerifyResult(False, rehash_needed=False, schema_needed=password_pb_schema)
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
             password_pb_hash = b64encode(password_pb_.v1.hash).strip(b'=').decode()
@@ -70,32 +70,32 @@ class PasswordHash:
                 return VerifyResult(False, rehash_needed=False)
 
         elif password_pb_schema == 'legacy':
+            password_text = transmit_password.legacy
+            if not password_text:
+                return VerifyResult(False, rehash_needed=False, schema_needed=password_pb_schema)
             digest = password_pb_.legacy.digest
             extra = password_pb_.legacy.extra
 
-            # argon2
-            if digest.startswith('$argon2'):
+            if digest.startswith('$argon2'):  # argon2
                 try:
-                    _hasher_v1.verify(digest, password.get_secret_value())
+                    _hasher_v1.verify(digest, password_text)
                     return VerifyResult(True, rehash_needed=True)
                 except VerifyMismatchError:
                     return VerifyResult(False, rehash_needed=True)
 
-            # md5
-            if len(digest) == 32:
+            if len(digest) == 32:  # md5
                 salt = extra or ''
-                valid_hash = md5((salt + password.get_secret_value()).encode()).hexdigest()  # noqa: S324
+                valid_hash = md5((salt + password_text).encode()).hexdigest()  # noqa: S324
                 success = compare_digest(digest, valid_hash)
                 return VerifyResult(success, rehash_needed=True)
 
-            # pbkdf2
-            if '!' in extra:
+            if '!' in extra:  # pbkdf2
                 password_hashed_b = b64decode(digest)
                 algorithm, iterations_, salt = extra.split('!')
                 iterations = int(iterations_)
                 valid_hash_b = pbkdf2_hmac(
                     hash_name=algorithm,
-                    password=password.get_secret_value().encode(),
+                    password=password_text.encode(),
                     salt=salt.encode(),
                     iterations=iterations,
                     dklen=len(password_hashed_b),
@@ -107,14 +107,15 @@ class PasswordHash:
         raise NotImplementedError(f'Unsupported password_pb schema: {password_pb_schema!r}')
 
     @staticmethod
-    def hash(password_schema: PasswordSchema | str, password: PasswordType) -> bytes | None:
+    def hash(password: PasswordType) -> bytes | None:
         """
         Hash a password using latest recommended algorithm.
 
         Returns None if the given password schema cannot be used.
         """
-        if password_schema == 'v1':
-            password_bytes = b64decode(password.get_secret_value())
+        transmit_password = TransmitUserPassword.FromString(b64decode(password.get_secret_value()))
+        if transmit_password.v1:
+            password_bytes = transmit_password.v1
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
             hash_string = _hasher_v1.hash(password_bytes)
@@ -125,5 +126,4 @@ class PasswordHash:
                 raise AssertionError(f'Invalid hasher configuration: {prefix=!r}, {len(hash)=}, {len(salt)=}')
             return UserPassword(v1=UserPassword.V1(hash=hash, salt=salt)).SerializeToString()
 
-        logging.info('Password schema %r cannot be used for new hashing', password_schema)
         return None

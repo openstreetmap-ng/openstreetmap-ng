@@ -128,3 +128,9 @@ message PartialSearchParams {
     repeated RenderElementsData renders = 2;
     bool where_is_this = 3;
 }
+
+// Structure for transmitting user passwords
+message TransmitUserPassword {
+    optional string legacy = 1;
+    optional bytes v1 = 2;
+}

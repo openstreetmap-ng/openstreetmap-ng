@@ -1,21 +1,17 @@
+import { create, toBinary } from "@bufbuild/protobuf"
 import { base64Encode } from "@bufbuild/protobuf/wire"
-
 import { pbkdf2Async } from "@noble/hashes/pbkdf2"
 import { sha512 } from "@noble/hashes/sha2"
+import { type TransmitUserPassword, TransmitUserPasswordSchema } from "./proto/shared_pb"
 
 type PasswordSchema = "v1" | "legacy"
 
-const currentPasswordSchema: PasswordSchema = "v1"
-const formUsePasswordSchemaMap: Map<HTMLFormElement, PasswordSchema | string> = new Map()
+const defaultPasswordSchema: PasswordSchema = "v1"
+const formUsePasswordSchemasMap: Map<HTMLFormElement, (PasswordSchema | string)[]> = new Map()
 
 export const initPasswordsForm = (form: HTMLFormElement, passwordInputs: NodeListOf<HTMLInputElement>): void => {
     console.debug("Initializing passwords form with", passwordInputs.length, "inputs", form.action)
-    formUsePasswordSchemaMap.set(form, currentPasswordSchema)
-
-    const passwordSchemaInput = document.createElement("input")
-    passwordSchemaInput.type = "hidden"
-    passwordSchemaInput.name = "password_schema"
-    form.appendChild(passwordSchemaInput)
+    formUsePasswordSchemasMap.set(form, [defaultPasswordSchema])
 
     for (const input of passwordInputs) {
         const inputName = input.dataset.name
@@ -31,13 +27,8 @@ export const updatePasswordsFormHashes = async (
     form: HTMLFormElement,
     passwordInputs: NodeListOf<HTMLInputElement>,
 ): Promise<void> => {
-    const passwordSchema = formUsePasswordSchemaMap.get(form)
-    console.debug("Updating passwords form with", passwordSchema, "schema", form.action)
-    const passwordSchemaInput = form.elements.namedItem("password_schema") as HTMLInputElement
-    if (passwordSchemaInput.value !== passwordSchema) {
-        passwordSchemaInput.value = passwordSchema
-        passwordSchemaInput.dispatchEvent(new Event("change"))
-    }
+    const passwordSchemas = formUsePasswordSchemasMap.get(form)
+    console.debug("Updating passwords form with", passwordSchemas, "schemas", form.action)
 
     const tasks: Promise<void>[] = []
     for (const input of passwordInputs) {
@@ -45,8 +36,8 @@ export const updatePasswordsFormHashes = async (
         const passwordInput = form.elements.namedItem(input.dataset.name) as HTMLInputElement
         if (!inputName.endsWith("_confirm")) {
             tasks.push(
-                clientHashPassword(passwordSchema, input.value).then((hashedPassword) => {
-                    passwordInput.value = hashedPassword
+                wrappedClientHashPassword(passwordSchemas, input.value).then((result) => {
+                    passwordInput.value = result
                     passwordInput.dispatchEvent(new Event("change"))
                 }),
             )
@@ -55,15 +46,34 @@ export const updatePasswordsFormHashes = async (
     await Promise.all(tasks)
 }
 
+// TODO: harden against downgrade attacks
 export const handlePasswordSchemaFeedback = (form: HTMLFormElement, response: PasswordSchema | string): boolean => {
-    if (formUsePasswordSchemaMap.get(form) === response) return false
-    // TODO: harden against downgrade attacks
-    console.debug("Setting password schema to", response, "for", form.action)
-    formUsePasswordSchemaMap.set(form, response)
+    const currentPasswordSchemas = formUsePasswordSchemasMap.get(form)
+    if (currentPasswordSchemas.length === 2 && currentPasswordSchemas[1] === response) return false
+    const newPasswordSchemas = [currentPasswordSchemas[0], response]
+    console.debug("Setting password schemas to", newPasswordSchemas, "for", form.action)
+    formUsePasswordSchemasMap.set(form, newPasswordSchemas)
     return true
 }
 
-const clientHashPassword = async (passwordSchema: PasswordSchema | string, password: string): Promise<string> => {
+const wrappedClientHashPassword = async (
+    passwordSchemas: (PasswordSchema | string)[],
+    password: string,
+): Promise<string> => {
+    const transmitUserPassword = create(TransmitUserPasswordSchema)
+    const tasks: Promise<void>[] = []
+    for (const passwordSchema of passwordSchemas) {
+        tasks.push(clientHashPassword(transmitUserPassword, passwordSchema, password))
+    }
+    await Promise.all(tasks)
+    return base64Encode(toBinary(TransmitUserPasswordSchema, transmitUserPassword))
+}
+
+const clientHashPassword = async (
+    transmitUserPassword: TransmitUserPassword,
+    passwordSchema: PasswordSchema | string,
+    password: string,
+): Promise<void> => {
     if (passwordSchema === "v1") {
         // TODO: check performance on mobile
         // client-side pbkdf2 sha512, 100_000 iters, base64 encoded
@@ -72,13 +82,13 @@ const clientHashPassword = async (passwordSchema: PasswordSchema | string, passw
         const hashBytes = await pbkdf2_sha512(password, salt, 100_000)
         timer = performance.now() - timer
         console.debug("pbkdf2_sha512 took", Number(timer.toFixed(1)), "ms")
-        return base64Encode(hashBytes)
-    }
-    if (passwordSchema === "legacy") {
+        transmitUserPassword.v1 = hashBytes
+    } else if (passwordSchema === "legacy") {
         // no client-side hashing
-        return password
+        transmitUserPassword.legacy = password
+    } else {
+        throw new Error(`Unsupported clientHash password schema: ${passwordSchema}`)
     }
-    throw new Error(`Unsupported password schema: ${passwordSchema}`)
 }
 
 const pbkdf2_sha512 = async (password: string, salt: string, iterations: number): Promise<Uint8Array> => {

@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, or_, update
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.locale import is_installed_locale
-from app.lib.password_hash import PasswordHash, PasswordSchema
+from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
@@ -24,7 +24,6 @@ class UserService:
     async def login(
         *,
         display_name_or_email: DisplayNameType | EmailType,
-        password_schema: PasswordSchema | str,
         password: PasswordType,
     ) -> SecretStr:
         """
@@ -50,27 +49,16 @@ class UserService:
 
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
-            password_schema=password_schema,
             password=password,
             is_test_user=user.is_test_user,
         )
         if not verification.success:
             logging.debug('Password mismatch for user %d', user.id)
             StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
+        if verification.rehash_needed:
+            await _rehash_user_password(user, password)
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
-        if verification.rehash_needed:
-            new_password_pb = PasswordHash.hash(password_schema, password)
-            if new_password_pb is not None:
-                async with db_commit() as session:
-                    stmt = (
-                        update(User)
-                        .where(User.id == user.id, User.password_pb == user.password_pb)
-                        .values({User.password_pb: new_password_pb})
-                        .inline()
-                    )
-                    await session.execute(stmt)
-                logging.debug('Rehashed password for user %d', user.id)
 
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
@@ -201,7 +189,6 @@ class UserService:
         feedback: StandardFeedback,
         *,
         new_email: EmailType,
-        password_schema: PasswordSchema | str,
         password: PasswordType,
     ) -> None:
         """
@@ -215,12 +202,13 @@ class UserService:
 
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
-            password_schema=password_schema,
             password=password,
             is_test_user=user.is_test_user,
         )
         if not verification.success:
             StandardFeedback.raise_error('password', t('validation.password_is_incorrect'))
+        if verification.rehash_needed:
+            await _rehash_user_password(user, password)
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
         if not await UserQuery.check_email_available(new_email):
@@ -236,7 +224,6 @@ class UserService:
     async def update_password(
         feedback: StandardFeedback,
         *,
-        password_schema: PasswordSchema | str,
         old_password: PasswordType,
         new_password: PasswordType,
     ) -> None:
@@ -246,7 +233,6 @@ class UserService:
         user = auth_user(required=True)
         verification = PasswordHash.verify(
             password_pb=user.password_pb,
-            password_schema=password_schema,
             password=old_password,
             is_test_user=user.is_test_user,
         )
@@ -254,10 +240,11 @@ class UserService:
             StandardFeedback.raise_error('old_password', t('validation.password_is_incorrect'))
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
+        # ignore verification.rehash_needed, we are changing the password anyway
 
-        new_password_pb = PasswordHash.hash(password_schema, new_password)
+        new_password_pb = PasswordHash.hash(new_password)
         if new_password_pb is None:
-            raise AssertionError(f'Password schema {password_schema} cannot be used during password change')
+            raise AssertionError('Provided password schemas cannot be used during update_password')
 
         async with db_commit() as session:
             stmt = (
@@ -338,3 +325,19 @@ class UserService:
                 User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
             )
             await session.execute(stmt)
+
+
+async def _rehash_user_password(user: User, password: PasswordType) -> None:
+    new_password_pb = PasswordHash.hash(password)
+    if new_password_pb is None:
+        return
+
+    async with db_commit() as session:
+        stmt = (
+            update(User)
+            .where(User.id == user.id, User.password_pb == user.password_pb)
+            .values({User.password_pb: new_password_pb})
+            .inline()
+        )
+        await session.execute(stmt)
+    logging.debug('Rehashed password for user %d', user.id)

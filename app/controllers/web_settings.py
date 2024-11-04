@@ -64,14 +64,12 @@ async def settings_background(
 async def settings_email(
     _: Annotated[User, web_user()],
     email: Annotated[ValidatingEmailType, Form()],
-    password_schema: Annotated[str, Form()],
     password: Annotated[PasswordType, Form()],
 ):
     feedback = StandardFeedback()
     await UserService.update_email(
         feedback,
         new_email=email,
-        password_schema=password_schema,
         password=password,
     )
     return feedback.result
@@ -80,7 +78,6 @@ async def settings_email(
 @router.post('/settings/password')
 async def settings_password(
     _: Annotated[User, web_user()],
-    password_schema: Annotated[str, Form()],
     old_password: Annotated[PasswordType, Form()],
     new_password: Annotated[PasswordType, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
@@ -88,7 +85,6 @@ async def settings_password(
     feedback = StandardFeedback()
     await UserService.update_password(
         feedback,
-        password_schema=password_schema,
         old_password=old_password,
         new_password=new_password,
     )

@@ -117,6 +117,7 @@ dictConfig(
                     'httpcore',
                     'markdown_it',
                     'multipart',
+                    'python_multipart',
                 )
             },
             **{

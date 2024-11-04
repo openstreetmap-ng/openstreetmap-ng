@@ -26,9 +26,8 @@ message UserPassword {
         optional string extra = 2;
     }
     message V1 {
-        // Client-sided pbkdf2 + Server-sided argon2
-        // pbkdf2: SHA-512, N iterations -- see https://en.wikipedia.org/wiki/PBKDF2
-        // argon2: RFC_9106_LOW_MEMORY
+        // Client-sided pbkdf2: SHA-512, 100_000 iterations
+        // Server-sided argon2: argon2id v=19 m=8192 t=3 p=4
         bytes hash = 1;
         bytes salt = 2;
     }

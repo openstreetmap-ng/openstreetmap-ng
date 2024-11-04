@@ -29,13 +29,11 @@ async def login(
     display_name_or_email: Annotated[
         DisplayNameType | EmailType, Form(min_length=1, max_length=max(DISPLAY_NAME_MAX_LENGTH, EMAIL_MAX_LENGTH))
     ],
-    password_schema: Annotated[str, Form()],
     password: Annotated[PasswordType, Form()],
     remember: Annotated[bool, Form()] = False,
 ):
     access_token = await UserService.login(
         display_name_or_email=display_name_or_email,
-        password_schema=password_schema,
         password=password,
     )
     max_age = COOKIE_AUTH_MAX_AGE if remember else None
@@ -67,14 +65,12 @@ async def logout(
 async def signup(
     display_name: Annotated[ValidatingDisplayNameType, Form()],
     email: Annotated[ValidatingEmailType, Form()],
-    password_schema: Annotated[str, Form()],
     password: Annotated[PasswordType, Form()],
     tracking: Annotated[bool, Form()] = False,
 ):
     access_token = await UserSignupService.signup(
         display_name=display_name,
         email=email,
-        password_schema=password_schema,
         password=password,
         tracking=tracking,
     )

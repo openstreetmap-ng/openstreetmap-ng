@@ -6,7 +6,7 @@ from sqlalchemy import delete, update
 from app.config import APP_URL
 from app.db import db_commit
 from app.lib.auth_context import auth_context, auth_user
-from app.lib.password_hash import PasswordHash, PasswordSchema
+from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
@@ -27,7 +27,6 @@ class UserSignupService:
         *,
         display_name: DisplayNameType,
         email: EmailType,
-        password_schema: PasswordSchema | str,
         password: PasswordType,
         tracking: bool,
     ) -> SecretStr:
@@ -44,9 +43,9 @@ class UserSignupService:
         if not await validate_email_deliverability(email):
             StandardFeedback.raise_error('email', t('validation.invalid_email_address'))
 
-        password_pb = PasswordHash.hash(password_schema, password)
+        password_pb = PasswordHash.hash(password)
         if password_pb is None:
-            raise AssertionError(f'Password schema {password_schema} cannot be used during registration')
+            raise AssertionError('Provided password schemas cannot be used during signup')
 
         # TODO: purge stale pending terms accounts
         async with db_commit() as session:
