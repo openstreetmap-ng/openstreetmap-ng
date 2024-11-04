@@ -186,7 +186,6 @@ export const getSearchController = (map: L.Map): IndexController => {
             const lon = options?.lon ?? searchParams.lon
             const lat = options?.lat ?? searchParams.lat
 
-            console.log(query, lon, lat, options, searchParams)
             if (!query && lon && lat) {
                 document.title = getPageTitle(whereIsThisTitle)
                 setSearchFormQuery(null)
