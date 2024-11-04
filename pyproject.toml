@@ -34,7 +34,6 @@ dependencies = [
   "python-multipart",
   "pytz",
   "pyyaml",
-  "redis[hiredis]",
   "rfc3986",
   "rtree",
   "scikit-learn",
@@ -47,6 +46,7 @@ dependencies = [
   "tqdm",
   "uvicorn[standard]",
   "uvloop",
+  "valkey[libvalkey]>=6.0.0",
   "zid>=1.0.0",
   "zstandard",
 ]

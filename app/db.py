@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 
-from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from valkey.asyncio import ConnectionPool, Valkey
 
 from app.config import POSTGRES_URL, VALKEY_URL
 from app.utils import JSON_DECODE, json_encodes
 
-_db_engine = create_async_engine(
+_DB_ENGINE = create_async_engine(
     POSTGRES_URL,
     json_deserializer=JSON_DECODE,
     json_serializer=json_encodes,
@@ -16,7 +16,7 @@ _db_engine = create_async_engine(
     max_overflow=-1,  # unlimited concurrent connections overflow
 )
 
-_valkey_pool = ConnectionPool.from_url(VALKEY_URL)
+_VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 
 # TODO: test unicode normalization comparison
 
@@ -27,7 +27,7 @@ async def db():
     Get a database session.
     """
     async with AsyncSession(
-        _db_engine,
+        _DB_ENGINE,
         expire_on_commit=False,
         close_resets_only=False,  # prevent closed sessions from being reused
     ) as session:
@@ -55,5 +55,5 @@ async def db_update_stats(*, vacuum: bool = False) -> None:
 
 @asynccontextmanager
 async def valkey():
-    async with Redis(connection_pool=_valkey_pool) as r:
+    async with Valkey(connection_pool=_VALKEY_POOL) as r:
         yield r
