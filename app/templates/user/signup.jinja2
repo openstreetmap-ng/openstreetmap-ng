@@ -47,14 +47,14 @@
 
                 <label class="form-label d-block mb-3">
                     {{ t('sessions.new.password') | capitalize }}
-                    <input type="password" class="form-control mt-2" name="password"
+                    <input type="password" class="form-control mt-2" data-name="password"
                         minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
                         autocomplete="new-password" required>
                 </label>
 
                 <label class="form-label d-block mb-3">
                     {{ t('activerecord.attributes.user.pass_crypt_confirmation') | capitalize }}
-                    <input type="password" class="form-control mt-2" name="password_confirm"
+                    <input type="password" class="form-control mt-2" data-name="password_confirm"
                         minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}"
                         autocomplete="new-password" required>
                 </label>

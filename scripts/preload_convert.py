@@ -494,7 +494,7 @@ def write_user_csv() -> None:
     df = df.unique('id').drop_nulls('id')
     df = df.with_columns(
         pl.concat_str('id', pl.lit('@localhost.invalid')).alias('email'),
-        pl.lit('x').alias('password_hashed'),
+        pl.lit('').alias('password_pb'),
         pl.lit('127.0.0.1').alias('created_ip'),
         pl.lit('active').alias('status'),
         pl.lit(None).alias('auth_provider'),

@@ -5,7 +5,7 @@ from pydantic import PositiveInt
 
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import web_user
-from app.lib.message_collector import MessageCollector
+from app.lib.standard_feedback import StandardFeedback
 from app.models.db.trace_ import TraceVisibility
 from app.models.db.user import User
 from app.models.types import Str255
@@ -27,7 +27,7 @@ async def upload(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        MessageCollector.raise_error(None, detail)
+        StandardFeedback.raise_error(None, detail)
     return {'trace_id': trace.id}
 
 
@@ -51,7 +51,7 @@ async def update(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        MessageCollector.raise_error(None, detail)
+        StandardFeedback.raise_error(None, detail)
     return {'trace_id': trace_id}
 
 
@@ -65,5 +65,5 @@ async def delete(
     except* APIError as e:
         # convert api errors to standard form responses
         detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        MessageCollector.raise_error(None, detail)
+        StandardFeedback.raise_error(None, detail)
     return {'redirect_url': f'/user/{user.display_name}/traces'}

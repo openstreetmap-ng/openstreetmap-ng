@@ -22,8 +22,7 @@
     "rules": {
       "complexity": {
         "noUselessStringConcat": "info",
-        "noVoid": "error",
-        "useSimplifiedLogicExpression": "warn"
+        "noVoid": "error"
       },
       "correctness": {
         "noConstantMathMinMaxClamp": "warn",
@@ -34,6 +33,7 @@
       "recommended": true,
       "style": {
         "noDefaultExport": "warn",
+        "noInferrableTypes": "info",
         "noNamespace": "error",
         "noParameterAssign": "off",
         "noParameterProperties": "error",

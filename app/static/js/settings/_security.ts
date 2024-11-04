@@ -5,8 +5,8 @@ import { type APIDetail, configureStandardForm } from "../_standard-form"
 const body = document.querySelector("body.settings-security-body")
 if (body) {
     const passwordForm = body.querySelector("form.password-form")
-    const newPasswordInput = passwordForm.elements.namedItem("new_password") as HTMLInputElement
-    const newPasswordConfirmInput = passwordForm.elements.namedItem("new_password_confirm") as HTMLInputElement
+    const newPasswordInput = passwordForm.querySelector("input[type=password][data-name=new_password]")
+    const newPasswordConfirmInput = passwordForm.querySelector("input[type=password][data-name=new_password_confirm]")
 
     configureStandardForm(
         passwordForm,
@@ -17,6 +17,7 @@ if (body) {
         },
         () => {
             const result: APIDetail[] = []
+            // Validate passwords equality
             if (newPasswordInput.value !== newPasswordConfirmInput.value) {
                 const msg = i18next.t("validation.passwords_missmatch")
                 result.push({ type: "error", loc: ["", "new_password"], msg })

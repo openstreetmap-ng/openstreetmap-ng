@@ -10,7 +10,7 @@ from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.crypto import hash_bytes
 from app.lib.exceptions_context import raise_for
-from app.lib.message_collector import MessageCollector
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import (
     OAUTH_APP_ADMIN_LIMIT,
@@ -56,7 +56,7 @@ class OAuth2ApplicationService:
             )
             count = (await session.execute(stmt)).scalar_one()
             if count > OAUTH_APP_ADMIN_LIMIT:
-                MessageCollector.raise_error(None, t('validation.reached_app_limit'))
+                StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
 
         return app.id
 
@@ -64,22 +64,22 @@ class OAuth2ApplicationService:
     def validate_redirect_uris(redirect_uris: str) -> tuple[Uri, ...]:
         uris = splitlines_trim(redirect_uris)
         if len(uris) > OAUTH_APP_URI_LIMIT:
-            MessageCollector.raise_error('redirect_uris', t('validation.too_many_redirect_uris'))
+            StandardFeedback.raise_error('redirect_uris', t('validation.too_many_redirect_uris'))
         for uri in uris:
             if len(uri) > OAUTH_APP_URI_MAX_LENGTH:
-                MessageCollector.raise_error('redirect_uris', t('validation.redirect_uri_too_long'))
+                StandardFeedback.raise_error('redirect_uris', t('validation.redirect_uri_too_long'))
             if uri in {'urn:ietf:wg:oauth:2.0:oob', 'urn:ietf:wg:oauth:2.0:oob:auto'}:
                 continue
             try:
                 UriValidator.validate(uri_reference(uri))
             except Exception:
                 logging.debug('Invalid redirect URI %r', uri)
-                MessageCollector.raise_error('redirect_uris', t('validation.invalid_redirect_uri'))
+                StandardFeedback.raise_error('redirect_uris', t('validation.invalid_redirect_uri'))
             normalized = f'{uri.casefold()}/'
             if normalized.startswith('http://') and not normalized.startswith(
                 ('http://127.0.0.1/', 'http://localhost/')
             ):
-                MessageCollector.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
+                StandardFeedback.raise_error('redirect_uris', t('validation.insecure_redirect_uri'))
         # deduplicate (order-preserving) and cast type
         return tuple({Uri(uri): None for uri in uris})
 

@@ -1,5 +1,10 @@
 import { Alert } from "bootstrap"
 import i18next from "i18next"
+import {
+    initPasswordsForm as configurePasswordsForm,
+    handlePasswordSchemaFeedback,
+    updatePasswordsFormHashes,
+} from "./_password-hash"
 
 export interface APIDetail {
     type: "success" | "info" | "error"
@@ -14,20 +19,44 @@ export interface APIDetail {
 export const configureStandardForm = (
     form: HTMLFormElement,
     successCallback?: (data: any) => void,
-    clientValidationCallback?: (form: HTMLFormElement) => string | APIDetail[] | null,
+    clientValidationCallback?: (
+        form: HTMLFormElement,
+    ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
     options?: { formAppend: boolean },
 ): void => {
-    console.debug("Initializing standard form", form)
+    console.debug("Initializing standard form", form.action)
     const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<HTMLInputElement | HTMLButtonElement>
+    const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
+    if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
 
-    /** Set availability of submit elements */
-    const toggleSubmit = (enabled: boolean): void => {
-        console.debug("configureStandardForm", "toggleSubmit", enabled)
-        for (const submit of submitElements) submit.disabled = !enabled
+    const setPendingState = (state: boolean): void => {
+        const currentState = form.classList.contains("pending")
+        if (currentState === state) return
+        console.debug("configureStandardForm", "setPendingState", state)
+        if (state) {
+            form.classList.add("pending")
+            for (const submit of submitElements) submit.disabled = true
+        } else {
+            form.classList.remove("pending")
+            for (const submit of submitElements) submit.disabled = false
+        }
     }
 
     /** Handle feedback for a specific element */
-    const handleElementFeedback = (element: Element, type: "success" | "info" | "error", message: string): void => {
+    const handleElementFeedback = (
+        element: HTMLInputElement,
+        type: "success" | "info" | "error",
+        message: string,
+    ): void => {
+        if (element.classList.contains("hidden-password-input")) {
+            const actualElement = form.querySelector(`input[type=password][data-name="${element.name}"]`)
+            if (actualElement) {
+                console.debug("Redirecting element feedback for", element.name)
+                handleElementFeedback(actualElement, type, message)
+                return
+            }
+        }
+
         element.parentElement.classList.add("position-relative")
 
         let feedback = element.nextElementSibling
@@ -138,8 +167,17 @@ export const configureStandardForm = (
             } of detail) {
                 if (field) {
                     const input = form.elements.namedItem(field)
-                    if (!(input instanceof HTMLInputElement) || input.type === "hidden") {
+                    if (!(input instanceof HTMLInputElement)) {
                         handleFormFeedback(type, msg)
+                    } else if (input.type === "hidden") {
+                        if (passwordInputs && input.name === "password_schema") {
+                            if (handlePasswordSchemaFeedback(form, msg)) {
+                                setPendingState(false)
+                                form.requestSubmit()
+                            }
+                        } else {
+                            handleFormFeedback(type, msg)
+                        }
                     } else {
                         handleElementFeedback(input, type, msg)
                     }
@@ -154,11 +192,11 @@ export const configureStandardForm = (
     }
 
     // Disable browser validation in favor of bootstrap
-    form.noValidate = true
+    // disables maxlength and other browser checks: form.noValidate = true
     form.classList.add("needs-validation")
 
     // On form submit, build and submit the request
-    form.addEventListener("submit", (e: SubmitEvent): void => {
+    form.addEventListener("submit", async (e: SubmitEvent): Promise<void> => {
         console.debug("configureStandardForm", "onSubmit", form.action)
         e.preventDefault()
 
@@ -173,24 +211,29 @@ export const configureStandardForm = (
 
         // Prevent double submission
         if (form.classList.contains("pending")) {
-            console.info("Form already pending", form)
+            console.info("Form already pending", form.action)
             return
         }
 
+        setPendingState(true)
+
         if (clientValidationCallback) {
-            const clientValidationResult = clientValidationCallback(form)
+            let clientValidationResult = clientValidationCallback(form)
+            if (clientValidationResult instanceof Promise) {
+                clientValidationResult = await clientValidationResult
+            }
             if (
                 clientValidationResult &&
                 (!Array.isArray(clientValidationResult) || clientValidationResult.length > 0)
             ) {
                 console.debug("Client validation failed")
                 processFormFeedback(clientValidationResult)
+                setPendingState(false)
                 return
             }
         }
 
-        form.classList.add("pending")
-        toggleSubmit(false)
+        if (passwordInputs.length) await updatePasswordsFormHashes(form, passwordInputs)
 
         fetch(form.action, {
             method: form.method,
@@ -225,8 +268,7 @@ export const configureStandardForm = (
                 handleFormFeedback("error", error.message)
             })
             .finally(() => {
-                form.classList.remove("pending")
-                toggleSubmit(true)
+                setPendingState(false)
             })
     })
 }

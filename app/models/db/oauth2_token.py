@@ -41,8 +41,8 @@ class OAuth2CodeChallengeMethod(str, enum.Enum):
 
 
 class OAuth2TokenEndpointAuthMethod(str, enum.Enum):
-    client_secret_post = 'client_secret_post'  # noqa: S105
-    client_secret_basic = 'client_secret_basic'  # noqa: S105
+    client_secret_post = 'client_secret_post'
+    client_secret_basic = 'client_secret_basic'
 
 
 class OAuth2TokenOOB:

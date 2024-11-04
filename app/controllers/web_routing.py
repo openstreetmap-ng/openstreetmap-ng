@@ -6,8 +6,8 @@ from fastapi import APIRouter, Form
 from shapely import Polygon, box, get_coordinates
 
 from app.lib.geo_utils import try_parse_point
-from app.lib.message_collector import MessageCollector
 from app.lib.search import Search
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -93,7 +93,7 @@ async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: int) 
     task_index = Search.best_results_index(task_results)
     results = task_results[task_index]
     if not results:
-        MessageCollector.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
+        StandardFeedback.raise_error(field, t('javascripts.directions.errors.no_place', place=query))
 
     result = results[0]
     coords = get_coordinates(result.point)[0].tolist()

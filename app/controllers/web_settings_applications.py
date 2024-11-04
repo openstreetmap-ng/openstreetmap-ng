@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Path, Response, UploadFile
 
 from app.lib.auth_context import web_user
-from app.lib.message_collector import MessageCollector
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import (
     OAUTH_APP_NAME_MAX_LENGTH,
@@ -86,9 +86,9 @@ async def settings_application_update(
         scopes=tuple(scopes),
         revoke_all_authorizations=revoke_all_authorizations,
     )
-    collector = MessageCollector()
-    collector.success(None, t('settings.changes_have_been_saved'))
-    return collector.result
+    feedback = StandardFeedback()
+    feedback.success(None, t('settings.changes_have_been_saved'))
+    return feedback.result
 
 
 @router.post('/settings/applications/admin/{id:int}/avatar')

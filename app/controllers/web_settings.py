@@ -3,15 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Response, UploadFile
 
 from app.lib.auth_context import web_user
-from app.lib.message_collector import MessageCollector
+from app.lib.standard_feedback import StandardFeedback
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
 from app.models.db.user import AvatarType, Editor, User
-from app.models.types import (
-    LocaleCode,
-    PasswordType,
-    ValidatingDisplayNameType,
-    ValidatingPasswordType,
-)
+from app.models.types import LocaleCode, PasswordType, ValidatingDisplayNameType
 from app.services.auth_service import AuthService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
@@ -69,26 +64,38 @@ async def settings_background(
 async def settings_email(
     _: Annotated[User, web_user()],
     email: Annotated[ValidatingEmailType, Form()],
-    password: Annotated[PasswordType, Form(min_length=1)],
+    password_schema: Annotated[str, Form()],
+    password: Annotated[PasswordType, Form()],
 ):
-    collector = MessageCollector()
-    await UserService.update_email(collector, new_email=email, password=password)
-    return collector.result
+    feedback = StandardFeedback()
+    await UserService.update_email(
+        feedback,
+        new_email=email,
+        password_schema=password_schema,
+        password=password,
+    )
+    return feedback.result
 
 
 @router.post('/settings/password')
 async def settings_password(
     _: Annotated[User, web_user()],
-    old_password: Annotated[PasswordType, Form(min_length=1)],
-    new_password: Annotated[ValidatingPasswordType, Form()],
+    password_schema: Annotated[str, Form()],
+    old_password: Annotated[PasswordType, Form()],
+    new_password: Annotated[PasswordType, Form()],
     revoke_other_sessions: Annotated[bool, Form()] = False,
 ):
-    collector = MessageCollector()
-    await UserService.update_password(collector, old_password=old_password, new_password=new_password)
+    feedback = StandardFeedback()
+    await UserService.update_password(
+        feedback,
+        password_schema=password_schema,
+        old_password=old_password,
+        new_password=new_password,
+    )
     if revoke_other_sessions:
         current_session = await AuthService.authenticate_oauth2(None)
         await OAuth2TokenService.revoke_by_client_id('SystemApp.web', skip_ids=(current_session.id,))  # pyright: ignore[reportOptionalMemberAccess]
-    return collector.result
+    return feedback.result
 
 
 @router.post('/settings/description')

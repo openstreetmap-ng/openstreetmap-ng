@@ -125,6 +125,7 @@ ignore = [
   "Q002",    # bad-quotes-docstring
   "Q003",    # avoidable-escaped-quote
   "S101",    # assert
+  "S105",    # hardcoded-password-string
   "SIM108",  # if-else-block-instead-of-if-exp
   "TRY003",  # raise-vanilla-args
   "W191",    # tab-indentation
@@ -191,7 +192,7 @@ quote-style = "single"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["dir", "format", "id", "input", "open", "type"]
+builtins-ignorelist = ["dir", "format", "hash", "id", "input", "open", "type"]
 
 [tool.ruff.lint.flake8-gettext]
 extend-function-names = ["npgettext", "pgettext"]

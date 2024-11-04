@@ -4,7 +4,7 @@ from sqlalchemy import and_, false, or_, select, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
-from app.lib.message_collector import MessageCollector
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.message import Message
 from app.models.types import DisplayNameType
@@ -20,12 +20,12 @@ class MessageService:
         if isinstance(recipient, str):
             recipient_user = await UserQuery.find_one_by_display_name(recipient)
             if recipient_user is None:
-                MessageCollector.raise_error('recipient', t('validation.user_not_found'))
+                StandardFeedback.raise_error('recipient', t('validation.user_not_found'))
             recipient = recipient_user.id
 
         from_user_id = auth_user(required=True).id
         if recipient == from_user_id:
-            MessageCollector.raise_error('recipient', t('validation.cant_send_message_to_self'))
+            StandardFeedback.raise_error('recipient', t('validation.cant_send_message_to_self'))
 
         async with db_commit() as session:
             message = Message(
