@@ -9,7 +9,6 @@ from app.lib.render_response import render_response
 from app.limits import (
     ACTIVE_SESSIONS_DISPLAY_LIMIT,
     EMAIL_MIN_LENGTH,
-    PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
 )
@@ -56,6 +55,5 @@ async def settings_security(user: Annotated[User, web_user()]):
             'current_session_id': current_session.id,  # pyright: ignore[reportOptionalMemberAccess]
             'active_sessions': active_sessions,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
         },
     )

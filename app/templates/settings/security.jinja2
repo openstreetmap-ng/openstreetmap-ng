@@ -17,14 +17,13 @@
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password') }}</span>
         <input type="password" class="form-control mt-2" data-name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
-            maxlength="{{ PASSWORD_MAX_LENGTH }}" autocomplete="new-password" required>
+            autocomplete="new-password" required>
     </label>
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password_repeat') }}</span>
         <input type="password" class="form-control mt-2" data-name="new_password_confirm"
-            minlength="{{ PASSWORD_MIN_LENGTH }}" maxlength="{{ PASSWORD_MAX_LENGTH }}" autocomplete="new-password"
-            required>
+            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
     </label>
 
     <div class="row align-items-center">

@@ -18,7 +18,6 @@ from app.lib.render_response import render_response
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
     EMAIL_MIN_LENGTH,
-    PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     URLSAFE_BLACKLIST,
     USER_ACTIVITY_CHART_WEEKS,
@@ -205,7 +204,6 @@ async def signup():
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
             'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-            'PASSWORD_MAX_LENGTH': PASSWORD_MAX_LENGTH,
         },
     )
 
