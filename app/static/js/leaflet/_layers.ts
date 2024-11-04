@@ -1,6 +1,5 @@
 import i18next from "i18next"
 import * as L from "leaflet"
-import { thunderforestApiKey, tracestrackApiKey } from "../_api-keys"
 
 declare const brandSymbol: unique symbol
 
@@ -12,6 +11,9 @@ interface LayerInstanceData {
     layerCode: LayerCode
     legacyLayerIds: LayerId[]
 }
+
+const thunderforestApiKey: string = "9b990c27013343a99536213faee0983e"
+const tracestrackApiKey: string = "684615014d1a572361803e062ccf609a"
 
 const layerData: Map<L.Layer, LayerInstanceData> = new Map()
 

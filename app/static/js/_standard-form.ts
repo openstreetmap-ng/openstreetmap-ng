@@ -235,9 +235,25 @@ export const configureStandardForm = (
 
         if (passwordInputs.length) await updatePasswordsFormHashes(form, passwordInputs)
 
-        fetch(form.action, {
-            method: form.method,
-            body: new FormData(form),
+        let url: string
+        let body: BodyInit | null = null
+        const method = form.method.toUpperCase()
+        if (method === "POST") {
+            url = form.action
+            body = new FormData(form)
+        } else if (method === "GET") {
+            const params = new URLSearchParams()
+            for (const [key, value] of new FormData(form).entries()) {
+                params.append(key, value.toString())
+            }
+            url = `${form.action}?${params}`
+        } else {
+            throw new Error(`Unsupported standard form method ${method}`)
+        }
+
+        fetch(url, {
+            method,
+            body,
             mode: "same-origin",
             cache: "no-store",
             priority: "high",
@@ -245,12 +261,14 @@ export const configureStandardForm = (
             .then(async (resp) => {
                 if (resp.ok) console.debug("Form submitted successfully")
 
-                // Attempt to parse response as JSON
                 let data: any
-                const contentType = resp.headers.get("Content-Type")
-                if (contentType?.startsWith("application/json")) {
+                const contentType = resp.headers.get("Content-Type") || ""
+                if (contentType.startsWith("application/json")) {
                     console.debug("Reading JSON response")
                     data = await resp.json()
+                } else if (contentType === "application/x-protobuf") {
+                    console.debug("Reading Protobuf response")
+                    data = { protobuf: new Uint8Array(await resp.arrayBuffer()) }
                 } else {
                     console.debug("Reading text response")
                     data = { detail: await resp.text() }

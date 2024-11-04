@@ -27,6 +27,7 @@ SMTP_HOST = os.environ['SMTP_HOST']
 SMTP_PORT = int(os.environ['SMTP_PORT'])
 SMTP_USER = os.environ['SMTP_USER']
 SMTP_PASS = os.environ['SMTP_PASS']
+GRAPHHOPPER_API_KEY = os.environ['GRAPHHOPPER_API_KEY']
 
 
 def _path(s: str, *, mkdir: bool = False) -> Path:

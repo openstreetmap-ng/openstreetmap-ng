@@ -144,6 +144,7 @@ async def _search(
     return await _get_result(at_sequence_id=at_sequence_id, response_entries=JSON_DECODE(response))
 
 
+# TODO: typeddict
 async def _get_result(
     *,
     at_sequence_id: int | None,

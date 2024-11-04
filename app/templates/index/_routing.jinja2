@@ -1,6 +1,6 @@
 <div class="action-sidebar routing d-none">
     <div class="sidebar-content">
-        <form class="section" method="POST" action="/api/web/routing/resolve-names">
+        <form class="resolve-names-form section" method="GET" action="/api/web/routing/resolve-names">
 
             <div class="row g-1">
                 <div class="col">
@@ -17,22 +17,22 @@
             <div class="d-flex align-items-end mb-1">
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.from') }}</label>
-                    <input type="text" class="form-control" name="from" required>
-                    <input type="hidden" name="from_loaded" autocomplete="off">
+                    <input type="text" class="form-control" name="start" required>
+                    <input type="hidden" name="start_loaded" autocomplete="off">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/green.webp"
-                    alt="{{ t('alt.marker.green') }}" loading="lazy" data-direction="from"
+                    alt="{{ t('alt.marker.green') }}" loading="lazy" data-direction="start"
                     title="{{ t('map.routing.drag_and_drop.start') }}">
             </div>
 
             <div class="d-flex align-items-end mb-1">
                 <div class="custom-input-group flex-grow-1 me-2">
                     <label>{{ t('site.search.to') }}</label>
-                    <input type="text" class="form-control" name="to" required>
-                    <input type="hidden" name="to_loaded" autocomplete="off">
+                    <input type="text" class="form-control" name="end" required>
+                    <input type="hidden" name="end_loaded" autocomplete="off">
                 </div>
                 <img class="draggable-marker btn btn-light" src="/static/img/marker/red.webp"
-                    alt="{{ t('alt.marker.red') }}" loading="lazy" data-direction="to"
+                    alt="{{ t('alt.marker.red') }}" loading="lazy" data-direction="end"
                     title="{{ t('map.routing.drag_and_drop.end') }}">
             </div>
 
@@ -48,28 +48,28 @@
                         <option value="graphhopper_car">
                             {{ t('javascripts.directions.engines.graphhopper_car') }}
                         </option>
-                        <option value="fossgis_osrm_car">
+                        <option value="osrm_car">
                             {{ t('javascripts.directions.engines.fossgis_osrm_car') }}
                         </option>
-                        <option value="fossgis_valhalla_car" selected>
+                        <option value="valhalla_auto" selected>
                             {{ t('javascripts.directions.engines.fossgis_valhalla_car') }}
                         </option>
                         <option value="graphhopper_bicycle">
                             {{ t('javascripts.directions.engines.graphhopper_bicycle') }}
                         </option>
-                        <option value="fossgis_osrm_bike">
+                        <option value="osrm_bike">
                             {{ t('javascripts.directions.engines.fossgis_osrm_bike') }}
                         </option>
-                        <option value="fossgis_valhalla_bicycle">
+                        <option value="valhalla_bicycle">
                             {{ t('javascripts.directions.engines.fossgis_valhalla_bicycle') }}
                         </option>
                         <option value="graphhopper_foot">
                             {{ t('javascripts.directions.engines.graphhopper_foot') }}
                         </option>
-                        <option value="fossgis_osrm_foot">
+                        <option value="osrm_foot">
                             {{ t('javascripts.directions.engines.fossgis_osrm_foot') }}
                         </option>
-                        <option value="fossgis_valhalla_foot">
+                        <option value="valhalla_pedestrian">
                             {{ t('javascripts.directions.engines.fossgis_valhalla_foot') }}
                         </option>
                     </select>

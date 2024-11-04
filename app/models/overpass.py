@@ -2,6 +2,9 @@ from typing import Literal, NotRequired, TypedDict
 
 from app.models.element import ElementId
 
+# Overpass API Documentation:
+# https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL
+
 
 class _OverpassPoint(TypedDict):
     lat: float

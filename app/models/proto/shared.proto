@@ -1,5 +1,28 @@
 syntax = "proto3";
 
+// Shared website configuration
+message WebConfig {
+    message UserConfig {
+        message HomePoint {
+            float lon = 1;
+            float lat = 2;
+        }
+        bool activity_tracking = 1;
+        bool crash_reporting = 2;
+        optional HomePoint home_point = 3;
+    }
+    string api_url = 1;
+    float map_query_area_max_size = 2;
+    float note_query_area_max_size = 3;
+    optional UserConfig user_config = 4;
+}
+
+// Structure for transmitting user passwords
+message TransmitUserPassword {
+    optional string legacy = 1;
+    optional bytes v1 = 2;
+}
+
 // Generic bounding box structure
 message SharedBounds {
     float min_lon = 1;
@@ -55,21 +78,34 @@ message RenderNotesData {
     repeated Note notes = 1;
 }
 
-// Shared website configuration
-message WebConfig {
-    message UserConfig {
-        message HomePoint {
-            float lon = 1;
-            float lat = 2;
-        }
-        bool activity_tracking = 1;
-        bool crash_reporting = 2;
-        optional HomePoint home_point = 3;
+// Map routing route result
+message RoutingRoute {
+    message Step {
+        string line = 1;
+        float distance = 2;  // in meters
+        float time = 3;  // in seconds
+        uint32 icon_num = 4;
+        string text = 5;
     }
-    string api_url = 1;
-    float map_query_area_max_size = 2;
-    float note_query_area_max_size = 3;
-    optional UserConfig user_config = 4;
+    message Elevation {
+        float ascend = 1;  // in meters
+        float descend = 2;  // in meters
+    }
+    string attribution = 1;
+    repeated Step steps = 2;
+    optional Elevation elevation = 3;
+}
+
+// Map routing resolve names result
+message RoutingResolveNames {
+    message Entry {
+        string name = 1;
+        SharedBounds bounds = 2;
+        float lon = 3;
+        float lat = 4;
+    }
+    optional Entry start = 1;
+    optional Entry end = 2;
 }
 
 // Generic icon structure
@@ -127,10 +163,4 @@ message PartialSearchParams {
     optional string bounds_str = 1;
     repeated RenderElementsData renders = 2;
     bool where_is_this = 3;
-}
-
-// Structure for transmitting user passwords
-message TransmitUserPassword {
-    optional string legacy = 1;
-    optional bytes v1 = 2;
 }

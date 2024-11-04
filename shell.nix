@@ -521,6 +521,7 @@ let
     export SMTP_PORT=1025
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
+    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export NOMINATIM_URL=https://nominatim.monicz.dev
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
     export LEGACY_HIGH_PRECISION_TIME=1
