@@ -2,24 +2,9 @@ import unicodedata
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import msgspec
 from httpx import AsyncClient, Timeout
 
 from app.config import USER_AGENT
-
-JSON_ENCODE = msgspec.json.Encoder(decimal_format='number', order='sorted').encode
-JSON_DECODE = msgspec.json.Decoder().decode
-
-
-def json_encodes(obj: Any) -> str:
-    """
-    Like JSON_ENCODE, but returns a string.
-
-    >>> json_encodes({'foo': 'bar'})
-    '{"foo": "bar"}'
-    """
-    return JSON_ENCODE(obj).decode()
-
 
 HTTP = AsyncClient(
     headers={'User-Agent': USER_AGENT},

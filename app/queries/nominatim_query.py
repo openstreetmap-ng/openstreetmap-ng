@@ -1,3 +1,4 @@
+import json
 import logging
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
@@ -23,7 +24,7 @@ from app.models.db.element import Element
 from app.models.element import ElementRef
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP, JSON_DECODE
+from app.utils import HTTP
 
 _HTTP_SHORT_TIMEOUT = Timeout(NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
 _HTTP_LONG_TIMEOUT = Timeout(NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
@@ -60,7 +61,7 @@ class NominatimQuery:
             factory=factory,
             ttl=NOMINATIM_CACHE_LONG_EXPIRE,
         )
-        response_entries = (JSON_DECODE(cache.value),)
+        response_entries = (json.loads(cache.value),)
         result = await _get_result(at_sequence_id=None, response_entries=response_entries)
         return next(iter(result), None)
 
@@ -141,7 +142,8 @@ async def _search(
     else:
         response = await factory()
 
-    return await _get_result(at_sequence_id=at_sequence_id, response_entries=JSON_DECODE(response))
+    response_entries = json.loads(response)
+    return await _get_result(at_sequence_id=at_sequence_id, response_entries=response_entries)
 
 
 # TODO: typeddict

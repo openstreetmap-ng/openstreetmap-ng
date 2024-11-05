@@ -1,3 +1,4 @@
+import json
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import Any, NoReturn, override
@@ -12,7 +13,6 @@ from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
 from app.middlewares.request_context_middleware import get_request
-from app.utils import JSON_ENCODE
 
 _json_attributes = {
     'version': '0.6',
@@ -63,7 +63,7 @@ class OSMResponse(Response):
                 else:
                     raise TypeError(f'Invalid json content type {type(content)}')
 
-            encoded = JSON_ENCODE(content)
+            encoded = json.dumps(content, ensure_ascii=False)
             return Response(encoded, media_type='application/json; charset=utf-8')
 
         elif style == 'xml':

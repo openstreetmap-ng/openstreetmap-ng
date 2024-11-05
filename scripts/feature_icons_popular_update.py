@@ -7,7 +7,7 @@ from pathlib import Path
 import uvloop
 
 from app.lib.retry import retry
-from app.utils import HTTP, JSON_DECODE
+from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 
@@ -29,7 +29,7 @@ async def get_popularity(key: str, type: str, value: str) -> float:
     async with _download_limiter:
         r = await HTTP.get(url, params=params)
         r.raise_for_status()
-        data = JSON_DECODE(r.content)['data']
+        data = r.json()['data']
 
     return sum(item['count'] for item in data if not type or item['type'].startswith(type))
 

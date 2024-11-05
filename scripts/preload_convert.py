@@ -1,4 +1,5 @@
 import gc
+import json
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -12,7 +13,6 @@ from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.models.db import *  # noqa: F403
-from app.utils import json_encodes
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
@@ -154,7 +154,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
                 visible,  # visible
-                json_encodes(dict(tags_list)) if tags_list else '{}',  # tags
+                json.dumps(dict(tags_list), ensure_ascii=False, check_circular=False) if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
