@@ -1,5 +1,4 @@
 import unicodedata
-from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from httpx import AsyncClient, Timeout
