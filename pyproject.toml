@@ -1,7 +1,8 @@
 [project]
+# TODO: add aiohttp[speedups] after https://github.com/saghul/pycares/pull/202
 dependencies = [
   "aioboto3",
-  "aiohttp[speedups]",
+  "aiohttp",
   "aiosmtplib",
   "alembic",
   "argon2-cffi",
@@ -15,7 +16,7 @@ dependencies = [
   "feedgen",
   "httpx",
   "jinja2",
-  "libvalkey>=4.0.1b2",
+  "libvalkey>=4.0.1b1",
   "lrucache-rs>=1.0.0",
   "lxml",
   "markdown-it-py[linkify,plugins]",
@@ -51,7 +52,7 @@ dependencies = [
   "zstandard",
 ]
 name = "openstreetmap-ng"
-requires-python = "~=3.12"
+requires-python = "~=3.13"
 version = "0.0.0"
 
 [tool.uv]
@@ -95,7 +96,7 @@ exclude = [
 
 indent-width = 4
 line-length = 120
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
@@ -219,7 +220,7 @@ exclude = [
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 reportCallInDefaultInitializer = "error"
 reportDeprecated = "warning"
 reportImplicitOverride = "warning"
