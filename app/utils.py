@@ -77,3 +77,10 @@ def splitlines_trim(s: str) -> list[str]:
         if line:
             result.append(line)
     return result
+
+
+def secure_referer(referer: str | None) -> str:
+    """
+    Return a secure referer, preventing external redirects.
+    """
+    return '/' if (not referer or not referer.startswith('/')) else referer

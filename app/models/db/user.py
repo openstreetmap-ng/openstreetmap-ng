@@ -40,15 +40,6 @@ if TYPE_CHECKING:
     from app.models.db.user_block import UserBlock
 
 
-class AuthProvider(str, enum.Enum):
-    openid = 'openid'
-    google = 'google'
-    facebook = 'facebook'
-    microsoft = 'microsoft'
-    github = 'github'
-    wikipedia = 'wikipedia'
-
-
 class Editor(str, enum.Enum):
     id = 'id'
     rapid = 'rapid'
@@ -83,9 +74,6 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
     created_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
 
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), nullable=False)
-
-    auth_provider: Mapped[AuthProvider | None] = mapped_column(Enum(AuthProvider), nullable=True)
-    auth_uid: Mapped[str | None] = mapped_column(Unicode, nullable=True)
 
     language: Mapped[LocaleCode] = mapped_column(Unicode(LOCALE_CODE_MAX_LENGTH), nullable=False)
     activity_tracking: Mapped[bool] = mapped_column(Boolean, nullable=False)

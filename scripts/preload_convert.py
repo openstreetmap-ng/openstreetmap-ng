@@ -497,8 +497,6 @@ def write_user_csv() -> None:
         pl.lit('').alias('password_pb'),
         pl.lit('127.0.0.1').alias('created_ip'),
         pl.lit('active').alias('status'),
-        pl.lit(None).alias('auth_provider'),
-        pl.lit(None).alias('auth_uid'),
         pl.lit('en').alias('language'),
         pl.lit(True).alias('activity_tracking'),
         pl.lit(True).alias('crash_reporting'),

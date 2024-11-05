@@ -1,10 +1,11 @@
+import logging
 from datetime import UTC, datetime, timedelta
 from itertools import cycle
 from typing import Annotated
 
 import numpy as np
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from fastapi import APIRouter, Path, Request
+from fastapi import APIRouter, Cookie, Path, Request
 from polyline_rs import encode_lonlat
 from pydantic import PositiveInt
 from starlette import status
@@ -35,6 +36,7 @@ from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.trace_segment_query import TraceSegmentQuery
 from app.queries.user_query import UserQuery
+from app.services.auth_provider_service import AuthProviderService
 
 router = APIRouter()
 
@@ -194,12 +196,22 @@ async def legacy_signup():
 
 
 @router.get('/signup')
-async def signup():
+async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = None):
     if auth_user() is not None:
         return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    verification = AuthProviderService.validate_verification(auth_provider_verification)
+    if verification is not None:
+        logging.debug('Signup form contains auth provider verification by %r', verification.provider)
+        display_name = verification.name or ''
+        email = verification.email or ''
+        # TODO: signup without password when verification
+    else:
+        display_name = email = ''
     return await render_response(
         'user/signup.jinja2',
         {
+            'display_name_value': display_name,
+            'email_value': email,
             'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
             'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
             'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,

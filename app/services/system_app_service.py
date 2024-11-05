@@ -102,6 +102,8 @@ class SystemAppService:
             )
             token.authorized_at = func.statement_timestamp()
             session.add(token)
+
+        logging.debug('Created %r access token for user %d', client_id, user_id)
         return access_token
 
 

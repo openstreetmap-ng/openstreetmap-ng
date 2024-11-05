@@ -3,6 +3,10 @@ from datetime import timedelta
 _kb = 1024
 _mb = 1024 * _kb
 
+AUTH_PROVIDER_UID_MAX_LENGTH = 64
+AUTH_PROVIDER_STATE_MAX_AGE = int(timedelta(hours=2).total_seconds())
+AUTH_PROVIDER_VERIFICATION_MAX_AGE = int(timedelta(hours=2).total_seconds())
+
 AVATAR_MAX_RATIO = 2
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
 AVATAR_MAX_FILE_SIZE = 80 * _kb  # 80 KB
@@ -33,8 +37,8 @@ COMPRESS_HTTP_ZSTD_LEVEL = 3
 COMPRESS_HTTP_BROTLI_QUALITY = 3
 COMPRESS_HTTP_GZIP_LEVEL = 3
 
-COOKIE_AUTH_MAX_AGE = 365 * 24 * 3600  # 1 year
-COOKIE_GENERIC_MAX_AGE = 365 * 24 * 3600  # 1 year
+COOKIE_AUTH_MAX_AGE = int(timedelta(days=365).total_seconds())
+COOKIE_GENERIC_MAX_AGE = int(timedelta(days=365).total_seconds())
 
 DNS_CACHE_EXPIRE = timedelta(minutes=10)
 

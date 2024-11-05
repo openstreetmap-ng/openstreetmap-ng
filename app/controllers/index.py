@@ -12,6 +12,7 @@ from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.models.db.user import User
 from app.models.types import LocaleCode
+from app.utils import secure_referer
 
 router = APIRouter()
 
@@ -112,9 +113,7 @@ async def fixthemap():
 @router.get('/login')
 async def login(referer: Annotated[str | None, Query()] = None):
     if auth_user() is not None:
-        if not referer or not referer.startswith('/'):
-            referer = '/'
-        return RedirectResponse(referer, status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(secure_referer(referer), status.HTTP_303_SEE_OTHER)
     return await render_response('user/login.jinja2')
 
 

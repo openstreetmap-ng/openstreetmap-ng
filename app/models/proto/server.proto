@@ -36,3 +36,21 @@ message UserPassword {
         V1 v1 = 2;
     }
 }
+
+// Auth provider authentication state
+message AuthProviderState {
+    uint64 timestamp = 1;
+    string provider = 2;
+    string action = 3;
+    optional string referer = 4;
+    bytes nonce = 5;
+}
+
+// Auth provider successful verification
+message AuthProviderVerification {
+    uint64 timestamp = 1;
+    string provider = 2;
+    string uid = 3;
+    optional string name = 4;
+    optional string email = 5;
+}

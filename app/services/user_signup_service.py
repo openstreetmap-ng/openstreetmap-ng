@@ -55,8 +55,6 @@ class UserSignupService:
                 password_pb=password_pb,
                 created_ip=get_request_ip(),
                 status=UserStatus.pending_terms,
-                auth_provider=None,  # TODO: support
-                auth_uid=None,
                 language=primary_translation_locale(),
                 activity_tracking=tracking,
                 crash_reporting=tracking,

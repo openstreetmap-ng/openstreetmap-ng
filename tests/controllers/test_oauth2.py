@@ -76,7 +76,7 @@ async def test_authorize_token_oob(
         code_challenge_method=code_challenge_method.value,
         token_endpoint_auth_method=token_endpoint_auth_method.value,
     )
-    code_verifier = buffered_rand_urlsafe(48)
+    code_verifier = buffered_rand_urlsafe(32)
 
     if code_challenge_method == OAuth2CodeChallengeMethod.plain:  # authlib doesn't support plain method
         authorization_url, state = auth_client.create_authorization_url(

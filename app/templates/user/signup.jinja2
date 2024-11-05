@@ -25,7 +25,8 @@
                 <label class="form-label d-block">
                     {{ t('activerecord.attributes.user.display_name') | capitalize }}
                     <input type="text" class="form-control mt-2" name="display_name"
-                        data-blacklist="{{ URLSAFE_BLACKLIST }}" autocomplete="username" required>
+                        data-blacklist="{{ URLSAFE_BLACKLIST }}" value="{{ display_name_value }}"
+                        autocomplete="username" required>
                 </label>
                 <p class="form-text">
                     {{ t('users.new.display name description') }}
@@ -33,8 +34,9 @@
 
                 <label class="form-label d-block">
                     {{ t('passwords.new.email address') | capitalize }}
-                    <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
-                        maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
+                    <input type="email" class="form-control mt-2 {% if email_value %}bg-body-tertiary{% endif %}"
+                        name="email" minlength="{{ EMAIL_MIN_LENGTH }}" maxlength="{{ EMAIL_MAX_LENGTH }}"
+                        value="{{ email_value }}" autocomplete="email" {% if email_value %}readonly{% endif %} required>
                 </label>
                 <p class="form-text">
                     {% set privacy_policy_link %}

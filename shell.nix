@@ -524,6 +524,8 @@ let
     export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export NOMINATIM_URL=https://nominatim.monicz.dev
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
+    export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
+    export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
     export LEGACY_HIGH_PRECISION_TIME=1
     export LEGACY_SEQUENCE_ID_MARGIN=1
 

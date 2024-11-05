@@ -35,4 +35,4 @@ def buffered_rand_urlsafe(n: int) -> str:
     Generate a secure random URL-safe string of length n.
     """
     tok = _randbytes(n)
-    return urlsafe_b64encode(tok).rstrip(b'=').decode('ascii')
+    return urlsafe_b64encode(tok).rstrip(b'=').decode()

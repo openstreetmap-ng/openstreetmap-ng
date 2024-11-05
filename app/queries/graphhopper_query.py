@@ -4,6 +4,7 @@ import cython
 from fastapi import HTTPException
 from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
+from starlette import status
 
 from app.config import GRAPHHOPPER_API_KEY, GRAPHHOPPER_URL
 from app.lib.translation import primary_translation_locale
@@ -20,6 +21,9 @@ __all__ = ('GraphHopperProfiles',)
 class GraphHopperQuery:
     @staticmethod
     async def route(start: Point, end: Point, *, profile: GraphHopperProfile) -> RoutingResult:
+        if not GRAPHHOPPER_API_KEY:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, 'GraphHopper API key is not configured')
+
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(

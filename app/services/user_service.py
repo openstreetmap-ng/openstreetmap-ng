@@ -11,7 +11,7 @@ from app.lib.password_hash import PasswordHash
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.limits import USER_PENDING_EXPIRE, USER_SCHEDULED_DELETE_DELAY
-from app.models.db.user import AuthProvider, AvatarType, Editor, User, UserStatus
+from app.models.db.user import AvatarType, Editor, User, UserStatus
 from app.models.types import DisplayNameType, EmailType, LocaleCode, PasswordType
 from app.queries.user_query import UserQuery
 from app.services.image_service import ImageService
@@ -60,6 +60,7 @@ class UserService:
         if verification.schema_needed is not None:
             StandardFeedback.raise_error('password_schema', verification.schema_needed)
 
+        logging.debug('Authenticated user %d using credentials', user.id)
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
     @staticmethod
@@ -262,17 +263,6 @@ class UserService:
 
         feedback.success(None, t('settings.password_has_been_changed'))
         logging.debug('Changed password for user %r', user.id)
-
-    @staticmethod
-    async def update_auth_provider(
-        auth_provider: AuthProvider | None,
-        auth_uid: str,
-    ) -> None:
-        """
-        Update user auth provider.
-        """
-        # TODO: implement
-        raise NotImplementedError
 
     # TODO: UI
     @staticmethod
