@@ -69,6 +69,12 @@ API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
 RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
+# https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
+GITHUB_OAUTH_PUBLIC = os.getenv('GITHUB_OAUTH_PUBLIC')
+GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')
+# https://developers.google.com/identity/openid-connect/openid-connect
+GOOGLE_OAUTH_PUBLIC = os.getenv('GOOGLE_OAUTH_PUBLIC')
+GOOGLE_OAUTH_SECRET = os.getenv('GOOGLE_OAUTH_SECRET')
 GRAPHHOPPER_API_KEY = os.getenv('GRAPHHOPPER_API_KEY')
 GRAPHHOPPER_URL = os.getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')

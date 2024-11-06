@@ -521,6 +521,10 @@ let
     export SMTP_PORT=1025
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
+    export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
+    export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
+    export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com
+    export GOOGLE_OAUTH_SECRET=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
     export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export NOMINATIM_URL=https://nominatim.monicz.dev
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter

@@ -4,6 +4,8 @@ from fastapi import APIRouter, Form, Path, Response, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.controllers.oauth2_github import github_authorize
+from app.controllers.oauth2_google import google_authorize
 from app.controllers.oauth2_wikimedia import wikimedia_authorize
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
@@ -115,6 +117,10 @@ async def settings_connections(
     _: Annotated[User, web_user()],
 ):
     if action == 'connect':
+        if provider == AuthProvider.google:
+            return await google_authorize(action='settings')
+        if provider == AuthProvider.github:
+            return await github_authorize(action='settings')
         if provider == AuthProvider.wikimedia:
             return await wikimedia_authorize(action='settings')
         raise NotImplementedError(f'Unsupported provider {provider!r}')

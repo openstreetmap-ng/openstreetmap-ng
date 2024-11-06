@@ -3,7 +3,7 @@ from datetime import timedelta
 _kb = 1024
 _mb = 1024 * _kb
 
-AUTH_PROVIDER_UID_MAX_LENGTH = 64
+AUTH_PROVIDER_UID_MAX_LENGTH = 255
 AUTH_PROVIDER_STATE_MAX_AGE = int(timedelta(hours=2).total_seconds())
 AUTH_PROVIDER_VERIFICATION_MAX_AGE = int(timedelta(hours=2).total_seconds())
 
@@ -109,6 +109,9 @@ OAUTH_PAT_NAME_MAX_LENGTH = 50
 OAUTH_PAT_LIMIT = 100
 OAUTH_SECRET_PREVIEW_LENGTH = 7
 OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT = 10
+
+OPENID_DISCOVERY_CACHE_EXPIRE = timedelta(hours=8)
+OPENID_DISCOVERY_HTTP_TIMEOUT = timedelta(seconds=10)
 
 OPTIMISTIC_DIFF_RETRY_TIMEOUT = timedelta(seconds=30)
 

@@ -30,6 +30,7 @@ dependencies = [
   "pycryptodomex",
   "pydantic",
   "pyinstrument",
+  "pyjwt[crypto]>=2.9.0",
   "python-dateutil",
   "python-magic",
   "python-multipart",

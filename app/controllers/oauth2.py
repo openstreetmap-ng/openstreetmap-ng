@@ -24,6 +24,7 @@ from app.models.db.oauth2_token import (
     OAuth2TokenOOB,
 )
 from app.models.db.user import User
+from app.models.openid import OpenIDDiscovery
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.oauth2_token_service import OAuth2TokenService
@@ -33,7 +34,7 @@ router = APIRouter()
 
 
 @router.get('/.well-known/openid-configuration')
-async def openid_configuration():
+async def openid_configuration() -> OpenIDDiscovery:
     return {
         'issuer': APP_URL,
         'authorization_endpoint': f'{APP_URL}/oauth2/authorize',
