@@ -14,7 +14,7 @@ dependencies = [
   "email-validator",
   "fastapi>=0",
   "feedgen",
-  "httpx",
+  "httpx[brotli,zstd]",
   "jinja2",
   "libvalkey>=4.0.1b1",
   "lrucache-rs>=1.0.0",
