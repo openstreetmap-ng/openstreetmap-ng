@@ -68,6 +68,6 @@ async def github_callback(
     return await AuthProviderService.continue_callback(
         state=state_,
         uid=user['id'],
-        name=user['login'],
-        email=user['email'],
+        name=user.get('login'),
+        email=user.get('email'),
     )

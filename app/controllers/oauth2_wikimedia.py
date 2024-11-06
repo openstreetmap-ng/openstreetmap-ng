@@ -70,6 +70,6 @@ async def wikimedia_callback(
     return await AuthProviderService.continue_callback(
         state=state_,
         uid=userinfo['id'],
-        name=userinfo['name'],
+        name=userinfo.get('name'),
         email=userinfo.get('email'),
     )

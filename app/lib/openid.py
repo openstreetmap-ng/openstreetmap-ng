@@ -1,18 +1,18 @@
 import json
 from base64 import urlsafe_b64decode
-from typing import NotRequired, TypedDict
+from typing import Required, TypedDict
 
 
-class OpenIDToken(TypedDict):
-    aud: str
-    exp: int
-    iat: int
-    iss: str
-    sub: str
-    name: NotRequired[str]
-    email: NotRequired[str]
-    picture: NotRequired[str]
-    locale: NotRequired[str]
+class OpenIDToken(TypedDict, total=False):
+    aud: Required[str]
+    exp: Required[int]
+    iat: Required[int]
+    iss: Required[str]
+    sub: Required[str]
+    name: str
+    email: str
+    picture: str
+    locale: str
 
 
 def parse_openid_token_no_verify(token: str) -> OpenIDToken:

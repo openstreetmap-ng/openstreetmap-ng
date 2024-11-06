@@ -85,6 +85,7 @@ GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')
 GOOGLE_OAUTH_PUBLIC = os.getenv('GOOGLE_OAUTH_PUBLIC')
 GOOGLE_OAUTH_SECRET = os.getenv('GOOGLE_OAUTH_SECRET')
 # https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc
+MICROSOFT_OAUTH_PUBLIC = os.getenv('MICROSOFT_OAUTH_PUBLIC')
 # https://api.wikimedia.org/wiki/Special:AppManagement
 WIKIMEDIA_OAUTH_PUBLIC = os.getenv('WIKIMEDIA_OAUTH_PUBLIC')
 WIKIMEDIA_OAUTH_SECRET = os.getenv('WIKIMEDIA_OAUTH_SECRET')

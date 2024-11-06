@@ -70,6 +70,6 @@ async def google_callback(
     return await AuthProviderService.continue_callback(
         state=state_,
         uid=payload['sub'],
-        name=payload['name'],  # pyright: ignore[reportTypedDictNotRequiredAccess]
-        email=payload['email'],  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        name=payload.get('name'),
+        email=payload.get('email'),
     )
