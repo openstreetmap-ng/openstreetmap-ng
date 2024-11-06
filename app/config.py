@@ -69,18 +69,22 @@ API_URL = os.getenv('API_URL', APP_URL).rstrip('/')
 ID_URL = os.getenv('ID_URL', APP_URL).rstrip('/')
 RAPID_URL = os.getenv('RAPID_URL', APP_URL).rstrip('/')
 
-# https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
-GITHUB_OAUTH_PUBLIC = os.getenv('GITHUB_OAUTH_PUBLIC')
-GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')
-# https://developers.google.com/identity/openid-connect/openid-connect
-GOOGLE_OAUTH_PUBLIC = os.getenv('GOOGLE_OAUTH_PUBLIC')
-GOOGLE_OAUTH_SECRET = os.getenv('GOOGLE_OAUTH_SECRET')
 GRAPHHOPPER_API_KEY = os.getenv('GRAPHHOPPER_API_KEY')
 GRAPHHOPPER_URL = os.getenv('GRAPHHOPPER_URL', 'https://graphhopper.com')
 NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org')
 OSRM_URL = os.getenv('OSRM_URL', 'https://router.project-osrm.org')
 OVERPASS_INTERPRETER_URL = os.getenv('OVERPASS_INTERPRETER_URL', 'https://overpass-api.de/api/interpreter')
 VALHALLA_URL = os.getenv('VALHALLA_URL', 'https://valhalla1.openstreetmap.de')
+
+# https://developers.facebook.com/docs/development/create-an-app/facebook-login-use-case
+# https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/
+# https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app
+GITHUB_OAUTH_PUBLIC = os.getenv('GITHUB_OAUTH_PUBLIC')
+GITHUB_OAUTH_SECRET = os.getenv('GITHUB_OAUTH_SECRET')
+# https://developers.google.com/identity/openid-connect/openid-connect
+GOOGLE_OAUTH_PUBLIC = os.getenv('GOOGLE_OAUTH_PUBLIC')
+GOOGLE_OAUTH_SECRET = os.getenv('GOOGLE_OAUTH_SECRET')
+# https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc
 # https://api.wikimedia.org/wiki/Special:AppManagement
 WIKIMEDIA_OAUTH_PUBLIC = os.getenv('WIKIMEDIA_OAUTH_PUBLIC')
 WIKIMEDIA_OAUTH_SECRET = os.getenv('WIKIMEDIA_OAUTH_SECRET')

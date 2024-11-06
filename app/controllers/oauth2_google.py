@@ -1,14 +1,13 @@
 from typing import Annotated
 
-import jwt
 from fastapi import APIRouter, Cookie, Form, Query, Response
 from pydantic import SecretStr
 from starlette import status
 
 from app.config import APP_URL, GOOGLE_OAUTH_PUBLIC, GOOGLE_OAUTH_SECRET
 from app.lib.buffered_random import buffered_rand_urlsafe
+from app.lib.openid import parse_openid_token_no_verify
 from app.models.auth_provider import AuthProvider, AuthProviderAction
-from app.models.openid import OpenIDToken
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
@@ -67,7 +66,7 @@ async def google_callback(
     )
     r.raise_for_status()
     id_token = SecretStr(r.json()['id_token'])
-    payload: OpenIDToken = jwt.decode(id_token.get_secret_value(), options={'verify_signature': False})
+    payload = parse_openid_token_no_verify(id_token.get_secret_value())
     return await AuthProviderService.continue_callback(
         state=state_,
         uid=payload['sub'],

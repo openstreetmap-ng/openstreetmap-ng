@@ -24,9 +24,9 @@ from app.models.db.oauth2_token import (
     OAuth2TokenOOB,
 )
 from app.models.db.user import User
-from app.models.openid import OpenIDDiscovery
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.openid_query import OpenIDDiscovery
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.utils import extend_query_params
 
