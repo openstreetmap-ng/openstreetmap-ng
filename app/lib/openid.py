@@ -15,6 +15,6 @@ class OpenIDToken(TypedDict):
     locale: NotRequired[str]
 
 
-def parse_openid_token_no_verify(jwt: str) -> OpenIDToken:
-    _, payload, _ = jwt.split('.', maxsplit=2)
-    return OpenIDToken(json.loads(urlsafe_b64decode(payload + '==')))
+def parse_openid_token_no_verify(token: str) -> OpenIDToken:
+    payload = token.split('.', maxsplit=2)[1]
+    return json.loads(urlsafe_b64decode(payload + '=='))
