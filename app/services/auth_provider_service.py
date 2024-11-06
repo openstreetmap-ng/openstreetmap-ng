@@ -2,9 +2,10 @@ import logging
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from hmac import compare_digest
 from time import time
+from typing import cast
 
 import cython
-from fastapi import HTTPException, Response
+from fastapi import HTTPException
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -30,7 +31,7 @@ class AuthProviderService:
         referer: str | None,
         redirect_uri: str,
         redirect_params: dict[str, str],
-    ) -> Response:
+    ) -> RedirectResponse:
         state, hmac = _create_signed_state(
             provider=provider,
             action=action,
@@ -77,12 +78,12 @@ class AuthProviderService:
         uid: str | int,
         name: str | None,
         email: str | None,
-    ) -> Response:
+    ) -> RedirectResponse:
         provider = AuthProvider(state.provider)
-        action = AuthProviderAction(state.action)
+        action = cast(AuthProviderAction, state.action)
         uid = str(uid)
 
-        if action == AuthProviderAction.login:
+        if action == 'login':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is None:
                 raise NotImplementedError  # TODO: handle not found
@@ -101,7 +102,7 @@ class AuthProviderService:
             )
             return response
 
-        elif action == AuthProviderAction.settings:
+        elif action == 'settings':
             current_user = auth_user()
             if current_user is not None:
                 user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
@@ -113,7 +114,7 @@ class AuthProviderService:
             response.set_cookie(key='auth_provider_state', max_age=0)
             return response
 
-        elif action == AuthProviderAction.signup:
+        elif action == 'signup':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(provider, uid)
             if user_id is not None:
                 raise NotImplementedError  # TODO: handle used by another user
@@ -174,7 +175,7 @@ def _create_signed_state(
     buffer = AuthProviderState(
         timestamp=int(time()),
         provider=provider.value,
-        action=action.value,
+        action=action,
         referer=referer,
         nonce=buffered_randbytes(16),
     ).SerializeToString()

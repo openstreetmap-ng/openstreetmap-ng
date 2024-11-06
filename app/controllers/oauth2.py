@@ -163,15 +163,17 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
         'client_id': token_.application.client_id,
         'scope': token_.scopes_str,
         'sub': str(token_.user_id),
-        'username': token_.user.display_name,
+        'name': token_.user.display_name,
     }
 
 
 @router.get('/oauth2/userinfo')
+@router.post('/oauth2/userinfo')
 async def userinfo(user: Annotated[User, api_user()]):
     return {
+        # TODO: compare fields with osm ruby
         'sub': str(user.id),
-        'username': user.display_name,
+        'name': user.display_name,
         'picture': f'{APP_URL}{user.avatar_url}',
         'locale': user.language,
     }

@@ -4,7 +4,7 @@
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<ul class="nav nav-tabs mb-3">
+<ul class="nav nav-underline mb-3">
     <li class="nav-item">
         <a href="/settings/applications" class="nav-link active" aria-current="page">
             {{ t('settings.authorizations.title') }}
@@ -22,7 +22,7 @@
     </li>
 </ul>
 
-<p class="mx-2">{{ t('settings.authorizations.description') }}</p>
+<p>{{ t('settings.authorizations.description') }}</p>
 <ul class="applications-list list-unstyled">
     {% set expanded = false %}
     {% for token in tokens %}

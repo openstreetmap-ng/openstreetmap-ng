@@ -24,19 +24,19 @@ class ConnectedAccountService:
                 user_id=user_id,
             )
             session.add(connection)
-        logging.debug('Added account connection %d by %r to user %d', connection.id, provider, user_id)
+        logging.debug('Added account connection %r to user %d', provider, user_id)
         return connection.id
 
     @staticmethod
-    async def remove_connection(id: int) -> None:
+    async def remove_connection(provider: AuthProvider) -> None:
         """
         Remove an external account connection from the current user.
         """
         user_id = auth_user(required=True).id
         async with db_commit() as session:
             stmt = delete(ConnectedAccount).where(
-                ConnectedAccount.id == id,
+                ConnectedAccount.provider == provider,
                 ConnectedAccount.user_id == user_id,
             )
             await session.execute(stmt)
-        logging.debug('Removed account connection %d from user %d', id, user_id)
+        logging.debug('Removed account connection %r from user %d', provider, user_id)

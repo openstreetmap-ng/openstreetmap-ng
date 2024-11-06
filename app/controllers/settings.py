@@ -13,6 +13,7 @@ from app.limits import (
     URLSAFE_BLACKLIST,
 )
 from app.models.db.user import User
+from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.auth_service import AuthService
 
@@ -57,3 +58,9 @@ async def settings_security(user: Annotated[User, web_user()]):
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
     )
+
+
+@router.get('/settings/connections')
+async def settings_connections(user: Annotated[User, web_user()]):
+    provider_id_map = await ConnectedAccountQuery.get_provider_id_map_by_user(user.id)
+    return await render_response('settings/connections.jinja2', {'provider_id_map': provider_id_map})

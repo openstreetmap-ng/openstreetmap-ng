@@ -1,8 +1,9 @@
 from enum import Enum
+from typing import Literal
 
 
 class AuthProvider(str, Enum):
-    openid = 'openid'
+    # openid = 'openid'
     google = 'google'
     facebook = 'facebook'
     microsoft = 'microsoft'
@@ -10,7 +11,6 @@ class AuthProvider(str, Enum):
     wikimedia = 'wikimedia'  # TODO: migration, old value: wikipedia
 
 
-class AuthProviderAction(str, Enum):
-    login = 'login'
-    signup = 'signup'
-    settings = 'settings'
+AuthProviderAction = Literal['login', 'signup', 'settings']
+
+__all__ = ('AuthProviderAction',)
