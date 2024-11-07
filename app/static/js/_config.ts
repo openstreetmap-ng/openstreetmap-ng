@@ -44,3 +44,6 @@ export const activityTracking: boolean = config.userConfig?.activityTracking ?? 
 
 /** Whether to enable crash reporting */
 export const crashReporting: boolean = config.userConfig?.crashReporting ?? defaultTracking
+
+/** Whether user prefers reduced motion */
+export const prefersReducedMotion: boolean = window.matchMedia("(prefers-reduced-motion: reduce)").matches

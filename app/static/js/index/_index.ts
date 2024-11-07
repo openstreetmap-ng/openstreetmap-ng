@@ -1,5 +1,5 @@
 import type * as L from "leaflet"
-import { isBannerHidden, markBannerHidden } from "../_local-storage"
+import { isBannerHidden } from "../_local-storage"
 import { getPageTitle } from "../_title"
 import { getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 import type { IndexController } from "./_router"
@@ -25,7 +25,7 @@ export const getIndexController = (map: L.Map): IndexController => {
         // On close button click, hide the banner
         const closeButton = banner.querySelector(".btn-close")
         closeButton.addEventListener("click", () => {
-            markBannerHidden(bannerName)
+            //markBannerHidden(bannerName)
             banner.remove()
         })
     }
