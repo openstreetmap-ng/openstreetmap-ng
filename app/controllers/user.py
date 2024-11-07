@@ -15,6 +15,7 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import format_short_date, get_month_name, get_weekday_name, utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.legal import legal_terms
+from app.lib.redirect_referrer import redirect_referrer
 from app.lib.render_response import render_response
 from app.limits import (
     DISPLAY_NAME_MAX_LENGTH,
@@ -198,7 +199,7 @@ async def legacy_signup():
 @router.get('/signup')
 async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = None):
     if auth_user() is not None:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+        return redirect_referrer()
     verification = AuthProviderService.validate_verification(auth_provider_verification)
     if verification is not None:
         logging.debug('Signup form contains auth provider verification by %r', verification.provider)

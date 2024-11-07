@@ -90,3 +90,13 @@ async def tokens(
             'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
         },
     )
+
+
+@router.get('/oauth2/authorized_applications')
+async def legacy_applications_authorizations():
+    return RedirectResponse('/settings/applications', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/oauth2/applications{_:path}')
+async def legacy_applications_admin():
+    return RedirectResponse('/settings/applications/admin', status.HTTP_301_MOVED_PERMANENTLY)
