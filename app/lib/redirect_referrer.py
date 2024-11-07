@@ -23,21 +23,18 @@ def _redirect_url() -> str:
     If the referrer is missing or is in a different domain, return '/'.
     """
     request = get_request()
-
     # referrer as a query parameter
     referrer = request.query_params.get('referer')
     if referrer is not None:
         processed = _process_referrer(unquote_plus(referrer))
         if processed is not None:
             return processed
-
     # referrer as a header
     referrer = request.headers.get('Referer')
     if referrer is not None:
         processed = _process_referrer(referrer)
         if processed is not None:
             return processed
-
     return '/'
 
 
@@ -51,15 +48,13 @@ def _process_referrer(referrer: str):
     if not referrer:
         return None
     # return relative values as-is
-    if referrer[0] == '/':
+    if referrer.startswith('/'):
         return referrer
-
     # otherwise, validate the referrer hostname
-    parts = urlsplit(referrer, allow_fragments=False)
+    parts = urlsplit(referrer)
     referrer_hostname = parts.hostname
     request_hostname = get_request().url.hostname
     if referrer_hostname != request_hostname:
-        logging.debug('Referrer hostname mismatch (%r != %r)', referrer_hostname, request_hostname)
+        logging.debug('Referrer hostname mismatch (%r != %r), discarding', referrer_hostname, request_hostname)
         return None
-
     return referrer

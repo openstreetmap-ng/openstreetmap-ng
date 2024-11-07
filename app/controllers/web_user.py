@@ -56,7 +56,7 @@ async def logout(
 ):
     access_token = request.cookies['auth']
     await OAuth2TokenService.revoke_by_access_token(access_token)
-    response = redirect_referrer()  # TODO: auto redirect instead of unauthorized for web user
+    response = redirect_referrer()
     response.delete_cookie('auth')
     return response
 
