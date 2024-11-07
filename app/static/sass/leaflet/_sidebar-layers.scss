@@ -6,7 +6,7 @@
         position: relative;
         border-radius: $border-radius;
         overflow: hidden;
-        transition: box-shadow 0.08s ease-in;
+        transition: box-shadow 0.08s ease-out;
 
         // Add some margin between each layer
         &:not(:last-child) {

@@ -9,3 +9,73 @@
         }
     }
 }
+
+#loginModal {
+    .logo-img {
+        height: 4em;
+    }
+
+    .login-form {
+        [type="submit"] {
+            font-weight: 500;
+        }
+    }
+
+    .divider {
+        position: relative;
+        text-align: center;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: $border-color;
+        }
+
+        .divider-text {
+            position: relative;
+            top: -1px;
+            background: $modal-content-bg;
+            padding: 0 1rem;
+            color: $text-muted;
+            font-size: 0.875rem;
+        }
+    }
+
+    .passkey-btn {
+        img {
+            height: 0.875em;
+            position: relative;
+            top: -1px;
+            margin-right: 0.25rem;
+        }
+    }
+
+    .auth-providers {
+        .btn {
+            padding: unset;
+            overflow: hidden;
+            transition: box-shadow 0.08s ease-out;
+
+            img {
+                height: 3em;
+                opacity: 0.9;
+                transition:
+                    opacity 0.08s ease-out,
+                    filter 0.08s ease-out;
+            }
+
+            &:hover {
+                box-shadow: 0 0 0 0.25rem transparentize($primary, 0.8);
+
+                img {
+                    opacity: 1;
+                    filter: saturate(1.1);
+                }
+            }
+        }
+    }
+}

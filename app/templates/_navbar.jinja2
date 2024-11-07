@@ -178,11 +178,12 @@
             {% else %}
 
             <div class="btn-group" role="group">
-                <a class="btn btn-outline-secondary" href="/login">
-                    {{ t('sessions.new.title') }}
-                </a>
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                    data-bs-target="#loginModal">
+                    {{ t('login.sign_in') }}
+                </button>
                 <a class="btn btn-outline-secondary" href="/signup">
-                    {{ t('users.new.title') }}
+                    {{ t('users.new.title') | capitalize }}
                 </a>
             </div>
 
