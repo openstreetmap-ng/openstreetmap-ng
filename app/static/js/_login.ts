@@ -6,11 +6,12 @@ if (loginForm) {
     configureStandardForm(loginForm, () => {
         // Redirect to refer from query string and hash
         // Referrer must start with '/' to avoid open redirect
+        const currentPath = window.location.pathname
         const params = qsParse(window.location.search.substring(1))
-        let referer = params.referer ?? "/"
-        if (!referer.startsWith("/")) referer = "/"
+        let referer = params.referer ?? currentPath
+        if (!referer.startsWith("/")) referer = currentPath
         console.debug("onLoginFormSuccess", referer)
-        if (window.location.pathname !== referer) {
+        if (referer !== currentPath) {
             window.location.pathname = referer
         } else {
             window.location.reload()
