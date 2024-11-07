@@ -205,7 +205,6 @@ async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = N
         logging.debug('Signup form contains auth provider verification by %r', verification.provider)
         display_name = verification.name or ''
         email = verification.email or ''
-        # TODO: signup without password when verification
     else:
         display_name = email = ''
     return await render_response(

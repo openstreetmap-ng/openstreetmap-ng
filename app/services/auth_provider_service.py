@@ -12,7 +12,7 @@ from starlette.responses import RedirectResponse
 from app.config import TEST_ENV
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_randbytes
-from app.lib.crypto import HASH_SIZE, hmac_bytes
+from app.lib.crypto import hmac_bytes
 from app.limits import AUTH_PROVIDER_STATE_MAX_AGE, AUTH_PROVIDER_VERIFICATION_MAX_AGE, COOKIE_AUTH_MAX_AGE
 from app.models.auth_provider import AuthProvider, AuthProviderAction
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
@@ -59,12 +59,12 @@ class AuthProviderService:
         """
         Parse and validate an auth provider state.
         """
-        buffer = urlsafe_b64decode(cookie_state)
-        expected_hmac = urlsafe_b64decode(query_state)
-        actual_hmac = hmac_bytes(buffer)
-        if not compare_digest(expected_hmac, actual_hmac):
+        buffer_b64 = cookie_state.encode()
+        provided_hmac = urlsafe_b64decode(query_state)
+        expected_hmac = hmac_bytes(buffer_b64)
+        if not compare_digest(provided_hmac, expected_hmac):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')
-        state = AuthProviderState.FromString(buffer)
+        state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
         if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE < time():
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again')
         if state.provider != provider.value:
@@ -147,14 +147,15 @@ class AuthProviderService:
         """
         if not s:
             return None
-        buffer = urlsafe_b64decode(s)
-        if len(buffer) <= HASH_SIZE:
-            return None  # too short
-        buffer, expected_hmac = buffer[:-HASH_SIZE], buffer[-HASH_SIZE:]
-        actual_hmac = hmac_bytes(buffer)
-        if not compare_digest(expected_hmac, actual_hmac):
+        parts = s.encode().split(b'.', maxsplit=1)
+        if len(parts) != 2:
+            return None  # malformed
+        buffer_b64, hmac_b64 = parts
+        provided_hmac = urlsafe_b64decode(hmac_b64)
+        expected_hmac = hmac_bytes(buffer_b64)
+        if not compare_digest(provided_hmac, expected_hmac):
             return None  # invalid HMAC
-        verification = AuthProviderVerification.FromString(buffer)
+        verification = AuthProviderVerification.FromString(urlsafe_b64decode(buffer_b64))
         if verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE < time():
             return None  # expired
         return verification
@@ -172,17 +173,17 @@ def _create_signed_state(
 
     Returns a tuple of (state, hmac).
     """
-    buffer = AuthProviderState(
-        timestamp=int(time()),
-        provider=provider.value,
-        action=action,
-        referer=referer,
-        nonce=buffered_randbytes(16),
-    ).SerializeToString()
-    hmac = hmac_bytes(buffer)
-    if len(hmac) != HASH_SIZE:
-        raise AssertionError(f'HMAC digest size must be {HASH_SIZE}, got {len(hmac)}')
-    return urlsafe_b64encode(buffer).decode(), urlsafe_b64encode(hmac).decode()
+    buffer_b64 = urlsafe_b64encode(
+        AuthProviderState(
+            timestamp=int(time()),
+            provider=provider.value,
+            action=action,
+            referer=referer,
+            nonce=buffered_randbytes(16),
+        ).SerializeToString()
+    )
+    hmac_b64 = urlsafe_b64encode(hmac_bytes(buffer_b64))
+    return buffer_b64.decode(), hmac_b64.decode()
 
 
 @cython.cfunc
@@ -195,15 +196,17 @@ def _create_signed_verification(
 ) -> str:
     """
     Create and sign an auth provider verification data.
+
+    Returns a string of 'state.hmac'.
     """
-    buffer = AuthProviderVerification(
-        timestamp=int(time()),
-        provider=provider.value,
-        uid=uid,
-        name=name,
-        email=email,
-    ).SerializeToString()
-    hmac = hmac_bytes(buffer)
-    if len(hmac) != HASH_SIZE:
-        raise AssertionError(f'HMAC digest size must be {HASH_SIZE}, got {len(hmac)}')
-    return urlsafe_b64encode(buffer + hmac).decode()
+    buffer_b64 = urlsafe_b64encode(
+        AuthProviderVerification(
+            timestamp=int(time()),
+            provider=provider.value,
+            uid=uid,
+            name=name,
+            email=email,
+        ).SerializeToString()
+    )
+    hmac_b64 = urlsafe_b64encode(hmac_bytes(buffer_b64))
+    return f'{buffer_b64.decode()}.{hmac_b64.decode()}'

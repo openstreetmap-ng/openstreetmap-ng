@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from fastapi import APIRouter, Form, Query, Request, Response
+from fastapi import APIRouter, Cookie, Form, Query, Request, Response
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -14,6 +14,7 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.limits import COOKIE_AUTH_MAX_AGE, DISPLAY_NAME_MAX_LENGTH
 from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType, EmailType, PasswordType, ValidatingDisplayNameType
+from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.reset_password_service import ResetPasswordService
 from app.services.user_service import UserService
@@ -88,10 +89,18 @@ async def signup(
 
 @router.post('/accept-terms')
 async def accept_terms(
-    _: Annotated[User, web_user()],
+    user: Annotated[User, web_user()],
+    auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
-    await UserSignupService.accept_terms()
-    return RedirectResponse('/user/account-confirm/pending', status.HTTP_303_SEE_OTHER)
+    verification = AuthProviderService.validate_verification(auth_provider_verification)
+    email_confirmed = verification is not None and verification.email == user.email
+    await UserSignupService.accept_terms(email_confirmed=email_confirmed)
+    if email_confirmed:
+        response = RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
+        response.delete_cookie('auth_provider_verification')
+        return response
+    else:
+        return RedirectResponse('/user/account-confirm/pending', status.HTTP_303_SEE_OTHER)
 
 
 @router.post('/abort-signup')

@@ -64,23 +64,24 @@ class UserSignupService:
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
 
     @staticmethod
-    async def accept_terms() -> None:
+    async def accept_terms(*, email_confirmed: bool) -> None:
         """
-        Accept the terms of service and send a confirmation email.
+        Accept the terms of service and optionally send a confirmation email.
         """
         user = auth_user(required=True)
         async with db_commit() as session:
             stmt = (
                 update(User)
                 .where(User.id == user.id, User.status == UserStatus.pending_terms)
-                .values({User.status: UserStatus.pending_activation})
+                .values({User.status: UserStatus.active if email_confirmed else UserStatus.pending_activation})
                 .inline()
             )
             if (await session.execute(stmt)).rowcount != 1:
                 return
 
-        with auth_context(user, scopes=()):
-            await UserSignupService.send_confirm_email()
+        if not email_confirmed:
+            with auth_context(user, scopes=()):
+                await UserSignupService.send_confirm_email()
 
     @staticmethod
     async def send_confirm_email() -> None:

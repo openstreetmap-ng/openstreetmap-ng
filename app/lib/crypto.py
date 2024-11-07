@@ -36,18 +36,18 @@ def hash_hex(s: str | bytes) -> str:
     return _hash(s).hexdigest()
 
 
-def hmac_bytes(s: bytes) -> bytes:
-    """
-    Compute the HMAC of a string using SHA-256 and the app secret.
-    """
-    return HMAC(SECRET_32, s, sha256).digest()
-
-
 def hash_s256_code_challenge(verifier: str) -> str:
     """
     Compute the S256 code challenge from the verifier.
     """
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
+
+
+def hmac_bytes(s: bytes) -> bytes:
+    """
+    Compute the HMAC of a string using SHA-256 and the app secret.
+    """
+    return HMAC(SECRET_32, s, sha256).digest()
 
 
 def encrypt(s: str) -> bytes:

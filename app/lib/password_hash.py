@@ -60,8 +60,8 @@ class PasswordHash:
                 return VerifyResult(False, rehash_needed=False, schema_needed=password_pb_schema)
             if len(password_bytes) != 64:
                 raise ValueError(f'Invalid password length, expected 64, got {len(password_bytes)}')
-            password_pb_hash = b64encode(password_pb_.v1.hash).strip(b'=').decode()
-            password_pb_salt = b64encode(password_pb_.v1.salt).strip(b'=').decode()
+            password_pb_hash = b64encode(password_pb_.v1.hash).rstrip(b'=').decode()
+            password_pb_salt = b64encode(password_pb_.v1.salt).rstrip(b'=').decode()
             password_pb_digest = f'$argon2id$v=19$m=8192,t=3,p=4${password_pb_salt}${password_pb_hash}'
             try:
                 _hasher_v1.verify(password_pb_digest, password_bytes)
