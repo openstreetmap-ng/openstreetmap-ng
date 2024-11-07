@@ -51,7 +51,8 @@
     // border-bottom: 6px solid color.adjust($gray-200, $alpha: -0.73);
 
     &:hover,
-    &.hover {
+    &.hover,
+    &:has(a.stretched-link:focus) /* Improved accessibility */ {
         background: $list-highlight;
     }
 

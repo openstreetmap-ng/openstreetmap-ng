@@ -78,14 +78,17 @@ async def _get_messages_data(
             new_before_t = tg.create_task(new_before_task())
         new_after = new_after_t.result()
         new_before = new_before_t.result()
+        current_before = messages[0].id + 1
     else:
         new_after = None
         new_before = None
+        current_before = None
 
     return {
         'inbox': inbox,
         'new_after': new_after,
         'new_before': new_before,
+        'current_before': current_before,
         'messages': messages,
         'active_message_id': show,
     }
