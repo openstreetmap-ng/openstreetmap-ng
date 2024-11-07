@@ -27,7 +27,7 @@ class SearchResult:
     prefix: str
     display_name: str
     point: Point
-    bounds: Polygon
+    bounds: tuple[float, float, float, float]
 
 
 class Search:
