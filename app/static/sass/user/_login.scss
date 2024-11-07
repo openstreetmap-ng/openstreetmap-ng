@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .login-body {
     .brand {
         text-align: center;
@@ -69,7 +71,7 @@
             }
 
             &:hover {
-                box-shadow: 0 0 0 0.25rem transparentize($primary, 0.8);
+                box-shadow: 0 0 0 0.25rem color.adjust($primary, $alpha: -0.8);
 
                 img {
                     opacity: 1;

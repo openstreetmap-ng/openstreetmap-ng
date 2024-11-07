@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // The sprite usage is deprecated.
 // New icons should be kept separate for ease of maintenance.
 // TODO: Split the sprite into separate files.
@@ -99,5 +101,5 @@
 
 .yellow-glow {
     color: $yellow-500;
-    text-shadow: 0 0 0.5em transparentize($yellow-500, 0.5);
+    text-shadow: 0 0 0.5em color.adjust($yellow-500, $alpha: -0.5);
 }

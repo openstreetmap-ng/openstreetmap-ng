@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .settings-security-body {
     .active-sessions li {
         padding: 0.875rem 0;
@@ -24,10 +26,10 @@
 
         @keyframes pulse-shadow {
             0% {
-                box-shadow: 0 0 0 0 transparentize($vibrant-green, 0.55);
+                box-shadow: 0 0 0 0 color.adjust($vibrant-green, $alpha: -0.55);
             }
             100% {
-                box-shadow: 0 0 0 0.35em transparentize($vibrant-green, 1);
+                box-shadow: 0 0 0 0.35em transparent;
             }
         }
     }

@@ -68,7 +68,6 @@ let
     # Frontend:
     bun
     biome
-    dart-sass
     # Services:
     (postgresql_17_jit.withPackages (ps: [ ps.postgis ]))
     valkey
@@ -115,7 +114,9 @@ let
 
     # -- SASS
     (makeScript "sass-pipeline" ''
-      sass \
+      bun run sass \
+        --quiet-deps \
+        --silence-deprecation=import \
         --style compressed \
         --load-path node_modules \
         --no-source-map \
