@@ -1,13 +1,9 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Form, Path, Response, UploadFile
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.controllers.oauth2_github import github_authorize
-from app.controllers.oauth2_google import google_authorize
-from app.controllers.oauth2_microsoft import microsoft_authorize
-from app.controllers.oauth2_wikimedia import wikimedia_authorize
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
 from app.limits import USER_DESCRIPTION_MAX_LENGTH

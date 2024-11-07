@@ -3,20 +3,27 @@ import { configureStandardForm } from "./_standard-form"
 
 const loginForm = document.querySelector("form.login-form")
 if (loginForm) {
+    const defaultReferer = `${window.location.pathname}${window.location.search}`
+    const params = qsParse(window.location.search.substring(1))
+    let referer = params.referer ?? defaultReferer
+    // Referrer must start with '/' to avoid open redirect
+    if (!referer.startsWith("/")) referer = defaultReferer
+
+    // On successful login, redirect to refer
     configureStandardForm(loginForm, () => {
-        // Redirect to refer from query string and hash
-        // Referrer must start with '/' to avoid open redirect
-        const currentPath = window.location.pathname
-        const params = qsParse(window.location.search.substring(1))
-        let referer = params.referer ?? currentPath
-        if (!referer.startsWith("/")) referer = currentPath
         console.debug("onLoginFormSuccess", referer)
-        if (referer !== currentPath) {
-            window.location.pathname = referer
+        if (referer !== defaultReferer) {
+            window.location.href = `${window.location.origin}${referer}`
         } else {
             window.location.reload()
         }
     })
+
+    // Propagate referer to auth providers forms
+    const authProvidersForms = document.querySelectorAll(".auth-providers form")
+    for (const form of authProvidersForms) {
+        ;(form.elements.namedItem("referer") as HTMLInputElement).value = referer
+    }
 
     // Autofill buttons are present in development environment
     const onAutofillButtonClick = ({ target }: Event): void => {
