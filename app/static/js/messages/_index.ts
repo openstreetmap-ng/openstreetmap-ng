@@ -149,7 +149,7 @@ if (body) {
 
         // On message click, open preview if target is not a link
         messageLink.addEventListener("click", (e) => {
-            if (e.altKey || e.ctrlKey) return
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
             e.preventDefault()
             messageLink.blur()
             openMessagePreview(message)
