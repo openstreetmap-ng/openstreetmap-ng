@@ -1,19 +1,7 @@
 @use "sass:color";
 
 .login-body {
-    .brand {
-        text-align: center;
-
-        img {
-            position: relative;
-            top: -0.125em;
-            height: 1.5em;
-        }
-    }
-}
-
-#loginModal {
-    .logo-img {
+    .brand-img {
         height: 4em;
     }
 

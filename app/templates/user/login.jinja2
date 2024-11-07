@@ -1,75 +1,34 @@
 {% extends '_base.jinja2' %}
-{% block title_prefix %}{{ t('sessions.new.title') }} | {% endblock %}
+{% block title_prefix %}{{ t('login.sign_in') }} | {% endblock %}
 {% block body_class %}login-body{% endblock %}
 {% block body %}
 
-<div class="content-header">
-    <h1 class="col-6 offset-3">
-        {{ t('sessions.new.title') }}
-    </h1>
-</div>
+<div class="content-header"></div>
 <div class="content-body">
-    <div class="col-6 offset-3">
-        <p class="text-body-secondary small">
-            {{ t('sessions.new.no account') }}
-            <a href="/signup">{{ t('sessions.new.register now') }}</a>
-        </p>
+    <div class="container">
 
-        <form class="login-form" method="POST" action="/api/web/user/login">
-
-            <label class="form-label d-block mb-3">
-                {{ t('sessions.new.email or username') }}
-                <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username"
-                    required>
-            </label>
-
-            <label class="form-label d-block">
-                {{ t('sessions.new.password') }}
-                <input type="password" class="form-control mt-2" data-name="password" autocomplete="current-password"
-                    required>
-            </label>
-            <p class="form-text">
-                <a class="link-primary" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
-            </p>
-
-            <div class="form-check mb-3">
-                <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="remember" value="True" autocomplete="off">
-                    {{ t('sessions.new.remember') }}
-                </label>
-            </div>
-
-            <button class="btn btn-primary px-4" type="submit">
-                {{ t('sessions.new.title') }}
-            </button>
-
-        </form>
-
-        <hr>
-
-        <p class="text-body-secondary small">
-            {{ t('users.new.use external auth') }}:
-        </p>
-
-        {% if TEST_ENV %}
-        <div class="d-flex mt-5">
-            <div class="alert alert-light" role="alert">
-                <h5 class="alert-heading">🔑 Debug Login</h5>
-                <button class="btn btn-sm btn-secondary" data-login="user1" data-password="openstreetmap">
-                    user1
-                </button>
-                <button class="btn btn-sm btn-secondary" data-login="user2" data-password="openstreetmap">
-                    user2
-                </button>
-                <button class="btn btn-sm btn-secondary" data-login="moderator" data-password="openstreetmap">
-                    moderator
-                </button>
-                <button class="btn btn-sm btn-secondary" data-login="admin" data-password="openstreetmap">
-                    admin
-                </button>
+        <div class="modal position-static d-block" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                    </div>
+                    <div class="login-body modal-body px-4 pt-0">
+                        {% include '_login_body.jinja2' %}
+                    </div>
+                    {% if TEST_ENV %}
+                    <div class="modal-footer">
+                        {% for _login in ('user1', 'user2', 'moderator', 'admin') %}
+                        <button class="autofill-btn btn btn-sm btn-secondary" data-login="{{ _login }}"
+                            data-password="x">
+                            {{ _login }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        {% endif %}
+
     </div>
 </div>
 

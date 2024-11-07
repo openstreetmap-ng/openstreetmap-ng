@@ -66,6 +66,7 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 @import "form";
 @import "icons";
 @import "illustration";
+@import "login";
 @import "navbar";
 @import "rich-text";
 @import "rss";
@@ -111,7 +112,6 @@ $bootstrap-icons-font-dir: "/static-bootstrap-icons";
 
 @import "user/account-confirm";
 @import "user/activity";
-@import "user/login";
 @import "user/profile";
 @import "user/signup";
 @import "user/terms";
