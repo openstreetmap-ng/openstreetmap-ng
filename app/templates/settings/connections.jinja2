@@ -22,17 +22,19 @@
                     </div>
                 </td>
                 <td>
+                    {% if service in provider_id_map %}
                     <form class="d-flex justify-content-end align-items-center" method="POST"
-                        action="/api/web/settings/connections/{{ service }}">
-                        {% if service in provider_id_map %}
+                        action="/api/web/settings/connections/{{ service }}/disconnect">
                         <i class="bi bi-link-45deg me-2" title="{{ t('state.connected') }}"></i>
-                        <button type="submit" class="btn btn-light border" name="action"
-                            value="disconnect">{{ t('action.disconnect') }}</button>
-                        {% else %}
-                        <button type="submit" class="btn btn-light border" name="action"
-                            value="connect">{{ t('action.connect') }}</button>
-                        {% endif %}
+                        <button type="submit" class="btn btn-light border">{{ t('action.disconnect') }}</button>
                     </form>
+                    {% else %}
+                    <form class="d-flex justify-content-end align-items-center" method="POST"
+                        action="/oauth2/{{ service }}/authorize">
+                        <button type="submit" class="btn btn-light border" name="action"
+                            value="settings">{{ t('action.connect') }}</button>
+                    </form>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

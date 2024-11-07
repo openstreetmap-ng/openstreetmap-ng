@@ -111,22 +111,10 @@ async def settings_description(
     return Response()
 
 
-@router.post('/settings/connections/{provider:str}')
+@router.post('/settings/connections/{provider:str}/disconnect')
 async def settings_connections(
     provider: Annotated[AuthProvider, Path()],
-    action: Annotated[Literal['connect', 'disconnect'], Form()],
     _: Annotated[User, web_user()],
 ):
-    if action == 'connect':
-        if provider == AuthProvider.google:
-            return await google_authorize(action='settings')
-        if provider == AuthProvider.microsoft:
-            return await microsoft_authorize(action='settings')
-        if provider == AuthProvider.github:
-            return await github_authorize(action='settings')
-        if provider == AuthProvider.wikimedia:
-            return await wikimedia_authorize(action='settings')
-        raise NotImplementedError(f'Unsupported provider {provider!r}')
-    else:
-        await ConnectedAccountService.remove_connection(provider)
-        return RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
+    await ConnectedAccountService.remove_connection(provider)
+    return RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
