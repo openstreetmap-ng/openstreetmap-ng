@@ -1,7 +1,7 @@
 {% extends '_base.jinja2' %}
 {% block body_class %}oauth-response-form-post-body{% endblock %}
 {% block body %}
-<form method="POST" action="{{ redirect_uri }}">
+<form class="response-form-post-form" method="POST" action="{{ redirect_uri }}">
     {% for k, v in auth_result.items() %}
     <input type="hidden" name="{{ k }}" value="{{ v }}">
     {% endfor %}

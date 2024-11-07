@@ -7,6 +7,7 @@ from starlette import status
 from app.config import MICROSOFT_OAUTH_PUBLIC
 from app.lib.buffered_random import buffered_rand_urlsafe
 from app.lib.openid import parse_openid_token_no_verify
+from app.lib.render_response import render_response
 from app.models.auth_provider import AuthProvider, AuthProviderAction
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
@@ -31,14 +32,19 @@ async def microsoft_authorize(
             'client_id': MICROSOFT_OAUTH_PUBLIC,
             'nonce': buffered_rand_urlsafe(16),
             'response_type': 'id_token',
-            'response_mode': 'form_post',
+            'response_mode': 'fragment',
             'scope': 'openid profile email',
         },
     )
 
 
+@router.get('/callback')
+async def get_microsoft_callback():
+    return await render_response('oauth2/fragment_callback.jinja2')
+
+
 @router.post('/callback')
-async def microsoft_callback(
+async def post_microsoft_callback(
     id_token: Annotated[SecretStr, Form(min_length=1)],
     state: Annotated[str, Form(min_length=1)],
     auth_provider_state: Annotated[str, Cookie()],

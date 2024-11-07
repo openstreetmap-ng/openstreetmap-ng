@@ -43,9 +43,9 @@ class AuthProviderService:
             key='auth_provider_state',
             value=state,
             max_age=AUTH_PROVIDER_STATE_MAX_AGE,
-            secure=True,  #  required by SameSite=None
+            secure=not TEST_ENV,
             httponly=True,
-            samesite='none',
+            samesite='lax',
         )
         return response
 
