@@ -48,7 +48,7 @@
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.packageIndexDepths": [
         {
-            "depth": 2,
+            "depth": 3,
             "includeAllSymbols": false,
             "name": ""
         }
