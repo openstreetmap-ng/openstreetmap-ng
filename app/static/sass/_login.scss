@@ -2,6 +2,7 @@
 
 .login-body {
     .brand-img {
+        width: 4em;
         height: 4em;
     }
 
@@ -37,6 +38,7 @@
 
     .passkey-btn {
         img {
+            width: 0.875em;
             height: 0.875em;
             position: relative;
             top: -1px;
@@ -51,6 +53,7 @@
             transition: box-shadow 0.08s ease-out;
 
             img {
+                width: 3em;
                 height: 3em;
                 opacity: 0.9;
                 transition:
