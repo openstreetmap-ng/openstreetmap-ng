@@ -33,6 +33,7 @@ from app.middlewares.cache_control_middleware import CacheControlMiddleware
 from app.middlewares.exceptions_middleware import ExceptionsMiddleware
 from app.middlewares.format_style_middleware import FormatStyleMiddleware
 from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
+from app.middlewares.localhost_redirect_middleware import LocalhostRedirectMiddleware
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
 from app.middlewares.rate_limit_middleware import RateLimitMiddleware
@@ -110,6 +111,7 @@ main.add_middleware(LimitUrlSizeMiddleware)
 main.add_middleware(ExceptionsMiddleware)
 
 if TEST_ENV:
+    main.add_middleware(LocalhostRedirectMiddleware)
     main.add_middleware(ProfilerMiddleware)
 
 main.add_middleware(RequestContextMiddleware)

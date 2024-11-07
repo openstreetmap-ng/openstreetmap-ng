@@ -43,9 +43,9 @@ class AuthProviderService:
             key='auth_provider_state',
             value=state,
             max_age=AUTH_PROVIDER_STATE_MAX_AGE,
-            secure=not TEST_ENV,
+            secure=True,  #  required by SameSite=None
             httponly=True,
-            samesite='lax',
+            samesite='none',
         )
         return response
 
@@ -91,7 +91,7 @@ class AuthProviderService:
             access_token = await SystemAppService.create_access_token('SystemApp.web', user_id=user_id)
             max_age = COOKIE_AUTH_MAX_AGE  # TODO: remember option for auth providers
             response = RedirectResponse(secure_referer(state.referer), status.HTTP_303_SEE_OTHER)
-            response.set_cookie(key='auth_provider_state', max_age=0)
+            response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth',
                 value=access_token.get_secret_value(),
@@ -111,7 +111,7 @@ class AuthProviderService:
                 elif user_id != current_user.id:
                     raise NotImplementedError  # TODO: handle used by another user
             response = RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
-            response.set_cookie(key='auth_provider_state', max_age=0)
+            response.delete_cookie('auth_provider_state')
             return response
 
         elif action == 'signup':
@@ -125,7 +125,7 @@ class AuthProviderService:
                 email=email,
             )
             response = RedirectResponse('/signup', status.HTTP_303_SEE_OTHER)
-            response.set_cookie(key='auth_provider_state', max_age=0)
+            response.delete_cookie('auth_provider_state')
             response.set_cookie(
                 key='auth_provider_verification',
                 value=verification,
