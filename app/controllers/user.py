@@ -42,6 +42,67 @@ from app.services.auth_provider_service import AuthProviderService
 router = APIRouter()
 
 
+@router.get('/signup')
+async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = None):
+    if auth_user() is not None:
+        return redirect_referrer()
+    verification = AuthProviderService.validate_verification(auth_provider_verification)
+    if verification is not None:
+        logging.debug('Signup form contains auth provider verification by %r', verification.provider)
+        display_name = verification.name or ''
+        email = verification.email or ''
+    else:
+        display_name = email = ''
+    return await render_response(
+        'user/signup.jinja2',
+        {
+            'display_name_value': display_name,
+            'email_value': email,
+            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
+            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
+            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
+            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
+        },
+    )
+
+
+@router.get('/user/new')
+async def legacy_signup():
+    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/user/account-confirm/pending')
+async def account_confirm_pending(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.pending_activation:
+        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
+    return await render_response('user/account_confirm_pending.jinja2')
+
+
+@router.get('/user/terms')
+async def terms(user: Annotated[User, web_user()]):
+    if user.status != UserStatus.pending_terms:
+        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
+    return await render_response(
+        'user/terms.jinja2',
+        {
+            'legal_terms_GB': legal_terms('GB'),
+            'legal_terms_FR': legal_terms('FR'),
+            'legal_terms_IT': legal_terms('IT'),
+        },
+    )
+
+
+@router.get('/user/forgot-password')
+async def legacy_reset_password():
+    return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/reset-password')
+async def reset_password():
+    return await render_response('user/reset_password.jinja2')
+
+
+# TODO: /user-id/ and other safe urls
 @router.get('/user/permalink/{user_id:int}{path:path}')
 async def permalink(
     request: Request,
@@ -189,63 +250,3 @@ async def _get_activity_data(user: User) -> dict:
         'activity_sum': activity.sum(),  # total activities
         'activity_days': (activity > 0).sum(),  # total mapping days
     }
-
-
-@router.get('/user/new')
-async def legacy_signup():
-    return RedirectResponse('/signup', status.HTTP_301_MOVED_PERMANENTLY)
-
-
-@router.get('/signup')
-async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = None):
-    if auth_user() is not None:
-        return redirect_referrer()
-    verification = AuthProviderService.validate_verification(auth_provider_verification)
-    if verification is not None:
-        logging.debug('Signup form contains auth provider verification by %r', verification.provider)
-        display_name = verification.name or ''
-        email = verification.email or ''
-    else:
-        display_name = email = ''
-    return await render_response(
-        'user/signup.jinja2',
-        {
-            'display_name_value': display_name,
-            'email_value': email,
-            'URLSAFE_BLACKLIST': URLSAFE_BLACKLIST,
-            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
-            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
-            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-        },
-    )
-
-
-@router.get('/user/account-confirm/pending')
-async def account_confirm_pending(user: Annotated[User, web_user()]):
-    if user.status != UserStatus.pending_activation:
-        return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
-    return await render_response('user/account_confirm_pending.jinja2')
-
-
-@router.get('/user/terms')
-async def terms(user: Annotated[User, web_user()]):
-    if user.status != UserStatus.pending_terms:
-        return RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    return await render_response(
-        'user/terms.jinja2',
-        {
-            'legal_terms_GB': legal_terms('GB'),
-            'legal_terms_FR': legal_terms('FR'),
-            'legal_terms_IT': legal_terms('IT'),
-        },
-    )
-
-
-@router.get('/user/forgot-password')
-async def legacy_reset_password():
-    return RedirectResponse('/reset-password', status.HTTP_301_MOVED_PERMANENTLY)
-
-
-@router.get('/reset-password')
-async def reset_password():
-    return await render_response('user/reset_password.jinja2')
