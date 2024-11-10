@@ -218,13 +218,13 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert data['iat'] >= int(authorization_date.timestamp())
     assert data['client_id'] == 'testapp'
     assert data['scope'] == ''
-    assert data['username'] == 'user1'
+    assert data['name'] == 'user1'
     assert 'exp' not in data
 
     r = await auth_client.get('/oauth2/userinfo')
     assert r.is_success, r.text
     data = r.json()
-    assert data['username'] == 'user1'
+    assert data['name'] == 'user1'
     assert data['picture'].startswith(APP_URL)
     assert data['locale'] == DEFAULT_LOCALE
     r = await auth_client.get(data['picture'])

@@ -23,6 +23,7 @@ dependencies = [
   "nh3",
   "numpy",
   "opencv-python-headless",
+  "orjson",
   "osm-shortlink>=1.0.0",
   "phonenumbers",
   "polyline-rs>=1.0.0",

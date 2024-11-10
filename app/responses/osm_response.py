@@ -1,9 +1,9 @@
-import json
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import Any, NoReturn, override
 
 import cython
+import orjson
 from fastapi import APIRouter, Response
 from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute
@@ -63,7 +63,7 @@ class OSMResponse(Response):
                 else:
                     raise TypeError(f'Invalid json content type {type(content)}')
 
-            encoded = json.dumps(content, ensure_ascii=False)
+            encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
             return Response(encoded, media_type='application/json; charset=utf-8')
 
         elif style == 'xml':

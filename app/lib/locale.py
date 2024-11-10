@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 from collections.abc import Sequence
@@ -7,6 +6,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 import cython
+import orjson
 
 from app.config import TEST_ENV
 from app.limits import LOCALE_CODE_MAX_LENGTH
@@ -31,9 +31,9 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 
 @cython.cfunc
 def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]:
-    i18next_map: dict[LocaleCode, str] = json.loads(Path('config/locale/i18next/map.json').read_bytes())
+    i18next_map: dict[LocaleCode, str] = orjson.loads(Path('config/locale/i18next/map.json').read_bytes())
     locales_codes_normalized_map = {_normalize(k): k for k in i18next_map}
-    raw_names: list[dict[str, str]] = json.loads(Path('config/locale/names.json').read_bytes())
+    raw_names: list[dict[str, str]] = orjson.loads(Path('config/locale/names.json').read_bytes())
     locale_names_map: dict[LocaleCode, LocaleName] = {}
 
     for raw_name in sorted(raw_names, key=lambda v: v['english']):

@@ -88,8 +88,8 @@ class FormatGPX:
 
             if trkpts is None:
                 raise AssertionError('Track points must be set')
-            for point, capture_time, elevation in zip_longest(points, capture_times, elevations):
-                data = {'@lon': point[0], '@lat': point[1]}
+            for (lon, lat), capture_time, elevation in zip_longest(points, capture_times, elevations):
+                data = {'@lon': lon, '@lat': lat}
                 if capture_time is not None:
                     data['time'] = capture_time
                 if elevation is not None:

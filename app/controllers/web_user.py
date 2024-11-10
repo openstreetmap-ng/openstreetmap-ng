@@ -1,6 +1,6 @@
-import json
 from typing import Annotated
 
+import orjson
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Cookie, Form, Query, Response
 from pydantic import SecretStr
@@ -82,7 +82,7 @@ async def signup(
     )
     redirect_url = '/welcome' if email_confirmed else '/user/account-confirm/pending'
     response = Response(
-        json.dumps({'redirect_url': redirect_url}, ensure_ascii=False),
+        orjson.dumps({'redirect_url': redirect_url}),
         media_type='application/json; charset=utf-8',
     )
     if email_confirmed:

@@ -1,9 +1,9 @@
-import json
 import re
 from asyncio import Semaphore, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
+import orjson
 import uvloop
 
 from app.lib.locale import LocaleName
@@ -72,7 +72,7 @@ async def download_locale(locale: LocaleCode) -> LocaleName | None:
 
 
 def add_extra_locales_names(locales_names: list[LocaleName]):
-    extra_locales_names: dict[LocaleCode, dict] = json.loads(_extra_names_path.read_bytes())
+    extra_locales_names: dict[LocaleCode, dict] = orjson.loads(_extra_names_path.read_bytes())
 
     for ln in locales_names:
         extra_locales_names.pop(ln.code, None)
@@ -104,8 +104,10 @@ async def main():
 
     locales_names.sort(key=lambda v: v.code)
     locales_names_dict = tuple(ln._asdict() for ln in locales_names)
-    buffer = json.dumps(locales_names_dict, indent=2, sort_keys=True)
-    _names_path.write_text(buffer)
+    buffer = orjson.dumps(
+        locales_names_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE
+    )
+    _names_path.write_bytes(buffer)
 
 
 if __name__ == '__main__':

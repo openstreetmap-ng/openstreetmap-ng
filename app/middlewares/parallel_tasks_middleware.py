@@ -15,9 +15,10 @@ _messages_count_unread_context: ContextVar[Task[int]] = ContextVar('_messages_co
 
 @contextmanager
 def _messages_count_unread(tg: TaskGroup):
-    if (
-        Scope.web_user not in auth_scopes()  #
-        or get_request().url.path.startswith(('/api/', '/static'))
+    # skip count_unread for API and static requests
+    if not (
+        Scope.web_user in auth_scopes()  #
+        and not get_request().url.path.startswith(('/api/', '/static'))
     ):
         yield
         return

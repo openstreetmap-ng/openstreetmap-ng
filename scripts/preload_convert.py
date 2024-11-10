@@ -1,5 +1,4 @@
 import gc
-import json
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -7,6 +6,7 @@ from pathlib import Path
 
 import lxml.etree as ET
 import numpy as np
+import orjson
 import polars as pl
 import uvloop
 from tqdm import tqdm
@@ -154,7 +154,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
                 visible,  # visible
-                json.dumps(dict(tags_list), ensure_ascii=False, check_circular=False) if tags_list else '{}',  # tags
+                orjson.dumps(dict(tags_list)) if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]

@@ -1,10 +1,10 @@
-import json
 import os
 from collections.abc import Collection, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
 import click
+import orjson
 import yaml
 
 _oci_dir = Path('node_modules/osm-community-index')
@@ -61,7 +61,7 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
 class LocalChaptersExtractor:
     def __init__(self) -> None:
         resources = (_oci_dir.joinpath('dist/resources.min.json')).read_bytes()
-        communities_dict: dict[str, dict[str, Any]] = json.loads(resources)['resources']
+        communities_dict: dict[str, dict[str, Any]] = orjson.loads(resources)['resources']
 
         # filter only local chapters
         self.communities = tuple(c for c in communities_dict.values() if c['type'] == 'osm-lc' and c['id'] != 'OSMF')
@@ -119,9 +119,9 @@ def main(verbose: bool):
         if locale == 'en' and (extra_data := yaml.load(_locale_extra_en_path.read_bytes(), yaml.CSafeLoader)):
             deep_dict_update(data, extra_data)
 
-        buffer = json.dumps(data, indent=2, sort_keys=True)
+        buffer = orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
         target_path = _postprocess_dir.joinpath(f'{locale}.json')
-        target_path.write_text(buffer)
+        target_path.write_bytes(buffer)
 
         # preserve mtime
         os.utime(target_path, (source_mtime, source_mtime))

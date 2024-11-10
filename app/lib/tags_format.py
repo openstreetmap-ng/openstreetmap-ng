@@ -1,9 +1,9 @@
-import json
 import re
 from collections.abc import Callable
 from pathlib import Path
 
 import cython
+import orjson
 import phonenumbers
 from phonenumbers import (
     NumberParseException,
@@ -21,7 +21,7 @@ from app.validators.email import validate_email
 # TODO: 0.7 official reserved tag characters
 
 # source: https://www.w3.org/TR/css-color-3/#svg-color
-_w3c_colors = frozenset(json.loads(Path('config/w3c_colors.json').read_bytes()))
+_w3c_colors = frozenset(orjson.loads(Path('config/w3c_colors.json').read_bytes()))
 
 # make sure to match popular locale combinations, full spec is complex
 # https://taginfo.openstreetmap.org/search?q=wikipedia%3A#keys

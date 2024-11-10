@@ -35,16 +35,10 @@ def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = Fa
     if not params:
         return uri
     uri_ = urlsplit(uri)
-    if fragment:
-        query = parse_qsl(uri_.fragment, keep_blank_values=True)
-    else:
-        query = parse_qsl(uri_.query, keep_blank_values=True)
+    query = parse_qsl(uri_.fragment if fragment else uri_.query, keep_blank_values=True)
     query.extend(params.items())
     query_str = urlencode(query)
-    if fragment:
-        uri_ = uri_._replace(fragment=query_str)
-    else:
-        uri_ = uri_._replace(query=query_str)
+    uri_ = uri_._replace(fragment=query_str) if fragment else uri_._replace(query=query_str)
     return urlunsplit(uri_)
 
 

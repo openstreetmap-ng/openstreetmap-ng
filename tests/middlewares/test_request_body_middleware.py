@@ -1,10 +1,10 @@
 import gzip
-import json
 import zlib
 from collections.abc import Callable
 from urllib.parse import urlencode
 
 import brotli
+import orjson
 import pytest
 from httpx import AsyncClient
 from zstandard import ZstdCompressor
@@ -58,7 +58,7 @@ async def test_compressed_json(client: AsyncClient, encoding: str, compress: Cal
     client.headers['Authorization'] = 'User user1'
 
     text = f'{encoding}-compressed note'
-    content = compress(json.dumps({'lon': 0, 'lat': 0, 'text': text}).encode())
+    content = compress(orjson.dumps({'lon': 0, 'lat': 0, 'text': text}))
 
     # create note
     r = await client.post(

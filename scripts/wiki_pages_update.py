@@ -1,5 +1,4 @@
 import gzip
-import json
 import re
 from asyncio import Semaphore, TaskGroup
 from collections import defaultdict
@@ -8,6 +7,7 @@ from pathlib import Path
 from typing import NamedTuple
 from urllib.parse import unquote_plus
 
+import orjson
 import uvloop
 
 from app.lib.retry import retry
@@ -87,8 +87,8 @@ async def main():
         }
         for key, values in key_values_locales.items()
     }
-    buffer = json.dumps(result, indent=2, sort_keys=True) + '\n'
-    _wiki_pages_path.write_text(buffer)
+    buffer = orjson.dumps(result, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+    _wiki_pages_path.write_bytes(buffer)
 
 
 if __name__ == '__main__':

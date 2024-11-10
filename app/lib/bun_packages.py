@@ -1,10 +1,10 @@
-import json
 import logging
 import os
 import subprocess
 from pathlib import Path
 
 import cython
+import orjson
 
 from app.config import FILE_CACHE_DIR
 
@@ -24,9 +24,9 @@ def _bun_packages() -> dict[str, str]:
             _, _, line = line.partition(' ')
             package, _, version = line.rpartition('@')
             result[package] = version
-        cache_path.write_text(json.dumps(result))
+        cache_path.write_bytes(orjson.dumps(result))
         os.utime(cache_path, (lock_mtime, lock_mtime))
-    return json.loads(cache_path.read_bytes())
+    return orjson.loads(cache_path.read_bytes())
 
 
 _data = _bun_packages()

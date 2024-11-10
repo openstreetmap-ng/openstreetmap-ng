@@ -97,13 +97,15 @@ def _get_user(require_scopes: SecurityScopes):
     user, user_scopes = auth_user_scopes()
     # user must be authenticated
     if user is None:
-        if Scope.web_user in require_scopes.scopes:
+        if (
+            Scope.web_user in require_scopes.scopes  #
+            and not get_request().url.path.startswith(('/api/', '/static'))
+        ):
             raise HTTPException(
                 status_code=status.HTTP_303_SEE_OTHER,
                 headers={'Location': f"/login?{urlencode({'referer': _get_referer()})}"},
             )
-        else:
-            raise_for().unauthorized(request_basic_auth=True)
+        raise_for().unauthorized(request_basic_auth=True)
     # and have the required scopes
     if missing_scopes := set(require_scopes.scopes).difference(user_scopes):
         raise_for().insufficient_scopes(missing_scopes)

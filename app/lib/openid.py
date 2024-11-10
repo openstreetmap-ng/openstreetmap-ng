@@ -1,6 +1,7 @@
-import json
 from base64 import urlsafe_b64decode
 from typing import Required, TypedDict
+
+import orjson
 
 
 class OpenIDToken(TypedDict, total=False):
@@ -17,4 +18,4 @@ class OpenIDToken(TypedDict, total=False):
 
 def parse_openid_token_no_verify(token: str) -> OpenIDToken:
     payload = token.split('.', maxsplit=2)[1]
-    return json.loads(urlsafe_b64decode(payload + '=='))
+    return orjson.loads(urlsafe_b64decode(payload + '=='))

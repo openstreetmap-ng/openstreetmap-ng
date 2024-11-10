@@ -1,7 +1,8 @@
-import json
 import logging
 from collections.abc import Sequence
 from typing import NotRequired, TypedDict
+
+import orjson
 
 from app.limits import (
     OPENID_DISCOVERY_HTTP_TIMEOUT,
@@ -54,4 +55,4 @@ class OpenIDQuery:
             factory=factory,
             ttl=OPENID_DISCOVERY_HTTP_TIMEOUT,
         )
-        return json.loads(cache.value)
+        return orjson.loads(cache.value)

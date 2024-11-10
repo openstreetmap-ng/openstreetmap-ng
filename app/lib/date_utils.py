@@ -23,11 +23,7 @@ def legacy_date(date: datetime | None) -> datetime | None:
     >>> legacy_date(datetime(2021, 12, 31, 15, 30, 45, 123456))
     datetime.datetime(2021, 12, 31, 15, 30, 45)
     """
-    if date is None:
-        return date
-    if LEGACY_HIGH_PRECISION_TIME:
-        return date
-    return date.replace(microsecond=0)
+    return date if (date is None or LEGACY_HIGH_PRECISION_TIME) else date.replace(microsecond=0)
 
 
 def format_sql_date(date: datetime | None) -> str:

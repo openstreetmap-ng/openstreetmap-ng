@@ -1,14 +1,14 @@
-import json
 from pathlib import Path
 from typing import Any
 
 import cython
+import orjson
 
 
 @cython.cfunc
 def _get_local_chapters() -> tuple[tuple[str, str], ...]:
     resources = Path('node_modules/osm-community-index/dist/resources.min.json').read_bytes()
-    communities_dict: dict[str, dict] = json.loads(resources)['resources']
+    communities_dict: dict[str, dict] = orjson.loads(resources)['resources']
     # filter local chapters
     chapters: list[dict[str, Any]] = [
         c

@@ -1,4 +1,3 @@
-import json
 import logging
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
@@ -6,6 +5,7 @@ from typing import NotRequired, TypedDict
 from urllib.parse import urlencode
 
 import numpy as np
+import orjson
 from httpx import Timeout
 from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
@@ -80,7 +80,7 @@ class NominatimQuery:
             factory=factory,
             ttl=NOMINATIM_CACHE_LONG_EXPIRE,
         )
-        response_entries = (json.loads(cache.value),)
+        response_entries = (orjson.loads(cache.value),)
         result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
         return next(iter(result), None)
 
@@ -161,7 +161,7 @@ async def _search(
     else:
         response = await factory()
 
-    response_entries = json.loads(response)
+    response_entries = orjson.loads(response)
     return await _get_search_result(at_sequence_id=at_sequence_id, response_entries=response_entries)
 
 
