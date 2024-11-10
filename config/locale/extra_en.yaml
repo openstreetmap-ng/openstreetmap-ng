@@ -313,8 +313,8 @@ signup:
   already_have_an_account: Already have an account?
   sign_in_here: Sign in here
   brand_description: |-
-    Join the world's largest collaborative mapping project.
-    OpenStreetMap is built by people like you,
+    Join the world's largest collaborative mapping project.<br>
+    OpenStreetMap is built by people like you,<br>
     free for everyone to use.
   photo_by_author: Photo by {{author}}
   i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
