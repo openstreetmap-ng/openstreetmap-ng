@@ -22,7 +22,8 @@ if (loginForm) {
     // Propagate referer to auth providers forms
     const authProvidersForms = document.querySelectorAll(".auth-providers form")
     for (const form of authProvidersForms) {
-        ;(form.elements.namedItem("referer") as HTMLInputElement).value = referrer
+        const referrerInput = form.elements.namedItem("referer") as HTMLInputElement
+        if (referrerInput) referrerInput.value = referrer
     }
 
     // Autofill buttons are present in development environment

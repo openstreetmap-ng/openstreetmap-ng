@@ -137,10 +137,13 @@ settings:
   connected_accounts: Connected accounts
   applications: Applications
   preferred_language: Preferred language
+  your_public_username: Your public username.
+  you_can_change_it_later_in_the_settings: You can change it later in the settings.
   change_email: Change email
   current_email_address: Current email address
   email_settings: Email settings
   new_email_address: New email address
+  your_email_address_is_not_displayed_publicly: Your email address is not displayed publicly.
   email_change_confirmation_sent: |-
     We've sent a confirmation email to your new address.
     Please check your inbox and click on the confirmation link to verify your new email address.
@@ -294,6 +297,7 @@ alt:
   background_image: Background image
   service_image: Service image
   passkey_icon: Passkey icon
+  image_of_planet_earth: Image of planet Earth
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.
@@ -304,6 +308,16 @@ login:
   or_continue_with: or continue with
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
+signup:
+  get_started_contributing: Get started contributing
+  already_have_an_account: Already have an account?
+  sign_in_here: Sign in here
+  brand_description: |-
+    Join the world's largest collaborative mapping project.
+    OpenStreetMap is built by people like you,
+    free for everyone to use.
+  photo_by_author: Photo by {{author}}
+  i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
 pagination:
   range: "{{x}} of {{y}}"
 confirm_account:

@@ -7,7 +7,7 @@
     </p>
 </div>
 
-<form class="login-form mb-3" method="POST" action="/api/web/user/login">
+<form class="login-form" method="POST" action="/api/web/user/login">
     <label class="form-label d-block mb-2">
         {{ t('sessions.new.email or username') | capitalize }}
         <input type="text" class="form-control mt-2" name="display_name_or_email" autocomplete="username" required>
@@ -30,12 +30,10 @@
         </a>
     </div>
 
-    <button class="btn btn-primary w-100" type="submit">
-        {{ t('login.sign_in') }}
-    </button>
+    <button class="btn btn-primary w-100" type="submit">{{ t('login.sign_in') }}</button>
 </form>
 
-<div class="divider mb-3">
+<div class="divider my-3">
     <span class="divider-text">{{ t('login.or_continue_with') }}</span>
 </div>
 

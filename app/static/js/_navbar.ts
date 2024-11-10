@@ -83,11 +83,13 @@ editGroup.addEventListener("hidden.bs.dropdown", () => {
 
 const loginLinks: NodeListOf<HTMLAnchorElement> = navbar.querySelectorAll("a[href='/login']")
 /** Update the login links with the current path and hash */
-const updateLoginLinks = (hash: string): void => {
-    const loginLinkQuery = qsEncode({ referer: window.location.pathname })
-    const loginHref = `/login?${loginLinkQuery}${hash}`
-    for (const link of loginLinks) link.href = loginHref
-}
+const updateLoginLinks = loginLinks.length
+    ? (hash: string): void => {
+          const loginLinkQuery = qsEncode({ referer: window.location.pathname })
+          const loginHref = `/login?${loginLinkQuery}${hash}`
+          for (const link of loginLinks) link.href = loginHref
+      }
+    : () => {}
 
 // TODO: wth object support?
 /** Update the navbar links and current URL hash */

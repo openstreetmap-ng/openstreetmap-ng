@@ -16,14 +16,7 @@
         <input type="email" class="form-control mt-2" name="email" minlength="{{ EMAIL_MIN_LENGTH }}"
             maxlength="{{ EMAIL_MAX_LENGTH }}" autocomplete="email" required>
     </label>
-    <p class="form-text">
-        {% set privacy_policy_link %}
-        <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
-            {{ t('users.new.privacy_policy') }}
-        </a>
-        {% endset %}
-        {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
-    </p>
+    <p class="form-text">{{ t('settings.your_email_address_is_not_displayed_publicly') }}</p>
 
     <label class="form-label d-block">
         <span class="required">{{ t('sessions.new.password') }}</span>
