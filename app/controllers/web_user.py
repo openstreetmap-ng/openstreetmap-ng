@@ -1,7 +1,9 @@
+import json
 from typing import Annotated
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
-from fastapi import APIRouter, Cookie, Form, Query, Request, Response
+from fastapi import APIRouter, Cookie, Form, Query, Response
+from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -52,11 +54,10 @@ async def login(
 
 @router.post('/logout')
 async def logout(
-    request: Request,
+    auth: Annotated[SecretStr, Cookie()],
     _: Annotated[User, web_user()],
 ):
-    access_token = request.cookies['auth']
-    await OAuth2TokenService.revoke_by_access_token(access_token)
+    await OAuth2TokenService.revoke_by_access_token(auth)
     response = redirect_referrer()
     response.delete_cookie('auth')
     return response
@@ -68,14 +69,24 @@ async def signup(
     email: Annotated[ValidatingEmailType, Form()],
     password: Annotated[PasswordType, Form()],
     tracking: Annotated[bool, Form()] = False,
+    auth_provider_verification: Annotated[str | None, Cookie()] = None,
 ):
+    verification = AuthProviderService.validate_verification(auth_provider_verification)
+    email_confirmed = (verification is not None) and verification.email == email
     access_token = await UserSignupService.signup(
         display_name=display_name,
         email=email,
         password=password,
         tracking=tracking,
+        email_confirmed=email_confirmed,
     )
-    response = Response()
+    redirect_url = '/welcome' if email_confirmed else '/user/account-confirm/pending'
+    response = Response(
+        json.dumps({'redirect_url': redirect_url}, ensure_ascii=False),
+        media_type='application/json; charset=utf-8',
+    )
+    if email_confirmed:
+        response.delete_cookie('auth_provider_verification')
     response.set_cookie(
         key='auth',
         value=access_token.get_secret_value(),
@@ -84,32 +95,6 @@ async def signup(
         httponly=True,
         samesite='lax',
     )
-    return response
-
-
-@router.post('/accept-terms')
-async def accept_terms(
-    user: Annotated[User, web_user()],
-    auth_provider_verification: Annotated[str | None, Cookie()] = None,
-):
-    verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_confirmed = verification is not None and verification.email == user.email
-    await UserSignupService.accept_terms(email_confirmed=email_confirmed)
-    if email_confirmed:
-        response = RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
-        response.delete_cookie('auth_provider_verification')
-        return response
-    else:
-        return RedirectResponse('/user/account-confirm/pending', status.HTTP_303_SEE_OTHER)
-
-
-@router.post('/abort-signup')
-async def abort_signup(
-    _: Annotated[User, web_user()],
-):
-    await UserSignupService.abort_signup()
-    response = RedirectResponse('/', status.HTTP_303_SEE_OTHER)
-    response.delete_cookie('auth')
     return response
 
 

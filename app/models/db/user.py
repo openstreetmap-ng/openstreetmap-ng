@@ -14,7 +14,6 @@ from sqlalchemy import (
     Unicode,
     UnicodeText,
     func,
-    or_,
 )
 from sqlalchemy.dialects.postgresql import INET, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -56,7 +55,6 @@ class UserRole(str, enum.Enum):
 
 
 class UserStatus(str, enum.Enum):
-    pending_terms = 'pending_terms'
     pending_activation = 'pending_activation'
     active = 'active'
 
@@ -158,10 +156,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
         Index(
             'user_pending_idx',
             'created_at',
-            postgresql_where=or_(
-                status == UserStatus.pending_activation,
-                status == UserStatus.pending_terms,
-            ),
+            postgresql_where=status == UserStatus.pending_activation,
         ),
     )
 

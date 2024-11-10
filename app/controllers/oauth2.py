@@ -141,7 +141,7 @@ async def token(
 
 
 @router.post('/oauth2/revoke')
-async def revoke(token: Annotated[str, Form(min_length=1)]):
+async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
     await OAuth2TokenService.revoke_by_access_token(token)
     return Response()
 

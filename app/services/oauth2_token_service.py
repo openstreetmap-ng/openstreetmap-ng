@@ -261,11 +261,11 @@ class OAuth2TokenService:
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_access_token(access_token: str) -> None:
+    async def revoke_by_access_token(access_token: SecretStr) -> None:
         """
         Revoke the given access token.
         """
-        access_token_hashed = hash_bytes(access_token)
+        access_token_hashed = hash_bytes(access_token.get_secret_value())
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
             await session.execute(stmt)

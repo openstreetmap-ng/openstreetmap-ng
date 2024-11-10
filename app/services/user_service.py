@@ -2,7 +2,7 @@ import logging
 
 from fastapi import UploadFile
 from pydantic import SecretStr
-from sqlalchemy import delete, func, or_, update
+from sqlalchemy import delete, func, update
 
 from app.db import db_commit
 from app.lib.auth_context import auth_user
@@ -308,10 +308,7 @@ class UserService:
         logging.debug('Deleting old pending users')
         async with db_commit() as session:
             stmt = delete(User).where(
-                or_(
-                    User.status == UserStatus.pending_activation,
-                    User.status == UserStatus.pending_terms,
-                ),
+                User.status == UserStatus.pending_activation,
                 User.created_at < func.statement_timestamp() - USER_PENDING_EXPIRE,
             )
             await session.execute(stmt)

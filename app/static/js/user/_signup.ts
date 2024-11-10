@@ -15,9 +15,9 @@ if (body) {
 
     configureStandardForm(
         signupForm,
-        () => {
-            console.debug("onSignupFormSuccess")
-            window.location.href = "/user/terms"
+        ({ redirect_url }) => {
+            console.debug("onSignupFormSuccess", redirect_url)
+            window.location.href = redirect_url
         },
         () => {
             const result: APIDetail[] = []

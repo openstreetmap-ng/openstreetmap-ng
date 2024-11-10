@@ -16,7 +16,6 @@ from app.services.user_service import UserService
     ('status', 'should_delete'),
     [
         (UserStatus.pending_activation, True),
-        (UserStatus.pending_terms, True),
         (UserStatus.active, False),
     ],
 )
