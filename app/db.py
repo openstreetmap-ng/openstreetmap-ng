@@ -1,20 +1,21 @@
 from contextlib import asynccontextmanager
 
+import orjson
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from valkey.asyncio import ConnectionPool, Valkey
 
 from app.config import POSTGRES_URL, VALKEY_URL
-from app.utils import JSON_DECODE, json_encodes
 
 _DB_ENGINE = create_async_engine(
     POSTGRES_URL,
-    json_deserializer=JSON_DECODE,
-    json_serializer=json_encodes,
     query_cache_size=1024,
     pool_size=100,  # concurrent connections target
     max_overflow=-1,  # unlimited concurrent connections overflow
+    json_deserializer=orjson.loads,
+    json_serializer=lambda v: orjson.dumps(v).decode(),
 )
+
 
 _VALKEY_POOL = ConnectionPool.from_url(VALKEY_URL)
 

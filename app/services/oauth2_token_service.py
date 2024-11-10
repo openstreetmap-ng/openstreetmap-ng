@@ -1,9 +1,6 @@
-from base64 import urlsafe_b64encode
 from collections.abc import Iterable
-from hashlib import sha256
 from hmac import compare_digest
 
-import cython
 from pydantic import SecretStr
 from sqlalchemy import delete, func, null, select, update
 from sqlalchemy.orm import joinedload
@@ -11,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from app.db import db_commit
 from app.lib.auth_context import auth_user
 from app.lib.buffered_random import buffered_rand_urlsafe
-from app.lib.crypto import hash_bytes
+from app.lib.crypto import hash_bytes, hash_s256_code_challenge
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import options_context
@@ -173,7 +170,7 @@ class OAuth2TokenService:
                     if token.code_challenge != verifier:
                         raise_for().oauth2_bad_verifier(token.code_challenge_method)
                 elif token.code_challenge_method == OAuth2CodeChallengeMethod.S256:
-                    if verifier is None or token.code_challenge != _compute_s256(verifier):
+                    if verifier is None or token.code_challenge != hash_s256_code_challenge(verifier):
                         raise_for().oauth2_bad_verifier(token.code_challenge_method)
                 else:
                     raise NotImplementedError(  # noqa: TRY301
@@ -264,11 +261,11 @@ class OAuth2TokenService:
             await session.execute(stmt)
 
     @staticmethod
-    async def revoke_by_access_token(access_token: str) -> None:
+    async def revoke_by_access_token(access_token: SecretStr) -> None:
         """
         Revoke the given access token.
         """
-        access_token_hashed = hash_bytes(access_token)
+        access_token_hashed = hash_bytes(access_token.get_secret_value())
         async with db_commit() as session:
             stmt = delete(OAuth2Token).where(OAuth2Token.token_hashed == access_token_hashed)
             await session.execute(stmt)
@@ -297,11 +294,3 @@ class OAuth2TokenService:
         if app is None:
             return
         await OAuth2TokenService.revoke_by_app_id(app.id, skip_ids=skip_ids)
-
-
-@cython.cfunc
-def _compute_s256(verifier: str) -> str:
-    """
-    Compute the S256 code challenge from the verifier.
-    """
-    return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')

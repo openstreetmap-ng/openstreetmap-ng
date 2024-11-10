@@ -76,7 +76,7 @@ async def test_authorize_token_oob(
         code_challenge_method=code_challenge_method.value,
         token_endpoint_auth_method=token_endpoint_auth_method.value,
     )
-    code_verifier = buffered_rand_urlsafe(48)
+    code_verifier = buffered_rand_urlsafe(32)
 
     if code_challenge_method == OAuth2CodeChallengeMethod.plain:  # authlib doesn't support plain method
         authorization_url, state = auth_client.create_authorization_url(
@@ -218,13 +218,13 @@ async def test_authorize_token_introspect_userinfo_revoke_public_app(client: Asy
     assert data['iat'] >= int(authorization_date.timestamp())
     assert data['client_id'] == 'testapp'
     assert data['scope'] == ''
-    assert data['username'] == 'user1'
+    assert data['name'] == 'user1'
     assert 'exp' not in data
 
     r = await auth_client.get('/oauth2/userinfo')
     assert r.is_success, r.text
     data = r.json()
-    assert data['username'] == 'user1'
+    assert data['name'] == 'user1'
     assert data['picture'].startswith(APP_URL)
     assert data['locale'] == DEFAULT_LOCALE
     r = await auth_client.get(data['picture'])

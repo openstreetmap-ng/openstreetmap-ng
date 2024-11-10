@@ -1,12 +1,13 @@
 import logging
 from asyncio import TaskGroup
 from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import NotRequired, TypedDict
 from urllib.parse import urlencode
 
 import numpy as np
+import orjson
 from httpx import Timeout
-from shapely import MultiPolygon, Point, Polygon, box, get_coordinates, lib
+from shapely import MultiPolygon, Point, Polygon, get_coordinates, lib
 
 from app.config import NOMINATIM_URL
 from app.lib.feature_icon import features_icons
@@ -20,15 +21,34 @@ from app.limits import (
     NOMINATIM_HTTP_SHORT_TIMEOUT,
 )
 from app.models.db.element import Element
-from app.models.element import ElementRef
+from app.models.element import ElementId, ElementRef, ElementType
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP, JSON_DECODE
+from app.utils import HTTP
 
 _HTTP_SHORT_TIMEOUT = Timeout(NOMINATIM_HTTP_SHORT_TIMEOUT.total_seconds())
 _HTTP_LONG_TIMEOUT = Timeout(NOMINATIM_HTTP_LONG_TIMEOUT.total_seconds())
 
 _cache_context = CacheContext('Nominatim')
+
+# https://nominatim.org/release-docs/develop/api/Search/
+# https://nominatim.org/release-docs/develop/api/Reverse/
+# https://nominatim.org/release-docs/develop/api/Output/
+
+
+class NominatimPlace(TypedDict):
+    place_id: int
+    osm_type: NotRequired[ElementType]
+    osm_id: NotRequired[ElementId]
+    boundingbox: tuple[str, str, str, str]
+    lat: str
+    lon: str
+    display_name: str
+    category: str
+    type: str
+    place_rank: int
+    importance: float
+    icon: str
 
 
 class NominatimQuery:
@@ -60,8 +80,8 @@ class NominatimQuery:
             factory=factory,
             ttl=NOMINATIM_CACHE_LONG_EXPIRE,
         )
-        response_entries = (JSON_DECODE(cache.value),)
-        result = await _get_result(at_sequence_id=None, response_entries=response_entries)
+        response_entries = (orjson.loads(cache.value),)
+        result = await _get_search_result(at_sequence_id=None, response_entries=response_entries)
         return next(iter(result), None)
 
     @staticmethod
@@ -141,17 +161,20 @@ async def _search(
     else:
         response = await factory()
 
-    return await _get_result(at_sequence_id=at_sequence_id, response_entries=JSON_DECODE(response))
+    response_entries = orjson.loads(response)
+    return await _get_search_result(at_sequence_id=at_sequence_id, response_entries=response_entries)
 
 
-# TODO: typeddict
-async def _get_result(
+async def _get_search_result(
     *,
     at_sequence_id: int | None,
-    response_entries: Iterable[dict],
+    response_entries: Iterable[NominatimPlace],
 ) -> list[SearchResult]:
+    """
+    Convert nominatim places into search results.
+    """
     refs: list[ElementRef] = []
-    entries: list[dict[str, Any]] = []
+    entries: list[NominatimPlace] = []
     for entry in response_entries:
         # some results are abstract and have no osm_type/osm_id
         osm_type = entry.get('osm_type')
@@ -184,7 +207,7 @@ async def _get_result(
         maxy = float(bbox[1])
         minx = float(bbox[2])
         maxx = float(bbox[3])
-        geometry: Polygon = box(minx, miny, maxx, maxy)
+        bounds = minx, miny, maxx, maxy
 
         lon = (minx + maxx) / 2
         lat = (miny + maxy) / 2
@@ -199,7 +222,7 @@ async def _get_result(
                 prefix=prefix,
                 display_name=entry['display_name'],
                 point=point,
-                bounds=geometry,
+                bounds=bounds,
             )
         )
     return result

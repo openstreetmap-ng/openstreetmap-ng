@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Any, NoReturn, override
 
 import cython
+import orjson
 from fastapi import APIRouter, Response
 from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute
@@ -12,7 +13,6 @@ from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
 from app.lib.format_style_context import format_style
 from app.lib.xmltodict import XMLToDict
 from app.middlewares.request_context_middleware import get_request
-from app.utils import JSON_ENCODE
 
 _json_attributes = {
     'version': '0.6',
@@ -63,7 +63,7 @@ class OSMResponse(Response):
                 else:
                     raise TypeError(f'Invalid json content type {type(content)}')
 
-            encoded = JSON_ENCODE(content)
+            encoded = orjson.dumps(content, option=orjson.OPT_SERIALIZE_NUMPY | orjson.OPT_UTC_Z)
             return Response(encoded, media_type='application/json; charset=utf-8')
 
         elif style == 'xml':

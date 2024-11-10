@@ -134,12 +134,16 @@ search:
   search_this_area: Search this area
 settings:
   password_and_security: Password and security
+  connected_accounts: Connected accounts
   applications: Applications
   preferred_language: Preferred language
+  your_public_username: Your public username.
+  you_can_change_it_later_in_the_settings: You can change it later in the settings.
   change_email: Change email
   current_email_address: Current email address
   email_settings: Email settings
   new_email_address: New email address
+  your_email_address_is_not_displayed_publicly: Your email address is not displayed publicly.
   email_change_confirmation_sent: |-
     We've sent a confirmation email to your new address.
     Please check your inbox and click on the confirmation link to verify your new email address.
@@ -156,6 +160,25 @@ settings:
   active_sessions: Active sessions
   session_colon_id: "Session ID: {{id}}"
   this_is_your_current_session: This is your current session
+  connections:
+    external_services: External services
+    description: Link your existing accounts from other services to make signing in easier.
+    service:
+      google:
+        title: Google
+        description: A technology company providing internet-based services
+      facebook:
+        title: Facebook
+        description: A social media service for connecting and sharing with communities
+      microsoft:
+        title: Microsoft
+        description: A technology company that creates computer software, hardware, and services
+      github:
+        title: GitHub
+        description: A platform where developers store, share, and collaborate on code projects
+      wikimedia:
+        title: Wikimedia
+        description: The parent organization managing Wikipedia and other wiki-based projects
   authorized_at: "Authorized at {{date}}"
   created_at: "Created at {{date}}"
   updated_at: "Updated at {{date}}"
@@ -174,8 +197,8 @@ settings:
       Review the list below to update settings, manage permissions, or delete any application you no longer need.
     my_tokens_hint: |-
       Consider using access tokens when working on personal projects.
-    you_have_not_created_any_applications_yet: You haven't created any applications yet.
-    create_new_application: Create new application
+    you_have_not_registered_any_applications_yet: You haven't registered any applications yet.
+    register_a_new_application: Register a new application
   my_tokens:
     title: My tokens
     description: |-
@@ -191,7 +214,7 @@ settings:
       example_http_request: Example HTTP request
       example_curl_command: Example cURL command
     you_have_not_created_any_tokens_yet: You haven't created any tokens yet.
-    create_new_token: Create new token
+    create_a_new_token: Create a new token
     name_hint: This name will help you identify the token later.
   owned_by_user: Owned by {{name}}
   owned_by_you: Owned by you
@@ -272,11 +295,29 @@ alt:
   profile_picture: Profile picture
   application_image: Application image
   background_image: Background image
+  service_image: Service image
+  passkey_icon: Passkey icon
+  image_of_planet_earth: Image of planet Earth
 internalization:
   get_started: |-
     Translation of OpenStreetMap is done by individual volunteers.
     If you would like to help, start with {{this_guide}}.
   this_guide: this guide
+login:
+  welcome_back: Welcome back
+  or_continue_with: or continue with
+  sign_in: Sign in
+  sign_in_with_a_passkey: Sign in with a passkey
+signup:
+  get_started_contributing: Get started contributing
+  already_have_an_account: Already have an account?
+  sign_in_here: Sign in here
+  brand_description: |-
+    Join the world's largest collaborative mapping project.
+    OpenStreetMap is built by people like you,
+    free for everyone to use.
+  photo_by_author: Photo by {{author}}
+  i_agree_to_the_terms_privacy_and_contributor: "I agree to the {{terms}}, {{privacy}}, and {{contributor}}."
 pagination:
   range: "{{x}} of {{y}}"
 confirm_account:
@@ -332,6 +373,8 @@ action:
   view_more: View more
   remove_image: Remove image
   upload_image: Upload an image
+  connect: Connect
+  disconnect: Disconnect
 state:
   hidden: Hidden
   latest: latest
@@ -339,6 +382,8 @@ state:
   resolved: Resolved
   unread: Unread
   unresolved: Unresolved
+  connected: Connected
+  not_connected: Not connected
 unsupported_browser:
   title:
     short: Unsupported browser

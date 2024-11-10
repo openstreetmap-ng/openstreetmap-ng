@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: e23e90cd09f0
+Revision ID: 4312fe3b1209
 Revises:
-Create Date: 2024-11-03 21:41:31.655298+00:00
+Create Date: 2024-11-10 07:25:10.709091+00:00
 
 """
 from collections.abc import Sequence
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 import app.models.geometry
 
 # revision identifiers, used by Alembic.
-revision: str = 'e23e90cd09f0'
+revision: str = '4312fe3b1209'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -70,9 +70,7 @@ def upgrade() -> None:
     sa.Column('display_name', sa.Unicode(length=255), nullable=False),
     sa.Column('password_pb', sa.LargeBinary(length=255), nullable=False),
     sa.Column('created_ip', postgresql.INET(), nullable=False),
-    sa.Column('status', sa.Enum('pending_terms', 'pending_activation', 'active', name='userstatus'), nullable=False),
-    sa.Column('auth_provider', sa.Enum('openid', 'google', 'facebook', 'microsoft', 'github', 'wikipedia', name='authprovider'), nullable=True),
-    sa.Column('auth_uid', sa.Unicode(), nullable=True),
+    sa.Column('status', sa.Enum('pending_activation', 'active', name='userstatus'), nullable=False),
     sa.Column('language', sa.Unicode(length=15), nullable=False),
     sa.Column('activity_tracking', sa.Boolean(), nullable=False),
     sa.Column('crash_reporting', sa.Boolean(), nullable=False),
@@ -92,7 +90,7 @@ def upgrade() -> None:
     )
     op.create_index('user_display_name_idx', 'user', ['display_name'], unique=True)
     op.create_index('user_email_idx', 'user', ['email'], unique=True)
-    op.create_index('user_pending_idx', 'user', ['created_at'], unique=False, postgresql_where=sa.text("status = 'pending_activation' OR status = 'pending_terms'"))
+    op.create_index('user_pending_idx', 'user', ['created_at'], unique=False, postgresql_where=sa.text("status = 'pending_activation'"))
     op.create_table('changeset',
     sa.Column('user_id', sa.BigInteger(), nullable=True),
     sa.Column('tags', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
@@ -111,6 +109,17 @@ def upgrade() -> None:
     op.create_index('changeset_open_idx', 'changeset', ['updated_at'], unique=False, postgresql_where=sa.text('closed_at IS NULL'))
     op.create_index('changeset_union_bounds_idx', 'changeset', ['union_bounds'], unique=False, postgresql_where=sa.text('union_bounds IS NOT NULL'), postgresql_using='gist')
     op.create_index('changeset_user_idx', 'changeset', ['user_id', 'id'], unique=False, postgresql_where=sa.text('user_id IS NOT NULL'))
+    op.create_table('connected_account',
+    sa.Column('provider', sa.Enum('google', 'facebook', 'microsoft', 'github', 'wikimedia', name='authprovider'), nullable=False),
+    sa.Column('uid', sa.Unicode(length=255), nullable=False),
+    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('id', sa.BigInteger(), nullable=False),
+    sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), server_default=sa.text('statement_timestamp()'), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index('connected_account_provider_uid_idx', 'connected_account', ['provider', 'uid'], unique=True)
+    op.create_index('connected_account_user_provider_idx', 'connected_account', ['user_id', 'provider'], unique=True, postgresql_include=('id',))
     op.create_table('diary',
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('title', sa.Unicode(length=255), nullable=False),
@@ -465,6 +474,9 @@ def downgrade() -> None:
     op.drop_table('issue')
     op.drop_table('friendship')
     op.drop_table('diary')
+    op.drop_index('connected_account_user_provider_idx', table_name='connected_account', postgresql_include=('id',))
+    op.drop_index('connected_account_provider_uid_idx', table_name='connected_account')
+    op.drop_table('connected_account')
     op.drop_index('changeset_user_idx', table_name='changeset', postgresql_where=sa.text('user_id IS NOT NULL'))
     op.drop_index('changeset_union_bounds_idx', table_name='changeset', postgresql_where=sa.text('union_bounds IS NOT NULL'), postgresql_using='gist')
     op.drop_index('changeset_open_idx', table_name='changeset', postgresql_where=sa.text('closed_at IS NULL'))
@@ -472,7 +484,7 @@ def downgrade() -> None:
     op.drop_index('changeset_created_at_idx', table_name='changeset')
     op.drop_index('changeset_closed_at_idx', table_name='changeset', postgresql_where=sa.text('closed_at IS NOT NULL'))
     op.drop_table('changeset')
-    op.drop_index('user_pending_idx', table_name='user', postgresql_where=sa.text("status = 'pending_activation' OR status = 'pending_terms'"))
+    op.drop_index('user_pending_idx', table_name='user', postgresql_where=sa.text("status = 'pending_activation'"))
     op.drop_index('user_email_idx', table_name='user')
     op.drop_index('user_display_name_idx', table_name='user')
     op.drop_table('user')

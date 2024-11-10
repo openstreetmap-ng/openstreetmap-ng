@@ -2,9 +2,10 @@ import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import i18next from "i18next"
 import * as L from "leaflet"
+import { prefersReducedMotion } from "../_config"
 import { qsEncode, qsParse } from "../_qs"
 import { getPageTitle } from "../_title"
-import { isLatitude, isLongitude } from "../_utils"
+import { isLatitude, isLongitude, requestAnimationFramePolyfill } from "../_utils"
 import { queryFeaturesMinZoom } from "../leaflet/_context-menu"
 import { focusManyMapObjects, focusMapObject, focusStyles } from "../leaflet/_focus-layer"
 import type { LonLatZoom } from "../leaflet/_map-utils"
@@ -72,15 +73,11 @@ export const getQueryFeaturesController = (map: L.Map): IndexController => {
         const radius = 10 * 1.5 ** (19 - zoom)
         const circle = L.circle(latLng, { ...focusStyles.element, pane: "overlayPane", radius })
         const animationDuration = 750
-        // TODO: reduced motion
-
-        // NOTE: remove polyfill when requestAnimationFrame
-        const requestAnimationFramePolyfill =
-            window.requestAnimationFrame || ((callback) => window.setTimeout(callback, 30))
 
         const fadeOut = (timestamp?: DOMHighResTimeStamp) => {
             const elapsedTime = (timestamp ?? performance.now()) - animationStart
-            const opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
+            let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
+            if (prefersReducedMotion) opacity = opacity > 0 ? 1 : 0
             circle.setStyle({ opacity, fillOpacity: opacity })
             if (opacity > 0 && !abortSignal.aborted) requestAnimationFramePolyfill(fadeOut)
             else map.removeLayer(circle)

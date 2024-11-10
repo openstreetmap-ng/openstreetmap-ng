@@ -26,6 +26,7 @@ from app.models.db.oauth2_token import (
 from app.models.db.user import User
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.queries.oauth2_token_query import OAuth2TokenQuery
+from app.queries.openid_query import OpenIDDiscovery
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.utils import extend_query_params
 
@@ -33,7 +34,7 @@ router = APIRouter()
 
 
 @router.get('/.well-known/openid-configuration')
-async def openid_configuration():
+async def openid_configuration() -> OpenIDDiscovery:
     return {
         'issuer': APP_URL,
         'authorization_endpoint': f'{APP_URL}/oauth2/authorize',
@@ -140,7 +141,7 @@ async def token(
 
 
 @router.post('/oauth2/revoke')
-async def revoke(token: Annotated[str, Form(min_length=1)]):
+async def revoke(token: Annotated[SecretStr, Form(min_length=1)]):
     await OAuth2TokenService.revoke_by_access_token(token)
     return Response()
 
@@ -163,15 +164,17 @@ async def introspect(token: Annotated[str, Form(min_length=1)]):
         'client_id': token_.application.client_id,
         'scope': token_.scopes_str,
         'sub': str(token_.user_id),
-        'username': token_.user.display_name,
+        'name': token_.user.display_name,
     }
 
 
 @router.get('/oauth2/userinfo')
+@router.post('/oauth2/userinfo')
 async def userinfo(user: Annotated[User, api_user()]):
     return {
+        # TODO: compare fields with osm ruby
         'sub': str(user.id),
-        'username': user.display_name,
+        'name': user.display_name,
         'picture': f'{APP_URL}{user.avatar_url}',
         'locale': user.language,
     }

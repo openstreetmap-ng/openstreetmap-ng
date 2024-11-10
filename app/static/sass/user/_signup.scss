@@ -1,24 +1,130 @@
-.signup-body {
-    .content-header {
-        padding-bottom: 0;
+@use "sass:color";
 
-        span {
+.signup-body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+
+    .content-body {
+        margin: unset;
+        flex-grow: 1;
+
+        > .row {
+            height: 100%;
+        }
+    }
+
+    .brand-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 100%;
+        box-shadow: inset -6rem 0 4rem -4rem rgba(0, 0, 0, 0.3);
+        padding: 0 4.5rem;
+    }
+
+    img.background-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+    }
+
+    .background-image-credits {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        font-size: 0.875em;
+        color: rgba(255, 255, 255, 0.6);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    }
+
+    .brand-title {
+        font-weight: 700;
+        font-size: 4em;
+        color: color.adjust($vibrant-green, $saturation: 3);
+        text-shadow: 0 0 16px rgba(0, 0, 0, 0.25);
+
+        img {
             position: relative;
-            top: -0.5rem;
+            top: -2px;
+            height: 1.125em;
+            width: 1.125em;
+            margin-right: 1.125rem;
+        }
+    }
+
+    .brand-description {
+        color: #eee;
+        font-size: 2em;
+        max-width: 840px;
+        text-wrap: pretty;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .signup-content {
+        display: flex;
+        align-items: center;
+        border-top: 3rem solid $body-tertiary-bg;
+        padding: 1.5rem 4rem 3rem;
+    }
+
+    .signup-form {
+        [type="submit"] {
+            font-weight: 500;
+        }
+    }
+
+    .divider {
+        position: relative;
+        text-align: center;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: $border-color;
         }
 
-        .illustration-wrapper {
-            margin-left: 1.5rem;
+        .divider-text {
             position: relative;
-            display: inline;
+            top: -1px;
+            background: $modal-content-bg;
+            padding: 0 1rem;
+            color: $text-muted;
+            font-size: 0.875rem;
+        }
+    }
 
-            // Style the signup illustration to appear in the correct place
-            .arm-illustration {
-                position: absolute;
+    .auth-providers {
+        .btn {
+            padding: unset;
+            overflow: hidden;
+            transition: box-shadow 0.08s ease-out;
 
-                left: 139px;
-                bottom: -130px;
-                z-index: 100;
+            img {
+                width: 3em;
+                height: 3em;
+                opacity: 0.9;
+                transition:
+                    opacity 0.08s ease-out,
+                    filter 0.08s ease-out;
+            }
+
+            &:hover {
+                box-shadow: 0 0 0 0.25rem color.adjust($primary, $alpha: -0.8);
+
+                img {
+                    opacity: 1;
+                    filter: saturate(1.1);
+                }
             }
         }
     }

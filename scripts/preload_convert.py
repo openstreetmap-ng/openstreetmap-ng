@@ -6,13 +6,13 @@ from pathlib import Path
 
 import lxml.etree as ET
 import numpy as np
+import orjson
 import polars as pl
 import uvloop
 from tqdm import tqdm
 
 from app.config import PRELOAD_DIR
 from app.models.db import *  # noqa: F403
-from app.utils import json_encodes
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')
@@ -154,7 +154,7 @@ def planet_worker(args: tuple[int, int, int]) -> None:
                 int(attrib['id']),  # id
                 int(attrib['version']),  # version
                 visible,  # visible
-                json_encodes(dict(tags_list)) if tags_list else '{}',  # tags
+                orjson.dumps(dict(tags_list)) if tags_list else '{}',  # tags
                 point,  # point
                 members,  # members
                 datetime.fromisoformat(attrib['timestamp']),  # created_at  # pyright: ignore[reportArgumentType]
@@ -497,8 +497,6 @@ def write_user_csv() -> None:
         pl.lit('').alias('password_pb'),
         pl.lit('127.0.0.1').alias('created_ip'),
         pl.lit('active').alias('status'),
-        pl.lit(None).alias('auth_provider'),
-        pl.lit(None).alias('auth_uid'),
         pl.lit('en').alias('language'),
         pl.lit(True).alias('activity_tracking'),
         pl.lit(True).alias('crash_reporting'),

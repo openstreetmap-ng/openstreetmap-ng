@@ -30,14 +30,14 @@ if (body) {
     })
 
     const editForm = body.querySelector("form.edit-form")
-    const clientSecretControl = editForm.querySelector(".client-secret-control")
+    const resetSecretControl = editForm.querySelector(".reset-secret-control")
     const isConfidentialRadios = editForm.elements.namedItem("is_confidential") as RadioNodeList
     const revokeAllAuthorizationsCheckbox = editForm.elements.namedItem("revoke_all_authorizations") as HTMLInputElement
 
     const onIsConfidentialChange = ({ target }: Event) => {
         const radio = target as HTMLInputElement
         console.debug("onIsConfidentialChange", radio.value)
-        clientSecretControl.classList.toggle("d-none", radio.value === "false")
+        resetSecretControl.classList.toggle("d-none", radio.value === "false")
     }
     for (const radio of isConfidentialRadios) radio.addEventListener("change", onIsConfidentialChange)
 

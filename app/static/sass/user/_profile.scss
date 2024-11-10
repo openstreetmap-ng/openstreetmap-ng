@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .user-profile-body {
     .content-header {
         position: relative;
@@ -7,7 +9,7 @@
         background: unset;
 
         > .container-fluid {
-            background: transparentize($body-bg, 0.8);
+            background: color.adjust($body-bg, $alpha: -0.8);
             box-shadow: inset 0 -13.5rem 5rem -5rem $body-bg;
             backdrop-filter: blur(2px);
         }

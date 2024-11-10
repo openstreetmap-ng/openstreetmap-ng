@@ -1,6 +1,7 @@
 import logging
 
 import cython
+import orjson
 from httpx import Timeout
 from shapely import Point, get_coordinates
 
@@ -8,7 +9,7 @@ from app.config import OVERPASS_INTERPRETER_URL
 from app.limits import OVERPASS_CACHE_EXPIRE
 from app.models.overpass import OverpassElement
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP, JSON_DECODE
+from app.utils import HTTP
 
 _cache_context = CacheContext('Overpass')
 
@@ -40,7 +41,7 @@ class OverpassQuery:
             return r.content
 
         cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements_data: list[OverpassElement] = JSON_DECODE(cache.value)['elements']
+        elements_data: list[OverpassElement] = orjson.loads(cache.value)['elements']
         elements_data.sort(key=_sort_by_bounds)
         return elements_data
 
@@ -75,7 +76,7 @@ class OverpassQuery:
             return r.content
 
         cache = await CacheService.get(query, _cache_context, factory, ttl=OVERPASS_CACHE_EXPIRE)
-        elements_data: list[OverpassElement] = JSON_DECODE(cache.value)['elements']
+        elements_data: list[OverpassElement] = orjson.loads(cache.value)['elements']
         elements_data.sort(key=_sort_by_bounds)
         return elements_data
 

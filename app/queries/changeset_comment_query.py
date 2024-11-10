@@ -1,5 +1,5 @@
 from asyncio import TaskGroup
-from collections.abc import Collection, Iterable
+from collections.abc import Collection, Iterable, Sequence
 
 import cython
 from sqlalchemy import Select, func, select, text, union_all
@@ -45,7 +45,7 @@ class ChangesetCommentQuery:
                 .select_from(subq)
                 .group_by(subq.c.changeset_id)
             )
-            rows: Iterable[tuple[int, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
+            rows: Sequence[tuple[int, int]] = (await session.execute(stmt)).all()  # pyright: ignore[reportAssignmentType]
             id_num_map: dict[int, int] = dict(rows)
 
         for changeset_id, changeset in changeset_id_map.items():

@@ -2,7 +2,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/2d2a9ddbe3f2c00747398f3dc9b05f7f2ebb0f53.tar.gz") { };
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/85f7e662eda4fa3a995556527c87b2524b691933.tar.gz") { };
 
   projectDir = builtins.toString ./.;
   preCommitConf = import ./config/pre-commit-config.nix { inherit pkgs; };
@@ -22,11 +22,11 @@ let
     name = "python";
     paths = [
       # Enable compiler optimizations when in production
-      (if isDevelopment then python312 else python312.override { enableOptimizations = true; })
+      (if isDevelopment then python313 else python313.override { enableOptimizations = true; })
     ];
     buildInputs = [ makeWrapper ];
     postBuild = ''
-      wrapProgram "$out/bin/python3.12" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
+      wrapProgram "$out/bin/python3.13" --prefix ${wrapPrefix} : "${lib.makeLibraryPath pythonLibs}"
     '';
   };
 
@@ -68,7 +68,6 @@ let
     # Frontend:
     bun
     biome
-    dart-sass
     # Services:
     (postgresql_17_jit.withPackages (ps: [ ps.postgis ]))
     valkey
@@ -115,7 +114,9 @@ let
 
     # -- SASS
     (makeScript "sass-pipeline" ''
-      sass \
+      bun run sass \
+        --quiet-deps \
+        --silence-deprecation=import \
         --style compressed \
         --load-path node_modules \
         --no-source-map \
@@ -521,9 +522,16 @@ let
     export SMTP_PORT=1025
     export SMTP_USER=mail@openstreetmap.org
     export SMTP_PASS=anything
-    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
     export NOMINATIM_URL=https://nominatim.monicz.dev
     export OVERPASS_INTERPRETER_URL=https://overpass.monicz.dev/api/interpreter
+    export GITHUB_OAUTH_PUBLIC=Ov23lidLgxluuWuo0PNn
+    export GITHUB_OAUTH_SECRET=4ed29823ee9d975e9f42a14e5c3d4b8293041cda
+    export GOOGLE_OAUTH_PUBLIC=329628600169-6du7d20fo0poong0aqttuikstq97bten.apps.googleusercontent.com
+    export GOOGLE_OAUTH_SECRET=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
+    export GRAPHHOPPER_API_KEY=e6d61235-3e37-4290-91a7-d7be9e5a8909
+    export MICROSOFT_OAUTH_PUBLIC=db54bdb3-08af-481b-9641-39f49065b640
+    export WIKIMEDIA_OAUTH_PUBLIC=2f7fe9e2825acc816d1e1103d203e8ec
+    export WIKIMEDIA_OAUTH_SECRET=d07aaeabb5f7a5de76e3d667db3dfe0b2a5abf11
     export LEGACY_HIGH_PRECISION_TIME=1
     export LEGACY_SEQUENCE_ID_MARGIN=1
 

@@ -1,13 +1,16 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Literal, overload
+from urllib.parse import parse_qs, urlencode
 
 import cython
-from fastapi import Security
+from fastapi import HTTPException, Security
 from fastapi.security import SecurityScopes
+from starlette import status
 
 from app.config import TEST_ENV
 from app.lib.exceptions_context import raise_for
+from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.scope import Scope
 
@@ -94,9 +97,34 @@ def _get_user(require_scopes: SecurityScopes):
     user, user_scopes = auth_user_scopes()
     # user must be authenticated
     if user is None:
-        request_basic_auth = Scope.web_user not in require_scopes.scopes
-        raise_for().unauthorized(request_basic_auth=request_basic_auth)
+        if (
+            Scope.web_user in require_scopes.scopes  #
+            and not get_request().url.path.startswith(('/api/', '/static'))
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_303_SEE_OTHER,
+                headers={'Location': f"/login?{urlencode({'referer': _get_referer()})}"},
+            )
+        raise_for().unauthorized(request_basic_auth=True)
     # and have the required scopes
     if missing_scopes := set(require_scopes.scopes).difference(user_scopes):
         raise_for().insufficient_scopes(missing_scopes)
     return user
+
+
+@cython.cfunc
+def _get_referer() -> str:
+    """
+    Get referer for the current request.
+
+    If not explicit referer is provided, return current destination instead.
+    """
+    request_url = get_request().url
+    referrers = parse_qs(request_url.query).get('referer')
+    if referrers is not None:
+        referrer = referrers[0]
+        # Referrer must start with '/' to avoid open redirect
+        if referrer[0].startswith('/'):
+            return referrer[0]
+        return f'{request_url.path}?{request_url.query}'
+    return request_url.path

@@ -1,10 +1,11 @@
 {% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('settings.my_tokens.title') }} | {% endblock %}
 {% block body_class %}settings-applications-body{% endblock %}
+{% block settings_active_href %}/settings/applications{% endblock %}
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<ul class="nav nav-tabs mb-3">
+<ul class="nav nav-underline mb-3">
     <li class="nav-item">
         <a href="/settings/applications" class="nav-link">
             {{ t('settings.authorizations.title') }}
@@ -22,7 +23,7 @@
     </li>
 </ul>
 
-<p class="mx-2">{{ t('settings.my_tokens.description') }}</p>
+<p>{{ t('settings.my_tokens.description') }}</p>
 <ul class="applications-list list-unstyled">
     {% for token in tokens %}
     {% set expanded = token.id == expand_id %}
@@ -30,7 +31,8 @@
     {% endfor %}
 </ul>
 {% if not tokens %}
-<p class="mx-2">{{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}</p>
+<p class="form-text"><i
+        class="bi bi-info-circle me-2"></i>{{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}</p>
 {% endif %}
 
 <div class="accordion mb-4">
@@ -38,7 +40,7 @@
         <h2 class="accordion-header">
             <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#create-accordion"
                 aria-expanded="false" aria-controls="create-accordion">
-                {{ t('settings.my_tokens.create_new_token') }}
+                {{ t('settings.my_tokens.create_a_new_token') }}
             </button>
         </h2>
         <div id="create-accordion" class="accordion-collapse collapse">

@@ -1,0 +1,19 @@
+.settings-connections-body {
+    img.auth-provider-icon {
+        height: 2.75em;
+        border-radius: $border-radius;
+    }
+
+    .table {
+        tr:last-child {
+            td {
+                border-bottom: none;
+            }
+        }
+    }
+
+    .bi-link-45deg {
+        font-size: 1.25em;
+        line-height: 1;
+    }
+}

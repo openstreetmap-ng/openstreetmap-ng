@@ -1,9 +1,9 @@
-import json
 import os
 from hashlib import sha256
 from pathlib import Path
 
 import click
+import orjson
 
 _postprocess_dir = Path('config/locale/postprocess')
 _i18next_dir = Path('config/locale/i18next')
@@ -38,7 +38,7 @@ def main() -> None:
             continue
 
         # re-encode json to sort keys
-        translation = json.dumps(json.loads(source_path.read_bytes()), sort_keys=True)
+        translation = orjson.dumps(orjson.loads(source_path.read_bytes()), option=orjson.OPT_SORT_KEYS)
         # transform json to javascript
         translation = f'if(!window.locales)window.locales={{}},window.locales["{locale}"]={{translation:{translation}}}'
 
@@ -54,8 +54,8 @@ def main() -> None:
         success_counter += 1
 
     if success_counter > 0:
-        buffer = json.dumps(file_map, indent=2, sort_keys=True)
-        _i18next_map_path.write_text(buffer)
+        buffer = orjson.dumps(file_map, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+        _i18next_map_path.write_bytes(buffer)
 
     discover_str = click.style(f'{len(file_map)} locales', fg='green')
     success_str = click.style(f'{success_counter} locales', fg='bright_green')

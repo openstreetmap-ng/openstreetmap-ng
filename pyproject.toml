@@ -1,7 +1,8 @@
 [project]
+# TODO: add aiohttp[speedups] after https://github.com/saghul/pycares/pull/202
 dependencies = [
   "aioboto3",
-  "aiohttp[speedups]",
+  "aiohttp",
   "aiosmtplib",
   "alembic",
   "argon2-cffi",
@@ -13,15 +14,16 @@ dependencies = [
   "email-validator",
   "fastapi>=0",
   "feedgen",
-  "httpx",
+  "httpx[brotli,zstd]",
   "jinja2",
+  "libvalkey>=4.0.1b1",
   "lrucache-rs>=1.0.0",
   "lxml",
   "markdown-it-py[linkify,plugins]",
-  "msgspec",
   "nh3",
   "numpy",
   "opencv-python-headless",
+  "orjson",
   "osm-shortlink>=1.0.0",
   "phonenumbers",
   "polyline-rs>=1.0.0",
@@ -51,7 +53,7 @@ dependencies = [
   "zstandard",
 ]
 name = "openstreetmap-ng"
-requires-python = "~=3.12"
+requires-python = "~=3.13"
 version = "0.0.0"
 
 [tool.uv]
@@ -95,7 +97,7 @@ exclude = [
 
 indent-width = 4
 line-length = 120
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 # custom + https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
@@ -178,12 +180,8 @@ select = [
   "YTT",  # flake8-2020
 ]
 
-# Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
-
-# Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.format]
 indent-style = "space"
@@ -195,7 +193,7 @@ skip-magic-trailing-comma = false
 builtins-ignorelist = ["dir", "format", "hash", "id", "input", "open", "type"]
 
 [tool.ruff.lint.flake8-gettext]
-extend-function-names = ["npgettext", "pgettext"]
+function-names = ["nt", "t"]
 
 [tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
@@ -219,7 +217,7 @@ exclude = [
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 reportCallInDefaultInitializer = "error"
 reportDeprecated = "warning"
 reportImplicitOverride = "warning"

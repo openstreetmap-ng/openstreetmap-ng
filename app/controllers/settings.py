@@ -2,6 +2,8 @@ from typing import Annotated
 
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter
+from starlette import status
+from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.locale import INSTALLED_LOCALES_NAMES_MAP
@@ -13,6 +15,7 @@ from app.limits import (
     URLSAFE_BLACKLIST,
 )
 from app.models.db.user import User
+from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.services.auth_service import AuthService
 
@@ -57,3 +60,24 @@ async def settings_security(user: Annotated[User, web_user()]):
             'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
         },
     )
+
+
+@router.get('/settings/connections')
+async def settings_connections(user: Annotated[User, web_user()]):
+    provider_id_map = await ConnectedAccountQuery.get_provider_id_map_by_user(user.id)
+    return await render_response('settings/connections.jinja2', {'provider_id_map': provider_id_map})
+
+
+@router.get('/preferences{_:path}')
+async def legacy_settings_preferences():
+    return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/account/edit')
+async def legacy_settings_edit():
+    return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)
+
+
+@router.get('/user/{_:str}/account')
+async def legacy_settings_account():
+    return RedirectResponse('/settings', status.HTTP_301_MOVED_PERMANENTLY)

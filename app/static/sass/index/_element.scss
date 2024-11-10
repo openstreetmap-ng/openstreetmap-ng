@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .action-sidebar.element,
 .action-sidebar.element-history {
     .sidebar-title-icon {
@@ -88,7 +90,7 @@
                 .tag-value {
                     color: $red-600;
                     text-decoration: line-through;
-                    text-decoration-color: transparentize($red-600, 0.4);
+                    text-decoration-color: color.adjust($red-600, $alpha: -0.4);
                 }
             }
         }
@@ -99,7 +101,7 @@
             .tag-value {
                 color: $red-600;
                 text-decoration: line-through;
-                text-decoration-color: transparentize($red-600, 0.4);
+                text-decoration-color: color.adjust($red-600, $alpha: -0.4);
             }
         }
     }

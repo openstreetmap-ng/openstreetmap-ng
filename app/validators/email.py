@@ -3,7 +3,7 @@ from asyncio import Task, TaskGroup
 from collections.abc import Iterable
 from typing import Annotated, cast
 
-from annotated_types import MaxLen, MinLen, Predicate
+from annotated_types import MaxLen, MinLen
 from dns.asyncresolver import Resolver
 from dns.exception import DNSException, Timeout
 from dns.rdatatype import RdataType
@@ -12,6 +12,7 @@ from dns.resolver import NXDOMAIN, NoAnswer, NoNameservers
 from email_validator import EmailNotValidError
 from email_validator import validate_email as validate_email_
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH
+from pydantic import AfterValidator
 
 from app.config import TEST_ENV
 from app.limits import EMAIL_DELIVERABILITY_CACHE_EXPIRE, EMAIL_DELIVERABILITY_DNS_TIMEOUT, EMAIL_MIN_LENGTH
@@ -125,7 +126,7 @@ async def _check_domain_deliverability(domain: str) -> bool:
     return success
 
 
-EmailValidator = Predicate(validate_email)  # pyright: ignore[reportArgumentType]
+EmailValidator = AfterValidator(validate_email)
 ValidatingEmailType = Annotated[EmailType, EmailValidator, MinLen(EMAIL_MIN_LENGTH), MaxLen(EMAIL_MAX_LENGTH)]
 
 __all__ = ('ValidatingEmailType',)

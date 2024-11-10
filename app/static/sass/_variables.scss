@@ -1,3 +1,5 @@
+@use "sass:map";
+
 $min-contrast-ratio: 2;
 
 $blue: #7092ff;
@@ -26,7 +28,7 @@ $custom-colors: (
     "green": $green,
     "light-green": $light-green,
 );
-$theme-colors: map-merge($theme-colors, $custom-colors);
+$theme-colors: map.merge($theme-colors, $custom-colors);
 
 $action-sidebar-width: 400px;
 $leaflet-sidebar-width: 250px;

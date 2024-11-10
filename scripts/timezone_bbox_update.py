@@ -1,7 +1,7 @@
-import json
 from math import isclose
 from pathlib import Path
 
+import orjson
 import uvloop
 from pytz import country_timezones
 from shapely.geometry import shape
@@ -27,7 +27,7 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
     r.raise_for_status()
 
     content = ZstdDecompressor().decompress(r.content)
-    features = json.loads(content)['features']
+    features = orjson.loads(content)['features']
     result = {}
 
     print('Processing country boundaries')

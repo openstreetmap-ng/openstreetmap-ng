@@ -99,13 +99,13 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
     if maneuver_id in {'rotary', 'roundabout'}:
         exit_num = step['maneuver'].get('exit')
         if exit_num is None:
-            return t(f'{translation_key}_without_exit', name=name)
+            return t(f'{translation_key}_without_exit', name=name)  # noqa: INT001
 
         if 0 < exit_num <= 10:
             exit_translation = _MANEUVER_EXIT_TO_TRANSLATION_MAP[exit_num]
-            return t(f'{translation_key}_with_exit_ordinal', name=name, exit=t(exit_translation))
+            return t(f'{translation_key}_with_exit_ordinal', name=name, exit=t(exit_translation))  # noqa: INT001
 
-        return t(f'{translation_key}_with_exit', name=name, exit=exit_num)
+        return t(f'{translation_key}_with_exit', name=name, exit=exit_num)  # noqa: INT001
 
     if maneuver_id in {'on ramp left', 'on ramp right', 'off ramp left', 'off ramp right'}:
         exits = step.get('exits')
@@ -132,7 +132,7 @@ def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
         with_translation_key = f'{translation_key}_with_{'_'.join(with_parts)}'
         return t(with_translation_key, **params)
 
-    return t(f'{translation_key}_without_exit', name=name)
+    return t(f'{translation_key}_without_exit', name=name)  # noqa: INT001
 
 
 _MANEUVER_ID_TO_ICON_MAP = {

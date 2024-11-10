@@ -1,13 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Response, UploadFile
+from fastapi import APIRouter, Form, Path, Response, UploadFile
+from starlette import status
+from starlette.responses import RedirectResponse
 
 from app.lib.auth_context import web_user
 from app.lib.standard_feedback import StandardFeedback
 from app.limits import USER_DESCRIPTION_MAX_LENGTH
+from app.models.auth_provider import AuthProvider
 from app.models.db.user import AvatarType, Editor, User
 from app.models.types import LocaleCode, PasswordType, ValidatingDisplayNameType
 from app.services.auth_service import AuthService
+from app.services.connected_account_service import ConnectedAccountService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_service import UserService
 from app.validators.email import ValidatingEmailType
@@ -101,3 +105,12 @@ async def settings_description(
 ):
     await UserService.update_description(description=description)
     return Response()
+
+
+@router.post('/settings/connections/{provider:str}/disconnect')
+async def settings_connections(
+    provider: Annotated[AuthProvider, Path()],
+    _: Annotated[User, web_user()],
+):
+    await ConnectedAccountService.remove_connection(provider)
+    return RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)

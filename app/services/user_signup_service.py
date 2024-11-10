@@ -1,7 +1,6 @@
 from urllib.parse import urlsplit
 
 from pydantic import SecretStr
-from sqlalchemy import delete, update
 
 from app.config import APP_URL
 from app.db import db_commit
@@ -29,6 +28,7 @@ class UserSignupService:
         email: EmailType,
         password: PasswordType,
         tracking: bool,
+        email_confirmed: bool,
     ) -> SecretStr:
         """
         Create a new user.
@@ -54,35 +54,18 @@ class UserSignupService:
                 display_name=display_name,
                 password_pb=password_pb,
                 created_ip=get_request_ip(),
-                status=UserStatus.pending_terms,
-                auth_provider=None,  # TODO: support
-                auth_uid=None,
+                status=UserStatus.active if email_confirmed else UserStatus.pending_activation,
                 language=primary_translation_locale(),
                 activity_tracking=tracking,
                 crash_reporting=tracking,
             )
             session.add(user)
 
+        if not email_confirmed:
+            with auth_context(user, scopes=()):
+                await UserSignupService.send_confirm_email()
+
         return await SystemAppService.create_access_token('SystemApp.web', user_id=user.id)
-
-    @staticmethod
-    async def accept_terms() -> None:
-        """
-        Accept the terms of service and send a confirmation email.
-        """
-        user = auth_user(required=True)
-        async with db_commit() as session:
-            stmt = (
-                update(User)
-                .where(User.id == user.id, User.status == UserStatus.pending_terms)
-                .values({User.status: UserStatus.pending_activation})
-                .inline()
-            )
-            if (await session.execute(stmt)).rowcount != 1:
-                return
-
-        with auth_context(user, scopes=()):
-            await UserSignupService.send_confirm_email()
 
     @staticmethod
     async def send_confirm_email() -> None:
@@ -99,15 +82,3 @@ class UserSignupService:
             template_name='email/account_confirm.jinja2',
             template_data={'token': UserTokenStructUtils.to_str(token), 'app_domain': app_domain},
         )
-
-    @staticmethod
-    async def abort_signup() -> None:
-        """
-        Abort the current signup process.
-        """
-        async with db_commit() as session:
-            stmt = delete(User).where(
-                User.id == auth_user(required=True).id,
-                User.status == UserStatus.pending_terms,
-            )
-            await session.execute(stmt)

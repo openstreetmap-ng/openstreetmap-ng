@@ -16,7 +16,7 @@ if (body) {
     const loadingSpinner = messagePreview.querySelector(".loading")
 
     let abortController: AbortController | null = null
-    let openTarget: Element = null
+    let openTarget: HTMLElement = null
     let openMessageId: string | null = null
 
     /** Open a message in the sidebar preview panel */
@@ -42,7 +42,7 @@ if (body) {
         loadingSpinner.classList.remove("d-none")
 
         // Set show parameter in URL
-        updatePageUrl(openMessageId)
+        updatePageUrl(openTarget)
 
         // Update reply link
         replyLink.href = `/message/new?reply=${openMessageId}`
@@ -94,12 +94,16 @@ if (body) {
         updatePageUrl(undefined)
     }
 
-    /** Update the URL with the given message id, without reloading the page */
-    const updatePageUrl = (messageId: string | undefined) => {
-        const url = new URL(window.location.href)
-        url.searchParams.set("before", (messageIdMax + 1n).toString())
-        url.searchParams.set("show", messageId)
-        window.history.replaceState(null, "", url)
+    /** Update the URL with the given message, without reloading the page */
+    const updatePageUrl = (message: HTMLElement | undefined) => {
+        if (message) {
+            const messageLink = message.querySelector("a.stretched-link")
+            window.history.replaceState(null, "", messageLink.href)
+        } else {
+            const url = new URL(window.location.href)
+            url.searchParams.delete("show")
+            window.history.replaceState(null, "", url)
+        }
     }
 
     // Configure message header buttons
@@ -140,20 +144,20 @@ if (body) {
     })
 
     // Configure message selection
-    let messageIdMax = 0n
     for (const message of messages) {
-        const messageId = BigInt(message.dataset.id)
-        messageIdMax = messageId > messageIdMax ? messageId : messageIdMax
+        const messageLink = message.querySelector("a.stretched-link")
 
         // On message click, open preview if target is not a link
-        message.addEventListener("click", ({ target }) => {
-            const tagName = (target as HTMLElement).tagName
-            console.debug("onMessageClick", tagName)
-            if (tagName === "A") return
+        messageLink.addEventListener("click", (e) => {
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+            e.preventDefault()
+            messageLink.blur()
             openMessagePreview(message)
         })
-        message.addEventListener("keydown", (event: KeyboardEvent) => {
-            if (event.key !== "Enter") return
+        messageLink.addEventListener("keydown", (e: KeyboardEvent) => {
+            if (e.key !== "Enter") return
+            e.preventDefault()
+            messageLink.blur()
             openMessagePreview(message)
         })
 
@@ -162,5 +166,4 @@ if (body) {
             openMessagePreview(message)
         }
     }
-    console.debug("Highest message id is", messageIdMax)
 }

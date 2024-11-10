@@ -48,7 +48,7 @@
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.packageIndexDepths": [
         {
-            "depth": 2,
+            "depth": 3,
             "includeAllSymbols": false,
             "name": ""
         }
@@ -58,5 +58,6 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "typescript.disableAutomaticTypeAcquisition": true,
-    "typescript.surveys.enabled": false
+    "typescript.surveys.enabled": false,
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

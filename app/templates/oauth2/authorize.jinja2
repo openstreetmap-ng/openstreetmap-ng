@@ -13,13 +13,13 @@
                     <i class="bi bi-arrow-right fs-4 mx-3"></i>
                     <img class="header-avatar avatar" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
                 </div>
-                <h4 class="card-title text-center">
+                <h4 class="card-title text-center mb-0">
                     {% set app_name %}
                     <b>{{ app.name }}</b>
                     {% endset %}
                     {{ t('oauth.authorize_app_to_access_your_account', name=app_name) | safe }}
                 </h4>
-                <p class="form-text text-center mb-4">
+                <p class="text-secondary small text-center mb-4">
                     {% set user_link %}
                     <a href="/user/{{ user.display_name }}" target="_blank">{{ user.display_name }}</a>
                     {% endset %}

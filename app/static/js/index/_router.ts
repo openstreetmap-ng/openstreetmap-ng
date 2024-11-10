@@ -86,15 +86,15 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
     })
 
     // On window click, attempt to navigate to the href of an anchor element
-    window.addEventListener("click", (event: MouseEvent): void => {
+    window.addEventListener("click", (e: MouseEvent): void => {
         // Skip if default prevented
-        if (event.defaultPrevented) return
+        if (e.defaultPrevented) return
 
         // Skip if not left click or modified click
-        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
 
         // Skip if target is not an anchor
-        const target = (event.target as Element).closest("a")
+        const target = (e.target as Element).closest("a")
         if (!target) return
 
         // Skip if the anchor is not a link
@@ -108,7 +108,7 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         console.debug("onWindowClick", newPath)
 
         if (routerNavigate(newPath)) {
-            event.preventDefault()
+            e.preventDefault()
         }
     })
 

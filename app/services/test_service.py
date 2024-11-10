@@ -102,8 +102,6 @@ class TestService:
                     password_pb=b'',
                     created_ip=IPv4Address('127.0.0.1'),
                     status=status,
-                    auth_provider=None,
-                    auth_uid=None,
                     language=language,
                     activity_tracking=False,
                     crash_reporting=False,

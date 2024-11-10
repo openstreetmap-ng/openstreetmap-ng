@@ -2,7 +2,7 @@
 <ul class="messages-list list-unstyled">
     {% for message in messages %}
     <li class="social-action social-entry {% if message.id == active_message_id %}active{% endif %} {% if inbox and not message.is_read %}unread{% endif %}"
-        data-id="{{ message.id }}" tabindex="0">
+        data-id="{{ message.id }}">
         <p class="header text-muted d-flex justify-content-between">
             {% if inbox %}
             <span>
@@ -24,6 +24,7 @@
             </span>
             {% endif %}
             <span>
+                <a class="stretched-link" href="?before={{ current_before }}&show={{ message.id }}"></a>
                 <span class="unread-badge badge text-bg-primary">
                     <i class="bi bi-bell-fill me-1"></i>{{ t('state.unread') }}
                 </span>

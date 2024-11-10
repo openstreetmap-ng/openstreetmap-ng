@@ -41,6 +41,9 @@
 <body class="{% block body_class %}{% endblock %}">
     {% include '_navbar.jinja2' %}
     {% block body %}{% endblock %}
+    {% if user is none and self.body_class() != 'login-body' %}
+    {% include '_login.jinja2' %}
+    {% endif %}
 </body>
 
 </html>

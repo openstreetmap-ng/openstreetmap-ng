@@ -1,6 +1,7 @@
 {% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('settings.password_and_security') }} | {% endblock %}
 {% block body_class %}settings-security-body{% endblock %}
+{% block settings_active_href %}/settings/security{% endblock %}
 {% block settings_title %}{{ t('settings.password_and_security') | capitalize }}{% endblock %}
 {% block settings_body %}
 
@@ -28,9 +29,10 @@
 
     <div class="row align-items-center">
         <div class="col">
-            <div class="form-check">
+            <div class="form-check ms-1">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true">
+                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
+                        autocomplete="off">
                     {{ t('settings.logout_from_browsers') }}
                 </label>
             </div>

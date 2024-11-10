@@ -1,6 +1,7 @@
 {% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('accounts.edit.my settings') | capitalize }} | {% endblock %}
 {% block body_class %}settings-body{% endblock %}
+{% block settings_active_href %}/settings{% endblock %}
 {% block settings_title %}{{ t('accounts.edit.my settings') | capitalize }}{% endblock %}
 {% block settings_body %}
 
@@ -21,14 +22,7 @@
             </a>
         </div>
     </label>
-    <p class="form-text">
-        {% set privacy_policy_link %}
-        <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">{#
-            #}{{ t('users.new.privacy_policy') }}{#
-        #}</a>
-        {% endset %}
-        {{ t('users.new.email_confirmation_help_html', privacy_policy_link=privacy_policy_link) | safe }}
-    </p>
+    <p class="form-text">{{ t('settings.your_email_address_is_not_displayed_publicly') }}</p>
 
     <label class="form-label d-block mb-3">
         {{ t('settings.password_last_changed') }}

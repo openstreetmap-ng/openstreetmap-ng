@@ -1,13 +1,13 @@
-import json
 import tomllib
 from asyncio import Semaphore, Task, TaskGroup
 from datetime import timedelta
 from pathlib import Path
 
+import orjson
 import uvloop
 
 from app.lib.retry import retry
-from app.utils import HTTP, JSON_DECODE
+from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 
@@ -29,7 +29,7 @@ async def get_popularity(key: str, type: str, value: str) -> float:
     async with _download_limiter:
         r = await HTTP.get(url, params=params)
         r.raise_for_status()
-        data = JSON_DECODE(r.content)['data']
+        data = r.json()['data']
 
     return sum(item['count'] for item in data if not type or item['type'].startswith(type))
 
@@ -47,8 +47,8 @@ async def main():
     for (key_orig, value), task in tasks:
         _config[key_orig][value] = task.result()
 
-    buffer = json.dumps(_config, indent=2, sort_keys=True) + '\n'
-    _output_path.write_text(buffer)
+    buffer = orjson.dumps(_config, option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_APPEND_NEWLINE)
+    _output_path.write_bytes(buffer)
 
 
 if __name__ == '__main__':

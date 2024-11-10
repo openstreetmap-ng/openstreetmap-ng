@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -8,6 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import cython
+import orjson
 
 from app.config import FILE_CACHE_DIR
 
@@ -59,9 +59,9 @@ def _browserslist_versions() -> dict[str, float]:
             browser, _, version = line.partition(' ')
             version = min(float(v) for v in version.split('-'))
             result[browser] = min(result[browser], version)
-        cache_path.write_text(json.dumps(result))
+        cache_path.write_bytes(orjson.dumps(result))
         os.utime(cache_path, (lock_mtime, lock_mtime))
-    return json.loads(cache_path.read_bytes())
+    return orjson.loads(cache_path.read_bytes())
 
 
 _data = _browserslist_versions()

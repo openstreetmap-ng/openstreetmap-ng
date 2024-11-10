@@ -1,8 +1,8 @@
-import json
 from collections.abc import Iterable
 from pathlib import Path
 
 import cython
+import orjson
 
 from app.lib.locale import DEFAULT_LOCALE, normalize_locale
 from app.lib.translation import translation_locales
@@ -13,7 +13,7 @@ from app.models.tags_format import TagFormat, ValueFormat
 
 @cython.cfunc
 def _get_wiki_pages() -> dict[tuple[str, str], frozenset[str | None]]:
-    data = json.loads(Path('config/wiki_pages.json').read_bytes())
+    data = orjson.loads(Path('config/wiki_pages.json').read_bytes())
     return {
         (key, value): frozenset(
             normalize_locale(locale)

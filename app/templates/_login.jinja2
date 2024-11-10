@@ -1,0 +1,22 @@
+<div id="loginModal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button class="btn-close" aria-label="{{ t('javascripts.close') }}" type="button"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="login-body modal-body px-4 pt-0">
+                {% include '_login_body.jinja2' %}
+            </div>
+            {% if TEST_ENV %}
+            <div class="modal-footer">
+                {% for _login in ('user1', 'user2', 'moderator', 'admin') %}
+                <button class="autofill-btn btn btn-sm btn-secondary" data-login="{{ _login }}" data-password="x">
+                    {{ _login }}
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

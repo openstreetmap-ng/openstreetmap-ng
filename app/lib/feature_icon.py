@@ -1,4 +1,3 @@
-import json
 import logging
 import tomllib
 from collections.abc import Iterable
@@ -6,6 +5,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 import cython
+import orjson
 
 from app.models.db.element import Element
 from app.models.element import ElementType
@@ -37,7 +37,7 @@ def _get_popular_stats() -> dict[str, dict[str, int]]:
     """
     Load the feature icon popularity data.
     """
-    return json.loads(Path('config/feature_icons_popular.json').read_bytes())
+    return orjson.loads(Path('config/feature_icons_popular.json').read_bytes())
 
 
 @cython.cfunc

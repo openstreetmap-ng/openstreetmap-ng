@@ -99,3 +99,9 @@ export const range = (start: number, stop: number, step = 1): number[] => {
     for (let i = start; i < stop; i += step) result.push(i)
     return result
 }
+
+/**
+ * Backwards-compatible requestAnimationFrame function
+ */
+export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => number =
+    window.requestAnimationFrame || ((callback) => window.setTimeout(() => callback(performance.now()), 30))

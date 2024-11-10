@@ -1,10 +1,11 @@
 {% extends 'settings/_base.jinja2' %}
 {% block title_prefix %}{{ t('settings.my_applications.title') }} | {% endblock %}
 {% block body_class %}settings-applications-body{% endblock %}
+{% block settings_active_href %}/settings/applications{% endblock %}
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-<ul class="nav nav-tabs mb-3">
+<ul class="nav nav-underline mb-3">
     <li class="nav-item">
         <a href="/settings/applications" class="nav-link">
             {{ t('settings.authorizations.title') }}
@@ -22,7 +23,7 @@
     </li>
 </ul>
 
-<p class="mx-2">{{ t('settings.my_applications.description') }}</p>
+<p>{{ t('settings.my_applications.description') }}</p>
 <ul class="applications-list list-unstyled">
     {% set expanded = false %}
     {% for app in apps %}
@@ -30,13 +31,15 @@
     {% endfor %}
 </ul>
 {% if not apps %}
-<p class="mx-2">{{ t('settings.my_applications.you_have_not_created_any_applications_yet') }}</p>
+<p class="form-text"><i
+        class="bi bi-info-circle me-2"></i>{{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
+</p>
 {% endif %}
 
 <div class="text-end mb-2">
     <button class="create-application-btn btn btn-primary" type="button">
         <i class="bi bi-plus-lg"></i>
-        {{ t('settings.my_applications.create_new_application') }}
+        {{ t('settings.my_applications.register_a_new_application') }}
     </button>
     <form class="create-application-form offset-8 d-flex d-none" method="POST"
         action="/api/web/settings/applications/admin/create">
@@ -45,8 +48,5 @@
         <button class="btn btn-primary" type="submit">{{ t('action.submit') }}</button>
     </form>
 </div>
-<p class="form-text text-end me-1 mb-0">
-    <i class="bi bi-lightbulb-fill yellow-glow me-2"></i>{{ t('settings.my_applications.my_tokens_hint') }}
-</p>
 
 {% endblock %}
