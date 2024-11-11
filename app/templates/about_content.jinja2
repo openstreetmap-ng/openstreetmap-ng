@@ -32,31 +32,31 @@
             <p>
                 {% set osm_blog_link %}
                 <a href="https://blog.openstreetmap.org">
-                    {{ t('site.about.community_driven_osm_blog') }}
+                    {{- t('site.about.community_driven_osm_blog') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set user_diaries_link %}
                 <a href="/diary">
-                    {{ t('site.about.community_driven_user_diaries') }}
+                    {{- t('site.about.community_driven_user_diaries') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set community_blogs_link %}
                 <a href="https://blogs.openstreetmap.org">
-                    {{ t('site.about.community_driven_community_blogs') }}
+                    {{- t('site.about.community_driven_community_blogs') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set osm_foundation_link %}
                 <a href="https://osmfoundation.org">
-                    {{ t('site.about.community_driven_osm_foundation') }}
+                    {{- t('site.about.community_driven_osm_foundation') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.about.community_driven_1_html',
-                        osm_blog_link=osm_blog_link,
-                        user_diaries_link=user_diaries_link,
-                        community_blogs_link=community_blogs_link,
-                        osm_foundation_link=osm_foundation_link,
-                        ) | safe }}
+                    'site.about.community_driven_1_html',
+                    osm_blog_link=osm_blog_link,
+                    user_diaries_link=user_diaries_link,
+                    community_blogs_link=community_blogs_link,
+                    osm_foundation_link=osm_foundation_link,
+                ) | safe }}
             </p>
 
             <h3>
@@ -67,14 +67,14 @@
                 {% set open_data %}<i>{{ t('site.about.open_data_open_data') }}</i>{% endset %}
                 {% set copyright_license_link %}
                 <a href="/copyright" rel="license">
-                    {{ t('site.about.open_data_copyright_license') }}
+                    {{- t('site.about.open_data_copyright_license') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.about.open_data_1_html',
-                        open_data=open_data,
-                        copyright_license_link=copyright_license_link,
-                        ) | safe }}
+                    'site.about.open_data_1_html',
+                    open_data=open_data,
+                    copyright_license_link=copyright_license_link,
+                ) | safe }}
             </p>
 
             <h3>
@@ -84,53 +84,53 @@
             <p>
                 {% set openstreetmap_foundation_link %}
                 <a href="https://osmfoundation.org">
-                    {{ t('site.about.legal_1_1_openstreetmap_foundation') }}
+                    {{- t('site.about.legal_1_1_openstreetmap_foundation') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set terms_of_use_link %}
                 <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service">
-                    {{ t('layouts.tou') }}
+                    {{- t('layouts.tou') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set aup_link %}
                 <a href="https://wiki.openstreetmap.org/wiki/Acceptable_Use_Policy">
-                    {{ t('site.about.legal_1_1_aup') }}
+                    {{- t('site.about.legal_1_1_aup') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set privacy_policy_link %}
                 <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy">
-                    {{ t('users.new.privacy_policy') | title }}
+                    {{- t('users.new.privacy_policy') | title -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.about.legal_1_1_html',
-                        openstreetmap_foundation_link=openstreetmap_foundation_link,
-                        terms_of_use_link=terms_of_use_link,
-                        aup_link=aup_link,
-                        privacy_policy_link=privacy_policy_link,
-                        ) | safe }}
+                    'site.about.legal_1_1_html',
+                    openstreetmap_foundation_link=openstreetmap_foundation_link,
+                    terms_of_use_link=terms_of_use_link,
+                    aup_link=aup_link,
+                    privacy_policy_link=privacy_policy_link,
+                ) | safe }}
             </p>
             <p>
                 {% set trademark_policy_link %}
                 <a href="https://osmfoundation.org/wiki/Trademark_Policy">
-                    {{ t('site.copyright.legal_babble.trademarks_1_1_trademark_policy') }}
+                    {{- t('site.copyright.legal_babble.trademarks_1_1_trademark_policy') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.trademarks_1_1_html',
-                        trademark_policy_link=trademark_policy_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.trademarks_1_1_html',
+                    trademark_policy_link=trademark_policy_link,
+                ) | safe }}
             </p>
             <p>
                 {% set contact_the_osmf_link %}
                 <a href="https://osmfoundation.org/wiki/Contact">
-                    {{ t('site.about.legal_2_1_contact_the_osmf') }}
+                    {{- t('site.about.legal_2_1_contact_the_osmf') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.about.legal_2_1_html',
-                        contact_the_osmf_link=contact_the_osmf_link,
-                        ) | safe }}
+                    'site.about.legal_2_1_html',
+                    contact_the_osmf_link=contact_the_osmf_link,
+                ) | safe }}
             </p>
 
             <h3>
@@ -140,31 +140,31 @@
             <p class="mb-0">
                 {% set ucl %}
                 <a href="https://www.ucl.ac.uk">
-                    {{ t('layouts.partners_ucl') }}{#
-                #}</a>{#
-                #}{% endset %}
+                    {{- t('layouts.partners_ucl') -}}
+                </a>
+                {%- endset %}
                 {% set fastly %}
                 <a href="https://www.fastly.com">
-                    {{ t('layouts.partners_fastly') }}{#
-                #}</a>{#
-                #}{% endset %}
+                    {{- t('layouts.partners_fastly') -}}
+                </a>
+                {%- endset %}
                 {% set bytemark %}
                 <a href="https://www.bytemark.co.uk">
-                    {{ t('layouts.partners_bytemark') }}{#
-                #}</a>{#
-                #}{% endset %}
+                    {{- t('layouts.partners_bytemark') -}}
+                </a>
+                {%- endset %}
                 {% set partners %}
                 <a href="https://hardware.openstreetmap.org/thanks/">
-                    {{ t('layouts.partners_partners') }}{#
-                #}</a>{#
-                #}{% endset %}
+                    {{- t('layouts.partners_partners') -}}
+                </a>
+                {%- endset %}
                 {{ t(
-                        'layouts.hosting_partners_html',
-                        ucl=ucl,
-                        fastly=fastly,
-                        bytemark=bytemark,
-                        partners=partners,
-                        ) | safe }}
+                    'layouts.hosting_partners_html',
+                    ucl=ucl,
+                    fastly=fastly,
+                    bytemark=bytemark,
+                    partners=partners,
+                ) | safe }}
             </p>
         </div>
 

@@ -13,7 +13,8 @@
         <div class="dropdown">
             <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
-                <i class="bi bi-image text-muted me-1"></i>{{ t('user.edit_background') }}
+                <i class="bi bi-image text-muted me-1"></i>
+                {{- t('user.edit_background') }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
@@ -47,7 +48,8 @@
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                        <i class="bi bi-person-circle text-muted me-1"></i>{{ t('layouts.edit') }}
+                        <i class="bi bi-person-circle text-muted me-1"></i>
+                        {{- t('layouts.edit') }}
                     </button>
                     <ul class="dropdown-menu">
                         <li>
@@ -104,7 +106,8 @@
                 <div class="user-actions mb-2">
                     {% if user is not none and not is_self %}
                     <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
-                        <i class="bi bi-envelope-plus me-2"></i>{{ t('action.send_a_message') }}
+                        <i class="bi bi-envelope-plus me-2"></i>
+                        {{- t('action.send_a_message') }}
                     </a>
                     {% endif %}
                 </div>
@@ -121,7 +124,8 @@
                 {% if is_self %}
                 <button class="btn btn-sm btn-light border ms-3" data-bs-toggle="modal"
                     data-bs-target="#profileDescriptionModal">
-                    <i class="bi bi-pencil-square me-1"></i>{{ t('user.edit_description') }}
+                    <i class="bi bi-pencil-square me-1"></i>
+                    {{- t('user.edit_description') }}
                 </button>
                 {% endif %}
             </h3>

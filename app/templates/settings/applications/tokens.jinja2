@@ -31,8 +31,10 @@
     {% endfor %}
 </ul>
 {% if not tokens %}
-<p class="form-text"><i
-        class="bi bi-info-circle me-2"></i>{{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}</p>
+<p class="form-text">
+    <i class="bi bi-info-circle me-2"></i>
+    {{- t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}
+</p>
 {% endif %}
 
 <div class="accordion mb-4">
@@ -118,7 +120,8 @@
 <p>{{ t('settings.my_tokens.how_to_use.description') }}</p>
 <div class="card mb-3">
     <div class="card-header">
-        <i class="bi bi-globe2 me-2"></i>{{ t('settings.my_tokens.how_to_use.example_http_request') }}
+        <i class="bi bi-globe2 me-2"></i>
+        {{- t('settings.my_tokens.how_to_use.example_http_request') }}
     </div>
     <div class="card-body">
         <pre class="mb-0"><code>GET /api/0.7/user/details HTTP/1.1
@@ -128,7 +131,8 @@ Authorization: Bearer your_access_token_here</code></pre>
 </div>
 <div class="card">
     <div class="card-header">
-        <i class="bi bi-terminal me-2"></i>{{ t('settings.my_tokens.how_to_use.example_curl_command') }}
+        <i class="bi bi-terminal me-2"></i>
+        {{- t('settings.my_tokens.how_to_use.example_curl_command') }}
     </div>
     <div class="card-body">
         <pre

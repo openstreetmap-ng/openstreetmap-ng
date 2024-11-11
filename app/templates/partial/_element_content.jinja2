@@ -6,9 +6,9 @@
             {% else %}
             <a href="/user/{{ changeset.user.display_name }}">
                 <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                    loading="lazy">{#
-                #}{{ changeset.user.display_name }}{#
-                #}</a>
+                    loading="lazy">
+                {{- changeset.user.display_name -}}
+            </a>
             {% endif %}
             {% if element.visible %}
             {{ t('action.edited') }}
@@ -28,8 +28,8 @@
     <div class="body">
         <p class="position-relative mb-1">
             {{ t('browse.in_changeset') }}
-            #<a href="/changeset/{{ element.changeset_id }}">{#
-                #}{{ element.changeset_id }}
+            #<a href="/changeset/{{ element.changeset_id }}">
+                {{- element.changeset_id -}}
             </a>
         </p>
         <div class="fst-italic">

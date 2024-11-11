@@ -19,31 +19,31 @@
         <p>
             {% set ucl %}
             <a href="https://www.ucl.ac.uk">
-                {{ t('layouts.partners_ucl') }}{#
-            #}</a>{#
-            #}{% endset %}
+                {{- t('layouts.partners_ucl') -}}
+            </a>
+            {%- endset %}
             {% set fastly %}
             <a href="https://www.fastly.com">
-                {{ t('layouts.partners_fastly') }}{#
-            #}</a>{#
-            #}{% endset %}
+                {{- t('layouts.partners_fastly') -}}
+            </a>
+            {%- endset %}
             {% set bytemark %}
             <a href="https://www.bytemark.co.uk">
-                {{ t('layouts.partners_bytemark') }}{#
-            #}</a>{#
-            #}{% endset %}
+                {{- t('layouts.partners_bytemark') -}}
+            </a>
+            {%- endset %}
             {% set partners %}
             <a href="https://hardware.openstreetmap.org/thanks/">
-                {{ t('layouts.partners_partners') }}{#
-            #}</a>{#
-            #}{% endset %}
+                {{- t('layouts.partners_partners') -}}
+            </a>
+            {%- endset %}
             {{ t(
-                        'layouts.hosting_partners_html',
-                        ucl=ucl,
-                        fastly=fastly,
-                        bytemark=bytemark,
-                        partners=partners,
-                    ) | safe }}
+                'layouts.hosting_partners_html',
+                ucl=ucl,
+                fastly=fastly,
+                bytemark=bytemark,
+                partners=partners,
+            ) | safe }}
         </p>
 
         <div class="row g-2">

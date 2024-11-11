@@ -1,5 +1,5 @@
 import { Dropdown, Tooltip } from "bootstrap"
-import { qsEncode, qsParse } from "./_qs"
+import { qsParse } from "./_qs"
 import { remoteEdit } from "./_remote-edit"
 import type { OSMObject } from "./_types"
 import { isHrefCurrentPage } from "./_utils"
@@ -81,22 +81,11 @@ editGroup.addEventListener("hidden.bs.dropdown", () => {
     rememberChoice.dispatchEvent(new Event("change"))
 })
 
-const loginLinks: NodeListOf<HTMLAnchorElement> = navbar.querySelectorAll("a[href='/login']")
-/** Update the login links with the current path and hash */
-const updateLoginLinks = loginLinks.length
-    ? (hash: string): void => {
-          const loginLinkQuery = qsEncode({ referer: window.location.pathname })
-          const loginHref = `/login?${loginLinkQuery}${hash}`
-          for (const link of loginLinks) link.href = loginHref
-      }
-    : () => {}
-
 // TODO: wth object support?
 /** Update the navbar links and current URL hash */
 export const updateNavbarAndHash = (state: MapState, object?: OSMObject): void => {
     const isEditDisabled = state.zoom < minEditZoom
     const hash = encodeMapState(state)
-    updateLoginLinks(hash)
 
     for (const [link, baseHref] of mapLinksHrefMap) {
         const isEditLink = link.classList.contains("edit-link")
@@ -192,6 +181,3 @@ window.addEventListener("message", (event: MessageEvent): void => {
         updateNavbarAndHash({ lon, lat, zoom: Math.floor(zoom), layersCode: "" })
     }
 })
-
-// Initial update to update the login links
-updateLoginLinks(window.location.hash)

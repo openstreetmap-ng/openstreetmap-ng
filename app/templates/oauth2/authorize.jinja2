@@ -75,9 +75,9 @@
                             {% set owner_link %}
                             <a href="/user/{{ app.user.display_name }}" target="_blank">
                                 <img class="avatar me-1" src="{{ app.user.avatar_url }}"
-                                    alt="{{ t('alt.profile_picture') }}">{#
-                                #}{{ app.user.display_name }}{#
-                            #}</a>
+                                    alt="{{ t('alt.profile_picture') }}">
+                                {{- app.user.display_name -}}
+                            </a>
                             {% endset %}
                             {{ t('settings.owned_by_user', name=owner_link) | safe }}
                             ·
@@ -97,8 +97,8 @@
                     </div>
                 </div>
                 <p class="form-text text-end me-1 mb-0">
-                    <i
-                        class="bi bi-lightbulb-fill yellow-glow me-2"></i>{{ t('oauth.revoke_access_anytime_in_settings') }}
+                    <i class="bi bi-lightbulb-fill yellow-glow me-2"></i>
+                    {{- t('oauth.revoke_access_anytime_in_settings') }}
                 </p>
             </div>
         </form>

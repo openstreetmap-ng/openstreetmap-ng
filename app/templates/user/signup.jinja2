@@ -12,8 +12,8 @@
 
                 <div>
                     <h1 class="brand-title">
-                        <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}" draggable="false">{#
-                        #}{{ t('layouts.project_name.title') }}
+                        <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo') }}" draggable="false">
+                        {{- t('layouts.project_name.title') }}
                     </h1>
                     <p class="brand-description mb-0">{{ t('signup.brand_description') | safe }}</p>
                 </div>
@@ -73,22 +73,28 @@
                             <input class="form-check-input" type="checkbox" autocomplete="off" required>
                             {% set terms_link %}
                             <a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service"
-                                target="_blank">{{ t('layouts.tou') | lower }}</a>{#
-                            #}{% endset %}
+                                target="_blank">
+                                {{- t('layouts.tou') | lower -}}
+                            </a>
+                            {%- endset %}
                             {% set privacy_link %}
                             <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="privacy-policy"
-                                target="_blank">{{ t('users.new.privacy_policy') }}</a>{#
-                            #}{% endset %}
+                                target="_blank">
+                                {{- t('users.new.privacy_policy') -}}
+                            </a>
+                            {%- endset %}
                             {% set contributor_link %}
-                            <a href="https://osmfoundation.org/wiki/Licence/Contributor_Terms"
-                                target="_blank">{{ t('accounts.edit.contributor terms.heading') | lower }}</a>{#
-                            #}{% endset %}
+                            <a href="https://osmfoundation.org/wiki/Licence/Contributor_Terms" target="_blank">
+                                {{- t('accounts.edit.contributor terms.heading') | lower -}}
+                            </a>
+                            {%- endset %}
                             <span class="required">
                                 {{ t('signup.i_agree_to_the_terms_privacy_and_contributor',
-                                terms=terms_link,
-                                privacy=privacy_link,
-                                contributor=contributor_link) | safe }}{#
-                            #}</span>
+                                    terms=terms_link,
+                                    privacy=privacy_link,
+                                    contributor=contributor_link
+                                ) | safe -}}
+                            </span>
                         </label>
                     </div>
 

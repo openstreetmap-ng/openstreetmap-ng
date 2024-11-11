@@ -19,9 +19,9 @@
                     {{ t('browse.anonymous') }}
                     {% else %}
                     <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                        <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">{#
-                    #}{{ changeset.user.display_name }}{#
-                    #}</a>
+                        <img class="avatar" src="{{ changeset.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                        {{- changeset.user.display_name -}}
+                    </a>
                     {% endif %}
                     {% if changeset.closed_at is none %}
                     {{ t('browse.created') | lower }}
@@ -102,9 +102,9 @@
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
                         <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                            loading="lazy">{#
-                        #}{{ comment.user.display_name }}{#
-                    #}</a>
+                            loading="lazy">
+                        {{- comment.user.display_name -}}
+                    </a>
                     {{ t('action.commented') }}
                     {{ timeago(comment.created_at, html=True) | safe }}
                 </p>
@@ -127,12 +127,11 @@
             </div>
         </form>
         {% else %}
-        <p class="text-center mb-2">
-            {# TODO: referer here? #}
-            <a href="/login">
+        <div class="text-center mb-2">
+            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
                 {{ t('browse.changeset.join_discussion') }}
-            </a>
-        </p>
+            </button>
+        </div>
         {% endif %}
 
         <div class="elements mt-4 mb-1">
@@ -162,19 +161,17 @@
         <div class="mb-2">
             {% if prev_changeset_id %}
             <a href="/changeset/{{ prev_changeset_id }}" rel="prev">
-                «
-                {{ prev_changeset_id }}{#
-            #}</a>
+                « {{ prev_changeset_id -}}
+            </a>
             ·
             {% endif %}
             <a href="/user/{{ changeset.user.display_name }}" rel="author">
-                {{ changeset.user.display_name }}{#
-            #}</a>
+                {{- changeset.user.display_name -}}
+            </a>
             {% if next_changeset_id %}
             ·
             <a href="/changeset/{{ next_changeset_id }}" rel="next">
-                {{ next_changeset_id }}
-                »{#
+                {{ next_changeset_id }} »{#
             #}</a>
             {% endif %}
         </div>
@@ -182,12 +179,12 @@
 
         <small>
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
-                {{ t('browse.changeset.changesetxml') }}{#
-            #}</a>
+                {{- t('browse.changeset.changesetxml') -}}
+            </a>
             ·
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}/download">
-                {{ t('browse.changeset.osmchangexml') }}{#
-            #}</a>
+                {{- t('browse.changeset.osmchangexml') -}}
+            </a>
         </small>
     </div>
 </div>

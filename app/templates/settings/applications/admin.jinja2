@@ -31,8 +31,9 @@
     {% endfor %}
 </ul>
 {% if not apps %}
-<p class="form-text"><i
-        class="bi bi-info-circle me-2"></i>{{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
+<p class="form-text">
+    <i class="bi bi-info-circle me-2"></i>
+    {{- t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
 </p>
 {% endif %}
 

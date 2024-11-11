@@ -43,9 +43,9 @@
                         {% set name %}
                         <a href="/user/{{ app.user.display_name }}">
                             <img class="avatar me-1" src="{{ app.user.avatar_url }}"
-                                alt="{{ t('alt.profile_picture') }}" loading="lazy">{#
-                            #}{{ app.user.display_name }}{#
-                        #}</a>
+                                alt="{{ t('alt.profile_picture') }}" loading="lazy">
+                            {{- app.user.display_name -}}
+                        </a>
                         {% endset %}
                         {% endif %}
                         {{ t('settings.owned_by_user', name=name) | safe }}

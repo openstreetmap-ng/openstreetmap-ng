@@ -19,9 +19,9 @@
                 <p class="header text-muted d-flex justify-content-between">
                     <span>
                         <a href="/user/{{ trace.user.display_name }}" rel="author">
-                            <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">{#
-                        #}{{ trace.user.display_name }}{#
-                    #}</a>
+                            <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                            {{- trace.user.display_name -}}
+                        </a>
                         {{ t('action.uploaded') }}
                         {{ timeago(trace.created_at, html=True) | safe }}
                     </span>

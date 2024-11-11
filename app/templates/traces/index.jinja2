@@ -31,7 +31,8 @@
             {{ t('traces.index.description') }}
             {% if tag %}
             <a class="ms-2" href="{{ base_url_notag }}">
-                <i class="bi bi-x-circle me-1"></i>{{ t('traces.index.remove_tag_filter') }}
+                <i class="bi bi-x-circle me-1"></i>
+                {{- t('traces.index.remove_tag_filter') }}
             </a>
             {% endif %}
         </p>
@@ -62,7 +63,8 @@
             <li class="nav-item ms-auto">
                 {% if user is not none %}
                 <a class="btn btn-light border" href="/trace/upload">
-                    <i class="bi bi-cloud-arrow-up me-2"></i>{{ t('traces.index.upload_trace') }}
+                    <i class="bi bi-cloud-arrow-up me-2"></i>
+                    {{- t('traces.index.upload_trace') }}
                 </a>
                 {% endif %}
                 {% if active_tab == 0 %}

@@ -25,7 +25,8 @@
             </li>
             <li class="nav-item ms-auto">
                 <a class="btn btn-light border" href="/message/new">
-                    <i class="bi bi-envelope-plus me-2"></i>{{ t('action.send_a_message') }}
+                    <i class="bi bi-envelope-plus me-2"></i>
+                    {{- t('action.send_a_message') }}
                 </a>
             </li>
         </ul>
@@ -50,15 +51,18 @@
                             </div>
                             <div class="btn-group" role="group">
                                 <a class="reply-link btn btn-sm btn-light border">
-                                    <i class="bi bi-reply me-2"></i>{{ t('messages.message_summary.reply_button') }}
+                                    <i class="bi bi-reply me-2"></i>
+                                    {{- t('messages.message_summary.reply_button') }}
                                 </a>
                                 {% if inbox %}
                                 <button class="unread-btn btn btn-sm btn-light border">
-                                    <i class="bi bi-envelope me-2"></i>{{ t('messages.message_summary.unread_button') }}
+                                    <i class="bi bi-envelope me-2"></i>
+                                    {{- t('messages.message_summary.unread_button') }}
                                 </button>
                                 {% endif %}
                                 <button class="delete-btn btn btn-sm btn-light border">
-                                    <i class="bi bi-trash me-2"></i>{{ t('messages.message_summary.destroy_button') }}
+                                    <i class="bi bi-trash me-2"></i>
+                                    {{- t('messages.message_summary.destroy_button') }}
                                 </button>
                             </div>
                             <form class="unread-form" method="POST" action=""></form>

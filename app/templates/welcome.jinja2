@@ -21,9 +21,9 @@
                         <p class="mb-0">
                             {% set real_and_current %}<i>{{ t('site.welcome.whats_on_the_map.real_and_current') }}</i>{% endset %}
                             {{ t(
-                                    'site.welcome.whats_on_the_map.on_the_map_html',
-                                    real_and_current=real_and_current,
-                                ) | safe }}
+                                'site.welcome.whats_on_the_map.on_the_map_html',
+                                real_and_current=real_and_current,
+                            ) | safe }}
                         </p>
                     </div>
                     <i class="bi bi-check-circle-fill text-green fs-5"></i>
@@ -36,9 +36,9 @@
                         <p class="mb-0">
                             {% set doesnt %}<i>{{ t('site.welcome.whats_on_the_map.doesnt') }}</i>{% endset %}
                             {{ t(
-                                    'site.welcome.whats_on_the_map.off_the_map_html',
-                                    doesnt=doesnt,
-                                ) | safe }}
+                                'site.welcome.whats_on_the_map.off_the_map_html',
+                                doesnt=doesnt,
+                            ) | safe }}
                         </p>
                     </div>
                     <i class="bi bi-x-circle-fill text-danger fs-5"></i>
@@ -61,15 +61,16 @@
                     <div class="card-body">
                         <p class="card-text">
                             {{ t(
-                                    'site.welcome.basic_terms.an_editor_html',
-                                    editor=t('site.welcome.basic_terms.editor'),
-                                ) | safe }}
+                                'site.welcome.basic_terms.an_editor_html',
+                                editor=t('site.welcome.basic_terms.editor'),
+                            ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
                         <p class="small text-end mb-0">
                             <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Editors">
-                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                                {{ t('layouts.learn_more') | capitalize -}}
+                                <i class="bi bi-arrow-right-short"></i>
                             </a>
                         </p>
                     </div>
@@ -85,15 +86,16 @@
                     <div class="card-body">
                         <p class="card-text">
                             {{ t(
-                                    'site.welcome.basic_terms.a_node_html',
-                                    node=t('javascripts.query.node').lower(),
-                                ) | safe }}
+                                'site.welcome.basic_terms.a_node_html',
+                                node=t('javascripts.query.node').lower(),
+                            ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
                         <p class="small text-end mb-0">
                             <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Node">
-                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                                {{ t('layouts.learn_more') | capitalize -}}
+                                <i class="bi bi-arrow-right-short"></i>
                             </a>
                         </p>
                     </div>
@@ -109,15 +111,16 @@
                     <div class="card-body">
                         <p class="card-text">
                             {{ t(
-                                    'site.welcome.basic_terms.a_way_html',
-                                    way=t('javascripts.query.way').lower(),
-                                ) | safe }}
+                                'site.welcome.basic_terms.a_way_html',
+                                way=t('javascripts.query.way').lower(),
+                            ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
                         <p class="small text-end mb-0">
                             <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Way">
-                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                                {{ t('layouts.learn_more') | capitalize -}}
+                                <i class="bi bi-arrow-right-short"></i>
                             </a>
                         </p>
                     </div>
@@ -133,15 +136,16 @@
                     <div class="card-body">
                         <p class="card-text">
                             {{ t(
-                                    'site.welcome.basic_terms.a_tag_html',
-                                    tag=t('site.welcome.basic_terms.tag'),
-                                ) | safe }}
+                                'site.welcome.basic_terms.a_tag_html',
+                                tag=t('site.welcome.basic_terms.tag'),
+                            ) | safe }}
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">
                         <p class="small text-end mb-0">
                             <a class="stretched-link" href="https://wiki.openstreetmap.org/wiki/Tags">
-                                {{ t('layouts.learn_more') | capitalize }}<i class="bi bi-arrow-right-short"></i>
+                                {{ t('layouts.learn_more') | capitalize -}}
+                                <i class="bi bi-arrow-right-short"></i>
                             </a>
                         </p>
                     </div>
@@ -163,10 +167,10 @@
             </a>
             {% endset %}
             {{ t(
-                    'site.welcome.rules.para_1_html',
-                    imports_link=imports_link,
-                    automated_edits_link=automated_edits_link
-                ) | safe }}
+                'site.welcome.rules.para_1_html',
+                imports_link=imports_link,
+                automated_edits_link=automated_edits_link
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.any_questions.title') }}</h3>
@@ -182,10 +186,10 @@
             </a>
             {% endset %}
             {{ t(
-                    'site.any_questions.paragraph_1_html',
-                    help_link=help_link,
-                    welcome_mat_link=welcome_mat_link
-                ) | safe }}
+                'site.any_questions.paragraph_1_html',
+                help_link=help_link,
+                welcome_mat_link=welcome_mat_link
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.welcome.add_a_note.title') | stripspecial }}</h3>
@@ -197,10 +201,10 @@
             </a>
             {% endset %}
             {{ t(
-                    'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
-                    map_link=map_link,
-                    note_icon=note_icon
-                ) | safe }}
+                'site.fixthemap.how_to_help.add_a_note.instructions_1_html',
+                map_link=map_link,
+                note_icon=note_icon
+            ) | safe }}
         </p>
 
         <div class="text-center">

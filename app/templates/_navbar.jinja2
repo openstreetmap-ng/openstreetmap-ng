@@ -126,9 +126,9 @@
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <img class="avatar me-2" src="{{ user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
                     {{ user.display_name }}
-                    <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">{#
-                        #}{% if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif %}{#
-                    #}</span>
+                    <span class="new-unread-messages-badge badge text-bg-light-green fw-light ms-1-5">
+                        {%- if MESSAGES_COUNT_UNREAD > 0 %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
+                    </span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
                     <li>

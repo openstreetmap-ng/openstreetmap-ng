@@ -12,15 +12,15 @@
                     <span>
                         <a href="/user/{{ trace.user.display_name }}">
                             <img class="avatar" src="{{ trace.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                                loading="lazy">{#
-                        #}{{ trace.user.display_name }}{#
-                    #}</a>
+                                loading="lazy">
+                            {{- trace.user.display_name -}}
+                        </a>
                         {{ t('action.uploaded') }}
                         {{ timeago(trace.created_at, html=True) | safe }}
                         &mdash;
-                        (<a class="stretched-link" href="/trace/{{ trace.id }}">{#
-                        #}{{ trace.name }}{#
-                        #}</a>)
+                        (<a class="stretched-link" href="/trace/{{ trace.id }}">
+                            {{- trace.name -}}
+                        </a>)
                     </span>
                     <span>
                         <span class="badge text-bg-secondary">
@@ -66,10 +66,12 @@
 <p>
     {% set upload_link %}
     <a href="/trace/upload">{{ t('traces.index.upload_new') }}</a>
-    {% endset %}
+    {%- endset %}
     {% set wiki_link %}
-    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">{{ t('traces.index.wiki_page') }}</a>{#
-    #}{% endset %}
+    <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">
+        {{- t('traces.index.wiki_page') -}}
+    </a>
+    {%- endset %}
     {{ t(
         'traces.index.empty_upload_html',
         upload_link=upload_link,

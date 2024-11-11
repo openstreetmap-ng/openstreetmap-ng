@@ -31,9 +31,9 @@
                     {{ t('browse.anonymous') }}
                     {% else %}
                     <a href="/user/{{ header.user.display_name }}" rel="author">
-                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">{#
-                    #}{{ header.user.display_name }}{#
-                    #}</a>
+                        <img class="avatar" src="{{ header.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}">
+                        {{- header.user.display_name -}}
+                    </a>
                     {% endif %}
                     {{ t('browse.created') | lower }}
                     {{ timeago(header.created_at, html=True) | safe }}
@@ -87,9 +87,9 @@
                 <p class="header text-muted">
                     <a href="/user/{{ comment.user.display_name }}">
                         <img class="avatar" src="{{ comment.user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                            loading="lazy">{#
-                        #}{{ comment.user.display_name }}{#
-                    #}</a>
+                            loading="lazy">
+                        {{- comment.user.display_name -}}
+                    </a>
                     {% if event == 'commented' %}
                     {{ t('action.commented') }}
                     {% elif event == 'closed' %}
@@ -150,12 +150,11 @@
             {# TODO: status hidden #}
         </form>
         {% else %}
-        <p class="text-center mb-0">
-            {# TODO: referer here? #}
-            <a href="/login">
+        <div class="text-center">
+            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
                 {{ t('browse.changeset.join_discussion') }}
-            </a>
-        </p>
+            </button>
+        </div>
         {% endif %}
 
     </div>
@@ -163,13 +162,13 @@
         <small>
             {% set link %}
             <a href="/report/note/{{ note.id }}">
-                {{ t('notes.show.report') }}{#
-            #}</a>{#
-            #}{% endset %}
+                {{- t('notes.show.report') -}}
+            </a>
+            {%- endset %}
             {{ t(
-                    'notes.show.report_link_html',
-                    link=link,
-                ) | safe }}
+                'notes.show.report_link_html',
+                link=link,
+            ) | safe }}
 
             {% if user is not none and user.id != header.user_id %}
             {% if status == 'open' %}

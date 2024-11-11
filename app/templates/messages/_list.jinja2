@@ -8,8 +8,9 @@
             <span>
                 <a href="/user/{{ message.from_user.display_name }}">
                     <img class="avatar" src="{{ message.from_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                        loading="lazy">{{ message.from_user.display_name }}{#
-                #}</a>
+                        loading="lazy">
+                    {{- message.from_user.display_name -}}
+                </a>
                 {{ t('messages.action_sent') }}
                 {{ timeago(message.created_at, html=True) | safe }}
             </span>
@@ -17,8 +18,9 @@
             <span>
                 <a href="/user/{{ message.to_user.display_name }}">
                     <img class="avatar" src="{{ message.to_user.avatar_url }}" alt="{{ t('alt.profile_picture') }}"
-                        loading="lazy">{{ message.to_user.display_name }}{#
-                #}</a>
+                        loading="lazy">
+                    {{- message.to_user.display_name -}}
+                </a>
                 {{ t('messages.action_delivered') }}
                 {{ timeago(message.created_at, html=True) | safe }}
             </span>
@@ -26,7 +28,8 @@
             <span>
                 <a class="stretched-link" href="?before={{ current_before }}&show={{ message.id }}"></a>
                 <span class="unread-badge badge text-bg-primary">
-                    <i class="bi bi-bell-fill me-1"></i>{{ t('state.unread') }}
+                    <i class="bi bi-bell-fill me-1"></i>
+                    {{- t('state.unread') }}
                 </span>
             </span>
         </p>

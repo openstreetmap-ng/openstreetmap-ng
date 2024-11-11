@@ -48,9 +48,9 @@
     <p class="form-text mb-3">
         {% set this_guide %}
         <a href="https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate">
-            {{ t('internalization.this_guide') }}{#
-                    #}</a>{#
-                    #}{% endset %}
+            {{- t('internalization.this_guide') -}}
+        </a>
+        {%- endset %}
         {{ t('internalization.get_started', this_guide=this_guide) | safe }}
     </p>
 
