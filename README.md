@@ -48,7 +48,7 @@ The following list outlines the key features and components that need to be comp
 
 **Release ETA**: end of 2024
 
-- [60%] Authorization with third-party providers
+- [90%] Authorization with third-party providers
 - [20%] Email notifications templates
 - ⬛ Reporting of users
 - ⬛ User diaries
