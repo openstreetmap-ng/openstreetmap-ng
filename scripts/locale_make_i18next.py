@@ -38,7 +38,7 @@ def main() -> None:
             continue
 
         # re-encode json to sort keys
-        translation = orjson.dumps(orjson.loads(source_path.read_bytes()), option=orjson.OPT_SORT_KEYS)
+        translation = orjson.dumps(orjson.loads(source_path.read_bytes()), option=orjson.OPT_SORT_KEYS).decode()
         # transform json to javascript
         translation = f'if(!window.locales)window.locales={{}},window.locales["{locale}"]={{translation:{translation}}}'
 
