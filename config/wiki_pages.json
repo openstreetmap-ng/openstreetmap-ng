@@ -11,6 +11,11 @@
       ""
     ]
   },
+  "*:colour": {
+    "*": [
+      ""
+    ]
+  },
   "*:conditional": {
     "*": [
       "Pl",
@@ -759,7 +764,8 @@
       "Uk"
     ],
     "use_sidepath": [
-      ""
+      "",
+      "DE"
     ],
     "yes": [
       "",
@@ -809,6 +815,11 @@
       "RU"
     ]
   },
+  "access:roof": {
+    "*": [
+      ""
+    ]
+  },
   "access_JP": {
     "*": [
       ""
@@ -818,6 +829,11 @@
     "*": [
       "",
       "RU"
+    ]
+  },
+  "accuracy": {
+    "*": [
+      ""
     ]
   },
   "accuracy:meters": {
@@ -881,7 +897,7 @@
       "Vi"
     ]
   },
-  "addr:*/Conven\u00e7\u00f5es_Brasil": {
+  "addr:*/Convenções_Brasil": {
     "*": [
       "Pt"
     ]
@@ -1238,6 +1254,11 @@
       ""
     ],
     "barangay": [
+      ""
+    ]
+  },
+  "adopted": {
+    "*": [
       ""
     ]
   },
@@ -1999,7 +2020,8 @@
   },
   "agroecology": {
     "*": [
-      ""
+      "",
+      "ES"
     ]
   },
   "air_conditioning": {
@@ -4154,7 +4176,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "prison_camp": [
       "",
@@ -4258,7 +4281,7 @@
     "recycling/Quality_Assurance": [
       ""
     ],
-    "recycling/\u0432_\u0420\u043e\u0441\u0441\u0438\u0438": [
+    "recycling/в_России": [
       "RU"
     ],
     "refugee_housing": [
@@ -5848,6 +5871,11 @@
       ""
     ]
   },
+  "axle_load": {
+    "*": [
+      ""
+    ]
+  },
   "baby": {
     "*": [
       "",
@@ -7043,7 +7071,7 @@
       "RU"
     ]
   },
-  "biosph\u00e4renwirt": {
+  "biosphärenwirt": {
     "*": [
       "DE"
     ],
@@ -8007,6 +8035,11 @@
     ]
   },
   "builder": {
+    "*": [
+      ""
+    ]
+  },
+  "builder:wikidata": {
     "*": [
       ""
     ]
@@ -9258,7 +9291,7 @@
       ""
     ]
   },
-  "building/\u0413\u0430\u043b\u0435\u0440\u0435\u044f": {
+  "building/Галерея": {
     "*": [
       "RU"
     ]
@@ -10417,6 +10450,11 @@
       "RU"
     ]
   },
+  "category": {
+    "*": [
+      ""
+    ]
+  },
   "cave": {
     "grotto": [
       ""
@@ -10444,7 +10482,7 @@
       "RU",
       "Uk"
     ],
-    "cill\u00edn": [
+    "cillín": [
       "",
       "ES"
     ],
@@ -11045,6 +11083,11 @@
       "NL",
       "Pl",
       "RU"
+    ]
+  },
+  "colour:*": {
+    "*": [
+      ""
     ]
   },
   "column:architecture": {
@@ -11752,6 +11795,12 @@
       "ES"
     ]
   },
+  "contact:line": {
+    "*": [
+      "",
+      "Zh-hant"
+    ]
+  },
   "contact:linkedin": {
     "*": [
       "",
@@ -11797,6 +11846,12 @@
   "contact:telegram": {
     "*": [
       "ES"
+    ]
+  },
+  "contact:tripadvisor": {
+    "*": [
+      "",
+      "IT"
     ]
   },
   "contact:twitter": {
@@ -12345,6 +12400,9 @@
       "Pt",
       "RU",
       "Uk"
+    ],
+    "clothes_mending": [
+      ""
     ],
     "confectionery": [
       "",
@@ -13462,7 +13520,7 @@
       "ES",
       "Zh-hans"
     ],
-    "a\u00e7a\u00ed": [
+    "açaí": [
       ""
     ],
     "bagel": [
@@ -15205,6 +15263,9 @@
       "FR",
       "JA",
       "Pt"
+    ],
+    "sundial": [
+      ""
     ]
   },
   "display_surface": {
@@ -15775,7 +15836,8 @@
   },
   "educational": {
     "*": [
-      ""
+      "",
+      "Uk"
     ]
   },
   "ekatte": {
@@ -16433,6 +16495,7 @@
     ],
     "yes": [
       "",
+      "DE",
       "ES",
       "Gl",
       "NL",
@@ -19235,6 +19298,10 @@
       "JA",
       "RU"
     ],
+    "watercourse_management": [
+      "",
+      "FR"
+    ],
     "youth_welfare_department": [
       "",
       "DE",
@@ -21483,7 +21550,8 @@
     ],
     "via_ferrata": [
       "",
-      "Cs"
+      "Cs",
+      "DE"
     ]
   },
   "highway:CN": {
@@ -21993,7 +22061,7 @@
       "RU",
       "Uk"
     ],
-    "ste\u0107ak": [
+    "stećak": [
       "",
       "RU"
     ],
@@ -22227,7 +22295,8 @@
       ""
     ],
     "terraced": [
-      ""
+      "",
+      "DE"
     ]
   },
   "hov": {
@@ -24211,6 +24280,7 @@
     ],
     "paddy": [
       "",
+      "DE",
       "JA",
       "Ko",
       "RU",
@@ -27010,7 +27080,7 @@
       "",
       "DE"
     ],
-    "ste\u0107ak": [
+    "stećak": [
       ""
     ],
     "storage_tank": [
@@ -27762,6 +27832,11 @@
       ""
     ]
   },
+  "maxspeed:source": {
+    "*": [
+      ""
+    ]
+  },
   "maxspeed:tilting": {
     "*": [
       ""
@@ -28088,7 +28163,7 @@
     "round_barrow": [
       ""
     ],
-    "ste\u0107ak": [
+    "stećak": [
       ""
     ],
     "stone_circle": [
@@ -28587,6 +28662,7 @@
       "Cs",
       "DE",
       "ES",
+      "FR",
       "Fi",
       "Hu",
       "JA",
@@ -29397,6 +29473,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "Fi",
@@ -29460,6 +29537,9 @@
     "Subway": [
       ""
     ],
+    "Thai_Nexus_Point": [
+      ""
+    ],
     "The_Church_of_Jesus_Christ_of_Latter-day_Saints": [
       "ES"
     ],
@@ -29472,7 +29552,7 @@
     "Wendy's": [
       ""
     ],
-    "\u041f\u0440\u043e\u0434\u0443\u043a\u0442\u044b": [
+    "Продукты": [
       "RU"
     ]
   },
@@ -34630,7 +34710,7 @@
       "RU"
     ]
   },
-  "office/\u041e\u0431\u0437\u043e\u0440_\u043e\u0444\u0438\u0441\u043e\u0432": {
+  "office/Обзор_офисов": {
     "*": [
       "RU"
     ]
@@ -34756,7 +34836,8 @@
   },
   "on_demand": {
     "yes": [
-      ""
+      "",
+      "DE"
     ]
   },
   "oneclass": {
@@ -35035,7 +35116,7 @@
       "Template"
     ]
   },
-  "opening_hours/\u4ed5\u69d8": {
+  "opening_hours/仕様": {
     "*": [
       "JA"
     ]
@@ -35236,7 +35317,7 @@
     "Land_Aruba": [
       ""
     ],
-    "Land_Cura\u00e7ao": [
+    "Land_Curaçao": [
       ""
     ],
     "Land_Sint_Maarten": [
@@ -35256,11 +35337,11 @@
     "Rijkswaterstaat": [
       ""
     ],
-    "R\u00e9gie_Gaz_\u00c9lectricit\u00e9_de_Sallanches": [
+    "Régie_Gaz_Électricité_de_Sallanches": [
       "",
       "FR"
     ],
-    "SNCF_R\u00e9seau": [
+    "SNCF_Réseau": [
       "FR"
     ],
     "Staat_der_Nederlanden": [
@@ -35329,7 +35410,8 @@
     "*": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "JA"
     ]
   },
   "operator:wikipedia": {
@@ -35842,7 +35924,7 @@
       ""
     ]
   },
-  "parking:condition/\u0421\u043b\u043e\u0436\u043d\u044b\u0435_\u0437\u043d\u0430\u043a\u0438": {
+  "parking:condition/Сложные_знаки": {
     "*": [
       "RU"
     ]
@@ -35878,7 +35960,7 @@
       "Zh-hans"
     ]
   },
-  "parking:lane/\u041f\u0440\u0438\u043c\u0435\u0440\u044b": {
+  "parking:lane/Примеры": {
     "*": [
       "RU"
     ]
@@ -36013,6 +36095,7 @@
     ],
     "charging": [
       "",
+      "FR",
       "RU"
     ],
     "disabled": [
@@ -36265,6 +36348,11 @@
     ]
   },
   "person:date_of_death": {
+    "*": [
+      ""
+    ]
+  },
+  "person:name": {
     "*": [
       ""
     ]
@@ -38533,7 +38621,7 @@
       ""
     ]
   },
-  "py\u00f6r\u00e4_v\u00e4ist\u00e4\u00e4_aina_autoa": {
+  "pyörä_väistää_aina_autoa": {
     "*": [
       "",
       "Fi"
@@ -39183,6 +39271,11 @@
       "FR"
     ]
   },
+  "railway:signal:*": {
+    "*": [
+      ""
+    ]
+  },
   "railway:signal:combined": {
     "*": [
       ""
@@ -39265,7 +39358,8 @@
   },
   "railway:signal:main": {
     "*": [
-      ""
+      "",
+      "DE"
     ],
     "FR:CARRE": [
       ""
@@ -39473,11 +39567,6 @@
       ""
     ],
     "K2": [
-      ""
-    ]
-  },
-  "railway:signal:prefix": {
-    "*": [
       ""
     ]
   },
@@ -41017,6 +41106,11 @@
       "IT"
     ]
   },
+  "ref:ncdot": {
+    "*": [
+      ""
+    ]
+  },
   "ref:nces": {
     "*": [
       ""
@@ -41057,6 +41151,11 @@
   "ref:okn": {
     "*": [
       "RU"
+    ]
+  },
+  "ref:old": {
+    "*": [
+      ""
     ]
   },
   "ref:ortsnetz": {
@@ -41753,7 +41852,8 @@
   },
   "reservation:website": {
     "*": [
-      ""
+      "",
+      "IT"
     ]
   },
   "reservoir_type": {
@@ -44957,6 +45057,11 @@
       "Pt"
     ]
   },
+  "service:*": {
+    "*": [
+      ""
+    ]
+  },
   "service:bicycle:*": {
     "*": [
       "",
@@ -45461,7 +45566,7 @@
       "",
       "Cs"
     ],
-    "a\u00e7a\u00ed": [
+    "açaí": [
       "Pt"
     ],
     "baby_care": [
@@ -47197,7 +47302,7 @@
       "Pt",
       "RU"
     ],
-    "p\u00e9pini\u00e8re": [
+    "pépinière": [
       ""
     ],
     "radiotechnics": [
@@ -48002,6 +48107,11 @@
       ""
     ]
   },
+  "signalisation": {
+    "*": [
+      ""
+    ]
+  },
   "signed_direction": {
     "*": [
       ""
@@ -48440,7 +48550,8 @@
   "socket:*": {
     "*": [
       "",
-      "DE"
+      "DE",
+      "FR"
     ]
   },
   "soliciting": {
@@ -48473,7 +48584,8 @@
       "NL",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "ACT2016": [
       ""
@@ -48487,10 +48599,10 @@
     "ACTMapiTP": [
       ""
     ],
-    "Arild_Bj\u00f8rk": [
+    "Arild_Bjørk": [
       ""
     ],
-    "Bymilj\u00f8etaten": [
+    "Bymiljøetaten": [
       ""
     ],
     "DNT_Oslo_og_Omegn": [
@@ -48572,7 +48684,7 @@
     "Swedish_Environmental_Agency_Trails": [
       ""
     ],
-    "S\u00f8rum_kommune": [
+    "Sørum_kommune": [
       ""
     ],
     "VicMap_ParkRes": [
@@ -48631,7 +48743,7 @@
     "GURS": [
       ""
     ],
-    "\u0415\u0413\u0420\u041d": [
+    "ЕГРН": [
       "",
       "RU"
     ]
@@ -49541,7 +49653,7 @@
       "FR",
       "Uk"
     ],
-    "pes\u00e4pallo": [
+    "pesäpallo": [
       "",
       "ES"
     ],
@@ -49563,6 +49675,9 @@
     "polo": [
       "",
       "ES"
+    ],
+    "powerlifting": [
+      ""
     ],
     "racquet": [
       "",
@@ -49993,40 +50108,45 @@
       "RU"
     ]
   },
-  "ste\u0107ak": {
+  "steps": {
+    "*": [
+      ""
+    ]
+  },
+  "stećak": {
     "*": [
       ""
     ],
-    "ste\u0107ak_necropolis": [
+    "stećak_necropolis": [
       ""
     ]
   },
-  "ste\u0107ak:format": {
+  "stećak:format": {
     "*": [
       ""
     ]
   },
-  "ste\u0107ak:relocated": {
+  "stećak:relocated": {
     "*": [
       ""
     ]
   },
-  "ste\u0107ak:replica": {
+  "stećak:replica": {
     "*": [
       ""
     ]
   },
-  "ste\u0107ak:ste\u0107ak_count": {
+  "stećak:stećak_count": {
     "*": [
       ""
     ]
   },
-  "ste\u0107ak:ste\u0107ak_necropolis": {
+  "stećak:stećak_necropolis": {
     "*": [
       ""
     ]
   },
-  "ste\u0107ak_necropolis": {
+  "stećak_necropolis": {
     "*": [
       ""
     ]
@@ -50930,7 +51050,7 @@
       "Pl",
       "RU"
     ],
-    "Knafel\u010deva_markacija": [
+    "Knafelčeva_markacija": [
       ""
     ]
   },
@@ -51477,6 +51597,11 @@
       "",
       "DE",
       "FR"
+    ]
+  },
+  "toilets:number": {
+    "*": [
+      ""
     ]
   },
   "toilets:paper_supplied": {
@@ -53693,6 +53818,11 @@
       ""
     ]
   },
+  "url:spaceapi": {
+    "*": [
+      ""
+    ]
+  },
   "usage": {
     "*": [
       "",
@@ -54394,6 +54524,9 @@
       "",
       "Pl",
       "RU"
+    ],
+    "rice_polishing": [
+      ""
     ],
     "sex_toys": [
       "",
@@ -55635,7 +55768,8 @@
     "*": [
       "",
       "DE",
-      "Eo"
+      "Eo",
+      "IT"
     ]
   },
   "website:orders": {
@@ -55753,7 +55887,8 @@
       "Cs",
       "DE",
       "ES",
-      "JA"
+      "JA",
+      "Zh-hans"
     ],
     "wet_meadow": [
       "",
