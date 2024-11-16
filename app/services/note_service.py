@@ -13,6 +13,7 @@ from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, NoteEvent
 from app.models.db.note_subscription import NoteSubscription
+from app.models.scope import Scope
 from app.validators.geometry import validate_geometry
 
 
@@ -65,14 +66,7 @@ class NoteService:
         """
         user = auth_user(required=True)
         async with db_commit() as session:
-            stmt = (
-                select(Note)
-                .where(
-                    Note.id == note_id,
-                    Note.visible_to(user),
-                )
-                .with_for_update()
-            )
+            stmt = select(Note).where(Note.id == note_id, Note.visible_to(user)).with_for_update()
             note = await session.scalar(stmt)
             if note is None:
                 raise_for().note_not_found(note_id)
@@ -97,6 +91,8 @@ class NoteService:
                     raise_for().note_closed(note_id, note.closed_at)
 
             elif event == NoteEvent.hidden:
+                if not user.is_moderator:
+                    raise_for().insufficient_scopes((Scope.role_moderator,))
                 note.hidden_at = func.statement_timestamp()
 
             else:

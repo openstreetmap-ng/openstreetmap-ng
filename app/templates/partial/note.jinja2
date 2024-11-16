@@ -114,9 +114,9 @@
         {% if disappear_days is not none %}
         <p class="text-center fst-italic mx-4">
             {{ t(
-                    'notes.show.disappear_date_html',
-                    disappear_in=nt('user_blocks.helper.block_duration.days', count=disappear_days),
-                ) | safe }}
+                'notes.show.disappear_date_html',
+                disappear_in=nt('user_blocks.helper.block_duration.days', count=disappear_days),
+            ) | safe }}
         </p>
         {% endif %}
 
@@ -127,27 +127,48 @@
             <div class="mb-3">
                 <textarea class="form-control" name="text" rows="5"></textarea>
             </div>
-            <div class="text-end">
-                {# TODO: hide/unhide #}
-                <button class="close-btn btn btn-primary" type="submit" data-event="closed">
-                    {{ t('notes.show.resolve') }}
-                </button>
-                <button class="comment-close-btn btn btn-primary" type="submit" data-event="closed">
-                    {{ t('notes.show.comment_and_resolve') }}
-                </button>
-                <button class="comment-btn btn btn-primary" type="submit" data-event="commented">
-                    {{ t('action.comment') }}
-                </button>
+            <div class="row g-1">
+                <div class="col">
+                    {% if user.is_moderator %}
+                    <button class="btn btn-light border" type="submit" data-event="hidden">
+                        {{ t('notes.show.hide') }}
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="col-auto">
+                    <button class="close-btn btn btn-primary" type="submit" data-event="closed">
+                        {{ t('notes.show.resolve') }}
+                    </button>
+                    <button class="comment-close-btn btn btn-primary" type="submit" data-event="closed">
+                        {{ t('notes.show.comment_and_resolve') }}
+                    </button>
+                    <button class="comment-btn btn btn-primary" type="submit" data-event="commented">
+                        {{ t('action.comment') }}
+                    </button>
+                </div>
             </div>
             {% elif status == 'closed' %}
-            <div class="text-end">
-                {# TODO: hide/unhide #}
-                <button class="btn btn-primary" type="submit" data-event="reopened">
-                    {{ t('notes.show.reactivate') }}
+            <div class="row g-1">
+                <div class="col">
+                    {% if user.is_moderator %}
+                    <button class="btn btn-light border" type="submit" data-event="hidden">
+                        {{ t('notes.show.hide') }}
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" type="submit" data-event="reopened">
+                        {{ t('notes.show.reactivate') }}
+                    </button>
+                </div>
+            </div>
+            {% elif status == 'hidden' %}
+            <div>
+                <button class="btn btn-light border" type="submit" data-event="reopened">
+                    {{ t('action.unhide') }}
                 </button>
             </div>
             {% endif %}
-            {# TODO: status hidden #}
         </form>
         {% else %}
         <div class="text-center">

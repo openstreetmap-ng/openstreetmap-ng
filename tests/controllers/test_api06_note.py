@@ -1,4 +1,5 @@
 from httpx import AsyncClient
+from starlette import status
 
 from app.config import API_URL, APP_URL
 from app.lib.xmltodict import XMLToDict
@@ -59,13 +60,13 @@ async def test_note_crud(client: AsyncClient):
     assert comments[-1]['text'] == 'resolve'
 
 
-async def test_note_xml(client: AsyncClient):
+async def test_note_with_xml(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
     # create note
     r = await client.post(
         '/api/0.6/notes',
-        params={'lon': 0, 'lat': 0, 'text': test_note_xml.__qualname__},
+        params={'lon': 0, 'lat': 0, 'text': test_note_with_xml.__qualname__},
     )
     assert r.is_success, r.text
     props: dict = XMLToDict.parse(r.content)['osm']['note']
@@ -85,5 +86,51 @@ async def test_note_xml(client: AsyncClient):
     assert comments[-1]['user'] == 'user1'
     assert comments[-1]['user_url'] == f'{APP_URL}/user/permalink/{comments[-1]['uid']}'
     assert comments[-1]['action'] == 'opened'
-    assert comments[-1]['text'] == test_note_xml.__qualname__
-    assert comments[-1]['html'] == f'<p>{test_note_xml.__qualname__}</p>'
+    assert comments[-1]['text'] == test_note_with_xml.__qualname__
+    assert comments[-1]['html'] == f'<p>{test_note_with_xml.__qualname__}</p>'
+
+
+async def test_note_hide_unhide(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # create note
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': test_note_hide_unhide.__qualname__},
+    )
+    assert r.is_success, r.text
+    props: dict = r.json()['properties']
+    note_id: int = props['id']
+
+    # fail to hide
+    r = await client.delete(
+        f'/api/0.6/notes/{note_id}.json',
+        params={'text': 'hide'},
+    )
+    assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
+
+    # hide
+    client.headers['Authorization'] = 'User moderator'
+    r = await client.delete(
+        f'/api/0.6/notes/{note_id}.json',
+        params={'text': 'hide'},
+    )
+    assert r.is_success, r.text
+
+    # fail to get note
+    client.headers['Authorization'] = 'User user1'
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
+
+    # unhide
+    client.headers['Authorization'] = 'User moderator'
+    r = await client.post(
+        f'/api/0.6/notes/{note_id}/reopen.json',
+        params={'text': 'unhide'},
+    )
+    assert r.is_success, r.text
+
+    # get note
+    client.headers['Authorization'] = 'User user1'
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text

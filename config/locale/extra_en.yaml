@@ -354,6 +354,7 @@ action:
   deleted: deleted
   edited: edited
   hid: hid
+  unhide: Unhide
   unblock_user: Unblock user
   unfollow_user: Unfollow user
   upload: Upload

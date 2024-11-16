@@ -37,19 +37,10 @@ async def create_note(
 async def create_note_comment(
     _: Annotated[User, web_user()],
     note_id: PositiveInt,
-    event: Annotated[str, Form()],
-    text: Annotated[str, Form(min_length=1)] = '',
+    event: Annotated[NoteEvent, Form()],
+    text: Annotated[str, Form()] = '',
 ):
-    note_event: NoteEvent
-    if event == 'closed':
-        note_event = NoteEvent.closed
-    elif event == 'reopened':
-        note_event = NoteEvent.reopened
-    elif event == 'commented':
-        note_event = NoteEvent.commented
-    else:
-        raise NotImplementedError(f'Unsupported event {event!r}')
-    await NoteService.comment(note_id, text, note_event)
+    await NoteService.comment(note_id, text, event)
     return Response()
 
 
