@@ -36,9 +36,16 @@
 
             <label class="form-label">
                 <span class="required">{{ t('activerecord.attributes.trace.visibility') }}</span>
+                <span class="small">
+                    &mdash;
+                    <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
+                        target="_blank" rel="help">
+                        {{ t('traces.edit.visibility_help') }}
+                    </a>
+                </span>
             </label>
             <div class="ms-1">
-                <div class="form-check">
+                <div class="form-check mb-3">
                     <label class="form-check-label w-100 mb-2">
                         <input class="form-check-input" type="radio" name="visibility" value="private" checked>
                         {{ t('traces.visibility.private') }}
@@ -57,24 +64,18 @@
                     </label>
                 </div>
             </div>
-            <p class="form-text">
-                <a class="link-primary" href="https://wiki.openstreetmap.org/wiki/Visibility_of_GPS_traces"
-                    target="_blank" rel="help">
-                    {{ t('traces.edit.visibility_help') }}
-                </a>
-            </p>
 
             <div class="d-flex justify-content-between">
-                <a class="btn btn-secondary px-4" href="/traces">
+                <a class="btn btn-secondary px-3" href="/traces">
                     {{ t('action.cancel') }}
                 </a>
                 <span>
-                    <a class="btn btn-link me-3" href="https://wiki.openstreetmap.org/wiki/Upload" target="_blank"
-                        rel="help">
+                    <a class="btn btn-link me-3" href="https://wiki.openstreetmap.org/wiki/Upload_GPS_tracks"
+                        target="_blank" rel="help">
                         <i class="bi bi-question-circle me-2"></i>
                         {{- t('layouts.help') }}
                     </a>
-                    <button class="btn btn-primary px-4" type="submit">
+                    <button class="btn btn-primary px-3" type="submit">
                         <i class="bi bi-cloud-arrow-up-fill me-2"></i>
                         {{- t('action.upload') }}
                     </button>

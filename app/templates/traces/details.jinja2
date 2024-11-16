@@ -69,22 +69,16 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-between">
+        <div class="text-end">
+            {% if (user is not none) and trace.user_id == user.id %}
+            <a class="btn btn-light border" href="/trace/{{ trace.id }}/edit">
+                {{ t('layouts.edit') }}
+            </a>
+            {% endif %}
             {# intentionally without API_URL, to not require user authorization #}
-            <a class="btn btn-primary px-4" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
+            <a class="btn btn-primary px-3" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
                 {{ t('javascripts.share.download') }}
             </a>
-            {% if (user is not none) and trace.user_id == user.id %}
-            <form class="delete-form btn-group" method="POST" action="/api/web/traces/{{ trace.id }}/delete"
-                role="group">
-                <a class="btn btn-outline-primary" href="/trace/{{ trace.id }}/edit">
-                    {{ t('traces.show.edit_trace') }}
-                </a>
-                <button class="btn btn-outline-danger" type="submit">
-                    {{ t('profiles.edit.delete') }}
-                </button>
-            </form>
-            {% endif %}
         </div>
 
     </div>
