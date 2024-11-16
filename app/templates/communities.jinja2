@@ -28,13 +28,13 @@
         <p>
             {% set communities_wiki_link %}
             <a href="https://wiki.openstreetmap.org/wiki/User_group">
-                {{ t('site.communities.other_groups.communities_wiki') }}
+                {{ t('site.communities.other_groups.communities_wiki') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.communities.other_groups.other_groups_html',
-                    communities_wiki_link=communities_wiki_link,
-                ) | safe }}
+                'site.communities.other_groups.other_groups_html',
+                communities_wiki_link=communities_wiki_link,
+            ) | safe }}
         </p>
     </div>
 </div>

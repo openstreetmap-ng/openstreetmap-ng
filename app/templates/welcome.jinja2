@@ -158,14 +158,14 @@
         <p>
             {% set imports_link %}
             <a href="https://wiki.openstreetmap.org/wiki/Import/Guidelines">
-                {{ t('site.welcome.rules.imports') | lower }}
+                {{ t('site.welcome.rules.imports') | lower -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set automated_edits_link %}
             <a href="https://wiki.openstreetmap.org/wiki/Automated_Edits_code_of_conduct">
-                {{ t('site.welcome.rules.automated_edits') | lower }}
+                {{ t('site.welcome.rules.automated_edits') | lower -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
                 'site.welcome.rules.para_1_html',
                 imports_link=imports_link,
@@ -177,14 +177,14 @@
         <p class="mb-4">
             {% set help_link %}
             <a href="/help">
-                {{ t('site.any_questions.get_help_here') }}
+                {{ t('site.any_questions.get_help_here') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set welcome_mat_link %}
             <a href="https://welcome.openstreetmap.org">
-                {{ t('site.any_questions.welcome_mat') }}
+                {{ t('site.any_questions.welcome_mat') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
                 'site.any_questions.paragraph_1_html',
                 help_link=help_link,

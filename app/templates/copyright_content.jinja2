@@ -5,43 +5,43 @@
             {% set open_data %}<i>{{ t('site.copyright.legal_babble.introduction_1_open_data') }}</i>{% endset %}
             {% set odc_odbl_link %}
             <a href="https://opendatacommons.org/licenses/odbl/">
-                {{ t('site.copyright.legal_babble.introduction_1_odc_odbl') }}
+                {{ t('site.copyright.legal_babble.introduction_1_odc_odbl') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set osm_foundation_link %}
             <a href="https://osmfoundation.org">
-                {{ t('site.about.legal_1_1_openstreetmap_foundation') }}
+                {{ t('site.about.legal_1_1_openstreetmap_foundation') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.introduction_1_html',
-                    registered_trademark_link=registered_trademark_link,
-                    open_data=open_data,
-                    odc_odbl_link=odc_odbl_link,
-                    osm_foundation_link=osm_foundation_link
-                ) | safe }}
+                'site.copyright.legal_babble.introduction_1_html',
+                registered_trademark_link=registered_trademark_link,
+                open_data=open_data,
+                odc_odbl_link=odc_odbl_link,
+                osm_foundation_link=osm_foundation_link
+            ) | safe }}
         </p>
         <p>
             {% set legal_code_link %}
             <a href="https://opendatacommons.org/licenses/odbl/1-0/">
-                {{ t('site.copyright.legal_babble.introduction_2_legal_code') }}
+                {{ t('site.copyright.legal_babble.introduction_2_legal_code') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.introduction_2_html',
-                    legal_code_link=legal_code_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.introduction_2_html',
+                legal_code_link=legal_code_link,
+            ) | safe }}
         </p>
         <p>
             {% set creative_commons_link %}
             <a href="https://creativecommons.org/licenses/by-sa/2.0/">
-                {{ t('site.copyright.legal_babble.introduction_3_creative_commons') }}
+                {{ t('site.copyright.legal_babble.introduction_3_creative_commons') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.introduction_3_html',
-                    creative_commons_link=creative_commons_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.introduction_3_html',
+                creative_commons_link=creative_commons_link,
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.copyright.legal_babble.credit_title_html') }}</h3>
@@ -53,24 +53,24 @@
         <p>
             {% set attribution_guidelines_link %}
             <a href="https://osmfoundation.org/wiki/Licence/Attribution_Guidelines">
-                {{ t('site.copyright.legal_babble.credit_3_attribution_guidelines') }}
+                {{ t('site.copyright.legal_babble.credit_3_attribution_guidelines') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.credit_3_html',
-                    attribution_guidelines_link=attribution_guidelines_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.credit_3_html',
+                attribution_guidelines_link=attribution_guidelines_link,
+            ) | safe }}
         </p>
         <p>
             {% set this_copyright_page_link %}
             <a href="">
-                {{ t('site.copyright.legal_babble.credit_4_1_this_copyright_page') }}
+                {{ t('site.copyright.legal_babble.credit_4_1_this_copyright_page') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.credit_4_1_html',
-                    this_copyright_page_link=this_copyright_page_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.credit_4_1_html',
+                this_copyright_page_link=this_copyright_page_link,
+            ) | safe }}
         </p>
         <img class="img-thumbnail mb-3" src="/static/img/copyright/attribution-example.webp"
             alt="{{ t('site.copyright.legal_babble.attribution_example.title') }}">
@@ -79,36 +79,36 @@
         <p>
             {% set osmf_licence_page_link %}
             <a href="https://osmfoundation.org/wiki/Licence">
-                {{ t('site.copyright.legal_babble.more_1_1_osmf_licence_page') }}
+                {{ t('site.copyright.legal_babble.more_1_1_osmf_licence_page') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.more_1_1_html',
-                    osmf_licence_page_link=osmf_licence_page_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.more_1_1_html',
+                osmf_licence_page_link=osmf_licence_page_link,
+            ) | safe }}
         </p>
         <p>
             {% set api_usage_policy_link %}
             <a href="https://operations.osmfoundation.org/policies/api/">
-                {{ t('site.copyright.legal_babble.more_2_1_api_usage_policy') }}
+                {{ t('site.copyright.legal_babble.more_2_1_api_usage_policy') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set tile_usage_policy_link %}
             <a href="https://operations.osmfoundation.org/policies/tiles/">
-                {{ t('site.copyright.legal_babble.more_2_1_tile_usage_policy') }}
+                {{ t('site.copyright.legal_babble.more_2_1_tile_usage_policy') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set nominatim_usage_policy_link %}
             <a href="https://operations.osmfoundation.org/policies/nominatim/">
-                {{ t('site.copyright.legal_babble.more_2_1_nominatim_usage_policy') }}
+                {{ t('site.copyright.legal_babble.more_2_1_nominatim_usage_policy') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.more_2_1_html',
-                    api_usage_policy_link=api_usage_policy_link,
-                    tile_usage_policy_link=tile_usage_policy_link,
-                    nominatim_usage_policy_link=nominatim_usage_policy_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.more_2_1_html',
+                api_usage_policy_link=api_usage_policy_link,
+                tile_usage_policy_link=tile_usage_policy_link,
+                nominatim_usage_policy_link=nominatim_usage_policy_link,
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.copyright.legal_babble.contributors_title_html') }}</h3>
@@ -119,52 +119,48 @@
                 {% set austria %}<b>{{ t('site.copyright.legal_babble.contributors_at_austria') }}</b>{% endset %}
                 {% set stadt_wien_link %}
                 <a href="https://www.data.gv.at/auftritte/?organisation=stadt-wien">
-                    {{ t('site.copyright.legal_babble.contributors_at_stadt_wien') }}
+                    {{ t('site.copyright.legal_babble.contributors_at_stadt_wien') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/3.0/">
-                    CC BY 3.0
-                </a>
-                {% endset %}
+                <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>
+                {%- endset %}
                 {% set land_vorarlberg_link %}
                 <a href="https://vorarlberg.at/-/digitale-katastralmappe-dkm">
-                    {{ t('site.copyright.legal_babble.contributors_at_land_vorarlberg') }}
+                    {{ t('site.copyright.legal_babble.contributors_at_land_vorarlberg') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set cc_by_at_with_amendments_link %}
                 <a href="https://www.tirol.gv.at/data/nutzungsbedingungen/">
-                    {{ t('site.copyright.legal_babble.contributors_at_cc_by_at_with_amendments') }}
+                    {{ t('site.copyright.legal_babble.contributors_at_cc_by_at_with_amendments') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_at_credit_html',
-                        austria=austria,
-                        stadt_wien_link=stadt_wien_link,
-                        cc_by_link=cc_by_link,
-                        land_vorarlberg_link=land_vorarlberg_link,
-                        cc_by_at_with_amendments_link=cc_by_at_with_amendments_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_at_credit_html',
+                    austria=austria,
+                    stadt_wien_link=stadt_wien_link,
+                    cc_by_link=cc_by_link,
+                    land_vorarlberg_link=land_vorarlberg_link,
+                    cc_by_at_with_amendments_link=cc_by_at_with_amendments_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set australia %}<b>{{ t('site.copyright.legal_babble.contributors_au_australia') }}</b>{% endset %}
                 {% set geoscape_australia_link %}
                 <a href="https://geoscape.com.au/legal/data-copyright-and-disclaimer/">
-                    {{ t('site.copyright.legal_babble.contributors_au_geoscape_australia') }}
+                    {{ t('site.copyright.legal_babble.contributors_au_geoscape_australia') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set cc_licence_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">
-                    CC BY 4.0
-                </a>
-                {% endset %}
+                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_au_credit_html',
-                        australia=australia,
-                        geoscape_australia_link=geoscape_australia_link,
-                        cc_licence_link=cc_licence_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_au_credit_html',
+                    australia=australia,
+                    geoscape_australia_link=geoscape_australia_link,
+                    cc_licence_link=cc_licence_link,
+                ) | safe }}
             </li>
 
             <li>
@@ -175,29 +171,27 @@
             <li>
                 {% set czechia %}<b>{{ t('site.copyright.legal_babble.contributors_cz_czechia') }}</b>{% endset %}
                 {% set cc_licence_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">
-                    CC BY 4.0
-                </a>
-                {% endset %}
+                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_cz_credit_html',
-                        czechia=czechia,
-                        cc_licence_link=cc_licence_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_cz_credit_html',
+                    czechia=czechia,
+                    cc_licence_link=cc_licence_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set finland %}<b>{{ t('site.copyright.legal_babble.contributors_fi_finland') }}</b>{% endset %}
                 {% set nlsfi_license_link %}
                 <a href="https://www.maanmittauslaitos.fi/en/opendata-licence-version1">
-                    {{ t('site.copyright.legal_babble.contributors_fi_nlsfi_license') }}
+                    {{ t('site.copyright.legal_babble.contributors_fi_nlsfi_license') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_fi_credit_html',
-                        finland=finland,
-                        nlsfi_license_link=nlsfi_license_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_fi_credit_html',
+                    finland=finland,
+                    nlsfi_license_link=nlsfi_license_link,
+                ) | safe }}
             </li>
 
             <li>
@@ -209,50 +203,48 @@
                 {% set netherlands %}<b>{{ t('site.copyright.legal_babble.contributors_nl_netherlands') }}</b>{% endset %}
                 {% set and_link %}<a href="https://www.and.com/">www.and.com</a>{% endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_nl_credit_html',
-                        netherlands=netherlands,
-                        and_link=and_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_nl_credit_html',
+                    netherlands=netherlands,
+                    and_link=and_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set new_zealand %}<b>{{ t('site.copyright.legal_babble.contributors_nz_new_zealand') }}</b>{% endset %}
                 {% set linz_data_service_link %}
                 <a href="https://data.linz.govt.nz/">
-                    {{ t('site.copyright.legal_babble.contributors_nz_linz_data_service') }}
+                    {{ t('site.copyright.legal_babble.contributors_nz_linz_data_service') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">
-                    CC BY 4.0
-                </a>
-                {% endset %}
+                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_nz_credit_html',
-                        new_zealand=new_zealand,
-                        linz_data_service_link=linz_data_service_link,
-                        cc_by_link=cc_by_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_nz_credit_html',
+                    new_zealand=new_zealand,
+                    linz_data_service_link=linz_data_service_link,
+                    cc_by_link=cc_by_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set serbia %}<b>{{ t('site.copyright.legal_babble.contributors_rs_serbia') }}</b>{% endset %}
                 {% set rgz_link %}
                 <a href="https://web.archive.org/web/20220528220349/https://geosrbija.rs/">
-                    {{ t('site.copyright.legal_babble.contributors_rs_rgz') }}
+                    {{ t('site.copyright.legal_babble.contributors_rs_rgz') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set open_data_portal %}
                 <a href="https://data.gov.rs/sr/">
-                    {{ t('site.copyright.legal_babble.contributors_rs_open_data_portal') }}
+                    {{ t('site.copyright.legal_babble.contributors_rs_open_data_portal') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_rs_credit_html',
-                        serbia=serbia,
-                        rgz_link=rgz_link,
-                        open_data_portal=open_data_portal,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_rs_credit_html',
+                    serbia=serbia,
+                    rgz_link=rgz_link,
+                    open_data_portal=open_data_portal,
+                ) | safe }}
             </li>
 
             <li>
@@ -260,60 +252,58 @@
                 {% set gu_link %}
                 <a
                     href="https://www.gov.si/en/state-authorities/bodies-within-ministries/surveying-and-mapping-authority/">
-                    {{ t('site.copyright.legal_babble.contributors_si_gu') }}
+                    {{ t('site.copyright.legal_babble.contributors_si_gu') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set mkgp_link %}
                 <a href="https://www.gov.si/en/state-authorities/ministries/ministry-of-agriculture-forestry-and-food/">
-                    {{ t('site.copyright.legal_babble.contributors_si_mkgp') }}
+                    {{ t('site.copyright.legal_babble.contributors_si_mkgp') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_si_credit_html',
-                        slovenia=slovenia,
-                        gu_link=gu_link,
-                        mkgp_link=mkgp_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_si_credit_html',
+                    slovenia=slovenia,
+                    gu_link=gu_link,
+                    mkgp_link=mkgp_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set spain %}<b>{{ t('site.copyright.legal_babble.contributors_es_spain') }}</b>{% endset %}
-                {% set ign_link %}
+                {% set ign_link -%}
                 <a href="https://www.ign.es">
-                    {{ t('site.copyright.legal_babble.contributors_es_ign') }}
+                    {{- t('site.copyright.legal_babble.contributors_es_ign') -}}
                 </a>
-                {% endset %}
-                {% set scne_link %}
+                {%- endset %}
+                {% set scne_link -%}
                 <a href="https://www.scne.es">
-                    {{ t('site.copyright.legal_babble.contributors_es_scne') }}
+                    {{- t('site.copyright.legal_babble.contributors_es_scne') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">
-                    CC BY 4.0
-                </a>
-                {% endset %}
+                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_es_credit_html',
-                        spain=spain,
-                        ign_link=ign_link,
-                        scne_link=scne_link,
-                        cc_by_link=cc_by_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_es_credit_html',
+                    spain=spain,
+                    ign_link=ign_link,
+                    scne_link=scne_link,
+                    cc_by_link=cc_by_link,
+                ) | safe }}
             </li>
 
             <li>
                 {% set south_africa %}<b>{{ t('site.copyright.legal_babble.contributors_za_south_africa') }}</b>{% endset %}
                 {% set ngi_link %}
                 <a href="https://ngi.dalrrd.gov.za">
-                    {{ t('site.copyright.legal_babble.contributors_za_ngi') }}
+                    {{ t('site.copyright.legal_babble.contributors_za_ngi') -}}
                 </a>
-                {% endset %}
+                {%- endset %}
                 {{ t(
-                        'site.copyright.legal_babble.contributors_za_credit_html',
-                        south_africa=south_africa,
-                        ngi_link=ngi_link,
-                        ) | safe }}
+                    'site.copyright.legal_babble.contributors_za_credit_html',
+                    south_africa=south_africa,
+                    ngi_link=ngi_link,
+                ) | safe }}
             </li>
 
             <li>
@@ -325,13 +315,13 @@
         <p>
             {% set contributors_page_link %}
             <a href="https://wiki.openstreetmap.org/wiki/Contributors">
-                {{ t('site.copyright.legal_babble.contributors_2_contributors_page') }}
+                {{ t('site.copyright.legal_babble.contributors_2_contributors_page') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.contributors_2_html',
-                    contributors_page_link=contributors_page_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.contributors_2_html',
+                contributors_page_link=contributors_page_link,
+            ) | safe }}
         </p>
         <p>{{ t('site.copyright.legal_babble.contributors_footer_2_html') }}</p>
 
@@ -340,32 +330,32 @@
         <p>
             {% set takedown_procedure_link %}
             <a href="https://osmfoundation.org/wiki/Takedown_procedure">
-                {{ t('site.copyright.legal_babble.infringement_2_1_takedown_procedure') }}
+                {{ t('site.copyright.legal_babble.infringement_2_1_takedown_procedure') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {% set online_filing_page_link %}
             <a href="https://dmca.openstreetmap.org">
-                {{ t('site.copyright.legal_babble.infringement_2_1_online_filing_page') }}
+                {{ t('site.copyright.legal_babble.infringement_2_1_online_filing_page') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.infringement_2_1_html',
-                    takedown_procedure_link=takedown_procedure_link,
-                    online_filing_page_link=online_filing_page_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.infringement_2_1_html',
+                takedown_procedure_link=takedown_procedure_link,
+                online_filing_page_link=online_filing_page_link,
+            ) | safe }}
         </p>
 
         <h3>{{ t('site.copyright.legal_babble.trademarks_title') }}</h3>
         <p>
             {% set trademark_policy_link %}
             <a href="https://osmfoundation.org/wiki/Trademark_Policy">
-                {{ t('site.copyright.legal_babble.trademarks_1_1_trademark_policy') }}
+                {{ t('site.copyright.legal_babble.trademarks_1_1_trademark_policy') -}}
             </a>
-            {% endset %}
+            {%- endset %}
             {{ t(
-                    'site.copyright.legal_babble.trademarks_1_1_html',
-                    trademark_policy_link=trademark_policy_link,
-                    ) | safe }}
+                'site.copyright.legal_babble.trademarks_1_1_html',
+                trademark_policy_link=trademark_policy_link,
+            ) | safe }}
         </p>
     </div>
 </div>
