@@ -18,16 +18,12 @@
     "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
   ],
   "dependencies": {
-    "@babel/cli": "^7.25.9",
-    "@babel/core": "^7.26.0",
-    "@babel/preset-env": "^7.26.0",
     "@bufbuild/protobuf": "^2.2.1",
     "@mapbox/polyline": "^1.2.1",
     "@noble/hashes": "^1.5.0",
     "@rapideditor/rapid": "^2.4.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
-    "core-js": "3.38.1",
     "i18next": "^23.16.4",
     "iD": "git+https://github.com/openstreetmap/iD.git#release",
     "leaflet": "^1.9.4",
@@ -36,6 +32,10 @@
     "osm-community-index": "^5.8.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.25.9",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
     "@bufbuild/protoc-gen-es": "^2.2.1",
     "@types/bootstrap": "^5.2.10",
     "@types/leaflet": "^1.9.14",
@@ -43,6 +43,7 @@
     "@types/mapbox__polyline": "^1.0.5",
     "autoprefixer": "^10.4.20",
     "bun-types": "^1.1.33",
+    "core-js": "3.38.1",
     "i18next-conv": "^15.0.0",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.3.3",
