@@ -3,7 +3,7 @@ from typing import Literal, get_args
 
 import numpy as np
 from numpy.typing import NDArray
-from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Integer, Unicode, true
+from sqlalchemy import ARRAY, ColumnElement, Enum, ForeignKey, Index, Integer, Unicode, true
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -42,6 +42,11 @@ class Trace(Base.Sequential, CreatedAtMixin, UpdatedAtMixin):
 
     # runtime
     coords: NDArray[np.number] = None  # pyright: ignore[reportAssignmentType]
+
+    __table_args__ = (
+        Index('trace_visibility_user_id_idx', visibility, user_id, 'id'),
+        Index('trace_tags_idx', tags, postgresql_using='gin'),
+    )
 
     @validates('tags')
     def validate_tags(self, _: str, value: Collection[str]):

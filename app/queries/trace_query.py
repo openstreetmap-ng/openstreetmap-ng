@@ -1,10 +1,10 @@
 from collections.abc import Sequence
 from typing import Literal
 
-from sqlalchemy import any_, func, select, text
+from sqlalchemy import func, select, text
 
 from app.db import db
-from app.lib.auth_context import auth_scopes, auth_user_scopes
+from app.lib.auth_context import auth_user_scopes
 from app.lib.exceptions_context import raise_for
 from app.lib.options_context import apply_options_context
 from app.lib.trace_file import TraceFile
@@ -99,15 +99,12 @@ class TraceQuery:
         """
         async with db() as session:
             stmt = select(Trace)
-            where_and = []
+            where_and = [Trace.visible_to(*auth_user_scopes())]
 
             if user_id is not None:
                 where_and.append(Trace.user_id == user_id)
-            else:
-                where_and.append(Trace.visible_to(None, auth_scopes()))
-
             if tag is not None:
-                where_and.append(any_(Trace.tags) == tag)
+                where_and.append(Trace.tags.bool_op('@>')((tag,)))
 
             if after is not None:
                 where_and.append(Trace.id > after)
