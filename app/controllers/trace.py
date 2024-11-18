@@ -27,7 +27,14 @@ async def upload(_: Annotated[User, web_user()]):
 
 @router.get('/{trace_id:int}')
 async def details(trace_id: PositiveInt):
-    with options_context(joinedload(Trace.user)):
+    with options_context(
+        joinedload(Trace.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
         trace = await TraceQuery.get_one_by_id(trace_id)
     await TraceSegmentQuery.resolve_coords((trace,), limit_per_trace=500, resolution=None)
     trace_line = encode_lonlat(trace.coords.tolist(), 6)
@@ -36,8 +43,7 @@ async def details(trace_id: PositiveInt):
 
 @router.get('/{trace_id:int}/edit')
 async def edit(trace_id: PositiveInt, user: Annotated[User, web_user()]):
-    with options_context(joinedload(Trace.user)):
-        trace = await TraceQuery.get_one_by_id(trace_id)
+    trace = await TraceQuery.get_one_by_id(trace_id)
     if trace.user_id != user.id:
         # TODO: this could be nicer?
         return Response(None, status.HTTP_403_FORBIDDEN)

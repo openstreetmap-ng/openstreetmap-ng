@@ -31,7 +31,14 @@ async def _get_traces_data(
 ) -> dict:
     user_id = user.id if (user is not None) else None
 
-    with options_context(joinedload(Trace.user)):
+    with options_context(
+        joinedload(Trace.user).load_only(
+            User.id,
+            User.display_name,
+            User.avatar_type,
+            User.avatar_id,
+        )
+    ):
         traces = await TraceQuery.find_many_recent(
             user_id=user_id,
             tag=tag,
