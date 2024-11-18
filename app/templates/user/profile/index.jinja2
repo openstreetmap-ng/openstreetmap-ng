@@ -105,10 +105,12 @@
                 </p>
                 <div class="user-actions mb-2">
                     {% if user is not none and not is_self %}
-                    <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
-                        <i class="bi bi-envelope-plus me-2"></i>
-                        {{- t('action.send_a_message') }}
-                    </a>
+                    <address>
+                        <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
+                            <i class="bi bi-envelope-plus me-2"></i>
+                            {{- t('action.send_a_message') }}
+                        </a>
+                    </address>
                     {% endif %}
                 </div>
             </div>
