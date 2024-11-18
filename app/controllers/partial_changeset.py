@@ -5,6 +5,7 @@ import cython
 from fastapi import APIRouter
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
+from starlette import status
 
 from app.format.element_list import FormatElementList
 from app.lib.auth_context import auth_user
@@ -40,6 +41,7 @@ async def get_changeset(id: PositiveInt):
         return await render_response(
             'partial/not_found.jinja2',
             {'type': 'changeset', 'id': id},
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     prev_changeset_id: int | None = None

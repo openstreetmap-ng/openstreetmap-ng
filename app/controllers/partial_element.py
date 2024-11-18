@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
+from starlette import status
 
 from app.format import FormatLeaflet
 from app.format.element_list import FormatElementList
@@ -42,7 +43,11 @@ async def get_latest(type: ElementType, id: Annotated[ElementId, PositiveInt]):
     element = elements[0] if elements else None
 
     if element is None:
-        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id})
+        return await render_response(
+            'partial/not_found.jinja2',
+            {'type': type, 'id': id},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     # if the element was superseded (very small chance), get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
@@ -73,7 +78,11 @@ async def get_version(
 
     if element is None:
         id_text = f'{id} {t("browse.version").lower()} {version}'
-        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id_text})
+        return await render_response(
+            'partial/not_found.jinja2',
+            {'type': type, 'id': id_text},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     # if the element was superseded, get data just before
     last_sequence_id = await ElementQuery.get_last_visible_sequence_id(element)
@@ -98,7 +107,11 @@ async def get_history(
     current_version = await ElementQuery.get_current_version_by_ref(ref, at_sequence_id=at_sequence_id)
 
     if current_version == 0:
-        return await render_response('partial/not_found.jinja2', {'type': type, 'id': id})
+        return await render_response(
+            'partial/not_found.jinja2',
+            {'type': type, 'id': id},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     page_size = ELEMENT_HISTORY_PAGE_SIZE
     num_pages = (current_version + page_size - 1) // page_size

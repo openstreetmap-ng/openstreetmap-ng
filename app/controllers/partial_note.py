@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from pydantic import PositiveInt
 from shapely import get_coordinates
 from sqlalchemy.orm import joinedload
+from starlette import status
 
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
@@ -29,7 +30,11 @@ async def get_note(id: PositiveInt):
     notes = await NoteQuery.find_many_by_query(note_ids=(id,), limit=1)
     note = notes[0] if notes else None
     if note is None:
-        return await render_response('partial/not_found.jinja2', {'type': 'note', 'id': id})
+        return await render_response(
+            'partial/not_found.jinja2',
+            {'type': 'note', 'id': id},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     async with TaskGroup() as tg:
         tg.create_task(_resolve_comments_task(notes))

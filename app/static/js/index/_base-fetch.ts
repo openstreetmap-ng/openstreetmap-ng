@@ -50,7 +50,7 @@ export const getBaseFetchController = (
                 priority: "high",
             })
                 .then(async (resp) => {
-                    if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`)
+                    if (!resp.ok && resp.status !== 404) throw new Error(`${resp.status} ${resp.statusText}`)
 
                     onSidebarLoaded(await resp.text())
                     successCallback?.(dynamicContent)

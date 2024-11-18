@@ -110,7 +110,11 @@ async def index(
     user = await UserQuery.find_one_by_display_name(display_name)
 
     if user is None:
-        response = await render_response('user/profile/not_found.jinja2', {'name': display_name})
+        response = await render_response(
+            'user/profile/not_found.jinja2',
+            {'name': display_name},
+            status=status.HTTP_404_NOT_FOUND,
+        )
         response.status_code = status.HTTP_404_NOT_FOUND
         return response
 

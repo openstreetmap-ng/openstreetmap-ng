@@ -24,7 +24,12 @@ _config_base = WebConfig(
 _config = urlsafe_b64encode(_config_base.SerializeToString()).decode()
 
 
-async def render_response(template_name: str, template_data: dict[str, Any] | None = None) -> HTMLResponse:
+async def render_response(
+    template_name: str,
+    template_data: dict[str, Any] | None = None,
+    *,
+    status: int = 200,
+) -> HTMLResponse:
     """
     Render the given Jinja2 template with translation, returning an HTMLResponse.
     """
@@ -56,4 +61,4 @@ async def render_response(template_name: str, template_data: dict[str, Any] | No
 
     if template_data is not None:
         data.update(template_data)
-    return HTMLResponse(render(template_name, data))
+    return HTMLResponse(render(template_name, data), status_code=status)
