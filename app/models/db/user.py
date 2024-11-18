@@ -211,7 +211,7 @@ class User(Base.Sequential, CreatedAtMixin, RichTextMixin):
             return Image.get_avatar_url(AvatarType.gravatar, self.id)
         if self.avatar_type == AvatarType.custom:
             if self.avatar_id is None:
-                raise AssertionError('Avatar id must be set')
+                raise AssertionError('avatar_id must be set')
             return Image.get_avatar_url(AvatarType.custom, self.avatar_id)
 
         raise NotImplementedError(f'Unsupported avatar type {self.avatar_type!r}')
