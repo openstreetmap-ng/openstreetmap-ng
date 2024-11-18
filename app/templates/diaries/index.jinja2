@@ -16,7 +16,7 @@
 {% block body %}
 
 <div class="content-header pb-0">
-    <div class="container">
+    <div class="col-6 offset-3">
         <h1>{{ self.heading() }}</h1>
         <p>{{ t('diary.browse_recent_diary_entries') }}</p>
 
@@ -70,7 +70,7 @@
     </div>
 </div>
 <div class="content-body">
-    <div class="container">
+    <div class="col-6 offset-3">
         {% include 'diaries/_list.jinja2' %}
     </div>
 </div>

@@ -30,6 +30,7 @@ from app.models.db.user import User, UserStatus
 from app.models.types import DisplayNameType
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
+from app.queries.diary_query import DiaryQuery
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.trace_query import TraceQuery
@@ -146,17 +147,12 @@ async def index(
     await NoteCommentQuery.resolve_comments(notes, per_note_sort='asc', per_note_limit=1)
 
     traces_count = await TraceQuery.count_by_user_id(user.id)
-    traces = await TraceQuery.find_many_by_user_id(
-        user.id,
-        sort='desc',
-        limit=USER_RECENT_ACTIVITY_ENTRIES,
-    )
+    traces = await TraceQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)
     await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=100, resolution=90)
     traces_lines = ';'.join(encode_lonlat(trace.coords.tolist(), 0) for trace in traces)
 
-    # TODO: diaries
-    diaries_count = 0
-    diaries = ()
+    diaries_count = await DiaryQuery.count_by_user_id(user.id)
+    diaries = await DiaryQuery.find_many_recent(user_id=user.id, limit=USER_RECENT_ACTIVITY_ENTRIES)
 
     # TODO: groups
     groups_count = 0

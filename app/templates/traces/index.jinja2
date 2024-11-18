@@ -25,7 +25,7 @@
 {% block body %}
 
 <div class="content-header pb-0">
-    <div class="container">
+    <div class="col-6 offset-3">
         <h1>{{ self.heading() }}</h1>
         <p>
             {{ t('traces.index.description') }}
@@ -76,7 +76,7 @@
     </div>
 </div>
 <div class="content-body">
-    <div class="container">
+    <div class="col-6 offset-3">
         {% include 'traces/_list.jinja2' %}
     </div>
 </div>

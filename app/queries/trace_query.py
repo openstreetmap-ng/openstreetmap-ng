@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from typing import Literal
 
 from sqlalchemy import func, select, text
 
@@ -47,29 +46,6 @@ class TraceQuery:
         return file_bytes
 
     @staticmethod
-    async def find_many_by_user_id(
-        user_id: int,
-        *,
-        sort: Literal['asc', 'desc'] = 'desc',
-        limit: int | None,
-    ) -> Sequence[Trace]:
-        """
-        Find traces by user id.
-        """
-        async with db() as session:
-            stmt = select(Trace).where(
-                Trace.user_id == user_id,
-                Trace.visible_to(*auth_user_scopes()),
-            )
-            stmt = apply_options_context(stmt)
-            stmt = stmt.order_by(Trace.id.asc() if (sort == 'asc') else Trace.id.desc())
-
-            if limit is not None:
-                stmt = stmt.limit(limit)
-
-            return (await session.scalars(stmt)).all()
-
-    @staticmethod
     async def count_by_user_id(user_id: int) -> int:
         """
         Count traces by user id.
@@ -92,7 +68,7 @@ class TraceQuery:
         tag: str | None = None,
         after: int | None = None,
         before: int | None = None,
-        limit: int,
+        limit: int | None,
     ) -> Sequence[Trace]:
         """
         Find recent traces.
@@ -118,7 +94,10 @@ class TraceQuery:
 
             stmt = stmt.where(*where_and)
             order_desc = (after is None) or (before is not None)
-            stmt = stmt.order_by(Trace.id.desc() if order_desc else Trace.id.asc()).limit(limit)
+            stmt = stmt.order_by(Trace.id.desc() if order_desc else Trace.id.asc())
+
+            if limit is not None:
+                stmt = stmt.limit(limit)
 
             stmt = apply_options_context(stmt)
             rows = (await session.scalars(stmt)).all()

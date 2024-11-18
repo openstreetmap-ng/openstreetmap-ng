@@ -65,7 +65,7 @@ async def get_current_user_traces(
     user: Annotated[User, api_user(Scope.read_gpx)],
 ):
     with options_context(joinedload(Trace.user).load_only(User.display_name)):
-        traces = await TraceQuery.find_many_by_user_id(user.id, limit=None)
+        traces = await TraceQuery.find_many_recent(user_id=user.id, limit=None)
     await TraceSegmentQuery.resolve_coords(traces, limit_per_trace=1, resolution=None)
     return Format06.encode_gpx_files(traces)
 
