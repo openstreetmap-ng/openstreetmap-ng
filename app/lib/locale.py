@@ -33,6 +33,7 @@ _non_alpha_re = re.compile(r'[^a-z]+')
 def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]:
     i18next_map: dict[LocaleCode, str] = orjson.loads(Path('config/locale/i18next/map.json').read_bytes())
     locales_codes_normalized_map = {_normalize(k): k for k in i18next_map}
+    # TODO: use osm language data
     raw_names: list[dict[str, str]] = orjson.loads(Path('config/locale/names.json').read_bytes())
     locale_names_map: dict[LocaleCode, LocaleName] = {}
 

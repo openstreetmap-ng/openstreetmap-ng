@@ -1,16 +1,16 @@
 {% extends '_base.jinja2' %}
-{% block title_prefix %}{{ t('user.not_found') }} | {% endblock %}
+{% block title_prefix %}{{ t('diary.not_found') }} | {% endblock %}
 {% block body %}
 
 <div class="content-header">
     <h1 class="col-6 offset-3">
-        {{ t('user.not_found') }}
+        {{ t('diary.not_found') }}
     </h1>
 </div>
 <div class="content-body">
     <div class="col-6 offset-3">
         <p>
-            {{ t('users.no_such_user.body', user=name) }}
+            {{ t('diary_entries.no_such_entry.body', id=diary_id) }}
         </p>
     </div>
 </div>

@@ -59,6 +59,10 @@ trace:
 diary:
   count_one: "diary"
   count_other: "diaries"
+  all_diaries: All Diaries
+  only_in_language: "Only in {{language}}"
+  browse_recent_diary_entries: Browse recent diary entries
+  not_found: Diary not found
 comment:
   count_one: "comment"
   count_other: "comments"
@@ -290,6 +294,7 @@ alt:
   map_layers_art: Artistic presentation of map layers
   happy_globe_mascot: A globe mascot with a big smile
   arm_pointing_down: An arm pointing down
+  diaries_page_navigation: Diaries page navigation
   elements_page_navigation: Elements page navigation
   messages_page_navigation: Messages page navigation
   traces_page_navigation: Traces page navigation
@@ -358,7 +363,6 @@ action:
   unhide: Unhide
   unblock_user: Unblock user
   unfollow_user: Unfollow user
-  upload: Upload
   uploaded: uploaded
   reactivated: reactivated
   remember_my_choice: Remember my choice

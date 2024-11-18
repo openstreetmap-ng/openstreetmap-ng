@@ -52,10 +52,9 @@
                 </a>
             </li>
             {% endif %}
-            {% if (profile is not none) and (user is none or user.id != profile.id) %}
+            {% if active_tab == 2 %}
             <li class="nav-item">
-                <a href="/user/{{ profile.display_name }}/traces" {% if active_tab == 2 %} class="nav-link active"
-                    aria-current="page" {% else %} class="nav-link" {% endif %}>
+                <a href="/user/{{ profile.display_name }}/traces" class="nav-link active" aria-current="page">
                     {{ t('traces.index.public_traces_from', user=profile.display_name) }}
                 </a>
             </li>
@@ -63,7 +62,7 @@
             <li class="nav-item ms-auto">
                 {% if user is not none %}
                 <a class="btn btn-light border" href="/trace/upload">
-                    <i class="bi bi-cloud-arrow-up me-2"></i>
+                    <i class="bi bi-pin-map me-2"></i>
                     {{- t('traces.index.upload_trace') }}
                 </a>
                 {% endif %}
