@@ -59,17 +59,19 @@
                     </span>
                 </p>
             </div>
+            {% if user is not none %}
             <div class="col-auto">
                 <div class="btn-group" role="group">
                     <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
                         <i class="bi bi-pencil fs-5"></i>
-                        <span>{{ t('traces.trace.edit_map') }}</span>
+                        <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
                     </a>
                 </div>
             </div>
+            {% endif %}
         </div>
 
-        <div class="text-end">
+        <div class="text-end me-1">
             {% if (user is not none) and trace.user_id == user.id %}
             <a class="btn btn-light border" href="/trace/{{ trace.id }}/edit">
                 {{ t('layouts.edit') }}
@@ -77,7 +79,7 @@
             {% endif %}
             {# intentionally without API_URL, to not require user authorization #}
             <a class="btn btn-primary px-3" href="/api/0.6/gpx/{{ trace.id }}/data.gpx">
-                {{ t('javascripts.share.download') }}
+                {{ t('action.download_as') }} <b>GPX</b>
             </a>
         </div>
 

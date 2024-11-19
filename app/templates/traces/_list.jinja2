@@ -49,14 +49,16 @@
                 </p>
             </div>
         </div>
+        {% if user is not none %}
         <div class="col-auto">
             <div class="btn-group" role="group">
                 <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
                     <i class="bi bi-pencil fs-5"></i>
-                    <span>{{ t('traces.trace.edit_map') }}</span>
+                    <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
                 </a>
             </div>
         </div>
+        {% endif %}
     </li>
     {% endfor %}
 </ul>

@@ -370,6 +370,8 @@ action:
   follow_user: Follow user
   save: Save
   save_as: Save as
+  download: Download
+  download_as: Download as
   comment: Comment
   commented: commented
   deleted: deleted
