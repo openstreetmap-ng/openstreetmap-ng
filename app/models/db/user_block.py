@@ -11,11 +11,10 @@ from app.lib.rich_text import RichTextMixin, TextFormat
 from app.limits import USER_BLOCK_BODY_MAX_LENGTH
 from app.models.db.base import Base
 from app.models.db.created_at_mixin import CreatedAtMixin
-from app.models.db.updated_at_mixin import UpdatedAtMixin
 from app.models.db.user import User
 
 
-class UserBlock(Base.Sequential, CreatedAtMixin, UpdatedAtMixin, RichTextMixin):
+class UserBlock(Base.Sequential, CreatedAtMixin, RichTextMixin):
     __tablename__ = 'user_block'
     __rich_text_fields__ = (('body', TextFormat.markdown),)
 

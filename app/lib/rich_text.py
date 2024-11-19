@@ -123,7 +123,7 @@ async def _resolve_rich_text_task(self, field_name: str, text_format: TextFormat
             stmt = (
                 update(cls)
                 .where(
-                    cls.id == self.id,  # pyright: ignore[reportAttributeAccessIssue]
+                    cls.id == self.id,
                     getattr(cls, rich_hash_field_name) == text_rich_hash,
                 )
                 .values({rich_hash_field_name: cache_entry_id})
