@@ -23,7 +23,7 @@ export const configureStandardForm = (
         form: HTMLFormElement,
     ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null,
     errorCallback?: (error: Error) => void,
-    options?: { formAppend?: boolean; abortSignal?: boolean },
+    options?: { formAppend?: boolean; abortSignal?: boolean; removeEmptyFields?: boolean },
 ): void => {
     console.debug("Initializing standard form", form.action)
     const submitElements = form.querySelectorAll("[type=submit]") as NodeListOf<HTMLInputElement | HTMLButtonElement>
@@ -246,10 +246,18 @@ export const configureStandardForm = (
         if (method === "POST") {
             url = form.action
             body = new FormData(form)
+            if (options?.removeEmptyFields) {
+                for (const [key, value] of [...body.entries()]) {
+                    const valueString = value.toString()
+                    if (!valueString) body.delete(key)
+                }
+            }
         } else if (method === "GET") {
             const params = new URLSearchParams()
             for (const [key, value] of new FormData(form).entries()) {
-                params.append(key, value.toString())
+                const valueString = value.toString()
+                if (options?.removeEmptyFields && !valueString) continue
+                params.append(key, valueString)
             }
             url = `${form.action}?${params}`
         } else {
