@@ -35,7 +35,7 @@
                         <p class="header text-muted d-flex justify-content-between">
                             <span>
                                 {{ t('browse.created') }}
-                                {{ timeago(note.created_at, html=True) | safe }}
+                                <time datetime="{{ note.created_at.isoformat() }}" data-style="long"></time>
                             </span>
                             <a class="stretched-link" href="/note/{{ note.id }}">{{ note.id }}</a>
                         </p>

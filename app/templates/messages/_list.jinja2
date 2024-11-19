@@ -12,7 +12,7 @@
                     {{- message.from_user.display_name -}}
                 </a>
                 {{ t('messages.action_sent') }}
-                {{ timeago(message.created_at, html=True) | safe }}
+                <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
             </span>
             {% else %}
             <span>
@@ -22,7 +22,7 @@
                     {{- message.to_user.display_name -}}
                 </a>
                 {{ t('messages.action_delivered') }}
-                {{ timeago(message.created_at, html=True) | safe }}
+                <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
             </span>
             {% endif %}
             <span>
@@ -42,5 +42,5 @@
 </ul>
 {% include 'messages/_list_nav.jinja2' %}
 {% else %}
-<p>{{ t('traces.index.empty_title') }}</p>
+<h3>{{ t('traces.index.empty_title') }}</h3>
 {% endif %}

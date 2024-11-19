@@ -83,10 +83,11 @@
                 </h6>
                 <p class="form-text mb-0">
                     {% set date %}
-                    {{ format_rfc2822_date(session.authorized_at) }}
-                    ({{ session.authorized_at | timeago }})
+                    <time class="fw-medium" datetime="{{ session.authorized_at.isoformat() }}" data-date="long"
+                        data-time="short"></time>
+                    (<time datetime="{{ session.authorized_at.isoformat() }}" data-style="long"></time>)
                     {% endset %}
-                    {{ t('settings.authorized_at', date=date) }}
+                    {{ t('settings.authorized_at', date=date) | safe }}
                 </p>
             </div>
             <div class="col-auto align-self-center">

@@ -16,7 +16,7 @@
                             {{- trace.user.display_name -}}
                         </a>
                         {{ t('action.uploaded') }}
-                        {{ timeago(trace.created_at, html=True) | safe }}
+                        <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
                         &mdash;
                         (<a class="stretched-link" href="/trace/{{ trace.id }}">
                             {{- trace.name -}}

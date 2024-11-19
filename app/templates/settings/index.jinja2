@@ -27,8 +27,9 @@
     <label class="form-label d-block mb-3">
         {{ t('settings.password_last_changed') }}
         <div class="input-group mt-2">
-            <input type="text" class="form-control bg-body-tertiary" value="{{ user.password_changed_at | timeago }}"
-                readonly>
+            <div class="form-control bg-body-tertiary">
+                <time datetime="{{ user.password_changed_at.isoformat() }}" data-style="long"></time>
+            </div>
             <a class="btn btn-light border" href="/settings/security">
                 {{ t('settings.change_password') }}
             </a>

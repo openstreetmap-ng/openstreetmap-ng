@@ -19,7 +19,7 @@
                         <p class="header text-muted d-flex justify-content-between">
                             <span>
                                 {{ t('action.uploaded') | title }}
-                                {{ timeago(trace.created_at, html=True) | safe }}
+                                <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
                             </span>
                             <a class="stretched-link" href="/trace/{{ trace.id }}">{{ trace.id }}</a>
                         </p>

@@ -119,6 +119,5 @@ _j2.globals.update(
 
 # configure template filters
 _j2.filters.update(
-    timeago=timeago,
     stripspecial=stripspecial,
 )

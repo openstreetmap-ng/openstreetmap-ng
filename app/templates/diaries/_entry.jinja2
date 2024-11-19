@@ -39,7 +39,7 @@
                 <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
                 {% set _lon = diary.point.x %}
                 {% set _lat = diary.point.y %}
-                {% set _title = _lat ~ '; ' ~ _lon %}
+                {% set _title = _lat ~ ', ' ~ _lon %}
                 <a href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14" target="_blank">
                     {% if diary.location_name %}
                     <abbr title="{{ _title }}">{{ diary.location_name }}</abbr>

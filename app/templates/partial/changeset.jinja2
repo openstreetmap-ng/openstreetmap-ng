@@ -25,10 +25,10 @@
                     {% endif %}
                     {% if changeset.closed_at is none %}
                     {{ t('browse.created') | lower }}
-                    {{ timeago(changeset.created_at, html=True) | safe }}
+                    <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
                     {% else %}
                     {{ t('browse.closed') | lower }}
-                    {{ timeago(changeset.closed_at, html=True) | safe }}
+                    <time datetime="{{ changeset.closed_at.isoformat() }}" data-style="long"></time>
                     {% endif %}
                 </span>
                 {% if changeset.closed_at is none %}
@@ -106,7 +106,7 @@
                         {{- comment.user.display_name -}}
                     </a>
                     {{ t('action.commented') }}
-                    {{ timeago(comment.created_at, html=True) | safe }}
+                    <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
                 </p>
                 <div class="body">{{ comment.body_rich | safe }}</div>
             </li>

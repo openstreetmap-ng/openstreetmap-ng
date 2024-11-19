@@ -36,7 +36,7 @@
                     </a>
                     {% endif %}
                     {{ t('browse.created') | lower }}
-                    {{ timeago(header.created_at, html=True) | safe }}
+                    <time datetime="{{ header.created_at.isoformat() }}" data-style="long"></time>
                 </span>
             </p>
             <div class="body">
@@ -99,7 +99,7 @@
                     {% elif event == 'hidden' %}
                     {{ t('action.hid') }}
                     {% endif %}
-                    {{ timeago(comment.created_at, html=True) | safe }}
+                    <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
                 </p>
                 {% if comment.body_rich %}
                 <div class="body pre">{{ comment.body_rich | safe }}</div>

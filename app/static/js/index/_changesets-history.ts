@@ -1,6 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import i18next from "i18next"
 import * as L from "leaflet"
+import { resolveDatetime } from "../_datetime"
 import { qsEncode } from "../_qs"
 import { getPageTitle } from "../_title"
 import type { Bounds } from "../_types"
@@ -100,6 +101,7 @@ export const getChangesetsHistoryController = (map: L.Map): IndexController => {
         }
         entryContainer.innerHTML = ""
         entryContainer.appendChild(fragment)
+        resolveDatetime(entryContainer)
     }
 
     const updateLayers = () => {

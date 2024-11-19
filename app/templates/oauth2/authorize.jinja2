@@ -81,7 +81,10 @@
                             {% endset %}
                             {{ t('settings.owned_by_user', name=owner_link) | safe }}
                             ·
-                            {{ t('browse.created_ago_html', time_ago=timeago(app.created_at, html=True)) | safe }}
+                            {% set time_ago -%}
+                            <time datetime="{{ app.created_at.isoformat() }}" data-style="long"></time>
+                            {%- endset %}
+                            {{ t('browse.created_ago_html', time_ago=time_ago) | safe }}
                         </ul>
                     </div>
                 </div>

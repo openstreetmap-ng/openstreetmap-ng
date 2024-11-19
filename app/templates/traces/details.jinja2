@@ -23,7 +23,7 @@
                             {{- trace.user.display_name -}}
                         </a>
                         {{ t('action.uploaded') }}
-                        {{ timeago(trace.created_at, html=True) | safe }}
+                        <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
                     </span>
                     <span>
                         <span class="badge text-bg-secondary">

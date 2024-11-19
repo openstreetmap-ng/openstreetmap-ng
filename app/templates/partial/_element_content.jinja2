@@ -15,7 +15,7 @@
             {% else %}
             {{ t('action.deleted') }}
             {% endif %}
-            {{ timeago(element.created_at, html=True) | safe }}
+            <time datetime="{{ element.created_at.isoformat() }}" data-style="long"></time>
         </span>
         {% if not element.visible %}
         <span>

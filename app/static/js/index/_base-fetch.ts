@@ -1,4 +1,5 @@
 import type * as L from "leaflet"
+import { resolveDatetime } from "../_datetime"
 import { configureActionSidebar, getActionSidebar, switchActionSidebar } from "./_action-sidebar"
 
 export interface BaseFetchController {
@@ -28,6 +29,7 @@ export const getBaseFetchController = (
     /** On sidebar loaded, display content and call callback */
     const onSidebarLoaded = (html: string): void => {
         dynamicContent.innerHTML = html
+        resolveDatetime(dynamicContent)
         configureActionSidebar(sidebar)
     }
 

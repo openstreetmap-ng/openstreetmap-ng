@@ -2,7 +2,6 @@ from collections.abc import Iterable
 
 import cython
 
-from app.lib.jinja_env import timeago
 from app.models.db.changeset import Changeset
 from app.models.proto.shared_pb2 import RenderChangesetsData, SharedBounds
 
@@ -41,12 +40,14 @@ def _encode_changeset(changeset: Changeset):
             max_lon=bounds[2],
             max_lat=bounds[3],
         )
+    timeago_date = changeset.closed_at if (changeset.closed_at is not None) else changeset.created_at
+    timeago_html = f'<time datetime="{timeago_date.isoformat()}" data-style="long"></time>'
     return RenderChangesetsData.Changeset(
         id=changeset.id,
         user=params_user,
         bounds=params_bounds,
         closed=changeset.closed_at is not None,
-        timeago=timeago(changeset.closed_at if (changeset.closed_at is not None) else changeset.created_at, html=True),
+        timeago=timeago_html,
         comment=changeset.tags.get('comment'),
         num_comments=num_comments,
     )

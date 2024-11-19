@@ -13,14 +13,16 @@
                     <p class="form-text mb-0">
                         {% if token.authorized_at is not none %}
                         {% set date %}
-                        <span class="date-emphasis">{{ format_rfc2822_date(token.authorized_at) }}</span>
-                        ({{ token.authorized_at | timeago }})
+                        <time class="fw-medium" datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
+                            data-time="short"></time>
+                        (<time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>)
                         {% endset %}
                         {{ t('settings.updated_at', date=date) | safe }}
                         {% else %}
                         {% set date %}
-                        <span class="date-emphasis">{{ format_rfc2822_date(token.created_at) }}</span>
-                        ({{ token.created_at | timeago }})
+                        <time class="fw-medium" datetime="{{ token.created_at.isoformat() }}" data-date="long"
+                            data-time="short"></time>
+                        (<time datetime="{{ token.created_at.isoformat() }}" data-style="long"></time>)
                         {% endset %}
                         {{ t('settings.created_at', date=date) | safe }}
                         {% endif %}

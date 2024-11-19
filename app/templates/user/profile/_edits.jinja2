@@ -27,7 +27,7 @@
                 <p class="header text-muted d-flex justify-content-between">
                     <span>
                         {{ t('browse.created') }}
-                        {{ timeago(changeset.created_at, html=True) | safe }}
+                        <time datetime="{{ changeset.created_at.isoformat() }}" data-style="long"></time>
                     </span>
                     <a class="stretched-link" href="/changeset/{{ changeset.id }}">{{ changeset.id }}</a>
                 </p>
