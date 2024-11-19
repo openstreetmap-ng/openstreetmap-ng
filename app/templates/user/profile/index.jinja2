@@ -99,9 +99,7 @@
                 </h1>
                 <p class="mapper-since mb-2">
                     {{ t('users.show.mapper since') | title }}
-                    <time datetime="{{ profile.created_at.strftime('%Y-%m-%d') }}"></time>
-                    {{ format_short_date(profile.created_at) }}
-                    </time>
+                    <time datetime="{{ profile.created_at.date().isoformat() }}" data-date="long"></time>
                 </p>
                 <div class="user-actions mb-2">
                     {% if user is not none and not is_self %}

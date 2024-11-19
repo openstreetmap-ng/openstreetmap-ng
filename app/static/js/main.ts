@@ -1,5 +1,6 @@
 import "./_tracking"
 
+import "./_datetime"
 import "./_i18n"
 
 import "./_fixthemap"
@@ -33,5 +34,4 @@ if (mapContainer) configureMainMap(mapContainer)
 
 import "./_bootstrap"
 import "./_copy-group"
-import "./_datetime"
 import "./_rich-text"

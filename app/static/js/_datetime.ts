@@ -22,8 +22,8 @@ export const resolveDatetime = (elements: NodeListOf<HTMLTimeElement>): void => 
                 timeStyle: timeStyle,
             }).format(date)
             element.title = Intl.DateTimeFormat(undefined, {
-                dateStyle: "long",
-                timeStyle: "long",
+                dateStyle: dateStyle ? "long" : undefined,
+                timeStyle: timeStyle ? "long" : undefined,
             }).format(date)
         }
     }
