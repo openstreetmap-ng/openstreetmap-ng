@@ -6,7 +6,6 @@ from pydantic import PositiveInt
 from sqlalchemy.orm import joinedload
 
 from app.lib.auth_context import web_user
-from app.lib.date_utils import format_rfc2822_date
 from app.lib.options_context import options_context
 from app.limits import DISPLAY_NAME_MAX_LENGTH, MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
 from app.models.db.message import Message
@@ -59,10 +58,11 @@ async def read_message(
         if not message.is_read:
             tg.create_task(MessageService.set_state(message_id, is_read=True))
     other_user = message.from_user if message.to_user_id == user.id else message.to_user
+    time_html = f'<time datetime="{message.created_at.isoformat()}" data-date="long" data-time="short"></time>'
     return {
         'user_display_name': other_user.display_name,
         'user_avatar_url': other_user.avatar_url,
-        'time': format_rfc2822_date(message.created_at),
+        'time': time_html,
         'subject': message.subject,
         'body_rich': message.body_rich,
     }
