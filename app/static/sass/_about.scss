@@ -1,3 +1,5 @@
+$_icon-color: $gray-400;
+
 .about-body {
     // Style the about section header
     .content-header {
@@ -45,43 +47,54 @@
         }
     }
 
-    // The sprite usage is deprecated.
-    // New icons should be kept separate for ease of maintenance.
-    // TODO: Split the sprite into separate files.
-    @mixin legacy-about-icon($x, $y) {
+    .header-body {
+        h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.25em;
+        }
+    }
+
+    i.bi {
         display: inline-block;
-        width: 30px;
-        height: 30px;
-        background: url("/static/img/about/sprite.webp");
-        background-position: $x $y;
+        text-align: center;
+        align-content: center;
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.55em;
+
+        border-radius: 100%;
+        border: 4px solid $_icon-color;
+        color: $_icon-color;
+
+        &.bi-heart-fill::before {
+            position: relative;
+            top: 1px;
+            font-size: 0.9em;
+        }
     }
 
-    .icon {
-        position: relative;
-        top: 5px;
-    }
+    .icon-symbol {
+        display: inline-block;
+        text-align: center;
+        align-content: center;
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.7em;
+        font-weight: bold;
 
-    .icon.local {
-        @include legacy-about-icon(0, 0);
-    }
+        border-radius: 100%;
+        border: 4px solid $_icon-color;
+        color: $_icon-color;
 
-    .icon.community {
-        @include legacy-about-icon(0, -40px);
-    }
-
-    .icon.open {
-        @include legacy-about-icon(0, -80px);
-    }
-
-    .icon.partners {
-        @include legacy-about-icon(0, -120px);
-    }
-
-    .icon.infringement {
-        @include legacy-about-icon(0, -160px);
-    }
-
-    .icon.legal {
-        @include legacy-about-icon(-45px, -160px);
+        &.copyright::before {
+            position: relative;
+            top: -0.5px;
+            left: -1px;
+            content: "C";
+        }
+        &.section::before {
+            content: "§";
+        }
     }
 }
