@@ -1,5 +1,6 @@
 {% extends '_base.jinja2' %}
 {% block title_prefix %}{{ t('layouts.communities') }} | {% endblock %}
+{% block body_class %}communities-body{% endblock %}
 {% block body %}
 
 <div class="content-header">
@@ -17,7 +18,8 @@
         <ul>
             {% for id, url in local_chapters %}
             <li>
-                <a href="{{ url }}" title="{{ t('osm_community_index.communities.' ~ id ~ '.description') }}">
+                <a href="{{ url }}" rel="noopener"
+                    title="{{ t('osm_community_index.communities.' ~ id ~ '.description') }}">
                     {{ t('osm_community_index.communities.' ~ id ~ '.name') }}
                 </a>
             </li>
