@@ -32,4 +32,5 @@ if (mapContainer) configureMainMap(mapContainer)
 
 import "./_bootstrap"
 import "./_copy-group"
+import "./_datetime"
 import "./_rich-text"
