@@ -1,10 +1,16 @@
+{% set cc_by_30_link %}
+<a href="https://creativecommons.org/licenses/by/3.0/" rel="noopener">CC BY 3.0</a>
+{%- endset %}
+{% set cc_by_40_link %}
+<a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>
+{%- endset %}
 <div class="content-body">
     <div class="container">
         <p>
             {% set registered_trademark_link %}<a href="#trademarks"><sup>®</sup></a>{% endset %}
             {% set open_data %}<i>{{ t('site.copyright.legal_babble.introduction_1_open_data') }}</i>{% endset %}
             {% set odc_odbl_link %}
-            <a href="https://opendatacommons.org/licenses/odbl/">
+            <a href="https://opendatacommons.org/licenses/odbl/" rel="noopener">
                 {{ t('site.copyright.legal_babble.introduction_1_odc_odbl') -}}
             </a>
             {%- endset %}
@@ -23,7 +29,7 @@
         </p>
         <p>
             {% set legal_code_link %}
-            <a href="https://opendatacommons.org/licenses/odbl/1-0/">
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" rel="noopener">
                 {{ t('site.copyright.legal_babble.introduction_2_legal_code') -}}
             </a>
             {%- endset %}
@@ -34,7 +40,7 @@
         </p>
         <p>
             {% set creative_commons_link %}
-            <a href="https://creativecommons.org/licenses/by-sa/2.0/">
+            <a href="https://creativecommons.org/licenses/by-sa/2.0/" rel="noopener">
                 {{ t('site.copyright.legal_babble.introduction_3_creative_commons') -}}
             </a>
             {%- endset %}
@@ -118,20 +124,17 @@
             <li>
                 {% set austria %}<b>{{ t('site.copyright.legal_babble.contributors_at_austria') }}</b>{% endset %}
                 {% set stadt_wien_link %}
-                <a href="https://www.data.gv.at/auftritte/?organisation=stadt-wien">
+                <a href="https://www.data.gv.at/auftritte/?organisation=stadt-wien" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_at_stadt_wien') -}}
                 </a>
                 {%- endset %}
-                {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>
-                {%- endset %}
                 {% set land_vorarlberg_link %}
-                <a href="https://vorarlberg.at/-/digitale-katastralmappe-dkm">
+                <a href="https://vorarlberg.at/-/digitale-katastralmappe-dkm" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_at_land_vorarlberg') -}}
                 </a>
                 {%- endset %}
                 {% set cc_by_at_with_amendments_link %}
-                <a href="https://www.tirol.gv.at/data/nutzungsbedingungen/">
+                <a href="https://www.tirol.gv.at/data/nutzungsbedingungen/" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_at_cc_by_at_with_amendments') -}}
                 </a>
                 {%- endset %}
@@ -139,7 +142,7 @@
                     'site.copyright.legal_babble.contributors_at_credit_html',
                     austria=austria,
                     stadt_wien_link=stadt_wien_link,
-                    cc_by_link=cc_by_link,
+                    cc_by_link=cc_by_30_link,
                     land_vorarlberg_link=land_vorarlberg_link,
                     cc_by_at_with_amendments_link=cc_by_at_with_amendments_link,
                 ) | safe }}
@@ -148,18 +151,15 @@
             <li>
                 {% set australia %}<b>{{ t('site.copyright.legal_babble.contributors_au_australia') }}</b>{% endset %}
                 {% set geoscape_australia_link %}
-                <a href="https://geoscape.com.au/legal/data-copyright-and-disclaimer/">
+                <a href="https://geoscape.com.au/legal/data-copyright-and-disclaimer/" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_au_geoscape_australia') -}}
                 </a>
-                {%- endset %}
-                {% set cc_licence_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
                 {%- endset %}
                 {{ t(
                     'site.copyright.legal_babble.contributors_au_credit_html',
                     australia=australia,
                     geoscape_australia_link=geoscape_australia_link,
-                    cc_licence_link=cc_licence_link,
+                    cc_licence_link=cc_by_40_link,
                 ) | safe }}
             </li>
 
@@ -170,20 +170,17 @@
 
             <li>
                 {% set czechia %}<b>{{ t('site.copyright.legal_babble.contributors_cz_czechia') }}</b>{% endset %}
-                {% set cc_licence_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-                {%- endset %}
                 {{ t(
                     'site.copyright.legal_babble.contributors_cz_credit_html',
                     czechia=czechia,
-                    cc_licence_link=cc_licence_link,
+                    cc_licence_link=cc_by_40_link,
                 ) | safe }}
             </li>
 
             <li>
                 {% set finland %}<b>{{ t('site.copyright.legal_babble.contributors_fi_finland') }}</b>{% endset %}
                 {% set nlsfi_license_link %}
-                <a href="https://www.maanmittauslaitos.fi/en/opendata-licence-version1">
+                <a href="https://www.maanmittauslaitos.fi/en/opendata-licence-version1" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_fi_nlsfi_license') -}}
                 </a>
                 {%- endset %}
@@ -201,7 +198,7 @@
 
             <li>
                 {% set netherlands %}<b>{{ t('site.copyright.legal_babble.contributors_nl_netherlands') }}</b>{% endset %}
-                {% set and_link %}<a href="https://www.and.com/">www.and.com</a>{% endset %}
+                {% set and_link %}<a href="https://www.and.com/" rel="noopener">www.and.com</a>{% endset %}
                 {{ t(
                     'site.copyright.legal_babble.contributors_nl_credit_html',
                     netherlands=netherlands,
@@ -212,30 +209,27 @@
             <li>
                 {% set new_zealand %}<b>{{ t('site.copyright.legal_babble.contributors_nz_new_zealand') }}</b>{% endset %}
                 {% set linz_data_service_link %}
-                <a href="https://data.linz.govt.nz/">
+                <a href="https://data.linz.govt.nz/" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_nz_linz_data_service') -}}
                 </a>
-                {%- endset %}
-                {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
                 {%- endset %}
                 {{ t(
                     'site.copyright.legal_babble.contributors_nz_credit_html',
                     new_zealand=new_zealand,
                     linz_data_service_link=linz_data_service_link,
-                    cc_by_link=cc_by_link,
+                    cc_by_link=cc_by_40_link,
                 ) | safe }}
             </li>
 
             <li>
                 {% set serbia %}<b>{{ t('site.copyright.legal_babble.contributors_rs_serbia') }}</b>{% endset %}
                 {% set rgz_link %}
-                <a href="https://web.archive.org/web/20220528220349/https://geosrbija.rs/">
+                <a href="https://web.archive.org/web/20220528220349/https://geosrbija.rs/" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_rs_rgz') -}}
                 </a>
                 {%- endset %}
                 {% set open_data_portal %}
-                <a href="https://data.gov.rs/sr/">
+                <a href="https://data.gov.rs/sr/" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_rs_open_data_portal') -}}
                 </a>
                 {%- endset %}
@@ -250,13 +244,14 @@
             <li>
                 {% set slovenia %}<b>{{ t('site.copyright.legal_babble.contributors_si_slovenia') }}</b>{% endset %}
                 {% set gu_link %}
-                <a
-                    href="https://www.gov.si/en/state-authorities/bodies-within-ministries/surveying-and-mapping-authority/">
+                <a href="https://www.gov.si/en/state-authorities/bodies-within-ministries/surveying-and-mapping-authority/"
+                    rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_si_gu') -}}
                 </a>
                 {%- endset %}
                 {% set mkgp_link %}
-                <a href="https://www.gov.si/en/state-authorities/ministries/ministry-of-agriculture-forestry-and-food/">
+                <a href="https://www.gov.si/en/state-authorities/ministries/ministry-of-agriculture-forestry-and-food/"
+                    rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_si_mkgp') -}}
                 </a>
                 {%- endset %}
@@ -271,31 +266,28 @@
             <li>
                 {% set spain %}<b>{{ t('site.copyright.legal_babble.contributors_es_spain') }}</b>{% endset %}
                 {% set ign_link -%}
-                <a href="https://www.ign.es">
+                <a href="https://www.ign.es" rel="noopener">
                     {{- t('site.copyright.legal_babble.contributors_es_ign') -}}
                 </a>
                 {%- endset %}
                 {% set scne_link -%}
-                <a href="https://www.scne.es">
+                <a href="https://www.scne.es" rel="noopener">
                     {{- t('site.copyright.legal_babble.contributors_es_scne') -}}
                 </a>
-                {%- endset %}
-                {% set cc_by_link %}
-                <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
                 {%- endset %}
                 {{ t(
                     'site.copyright.legal_babble.contributors_es_credit_html',
                     spain=spain,
                     ign_link=ign_link,
                     scne_link=scne_link,
-                    cc_by_link=cc_by_link,
+                    cc_by_link=cc_by_40_link,
                 ) | safe }}
             </li>
 
             <li>
                 {% set south_africa %}<b>{{ t('site.copyright.legal_babble.contributors_za_south_africa') }}</b>{% endset %}
                 {% set ngi_link %}
-                <a href="https://ngi.dalrrd.gov.za">
+                <a href="https://ngi.dalrrd.gov.za" rel="noopener">
                     {{ t('site.copyright.legal_babble.contributors_za_ngi') -}}
                 </a>
                 {%- endset %}
@@ -345,7 +337,7 @@
             ) | safe }}
         </p>
 
-        <h3>{{ t('site.copyright.legal_babble.trademarks_title') }}</h3>
+        <h3 id="trademarks">{{ t('site.copyright.legal_babble.trademarks_title') }}</h3>
         <p>
             {% set trademark_policy_link %}
             <a href="https://osmfoundation.org/wiki/Trademark_Policy">
